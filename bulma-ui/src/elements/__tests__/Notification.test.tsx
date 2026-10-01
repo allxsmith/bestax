@@ -318,6 +318,22 @@ describe('Notification Programmatic API', () => {
       expect(region.querySelector('strong')).toBeNull();
     });
 
+    it("announces an image's alt, and leaves out what's hidden from screen readers", () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.success(
+          <>
+            <span aria-hidden="true">✓</span>
+            <img src="done.png" alt="Upload complete" />
+          </>,
+          { duration: 0 }
+        );
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toHaveTextContent(/^Upload complete$/);
+    });
+
     it('announces each polite notification once, through the region alone', () => {
       render(<NotificationContainer />);
       act(() => {
@@ -335,13 +351,20 @@ describe('Notification Programmatic API', () => {
       expect(shown).not.toHaveAttribute('role');
       expect(shown.querySelector('[role], [aria-live]')).toBeNull();
       expect(screen.getByRole('status').children).toHaveLength(1);
+      const first = screen.getByRole('status').firstElementChild;
 
-      // A later notification is announced on its own.
+      // A later notification is added as a node of its own, and the first one
+      // stays as it was for the rest of its time in the region.
       act(() => {
         notification.info('Next', { duration: 0 });
       });
       waitForAnnouncements();
-      expect(screen.getByRole('status')).toHaveTextContent(/^Next$/);
+      const status = screen.getByRole('status');
+      expect(Array.from(status.children, el => el.textContent)).toEqual([
+        'Once',
+        'Next',
+      ]);
+      expect(status.firstElementChild).toBe(first);
     });
 
     it('clears an announcement after a moment, leaving the notification', () => {
@@ -430,6 +453,7 @@ describe('Notification Programmatic API', () => {
         position: 'absolute',
         width: '1px',
         height: '1px',
+        margin: '-1px',
         overflow: 'hidden',
         clip: 'rect(0px, 0px, 0px, 0px)',
         'clip-path': 'inset(50%)',
@@ -1103,7 +1127,7 @@ describe('NotificationContainer with notifications shown at their own position',
         '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span>One</span></div>' +
         '<div class="notification" style="pointer-events: auto;"><button class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
         '</div>',
-      '<div role="status" aria-live="polite" style="position: absolute; width: 1px; height: 1px; margin: 0px; padding: 0px; border: 0px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap;"></div>',
+      '<div role="status" aria-live="polite" aria-atomic="false" style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap; border: 0px;"></div>',
     ]);
   });
 

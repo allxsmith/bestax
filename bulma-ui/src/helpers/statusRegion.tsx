@@ -11,6 +11,14 @@ interface Announcement {
 }
 
 /**
+ * An announcement in the region.
+ */
+interface WrittenAnnouncement extends Announcement {
+  /** The batch it was written with, which is what its clear removes. */
+  batch: number;
+}
+
+/**
  * How long after an item appears its announcement is written, in ms. The wait
  * lets a screen reader register a region the container has only just mounted,
  * and items shown in quick succession are written, and read out, together.
@@ -27,47 +35,54 @@ export const announceDelay = 100;
 export const announcementLifetime = 1000;
 
 /**
- * The announcements for the items that appeared most recently.
+ * What the region says, and what it's about to say.
  */
-interface Batch {
-  /** Changes whenever new announcements join, which restarts the timers. */
+interface Announcements {
+  /**
+   * Changes whenever announcements join the wait, which restarts it. It also
+   * names the batch they're written with.
+   */
   key: number;
-  /** What to announce, in the order the items were shown. */
-  announcements: Announcement[];
-  /** Whether the announcements are in the region yet. */
-  written: boolean;
+  /** Waiting to be written, in the order their items were shown. */
+  waiting: Announcement[];
+  /** In the region, in the order they were written. */
+  written: WrittenAnnouncement[];
 }
 
 const noAnnouncements: Announcement[] = [];
-const noBatch: Batch = {
+const nothingWritten: WrittenAnnouncement[] = [];
+const noAnnouncementsYet: Announcements = {
   key: 0,
-  announcements: noAnnouncements,
-  written: false,
+  waiting: noAnnouncements,
+  written: nothingWritten,
 };
 
 // Hides the region with inline styles rather than a class, so it needs no
 // stylesheet, including the helper classes a modular Bulma build can leave
 // out. Clipping it, rather than using `display` or `visibility`, keeps it in
-// the accessibility tree.
+// the accessibility tree. The declarations match the `extras-sr-only` mixin,
+// plus `clip-path`, which replaces the deprecated `clip`. The negative margin
+// pulls the 1px box back inside the page, so it doesn't add scrollable
+// overflow.
 const visuallyHidden: React.CSSProperties = {
   position: 'absolute',
   width: '1px',
   height: '1px',
-  margin: 0,
   padding: 0,
-  border: 0,
+  margin: '-1px',
   overflow: 'hidden',
   clip: 'rect(0, 0, 0, 0)',
   clipPath: 'inset(50%)',
   whiteSpace: 'nowrap',
+  border: 0,
 };
 
 /**
  * Works out what a status region says. Each item is announced once. Its
  * announcement is written `announceDelay` after it appears, or after the last
- * item to join it when several appear in quick succession, and replaces
- * whatever the region said before. It is cleared `announcementLifetime` after
- * that, or as soon as the item goes.
+ * item to join it when several appear in quick succession, alongside whatever
+ * the region still says. It stays for `announcementLifetime`, or until the
+ * item goes, whatever is written after it.
  *
  * Nothing is written in the commit that mounts the region or the item. A
  * screen reader reliably announces a polite live region whose content changes
@@ -81,15 +96,18 @@ const visuallyHidden: React.CSSProperties = {
  *   It runs once the item is on screen, and it must keep its identity between
  *   renders (a module-level function or a `useCallback`), or every render
  *   re-checks the items.
- * @returns The announcements to render, in the order their items were shown.
+ * @returns The announcements to render, in the order they were written.
  */
 function useAnnouncements<Item extends { id: string }>(
   items: readonly Item[],
   describe: (item: Item) => string | null
-): Announcement[] {
+): WrittenAnnouncement[] {
   // The ids of the items on screen that have been announced already.
   const announcedIdsRef = useRef(new Set<string>());
-  const [batch, setBatch] = useState(noBatch);
+  // Clears that haven't run yet. They outlive the batch that started them, so
+  // they're only stopped when the region unmounts.
+  const clearTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
+  const [announcements, setAnnouncements] = useState(noAnnouncementsYet);
 
   // Runs after the commit that puts an item on screen, which is the first
   // point its rendered text can be read.
@@ -107,53 +125,106 @@ function useAnnouncements<Item extends { id: string }>(
     }
     if (next.length > 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- an item's rendered text can only be read once it's on screen
-      setBatch(current => ({
+      setAnnouncements(current => ({
+        ...current,
         key: current.key + 1,
-        // Announcements still waiting go out with the new ones. Ones already
-        // written make way for them.
-        announcements: current.written
-          ? next
-          : [...current.announcements, ...next],
-        written: false,
+        // Announcements still waiting go out with the new ones. What's
+        // already written stays put.
+        waiting: [...current.waiting, ...next],
       }));
     }
   }, [items, describe]);
 
-  // Both timers start together, so the clear doesn't wait on a render after
-  // the write. Each only touches the batch it was started for: a newer batch
-  // can be set before the render that cancels these timers, and a clear left
-  // over from the batch before it would otherwise empty the newer one before
-  // it's ever written.
-  const { key } = batch;
+  // The write only touches the batch it was started for: a newer batch can
+  // be set before the render that cancels this timer. Its clear is started
+  // by the write itself, so it's timed from the write without waiting on a
+  // render, and a newer batch arriving doesn't cut short what's written.
+  const { key } = announcements;
   useEffect(() => {
-    if (key === noBatch.key) return undefined;
-    const write = setTimeout(
-      () =>
-        setBatch(current =>
-          current.key === key ? { ...current, written: true } : current
-        ),
-      announceDelay
-    );
-    const clear = setTimeout(
-      () =>
-        setBatch(current =>
-          current.key === key
-            ? { ...current, announcements: noAnnouncements }
-            : current
-        ),
-      announceDelay + announcementLifetime
-    );
-    return () => {
-      clearTimeout(write);
-      clearTimeout(clear);
-    };
+    if (key === noAnnouncementsYet.key) return undefined;
+    const clearTimers = clearTimersRef.current;
+    const write = setTimeout(() => {
+      setAnnouncements(current =>
+        current.key === key
+          ? {
+              ...current,
+              waiting: noAnnouncements,
+              written: [
+                ...current.written,
+                ...current.waiting.map(announcement => ({
+                  ...announcement,
+                  batch: key,
+                })),
+              ],
+            }
+          : current
+      );
+      // eslint-disable-next-line @eslint-react/web-api-no-leaked-timeout -- it has to outlive this effect when a newer batch arrives, so the unmount effect below clears it
+      const clear = setTimeout(() => {
+        clearTimers.delete(clear);
+        setAnnouncements(current => {
+          const written = current.written.filter(
+            announcement => announcement.batch !== key
+          );
+          return written.length === current.written.length
+            ? current
+            : { ...current, written };
+        });
+      }, announcementLifetime);
+      clearTimers.add(clear);
+    }, announceDelay);
+    return () => clearTimeout(write);
   }, [key]);
 
-  if (!batch.written) return noAnnouncements;
+  useEffect(() => {
+    const clearTimers = clearTimersRef.current;
+    return () => {
+      clearTimers.forEach(clearTimeout);
+      clearTimers.clear();
+    };
+  }, []);
+
   const onScreen = new Set(items.map(item => item.id));
-  return batch.announcements.filter(announcement =>
+  return announcements.written.filter(announcement =>
     onScreen.has(announcement.id)
   );
+}
+
+/**
+ * Reads an element out roughly the way a screen reader would: its text, with
+ * an element's `aria-label`, or an image's `alt`, standing in for what's
+ * inside it, and `aria-hidden` parts left out. It isn't the full accessible
+ * name computation, so `aria-labelledby`, CSS-generated content and other
+ * ways of naming content aren't followed.
+ *
+ * @function spokenText
+ * @param element - The element to read.
+ * @returns Its text, with runs of whitespace collapsed and the ends trimmed.
+ */
+export function spokenText(element: Element): string {
+  return readAloud(element).replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * The text `spokenText` reads for an element, before its whitespace is
+ * tidied.
+ *
+ * @function readAloud
+ * @param element - The element to read.
+ * @returns Its text.
+ */
+function readAloud(element: Element): string {
+  if (element.getAttribute('aria-hidden') === 'true') return '';
+  const name =
+    element.getAttribute('aria-label') ||
+    (element.tagName === 'IMG' ? element.getAttribute('alt') : null);
+  // Padded, since a name stands in for the element's content and shouldn't
+  // run into the text around it.
+  if (name) return ` ${name} `;
+  return Array.from(element.childNodes, child => {
+    if (child instanceof Element) return readAloud(child);
+    return child.nodeType === Node.TEXT_NODE ? child.textContent : '';
+  }).join('');
 }
 
 /**
@@ -190,8 +261,18 @@ export function StatusRegion<Item extends { id: string }>({
 }: StatusRegionProps<Item>): React.ReactElement {
   const announcements = useAnnouncements(items, describe);
 
+  // `role="status"` makes a region atomic unless it says otherwise, which
+  // reads the whole region on every change. Each announcement is its own
+  // node, and only additions are relevant by default, so with atomic off a
+  // screen reader reads just what was written, and removing one announcement
+  // doesn't read out the ones still there.
   return (
-    <div role="status" aria-live="polite" style={visuallyHidden}>
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="false"
+      style={visuallyHidden}
+    >
       {announcements.map(announcement => (
         <div key={announcement.id}>{announcement.text}</div>
       ))}

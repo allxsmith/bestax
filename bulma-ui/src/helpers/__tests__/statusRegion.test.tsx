@@ -5,6 +5,7 @@ import {
   StatusRegion,
   announceDelay,
   announcementLifetime,
+  spokenText,
 } from '../statusRegion';
 
 interface Item {
@@ -40,11 +41,13 @@ describe('StatusRegion', () => {
     jest.useRealTimers();
   });
 
-  it('renders an empty, polite status region', () => {
+  it('renders an empty, polite status region that reads only what is added', () => {
     render(region([]));
 
     const status = screen.getByRole('status');
     expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(status).toHaveAttribute('aria-atomic', 'false');
+    expect(status).not.toHaveAttribute('aria-relevant');
     expect(status).toBeEmptyDOMElement();
   });
 
@@ -57,11 +60,14 @@ describe('StatusRegion', () => {
 
     const status = screen.getByRole('status');
     expect(status).not.toHaveAttribute('class');
+    // The negative margin keeps the 1px box from adding scrollable overflow
+    // to the page. jsdom doesn't lay anything out, so this is as close as a
+    // test here gets to measuring that.
     expect(status).toHaveStyle({
       position: 'absolute',
       width: '1px',
       height: '1px',
-      margin: '0px',
+      margin: '-1px',
       padding: '0px',
       overflow: 'hidden',
       clip: 'rect(0px, 0px, 0px, 0px)',
@@ -117,14 +123,16 @@ describe('StatusRegion', () => {
     expect(said()).toEqual([]);
   });
 
-  it('drops an announcement as soon as its item goes', () => {
+  it('drops an announcement as soon as its item goes, leaving the rest as they were', () => {
     const { rerender } = render(region([alpha, bravo]));
     advance(announceDelay);
     expect(said()).toEqual(['Alpha', 'Bravo']);
+    const bravoNode = screen.getByRole('status').lastElementChild;
 
     rerender(region([bravo]));
 
     expect(said()).toEqual(['Bravo']);
+    expect(screen.getByRole('status').firstElementChild).toBe(bravoNode);
   });
 
   it('never writes an item that goes before its announcement is due', () => {
@@ -153,15 +161,28 @@ describe('StatusRegion', () => {
     expect(said()).toEqual([]);
   });
 
-  it('replaces what the region said with the items that appear next', () => {
+  it('keeps what it said for its whole lifetime while the next items wait, then adds them', () => {
     const { rerender } = render(region([alpha, bravo]));
     advance(announceDelay);
+    const written = Array.from(screen.getByRole('status').children);
 
+    // Charlie appears while Alpha and Bravo are still being read.
+    advance(50);
     rerender(region([alpha, bravo, charlie]));
-    expect(said()).toEqual([]);
+    expect(said()).toEqual(['Alpha', 'Bravo']);
 
+    // Writing Charlie adds a node and leaves theirs as they were.
     advance(announceDelay);
+    expect(said()).toEqual(['Alpha', 'Bravo', 'Charlie']);
+    expect(Array.from(screen.getByRole('status').children).slice(0, 2)).toEqual(
+      written
+    );
+
+    // Each leaves when its own lifetime is up.
+    advance(announcementLifetime - announceDelay - 50);
     expect(said()).toEqual(['Charlie']);
+    advance(announceDelay + 50);
+    expect(said()).toEqual([]);
   });
 
   it('writes items that appear while others wait all together', () => {
@@ -193,8 +214,8 @@ describe('StatusRegion', () => {
   describe('with a timer from the batch before coming due', () => {
     // Showing the new items synchronously runs their effect straight away, so
     // the effect sets the new batch inside the act below, while the render
-    // that cancels the old batch's timers waits for the act to end. The old
-    // timer comes due in that gap.
+    // that would cancel the old batch's write waits for the act to end. The
+    // old timer comes due in that gap.
     let showItems: (items: Item[]) => void = () => {};
     const Harness = () => {
       const [items, setItems] = useState([alpha]);
@@ -204,6 +225,20 @@ describe('StatusRegion', () => {
     const showNow = (items: Item[]) =>
       // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- the render and its effect have to happen ahead of the timer, inside the act
       flushSync(() => showItems(items));
+
+    it("doesn't let a newer batch take down what's written while it waits", () => {
+      render(<Harness />);
+      advance(announceDelay);
+
+      act(() => {
+        showNow([alpha, bravo]);
+        jest.advanceTimersByTime(1);
+      });
+      expect(said()).toEqual(['Alpha']);
+
+      advance(announceDelay);
+      expect(said()).toEqual(['Alpha', 'Bravo']);
+    });
 
     it("doesn't let the old clear empty the new batch", () => {
       render(<Harness />);
@@ -219,7 +254,7 @@ describe('StatusRegion', () => {
       expect(said()).toEqual(['Bravo']);
     });
 
-    it("doesn't let the old write cut the new batch's wait short", () => {
+    it("doesn't let the old write cut the new batch's wait short, or its clear cut the new batch's lifetime", () => {
       render(<Harness />);
       advance(announceDelay - 1);
 
@@ -231,6 +266,13 @@ describe('StatusRegion', () => {
 
       advance(announceDelay);
       expect(said()).toEqual(['Alpha', 'Bravo']);
+
+      // The old write still started a clear, which comes due first and finds
+      // nothing of its own to take down.
+      advance(announcementLifetime - announceDelay);
+      expect(said()).toEqual(['Alpha', 'Bravo']);
+      advance(announceDelay);
+      expect(said()).toEqual([]);
     });
   });
 
@@ -243,11 +285,54 @@ describe('StatusRegion', () => {
   });
 
   it('stops its timers when it unmounts', () => {
-    const { unmount } = render(region([alpha]));
+    // A write still waiting.
+    const waiting = render(region([alpha]));
     expect(jest.getTimerCount()).toBeGreaterThan(0);
-
-    unmount();
-
+    waiting.unmount();
     expect(jest.getTimerCount()).toBe(0);
+
+    // A clear still to come, which outlives the batch that started it.
+    const written = render(region([bravo]));
+    advance(announceDelay);
+    expect(jest.getTimerCount()).toBeGreaterThan(0);
+    written.unmount();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+});
+
+describe('spokenText', () => {
+  const read = (html: string) => {
+    const element = document.createElement('span');
+    element.innerHTML = html;
+    return spokenText(element);
+  };
+
+  it('reads the text, with its whitespace tidied', () => {
+    expect(read('  <strong>Draft</strong>\n  saved  ')).toBe('Draft saved');
+    expect(read('<span>Up</span><span>loaded</span>')).toBe('Uploaded');
+  });
+
+  it('leaves out aria-hidden parts', () => {
+    expect(read('<span aria-hidden="true">✓</span> Saved')).toBe('Saved');
+    expect(read('<span aria-hidden="false">Still</span> read')).toBe(
+      'Still read'
+    );
+  });
+
+  it("reads an element's aria-label in place of what's inside it", () => {
+    expect(read('<span aria-label="Saved">💾</span>to drafts')).toBe(
+      'Saved to drafts'
+    );
+    expect(read('<span aria-label="">Kept</span>')).toBe('Kept');
+  });
+
+  it("reads an image's alt", () => {
+    expect(read('<img alt="Upload complete">')).toBe('Upload complete');
+    expect(read('<img alt="Done">Upload')).toBe('Done Upload');
+    expect(read('<img src="photo.png"><img alt="">')).toBe('');
+  });
+
+  it('leaves out comments', () => {
+    expect(read('Saved<!-- a note -->')).toBe('Saved');
   });
 });

@@ -16,7 +16,7 @@ import {
 import { warnUnstyledColor } from '../helpers/colorDeprecations';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useIsHydrated } from '../helpers/useIsHydrated';
-import { StatusRegion } from '../helpers/statusRegion';
+import { StatusRegion, spokenText } from '../helpers/statusRegion';
 
 /**
  * Props for the Notification component.
@@ -114,7 +114,16 @@ export type NotificationPosition =
  * Options for showing a programmatic notification.
  */
 export interface NotificationOptions {
-  /** The message to display. */
+  /**
+   * The message to display.
+   *
+   * For a notification other than `danger` and `warning`, NotificationContainer
+   * announces the text the message renders, with an element's `aria-label`,
+   * or an image's `alt`, standing in for what's inside it, and `aria-hidden`
+   * parts left out. Other ways of naming content, such as `aria-labelledby`
+   * or CSS-generated content, aren't followed, so a message that relies on
+   * them can be announced with less than a screen reader would read.
+   */
   message: string | React.ReactNode;
   /**
    * Bulma color modifier for the notification (renders `is-<color>`).
@@ -526,7 +535,7 @@ export const NotificationContainer: React.FC<{
       const { message } = item.options;
       return typeof message === 'string' ? message : null;
     }
-    return node.textContent;
+    return spokenText(node);
   }, []);
 
   if (typeof document === 'undefined' || !isHydrated) {
