@@ -15,6 +15,13 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { NotificationContainer, notification } from '../Notification';
 
 describe('NotificationContainer SSR (node environment)', () => {
+  it('renders nothing with nothing raised, status region included', () => {
+    const html = renderToStaticMarkup(
+      React.createElement(NotificationContainer)
+    );
+    expect(html).toBe('');
+  });
+
   it('renders nothing, even with notifications raised', () => {
     notification.show({ message: 'Raised on the server', duration: 0 });
     try {

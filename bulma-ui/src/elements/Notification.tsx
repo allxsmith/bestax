@@ -1,5 +1,7 @@
 import React, {
   useEffect,
+  useMemo,
+  useRef,
   useState,
   useCallback,
   useSyncExternalStore,
@@ -13,6 +15,8 @@ import {
 } from '../helpers/useBulmaClasses';
 import { warnUnstyledColor } from '../helpers/colorDeprecations';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
+import { useIsHydrated } from '../helpers/useIsHydrated';
+import { StatusRegion, spokenText } from '../helpers/statusRegion';
 
 /**
  * Props for the Notification component.
@@ -110,7 +114,18 @@ export type NotificationPosition =
  * Options for showing a programmatic notification.
  */
 export interface NotificationOptions {
-  /** The message to display. */
+  /**
+   * The message to display.
+   *
+   * For a notification other than `danger` and `warning`, NotificationContainer
+   * announces the text the message renders, with an element's `aria-label`,
+   * or an image's `alt`, standing in for what's inside it, a break between
+   * block-level elements, and parts that are `aria-hidden`, `hidden` or
+   * inline-styled `display: none` left out. Other ways of naming or hiding
+   * content, such as `aria-labelledby`, CSS-generated content or a
+   * stylesheet's `display: none`, aren't followed, so a message that relies on
+   * them can be announced differently from what a screen reader would read.
+   */
   message: string | React.ReactNode;
   /**
    * Bulma color modifier for the notification (renders `is-<color>`).
@@ -175,9 +190,9 @@ const getServerNotifications = () => noNotifications;
 // updates alone, so notifications raised before it mounted still appear. It is
 // replaced rather than mutated, and only when listeners are notified, because
 // useSyncExternalStore needs the same array back between changes. An empty
-// list is `noNotifications` itself, so a container that hydrates with nothing
-// to show reads the same snapshot the server did and has no reason to render
-// again.
+// list is `noNotifications` itself, so an empty store reads the same snapshot
+// on the client as on the server, and a notify that leaves nothing showing
+// when nothing was showing doesn't render the container again.
 let visibleNotifications: NotificationInstance[] = noNotifications;
 const getVisibleNotifications = () => visibleNotifications;
 
@@ -313,16 +328,28 @@ export const notification = {
 };
 
 /**
+ * Whether a notification of this color announces itself as an alert, rather
+ * than politely through NotificationContainer's status region.
+ *
+ * @function isUrgentColor
+ * @param {NotificationOptions['color']} color - The notification's color.
+ * @returns {boolean} True for `danger` and `warning`.
+ */
+const isUrgentColor = (color: NotificationOptions['color']): boolean =>
+  color === 'danger' || color === 'warning';
+
+/**
  * Single auto-dismissing notification item used by NotificationContainer.
  *
  * @function
- * @param {{ instance: NotificationInstance; onClose: (id: string) => void }} props - Component props.
+ * @param {{ instance: NotificationInstance; onClose: (id: string) => void; registerMessage: (id: string, node: HTMLElement | null) => void }} props - Component props.
  * @returns {JSX.Element} The rendered notification item.
  */
 const NotificationItem: React.FC<{
   instance: NotificationInstance;
   onClose: (id: string) => void;
-}> = ({ instance, onClose }) => {
+  registerMessage: (id: string, node: HTMLElement | null) => void;
+}> = ({ instance, onClose, registerMessage }) => {
   const {
     message,
     color,
@@ -334,11 +361,18 @@ const NotificationItem: React.FC<{
   } = instance.options;
 
   const [isPaused, setIsPaused] = useState(false);
-  const urgent = color === 'danger' || color === 'warning';
+  const urgent = isUrgentColor(color);
 
   const handleClose = useCallback(() => {
     onClose(instance.id);
   }, [onClose, instance.id]);
+
+  const messageRef = useCallback(
+    (node: HTMLElement | null) => {
+      registerMessage(instance.id, node);
+    },
+    [registerMessage, instance.id]
+  );
 
   // Auto-close timer
   useEffect(() => {
@@ -366,18 +400,19 @@ const NotificationItem: React.FC<{
       onMouseLeave={handleMouseLeave}
       style={{ pointerEvents: 'auto' }}
     >
-      {/* It appears after the page has rendered, so its message announces
-          itself: as an alert for danger and warning, as a status otherwise.
-          The live region wraps only the message, not the close button that
-          Notification renders ahead of its children. */}
+      {/* Only the message is announced, not the close button Notification
+          renders ahead of its children. Danger and warning announce
+          themselves as an assertive alert, which a screen reader reliably
+          reads out even when it arrives with its text. The rest are announced
+          through the container's status region, which reads their text from
+          this span, so it carries no role of its own that would announce them
+          a second time. */}
       {urgent ? (
         <span role="alert" aria-live="assertive">
           {message}
         </span>
       ) : (
-        <span role="status" aria-live="polite">
-          {message}
-        </span>
+        <span ref={messageRef}>{message}</span>
       )}
     </Notification>
   );
@@ -433,9 +468,21 @@ const notificationStackStyle = (
  * container's `position`, so the container renders a stack for each position
  * in use.
  *
+ * It keeps a visually hidden `role="status"` live region in the page from the
+ * moment it mounts, even while nothing is showing, and announces every
+ * notification other than `danger` and `warning` through it, a moment after
+ * the notification appears. Those notifications carry no `role="status"` of
+ * their own, so `getByRole('status')` finds the region, not the notification.
+ * The text stays in the region briefly, even if the notification closes in
+ * the meantime, and while both are up the page holds two copies of it. A
+ * polite notification that closes before its announcement is written, a
+ * moment after it appears, isn't announced at all. `danger` and `warning`
+ * notifications announce themselves as assertive alerts. The region is hidden
+ * with inline styles, so it needs no stylesheet.
+ *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
- * @returns {JSX.Element | null} The rendered notification container, or null if empty.
+ * @returns {JSX.Element | null} The rendered notification container, or null on the server and while hydrating.
  */
 export const NotificationContainer: React.FC<{
   /**
@@ -453,8 +500,47 @@ export const NotificationContainer: React.FC<{
     getVisibleNotifications,
     getServerNotifications
   );
+  // A portal needs a document, and it has no server-rendered counterpart, so
+  // the server render and the hydrating one render nothing, and the container
+  // portals in from the render after hydration.
+  const isHydrated = useIsHydrated();
 
-  if (typeof document === 'undefined' || items.length === 0) {
+  // The notifications the status region announces. Danger and warning
+  // announce themselves.
+  const politeItems = useMemo(
+    () => items.filter(item => !isUrgentColor(item.options.color)),
+    [items]
+  );
+
+  // Each polite notification's message element, so the text the region
+  // announces is the text on screen, whatever the message renders.
+  const messageNodesRef = useRef(new Map<string, HTMLElement>());
+  const registerMessage = useCallback(
+    (id: string, node: HTMLElement | null) => {
+      if (node) {
+        messageNodesRef.current.set(id, node);
+      } else {
+        messageNodesRef.current.delete(id);
+      }
+    },
+    []
+  );
+  // StatusRegion only describes polite notifications that are on screen, and
+  // each of those registered its message element when it mounted. The
+  // fallback is for a notification announced without being rendered, should
+  // the container ever render fewer than it announces: a plain-text message
+  // still says itself, and anything else is skipped.
+  const describe = useCallback((item: NotificationInstance) => {
+    const node = messageNodesRef.current.get(item.id);
+    /* istanbul ignore if: every polite notification on screen registers its message element when it mounts */
+    if (!node) {
+      const { message } = item.options;
+      return typeof message === 'string' ? message : null;
+    }
+    return spokenText(node);
+  }, []);
+
+  if (typeof document === 'undefined' || !isHydrated) {
     return null;
   }
 
@@ -466,17 +552,21 @@ export const NotificationContainer: React.FC<{
   );
 
   return createPortal(
-    stacks.map(stack => (
-      <div key={stack.key} style={notificationStackStyle(stack.position)}>
-        {stack.items.map(item => (
-          <NotificationItem
-            key={item.id}
-            instance={item}
-            onClose={notification.close}
-          />
-        ))}
-      </div>
-    )),
+    <>
+      {stacks.map(stack => (
+        <div key={stack.key} style={notificationStackStyle(stack.position)}>
+          {stack.items.map(item => (
+            <NotificationItem
+              key={item.id}
+              instance={item}
+              onClose={notification.close}
+              registerMessage={registerMessage}
+            />
+          ))}
+        </div>
+      ))}
+      <StatusRegion items={politeItems} describe={describe} />
+    </>,
     document.body
   );
 };
