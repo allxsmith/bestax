@@ -445,3 +445,130 @@ describe('the three sources agree on the same shape', () => {
     expect(out[2]).toBe(out[0]);
   });
 });
+
+/**
+ * A source element that asked for a <button> and wrote no usable `type`
+ * submitted the form around it, since every source here rendered the tag it
+ * was given. bestax's `Dropdown.Item`, `Menu.Item`, `Navbar.Item` and
+ * `Navbar.Link` write `type="button"` there instead, so the migrated element
+ * stops submitting. The code does not show that change, so it gets a TODO, in
+ * each source's own spelling of the element prop. `%` marks where each test
+ * adds its attributes.
+ */
+const BUTTON_ITEMS: Array<[string, Case, Case, Case]> = [
+  [
+    'Navbar.Item',
+    ['NavbarItem', '<NavbarItem tag="button"%>x</NavbarItem>'],
+    ['Navbar', '<Navbar.Item as="button"%>x</Navbar.Item>'],
+    ['Navbar', '<Navbar.Item renderAs="button"%>x</Navbar.Item>'],
+  ],
+  [
+    'Navbar.Link',
+    ['NavbarLink', '<NavbarLink tag="button"%>x</NavbarLink>'],
+    ['Navbar', '<Navbar.Link as="button"%>x</Navbar.Link>'],
+    ['Navbar', '<Navbar.Link renderAs="button"%>x</Navbar.Link>'],
+  ],
+  [
+    'Menu.Item',
+    ['MenuLink', '<MenuLink tag="button"%>x</MenuLink>'],
+    ['Menu', '<Menu.List.Item as="button"%>x</Menu.List.Item>'],
+    ['Menu', '<Menu.List.Item renderAs="button"%>x</Menu.List.Item>'],
+  ],
+  [
+    'Dropdown.Item',
+    ['DropdownItem', '<DropdownItem tag="button"%>x</DropdownItem>'],
+    ['Dropdown', '<Dropdown.Item as="button"%>x</Dropdown.Item>'],
+    ['Dropdown', '<Dropdown.Item renderAs="button"%>x</Dropdown.Item>'],
+  ],
+];
+
+/** The TODO rules a migration of one case left. */
+function rulesFor(
+  source: MigrationSource,
+  pkg: string,
+  [names, jsx]: Case
+): string[] {
+  const rules: string[] = [];
+  const input =
+    `import { ${names} } from '${pkg}';\n` +
+    `export const A = (p: Record<string, string>) => (${jsx});\n`;
+  const { output } = runTransform(source.transform, 'case.tsx', input, {
+    add: todo => rules.push(todo.rule),
+  });
+  if (output === null) {
+    throw new Error(`${pkg}: transform declined \`${jsx}\``);
+  }
+  return rules;
+}
+
+describe('a <button> item that submitted its form in the source', () => {
+  const each = BUTTON_ITEMS.flatMap(([target, ...cases]) =>
+    cases.map((testCase, i): [string, string, MigrationSource, Case] => [
+      target,
+      SOURCES[i][1],
+      SOURCES[i][0],
+      testCase,
+    ])
+  );
+  const withAttrs = ([names, jsx]: Case, attrs: string): Case => [
+    names,
+    jsx.replace('%', attrs),
+  ];
+
+  it.each(each)(
+    '%s from %s gets a TODO when it sets no type',
+    (_target, pkg, source, testCase) => {
+      expect(rulesFor(source, pkg, withAttrs(testCase, ''))).toContain(
+        'prop:type'
+      );
+    }
+  );
+
+  it.each(each)(
+    '%s from %s gets a TODO for a type HTML reads as submit',
+    (_target, pkg, source, testCase) => {
+      expect(
+        rulesFor(source, pkg, withAttrs(testCase, ' type="text/html"'))
+      ).toContain('prop:type');
+    }
+  );
+
+  it.each(each)(
+    '%s from %s gets none when its type is written out',
+    (_target, pkg, source, testCase) => {
+      for (const type of ['button', 'submit', 'reset']) {
+        expect(
+          rulesFor(source, pkg, withAttrs(testCase, ` type="${type}"`))
+        ).not.toContain('prop:type');
+      }
+    }
+  );
+
+  it.each(each)(
+    '%s from %s gets none when a spread or an expression may set the type',
+    (_target, pkg, source, testCase) => {
+      expect(
+        rulesFor(source, pkg, withAttrs(testCase, ' {...p}'))
+      ).not.toContain('prop:type');
+      expect(
+        rulesFor(source, pkg, withAttrs(testCase, ' type={p.type}'))
+      ).not.toContain('prop:type');
+    }
+  );
+
+  it('leaves an item that is not a <button>, and a Button, alone', () => {
+    expect(
+      rulesFor(rbx, 'rbx', ['Navbar', '<Navbar.Item>x</Navbar.Item>'])
+    ).not.toContain('prop:type');
+    expect(
+      rulesFor(reactBulmaComponents, 'react-bulma-components', [
+        'Navbar',
+        '<Navbar.Item renderAs="div">x</Navbar.Item>',
+      ])
+    ).not.toContain('prop:type');
+    // bestax leaves Button's `type` to the caller, as the sources did.
+    expect(
+      rulesFor(bloomer, 'bloomer', ['Button', '<Button>x</Button>'])
+    ).not.toContain('prop:type');
+  });
+});

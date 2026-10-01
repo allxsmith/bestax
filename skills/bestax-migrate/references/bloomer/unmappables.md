@@ -160,6 +160,23 @@ these either. `Level.Item` is not narrower: it declares the anchor's whole attri
 every `as` and forwards it only on the `<a>`, so all of these survive at `as="a"` and none of
 them reaches a `<p>` or a `<div>`.
 
+## `prop:type` — a `<button>` item that no longer submits its form
+
+`Navbar.Item`, `Navbar.Link`, `Menu.Item` and `Dropdown.Item` write `type="button"` on the
+`<button>` an `as` makes them render, whenever the element sets no `type` or one HTML doesn't
+define. A plain `<button>` with neither submits the form around it, so an item you rendered as a
+button with `tag="button"` stops submitting once migrated. The codemod can't tell whether one sits
+in a form, so each gets a TODO:
+
+```jsx
+<NavbarItem tag="button">Search</NavbarItem>
+<Navbar.Item as="button">Search</Navbar.Item>
+```
+
+Add `type="submit"` if it should still submit, or `type="button"` to say it shouldn't, then
+delete the comment. An item whose `type` is written out as `button`, `submit` or `reset`, or
+comes from a spread or an expression, gets no TODO.
+
 ## `prop:render` — the render prop
 
 bloomer's `render` handed the computed props (`className` included) to your own renderer:
