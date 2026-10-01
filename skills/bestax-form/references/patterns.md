@@ -149,6 +149,25 @@ Notes:
 </Field>
 ```
 
+Recipes built on addons, each written out in full in the docs:
+
+- **Password reveal** ([docs](https://bestax.io/docs/api/form/input#password-reveal)): the
+  toggle is a `Button` in its own addon `Control`, never `iconRight`. Bulma gives control icons
+  `pointer-events: none`, so a click on one lands on the input. The button takes
+  `type="button"`, a fixed `aria-label` ("Show password") and `aria-pressed`, and switches the
+  input's `type` between `password` and `text`.
+- **Copy button** ([docs](https://bestax.io/docs/api/form/input#copy-button)): a read-only input
+  and a `Button` calling `navigator.clipboard.writeText`. The clipboard is missing outside secure
+  contexts and the write can be refused, so catch the failure, select the text, and say so in a
+  `role="alert"` region. Confirm success in a `role="status"` region. Mount both regions empty,
+  before their text arrives.
+- **Split button** ([docs](https://bestax.io/docs/api/components/dropdown#split-button)): a
+  `Button` and a `Dropdown` in `Field hasAddons`, one `Control` each. `Buttons hasAddons` does
+  not join the Dropdown's trigger. Keep the default color, since the trigger takes no `color`.
+- To label an addon row, put the label on an outer `Field` with `labelProps={{ htmlFor }}` and a
+  matching `id` on the input. A label inside the `hasAddons` field sits in the row beside the
+  controls.
+
 ## Horizontal field with explicit label/body
 
 ```tsx

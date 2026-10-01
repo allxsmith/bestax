@@ -6,11 +6,11 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 6831 },
+        { "id": "api", "file": "references/api.md", "bytes": 7276 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 17603
+          "bytes": 17601
         },
         {
           "id": "library-contributor",
@@ -30,7 +30,7 @@
       "dir": "bestax-form",
       "references": [
         { "id": "api", "file": "references/api.md", "bytes": 8334 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 5566 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 6943 }
       ],
       "examples": []
     },
@@ -108,7 +108,7 @@
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 32615
+          "bytes": 32624
         },
         {
           "id": "bulma-classes-unmappables",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 8164
+          "bytes": 8499
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 26899
+          "bytes": 27061
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 21209
+          "bytes": 21308
         }
       ],
       "examples": [

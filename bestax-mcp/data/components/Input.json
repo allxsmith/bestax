@@ -70,6 +70,14 @@
       "code": "<Field hasAddons=\"right\">\n  <Control>\n    <Button>Yes</Button>\n  </Control>\n  <Control>\n    <Button>Maybe</Button>\n  </Control>\n  <Control>\n    <Button>No</Button>\n  </Control>\n</Field>"
     },
     {
+      "title": "Password Reveal",
+      "code": "function PasswordReveal() {\n  const id = React.useId();\n  const [visible, setVisible] = useState(false);\n\n  return (\n    <Field label=\"Password\" labelProps={{ htmlFor: id }}>\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input\n            id={id}\n            type={visible ? 'text' : 'password'}\n            autoComplete=\"current-password\"\n          />\n        </Control>\n        <Control>\n          <Button\n            type=\"button\"\n            aria-label=\"Show password\"\n            aria-pressed={visible}\n            onClick={() => setVisible(shown => !shown)}\n          >\n            <Icon name={visible ? 'eye-slash' : 'eye'} aria-hidden=\"true\" />\n          </Button>\n        </Control>\n      </Field>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Copy Button",
+      "code": "function CopyButton() {\n  const id = React.useId();\n  const inputRef = React.useRef<HTMLInputElement>(null);\n  const [status, setStatus] = useState<'idle' | 'copied' | 'failed'>('idle');\n  const link = 'https://bestax.io/docs/api/form/input';\n\n  // Put the button's label back after a moment.\n  useEffect(() => {\n    if (status !== 'copied') return undefined;\n    const timer = setTimeout(() => setStatus('idle'), 2000);\n    return () => clearTimeout(timer);\n  }, [status]);\n\n  const copy = async () => {\n    try {\n      await navigator.clipboard.writeText(link);\n      setStatus('copied');\n    } catch {\n      // No clipboard on this page, or the browser refused the write.\n      inputRef.current?.focus();\n      inputRef.current?.select();\n      setStatus('failed');\n    }\n  };\n\n  return (\n    <Field label=\"Share link\" labelProps={{ htmlFor: id }}>\n      <Field hasAddons>\n        <Control isExpanded>\n          <Input ref={inputRef} id={id} value={link} readOnly />\n        </Control>\n        <Control>\n          <Button type=\"button\" onClick={copy}>\n            <Icon\n              name={status === 'copied' ? 'check' : 'copy'}\n              aria-hidden=\"true\"\n            />\n            <span>{status === 'copied' ? 'Copied' : 'Copy'}</span>\n          </Button>\n        </Control>\n      </Field>\n      <p role=\"status\" className=\"help\">\n        {status === 'copied' && 'Copied to the clipboard.'}\n      </p>\n      <p role=\"alert\" className=\"help is-danger\">\n        {status === 'failed' &&\n          \"Couldn't copy automatically. The link is selected, so copy it from the field.\"}\n      </p>\n    </Field>\n  );\n}"
+    },
+    {
       "title": "Form Group",
       "code": "<Field grouped>\n  <Control>\n    <Button color=\"link\">Submit</Button>\n  </Control>\n  <Control>\n    <Button>Cancel</Button>\n  </Control>\n</Field>"
     },
@@ -122,7 +130,7 @@
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
   "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
-  "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",
+  "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Input.tsx",
   "rootClass": "input",
   "parts": [

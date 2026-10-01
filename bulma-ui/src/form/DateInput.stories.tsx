@@ -95,6 +95,39 @@ export const Colors: Story = {
   ),
 };
 
+export const InlineColors: Story = {
+  render: () => {
+    // The 1st of this month (the 2nd when today is the 1st), so the selected
+    // date and today's date both show.
+    const picked = new Date();
+    picked.setDate(picked.getDate() === 1 ? 2 : 1);
+    return (
+      <Block display="flex" flexWrap="wrap">
+        {(
+          ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
+        ).map(color => (
+          <Block key={color} mr="4" mb="4">
+            <DateInput
+              label={color}
+              color={color}
+              inline
+              defaultValue={picked}
+            />
+          </Block>
+        ))}
+      </Block>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Rendered inline so the calendar is visible without opening the popover: `color` tints the selected date, today's date and, for keyboard users, the focus ring. Tab into the grid to see the ring.",
+      },
+    },
+  },
+};
+
 export const States: Story = {
   render: () => (
     <Block>

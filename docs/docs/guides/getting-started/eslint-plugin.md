@@ -14,7 +14,7 @@ against the list it accepts and emits nothing when it does not match. There is
 no throw, no console warning, and no fallback. So this renders, and says
 nothing about itself:
 
-```jsx
+```jsx nolint
 <Box textAlign="center" mt="1rem" textColor="blue" />
 ```
 
@@ -153,7 +153,7 @@ off for exactly that reason.
 
 Reports helper values the library will drop.
 
-```jsx
+```jsx nolint
 <Box textAlign="center" />   // ✗ Did you mean `centered`?
 <Box textSize="8" />         // ✗ the scale is 1–7
 <Box mt="1rem" />            // ✗ the scale is 0–6 and auto
@@ -173,13 +173,13 @@ have their own unions, so `<Button color="ghost">` is correct and the value
 rule has no business reporting it.
 
 There is also one element where a wrong value still does something, and the
-rule knows it. `radius` on `Theme` is the `radiusless` helper, as everywhere
+rule knows it. `radius` on `Theme` is the border radius helper, as everywhere
 else, but `Theme` used to set `--bulma-radius` from it, and a string outside
 the helper's values still does, through a deprecated route. The rule reports
 that with its own message, pointing at `bulmaVars`, unless the value is a near
-miss of `radiusless`, which gets the usual suggestion:
+miss of one of the helper's values, which gets the usual suggestion:
 
-```jsx
+```jsx nolint
 <Theme radius="6px" />                            // ✗ deprecated → bulmaVars
 <Theme radius="radiusles" />                      // ✗ Did you mean `radiusless`?
 <Theme bulmaVars={{ '--bulma-radius': '6px' }} /> // ✓
@@ -197,7 +197,7 @@ It knows the documented extras, so these are all accepted:
 
 Reports props the library has deprecated, and fixes the renames.
 
-```jsx
+```jsx nolint
 <Button isFullWidth />       // ✗ → isFullwidth        (fixable)
 <Columns gapSize="3" />      // ✗ → gap                (fixable)
 <Icon icon="rocket" />       // ✗ → name               (reported, not fixed)
@@ -228,7 +228,7 @@ No fix is offered when the element already sets the replacement, since
 rewriting would collapse two props into a duplicate and the library documents
 which one wins:
 
-```jsx
+```jsx nolint
 <Button isFullWidth isFullwidth /> // ✗ reported, not fixed
 ```
 
@@ -317,7 +317,7 @@ and children, and the codemod is the one place that judges that.
 The flex _container_ props emit nothing unless a `display` prop is `flex` or
 `inline-flex` — so this looks like it centres its children and does nothing:
 
-```jsx
+```jsx nolint
 <Box justifyContent="center" />                // ✗
 <Box display="flex" justifyContent="center" /> // ✓
 <Box displayTablet="flex" alignItems="center" />// ✓ a responsive band counts

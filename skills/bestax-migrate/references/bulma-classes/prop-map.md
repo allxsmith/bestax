@@ -207,5 +207,5 @@ Some classes stay put because of how bestax renders them:
 
 Color shades (`has-text-primary-65`), the `-touch` and `-only` breakpoints of text size and
 alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
-Bulma helpers with no bestax prop (`is-display-*`, `is-overflow-*`, `is-position-*`, `is-float-*`,
-`has-radius-*`, …) stay in `className`. They render exactly as before.
+Bulma helpers the codemod does not convert (`is-display-*`, `is-overflow-*`, `is-position-*`,
+`is-float-*`, `has-radius-*`, …) stay in `className`. They render exactly as before.

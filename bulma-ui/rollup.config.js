@@ -60,8 +60,10 @@ const parseDeclaration = text =>
     // it with `forEachChild`, and the latter's reference lists —
     // `referencedFiles`, `typeReferenceDirectives`, `libReferenceDirectives` —
     // are read off the source file directly, as `referencedPaths` reads the
-    // first of them. `getStart(sourceFile)` skips trivia on the text it is
-    // handed. None of that descends through a parent.
+    // first of them and `moduleSpecifiers` the second. Whether a `declare
+    // module` sits at the top level is read off `statements` for the same
+    // reason. `getStart(sourceFile)` skips trivia on the text it is handed.
+    // None of that descends through a parent.
     //
     // They were a carry-over from the comment walk that went through TOKENS via
     // `getChildren`, and not because that call needed them: it falls back to
@@ -84,13 +86,20 @@ const parseDeclaration = text =>
  * strings name modules, so none of that has to be inferred.
  *
  * A `declare module` name is collected too, and carries `rewritable` to say
- * whether an extension may be chosen for it. Inside a file that is itself a
- * module it is an augmentation, naming a module the way an import does; in a
- * global file it is an ambient declaration, where a relative name is TS2436 and
- * there is nothing correct to rewrite it to. Both are checked.
+ * whether an extension may be chosen for it. That is true only where TypeScript
+ * resolves the name the way it resolves an import, which the arm below decides
+ * per declaration. Every one is checked.
+ *
+ * So is a relative `reference types` target. It is a comment rather than a
+ * node, but TypeScript looks it up the way it looks up a relative import, so
+ * from an ESM declaration it needs the same extension. Measured against tsc:
+ * `./x` there is TS2688, while `./x.js`, `./x.d.ts` and `./dir/index.js`
+ * resolve. The offsets TypeScript records for it are the content inside the
+ * quotes, the same span a specifier's rewrite replaces.
  */
 const moduleSpecifiers = sourceFile => {
   const found = [];
+  const augmenting = ts.isExternalModule(sourceFile);
   const take = (node, declarationAllowed, rewritable = true) => {
     if (!node || !ts.isStringLiteral(node)) return;
     found.push({
@@ -127,11 +136,21 @@ const moduleSpecifiers = sourceFile => {
       }
     } else if (ts.isModuleDeclaration(node) && ts.isStringLiteral(node.name)) {
       // An AUGMENTATION names a module the same way an import does, so its
-      // specifier needs the same extension — but only in a file that is itself
-      // a module. The same syntax in a global file is an ambient declaration,
-      // where a relative name is TS2436 and there is no right answer to rewrite
-      // it to; those are still CHECKED, because `pnpm build` is not a type gate
-      // and erroring source still emits.
+      // specifier needs the same extension, but only at the top level of a file
+      // that is itself a module. The same syntax at the top of a global file is
+      // an ambient declaration, where a relative name is TS2436 and there is no
+      // right answer to rewrite it to.
+      //
+      // A NESTED one is never rewritten, whatever its file, because TypeScript
+      // never resolves a relative name below the top level. Measured against
+      // tsc: in a module file it is TS2435, and in a global file, inside a
+      // top-level `declare module`, it is accepted without a word and merges
+      // nothing, with or without an extension. Choosing one would change
+      // nothing a consumer sees, and would let an extensionless one pass the
+      // check it otherwise fails, on a declaration that does nothing.
+      //
+      // Every one of them is still CHECKED, because `pnpm build` is not a type
+      // gate and erroring source still emits.
       //
       // `declarationAllowed` is true here because TS2846 is raised from one
       // expression that needs an import or export ancestor, and a module name
@@ -139,7 +158,7 @@ const moduleSpecifiers = sourceFile => {
       // was this field being carried over from the shape it replaced — each
       // time by carrying a value over from the shape it replaced rather than
       // asking what the compiler does with THIS one.
-      take(node.name, true, ts.isExternalModule(sourceFile));
+      take(node.name, true, augmenting && sourceFile.statements.includes(node));
     } else if (ts.isImportTypeNode(node)) {
       // The `import('./x').Y` form tsc emits for a type it reaches without an
       // explicit import. Always a type position: the only non-clause route to
@@ -152,6 +171,17 @@ const moduleSpecifiers = sourceFile => {
     ts.forEachChild(node, visit);
   };
   visit(sourceFile);
+  // A directive has no import or export ancestor, so TS2846 cannot reach it and
+  // a declaration spelling is allowed, as it is for a module name.
+  for (const reference of sourceFile.typeReferenceDirectives) {
+    found.push({
+      start: reference.pos,
+      end: reference.end,
+      text: reference.fileName,
+      declarationAllowed: true,
+      rewritable: true,
+    });
+  }
   return found;
 };
 
@@ -195,24 +225,24 @@ const declarationUnder = (root, target) => {
 };
 
 /**
- * Whether `spec`, written inside `file`, names a declaration that exists.
+ * Whether a `reference path` target, written inside `file`, names a declaration
+ * that exists.
  *
- * A declaration spells its imports the way the runtime will: `./x.js` is
- * declared by `./x.d.ts`, and the `.cjs`/`.mjs` forms by `.d.cts`/`.d.mts`. A
- * triple-slash `reference path` names the declaration directly. Anything else
- * is unresolved, which is the one question worth asking after the rewrite.
+ * TypeScript reads the target as a FILE PATH, not as a module specifier, so it
+ * is probed as written. This used to be the specifier predicate with
+ * `declarationAllowed` set, which maps `./a.js` to `a.d.ts` before probing:
+ * right for an import, and wrong here. Measured against tsc, a reference to
+ * `./a.js` reads `a.js` and fails for the consumer even with `a.d.ts` beside
+ * it, so that mapping certified a reference that dangles.
+ *
+ * Only a declaration spelling names a declaration as written. TypeScript will
+ * also complete an extensionless target with an extension of its own choosing;
+ * this refuses one instead, which stops the build rather than shipping
+ * anything, and is the direction to be wrong in.
  */
-const resolvesToDeclaration = (root, file, spec) =>
-  // A `reference path` names a declaration DIRECTLY, in ANY position — which is
-  // exactly what `declarationAllowed` means, so this is the same question with
-  // that flag set rather than a second predicate.
-  //
-  // It used to branch on the declaration spelling here and then delegate with
-  // `false`, which made the branch load-bearing: deleting it as an obvious
-  // duplicate — `specifierResolves` carries the same test — would silently have
-  // started refusing `reference path="./x.d.ts"`. Written this way there is
-  // nothing to delete wrongly.
-  specifierResolves(root, file, spec, true);
+const referenceResolves = (root, file, target) =>
+  /\.d\.[cm]?ts$/.test(target) &&
+  declarationUnder(root, resolvePath(dirname(file), target));
 
 /**
  * Whether `spec`, used as a MODULE SPECIFIER inside `file`, names a declaration
@@ -621,7 +651,7 @@ export const declarationExtensions = (
               ]),
               ...referenced.map(spec => [
                 spec,
-                resolvesToDeclaration(root, file, spec),
+                referenceResolves(root, file, spec),
               ]),
             ]
               .filter(([, resolved]) => !resolved)
@@ -728,9 +758,10 @@ const mirrorAsCommonjs = async (from, to) => {
  */
 export const hasModuleSpecifiers = text => {
   const sourceFile = parseDeclaration(text);
-  // All THREE triple-slash forms. Only `path` moves with the copy; `types` and
-  // `lib` do not, but the pattern this replaced flagged every `<reference`, and
-  // swapping it for the parser was meant to close holes rather than open one.
+  // All THREE triple-slash forms. A `path` and a relative `types` move with the
+  // copy; a bare `types` and a `lib` do not, but the pattern this replaced
+  // flagged every `<reference`, and swapping it for the parser was meant to
+  // close holes rather than open one.
   // `lib` is here because leaving it out is precisely the loosening the line
   // above told itself not to do.
   if (sourceFile.referencedFiles.length) return true;

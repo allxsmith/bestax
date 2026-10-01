@@ -95,6 +95,8 @@ This example demonstrates using the `Control` component with icons on both sides
 </Field>
 ```
 
+These icons are decoration, not controls: Bulma gives them `pointer-events: none`, so a click on one reaches the input underneath. A button beside the input, such as a show-password toggle, goes in its own addon `Control` instead, as in the [password reveal](./input.md#password-reveal) recipe.
+
 ---
 
 ### With Only Left Icon (Shortcut Props)

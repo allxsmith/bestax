@@ -25,7 +25,7 @@ How does bestax-bulma stack up against the other React component libraries? This
 
 ## How to Read It
 
-- **✓** is a dedicated component. A documented sub-component counts, like Mantine's `Grid.Col` or bestax's `Navbar.Burger`.
+- **✓** is a dedicated component. A documented sub-component counts, like Mantine's `Grid.Col` or bestax's `Navbar.Burger`, when it serves the row's purpose rather than only its parent's: a dialog's own backdrop can't sit behind anything but that dialog, so it doesn't count on the Backdrop row.
 - **◐** means the capability is there another way: a prop or mode of another component, a documented helper or style prop, a documented hook, or a docs example that composes other components.
 - A muted dash means there's no first-party equivalent. Third-party packages a library builds on, like `clsx`, don't count, and neither do exports the library marks internal.
 - Rows are matched by purpose, not by name. bestax's `Badge`, Mantine's `Indicator`, and MUI's `Badge` all land in the same row.

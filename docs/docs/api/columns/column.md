@@ -38,8 +38,7 @@ import { Column } from '@allxsmith/bestax-bulma';
 This example shows the `Column` component used within a `Columns` container. Each `Column` can accept Bulma size, color, and offset props to control its width and appearance. Use this pattern for building flexible horizontal layouts with multiple columns.
 
 ```tsx live
-import { Columns, Column } from '@allxsmith/bestax-bulma';
-import { Notification } from '@allxsmith/bestax-bulma/elements/Notification';
+import { Columns, Column, Notification } from '@allxsmith/bestax-bulma';
 
 <Columns>
   <Column>

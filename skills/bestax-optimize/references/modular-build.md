@@ -113,7 +113,12 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 @use 'bulma/sass/helpers/typography'; // textSize/textAlign/textTransform/textWeight/fontFamily
 @use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
 @use 'bulma/sass/helpers/flexbox'; // flex* alignment props (justifyContent/alignItems/flexGrow…) — NOT display="flex"
-@use 'bulma/sass/helpers/other'; // overlay/interaction/radius/shadow/clearfix/relative…
+@use 'bulma/sass/helpers/float'; // float/clearfix props
+@use 'bulma/sass/helpers/overflow'; // overflow/overflowX/overflowY props
+@use 'bulma/sass/helpers/position'; // pos/relative/overlay props
+@use 'bulma/sass/helpers/border'; // radius sizes (small/normal/large/rounded)
+@use 'bulma/sass/helpers/aspect-ratio'; // aspectRatio prop
+@use 'bulma/sass/helpers/other'; // interaction, radius="radiusless", shadow="shadowless"
 ```
 
 ## Procedure
