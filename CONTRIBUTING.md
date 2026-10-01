@@ -31,6 +31,12 @@ Before contributing, your PR **must** satisfy the following:
     ([`bulma-ui/jest.config.js`](./bulma-ui/jest.config.js)); **every other jest
     package** 95% (78% branches), each in its own config. `docs` runs
     `node --test` and has no coverage threshold
+  - The root `scripts/` suite holds each file to its own floor in
+    [`scripts/coverage-floors.json`](./scripts/coverage-floors.json), checked by
+    `pnpm test`. A floor is where the file stood, less a small allowance on
+    branches, not a target;
+    [`scripts/coverage-floors.mjs`](./scripts/coverage-floors.mjs) says what
+    to do when one fails
 - **Linting and formatting pass** (`pnpm lint`, `pnpm format:check`)
 - **Type checks pass** (`pnpm typecheck`)
 - **Storybook runs and covers UI changes** (`pnpm storybook`)
@@ -180,6 +186,7 @@ pnpm run all
 pnpm run build          # turbo build all packages
 pnpm run typecheck
 pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
 pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)
