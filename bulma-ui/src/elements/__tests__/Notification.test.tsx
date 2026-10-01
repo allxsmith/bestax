@@ -399,7 +399,79 @@ describe('Notification Programmatic API', () => {
         notification.close(first);
       });
       waitForAnnouncements();
-      expect(screen.getByRole('status')).toHaveTextContent(/^Q2$/);
+      // Q1 closed after its announcement was written, so it keeps the rest of
+      // its time in the region beside Q2.
+      expect(
+        Array.from(screen.getByRole('status').children, el => el.textContent)
+      ).toEqual(['Q1', 'Q2']);
+    });
+
+    it('keeps an announcement for its whole lifetime after its notification closes', () => {
+      // The pattern the programmatic API shows: an indefinite notification
+      // while something runs, closed and followed by the result.
+      render(<NotificationContainer />);
+      let uploading = '';
+      act(() => {
+        uploading = notification.show({
+          message: 'Uploading…',
+          indefinite: true,
+        });
+      });
+      waitForAnnouncements();
+      act(() => {
+        jest.advanceTimersByTime(50);
+      });
+
+      act(() => {
+        notification.close(uploading);
+        notification.success('Saved!', { duration: 0 });
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(/^Uploading…$/);
+
+      waitForAnnouncements();
+      expect(
+        Array.from(screen.getByRole('status').children, el => el.textContent)
+      ).toEqual(['Uploading…', 'Saved!']);
+
+      // Each leaves when its own lifetime is up.
+      act(() => {
+        jest.advanceTimersByTime(announcementLifetime - announceDelay - 50);
+      });
+      expect(screen.getByRole('status')).toHaveTextContent(/^Saved!$/);
+    });
+
+    it("doesn't announce a notification that closes before its announcement is due", () => {
+      render(<NotificationContainer />);
+      let id = '';
+      act(() => {
+        id = notification.success('Gone', { duration: 0 });
+      });
+      expect(document.querySelector('.notification')).toHaveTextContent('Gone');
+
+      act(() => {
+        notification.close(id);
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('keeps the lines of a block-level message apart', () => {
+      render(<NotificationContainer />);
+      act(() => {
+        notification.info(
+          <>
+            <p>Upload complete</p>
+            <p>3 files added</p>
+          </>,
+          { duration: 0 }
+        );
+      });
+      waitForAnnouncements();
+
+      expect(screen.getByRole('status')).toHaveTextContent(
+        /^Upload complete 3 files added$/
+      );
     });
 
     it('announces notifications at different positions together', () => {

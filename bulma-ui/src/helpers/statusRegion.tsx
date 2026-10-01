@@ -81,8 +81,10 @@ const visuallyHidden: React.CSSProperties = {
  * Works out what a status region says. Each item is announced once. Its
  * announcement is written `announceDelay` after it appears, or after the last
  * item to join it when several appear in quick succession, alongside whatever
- * the region still says. It stays for `announcementLifetime`, or until the
- * item goes, whatever is written after it.
+ * the region still says. Once written, it stays for `announcementLifetime`,
+ * whatever is written after it and whether or not its item goes in the
+ * meantime. An item that goes before its announcement is written isn't
+ * announced.
  *
  * Nothing is written in the commit that mounts the region or the item. A
  * screen reader reliably announces a polite live region whose content changes
@@ -102,8 +104,9 @@ function useAnnouncements<Item extends { id: string }>(
   items: readonly Item[],
   describe: (item: Item) => string | null
 ): WrittenAnnouncement[] {
-  // The ids of the items on screen that have been announced already.
-  const announcedIdsRef = useRef(new Set<string>());
+  // The ids of the items on screen as of the last change, every one of which
+  // has been looked at for an announcement already.
+  const onScreenIdsRef = useRef(new Set<string>());
   // Clears that haven't run yet. They outlive the batch that started them, so
   // they're only stopped when the region unmounts.
   const clearTimersRef = useRef(new Set<ReturnType<typeof setTimeout>>());
@@ -112,11 +115,11 @@ function useAnnouncements<Item extends { id: string }>(
   // Runs after the commit that puts an item on screen, which is the first
   // point its rendered text can be read.
   useEffect(() => {
-    const announced = announcedIdsRef.current;
+    const announced = onScreenIdsRef.current;
     const appeared = items.filter(item => !announced.has(item.id));
     // Items that have gone drop out here too. Ids are never reused, so
     // forgetting them can't bring an old item back.
-    announcedIdsRef.current = new Set(items.map(item => item.id));
+    onScreenIdsRef.current = new Set(items.map(item => item.id));
 
     const next: Announcement[] = [];
     for (const item of appeared) {
@@ -144,6 +147,11 @@ function useAnnouncements<Item extends { id: string }>(
     if (key === noAnnouncementsYet.key) return undefined;
     const clearTimers = clearTimersRef.current;
     const write = setTimeout(() => {
+      // Whether an item is on screen is decided here, once. An item that
+      // went before its announcement was due isn't announced, and one that
+      // goes after keeps its announcement for the rest of its lifetime, when
+      // the region holds the only copy of its text rather than a second one.
+      const onScreen = onScreenIdsRef.current;
       setAnnouncements(current =>
         current.key === key
           ? {
@@ -151,10 +159,9 @@ function useAnnouncements<Item extends { id: string }>(
               waiting: noAnnouncements,
               written: [
                 ...current.written,
-                ...current.waiting.map(announcement => ({
-                  ...announcement,
-                  batch: key,
-                })),
+                ...current.waiting
+                  .filter(announcement => onScreen.has(announcement.id))
+                  .map(announcement => ({ ...announcement, batch: key })),
               ],
             }
           : current
@@ -184,18 +191,17 @@ function useAnnouncements<Item extends { id: string }>(
     };
   }, []);
 
-  const onScreen = new Set(items.map(item => item.id));
-  return announcements.written.filter(announcement =>
-    onScreen.has(announcement.id)
-  );
+  return announcements.written;
 }
 
 /**
  * Reads an element out roughly the way a screen reader would: its text, with
  * an element's `aria-label`, or an image's `alt`, standing in for what's
- * inside it, and `aria-hidden` parts left out. It isn't the full accessible
- * name computation, so `aria-labelledby`, CSS-generated content and other
- * ways of naming content aren't followed.
+ * inside it, a break between block-level elements, and parts that are
+ * `aria-hidden`, `hidden` or inline-styled `display: none` left out. It isn't
+ * the full accessible name computation, so `aria-labelledby`, CSS-generated
+ * content, content hidden by a stylesheet and other ways of naming or hiding
+ * content aren't followed.
  *
  * @function spokenText
  * @param element - The element to read.
@@ -204,6 +210,71 @@ function useAnnouncements<Item extends { id: string }>(
 export function spokenText(element: Element): string {
   return readAloud(element).replace(/\s+/g, ' ').trim();
 }
+
+// Elements a browser displays as blocks by default, and `br`. A screen reader
+// pauses between them, so their text shouldn't run into the text beside them.
+// They're known by tag rather than by computed `display`, which would depend
+// on a stylesheet and on layout.
+const blockLevelTags = new Set([
+  'ADDRESS',
+  'ARTICLE',
+  'ASIDE',
+  'BLOCKQUOTE',
+  'BR',
+  'CAPTION',
+  'DD',
+  'DETAILS',
+  'DIALOG',
+  'DIV',
+  'DL',
+  'DT',
+  'FIELDSET',
+  'FIGCAPTION',
+  'FIGURE',
+  'FOOTER',
+  'FORM',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'HEADER',
+  'HGROUP',
+  'HR',
+  'LEGEND',
+  'LI',
+  'MAIN',
+  'MENU',
+  'NAV',
+  'OL',
+  'P',
+  'PRE',
+  'SEARCH',
+  'SECTION',
+  'SUMMARY',
+  'TABLE',
+  'TBODY',
+  'TD',
+  'TFOOT',
+  'TH',
+  'THEAD',
+  'TR',
+  'UL',
+]);
+
+/**
+ * Whether an element is left out of what a screen reader reads.
+ *
+ * @function isHidden
+ * @param element - The element to check.
+ * @returns True for `aria-hidden="true"`, the `hidden` attribute, and an
+ *   inline `display: none`.
+ */
+const isHidden = (element: Element): boolean =>
+  element.getAttribute('aria-hidden') === 'true' ||
+  element.hasAttribute('hidden') ||
+  (element instanceof HTMLElement && element.style.display === 'none');
 
 /**
  * The text `spokenText` reads for an element, before its whitespace is
@@ -214,17 +285,21 @@ export function spokenText(element: Element): string {
  * @returns Its text.
  */
 function readAloud(element: Element): string {
-  if (element.getAttribute('aria-hidden') === 'true') return '';
+  if (isHidden(element)) return '';
   const name =
     element.getAttribute('aria-label') ||
     (element.tagName === 'IMG' ? element.getAttribute('alt') : null);
-  // Padded, since a name stands in for the element's content and shouldn't
-  // run into the text around it.
-  if (name) return ` ${name} `;
-  return Array.from(element.childNodes, child => {
-    if (child instanceof Element) return readAloud(child);
-    return child.nodeType === Node.TEXT_NODE ? child.textContent : '';
-  }).join('');
+  const text =
+    name ||
+    Array.from(element.childNodes, child => {
+      if (child instanceof Element) return readAloud(child);
+      return child.nodeType === Node.TEXT_NODE ? child.textContent : '';
+    }).join('');
+  // A name stands in for the element's content, and a block's content stands
+  // apart from what's around it, so both are padded to keep them from running
+  // into the neighboring text. An inline run, like `<span>Up</span>` then
+  // `<span>loaded</span>`, still reads as one word.
+  return name || blockLevelTags.has(element.tagName) ? ` ${text} ` : text;
 }
 
 /**

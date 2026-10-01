@@ -11,10 +11,7 @@ import { StatusRegion } from '../statusRegion';
 const mixinCss = sass.compileString(
   "@use 'mixins' as *;\n.sr-only-probe { @include extras-sr-only; }",
   {
-    loadPaths: [
-      path.resolve(__dirname, '../../scss'),
-      path.resolve(__dirname, '../../../../node_modules'),
-    ],
+    loadPaths: [path.resolve(__dirname, '../../scss')],
     quietDeps: true,
     logger: sass.Logger.silent,
   }

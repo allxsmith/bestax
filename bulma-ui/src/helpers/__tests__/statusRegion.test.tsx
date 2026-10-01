@@ -123,16 +123,29 @@ describe('StatusRegion', () => {
     expect(said()).toEqual([]);
   });
 
-  it('drops an announcement as soon as its item goes, leaving the rest as they were', () => {
+  it('keeps an announcement for its whole lifetime after its item goes', () => {
     const { rerender } = render(region([alpha, bravo]));
     advance(announceDelay);
     expect(said()).toEqual(['Alpha', 'Bravo']);
-    const bravoNode = screen.getByRole('status').lastElementChild;
+    const nodes = Array.from(screen.getByRole('status').children);
 
+    // Alpha goes a moment after it was written, before it's had its time.
+    advance(50);
+    rerender(region([bravo]));
+    expect(said()).toEqual(['Alpha', 'Bravo']);
+    expect(Array.from(screen.getByRole('status').children)).toEqual(nodes);
+
+    advance(announcementLifetime - 50);
+    expect(said()).toEqual([]);
+  });
+
+  it('writes only the waiting items still on screen when their announcements are due', () => {
+    const { rerender } = render(region([alpha, bravo]));
     rerender(region([bravo]));
 
+    advance(announceDelay);
+
     expect(said()).toEqual(['Bravo']);
-    expect(screen.getByRole('status').firstElementChild).toBe(bravoNode);
   });
 
   it('never writes an item that goes before its announcement is due', () => {
@@ -312,11 +325,39 @@ describe('spokenText', () => {
     expect(read('<span>Up</span><span>loaded</span>')).toBe('Uploaded');
   });
 
+  it.each([
+    ['divs', '<div>Upload complete</div><div>3 files</div>'],
+    ['paragraphs', '<p>Upload complete</p><p>3 files</p>'],
+    ['list items', '<ul><li>Upload complete</li><li>3 files</li></ul>'],
+    ['a line break', 'Upload complete<br>3 files'],
+    ['a heading and text', '<h2>Upload complete</h2>3 files'],
+    [
+      'table cells',
+      '<table><tbody><tr><td>Upload complete</td><td>3 files</td></tr></tbody></table>',
+    ],
+  ])('keeps the text of %s apart', (_shape, html) => {
+    expect(read(html)).toBe('Upload complete 3 files');
+  });
+
   it('leaves out aria-hidden parts', () => {
     expect(read('<span aria-hidden="true">✓</span> Saved')).toBe('Saved');
     expect(read('<span aria-hidden="false">Still</span> read')).toBe(
       'Still read'
     );
+  });
+
+  it('leaves out hidden parts and inline display: none', () => {
+    expect(read('Saved<span hidden> debug id 42</span>')).toBe('Saved');
+    expect(read('Saved<span style="display: none"> debug id 42</span>')).toBe(
+      'Saved'
+    );
+    expect(read('<span style="display: inline">Still</span> read')).toBe(
+      'Still read'
+    );
+  });
+
+  it('reads the text inside an svg', () => {
+    expect(read('<svg><text>Chart</text></svg> updated')).toBe('Chart updated');
   });
 
   it("reads an element's aria-label in place of what's inside it", () => {

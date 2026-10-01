@@ -119,10 +119,12 @@ export interface NotificationOptions {
    *
    * For a notification other than `danger` and `warning`, NotificationContainer
    * announces the text the message renders, with an element's `aria-label`,
-   * or an image's `alt`, standing in for what's inside it, and `aria-hidden`
-   * parts left out. Other ways of naming content, such as `aria-labelledby`
-   * or CSS-generated content, aren't followed, so a message that relies on
-   * them can be announced with less than a screen reader would read.
+   * or an image's `alt`, standing in for what's inside it, a break between
+   * block-level elements, and parts that are `aria-hidden`, `hidden` or
+   * inline-styled `display: none` left out. Other ways of naming or hiding
+   * content, such as `aria-labelledby`, CSS-generated content or a
+   * stylesheet's `display: none`, aren't followed, so a message that relies on
+   * them can be announced differently from what a screen reader would read.
    */
   message: string | React.ReactNode;
   /**
@@ -400,11 +402,11 @@ const NotificationItem: React.FC<{
     >
       {/* Only the message is announced, not the close button Notification
           renders ahead of its children. Danger and warning announce
-          themselves as an alert, which a screen reader reliably reads out
-          even when it arrives with its text. The rest are announced through
-          the container's status region, which reads their text from this
-          span, so it carries no role of its own that would announce them a
-          second time. */}
+          themselves as an assertive alert, which a screen reader reliably
+          reads out even when it arrives with its text. The rest are announced
+          through the container's status region, which reads their text from
+          this span, so it carries no role of its own that would announce them
+          a second time. */}
       {urgent ? (
         <span role="alert" aria-live="assertive">
           {message}
@@ -471,12 +473,12 @@ const notificationStackStyle = (
  * notification other than `danger` and `warning` through it, a moment after
  * the notification appears. Those notifications carry no `role="status"` of
  * their own, so `getByRole('status')` finds the region, not the notification.
- * The text stays in the region briefly, and while it's there the page holds a
- * second copy of it. A polite notification that closes before its
- * announcement is written, a moment after it appears, isn't announced at all.
- * `danger` and `warning` notifications announce themselves with
- * `role="alert"`. The region is hidden with inline styles, so it needs no
- * stylesheet.
+ * The text stays in the region briefly, even if the notification closes in
+ * the meantime, and while both are up the page holds two copies of it. A
+ * polite notification that closes before its announcement is written, a
+ * moment after it appears, isn't announced at all. `danger` and `warning`
+ * notifications announce themselves as assertive alerts. The region is hidden
+ * with inline styles, so it needs no stylesheet.
  *
  * @function
  * @param {{ position?: NotificationPosition }} props - Container props.
