@@ -34,7 +34,8 @@ Node 22 locally (`.nvmrc`; CI runs Node 24) and `pnpm@11.9.0` (pinned via `packa
 
 ```bash
 pnpm all            # the pre-PR gate: build, typecheck, test+coverage, bundle:stats, conformance, the three staleness checks, lint, format:check, storybook build
-pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin)
+pnpm test           # jest (bulma-ui + create-bestax + bestax-migrate + bestax-mcp + eslint-plugin), then test:scripts
+pnpm test:scripts   # the root scripts/ node:test suite, with coverage held to per-file floors (see below)
 pnpm test:coverage  # coverage — thresholds live in each package's jest config (see below)
 pnpm lint           # eslint
 pnpm typecheck      # tsc --noEmit (each package's build program)
@@ -63,6 +64,14 @@ Enforced by CI (`.github/workflows/ci.yml`):
 
 - Coverage thresholds from the jest configs: **bulma-ui 99%** (all metrics);
   every other jest package 95% (78% branches). `docs` has no jest suite.
+- The root `scripts/` suite has a coverage floor per file in `scripts/coverage-floors.json`,
+  checked by `pnpm test:scripts` (which `pnpm test` and `pnpm all` run). Per file because a
+  total hides a small script losing most of its coverage. A floor is where the file stood,
+  less a small allowance on branches for run-to-run noise, not a target. A file below its
+  floor fails, as does a loaded file with no row or a row no test loads. Floors are judged
+  only on a green run, so without `bulma-ui/dist` the suites still fail on their own "build
+  first" messages. `scripts/coverage-floors.mjs` has the rest, including when lowering a
+  floor is the right fix.
 - A stale generated artefact fails its own step: the skill catalog
   (`gen:catalog:check`), the MCP index (`gen:mcp:check`) and the ESLint
   plugin's metadata (`gen:eslint-meta:check`). Plus build, typecheck, lint,

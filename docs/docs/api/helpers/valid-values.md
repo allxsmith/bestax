@@ -7,7 +7,9 @@ sidebar_label: Valid value constants
 
 ## Overview
 
-The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation. Each is a readonly `as const` tuple, so `(typeof validColors)[number]` gives you the exact string-literal union. `useBulmaClasses` (and the per-concern hooks) silently ignore unrecognized values, and every tuple member produces a helper class except `validSchemeColors`, whose values instead produce the `bulmaHelperStyles` inline style (no class). A few props accept documented extras beyond their tuple, noted in the table below: the `display*` props also take `'none'` (rendering the `is-hidden*` visibility class), and the color props also take `'inherit'` and `'current'` — so validate against the prop's TypeScript union, not the tuple alone, when you need the full contract.
+The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation. Each is a readonly `as const` tuple, so `(typeof validColors)[number]` gives you the exact string-literal union. `useBulmaClasses` (and the per-concern hooks) silently ignore unrecognized values. A few props accept documented extras beyond their tuple, noted in the table below: the `display*` props also take `'none'` (rendering the `is-hidden*` visibility class), and the color props also take `'inherit'` and `'current'` — so validate against the prop's TypeScript union, not the tuple alone, when you need the full contract.
+
+Some components also export a tuple for their own props. Those are not helper tuples, and they follow the [Constants](#constants) table in sections of their own.
 
 ---
 
@@ -36,7 +38,8 @@ import { validColors } from '@allxsmith/bestax-bulma/constants';
 It resolves from both ESM and CommonJS. This is how
 [`@allxsmith/eslint-plugin-bestax`](../../guides/getting-started/eslint-plugin.md)
 validates helper values at lint time rather than keeping a copy of them. The
-[form control constants](#form-control-constants) are not on this subpath.
+[form control constants](#form-control-constants) and the
+[table color constant](#table-color-constant) are not on this subpath.
 
 ---
 
@@ -96,6 +99,26 @@ import { switchColors, switchSizes } from '@allxsmith/bestax-bulma';
 
 type SwitchColor = (typeof switchColors)[number];
 type SwitchSize = (typeof switchSizes)[number];
+```
+
+---
+
+## Table color constant
+
+`Tr`, `Th` and `Td` share one `color` tuple, `validTableColors`, and the `TableColor` type their `color` prop takes is built from it. Like the form control colors, it is a subset of `validColors`, and each component checks membership at runtime, so a value outside the tuple adds no modifier class.
+
+| Constant           | Values                                                                                                           | Used by prop family                                 |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
+| `validTableColors` | `'primary'`, `'link'`, `'info'`, `'success'`, `'warning'`, `'danger'`, `'black'`, `'dark'`, `'light'`, `'white'` | [`Tr`, `Th` and `Td`](../elements/table.md) `color` |
+
+Import it from the package root. `TableColor` is exported there too, so a runtime check can narrow to it:
+
+```ts
+import { validTableColors, type TableColor } from '@allxsmith/bestax-bulma';
+
+function isTableColor(value: string): value is TableColor {
+  return (validTableColors as readonly string[]).includes(value);
+}
 ```
 
 ---

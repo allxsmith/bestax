@@ -27,7 +27,13 @@ Dropdowns can be fully controlled, used as hoverable, or triggered by click. Men
 <!-- bestax:generated import -->
 
 ```tsx
-import { Dropdown } from '@allxsmith/bestax-bulma';
+import {
+  Dropdown,
+  Button,
+  Field,
+  Control,
+  Span,
+} from '@allxsmith/bestax-bulma';
 ```
 
 <!-- /bestax:generated import -->
@@ -167,6 +173,49 @@ function example() {
 
 Callback refs behave the same on React 18 and 19: a cleanup function you return runs on detach instead of the ref being called with `null`.
 
+---
+
+### Split Button
+
+A split button pairs a main action with a menu of related ones. Put a `Button` and a `Dropdown` in a `Field hasAddons`, one `Control` each. `Field hasAddons` squares the inner corners of the button inside each `Control`, so it joins the Dropdown's trigger as well. `Buttons hasAddons` can't: it joins buttons that sit side by side as siblings, and the trigger sits alone inside the Dropdown's own wrapper.
+
+The trigger shows only the Dropdown's arrow, so its `label` is visually hidden text that names the menu for screen readers. Both halves are in the tab order, and the menu keeps the keyboard support described under [Accessibility](#accessibility). Keep the main button in the default color: the trigger takes no `color` prop, so a colored main button can't match it.
+
+```tsx live
+function SplitButton() {
+  const [lastAction, setLastAction] = useState('none yet');
+
+  return (
+    <>
+      <Field hasAddons>
+        <Control>
+          <Button onClick={() => setLastAction('saved')}>Save</Button>
+        </Control>
+        <Control>
+          <Dropdown label={<Span visibility="sr-only">More save options</Span>}>
+            <Dropdown.Item
+              as="button"
+              onClick={() => setLastAction('saved as a draft')}
+            >
+              Save as draft
+            </Dropdown.Item>
+            <Dropdown.Item
+              as="button"
+              onClick={() => setLastAction('saved a copy')}
+            >
+              Save a copy
+            </Dropdown.Item>
+          </Dropdown>
+        </Control>
+      </Field>
+      <p role="status">Last action: {lastAction}</p>
+    </>
+  );
+}
+```
+
+---
+
 ### Compound (dot-notation) usage
 
 `DropdownItem` and `DropdownDivider` are also available as `Dropdown.Item` and `Dropdown.Divider`, so the whole menu can be composed from the single `Dropdown` import.
@@ -206,6 +255,9 @@ out of the box:
   `onClick` runs and the menu closes unless `closeOnClick` is `false`. That includes the
   default anchor without an `href` and `as="div"`, which the browser would not activate on
   its own.
+- When running an item closes the menu, by click or by key, focus goes back to the trigger,
+  as it does for <kbd>Escape</kbd>. An item whose `onClick` moves focus somewhere else keeps
+  it there.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
   `aria-disabled="true"`) and dividers are skipped during arrow-key navigation.
 

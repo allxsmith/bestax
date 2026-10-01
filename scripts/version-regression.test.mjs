@@ -15,27 +15,57 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
+  changelogSections,
   compareVersions,
   expectedTagFormat,
   findVersionRegressions,
   tagGlob,
   UNREADABLE,
+  UNREADABLE_CHANGELOG,
+  loadChangelog,
   loadTagFormat,
   versionRegressionProblems,
 } from './lib/version-regression.mjs';
 import { publishablePackages } from './check-conformance.mjs';
 import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-const run = ({ packages, tags = {}, anyTagsExist = true, formats = {} } = {}) =>
+// A changelog with a section for each version given, the way `loadChangelog`
+// hands one over.
+const sections = (...versions) => ({
+  versions: new Set(versions),
+  released: new Set(versions),
+  unread: new Map(),
+  mentioned: new Map(),
+});
+const versionOf = tag => tag.slice(tag.lastIndexOf('@') + 1);
+
+const run = ({
+  packages,
+  tags = {},
+  anyTagsExist = true,
+  formats = {},
+  changelogs = {},
+} = {}) =>
   findVersionRegressions({
     packages,
     anyTagsExist,
     tagsFor: name => tags[name] ?? [],
     tagFormatFor: dir =>
       dir in formats ? formats[dir] : expectedTagFormat(packages[0].name),
+    // Unless a case says otherwise, every tagged version still has its
+    // section, so a case about something else is not also a case about this.
+    changelogFor: dir =>
+      dir in changelogs
+        ? changelogs[dir]
+        : sections(
+            ...(tags[packages.find(p => p.dir === dir).name] ?? []).map(
+              versionOf
+            )
+          ),
   });
 
 const pkg = (version, name = 'pkg-a', dir = 'pkg-a') => ({
@@ -133,6 +163,9 @@ test('accepts one package with no tags beside others that have them', () => {
       anyTagsExist: true,
       tagsFor: name => (name === 'old' ? ['old@5.16.3'] : []),
       tagFormatFor: dir => expectedTagFormat(dir),
+      // `new` has no changelog either, which is what makes its missing tag an
+      // answer rather than a lost one.
+      changelogFor: dir => (dir === 'old' ? sections('5.16.3') : null),
     }),
     []
   );
@@ -172,6 +205,7 @@ test('flags a tagFormat present in a form it cannot read', () => {
     anyTagsExist: true,
     tagsFor: () => ['a@2.0.0'],
     tagFormatFor: () => UNREADABLE,
+    changelogFor: () => sections('2.0.0'),
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /could not be read/);
@@ -254,6 +288,7 @@ test('checks every package, not only the first that passes', () => {
     anyTagsExist: true,
     tagsFor: name => [`${name}@1.0.0`],
     tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: () => sections('1.0.0'),
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /^b\/package\.json/);
@@ -316,6 +351,7 @@ test('reports every package that regressed, not just the first', () => {
     anyTagsExist: true,
     tagsFor: name => [`${name}@9.9.9`],
     tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: () => sections('9.9.9'),
   });
   assert.equal(problems.length, 3);
   // In package order, so the list reads the way the workspace does.
@@ -334,6 +370,7 @@ test('mixes regressions with other problems rather than stopping at one', () => 
     anyTagsExist: true,
     tagsFor: name => [`${name}@2.0.0`],
     tagFormatFor: dir => (dir === 'c' ? 'v${version}' : expectedTagFormat(dir)),
+    changelogFor: () => sections('2.0.0'),
   });
   assert.equal(problems.length, 3);
   // Contract violations first, then the comparisons. The tagFormat rule is
@@ -360,6 +397,7 @@ test('--allow-untagged mutes the environment stop, never the contract', () => {
     anyTagsExist: true,
     tagsFor: () => [],
     tagFormatFor: dir => (dir === 'a' ? 'v${version}' : expectedTagFormat('b')),
+    changelogFor: () => null,
   };
   const stopped = findVersionRegressions(args);
   assert.equal(stopped.length, 2);
@@ -383,6 +421,7 @@ test('a package excluded by the contract is not also called unreachable', () => 
     anyTagsExist: true,
     tagsFor: () => [],
     tagFormatFor: () => 'v${version}',
+    changelogFor: () => null,
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /tagFormat/);
@@ -401,6 +440,7 @@ test('an unborn HEAD is its own state, not a shallow clone', () => {
       throw new Error('git tag --merged failed for a');
     },
     tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: () => null,
   };
   const problems = findVersionRegressions(args);
   assert.equal(problems.length, 1);
@@ -423,6 +463,7 @@ test('an empty package list is reported, not passed', () => {
     anyTagsExist: true,
     tagsFor: () => [],
     tagFormatFor: () => null,
+    changelogFor: () => null,
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /no publishable packages/);
@@ -442,6 +483,7 @@ test('does not blame the checkout when the contract excluded the tagged packages
     anyTagsExist: true,
     tagsFor: name => (name === 'a' ? ['a@2.0.0'] : []),
     tagFormatFor: dir => (dir === 'a' ? 'v${version}' : expectedTagFormat('b')),
+    changelogFor: () => null,
   });
   assert.equal(problems.length, 2);
   assert.match(problems[0], /tagFormat/);
@@ -459,6 +501,7 @@ test('--allow-untagged turns off this rule and nothing else', () => {
     packages: [{ dir: 'a', name: 'a', version: '0.1.0' }],
     tagsFor: () => [],
     tagFormatFor: () => expectedTagFormat('a'),
+    changelogFor: () => null,
   };
   // Without it, the tagless repository is an error rather than a silent pass.
   assert.equal(
@@ -483,6 +526,7 @@ test('--allow-untagged turns off this rule and nothing else', () => {
       allowUntagged: true,
       tagsFor: () => ['a@0.2.0'],
       tagFormatFor: () => expectedTagFormat('a'),
+      changelogFor: () => sections('0.2.0'),
     }).length,
     1
   );
@@ -501,6 +545,7 @@ test('a failed tag lookup is not an empty answer', () => {
           throw new Error('git tag --merged failed for a');
         },
         tagFormatFor: dir => expectedTagFormat(dir),
+        changelogFor: () => null,
       }),
     /git tag --merged failed/
   );
@@ -537,6 +582,7 @@ test('a skipped manifest counts toward the partial diagnosis', () => {
     anyTagsExist: true,
     tagsFor: () => [],
     tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: () => null,
   };
   // No skipped manifests: every package this knows about is comparable, so a
   // checkout diagnosis is the honest one.
@@ -565,6 +611,7 @@ test('an unreadable git is an environment stop like the others', () => {
     tagsReadable: false,
     tagsFor: () => [],
     tagFormatFor: dir => (dir === 'a' ? 'v${version}' : expectedTagFormat('b')),
+    changelogFor: () => null,
   };
   const stopped = findVersionRegressions(args);
   assert.equal(stopped.length, 2);
@@ -582,6 +629,16 @@ const config = tagFormat => () => Promise.resolve({ default: { tagFormat } });
 const noConfig = () => {
   const error = new Error('not found');
   error.code = 'ERR_MODULE_NOT_FOUND';
+  return Promise.reject(error);
+};
+// A changelog as the wiring reads it: the text of the file.
+const changelog =
+  (...versions) =>
+  () =>
+    Promise.resolve(versions.map(v => `# ${v} (2026-01-01)\n`).join('\n'));
+const noChangelog = () => {
+  const error = new Error('not found');
+  error.code = 'ENOENT';
   return Promise.reject(error);
 };
 
@@ -646,6 +703,7 @@ test('the contract is answered before any environment state, through the wiring'
       Promise.resolve({
         default: { tagFormat: dir === 'a' ? 'v${version}' : 'b@${version}' },
       }),
+    readChangelog: noChangelog,
   });
   assert.equal(problems.length, 2);
   assert.match(problems[0], /tagFormat/);
@@ -660,6 +718,7 @@ test('the contract is answered before any environment state, through the wiring'
       Promise.resolve({
         default: { tagFormat: dir === 'a' ? 'v${version}' : 'b@${version}' },
       }),
+    readChangelog: noChangelog,
   });
   assert.equal(muted.length, 1);
   assert.match(muted[0], /tagFormat/);
@@ -674,6 +733,7 @@ test('a skipped manifest is reported and counted by the wiring', async () => {
     skipped: ['nameless'],
     git: args => (args[1] === '--list' ? 'a@2.0.0\n' : ''),
     importConfig: config('a@${version}'),
+    readChangelog: noChangelog,
   });
   assert.equal(problems.length, 2);
   assert.match(problems[0], /nameless\/package\.json/);
@@ -693,6 +753,7 @@ test('the wiring compares, and flags a real regression end to end', async () => 
           ? 'sha\n'
           : 'a@5.16.3\n',
     importConfig: config('a@${version}'),
+    readChangelog: changelog('5.16.3'),
   });
   assert.equal(problems.length, 1);
   assert.match(problems[0], /BELOW `5\.16\.3`/);
@@ -707,6 +768,7 @@ test('the wiring compares, and flags a real regression end to end', async () => 
           ? 'sha\n'
           : 'a@5.16.3\n',
     importConfig: noConfig,
+    readChangelog: changelog('5.16.3'),
   });
   assert.deepEqual(absent, []);
 });
@@ -729,6 +791,7 @@ test('the wiring maps git onto the questions the rule asks', async () => {
       packages,
       git,
       importConfig: config('a@${version}'),
+      readChangelog: changelog('1.0.0'),
     }),
     []
   );
@@ -750,6 +813,7 @@ test('the wiring maps git onto the questions the rule asks', async () => {
     versionRegressionProblems({
       packages,
       importConfig: config('a@${version}'),
+      readChangelog: changelog('1.0.0'),
       git: args =>
         args[1] === '--list' && args.length === 2
           ? 'a@1.0.0\n'
@@ -765,6 +829,7 @@ test('the wiring maps git onto the questions the rule asks', async () => {
   const shallow = await versionRegressionProblems({
     packages,
     importConfig: config('a@${version}'),
+    readChangelog: changelog('1.0.0'),
     git: args =>
       args[1] === '--list' && args.length === 2
         ? 'a@9.9.9\n'
@@ -791,6 +856,7 @@ test('only an ABSENT release config is exempt, not an unreadable one', async () 
     packages,
     git,
     importConfig: noConfig,
+    readChangelog: changelog('1.0.0'),
   });
   assert.deepEqual(absent, []);
 
@@ -798,6 +864,7 @@ test('only an ABSENT release config is exempt, not an unreadable one', async () 
     packages,
     git,
     importConfig: () => Promise.reject(new SyntaxError('boom')),
+    readChangelog: changelog('1.0.0'),
   });
   assert.equal(unreadable.length, 1);
   assert.match(unreadable[0], /could not be read/);
@@ -829,4 +896,617 @@ test('a nameless manifest is produced as its own channel', async () => {
   // Private is a deliberate choice and stays quiet; nameless is a broken
   // manifest wearing the same clothes.
   assert.deepEqual(unnamed, ['nameless']);
+});
+
+test('changelogSections reads every heading shape the release tooling writes', () => {
+  const lines = [
+    // The title line the oldest bulma-ui sections sit under: not a release.
+    '# @allxsmith/bestax-bulma',
+    '',
+    // A minor or major.
+    '# [5.18.0](https://github.com/o/r/compare/p@5.17.0...p@5.18.0) (2026-09-29)',
+    '',
+    '### Features',
+    '',
+    '* **x:** a change',
+    // A patch, one level down.
+    '## [5.17.1](https://github.com/o/r/compare/p@5.17.0...p@5.17.1) (2026-09-27)',
+    // A prerelease.
+    '# [5.17.0-rc.1](https://github.com/o/r/compare/p@5.16.0...p@5.17.0-rc.1) (2026-09-20)',
+    // A first release, with nothing to compare against.
+    '# 1.0.0 (2025-10-03)',
+    // Before semantic-release: a bare version and no date.
+    '## 0.9.0',
+  ];
+  const expected = ['0.9.0', '1.0.0', '5.17.0-rc.1', '5.17.1', '5.18.0'];
+  const read = changelogSections(lines.join('\n'));
+  assert.deepEqual([...read.versions].sort(), expected);
+  // And none of them is left over as a shape it does not know.
+  assert.deepEqual([...read.unread.keys()], []);
+  // A checkout with CRLF line endings reads the same, rather than reading
+  // nothing and calling every section missing.
+  assert.deepEqual(
+    [...changelogSections(lines.join('\r\n')).versions].sort(),
+    expected
+  );
+});
+
+test('changelogSections reads nothing looser than a section heading', () => {
+  // Release notes carry commit bodies verbatim, so any of these can turn up in
+  // a changelog, and reading one as a section would pass a file whose real
+  // section is gone.
+  const stray = [
+    '### 1.0.0',
+    '#1.0.0',
+    '# 1.0.0 was the last good release',
+    '# 1.0.0 (last week)',
+    '# [1.0.0](a link with spaces) (2026-01-01)',
+    '  # 1.0.0 (2026-01-01)',
+    '* 1.0.0 (2026-01-01)',
+    '# v1.0.0 (2026-01-01)',
+    '# 1.0 (2026-01-01)',
+  ];
+  assert.deepEqual([...changelogSections(stray.join('\n')).versions], []);
+});
+
+test('a bare heading is a section, but not evidence of a release', () => {
+  // A new package's author seeding its changelog by hand writes exactly the
+  // bare shape the oldest bulma-ui sections carry. Read as a release, it would
+  // stop a package that has never released, for want of a tag it cannot have.
+  const seeded = changelogSections('# Changelog\n\n## 0.1.0\n\n* first cut\n');
+  assert.deepEqual([...seeded.versions], ['0.1.0']);
+  assert.deepEqual([...seeded.released], []);
+  // A shape the parser knows, so not reported as one to teach it either.
+  assert.deepEqual([...seeded.unread.keys()], []);
+  // What a release writes, with a link or a date, is evidence either way.
+  const written = changelogSections(
+    '# [1.1.0](https://x.test/compare) (2026-10-02)\n\n# 1.0.0 (2026-10-01)\n\n## 0.1.0\n'
+  );
+  assert.deepEqual([...written.released].sort(), ['1.0.0', '1.1.0']);
+});
+
+test('a bare heading holds its tagged version like any other section', () => {
+  // bulma-ui's releases from before semantic-release are tagged and headed
+  // bare, and removing one of those is the same damage as any other.
+  const text = [
+    '# [1.1.0](https://x.test/compare) (2026-01-02)',
+    '',
+    '# @allxsmith/bestax-bulma',
+    '',
+    '## 1.0.1',
+    '',
+    '## 1.0.0',
+  ].join('\n');
+  const tags = { 'pkg-a': ['pkg-a@1.0.0', 'pkg-a@1.0.1', 'pkg-a@1.1.0'] };
+  assert.deepEqual(
+    run({
+      packages: [pkg('1.1.0')],
+      tags,
+      changelogs: { 'pkg-a': changelogSections(text) },
+    }),
+    []
+  );
+  const gone = run({
+    packages: [pkg('1.1.0')],
+    tags,
+    changelogs: { 'pkg-a': changelogSections(text.replace('## 1.0.1', '')) },
+  });
+  assert.equal(gone.length, 1);
+  assert.match(gone[0], /no section for `1\.0\.1`/);
+});
+
+test('changelogSections names a heading shape it does not know', () => {
+  // The other half of being strict. A shape the tooling starts writing has to
+  // surface as a shape, or the check reads it as a deletion and sends someone
+  // to restore a file that is not damaged. Each of these is a way the
+  // installed templates vary the heading, or a `v` in front of the version.
+  const drifted = [
+    // Deeper, which is what a preset picking depth differently produces.
+    ['### [1.2.3](https://x.test/compare) (2026-01-01)', '1.2.3'],
+    ['#### 1.2.4', '1.2.4'],
+    // A `v` in front, bare or linked.
+    ['# v1.2.5 (2026-01-01)', '1.2.5'],
+    ['## [v1.2.6](https://x.test/compare) (2026-01-01)', '1.2.6'],
+    // A configured release title.
+    ['# [1.3.0](https://x.test/compare) "Codename" (2026-01-01)', '1.3.0'],
+    // The writer's default template for a patch.
+    ['## <small>1.3.1 (2026-01-01)</small>', '1.3.1'],
+    // Another date format.
+    ['## [1.3.2](https://x.test/compare) (1 Jan 2026)', '1.3.2'],
+    // Indented, which Markdown still renders as a heading.
+    ['   ## 1.3.3 (2026-01-01)', '1.3.3'],
+  ];
+  for (const [line, version] of drifted) {
+    const read = changelogSections(line);
+    assert.deepEqual([...read.versions], [], `read as a section: ${line}`);
+    assert.equal(read.unread.get(version), line.trim(), `not named: ${line}`);
+  }
+  // A heading that is not a release stays out of it, version or not.
+  const plain = changelogSections(
+    '### Bug Fixes\n\n### BREAKING CHANGES\n\n### Migrating to 5.0.0\n'
+  );
+  assert.deepEqual([...plain.unread.keys()], []);
+});
+
+test('every real changelog reads as the sections its headings name', async () => {
+  // Against the REAL files, through the SAME loader the check uses. A heading
+  // read loosely that the parser does not accept is a shape to teach it, and
+  // this says so in any checkout. CI runs the check before this suite, so the
+  // check's own message has to say it too, which a case below pins.
+  const { packages } = await publishablePackages(REPO);
+  const read = dir => readFile(join(REPO, dir, 'CHANGELOG.md'), 'utf8');
+  const unreadIn = changelog => [...changelog.unread.values()];
+  let released = 0;
+  for (const pkg of packages) {
+    const changelog = await loadChangelog(pkg.dir, read);
+    // No changelog yet is a package that has not released.
+    if (changelog === null) continue;
+    assert.notEqual(
+      changelog,
+      UNREADABLE_CHANGELOG,
+      `${pkg.dir}/CHANGELOG.md could not be read`
+    );
+    assert.deepEqual(
+      unreadIn(changelog),
+      [],
+      `${pkg.dir}/CHANGELOG.md has a version heading that SECTION_HEADING in ` +
+        'scripts/lib/version-regression.mjs does not accept. Nothing was ' +
+        'deleted: teach the pattern that shape.'
+    );
+    if (!changelog.versions.size) continue;
+    released += 1;
+    // And the guard can fail on this very file: its newest heading moved a
+    // level down, the drift a preset change would bring, is found.
+    const drifted = (await read(pkg.dir)).replace(/^#{1,2} (?=\[?\d)/m, '### ');
+    assert.equal(
+      unreadIn(changelogSections(drifted)).length,
+      1,
+      `a drifted heading in ${pkg.dir}/CHANGELOG.md went unnoticed`
+    );
+  }
+  assert.ok(released > 0, 'no real changelog had a section this could read');
+});
+
+test('flags a tagged version whose changelog section is gone', () => {
+  // The shape the manifest comparison cannot see (#711). A partial revert
+  // deletes released sections and leaves the version alone, so the manifest
+  // sits level with the highest tag and passes.
+  const problems = run({
+    packages: [pkg('5.16.3')],
+    tags: { 'pkg-a': ['pkg-a@5.16.0', 'pkg-a@5.16.1', 'pkg-a@5.16.3'] },
+    changelogs: { 'pkg-a': sections('5.16.3', '5.16.0') },
+  });
+  assert.equal(problems.length, 1);
+  assert.match(
+    problems[0],
+    /^pkg-a\/CHANGELOG\.md has no section for `5\.16\.1`,/
+  );
+  // It names where the section still is, since nothing rebuilds it.
+  assert.match(problems[0], /git show pkg-a@5\.16\.1:pkg-a\/CHANGELOG\.md/);
+  assert.doesNotMatch(problems[0], /BELOW/);
+});
+
+test('asks only that each tagged section is present', () => {
+  // Order and wording are not this check's business, and neither is a section
+  // with no tag behind it. Through the real parser: sections out of order, a
+  // body rewritten, and an untagged extra all pass.
+  const text = [
+    '## [5.16.1](https://example.test/compare) (2026-01-02)',
+    '',
+    '* reworded by hand',
+    '',
+    '# [5.17.0](https://example.test/compare) (2026-01-09)',
+    '',
+    '# [5.16.0](https://example.test/compare) (2026-01-01)',
+  ].join('\n');
+  assert.deepEqual(
+    run({
+      packages: [pkg('5.16.1')],
+      tags: { 'pkg-a': ['pkg-a@5.16.0', 'pkg-a@5.16.1'] },
+      changelogs: { 'pkg-a': changelogSections(text) },
+    }),
+    []
+  );
+});
+
+test('reports every missing section, one problem per package', () => {
+  const tags = {
+    a: ['a@1.0.0', 'a@1.1.0', 'a@1.2.0'],
+    b: ['b@2.0.0'],
+    c: ['c@3.0.0'],
+  };
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'a', name: 'a', version: '1.2.0' },
+      { dir: 'b', name: 'b', version: '2.0.0' },
+      { dir: 'c', name: 'c', version: '3.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => tags[name],
+    tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: dir =>
+      ({ a: sections('1.2.0'), b: sections('2.0.0'), c: sections() })[dir],
+  });
+  assert.equal(problems.length, 2);
+  // Newest first, so the restore command names the release whose file holds
+  // the most of what is missing.
+  assert.match(
+    problems[0],
+    /^a\/CHANGELOG\.md has no section for `1\.1\.0`, `1\.0\.0`,/
+  );
+  assert.match(problems[0], /git show a@1\.1\.0:a\/CHANGELOG\.md/);
+  assert.match(problems[1], /^c\/CHANGELOG\.md has no section for `3\.0\.0`/);
+
+  // A long list is cut short rather than printed whole.
+  const many = run({
+    packages: [pkg('1.6.0')],
+    tags: {
+      'pkg-a': ['0', '1', '2', '3', '4', '5', '6'].map(n => `pkg-a@1.${n}.0`),
+    },
+    changelogs: { 'pkg-a': sections('1.6.0') },
+  });
+  assert.equal(many.length, 1);
+  assert.match(
+    many[0],
+    /`1\.5\.0`, `1\.4\.0`, `1\.3\.0`, `1\.2\.0`, `1\.1\.0` and 1 more,/
+  );
+});
+
+test('a deleted changelog is reported once, not per tag', () => {
+  const problems = run({
+    packages: [pkg('1.1.0')],
+    tags: { 'pkg-a': ['pkg-a@1.0.0', 'pkg-a@1.1.0'] },
+    changelogs: { 'pkg-a': null },
+  });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /^pkg-a\/CHANGELOG\.md does not exist/);
+  assert.match(problems[0], /git show pkg-a@1\.1\.0:pkg-a\/CHANGELOG\.md/);
+});
+
+test('holds the changelog even when the manifest cannot be compared', () => {
+  // Two questions with two answers. An unreadable manifest used to end the
+  // package's turn, which would have skipped its changelog with it.
+  const unreadable = run({
+    packages: [pkg('nightly')],
+    tags: { 'pkg-a': ['pkg-a@1.0.0'] },
+    changelogs: { 'pkg-a': sections() },
+  });
+  assert.equal(unreadable.length, 2);
+  assert.match(unreadable[0], /nightly/);
+  assert.match(unreadable[1], /no section for `1\.0\.0`/);
+
+  // And the #705 shape, a whole older tree re-staged, gets both answers too.
+  const reset = run({
+    packages: [pkg('5.16.0')],
+    tags: { 'pkg-a': ['pkg-a@5.16.0', 'pkg-a@5.16.1'] },
+    changelogs: { 'pkg-a': sections('5.16.0') },
+  });
+  assert.equal(reset.length, 2);
+  assert.match(reset[0], /BELOW `5\.16\.1`/);
+  assert.match(reset[1], /no section for `5\.16\.1`/);
+});
+
+test('a released package with no reachable tag is stopped on its own', () => {
+  // The limit #711 names. The stop above sums across packages, so a history
+  // where only SOME packages lost their tags exempted those in silence. The
+  // changelog tells a released package from a new one, because a release
+  // writes its section in the commit its tag points at.
+  const args = {
+    packages: [
+      { dir: 'a', name: 'a', version: '1.1.0' },
+      { dir: 'b', name: 'b', version: '2.10.0' },
+      // Never released: no changelog, one with no released section yet, or
+      // one seeded by hand with a bare heading.
+      { dir: 'c', name: 'c', version: '0.0.0-development' },
+      { dir: 'd', name: 'd', version: '0.0.0-development' },
+      { dir: 'f', name: 'f', version: '0.1.0' },
+      // Excluded by the contract, which already says what to fix.
+      { dir: 'e', name: 'e', version: '1.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => (name === 'a' ? ['a@1.1.0'] : []),
+    tagFormatFor: dir => (dir === 'e' ? 'v${version}' : expectedTagFormat(dir)),
+    changelogFor: dir =>
+      ({
+        a: sections('1.1.0'),
+        // Semver order, not the order they were read in or string order.
+        b: sections('2.9.0', '2.10.0'),
+        c: null,
+        d: sections(),
+        f: changelogSections('# Changelog\n\n## 0.1.0\n'),
+        e: sections('1.0.0'),
+      })[dir],
+  };
+  const problems = findVersionRegressions(args);
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /^e\/release\.config\.js: tagFormat/);
+  assert.match(
+    problems[1],
+    /^version-regression: this changelog records releases, but no tag of its package is reachable from HEAD/
+  );
+  assert.match(
+    problems[1],
+    /b\/CHANGELOG\.md \(releases up to `2\.10\.0`, no `b@\*` tag\)/
+  );
+  assert.doesNotMatch(problems[1], /[cdef]\/CHANGELOG\.md/);
+  assert.match(problems[1], /--allow-untagged/);
+
+  // An environment state, so the hatch takes it and leaves the contract.
+  const muted = findVersionRegressions({ ...args, allowUntagged: true });
+  assert.equal(muted.length, 1);
+  assert.match(muted[0], /^e\/release\.config\.js: tagFormat/);
+});
+
+test('packages stopped for want of a tag are named in one message', () => {
+  // A clone cut short loses the tags of every package that has not released
+  // lately, all at once and for the same reason. One message per package said
+  // the same long thing several times over.
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'a', name: 'a', version: '1.1.0' },
+      { dir: 'b', name: 'b', version: '2.0.0' },
+      { dir: 'c', name: 'c', version: '3.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: name => (name === 'a' ? ['a@1.1.0'] : []),
+    tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: dir =>
+      ({ a: sections('1.1.0'), b: sections('2.0.0'), c: sections('3.0.0') })[
+        dir
+      ],
+  });
+  assert.equal(problems.length, 1);
+  // Each package keeps its own facts, and the remedy is said once.
+  assert.match(
+    problems[0],
+    /b\/CHANGELOG\.md \(releases up to `2\.0\.0`, no `b@\*` tag\); c\/CHANGELOG\.md \(releases up to `3\.0\.0`, no `c@\*` tag\)/
+  );
+  assert.equal(problems[0].match(/--allow-untagged/g).length, 1);
+});
+
+test('a heading in a shape the parser does not know is not called a deletion', () => {
+  // What drift in the release tooling looks like to the check: the newest
+  // release wrote its heading a level deeper, and every older section still
+  // reads. Called a deletion, the message pointed at a restore that would
+  // change nothing, and CI runs this check before the suite that says better.
+  const text = [
+    '### [5.17.0](https://x.test/compare) (2026-01-09)',
+    '',
+    '# [5.16.0](https://x.test/compare) (2026-01-01)',
+  ].join('\n');
+  const drift = run({
+    packages: [pkg('5.17.0')],
+    tags: { 'pkg-a': ['pkg-a@5.16.0', 'pkg-a@5.17.0'] },
+    changelogs: { 'pkg-a': changelogSections(text) },
+  });
+  assert.equal(drift.length, 1);
+  assert.match(
+    drift[0],
+    /^pkg-a\/CHANGELOG\.md has a heading for `5\.17\.0` that does not read as a released section: `### \[5\.17\.0\]/
+  );
+  assert.match(drift[0], /SECTION_HEADING/);
+  assert.doesNotMatch(drift[0], /deleted since/);
+
+  // Beside a real deletion, each gets its own answer.
+  const both = run({
+    packages: [pkg('5.17.0')],
+    tags: { 'pkg-a': ['pkg-a@5.15.0', 'pkg-a@5.16.0', 'pkg-a@5.17.0'] },
+    changelogs: { 'pkg-a': changelogSections(text) },
+  });
+  assert.equal(both.length, 2);
+  assert.match(both[0], /heading for `5\.17\.0`/);
+  assert.match(both[1], /no section for `5\.15\.0`, though its tag/);
+});
+
+test('a checkout with no reachable tag still gets one stop, not one per package', () => {
+  // The whole clone is the problem there, and repeating it per package would
+  // bury the one fix under copies of it.
+  const problems = findVersionRegressions({
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: '1.0.0' },
+    ],
+    anyTagsExist: true,
+    tagsFor: () => [],
+    tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: () => sections('1.0.0'),
+  });
+  assert.equal(problems.length, 1);
+  assert.match(problems[0], /what a shallow clone looks like/);
+});
+
+test('an unreadable changelog is a violation the hatch cannot mute', () => {
+  // Distinct from having none. Read as absent, it would exempt a package from
+  // every changelog question at once.
+  const args = {
+    packages: [
+      { dir: 'a', name: 'a', version: '1.0.0' },
+      { dir: 'b', name: 'b', version: '1.0.0' },
+    ],
+    anyTagsExist: false,
+    tagsFor: () => [],
+    tagFormatFor: dir => expectedTagFormat(dir),
+    changelogFor: dir => (dir === 'a' ? UNREADABLE_CHANGELOG : null),
+  };
+  const stopped = findVersionRegressions(args);
+  assert.equal(stopped.length, 2);
+  assert.match(stopped[0], /^a\/CHANGELOG\.md exists but could not be read/);
+  assert.match(stopped[1], /no tags at all/);
+  const muted = findVersionRegressions({ ...args, allowUntagged: true });
+  assert.equal(muted.length, 1);
+  assert.match(muted[0], /^a\/CHANGELOG\.md exists but could not be read/);
+
+  // With tags reachable it is said once, not again as every section missing.
+  const tagged = findVersionRegressions({
+    ...args,
+    anyTagsExist: true,
+    tagsFor: name => [`${name}@1.0.0`],
+    changelogFor: dir =>
+      dir === 'a' ? UNREADABLE_CHANGELOG : sections('1.0.0'),
+  });
+  assert.equal(tagged.length, 1);
+  assert.match(tagged[0], /^a\/CHANGELOG\.md exists but could not be read/);
+});
+
+test('loadChangelog tells absent from unreadable', async () => {
+  const failing = code => () =>
+    Promise.reject(Object.assign(new Error(code), { code }));
+  // No file is a package that has not released.
+  assert.equal(await loadChangelog('pkg', noChangelog), null);
+  // Anything else is not that, however it failed.
+  assert.equal(
+    await loadChangelog('pkg', failing('EISDIR')),
+    UNREADABLE_CHANGELOG
+  );
+  assert.equal(
+    await loadChangelog('pkg', failing('EACCES')),
+    UNREADABLE_CHANGELOG
+  );
+  assert.equal(
+    await loadChangelog('pkg', () => Promise.resolve(undefined)),
+    UNREADABLE_CHANGELOG
+  );
+  assert.deepEqual(
+    [...(await loadChangelog('pkg', changelog('1.0.0', '1.1.0'))).versions],
+    ['1.0.0', '1.1.0']
+  );
+});
+
+test('the wiring reads each changelog before git answers', async () => {
+  const packages = [
+    { dir: 'a', name: 'a', version: '1.1.0' },
+    { dir: 'b', name: 'b', version: '1.0.0' },
+  ];
+  const importConfig = dir => config(`${dir}@\${version}`)();
+  const unreadableA = dir =>
+    dir === 'a'
+      ? Promise.reject(Object.assign(new Error('EISDIR'), { code: 'EISDIR' }))
+      : noChangelog();
+  // git answers nothing: the tempting place to return early, and the file
+  // problem must still be said, and said first.
+  const problems = await versionRegressionProblems({
+    packages,
+    git: () => null,
+    importConfig,
+    readChangelog: unreadableA,
+  });
+  assert.equal(problems.length, 2);
+  assert.match(problems[0], /^a\/CHANGELOG\.md exists but could not be read/);
+  assert.match(problems[1], /`git tag` failed/);
+  const muted = await versionRegressionProblems({
+    packages,
+    allowUntagged: true,
+    git: () => null,
+    importConfig,
+    readChangelog: unreadableA,
+  });
+  assert.equal(muted.length, 1);
+  assert.match(muted[0], /^a\/CHANGELOG\.md exists but could not be read/);
+
+  // End to end, through the real parser: each package's own file is read,
+  // and a section removed from one is found.
+  const read = [];
+  const tags = { 'a@*': 'a@1.0.0\na@1.1.0\n', 'b@*': 'b@1.0.0\n' };
+  const found = await versionRegressionProblems({
+    packages,
+    git: args =>
+      args[0] === 'rev-parse'
+        ? 'x\n'
+        : args.length === 2
+          ? `${tags['a@*']}${tags['b@*']}`
+          : tags[args[args.length - 1]],
+    importConfig,
+    readChangelog: dir => {
+      read.push(dir);
+      return changelog(dir === 'a' ? '1.1.0' : '1.0.0')();
+    },
+  });
+  assert.deepEqual(read, ['a', 'b']);
+  assert.equal(found.length, 1);
+  assert.match(found[0], /^a\/CHANGELOG\.md has no section for `1\.0\.0`/);
+});
+
+test('changelogSections names a heading-like line neither pattern reads', () => {
+  // Past what VERSION_HEADING knows: markup it has never seen, or decoration
+  // in front of the version. None is a section, and each is named, so the
+  // check can say "heading shape" instead of "deleted".
+  const shapes = [
+    // An emoji, or emphasis, in front of the version.
+    ['## 🚀 1.2.3 (2026-01-01)', '1.2.3'],
+    ['## **1.2.4** (2026-01-01)', '1.2.4'],
+    // HTML headings, with attributes and a link inside.
+    ['<h2>1.2.5 (2026-01-01)</h2>', '1.2.5'],
+    ['<h2 id="x"><a href="https://x.test">v1.2.6</a></h2>', '1.2.6'],
+    // A pseudo-heading: no heading markup, but opening the way one does.
+    ['**1.2.7** (2026-01-01)', '1.2.7'],
+    ['🎉 1.2.8', '1.2.8'],
+    // An emoji carrying a variation selector, which is not pictographic.
+    ['❤️ 1.2.9', '1.2.9'],
+  ];
+  for (const [line, version] of shapes) {
+    const read = changelogSections(line);
+    assert.deepEqual([...read.versions], [], `read as a section: ${line}`);
+    assert.deepEqual([...read.unread.keys()], [], `recognised: ${line}`);
+    assert.equal(read.mentioned.get(version), line, `not named: ${line}`);
+  }
+  // Setext: text over an underline of either kind.
+  for (const underline of ['===', '---']) {
+    const read = changelogSections(`1.3.0 (2026-01-01)\n${underline}\n`);
+    assert.equal(read.mentioned.get('1.3.0'), '1.3.0 (2026-01-01)');
+  }
+});
+
+test('a version named in the body of another release is not a heading', () => {
+  // The direction that would hide a deletion. If any of these counted,
+  // removing the 5.17.0 section would read as a change of heading shape
+  // rather than the damage it is.
+  const body = [
+    '* reverts 5.17.0 ([abc1234](https://x.test/commit/abc1234))',
+    // A note's continuation line, which lands at column 0.
+    '5.17.0 introduced a regression in the select',
+    'See `5.17.0` for the original change.',
+    // A list item over what would otherwise be a setext underline.
+    '* 5.17.0 was reverted',
+    '---',
+    // A heading, but one that does not open with the version.
+    '## Upgrading from 5.17.0',
+  ];
+  assert.deepEqual(
+    [...changelogSections(body.join('\n')).mentioned.keys()],
+    []
+  );
+  // A whole token only: a longer version is a different one, not this one.
+  const longer = changelogSections(
+    '## 🚀 15.17.0\n\n## 🚀 5.17.0-rc.1\n\n## 🚀 5.17.0.1\n'
+  );
+  assert.deepEqual([...longer.mentioned.keys()], ['15.17.0', '5.17.0-rc.1']);
+});
+
+test('a version only a heading-like line names is not called deleted', () => {
+  // A shape neither pattern knows, with the older sections still reading:
+  // what drift into it looks like. And beside it a version that only another
+  // release's notes mention, whose section really is gone.
+  const text = [
+    '## 🚀 5.17.0 (2026-01-09)',
+    '',
+    '* reverts 5.15.0',
+    '',
+    '# [5.16.0](https://x.test/compare) (2026-01-01)',
+  ].join('\n');
+  const problems = run({
+    packages: [pkg('5.17.0')],
+    tags: { 'pkg-a': ['pkg-a@5.15.0', 'pkg-a@5.16.0', 'pkg-a@5.17.0'] },
+    changelogs: { 'pkg-a': changelogSections(text) },
+  });
+  assert.equal(problems.length, 2);
+  assert.match(
+    problems[0],
+    /^pkg-a\/CHANGELOG\.md names `5\.17\.0` in a line that looks like a heading, `## 🚀 5\.17\.0 \(2026-01-09\)`/
+  );
+  assert.match(problems[0], /neither `SECTION_HEADING` nor `VERSION_HEADING`/);
+  assert.doesNotMatch(problems[0], /deleted since|git show/);
+  assert.match(
+    problems[1],
+    /^pkg-a\/CHANGELOG\.md has no section for `5\.15\.0`, though its tag/
+  );
 });

@@ -266,7 +266,7 @@
         {
           "name": "TableColor",
           "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
-          "summary": "Valid color values for the Td component (Bulma table cell colors)."
+          "summary": "The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`."
         }
       ]
     },
@@ -327,7 +327,7 @@
         {
           "name": "TableColor",
           "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
-          "summary": "Valid color values for the Td component (Bulma table cell colors)."
+          "summary": "The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`."
         }
       ]
     },
@@ -370,7 +370,7 @@
         {
           "name": "TableColor",
           "expansion": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
-          "summary": "Valid color values for the Td component (Bulma table cell colors)."
+          "summary": "The color values `Tr`, `Th` and `Td` accept, typed from `validTableColors`."
         }
       ]
     }

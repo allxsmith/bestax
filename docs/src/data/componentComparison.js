@@ -113,6 +113,9 @@ const BESTAX = {
   ConfigProvider: 'helpers/config',
   classNames: 'helpers/classnames',
   'Notification / Message': 'elements/notification',
+  'Tag / Tags': 'elements/tag',
+  'Icon / IconText': 'elements/icon',
+  'UnorderedList / OrderedList': 'elements/unorderedlist',
   // Helper props and the stylesheet have guide pages rather than API pages.
   'display="flex"': '/docs/guides/helpers/flex',
   'visibility="sr-only"': '/docs/guides/helpers/visibility',
@@ -120,6 +123,10 @@ const BESTAX = {
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
   'bestax.css': '/docs/guides/getting-started/installation',
+  // Capabilities bestax documents as a recipe rather than a component.
+  'Dropdown (split button recipe)': 'components/dropdown#split-button',
+  'Input (password reveal recipe)': 'form/input#password-reveal',
+  'Input (copy button recipe)': 'form/input#copy-button',
 };
 const bestaxHref = name => {
   const v = BESTAX[name];
@@ -251,6 +258,10 @@ const MUI = {
     'https://mui.com/material-ui/react-menu/#context-menu',
   'Card (active state demo)':
     'https://mui.com/material-ui/react-card/#active-state-styles',
+  'Fab (back-to-top demo)':
+    'https://mui.com/material-ui/react-app-bar/#back-to-top',
+  'List (align list items demo)':
+    'https://mui.com/material-ui/react-list/#align-list-items',
   'ThemeProvider defaultProps':
     'https://mui.com/material-ui/customization/theme-components/#theme-default-props',
   'ThemeProvider direction': 'material-ui/customization/right-to-left',
@@ -281,7 +292,11 @@ const CHAKRA = {
   ButtonGroup: 'button',
   HStack: 'stack',
   Square: 'center',
+  SkipNavLink: 'skip-nav',
   preflight: '/docs/theming/overview',
+  // A capability Chakra documents as an example rather than a component.
+  'TagsInput + Combobox':
+    'https://chakra-ui.com/docs/components/tags-input#combobox',
   // Exported from @chakra-ui/react without a docs page; link the source.
   Toggle:
     'https://github.com/chakra-ui/chakra-ui/tree/main/packages/react/src/components/toggle',
@@ -308,6 +323,7 @@ const SHADCN = {
   AvatarGroup: 'avatar',
   AvatarBadge: 'avatar',
   FieldSet: 'field',
+  SidebarTrigger: 'sidebar',
   DirectionProvider: 'direction',
   Typeset: 'https://ui.shadcn.com/docs/typeset',
   // Renamed Typeset; older edition snapshots still use it.
@@ -335,6 +351,7 @@ const RB = {
   'Form.Select': 'forms/select',
   'Form.Range': 'forms/range',
   'Form.Group': 'forms/layout',
+  'Form.Label visuallyHidden': 'forms/layout',
   FloatingLabel: 'forms/floating-labels',
   InputGroup: 'forms/input-group',
   Navbar: 'components/navbar',
@@ -593,7 +610,16 @@ export const categories = [
         'CloseButton',
         '~Button',
       ],
-      ['Copy button', 0, 'CopyButton', 0, 0, 0, 'Clipboard', '~InputGroup'],
+      [
+        'Copy button',
+        '~Input (copy button recipe)',
+        'CopyButton',
+        0,
+        0,
+        0,
+        'Clipboard',
+        '~InputGroup',
+      ],
       [
         'File-trigger button',
         '~File',
@@ -626,7 +652,7 @@ export const categories = [
       ],
       [
         'Split button',
-        0,
+        '~Dropdown (split button recipe)',
         '~Menu',
         'SplitButton',
         '~ButtonGroup',
@@ -693,7 +719,7 @@ export const categories = [
       ],
       [
         'Password input',
-        0,
+        '~Input (password reveal recipe)',
         'PasswordInput',
         0,
         '~TextField',
@@ -819,7 +845,7 @@ export const categories = [
         0,
         '~Autocomplete',
         0,
-        0,
+        '~TagsInput + Combobox',
         '~Combobox',
       ],
       ['PIN / OTP input', 0, 'PinInput', 0, 0, 0, 'PinInput', 'InputOTP'],
@@ -997,7 +1023,7 @@ export const categories = [
         'AppBar',
         'Navbar',
         0,
-        0,
+        '~NavigationMenu',
       ],
       [
         'App shell (layout frame)',
@@ -1036,7 +1062,7 @@ export const categories = [
         '~Nav',
         '~List',
         'Menu',
-        0,
+        '~TreeView',
         'Sidebar',
       ],
       [
@@ -1099,7 +1125,7 @@ export const categories = [
         '~IconButton + MenuIcon',
         'Navbar.Burger',
         0,
-        0,
+        '~SidebarTrigger',
       ],
       ['Table of contents', 0, 'TableOfContents', 0, 0, 0, 0, 0],
       [
@@ -1193,7 +1219,16 @@ export const categories = [
         'ScrollArea',
       ],
       ['Splitter (resizable)', 0, 'Splitter', 0, 0, 0, 'Splitter', 'Resizable'],
-      ['Affix (sticky)', '~pos="sticky"', 'Affix', 0, 0, 0, 'Sticky', 0],
+      [
+        'Affix (sticky)',
+        '~pos="sticky"',
+        'Affix',
+        0,
+        '~Fab (back-to-top demo)',
+        0,
+        'Sticky',
+        0,
+      ],
       ['Section', 'Section', 0, 0, 0, 'Section', 0, 0],
       ['Hero / banner', 'Hero', 0, 0, 0, 'Hero', 0, 0],
       [
@@ -1206,7 +1241,16 @@ export const categories = [
         '~Flex',
         0,
       ],
-      ['Media object', 'Media', 0, 0, 0, 'Media', 0, 'Item'],
+      [
+        'Media object',
+        'Media',
+        0,
+        0,
+        '~List (align list items demo)',
+        'Media',
+        0,
+        'Item',
+      ],
       [
         'Tile (Bulma grid tile)',
         0,
@@ -1264,7 +1308,16 @@ export const categories = [
         '~Float',
         '~AvatarBadge',
       ],
-      ['Tag / label', 'Tag', 'Badge', 'Badge', 'Chip', 'Tag', 'Tag', 'Badge'],
+      [
+        'Tag / label',
+        'Tag / Tags',
+        'Badge',
+        'Badge',
+        'Chip',
+        'Tag',
+        'Tag',
+        'Badge',
+      ],
       [
         'Chip (deletable / interactive)',
         '~Tag',
@@ -1308,7 +1361,7 @@ export const categories = [
       ],
       [
         'List (styled)',
-        'UnorderedList',
+        'UnorderedList / OrderedList',
         'List',
         'ListGroup',
         'List',
@@ -1335,7 +1388,7 @@ export const categories = [
       ['Lightbox (media viewer)', 0, 'Lightbox', 0, 0, 0, '~Carousel', 0],
       ['Background image', 0, 'BackgroundImage', 0, '~CardMedia', 0, '~Box', 0],
       ['Figure', 'Figure', 0, 'Figure', 0, 0, 0, '~Typeset'],
-      ['Icon', 'Icon', '~ThemeIcon', 0, 'Icon', 'Icon', 'Icon', 0],
+      ['Icon', 'Icon / IconText', '~ThemeIcon', 0, 'Icon', 'Icon', 'Icon', 0],
       [
         'Theme icon (colored container)',
         '~Icon',
@@ -1399,7 +1452,7 @@ export const categories = [
         'Title',
         'Title',
         0,
-        'Typography',
+        '~Typography',
         'Heading',
         'Heading',
         '~Typeset',
@@ -1747,12 +1800,13 @@ export const categories = [
         'Visually hidden (a11y)',
         '~visibility="sr-only"',
         'VisuallyHidden',
-        0,
+        '~Form.Label visuallyHidden',
         '~visuallyHidden',
         '~Element',
         'VisuallyHidden',
         0,
       ],
+      ['Skip link (a11y)', 0, 0, 0, 0, 0, 'SkipNavLink', 0],
       ['No-SSR guard', 0, '~useMounted', 0, 'NoSsr', 0, 'ClientOnly', 0],
       ['classNames utility', 'classNames', 0, 0, 0, 0, 0, 'cn'],
     ],
