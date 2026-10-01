@@ -279,11 +279,14 @@ function OverlayExamples() {
 
 ## Overflow
 
-The overflow helper adds `overflow: hidden` to an element, which clips any content that extends beyond the element's boundaries.
+The overflow helpers decide what happens to content that extends beyond an element's boundaries. `overflow="clipped"` is the classic one, clipping it with `overflow: hidden`. `overflow` also takes the CSS keywords Bulma has helpers for, and `overflowX` and `overflowY` set one axis. Beside `overflow`, an axis prop wins on its own axis and `overflow` sets the other, with `clipped` counting as `hidden`, so `overflow="hidden" overflowY="auto"` clips sideways and scrolls down.
 
-| Property             | Bulma Class  | CSS Property       |
-| -------------------- | ------------ | ------------------ |
-| `overflow="clipped"` | `is-clipped` | `overflow: hidden` |
+| Property                                                       | Bulma Class            | CSS Property         |
+| -------------------------------------------------------------- | ---------------------- | -------------------- |
+| `overflow="clipped"`                                           | `is-clipped`           | `overflow: hidden`   |
+| `overflow="auto"` (also `clip`, `hidden`, `scroll`, `visible`) | `is-overflow-auto`     | `overflow: auto`     |
+| `overflowX="auto"` (same keywords)                             | `is-overflow-x-auto`   | `overflow-x: auto`   |
+| `overflowY="scroll"` (same keywords)                           | `is-overflow-y-scroll` | `overflow-y: scroll` |
 
 This is useful for preventing content from overflowing its container and creating clean, contained layouts.
 
@@ -336,20 +339,40 @@ function OverflowExamples() {
 }
 ```
 
+To scroll one axis instead, give the element a bounded height and set `overflowY`. Here an [aspect ratio](#aspect-ratio) bounds it. A region that scrolls needs to be reachable from the keyboard, so the example gives it `tabIndex={0}`, a `region` role and a name.
+
+```tsx live
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  tabIndex={0}
+  role="region"
+  aria-label="Scrolling list"
+>
+  {Array.from({ length: 20 }, (_, i) => (
+    <Paragraph key={i}>Line {i + 1} of a list longer than the box.</Paragraph>
+  ))}
+</Box>
+```
+
 ## Border Radius
 
-The radius helper removes any border radius from an element, making it completely square regardless of default styling.
+The radius helper either removes an element's border radius or sets one from Bulma's radius scale.
 
-| Property              | Bulma Class     | CSS Property       |
-| --------------------- | --------------- | ------------------ |
-| `radius="radiusless"` | `is-radiusless` | `border-radius: 0` |
+| Property              | Bulma Class          | CSS Property                                         |
+| --------------------- | -------------------- | ---------------------------------------------------- |
+| `radius="radiusless"` | `is-radiusless`      | `border-radius: 0`                                   |
+| `radius="small"`      | `has-radius-small`   | `border-radius: var(--bulma-radius-small)`           |
+| `radius="normal"`     | `has-radius-normal`  | `border-radius: var(--bulma-radius)`                 |
+| `radius="large"`      | `has-radius-large`   | `border-radius: var(--bulma-radius-large)`           |
+| `radius="rounded"`    | `has-radius-rounded` | `border-radius: var(--bulma-radius-rounded)`, a pill |
 
-This is particularly useful when you want to override default rounded corners on components like buttons, cards, or images.
+`radiusless` is particularly useful when you want to override default rounded corners on components like buttons, cards, or images. The class goes on the component's root element, so where an inner element draws the radius, such as the `<img>` inside `Image`, that element keeps its own. The sizes are not `!important`, unlike `radiusless`, so a component rule more specific than one class still wins: an `isRounded` control stays a pill, and a joined addon keeps its square inner corners.
 
 ### Border Radius Examples
 
 ```tsx
-import { Box, Button, Card, Image } from '@allxsmith/bestax-bulma';
+import { Box, Button, Card, Image, Tag } from '@allxsmith/bestax-bulma';
 
 function BorderRadiusExamples() {
   return (
@@ -369,7 +392,7 @@ function BorderRadiusExamples() {
               p="3"
               mr="2"
               mb="2"
-              style={{ borderRadius: '6px' }}
+              radius="normal"
             >
               Rounded Box
             </Box>
@@ -378,6 +401,28 @@ function BorderRadiusExamples() {
               alt="Rounded image"
               style={{ width: '64px', height: '64px', borderRadius: '8px' }}
             />
+          </Box>
+        </Card.Content>
+      </Card>
+
+      <Card mb="4">
+        <Card.Header>
+          <Card.Header.Title>Radius Sizes</Card.Header.Title>
+        </Card.Header>
+        <Card.Content>
+          <Box display="flex" alignItems="center" flexWrap="wrap">
+            <Tag color="primary" radius="small" mr="2" mb="2">
+              small
+            </Tag>
+            <Tag color="primary" radius="normal" mr="2" mb="2">
+              normal
+            </Tag>
+            <Tag color="primary" radius="large" mr="2" mb="2">
+              large
+            </Tag>
+            <Tag color="primary" radius="rounded" mr="2" mb="2">
+              rounded
+            </Tag>
           </Box>
         </Card.Content>
       </Card>
@@ -636,22 +681,29 @@ The `skeleton` prop toggles Bulma's skeleton loading state on a component. See t
 | ----------------- | ------------- | ----------------------- |
 | `skeleton={true}` | `is-skeleton` | Skeleton loading effect |
 
-## Position Relative
+## Position
 
-The position relative helper applies `position: relative` to an element, which is essential for creating positioning contexts for absolutely positioned children.
+The `pos` prop sets CSS `position`. It is named `pos` because several components already have a `position` prop of their own, for where they place a popup or a toast. `relative` is the older shortcut for `pos="relative"` and still works; when both are set, `pos` wins.
 
-| Property          | Bulma Class   | CSS Property         |
-| ----------------- | ------------- | -------------------- |
-| `relative={true}` | `is-relative` | `position: relative` |
+| Property          | Bulma Class            | CSS Property         |
+| ----------------- | ---------------------- | -------------------- |
+| `pos="absolute"`  | `is-position-absolute` | `position: absolute` |
+| `pos="fixed"`     | `is-position-fixed`    | `position: fixed`    |
+| `pos="relative"`  | `is-position-relative` | `position: relative` |
+| `pos="static"`    | `is-position-static`   | `position: static`   |
+| `pos="sticky"`    | `is-position-sticky`   | `position: sticky`   |
+| `relative={true}` | `is-relative`          | `position: relative` |
 
-The position relative helper applies `position: relative` to an element, which is essential for creating positioning contexts for absolutely positioned children.
+The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one.
 
-### Position Relative Examples
+### Position Examples
+
+A relative container provides the positioning context for an absolutely positioned child:
 
 ```tsx
-import { Box, Content, Card, Title } from '@allxsmith/bestax-bulma';
+import { Box, Content, Card } from '@allxsmith/bestax-bulma';
 
-function PositionRelativeExamples() {
+function PositionExamples() {
   return (
     <Box p="4">
       <Card>
@@ -665,22 +717,19 @@ function PositionRelativeExamples() {
           </Content>
 
           <Box
-            relative
+            pos="relative"
             bgColor="light"
             p="4"
             style={{ height: '200px', border: '2px dashed #ccc' }}
           >
             <Content>This container has position: relative</Content>
             <Box
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                background: '#ff5722',
-                color: 'white',
-                padding: '0.5rem',
-                borderRadius: '4px',
-              }}
+              pos="absolute"
+              bgColor="danger"
+              textColor="white"
+              p="2"
+              radius="small"
+              style={{ top: '10px', right: '10px' }}
             >
               Absolutely positioned
             </Box>
@@ -690,6 +739,60 @@ function PositionRelativeExamples() {
     </Box>
   );
 }
+```
+
+A sticky header stays at the top of its scrolling container while the rest scrolls under it. The container takes focus so a keyboard can scroll it:
+
+```tsx live
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  p="0"
+  tabIndex={0}
+  role="region"
+  aria-label="Rows under a sticky header"
+>
+  <Notification color="primary" pos="sticky" mb="0" style={{ top: 0 }}>
+    Sticky header
+  </Notification>
+  {Array.from({ length: 20 }, (_, i) => (
+    <Paragraph key={i} px="4">
+      Row {i + 1}
+    </Paragraph>
+  ))}
+</Box>
+```
+
+## Aspect Ratio
+
+The `aspectRatio` prop fixes an element's width-to-height ratio. The height follows the width, so leave the height unset.
+
+| Property                         | Bulma Class             | CSS Property           |
+| -------------------------------- | ----------------------- | ---------------------- |
+| `aspectRatio="1by1"`             | `is-aspect-ratio-1by1`  | `aspect-ratio: 1 / 1`  |
+| `aspectRatio="16by9"`            | `is-aspect-ratio-16by9` | `aspect-ratio: 16 / 9` |
+| `aspectRatio="9by16"` (portrait) | `is-aspect-ratio-9by16` | `aspect-ratio: 9 / 16` |
+
+The full set is `1by1`, `5by4`, `4by3`, `3by2`, `5by3`, `16by9`, `2by1`, `3by1`, `4by5`, `3by4`, `2by3`, `3by5`, `9by16`, `1by2` and `1by3`. Content taller than the ratio allows grows the element unless `overflow` or `overflowY` makes it scroll or clip. On `Image`, use its own `size` ratios instead, which also fit the picture to the box.
+
+```tsx live
+<Columns>
+  <Column>
+    <Notification color="primary" aspectRatio="1by1">
+      1by1
+    </Notification>
+  </Column>
+  <Column>
+    <Notification color="info" aspectRatio="4by3">
+      4by3
+    </Notification>
+  </Column>
+  <Column>
+    <Notification color="success" aspectRatio="16by9">
+      16by9
+    </Notification>
+  </Column>
+</Columns>
 ```
 
 ## Combined Usage Example
@@ -716,7 +819,7 @@ function CombinedHelpersExample() {
           </Card.Header.Title>
         </Card.Header>
         <Card.Content>
-          <Box relative style={{ height: '300px' }}>
+          <Box pos="relative" style={{ height: '300px' }}>
             {/* Product image */}
             <Image
               src="https://bulma.io/assets/images/placeholders/400x300.png"
@@ -735,12 +838,9 @@ function CombinedHelpersExample() {
               textColor="white"
               p="2"
               interaction="unselectable"
-              style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                borderRadius: '4px',
-              }}
+              pos="absolute"
+              radius="small"
+              style={{ top: '10px', right: '10px' }}
             >
               SALE
             </Box>
@@ -812,9 +912,10 @@ function CombinedHelpersExample() {
 // Floating action button
 <Button
   color="primary"
-  radius="radiusless"
+  radius="rounded"
   shadow="shadowless"
-  style={{ position: 'fixed', bottom: '20px', right: '20px' }}
+  pos="fixed"
+  style={{ bottom: '20px', right: '20px' }}
 >
   +
 </Button>

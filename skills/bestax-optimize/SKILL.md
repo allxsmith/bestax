@@ -68,7 +68,7 @@ recommending it, grep the app's source for helper props on bestax components:
 - typography: `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`
 - display/visibility: `display`, `visibility` (+ `displayMobile`…`visibilityFullhd` viewport variants)
 - flexbox: `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`
-- misc: `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `skeleton`, `clearfix`, `relative`, `fullHeight`
+- misc: `float`, `overflow`, `overflowX`, `overflowY`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `skeleton`, `clearfix`, `pos`, `relative`, `fullHeight`, `aspectRatio`
 
 …and for raw Bulma helper classes in `className` strings (`is-*`, `has-*`, `m*-*`, `p*-*`,
 `is-size-*`, `is-hidden*`, `is-flex*`). **Any hit → do not use `no-helpers`**; fall back to

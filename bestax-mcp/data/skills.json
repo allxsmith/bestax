@@ -6,7 +6,7 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 6831 },
+        { "id": "api", "file": "references/api.md", "bytes": 7276 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
@@ -108,7 +108,7 @@
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 32615
+          "bytes": 32624
         },
         {
           "id": "bulma-classes-unmappables",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 7761
+          "bytes": 8096
         }
       ],
       "examples": []
@@ -181,7 +181,7 @@
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 20784
+          "bytes": 20883
         }
       ],
       "examples": [

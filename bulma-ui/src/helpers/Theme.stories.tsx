@@ -549,8 +549,8 @@ export const ShadowTheme = () => (
   </Theme>
 );
 
-// Radius: `radius` on Theme is the `radiusless` helper, as on every other
-// component, so any other `--bulma-radius` goes through `bulmaVars`.
+// Radius: `radius` on Theme is the border radius helper, as on every other
+// component, so a custom `--bulma-radius` goes through `bulmaVars`.
 // Notification and Tag declare their own radius from it, so a scoped override
 // reaches them; controls resolve theirs at :root and need an isRoot Theme.
 export const RadiusTheme = () => (
@@ -558,8 +558,8 @@ export const RadiusTheme = () => (
     <Title size="3">Custom radius via --bulma-radius</Title>
     <p className="mb-4">
       Passing <code>--bulma-radius</code> through <code>bulmaVars</code> rounds
-      the Notification and Tag below. The <code>radius</code> prop is the{' '}
-      <code>radiusless</code> helper here too:{' '}
+      the Notification and Tag below. The <code>radius</code> prop is the border
+      radius helper here too:{' '}
       <code>&lt;Theme radius=&quot;radiusless&quot;&gt;</code> adds{' '}
       <code>is-radiusless</code> to the wrapper and sets{' '}
       <code>--bulma-radius</code> to 0, squaring what is inside it.

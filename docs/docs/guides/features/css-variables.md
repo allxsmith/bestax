@@ -68,7 +68,7 @@ document.documentElement.style.setProperty('--bulma-scheme-h', '210deg');
 - **Named props for the scheme and color variables** — `schemeH`, `primaryH`, `linkS`, `dangerL`, and the rest of the HSL set. TypeScript autocompletes them and catches typos at build time.
 - **`bulmaVars` for everything else** — typography (`--bulma-family-primary`), radius (`--bulma-radius`), spacing, and the rest, keyed by their full `--bulma-*` name. The keys are typed too: written as an object literal, they autocomplete and a misspelled one is a type error.
 
-Radius and shadow have no CSS-variable props because both names are already helper props: `radius` is typed as the `radiusless` helper and `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
+Radius and shadow have no CSS-variable props because both names are already helper props: `radius` is the border radius helper and `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
 
 Themes nest naturally: outer `<Theme>` sets app-wide defaults, inner ones scope overrides to a subtree. Use `isRoot` to inject variables at `:root` for true app-wide reach.
 
