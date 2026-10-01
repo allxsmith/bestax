@@ -321,6 +321,41 @@ Expandable/collapsible content panels with smooth animation. Works in controlled
 
 ---
 
+### Collapses
+
+Groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`, addressing items by index like `Tabs`. [View full documentation.](../../api/components/collapses.md)
+
+```tsx live
+<Collapses defaultValue={0}>
+  <Collapse
+    bordered
+    trigger={
+      <Block p="4">
+        <Strong>Shipping</Strong>
+      </Block>
+    }
+  >
+    <Paragraph p="4">
+      Orders leave the warehouse within two business days.
+    </Paragraph>
+  </Collapse>
+  <Collapse
+    bordered
+    trigger={
+      <Block p="4">
+        <Strong>Returns</Strong>
+      </Block>
+    }
+  >
+    <Paragraph p="4">
+      Send anything back within 30 days for a full refund.
+    </Paragraph>
+  </Collapse>
+</Collapses>
+```
+
+---
+
 ### Reveal
 
 Animates content into view as it scrolls onto screen, powered by IntersectionObserver. Supports cascading children and respects `prefers-reduced-motion`. [View full documentation.](../../api/components/reveal.md)

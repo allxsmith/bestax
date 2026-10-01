@@ -95,17 +95,26 @@ $collapse-group-gap: 0.5rem !default;
   font-weight: cv.getVar("collapse-header-weight");
 }
 
-// Accordion group (multiple collapses)
+// Accordion group (multiple collapses). Rules reach the group's own items
+// only (`>`), so a Collapse nested inside an item's content keeps its look.
 .#{iv.$class-prefix}collapses {
   display: flex;
   flex-direction: column;
-  gap: cv.getVar("collapse-group-gap");
+  // Read with the default as a fallback rather than declared here, so a value
+  // set on `.collapses` or on any ancestor (`:root` included) reaches the gap.
+  // Declaring the default on `.collapses` would shadow those ancestor values.
+  // The registration above sits on the items, which are below the group.
+  gap: var(#{cv.buildVarName("collapse-group-gap")}, #{$collapse-group-gap});
+
+  // The gap spaces the items, so their own bottom margin would add to it.
+  > .#{iv.$class-prefix}collapse {
+    margin-bottom: 0;
+  }
 
   &.#{iv.$class-prefix}is-seamless {
     gap: 0;
 
-    .#{iv.$class-prefix}collapse {
-      margin-bottom: 0;
+    > .#{iv.$class-prefix}collapse {
       border-radius: 0;
 
       &:first-child {

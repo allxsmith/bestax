@@ -92,6 +92,7 @@ export const SCSS_SOURCES = {
   Collapse: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_collapse.scss' },
   ],
+  Collapses: [],
   Column: [{ pkg: 'bulma', path: 'sass/grid/columns.scss' }],
   Columns: [],
   Config: [],
@@ -242,6 +243,7 @@ export const IMPORT_COMPANIONS = {
   Avatars: ['Avatars', 'Avatar'],
   Breadcrumb: ['Breadcrumb', 'Icon'],
   Carousel: ['Carousel', 'CarouselItem'],
+  Collapses: ['Collapses', 'Collapse'],
   Dialog: ['Dialog', 'DialogContainer', 'dialog'],
   Dropdown: ['Dropdown', 'Button', 'Field', 'Control', 'Span'],
   Toast: ['Toast', 'ToastContainer', 'toast'],

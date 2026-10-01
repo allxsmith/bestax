@@ -19,11 +19,11 @@
     },
     {
       "title": "Controlled Mode",
-      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n\n  return (\n    <Block>\n      <Block mb=\"4\">\n        <Button color=\"primary\" onClick={() => setIsOpen(!isOpen)}>\n          {isOpen ? 'Close' : 'Open'} Collapse\n        </Button>\n        <Span ml=\"4\">State: {isOpen ? 'Open' : 'Closed'}</Span>\n      </Block>\n      <Collapse\n        open={isOpen}\n        trigger={\n          <Block p=\"3\" bgColor=\"white-ter\" style={{ borderRadius: '4px' }}>\n            Controlled collapse (use button above)\n          </Block>\n        }\n      >\n        <Block p=\"3\">\n          <Paragraph>This collapse is controlled by external state.</Paragraph>\n        </Block>\n      </Collapse>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n\n  return (\n    <Block>\n      <Block mb=\"4\">\n        <Button color=\"primary\" onClick={() => setIsOpen(!isOpen)}>\n          {isOpen ? 'Close' : 'Open'} Collapse\n        </Button>\n        <Span ml=\"4\">State: {isOpen ? 'Open' : 'Closed'}</Span>\n      </Block>\n      <Collapse\n        open={isOpen}\n        onOpenChange={setIsOpen}\n        trigger={\n          <Block p=\"3\" bgColor=\"white-ter\" style={{ borderRadius: '4px' }}>\n            Controlled collapse (click here or the button above)\n          </Block>\n        }\n      >\n        <Block p=\"3\">\n          <Paragraph>This collapse is controlled by external state.</Paragraph>\n        </Block>\n      </Collapse>\n    </Block>\n  );\n}"
     },
     {
       "title": "Accordion",
-      "code": "function example() {\n  const [openIndex, setOpenIndex] = useState(0);\n\n  const items = [\n    { title: 'Section 1', content: 'Content for section 1.' },\n    { title: 'Section 2', content: 'Content for section 2.' },\n    { title: 'Section 3', content: 'Content for section 3.' },\n  ];\n\n  return (\n    <Block display=\"flex\" flexDirection=\"column\">\n      {items.map((item, index) => (\n        <Collapse\n          key={index}\n          className=\"collapse is-bordered\"\n          open={openIndex === index}\n          trigger={\n            <Block\n              p=\"4\"\n              onClick={() => setOpenIndex(openIndex === index ? -1 : index)}\n              display=\"flex\"\n              justifyContent=\"space-between\"\n              alignItems=\"center\"\n            >\n              <Strong>{item.title}</Strong>\n              <Span>{openIndex === index ? '−' : '+'}</Span>\n            </Block>\n          }\n        >\n          <Paragraph p=\"4\">{item.content}</Paragraph>\n        </Collapse>\n      ))}\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [openIndex, setOpenIndex] = useState<number | null>(0);\n\n  const items = [\n    { title: 'Section 1', content: 'Content for section 1.' },\n    { title: 'Section 2', content: 'Content for section 2.' },\n    { title: 'Section 3', content: 'Content for section 3.' },\n  ];\n\n  return (\n    <Collapses value={openIndex} onChange={setOpenIndex}>\n      {items.map((item, index) => (\n        <Collapse\n          key={item.title}\n          bordered\n          trigger={\n            <Block\n              p=\"4\"\n              display=\"flex\"\n              justifyContent=\"space-between\"\n              alignItems=\"center\"\n            >\n              <Strong>{item.title}</Strong>\n              <Span aria-hidden=\"true\">{openIndex === index ? '−' : '+'}</Span>\n            </Block>\n          }\n        >\n          <Paragraph p=\"4\">{item.content}</Paragraph>\n        </Collapse>\n      ))}\n    </Collapses>\n  );\n}"
     },
     {
       "title": "Card Style",
@@ -31,10 +31,10 @@
     },
     {
       "title": "FAQ Example",
-      "code": "function example() {\n  const faqs = [\n    {\n      q: 'What is Bestax?',\n      a: 'Bestax is a React component library built on Bulma.',\n    },\n    { q: 'How do I install it?', a: 'pnpm add @allxsmith/bestax-bulma' },\n    { q: 'Is it free?', a: 'Yes, Bestax is open source and free to use.' },\n  ];\n\n  const [openStates, setOpenStates] = useState(faqs.map(() => false));\n\n  const toggle = index => {\n    setOpenStates(prev =>\n      prev.map((state, i) => (i === index ? !state : state))\n    );\n  };\n\n  return (\n    <Block>\n      <Title size=\"5\" mb=\"4\">\n        FAQ\n      </Title>\n      <Block display=\"flex\" flexDirection=\"column\">\n        {faqs.map((faq, index) => (\n          <Collapse\n            key={index}\n            className=\"collapse is-bordered\"\n            trigger={\n              <Block\n                p=\"4\"\n                onClick={() => toggle(index)}\n                display=\"flex\"\n                justifyContent=\"space-between\"\n              >\n                <Strong>{faq.q}</Strong>\n                <Span>{openStates[index] ? '▲' : '▼'}</Span>\n              </Block>\n            }\n            open={openStates[index]}\n          >\n            <Paragraph p=\"4\" textColor=\"grey-dark\">\n              {faq.a}\n            </Paragraph>\n          </Collapse>\n        ))}\n      </Block>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const faqs = [\n    {\n      q: 'What is Bestax?',\n      a: 'Bestax is a React component library built on Bulma.',\n    },\n    { q: 'How do I install it?', a: 'pnpm add @allxsmith/bestax-bulma' },\n    { q: 'Is it free?', a: 'Yes, Bestax is open source and free to use.' },\n  ];\n\n  const [open, setOpen] = useState<number[]>([]);\n\n  return (\n    <Block>\n      <Title size=\"5\" mb=\"4\">\n        FAQ\n      </Title>\n      <Collapses multiple value={open} onChange={setOpen}>\n        {faqs.map((faq, index) => (\n          <Collapse\n            key={faq.q}\n            bordered\n            trigger={\n              <Block p=\"4\" display=\"flex\" justifyContent=\"space-between\">\n                <Strong>{faq.q}</Strong>\n                <Span aria-hidden=\"true\">\n                  {open.includes(index) ? '▲' : '▼'}\n                </Span>\n              </Block>\n            }\n          >\n            <Paragraph p=\"4\" textColor=\"grey-dark\">\n              {faq.a}\n            </Paragraph>\n          </Collapse>\n        ))}\n      </Collapses>\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- Trigger has `role=\"button\"` and `tabIndex=\"0\"` for keyboard access\n- Trigger has `aria-expanded` to indicate open/closed state\n- Trigger has `aria-controls` pointing to the content element\n- Content has `aria-hidden` matching the collapsed state\n- Supports keyboard navigation (Enter and Space to toggle)",
+  "accessibility": "- Trigger has `role=\"button\"` and `tabIndex=\"0\"` for keyboard access\n- Trigger has `aria-expanded` to indicate open/closed state\n- Trigger has `aria-controls` pointing to the content element\n- Content has `aria-hidden` matching the collapsed state, and is `inert` while closed, so its\n  links and fields leave the tab order until it opens (under `fade` and `slide` a closed panel\n  is only squeezed to height 0)\n- Supports keyboard navigation (Enter and Space to toggle)",
   "related": [],
   "storybook": null,
   "summary": "The `Collapse` component provides an expandable/collapsible content panel.",
@@ -51,7 +51,7 @@
           "name": "open",
           "type": "boolean",
           "default": null,
-          "description": "Controlled open state. If provided, component is controlled.",
+          "description": "Controlled open state. If provided, component is controlled, and the trigger only reports through `onOpenChange`. Inside a `Collapses` group, a Collapse that sets `open` stays yours: the group neither overrides it nor closes it when another item opens.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -60,7 +60,7 @@
           "name": "defaultOpen",
           "type": "boolean",
           "default": "false",
-          "description": "Initial open state for uncontrolled usage.",
+          "description": "Initial open state for uncontrolled usage. Ignored inside a `Collapses` group, whose `defaultValue` decides.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -69,7 +69,7 @@
           "name": "onOpen",
           "type": "() => void",
           "default": null,
-          "description": "Callback when collapse opens.",
+          "description": "Called when the trigger opens the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -78,7 +78,16 @@
           "name": "onClose",
           "type": "() => void",
           "default": null,
-          "description": "Callback when collapse closes.",
+          "description": "Called when the trigger closes the Collapse. Fires only while the Collapse keeps its own state: not when `open` is set, and not when a `Collapses` group manages it. `onOpenChange` reports in every mode.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the state the trigger asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the trigger drive a controlled Collapse.",
           "required": false,
           "inherited": false,
           "deprecated": false

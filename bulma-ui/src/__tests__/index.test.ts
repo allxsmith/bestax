@@ -23,6 +23,7 @@ const PUBLIC_EXPORTS = [
   'Checkboxes',
   'Code',
   'Collapse',
+  'Collapses',
   'Column',
   'Columns',
   'ConfigProvider',
