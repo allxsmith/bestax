@@ -1,3 +1,15 @@
+# [5.20.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.19.0...@allxsmith/bestax-bulma@5.20.0) (2026-10-01)
+
+
+### Bug Fixes
+
+* **bulma-ui:** stop Bulma's spinners under reduced motion in every stylesheet ([b234712](https://github.com/allxsmith/bestax/commit/b2347127f1944bc284cfa8a57876498067288d96)), closes [#770](https://github.com/allxsmith/bestax/issues/770)
+
+
+### Features
+
+* **bulma-ui:** add Loader, Bulma's inline spinner ([c5e9eb0](https://github.com/allxsmith/bestax/commit/c5e9eb0103eb63b13ec4d05f2d9a834f6c9fb079)), closes [#770](https://github.com/allxsmith/bestax/issues/770)
+
 # [5.19.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.18.2...@allxsmith/bestax-bulma@5.19.0) (2026-10-01)
 
 
