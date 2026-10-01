@@ -109,6 +109,8 @@ The `hasAddons` prop removes spacing between buttons, making them appear as a si
 </Buttons>
 ```
 
+To join a button to a `Dropdown`, use `Field hasAddons` instead, as the [split button](../components/dropdown.md#split-button) does.
+
 ### Centered Group
 
 The `isCentered` prop centers the button group within its container. Use this for balanced layouts or when you want the group to stand out.

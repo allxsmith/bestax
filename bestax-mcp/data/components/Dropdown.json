@@ -34,6 +34,10 @@
       "code": "function example() {\n  const dropdownRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Dropdown label=\"Pick one\" ref={dropdownRef}>\n        <Dropdown.Item>First</Dropdown.Item>\n        <Dropdown.Item>Second</Dropdown.Item>\n      </Dropdown>\n      <Button mt=\"3\" onClick={() => setTag(dropdownRef.current?.className)}>\n        Read the root from its ref\n      </Button>\n      <p>Root class: {tag ?? '—'}</p>\n    </>\n  );\n}"
     },
     {
+      "title": "Split Button",
+      "code": "function SplitButton() {\n  const [lastAction, setLastAction] = useState('none yet');\n\n  return (\n    <>\n      <Field hasAddons>\n        <Control>\n          <Button onClick={() => setLastAction('saved')}>Save</Button>\n        </Control>\n        <Control>\n          <Dropdown label={<Span visibility=\"sr-only\">More save options</Span>}>\n            <Dropdown.Item\n              as=\"button\"\n              onClick={() => setLastAction('saved as a draft')}\n            >\n              Save as draft\n            </Dropdown.Item>\n            <Dropdown.Item\n              as=\"button\"\n              onClick={() => setLastAction('saved a copy')}\n            >\n              Save a copy\n            </Dropdown.Item>\n          </Dropdown>\n        </Control>\n      </Field>\n      <p role=\"status\">Last action: {lastAction}</p>\n    </>\n  );\n}"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Dropdown label=\"Dropdown Menu\" active>\n  <Dropdown.Item>First Item</Dropdown.Item>\n  <Dropdown.Item>Second Item</Dropdown.Item>\n  <Dropdown.Divider />\n  <Dropdown.Item>Third Item</Dropdown.Item>\n</Dropdown>"
     }
@@ -42,7 +46,7 @@
   "related": ["Button", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-dropdown--default",
   "summary": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
-  "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
+  "import": "import { Dropdown, Button, Field, Control, Span } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Dropdown.tsx",
   "rootClass": "dropdown",
   "parts": [

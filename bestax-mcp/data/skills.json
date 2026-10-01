@@ -30,7 +30,7 @@
       "dir": "bestax-form",
       "references": [
         { "id": "api", "file": "references/api.md", "bytes": 8334 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 5566 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 6943 }
       ],
       "examples": []
     },
