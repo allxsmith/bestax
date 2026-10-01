@@ -108,7 +108,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Displays a loading spinner.",
+          "description": "Displays a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": true,
           "deprecated": false

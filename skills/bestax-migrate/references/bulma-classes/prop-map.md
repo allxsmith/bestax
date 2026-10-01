@@ -135,7 +135,8 @@ expression (`value={percent}`) carries over as written, so if it holds a string 
 file fails to typecheck while still rendering the same; wrap it in `Number(…)`. `Delete`
 converts only with `type` and `aria-label` set (see `defaults:<Target>` in the unmappables),
 and a `type="button"` is dropped, since bestax renders it by itself. `Card.Header.Icon` likewise
-converts only with an `aria-label`, since it renders `aria-label="more options"` otherwise.
+converts only with an `aria-label` and a `type` of `button`, `submit` or `reset`, since it renders
+`aria-label="more options"` and `type="button"` otherwise.
 `.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. `.navbar`'s
 `is-spaced` and `has-shadow`, and a `.navbar-item`'s `has-dropdown` and `is-hoverable`, stay
 classes too: bestax has no prop for them on those components. So do a `.field`'s
@@ -207,5 +208,5 @@ Some classes stay put because of how bestax renders them:
 
 Color shades (`has-text-primary-65`), the `-touch` and `-only` breakpoints of text size and
 alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
-Bulma helpers with no bestax prop (`is-display-*`, `is-overflow-*`, `is-position-*`, `is-float-*`,
-`has-radius-*`, …) stay in `className`. They render exactly as before.
+Bulma helpers the codemod does not convert (`is-display-*`, `is-overflow-*`, `is-position-*`,
+`is-float-*`, `has-radius-*`, …) stay in `className`. They render exactly as before.

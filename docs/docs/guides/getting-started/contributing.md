@@ -62,6 +62,7 @@ pnpm run all
 pnpm run build          # turbo build all packages
 pnpm run typecheck
 pnpm run test           # jest in every package + the docs and scripts/ node:test suites
+pnpm run test:scripts   # the scripts/ suite alone, held to its per-file coverage floors
 pnpm run test:coverage  # coverage (bulma-ui 99%; every other jest package 95%, 78% branches)
 pnpm run lint
 pnpm run format:check   # prettier check (use `pnpm run format` to auto-fix)

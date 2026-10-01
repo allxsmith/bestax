@@ -2,11 +2,20 @@
 @use 'bulma/sass/utilities/css-variables' as cv;
 
 $timeinput-wheel-width: 3rem !default;
+// Registered, and read by nothing: the wheels position every item from its
+// height in script, so the component passes the height to them itself (taller
+// on small viewports) rather than reading a CSS length. Kept so a theme that
+// sets it still compiles.
 $timeinput-wheel-item-height: 2rem !default;
 $timeinput-wheel-gap: 0.4rem !default;
-$timeinput-wheel-bg: cv.getVar('scheme-main') !default;
+// Transparent, so the drum shows the surface it sits on: the popover, the
+// inline frame or DateTimeInput's time card, each of which has a background
+// variable of its own that a painted default would cover.
+$timeinput-wheel-bg: transparent !default;
 $timeinput-wheel-color: cv.getVar('text') !default;
 $timeinput-wheel-dim-color: cv.getVar('text-weak') !default;
+// The calendar's cell hover, so both halves of a DateTimeInput answer the
+// pointer alike, on light and dark schemes.
 $timeinput-wheel-hover-bg: hsla(0, 0%, 50%, 0.13) !default;
 $timeinput-wheel-selected-bg: cv.getVar('primary') !default;
 $timeinput-wheel-selected-color: cv.getVar('primary-invert') !default;
@@ -80,6 +89,7 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 .#{iv.$class-prefix}timeinput-wheel {
   position: relative;
   width: cv.getVar('timeinput-wheel-width');
+  background-color: cv.getVar('timeinput-wheel-bg');
   outline: none;
   overflow: hidden;
   touch-action: none;
@@ -114,11 +124,14 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   // pinning a ring to the selected item caused a broken-outline artefact
   // whenever position was mid-flight (item offset from band).
   //
-  // The ring reads the band's colour, so a coloured wheel keeps one accent.
-  &:focus-visible {
-    outline: 2px solid cv.getVar('timeinput-wheel-selected-bg');
-    outline-offset: 2px;
-    border-radius: cv.getVar('timeinput-wheel-radius');
+  // The ring is drawn inset on the band. An outline on the wheel itself sits
+  // outside its border box, and the mask above clips everything there, so it
+  // never painted. On the band it sits on the selection fill, so it takes the
+  // selected value's colour, which contrasts with that fill whatever colour
+  // the band is.
+  &:focus-visible .#{iv.$class-prefix}timeinput-wheel-band {
+    outline: 2px solid cv.getVar('timeinput-wheel-selected-color');
+    outline-offset: -2px;
   }
 
   &.#{iv.$class-prefix}is-dragging .#{iv.$class-prefix}timeinput-wheel-item {
@@ -153,6 +166,14 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 
   &:hover:not(:disabled):not(.#{iv.$class-prefix}is-selected) {
     color: cv.getVar('timeinput-wheel-color');
+
+    // Only where the pointer can hover: a touch browser can leave `:hover` on
+    // the last item a finger lifted from, and a drag leaves that item off the
+    // band, where the fill would stick. The fill is not in the transition list
+    // above, so it snaps on and off the way the calendar cells' hover does.
+    @media (hover: hover) {
+      background-color: cv.getVar('timeinput-wheel-hover-bg');
+    }
   }
 
   // The selected item (whichever is currently centred over the band) is
@@ -254,9 +275,9 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
 }
 
 // Mobile (small viewport): bigger touch targets, larger numbers, more iOS-native
-// feel. Item *height* is set inline by JS and bumped from 40px to 48px on small
-// viewports by TimeInputBase; the rules below adjust everything that's CSS-only
-// (font size, wheel width, gap, separator, mask intensity).
+// feel. Item *height* is set inline by JS, and made taller on small viewports by
+// the component; the rules below adjust everything that's CSS-only (font size,
+// wheel width, gap, separator, mask intensity).
 @media (max-width: 768px) {
   // Registered through `cv.register-vars` like the defaults above, so the
   // overrides land on the names the rules read.

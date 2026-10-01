@@ -1,0 +1,23 @@
+// Bestax Extras - Loader Styles
+// Bulma spins `.loader` and the `is-loading` rings on buttons, controls and
+// selects, and has no reduced-motion rule for any of them. This stops them
+// for users who ask for less motion. Each ring stays drawn, so the loading
+// state is still visible.
+//
+// These rules override stock Bulma, and Bulma's CSS can land on either side
+// of this partial: `versions/bestax-no-dark-mode.scss` emits the extras first,
+// an app can link `extras.css` ahead of its own Bulma, and a component can
+// re-spin a ring with a more specific selector (`.autocomplete .loader`).
+// `!important` is what wins in every one of those cases, whatever the order
+// or specificity, so the override does not depend on where this file lands.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}loader,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading::after,
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}is-loading::after,
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}is-loading::after {
+    animation: none !important;
+  }
+}

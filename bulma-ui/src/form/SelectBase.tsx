@@ -26,7 +26,11 @@ export interface SelectBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Rounded select corners. */
   isRounded?: boolean;
-  /** Shows loading indicator. */
+  /**
+   * Replaces the chevron with a loading spinner.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
   isActive?: boolean;

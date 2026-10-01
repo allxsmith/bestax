@@ -122,7 +122,9 @@ anything else.
 
 `Navbar` writes `role="navigation"` and `aria-label="main navigation"`, the attributes Bulma's
 own navbar carries, so a `.navbar` that sets both converts (whatever the label says), and one
-that doesn't gets a `defaults:Navbar` TODO. A `.has-dropdown` item becomes a `Navbar.Item` that
+that doesn't gets a `defaults:Navbar` TODO. A `.navbar-item` `<button>` converts only with its
+`type` written out as `button`, `submit` or `reset`, since `Navbar.Item` writes `type="button"` on
+a button in place of anything else. A `.has-dropdown` item becomes a `Navbar.Item` that
 keeps `has-dropdown` as a class, because a `Navbar.Dropdown` would give the `.navbar-link` inside
 it dropdown semantics the markup didn't have. That link and the `.navbar-burger` stay markup with
 a `family:<class>` TODO; converting either means building the dropdown or the toggle with bestax,
@@ -328,7 +330,8 @@ button, the navbar's burger and dropdown link, the panel's icon, Radio and Radio
 
 ## Classes left alone
 
-`.help`, `.label`, `.loader`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`,
-`.fa`, `.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
-Bulma with nothing in bestax to convert to.
+`.help`, `.label`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`, `.fa`,
+`.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
+Bulma with nothing in bestax to convert to. `.loader` is left alone as well, although bestax's
+`Loader` renders the same element: swap it in by hand for its progressbar role and accessible name.
 An element carrying one stays as written, and gets no TODO.

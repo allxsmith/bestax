@@ -38,7 +38,11 @@ export interface InputProps extends InputBaseProps {
   hasIconsLeft?: boolean;
   /** Force right icon container. */
   hasIconsRight?: boolean;
-  /** Shows loading indicator. */
+  /**
+   * Shows a loading spinner on the wrapping Control.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Expand the control. */
   isExpanded?: boolean;

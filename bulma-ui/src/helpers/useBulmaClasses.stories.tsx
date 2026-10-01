@@ -90,7 +90,44 @@ const meta: Meta<typeof UseBulmaClassesDemo> = {
     },
     relative: {
       control: 'boolean',
-      description: 'Apply the is-relative class for position: relative',
+      description:
+        'Apply the is-relative class for position: relative (pos wins when both are set)',
+    },
+    pos: {
+      control: 'select',
+      options: ['absolute', 'fixed', 'relative', 'static', 'sticky'],
+      description: 'CSS position (is-position-<value>)',
+    },
+    overflow: {
+      control: 'select',
+      options: ['clipped', 'auto', 'clip', 'hidden', 'scroll', 'visible'],
+      description: 'Overflow on both axes (is-clipped, is-overflow-<value>)',
+    },
+    radius: {
+      control: 'select',
+      options: ['radiusless', 'small', 'normal', 'large', 'rounded'],
+      description: 'Border radius (is-radiusless, has-radius-<value>)',
+    },
+    aspectRatio: {
+      control: 'select',
+      options: [
+        '1by1',
+        '5by4',
+        '4by3',
+        '3by2',
+        '5by3',
+        '16by9',
+        '2by1',
+        '3by1',
+        '4by5',
+        '3by4',
+        '2by3',
+        '3by5',
+        '9by16',
+        '1by2',
+        '1by3',
+      ],
+      description: 'Width-to-height ratio (is-aspect-ratio-<value>)',
     },
     float: {
       control: 'select',
@@ -561,10 +598,27 @@ export const Visibility: Story = {
 
 export const Overflow: Story = {
   render: () => (
-    <Box overflow="clipped" style={{ width: 200, height: 50 }}>
-      This is a very long line of text that will be clipped and not overflow the
-      box.
-    </Box>
+    <>
+      <Box overflow="clipped" style={{ width: 200, height: 50 }}>
+        This is a very long line of text that will be clipped and not overflow
+        the box.
+      </Box>
+      {/* A scrolling region takes focus so a keyboard can scroll it. */}
+      <Box
+        aspectRatio="3by1"
+        overflowY="auto"
+        tabIndex={0}
+        role="region"
+        aria-label="Scrolling list"
+      >
+        {Array.from({ length: 20 }, (_, i) => (
+          <p key={i}>
+            Line {i + 1}: the aspect ratio bounds the height and overflowY
+            scrolls the rest.
+          </p>
+        ))}
+      </Box>
+    </>
   ),
 };
 
@@ -609,8 +663,49 @@ export const Radius: Story = {
   render: () => (
     <Buttons>
       <Button radius="radiusless">Radiusless</Button>
-      <Button>Normal</Button>
+      <Button>Default</Button>
+      <Button radius="small">Small</Button>
+      <Button radius="normal">Normal</Button>
+      <Button radius="large">Large</Button>
+      <Button radius="rounded">Rounded</Button>
     </Buttons>
+  ),
+};
+
+export const AspectRatio: Story = {
+  render: () => (
+    <Columns>
+      {(['1by1', '4by3', '16by9', '3by1'] as const).map(ratio => (
+        <Column key={ratio}>
+          <Notification color="info" aspectRatio={ratio}>
+            {ratio}
+          </Notification>
+        </Column>
+      ))}
+    </Columns>
+  ),
+};
+
+export const Position: Story = {
+  render: () => (
+    <Box
+      aspectRatio="3by1"
+      overflowY="auto"
+      p="0"
+      tabIndex={0}
+      role="region"
+      aria-label="Rows under a sticky header"
+    >
+      {/* The position helpers set position only; sticky needs its offset. */}
+      <Notification color="primary" pos="sticky" mb="0" style={{ top: 0 }}>
+        pos=&quot;sticky&quot; keeps this header in view
+      </Notification>
+      {Array.from({ length: 20 }, (_, i) => (
+        <p key={i} className="px-4">
+          Row {i + 1}
+        </p>
+      ))}
+    </Box>
   ),
 };
 
@@ -1447,7 +1542,7 @@ export const RelativePosition: Story = {
         Using is-relative for positioned elements and overlays
       </p>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">Basic Relative Positioning</h4>
         <Box
           relative
@@ -1459,8 +1554,8 @@ export const RelativePosition: Story = {
         >
           <span>This container has position: relative</span>
           <Box
+            pos="absolute"
             style={{
-              position: 'absolute',
               top: '20px',
               right: '20px',
               background: '#ff5722',
@@ -1472,9 +1567,9 @@ export const RelativePosition: Story = {
             Absolutely positioned child
           </Box>
         </Box>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">Card with Badge Overlay</h4>
         <Box
           relative
@@ -1497,8 +1592,8 @@ export const RelativePosition: Story = {
           {/* Badge overlay */}
           <Tag
             color="danger"
+            pos="absolute"
             style={{
-              position: 'absolute',
               top: '-8px',
               right: '-8px',
               transform: 'rotate(12deg)',
@@ -1507,9 +1602,9 @@ export const RelativePosition: Story = {
             NEW!
           </Tag>
         </Box>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '3rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">Image with Caption Overlay</h4>
         <Box
           relative
@@ -1525,8 +1620,8 @@ export const RelativePosition: Story = {
             size="128x128"
           />
           <Box
+            pos="absolute"
             style={{
-              position: 'absolute',
               bottom: 0,
               left: 0,
               right: 0,
@@ -1546,9 +1641,9 @@ export const RelativePosition: Story = {
             </p>
           </Box>
         </Box>
-      </div>
+      </Block>
 
-      <div style={{ marginBottom: '2rem' }}>
+      <Block mb="6">
         <h4 className="title is-6">Combined with Other Helpers</h4>
         <Box
           relative
@@ -1570,8 +1665,8 @@ export const RelativePosition: Story = {
           {/* Absolutely positioned notification */}
           <Notification
             color="warning"
+            pos="absolute"
             style={{
-              position: 'absolute',
               top: '50%',
               left: '50%',
               transform: 'translate(-50%, -50%)',
@@ -1585,7 +1680,7 @@ export const RelativePosition: Story = {
         <p className="help">
           Combining relative positioning with clearfix and float helpers
         </p>
-      </div>
+      </Block>
     </Box>
   ),
 };

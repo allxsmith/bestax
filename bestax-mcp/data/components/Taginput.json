@@ -318,7 +318,7 @@
           "name": "loading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading indicator.",
+          "description": "Shows a loading spinner in the input. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false

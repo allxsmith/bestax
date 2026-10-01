@@ -623,6 +623,26 @@ Show a Box with clipped overflow:
 </Box>
 ```
 
+`overflow` also takes the CSS keywords Bulma has helpers for (`auto`, `clip`, `hidden`, `scroll`, `visible`), and `overflowX` and `overflowY` set one axis. Beside `overflow`, an axis prop wins on its own axis and `overflow` sets the other, with `clipped` counting as `hidden`, so `overflow="hidden" overflowY="auto"` clips sideways and scrolls down.
+
+Here an aspect ratio fixes the height and the list scrolls inside it. A region that scrolls needs to be reachable from the keyboard, so the example gives it `tabIndex={0}`, a `region` role and a name.
+
+```tsx live
+<Box
+  aspectRatio="3by1"
+  overflowY="auto"
+  tabIndex={0}
+  role="region"
+  aria-label="Scrolling list"
+>
+  {Array.from({ length: 20 }, (_, i) => (
+    <p key={i}>Line {i + 1} of a list longer than the box.</p>
+  ))}
+</Box>
+```
+
+Without `overflowY` the box would grow to fit the list, because an aspect ratio gives way to content that does not fit.
+
 ### Overlay
 
 Show an overlay (toggle with button click):
@@ -664,14 +684,19 @@ Use the `cursor` prop to set the cursor style. `'pointer'` reuses Bulma's `is-cl
 
 ### Radius
 
-Show buttons with `radiusless`:
+`radiusless` removes the radius; `small`, `normal`, `large` and `rounded` set one from Bulma's radius scale:
 
 ```tsx live
 <Buttons>
   <Button radius="radiusless">Radiusless</Button>
-  <Button>Normal</Button>
+  <Button radius="small">Small</Button>
+  <Button radius="normal">Normal</Button>
+  <Button radius="large">Large</Button>
+  <Button radius="rounded">Rounded</Button>
 </Buttons>
 ```
+
+The class goes on the component's root element, so where an inner element draws the radius, such as the `<img>` inside `Image`, that element keeps its own. The sizes are not `!important`, unlike `radiusless`, so a component rule more specific than one class still wins: an `isRounded` control stays a pill, and a joined addon keeps its square inner corners.
 
 ### Shadowless
 
@@ -723,24 +748,53 @@ Show containers with and without clearfix to demonstrate the importance of clear
 </>
 ```
 
-### Relative Position
+### Position
 
-Show a container with relative positioning that provides context for absolutely positioned children:
+`pos` sets CSS `position`: `absolute`, `fixed`, `relative`, `static` or `sticky`. It is named `pos` because several components already have a `position` prop of their own, for where they place a popup or a toast. `relative` is the older shortcut for `pos="relative"` and still works; when both are set, `pos` wins.
 
-Bulma only ships an `is-relative` helper — absolute positioning itself has no helper class, so the child keeps a minimal `position/top/right` inline style while everything visual comes from props:
+Show a container with relative positioning that provides context for an absolutely positioned child. The helpers set `position` and nothing else, so the child keeps its `top` and `right` offsets inline:
 
 ```tsx live
-<Notification relative pb="6" color="info">
+<Notification pos="relative" pb="6" color="info">
   <Span>This container has position: relative</Span>
   <Tag
     color="primary"
     size="medium"
-    style={{ position: 'absolute', top: '1rem', right: '1rem' }}
+    pos="absolute"
+    style={{ top: '1rem', right: '1rem' }}
   >
     Absolutely positioned child
   </Tag>
 </Notification>
 ```
+
+`pos="sticky"` needs an offset in the same way, and does nothing until it has one.
+
+### Aspect Ratio
+
+`aspectRatio` fixes an element's width-to-height ratio to one of Bulma's ratios, such as `1by1`, `4by3` or `16by9`, or a portrait one such as `9by16`. The full set is in [Supported Props](#supported-props). The height follows the width:
+
+```tsx live
+<Columns>
+  <Column>
+    <Notification color="primary" aspectRatio="1by1">
+      1by1
+    </Notification>
+  </Column>
+  <Column>
+    <Notification color="info" aspectRatio="4by3">
+      4by3
+    </Notification>
+  </Column>
+  <Column>
+    <Notification color="success" aspectRatio="16by9">
+      16by9
+    </Notification>
+  </Column>
+</Columns>
+```
+
+On `Image`, use its own `size` ratios instead, which also fit the picture to the box.
 
 ---
 
@@ -843,7 +897,7 @@ const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 | `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}`                                                                                              | Typography classes, including responsive size/alignment variants                                                                                                                        |
 | `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}`, `visibility{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}` | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
 | `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                                                                                                                          | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
-| `useOtherClasses`      | `float`, `overflow`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `relative`, `fullHeight`                                                                                                 | Miscellaneous utility classes                                                                                                                                                           |
+| `useOtherClasses`      | `float`, `overflow`, `overflowX`, `overflowY`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `responsive`, `skeleton`, `clearfix`, `pos`, `relative`, `fullHeight`, `aspectRatio`                                                 | Miscellaneous utility classes                                                                                                                                                           |
 
 All seven hooks (plus `classNames` and `mergeBulmaStyles`) are exported from the package root:
 
@@ -947,18 +1001,22 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `flexGrow`             | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                                                           | `is-flex-grow-1`                                                                                            |
 | `flexShrink`           | `'0'`, `'1'`, `'2'`, `'3'`, `'4'`, `'5'`                                                                                                                                                                                                                                           | `is-flex-shrink-0`                                                                                          |
 | `float`                | `'left'`, `'right'`                                                                                                                                                                                                                                                                | `is-pulled-left`, `is-pulled-right`                                                                         |
-| `overflow`             | `'clipped'`                                                                                                                                                                                                                                                                        | `is-clipped`                                                                                                |
+| `overflow`             | `'clipped'`, `'auto'`, `'clip'`, `'hidden'`, `'scroll'`, `'visible'`                                                                                                                                                                                                               | `is-clipped`, `is-overflow-auto`                                                                            |
+| `overflowX`            | `'auto'`, `'clip'`, `'hidden'`, `'scroll'`, `'visible'`                                                                                                                                                                                                                            | `is-overflow-x-auto`                                                                                        |
+| `overflowY`            | `'auto'`, `'clip'`, `'hidden'`, `'scroll'`, `'visible'`                                                                                                                                                                                                                            | `is-overflow-y-scroll`                                                                                      |
 | `overlay`              | `true`                                                                                                                                                                                                                                                                             | `is-overlay`                                                                                                |
 | `interaction`          | `'unselectable'`, `'clickable'`                                                                                                                                                                                                                                                    | `is-unselectable`                                                                                           |
 | `cursor`               | `'pointer'`, `'help'`                                                                                                                                                                                                                                                              | `is-clickable`, `is-cursor-help`                                                                            |
-| `radius`               | `'radiusless'`                                                                                                                                                                                                                                                                     | `is-radiusless`                                                                                             |
+| `radius`               | `'radiusless'`, `'small'`, `'normal'`, `'large'`, `'rounded'`                                                                                                                                                                                                                      | `is-radiusless`, `has-radius-large`                                                                         |
 | `shadow`               | `'shadowless'`                                                                                                                                                                                                                                                                     | `is-shadowless`                                                                                             |
 | `responsive`           | `'mobile'`, `'narrow'`                                                                                                                                                                                                                                                             | `is-mobile`, `is-narrow`                                                                                    |
 | `viewport`             | `'mobile'`, `'tablet'`, `'tablet-only'`, `'touch'`, `'desktop'`, `'desktop-only'`, `'widescreen'`, `'widescreen-only'`, `'fullhd'`                                                                                                                                                 | Adds viewport suffix to supported properties                                                                |
 | `skeleton`             | `true`                                                                                                                                                                                                                                                                             | `is-skeleton`                                                                                               |
 | `clearfix`             | `true`                                                                                                                                                                                                                                                                             | `is-clearfix`                                                                                               |
-| `relative`             | `true`                                                                                                                                                                                                                                                                             | `is-relative`                                                                                               |
+| `pos`                  | `'absolute'`, `'fixed'`, `'relative'`, `'static'`, `'sticky'`                                                                                                                                                                                                                      | `is-position-sticky`                                                                                        |
+| `relative`             | `true`                                                                                                                                                                                                                                                                             | `is-relative` (ignored when `pos` is set)                                                                   |
 | `fullHeight`           | `true`                                                                                                                                                                                                                                                                             | `is-full-height`                                                                                            |
+| `aspectRatio`          | `'1by1'`, `'5by4'`, `'4by3'`, `'3by2'`, `'5by3'`, `'16by9'`, `'2by1'`, `'3by1'`, `'4by5'`, `'3by4'`, `'2by3'`, `'3by5'`, `'9by16'`, `'1by2'`, `'1by3'`                                                                                                                             | `is-aspect-ratio-16by9`                                                                                     |
 
 ### Viewport-Specific Properties
 
@@ -1205,17 +1263,36 @@ export interface BulmaFlexboxProps {
 
 export interface BulmaOtherProps {
   float?: 'left' | 'right';
-  overflow?: 'clipped';
+  overflow?: 'clipped' | 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible';
+  overflowX?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible';
+  overflowY?: 'auto' | 'clip' | 'hidden' | 'scroll' | 'visible';
   overlay?: boolean;
   interaction?: 'unselectable' | 'clickable';
   cursor?: 'pointer' | 'help';
-  radius?: 'radiusless';
+  radius?: 'radiusless' | 'small' | 'normal' | 'large' | 'rounded';
   shadow?: 'shadowless';
   responsive?: 'mobile' | 'narrow';
   skeleton?: boolean;
   clearfix?: boolean;
+  pos?: 'absolute' | 'fixed' | 'relative' | 'static' | 'sticky';
   relative?: boolean;
   fullHeight?: boolean;
+  aspectRatio?:
+    | '1by1'
+    | '5by4'
+    | '4by3'
+    | '3by2'
+    | '5by3'
+    | '16by9'
+    | '2by1'
+    | '3by1'
+    | '4by5'
+    | '3by4'
+    | '2by3'
+    | '3by5'
+    | '9by16'
+    | '1by2'
+    | '1by3';
 }
 ```
 
@@ -1292,7 +1369,7 @@ Only certain properties support responsive variants:
 - Spacing (`m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`)
 - Background colors (`backgroundColor`)
 - Flexbox properties (`flexDirection`, `flexWrap`, `justifyContent`, etc.)
-- Other helpers (`float`, `clearfix`, `relative`, `borderRadius`, `shadow`, etc.)
+- Other helpers (`float`, `overflow`, `pos`, `radius`, `shadow`, `aspectRatio`, etc.)
 
 ---
 

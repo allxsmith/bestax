@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-88 documented components. Generated from the API docs — every exported
+89 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -58,6 +58,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Link](https://bestax.io/docs/api/elements/link) — The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
 - [LinkButton](https://bestax.io/docs/api/elements/linkbutton) — The `LinkButton` component renders a `<button>` that visually looks like text or a link.
 - [ListItem](https://bestax.io/docs/api/elements/listitem) — The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.
+- [Loader](https://bestax.io/docs/api/elements/loader) — The `Loader` component renders Bulma's `.loader`, a small spinning ring for inline loading states.
 - [Notification](https://bestax.io/docs/api/elements/notification) — The `Notification` component is a Bulma-styled alert/message area for providing feedback, warnings, or information to users.
 - [OrderedList](https://bestax.io/docs/api/elements/orderedlist) — The `OrderedList` component renders a styled ordered list (`<ol>`) element with Bulma helper class integration.
 - [Paragraph](https://bestax.io/docs/api/elements/paragraph) — The `Paragraph` component renders a styled `<p>` element with Bulma helper class integration.
@@ -144,7 +145,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 - [ConfigProvider](https://bestax.io/docs/api/helpers/config) — The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.
 - [Theme](https://bestax.io/docs/api/helpers/theme) — The `Theme` component provides a powerful way to customize Bulma's appearance using CSS custom properties (CSS variables).
-- [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
+- [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.
 - [useBulmaClasses](https://bestax.io/docs/api/helpers/usebulmaclasses) — `useBulmaClasses` is a custom React hook that generates Bulma helper class strings from a set of props.
 - [usePrefixedClassNames](https://bestax.io/docs/api/helpers/useprefixedclassnames) — `usePrefixedClassNames` builds a component class string that honors the `classPrefix` from `ConfigProvider` — the hook every bestax component uses for its own…

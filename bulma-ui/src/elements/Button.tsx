@@ -45,7 +45,11 @@ export interface ButtonOwnProps extends Omit<
   isLight?: boolean;
   /** Makes the button rounded. */
   isRounded?: boolean;
-  /** Displays a loading spinner. */
+  /**
+   * Displays a loading spinner.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Makes the button non-interactive. */
   isStatic?: boolean;

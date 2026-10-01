@@ -12,6 +12,7 @@ import {
 } from '../helpers/classNames';
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { isEventInside } from '../helpers/shadowDom';
 import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
@@ -100,7 +101,11 @@ export interface TaginputProps
   keepFirst?: boolean;
   /** Keeps the autocomplete dropdown open after selection. */
   keepOpen?: boolean;
-  /** Shows a loading indicator. */
+  /**
+   * Shows a loading spinner in the input.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   loading?: boolean;
   /** ARIA label for tag close buttons. */
   ariaCloseLabel?: string;
@@ -446,10 +451,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       if (!isActive) return undefined;
 
       const handleClickOutside = (e: MouseEvent) => {
-        if (
-          containerRef.current &&
-          !containerRef.current.contains(e.target as Node)
-        ) {
+        if (containerRef.current && !isEventInside(e, containerRef.current)) {
           setIsActive(false);
           setHighlightedIndex(-1);
         }

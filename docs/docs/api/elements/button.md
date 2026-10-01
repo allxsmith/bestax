@@ -53,15 +53,13 @@ This is the most fundamental use of the `Button` component, providing a simple y
 By setting the `color` prop, you can style your button with any of Bulma's button colors. The semantic colors are `primary`, `link`, `info`, `success`, `warning`, and `danger`. Neutral colors are `white`, `light`, `dark`, and `black`. Special colors are `text` (minimal text-only button) and `ghost` (link-like button). This allows you to visually communicate the purpose of different actions—for example, use `success` for confirming, `danger` for destructive actions, or `ghost` for a button that looks like a link.
 
 ```tsx live
-import { Buttons } from './Buttons';
-
 <Buttons>
   {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (
     <Button key={color} color={color}>
       {color.charAt(0).toUpperCase() + color.slice(1)}
     </Button>
   ))}
-</Buttons>;
+</Buttons>
 ```
 
 ### All Sizes
@@ -100,7 +98,7 @@ Enable the `isRounded` prop to give your button fully rounded edges. This style 
 
 ### Loading
 
-Set the `isLoading` prop to display a loading spinner inside the button. This is commonly used while waiting for an asynchronous operation, such as form submission or data fetching, providing user feedback and preventing multiple submissions. The button's content is replaced by the spinner while `isLoading` is active.
+Set the `isLoading` prop to display a loading spinner inside the button. This is commonly used while waiting for an asynchronous operation, such as form submission or data fetching, providing user feedback and preventing multiple submissions. The button's content is replaced by the spinner while `isLoading` is active. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn, so the loading state is still visible.
 
 ```tsx live
 <Button color="success" isLoading>
@@ -354,7 +352,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Butto
 | `size`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                                                                                                          | —          | Size of the button.                                                                                                                                                                                                                                                         |
 | `isLight`     | `boolean`                                                                                                                                                   | `false`    | Applies a lighter color variant.                                                                                                                                                                                                                                            |
 | `isRounded`   | `boolean`                                                                                                                                                   | `false`    | Makes the button rounded.                                                                                                                                                                                                                                                   |
-| `isLoading`   | `boolean`                                                                                                                                                   | `false`    | Displays a loading spinner.                                                                                                                                                                                                                                                 |
+| `isLoading`   | `boolean`                                                                                                                                                   | `false`    | Displays a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).                                                                                                                                            |
 | `isStatic`    | `boolean`                                                                                                                                                   | `false`    | Makes the button non-interactive.                                                                                                                                                                                                                                           |
 | `isFullwidth` | `boolean`                                                                                                                                                   | `false`    | Makes the button full-width.                                                                                                                                                                                                                                                |
 | `isFullWidth` | `boolean`                                                                                                                                                   | `false`    | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Makes the button full-width.                                                                                                                                                                |

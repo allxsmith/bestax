@@ -158,7 +158,7 @@
           "name": "hasNavigation",
           "type": "boolean",
           "default": "false",
-          "description": "Shows previous/next navigation buttons.",
+          "description": "Shows previous/next navigation buttons. They render `type=\"button\"`, so a multi-step form wrapped around the steps is not submitted by moving between them.",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -30,7 +30,11 @@ export interface SelectProps extends SelectBaseProps {
   iconLeftSize?: ControlBaseProps['iconLeftSize'];
   /** Force left icon container. */
   hasIconsLeft?: boolean;
-  /** Shows loading indicator. */
+  /**
+   * Replaces the chevron with a loading spinner.
+   * Under `prefers-reduced-motion: reduce` the spinner stops and stays
+   * drawn (with bestax's CSS loaded).
+   */
   isLoading?: boolean;
   /** Expand the control. */
   isExpanded?: boolean;

@@ -5,7 +5,11 @@ export function Cards() {
         <div className="card has-background-light">
           <header className="card-header">
             <div className="card-header-title is-centered">Built from parts</div>
-            <button className="card-header-icon" aria-label="more options">
+            <button
+              type="button"
+              className="card-header-icon"
+              aria-label="more options"
+            >
               More
             </button>
           </header>

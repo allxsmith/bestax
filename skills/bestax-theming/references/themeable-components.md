@@ -65,6 +65,7 @@ Shades (`colorShade` / `backgroundColorShade`): `00, 05, 10, … 95, invert, lig
 | `File`             | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                                                                              | `small \| medium \| large`                                                | also `isBoxed`, `isFullwidth`                                                                                                                       |
 | `Hero`             | every `validColors` member + `inherit`/`current` (the `-bis`/`-ter` shades, the greys, `inherit` and `current` deprecated: no CSS, dev-warn, removed next major — see ⚠️) | `small \| medium \| large \| fullheight \| fullheight-with-navbar`        | section background                                                                                                                                  |
 | `LinkButton`       | `primary \| link \| info \| success \| warning \| danger \| white \| light \| dark \| black`                                                                              | —                                                                         | button-styled link; emits `link-button-<color>` — **no `isLight`/`isOutlined`/`isInverted`**                                                        |
+| `Loader`           | — (no color props: the ring is drawn in `--bulma-border`)                                                                                                                 | — (the ring is `1em`; size it with `textSize`)                            | for a colored spinner over a region, use `Loading`                                                                                                  |
 | `Loading`          | `primary \| link \| info \| success \| warning \| danger`                                                                                                                 | `small \| medium \| large`                                                | spinner color; default light grey                                                                                                                   |
 | `Navbar`           | `primary \| link \| info \| success \| warning \| danger \| black \| dark \| light \| white`                                                                              | —                                                                         | —                                                                                                                                                   |
 | `Numberinput`      | `primary \| link \| info \| success \| warning \| danger \| light \| dark`                                                                                                | `small \| medium \| large`                                                | also `inputColor` (the 6) for the inner input                                                                                                       |
@@ -90,15 +91,15 @@ entries follow the scheme variables.
 
 ## Typography & misc helper props (on most components)
 
-| Prop                                         | Accepts                                                   | Class                  |
-| -------------------------------------------- | --------------------------------------------------------- | ---------------------- |
-| `textSize`                                   | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7`                         | `is-size-<n>`          |
-| `textWeight`                                 | `light \| normal \| medium \| semibold \| bold`           | `has-text-weight-<w>`  |
-| `fontFamily`                                 | `sans-serif \| monospace \| primary \| secondary \| code` | `is-family-<f>`        |
-| `textAlign`                                  | `centered \| justified \| left \| right`                  | `has-text-<a>`         |
-| `radius`                                     | `radiusless`                                              | `is-radiusless`        |
-| `shadow`                                     | `shadowless`                                              | `is-shadowless`        |
-| `m` / `p` (+ `mt/mr/mb/ml/mx/my`, `pt/…/py`) | `0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6 \| auto`                 | `m-<n>` / `p-<n>` etc. |
+| Prop                                         | Accepts                                                   | Class                             |
+| -------------------------------------------- | --------------------------------------------------------- | --------------------------------- |
+| `textSize`                                   | `1 \| 2 \| 3 \| 4 \| 5 \| 6 \| 7`                         | `is-size-<n>`                     |
+| `textWeight`                                 | `light \| normal \| medium \| semibold \| bold`           | `has-text-weight-<w>`             |
+| `fontFamily`                                 | `sans-serif \| monospace \| primary \| secondary \| code` | `is-family-<f>`                   |
+| `textAlign`                                  | `centered \| justified \| left \| right`                  | `has-text-<a>`                    |
+| `radius`                                     | `radiusless \| small \| normal \| large \| rounded`       | `is-radiusless`, `has-radius-<r>` |
+| `shadow`                                     | `shadowless`                                              | `is-shadowless`                   |
+| `m` / `p` (+ `mt/mr/mb/ml/mx/my`, `pt/…/py`) | `0 \| 1 \| 2 \| 3 \| 4 \| 5 \| 6 \| auto`                 | `m-<n>` / `p-<n>` etc.            |
 
 These map to Bulma utility classes that read the same `--bulma-*` variables, so a custom theme
 flows through them automatically.

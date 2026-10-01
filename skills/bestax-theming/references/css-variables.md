@@ -237,8 +237,9 @@ list it, so set it in your CSS or through a `style` prop.)
 `--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-selected-bg`,
 `--bulma-dateinput-cell-selected-color`, `--bulma-dateinput-cell-size`,
 `--bulma-dateinput-cell-today-color`, `--bulma-dateinput-day-name-color`,
-`--bulma-dateinput-day-name-size`, `--bulma-dateinput-header-padding`,
-`--bulma-dateinput-min-width`, `--bulma-dateinput-nav-button-size`
+`--bulma-dateinput-day-name-size`, `--bulma-dateinput-focus-ring-color`,
+`--bulma-dateinput-header-padding`, `--bulma-dateinput-min-width`,
+`--bulma-dateinput-nav-button-size`
 
 ### DateTimeInput
 
@@ -389,6 +390,9 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-timeinput-wheel-item-height`, `--bulma-timeinput-wheel-mask`,
 `--bulma-timeinput-wheel-radius`, `--bulma-timeinput-wheel-selected-bg`,
 `--bulma-timeinput-wheel-selected-color`, `--bulma-timeinput-wheel-width`
+
+`--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
+wheel item's height inline.
 
 ### Toast
 
