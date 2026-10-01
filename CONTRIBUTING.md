@@ -107,9 +107,6 @@ the gate leaves it alone. Before granting, check whether the package ships a pre
 your platform as an `optionalDependency` — several here do, which can make the build script
 redundant (see the `@swc/core` entry, denied for exactly that reason).
 
-Note that `pnpm all` does **not** run the conformance checks; CI does. Run
-`pnpm check:conformance` yourself after editing `pnpm-workspace.yaml`.
-
 ### 2. Clone and Install
 
 ```bash
