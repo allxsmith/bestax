@@ -452,33 +452,45 @@ describe('the three sources agree on the same shape', () => {
  * was given. bestax's `Dropdown.Item`, `Menu.Item`, `Navbar.Item` and
  * `Navbar.Link` write `type="button"` there instead, so the migrated element
  * stops submitting. The code does not show that change, so it gets a TODO, in
- * each source's own spelling of the element prop. `%` marks where each test
- * adds its attributes.
+ * each source's own spelling of the element prop.
+ *
+ * Each case builds its JSX from the attributes a test writes before and after
+ * that prop. Order matters here: JSX applies attributes last-write-wins, so a
+ * spread decides the `type` only when nothing literal follows it, and an rbx
+ * spread written after `as` could replace the element itself.
  */
-const BUTTON_ITEMS: Array<[string, Case, Case, Case]> = [
+type ButtonItem = [string, (before: string, after: string) => string];
+
+const item = (names: string, tag: string, elementProp: string): ButtonItem => [
+  names,
+  (before, after) =>
+    `<${tag}${before} ${elementProp}="button"${after}>x</${tag}>`,
+];
+
+const BUTTON_ITEMS: Array<[string, ButtonItem, ButtonItem, ButtonItem]> = [
   [
     'Navbar.Item',
-    ['NavbarItem', '<NavbarItem tag="button"%>x</NavbarItem>'],
-    ['Navbar', '<Navbar.Item as="button"%>x</Navbar.Item>'],
-    ['Navbar', '<Navbar.Item renderAs="button"%>x</Navbar.Item>'],
+    item('NavbarItem', 'NavbarItem', 'tag'),
+    item('Navbar', 'Navbar.Item', 'as'),
+    item('Navbar', 'Navbar.Item', 'renderAs'),
   ],
   [
     'Navbar.Link',
-    ['NavbarLink', '<NavbarLink tag="button"%>x</NavbarLink>'],
-    ['Navbar', '<Navbar.Link as="button"%>x</Navbar.Link>'],
-    ['Navbar', '<Navbar.Link renderAs="button"%>x</Navbar.Link>'],
+    item('NavbarLink', 'NavbarLink', 'tag'),
+    item('Navbar', 'Navbar.Link', 'as'),
+    item('Navbar', 'Navbar.Link', 'renderAs'),
   ],
   [
     'Menu.Item',
-    ['MenuLink', '<MenuLink tag="button"%>x</MenuLink>'],
-    ['Menu', '<Menu.List.Item as="button"%>x</Menu.List.Item>'],
-    ['Menu', '<Menu.List.Item renderAs="button"%>x</Menu.List.Item>'],
+    item('MenuLink', 'MenuLink', 'tag'),
+    item('Menu', 'Menu.List.Item', 'as'),
+    item('Menu', 'Menu.List.Item', 'renderAs'),
   ],
   [
     'Dropdown.Item',
-    ['DropdownItem', '<DropdownItem tag="button"%>x</DropdownItem>'],
-    ['Dropdown', '<Dropdown.Item as="button"%>x</Dropdown.Item>'],
-    ['Dropdown', '<Dropdown.Item renderAs="button"%>x</Dropdown.Item>'],
+    item('DropdownItem', 'DropdownItem', 'tag'),
+    item('Dropdown', 'Dropdown.Item', 'as'),
+    item('Dropdown', 'Dropdown.Item', 'renderAs'),
   ],
 ];
 
@@ -502,23 +514,27 @@ function rulesFor(
 }
 
 describe('a <button> item that submitted its form in the source', () => {
-  const each = BUTTON_ITEMS.flatMap(([target, ...cases]) =>
-    cases.map((testCase, i): [string, string, MigrationSource, Case] => [
-      target,
-      SOURCES[i][1],
-      SOURCES[i][0],
-      testCase,
-    ])
+  const each = BUTTON_ITEMS.flatMap(([target, ...items]) =>
+    items.map(
+      (buttonItem, i): [string, string, MigrationSource, ButtonItem] => [
+        target,
+        SOURCES[i][1],
+        SOURCES[i][0],
+        buttonItem,
+      ]
+    )
   );
-  const withAttrs = ([names, jsx]: Case, attrs: string): Case => [
-    names,
-    jsx.replace('%', attrs),
-  ];
+  /** The case with `after` following the element prop and `before` ahead of it. */
+  const written = (
+    [names, jsx]: ButtonItem,
+    after: string,
+    before = ''
+  ): Case => [names, jsx(before, after)];
 
   it.each(each)(
     '%s from %s gets a TODO when it sets no type',
-    (_target, pkg, source, testCase) => {
-      expect(rulesFor(source, pkg, withAttrs(testCase, ''))).toContain(
+    (_target, pkg, source, buttonItem) => {
+      expect(rulesFor(source, pkg, written(buttonItem, ''))).toContain(
         'prop:type'
       );
     }
@@ -526,19 +542,19 @@ describe('a <button> item that submitted its form in the source', () => {
 
   it.each(each)(
     '%s from %s gets a TODO for a type HTML reads as submit',
-    (_target, pkg, source, testCase) => {
+    (_target, pkg, source, buttonItem) => {
       expect(
-        rulesFor(source, pkg, withAttrs(testCase, ' type="text/html"'))
+        rulesFor(source, pkg, written(buttonItem, ' type="text/html"'))
       ).toContain('prop:type');
     }
   );
 
   it.each(each)(
     '%s from %s gets none when its type is written out',
-    (_target, pkg, source, testCase) => {
+    (_target, pkg, source, buttonItem) => {
       for (const type of ['button', 'submit', 'reset']) {
         expect(
-          rulesFor(source, pkg, withAttrs(testCase, ` type="${type}"`))
+          rulesFor(source, pkg, written(buttonItem, ` type="${type}"`))
         ).not.toContain('prop:type');
       }
     }
@@ -546,12 +562,12 @@ describe('a <button> item that submitted its form in the source', () => {
 
   it.each(each)(
     '%s from %s gets none when a spread or an expression may set the type',
-    (_target, pkg, source, testCase) => {
+    (_target, pkg, source, buttonItem) => {
       expect(
-        rulesFor(source, pkg, withAttrs(testCase, ' {...p}'))
+        rulesFor(source, pkg, written(buttonItem, '', ' {...p}'))
       ).not.toContain('prop:type');
       expect(
-        rulesFor(source, pkg, withAttrs(testCase, ' type={p.type}'))
+        rulesFor(source, pkg, written(buttonItem, ' type={p.type}'))
       ).not.toContain('prop:type');
     }
   );
