@@ -62,15 +62,15 @@
     "prompts": "^2.4.2"
   },
   "devDependencies": {
-    "@jest/globals": "^30.0.0",
-    "@playwright/test": "^1.62.1",
+    "@jest/globals": "^30.5.2",
+    "@playwright/test": "^1.63.0",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
-    "@types/node": "^26.3.0",
+    "@types/node": "^26.6.3",
     "@types/prompts": "^2.4.9",
     "@types/wait-on": "^5.3.4",
-    "jest": "^30.2.0",
-    "ts-jest": "^29.4.12",
+    "jest": "^30.5.2",
+    "ts-jest": "^29.4.14",
     "typescript": "^6.0.3",
     "wait-on": "^9.1.0"
   },
