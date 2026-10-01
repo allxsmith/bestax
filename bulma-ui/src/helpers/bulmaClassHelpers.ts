@@ -256,10 +256,62 @@ export const validViewports = [
 export const validFloats = ['left', 'right'] as const;
 
 /**
- * Valid Bulma overflow classes.
- * @example 'clipped'
+ * Valid Bulma overflow values for one axis, taken by `overflowX` and
+ * `overflowY`. Each renders `is-overflow-x-<value>` or `is-overflow-y-<value>`.
+ * @example 'auto', 'hidden', 'scroll'
  */
-export const validOverflows = ['clipped'] as const;
+export const validAxisOverflows = [
+  'auto',
+  'clip',
+  'hidden',
+  'scroll',
+  'visible',
+] as const;
+
+/**
+ * Valid Bulma overflow values for `overflow`.
+ *
+ * `clipped` renders `is-clipped`, the helper `overflow` started with. Every
+ * other value renders `is-overflow-<value>`.
+ * @example 'clipped', 'auto', 'hidden'
+ */
+export const validOverflows = ['clipped', ...validAxisOverflows] as const;
+
+/**
+ * Valid Bulma position values, taken by `pos`. Each renders
+ * `is-position-<value>`.
+ * @example 'relative', 'absolute', 'sticky'
+ */
+export const validPositions = [
+  'absolute',
+  'fixed',
+  'relative',
+  'static',
+  'sticky',
+] as const;
+
+/**
+ * Valid Bulma aspect ratios, taken by `aspectRatio`. Each renders
+ * `is-aspect-ratio-<value>`.
+ * @example '1by1', '4by3', '16by9'
+ */
+export const validAspectRatios = [
+  '1by1',
+  '5by4',
+  '4by3',
+  '3by2',
+  '5by3',
+  '16by9',
+  '2by1',
+  '3by1',
+  '4by5',
+  '3by4',
+  '2by3',
+  '3by5',
+  '9by16',
+  '1by2',
+  '1by3',
+] as const;
 
 /**
  * Valid Bulma interaction classes.
@@ -291,10 +343,19 @@ export const cursorClasses: Record<(typeof validCursors)[number], string> = {
 };
 
 /**
- * Valid Bulma border-radius helper classes.
- * @example 'radiusless'
+ * Valid Bulma border-radius helper values.
+ *
+ * `radiusless` renders `is-radiusless` and removes the radius. The sizes
+ * render `has-radius-<value>` and set one from Bulma's radius scale.
+ * @example 'radiusless', 'small', 'rounded'
  */
-export const validRadii = ['radiusless'] as const;
+export const validRadii = [
+  'radiusless',
+  'small',
+  'normal',
+  'large',
+  'rounded',
+] as const;
 
 /**
  * Valid Bulma shadow helper classes.

@@ -113,6 +113,8 @@ export const useBulmaClasses = <T extends object>(
     flexShrink,
     float,
     overflow,
+    overflowX,
+    overflowY,
     overlay,
     interaction,
     cursor,
@@ -150,8 +152,10 @@ export const useBulmaClasses = <T extends object>(
     visibilityFullhd,
     skeleton,
     clearfix,
+    pos,
     relative,
     fullHeight,
+    aspectRatio,
     ...rest
   } = props;
 
@@ -248,6 +252,8 @@ export const useBulmaClasses = <T extends object>(
   const otherClasses = useOtherClasses({
     float,
     overflow,
+    overflowX,
+    overflowY,
     overlay,
     interaction,
     cursor,
@@ -256,8 +262,10 @@ export const useBulmaClasses = <T extends object>(
     responsive,
     skeleton,
     clearfix,
+    pos,
     relative,
     fullHeight,
+    aspectRatio,
   });
 
   const bulmaHelperClasses = useMemo(
@@ -305,11 +313,14 @@ export {
   validViewports,
   validFloats,
   validOverflows,
+  validAxisOverflows,
   validInteractions,
   validCursors,
   validRadii,
   validShadows,
   validResponsives,
+  validPositions,
+  validAspectRatios,
 } from './bulmaClassHelpers';
 export type { BulmaViewportProps, BulmaDisplayProps };
 export * from './useColorClasses';

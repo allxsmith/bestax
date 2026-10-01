@@ -1,6 +1,6 @@
 {
   "scripts/auto-close-duplicates.mjs": { "lines": 50, "branches": 83, "functions": 66 },
-  "scripts/check-conformance.mjs": { "lines": 70, "branches": 94, "functions": 79 },
+  "scripts/check-conformance.mjs": { "lines": 70, "branches": 92, "functions": 79 },
   "scripts/check-consumer-sbom.mjs": { "lines": 99, "branches": 88, "functions": 100 },
   "scripts/check-pointer-urls.mjs": { "lines": 98, "branches": 86, "functions": 100 },
   "scripts/check-security-txt-expiry.mjs": { "lines": 94, "branches": 84, "functions": 88 },

@@ -2579,13 +2579,30 @@ export const PASSTHROUGH: ReadonlyArray<{
   },
   {
     why: 'an `.image` modifier, which converts only on its own `.image`, and only where bestax has a prop for it',
-    match:
-      /^(?:is-\d+by\d+|is-\d+x\d+|is-square|is-aspect-ratio-.+|has-ratio)$/,
+    match: /^(?:is-\d+by\d+|is-\d+x\d+|is-square|has-ratio)$/,
+  },
+  // Helpers bestax has a prop for that this codemod does not convert. Each
+  // names its prop, so a reader can make the change by hand.
+  {
+    why: 'a Bulma helper the codemod does not convert; the `pos` prop renders it',
+    match: /^is-position-.+$/,
+  },
+  {
+    why: 'a Bulma helper the codemod does not convert; the `overflow`, `overflowX` and `overflowY` props render it',
+    match: /^is-overflow-.+$/,
+  },
+  {
+    why: 'a Bulma helper the codemod does not convert; the `radius` prop renders it',
+    match: /^has-radius-.+$/,
+  },
+  {
+    why: 'a Bulma helper the codemod does not convert; the `aspectRatio` prop renders it',
+    match: /^is-aspect-ratio-.+$/,
   },
   {
     why: 'a Bulma helper with no bestax prop',
     match:
-      /^(?:is-display-.+|is-visibility-.+|is-overflow-.+|is-position-.+|is-float-.+|is-clear-.+|has-radius-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$/,
+      /^(?:is-display-.+|is-visibility-.+|is-float-.+|is-clear-.+|has-text-weight-extrabold|is-align-content-(?:baseline|start|end)|is-align-items-self-(?:start|end)|is-offset-0(?:-[a-z]+)?)$/,
   },
   {
     why: 'a `.breadcrumb` separator, which converts only on its own `.breadcrumb`',
