@@ -33,11 +33,11 @@
  * the shape of the defect that started this. Several do emit it without
  * warning and are invisible here. Narrowing `color` to a CSS-backed union does
  * not make that safe, because the union says nothing about the element the
- * class lands on: the time wheels put `is-<colour>` on an element with no
- * colour rule until #701, and that element now has a case of its own below.
- * Grep the emission rather than trusting a list here. Closing the gap wants
- * the library to say which components warn, rather than a test guessing from
- * source.
+ * class lands on: the time wheels until #701, and the calendar for longer, put
+ * `is-<colour>` on an element with no colour rule, and each of those elements
+ * now has a case of its own below. Grep the emission rather than trusting a
+ * list here. Closing the gap wants the library to say which components warn,
+ * rather than a test guessing from source.
  *
  * `codeOnly` is a textual strip, with the limit that implies: a comment
  * opener inside a string literal removes real code along with itself — `//`
@@ -78,7 +78,7 @@ const DEPRECATIONS = join(
   'helpers',
   'colorDeprecations.ts'
 );
-const TIME_WHEELS = join(SRC, 'form', '_pickerInternals', 'TimeWheels.tsx');
+const PICKER_INTERNALS = join(SRC, 'form', '_pickerInternals');
 
 /**
  * The stylesheet, or an actionable failure.
@@ -2652,49 +2652,64 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
 });
 
 /**
- * The colours the time wheels' own `color` prop accepts.
+ * The colours a picker internal's own `color` prop accepts.
  *
- * Read from the wheel rather than from the components that feed it, because
- * the wheel is where the class lands and every feeder has to pass a value
- * this type admits, so one read covers `TimeInput`, `DateTimeInput` and any
- * later caller without a list of them here.
+ * Read from the internal rather than from the components that feed it,
+ * because the internal is where the class lands and every feeder has to pass
+ * a value this type admits, so one read covers `TimeInput`, `DateInput`,
+ * `DateTimeInput` and any later caller without a list of them here.
  */
-function timeWheelColors() {
-  const source = codeOnly(readFileSync(TIME_WHEELS, 'utf8'));
-  const props = /export interface TimeWheelsProps\s*\{([\s\S]*?)\n\}/.exec(
-    source
-  );
-  const color = props && /\bcolor\?:\s*([^;]+);/.exec(props[1]);
+function acceptedColors(file, props) {
+  const source = codeOnly(readFileSync(file, 'utf8'));
+  const body = new RegExp(
+    `export interface ${props}\\s*\\{([\\s\\S]*?)\\n\\}`
+  ).exec(source);
+  const color = body && /\bcolor\?:\s*([^;]+);/.exec(body[1]);
   assert.ok(
     color,
-    `could not find \`TimeWheelsProps.color\` in ${TIME_WHEELS}, so the ` +
-      'wheel colours cannot be read. Fix the pattern in the same change ' +
-      'that moved it.'
+    `could not find \`${props}.color\` in ${file}, so its colours cannot ` +
+      'be read. Fix the pattern in the same change that moved it.'
   );
   const values = [...color[1].matchAll(QUOTED)].map(m => m[2]);
   assert.ok(
     values.length > 0,
-    '`TimeWheelsProps.color` named no literal colour, so the check below ' +
-      'would pass on nothing. A union spelled through an alias hides its ' +
-      'literals from this read.'
+    `\`${props}.color\` named no literal colour, so the check below would ` +
+      'pass on nothing. A union spelled through an alias hides its literals ' +
+      'from this read.'
   );
   return values;
 }
 
-describe('the time wheels style every colour they accept', () => {
-  // Nothing on the wheels calls `warnUnstyledColor`, so the comparison above
-  // never reaches them, and `is-<colour>` sat dead on every wheel until #701.
-  // The wheel rule is asked for directly instead.
-  it('ships a `.timeinput-wheel.is-<colour>` rule for each', () => {
-    const css = stylesheet();
-    for (const color of timeWheelColors()) {
-      assert.ok(
-        shipsClass(css, `timeinput-wheel.is-${color}`),
-        `the time wheels accept \`color="${color}"\` and put ` +
-          `\`is-${color}\` on each wheel, and the stylesheet has no ` +
-          `\`.timeinput-wheel.is-${color}\` rule, so the value renders ` +
-          'nothing. The colour loop in `_timeinput.scss` needs it.'
-      );
-    }
-  });
+// Nothing on these calls `warnUnstyledColor`, so the comparison above never
+// reaches them, and each put `is-<colour>` on an element no rule styled: the
+// wheels until #701, the calendar for longer. The rule for the element the
+// class lands on is asked for directly instead.
+describe('the picker internals style every colour they accept', () => {
+  for (const { file, props, root, partial } of [
+    {
+      file: join(PICKER_INTERNALS, 'TimeWheels.tsx'),
+      props: 'TimeWheelsProps',
+      root: 'timeinput-wheel',
+      partial: '_timeinput.scss',
+    },
+    {
+      file: join(PICKER_INTERNALS, 'Calendar.tsx'),
+      props: 'CalendarProps',
+      root: 'dateinput',
+      partial: '_dateinput.scss',
+    },
+  ]) {
+    it(`ships a \`.${root}.is-<colour>\` rule for each in \`${props}.color\``, () => {
+      const css = stylesheet();
+      for (const color of acceptedColors(file, props)) {
+        assert.ok(
+          shipsClass(css, `${root}.is-${color}`),
+          `\`${props}.color\` admits "${color}", which lands as ` +
+            `\`is-${color}\` on \`.${root}\`, and the stylesheet has no ` +
+            `\`.${root}.is-${color}\` rule, so the value renders nothing. ` +
+            `The colour loop in \`${partial}\` needs it.`
+        );
+      }
+    });
+  }
 });

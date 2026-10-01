@@ -661,7 +661,7 @@ export const InlineColors: Story = {
     docs: {
       description: {
         story:
-          'Rendered inline so the wheels are visible without opening the popover: `color` tints the selection band and, for keyboard users, the focus ring. Tab into a wheel to see the ring.',
+          'Rendered inline so the wheels are visible without opening the popover: `color` tints the selection band. Tab into a wheel to see its focus ring, drawn inside the band.',
       },
     },
   },

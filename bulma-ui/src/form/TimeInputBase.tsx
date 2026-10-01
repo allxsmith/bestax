@@ -125,8 +125,10 @@ export interface TimeInputBaseProps
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the input, also carried by the wheels, where it
-   * colors the selection band and the keyboard focus ring. Unset, the wheels
-   * use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.
+   * colors the selection band. A focused wheel's keyboard focus ring is drawn
+   * inside the band in the color's `-invert`, like the selected value, so it
+   * shows on the fill. Unset, the wheels use
+   * `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */

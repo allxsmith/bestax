@@ -20,6 +20,10 @@ import {
 } from '../helpers/useBulmaClasses';
 import { useConfig } from '../helpers/Config';
 import { useScrollLock } from '../helpers/scrollLock';
+import {
+  getActiveElementInTree,
+  getDeepestActiveElement,
+} from '../helpers/shadowDom';
 import { resolvePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 
@@ -488,7 +492,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       // Keep Tab within the modal — `aria-modal` hides the rest of the page
       // from assistive technology, so the keyboard order has to agree.
       const focusable = getTabbable(node);
-      const activeElement = document.activeElement;
+      const activeElement = getActiveElementInTree(node);
       if (focusable.length === 0) {
         e.preventDefault();
         node.focus();
@@ -517,7 +521,10 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   useEffect(() => {
     if (!isModalActive) return undefined;
 
-    previouslyFocusedRef.current = document.activeElement as HTMLElement | null;
+    // The element that had focus, wherever it sits: a portaled modal renders
+    // under `document.body` while its opener can be inside a shadow root.
+    previouslyFocusedRef.current =
+      getDeepestActiveElement() as HTMLElement | null;
     const node = modalRootRef.current;
     const focusable = node ? getTabbable(node)[0] : undefined;
     (focusable ?? node)?.focus();
@@ -526,7 +533,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       // Only hand focus back if this modal still owns it: closing a background
       // modal must not pull focus out of one that is still open on top. A
       // removed subtree leaves focus on <body>, which still counts as ours.
-      const activeElement = document.activeElement;
+      const activeElement = getActiveElementInTree(node);
       if (
         activeElement &&
         activeElement !== document.body &&

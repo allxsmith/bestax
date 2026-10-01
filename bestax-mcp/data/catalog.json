@@ -371,7 +371,7 @@
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 52,
-      "exampleCount": 37
+      "exampleCount": 38
     },
     {
       "name": "DateTimeInput",
@@ -382,7 +382,7 @@
       "import": "import { DateTimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 62,
-      "exampleCount": 39
+      "exampleCount": 40
     },
     {
       "name": "Delete",
@@ -423,10 +423,10 @@
       "category": "components",
       "purpose": "The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.",
       "slug": "components/dropdown",
-      "import": "import { Dropdown } from '@allxsmith/bestax-bulma';",
+      "import": "import { Dropdown, Button, Field, Control, Span } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 17,
-      "exampleCount": 8
+      "exampleCount": 9
     },
     {
       "name": "Emphasis",
@@ -544,10 +544,10 @@
       "category": "form",
       "purpose": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and…",
       "slug": "form/input",
-      "import": "import { Input, Field, Control } from '@allxsmith/bestax-bulma';",
+      "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 29,
-      "exampleCount": 28
+      "exampleCount": 30
     },
     {
       "name": "Level",
@@ -1037,7 +1037,7 @@
       "name": "Valid value constants",
       "kind": "helper",
       "category": "helpers",
-      "purpose": "The `valid*` tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
+      "purpose": "The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
       "slug": "helpers/valid-values",
       "import": "import { Valid value constants } from '@allxsmith/bestax-bulma';",
       "compound": false,
@@ -1297,6 +1297,7 @@
     "--bulma-dateinput-cell-today-color": "DateTimeInput",
     "--bulma-dateinput-day-name-color": "DateTimeInput",
     "--bulma-dateinput-day-name-size": "DateTimeInput",
+    "--bulma-dateinput-focus-ring-color": "DateTimeInput",
     "--bulma-dateinput-header-padding": "DateTimeInput",
     "--bulma-dateinput-min-width": "DateTimeInput",
     "--bulma-dateinput-nav-button-size": "DateTimeInput",

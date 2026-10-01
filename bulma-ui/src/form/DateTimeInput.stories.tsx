@@ -250,6 +250,33 @@ export const Colors: Story = {
   ),
 };
 
+export const InlineColors: Story = {
+  render: () => (
+    <Block display="flex" flexWrap="wrap">
+      {(
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
+      ).map(color => (
+        <Block key={color} mr="4" mb="4">
+          <DateTimeInput
+            label={color}
+            color={color}
+            inline
+            defaultValue={new Date()}
+          />
+        </Block>
+      ))}
+    </Block>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          "Rendered inline so the panel is visible without opening the popover: `color` tints the calendar and, once the time row is opened, the wheels. The footer's time pill and Done button stay `primary`.",
+      },
+    },
+  },
+};
+
 export const States: Story = {
   render: () => (
     <Block>

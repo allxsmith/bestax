@@ -53,15 +53,13 @@ This is the most fundamental use of the `Button` component, providing a simple y
 By setting the `color` prop, you can style your button with any of Bulma's button colors. The semantic colors are `primary`, `link`, `info`, `success`, `warning`, and `danger`. Neutral colors are `white`, `light`, `dark`, and `black`. Special colors are `text` (minimal text-only button) and `ghost` (link-like button). This allows you to visually communicate the purpose of different actions—for example, use `success` for confirming, `danger` for destructive actions, or `ghost` for a button that looks like a link.
 
 ```tsx live
-import { Buttons } from './Buttons';
-
 <Buttons>
   {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (
     <Button key={color} color={color}>
       {color.charAt(0).toUpperCase() + color.slice(1)}
     </Button>
   ))}
-</Buttons>;
+</Buttons>
 ```
 
 ### All Sizes

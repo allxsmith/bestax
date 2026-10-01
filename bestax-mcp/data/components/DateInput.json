@@ -130,6 +130,10 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <DateInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <DateInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <DateInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <DateInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
     },
     {
+      "title": "Colors",
+      "code": "function example() {\n  // The 1st of this month (the 2nd when today is the 1st), so the selected\n  // date and today's date both show.\n  const picked = new Date();\n  picked.setDate(picked.getDate() === 1 ? 2 : 1);\n  return (\n    <Block display=\"flex\" flexWrap=\"wrap\">\n      <Block mr=\"4\" mb=\"4\">\n        <DateInput label=\"Link\" color=\"link\" inline defaultValue={picked} />\n      </Block>\n      <Block mr=\"4\" mb=\"4\">\n        <DateInput\n          label=\"Success\"\n          color=\"success\"\n          inline\n          defaultValue={picked}\n        />\n      </Block>\n      <Block mr=\"4\" mb=\"4\">\n        <DateInput label=\"Danger\" color=\"danger\" inline defaultValue={picked} />\n      </Block>\n    </Block>\n  );\n}"
+    },
+    {
       "title": "States",
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateInput label=\"Disabled\" disabled />\n  <DateInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <DateInput label=\"Loading\" isLoading />\n</Block>"
     },
@@ -522,7 +526,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier.",
+          "description": "Bulma color modifier for the input, also carried by the calendar, where it colors the selected date. Today's date and the keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable; that makes `'primary'` a shade off the unset calendar, which uses plain `primary` for both. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` by default.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -733,6 +737,12 @@
     {
       "css": "--bulma-dateinput-cell-today-color",
       "sass": "$dateinput-cell-today-color",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-focus-ring-color",
+      "sass": "$dateinput-focus-ring-color",
       "default": "var(--bulma-primary)",
       "scope": "element"
     },

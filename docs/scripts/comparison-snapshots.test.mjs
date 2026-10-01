@@ -163,6 +163,20 @@ test('serializeSnapshot refuses a row that does not match the columns', () => {
   );
 });
 
+test('every live row has one cell per library, as a snapshot requires', async () => {
+  // Cells are positional, and the table renders a missing one as a dash, so a
+  // miscounted row builds cleanly. Snapshotting refuses it, so check now
+  // rather than when the next edition is written.
+  const { lastReviewed, libs, categories } = await loadLiveData();
+  assert.doesNotThrow(() =>
+    serializeSnapshot({
+      reviewed: lastReviewed,
+      libs: columnOrder(libs),
+      categories,
+    })
+  );
+});
+
 test('every committed snapshot records its columns and matches them', () => {
   const dir = join(
     dirname(fileURLToPath(import.meta.url)),
