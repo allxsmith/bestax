@@ -126,6 +126,10 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Primary\" color=\"primary\" openOnFocus={false} />\n  <DateTimeInput label=\"Info\" color=\"info\" openOnFocus={false} />\n  <DateTimeInput label=\"Success\" color=\"success\" openOnFocus={false} />\n  <DateTimeInput label=\"Warning\" color=\"warning\" openOnFocus={false} />\n  <DateTimeInput label=\"Danger\" color=\"danger\" openOnFocus={false} />\n</Block>"
     },
     {
+      "title": "Colors",
+      "code": "<DateTimeInput label=\"Danger\" color=\"danger\" inline defaultValue={new Date()} />"
+    },
+    {
       "title": "States",
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput label=\"Disabled\" disabled />\n  <DateTimeInput label=\"Read only\" readOnly defaultValue={new Date()} />\n  <DateTimeInput label=\"Loading\" isLoading />\n</Block>"
     },
@@ -530,7 +534,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the time wheels, where it colors the selection band and the keyboard focus ring. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`. The calendar does not take it.",
+          "description": "Bulma color modifier for the input, also carried by the calendar and the time wheels, where it colors the selected date and the selection band. Today's date and the calendar's keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable; that makes `'primary'` a shade off the unset calendar, which uses plain `primary` for them. A focused wheel's ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, they use their `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which follow `primary` by default. The footer's time pill and Done button stay `primary` either way.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -817,6 +821,12 @@
       "scope": "element"
     },
     {
+      "css": "--bulma-dateinput-focus-ring-color",
+      "sass": "$dateinput-focus-ring-color",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
       "css": "--bulma-dateinput-cell-disabled-color",
       "sass": "$dateinput-cell-disabled-color",
       "default": "var(--bulma-text-weak)",
@@ -969,7 +979,7 @@
     {
       "css": "--bulma-timeinput-wheel-bg",
       "sass": "$timeinput-wheel-bg",
-      "default": "var(--bulma-scheme-main)",
+      "default": "transparent",
       "scope": "element"
     },
     {
