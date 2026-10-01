@@ -26,6 +26,9 @@ you when they disagree, rather than confidently describing props you do not have
 
 ## Setup
 
+Listed in the official [MCP Registry](https://registry.modelcontextprotocol.io)
+as `io.github.allxsmith/bestax-mcp`, for clients that install from it.
+
 ### Claude Code
 
 ```bash

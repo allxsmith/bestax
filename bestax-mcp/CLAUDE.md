@@ -130,3 +130,25 @@ next release would have hit whoever packed it, surfaced by diffing a
 `pnpm -C bestax-mcp pack` against the published tarball while moving
 publishers (#532). That diff is the check worth repeating whenever `files` or
 the sync script changes, because nothing asserts tarball contents.
+
+### MCP Registry
+
+Each release is also listed in the official MCP Registry as
+`io.github.allxsmith/bestax-mcp`, by `.github/workflows/mcp-registry.yml` (on
+`release: published`, or by dispatch with a tag). The listing is `server.json`
+in this directory. The workflow reads it from `main`, writes the release
+version in, and publishes it with `mcp-publisher` over GitHub OIDC; the logic
+is `scripts/mcp-registry-publish.mjs`.
+
+- **`mcpName` in `package.json` is load-bearing.** The registry proves
+  ownership by reading it from the published version on npm, and requires it
+  to equal `server.json`'s `name`. Drop or rename it and every later release
+  becomes unlistable.
+- **Both `version` fields in `server.json` stay `0.0.0-set-from-release-tag`.**
+  semantic-release bumps `package.json` and nothing else, so a real version
+  here would go stale; the workflow writes the release version into the
+  runner's copy only. `scripts/mcp-registry-publish.test.mjs` fails CI on any
+  other value, and holds the rest of the file to `package.json` and the
+  schema's description limit.
+- **`server.json` does not ship.** `files` does not name it, and the registry
+  never looks in the tarball.

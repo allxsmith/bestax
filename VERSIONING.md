@@ -85,6 +85,11 @@ On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in eac
      step. A publish that fails leaves the commit and tag behind, and that version is spent.
 3. A push may release any subset of the packages — they never bump each other.
 
+For `bestax-mcp`, the GitHub release then triggers `.github/workflows/mcp-registry.yml`, which
+lists that version in the official MCP Registry. The listing is metadata pointing at the npm
+package, and the registry accepts it only once npm serves that version with its `mcpName`, so
+a release whose npm publish failed gets no listing.
+
 Five things about that publish step are load-bearing, and none of them fails loudly:
 
 - **`--provenance` is required.** pnpm reads `publishConfig.registry` and `.access` but takes
