@@ -701,8 +701,10 @@ const BUTTON_TYPES = ['button', 'submit', 'reset'];
 /**
  * Flag a <button> that submitted its form in the source and will not once
  * migrated. Only where the element is known to be a <button> and its `type`
- * is known: a spread may carry a `type`, and a dynamic one may hold any value,
- * and either is the author's to know.
+ * is known: a dynamic `type` may hold any value, and a spread may carry one,
+ * and either is the author's to know. A spread decides only when nothing
+ * literal follows it, since JSX applies attributes last-write-wins, so a
+ * literal `type` written after every spread is the one that renders.
  */
 function flagButtonType(
   ctx: TransformContext,
@@ -712,9 +714,16 @@ function flagButtonType(
   rendered: string | undefined
 ): void {
   if (rendered !== 'button' || !TYPES_ITS_BUTTON.has(target)) return;
-  const attrs: any[] = element.openingElement.attributes;
-  if (attrs.some(a => a.type === 'JSXSpreadAttribute')) return;
-  const attr = findAttr(element, 'type');
+  let attr: any | undefined;
+  let spreadWins = false;
+  for (const a of element.openingElement.attributes) {
+    if (a.type === 'JSXSpreadAttribute') spreadWins = true;
+    else if (a.name.name === 'type') {
+      attr = a;
+      spreadWins = false;
+    }
+  }
+  if (spreadWins) return;
   if (attr) {
     const literal = literalValueOf(attr);
     if (literal.kind !== 'string' || BUTTON_TYPES.includes(literal.value)) {

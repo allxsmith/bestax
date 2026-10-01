@@ -569,6 +569,33 @@ describe('a <button> item that submitted its form in the source', () => {
       expect(
         rulesFor(source, pkg, written(buttonItem, ' type={p.type}'))
       ).not.toContain('prop:type');
+      // A spread after a literal `type` may replace it, so that literal is
+      // not the one that renders.
+      expect(
+        rulesFor(
+          source,
+          pkg,
+          written(buttonItem, '', ' type="text/html" {...p}')
+        )
+      ).not.toContain('prop:type');
+    }
+  );
+
+  it.each(each)(
+    '%s from %s judges a literal type written after a spread',
+    (_target, pkg, source, buttonItem) => {
+      // The literal comes last, so it is the `type` that renders whatever the
+      // spread held.
+      expect(
+        rulesFor(
+          source,
+          pkg,
+          written(buttonItem, ' type="text/html"', ' {...p}')
+        )
+      ).toContain('prop:type');
+      expect(
+        rulesFor(source, pkg, written(buttonItem, ' type="submit"', ' {...p}'))
+      ).not.toContain('prop:type');
     }
   );
 
