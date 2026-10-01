@@ -113,11 +113,17 @@ export interface CarouselProps
   repeat?: boolean;
   /** Enable drag/swipe navigation. Default: true. */
   hasDrag?: boolean;
-  /** Show navigation arrows. Default: true. */
+  /**
+   * Show navigation arrows. Default: true. They render `type="button"`, so a
+   * carousel inside a form is not submitted by moving between slides.
+   */
   arrow?: boolean;
   /** Only show arrows on hover. */
   arrowHover?: boolean;
-  /** Show slide indicators. Default: true. */
+  /**
+   * Show slide indicators. Default: true. They render `type="button"`, so a
+   * carousel inside a form is not submitted by picking a slide.
+   */
   indicator?: boolean;
   /** Position indicators inside carousel. */
   indicatorInside?: boolean;
@@ -588,6 +594,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
           {arrow && itemCount > 1 && (
             <>
               <Button
+                type="button"
                 className={carouselArrowPrevClass}
                 onClick={goToPrev}
                 isDisabled={!canGoPrev}
@@ -606,6 +613,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
                 )}
               </Button>
               <Button
+                type="button"
                 className={carouselArrowNextClass}
                 onClick={goToNext}
                 isDisabled={!canGoNext}
@@ -632,6 +640,7 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
             {items.map((_, index) => (
               <Button
                 key={index}
+                type="button"
                 className={prefixedClassNames(classPrefix, 'indicator-item', {
                   'is-active': index === activeIndex,
                 })}

@@ -100,6 +100,18 @@ describe('Carousel', () => {
       expect(screen.getByLabelText('Next slide')).toBeInTheDocument();
     });
 
+    it('renders the arrows with type="button", so they do not submit a form around it', () => {
+      render(<TestCarousel />);
+      expect(screen.getByLabelText('Previous slide')).toHaveAttribute(
+        'type',
+        'button'
+      );
+      expect(screen.getByLabelText('Next slide')).toHaveAttribute(
+        'type',
+        'button'
+      );
+    });
+
     it('does not render arrows when arrow is false', () => {
       render(<TestCarousel arrow={false} />);
       expect(screen.queryByLabelText('Previous slide')).not.toBeInTheDocument();
@@ -225,6 +237,32 @@ describe('Carousel', () => {
       render(<TestCarousel />);
       const indicators = screen.getAllByRole('tab');
       expect(indicators[0]).toHaveAttribute('aria-label', 'Go to slide 1');
+    });
+
+    it('renders the indicators with type="button", so they do not submit a form around it', () => {
+      render(<TestCarousel />);
+      screen.getAllByRole('tab').forEach(indicator => {
+        expect(indicator).toHaveAttribute('type', 'button');
+      });
+    });
+  });
+
+  describe('Inside a form', () => {
+    it('moves between slides without submitting the form', () => {
+      // An image or plan picker inside a form is ordinary, and nothing on
+      // Carousel's props reaches these buttons, so the caller can't type them.
+      const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+      const onChange = jest.fn();
+      render(
+        <form onSubmit={onSubmit}>
+          <TestCarousel onChange={onChange} />
+        </form>
+      );
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      fireEvent.click(screen.getByLabelText('Previous slide'));
+      fireEvent.click(screen.getAllByRole('tab')[2]);
+      expect(onChange).toHaveBeenCalled();
+      expect(onSubmit).not.toHaveBeenCalled();
     });
   });
 
