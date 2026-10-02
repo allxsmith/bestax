@@ -1,3 +1,10 @@
+# [5.22.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.21.0...@allxsmith/bestax-bulma@5.22.0) (2026-10-02)
+
+
+### Features
+
+* **bulma-ui:** export ClientOnly and useIsHydrated ([2c0c1e6](https://github.com/allxsmith/bestax/commit/2c0c1e6a127052e54ba372ca4eff40131a64ba64))
+
 # [5.21.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.20.0...@allxsmith/bestax-bulma@5.21.0) (2026-10-01)
 
 
