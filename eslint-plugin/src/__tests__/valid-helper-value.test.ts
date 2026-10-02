@@ -71,6 +71,18 @@ ruleTester.run('valid-helper-value', rule, {
     imported('Box', '<Box pos="absolute" relative />'),
     imported('Box', '<Box aspectRatio="16by9" />'),
     imported('Box', '<Box aspectRatio="9by16" />'),
+    // The gap steps, half steps included, as strings or as numbers: `Grid`
+    // took its gaps as numbers before they were shared, so every gap prop
+    // renders one.
+    imported('Box', '<Box display="flex" gap="2" columnGap="0.5" />'),
+    imported('Box', '<Box display="flex" rowGap="7.5" gap="8" />'),
+    imported('Box', '<Box display="flex" gap={2} rowGap={1.5} />'),
+    imported('Grid', '<Grid gap={3} columnGap={2} rowGap={1} />'),
+    imported('Columns', '<Columns gap={4} />'),
+    // `gapless` is a switch, like `overlay`.
+    imported('Box', '<Box display="flex" gapless />'),
+    // `columnGap` is the helper on `Theme` too, and a step renders it there.
+    imported('Theme', '<Theme columnGap="2">x</Theme>'),
     // The boolean members of the same interface take no value, so they must
     // stay out of the table: a shorthand on one of them is correct usage.
     imported('Box', '<Box overlay skeleton clearfix relative fullHeight />'),
@@ -219,6 +231,36 @@ ruleTester.run('valid-helper-value', rule, {
       // neighbours on the scale are the suggestions.
       code: imported('Box', '<Box aspectRatio="4by1" />'),
       errors: [{ messageId: 'invalidWithSuggestion' }],
+    },
+    {
+      // A CSS length is not a step: the gap helpers take Bulma's scale.
+      code: imported('Box', '<Box gap="1rem" />'),
+      errors: [{ messageId: 'invalid' }],
+    },
+    {
+      // A quarter step Bulma does not ship, answered with the neighbours it
+      // does.
+      code: imported('Box', '<Box rowGap="1.25" />'),
+      errors: [{ messageId: 'invalidWithSuggestion' }],
+    },
+    {
+      // A number is a step here, so the quotes are not the fix; the step is.
+      code: imported('Box', '<Box gap={9} />'),
+      errors: [
+        {
+          message:
+            '`gap={9}` is not a step gap accepts, so the class is never emitted and nothing renders. Valid values: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `4.5`, `5`, `5.5`, `6`, `6.5`, `7`, `7.5`, `8`.',
+        },
+      ],
+    },
+    {
+      code: imported('Grid', '<Grid columnGap={-1} />'),
+      errors: [{ messageId: 'numericStepInvalid' }],
+    },
+    {
+      // The bare shorthand is still `true`, which is no step at all.
+      code: imported('Box', '<Box gap />'),
+      errors: [{ messageId: 'shorthand' }],
     },
     {
       // A CSS position keyword with no Bulma helper.
@@ -374,6 +416,29 @@ ruleTester.run('valid-helper-value', rule, {
     {
       code: imported('Theme', '<Theme radius={6}>x</Theme>'),
       errors: [{ messageId: 'numericInvalid' }],
+    },
+    {
+      // `columnGap` on `Theme` used to set `--bulma-column-gap`, and a string
+      // that is not a gap step still does, so the report says what renders.
+      code: imported('Theme', '<Theme columnGap="1rem">x</Theme>'),
+      errors: [
+        {
+          message:
+            "`columnGap=\"1rem\"` is not a value columnGap accepts, so on Theme it sets `--bulma-column-gap` instead, through a deprecated route. If a columnGap of `1rem` is what you meant, write `bulmaVars={{ '--bulma-column-gap': '1rem' }}`. Valid values: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `4.5`, `5`, `5.5`, `6`, `6.5`, `7`, `7.5`, `8`.",
+        },
+      ],
+    },
+    {
+      // A number goes to the helper on `Theme`, as for `radius`, so a number
+      // that is no step gets the ordinary report.
+      code: imported('Theme', '<Theme columnGap={12}>x</Theme>'),
+      errors: [{ messageId: 'numericStepInvalid' }],
+    },
+    {
+      // `gap` and `rowGap` never minted a Theme variable, so on `Theme` they
+      // get the same report as anywhere else.
+      code: imported('Theme', '<Theme rowGap="1rem">x</Theme>'),
+      errors: [{ messageId: 'invalid' }],
     },
     {
       // And `shadow` on `Theme` is still the helper prop, because
