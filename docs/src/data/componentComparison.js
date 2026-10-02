@@ -114,6 +114,7 @@ const BESTAX = {
   Theme: 'helpers/theme',
   ConfigProvider: 'helpers/config',
   classNames: 'helpers/classnames',
+  Portal: 'helpers/portal',
   'Notification / Message': 'elements/notification',
   'Tag / Tags': 'elements/tag',
   'Icon / IconText': 'elements/icon',
@@ -1775,7 +1776,7 @@ export const categories = [
         '~preflight',
         0,
       ],
-      ['Portal', 0, 'Portal', 0, 'Portal', 0, 'Portal', 0],
+      ['Portal', 'Portal', 'Portal', 0, 'Portal', 0, 'Portal', 0],
       ['Focus trap', 0, 'FocusTrap', 0, '~Modal', 0, 'FocusTrap', 0],
       [
         'Click-away listener',

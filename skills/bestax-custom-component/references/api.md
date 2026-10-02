@@ -94,6 +94,30 @@ overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
 hard-coding values.
 
+## Floating content: `Portal`
+
+`<Portal container?>` (`helpers/portal.tsx`) renders its children into `document.body`, or into
+`container` (an element or a selector), so floating content escapes an ancestor's `overflow`,
+`transform` or stacking context. It renders nothing on the server and during hydration, so the
+first client render matches; `disabled` renders in place instead. Use it rather than
+`createPortal`, which has nothing to render on the server.
+
+Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so move
+focus into it when it opens and back to its trigger when it closes. A focus trap doesn't cover
+what a `Portal` inside it renders, so render nested overlays inside the trapped element.
+
+```tsx
+{
+  open && (
+    <Portal>
+      <div role="dialog" aria-label="Filters" tabIndex={-1}>
+        …
+      </div>
+    </Portal>
+  );
+}
+```
+
 ## SCSS utilities — from the `bulma` package
 
 ```scss

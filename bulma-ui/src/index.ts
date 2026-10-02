@@ -130,6 +130,10 @@ export * from './helpers/useBulmaClasses';
 export * from './helpers/Theme';
 export * from './helpers/Config';
 
+// Rendering content elsewhere in the page
+export { Portal } from './helpers/portal';
+export type { PortalProps } from './helpers/portal';
+
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

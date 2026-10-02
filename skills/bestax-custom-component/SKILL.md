@@ -58,6 +58,10 @@ so put helper props on the parent or on an element inside them, never invent the
 (`Card.*` sub-parts do take helper props, like `Table.*`/`Menu.*`/`Hero.*`.) Most "custom components" are a composition function — zero new styles.
 See `examples/stat-card.tsx` for a complete worked example.
 
+Building something that floats (a panel opened from a button, a command palette)? Render it
+through the library's `Portal` rather than `createPortal`: it renders nothing on the server and
+during hydration, so the server and client markup match. `references/api.md` has the details.
+
 ## The component spine
 
 Same shape the library itself uses, with all imports from the package. Every reusable
