@@ -58,6 +58,11 @@ so put helper props on the parent or on an element inside them, never invent the
 (`Card.*` sub-parts do take helper props, like `Table.*`/`Menu.*`/`Hero.*`.) Most "custom components" are a composition function — zero new styles.
 See `examples/stat-card.tsx` for a complete worked example.
 
+Building a panel that holds focus until it is dismissed (a filter panel opened from a button, a
+command palette)? Use the library's `useFocusTrap` rather than a hand-rolled Tab handler: it finds
+the tab stops the browser visits and hands focus back on close. `references/api.md` has the
+signature and a worked panel.
+
 ## The component spine
 
 Same shape the library itself uses, with all imports from the package. Every reusable

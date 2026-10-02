@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
-import { useFocusTrap } from './useFocusTrap';
+import { useFocusTrap } from '../../helpers/useFocusTrap';
 import { PickerPosition } from './pickerTypes';
 
 export interface PickerPopoverProps {
@@ -152,7 +152,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, closeOnEscape, onClose]);
 
-  useFocusTrap(panelRef, isOpen && trapFocus);
+  useFocusTrap(panelRef, { active: isOpen && trapFocus });
 
   const panelClass = usePrefixedClassNames('picker-popover', {
     'is-active': isOpen,

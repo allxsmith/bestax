@@ -130,6 +130,10 @@ export * from './helpers/useBulmaClasses';
 export * from './helpers/Theme';
 export * from './helpers/Config';
 
+// Keeping keyboard focus inside an overlay
+export { useFocusTrap } from './helpers/useFocusTrap';
+export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
+
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

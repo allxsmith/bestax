@@ -94,6 +94,50 @@ overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
 hard-coding values.
 
+## Holding focus: `useFocusTrap`
+
+`useFocusTrap(ref, { active, initialFocusRef, restoreFocus })` (`helpers/useFocusTrap.ts`) moves
+focus into `ref` when `active` turns on, wraps Tab at the first and last tab stops (the ones the
+browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are skipped and a radio
+group counts once) and restores focus when it turns off. It handles Tab only: wire Escape to
+close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It waits for
+hydration, so it also finds a container that only appears after hydration, as portaled content
+does. Content the container renders through a portal is outside the trap, so render nested
+overlays inside the container.
+
+```tsx
+function FilterPanel({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
+
+  return (
+    <>
+      <Button
+        ref={buttonRef}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+      >
+        Filters
+      </Button>
+      {open && (
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="Filters"
+          tabIndex={-1}
+          onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+        >
+          {children}
+        </div>
+      )}
+    </>
+  );
+}
+```
+
 ## SCSS utilities — from the `bulma` package
 
 ```scss
