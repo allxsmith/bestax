@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-91 documented components. Generated from the API docs — every exported
+92 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -150,4 +150,5 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.
 - [useBulmaClasses](https://bestax.io/docs/api/helpers/usebulmaclasses) — `useBulmaClasses` is a custom React hook that generates Bulma helper class strings from a set of props.
+- [useFocusTrap](https://bestax.io/docs/api/helpers/usefocustrap) — `useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on…
 - [usePrefixedClassNames](https://bestax.io/docs/api/helpers/useprefixedclassnames) — `usePrefixedClassNames` builds a component class string that honors the `classPrefix` from `ConfigProvider` — the hook every bestax component uses for its own…

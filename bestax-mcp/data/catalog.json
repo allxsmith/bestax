@@ -119,6 +119,7 @@
         "Valid value constants",
         "classNames",
         "useBulmaClasses",
+        "useFocusTrap",
         "usePrefixedClassNames"
       ]
     }
@@ -1113,6 +1114,17 @@
       "compound": false,
       "propCount": 0,
       "exampleCount": 45
+    },
+    {
+      "name": "useFocusTrap",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "`useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on, Tab and Shift+Tab wrap between the first and…",
+      "slug": "helpers/usefocustrap",
+      "import": "import { useFocusTrap } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 2
     },
     {
       "name": "usePrefixedClassNames",

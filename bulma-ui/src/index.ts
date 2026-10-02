@@ -139,6 +139,10 @@ export { useIsHydrated } from './helpers/useIsHydrated';
 export { Portal } from './helpers/portal';
 export type { PortalProps } from './helpers/portal';
 
+// Keeping keyboard focus inside an overlay
+export { useFocusTrap } from './helpers/useFocusTrap';
+export type { UseFocusTrapOptions } from './helpers/useFocusTrap';
+
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

@@ -62,10 +62,14 @@ export function getActiveElementInTree(
  * opener sits in. A closed shadow root cannot be entered, so focus inside one
  * reads as its host.
  *
+ * @param doc - The document to start from: the component's own, when it may
+ * render into one other than the page's (an iframe's). Defaults to `document`.
  * @returns The focused element, or `null` when the document has none.
  */
-export function getDeepestActiveElement(): Element | null {
-  let active = document.activeElement;
+export function getDeepestActiveElement(
+  doc: Document = document
+): Element | null {
+  let active = doc.activeElement;
   while (active?.shadowRoot?.activeElement) {
     active = active.shadowRoot.activeElement;
   }

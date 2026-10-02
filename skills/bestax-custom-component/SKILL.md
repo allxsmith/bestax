@@ -67,6 +67,11 @@ Building something that floats (a panel opened from a button, a command palette)
 through the library's `Portal` rather than `createPortal`: it renders nothing on the server and
 during hydration, so the server and client markup match. `references/api.md` has the details.
 
+Building a panel that holds focus until it is dismissed (a filter panel opened from a button, a
+command palette)? Use the library's `useFocusTrap` rather than a hand-rolled Tab handler: it finds
+the tab stops the browser visits and hands focus back on close. `references/api.md` has the
+signature and a worked panel.
+
 ## The component spine
 
 Same shape the library itself uses, with all imports from the package. Every reusable

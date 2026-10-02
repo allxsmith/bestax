@@ -175,6 +175,7 @@ const PUBLIC_EXPORTS = [
   'useColorStyles',
   'useConfig',
   'useFlexboxClasses',
+  'useFocusTrap',
   'useIconLibrary',
   'useInsideControl',
   'useInsideField',

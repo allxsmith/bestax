@@ -170,6 +170,12 @@ Rules that keep components consistent:
   first client render matches the server markup. Test that with `renderToString` plus
   `hydrateRoot` and a `console.error` spy, as `portal.test.tsx` does.
 
+- **Focus management builds on `useFocusTrap`.** A new component that holds focus while it is
+  open uses `useFocusTrap` (`helpers/useFocusTrap.ts`) rather than its own Tab handler, so it
+  gets the same tab-stop rules (hidden, disabled, inert, radio groups, shadow roots) as the rest
+  of the library. It waits for hydration, so it also traps a container that only appears after
+  hydration.
+
 See `api.md` for the full helper API and `patterns.md` for the complete Dialog walkthrough.
 
 ## SCSS pattern (required)
