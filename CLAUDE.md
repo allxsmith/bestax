@@ -12,6 +12,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
   its `src/generated/` metadata is **generated** (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `.claude-plugin/` and `mcp.json`: the `bestax` coding-agent plugin, whose root is the repo
+  root (see "The repo root is a plugin" below)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
   (deployed from CI by `deploy-worker.yml` — a merged change under it ships to
   production immediately)
@@ -172,6 +174,16 @@ AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); t
 shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated index of both (see
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
+
+**The repo root is a plugin.** `.claude-plugin/marketplace.json` makes this repo a Claude Code
+marketplace, and the `bestax` plugin it lists is the repo root itself: `.claude-plugin/plugin.json`,
+the skills in `skills/` (found by convention) and the MCP server in `mcp.json`. Codex, Copilot
+CLI, VS Code and cursor.directory read the same files. So a top-level `hooks/`, `commands/`,
+`agents/`, `rules/`, `bin/`, `.mcp.json` or `.lsp.json` would ship to every user of the plugin.
+Keep contributor tooling under `.claude/`. The manifest sets no `version` on purpose: Claude
+Code then versions the plugin by commit, so a skill change reaches users without a bump.
+`claude plugin validate .claude-plugin/plugin.json` warns about that and about this file,
+which a plugin does not load as context. Both warnings are expected.
 
 ## Distribution and listings
 

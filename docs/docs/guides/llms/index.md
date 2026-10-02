@@ -84,6 +84,9 @@ Each release is published to the official
 claude mcp add bestax -- npx -y bestax-mcp@1
 ```
 
+Or install the [Claude Code plugin](#claude-code-plugin), which runs this same server
+and adds the skills.
+
 **Cursor, Claude Desktop, Windsurf, Cline** — add to your MCP config
 (`.cursor/mcp.json`, `claude_desktop_config.json`, …):
 
@@ -142,6 +145,20 @@ Set `BESTAX_MCP_NO_VERSION_CHECK=1` to turn that off.
 
 Because the index is generated from the same source as this site — TSDoc for props, the SCSS for
 variables, these pages for examples — it cannot drift from the documentation you are reading.
+
+## Claude Code plugin
+
+The `bestax` plugin installs the [Agent Skills](/docs/skills/intro) and the
+[MCP server](#mcp-server) together. The bestax repository is its marketplace:
+
+```text
+/plugin marketplace add allxsmith/bestax
+/plugin install bestax@bestax
+```
+
+It starts the server with the same `npx -y bestax-mcp@1` command as the setup above, so
+skip `claude mcp add` when you use it. It has no hooks or commands of its own. Run
+`/plugin marketplace update bestax` to pick up skill changes.
 
 ## Contributing
 
