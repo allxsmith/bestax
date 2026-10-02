@@ -51,6 +51,16 @@ const Trap: React.FC<
 
 const button = (name: string) => screen.getByRole('button', { name });
 
+// Browsers' own stylesheet gives an image map area `display: none`, where
+// jsdom's doesn't, so every test here runs under the browser's rule.
+let browserAreaRule: HTMLStyleElement;
+beforeAll(() => {
+  browserAreaRule = document.createElement('style');
+  browserAreaRule.textContent = 'area { display: none; }';
+  document.head.appendChild(browserAreaRule);
+});
+afterAll(() => browserAreaRule.remove());
+
 describe('useFocusTrap', () => {
   describe('turning on', () => {
     it('is on by default and focuses the first tab stop', () => {
@@ -335,6 +345,110 @@ describe('useFocusTrap', () => {
       // removed, where a browser falls back to <body>, so hand focus back
       // before cleanup unmounts it.
       button('First').focus();
+    });
+  });
+
+  describe('image map areas', () => {
+    const area = (alt: string) =>
+      document.querySelector(`area[alt="${alt}"]`) as HTMLElement;
+
+    it('count where an image using their map is shown, with no box of their own', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <img alt="Floor plan" useMap="#plan" />
+          <map name="plan">
+            <area href="#kitchen" alt="Kitchen" />
+          </map>
+        </Trap>
+      );
+      expect(getComputedStyle(area('Kitchen')).display).toBe('none');
+      const focusSpy = jest.spyOn(area('Kitchen'), 'focus');
+      expect(pressTab().defaultPrevented).toBe(false);
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(focusSpy).toHaveBeenCalled();
+    });
+
+    it('find their map by id as well as by name', () => {
+      render(
+        <Trap>
+          <button>First</button>
+          <img alt="Floor plan" useMap="#plan-by-id" />
+          <map id="plan-by-id">
+            <area href="#hall" alt="Hall" />
+          </map>
+        </Trap>
+      );
+      expect(pressTab().defaultPrevented).toBe(false);
+    });
+
+    it.each([
+      [
+        'whose image is hidden',
+        () => (
+          <>
+            <img alt="" useMap="#hidden" style={{ display: 'none' }} />
+            <map name="hidden">
+              <area href="#a" alt="Hidden image" />
+            </map>
+          </>
+        ),
+      ],
+      [
+        'whose image is invisible',
+        () => (
+          <>
+            <img alt="" useMap="#invisible" style={{ visibility: 'hidden' }} />
+            <map name="invisible">
+              <area href="#a" alt="Invisible image" />
+            </map>
+          </>
+        ),
+      ],
+      [
+        'whose map no image uses',
+        () => (
+          <map name="unused">
+            <area href="#a" alt="Unused map" />
+          </map>
+        ),
+      ],
+      [
+        'whose image names its map without a #',
+        () => (
+          <>
+            {/* Without the #, the rest happens to spell the map's name. */}
+            <img alt="" useMap="xbare" />
+            <map name="bare">
+              <area href="#a" alt="No hash" />
+            </map>
+          </>
+        ),
+      ],
+      ['outside any map', () => <area href="#a" alt="Stray" />],
+      [
+        'inside an inert map',
+        () => (
+          <>
+            <img alt="" useMap="#inert" />
+            <span ref={el => el?.setAttribute('inert', '')}>
+              <map name="inert">
+                <area href="#a" alt="Inert" />
+              </map>
+            </span>
+          </>
+        ),
+      ],
+    ])('skip an area %s', (_, renderDecoy) => {
+      render(
+        <Trap>
+          <button>First</button>
+          <button>Last</button>
+          {renderDecoy()}
+        </Trap>
+      );
+      button('Last').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
     });
   });
 
@@ -767,6 +881,14 @@ describe('useFocusTrap', () => {
       expect(document.body).toHaveFocus();
     });
 
+    it('leaves focus alone, without throwing, when restoreFocus is null', () => {
+      // Outside the types, but a caller without them can pass it.
+      render(<Toggle restoreFocus={null as unknown as boolean} />);
+      open();
+      expect(() => fireEvent.click(button('Close'))).not.toThrow();
+      expect(document.body).toHaveFocus();
+    });
+
     it('does not take focus back from an element outside that already has it', () => {
       render(<Toggle />);
       open();
@@ -892,6 +1014,43 @@ describe('useFocusTrap', () => {
     // check the outer trap would send focus to its first stop.
     expect(pressTab().defaultPrevented).toBe(true);
     expect(button('Inner only')).toHaveFocus();
+  });
+
+  it('reads focus from its container’s own document', () => {
+    const frame = document.createElement('iframe');
+    document.body.appendChild(frame);
+    const doc = frame.contentDocument as Document;
+    const opener = doc.createElement('button');
+    opener.textContent = 'Opener';
+    const mount = doc.createElement('div');
+    doc.body.append(opener, mount);
+    const inFrame = (name: string) =>
+      Array.from(doc.querySelectorAll('button')).find(
+        b => b.textContent === name
+      ) as HTMLButtonElement;
+    const tabFrom = (el: HTMLElement) => {
+      el.focus();
+      const event = new (doc.defaultView as typeof globalThis).KeyboardEvent(
+        'keydown',
+        { key: 'Tab', bubbles: true, cancelable: true }
+      );
+      el.dispatchEvent(event);
+      return event;
+    };
+    try {
+      opener.focus();
+      const { rerender } = render(<Trap />, { container: mount });
+      expect(doc.activeElement).toBe(inFrame('First'));
+      // The wrap is decided from the frame's focus, not the page's.
+      expect(tabFrom(inFrame('Last')).defaultPrevented).toBe(true);
+      expect(doc.activeElement).toBe(inFrame('First'));
+      expect(tabFrom(inFrame('Middle')).defaultPrevented).toBe(false);
+      // So is the opener focus goes back to.
+      rerender(<Trap active={false} />);
+      expect(doc.activeElement).toBe(opener);
+    } finally {
+      frame.remove();
+    }
   });
 
   describe('server rendering and hydration', () => {

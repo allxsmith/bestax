@@ -102,7 +102,8 @@ The other way round doesn't work: a portal rendered _inside_ the trapped contain
 
 The trap wraps at the first and last elements the browser's Tab would visit, taken in document order:
 
-- links and image map areas with an `href`, buttons, inputs other than `type="hidden"`, selects and text areas
+- links with an `href`, buttons, inputs other than `type="hidden"`, selects and text areas
+- the areas with an `href` of an image map whose image is shown, taken where the `<map>` sits
 - frames: `<iframe>`, `<embed>` and `<object>`
 - `<audio>` and `<video>` with `controls`
 - the summary of a `<details>`, which stays a stop while the details is closed
@@ -118,8 +119,6 @@ Within those, what the browser's Tab skips is skipped here too, so none of it ca
 - anything inside an `inert` subtree
 - all but one button of a radio group: the checked one, or the first when none is checked
 
-A positive `tabIndex` is not reordered; the trap wraps at the first and last stops in document order.
-
 ### When Tab leaves anyway
 
 A browser can leave out a stop the page has, such as links when its settings say to. When a Tab the trap let through still takes focus out of the container, the trap sends it back to the other end. If the container is the last thing on the page, there is nothing outside for focus to land on and the browser can take it to its own toolbar instead, so avoid ending a trap with a link.
@@ -134,6 +133,12 @@ Some elements move focus among parts of their own, and the trap sees them as one
 - A native date or time input has a stop for each field. At the edge of the trap, Tab wraps instead of visiting the later fields. Keep it away from the edges, or follow it with another stop.
 - A closed shadow root is opaque: its host counts, not the stops inside it.
 - A scrollable region with nothing focusable inside is a stop in some browsers and not in others. Give it `tabIndex={0}` so it is one everywhere, which also lets keyboard users scroll it.
+
+### What the trap takes on trust
+
+- A browser can visit an image map's areas where the `<map>` sits or where its image is. The trap takes them where the map is, so keep the map right after its image, where the two agree.
+- A positive `tabIndex` changes the order the browser's Tab visits, but not the trap's ends, which stay the first and last stops in document order. Where the two disagree, a Tab past the browser's end is let through and then sent to the trap's end instead, which can be the very element it left, so focus seems stuck. Keep positive `tabIndex` out of a trap.
+- The trap listens for Tab on the container. Content inside that stops a Tab keydown from propagating keeps it from the trap, so that Tab isn't wrapped, and focus it takes out isn't sent back.
 
 ### Nested traps
 

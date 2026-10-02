@@ -100,34 +100,83 @@ function flatChildren(el: Element): Element[] {
 const isShown = (el: Element): boolean =>
   !el.hasAttribute('inert') && getComputedStyle(el).display !== 'none';
 
+const isVisible = (el: Element): boolean => {
+  const { visibility } = getComputedStyle(el);
+  return visibility !== 'hidden' && visibility !== 'collapse';
+};
+
 /**
- * Whether Tab can land on `el`, one of the kinds it visits. A disabled control
- * (including one inside a disabled `<fieldset>`), an inert subtree and
- * anything not rendered are skipped. Up to the container, that means
- * `display: none` (not inherited, so each ancestor is checked) and a closed
- * `<details>` anywhere but its summary. `visibility` is inherited, so the
- * element's own computed value covers its ancestors.
+ * Whether nothing from `el` up to `top` hides it: `inert`, `display: none`
+ * (not inherited, so each element is checked) or a closed `<details>` it
+ * isn't the summary of. `top` itself isn't checked, and `null` walks to the
+ * top of the page.
  */
-function isRenderedAndEnabled(el: Element, container: Element): boolean {
-  if (el.matches(':disabled') || !isShown(el)) return false;
-  // Candidates come from the container's flattened tree, so the walk up it
-  // always reaches the container.
+function isShownUpTo(el: Element, top: Node | null): boolean {
+  let below: Element | null = null;
   for (
-    let below = el, node = flatParent(el) as Element;
-    node !== container;
-    below = node, node = flatParent(node) as Element
+    let node: Element | null = el;
+    node && node !== top;
+    node = flatParent(node) as Element | null
   ) {
     if (!isShown(node)) return false;
     if (
+      below &&
       node.localName === 'details' &&
       !node.hasAttribute('open') &&
       !isDetailsSummary(below)
     ) {
       return false;
     }
+    below = node;
   }
-  const { visibility } = getComputedStyle(el);
-  return visibility !== 'hidden' && visibility !== 'collapse';
+  return true;
+}
+
+/**
+ * The images that use the image map `area` belongs to. An image names its
+ * map with `usemap="#…"`, matching the map's `name` or `id`.
+ */
+function imagesUsingMapOf(area: Element): Element[] {
+  const map = area.closest('map');
+  if (!map) return [];
+  const names = [map.getAttribute('name'), map.id].filter(name => name);
+  return Array.from(
+    (area.getRootNode() as ParentNode).querySelectorAll('img[usemap]')
+  ).filter(img => {
+    const ref = img.getAttribute('usemap') as string;
+    return ref.startsWith('#') && names.includes(ref.slice(1));
+  });
+}
+
+/**
+ * Whether an image map area is shown. An area has no box of its own: the
+ * HTML rendering rules give it `display: none`, though a browser may not
+ * report that. So it counts where an image using its map is shown, as long
+ * as nothing makes it inert.
+ */
+function isAreaShown(area: Element, container: Element): boolean {
+  for (
+    let node: Element | null = area;
+    node && node !== container;
+    node = flatParent(node) as Element | null
+  ) {
+    if (node.hasAttribute('inert')) return false;
+  }
+  return imagesUsingMapOf(area).some(
+    img => isShownUpTo(img, null) && isVisible(img)
+  );
+}
+
+/**
+ * Whether Tab can land on `el`, one of the kinds it visits. A disabled control
+ * (including one inside a disabled `<fieldset>`), an inert subtree and
+ * anything not rendered are skipped. `visibility` is inherited, so the
+ * element's own computed value covers its ancestors.
+ */
+function isRenderedAndEnabled(el: Element, container: Element): boolean {
+  if (el.matches(':disabled')) return false;
+  if (el.localName === 'area') return isAreaShown(el, container);
+  return isShownUpTo(el, container) && isVisible(el);
 }
 
 /** A radio button with a name, which shares one tab stop with its group. */
@@ -249,13 +298,14 @@ function findTabStops(container: HTMLElement): TabStops | null {
 }
 
 /**
- * The element that has focus, inside open shadow roots too; the comparisons
+ * The element that has focus in the container's own document (an iframe's,
+ * when it renders into one), inside open shadow roots too; the comparisons
  * above know how to place it. Browsers fall back to <body> when nothing has
  * focus. jsdom, where consumers run their tests, reports nothing once focus
  * was inside a shadow root that was removed, so this falls back for it.
  */
 const focusedElement = (doc: Document): Element =>
-  getDeepestActiveElement() ?? doc.body;
+  getDeepestActiveElement(doc) ?? doc.body;
 
 /**
  * Options for `useFocusTrap`.
@@ -404,7 +454,8 @@ export function useFocusTrap(
       doc.removeEventListener('focusin', handleFocusIn, true);
       clearTimeout(wrapTimer);
       let target = restoreFocus ? opener : null;
-      if (typeof restoreFocus === 'object') {
+      // `null` is an object too, and a caller without types can pass it.
+      if (restoreFocus && typeof restoreFocus === 'object') {
         // Read now rather than when the trap turned on: a trigger that
         // re-mounted in between has a new node.
         // eslint-disable-next-line react-hooks/exhaustive-deps
