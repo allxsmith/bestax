@@ -115,7 +115,7 @@ Within those, what the browser's Tab skips is skipped here too, so none of it ca
 
 - a negative `tabIndex`, such as the unfocused items of a roving-tabindex grid
 - disabled controls, including those inside a disabled `<fieldset>`
-- anything not rendered: `hidden`, `display: none` on the element or an ancestor (for slotted content, an ancestor of its slot counts), `visibility: hidden`, the content of a closed `<details>`, and a shadow host's child that no slot takes
+- anything not rendered: `hidden`, `display: none` on the element or an ancestor (for slotted content, an ancestor of its slot counts), `visibility: hidden`, the content of a closed `<details>`, and a child of an open shadow root's host that no slot takes
 - anything inside an `inert` subtree
 - all but one button of a radio group: the checked one, or the first when none is checked
 
@@ -131,7 +131,7 @@ Some elements move focus among parts of their own, and the trap sees them as one
 
 - A frame's content is its own document. Once focus is inside, Tab moves through the frame without the trap seeing it, and Tab from the frame's last stop goes on to whatever follows the frame. At the end of the trap, that is outside it: follow a frame with another stop.
 - A native date or time input has a stop for each field. At the edge of the trap, Tab wraps instead of visiting the later fields. Keep it away from the edges, or follow it with another stop.
-- A closed shadow root is opaque: its host counts, not the stops inside it.
+- A closed shadow root can't be looked into. The trap sees its host and the host's own children, but not the stops inside the root or which of those children a slot takes. A child that no slot takes isn't rendered and can't take focus, so if it ends up as the trap's first or last stop, turning the trap on or wrapping Tab to it leaves focus where it was. Keep a closed-root host away from the trap's edges, or give it no children that a slot doesn't take.
 - A scrollable region with nothing focusable inside is a stop in some browsers and not in others. Give it `tabIndex={0}` so it is one everywhere, which also lets keyboard users scroll it.
 
 ### What the trap takes on trust

@@ -70,8 +70,9 @@ function isTabbableKind(el: Element): boolean {
 /**
  * The node's parent in the flattened tree, the one the browser renders and
  * tabs through: the slot it is assigned to, else its parent, else the host of
- * the shadow root it tops, and nothing above the document. It is only asked
- * about rendered nodes, so a host's child that no slot takes never comes up.
+ * the shadow root it tops, and nothing above the document. A closed shadow
+ * root hides its slots (`assignedSlot` reads `null` under one), so a child of
+ * its host goes straight to the host, whether a slot takes it or not.
  */
 const flatParent = (node: Node): Node | null =>
   (node as Element).assignedSlot ??
@@ -82,7 +83,9 @@ const flatParent = (node: Node): Node | null =>
 /**
  * The element's children in the flattened tree, in the order they render: a
  * host's shadow root content, a slot's assigned elements (or its fallback
- * content when nothing is assigned), anything else's own children.
+ * content when nothing is assigned), anything else's own children. A host
+ * whose shadow root is closed has no root to read, so its own children stand
+ * in, including any that no slot takes and that aren't rendered.
  */
 function flatChildren(el: Element): Element[] {
   if (el.shadowRoot) return Array.from(el.shadowRoot.children);
@@ -195,8 +198,9 @@ function flatChain(node: Node, container: Node): Node[] {
 }
 
 /**
- * Whether `node` is rendered inside the container: in it, in a shadow root it
- * holds, or slotted into it.
+ * Whether `node` is inside the container in the flattened tree: in it, in a
+ * shadow root it holds, or slotted into it. A child of a closed-root host
+ * counts as inside wherever the host is, as its slot can't be seen.
  */
 function inside(container: Node, node: Node): boolean {
   for (let n: Node | null = node; n; n = flatParent(n)) {
@@ -208,8 +212,10 @@ function inside(container: Node, node: Node): boolean {
 /**
  * `true` when Tab reaches `b` after `a`, which is their order in the
  * flattened tree: a shadow host comes before its shadow root's content, and
- * slotted content comes where its slot is. Two flattened-tree siblings are
- * always in one DOM tree, so their document position decides between them.
+ * slotted content comes where its slot is. A closed root's slots can't be
+ * seen, so its host's children keep their place in the light DOM. Two
+ * flattened-tree siblings are always in one DOM tree, so their document
+ * position decides between them.
  */
 function follows(container: Element, a: Node, b: Node): boolean {
   const chainA = flatChain(a, container);
@@ -227,8 +233,9 @@ function follows(container: Element, a: Node, b: Node): boolean {
 }
 
 /**
- * Every element of a tabbable kind rendered under `el`, in the order Tab
- * visits them: the flattened tree, depth first.
+ * Every element of a tabbable kind under `el` in the flattened tree, depth
+ * first, which is the order Tab visits them. Under a host whose shadow root
+ * is closed, that takes in the host's own children instead, rendered or not.
  */
 function collectCandidates(
   el: Element,
@@ -299,8 +306,9 @@ function findTabStops(container: HTMLElement): TabStops | null {
 
 /**
  * The element that has focus in the container's own document (an iframe's,
- * when it renders into one), inside open shadow roots too; the comparisons
- * above know how to place it. Browsers fall back to <body> when nothing has
+ * when it renders into one), inside open shadow roots too. Focus inside a
+ * closed one reads as its host, which the comparisons above place like any
+ * other element. Browsers fall back to <body> when nothing has
  * focus. jsdom, where consumers run their tests, reports nothing once focus
  * was inside a shadow root that was removed, so this falls back for it.
  */
