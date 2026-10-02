@@ -435,9 +435,17 @@ describe('useFocusTrap', () => {
   });
 
   describe('shadow roots inside the container', () => {
-    /** A custom-element-like host with two buttons in an open shadow root. */
-    const Host: React.FC<{ tabIndex?: number; children?: React.ReactNode }> = ({
+    /**
+     * A custom-element-like host. Its open shadow root holds two buttons and
+     * then a slot, unless `shadow` gives it other markup.
+     */
+    const Host: React.FC<{
+      tabIndex?: number;
+      shadow?: string;
+      children?: React.ReactNode;
+    }> = ({
       tabIndex,
+      shadow = '<button>Shadow one</button><button>Shadow two</button><slot></slot>',
       children,
     }) => (
       <div
@@ -445,8 +453,7 @@ describe('useFocusTrap', () => {
         tabIndex={tabIndex}
         ref={el => {
           if (el && !el.shadowRoot) {
-            el.attachShadow({ mode: 'open' }).innerHTML =
-              '<button>Shadow one</button><button>Shadow two</button><slot></slot>';
+            el.attachShadow({ mode: 'open' }).innerHTML = shadow;
           }
         }}
       >
@@ -475,7 +482,7 @@ describe('useFocusTrap', () => {
       expect(button('First')).toHaveFocus();
     });
 
-    it('place shadow content after its host and before the host’s children', () => {
+    it('place shadow content after its host, and slotted content at its slot', () => {
       render(
         <Trap>
           <Host>
@@ -517,6 +524,66 @@ describe('useFocusTrap', () => {
       screen.getByTestId('host').focus();
       expect(pressTab(true).defaultPrevented).toBe(true);
       expect(button('Last')).toHaveFocus();
+    });
+
+    it('place slotted content where its slot is, not where it sits in the page', () => {
+      render(
+        <Trap>
+          <Host shadow="<slot></slot><button>Shadow one</button>">
+            <button>Slotted</button>
+          </Host>
+        </Trap>
+      );
+      // The slot comes first, so the slotted button is the first stop.
+      expect(button('Slotted')).toHaveFocus();
+      inShadow('Shadow one').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('Slotted')).toHaveFocus();
+    });
+
+    it.each([
+      ['inert', '<div inert><slot></slot></div>'],
+      ['display: none', '<div style="display: none"><slot></slot></div>'],
+    ])(
+      'skip content slotted under a shadow ancestor that is %s',
+      (_, shadow) => {
+        render(
+          <Trap>
+            <Host shadow={shadow}>
+              <button>Slotted</button>
+            </Host>
+            <button>Real</button>
+          </Trap>
+        );
+        // Turning on, the trap goes past the slotted button to the real one.
+        expect(button('Real')).toHaveFocus();
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(button('Real')).toHaveFocus();
+      }
+    );
+
+    it('count content slotted under a shadow ancestor that is shown', () => {
+      render(
+        <Trap>
+          <Host shadow="<div><slot></slot></div>">
+            <button>Slotted</button>
+          </Host>
+          <button>Real</button>
+        </Trap>
+      );
+      expect(button('Slotted')).toHaveFocus();
+    });
+
+    it('skip a host’s child that no slot takes, which is not rendered', () => {
+      render(
+        <Trap>
+          <Host shadow='<slot name="named"></slot>'>
+            <button>Unslotted</button>
+          </Host>
+          <button>Real</button>
+        </Trap>
+      );
+      expect(button('Real')).toHaveFocus();
     });
 
     it('restore focus when it was last inside one', () => {

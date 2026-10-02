@@ -108,13 +108,13 @@ The trap wraps at the first and last elements the browser's Tab would visit, tak
 - the summary of a `<details>`, which stays a stop while the details is closed
 - an editable region (`contentEditable`), counted once rather than once per editable element inside it
 - anything with a `tabIndex` of `0` or more
-- the content of an open shadow root inside the container, such as a web component's own controls
+- the content of an open shadow root inside the container, such as a web component's own controls, with anything slotted into it taken where its slot is
 
 Within those, what the browser's Tab skips is skipped here too, so none of it can become an end of the trap and let Tab walk out of the container:
 
 - a negative `tabIndex`, such as the unfocused items of a roving-tabindex grid
 - disabled controls, including those inside a disabled `<fieldset>`
-- anything not rendered: `hidden`, `display: none` on the element or an ancestor, `visibility: hidden`, and the content of a closed `<details>`
+- anything not rendered: `hidden`, `display: none` on the element or an ancestor (for slotted content, an ancestor of its slot counts), `visibility: hidden`, the content of a closed `<details>`, and a shadow host's child that no slot takes
 - anything inside an `inert` subtree
 - all but one button of a radio group: the checked one, or the first when none is checked
 

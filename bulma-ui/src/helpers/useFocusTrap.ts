@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
 import { useIsHydrated } from './useIsHydrated';
+import { getDeepestActiveElement } from './shadowDom';
 
 /**
  * Whether `el` is editable while its parent is not, which makes it an editing
@@ -67,11 +68,34 @@ function isTabbableKind(el: Element): boolean {
 }
 
 /**
- * The element's parent, stepping out of a shadow root to its host. Only
- * called on elements inside the container, below it, so there is always one.
+ * The node's parent in the flattened tree, the one the browser renders and
+ * tabs through: the slot it is assigned to, else its parent, else the host of
+ * the shadow root it tops, and nothing above the document. It is only asked
+ * about rendered nodes, so a host's child that no slot takes never comes up.
  */
-const composedParent = (el: Element): Element =>
-  el.parentElement ?? (el.parentNode as ShadowRoot).host;
+const flatParent = (node: Node): Node | null =>
+  (node as Element).assignedSlot ??
+  node.parentElement ??
+  (node.parentNode as ShadowRoot | null)?.host ??
+  null;
+
+/**
+ * The element's children in the flattened tree, in the order they render: a
+ * host's shadow root content, a slot's assigned elements (or its fallback
+ * content when nothing is assigned), anything else's own children.
+ */
+function flatChildren(el: Element): Element[] {
+  if (el.shadowRoot) return Array.from(el.shadowRoot.children);
+  if (el.localName === 'slot') {
+    const assigned = (el as HTMLSlotElement).assignedNodes();
+    if (assigned.length > 0) {
+      return assigned.filter(
+        (node): node is Element => node.nodeType === Node.ELEMENT_NODE
+      );
+    }
+  }
+  return Array.from(el.children);
+}
 
 const isShown = (el: Element): boolean =>
   !el.hasAttribute('inert') && getComputedStyle(el).display !== 'none';
@@ -86,10 +110,12 @@ const isShown = (el: Element): boolean =>
  */
 function isRenderedAndEnabled(el: Element, container: Element): boolean {
   if (el.matches(':disabled') || !isShown(el)) return false;
+  // Candidates come from the container's flattened tree, so the walk up it
+  // always reaches the container.
   for (
-    let below = el, node = composedParent(el);
+    let below = el, node = flatParent(el) as Element;
     node !== container;
-    below = node, node = composedParent(node)
+    below = node, node = flatParent(node) as Element
   ) {
     if (!isShown(node)) return false;
     if (
@@ -110,39 +136,35 @@ const isGroupedRadio = (el: Element): el is HTMLInputElement =>
   (el as HTMLInputElement).type === 'radio' &&
   (el as HTMLInputElement).name !== '';
 
-/**
- * The shadow hosts between the container's own tree and `node`, outermost
- * first, then `node` itself. `contains` and `compareDocumentPosition` only
- * work within one tree, so a node in a shadow root the container holds is
- * compared through its host at the container's level, and by its own
- * position inside the root below that.
- */
-function composedChain(node: Node, container: Node): Node[] {
-  const chain = [node];
-  const top = container.getRootNode();
-  let root = node.getRootNode();
-  while (root !== top) {
-    const host = (root as ShadowRoot).host;
-    if (!host) break;
-    chain.unshift(host);
-    root = host.getRootNode();
+/** The flattened-tree ancestors of `node` below the container, outermost first, then `node`. */
+function flatChain(node: Node, container: Node): Node[] {
+  const chain: Node[] = [];
+  for (let n: Node | null = node; n && n !== container; n = flatParent(n)) {
+    chain.unshift(n);
   }
   return chain;
 }
 
-/** Whether `node` is inside the container, shadow roots it holds included. */
-const inside = (container: Element, node: Node): boolean =>
-  container.contains(composedChain(node, container)[0]);
+/**
+ * Whether `node` is rendered inside the container: in it, in a shadow root it
+ * holds, or slotted into it.
+ */
+function inside(container: Node, node: Node): boolean {
+  for (let n: Node | null = node; n; n = flatParent(n)) {
+    if (n === container) return true;
+  }
+  return false;
+}
 
 /**
- * `true` when Tab reaches `b` after `a`. Within one tree that is document
- * order. A shadow host comes before the content of its shadow root, and that
- * content before the host's own children: slots are not followed, so slotted
- * content keeps its place in the light DOM.
+ * `true` when Tab reaches `b` after `a`, which is their order in the
+ * flattened tree: a shadow host comes before its shadow root's content, and
+ * slotted content comes where its slot is. Two flattened-tree siblings are
+ * always in one DOM tree, so their document position decides between them.
  */
 function follows(container: Element, a: Node, b: Node): boolean {
-  const chainA = composedChain(a, container);
-  const chainB = composedChain(b, container);
+  const chainA = flatChain(a, container);
+  const chainB = flatChain(b, container);
   for (let i = 0; i < Math.max(chainA.length, chainB.length); i++) {
     const [x, y] = [chainA[i], chainB[i]];
     if (x === y) continue;
@@ -155,16 +177,17 @@ function follows(container: Element, a: Node, b: Node): boolean {
   return false;
 }
 
-/** Every element of a tabbable kind under `root`, in the order Tab visits. */
-function collectCandidates(root: Node, out: HTMLElement[] = []): HTMLElement[] {
-  const walker = (root.ownerDocument as Document).createTreeWalker(
-    root,
-    NodeFilter.SHOW_ELEMENT
-  );
-  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-    const el = node as HTMLElement;
-    if (isTabbableKind(el)) out.push(el);
-    if (el.shadowRoot) collectCandidates(el.shadowRoot, out);
+/**
+ * Every element of a tabbable kind rendered under `el`, in the order Tab
+ * visits them: the flattened tree, depth first.
+ */
+function collectCandidates(
+  el: Element,
+  out: HTMLElement[] = []
+): HTMLElement[] {
+  for (const child of flatChildren(el)) {
+    if (isTabbableKind(child)) out.push(child as HTMLElement);
+    collectCandidates(child, out);
   }
   return out;
 }
@@ -226,17 +249,13 @@ function findTabStops(container: HTMLElement): TabStops | null {
 }
 
 /**
- * The focused element. `activeElement` stops at a shadow host, so this
- * follows open shadow roots down to the element that has focus; the
- * comparisons above know how to place it.
+ * The element that has focus, inside open shadow roots too; the comparisons
+ * above know how to place it. Browsers fall back to <body> when nothing has
+ * focus. jsdom, where consumers run their tests, reports nothing once focus
+ * was inside a shadow root that was removed, so this falls back for it.
  */
-function focusedElement(doc: Document): Element {
-  let el = doc.activeElement;
-  while (el?.shadowRoot?.activeElement) el = el.shadowRoot.activeElement;
-  // Browsers fall back to <body>. jsdom, where consumers run their tests,
-  // reports nothing once focus was inside a shadow root that was removed.
-  return el ?? doc.body;
-}
+const focusedElement = (doc: Document): Element =>
+  getDeepestActiveElement() ?? doc.body;
 
 /**
  * Options for `useFocusTrap`.
