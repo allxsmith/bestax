@@ -99,6 +99,40 @@ describe('useFocusTrap', () => {
       expect(button('First')).toHaveFocus();
     });
 
+    it('falls back to the first tab stop when initialFocusRef is outside the container', () => {
+      const WithOutsideInitial: React.FC = () => {
+        const outsideRef = useRef<HTMLButtonElement>(null);
+        return (
+          <>
+            <button ref={outsideRef}>Outside</button>
+            <Trap initialFocusRef={outsideRef} />
+          </>
+        );
+      };
+      render(<WithOutsideInitial />);
+      expect(button('First')).toHaveFocus();
+      // Focus is inside, so Tab reaches the trap's listener and wraps.
+      button('Last').focus();
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('First')).toHaveFocus();
+    });
+
+    it('falls back to the container when initialFocusRef is outside and nothing inside can take focus', () => {
+      const WithOutsideInitial: React.FC = () => {
+        const outsideRef = useRef<HTMLButtonElement>(null);
+        return (
+          <>
+            <button ref={outsideRef}>Outside</button>
+            <Trap initialFocusRef={outsideRef}>
+              <span>Nothing focusable</span>
+            </Trap>
+          </>
+        );
+      };
+      render(<WithOutsideInitial />);
+      expect(screen.getByTestId('trap')).toHaveFocus();
+    });
+
     it('focuses the container when nothing inside can take focus', () => {
       render(
         <Trap>
@@ -552,6 +586,114 @@ describe('useFocusTrap', () => {
       radio('Also unnamed').focus();
       expect(pressTab().defaultPrevented).toBe(true);
     });
+
+    // A group is every button with its name, form owner and tree, wherever
+    // the trap ends. Each case below is what Chrome's Tab does with the
+    // same markup.
+    describe('that reach outside the container', () => {
+      it('have no stop inside when their checked button is outside', () => {
+        render(
+          <>
+            <input
+              type="radio"
+              name="size"
+              aria-label="Outside"
+              defaultChecked
+            />
+            <Trap>
+              <Sizes />
+              <button>Last</button>
+            </Trap>
+          </>
+        );
+        // Tab skips Small, Medium and Large, so Last is the only stop.
+        expect(button('Last')).toHaveFocus();
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(button('Last')).toHaveFocus();
+        expect(pressTab().defaultPrevented).toBe(true);
+        expect(button('Last')).toHaveFocus();
+      });
+
+      it('are one stop inside when none is checked', () => {
+        render(
+          <>
+            <input type="radio" name="size" aria-label="Outside" />
+            <Trap>
+              <button>First</button>
+              <Sizes />
+            </Trap>
+          </>
+        );
+        // Tab from inside lands on the first button inside and leaves the
+        // group after it, so the group is the last stop.
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(radio('Small')).toHaveFocus();
+        expect(pressTab().defaultPrevented).toBe(true);
+        expect(button('First')).toHaveFocus();
+      });
+
+      it('are their checked button when it is inside', () => {
+        render(
+          <>
+            <input type="radio" name="size" aria-label="Outside" />
+            <Trap>
+              <button>First</button>
+              <Sizes checked="Medium" />
+            </Trap>
+          </>
+        );
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(radio('Medium')).toHaveFocus();
+      });
+
+      it.each([
+        ['disabled', { disabled: true }],
+        ['hidden', { hidden: true }],
+        ['out of the tab order', { tabIndex: -1 }],
+      ])(
+        'are one stop inside when the checked button outside is %s',
+        (_, props) => {
+          render(
+            <>
+              <input
+                type="radio"
+                name="size"
+                aria-label="Outside"
+                defaultChecked
+                {...props}
+              />
+              <Trap>
+                <button>First</button>
+                <Sizes />
+              </Trap>
+            </>
+          );
+          expect(pressTab(true).defaultPrevented).toBe(true);
+          expect(radio('Small')).toHaveFocus();
+        }
+      );
+
+      it('only include a checked button outside that shares their form', () => {
+        render(
+          <>
+            <form>
+              <input
+                type="radio"
+                name="size"
+                aria-label="Outside"
+                defaultChecked
+              />
+            </form>
+            <Trap>
+              <button>First</button>
+              <Sizes />
+            </Trap>
+          </>
+        );
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(radio('Small')).toHaveFocus();
+      });
+    });
   });
 
   describe('shadow roots inside the container', () => {
@@ -704,6 +846,22 @@ describe('useFocusTrap', () => {
         </Trap>
       );
       expect(button('Real')).toHaveFocus();
+    });
+
+    it('hold a radio group of their own, apart from the page’s', () => {
+      render(
+        <>
+          <input type="radio" name="size" aria-label="Outside" defaultChecked />
+          <Trap>
+            <button>First</button>
+            <Host shadow='<input type="radio" name="size" aria-label="Inside">' />
+          </Trap>
+        </>
+      );
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(focused()).toBe(
+        screen.getByTestId('host').shadowRoot!.querySelector('input')
+      );
     });
 
     it('restore focus when it was last inside one', () => {

@@ -188,6 +188,22 @@ const isGroupedRadio = (el: Element): el is HTMLInputElement =>
   (el as HTMLInputElement).type === 'radio' &&
   (el as HTMLInputElement).name !== '';
 
+/** Whether two radio buttons are in one group: same name, form owner and tree. */
+const sameGroup = (a: HTMLInputElement, b: Element): b is HTMLInputElement =>
+  isGroupedRadio(b) &&
+  b.name === a.name &&
+  b.form === a.form &&
+  b.getRootNode() === a.getRootNode();
+
+/**
+ * The checked button of `radio`'s group. The group isn't bounded by the trap,
+ * so this looks through the radio's whole tree.
+ */
+const checkedInGroup = (radio: HTMLInputElement): Element | undefined =>
+  Array.from(
+    (radio.getRootNode() as ParentNode).querySelectorAll('input:checked')
+  ).find(el => sameGroup(radio, el));
+
 /** The flattened-tree ancestors of `node` below the container, outermost first, then `node`. */
 function flatChain(node: Node, container: Node): Node[] {
   const chain: Node[] = [];
@@ -262,7 +278,10 @@ interface TabStops {
  *
  * A radio group is one stop, the way the browser treats it: its checked
  * button, or its first when none is checked. Counting every button would make
- * the group's last one an end, and Tab from the checked one would leave.
+ * the group's last one an end, and Tab from the checked one would leave. The
+ * group goes by name, form owner and tree, not by the trap, so a checked
+ * button outside the container that Tab can land on leaves the group no stop
+ * inside. One that Tab can't land on leaves the group as if none were checked.
  */
 function findTabStops(container: HTMLElement): TabStops | null {
   const candidates = collectCandidates(container);
@@ -276,14 +295,12 @@ function findTabStops(container: HTMLElement): TabStops | null {
     return ok;
   };
   const groupStop = (radio: HTMLInputElement): HTMLElement | undefined => {
-    const group = candidates.filter(
-      (el): el is HTMLInputElement =>
-        isGroupedRadio(el) &&
-        el.name === radio.name &&
-        el.form === radio.form &&
-        el.getRootNode() === radio.getRootNode()
-    );
-    return group.find(el => el.checked && usable(el)) ?? group.find(usable);
+    const group = candidates.filter(el => sameGroup(radio, el));
+    const on = checkedInGroup(radio);
+    if (on && isTabbableKind(on) && usable(on)) {
+      return group.find(el => el === on);
+    }
+    return group.find(usable);
   };
   const isStop = (el: HTMLElement): boolean =>
     usable(el) && (!isGroupedRadio(el) || groupStop(el) === el);
@@ -326,9 +343,10 @@ export interface UseFocusTrapOptions {
    */
   active?: boolean;
   /**
-   * The element to focus when the trap turns on. Without it, or while it
-   * points at nothing, focus goes to the first tab stop inside the container,
-   * and to the container itself when there is none.
+   * The element inside the container to focus when the trap turns on. Without
+   * it, while it points at nothing, or when it points outside the container,
+   * focus goes to the first tab stop inside the container, and to the
+   * container itself when there is none.
    */
   initialFocusRef?: RefObject<HTMLElement | null>;
   /**
@@ -405,8 +423,12 @@ export function useFocusTrap(
 
     const opener = focusedElement(doc) as HTMLElement;
 
+    // An `initialFocusRef` outside the container falls back as an empty one
+    // does: focus put there would stay out, as Tab out there never reaches
+    // the container's listener.
+    const initial = initialFocusRef?.current;
     (
-      initialFocusRef?.current ??
+      (initial && inside(container, initial) ? initial : null) ??
       findTabStops(container)?.first ??
       container
     ).focus();
