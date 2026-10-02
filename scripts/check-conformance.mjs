@@ -843,7 +843,7 @@ async function checkSkillsSync() {
 // it is in context at generation time: the scaffolded CLAUDE_MD template plus
 // the two skills that generate the most JSX. Only the template copy is guarded
 // by jest, so this check pins the mapping three ways:
-//   1. the load-bearing facts (spacing scale, value sets, the gap rule, the
+//   1. the load-bearing facts (spacing scale, value sets, the gap scale, the
 //      named-class fallback) appear verbatim in every copy;
 //   2. the copies name the same set of props, so a row added to one skill
 //      cannot silently go missing from the others;
@@ -959,8 +959,8 @@ async function checkStyleMappingSync() {
     '`flexGrow="1"`',
     '`visibility="hidden"`',
     '`displayMobile`',
-    'no `gap` helper',
-    'take a `gap` prop',
+    '`gap="2"`',
+    '`1`=0.5rem, `2`=1rem',
     'named class',
   ];
   for (const rel of FILES) {
@@ -1951,8 +1951,8 @@ async function checkInlineStyle(updateBaseline) {
       violations.push(
         `${file} has ${n} inline style={{}} (baseline allows ${allowed}). ` +
           `Use Bulma helper props instead: Block/Box with display="flex", ` +
-          `flexDirection, alignItems, justifyContent, and m*/p* spacing ` +
-          `(there is no gap helper — space children with margins).`
+          `flexDirection, alignItems, justifyContent, m*/p* spacing, and ` +
+          `gap between the children.`
       );
     }
   }

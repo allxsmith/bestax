@@ -126,10 +126,8 @@ free. `references/api.md` documents the helpers.
 ## Styling ladder — use the lowest rung that works
 
 **Rung 1 — helper props only (default).** House rules: never `style={{}}`. Layout with
-`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`. Flex
-layouts have **no `gap` helper** — space children with `m*`/`p*` margins instead (`Grid` and
-`Columns` take a `gap` prop). Before writing `style={{ … }}` anywhere, translate each
-declaration:
+`Block`/`Box` and `display="flex"`, `flexDirection`, `alignItems`, `justifyContent`, and space
+the children with `gap`. Before writing `style={{ … }}` anywhere, translate each declaration:
 
 | Inline style you're about to write       | Helper props instead                                                                                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -143,6 +141,7 @@ declaration:
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |
 | `height: '100%'` on a flex child         | `flexGrow="1"`                                                                                                                                                 |
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
+| `gap: '1rem'` (flex or grid)             | `gap="2"`, or one axis: `columnGap`, `rowGap`; gap scale: `1`=0.5rem, `2`=1rem, `4`=2rem, half steps (`"1.5"`)                                                 |
 
 Spacing, typography, and flex helpers are on every component; `textColor`/`bgColor` are on
 the content components you'll compose with (`Box`, `Block`, `Title`, `Content`, `Card`, …) —
