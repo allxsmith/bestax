@@ -11,7 +11,7 @@ sidebar_label: Portal
 
 It is the building block for your own overlays: a command palette, a floating panel, a custom popover. `Modal`, `Dialog` and `Toast` already portal through their own props, so reach for `Portal` when you are building something they don't cover.
 
-A portal has nothing to render on the server, so `Portal` renders nothing there and during hydration, and mounts its children in the commit that follows. The first client render matches the server markup, and there is no hydration warning to chase. In an app without server rendering it portals on the first render.
+React's server renderer can't render a portal, so `Portal` renders nothing on the server and during hydration, and mounts its children in the commit that follows. The first client render matches the server markup, and there is no hydration warning to chase. In an app without server rendering it portals on the first render.
 
 ---
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
@@ -94,6 +94,54 @@ describe('Portal', () => {
       </Portal>
     );
     expect(screen.getByText('Fallback').parentElement).toBe(document.body);
+  });
+
+  it('looks a selector up again on each render, and remounts its children when the target changes', () => {
+    const first = document.createElement('section');
+    const second = document.createElement('section');
+    first.className = 'overlay-root';
+    document.body.append(first, second);
+    let mounts = 0;
+    const Counter: React.FC = () => {
+      const [count, setCount] = useState(0);
+      useEffect(() => {
+        mounts += 1;
+      }, []);
+      return (
+        <button type="button" onClick={() => setCount(c => c + 1)}>
+          Clicked {count}
+        </button>
+      );
+    };
+    // A fresh element each time, so React renders Portal again rather than
+    // reusing the last result.
+    const ui = () => (
+      <Portal container=".overlay-root">
+        <Counter />
+      </Portal>
+    );
+    try {
+      const { rerender } = render(ui());
+      fireEvent.click(screen.getByRole('button'));
+      expect(first).toContainElement(
+        screen.getByRole('button', { name: 'Clicked 1' })
+      );
+
+      // The same props, but the selector now matches the other element.
+      first.className = '';
+      second.className = 'overlay-root';
+      rerender(ui());
+
+      const button = screen.getByRole('button');
+      expect(second).toContainElement(button);
+      expect(first).toBeEmptyDOMElement();
+      // Moving remounted the child, so its state started over.
+      expect(mounts).toBe(2);
+      expect(button).toHaveTextContent('Clicked 0');
+    } finally {
+      first.remove();
+      second.remove();
+    }
   });
 
   it('renders in place when disabled', () => {

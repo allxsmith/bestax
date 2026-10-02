@@ -58,9 +58,9 @@ export interface PortalProps {
 /**
  * Renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
  *
- * A portal has nothing to render on the server, so `Portal` renders nothing
- * there and during hydration, and mounts its children in the commit that
- * follows. The first client render then matches the server markup. In an app
+ * React's server renderer can't render a portal, so `Portal` renders nothing
+ * on the server and during hydration, and mounts its children in the commit
+ * that follows. The first client render then matches the server markup. In an app
  * without server rendering it portals on the first render.
  *
  * React context, such as `ConfigProvider`'s class prefix, reaches the
