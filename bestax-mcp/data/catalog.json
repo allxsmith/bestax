@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.20.0"
+    "version": "5.21.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -112,6 +112,7 @@
       "id": "helpers",
       "label": "Helpers",
       "components": [
+        "ClientOnly",
         "ConfigProvider",
         "Theme",
         "Valid value constants",
@@ -275,6 +276,17 @@
       "compound": true,
       "propCount": 20,
       "exampleCount": 5
+    },
+    {
+      "name": "ClientOnly",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "`ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then, so content that depends on browser-only state doesn't…",
+      "slug": "helpers/clientonly",
+      "import": "import { ClientOnly } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 3
     },
     {
       "name": "Code",
