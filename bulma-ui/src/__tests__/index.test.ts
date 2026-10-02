@@ -109,6 +109,7 @@ const PUBLIC_EXPORTS = [
   'PanelInputBlock',
   'PanelTabs',
   'Paragraph',
+  'Portal',
   'Pre',
   'Progress',
   'Radio',

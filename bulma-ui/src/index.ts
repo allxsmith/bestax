@@ -135,6 +135,10 @@ export { ClientOnly } from './helpers/ClientOnly';
 export type { ClientOnlyProps } from './helpers/ClientOnly';
 export { useIsHydrated } from './helpers/useIsHydrated';
 
+// Rendering content elsewhere in the page
+export { Portal } from './helpers/portal';
+export type { PortalProps } from './helpers/portal';
+
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

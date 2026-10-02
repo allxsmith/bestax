@@ -63,6 +63,10 @@ Wrap it in the library's `ClientOnly` rather than checking `typeof window`: it r
 until the page has hydrated, so the server and client markup match. `references/api.md` has the
 details.
 
+Building something that floats (a panel opened from a button, a command palette)? Render it
+through the library's `Portal` rather than `createPortal`: it renders nothing on the server and
+during hydration, so the server and client markup match. `references/api.md` has the details.
+
 ## The component spine
 
 Same shape the library itself uses, with all imports from the package. Every reusable
