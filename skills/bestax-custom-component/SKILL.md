@@ -58,6 +58,15 @@ so put helper props on the parent or on an element inside them, never invent the
 (`Card.*` sub-parts do take helper props, like `Table.*`/`Menu.*`/`Hero.*`.) Most "custom components" are a composition function — zero new styles.
 See `examples/stat-card.tsx` for a complete worked example.
 
+Rendering something only the browser knows (the reader's time zone, a `localStorage` value)?
+Wrap it in the library's `ClientOnly` rather than checking `typeof window`: it renders a fallback
+until the page has hydrated, so the server and client markup match. `references/api.md` has the
+details.
+
+Building something that floats (a panel opened from a button, a command palette)? Render it
+through the library's `Portal` rather than `createPortal`: it renders nothing on the server and
+during hydration, so the server and client markup match. `references/api.md` has the details.
+
 Building a panel that holds focus until it is dismissed (a filter panel opened from a button, a
 command palette)? Use the library's `useFocusTrap` rather than a hand-rolled Tab handler: it finds
 the tab stops the browser visits and hands focus back on close. `references/api.md` has the
