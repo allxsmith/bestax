@@ -112,6 +112,7 @@
       "id": "helpers",
       "label": "Helpers",
       "components": [
+        "ClientOnly",
         "ConfigProvider",
         "Portal",
         "Theme",
@@ -276,6 +277,17 @@
       "compound": true,
       "propCount": 20,
       "exampleCount": 5
+    },
+    {
+      "name": "ClientOnly",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "`ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then, so content that depends on browser-only state doesn't…",
+      "slug": "helpers/clientonly",
+      "import": "import { ClientOnly } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 3
     },
     {
       "name": "Code",

@@ -159,6 +159,11 @@ Rules that keep components consistent:
   Run `pnpm exec prettier --write` on your new files (or `pnpm format` from the repo root) before
   `pnpm lint`. Copy snippets as a starting point, then let Prettier normalize them.
 
+- **Browser-only work waits for hydration.** A component that measures or reads browser-only
+  state while rendering uses `useIsHydrated` (`helpers/useIsHydrated.ts`) rather than a
+  `typeof document` check, so the first client render matches the server markup. Test that with
+  `renderToString` plus `hydrateRoot` and a `console.error` spy, as `ClientOnly.test.tsx` does.
+
 - **Floating content portals through `Portal`.** A new component that renders outside its own
   place in the DOM uses `Portal` (`helpers/portal.tsx`) rather than its own `createPortal` and
   `typeof document` check. `Portal` renders nothing on the server or during hydration, so the
