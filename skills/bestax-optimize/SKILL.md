@@ -64,6 +64,7 @@ helper props compile to — components still render, but the props silently do n
 recommending it, grep the app's source for helper props on bestax components:
 
 - spacing: `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`
+- gap: `gap`, `columnGap`, `rowGap`, `gapless`, on any component, `Grid` included: its gap props render the same helper classes
 - color: `color`, `backgroundColor` (+ `colorShade`/`backgroundColorShade`), `textColor`, `bgColor`
 - typography: `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`
 - display/visibility: `display`, `visibility` (+ `displayMobile`…`visibilityFullhd` viewport variants)
@@ -71,7 +72,7 @@ recommending it, grep the app's source for helper props on bestax components:
 - misc: `float`, `overflow`, `overflowX`, `overflowY`, `overlay`, `interaction`, `cursor`, `radius`, `shadow`, `skeleton`, `clearfix`, `pos`, `relative`, `fullHeight`, `aspectRatio`
 
 …and for raw Bulma helper classes in `className` strings (`is-*`, `has-*`, `m*-*`, `p*-*`,
-`is-size-*`, `is-hidden*`, `is-flex*`). **Any hit → do not use `no-helpers`**; fall back to
+`is-size-*`, `is-hidden*`, `is-flex*`, `is-gap-*`). **Any hit → do not use `no-helpers`**; fall back to
 `no-dark-mode` or Lever 2. The bestax extras helpers (`is-cursor-*`, sizing) are dropped too.
 
 ## Lever 2 — modular Sass build

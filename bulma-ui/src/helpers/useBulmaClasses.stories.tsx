@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
+import { validGaps } from './bulmaClassHelpers';
 
 // Components for skeleton stories
 import { Button } from '../elements/Button';
@@ -133,6 +134,26 @@ const meta: Meta<typeof UseBulmaClassesDemo> = {
       control: 'select',
       options: ['left', 'right'],
       description: 'Float direction (is-pulled-left/is-pulled-right)',
+    },
+    gap: {
+      control: 'select',
+      options: validGaps,
+      description:
+        'Space between flex or grid children (is-gap-<step>), 0.5rem per step',
+    },
+    columnGap: {
+      control: 'select',
+      options: validGaps,
+      description: 'Space between columns only (is-column-gap-<step>)',
+    },
+    rowGap: {
+      control: 'select',
+      options: validGaps,
+      description: 'Space between rows only (is-row-gap-<step>)',
+    },
+    gapless: {
+      control: 'boolean',
+      description: 'Remove the gap between children (is-gapless)',
     },
   },
   parameters: {
@@ -460,6 +481,37 @@ export const Margin: Story = {
       <Buttons mt="5" mb="5">
         <Button>Top/Bottom Margin</Button>
         <Button>Row 2</Button>
+      </Buttons>
+    </>
+  ),
+};
+
+// The gap helpers set CSS `gap`, so they space the children of a flex or
+// grid container and do nothing on an element laid out any other way.
+export const Gap: Story = {
+  render: () => (
+    <>
+      <Block display="flex" flexWrap="wrap" gap="2">
+        <Tag color="primary">gap=&quot;2&quot;</Tag>
+        <Tag color="primary">puts 1rem</Tag>
+        <Tag color="primary">between children</Tag>
+      </Block>
+      <Block display="flex" flexDirection="column" gap="0.5">
+        <Tag color="info">A column with gap=&quot;0.5&quot;</Tag>
+        <Tag color="info">half steps sit between</Tag>
+        <Tag color="info">the whole ones</Tag>
+      </Block>
+      <Block display="flex" flexWrap="wrap" columnGap="4" rowGap="1">
+        {Array.from({ length: 12 }, (_, i) => (
+          <Tag key={i} color="success">
+            columnGap=&quot;4&quot; rowGap=&quot;1&quot;
+          </Tag>
+        ))}
+      </Block>
+      <Buttons gapless>
+        <Button>gapless</Button>
+        <Button>removes</Button>
+        <Button>the gap</Button>
       </Buttons>
     </>
   ),

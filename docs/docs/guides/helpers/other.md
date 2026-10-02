@@ -595,7 +595,7 @@ function InteractionExamples() {
             Hover over the elements below to see cursor changes:
           </Content>
 
-          <Box display="flex" flexDirection="column" style={{ gap: '1rem' }}>
+          <Box display="flex" flexDirection="column" gap="2">
             <Box
               bgColor="primary"
               textColor="white"

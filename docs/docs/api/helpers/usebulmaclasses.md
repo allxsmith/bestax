@@ -159,7 +159,7 @@ function example() {
     gap: '4',
   });
   return JSON.stringify({ bulmaHelperClasses });
-  // bulmaHelperClasses: 'is-flex is-flex-direction-column is-align-items-center is-justify-content-center'
+  // bulmaHelperClasses: 'is-gap-4 is-flex is-flex-direction-column is-align-items-center is-justify-content-center'
 }
 ```
 
@@ -443,6 +443,35 @@ Use margin props to add spacing. Here, margin is applied to buttons, and to a ro
   </Buttons>
 </>
 ```
+
+### Gap
+
+`gap` puts space between the children of a flex or grid container, and `columnGap` and `rowGap` set one axis. Each whole step is 0.5rem, so `gap="2"` is 1rem and `gap="8"` is 4rem, with half steps such as `"1.5"` between them. That is not the margin scale, where `m="2"` is 0.5rem. A step can also be written as a number (`gap={2}`).
+
+The helpers set the CSS `gap`, which does nothing unless the element lays its children out as flex or grid. Pair them with `display="flex"` or `display="grid"`, or use them on a component that already is one, such as `Buttons` or `Tags`, where they replace the spacing Bulma gives it:
+
+```tsx live
+<>
+  <Block display="flex" flexWrap="wrap" gap="2">
+    <Tag color="primary">One</Tag>
+    <Tag color="primary">Two</Tag>
+    <Tag color="primary">Three</Tag>
+  </Block>
+  <Block display="flex" flexDirection="column" gap="0.5">
+    <Tag color="info">A column</Tag>
+    <Tag color="info">with a half step</Tag>
+  </Block>
+  <Buttons gap="1">
+    <Button>Tighter</Button>
+    <Button>than Bulma's</Button>
+    <Button>default</Button>
+  </Buttons>
+</>
+```
+
+`gapless` removes the gap, the shortcut for `gap="0"`; when both are set, `gap` wins. `columnGap` and `rowGap` win on their own axis over `gap` and `gapless`, so `gap="4" rowGap="1"` spaces the columns 2rem apart and the rows 0.5rem.
+
+`Grid` takes `gap`, `columnGap` and `rowGap` as its own props and renders the same classes. `Columns` keeps its own `gap`, the columns gutter, which takes whole steps; see [Columns](../columns/columns.md).
 
 ### Text Size
 
@@ -893,7 +922,7 @@ const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                                                                                                                            | Text and background color classes, including palette shades                                                                                                                             |
 | `useColorStyles`       | `backgroundColor` (scheme values)                                                                                                                                                                                                           | `{ backgroundColor: 'var(--bulma-scheme-*)' }` for a scheme background, `undefined` otherwise — the source of `bulmaHelperStyles`                                                       |
-| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                                                                                            | Margin and padding classes                                                                                                                                                              |
+| `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`, `gap`, `columnGap`, `rowGap`, `gapless`                                                                                                                   | Margin, padding and gap classes                                                                                                                                                         |
 | `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily`, `viewport`, plus `textSize{Mobile..Fullhd}`, `textAlign{Mobile..Fullhd}`                                                                                              | Typography classes, including responsive size/alignment variants                                                                                                                        |
 | `useVisibilityClasses` | `display`, `visibility`, `viewport`, plus `display{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}`, `visibility{Mobile,Tablet,TabletOnly,Touch,Desktop,DesktopOnly,Widescreen,WidescreenOnly,Fullhd}` | Display and visibility classes (this hook owns all display emission)                                                                                                                    |
 | `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`, `alignSelf`, `flexGrow`, `flexShrink`                                                                                                                          | Flexbox classes; container classes are only emitted when a `display`/`display{Viewport}` prop is `flex`/`inline-flex`, item classes (`alignSelf`, `flexGrow`, `flexShrink`) always emit |
@@ -985,6 +1014,10 @@ Below is the full list of supported props, derived from the `BulmaClassesProps` 
 | `pl`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                                               | `pl-4`                                                                                                      |
 | `px`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                                               | `px-1`                                                                                                      |
 | `py`                   | `'0'..'6'`, `'auto'`                                                                                                                                                                                                                                                               | `py-6`                                                                                                      |
+| `gap`                  | `'0'..'8'` in half steps, or a number                                                                                                                                                                                                                                              | `is-gap-1.5`                                                                                                |
+| `columnGap`            | Same as `gap`                                                                                                                                                                                                                                                                      | `is-column-gap-4`                                                                                           |
+| `rowGap`               | Same as `gap`                                                                                                                                                                                                                                                                      | `is-row-gap-0.5`                                                                                            |
+| `gapless`              | `true`                                                                                                                                                                                                                                                                             | `is-gapless`                                                                                                |
 | `textSize`             | `'1'..'7'`                                                                                                                                                                                                                                                                         | `is-size-3`                                                                                                 |
 | `textAlign`            | `'centered'`, `'justified'`, `'left'`, `'right'`                                                                                                                                                                                                                                   | `has-text-centered`                                                                                         |
 | `textTransform`        | `'capitalized'`, `'lowercase'`, `'uppercase'`, `'italic'`                                                                                                                                                                                                                          | `is-uppercase`, `is-italic`                                                                                 |
@@ -1180,7 +1213,48 @@ export interface BulmaSpacingProps {
   pl?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   px?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
   py?: '0' | '1' | '2' | '3' | '4' | '5' | '6' | 'auto';
+  gap?: BulmaGapStep;
+  columnGap?: BulmaGapStep;
+  rowGap?: BulmaGapStep;
+  gapless?: boolean;
 }
+
+// '0' to '8' in half steps ('0', '0.5', '1', … '7.5', '8'), as strings or numbers
+export type BulmaGapStep =
+  | '0'
+  | '0.5'
+  | '1'
+  | '1.5'
+  | '2'
+  | '2.5'
+  | '3'
+  | '3.5'
+  | '4'
+  | '4.5'
+  | '5'
+  | '5.5'
+  | '6'
+  | '6.5'
+  | '7'
+  | '7.5'
+  | '8'
+  | 0
+  | 0.5
+  | 1
+  | 1.5
+  | 2
+  | 2.5
+  | 3
+  | 3.5
+  | 4
+  | 4.5
+  | 5
+  | 5.5
+  | 6
+  | 6.5
+  | 7
+  | 7.5
+  | 8;
 
 export interface BulmaTypographyProps {
   textSize?: '1' | '2' | '3' | '4' | '5' | '6' | '7';

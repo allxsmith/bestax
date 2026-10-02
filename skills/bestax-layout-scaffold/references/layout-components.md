@@ -97,15 +97,15 @@ The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
 
 **Columns**
 
-| Prop                                                                             | Type                                                     |
-| -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                     |
-| `isCentered`                                                                     | `boolean` (center the row)                               |
-| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)               |
-| `isGapless`                                                                      | `boolean`                                                |
-| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile)                  |
-| `isDesktop`                                                                      | `boolean`                                                |
-| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` (number or string, same scale as `Grid`'s `gap`) |
+| Prop                                                                             | Type                                                       |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                       |
+| `isCentered`                                                                     | `boolean` (center the row)                                 |
+| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)                 |
+| `isGapless`                                                                      | `boolean`                                                  |
+| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile)                    |
+| `isDesktop`                                                                      | `boolean`                                                  |
+| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` whole steps (number or string), the columns gutter |
 
 **Column**
 
@@ -182,12 +182,12 @@ per-breakpoint column _sizes_ (a 2/3 + 1/3 split, different counts per breakpoin
 
 **Grid**
 
-| Prop                                                                                                                   | Type                                                         |
-| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `gap` / `columnGap` / `rowGap`                                                                                         | `0`–`8` (number or string, same scale as Columns' `gap`)     |
-| `minCol`                                                                                                               | `1`–`32` (smart grid: min column width step, `is-col-min-X`) |
-| `isFixed`                                                                                                              | `boolean` (fixed column count instead of auto-fill)          |
-| `fixedCols` (+ `fixedColsMobile` / `fixedColsTablet` / `fixedColsDesktop` / `fixedColsWidescreen` / `fixedColsFullhd`) | `0`–`12` or `'auto'` (fixed grid only)                       |
+| Prop                                                                                                                   | Type                                                                                                           |
+| ---------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `gap` / `columnGap` / `rowGap`                                                                                         | `0`–`8` with half steps such as `1.5` (number or string), the same values as the `gap` helper on any component |
+| `minCol`                                                                                                               | `1`–`32` (smart grid: min column width step, `is-col-min-X`)                                                   |
+| `isFixed`                                                                                                              | `boolean` (fixed column count instead of auto-fill)                                                            |
+| `fixedCols` (+ `fixedColsMobile` / `fixedColsTablet` / `fixedColsDesktop` / `fixedColsWidescreen` / `fixedColsFullhd`) | `0`–`12` or `'auto'` (fixed grid only)                                                                         |
 
 **Cell**
 

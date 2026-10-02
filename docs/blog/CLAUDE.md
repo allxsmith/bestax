@@ -151,7 +151,7 @@ post syndicates all still hold.
 - **Live examples:** ` ```tsx live ` fences. Every library export plus `React`, `useState`, and
   `useEffect` is already in scope (`docs/src/theme/CodeBlock/index.js` spreads the whole
   package into react-live; import lines are stripped anyway). No inline `style={{}}`; use
-  `Block`/helper props, and space children with `m*`/`p*` (there is no `gap` helper).
+  `Block`/helper props.
 - **Links:** internal links are absolute (`/docs/...`, `/blog/...`); `onBrokenLinks: 'throw'`
   build-validates every one. The LLM artifacts (`/llms.txt`, `/llms-full.txt`, and every
   page's `.md` twin) are generated files, not routes — link them fully qualified

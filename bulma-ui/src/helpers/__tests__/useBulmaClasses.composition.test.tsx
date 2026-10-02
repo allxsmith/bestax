@@ -39,6 +39,10 @@ describe('useBulmaClasses composition', () => {
       pl: props.pl,
       px: props.px,
       py: props.py,
+      gap: props.gap,
+      columnGap: props.columnGap,
+      rowGap: props.rowGap,
+      gapless: props.gapless,
     });
 
     const typographyClasses = useTypographyClasses({
@@ -143,6 +147,8 @@ describe('useBulmaClasses composition', () => {
     m: '2',
     mt: '1',
     px: '4',
+    gap: '1.5',
+    rowGap: 3,
     textSize: '3',
     textAlign: 'centered',
     textWeight: 'bold',

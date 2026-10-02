@@ -16,6 +16,7 @@ Most components accept these shared helper props (they map to Bulma utility clas
 | Group          | Representative props                                                          | Example                   | Renders                     |
 | -------------- | ----------------------------------------------------------------------------- | ------------------------- | --------------------------- |
 | **Spacing**    | `m` `mt` `mb` `ml` `mr` `mx` `my` `p` `pt` `pb` `px` `py` (`0`–`6` \| `auto`) | `mt="4"`                  | `mt-4`                      |
+| **Gap**        | `gap` `columnGap` `rowGap` (`0`–`8` in half steps) `gapless`                  | `gap="2"`                 | `is-gap-2`                  |
 | **Color**      | `textColor` `bgColor` `colorShade`                                            | `textColor="primary"`     | `has-text-primary`          |
 | **Typography** | `textSize` `textAlign` `textWeight` `textTransform` `fontFamily`              | `textAlign="centered"`    | `has-text-centered`         |
 | **Display**    | `display` `visibility`                                                        | `display="flex"`          | `is-flex`                   |
@@ -26,17 +27,19 @@ Most components accept these shared helper props (they map to Bulma utility clas
 
 Reach for a helper prop before an inline `style`. Reserve `style` / CSS variables only for values the design system doesn't tokenize (e.g. a one-off brand hex).
 
-| Instead of…                       | Use                              | Renders                    |
-| --------------------------------- | -------------------------------- | -------------------------- |
-| `style={{ marginTop: '1rem' }}`   | `mt="4"`                         | `mt-4`                     |
-| `style={{ padding: '0.5rem' }}`   | `p="2"`                          | `p-2`                      |
-| `style={{ textAlign: 'center' }}` | `textAlign="centered"`           | `has-text-centered`        |
-| `style={{ color: '…' }}`          | `textColor="…"` (+ `colorShade`) | `has-text-…`               |
-| `style={{ background: '…' }}`     | `bgColor="…"`                    | `has-background-…`         |
-| `style={{ fontWeight: 600 }}`     | `textWeight="semibold"`          | `has-text-weight-semibold` |
-| `style={{ display: 'flex' }}`     | `display="flex"`                 | `is-flex`                  |
+| Instead of…                                | Use                              | Renders                    |
+| ------------------------------------------ | -------------------------------- | -------------------------- |
+| `style={{ marginTop: '1rem' }}`            | `mt="4"`                         | `mt-4`                     |
+| `style={{ padding: '0.5rem' }}`            | `p="2"`                          | `p-2`                      |
+| `style={{ textAlign: 'center' }}`          | `textAlign="centered"`           | `has-text-centered`        |
+| `style={{ color: '…' }}`                   | `textColor="…"` (+ `colorShade`) | `has-text-…`               |
+| `style={{ background: '…' }}`              | `bgColor="…"`                    | `has-background-…`         |
+| `style={{ fontWeight: 600 }}`              | `textWeight="semibold"`          | `has-text-weight-semibold` |
+| `style={{ display: 'flex', gap: '1rem' }}` | `display="flex" gap="2"`         | `is-flex is-gap-2`         |
 
 Spacing scale: `0` = 0, `1` = 0.25rem, `2` = 0.5rem, `3` = 0.75rem, `4` = 1rem, `5` = 1.5rem, `6` = 3rem, `auto` = auto. See [margin & padding](../helpers/margin-and-padding) for every side.
+
+Gap scale: each whole step is 0.5rem, so `2` = 1rem and `8` = 4rem, with half steps such as `1.5` = 0.75rem between them. The gap helpers only take effect on a flex or grid container. See [gap](../helpers/flex#gap).
 
 ---
 
@@ -76,6 +79,20 @@ More examples and full property coverage are available in [usebulmaclasses.md](.
 <Box m="4" px="2" py="5">
   Box with margin and padding
 </Box>
+```
+
+### Gap
+
+:::info
+More examples and full property coverage are available in [usebulmaclasses.md](../../api/helpers/usebulmaclasses).
+:::
+
+```tsx live
+<Block display="flex" gap="2">
+  <Button>One</Button>
+  <Button>Two</Button>
+  <Button>Three</Button>
+</Block>
 ```
 
 ### Typography

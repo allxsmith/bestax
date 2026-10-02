@@ -98,6 +98,30 @@ describe('Columns', () => {
     expect(container.firstChild).toHaveClass('is-4', 'is-1-mobile');
   });
 
+  // Columns' `gap` is the columns gutter, so the shared gap helper's
+  // `is-gap-*` never renders for it, while the helper props Columns does not
+  // declare reach the helper as on any other component.
+  it('keeps gap as the columns gutter rather than the gap helper', () => {
+    const { container } = render(<Columns gap={3} />);
+    expect(container.firstChild).toHaveClass('is-3');
+    expect(container.firstChild).not.toHaveClass('is-gap-3');
+  });
+
+  it('takes the rowGap and gapless helpers', () => {
+    const { container } = render(<Columns isMultiline rowGap="2" gapless />);
+    expect(container.firstChild).toHaveClass('is-row-gap-2', 'is-gapless');
+  });
+
+  // Bulma's `is-gapless` is both the columns modifier and the gap helper, so
+  // `gapless` beside `isGapless` renders the class once.
+  it('renders is-gapless once when gapless and isGapless are both set', () => {
+    const { container } = render(<Columns isGapless gapless />);
+    expect((container.firstChild as HTMLElement).className.split(' ')).toEqual([
+      'columns',
+      'is-gapless',
+    ]);
+  });
+
   it('prefers gap* props over the deprecated gapSize* props when both are set', () => {
     const { container } = render(
       <Columns

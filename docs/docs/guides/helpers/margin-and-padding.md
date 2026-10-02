@@ -393,7 +393,7 @@ function CombinedSpacingExample() {
 }
 ```
 
-The grid at the end spaces its cards with the `gap` prop on [`Grid`](../../api/grid/grid.md), which puts space between cells and none around the outside, so the grid's edges line up with the content above it. The spacing scale has no negative steps, so the flex pattern that pads every child and pulls the wrapper outward with a negative margin can't be built from these props. When the space you want is between items, use `gap` on `Grid` or [`Columns`](../../api/columns/columns.md) instead.
+The grid at the end spaces its cards with the `gap` prop on [`Grid`](../../api/grid/grid.md), which puts space between cells and none around the outside, so the grid's edges line up with the content above it. The spacing scale has no negative steps, so the flex pattern that pads every child and pulls the wrapper outward with a negative margin can't be built from these props. When the space you want is between items, use the [gap helpers](./flex.md#gap) instead. Any flex or grid container takes `gap`, `Grid` included, and [`Columns`](../../api/columns/columns.md) has a `gap` of its own for its gutters.
 
 ## Best Practices
 
@@ -454,6 +454,7 @@ For detailed API information about spacing properties, see the [useBulmaClasses 
 ## See Also
 
 - [useBulmaClasses](/docs/api/helpers/usebulmaclasses) - Complete spacing property reference
+- [Gap](/docs/guides/helpers/flex#gap) - Space between the items of a flex or grid container
 - [Responsive Design](/docs/guides/features/responsiveness) - Responsive spacing techniques
 - [Layout Components](/docs/guides/library/layout) - Layout components with built-in spacing
 - [Bulma Spacing Documentation](https://bulma.io/documentation/helpers/spacing-helpers/) - Official Bulma spacing helpers
