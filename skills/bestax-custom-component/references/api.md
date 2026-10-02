@@ -94,6 +94,23 @@ overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
 hard-coding values.
 
+## Browser-only content: `ClientOnly` / `useIsHydrated`
+
+- `<ClientOnly fallback?>` (`helpers/ClientOnly.tsx`) renders its children only after hydration,
+  and `fallback` on the server and while hydrating. Pass the children as a function to keep
+  browser-only expressions off the server. Use it rather than a `typeof window` check, which
+  makes the server and client markup differ.
+- `useIsHydrated()` (`helpers/useIsHydrated.ts`) is the hook underneath: `false` on the server and
+  during the hydrating render, `true` from the commit after.
+
+```tsx
+<ClientOnly fallback={<Skeleton variant="lines" lines={1} />}>
+  {() => (
+    <p>Times are in {Intl.DateTimeFormat().resolvedOptions().timeZone}.</p>
+  )}
+</ClientOnly>
+```
+
 ## SCSS utilities — from the `bulma` package
 
 ```scss

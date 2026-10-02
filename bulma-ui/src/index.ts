@@ -130,6 +130,11 @@ export * from './helpers/useBulmaClasses';
 export * from './helpers/Theme';
 export * from './helpers/Config';
 
+// Rendering browser-only content after hydration
+export { ClientOnly } from './helpers/ClientOnly';
+export type { ClientOnlyProps } from './helpers/ClientOnly';
+export { useIsHydrated } from './helpers/useIsHydrated';
+
 export * from './layout/Container';
 export * from './layout/Footer';
 export * from './layout/Hero';

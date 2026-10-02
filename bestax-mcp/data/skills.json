@@ -6,16 +6,16 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 7276 },
+        { "id": "api", "file": "references/api.md", "bytes": 8002 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 17803
+          "bytes": 17972
         },
         {
           "id": "library-contributor",
           "file": "references/library-contributor.md",
-          "bytes": 19440
+          "bytes": 19823
         },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
