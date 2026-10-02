@@ -1,4 +1,4 @@
-import { DayOfWeek } from './pickerTypes';
+import { DateGranularity, DayOfWeek } from './pickerTypes';
 
 export interface CalendarCell {
   date: Date;
@@ -46,6 +46,77 @@ export function startOfMonth(d: Date): Date {
 
 export function endOfMonth(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+}
+
+/**
+ * First instant of the day, month or year containing `d`. Works by setters on
+ * a copy rather than the `Date(y, m, d)` constructor, which reads years 0–99
+ * as 1900–1999: segmented typing passes through such years on the way to a
+ * four-digit one.
+ */
+export function startOfPeriod(d: Date, granularity: DateGranularity): Date {
+  const r = new Date(d);
+  if (granularity === 'year') r.setMonth(0, 1);
+  else if (granularity === 'month') r.setDate(1);
+  r.setHours(0, 0, 0, 0);
+  return r;
+}
+
+/** Last instant of the day, month or year containing `d`. */
+export function endOfPeriod(d: Date, granularity: DateGranularity): Date {
+  const r = new Date(d);
+  if (granularity === 'year') r.setMonth(11, 31);
+  // Day 0 of the next month is this month's last day.
+  else if (granularity === 'month') r.setMonth(r.getMonth() + 1, 0);
+  r.setHours(23, 59, 59, 999);
+  return r;
+}
+
+/** The rules that make a single calendar day unselectable. */
+export interface DayConstraints {
+  min?: Date;
+  max?: Date;
+  shouldDisableDate?: (d: Date) => boolean;
+  unselectableDates?: Date[];
+}
+
+/**
+ * Whether the day `d` falls outside `[min, max]` or is blocked by
+ * `shouldDisableDate` / `unselectableDates`. This is the day grid's rule for a
+ * disabled cell.
+ */
+export function isDayUnselectable(d: Date, c: DayConstraints): boolean {
+  if (!isWithin(d, c.min, c.max)) return true;
+  if (c.shouldDisableDate?.(d)) return true;
+  if (c.unselectableDates?.some(u => isSameDay(u, d))) return true;
+  return false;
+}
+
+/**
+ * Whether every day of the month or year containing `d` is unselectable, so
+ * the period as a whole can't be picked. Walks the period's days and stops at
+ * the first selectable one. `min` and `max` count whole days here, so a `min`
+ * of 3pm on a month's last day leaves that day, and so its month, selectable.
+ */
+export function isPeriodUnselectable(
+  d: Date,
+  granularity: DateGranularity,
+  c: DayConstraints
+): boolean {
+  const days: DayConstraints = {
+    ...c,
+    min: c.min && startOfDay(c.min),
+    max: c.max && endOfDay(c.max),
+  };
+  const start = startOfPeriod(d, granularity);
+  const end = endOfPeriod(d, granularity).getTime();
+  // A period wholly outside the bounds needs no walk.
+  if (days.min && end < days.min.getTime()) return true;
+  if (days.max && start.getTime() > days.max.getTime()) return true;
+  for (let day = start; day.getTime() <= end; day = addDays(day, 1)) {
+    if (!isDayUnselectable(day, days)) return false;
+  }
+  return true;
 }
 
 export function addDays(d: Date, n: number): Date {

@@ -227,7 +227,23 @@ $dateinput-nav-button-size: 1.75rem !default;
   padding: 0.25rem 0;
 }
 
-.#{iv.$class-prefix}dateinput-year-cell {
+// The month picker's grid: the focused year's months in rows of three. Each
+// row is a grid of its own so the rows can carry `role="row"`.
+.#{iv.$class-prefix}dateinput-months-grid {
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.25rem 0;
+}
+
+.#{iv.$class-prefix}dateinput-months-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.4rem;
+}
+
+// Year and month cells share a look: one cell high, filling their column.
+.#{iv.$class-prefix}dateinput-year-cell,
+.#{iv.$class-prefix}dateinput-month-cell {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -264,11 +280,12 @@ $dateinput-nav-button-size: 1.75rem !default;
     background-color: cv.getVar('dateinput-cell-selected-bg');
     color: cv.getVar('dateinput-cell-selected-color');
   }
-  // The focused year is always the selected one, so this is the ring a
-  // keyboard user sees in the year view; it contrasts with the fill as above.
+  // On a selected cell the ring sits on the fill, so it takes the selected
+  // value's colour, which contrasts with that fill.
   &.#{iv.$class-prefix}is-selected:focus-visible {
     outline-color: cv.getVar('dateinput-cell-selected-color');
   }
+  &.#{iv.$class-prefix}is-disabled,
   &:disabled {
     color: cv.getVar('dateinput-cell-disabled-color');
     cursor: not-allowed;

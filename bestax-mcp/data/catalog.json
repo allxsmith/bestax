@@ -397,8 +397,8 @@
       "slug": "form/datetime/dateinput",
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 52,
-      "exampleCount": 38
+      "propCount": 53,
+      "exampleCount": 41
     },
     {
       "name": "DateTimeInput",

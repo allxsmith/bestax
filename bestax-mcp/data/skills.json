@@ -29,7 +29,7 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 8334 },
+        { "id": "api", "file": "references/api.md", "bytes": 8931 },
         { "id": "patterns", "file": "references/patterns.md", "bytes": 6943 }
       ],
       "examples": []

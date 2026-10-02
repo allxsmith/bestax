@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { DateInput } from '../DateInput';
 import { DateInputBase } from '../DateInputBase';
 import { Field } from '../Field';
+import { ConfigProvider } from '../../helpers/Config';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -1100,5 +1101,491 @@ describe('DateInput label association (#368)', () => {
     const label = container.querySelector('label.label');
     expect(label).toHaveTextContent('Date');
     expect(label).not.toHaveAttribute('for');
+  });
+});
+
+// -------------------------------------------------------------------------
+// granularity: month and year pickers (#773). A month or year value is the
+// period's first day; min/max and the predicates judge whole periods.
+// -------------------------------------------------------------------------
+
+const lastCall = (handler: jest.Mock): Date | null =>
+  handler.mock.calls[handler.mock.calls.length - 1][0];
+
+const focusInput = (input: HTMLElement) =>
+  act(() => {
+    input.focus();
+  });
+
+describe('DateInput month granularity', () => {
+  it('formats the value as YYYY-MM by default', () => {
+    const { getByRole } = render(
+      <DateInput granularity="month" defaultValue={new Date(2024, 5, 7)} />
+    );
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('2024-06');
+  });
+
+  it('shows a controlled mid-month value as its month without rewriting it', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        value={new Date(2024, 5, 20)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('2024-06');
+    expect(
+      getByRole('dialog').querySelector('[aria-selected="true"]')
+    ).toHaveAttribute('aria-label', 'June');
+    expect(handler).not.toHaveBeenCalled();
+  });
+
+  it('opens on the month grid and commits the first of the picked month', () => {
+    const handler = jest.fn();
+    const { getByRole, getByLabelText, queryByRole } = render(
+      <DateInput
+        granularity="month"
+        defaultValue={new Date(2024, 5, 7)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('dialog')).toHaveAttribute('aria-label', 'Choose month');
+    expect(getByRole('grid')).toBeInTheDocument();
+    fireEvent.click(getByLabelText('September'));
+    expect(handler).toHaveBeenCalledWith(new Date(2024, 8, 1));
+    expect(queryByRole('dialog')).toBeNull();
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('2024-09');
+  });
+
+  it('names the launcher for a month, from labels when given', () => {
+    const { getByLabelText, rerender } = render(
+      <DateInput granularity="month" />
+    );
+    expect(getByLabelText('Choose month').tagName).toBe('BUTTON');
+    rerender(
+      <DateInput granularity="month" labels={{ chooseMonth: 'Mois' }} />
+    );
+    expect(getByLabelText('Mois').tagName).toBe('BUTTON');
+  });
+
+  it('types the year and month only, committing the first of the month', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        defaultValue={new Date(2024, 5, 1)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    expect([input.selectionStart, input.selectionEnd]).toEqual([0, 4]);
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    expect([input.selectionStart, input.selectionEnd]).toEqual([5, 7]);
+    // There is no day segment to move on to.
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    expect([input.selectionStart, input.selectionEnd]).toEqual([5, 7]);
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(lastCall(handler)).toEqual(new Date(2024, 6, 1));
+    expect(input.value).toBe('2024-07');
+  });
+
+  it('normalises a controlled mid-month value when typing moves it', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        value={new Date(2024, 5, 20)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // year
+    expect(lastCall(handler)).toEqual(new Date(2025, 5, 1));
+  });
+
+  it('skips the day segment of a custom format with day tokens', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        format="YYYY-MM-DD"
+        defaultValue={new Date(2024, 5, 20)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    expect(input.value).toBe('2024-06-20');
+    focusInput(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    expect([input.selectionStart, input.selectionEnd]).toEqual([5, 7]);
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(lastCall(handler)).toEqual(new Date(2024, 6, 1));
+    expect(input.value).toBe('2024-07-01');
+  });
+
+  it('parses free-form text against a month format', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        format="MM/YYYY"
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '07/2025' } });
+    fireEvent.blur(input);
+    expect(handler).toHaveBeenCalledWith(new Date(2025, 6, 1));
+  });
+
+  it('parses against YYYY-MM when the format is Intl options with no parse', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        format={{ year: 'numeric', month: 'long' }}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2025-07' } });
+    fireEvent.blur(input);
+    expect(handler).toHaveBeenCalledWith(new Date(2025, 6, 1));
+    expect(input.value).toBe('July 2025');
+  });
+
+  it('lets a partly bounded month through, committed as its first day', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        min={new Date(2024, 5, 15)}
+        max={new Date(2024, 7, 10)}
+        defaultValue={new Date(2024, 6, 1)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // month
+    fireEvent.keyDown(input, { key: 'ArrowDown' }); // June: holds min
+    expect(lastCall(handler)).toEqual(new Date(2024, 5, 1));
+    fireEvent.keyDown(input, { key: 'ArrowDown' }); // May: wholly before min
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(input.value).toBe('2024-06');
+  });
+
+  it('rejects a month whose every day is blocked, and allows one partly blocked', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        // Weekends and the whole of July.
+        shouldDisableDate={d =>
+          d.getDay() === 0 || d.getDay() === 6 || d.getMonth() === 6
+        }
+        defaultValue={new Date(2024, 4, 1)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // month
+    // 1 June 2024 is a Saturday, but June has weekdays, so June counts.
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expect(lastCall(handler)).toEqual(new Date(2024, 5, 1));
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // July: every day blocked
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(input.value).toBe('2024-06');
+  });
+
+  it('judges a blocked first-of-month by its month, not its day', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        unselectableDates={[new Date(2024, 5, 1)]}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    fireEvent.change(input, { target: { value: '2024-06' } });
+    fireEvent.blur(input);
+    expect(handler).toHaveBeenCalledWith(new Date(2024, 5, 1));
+  });
+
+  it('seeds an empty field with the start of this month', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput granularity="month" popover={false} onChange={handler} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.blur(input);
+    const now = new Date();
+    expect(handler).toHaveBeenCalledWith(
+      new Date(now.getFullYear(), now.getMonth(), 1)
+    );
+  });
+
+  it('submits YYYY-MM from an inline calendar', () => {
+    const { container } = render(
+      <DateInput
+        granularity="month"
+        inline
+        name="period"
+        defaultValue={new Date(2024, 5, 20)}
+      />
+    );
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden.value).toBe('2024-06');
+  });
+
+  it('commits from the inline month grid', () => {
+    const handler = jest.fn();
+    const { getByLabelText, container } = render(
+      <DateInput
+        granularity="month"
+        inline
+        name="period"
+        defaultValue={new Date(2024, 5, 1)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByLabelText('March'));
+    expect(handler).toHaveBeenCalledWith(new Date(2024, 2, 1));
+    expect(
+      (container.querySelector('input[type="hidden"]') as HTMLInputElement)
+        .value
+    ).toBe('2024-03');
+  });
+
+  describe('native input', () => {
+    const native = (container: HTMLElement) =>
+      container.querySelector('input[type="month"]') as HTMLInputElement;
+
+    it('renders <input type="month"> with YYYY-MM value and bounds', () => {
+      const { container } = render(
+        <DateInput
+          granularity="month"
+          mobileNative
+          defaultValue={new Date(2024, 5, 20)}
+          min={new Date(2024, 0, 15)}
+          max={new Date(2025, 11, 31)}
+        />
+      );
+      expect(native(container).value).toBe('2024-06');
+      expect(native(container).min).toBe('2024-01');
+      expect(native(container).max).toBe('2025-12');
+    });
+
+    it('round-trips a change to the first of the month, and a clear to null', () => {
+      const handler = jest.fn();
+      const { container } = render(
+        <DateInput granularity="month" mobileNative onChange={handler} />
+      );
+      fireEvent.change(native(container), { target: { value: '2025-03' } });
+      expect(handler).toHaveBeenLastCalledWith(new Date(2025, 2, 1));
+      fireEvent.change(native(container), { target: { value: '' } });
+      expect(handler).toHaveBeenLastCalledWith(null);
+    });
+
+    it('commits null for a malformed value', () => {
+      const handler = jest.fn();
+      const { container } = render(
+        <DateInput granularity="month" mobileNative onChange={handler} />
+      );
+      const input = native(container);
+      Object.defineProperty(input, 'value', {
+        configurable: true,
+        get: () => 'March',
+        set: () => {},
+      });
+      fireEvent.change(input);
+      expect(handler).toHaveBeenCalledWith(null);
+    });
+  });
+});
+
+describe('DateInput year granularity', () => {
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = jest.fn();
+  });
+
+  it('formats the value as YYYY by default', () => {
+    const { getByRole } = render(
+      <DateInput granularity="year" defaultValue={new Date(2024, 5, 7)} />
+    );
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('2024');
+  });
+
+  it('opens on the year list and commits the first day of the picked year', () => {
+    const handler = jest.fn();
+    const { getByRole, getByText, queryByRole } = render(
+      <DateInput
+        granularity="year"
+        min={new Date(2020, 0, 1)}
+        max={new Date(2030, 11, 31)}
+        defaultValue={new Date(2024, 5, 7)}
+        onChange={handler}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('dialog')).toHaveAttribute('aria-label', 'Choose year');
+    expect(getByRole('listbox')).toHaveAttribute('aria-label', 'Choose year');
+    // The popover's focus lands on the focused year.
+    expect(document.activeElement).toHaveTextContent('2024');
+    fireEvent.click(getByText('2027'));
+    expect(handler).toHaveBeenCalledWith(new Date(2027, 0, 1));
+    expect(queryByRole('dialog')).toBeNull();
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('2027');
+  });
+
+  it('names the launcher for a year, from labels when given', () => {
+    const { getByLabelText, rerender } = render(
+      <DateInput granularity="year" />
+    );
+    expect(getByLabelText('Choose year').tagName).toBe('BUTTON');
+    rerender(<DateInput granularity="year" labels={{ chooseYear: 'Année' }} />);
+    expect(getByLabelText('Année').tagName).toBe('BUTTON');
+  });
+
+  it('types four digits as the year and commits its first day', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput granularity="year" onChange={handler} openOnFocus={false} />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    for (const key of '1999') fireEvent.keyDown(input, { key });
+    expect(lastCall(handler)).toEqual(new Date(1999, 0, 1));
+    expect(input.value).toBe('1999');
+  });
+
+  it('keeps typing inside the min and max years', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="year"
+        min={new Date(2020, 6, 1)}
+        max={new Date(2022, 2, 1)}
+        defaultValue={new Date(2020, 0, 1)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' }); // 2019: before min
+    expect(handler).not.toHaveBeenCalled();
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // 2021
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // 2022: holds max
+    expect(lastCall(handler)).toEqual(new Date(2022, 0, 1));
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // 2023: after max
+    expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  it('renders the calendar even when the native input is forced', () => {
+    const { container, getByRole } = render(
+      <DateInput granularity="year" mobileNative />
+    );
+    expect(container.querySelector('input[type="date"]')).toBeNull();
+    expect(container.querySelector('input[type="month"]')).toBeNull();
+    expect(getByRole('combobox')).toBeInTheDocument();
+  });
+
+  it('submits YYYY from an inline calendar without taking focus', () => {
+    const { container } = render(
+      <DateInput
+        granularity="year"
+        inline
+        name="year"
+        defaultValue={new Date(2024, 5, 20)}
+      />
+    );
+    const hidden = container.querySelector(
+      'input[type="hidden"]'
+    ) as HTMLInputElement;
+    expect(hidden.value).toBe('2024');
+    expect(container.contains(document.activeElement)).toBe(false);
+  });
+});
+
+describe('DateInput granularity changes', () => {
+  it('reopens on the view of the new granularity', () => {
+    const { getByRole, rerender, queryByRole } = render(
+      <DateInput
+        granularity="month"
+        defaultValue={new Date(2024, 5, 7)}
+        openOnFocus={false}
+      />
+    );
+    rerender(
+      <DateInput
+        granularity="year"
+        defaultValue={new Date(2024, 5, 7)}
+        openOnFocus={false}
+      />
+    );
+    fireEvent.keyDown(getByRole('combobox'), { key: 'ArrowDown' });
+    expect(getByRole('listbox')).toBeInTheDocument();
+    expect(queryByRole('grid')).toBeNull();
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe('2024');
+  });
+
+  it('leaves the day picker as it was when granularity is day', () => {
+    const { getByRole, getByLabelText } = render(
+      <DateInput granularity="day" defaultValue={new Date(2024, 5, 7)} />
+    );
+    expect((getByRole('combobox') as HTMLInputElement).value).toBe(
+      '2024-06-07'
+    );
+    expect(getByLabelText('Choose date')).toBeInTheDocument();
+    fireEvent.click(getByRole('combobox'));
+    expect(getByLabelText('Previous month')).toBeInTheDocument();
+    expect(
+      getByRole('grid').querySelectorAll('[role="gridcell"]')
+    ).toHaveLength(42);
+  });
+});
+
+describe('DateInput granularity under a class prefix', () => {
+  // Every class the month grid and the year list emit carries the prefix.
+  const unprefixed = (root: HTMLElement) =>
+    Array.from(root.querySelectorAll('[class]'))
+      .flatMap(el => Array.from(el.classList))
+      .filter(cls => !cls.startsWith('bestax-'));
+
+  it.each(['month', 'year'] as const)('prefixes the %s view', granularity => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <DateInput
+          granularity={granularity}
+          inline
+          defaultValue={new Date(2024, 5, 7)}
+          min={new Date(2024, 2, 1)}
+        />
+      </ConfigProvider>
+    );
+    const selected = container.querySelector('[aria-selected="true"]')!;
+    expect(selected).toHaveClass(`bestax-dateinput-${granularity}-cell`);
+    expect(selected).toHaveClass('bestax-is-selected');
+    expect(unprefixed(container)).toEqual([]);
   });
 });

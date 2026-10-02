@@ -996,7 +996,7 @@ export const categories = [
       ],
       [
         'Month picker',
-        0,
+        '~DateInput',
         'MonthPicker',
         0,
         'MonthCalendar',
@@ -1004,7 +1004,16 @@ export const categories = [
         '~DatePicker',
         0,
       ],
-      ['Year picker', 0, 'YearPicker', 0, 'YearCalendar', 0, '~DatePicker', 0],
+      [
+        'Year picker',
+        '~DateInput',
+        'YearPicker',
+        0,
+        'YearCalendar',
+        0,
+        '~DatePicker',
+        0,
+      ],
       [
         'Event calendar / scheduler',
         0,

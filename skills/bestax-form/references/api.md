@@ -94,6 +94,23 @@ File input with `label`, `message`, color/size, and icon support.
 `DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
 composition like the other convenience inputs, with picker UIs (native with custom fallback).
 
+For a value that is a month or a year (card expiry, billing period, graduation year), use
+`DateInput` with `granularity="month"` or `granularity="year"` rather than building a select or a
+separate picker. The value is still a `Date`: the first day of the month, or 1 January of the
+year. The default `format` becomes `'YYYY-MM'` or `'YYYY'`, and `min` / `max` /
+`shouldDisableDate` judge whole periods (a month is selectable while any day in it is).
+
+```tsx
+<DateInput
+  label="Card expiry"
+  granularity="month"
+  format="MM/YY"
+  min={new Date()}
+  value={expiry}
+  onChange={setExpiry}
+/>
+```
+
 ## Validation-related props (no library)
 
 There is no validation engine. The props you use to reflect externally-computed validation are:

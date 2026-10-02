@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { useSegmentedEntry } from '../_pickerInternals/useSegmentedEntry';
+import type { SegmentKind } from '../_pickerInternals/segmentMap';
 import {
   formatTime,
   parseTime,
@@ -33,6 +34,7 @@ interface HarnessProps {
   min?: Date;
   max?: Date;
   isBlocked?: (d: Date) => boolean;
+  skipKinds?: readonly SegmentKind[];
 }
 
 // Minimal picker that exercises the hook against a real <input>. State is
@@ -55,6 +57,7 @@ const Harness: React.FC<HarnessProps> = ({
   min,
   max,
   isBlocked,
+  skipKinds,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -89,6 +92,7 @@ const Harness: React.FC<HarnessProps> = ({
     segmentMap,
   } = useSegmentedEntry({
     format,
+    skipKinds,
     value,
     commitValue,
     formatFn: formatTime,
@@ -607,5 +611,36 @@ describe('useSegmentedEntry', () => {
     expect(input.dataset.open).toBe('false');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     expect(input.dataset.open).toBe('true');
+  });
+
+  describe('skipKinds', () => {
+    // Module-level so the hook sees a stable reference, as it asks for.
+    const SKIP_MINUTES: readonly SegmentKind[] = ['minutes'];
+    const SKIP_ALL: readonly SegmentKind[] = ['hours', 'minutes'];
+
+    it('keeps the caret off a skipped segment while it still renders', () => {
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} skipKinds={SKIP_MINUTES} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      expect(input.dataset.active).toBe('0');
+      fireEvent.keyDown(input, { key: 'ArrowRight' });
+      expect(input.dataset.active).toBe('0');
+      // A separator would jump to the next segment; there is none to edit.
+      fireEvent.keyDown(input, { key: ':' });
+      expect(input.dataset.active).toBe('0');
+      expect(input.value).toBe('13:45');
+    });
+
+    it('falls back to free-form entry when every segment is skipped', () => {
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} skipKinds={SKIP_ALL} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      expect(input.dataset.hasmap).toBe('false');
+      focusSeg(input);
+      expect(input.dataset.active).toBe('none');
+    });
   });
 });

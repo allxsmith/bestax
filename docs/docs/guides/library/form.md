@@ -281,7 +281,7 @@ function RateExample() {
 
 ### DateInput
 
-A date input that opens a popover calendar, with segmented keyboard entry directly in the field. Built on native `Date` and `Intl` only — supports min/max bounds, disabled-date predicates, custom formats, locales, an inline mode, and a native fallback on touch devices.
+A date input that opens a popover calendar, with segmented keyboard entry directly in the field. Built on native `Date` and `Intl` only, it supports month and year pickers, min/max bounds, disabled-date predicates, custom formats, locales, an inline mode, and a native fallback on touch devices.
 
 ```tsx live
 function DateInputExample() {
