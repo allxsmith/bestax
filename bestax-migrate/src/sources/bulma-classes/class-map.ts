@@ -879,7 +879,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ],
   },
   // Grid's gaps take a numeric string, but its column minimum and every Cell
-  // placement are typed as numbers. The half steps (`is-gap-0.5`) have no prop.
+  // placement are typed as numbers. The half steps (`is-gap-0.5`) are not
+  // converted, though `gap` takes them now; see the passthrough reason.
   grid: {
     ...BASE,
     target: 'Grid',
@@ -2570,8 +2571,8 @@ export const PASSTHROUGH: ReadonlyArray<{
   },
   {
     why: 'a Grid or Cell class, which converts only on its own `.grid` or `.cell`, and only where bestax has a prop for it',
-    match:
-      /^(?:is-(?:col|row)-.+|is-(?:column|row)-gap-\d+|is-gap-\d+|is-auto-fill)$/,
+    // `is-row-gap-*` is a gap helper, with a reason of its own below.
+    match: /^(?:is-(?:col|row)-(?!gap-).+|is-auto-fill)$/,
   },
   {
     why: 'a `.fixed-grid` column count, which converts only on its own `.fixed-grid`',
@@ -2598,6 +2599,17 @@ export const PASSTHROUGH: ReadonlyArray<{
   {
     why: 'a Bulma helper the codemod does not convert; the `aspectRatio` prop renders it',
     match: /^is-aspect-ratio-.+$/,
+  },
+  // The gap helpers convert on their own `.grid` in whole steps, and
+  // `is-gapless` on its own `.columns`, so these reasons are for everywhere
+  // else, and for the half steps.
+  {
+    why: 'a Bulma helper the codemod converts only on a `.grid`, in whole steps; the `gap`, `columnGap` and `rowGap` props render it',
+    match: /^is-(?:column-|row-)?gap-\d(?:\.5)?$/,
+  },
+  {
+    why: 'a Bulma helper the codemod converts only on a `.columns`, as `isGapless`; the `gapless` prop renders it',
+    match: /^is-gapless$/,
   },
   {
     why: 'a Bulma helper with no bestax prop',
