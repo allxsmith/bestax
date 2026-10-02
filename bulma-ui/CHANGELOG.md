@@ -1,3 +1,17 @@
+# [5.23.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.22.0...@allxsmith/bestax-bulma@5.23.0) (2026-10-02)
+
+
+### Bug Fixes
+
+* **bulma-ui:** hold Portal to looking a selector up on each render ([8fe02ce](https://github.com/allxsmith/bestax/commit/8fe02cef38855526db1f4e95f9249468217920dc))
+* **bulma-ui:** judge image map areas by their image in useFocusTrap ([af7bc59](https://github.com/allxsmith/bestax/commit/af7bc59f2387e9ec8c4c6efa5b75491a7ae867b8))
+
+
+### Features
+
+* **bulma-ui:** export Portal ([346d8c2](https://github.com/allxsmith/bestax/commit/346d8c266fa8bbfa53e1127d8930ff5b37fcc9ca))
+* **bulma-ui:** export useFocusTrap, counting the stops the browser's Tab visits ([c304fef](https://github.com/allxsmith/bestax/commit/c304fef52be75618b01c348717ff7adfcdf98c27)), closes [#772](https://github.com/allxsmith/bestax/issues/772)
+
 # [5.22.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.21.0...@allxsmith/bestax-bulma@5.22.0) (2026-10-02)
 
 
