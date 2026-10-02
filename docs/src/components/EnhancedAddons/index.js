@@ -49,6 +49,12 @@ const ADDONS = [
     desc: 'Spinner overlays for full pages or single containers.',
   },
   {
+    name: 'Popover',
+    icon: 'popover',
+    link: '/docs/api/components/popover',
+    desc: 'Click-to-open panels for filters, share options, and inline edits, anchored to their trigger.',
+  },
+  {
     name: 'Reveal',
     icon: 'reveal',
     link: '/docs/api/components/reveal',

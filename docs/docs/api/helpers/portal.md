@@ -9,7 +9,7 @@ sidebar_label: Portal
 
 `Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
 
-It is the building block for your own overlays: a command palette, a floating panel, a custom popover. `Modal`, `Dialog` and `Toast` already portal through their own props, so reach for `Portal` when you are building something they don't cover.
+It is the building block for your own overlays: a command palette, a floating panel. `Modal`, `Dialog`, `Toast` and `Popover` already portal through their own props, so reach for `Portal` when you are building something they don't cover.
 
 React's server renderer can't render a portal, so `Portal` renders nothing on the server and during hydration, and mounts its children in the commit that follows. The first client render matches the server markup, and there is no hydration warning to chase. In an app without server rendering it portals on the first render.
 

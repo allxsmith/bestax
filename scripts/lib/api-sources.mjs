@@ -88,6 +88,7 @@ export const SCSS_SOURCES = {
   Cell: [],
   Checkbox: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_checkbox.scss' }],
   Checkboxes: [],
+  ClientOnly: [],
   Code: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   Collapse: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_collapse.scss' },
@@ -165,6 +166,10 @@ export const SCSS_SOURCES = {
   Pagination: [{ pkg: 'bulma', path: 'sass/components/pagination.scss' }],
   Panel: [{ pkg: 'bulma', path: 'sass/components/panel.scss' }],
   Paragraph: [],
+  Popover: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_popover.scss' },
+  ],
+  Portal: [],
   Pre: [{ pkg: 'bulma', path: 'sass/base/generic.scss' }],
   Progress: [{ pkg: 'bulma', path: 'sass/elements/progress.scss' }],
   Radio: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_radio.scss' }],

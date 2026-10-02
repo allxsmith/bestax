@@ -81,6 +81,17 @@ function LoadingIcon() {
   );
 }
 
+// A button with a panel opened below it, pointing back up: popover
+function PopoverIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="8" y="2.5" width="8" height="4" rx="1.5" />
+      <rect x="3" y="10" width="18" height="11" rx="2" />
+      <path d="M11 10l1-2 1 2M7 14.5h10M7 17.5h6" />
+    </svg>
+  );
+}
+
 // Element rising into view over motion lines — reveal on scroll
 function RevealIcon() {
   return (
@@ -143,6 +154,7 @@ const ADDON_ICONS = {
   collapse: CollapseIcon,
   dialog: DialogIcon,
   loading: LoadingIcon,
+  popover: PopoverIcon,
   reveal: RevealIcon,
   sidebar: SidebarIcon,
   steps: StepsIcon,

@@ -288,6 +288,7 @@ function example() {
 
 - [Icon](../elements/icon.md) - Icon component
 - [Button](../elements/button.md) - Button component
+- [Popover](./popover.md) - A click-to-open panel for content people interact with
 
 ---
 

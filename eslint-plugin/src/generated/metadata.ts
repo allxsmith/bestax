@@ -100,6 +100,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `variant` and `features` instead.',
     },
   },
+  'Popover.Close': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   Select: {
     isFullWidth: {
       replacement: 'isFullwidth',

@@ -145,10 +145,11 @@ lone class or the `style` prop cannot outrank:
   styles with a selector that matches or exceeds the compound:
   `.button.link-button { --bulma-link-button-ghost-color: … }`.
 - **Constituent elements** — Tooltip's variables (all but `--bulma-tooltip-dashed-color`)
-  are declared on `.tooltip-content`, and Sidebar's `--bulma-sidebar-overlay-background` on
-  `.sidebar-background`. Values set via `className` or `style` land on the component root and
-  are only inherited by the constituent, so they lose to its own declaration — target the
-  declaring element in your CSS: `.tooltip-content { --bulma-tooltip-background: … }`.
+  are declared on `.tooltip-content`, Popover's on its panel, `.popover-content`, and Sidebar's
+  `--bulma-sidebar-overlay-background` on `.sidebar-background`. Values set via `className` or
+  `style` land on the component root and are only inherited by the constituent, so they lose to
+  its own declaration — target the declaring element in your CSS:
+  `.tooltip-content { --bulma-tooltip-background: … }`.
 
 ### Avatar / Avatars / Badge
 
@@ -295,6 +296,18 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-picker-popover-shadow`, `--bulma-picker-popover-z-index`,
 `--bulma-picker-trigger-color`, `--bulma-picker-trigger-hover-color`,
 `--bulma-picker-trigger-width`
+
+### Popover
+
+All are declared on the panel, `.popover-content`, so a panel rendered with `appendToBody` keeps
+them. See the constituent-element exception above.
+
+`--bulma-popover-animation-duration`, `--bulma-popover-background`,
+`--bulma-popover-body-padding`, `--bulma-popover-border-color`, `--bulma-popover-color`,
+`--bulma-popover-footer-gap`, `--bulma-popover-footer-padding`, `--bulma-popover-header-color`,
+`--bulma-popover-header-padding`, `--bulma-popover-header-weight`, `--bulma-popover-max-width`,
+`--bulma-popover-min-width`, `--bulma-popover-offset`, `--bulma-popover-radius`,
+`--bulma-popover-shadow`, `--bulma-popover-z-index`
 
 ### Radio
 
