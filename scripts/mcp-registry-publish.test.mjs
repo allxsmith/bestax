@@ -124,6 +124,48 @@ test('the committed server.json names a $schema', () => {
   );
 });
 
+/**
+ * The fragment Docusaurus gives a plain heading, by github-slugger's rule:
+ * lowercased, punctuation dropped, each space a hyphen. A heading with an
+ * explicit `{#id}`, inline markup or non-ASCII text is beyond this.
+ */
+const headingFragment = text =>
+  text
+    .toLowerCase()
+    .replace(/[^a-z0-9 _-]/g, '')
+    .replace(/ /g, '-');
+
+test('the committed websiteUrl lands on a heading of the docs page it names', () => {
+  const url = new URL(committedServer().websiteUrl);
+  assert.equal(url.origin, 'https://bestax.io');
+  // Docusaurus serves docs/docs/<page>.md, or <page>/index.md, at
+  // /docs/<page>.
+  const page = url.pathname.match(/^\/docs\/(.+?)\/?$/)?.[1];
+  assert.ok(page, `${url.pathname} is not a docs page`);
+  const file = [`${page}.md`, `${page}/index.md`]
+    .map(rel => path.join(repoRoot, 'docs', 'docs', rel))
+    .find(candidate => fs.existsSync(candidate));
+  assert.ok(file, `no docs/docs source serves ${url.pathname}`);
+  // Fenced blocks go first, so a `# comment` in a sample is not a heading.
+  const prose = fs.readFileSync(file, 'utf8').replace(/^```[\s\S]*?^```/gm, '');
+  const fragments = [...prose.matchAll(/^#{1,6}[ \t]+(.+?)[ \t]*$/gm)].map(
+    ([, heading]) => headingFragment(heading)
+  );
+  assert.ok(
+    fragments.includes(url.hash.slice(1)),
+    `${path.relative(repoRoot, file)} has no heading that produces ` +
+      `${url.hash || 'a fragment'}`
+  );
+});
+
+test('headingFragment follows the Docusaurus slug for a plain heading', () => {
+  assert.equal(headingFragment('MCP server'), 'mcp-server');
+  assert.equal(
+    headingFragment('Offline, and pinned to a version'),
+    'offline-and-pinned-to-a-version'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // checkServer
 // ---------------------------------------------------------------------------
