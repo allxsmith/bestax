@@ -1,3 +1,16 @@
+# [5.26.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.25.0...@allxsmith/bestax-bulma@5.26.0) (2026-10-03)
+
+
+### Bug Fixes
+
+* **eslint-plugin:** judge Columns' gap by its own steps, and lengths as lengths ([4786c8d](https://github.com/allxsmith/bestax/commit/4786c8d78b0ab2211087efb1c5fdee3fbbef707d))
+
+
+### Features
+
+* **bulma-ui:** make columnGap the column gap helper on Theme ([eb2c611](https://github.com/allxsmith/bestax/commit/eb2c6112a5ef4e68737184051230fcee553075a1)), closes [#694](https://github.com/allxsmith/bestax/issues/694)
+* **eslint-plugin:** check the gap helper props ([b53a749](https://github.com/allxsmith/bestax/commit/b53a74935f17345e61475bd860e2db2c87798495))
+
 # [5.25.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.24.0...@allxsmith/bestax-bulma@5.25.0) (2026-10-03)
 
 
