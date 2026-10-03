@@ -50,6 +50,7 @@ const SCRIPT = join(HERE, 'review-converged.mjs');
 const REPO = 'allxsmith/bestax';
 const HEAD = 'a'.repeat(40);
 const OLD = 'b'.repeat(40);
+const MID = 'c'.repeat(40);
 const BOT = { login: 'claude[bot]', type: 'Bot' };
 
 // ---------------------------------------------------------------------------
@@ -62,6 +63,7 @@ function pr(overrides = {}) {
     number: 870,
     state: 'open',
     head: { sha: HEAD, repo: { full_name: REPO } },
+    base: { ref: 'main' },
     labels: labels.map(name => ({ name })),
     ...rest,
   };
@@ -103,6 +105,7 @@ const GREEN_STATUS = {
 function converged(overrides = {}) {
   return {
     repo: REPO,
+    defaultBranch: 'main',
     pr: pr(),
     reviews: [summary(FRESH_CLEAN)],
     threads: [{ isResolved: true }],
@@ -277,32 +280,70 @@ test('parseSummary fails closed on anything it cannot read', () => {
 // Scope
 // ---------------------------------------------------------------------------
 
-test('scopeOf keeps open same-repo deep-review PRs outside the loop', () => {
-  assert.equal(scopeOf(pr(), REPO), null);
+test('scopeOf keeps open same-repo deep-review PRs on main outside the loop', () => {
+  const scope = (p, branch = 'main') => scopeOf(p, REPO, branch);
+  assert.equal(scope(pr()), null);
   assert.equal(
-    scopeOf(
-      pr({ head: { sha: HEAD, repo: { full_name: 'AllxSmith/Bestax' } } }),
-      REPO
-    ),
+    scope(pr({ head: { sha: HEAD, repo: { full_name: 'AllxSmith/Bestax' } } })),
     null
   );
-  assert.equal(scopeOf(pr({ state: 'closed' }), REPO), 'not open');
-  assert.equal(scopeOf(undefined, REPO), 'not open');
+  assert.equal(scope(pr({ state: 'closed' })), 'not open');
+  assert.equal(scope(undefined), 'not open');
   assert.equal(
-    scopeOf(
-      pr({ head: { sha: HEAD, repo: { full_name: 'fork/bestax' } } }),
-      REPO
-    ),
+    scope(pr({ head: { sha: HEAD, repo: { full_name: 'fork/bestax' } } })),
     'head branch is not in this repo'
   );
   assert.equal(
-    scopeOf(pr({ head: { sha: HEAD, repo: null } }), REPO),
+    scope(pr({ head: { sha: HEAD, repo: null } })),
     'head branch is not in this repo'
   );
-  assert.equal(scopeOf(pr({ labels: [] }), REPO), 'no deep-review label');
+  assert.equal(scope(pr({ labels: [] })), 'no deep-review label');
   assert.match(
-    scopeOf(pr({ labels: ['deep-review', 'ai-loop'] }), REPO),
+    scope(pr({ labels: ['deep-review', 'ai-loop'] })),
     /^ai-loop PR/
+  );
+});
+
+test('a PR stacked on another branch is out of scope', () => {
+  // CI runs only on pull requests to main, so a stacked PR has no CI to judge.
+  assert.equal(
+    scopeOf(pr({ base: { ref: 'feat/base' } }), REPO, 'main'),
+    'based on "feat/base", not "main"'
+  );
+  assert.equal(
+    scopeOf(pr({ base: undefined }), REPO, 'main'),
+    'based on "", not "main"'
+  );
+  // A base name reaches the reason escaped.
+  assert.ok(
+    !scopeOf(pr({ base: { ref: 'x\n::error::y' } }), REPO, 'main').includes(
+      '\n'
+    )
+  );
+  // The same PR is in scope when its base is the default branch.
+  assert.equal(scopeOf(pr({ base: { ref: 'trunk' } }), REPO, 'trunk'), null);
+});
+
+test('without the default branch every open same-repo PR is out of scope', () => {
+  for (const branch of [undefined, null, '', 7])
+    assert.equal(
+      scopeOf(pr(), REPO, branch),
+      'the default branch is unknown',
+      String(branch)
+    );
+  assert.deepEqual(
+    decide(
+      converged({
+        defaultBranch: undefined,
+        pr: pr({ labels: ['deep-review', LABEL] }),
+      })
+    ),
+    {
+      number: 870,
+      skip: 'the default branch is unknown',
+      problems: [],
+      action: 'none',
+    }
   );
 });
 
@@ -585,6 +626,45 @@ test('blocking findings converge once verify passes resolve them and every threa
   }
 });
 
+test('the verify pass that resolves the last finding must be on the head', () => {
+  const fresh = posted(freshWith(2), 1, { commit_id: OLD });
+  // Resolved at MID, then an unrelated push to the head and a verify pass
+  // there that touched nothing. No review has read the head.
+  assert.deepEqual(
+    problemsFor([
+      fresh,
+      posted(verifyWith(2, 0), 2, { commit_id: MID }),
+      posted(verifyWith(0, 0), 3),
+    ]),
+    [
+      "the verify pass that resolved the last of the newest fresh review's " +
+        'findings is for ccccccc, and no fresh review covers the commits since',
+    ]
+  );
+  // The same, with the last finding resolved on the head before a later
+  // verify pass on the same head.
+  assert.deepEqual(
+    problemsFor([
+      fresh,
+      posted(verifyWith(1, 1), 2, { commit_id: MID }),
+      posted(verifyWith(1, 0), 3),
+      posted(verifyWith(0, 0), 4),
+    ]),
+    []
+  );
+  // When the completing pass is the newest summary, condition 1 reports its
+  // commit once.
+  assert.deepEqual(
+    convergenceProblems(
+      converged({
+        pr: pr({ head: { sha: 'd'.repeat(40), repo: { full_name: REPO } } }),
+        reviews: [fresh, posted(verifyWith(2, 0), 2, { commit_id: MID })],
+      })
+    ),
+    ['the newest summary is for ccccccc, not the head ddddddd']
+  );
+});
+
 test('the newest fresh review decides, and only verify passes after it count', () => {
   assert.deepEqual(
     problemsFor([
@@ -640,6 +720,15 @@ test('a summary that does not parse after the newest fresh review fails closed',
       posted(freshWith(0), 1),
       posted(`${MARKER}\n## Deep review — lots`, 2),
       posted(verifyWith(0, 0), 3),
+    ]),
+    ['a summary after the newest fresh review did not parse']
+  );
+  // The same when the fresh review had findings that a later pass resolved.
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(2), 1, { commit_id: OLD }),
+      posted(`${MARKER}\n## Deep review — lots`, 2),
+      posted(verifyWith(2, 0), 3),
     ]),
     ['a summary after the newest fresh review did not parse']
   );
@@ -943,6 +1032,13 @@ function withThreads(routes) {
   };
 }
 
+/** The repository read every run makes for its default branch. */
+const REPO_ROUTE = {
+  [`GET /repos/${REPO}`]: response(200, { default_branch: 'main' }),
+};
+const repoReads = calls =>
+  calls.filter(c => c.method === 'GET' && c.path === `/repos/${REPO}`).length;
+
 const CLEAN = {
   reviews: [summary(FRESH_CLEAN)],
   threads: [{ isResolved: true }],
@@ -956,13 +1052,20 @@ function sweepRoutes() {
   const loop = pr({ number: 3, labels: ['deep-review', 'ai-loop', LABEL] });
   const plain = pr({ number: 4, labels: [] });
   const settled = pr({ number: 5, labels: ['deep-review', LABEL] });
+  const stacked = pr({
+    number: 6,
+    labels: ['deep-review', LABEL],
+    base: { ref: 'feat/base' },
+  });
   return withThreads({
+    ...REPO_ROUTE,
     [`GET /repos/${REPO}/pulls?state=open&per_page=100`]: response(200, [
       ready,
       stale,
       loop,
       plain,
       settled,
+      stacked,
     ]),
     ...prRoutes(1, CLEAN),
     ...prRoutes(2, { ...CLEAN, threads: [{ isResolved: false }] }),
@@ -1004,6 +1107,9 @@ test('a sweep adds, removes and leaves alone as the decision says', async () => 
   assert.match(text, /^::notice title=review-converged::#2 unlabeled$/m);
   assert.match(text, /#3 skipped \(ai-loop PR/);
   assert.match(text, /#5 converged, label unchanged/);
+  // A stacked PR keeps its label: it is out of scope, not unconverged.
+  assert.match(text, /#6 skipped \(based on "feat\/base", not "main"\)/);
+  assert.equal(repoReads(calls), 1);
   // A PR with nothing to do with the label is not named in a sweep.
   assert.doesNotMatch(text, /#4/);
   // Every line but the notices starts with the fixed prefix.
@@ -1039,6 +1145,7 @@ test('a PR that moved or changed while it was checked is not labeled', async () 
     [pr({ number: 1, head: { sha: OLD, repo: { full_name: REPO } } }), 'stale'],
     [pr({ number: 1, labels: ['deep-review', 'ai-loop'] }), 'stale'],
     [pr({ number: 1, state: 'closed' }), 'stale'],
+    [pr({ number: 1, base: { ref: 'feat/base' } }), 'stale'],
     [pr({ number: 1, labels: ['deep-review', LABEL] }), 'already set'],
   ]) {
     // A sweep, so the PR under test comes from the list and the single read
@@ -1071,7 +1178,7 @@ test('a targeted run names an out-of-scope PR', async () => {
     200,
     pr({ number: 4, labels: [] })
   );
-  const { fetchImpl } = fakeFetch(routes);
+  const { fetchImpl, calls } = fakeFetch(routes);
   const lines = [];
   const code = await run({
     argv: [`--repo=${REPO}`, '--pr=4'],
@@ -1084,6 +1191,34 @@ test('a targeted run names an out-of-scope PR', async () => {
     'review-converged: repo=allxsmith/bestax pr=4',
     'review-converged: #4 skipped (no deep-review label)',
   ]);
+  assert.equal(repoReads(calls), 1);
+});
+
+test('a failed default-branch read fails the run before any PR is read', async () => {
+  for (const answer of [
+    response(500, 'boom'),
+    response(200, { name: 'bestax' }),
+    response(200, { default_branch: '' }),
+  ]) {
+    const routes = sweepRoutes();
+    routes[`GET /repos/${REPO}`] = answer;
+    const { fetchImpl, calls } = fakeFetch(routes);
+    const lines = [];
+    await assert.rejects(
+      run({
+        argv: [`--repo=${REPO}`],
+        env: { GITHUB_TOKEN: 't' },
+        fetchImpl,
+        log: line => lines.push(line),
+      }),
+      /HTTP 500|returned no default_branch/
+    );
+    assert.deepEqual(
+      calls.map(c => `${c.method} ${c.path}`),
+      [`GET /repos/${REPO}`]
+    );
+    assert.deepEqual(lines, []);
+  }
 });
 
 test('an API error on one PR leaves its label and fails the run', async () => {
@@ -1115,6 +1250,7 @@ test('a head that is not a commit id is an error, not a decision', async () => {
     head: { sha: '../../x', repo: { full_name: REPO } },
   });
   const { fetchImpl } = fakeFetch({
+    ...REPO_ROUTE,
     [`GET /repos/${REPO}/pulls/7`]: response(200, odd),
   });
   const lines = [];
@@ -1131,6 +1267,7 @@ test('a head that is not a commit id is an error, not a decision', async () => {
 
   const none = pr({ number: 8, head: { repo: { full_name: REPO } } });
   const missing = fakeFetch({
+    ...REPO_ROUTE,
     [`GET /repos/${REPO}/pulls/8`]: response(200, none),
   });
   assert.equal(
@@ -1212,7 +1349,10 @@ test('the command line exits 1 when the API cannot be reached', () => {
 test('the command line exits 0 on a clean sweep', () => {
   const result = cli([`--repo=${REPO}`], {
     token: 't',
-    fetchStub: 'globalThis.fetch = async () => new Response("[]");',
+    fetchStub:
+      'globalThis.fetch = async url => new Response(' +
+      'url.endsWith("/repos/allxsmith/bestax") ' +
+      '? \'{"default_branch":"main"}\' : "[]");',
   });
   assert.equal(result.status, 0, result.stderr);
   assert.equal(

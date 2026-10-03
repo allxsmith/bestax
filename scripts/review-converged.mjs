@@ -8,9 +8,12 @@
  * ready for human review shows up in the PR list. PRs labeled `ai-loop` are
  * out of scope: claude-pr-loop.yml hands those off with `needs-human-review`.
  *
- * A PR is in scope when it is open, its head branch is in this repository, it
- * carries `deep-review`, and it does not carry `ai-loop`. An in-scope PR has
- * converged when all of these hold:
+ * A PR is in scope when it is open, its head branch is in this repository, its
+ * base is the default branch, it carries `deep-review`, and it does not carry
+ * `ai-loop`. The base matters because CI runs only on pull requests to main
+ * (ci.yml): a PR stacked on another branch gets no CI, and the skipped check
+ * runs it does get would read as passing. An in-scope PR has converged when
+ * all of these hold:
  *
  * 1. Its newest deep-review summary (a review by the claude[bot] app that
  *    starts with the marker) is pinned to the current head commit and leaves
@@ -24,13 +27,17 @@
  *      Otherwise commits pushed since it would count as reviewed when nothing
  *      reviewed them.
  *    - If it reports blocking findings, the verify passes after it must have
- *      resolved at least that many between them. Those findings are inline
- *      threads, and condition 3 already needs every thread resolved, so this
- *      count is the cross-check for a finding that never became a thread,
- *      which no verify pass can see. Its cost: a thread someone resolves by
- *      hand is in no verify count, so it holds the label back until a fresh
- *      review. Commits pushed alongside the fixes ride on those verify passes,
- *      which re-checked only the code their threads point at.
+ *      resolved at least that many between them, and the pass that brings
+ *      the running total up to that count must be pinned to the head commit.
+ *      That pass is the last review to read the code for those findings, so
+ *      a push after it was read by no review, and only a new fresh review can
+ *      cover it. Those findings are inline threads, and condition 3 already
+ *      needs every thread resolved, so the count is the cross-check for a
+ *      finding that never became a thread, which no verify pass can see. Its
+ *      cost: a thread someone resolves by hand is in no verify count, so it
+ *      holds the label back until a fresh review. Commits pushed alongside
+ *      the fixes ride on that completing pass, which re-checked only the code
+ *      its threads point at.
  *    A summary between it and the newest that does not parse fails closed,
  *    since it may have been a fresh review with blocking findings.
  * 3. Every review thread on the PR is resolved.
@@ -248,13 +255,23 @@ export function labelNames(pr) {
     .filter(name => typeof name === 'string');
 }
 
-/** Why a PR is out of scope, or null when it is in scope. */
-export function scopeOf(pr, repo) {
+/**
+ * Why a PR is out of scope, or null when it is in scope. `defaultBranch` is
+ * the repository's, read once per run. Without it the PR is out of scope
+ * rather than in: skipping the base check when a caller forgets the argument
+ * would reopen the stacked-PR gap silently, and out of scope leaves the label
+ * as it was instead of guessing either way.
+ */
+export function scopeOf(pr, repo, defaultBranch) {
   const labels = labelNames(pr);
   if (pr?.state !== 'open') return 'not open';
   // A fork whose repository was deleted has a null head repo, and lands here.
   const head = String(pr?.head?.repo?.full_name ?? '').toLowerCase();
   if (head !== repo.toLowerCase()) return 'head branch is not in this repo';
+  if (typeof defaultBranch !== 'string' || defaultBranch === '')
+    return 'the default branch is unknown';
+  if (pr?.base?.ref !== defaultBranch)
+    return `based on ${forLog(pr?.base?.ref)}, not ${forLog(defaultBranch)}`;
   if (!labels.includes(SCOPE_LABEL)) return `no ${SCOPE_LABEL} label`;
   if (labels.includes(LOOP_LABEL))
     return `${LOOP_LABEL} PR, which claude-pr-loop.yml hands off`;
@@ -330,21 +347,35 @@ function freshProblems(found, head) {
   if (after.slice(0, -1).some(entry => entry.parsed.kind === 'unparseable'))
     problems.push('a summary after the newest fresh review did not parse');
   const { review, parsed } = found[at];
-  const resolved = after.reduce(
-    (sum, entry) =>
-      sum + (entry.parsed.kind === 'verify' ? entry.parsed.resolved : 0),
-    0
+  if (parsed.blocking === 0) {
+    if (review.commit_id !== head)
+      problems.push(
+        `the newest fresh review is for ${shortSha(review.commit_id)}, and ` +
+          'no fresh review covers the commits since'
+      );
+    return problems;
+  }
+  // Walk the verify passes in order to the one whose running total first
+  // reaches the blocking count. It must be pinned to the head. A pass after
+  // it adds no review of the commits in between, so it cannot stand in.
+  let resolved = 0;
+  for (const entry of after) {
+    if (entry.parsed.kind !== 'verify') continue;
+    resolved += entry.parsed.resolved;
+    if (resolved < parsed.blocking) continue;
+    // When it is the newest summary, condition 1 has judged its commit.
+    if (entry !== after.at(-1) && entry.review.commit_id !== head)
+      problems.push(
+        'the verify pass that resolved the last of the newest fresh ' +
+          `review's findings is for ${shortSha(entry.review.commit_id)}, ` +
+          'and no fresh review covers the commits since'
+      );
+    return problems;
+  }
+  problems.push(
+    `the newest fresh review reports ${parsed.blocking} blocking and the ` +
+      `verify passes since resolved ${resolved}`
   );
-  if (parsed.blocking === 0 && review.commit_id !== head)
-    problems.push(
-      `the newest fresh review is for ${shortSha(review.commit_id)}, and ` +
-        'no fresh review covers the commits since'
-    );
-  else if (parsed.blocking > resolved)
-    problems.push(
-      `the newest fresh review reports ${parsed.blocking} blocking and the ` +
-        `verify passes since resolved ${resolved}`
-    );
   return problems;
 }
 
@@ -401,9 +432,17 @@ export function planAction(hasLabel, converged) {
  * { number, skip, problems, action }, where skip is the out-of-scope reason
  * or null.
  */
-export function decide({ repo, pr, reviews, threads, checkRuns, statuses }) {
+export function decide({
+  repo,
+  defaultBranch,
+  pr,
+  reviews,
+  threads,
+  checkRuns,
+  statuses,
+}) {
   const number = pr?.number;
-  const skip = scopeOf(pr, repo);
+  const skip = scopeOf(pr, repo, defaultBranch);
   if (skip) return { number, skip, problems: [], action: 'none' };
   const problems = convergenceProblems({
     pr,
@@ -553,8 +592,9 @@ export async function fetchThreads(client, repo, number) {
 }
 
 /** Fetch what decide needs for one PR and decide. */
-export async function evaluate(client, repo, pr) {
-  if (scopeOf(pr, repo)) return decide({ repo, pr });
+export async function evaluate(client, repo, pr, defaultBranch) {
+  if (scopeOf(pr, repo, defaultBranch))
+    return decide({ repo, defaultBranch, pr });
   const sha = pr.head.sha;
   if (!SHA_RE.test(sha ?? '')) throw new Error('the head is not a commit id');
   const reviews = await client.pages(
@@ -569,20 +609,29 @@ export async function evaluate(client, repo, pr) {
     `/repos/${repo}/commits/${sha}/status?per_page=100`,
     'statuses'
   );
-  return decide({ repo, pr, reviews, threads, checkRuns, statuses });
+  return decide({
+    repo,
+    defaultBranch,
+    pr,
+    reviews,
+    threads,
+    checkRuns,
+    statuses,
+  });
 }
 
 /**
- * Apply a decision. Before adding, the PR is read again: a push or a label
- * change that landed while it was evaluated means the decision was made for
- * a state that is gone, so it is dropped. The push starts CI, and CI's
+ * Apply a decision. Before adding, the PR is read again: a push, a label
+ * change or a new base that landed while it was evaluated means the decision
+ * was made for a state that is gone, so it is dropped. The push starts CI, and CI's
  * completion runs this again. Removing needs no such check, because a moved
  * head has no summary for it yet and would not converge either.
  */
-async function apply(client, repo, pr, decision, dryRun) {
+async function apply(client, repo, defaultBranch, pr, decision, dryRun) {
   if (decision.action === 'add') {
     const now = await client.json(`/repos/${repo}/pulls/${pr.number}`);
-    if (scopeOf(now, repo) || now.head?.sha !== pr.head.sha) return 'stale';
+    if (scopeOf(now, repo, defaultBranch) || now.head?.sha !== pr.head.sha)
+      return 'stale';
     if (labelNames(now).includes(LABEL)) return 'already set';
   }
   if (dryRun) return 'dry run, not written';
@@ -611,6 +660,11 @@ export async function run({
   const { repo, pr: only, dryRun } = parseArgs(argv);
   if (!env.GITHUB_TOKEN) throw new UsageError('GITHUB_TOKEN is not set');
   const client = createClient({ token: env.GITHUB_TOKEN, fetchImpl });
+  // Read once per run. A failure here throws before any PR is looked at, so
+  // the run fails and no label is touched.
+  const defaultBranch = (await client.json(`/repos/${repo}`))?.default_branch;
+  if (typeof defaultBranch !== 'string' || defaultBranch === '')
+    throw new Error(`/repos/${repo} returned no default_branch`);
   const prs = only
     ? [await client.json(`/repos/${repo}/pulls/${only}`)]
     : await client.pages(`/repos/${repo}/pulls?state=open&per_page=100`);
@@ -623,7 +677,7 @@ export async function run({
   for (const pr of prs) {
     const number = Number(pr?.number);
     try {
-      const decision = await evaluate(client, repo, pr);
+      const decision = await evaluate(client, repo, pr, defaultBranch);
       const labels = labelNames(pr);
       if (decision.skip) {
         // A sweep passes every open PR, so only name the ones that have
@@ -639,7 +693,14 @@ export async function run({
         log(`${TAG} #${number} ${state}, label unchanged`);
         continue;
       }
-      const outcome = await apply(client, repo, pr, decision, dryRun);
+      const outcome = await apply(
+        client,
+        repo,
+        defaultBranch,
+        pr,
+        decision,
+        dryRun
+      );
       log(`${TAG} #${number} ${state}, ${decision.action} label: ${outcome}`);
       // A notice carries only the PR number and fixed text.
       if (outcome === 'written')
