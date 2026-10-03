@@ -168,6 +168,9 @@ copilot plugin install allxsmith/bestax
 grok plugin install allxsmith/bestax --trust
 ```
 
+In Codex, adding the marketplace only lists the plugin. Run `/plugins`, install bestax and turn it
+on.
+
 ## Contributing
 
 Found the LLM docs unclear, incomplete, or wrong for your agent? Please
