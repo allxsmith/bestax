@@ -163,6 +163,13 @@ export function parseArgs(argv) {
  * with no suffix is an ordinary User account on GitHub, so the account type
  * is what ties a review to the app. REST spells the app `claude[bot]` and
  * GraphQL spells it `claude`, and both carry type Bot.
+ *
+ * Pinning the login goes against rule 6 in .github/CLAUDE.md on purpose. That
+ * rule is for finding a machine comment. This probe grants trust instead,
+ * because the label certifies a review. Accepting any Bot-type author would
+ * let any app that can post a review, or a workflow's GITHUB_TOKEN, post a
+ * summary that counts by putting the marker on its first line. An identity
+ * change fails closed: no summary counts, so no PR converges.
  */
 export function isDeepReviewAuthor(user) {
   return user?.type === 'Bot' && /^claude(\[bot\])?$/.test(user.login ?? '');
