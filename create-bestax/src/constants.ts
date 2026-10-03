@@ -160,14 +160,13 @@ cases. Before writing \`style\`, translate each declaration with this table:
 | \`display: 'flex'\` + flex properties      | same-named props: \`display="flex"\`, \`flexDirection\`, \`justifyContent\`, \`alignItems\`, \`flexWrap\`                                   |
 | \`height: '100%'\` on a flex child         | \`flexGrow="1"\`                                                                                                                            |
 | \`display: 'none'\`                        | \`visibility="hidden"\`, or responsive \`display*\` props (\`displayMobile\`, \`displayTablet\`, …)                                         |
+| \`gap: '1rem'\` (flex or grid)             | \`gap="2"\`, or one axis: \`columnGap\`, \`rowGap\`; gap scale: \`1\`=0.5rem, \`2\`=1rem, \`4\`=2rem, half steps (\`"1.5"\`)               |
 
 - Spacing, typography, and flex helpers are on every component; \`textColor\`/\`bgColor\` are
   on the content components (\`Box\`, \`Block\`, \`Title\`, \`Content\`, \`Hero\`, \`Card\`, …) — the
   ones with a semantic \`color\` variant (\`Tag\`, \`Tabs\`, \`Panel\`) take \`color\` instead.
   \`Notification\` is the mixed case: it takes \`textColor\`, but its background comes from
   the semantic \`color\` prop, not \`bgColor\`.
-- Flex layouts have no \`gap\` helper — space children with margins (\`Grid\` and \`Columns\`
-  take a \`gap\` prop, so prefer that there).
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
   \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.
 - Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
