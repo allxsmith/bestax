@@ -129,5 +129,21 @@ describe('shadowDom helpers', () => {
       expect(shadowRoot.activeElement).toBeNull();
       expect(getDeepestActiveElement()).toBe(host);
     });
+
+    it('starts from the document it is given', () => {
+      const frame = document.createElement('iframe');
+      document.body.appendChild(frame);
+      try {
+        const doc = frame.contentDocument as Document;
+        const inFrame = doc.createElement('button');
+        doc.body.appendChild(inFrame);
+        outside.focus();
+        inFrame.focus();
+        expect(getDeepestActiveElement(doc)).toBe(inFrame);
+        expect(getDeepestActiveElement()).not.toBe(inFrame);
+      } finally {
+        frame.remove();
+      }
+    });
   });
 });

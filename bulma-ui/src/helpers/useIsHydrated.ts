@@ -15,6 +15,11 @@ const getServerSnapshot = () => false;
  * DOM-only behaviour (such as portalling) past hydration so the first client
  * render matches the server markup instead of tripping hydration recovery.
  *
+ * Only a component that hydrates ever sees `false` on the client. One that
+ * mounts later (after a route change, or in an app with no server rendering)
+ * gets `true` on its first render, so it pays for no extra render. It
+ * subscribes to nothing, so no later render flips it back.
+ *
  * @function useIsHydrated
  * @returns `true` once the hydrating render has completed, otherwise `false`.
  */

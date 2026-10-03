@@ -175,6 +175,41 @@ describe('DateInput', () => {
     });
   });
 
+  describe('Focus trap', () => {
+    const pressTab = (from: HTMLElement, shiftKey = false) => {
+      from.focus();
+      const event = new KeyboardEvent('keydown', {
+        key: 'Tab',
+        shiftKey,
+        bubbles: true,
+        cancelable: true,
+      });
+      from.dispatchEvent(event);
+      return event;
+    };
+
+    // The day grid is a roving tabindex: only the focused day is a tab stop,
+    // so it is the popover's last one, and the other days must not count.
+    it('wraps Tab between the month button and the focused day', () => {
+      const { getByRole, container } = render(
+        <DateInput defaultValue={new Date(2024, 5, 15)} />
+      );
+      fireEvent.click(getByRole('combobox'));
+      const monthButton = container.querySelector<HTMLElement>(
+        '.dateinput-month-trigger'
+      )!;
+      const day = container.querySelector<HTMLElement>(
+        '[data-focused="true"]'
+      )!;
+
+      expect(pressTab(day).defaultPrevented).toBe(true);
+      expect(monthButton).toHaveFocus();
+
+      expect(pressTab(monthButton, true).defaultPrevented).toBe(true);
+      expect(day).toHaveFocus();
+    });
+  });
+
   describe('Format / parse', () => {
     it('reverts text on blur if input is unparseable', async () => {
       const user = userEvent.setup();

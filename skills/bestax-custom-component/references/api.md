@@ -94,6 +94,91 @@ overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
 hard-coding values.
 
+## Browser-only content: `ClientOnly` / `useIsHydrated`
+
+- `<ClientOnly fallback?>` (`helpers/ClientOnly.tsx`) renders its children only after hydration,
+  and `fallback` on the server and while hydrating. Pass the children as a function to keep
+  browser-only expressions off the server. Use it rather than a `typeof window` check, which
+  makes the server and client markup differ.
+- `useIsHydrated()` (`helpers/useIsHydrated.ts`) is the hook underneath: `false` on the server and
+  during the hydrating render, `true` from the commit after.
+
+```tsx
+<ClientOnly fallback={<Skeleton variant="lines" lines={1} />}>
+  {() => (
+    <p>Times are in {Intl.DateTimeFormat().resolvedOptions().timeZone}.</p>
+  )}
+</ClientOnly>
+```
+
+## Floating content: `Portal`
+
+`<Portal container?>` (`helpers/portal.tsx`) renders its children into `document.body`, or into
+`container` (an element or a selector), so floating content escapes an ancestor's `overflow`,
+`transform` or stacking context. It renders nothing on the server and during hydration, so the
+first client render matches; `disabled` renders in place instead. Use it rather than calling
+`createPortal` yourself, which React's server renderer can't render.
+
+Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so move
+focus into it when it opens and back to its trigger when it closes. A focus trap doesn't cover
+what a `Portal` inside it renders, so render nested overlays inside the trapped element.
+
+```tsx
+{
+  open && (
+    <Portal>
+      <div role="dialog" aria-label="Filters" tabIndex={-1}>
+        …
+      </div>
+    </Portal>
+  );
+}
+```
+
+## Holding focus: `useFocusTrap`
+
+`useFocusTrap(ref, { active, initialFocusRef, restoreFocus })` (`helpers/useFocusTrap.ts`) moves
+focus into `ref` when `active` turns on, wraps Tab at the first and last tab stops (the ones the
+browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are skipped and a radio
+group counts once) and restores focus when it turns off. It handles Tab only: wire Escape to
+close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It waits for
+hydration, so it also finds a container that only appears after hydration, as portaled content
+does. Content the container renders through a portal is outside the trap, so render nested
+overlays inside the container.
+
+```tsx
+function FilterPanel({ children }: { children: React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
+
+  return (
+    <>
+      <Button
+        ref={buttonRef}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        onClick={() => setOpen(o => !o)}
+      >
+        Filters
+      </Button>
+      {open && (
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="Filters"
+          tabIndex={-1}
+          onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+        >
+          {children}
+        </div>
+      )}
+    </>
+  );
+}
+```
+
 ## SCSS utilities — from the `bulma` package
 
 ```scss

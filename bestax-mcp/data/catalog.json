@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.20.0"
+    "version": "5.23.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -112,11 +112,14 @@
       "id": "helpers",
       "label": "Helpers",
       "components": [
+        "ClientOnly",
         "ConfigProvider",
+        "Portal",
         "Theme",
         "Valid value constants",
         "classNames",
         "useBulmaClasses",
+        "useFocusTrap",
         "usePrefixedClassNames"
       ]
     }
@@ -275,6 +278,17 @@
       "compound": true,
       "propCount": 20,
       "exampleCount": 5
+    },
+    {
+      "name": "ClientOnly",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "`ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then, so content that depends on browser-only state doesn't…",
+      "slug": "helpers/clientonly",
+      "import": "import { ClientOnly } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 3
     },
     {
       "name": "Code",
@@ -750,6 +764,17 @@
       "exampleCount": 10
     },
     {
+      "name": "Portal",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "`Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's…",
+      "slug": "helpers/portal",
+      "import": "import { Portal } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 3
+    },
+    {
       "name": "Pre",
       "kind": "component",
       "category": "elements",
@@ -1089,6 +1114,17 @@
       "compound": false,
       "propCount": 0,
       "exampleCount": 45
+    },
+    {
+      "name": "useFocusTrap",
+      "kind": "helper",
+      "category": "helpers",
+      "purpose": "`useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on, Tab and Shift+Tab wrap between the first and…",
+      "slug": "helpers/usefocustrap",
+      "import": "import { useFocusTrap } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 0,
+      "exampleCount": 2
     },
     {
       "name": "usePrefixedClassNames",
