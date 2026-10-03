@@ -275,6 +275,18 @@ overrides:
 # tree, never untrusted input. Remove both entries and re-run
 # `pnpm audit --audit-level=high` once a patched image-size publishes and the
 # Docusaurus chain resolves to it.
+#
+# braces <=3.0.3 carries a high stack-exhaustion DoS through deeply nested
+# patterns (GHSA-vfj7-8cjw-p6xm), and http-cache-semantics <=4.2.0 a high
+# advisory where max-stale handling can serve one user's cached response to
+# another (GHSA-ch52-4w7c-c8xp). GitHub lists no patched release for either,
+# and npm's latest is still 3.0.3 and 4.2.0, so again there is nothing to
+# force. No published package depends on either. braces arrives through glob
+# tooling (micromatch and chokidar, under semantic-release, jest, eslint and
+# the Docusaurus dev server), which only ever expands patterns written in this
+# repo. http-cache-semantics arrives through Docusaurus's update-notifier,
+# a version check with one user and no shared cache. Remove each entry and
+# re-run `pnpm audit --audit-level=high` once its package publishes a fix.
 auditConfig:
   ignoreGhsas:
     # bestax:review 2026-11-13 — quarterly sweep. These are the only bypasses
@@ -283,6 +295,11 @@ auditConfig:
     - GHSA-w3rx-r6r6-pgpr
     # bestax:review 2026-11-13 — quarterly sweep; second image-size advisory
     - GHSA-5p2g-fcmc-qvqq
+    # bestax:review 2026-11-13 — quarterly sweep; has braces published a fix
+    - GHSA-vfj7-8cjw-p6xm
+    # bestax:review 2026-11-13 — quarterly sweep; has http-cache-semantics
+    # published a fix
+    - GHSA-ch52-4w7c-c8xp
 
 # Strict, symlinked node_modules prevents phantom dependencies (using packages
 # we never declared). Narrow public hoists only for tooling that needs a flat
