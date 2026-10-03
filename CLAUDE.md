@@ -197,8 +197,10 @@ green and every AI review thread is resolved.
   reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
-  marks a `deep-review` PR whose newest deep review covers the head commit with nothing
-  left open, with every review thread resolved and every check green.
+  marks a `deep-review` PR whose newest deep-review summary is pinned to the head commit with
+  nothing left open, with every review thread resolved and every check green. A verify pass
+  reviews no commits, so the PR also needs a fresh deep review of the head commit with no
+  blocking findings, or a fresh review whose blocking findings later verify passes resolved.
   `review-converged.yml` adds and removes it, `scripts/review-converged.mjs` holds the full
   definition, and an `ai-loop` PR never gets it.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any

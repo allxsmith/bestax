@@ -44,17 +44,6 @@ on:
 # No workflow-level grants. The single job takes exactly what it needs.
 permissions: {}
 
-# One global group, so two runs can never write the same label at once. A
-# per-PR group would need the PR number before the job starts, which the
-# schedule trigger does not have. Every run except a dispatch naming a PR
-# sweeps all open PRs from live data, so when GitHub replaces a pending run
-# with a newer one, the newer run covers everything the replaced one would
-# have. No cancel-in-progress: a run is a handful of API calls, and cutting
-# one short between its re-read and its label write buys nothing.
-concurrency:
-  group: review-converged
-  cancel-in-progress: false
-
 jobs:
   sync:
     # The script leaves this job's own check run out of the checks it judges,
@@ -67,6 +56,26 @@ jobs:
       github.event_name != 'workflow_run' || (
         github.event.workflow_run.event == 'pull_request' &&
         github.event.workflow_run.head_repository.full_name == github.repository)
+    # One group for every run, so two jobs can never write the same label at
+    # once. A per-PR group would need the PR number before the job starts,
+    # which the schedule trigger does not have.
+    #
+    # Declared on the job, not the workflow, and that placement is load-bearing.
+    # It relies on GitHub evaluating the job's `if:` before the job joins its
+    # concurrency group, so a run whose job is skipped (CI on a push to main, a
+    # fork PR's run) never enters the group. At workflow level such a run would
+    # still join, replace a pending run, and then do nothing.
+    #
+    # When GitHub replaces a pending job with a newer one, the newer job sweeps
+    # every open PR from live data and covers what the replaced one would have
+    # done. The exception is a dispatch naming a single PR: if it replaces a
+    # pending sweep, the next sweep catches up, at the latest the hourly one.
+    #
+    # No cancel-in-progress: a job is a handful of API calls, and cutting one
+    # short between its re-read and its label write buys nothing.
+    concurrency:
+      group: review-converged
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
