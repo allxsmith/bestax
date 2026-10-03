@@ -65,9 +65,15 @@ export async function readSkillDirs(dir) {
  * READ from the directory — never a hardcoded list (#540).
  */
 export async function readSkillNames(dir) {
-  return (await readSkillDirs(dir))
-    .filter(d => d.hasSkillFile)
-    .map(d => d.name);
+  return bundledSkillNames(await readSkillDirs(dir));
+}
+
+/**
+ * readSkillNames for `dirs` already read with readSkillDirs, so a caller
+ * holding both views does not walk the directory twice.
+ */
+export function bundledSkillNames(dirs) {
+  return dirs.filter(d => d.hasSkillFile).map(d => d.name);
 }
 
 /**

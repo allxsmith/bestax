@@ -104,8 +104,8 @@ import {
 import { mdFiles } from './lib/api-catalog.mjs';
 import {
   SKILL_DIR_NAME,
-  readSkillDirs as libReadSkillDirs,
-  readSkillNames as libReadSkillNames,
+  bundledSkillNames,
+  readSkillDirs,
   rosterSkillNames,
 } from './lib/skills.mjs';
 import { renderPage } from './gen-api-docs.mjs';
@@ -3282,18 +3282,9 @@ function section(heading) {
   };
 }
 
-// The roster definition itself lives in scripts/lib/skills.mjs, shared with
-// both sync scripts and gen-mcp-index.mjs so the four consumers cannot drift.
-// Re-exported here because this check and its tests are the historical home.
-export { SKILL_DIR_NAME, rosterSkillNames };
-
-export async function readSkillDirs(dir = join(REPO, 'skills')) {
-  return libReadSkillDirs(dir);
-}
-
-export async function readSkillNames(dir = join(REPO, 'skills')) {
-  return libReadSkillNames(dir);
-}
+// The roster definition itself (readSkillDirs, rosterSkillNames and the rest)
+// lives in scripts/lib/skills.mjs, shared with both sync scripts and
+// gen-mcp-index.mjs so the consumers cannot drift.
 
 /**
  * What is wrong with the directories themselves, before any roster is read.
@@ -3522,7 +3513,7 @@ async function checkSkillsRoster() {
   // region fails conformance without a separate gen:check step. Compared on
   // the BUNDLED name set (every dir with a SKILL.md), matching the generator,
   // not the prose-expressible subset the copies above are held to.
-  const bundled = dirs.filter(d => d.hasSkillFile).map(d => d.name);
+  const bundled = bundledSkillNames(dirs);
   for (const { file, fence } of SKILLS_INSTALL_TARGETS) {
     let text;
     try {

@@ -19,15 +19,18 @@ import assert from 'node:assert/strict';
 import { frontmatter } from './lib/api-page.mjs';
 import {
   SKILL_ROSTERS,
-  readSkillDirs,
-  readSkillNames,
-  rosterSkillNames,
   rosterViolations,
   skillDirViolations,
   skillsPageViolations,
   frontmatterNameViolations,
 } from './check-conformance.mjs';
-import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
+import {
+  pathsInsideSkills,
+  readSkillDirs,
+  readSkillNames,
+  rosterSkillNames,
+  untrackedSkillPaths,
+} from './lib/skills.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -591,16 +594,12 @@ test('the generated install regions are fresh on the real tree', async () => {
   const { TARGETS, REGION_ID, renderInstallBlock } =
     await import('./gen-skills-rosters.mjs');
   const { readRegions } = await import('./lib/api-page.mjs');
-  const { readSkillNames } = await import('./lib/skills.mjs');
-  const skills = await readSkillNames(
-    fileURLToPath(new URL('../skills', import.meta.url))
-  );
   for (const { file, fence } of TARGETS) {
     const region = readRegions(repoFile(file), file).get(REGION_ID);
     assert.ok(region, `${file} lost its ${REGION_ID} marker pair`);
     assert.equal(
       region.body,
-      renderInstallBlock(skills, fence),
+      renderInstallBlock(SKILLS, fence),
       `${file} is stale — run pnpm gen:skills`
     );
   }

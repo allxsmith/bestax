@@ -12,7 +12,7 @@
   "scripts/gen-component-catalog.mjs": { "lines": 91, "branches": 77, "functions": 75 },
   "scripts/gen-eslint-meta.mjs": { "lines": 97, "branches": 82, "functions": 96 },
   "scripts/gen-mcp-index.mjs": { "lines": 86, "branches": 85, "functions": 88 },
-  "scripts/gen-skills-rosters.mjs": { "lines": 72, "branches": 20, "functions": 50 },
+  "scripts/gen-skills-rosters.mjs": { "lines": 71, "branches": 20, "functions": 50 },
   "scripts/handoff-message.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/api-catalog.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/api-page.mjs": { "lines": 69, "branches": 76, "functions": 44 },

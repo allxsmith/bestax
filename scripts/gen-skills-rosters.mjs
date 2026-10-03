@@ -59,10 +59,6 @@ export const TARGETS = [
   { file: 'docs/docs/guides/llms/index.md', fence: 'bash' },
 ];
 
-// The roster reader lives in scripts/lib/skills.mjs — the one predicate all
-// consumers share (the local-copy-to-avoid-a-cycle rationale predates the
-// lib; a lib import cannot cycle with check-conformance).
-
 /**
  * The region body: the fenced block, one install line per skill,
  * alphabetical. Pure, so the conformance check can compare and the tests can
