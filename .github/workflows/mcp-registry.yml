@@ -104,8 +104,8 @@ jobs:
       #
       #   github.com: the checkout and the tag lookup (git over HTTPS, no API
       #     call; the tag checkout in supply-chain's consumer-sbom resolved
-      #     only github.com, run 36785734611), and the publisher download,
-      #     which answers with a redirect.
+      #     only github.com; the measurement is on #859), and the publisher
+      #     download, which answers with a redirect.
       #   release-assets.githubusercontent.com: where that redirect goes for
       #     the pinned asset (checked when it was pinned), and where the
       #     release download in that same consumer-sbom run went.
@@ -117,9 +117,10 @@ jobs:
       #   token.actions.githubusercontent.com: the publisher asks for its OIDC
       #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host
       #     (run-actions-*.actions.githubusercontent.com) that harden-runner
-      #     admits without a listing. In run 36785734611 sign-sbom's cosign got
-      #     every token from run-actions-2-azure-eastus.actions.githubusercontent.com,
-      #     which its list does not name, and never contacted
+      #     admits without a listing. On that same supply-chain run,
+      #     sign-sbom's cosign got every token from a
+      #     run-actions-*.actions.githubusercontent.com host, which its list
+      #     does not name, and never contacted
       #     token.actions.githubusercontent.com, which it does. The issuer is
       #     where the REGISTRY fetches GitHub's keys, on its side.
       #   registry.npmjs.org: the registry reads mcpName from npm itself; this
