@@ -1,3 +1,10 @@
+# [5.25.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.24.0...@allxsmith/bestax-bulma@5.25.0) (2026-10-03)
+
+
+### Features
+
+* **bulma-ui:** add Bulma's gap helper props to every component ([#877](https://github.com/allxsmith/bestax/issues/877)) ([1bd4abc](https://github.com/allxsmith/bestax/commit/1bd4abc5e6d055432de18379f69f2cb02d7ebd7a))
+
 # [5.24.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.23.0...@allxsmith/bestax-bulma@5.24.0) (2026-10-03)
 
 
