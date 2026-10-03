@@ -713,6 +713,25 @@ describe('Theme', () => {
       expect(warnSpy).toHaveBeenCalledWith(
         expect.stringContaining("bulmaVars={{ '--bulma-column-gap': '…' }}")
       );
+
+      // A step written as a number takes the same route and names itself as
+      // the string it renders. Once more after a reset, since the warning
+      // above has already used up `warnOnce`.
+      resetDevWarnings();
+      warnSpy.mockClear();
+      render(
+        <Theme isRoot columnGap={1.5}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<Theme isRoot columnGap="1.5">')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('no wrapper element for is-column-gap-1.5')
+      );
     });
 
     it('does not warn at the root in production', () => {
