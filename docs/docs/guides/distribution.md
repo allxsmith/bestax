@@ -24,6 +24,7 @@ person, and **Unknown** means we have not confirmed how it updates.
 | Where                                                                                                              | Carries                                                                                                       | Updates   | When to act                                                                                                                                                    |
 | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [npm](https://www.npmjs.com/~allxsmith)                                                                            | `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, `@allxsmith/eslint-plugin-bestax` | Automatic | semantic-release publishes from `ci.yml`, keyed by commit scope. See `VERSIONING.md`.                                                                          |
+| [`bestax` plugin](/docs/guides/llms#claude-code-plugin), the repo's Claude Code marketplace                        | The skills and `bestax-mcp`                                                                                   | Automatic | Installs follow the repo. Codex, Copilot and Grok Build install it from the repo too.                                                                          |
 | [Glama](https://glama.ai/mcp/servers/allxsmith/bestax)                                                             | `bestax-mcp`                                                                                                  | Mixed     | Auto-Release rebuilds on every GitHub release in the repo and installs `bestax-mcp@latest`. Edit the Dockerfile in Glama's admin if the start command changes. |
 | [skills.sh](https://skills.sh/allxsmith/bestax)                                                                    | The skills                                                                                                    | Automatic | Listed from `npx skills add` installs.                                                                                                                         |
 | [Context7](https://context7.com/allxsmith/bestax)                                                                  | The docs                                                                                                      | Mixed     | Indexes the repo's markdown. Refresh it from the Context7 dashboard if it falls behind.                                                                        |
@@ -97,18 +98,17 @@ against that list.
 
 ## Planned
 
-Not live yet. Each needs a merge or a sign-in first.
+Not live yet. Each needs a submission or a sign-in first.
 
-| Where                                                                       | Carries                 | Updates   | Notes                                                                                    |
-| --------------------------------------------------------------------------- | ----------------------- | --------- | ---------------------------------------------------------------------------------------- |
-| GitHub MCP Registry                                                         | `bestax-mcp`            | Unknown   | The official listing exists, so onboarding can be requested.                             |
-| Coding-agent plugin from the repo (Claude Code, Codex, Copilot, Grok Build) | Skills and `bestax-mcp` | Automatic | Waits on [#870](https://github.com/allxsmith/bestax/pull/870). Installs follow the repo. |
-| Anthropic plugin directory                                                  | The skills              | Manual    | After #870. Each version is reviewed before it goes live.                                |
-| OpenAI plugin directory                                                     | The skills              | Manual    | After #870. Each upload is a ZIP with a new version.                                     |
-| Cursor Marketplace                                                          | Skills and `bestax-mcp` | Manual    | After #870. Each update is reviewed.                                                     |
-| Kiro                                                                        | Skills and `bestax-mcp` | Manual    | After #870. Needs a privacy policy and support contact in the README.                    |
-| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace)     | Skills and `bestax-mcp` | Manual    | After #870. The entry pins a commit, so a pull request there bumps it.                   |
-| [awesome-copilot](https://github.com/github/awesome-copilot)                | Skills and `bestax-mcp` | Manual    | After #870. Pins the `version` in the root `plugin.json`.                                |
+| Where                                                                   | Carries                 | Updates | Notes                                                                            |
+| ----------------------------------------------------------------------- | ----------------------- | ------- | -------------------------------------------------------------------------------- |
+| GitHub MCP Registry                                                     | `bestax-mcp`            | Unknown | The official listing exists, so onboarding can be requested.                     |
+| Anthropic plugin directory                                              | The skills              | Manual  | Can be submitted now. Each version is reviewed before it goes live.              |
+| OpenAI plugin directory                                                 | The skills              | Manual  | Can be submitted now. Each upload is a ZIP with a new version.                   |
+| Cursor Marketplace                                                      | Skills and `bestax-mcp` | Manual  | Can be submitted now. Each update is reviewed.                                   |
+| Kiro                                                                    | Skills and `bestax-mcp` | Manual  | Can be submitted now. Needs a privacy policy and support contact in the README.  |
+| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace) | Skills and `bestax-mcp` | Manual  | Can be submitted now. The entry pins a commit, so a pull request there bumps it. |
+| [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual  | Can be submitted now. Pins the `version` in the root `plugin.json`.              |
 
 ## What goes stale
 
@@ -124,7 +124,12 @@ Say in the pull request which listings need an update, then open those updates o
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
   `BESTAX_MCP_NO_VERSION_CHECK` variable.
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock and cursor.directory give
-  `npx -y bestax-mcp@1` as the command.
+  `npx -y bestax-mcp@1` as the command. So does the plugin's own `mcp.json`, and the
+  `plugin-root` conformance check fails until its pin moves to the new major.
+- **A plugin release.** Once listed, awesome-copilot, the OpenAI directory, Kiro and Cursor
+  Marketplace pin the `version` in the root `plugin.json`. Bump it by hand (`pnpm gen:skills`
+  keeps it), then update those entries. The Grok Build entry pins a commit instead, so updating it
+  takes a pull request there.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.
