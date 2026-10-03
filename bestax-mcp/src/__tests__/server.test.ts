@@ -556,7 +556,7 @@ describe('get_helper_props', () => {
     it('keeps the default under 10k while naming every prop', async () => {
       const out = text(await call('get_helper_props'));
       expect(out.length).toBeLessThan(10_000);
-      // Spot-check across all seven groups; helper-props.test.ts checks all 46 exhaustively.
+      // Spot-check across all seven groups; helper-props.test.ts checks every prop exhaustively.
       for (const prop of [
         'mt',
         'px',

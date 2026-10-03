@@ -13,8 +13,8 @@
  * heading at all and would answer nothing.
  *
  * So the groups are curated, and each one carries its own slice of the prop table. The
- * governing rule is that **no call ever loses a prop name**: the default lists all 46 with
- * their accepted values, because a builder has to be able to look up a valid value in one
+ * governing rule is that **no call ever loses a prop name**: the default lists every prop with
+ * its accepted values, because a builder has to be able to look up a valid value in one
  * call. What moves behind `group` is the prose and the live examples, which are re-fetchable
  * and which nothing breaks without.
  */

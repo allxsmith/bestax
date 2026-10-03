@@ -182,12 +182,12 @@ per-breakpoint column _sizes_ (a 2/3 + 1/3 split, different counts per breakpoin
 
 **Grid**
 
-| Prop                                                                                                                   | Type                                                         |
-| ---------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------ |
-| `gap` / `columnGap` / `rowGap`                                                                                         | `0`–`8` (number or string, same scale as Columns' `gap`)     |
-| `minCol`                                                                                                               | `1`–`32` (smart grid: min column width step, `is-col-min-X`) |
-| `isFixed`                                                                                                              | `boolean` (fixed column count instead of auto-fill)          |
-| `fixedCols` (+ `fixedColsMobile` / `fixedColsTablet` / `fixedColsDesktop` / `fixedColsWidescreen` / `fixedColsFullhd`) | `0`–`12` or `'auto'` (fixed grid only)                       |
+| Prop                                                                                                                   | Type                                                                                                |
+| ---------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `gap` / `columnGap` / `rowGap`                                                                                         | `0`–`8` with half steps such as `1.5` (number or string), the same values as the `gap` helper props |
+| `minCol`                                                                                                               | `1`–`32` (smart grid: min column width step, `is-col-min-X`)                                        |
+| `isFixed`                                                                                                              | `boolean` (fixed column count instead of auto-fill)                                                 |
+| `fixedCols` (+ `fixedColsMobile` / `fixedColsTablet` / `fixedColsDesktop` / `fixedColsWidescreen` / `fixedColsFullhd`) | `0`–`12` or `'auto'` (fixed grid only)                                                              |
 
 **Cell**
 
