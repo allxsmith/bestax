@@ -6,9 +6,9 @@
  * shapes real deep-review summaries on this repository have used, because a
  * shape the parser misses fails closed and the label never appears. The end
  * of the file drives run() against a fake fetch, so the label writes, the
- * dry run and the re-read before adding are covered without the network, and
- * reads review-converged.yml so the names it shares with the script cannot
- * drift apart.
+ * dry run and the re-read before each write are covered without the network,
+ * and reads review-converged.yml so the names and the trigger it shares with
+ * the script cannot drift apart.
  *
  * `.mjs` and `node --test` rather than jest: these are root-level scripts with
  * no package of their own, matching auto-close-duplicates.test.mjs.
@@ -20,6 +20,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {
+  FLAG_LABEL,
   LABEL,
   MARKER,
   NO_FINDINGS_LINE,
@@ -761,6 +762,42 @@ test('decide composes scope, convergence and the action', () => {
   );
 });
 
+test('a run that starts with CI takes the label off and never adds it', () => {
+  // The workflow also runs when a CI run is requested, so it sees a push
+  // before CI on it finishes: the newest summary is pinned to the old head,
+  // and the new head's checks are queued, running or not created yet.
+  const moved = { sha: MID, repo: { full_name: REPO } };
+  const running = status => ({ ...GREEN_RUN, status, conclusion: null });
+  for (const checkRuns of [[running('queued')], [running('in_progress')], []]) {
+    const state = { checkRuns, statuses: [] };
+    const labeled = decide(
+      converged({
+        ...state,
+        pr: pr({ labels: ['deep-review', LABEL], head: moved }),
+      })
+    );
+    assert.equal(labeled.action, 'remove', JSON.stringify(checkRuns));
+    assert.equal(
+      labeled.problems[0],
+      'the newest summary is for aaaaaaa, not the head ccccccc'
+    );
+    assert.equal(
+      decide(converged({ ...state, pr: pr({ head: moved }) })).action,
+      'none'
+    );
+  }
+  // CI started again on a reviewed head holds the label back until it ends.
+  assert.equal(
+    decide(
+      converged({
+        pr: pr({ labels: ['deep-review', LABEL] }),
+        checkRuns: [running('in_progress')],
+      })
+    ).action,
+    'remove'
+  );
+});
+
 // ---------------------------------------------------------------------------
 // The API client, against a fake fetch
 // ---------------------------------------------------------------------------
@@ -1070,7 +1107,10 @@ function sweepRoutes() {
     ...prRoutes(1, CLEAN),
     ...prRoutes(2, { ...CLEAN, threads: [{ isResolved: false }] }),
     ...prRoutes(5, CLEAN),
+    // The re-read before each write.
     [`GET /repos/${REPO}/pulls/1`]: response(200, ready),
+    [`GET /repos/${REPO}/pulls/2`]: response(200, stale),
+    [`GET /repos/${REPO}/pulls/5`]: response(200, settled),
     [`POST /repos/${REPO}/issues/1/labels`]: response(200, []),
     [`DELETE /repos/${REPO}/issues/2/labels/${LABEL}`]: response(200, []),
   });
@@ -1168,6 +1208,72 @@ test('a PR that moved or changed while it was checked is not labeled', async () 
     assert.match(
       lines.join('\n'),
       new RegExp(`#1 converged, add label: ${outcome}`)
+    );
+  }
+});
+
+test('a flag that lands while a PR is checked stops an add, not a removal', async () => {
+  // The evaluation saw no needs-security-review on either PR, and the re-read
+  // before each write does. #1 was going to get the label and #2 to lose it.
+  const routes = sweepRoutes();
+  routes[`GET /repos/${REPO}/pulls/1`] = response(
+    200,
+    pr({ number: 1, labels: ['deep-review', FLAG_LABEL] })
+  );
+  routes[`GET /repos/${REPO}/pulls/2`] = response(
+    200,
+    pr({ number: 2, labels: ['deep-review', LABEL, FLAG_LABEL] })
+  );
+  const { fetchImpl, calls } = fakeFetch(routes);
+  const lines = [];
+  await run({
+    argv: [`--repo=${REPO}`],
+    env: { GITHUB_TOKEN: 't' },
+    fetchImpl,
+    log: line => lines.push(line),
+  });
+  assert.deepEqual(
+    writes(calls).map(c => `${c.method} ${c.path}`),
+    [`DELETE /repos/${REPO}/issues/2/labels/${LABEL}`]
+  );
+  const text = lines.join('\n');
+  assert.match(text, /#1 converged, add label: stale/);
+  assert.match(text, /#2 not converged: .*, remove label: written/);
+});
+
+test('a PR that left scope or moved while it was checked keeps its label', async () => {
+  // #2 carries the label and has an open thread, so the decision is to take
+  // the label off. The re-read before removing finds the PR changed.
+  const labels = ['deep-review', LABEL];
+  for (const [now, outcome] of [
+    [pr({ number: 2, labels: [LABEL] }), 'stale'],
+    [pr({ number: 2, labels: [...labels, 'ai-loop'] }), 'stale'],
+    [pr({ number: 2, labels, base: { ref: 'feat/base' } }), 'stale'],
+    [pr({ number: 2, labels, state: 'closed' }), 'stale'],
+    [
+      pr({ number: 2, labels, head: { sha: OLD, repo: { full_name: REPO } } }),
+      'stale',
+    ],
+    [pr({ number: 2 }), 'already gone'],
+  ]) {
+    const routes = sweepRoutes();
+    routes[`GET /repos/${REPO}/pulls/2`] = response(200, now);
+    const { fetchImpl, calls } = fakeFetch(routes);
+    const lines = [];
+    await run({
+      argv: [`--repo=${REPO}`],
+      env: { GITHUB_TOKEN: 't' },
+      fetchImpl,
+      log: line => lines.push(line),
+    });
+    assert.deepEqual(
+      writes(calls).filter(c => c.path.includes('/issues/2/')),
+      [],
+      outcome
+    );
+    assert.match(
+      lines.join('\n'),
+      new RegExp(`#2 not converged: .*, remove label: ${outcome}`)
     );
   }
 });
@@ -1387,11 +1493,38 @@ test('the workflow job is named as the check run the script leaves out', () => {
 
 test('the workflow_run trigger names workflows that exist', () => {
   const lines = workflowLines('review-converged.yml');
+  // A comment after the last item reads as part of it, so comments are left
+  // out.
   const listed = yamlItems(
     yamlGet(lines, 'on', 'workflow_run', 'workflows')?.lines ?? []
-  ).map(item => item.join('\n').trim());
+  ).map(item =>
+    item
+      .filter(line => !line.trim().startsWith('#'))
+      .join('\n')
+      .trim()
+  );
   const names = ['claude-review.yml', 'ci.yml'].map(file =>
     yamlScalar(yamlGet(workflowLines(file), 'name'))
   );
   assert.deepEqual(listed.sort(), names.sort());
+});
+
+test('the workflow_run trigger fires when a run starts and when it ends', () => {
+  // `requested` is what takes the label off as soon as a push starts CI,
+  // rather than leaving it on the unreviewed head until CI completes.
+  const types = yamlGet(
+    workflowLines('review-converged.yml'),
+    'on',
+    'workflow_run',
+    'types'
+  );
+  const flow = /^\[(.*)\]$/.exec(types?.value ?? '');
+  assert.ok(flow, 'workflow_run.types is not a flow list');
+  assert.deepEqual(
+    flow[1]
+      .split(',')
+      .map(type => type.trim())
+      .sort(),
+    ['completed', 'requested']
+  );
 });
