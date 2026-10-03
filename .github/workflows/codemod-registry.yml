@@ -304,8 +304,9 @@ jobs:
           echo "CODEMOD_BIN=$dir/node_modules/.bin/codemod" >> "$GITHUB_ENV"
 
       # The secret reaches only this step. The script uses it when it is set
-      # and a GitHub OIDC token otherwise, masks whichever it uses, and hands
-      # it to the CLI as CODEMOD_AUTH_TOKEN.
+      # and a GitHub OIDC token otherwise, and hands it to the CLI as
+      # CODEMOD_AUTH_TOKEN. The runner redacts the secret, and the script
+      # masks the OIDC token.
       - name: Publish
         env:
           CODEMOD_API_KEY: ${{ secrets.CODEMOD_API_KEY }}

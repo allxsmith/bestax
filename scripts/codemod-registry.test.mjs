@@ -579,21 +579,37 @@ test('every way the OIDC request can fail throws with a reason', async () => {
 test('the API key wins over OIDC, and a blank one does not count', async () => {
   const noFetch = async () => assert.fail('fetched');
   assert.deepEqual(
-    await chooseCredential({ ...OIDC_ENV, CODEMOD_API_KEY: ' key ' }, noFetch),
+    await chooseCredential({ ...OIDC_ENV, CODEMOD_API_KEY: 'key' }, noFetch),
     { token: 'key', source: 'api-key' }
   );
   const oidc = async () =>
     new Response(JSON.stringify({ value: 'jwt' }), { status: 200 });
   assert.deepEqual(
     await chooseCredential({ ...OIDC_ENV, CODEMOD_API_KEY: '  ' }, oidc),
-    { token: 'jwt', source: 'oidc' }
+    { token: 'jwt', source: 'oidc', mask: 'jwt' }
   );
 });
 
-test('a credential spanning lines is refused, since add-mask covers one line', async () => {
+test('a key with whitespace around it is refused, not trimmed', async () => {
+  const noFetch = async () => assert.fail('fetched');
+  for (const key of [' key', 'key ', ' key ']) {
+    await assert.rejects(
+      chooseCredential({ ...OIDC_ENV, CODEMOD_API_KEY: key }, noFetch),
+      /whitespace around it/
+    );
+  }
+});
+
+test('a credential spanning lines is refused, since masking covers one line', async () => {
   await assert.rejects(
     chooseCredential({ CODEMOD_API_KEY: 'a\nb' }),
-    /spans lines/
+    /api-key credential spans lines/
+  );
+  const twoLines = async () =>
+    new Response(JSON.stringify({ value: 'j\nwt' }), { status: 200 });
+  await assert.rejects(
+    chooseCredential(OIDC_ENV, twoLines),
+    /oidc credential spans lines/
   );
 });
 
@@ -610,10 +626,10 @@ function fakeSpawn(result = { status: 0 }) {
   return { calls, spawn };
 }
 
-test('publish masks the key before anything else, then runs the CLI without the withheld variables', async () => {
+test('publish leaves the key to the runner, then runs the CLI without the withheld variables', async () => {
   const { calls, spawn } = fakeSpawn();
   const out = capture();
-  const env = { ...OIDC_ENV, CODEMOD_API_KEY: 'key', PATH: '/bin' };
+  const env = { ...OIDC_ENV, CODEMOD_API_KEY: 'sk-sentinel', PATH: '/bin' };
   const code = await publish({
     cli: '/tmp/codemod',
     root: '/repo',
@@ -623,16 +639,23 @@ test('publish masks the key before anything else, then runs the CLI without the 
     warn: out.push,
   });
   assert.equal(code, 0);
-  assert.equal(out.lines[0], '::add-mask::key');
-  assert.match(out.lines[1], /::notice::.*delete the secret/);
+  assert.ok(
+    out.lines.every(line => !line.includes('sk-sentinel')),
+    'the key is never written out'
+  );
+  assert.match(out.lines[0], /::notice::.*delete the secret/);
   const [{ cmd, args, opts }] = calls;
   assert.equal(cmd, '/tmp/codemod');
   assert.deepEqual(args, ['publish', path.join('/repo', PACKAGE_DIR)]);
-  assert.equal(opts.env.CODEMOD_AUTH_TOKEN, 'key');
+  assert.equal(opts.env.CODEMOD_AUTH_TOKEN, 'sk-sentinel');
   assert.equal(opts.env.PATH, '/bin');
   for (const name of WITHHELD_FROM_CLI) assert.ok(!(name in opts.env), name);
   assert.equal(opts.timeout, PUBLISH_TIMEOUT_MS);
-  assert.equal(env.CODEMOD_API_KEY, 'key', 'the caller env is left alone');
+  assert.equal(
+    env.CODEMOD_API_KEY,
+    'sk-sentinel',
+    'the caller env is left alone'
+  );
 });
 
 test('publish falls back to OIDC and masks that token too', async () => {

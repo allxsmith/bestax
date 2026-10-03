@@ -17,7 +17,8 @@
  *            CLI lockfile pins the codemod CLI exactly, and npm serves the
  *            bestax-migrate release with a provenance attestation
  *   publish  pick a credential (the CODEMOD_API_KEY secret when it is set,
- *            otherwise a GitHub OIDC token), mask it, run `codemod publish`
+ *            otherwise a GitHub OIDC token, which it masks), run
+ *            `codemod publish`
  *   bump     rewrite codemod.yaml's version and every pin to package.json's
  *            version. Run by hand, see below
  *
@@ -492,21 +493,34 @@ export async function requestOidcToken(env, audience, fetchImpl = fetch) {
  * The key comes first because the first publish of an unscoped package needs
  * it: a Trusted Publisher can only be attached to a package that exists.
  * Deleting the secret afterwards is what moves the job to OIDC.
+ *
+ * Only the OIDC token is returned as `mask`. The runner already redacts the
+ * secret, because the workflow names it, but only as saved. So a key with
+ * whitespace around it is refused rather than trimmed into a value the runner
+ * does not know.
  */
 export async function chooseCredential(env, fetchImpl = fetch) {
-  const key = String(env.CODEMOD_API_KEY ?? '').trim();
-  const credential = key
-    ? { token: key, source: 'api-key' }
-    : {
-        token: await requestOidcToken(env, OIDC_AUDIENCE, fetchImpl),
-        source: 'oidc',
-      };
-  // `::add-mask::` masks one line. A token spanning two would leave the
-  // second half printable, so refuse it rather than mask half of it.
-  if (/[\r\n]/.test(credential.token)) {
-    throw new Error(`The ${credential.source} credential spans lines.`);
+  const raw = String(env.CODEMOD_API_KEY ?? '');
+  // `::add-mask::` and the runner's redaction work line by line. A credential
+  // spanning lines could leave part of it printable, so refuse it.
+  const refuseLines = (value, source) => {
+    if (/[\r\n]/.test(value)) {
+      throw new Error(`The ${source} credential spans lines.`);
+    }
+  };
+  if (raw.trim()) {
+    refuseLines(raw, 'api-key');
+    if (raw !== raw.trim()) {
+      throw new Error(
+        'The CODEMOD_API_KEY secret has whitespace around it. Save it again ' +
+          'without the surrounding spaces.'
+      );
+    }
+    return { token: raw, source: 'api-key' };
   }
-  return credential;
+  const token = await requestOidcToken(env, OIDC_AUDIENCE, fetchImpl);
+  refuseLines(token, 'oidc');
+  return { token, source: 'oidc', mask: token };
 }
 
 /** Variables the codemod CLI does not need, left out of its environment. */
@@ -539,7 +553,7 @@ export async function publish({
     warn(`::error::${err.message}`);
     return 1;
   }
-  log(`::add-mask::${credential.token}`);
+  if (credential.mask) log(`::add-mask::${credential.mask}`);
   log(
     credential.source === 'api-key'
       ? '::notice::Publishing with the CODEMOD_API_KEY secret. Once a ' +
