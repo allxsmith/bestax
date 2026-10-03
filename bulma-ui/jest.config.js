@@ -1,6 +1,8 @@
 export default {
   preset: 'ts-jest',
   testEnvironment: 'jsdom',
+  // Environment polyfills, which must exist before test modules load.
+  setupFiles: ['<rootDir>/jest.setup.js'],
   setupFilesAfterEnv: ['@testing-library/jest-dom'],
   moduleNameMapper: {
     '\\.(css|scss)$': 'identity-obj-proxy',
