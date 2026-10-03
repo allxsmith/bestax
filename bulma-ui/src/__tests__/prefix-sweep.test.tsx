@@ -88,6 +88,18 @@ const PROPS: Record<string, Record<string, unknown>> = {
     ],
   },
   Dropdown: { label: 'Menu', children: 'Item', active: true },
+  Popover: {
+    trigger: <button>Open</button>,
+    defaultOpen: true,
+    position: 'top-right',
+    children: [
+      <Library.Popover.Header key="h">Title</Library.Popover.Header>,
+      <Library.Popover.Body key="b">Body</Library.Popover.Body>,
+      <Library.Popover.Footer key="f">
+        <Library.Popover.Close>Done</Library.Popover.Close>
+      </Library.Popover.Footer>,
+    ],
+  },
   Sidebar: { isOpen: true, children: 'Sidebar content' },
   Pagination: { current: 1, total: 5 },
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },

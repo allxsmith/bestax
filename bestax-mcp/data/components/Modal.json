@@ -47,7 +47,14 @@
     }
   ],
   "accessibility": "- The modal root gets `role=\"dialog\"` and `aria-modal=\"true\"` while active — pass an explicit `role` to override (e.g. `Dialog` passes `role=\"presentation\"` on the `Modal` it wraps so its own `role=\"alertdialog\"` is the only one announced).\n- **Give the dialog an accessible name.** With the legacy API, `modalCardTitle` is wired up as `aria-labelledby` for you. With the compound API, pass your own `aria-label` or `aria-labelledby` on `<Modal>` — a `role=\"dialog\"` with no name is announced as just \"dialog\". An explicit `aria-labelledby` always wins over the generated one.\n- Escape closes the modal (calls `onClose`) by default; opt out with `closeOnEscape={false}`. Only the topmost open modal responds, so Escape closes one layer at a time rather than dismissing a whole stack.\n- Body scroll is locked while the modal is active; opt out with `lockScroll={false}`. The lock is ref-counted and shared with `Dialog`, `Sidebar` and `Loading`, so whichever overlay closes first doesn't unlock the page underneath one that is still open.\n- Focus moves to the first enabled focusable element (or the modal itself) on open, and is restored to the previously focused element on close — unless another modal is still open on top, in which case that one keeps focus.\n- Tab and Shift+Tab cycle within the topmost modal while it is open, so the keyboard order agrees with what `aria-modal=\"true\"` tells assistive technology. Note that `aria-modal` does not by itself make background content inert, and no `inert` attribute is applied — background content remains reachable by pointer and by browser UI such as find-in-page.\n- The modal background closes the modal on click (`onClose` required).\n- Close buttons are provided for both modal-card and modal-content variants.\n\n:::note\nAlways provide an `onClose` handler for accessibility and to allow users to dismiss the modal.\n:::",
-  "related": ["Button", "Dialog", "Field", "Input", "useBulmaClasses"],
+  "related": [
+    "Button",
+    "Dialog",
+    "Field",
+    "Input",
+    "Popover",
+    "useBulmaClasses"
+  ],
   "storybook": "https://bestax.io/storybook/?path=/story/components-modal--modal-card",
   "summary": "The `Modal` component provides an empty, accessible overlay for arbitrary content — for a ready-made confirm or alert, reach for `Dialog` instead.",
   "import": "import { Modal } from '@allxsmith/bestax-bulma';",

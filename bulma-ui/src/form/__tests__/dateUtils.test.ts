@@ -19,6 +19,11 @@ import {
   clampDate,
   buildMonthGrid,
   snapTimeToIncrement,
+  startOfPeriod,
+  endOfPeriod,
+  isDayUnselectable,
+  isPeriodUnselectable,
+  makeDate,
 } from '../_pickerInternals/dateUtils';
 
 describe('dateUtils', () => {
@@ -283,6 +288,149 @@ describe('dateUtils', () => {
       expect(r.getHours()).toBe(13);
       expect(r.getMinutes()).toBe(42);
       expect(r.getSeconds()).toBe(0);
+    });
+  });
+
+  describe('periods', () => {
+    const d = new Date(2024, 5, 15, 13, 30);
+
+    it.each([
+      ['day', new Date(2024, 5, 15), new Date(2024, 5, 15, 23, 59, 59, 999)],
+      ['month', new Date(2024, 5, 1), new Date(2024, 5, 30, 23, 59, 59, 999)],
+      ['year', new Date(2024, 0, 1), new Date(2024, 11, 31, 23, 59, 59, 999)],
+    ] as const)('startOfPeriod / endOfPeriod for a %s', (g, start, end) => {
+      expect(startOfPeriod(d, g)).toEqual(start);
+      expect(endOfPeriod(d, g)).toEqual(end);
+    });
+
+    it("ends a month on its own last day from the month's last day", () => {
+      // From 31 January, a naive month step would overflow into March.
+      expect(endOfPeriod(new Date(2024, 0, 31), 'month')).toEqual(
+        new Date(2024, 0, 31, 23, 59, 59, 999)
+      );
+    });
+
+    it('keeps years below 100 rather than reading them as 19xx', () => {
+      const early = new Date(2024, 5, 15);
+      early.setFullYear(19);
+      expect(startOfPeriod(early, 'year').getFullYear()).toBe(19);
+      expect(startOfPeriod(early, 'month').getFullYear()).toBe(19);
+      expect(endOfPeriod(early, 'year').getFullYear()).toBe(19);
+    });
+  });
+
+  describe('makeDate', () => {
+    it('builds local midnight, defaulting to the first of January', () => {
+      expect(makeDate(2024, 5, 15)).toEqual(new Date(2024, 5, 15));
+      expect(makeDate(2024, 5)).toEqual(new Date(2024, 5, 1));
+      expect(makeDate(2024)).toEqual(new Date(2024, 0, 1));
+    });
+
+    it('keeps years below 100 as given', () => {
+      const d = makeDate(19, 2, 4);
+      expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([19, 2, 4]);
+      expect([d.getHours(), d.getMinutes()]).toEqual([0, 0]);
+    });
+  });
+
+  describe('isDayUnselectable', () => {
+    const day = new Date(2024, 5, 15);
+
+    it('is false with no constraints', () => {
+      expect(isDayUnselectable(day, {})).toBe(false);
+    });
+
+    it('rules out a day outside min/max', () => {
+      expect(isDayUnselectable(day, { min: new Date(2024, 5, 16) })).toBe(true);
+      expect(isDayUnselectable(day, { max: new Date(2024, 5, 14) })).toBe(true);
+    });
+
+    it('rules out a day the predicate or the list blocks', () => {
+      expect(isDayUnselectable(day, { shouldDisableDate: () => true })).toBe(
+        true
+      );
+      expect(
+        isDayUnselectable(day, { unselectableDates: [new Date(2024, 5, 15)] })
+      ).toBe(true);
+      expect(
+        isDayUnselectable(day, { unselectableDates: [new Date(2024, 5, 16)] })
+      ).toBe(false);
+    });
+  });
+
+  describe('isPeriodUnselectable', () => {
+    const june = new Date(2024, 5, 20);
+
+    it('keeps a month that has one selectable day', () => {
+      // Only 30 June survives the predicate.
+      expect(
+        isPeriodUnselectable(june, 'month', {
+          shouldDisableDate: x => x.getDate() !== 30,
+        })
+      ).toBe(false);
+    });
+
+    it('rules out a month whose every day is blocked', () => {
+      expect(
+        isPeriodUnselectable(june, 'month', { shouldDisableDate: () => true })
+      ).toBe(true);
+    });
+
+    it('keeps a month that min or max cuts partway through', () => {
+      expect(
+        isPeriodUnselectable(june, 'month', { min: new Date(2024, 5, 29) })
+      ).toBe(false);
+      expect(
+        isPeriodUnselectable(june, 'month', { max: new Date(2024, 5, 2) })
+      ).toBe(false);
+    });
+
+    it('counts the day min falls on, whatever its time', () => {
+      // On the day grid a min of 3pm rules out its own day; a month picker
+      // given `min={new Date()}` on the 30th must still offer this month.
+      expect(
+        isPeriodUnselectable(june, 'month', {
+          min: new Date(2024, 5, 30, 15, 0),
+        })
+      ).toBe(false);
+    });
+
+    it('rules out a period wholly before min or after max without a walk', () => {
+      const shouldDisableDate = jest.fn(() => false);
+      expect(
+        isPeriodUnselectable(june, 'month', {
+          min: new Date(2024, 6, 1),
+          shouldDisableDate,
+        })
+      ).toBe(true);
+      expect(
+        isPeriodUnselectable(june, 'year', {
+          max: new Date(2023, 11, 31),
+          shouldDisableDate,
+        })
+      ).toBe(true);
+      expect(shouldDisableDate).not.toHaveBeenCalled();
+    });
+
+    it('stops at the first selectable day', () => {
+      const shouldDisableDate = jest.fn(() => false);
+      isPeriodUnselectable(june, 'year', { shouldDisableDate });
+      expect(shouldDisableDate).toHaveBeenCalledTimes(1);
+    });
+
+    it('rules out a year whose every day is listed as unselectable', () => {
+      const leap = Array.from(
+        { length: 366 },
+        (_, i) => new Date(2024, 0, 1 + i)
+      );
+      expect(
+        isPeriodUnselectable(june, 'year', { unselectableDates: leap })
+      ).toBe(true);
+      expect(
+        isPeriodUnselectable(june, 'year', {
+          unselectableDates: leap.slice(1),
+        })
+      ).toBe(false);
     });
   });
 });

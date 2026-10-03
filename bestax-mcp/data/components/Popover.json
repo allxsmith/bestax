@@ -1,0 +1,534 @@
+{
+  "name": "Popover",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/popover",
+  "docsUrl": "https://bestax.io/docs/api/components/popover",
+  "examples": [
+    {
+      "title": "Basic Popover",
+      "code": "function example() {\n  const [statuses, setStatuses] = useState(['open']);\n\n  return (\n    <Popover trigger={<Button>Filters</Button>}>\n      <Popover.Header>Filter rows</Popover.Header>\n      <Popover.Body>\n        <Checkboxes value={statuses} onChange={setStatuses}>\n          <Checkbox value=\"open\">Open</Checkbox>\n          <Checkbox value=\"closed\">Closed</Checkbox>\n        </Checkboxes>\n      </Popover.Body>\n      <Popover.Footer>\n        <Popover.Close color=\"primary\">Done</Popover.Close>\n      </Popover.Footer>\n    </Popover>\n  );\n}"
+    },
+    {
+      "title": "Placement",
+      "code": "<Buttons>\n  <Popover\n    position=\"bottom-left\"\n    ariaLabel=\"Bottom left\"\n    trigger={<Button>bottom-left</Button>}\n  >\n    <Popover.Body>Opens below, on the left edge.</Popover.Body>\n  </Popover>\n  <Popover\n    position=\"bottom-right\"\n    ariaLabel=\"Bottom right\"\n    trigger={<Button>bottom-right</Button>}\n  >\n    <Popover.Body>Opens below, on the right edge.</Popover.Body>\n  </Popover>\n  <Popover\n    position=\"auto\"\n    ariaLabel=\"Auto\"\n    trigger={<Button color=\"info\">auto</Button>}\n  >\n    <Popover.Body>Opens wherever it fits.</Popover.Body>\n  </Popover>\n</Buttons>"
+    },
+    {
+      "title": "Rendering into the Body",
+      "code": "<Box overflow=\"hidden\">\n  <Popover\n    appendToBody\n    ariaLabel=\"Portaled\"\n    trigger={<Button color=\"primary\">appendToBody</Button>}\n  >\n    <Popover.Body>This panel escapes the box.</Popover.Body>\n  </Popover>\n</Box>"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Paragraph mb=\"3\">The popover is {open ? 'open' : 'closed'}.</Paragraph>\n      <Popover\n        open={open}\n        onOpenChange={setOpen}\n        ariaLabel=\"Account\"\n        trigger={<Button>Account</Button>}\n      >\n        <Popover.Body>Signed in as ada@example.com</Popover.Body>\n        <Popover.Footer>\n          <Popover.Close>Sign out</Popover.Close>\n        </Popover.Footer>\n      </Popover>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Without a Header",
+      "code": "<Popover ariaLabel=\"Share\" trigger={<Button>Share</Button>}>\n  <Popover.Body>\n    <UnorderedList>\n      <ListItem>\n        <Link href=\"#email\">Email</Link>\n      </ListItem>\n      <ListItem>\n        <Link href=\"#copy\">Copy link</Link>\n      </ListItem>\n    </UnorderedList>\n  </Popover.Body>\n</Popover>"
+    },
+    {
+      "title": "Letting Tab Leave",
+      "code": "<Popover\n  trapFocus={false}\n  ariaLabel=\"Quick note\"\n  trigger={<Button>Add note</Button>}\n>\n  <Popover.Body>\n    <Input aria-label=\"Note\" placeholder=\"Type, then Tab onward\" />\n  </Popover.Body>\n</Popover>"
+    },
+    {
+      "title": "Triggers That Aren't Buttons",
+      "code": "<Popover\n  ariaLabel=\"Label help\"\n  trigger={\n    <Tag color=\"info\" role=\"button\" tabIndex={0}>\n      What is this?\n    </Tag>\n  }\n>\n  <Popover.Body>Labels group rows. Click one to filter by it.</Popover.Body>\n</Popover>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Popover trigger={<Button>Rename</Button>}>\n  <Popover.Header>Rename file</Popover.Header>\n  <Popover.Body>\n    <Input aria-label=\"File name\" defaultValue=\"report.pdf\" />\n  </Popover.Body>\n  <Popover.Footer>\n    <Popover.Close>Cancel</Popover.Close>\n    <Popover.Close color=\"primary\">Save</Popover.Close>\n  </Popover.Footer>\n</Popover>"
+    }
+  ],
+  "accessibility": "`Popover` follows the [WAI-ARIA dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)\nfor a non-modal dialog:\n\n- The panel is a `role=\"dialog\"` without `aria-modal`. It is named by its `Popover.Header` through\n  `aria-labelledby`, or by `ariaLabel`, which takes precedence. A development build warns when an\n  open panel has neither.\n- The trigger gets `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls` pointing at the\n  panel while it is open.\n- Opening moves focus to the first control in the panel, or to the panel itself when it has none.\n  Closing hands focus back to the trigger, as long as focus is still in the panel then, so a click\n  that put it somewhere else keeps it there.\n- Tab and Shift+Tab wrap inside the open panel, which the pattern asks of non-modal dialogs too.\n  Pointer focus, the screen reader's reading cursor and the rest of the page stay free: nothing\n  outside is hidden or made inert, and the page still scrolls. `trapFocus={false}` lets Tab leave.\n- <kbd>Escape</kbd> closes the popover while focus is in the panel or on the trigger. A dialog\n  nested inside the panel, such as a date picker's calendar or another popover, takes its own\n  Escape first.\n- <kbd>Enter</kbd> and <kbd>Space</kbd> toggle a trigger the browser doesn't click on its own.\n- The open animation is turned off under `prefers-reduced-motion: reduce`.",
+  "related": [
+    "Dropdown",
+    "Modal",
+    "Portal",
+    "Tooltip",
+    "useBulmaClasses",
+    "useFocusTrap"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-popover--default",
+  "summary": "The `Popover` component opens a panel of interactive content, such as a filter form or a set of share options, anchored to the element that toggles it. The panel is a non-modal `role=\"dialog\"`: focus moves into it on open and returns to the trigger on close, while the rest of the page stays reachable by pointer and assistive technology. For hover-only hints use `Tooltip`, and for a list of actions use `Dropdown`.",
+  "import": "import { Popover } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Popover.tsx",
+  "rootClass": "popover",
+  "parts": [
+    {
+      "path": "Popover",
+      "summary": "The `Popover` component opens a panel of interactive content, such as a filter form or a set of share options, anchored to the element that toggles it. The panel is a non-modal `role=\"dialog\"`: focus moves into it on open and returns to the trigger on close, while the rest of the page stays reachable by pointer and assistive technology. For hover-only hints use `Tooltip`, and for a list of actions use `Dropdown`.",
+      "component": null,
+      "props": [
+        {
+          "name": "trigger",
+          "type": "React.ReactElement",
+          "default": null,
+          "description": "The element that opens and closes the popover, such as a `Button`. Popover gives it `aria-haspopup=\"dialog\"`, `aria-expanded`, `aria-controls` while the panel is open, and click and key handlers that run after its own (call `preventDefault()` in yours to keep the popover from toggling). It has to be a single element that passes `onClick` and `onKeyDown` to its DOM node. Enter and Space toggle a trigger the browser doesn't click on its own, and an intrinsic element that isn't already a control (a `<span>`) also gets `role=\"button\"` and `tabIndex={0}` unless it sets them; a component that renders one has to take those itself.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The panel's content, usually `Popover.Header`, `Popover.Body` and `Popover.Footer`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled open state. When set, the trigger and every dismissal only report through `onOpenChange`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state when uncontrolled. Opening moves focus into the panel, so a popover that starts open takes focus once the page loads.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the state asked for: `true` from the trigger opening it, `false` from the trigger, `Popover.Close`, Escape or an outside `pointerdown`. Fires in both controlled and uncontrolled use.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the panel opens against the trigger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the panel at the end of `document.body` through `Portal`, fixed to the viewport, so an ancestor's `overflow`, `transform` or stacking context can't clip it. The panel then shows from the commit after hydration, never in server markup. It is measured against the trigger when it opens and on resize and scroll, so it doesn't follow content that changes size while it is open. Theming variables set on an ancestor of the trigger don't reach it there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "trapFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Keep Tab and Shift+Tab inside the panel while it is open, as the ARIA dialog pattern does for a non-modal dialog. Pointer focus leaves freely and the page stays usable. With `false`, Tab moves past the panel and the popover stays open. Focus moves into the panel on open and back to the trigger on close either way.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClickOutside",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close on a `pointerdown` outside the trigger and the panel. Content the panel renders through a portal (a nested `Popover`, a portaled picker) still counts as inside.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnEscape",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close on Escape while focus is in the panel or on the trigger. A dialog nested in the panel, such as a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ariaLabel",
+          "type": "string",
+          "default": null,
+          "description": "The panel's accessible name. Without it the panel is named by its `Popover.Header`, and a development build warns when it has neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "contentClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the panel (`.popover-content`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the wrapper around the trigger. The panel takes `contentClassName`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Popover.Header",
+      "summary": "The popover's title, which names the panel for assistive technology.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Popover.Body",
+      "summary": "The popover's main content area.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Popover.Footer",
+      "summary": "A row of actions along the bottom of the popover, aligned to the end.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Popover.Close",
+      "summary": "A `Button` that closes the popover, handing focus back to the trigger.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'white' | 'light' | 'dark' | 'black' | 'text' | 'ghost'",
+          "default": null,
+          "description": "Bulma color variant for the button. `ghost` renders a link-like button; `text` renders a minimal text-only button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies a lighter color variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Displays a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button non-interactive.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isOutlined",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies outlined styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isInverted",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies inverted styling (requires color).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies active styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Button content.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "type",
+          "type": "'button' | 'submit' | 'reset'",
+          "default": "'button'",
+          "description": "Button type. Defaults to `'button'`, so a close button inside a form doesn't submit it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClick",
+          "type": "React.MouseEventHandler<HTMLButtonElement>",
+          "default": null,
+          "description": "Runs before the popover closes. Call `preventDefault()` to keep it open.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-popover-z-index",
+      "sass": "$popover-z-index",
+      "default": "30",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-background",
+      "sass": "$popover-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-color",
+      "sass": "$popover-color",
+      "default": "var(--bulma-text)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-border-color",
+      "sass": "$popover-border-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-radius",
+      "sass": "$popover-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-shadow",
+      "sass": "$popover-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-min-width",
+      "sass": "$popover-min-width",
+      "default": "12rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-max-width",
+      "sass": "$popover-max-width",
+      "default": "min(24rem, calc(100vw - 2rem))",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-offset",
+      "sass": "$popover-offset",
+      "default": "0.25rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-header-padding",
+      "sass": "$popover-header-padding",
+      "default": "0.75rem 1rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-header-color",
+      "sass": "$popover-header-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-header-weight",
+      "sass": "$popover-header-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-body-padding",
+      "sass": "$popover-body-padding",
+      "default": "1rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-footer-padding",
+      "sass": "$popover-footer-padding",
+      "default": "0.75rem 1rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-footer-gap",
+      "sass": "$popover-footer-gap",
+      "default": "0.5rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-popover-animation-duration",
+      "sass": "$popover-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    }
+  ]
+}

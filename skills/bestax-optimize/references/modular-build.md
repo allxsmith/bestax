@@ -70,8 +70,8 @@ Every extras partial that exists (from the library's `src/scss/**/_index.scss` â
 is **more complete** than the docs page's Option C example, which omits several):
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
-`loading`, `collapse`, `tooltip`, `steps`, `sidebar`, `toast`, `dialog`, `carousel`, `tabs`,
-`reveal`, `avatar`, `avatars`, `badge`
+`loading`, `collapse`, `tooltip`, `popover`, `steps`, `sidebar`, `toast`, `dialog`, `carousel`,
+`tabs`, `reveal`, `avatar`, `avatars`, `badge`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
@@ -88,6 +88,8 @@ Notes:
 - Extras `Tabs` **extends** stock Bulma tabs (vertical variant) â€” an app using `Tabs` needs
   both `bulma/sass/components/tabs` and `@allxsmith/bestax-bulma/scss/components/tabs`.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
+- `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
+  next to `scss/components/popover`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, so include it next to the Bulma

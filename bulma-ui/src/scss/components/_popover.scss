@@ -1,0 +1,144 @@
+// Popover Component Styles
+// A click-to-open panel of interactive content, anchored to its trigger
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// Popover-specific SCSS variables
+$popover-z-index: 30 !default;
+$popover-background: cv.getVar('scheme-main') !default;
+$popover-color: cv.getVar('text') !default;
+$popover-border-color: cv.getVar('border-weak') !default;
+$popover-radius: cv.getVar('radius-large') !default;
+$popover-shadow: cv.getVar('shadow') !default;
+$popover-min-width: 12rem !default;
+$popover-max-width: min(24rem, calc(100vw - 2rem)) !default;
+$popover-offset: 0.25rem !default;
+$popover-header-padding: 0.75rem 1rem !default;
+$popover-header-color: cv.getVar('text-strong') !default;
+$popover-header-weight: cv.getVar('weight-semibold') !default;
+$popover-body-padding: 1rem !default;
+$popover-footer-padding: 0.75rem 1rem !default;
+$popover-footer-gap: 0.5rem !default;
+$popover-animation-duration: 0.15s !default;
+
+// Registered on the panel rather than the wrapper: a panel rendered with
+// `appendToBody` sits at the end of <body>, outside the wrapper, and would
+// inherit nothing from it.
+.#{iv.$class-prefix}popover-content {
+  @include cv.register-vars(
+    (
+      'popover-z-index': #{$popover-z-index},
+      'popover-background': #{$popover-background},
+      'popover-color': #{$popover-color},
+      'popover-border-color': #{$popover-border-color},
+      'popover-radius': #{$popover-radius},
+      'popover-shadow': #{$popover-shadow},
+      'popover-min-width': #{$popover-min-width},
+      'popover-max-width': #{$popover-max-width},
+      'popover-offset': #{$popover-offset},
+      'popover-header-padding': #{$popover-header-padding},
+      'popover-header-color': #{$popover-header-color},
+      'popover-header-weight': #{$popover-header-weight},
+      'popover-body-padding': #{$popover-body-padding},
+      'popover-footer-padding': #{$popover-footer-padding},
+      'popover-footer-gap': #{$popover-footer-gap},
+      'popover-animation-duration': #{$popover-animation-duration},
+    )
+  );
+}
+
+// The wrapper around the trigger, which an inline panel is placed against.
+.#{iv.$class-prefix}popover {
+  position: relative;
+  display: inline-flex;
+  vertical-align: top;
+}
+
+.#{iv.$class-prefix}popover-content {
+  position: absolute;
+  z-index: cv.getVar('popover-z-index');
+  // As wide as the content wants, within the bounds. An inline panel would
+  // otherwise shrink to the trigger's width, and a portaled one wouldn't.
+  width: max-content;
+  min-width: cv.getVar('popover-min-width');
+  max-width: cv.getVar('popover-max-width');
+  background-color: cv.getVar('popover-background');
+  color: cv.getVar('popover-color');
+  border: 1px solid cv.getVar('popover-border-color');
+  border-radius: cv.getVar('popover-radius');
+  box-shadow: cv.getVar('popover-shadow');
+  text-align: start;
+  // The panel takes focus itself only when it holds no control.
+  outline: none;
+  animation: popover-fade-in cv.getVar('popover-animation-duration') ease;
+
+  &.#{iv.$class-prefix}is-bottom-left,
+  &.#{iv.$class-prefix}is-bottom-right {
+    top: 100%;
+    margin-top: cv.getVar('popover-offset');
+  }
+  &.#{iv.$class-prefix}is-top-left,
+  &.#{iv.$class-prefix}is-top-right {
+    bottom: 100%;
+    margin-bottom: cv.getVar('popover-offset');
+  }
+  &.#{iv.$class-prefix}is-bottom-left,
+  &.#{iv.$class-prefix}is-top-left {
+    left: 0;
+  }
+  &.#{iv.$class-prefix}is-bottom-right,
+  &.#{iv.$class-prefix}is-top-right {
+    right: 0;
+  }
+
+  // Portaled: fixed to the viewport at the trigger's edge, which the
+  // component sets inline, so only the gap comes from here.
+  &.#{iv.$class-prefix}is-portal {
+    position: fixed;
+    right: auto;
+    bottom: auto;
+
+    &.#{iv.$class-prefix}is-top-left,
+    &.#{iv.$class-prefix}is-top-right {
+      margin-top: calc(-1 * #{cv.getVar('popover-offset')});
+      margin-bottom: 0;
+    }
+  }
+}
+
+.#{iv.$class-prefix}popover-header {
+  padding: cv.getVar('popover-header-padding');
+  color: cv.getVar('popover-header-color');
+  font-weight: cv.getVar('popover-header-weight');
+  border-bottom: 1px solid cv.getVar('popover-border-color');
+}
+
+.#{iv.$class-prefix}popover-body {
+  padding: cv.getVar('popover-body-padding');
+}
+
+.#{iv.$class-prefix}popover-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: cv.getVar('popover-footer-gap');
+  padding: cv.getVar('popover-footer-padding');
+  border-top: 1px solid cv.getVar('popover-border-color');
+}
+
+@keyframes popover-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}popover-content {
+    animation: none;
+  }
+}

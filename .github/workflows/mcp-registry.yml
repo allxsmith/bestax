@@ -1,0 +1,278 @@
+name: MCP Registry
+
+# Lists each bestax-mcp release in the official MCP Registry
+# (registry.modelcontextprotocol.io) as io.github.allxsmith/bestax-mcp, by
+# publishing bestax-mcp/server.json with the release's version written in.
+# The registry stores metadata only: it points clients at the npm package
+# ci.yml already published, after checking that npm's copy of that version
+# carries `"mcpName": "io.github.allxsmith/bestax-mcp"`.
+#
+# A workflow of its own, and NOT a step in ci.yml's `publish` job, on
+# purpose. npm's trusted publisher for every package here names ci.yml
+# (CONTRIBUTING.md, "npm authentication"), and npm matches the workflow named
+# in the OIDC token against it. So any step in a ci.yml job holding
+# `id-token: write` can mint a token npm will trade for publish rights to
+# every package, and that job also mints the release App's ruleset-bypass
+# token. The third-party `mcp-publisher` binary does not belong there. A
+# token minted in THIS file names mcp-registry.yml, which npm's trusted
+# publisher does not match, so the publisher, compromised or not, can reach
+# the MCP Registry and cannot publish to npm. registry.npmjs.org is not on
+# this job's egress list either. Keep both halves: never register this
+# workflow as a trusted publisher on npm, and never fold this job into ci.yml.
+#
+# What the token here DOES grant, stated rather than implied: the registry's
+# GitHub OIDC exchange grants publish rights over io.github.<repository_owner>/*,
+# so every server in the io.github.allxsmith namespace, not only this one.
+# Code in this job can publish to, or change the status of, any of them. Any
+# workflow in any allxsmith repository holding `id-token: write` can do the
+# same; this file uses that property rather than creating it. What bounds it
+# here: the binary is pinned to one release and one SHA-256, the code driving
+# it comes from `main` (see the checkout step), the job's only other
+# credential is a read-only GITHUB_TOKEN for a public repository, and its
+# egress is limited to the hosts listed below. Those raise the cost; none of
+# them is a proof.
+#
+# Triggers. `release: published` fires for every package's release, and the
+# job's `if` keeps only bestax-mcp@ tags. It fires at all because
+# @semantic-release/github creates the release with the release App's token
+# (ci.yml passes the App token as GITHUB_TOKEN to each Semantic Release
+# step); a release created with a workflow's own GITHUB_TOKEN would trigger
+# nothing. supply-chain.yml runs on the same event for every release.
+#
+# `workflow_dispatch` takes a tag, for re-running a failed listing or for
+# listing a release this workflow missed. Dispatch needs write access, like
+# every dispatchable workflow here, and all a dispatch chooses is a version:
+# the code and server.json come from `main`, and the registry only accepts a
+# version npm already has with the matching mcpName. Releases before the one
+# that first shipped mcpName cannot be listed: the registry refuses them, and
+# because the publish step retries every failure, that refusal is reported
+# when its budget runs out.
+#
+# Idempotent: a version the registry already has ends the run with exit 0 and
+# a notice. The logic, including the retry while npm catches up with a fresh
+# release, is in scripts/mcp-registry-publish.mjs with a node --test sibling
+# (rule 9); this file holds the trust decisions.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to list, e.g. bestax-mcp@1.14.0'
+        required: true
+        type: string
+
+# No workflow-level grants; the single job takes exactly what it needs.
+permissions: {}
+
+# One listing per tag at a time. The registry refuses a duplicate version
+# anyway; this keeps a dispatch and a release run from both spending the
+# retry budget on the same version.
+concurrency:
+  group: mcp-registry-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Publish to the MCP Registry
+    # The repository check keeps a fork's releases from trying to publish into
+    # a namespace their OIDC token does not grant. The tag check is a cheap
+    # pre-filter; the script validates the tag properly.
+    if: >-
+      github.repository == 'allxsmith/bestax' &&
+      startsWith(github.event.release.tag_name || inputs.tag, 'bestax-mcp@')
+    runs-on: ubuntu-latest
+    # Every step before Publish has its own timeout-minutes, and Publish is
+    # bounded by the script's retry budget plus its last attempt.
+    # scripts/mcp-registry-publish.test.mjs holds their sum, with a margin for
+    # runner setup and teardown, inside this.
+    timeout-minutes: 45
+    permissions:
+      contents: read # checkout of a public repository
+      id-token: write # GitHub OIDC login to the MCP Registry, nothing else
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      # Rule 10: a new job ships at `block`, and the step after this one
+      # asserts it, in the default position: no later step is a fail-closed
+      # path the assertion could get in front of.
+      #
+      # REASONED, NOT MEASURED. No run of this job exists yet, and no PR event
+      # can produce one. Each entry below is backed by what is cited next to
+      # it. Widen the list from the first run's report ("Measuring an
+      # allowlist" in .github/CLAUDE.md), not by guessing again, and resolve
+      # any host before adding it: an unresolvable entry disables the whole
+      # policy.
+      #
+      #   github.com: the checkout and the tag lookup (git over HTTPS, no API
+      #     call; the tag checkout in supply-chain's consumer-sbom resolved
+      #     only github.com; the measurement is on #859), and the publisher
+      #     download, which answers with a redirect.
+      #   release-assets.githubusercontent.com: where that redirect goes for
+      #     the pinned asset (checked when it was pinned), and where the
+      #     release download in that same consumer-sbom run went.
+      #   registry.modelcontextprotocol.io: the existence check, the OIDC
+      #     token exchange, and the publish.
+      #
+      # Deliberately absent:
+      #
+      #   token.actions.githubusercontent.com: the publisher asks for its OIDC
+      #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host
+      #     (run-actions-*.actions.githubusercontent.com) that harden-runner
+      #     admits without a listing. On that same supply-chain run,
+      #     sign-sbom's cosign got every token from a
+      #     run-actions-*.actions.githubusercontent.com host, which its list
+      #     does not name, and never contacted
+      #     token.actions.githubusercontent.com, which it does. The issuer is
+      #     where the REGISTRY fetches GitHub's keys, on its side.
+      #   registry.npmjs.org: the registry reads mcpName from npm itself; this
+      #     job never asks npm anything, and leaving npm unreachable is part of
+      #     the separation the header describes.
+      #   objects.githubusercontent.com: the older release-asset host; the
+      #     redirect no longer goes there.
+      #   api.github.com, nodejs.org: no API call and no setup-node.
+      - name: Harden runner
+        timeout-minutes: 2
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            release-assets.githubusercontent.com:443
+            registry.modelcontextprotocol.io:443
+
+      # Copied from the other block jobs, as rule 10 asks. It proves enforcement
+      # was armed at this step, not that it stays armed; rule 10 in
+      # .github/CLAUDE.md carries the mechanism and what to check when a run
+      # looks wrong. Linux-only paths; the runner is ubuntu-latest.
+      - name: Assert egress policy is enforced
+        timeout-minutes: 2
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      # `ref: main`, NOT the release tag, for the reason verify-provenance
+      # gives in supply-chain.yml. A tag can point at any commit and is not
+      # behind main's ruleset, so any writer can push one, including with a
+      # token that lacks the `workflow` scope and so cannot touch this file
+      # but can commit to scripts/. The AI loop hands bestaxbot's PAT to
+      # sessions, which makes that the credential to plan for. Checking out
+      # the tag would run that commit's scripts/mcp-registry-publish.mjs in a
+      # job that can mint OIDC tokens. From `main`, the script and server.json
+      # are reviewed code behind the ruleset, and the tag contributes only a
+      # version string, which the script validates and the registry then
+      # checks against npm.
+      #
+      # On a release run `main` is that release's commit, or a later commit
+      # of the same release run (another package's release, the index
+      # restamp) that leaves server.json alone, so it carries the server.json
+      # the release shipped with. A backfill lists an older version with
+      # today's metadata, which is the listing worth having. The residual is
+      # the one verify-provenance's comment states: `main` resolves when this
+      # step runs.
+      #
+      # No PR runs this workflow, so rule 9's bootstrap gap does not apply:
+      # the first release run happens after the merge that adds the script.
+      - name: Checkout main
+        timeout-minutes: 5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      # Offline and first: a malformed tag, or a server.json that disagrees
+      # with package.json, fails here in seconds instead of after the publish
+      # step's retry budget. Deliberately no setup-node, as in ai-scan's
+      # `scan` job: the script imports node: builtins only, so the runner
+      # image's Node runs it, and this job takes on neither another action
+      # nor nodejs.org. The version is printed for the record.
+      #
+      # TAG reaches the script through `env:`, never interpolated into the
+      # script body; on a dispatch it is typed by hand.
+      - name: Write the release version into server.json
+        timeout-minutes: 2
+        run: |
+          node --version
+          node scripts/mcp-registry-publish.mjs prepare --tag "$TAG" --dir bestax-mcp
+
+      # Only after `prepare` accepted the tag's format, so the value is safe
+      # to print. A release event's tag exists by definition; this is for a
+      # dispatch typo, which would otherwise wait out the whole retry budget
+      # for a version npm will never serve.
+      - name: Check the tag exists
+        timeout-minutes: 2
+        run: |
+          if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
+            echo "::error::$TAG is not a tag in this repository."
+            exit 1
+          fi
+
+      # Pinned to one release, and to the SHA-256 of its linux amd64 archive,
+      # so neither a moved `latest` nor a replaced asset can change the binary
+      # that runs here. The registry's own guide installs from
+      # releases/latest with no check at all.
+      #
+      # The hash is the archive's line in that release's
+      # registry_<version>_checksums.txt, and it matches the digest GitHub's
+      # API reports for the asset. Upstream releases are not marked
+      # immutable, which is why the hash is committed here rather than read
+      # at run time. A committed hash admits exactly one archive, so the job
+      # does not also verify the release's sigstore bundle; that would bring
+      # cosign and the sigstore hosts into a job holding `id-token: write`.
+      #
+      # The version was the one the production registry reported running
+      # (GET /v0.1/version) when it was pinned; the login derives its OIDC
+      # audience from the registry URL, and an old publisher fails with
+      # "invalid audience" after a registry change. Dependabot does not see
+      # this pin: bump the version and the hash together, by hand, from the
+      # new release's checksums file.
+      - name: Install mcp-publisher
+        # Every attempt --retry allows, each cut off by --max-time, plus
+        # curl's backoff between them.
+        timeout-minutes: 5
+        env:
+          MCP_PUBLISHER_VERSION: v1.8.1
+          MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/mcp-publisher"
+          mkdir -p "$dir"
+          curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --max-time 60 \
+            -o "$dir/mcp-publisher.tar.gz" \
+            "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
+          echo "${MCP_PUBLISHER_SHA256}  $dir/mcp-publisher.tar.gz" | sha256sum --check --strict -
+          tar -xzf "$dir/mcp-publisher.tar.gz" -C "$dir" mcp-publisher
+          "$dir/mcp-publisher" --version
+
+      # Logs in with GitHub OIDC and publishes, retrying while npm catches up
+      # with the release, and exits 0 if the registry already has the
+      # version. The policy and its reasons are in the script.
+      - name: Publish
+        run: |
+          node scripts/mcp-registry-publish.mjs publish \
+            --server-json bestax-mcp/server.json \
+            --publisher "$RUNNER_TEMP/mcp-publisher/mcp-publisher"

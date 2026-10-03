@@ -5,6 +5,9 @@ export type HourFormat = '12' | '24';
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+/** The unit a date picker selects: a day, a month or a year. */
+export type DateGranularity = 'day' | 'month' | 'year';
+
 /**
  * Translatable strings used across all four pickers. Pass via the `labels`
  * prop to override defaults; consumers manage their own locale-driven mapping.
@@ -13,7 +16,15 @@ export interface PickerLabels {
   // Calendar
   prevMonth?: string;
   nextMonth?: string;
+  /** Month grid header: steps back a year. */
+  prevYear?: string;
+  /** Month grid header: steps forward a year. */
+  nextYear?: string;
   chooseDate?: string;
+  /** Launcher and popover name when the picker selects a month. */
+  chooseMonth?: string;
+  /** Launcher, popover and year list name when the picker selects a year. */
+  chooseYear?: string;
   // Time spinner
   hours?: string;
   minutes?: string;
@@ -45,7 +56,11 @@ export interface PickerLabels {
 export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   prevMonth: 'Previous month',
   nextMonth: 'Next month',
+  prevYear: 'Previous year',
+  nextYear: 'Next year',
   chooseDate: 'Choose date',
+  chooseMonth: 'Choose month',
+  chooseYear: 'Choose year',
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',

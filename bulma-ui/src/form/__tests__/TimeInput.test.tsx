@@ -913,8 +913,6 @@ describe('TimeInput segmented input entry', () => {
   });
 
   it('Enter does not commit in segment mode (already live) but respects closeOnSelect', () => {
-    // openOnFocus=false avoids the focus-trap loop where closing the popover
-    // returns focus to the input, which would otherwise reopen on focus.
     const { getByRole, getByLabelText, queryByRole } = render(
       <TimeInput defaultValue={at(13, 45)} closeOnSelect openOnFocus={false} />
     );
@@ -1521,5 +1519,96 @@ describe('TimeInput color on the wheels (#701)', () => {
         /\bis-(primary|link|info|success|warning|danger)\b/
       );
     }
+  });
+});
+
+describe('TimeInput focus handed back on close', () => {
+  // The popover's focus trap returns focus to the input as it closes. With
+  // openOnFocus (the default) that focus must not open the popover again.
+  const openByFocus = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+  };
+  const pressEscape = () => {
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    });
+  };
+
+  it('Escape closes it and leaves focus on the input', () => {
+    const onOpen = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <TimeInput defaultValue={at(9, 30)} onOpen={onOpen} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    // The trap moved focus into the popover.
+    expect(input).not.toHaveFocus();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('a footer button closes it the same way', () => {
+    const { getByRole, getByText, queryByRole } = render(
+      <TimeInput defaultValue={at(9, 30)} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    act(() => {
+      fireEvent.click(getByText('OK'));
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+  });
+
+  it('a click outside closes it for good', () => {
+    const { getByRole, queryByRole } = render(
+      <>
+        <TimeInput defaultValue={at(9, 30)} />
+        <button>Elsewhere</button>
+      </>
+    );
+    openByFocus(getByRole('combobox'));
+    const elsewhere = getByRole('button', { name: 'Elsewhere' });
+    // The popover closes on pointerdown, before the browser moves focus to
+    // what was clicked, so focus is handed back to the input first.
+    act(() => {
+      fireEvent.pointerDown(elsewhere);
+    });
+    act(() => {
+      elsewhere.focus();
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(elsewhere).toHaveFocus();
+  });
+
+  it('opens again when the user comes back to the input', () => {
+    const { getByRole, queryByRole } = render(
+      <>
+        <TimeInput defaultValue={at(9, 30)} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+
+    // A click on the input focus is already on.
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+
+    // Leaving and coming back.
+    act(() => {
+      getByRole('button', { name: 'Elsewhere' }).focus();
+    });
+    openByFocus(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
   });
 });

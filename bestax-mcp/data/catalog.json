@@ -64,6 +64,7 @@
         "Navbar",
         "Pagination",
         "Panel",
+        "Popover",
         "Reveal",
         "Sidebar",
         "Steps",
@@ -310,7 +311,7 @@
       "import": "import { Collapse } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 12,
-      "exampleCount": 7
+      "exampleCount": 6
     },
     {
       "name": "Collapses",
@@ -397,8 +398,8 @@
       "slug": "form/datetime/dateinput",
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 52,
-      "exampleCount": 38
+      "propCount": 53,
+      "exampleCount": 41
     },
     {
       "name": "DateTimeInput",
@@ -762,6 +763,17 @@
       "compound": false,
       "propCount": 4,
       "exampleCount": 10
+    },
+    {
+      "name": "Popover",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `Popover` component opens a panel of interactive content, such as a filter form or a set of share options, anchored to the element that toggles it.",
+      "slug": "components/popover",
+      "import": "import { Popover } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 33,
+      "exampleCount": 8
     },
     {
       "name": "Portal",
@@ -1727,6 +1739,22 @@
     "--bulma-picker-popover-radius": "TimeInput",
     "--bulma-picker-popover-shadow": "TimeInput",
     "--bulma-picker-popover-z-index": "TimeInput",
+    "--bulma-popover-animation-duration": "Popover",
+    "--bulma-popover-background": "Popover",
+    "--bulma-popover-body-padding": "Popover",
+    "--bulma-popover-border-color": "Popover",
+    "--bulma-popover-color": "Popover",
+    "--bulma-popover-footer-gap": "Popover",
+    "--bulma-popover-footer-padding": "Popover",
+    "--bulma-popover-header-color": "Popover",
+    "--bulma-popover-header-padding": "Popover",
+    "--bulma-popover-header-weight": "Popover",
+    "--bulma-popover-max-width": "Popover",
+    "--bulma-popover-min-width": "Popover",
+    "--bulma-popover-offset": "Popover",
+    "--bulma-popover-radius": "Popover",
+    "--bulma-popover-shadow": "Popover",
+    "--bulma-popover-z-index": "Popover",
     "--bulma-pre-code-font-size": "Pre",
     "--bulma-pre-font-size": "Pre",
     "--bulma-pre-padding": "Pre",

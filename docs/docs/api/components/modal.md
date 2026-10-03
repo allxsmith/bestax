@@ -22,7 +22,7 @@ The Modal component supports two APIs:
 - **Compound Components API**: Use `Modal.Background`, `Modal.Card`, `Modal.Content`, and `Modal.Close` for full control and better readability
 
 :::info
-Use `Modal` for forms or custom popover content — an empty overlay you build the contents of. For a ready-made confirm or alert, use [`Dialog`](./dialog.md) instead. `Modal` supports card-style layouts (header/body/footer) or arbitrary content modals.
+Use `Modal` for forms or custom content — an empty overlay you build the contents of. For a ready-made confirm or alert, use [`Dialog`](./dialog.md) instead. For a panel anchored to the button that opens it, use [`Popover`](./popover.md). `Modal` supports card-style layouts (header/body/footer) or arbitrary content modals.
 :::
 
 ---
@@ -130,7 +130,7 @@ function example() {
 
 ### Modal Content (no card title or footer)
 
-Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for popovers, custom layouts, or when you want full control over the modal's appearance.
+Omit both `modalCardTitle` and `modalCardFoot` to render a modal with only custom content. This is ideal for custom layouts, or when you want full control over the modal's appearance.
 
 ```tsx live
 function example() {
@@ -365,6 +365,7 @@ Always provide an `onClose` handler for accessibility and to allow users to dism
 ## Related Components
 
 - [`Dialog`](./dialog.md): Confirm/alert — use this unless you need arbitrary modal content.
+- [`Popover`](./popover.md): A non-modal panel anchored to its trigger, for content that shouldn't block the page.
 - [`Button`](../elements/button.md): Use for actions in modal footers.
 - [`Field`](../form/field.md), [`Input`](../form/input.md): For forms inside modals.
 - [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.

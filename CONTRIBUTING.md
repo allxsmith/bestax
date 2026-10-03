@@ -101,6 +101,12 @@ is not your PR's fault, and this is the way out:
 4. Run `pnpm install`, confirm `pnpm audit --audit-level=high` is clean, and commit the lockfile
    with it.
 
+When the advisory has no patched release at all (GitHub's `first_patched_version` is null and npm's
+latest is still in the vulnerable range), there is nothing for an override to force. Add the GHSA
+to `auditConfig.ignoreGhsas` instead, with the same review-date marker, and say in the comment above
+it how the package reaches this tree and why that exposure is acceptable, as the existing entries
+do. Remove the entry once a fix publishes.
+
 Every bypass is temporary by construction, so `pnpm check:conformance --only=bypass-expiry` fails
 the build if an entry has no annotation, and fails again once a review date arrives — that is your
 reminder to drop it, re-resolve, and leave it out if nothing changed. A standing policy that is not
@@ -389,6 +395,8 @@ For this to work, each published package must have a trusted publisher configure
 - Workflow: `ci.yml`
 
 The CI `publish` job grants `id-token: write`. It no longer pins an npm version: that pin existed because `npm publish` needed npm >= 11.5.1 for OIDC, and since #532 every package publishes with `pnpm publish`, which carries its own OIDC exchange.
+
+`bestax-mcp`'s listing in the official MCP Registry is published by a different workflow, `mcp-registry.yml`, from each `bestax-mcp@` GitHub release. Do **not** add that workflow as a trusted publisher on npm. It runs a third-party binary while holding `id-token: write`, and npm refusing that workflow's tokens is what keeps the binary away from npm. It needs no secret: the registry accepts its GitHub OIDC token for the `io.github.allxsmith` namespace.
 
 ---
 
