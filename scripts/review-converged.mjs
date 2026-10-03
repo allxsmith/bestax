@@ -13,14 +13,31 @@
  * converged when all of these hold:
  *
  * 1. Its newest deep-review summary (a review by the claude[bot] app that
- *    starts with the marker) was posted for the current head commit and
- *    leaves nothing open: a fresh review reporting `0 blocking`, or a verify
- *    pass reporting `0 open`.
- * 2. Every review thread on the PR is resolved.
- * 3. Every check run and commit status on the head commit finished as success,
+ *    starts with the marker) is pinned to the current head commit and leaves
+ *    nothing open: a fresh review reporting `0 blocking`, or a verify pass
+ *    reporting `0 open`.
+ * 2. A fresh review stands behind the head. A verify pass settles the threads
+ *    an earlier review left and reviews no commits, so on its own it proves
+ *    nothing about the code, even though its summary is pinned to the head.
+ *    Take the newest fresh summary:
+ *    - If it reports `0 blocking`, it must be pinned to the head commit.
+ *      Otherwise commits pushed since it would count as reviewed when nothing
+ *      reviewed them.
+ *    - If it reports blocking findings, the verify passes after it must have
+ *      resolved at least that many between them. Those findings are inline
+ *      threads, and condition 3 already needs every thread resolved, so this
+ *      count is the cross-check for a finding that never became a thread,
+ *      which no verify pass can see. Its cost: a thread someone resolves by
+ *      hand is in no verify count, so it holds the label back until a fresh
+ *      review. Commits pushed alongside the fixes ride on those verify passes,
+ *      which re-checked only the code their threads point at.
+ *    A summary between it and the newest that does not parse fails closed,
+ *    since it may have been a fresh review with blocking findings.
+ * 3. Every review thread on the PR is resolved.
+ * 4. Every check run and commit status on the head commit finished as success,
  *    neutral or skipped, and there is at least one. The check run this
  *    workflow creates is left out so it cannot hold itself back.
- * 4. The PR does not carry `needs-security-review`.
+ * 5. The PR does not carry `needs-security-review`.
  *
  * Converged without the label adds it. Not converged with the label removes
  * it. Everything else is left alone, and that includes every PR out of scope.
@@ -145,28 +162,30 @@ export function isDeepReviewAuthor(user) {
 }
 
 /**
- * The newest deep-review summary in a PR's reviews, or null. A summary is a
- * review by the app whose body contains the marker anywhere. parseSummary
- * then requires the marker on the first line, so a newest review that only
- * quotes it reads as unparseable instead of letting an older one decide.
+ * The deep-review summaries in a PR's reviews, oldest first. A summary is a
+ * review by the app whose body contains the marker anywhere. parseSummary then
+ * requires the marker on the first line, so a review that only quotes it reads
+ * as unparseable instead of being skipped.
  */
-export function newestSummary(reviews) {
-  let newest = null;
+export function summaries(reviews) {
+  const found = [];
   for (const review of reviews ?? []) {
     if (!isDeepReviewAuthor(review?.user)) continue;
     if (typeof review.body !== 'string' || !review.body.includes(MARKER))
       continue;
     // A pending review has no submitted_at and is not visible to us anyway.
     const at = Date.parse(review.submitted_at ?? '');
-    if (!Number.isFinite(at)) continue;
-    if (
-      !newest ||
-      at > newest.at ||
-      (at === newest.at && review.id > newest.review.id)
-    )
-      newest = { review, at };
+    if (Number.isFinite(at)) found.push({ review, at });
   }
-  return newest?.review ?? null;
+  // Same second: the higher id is the later review. A missing id compares as
+  // NaN, which sort treats as equal, so the API's own order stands.
+  found.sort((a, b) => a.at - b.at || a.review.id - b.review.id);
+  return found.map(entry => entry.review);
+}
+
+/** The newest deep-review summary, or null. */
+export function newestSummary(reviews) {
+  return summaries(reviews).at(-1) ?? null;
 }
 
 /**
@@ -293,6 +312,42 @@ export function checkProblems(checkRuns, statuses) {
   return problems;
 }
 
+/**
+ * Condition 2 in the header: what stops the newest fresh review from standing
+ * behind the head. `found` is summaries() with each one parsed, oldest first.
+ * When the newest fresh summary is also the newest summary, condition 1 has
+ * already judged it and this adds nothing.
+ */
+function freshProblems(found, head) {
+  let at = found.length - 1;
+  while (at >= 0 && found[at].parsed.kind !== 'fresh') at--;
+  if (at === -1)
+    return ['no fresh deep review, and a verify pass reviews no code'];
+  const after = found.slice(at + 1);
+  if (!after.length) return [];
+  const problems = [];
+  // The newest summary's own parse is condition 1's to report.
+  if (after.slice(0, -1).some(entry => entry.parsed.kind === 'unparseable'))
+    problems.push('a summary after the newest fresh review did not parse');
+  const { review, parsed } = found[at];
+  const resolved = after.reduce(
+    (sum, entry) =>
+      sum + (entry.parsed.kind === 'verify' ? entry.parsed.resolved : 0),
+    0
+  );
+  if (parsed.blocking === 0 && review.commit_id !== head)
+    problems.push(
+      `the newest fresh review is for ${shortSha(review.commit_id)}, and ` +
+        'no fresh review covers the commits since'
+    );
+  else if (parsed.blocking > resolved)
+    problems.push(
+      `the newest fresh review reports ${parsed.blocking} blocking and the ` +
+        `verify passes since resolved ${resolved}`
+    );
+  return problems;
+}
+
 /** Every reason an in-scope PR has not converged. Empty means converged. */
 export function convergenceProblems({
   pr,
@@ -303,21 +358,26 @@ export function convergenceProblems({
 }) {
   const problems = [];
   const head = pr?.head?.sha;
-  const summary = newestSummary(reviews);
-  if (!summary) problems.push('no deep-review summary');
+  const found = summaries(reviews).map(review => ({
+    review,
+    parsed: parseSummary(review.body),
+  }));
+  const newest = found.at(-1);
+  if (!newest) problems.push('no deep-review summary');
   else {
-    if (!SHA_RE.test(head ?? '') || summary.commit_id !== head)
+    const { review, parsed } = newest;
+    if (!SHA_RE.test(head ?? '') || review.commit_id !== head)
       problems.push(
-        `the newest summary is for ${shortSha(summary.commit_id)}, ` +
+        `the newest summary is for ${shortSha(review.commit_id)}, ` +
           `not the head ${shortSha(head)}`
       );
-    const parsed = parseSummary(summary.body);
     if (parsed.kind === 'unparseable')
       problems.push(`the newest summary did not parse: ${parsed.why}`);
     else if (parsed.kind === 'fresh' && parsed.blocking > 0)
       problems.push(`the newest summary reports ${parsed.blocking} blocking`);
     else if (parsed.kind === 'verify' && parsed.open > 0)
       problems.push(`the newest summary leaves ${parsed.open} open`);
+    problems.push(...freshProblems(found, head));
   }
   // A thread with no isResolved field counts as open.
   const unresolved = (threads ?? []).filter(t => t?.isResolved !== true);

@@ -82,6 +82,12 @@ function summary(body, overrides = {}) {
 const FRESH_CLEAN = `${MARKER}\n## Deep review — 0 blocking · 5 advisory\n\n| # |`;
 const VERIFY_CLEAN = `${MARKER}\n\n## Deep review (verify) — 2 resolved · 0 open\n`;
 
+/** A clean fresh review on the head, posted before the summary() default. */
+const EARLIER = summary(FRESH_CLEAN, {
+  id: 1,
+  submitted_at: '2026-10-03T10:00:00Z',
+});
+
 const GREEN_RUN = {
   name: 'Build and Test',
   status: 'completed',
@@ -417,12 +423,8 @@ test('check names reach the problem text escaped', () => {
 // Convergence and the decision
 // ---------------------------------------------------------------------------
 
-test('a clean fresh review or a clean verify pass on the head converges', () => {
+test('a clean fresh review on the head converges', () => {
   assert.deepEqual(convergenceProblems(converged()), []);
-  assert.deepEqual(
-    convergenceProblems(converged({ reviews: [summary(VERIFY_CLEAN)] })),
-    []
-  );
   assert.deepEqual(convergenceProblems(converged({ threads: [] })), []);
 });
 
@@ -455,13 +457,14 @@ test('each condition on its own stops convergence', () => {
     [
       {
         reviews: [
+          EARLIER,
           summary(`${MARKER}\n## Deep review (verify) — 0 resolved · 2 open`),
         ],
       },
       /leaves 2 open/,
     ],
     [
-      { reviews: [summary(`${MARKER}\nsomething else`)] },
+      { reviews: [EARLIER, summary(`${MARKER}\nsomething else`)] },
       /did not parse: its heading matches neither shape/,
     ],
     [{ threads: [{ isResolved: false }, {}] }, /^2 unresolved review thread/],
@@ -494,6 +497,152 @@ test('a newer summary that does not parse is not covered by an older one', () =>
   assert.deepEqual(problems, [
     'the newest summary did not parse: the marker is not its first line',
   ]);
+});
+
+// ---------------------------------------------------------------------------
+// The fresh review behind the head
+// ---------------------------------------------------------------------------
+
+/** A summary posted at the given minute, so the order is explicit. */
+const posted = (body, minute, overrides = {}) =>
+  summary(body, {
+    id: minute,
+    submitted_at: `2026-10-03T11:${String(minute).padStart(2, '0')}:00Z`,
+    ...overrides,
+  });
+const freshWith = (blocking, advisory = 0) =>
+  `${MARKER}\n## Deep review — ${blocking} blocking · ${advisory} advisory`;
+const verifyWith = (resolved, open) =>
+  `${MARKER}\n## Deep review (verify) — ${resolved} resolved · ${open} open`;
+const problemsFor = reviews => convergenceProblems(converged({ reviews }));
+const NO_FRESH = 'no fresh deep review, and a verify pass reviews no code';
+
+test('a verify pass alone does not converge', () => {
+  assert.deepEqual(problemsFor([posted(verifyWith(0, 0), 1)]), [NO_FRESH]);
+  // A summary that does not parse is not a fresh review either.
+  assert.deepEqual(
+    problemsFor([
+      posted(`${MARKER}\nsomething`, 1),
+      posted(verifyWith(0, 0), 2),
+    ]),
+    [NO_FRESH]
+  );
+});
+
+test('a clean fresh review then a verify pass on the same head converges', () => {
+  assert.deepEqual(
+    problemsFor([posted(freshWith(0, 3), 1), posted(verifyWith(0, 0), 2)]),
+    []
+  );
+});
+
+test('commits pushed after a clean fresh review need another fresh review', () => {
+  // Re-applying deep-review after a push runs a verify pass, pinned to the
+  // new head, that reviewed none of the new commits.
+  const stale = posted(freshWith(0), 1, { commit_id: OLD });
+  assert.deepEqual(problemsFor([stale, posted(verifyWith(0, 0), 2)]), [
+    'the newest fresh review is for bbbbbbb, and no fresh review covers ' +
+      'the commits since',
+  ]);
+  // A fresh review of the new head clears it.
+  assert.deepEqual(
+    problemsFor([stale, posted(verifyWith(0, 0), 2), posted(freshWith(0), 3)]),
+    []
+  );
+});
+
+test('blocking findings converge once verify passes resolve them and every thread is resolved', () => {
+  // The fixes moved the head, and the verify pass on the new head resolved
+  // both findings.
+  const fresh = posted(freshWith(2, 1), 1, { commit_id: OLD });
+  assert.deepEqual(problemsFor([fresh, posted(verifyWith(2, 0), 2)]), []);
+  // Resolved across more than one pass counts the same.
+  assert.deepEqual(
+    problemsFor([
+      fresh,
+      posted(verifyWith(1, 1), 2, { commit_id: OLD }),
+      posted(verifyWith(1, 0), 3),
+    ]),
+    []
+  );
+  // An open thread holds it back whatever the summaries say.
+  assert.deepEqual(
+    convergenceProblems(
+      converged({
+        reviews: [fresh, posted(verifyWith(2, 0), 2)],
+        threads: [{ isResolved: true }, { isResolved: false }],
+      })
+    ),
+    ['1 unresolved review thread(s)']
+  );
+  // Fewer resolved than the fresh review counted leaves a finding no thread
+  // carries, and no verify pass can see that one.
+  for (const resolved of [0, 1]) {
+    assert.deepEqual(problemsFor([fresh, posted(verifyWith(resolved, 0), 2)]), [
+      'the newest fresh review reports 2 blocking and the verify passes ' +
+        `since resolved ${resolved}`,
+    ]);
+  }
+});
+
+test('the newest fresh review decides, and only verify passes after it count', () => {
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(0), 1),
+      posted(freshWith(1), 2),
+      posted(verifyWith(0, 0), 3),
+    ]),
+    [
+      'the newest fresh review reports 1 blocking and the verify passes ' +
+        'since resolved 0',
+    ]
+  );
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(1), 1),
+      posted(verifyWith(1, 0), 2),
+      posted(freshWith(1), 3),
+      posted(verifyWith(0, 0), 4),
+    ]),
+    [
+      'the newest fresh review reports 1 blocking and the verify passes ' +
+        'since resolved 0',
+    ]
+  );
+});
+
+test('a fresh summary from anyone but the app is ignored', () => {
+  const human = { login: 'claude', type: 'User' };
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(0), 1, { user: human }),
+      posted(verifyWith(0, 0), 2),
+    ]),
+    [NO_FRESH]
+  );
+  // Nor can one stand in for a genuine fresh review with findings.
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(2), 1),
+      posted(freshWith(0), 2, { user: human }),
+      posted(verifyWith(0, 0), 3),
+    ]),
+    [
+      'the newest fresh review reports 2 blocking and the verify passes ' +
+        'since resolved 0',
+    ]
+  );
+});
+
+test('a summary that does not parse after the newest fresh review fails closed', () => {
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(0), 1),
+      posted(`${MARKER}\n## Deep review — lots`, 2),
+      posted(verifyWith(0, 0), 3),
+    ]),
+    ['a summary after the newest fresh review did not parse']
+  );
 });
 
 test('planAction only writes when the label disagrees', () => {
