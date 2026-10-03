@@ -41,9 +41,10 @@
  *    A summary between it and the newest that does not parse fails closed,
  *    since it may have been a fresh review with blocking findings.
  * 3. Every review thread on the PR is resolved.
- * 4. Every check run and commit status on the head commit finished as success,
- *    neutral or skipped, and there is at least one. The check run this
- *    workflow creates is left out so it cannot hold itself back.
+ * 4. On the head commit, the newest check run per app and name (latestRuns)
+ *    and the newest status per context finished as success, neutral or
+ *    skipped, and there is at least one. The check run this workflow creates
+ *    is left out so it cannot hold itself back.
  * 5. The PR does not carry `needs-security-review`.
  *
  * Converged without the label adds it. Not converged with the label removes
@@ -285,9 +286,52 @@ export function scopeOf(pr, repo, defaultBranch) {
   return null;
 }
 
-/** True for a check run this workflow created. */
+/**
+ * True for a check run this workflow created. workflow_run, schedule and a
+ * dispatch from main run on the default branch's commit, so theirs never
+ * reach a PR head. A dispatch started from a PR's own branch runs on that
+ * branch's tip, so this job's check run sits on the head, still running,
+ * while the script judges it.
+ */
 function isOwnCheck(run) {
   return run?.name === OWN_CHECK_NAME && run?.app?.slug === 'github-actions';
+}
+
+/**
+ * The newest check run per app and name. A commit keeps the check runs of
+ * every workflow run on it, so one that a later run of the same workflow
+ * replaced is still listed: cancelling a deep review and toggling the label
+ * leaves a cancelled `review` beside the fresh one. Newest is the latest
+ * started_at, then the higher id.
+ *
+ * A check run does not name its workflow, and some job names are shared
+ * between workflows, so one key can hold runs of more than one workflow. A
+ * skipped run therefore wins only when every run under its key was skipped,
+ * so a same-named job skipped on a later event cannot hide a failure. A newer
+ * same-named job that ran still decides.
+ */
+export function latestRuns(checkRuns) {
+  const byKey = new Map();
+  for (const run of checkRuns ?? []) {
+    const key = JSON.stringify([
+      String(run?.app?.slug ?? ''),
+      String(run?.name ?? ''),
+    ]);
+    const rank = [
+      run?.conclusion === 'skipped' ? 0 : 1,
+      Date.parse(run?.started_at ?? '') || 0,
+      run?.id ?? 0,
+    ];
+    const prev = byKey.get(key);
+    if (!prev || outranks(rank, prev.rank)) byKey.set(key, { run, rank });
+  }
+  return [...byKey.values()].map(entry => entry.run);
+}
+
+/** True when rank `a` is greater than `b`, comparing in order. */
+function outranks(a, b) {
+  const at = a.findIndex((value, i) => value !== b[i]);
+  return at !== -1 && a[at] > b[at];
 }
 
 /**
@@ -314,7 +358,7 @@ export function latestStatuses(statuses) {
 /** Everything about the head commit's checks that stops convergence. */
 export function checkProblems(checkRuns, statuses) {
   const problems = [];
-  const runs = (checkRuns ?? []).filter(run => !isOwnCheck(run));
+  const runs = latestRuns((checkRuns ?? []).filter(run => !isOwnCheck(run)));
   for (const run of runs) {
     if (run?.status !== 'completed')
       problems.push(`check ${forLog(run?.name)} is ${forLog(run?.status)}`);
