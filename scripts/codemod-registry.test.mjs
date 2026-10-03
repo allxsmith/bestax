@@ -339,6 +339,24 @@ test('a workflow that pins nothing, or no workflow at all, is refused', () => {
   assert.match(problemsOf(pkg).join('\n'), /no workflow file/);
 });
 
+test('every run line must carry the pin, not just the file', () => {
+  const pkg = fixture();
+  const pinned = pkg.texts[1][1];
+  // A second, unpinned step would resolve latest on the user's machine.
+  pkg.texts[1][1] = `run: npx --yes bestax-migrate --version\n${pinned}`;
+  assert.match(
+    problemsOf(pkg).join('\n'),
+    /workflows\/preview\.yaml runs no pinned release: every "run:" line/
+  );
+  // A pin in a comment does not count for a run line without one.
+  pkg.texts[1][1] =
+    '# bestax-migrate@2.0.0\nrun: npx --yes bestax-migrate x --dry';
+  assert.match(problemsOf(pkg).join('\n'), /preview\.yaml runs no pinned/);
+  // A block scalar cannot be read line by line, so it is refused.
+  pkg.texts[1][1] = 'run: |\n  npx --yes bestax-migrate@2.0.0 x --dry';
+  assert.match(problemsOf(pkg).join('\n'), /preview\.yaml runs no pinned/);
+});
+
 test('a value read from a file cannot add a line to the output', () => {
   // `check` prints problems as ::error:: commands, so a newline from a file
   // would start a workflow command of its own.
