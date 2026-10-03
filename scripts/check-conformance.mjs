@@ -29,9 +29,10 @@
  *   skills-roster        every skill directory under skills/ is named in each
  *                        hand-maintained roster (README, docs, the scaffolded
  *                        CLAUDE.md), and no roster names one that is gone
- *                        (#540), and the generated skills-only plugin
- *                        manifest matches the root one. Distinct from
- *                        skills-sync above.
+ *                        (#540), and the generated plugin manifests
+ *                        (skills/.claude-plugin/plugin.json, the root
+ *                        plugin.json) match .claude-plugin/plugin.json.
+ *                        Distinct from skills-sync above.
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
@@ -114,6 +115,8 @@ import {
   renderInstallBlock,
   SKILLS_PLUGIN,
   renderSkillsPluginManifest,
+  AGENT_PLUGIN,
+  renderAgentPluginManifest,
 } from './gen-skills-rosters.mjs';
 import {
   ORDERED_CATEGORIES,
@@ -3470,10 +3473,11 @@ export function frontmatterNameViolations(entries) {
 }
 
 /**
- * `skills/.claude-plugin/plugin.json` is generated from the root plugin
- * manifest (SKILLS_PLUGIN in gen-skills-rosters.mjs). Compared as parsed JSON,
- * so key order and formatting are not this check's concern. Pure, taking the
- * two file texts (undefined when unreadable), so fixtures reach every branch.
+ * `skills/.claude-plugin/plugin.json` is generated from the Claude manifest,
+ * `.claude-plugin/plugin.json` (SKILLS_PLUGIN in gen-skills-rosters.mjs).
+ * Compared as parsed JSON, so key order and formatting are not this check's
+ * concern. Pure, taking the two file texts (undefined when unreadable), so
+ * fixtures reach every branch.
  */
 export function skillsPluginManifestViolations(rootText, skillsText) {
   const { source, target } = SKILLS_PLUGIN;
@@ -3501,6 +3505,53 @@ export function skillsPluginManifestViolations(rootText, skillsText) {
   return isDeepStrictEqual(skills, renderSkillsPluginManifest(root))
     ? []
     : [`${target}: is stale against ${source}. Run pnpm gen:skills.`];
+}
+
+/**
+ * The root Agent Plugins `plugin.json` is generated from the Claude manifest
+ * (AGENT_PLUGIN in gen-skills-rosters.mjs), except `version`, which a person
+ * owns. So every other field must match, and `version` must at least be a
+ * semantic version, which Kiro and the catalogs that pin one require.
+ */
+export function agentPluginManifestViolations(rootText, agentText) {
+  const { source } = SKILLS_PLUGIN;
+  const { target } = AGENT_PLUGIN;
+  const parse = text => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return undefined;
+    }
+  };
+  if (typeof rootText !== 'string') {
+    return [`${source}: could not be read, so ${target} went unchecked.`];
+  }
+  const root = parse(rootText);
+  if (root === undefined) {
+    return [`${source}: is not valid JSON, so ${target} went unchecked.`];
+  }
+  if (typeof agentText !== 'string') {
+    return [`${target}: missing. Run pnpm gen:skills.`];
+  }
+  const agent = parse(agentText);
+  if (agent === undefined) {
+    return [`${target}: is not valid JSON. Run pnpm gen:skills.`];
+  }
+  const violations = [];
+  if (!/^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/.test(agent.version ?? '')) {
+    violations.push(
+      `${target}: "version" must be a semantic version such as 1.0.0, ` +
+        `not ${JSON.stringify(agent.version)}.`
+    );
+  }
+  if (
+    !isDeepStrictEqual(agent, renderAgentPluginManifest(root, agent.version))
+  ) {
+    violations.push(
+      `${target}: is stale against ${source}. Run pnpm gen:skills.`
+    );
+  }
+  return violations;
 }
 
 function skillFrontmatterName(text) {
@@ -3601,10 +3652,15 @@ async function checkSkillsRoster() {
 
   const readOrUndefined = rel =>
     readFile(join(REPO, rel), 'utf8').catch(() => undefined);
+  const rootManifest = await readOrUndefined(SKILLS_PLUGIN.source);
   violations.push(
     ...skillsPluginManifestViolations(
-      await readOrUndefined(SKILLS_PLUGIN.source),
+      rootManifest,
       await readOrUndefined(SKILLS_PLUGIN.target)
+    ),
+    ...agentPluginManifestViolations(
+      rootManifest,
+      await readOrUndefined(AGENT_PLUGIN.target)
     )
   );
 

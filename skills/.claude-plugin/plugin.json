@@ -5,6 +5,6 @@
   "homepage": "https://bestax.io/docs/guides/llms",
   "repository": "https://github.com/allxsmith/bestax",
   "license": "MIT",
-  "keywords": ["bestax", "bulma", "react", "components", "skills"],
+  "keywords": ["bestax", "bestax-bulma", "bulma"],
   "skills": "./"
 }

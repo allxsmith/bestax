@@ -26,6 +26,7 @@ import {
   skillsPageViolations,
   frontmatterNameViolations,
   skillsPluginManifestViolations,
+  agentPluginManifestViolations,
 } from './check-conformance.mjs';
 import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
 
@@ -594,7 +595,7 @@ test('the skills-only plugin manifest is fresh on the real tree', async () => {
   );
 });
 
-test('the skills-only manifest is the root one without its MCP server', async () => {
+test('the skills-only manifest is the Claude one without its MCP server', async () => {
   const { SKILLS_PLUGIN, renderSkillsPluginManifest } =
     await import('./gen-skills-rosters.mjs');
   const out = renderSkillsPluginManifest({
@@ -610,7 +611,7 @@ test('the skills-only manifest is the root one without its MCP server', async ()
     description: SKILLS_PLUGIN.description,
     author: { name: 'A' },
     license: 'MIT',
-    keywords: ['demo'],
+    keywords: ['demo', 'mcp'],
     skills: './',
   });
 });
@@ -645,6 +646,97 @@ test('a missing, unparseable or stale skills-only manifest is caught', async () 
     reordered,
     /is stale against/
   );
+});
+
+// --- the generated root Agent Plugins manifest ---------------------------------
+
+test('the root Agent Plugins manifest is fresh on the real tree', async () => {
+  const { SKILLS_PLUGIN, AGENT_PLUGIN } =
+    await import('./gen-skills-rosters.mjs');
+  assert.deepEqual(
+    agentPluginManifestViolations(
+      repoFile(SKILLS_PLUGIN.source),
+      repoFile(AGENT_PLUGIN.target)
+    ),
+    []
+  );
+});
+
+test('the root manifest is the Claude one plus $schema and a kept version', async () => {
+  const { AGENT_PLUGIN, renderAgentPluginManifest } =
+    await import('./gen-skills-rosters.mjs');
+  assert.deepEqual(
+    renderAgentPluginManifest(
+      { name: 'demo', description: 'd', mcpServers: './mcp.json' },
+      '2.3.4'
+    ),
+    {
+      $schema: AGENT_PLUGIN.schema,
+      name: 'demo',
+      version: '2.3.4',
+      description: 'd',
+      mcpServers: './mcp.json',
+    }
+  );
+});
+
+test('a missing, unparseable, stale or unversioned root manifest is caught', async () => {
+  const { SKILLS_PLUGIN, renderAgentPluginManifest } =
+    await import('./gen-skills-rosters.mjs');
+  const root = repoFile(SKILLS_PLUGIN.source);
+  const fresh = renderAgentPluginManifest(JSON.parse(root), '1.4.0');
+  // The version is the person's: any semantic version is fresh.
+  assert.deepEqual(
+    agentPluginManifestViolations(root, JSON.stringify(fresh)),
+    []
+  );
+
+  const only = (rootText, agentText, re) => {
+    const found = agentPluginManifestViolations(rootText, agentText);
+    assert.equal(found.length, 1, found.join('\n'));
+    assert.match(found[0], re);
+  };
+  only(root, undefined, /missing\. Run pnpm gen:skills/);
+  only(root, '[', /not valid JSON\. Run pnpm gen:skills/);
+  only(undefined, JSON.stringify(fresh), /could not be read/);
+  only('{', JSON.stringify(fresh), /went unchecked/);
+  only(
+    root,
+    JSON.stringify({ ...fresh, keywords: ['hand-edited'] }),
+    /is stale against/
+  );
+  only(
+    root,
+    JSON.stringify({ ...fresh, version: 'next' }),
+    /must be a semantic version/
+  );
+  const { version: _dropped, ...unversioned } = fresh;
+  only(root, JSON.stringify(unversioned), /must be a semantic version/);
+});
+
+test('pluginManifests keeps the committed version, and starts at 1.0.0 without one', async t => {
+  const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { AGENT_PLUGIN, SKILLS_PLUGIN, pluginManifests } =
+    await import('./gen-skills-rosters.mjs');
+
+  const real = Object.fromEntries(await pluginManifests());
+  assert.equal(
+    real[AGENT_PLUGIN.target].version,
+    JSON.parse(repoFile(AGENT_PLUGIN.target)).version
+  );
+  assert.equal(real[SKILLS_PLUGIN.target].skills, './');
+
+  const dir = await mkdtemp(join(tmpdir(), 'bestax-plugin-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await mkdir(join(dir, '.claude-plugin'));
+  await writeFile(
+    join(dir, SKILLS_PLUGIN.source),
+    JSON.stringify({ name: 'demo' })
+  );
+  const fresh = Object.fromEntries(await pluginManifests(dir));
+  assert.equal(fresh[AGENT_PLUGIN.target].version, AGENT_PLUGIN.firstVersion);
 });
 
 test('renderInstallBlock is a pure function of its inputs, order preserved', async () => {

@@ -160,6 +160,14 @@ It starts the server with the same `npx -y bestax-mcp@1` command as the setup ab
 skip `claude mcp add` when you use it. It has no hooks or commands of its own. Run
 `/plugin marketplace update bestax` to pick up skill changes.
 
+Other agents read the same plugin from the repository:
+
+```bash
+codex plugin marketplace add allxsmith/bestax
+copilot plugin install allxsmith/bestax
+grok plugin install allxsmith/bestax --trust
+```
+
 ## Contributing
 
 Found the LLM docs unclear, incomplete, or wrong for your agent? Please

@@ -33,9 +33,9 @@
  * quietly emits nothing while every gate stays green is the failure mode that
  * hid LinkButton's CSS variables for months (#464).
  *
- * It also writes `skills/.claude-plugin/plugin.json`, which makes `skills/` a
- * skills-only plugin of its own. See SKILLS_PLUGIN below for why that exists
- * and what it is derived from.
+ * It also writes the plugin manifests derived from `.claude-plugin/plugin.json`:
+ * `skills/.claude-plugin/plugin.json` (SKILLS_PLUGIN below) and the root
+ * `plugin.json` (AGENT_PLUGIN below). Each says why it exists.
  */
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
@@ -94,11 +94,11 @@ export function renderInstallBlock(skills, fence) {
  * accepts without review, and its MCP server runs through a ranged `npx` pin,
  * which the directory refuses. This folder is small and runs nothing.
  *
- * Its manifest is the root one minus the MCP server, with `skills` pointed at
- * the folder itself, because the skills sit directly under it. Derived rather
- * than hand-written so the two cannot drift: edit the root manifest and run
- * `pnpm gen:skills`. The skills-roster check compares the parsed JSON, so it
- * needs no prettier.
+ * Its manifest is the Claude manifest minus the MCP server, with `skills`
+ * pointed at the folder itself, because the skills sit directly under it.
+ * Derived rather than hand-written so the two cannot drift: edit
+ * `.claude-plugin/plugin.json` and run `pnpm gen:skills`. The skills-roster
+ * check compares the parsed JSON, so it needs no prettier.
  */
 export const SKILLS_PLUGIN = {
   source: '.claude-plugin/plugin.json',
@@ -119,10 +119,74 @@ export function renderSkillsPluginManifest(root) {
       homepage: root.homepage,
       repository: root.repository,
       license: root.license,
-      keywords: root.keywords?.filter(keyword => keyword !== 'mcp'),
+      keywords: root.keywords,
       skills: './',
     })
   );
+}
+
+/**
+ * The root `plugin.json`, in the vendor-neutral Agent Plugins format. Cursor,
+ * Kiro and the awesome-copilot catalog read only this shape, and Codex,
+ * Copilot CLI, VS Code and Grok Build prefer it over `.claude-plugin/` when
+ * both exist. It is the Claude manifest plus `$schema` and `version`, so it is
+ * derived from that manifest too.
+ *
+ * Two fields are deliberate. `mcpServers` is not in the Agent Plugins schema,
+ * whose clients read `mcp.json` by convention and ignore unknown fields, but
+ * Grok Build reads this file first and finds MCP servers only through that
+ * field. `version` is the one field a person owns: the generator keeps
+ * whatever the committed file says, because it names a plugin release cut for
+ * the catalogs that pin one, and nothing in the repo can infer it.
+ */
+export const AGENT_PLUGIN = {
+  target: 'plugin.json',
+  schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
+  firstVersion: '1.0.0',
+};
+
+export function renderAgentPluginManifest(root, version) {
+  return JSON.parse(
+    JSON.stringify({
+      $schema: AGENT_PLUGIN.schema,
+      name: root.name,
+      version,
+      description: root.description,
+      author: root.author,
+      homepage: root.homepage,
+      repository: root.repository,
+      license: root.license,
+      keywords: root.keywords,
+      mcpServers: root.mcpServers,
+    })
+  );
+}
+
+/**
+ * Every derived plugin manifest as `[repo-relative path, object]`, read from
+ * the Claude manifest and the committed root `plugin.json`'s version. `repo`
+ * is injectable so a test can reach the no-root-manifest-yet branch.
+ */
+export async function pluginManifests(repo = REPO) {
+  const root = JSON.parse(
+    await readFile(join(repo, SKILLS_PLUGIN.source), 'utf8')
+  );
+  const committedVersion = await readFile(
+    join(repo, AGENT_PLUGIN.target),
+    'utf8'
+  )
+    .then(text => JSON.parse(text).version)
+    .catch(() => undefined);
+  return [
+    [SKILLS_PLUGIN.target, renderSkillsPluginManifest(root)],
+    [
+      AGENT_PLUGIN.target,
+      renderAgentPluginManifest(
+        root,
+        committedVersion ?? AGENT_PLUGIN.firstVersion
+      ),
+    ],
+  ];
 }
 
 export async function main() {
@@ -154,19 +218,19 @@ export async function main() {
   }
   process.stdout.write(`Skill install rosters: ${skills.length} skills\n`);
 
-  const root = JSON.parse(
-    await readFile(join(REPO, SKILLS_PLUGIN.source), 'utf8')
-  );
-  const target = join(REPO, SKILLS_PLUGIN.target);
-  const manifest = await prettier.format(
-    JSON.stringify(renderSkillsPluginManifest(root)),
-    { ...(await prettier.resolveConfig(target)), filepath: target }
-  );
-  const current = await readFile(target, 'utf8').catch(() => null);
-  if (manifest !== current) {
-    await mkdir(dirname(target), { recursive: true });
-    await writeFile(target, manifest);
-    process.stdout.write(`Wrote ${SKILLS_PLUGIN.target}\n`);
+  const manifests = await pluginManifests();
+  for (const [rel, manifest] of manifests) {
+    const target = join(REPO, rel);
+    const text = await prettier.format(JSON.stringify(manifest), {
+      ...(await prettier.resolveConfig(target)),
+      filepath: target,
+    });
+    const current = await readFile(target, 'utf8').catch(() => null);
+    if (text !== current) {
+      await mkdir(dirname(target), { recursive: true });
+      await writeFile(target, text);
+      process.stdout.write(`Wrote ${rel}\n`);
+    }
   }
 }
 
