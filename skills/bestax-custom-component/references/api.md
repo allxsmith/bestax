@@ -113,6 +113,10 @@ hard-coding values.
 
 ## Floating content: `Portal`
 
+A panel anchored to the button that opens it is `Popover`, which already portals
+(`appendToBody`), traps focus and dismisses itself. `Portal` is for the overlays it doesn't
+cover.
+
 `<Portal container?>` (`helpers/portal.tsx`) renders its children into `document.body`, or into
 `container` (an element or a selector), so floating content escapes an ancestor's `overflow`,
 `transform` or stacking context. It renders nothing on the server and during hydration, so the
@@ -144,7 +148,8 @@ group counts once) and restores focus when it turns off. It handles Tab only: wi
 close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It waits for
 hydration, so it also finds a container that only appears after hydration, as portaled content
 does. Content the container renders through a portal is outside the trap, so render nested
-overlays inside the container.
+overlays inside the container. The example below shows the hook's wiring; for a real filter
+panel opened from a button, use `Popover`, which does all of this.
 
 ```tsx
 function FilterPanel({ children }: { children: React.ReactNode }) {

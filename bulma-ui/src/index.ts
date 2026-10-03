@@ -18,6 +18,7 @@ export * from './components/Loading';
 export * from './components/Collapse';
 export * from './components/Collapses';
 export * from './components/Tooltip';
+export * from './components/Popover';
 export * from './components/Steps';
 export * from './components/Sidebar';
 export * from './components/Toast';

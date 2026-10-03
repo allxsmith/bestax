@@ -9,7 +9,7 @@ sidebar_label: useFocusTrap
 
 `useFocusTrap` keeps keyboard focus inside a container while it is active: focus moves in when the trap turns on, Tab and Shift+Tab wrap between the first and last tab stops, and focus goes back where it came from when the trap turns off.
 
-Use it for your own floating or modal content, such as a filter panel, a command palette or a custom popover. `Modal`, `Dialog` and the date and time pickers already manage focus themselves.
+Use it for your own floating or modal content, such as a command palette or a custom overlay. `Modal`, `Dialog`, `Popover` and the date and time pickers already manage focus themselves, and a panel opened from a button is what [`Popover`](../components/popover.md) is for.
 
 ---
 

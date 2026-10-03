@@ -328,6 +328,16 @@ function findTabStops(container: HTMLElement): TabStops | null {
 }
 
 /**
+ * The first tab stop inside `container`, found the way the trap finds it, or
+ * `null` when there is none. For a component that moves focus into a panel
+ * without trapping it there. `src/index.ts` names its exports from this
+ * module, so this one stays internal.
+ */
+export function firstTabStop(container: HTMLElement): HTMLElement | null {
+  return findTabStops(container)?.first ?? null;
+}
+
+/**
  * The element that has focus in the container's own document (an iframe's,
  * when it renders into one), inside open shadow roots too. Focus inside a
  * closed one reads as its host, which the comparisons above place like any

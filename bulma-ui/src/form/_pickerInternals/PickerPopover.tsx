@@ -1,13 +1,8 @@
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from 'react';
+import React, { useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
+import { useAnchoredPosition } from '../../helpers/useAnchoredPosition';
 import { PickerPosition } from './pickerTypes';
 
 export interface PickerPopoverProps {
@@ -29,27 +24,6 @@ export interface PickerPopoverProps {
 
 const isBrowser = typeof window !== 'undefined';
 
-interface ResolvedPosition {
-  position: Exclude<PickerPosition, 'auto'>;
-  top?: number;
-  left?: number;
-}
-
-function resolveAuto(
-  rect: DOMRect,
-  panelWidth: number,
-  panelHeight: number
-): Exclude<PickerPosition, 'auto'> {
-  const vw = window.innerWidth;
-  const vh = window.innerHeight;
-  const fitsBelow = rect.bottom + panelHeight + 4 <= vh;
-  const fitsRight = rect.left + panelWidth <= vw;
-  if (fitsBelow && fitsRight) return 'bottom-left';
-  if (fitsBelow && !fitsRight) return 'bottom-right';
-  if (!fitsBelow && fitsRight) return 'top-left';
-  return 'top-right';
-}
-
 export const PickerPopover: React.FC<PickerPopoverProps> = ({
   isOpen,
   onClose,
@@ -67,62 +41,11 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   id,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
-  const [resolved, setResolved] = useState<ResolvedPosition>({
-    position: position === 'auto' ? 'bottom-left' : position,
+  const resolved = useAnchoredPosition(anchorRef, panelRef, {
+    active: isOpen,
+    position,
+    fixed: appendToBody,
   });
-
-  const updatePosition = useCallback(() => {
-    if (!isBrowser || !isOpen) return;
-    const anchor = anchorRef.current;
-    const panel = panelRef.current;
-    if (!anchor || !panel) return;
-    const rect = anchor.getBoundingClientRect();
-    const panelRect = panel.getBoundingClientRect();
-    const w = panelRect.width;
-    const h = panelRect.height;
-    const finalPos = position === 'auto' ? resolveAuto(rect, w, h) : position;
-    if (!appendToBody) {
-      setResolved({ position: finalPos });
-      return;
-    }
-    let top = 0;
-    let left = 0;
-    switch (finalPos) {
-      case 'bottom-left':
-        top = rect.bottom + 4;
-        left = rect.left;
-        break;
-      case 'bottom-right':
-        top = rect.bottom + 4;
-        left = rect.right - w;
-        break;
-      case 'top-left':
-        top = rect.top - h - 4;
-        left = rect.left;
-        break;
-      case 'top-right':
-        top = rect.top - h - 4;
-        left = rect.right - w;
-        break;
-    }
-    setResolved({ position: finalPos, top, left });
-  }, [anchorRef, appendToBody, isOpen, position]);
-
-  useLayoutEffect(() => {
-    if (!isOpen) return undefined;
-    updatePosition();
-    if (!isBrowser) return undefined;
-    const handler = () => updatePosition();
-    window.addEventListener('resize', handler, { passive: true });
-    window.addEventListener('scroll', handler, {
-      passive: true,
-      capture: true,
-    });
-    return () => {
-      window.removeEventListener('resize', handler);
-      window.removeEventListener('scroll', handler, { capture: true });
-    };
-  }, [isOpen, updatePosition]);
 
   useEffect(() => {
     if (!isOpen || !closeOnClickOutside || !isBrowser) return undefined;

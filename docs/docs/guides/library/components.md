@@ -465,6 +465,27 @@ function DialogExample() {
 
 ---
 
+### Popover
+
+A click-to-open panel of interactive content anchored to its trigger, such as a filter form or a set of share options. It's a non-modal dialog that takes focus on open and hands it back to the trigger on close. [View full documentation.](../../api/components/popover.md)
+
+```tsx live
+<Popover trigger={<Button>Filters</Button>}>
+  <Popover.Header>Filter rows</Popover.Header>
+  <Popover.Body>
+    <Checkboxes defaultValue={['open']}>
+      <Checkbox value="open">Open</Checkbox>
+      <Checkbox value="closed">Closed</Checkbox>
+    </Checkboxes>
+  </Popover.Body>
+  <Popover.Footer>
+    <Popover.Close color="primary">Done</Popover.Close>
+  </Popover.Footer>
+</Popover>
+```
+
+---
+
 ### Sidebar
 
 Slide-out navigation panel from left or right. Supports overlay, custom width, and keyboard navigation. [View full documentation.](../../api/components/sidebar.md)
