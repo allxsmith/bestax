@@ -30,6 +30,7 @@ import {
   SLEEP_SECONDS,
   VERSION_PLACEHOLDER,
   ATTEMPT_TIMEOUT_MS,
+  LOOKUP_TIMEOUT_MS,
   checkServer,
   main,
   parseArgs,
@@ -44,6 +45,7 @@ import {
   versionUrl,
 } from './mcp-registry-publish.mjs';
 import { DEFAULT_BUDGET_SECONDS } from './npm-install-retry.mjs';
+import { yamlGet, yamlScalar } from './check-conformance.mjs';
 
 const repoRoot = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const pkgDir = path.join(repoRoot, 'bestax-mcp');
@@ -698,4 +700,56 @@ test('a publisher binary that is missing exits 2, not 1', async () => {
     }
   );
   assert.equal(code, 2);
+});
+
+// ---------------------------------------------------------------------------
+// The job's timeout
+// ---------------------------------------------------------------------------
+
+const WORKFLOW = path.join(repoRoot, '.github/workflows/mcp-registry.yml');
+
+/**
+ * What the publish job spends outside publishWithRetry: runner setup,
+ * harden-runner and its assertion's poll, the checkout, `prepare`, the tag
+ * lookup, the publisher download, and the post-job steps. A generous
+ * allowance, not a measurement.
+ */
+const SETUP_ALLOWANCE_SECONDS = 5 * 60;
+
+const seconds = ms => ms / 1000;
+
+function publishJobTimeoutSeconds() {
+  const lines = fs.readFileSync(WORKFLOW, 'utf8').split(/\r?\n/);
+  const minutes = Number(
+    yamlScalar(yamlGet(lines, 'jobs', 'publish', 'timeout-minutes'))
+  );
+  assert.ok(
+    Number.isInteger(minutes) && minutes > 0,
+    'mcp-registry.yml has no timeout-minutes on its publish job'
+  );
+  return minutes * 60;
+}
+
+test('the publish job timeout outlasts the retry loop at its slowest', () => {
+  // publishWithRetry reads its deadline only between attempts and starts no
+  // wait that would end past it, so every wait, and every pass before the
+  // last, ends by the deadline: the budget covers them. The last pass can
+  // begin as late as the deadline itself and then runs to the end, each step
+  // bounded by its own timeout.
+  const lastPassSeconds =
+    seconds(LOOKUP_TIMEOUT_MS) + // the existence check before the attempt
+    seconds(ATTEMPT_TIMEOUT_MS) + // the attempt's login
+    seconds(ATTEMPT_TIMEOUT_MS) + // the attempt's publish
+    seconds(LOOKUP_TIMEOUT_MS); // the last look before giving up
+  const worstCaseSeconds =
+    SETUP_ALLOWANCE_SECONDS + BUDGET_SECONDS + lastPassSeconds;
+  const timeoutSeconds = publishJobTimeoutSeconds();
+  assert.ok(
+    worstCaseSeconds <= timeoutSeconds,
+    `the publish job can need ${worstCaseSeconds}s (setup ` +
+      `${SETUP_ALLOWANCE_SECONDS}s, budget ${BUDGET_SECONDS}s, last pass ` +
+      `${lastPassSeconds}s) but its timeout-minutes allows ` +
+      `${timeoutSeconds}s. Raise timeout-minutes in mcp-registry.yml, or ` +
+      `give this script a budget of its own.`
+  );
 });
