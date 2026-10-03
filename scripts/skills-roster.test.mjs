@@ -710,7 +710,8 @@ test('a missing, unparseable, stale or unversioned root manifest is caught', asy
     JSON.stringify({ ...fresh, version: 'next' }),
     /must be a semantic version/
   );
-  const { version: _dropped, ...unversioned } = fresh;
+  const unversioned = { ...fresh };
+  delete unversioned.version;
   only(root, JSON.stringify(unversioned), /must be a semantic version/);
 });
 
