@@ -111,6 +111,7 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 
 ```scss
 @use 'bulma/sass/helpers/spacing'; // m*/p* props
+@use 'bulma/sass/helpers/gap'; // gap/columnGap/rowGap/gapless props, Grid's gap props included
 @use 'bulma/sass/helpers/color'; // color/backgroundColor props, has-text-*/has-background-*
 @use 'bulma/sass/helpers/typography'; // textSize/textAlign/textTransform/textWeight/fontFamily
 @use 'bulma/sass/helpers/visibility'; // display/visibility props incl. display="flex" (is-flex/is-block/is-hidden*)
