@@ -448,9 +448,10 @@ test('per-skill docs pages: missing and orphaned pages are both caught', () => {
 });
 
 test('a frontmatter name that disagrees with the directory is caught', () => {
-  // Every prose roster follows the DIRECTORY name while gen-mcp-index keys the
-  // shipped MCP manifest off the FRONTMATTER — without this gate a rename in
-  // one place ships two disagreeing rosters with everything green.
+  // Every roster and the MCP manifest follow the DIRECTORY name while agents
+  // load a skill by its FRONTMATTER name. Without this gate a rename in one
+  // place installs a skill under a name nothing else uses, with everything
+  // green.
   const v = frontmatterNameViolations([
     { name: 'bestax-optimize', fmName: 'bestax-css-optimize' },
     { name: 'bestax-form', fmName: 'bestax-form' },

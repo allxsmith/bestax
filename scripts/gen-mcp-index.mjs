@@ -54,6 +54,7 @@ import {
   byCodePoint,
   readSkillNames,
   skillFiles,
+  skillSlug,
 } from './lib/skills.mjs';
 import {
   clipAtWord,
@@ -362,19 +363,23 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
       return files.sort((a, b) => byCodePoint(a.id, b.id));
     };
     out.push({
-      name: fm.name || name,
+      // Keyed off the directory, like every roster and install line. The
+      // skills-roster check holds the frontmatter name to it, as the Agent
+      // Skills spec requires.
+      name,
       // The frontmatter description is already written as a trigger surface —
       // keyword-dense, ending in a "Use when…" clause. It is exactly what an
       // MCP tool/prompt description needs, so it ships verbatim.
       description: collapse(fm.description),
-      // `bestax-theming` -> `theming`. The prompt name an MCP client shows.
-      promptName: (fm.name || name).replace(/^bestax-/, ''),
+      // The prompt name an MCP client shows.
+      promptName: skillSlug(name),
       dir: name,
       references: await listing('references'),
       examples: await listing('examples'),
     });
   }
-  return out.sort((a, b) => byCodePoint(a.name, b.name));
+  // In readSkillNames' order, which is code-point order.
+  return out;
 }
 
 /**

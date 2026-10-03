@@ -77,6 +77,15 @@ export function bundledSkillNames(dirs) {
 }
 
 /**
+ * A skill's slug, its directory name minus the `bestax-` prefix
+ * (`bestax-theming` -> `theming`): the MCP prompt name, and the name of its
+ * page under docs/docs/skills/ and its docs/sidebars.js entry.
+ */
+export function skillSlug(name) {
+  return name.replace(/^bestax-/, '');
+}
+
+/**
  * The comparison view the skills-roster check holds prose to: bundled AND
  * expressible. An unexpressible name gets its own violation instead — asking
  * nine prose rosters to name something they cannot spell would bury it.

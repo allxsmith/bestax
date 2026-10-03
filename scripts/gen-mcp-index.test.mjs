@@ -23,6 +23,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { build, readSkills } from './gen-mcp-index.mjs';
+import { skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -158,7 +159,9 @@ test('the skills roster is read from the directory, not a hardcoded list', () =>
       s.description.length > 40,
       `${s.name} has no trigger description`
     );
-    assert.equal(s.promptName, s.name.replace(/^bestax-/, ''));
+    // Keyed off the directory, with the shared slug rule.
+    assert.equal(s.name, s.dir);
+    assert.equal(s.promptName, skillSlug(s.name));
     assert.ok(Array.isArray(s.references));
   }
   const theming = skills.skills.find(s => s.name === 'bestax-theming');

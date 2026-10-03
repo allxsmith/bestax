@@ -107,6 +107,7 @@ import {
   bundledSkillNames,
   readSkillDirs,
   rosterSkillNames,
+  skillSlug,
 } from './lib/skills.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
@@ -3057,7 +3058,7 @@ export const expiryRemediation = label =>
  * directions, so a roster still advertising a deleted skill fails too. That
  * half has no other guard — sync-skills.mjs just silently stops copying it.
  *
- * The docs-site surfaces are held through the slug transform (directory name
+ * The docs-site surfaces are held through the slug (`skillSlug`, directory name
  * minus `bestax-`, exactly what gen-mcp-index.mjs ships as `promptName`): the
  * sidebar entries and the intro bullet roster here, and the per-skill page
  * files in `skillsPageViolations`. A new skill fails conformance until its
@@ -3108,7 +3109,7 @@ export const SKILL_ROSTERS = [
           ),
         fromToken: slug => `bestax-${slug}`,
         example: n =>
-          `- **[…](./${n.replace(/^bestax-/, '')})** — one line on when to reach for it.`,
+          `- **[…](./${skillSlug(n)})** — one line on when to reach for it.`,
       },
     ],
   },
@@ -3172,7 +3173,7 @@ export const SKILL_ROSTERS = [
             .map(m => m[1])
             .filter(slug => slug !== 'intro'),
         fromToken: slug => `bestax-${slug}`,
-        example: n => `'skills/${n.replace(/^bestax-/, '')}',`,
+        example: n => `'skills/${skillSlug(n)}',`,
       },
     ],
   },
@@ -3384,8 +3385,8 @@ export function rosterViolations(skills, sources) {
 }
 
 /**
- * The per-skill docs pages, keyed by slug (directory name minus `bestax-`) —
- * the same transform gen-mcp-index.mjs ships as `promptName`. Pure, like
+ * The per-skill docs pages, keyed by skillSlug (directory name minus
+ * `bestax-`), which gen-mcp-index.mjs also ships as `promptName`. Pure, like
  * rosterViolations, so the branches can be driven with fixtures.
  */
 export function skillsPageViolations(skills, pageFiles) {
@@ -3402,7 +3403,7 @@ export function skillsPageViolations(skills, pageFiles) {
       .map(f => f.replace(/\.(md|mdx)$/, ''))
   );
   for (const name of skills) {
-    const slug = name.replace(/^bestax-/, '');
+    const slug = skillSlug(name);
     if (!slugs.has(slug)) {
       violations.push(
         `docs/docs/skills/${slug}.mdx: missing — every skill has a docs page ` +
@@ -3411,7 +3412,7 @@ export function skillsPageViolations(skills, pageFiles) {
       );
     }
   }
-  const knownSlugs = new Set(skills.map(n => n.replace(/^bestax-/, '')));
+  const knownSlugs = new Set(skills.map(skillSlug));
   for (const slug of slugs) {
     if (slug === 'intro' || knownSlugs.has(slug)) continue;
     violations.push(
@@ -3424,12 +3425,12 @@ export function skillsPageViolations(skills, pageFiles) {
 }
 
 /**
- * Frontmatter `name:` must be present and equal the directory name. Every
- * prose roster and install line is held to the DIRECTORY name, while
- * gen-mcp-index.mjs keys the shipped MCP manifest off the FRONTMATTER
- * (`fm.name || name`, and promptName derives from it) — with no gate, one
- * edit ships two disagreeing rosters while everything stays green. The Agent
- * Skills spec also requires the field, so a missing or empty one fails too.
+ * Frontmatter `name:` must be present and equal the directory name, as the
+ * Agent Skills spec requires. Every roster here, the install lines and the
+ * MCP manifest follow the DIRECTORY, while `npx skills add` and every agent
+ * that loads a skill read the FRONTMATTER. Without this gate one edit would
+ * install a skill under a name no roster or MCP prompt uses, with everything
+ * green.
  */
 export function frontmatterNameViolations(entries) {
   const violations = [];
@@ -3442,9 +3443,10 @@ export function frontmatterNameViolations(entries) {
     } else if (fmName !== name) {
       violations.push(
         `skills/${name}/SKILL.md: frontmatter says "name: ${fmName}" but the ` +
-          `directory is ${name}. The rosters follow the directory and the MCP ` +
-          `manifest follows the frontmatter, so a mismatch ships two ` +
-          `disagreeing rosters. Rename one to match the other.`
+          `directory is ${name}. The Agent Skills spec requires them to ` +
+          `match: the rosters and the MCP manifest follow the directory, and ` +
+          `agents load the skill by its frontmatter name. Rename one to match ` +
+          `the other.`
       );
     }
   }
