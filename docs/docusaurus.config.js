@@ -144,10 +144,6 @@ const config = {
         includeBlog: false,
         includeOrder: ['guides/*', 'skills/*', 'api/*', 'components/*'],
         includeUnmatchedLast: true,
-        // The distribution page is maintainer bookkeeping: which listings are
-        // live or in review. It stays on the site but out of the LLM index,
-        // which would serve its statuses to agents as current fact.
-        ignoreFiles: ['guides/distribution.md'],
       },
     ],
   ],
