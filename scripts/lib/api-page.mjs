@@ -1,6 +1,6 @@
 /**
  * Markdown surgery for the API reference pages: generated-region markers,
- * top-level section spans, and frontmatter upserts.
+ * top-level section spans, and frontmatter reads and upserts.
  *
  * Everything here is FENCE-AWARE. `docs/docs/api/helpers/theme.md` contains a
  * `---` inside a code fence, and several pages show HTML comments inside `html`
@@ -220,6 +220,24 @@ export function sectionBody(lines, section) {
   while (body.length && !body[body.length - 1].trim()) body.pop();
   while (body.length && !body[0].trim()) body.shift();
   return body.join('\n');
+}
+
+/**
+ * The flat `key: value` lines of a frontmatter block, values trimmed and
+ * unquoted, or {} when there is no block. The one reader for API pages and
+ * SKILL.md alike. Nested YAML is not parsed. A key with nothing after it
+ * reads as '', never as the line below it, and a repeated key keeps its last
+ * value. CRLF is tolerated.
+ */
+export function frontmatter(src) {
+  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return {};
+  const out = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const kv = line.match(/^([A-Za-z_][\w-]*):[ \t]*(.*)$/);
+    if (kv) out[kv[1]] = kv[2].trim().replace(/^['"]|['"]$/g, '');
+  }
+  return out;
 }
 
 /**

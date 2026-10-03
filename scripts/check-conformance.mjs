@@ -95,6 +95,7 @@ import {
 } from './lib/pack-time-protocols.mjs';
 import {
   fenceMask,
+  frontmatter,
   readRegions,
   sectionSpans,
   splitLines,
@@ -3443,16 +3444,22 @@ export function skillsPageViolations(skills, pageFiles) {
 }
 
 /**
- * Frontmatter `name:` must equal the directory name. Every prose roster and
- * install line is held to the DIRECTORY name, while gen-mcp-index.mjs keys the
- * shipped MCP manifest off the FRONTMATTER (`fm.name || name`, and promptName
- * derives from it) — with no gate, one edit ships two disagreeing rosters
- * while everything stays green.
+ * Frontmatter `name:` must be present and equal the directory name. Every
+ * prose roster and install line is held to the DIRECTORY name, while
+ * gen-mcp-index.mjs keys the shipped MCP manifest off the FRONTMATTER
+ * (`fm.name || name`, and promptName derives from it) — with no gate, one
+ * edit ships two disagreeing rosters while everything stays green. The Agent
+ * Skills spec also requires the field, so a missing or empty one fails too.
  */
 export function frontmatterNameViolations(entries) {
   const violations = [];
   for (const { name, fmName } of entries) {
-    if (fmName && fmName !== name) {
+    if (!fmName) {
+      violations.push(
+        `skills/${name}/SKILL.md: frontmatter has no name. The Agent Skills ` +
+          `spec requires one, equal to the directory name. Add "name: ${name}".`
+      );
+    } else if (fmName !== name) {
       violations.push(
         `skills/${name}/SKILL.md: frontmatter says "name: ${fmName}" but the ` +
           `directory is ${name}. The rosters follow the directory and the MCP ` +
@@ -3462,12 +3469,6 @@ export function frontmatterNameViolations(entries) {
     }
   }
   return violations;
-}
-
-function skillFrontmatterName(text) {
-  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!fm) return null;
-  return fm[1].match(/^name:\s*['"]?([^'"\r\n]+?)['"]?\s*$/m)?.[1] ?? null;
 }
 
 async function checkSkillsRoster() {
@@ -3507,9 +3508,9 @@ async function checkSkillsRoster() {
     try {
       fmEntries.push({
         name,
-        fmName: skillFrontmatterName(
+        fmName: frontmatter(
           await readFile(join(skillsDir, name, 'SKILL.md'), 'utf8')
-        ),
+        ).name,
       });
     } catch {
       // The dir listing said SKILL.md exists; a read race is not this

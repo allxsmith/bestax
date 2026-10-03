@@ -43,7 +43,12 @@ import { join, relative, dirname, basename, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
-import { sectionSpans, sectionBody, firstSentence } from './lib/api-page.mjs';
+import {
+  frontmatter,
+  sectionSpans,
+  sectionBody,
+  firstSentence,
+} from './lib/api-page.mjs';
 import { readSkillNames } from './lib/skills.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
 import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
@@ -135,17 +140,6 @@ async function mdFiles(dir) {
     else if (entry.name.endsWith('.md')) out.push(full);
   }
   return out.sort(byCodePoint);
-}
-
-function frontmatter(src) {
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return {};
-  const out = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const kv = line.match(/^([A-Za-z_][\w-]*):[ \t]*(.*)$/);
-    if (kv) out[kv[1]] = kv[2].trim().replace(/^['"]|['"]$/g, '');
-  }
-  return out;
 }
 
 /** Body of the `## Overview` section, first sentence, clipped for the catalog. */

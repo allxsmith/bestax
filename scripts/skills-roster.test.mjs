@@ -16,6 +16,7 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { frontmatter } from './lib/api-page.mjs';
 import {
   SKILL_ROSTERS,
   readSkillDirs,
@@ -450,11 +451,36 @@ test('a frontmatter name that disagrees with the directory is caught', () => {
   const v = frontmatterNameViolations([
     { name: 'bestax-optimize', fmName: 'bestax-css-optimize' },
     { name: 'bestax-form', fmName: 'bestax-form' },
-    { name: 'bestax-icons', fmName: null },
   ]);
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /bestax-optimize/);
   assert.match(v[0], /bestax-css-optimize/);
+});
+
+test('a missing or empty frontmatter name is caught, not read off the next line', () => {
+  // The old reader matched `^name:\s*…$`, and `\s` crosses a newline, so an
+  // empty `name:` took the whole next line as the name. The shared reader
+  // reads it as empty, and the spec requires the field, so it fails as
+  // missing rather than as a confusing mismatch.
+  const empty = frontmatter(
+    '---\r\nname:\r\ndescription: Build forms.\r\n---\r\n# Form\r\n'
+  );
+  assert.equal(empty.name, '');
+  assert.equal(empty.description, 'Build forms.');
+  for (const fmName of [
+    empty.name,
+    frontmatter('---\nlicense: MIT\n---').name,
+  ]) {
+    const v = frontmatterNameViolations([{ name: 'bestax-form', fmName }]);
+    assert.equal(v.length, 1, v.join('\n'));
+    assert.match(v[0], /has no name/);
+    assert.match(v[0], /name: bestax-form/);
+  }
+  assert.equal(
+    frontmatter("---\nname: 'bestax-form'\n---").name,
+    'bestax-form'
+  );
+  assert.deepEqual(frontmatter('# no frontmatter\nname: x\n'), {});
 });
 
 test('the tests and the check derive the comparison set the same way', () => {
