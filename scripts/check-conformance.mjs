@@ -33,6 +33,9 @@
  *                        (skills/.claude-plugin/plugin.json, the root
  *                        plugin.json) match .claude-plugin/plugin.json.
  *                        Distinct from skills-sync above.
+ *   plugin-root          the repo root, which ships as the bestax plugin,
+ *                        holds no other conventional plugin component path
+ *                        (hooks/, commands/, .mcp.json, …)
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
@@ -3586,10 +3589,62 @@ export function agentPluginManifestViolations(rootText, agentText) {
   return violations;
 }
 
+/**
+ * The repo root is the `bestax` plugin (root CLAUDE.md), so each client that
+ * installs it scans the root for its conventional component paths, and
+ * anything found there ships to every user of the plugin. These are the ones
+ * besides `skills/` and `.claude-plugin/`, which the plugin uses on purpose.
+ *
+ * Claude Code's come from its standard plugin layout
+ * (https://code.claude.com/docs/en/plugins-reference#standard-layout).
+ * `rules/` is Cursor's (https://cursor.com/docs/reference/plugins). Directory
+ * names end in `/`, and an entry of that name counts whatever its type. Add a
+ * path when a client the plugin supports starts reading a new one.
+ */
+export const ROOT_PLUGIN_COMPONENT_PATHS = [
+  'agents/',
+  'bin/',
+  'commands/',
+  'hooks/',
+  'monitors/',
+  'output-styles/',
+  'rules/',
+  'themes/',
+  'workflows/',
+  '.lsp.json',
+  '.mcp.json',
+  'settings.json',
+];
+
+/**
+ * Each conventional component path in `entries` (the names at the repo root).
+ * A contributor's own tooling is the usual way one gets there, so the message
+ * says where that tooling goes instead.
+ */
+export function rootPluginComponentViolations(entries) {
+  const present = new Set(entries);
+  return ROOT_PLUGIN_COMPONENT_PATHS.filter(path =>
+    present.has(path.replace(/\/$/, ''))
+  ).map(
+    path =>
+      `${path} at the repo root is a plugin component path, so it would ` +
+      `ship to every user of the bestax plugin. Keep contributor tooling ` +
+      `under .claude/ instead (root CLAUDE.md, "The repo root is a plugin").`
+  );
+}
+
 function skillFrontmatterName(text) {
   const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!fm) return null;
   return fm[1].match(/^name:\s*['"]?([^'"\r\n]+?)['"]?\s*$/m)?.[1] ?? null;
+}
+
+/**
+ * plugin-root: the repo root ships as the bestax plugin, so hold what sits
+ * there.
+ */
+async function checkPluginRoot() {
+  return rootPluginComponentViolations(await readdir(REPO));
 }
 
 async function checkSkillsRoster() {
@@ -4736,6 +4791,7 @@ const CHECKS = {
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
   'skills-roster': checkSkillsRoster,
+  'plugin-root': checkPluginRoot,
   'style-mapping-sync': checkStyleMappingSync,
   'near-miss-sync': checkNearMissSync,
   'release-docs-sync': checkReleaseDocsSync,

@@ -182,7 +182,9 @@ the skills in `skills/` (found by convention) and the MCP server in `mcp.json`. 
 `plugin.json` describes the same plugin in the vendor-neutral Agent Plugins format for Cursor,
 Kiro and the awesome-copilot catalog, and Codex, Copilot CLI, VS Code and Grok Build prefer it.
 So a top-level `hooks/`, `commands/`, `agents/`, `rules/`, `bin/`, `.mcp.json` or `.lsp.json`
-would ship to every user of the plugin. Keep contributor tooling under `.claude/`.
+would ship to every user of the plugin. Keep contributor tooling under `.claude/`. The
+plugin-root conformance check fails on any of those and on the other conventional component
+paths in `ROOT_PLUGIN_COMPONENT_PATHS`, which cites the client docs each one comes from.
 
 - `pnpm gen:skills` writes the root `plugin.json` and `skills/.claude-plugin/plugin.json` from
   `.claude-plugin/plugin.json`, and the skills-roster check fails while either is stale. Edit
