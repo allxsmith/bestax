@@ -91,6 +91,14 @@ afterAll(() => {
 
 const pickers: [string, (color?: Color) => ReactElement][] = [
   ['DateInput', color => <DateInput inline color={color} />],
+  [
+    'DateInput month picker',
+    color => <DateInput inline granularity="month" color={color} />,
+  ],
+  [
+    'DateInput year picker',
+    color => <DateInput inline granularity="year" color={color} />,
+  ],
   ['DateTimeInput', color => <DateTimeInput inline color={color} />],
 ];
 
@@ -170,14 +178,17 @@ describe('calendar focus rings', () => {
     }
   });
 
-  it.each(['dateinput-cell', 'dateinput-year-cell'])(
+  it.each(['dateinput-cell', 'dateinput-year-cell', 'dateinput-month-cell'])(
     'gives a selected %s the selected value colour for its ring',
     cls => {
       // That ring is inset into the selection fill, which follows `color`,
       // and the selected value's colour is the one chosen to contrast with
-      // it. The focused year is always the selected one.
-      const rule = focusRules(sheet.cssRules).find(
-        r => r.selectorText === `.${cls}.is-selected:focus-visible`
+      // it. Year and month cells share one rule, so match within its list.
+      const rule = focusRules(sheet.cssRules).find(r =>
+        r.selectorText
+          .split(',')
+          .map(s => s.trim())
+          .includes(`.${cls}.is-selected:focus-visible`)
       );
       expect(rule && ringOf(rule)).toBe(
         'var(--bulma-dateinput-cell-selected-color)'

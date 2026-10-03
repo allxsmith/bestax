@@ -13,6 +13,7 @@ import {
   setSegmentValue,
   setAmPm,
   segmentIndexAtCaret,
+  SegmentKind,
   SegmentMap,
 } from './segmentMap';
 
@@ -27,6 +28,14 @@ const SEPARATOR_RE = /[/:\-.\s]/;
 export interface UseSegmentedEntryParams {
   /** Resolved format actually used to render (the host's default format). */
   format: DateFormatOption;
+  /**
+   * Segment kinds the caret never stops on: they still render, but arrows,
+   * digits and separators pass over them. A month picker skips `'day'` so a
+   * format such as `'YYYY-MM-DD'` edits only the year and month. Must be
+   * referentially stable. A format left with no editable segment falls back
+   * to free-form entry.
+   */
+  skipKinds?: readonly SegmentKind[];
   /** Current canonical value (controlled or internal). */
   value: Date | null;
   /** Commit a new Date through the host's onChange / internal pipeline. */
@@ -106,6 +115,7 @@ export function useSegmentedEntry(
 ): UseSegmentedEntryResult {
   const {
     format,
+    skipKinds,
     value,
     commitValue,
     formatFn,
@@ -133,10 +143,14 @@ export function useSegmentedEntry(
     onBlur,
   } = params;
 
-  const segmentMap: SegmentMap | null = useMemo(
-    () => (typeof format === 'string' ? buildSegmentMap(format) : null),
-    [format]
-  );
+  const segmentMap: SegmentMap | null = useMemo(() => {
+    const map = typeof format === 'string' ? buildSegmentMap(format) : null;
+    if (!map || !skipKinds) return map;
+    const editable = map.editable.filter(
+      i => !skipKinds.includes(map.segments[i].kind)
+    );
+    return editable.length > 0 ? { ...map, editable } : null;
+  }, [format, skipKinds]);
   const [activeSegmentIdx, setActiveSegmentIdx] = useState<number | null>(null);
   // Buffer of digits typed within the current segment, cleared on segment
   // change. Kept in a ref because key handlers read+update synchronously
