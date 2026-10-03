@@ -375,7 +375,7 @@ typed API, so move it to `bulmaVars`:
 </Theme>
 ```
 
-Two of those names are already helper props, so they cannot double as CSS-variable props:
+Some of those names are already helper props, so they cannot double as CSS-variable props:
 
 - `radius` is the border radius helper, as on every other component, so `<Theme radius="radiusless">`
   adds `is-radiusless` to the wrapper. On a Theme it also sets `--bulma-radius` to `0`, so what
@@ -388,6 +388,14 @@ Two of those names are already helper props, so they cannot double as CSS-variab
   `--bulma-radius`, which is how the prop used to behave, but that route is deprecated and logs
   a warning in development.
 - `shadow` is the `shadowless` helper. Set `--bulma-shadow` through `bulmaVars`.
+- `columnGap` is the column gap helper, as on every other component, so `<Theme columnGap="2">`
+  adds `is-column-gap-2` to the wrapper and sets no variable; under `isRoot` there is no wrapper,
+  so it does nothing and warns in development. Set the columns gutter, `--bulma-column-gap`,
+  through `bulmaVars`. Before the gap helpers, JavaScript could pass `columnGap` to set that
+  variable. A string that is not a gap step (`columnGap="1rem"`) still does, through a
+  deprecated route that logs a warning in development, but a gap step does not:
+  `columnGap="0"`, which used to zero the gutters inside the Theme, now adds `is-column-gap-0`
+  to the wrapper.
 
 ### Props vs bulmaVars
 
@@ -467,6 +475,7 @@ to typecheck, so a typo in it is silently dropped; annotate it with
 | `isRoot`    | `boolean`                                                     | When `true`, applies CSS variables globally at `:root` level. When `false` (default), applies variables only to the wrapper div. Several root themes compose; an inner or later-mounted one wins a variable they share.                                                                                                                                                         |
 | `colorMode` | `'light' \| 'dark' \| 'system'`                               | Sets Bulma's light/dark scheme by writing the `data-theme` attribute on `<html>`. Always global (even on a scoped `Theme`). `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Omit to leave the current setting untouched.                                                                                                                       |
 | `bulmaVars` | `ThemeProps['bulmaVars']`                                     | Object mapping Bulma CSS variable names to string values (e.g., `{'--bulma-primary-h': '210'}`). Keys are limited to the variables listed below; anything else is not applied.                                                                                                                                                                                                  |
+| `columnGap` | [`BulmaGapStep`](./valid-values.md)                           | The column gap helper: a gap step adds `is-column-gap-<step>` to the wrapper div and sets no variable, so under `isRoot` it does nothing and warns in development. Set `--bulma-column-gap` through `bulmaVars`. Any other string still sets `--bulma-column-gap`, a deprecated route that warns in development.                                                                |
 | `radius`    | `'radiusless' \| 'small' \| 'normal' \| 'large' \| 'rounded'` | The border radius helper. `radiusless` adds `is-radiusless` to the wrapper div and sets `--bulma-radius` to `0`, at `:root` under `isRoot`. The sizes add their `has-radius-*` class to the wrapper and set no variable, so under `isRoot` they do nothing and warn in development. Any other string still sets `--bulma-radius`, a deprecated route that warns in development. |
 
 ### CSS Variable Props

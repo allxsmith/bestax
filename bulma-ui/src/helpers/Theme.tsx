@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import classNames from './classNames';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
-import { validRadii } from './bulmaClassHelpers';
+import { validGaps, validRadii, type BulmaGapStep } from './bulmaClassHelpers';
 import { warnOnce } from './devWarnings';
 
 // --- FULL Bulma v1 CSS variable keys (auto-generated from CSSVAR_KEYS) ---
@@ -592,17 +592,20 @@ function cssVarToProp(varName: string): string {
 }
 
 /**
- * Prop names `cssVarToProp` would mint that are already `BulmaOtherProps`
- * helper props: `--bulma-shadow` becomes `shadow` and `--bulma-radius` becomes
- * `radius`. They stay out of `bulmaVarPropMap`, so on Theme each is the helper
- * prop it is on every other component, and both variables are still reachable
- * through `bulmaVars`.
+ * Prop names `cssVarToProp` would mint that are already helper props:
+ * `--bulma-shadow` becomes `shadow`, `--bulma-radius` becomes `radius` and
+ * `--bulma-column-gap` becomes `columnGap`. They stay out of
+ * `bulmaVarPropMap`, so on Theme each is the helper prop it is on every other
+ * component, and every one of those variables is still reachable through
+ * `bulmaVars`.
  *
  * `radius` was missed here once and set `--bulma-radius` while typed as the
  * helper (#694). It still writes that variable, so what it did then keeps
- * working; see `themeRadiusVar`.
+ * working; see `themeRadiusVar`. `columnGap` joined when the gap helpers
+ * became shared helper props, and keeps its old variable route the same way;
+ * see `themeColumnGapVar`.
  */
-const helperPropNames: readonly string[] = ['shadow', 'radius'];
+const helperPropNames: readonly string[] = ['shadow', 'radius', 'columnGap'];
 
 /**
  * Mapping of camelCase prop names to their Bulma CSS variable counterparts,
@@ -674,6 +677,40 @@ const themeRadiusVar = (radius: unknown): string | undefined => {
       `bulmaVars={{ '--bulma-radius': '${radius}' }} instead.`
   );
   return radius;
+};
+
+/**
+ * What `columnGap` writes to `--bulma-column-gap` on a Theme, or `undefined`
+ * when it writes nothing.
+ *
+ * Until the gap helpers were shared helper props, `columnGap` on Theme was
+ * the camelCase prop Theme mints for `--bulma-column-gap`. It was never in
+ * `ThemeProps`, so only untyped code reached it, but that code got the
+ * columns gutter it asked for. It is the column gap helper now, as on every
+ * other component, so a gap step goes to the helper and writes nothing here.
+ * Any other non-empty string is still written as given, so a length such as
+ * `'1rem'` keeps working, with a development warning pointing at `bulmaVars`.
+ *
+ * Only a string writes anything, for the reason `themeRadiusVar` gives: a
+ * number or a boolean was never a usable length.
+ */
+const themeColumnGapVar = (columnGap: unknown): string | undefined => {
+  if (typeof columnGap !== 'string' || columnGap === '') {
+    return undefined;
+  }
+  if ((validGaps as readonly string[]).includes(columnGap)) {
+    return undefined;
+  }
+  warnOnce(
+    'Theme:column-gap-variable',
+    `[bestax-bulma] <Theme columnGap="${columnGap}">: setting ` +
+      '--bulma-column-gap through the columnGap prop is deprecated and will ' +
+      'stop working in a future major version. On Theme, as on every other ' +
+      'component, columnGap is the column gap helper ' +
+      `("${validGaps.join('", "')}"). Set the variable with ` +
+      `bulmaVars={{ '--bulma-column-gap': '${columnGap}' }} instead.`
+  );
+  return columnGap;
 };
 
 /** The one `<style>` element every `isRoot` Theme writes into. */
@@ -789,11 +826,7 @@ const setRootThemeRules = (order: number, rules: string): void => {
  */
 export interface ThemeProps extends Omit<
   BulmaClassesProps,
-  // On Theme, `columnGap` is the camelCase prop `bulmaVarPropMap` mints for
-  // `--bulma-column-gap`, so the column gap helper does not reach it and is
-  // left out of the type. `gap`, `rowGap` and `gapless` mint no variable and
-  // are the gap helpers here, as on every other component.
-  'color' | 'backgroundColor' | 'columnGap'
+  'color' | 'backgroundColor'
 > {
   children: ReactNode;
   className?: string;
@@ -831,6 +864,22 @@ export interface ThemeProps extends Omit<
    * it is on every other component.
    */
   radius?: (typeof validRadii)[number];
+  /**
+   * Column gap helper, as on every other component: a gap step adds
+   * `is-column-gap-<step>` to the wrapper div, which spaces the wrapper's own
+   * children when it is a flex or grid container. Under `isRoot` there is no
+   * wrapper, so it does nothing, and says so in development.
+   *
+   * It does not set `--bulma-column-gap`, the variable `Columns` reads for
+   * its gutters; set that through `bulmaVars`
+   * (`bulmaVars={{ '--bulma-column-gap': '1rem' }}`). Before `columnGap` was
+   * a helper prop, untyped JavaScript could pass it to Theme as that
+   * variable. A string that is not a gap step (`'1rem'`) still sets it, but
+   * that route is deprecated and logs a warning in development. A gap step
+   * does not: `columnGap="0"` used to zero the gutters inside the Theme, and
+   * now adds `is-column-gap-0` to the wrapper instead.
+   */
+  columnGap?: BulmaGapStep;
   // Bulma scheme variables
   schemeH?: string;
   schemeS?: string;
@@ -895,9 +944,11 @@ export const Theme: React.FC<ThemeProps> = ({
   isRoot = false,
   colorMode,
   radius,
+  columnGap,
   ...restProps
 }) => {
   const radiusVar = themeRadiusVar(radius);
+  const columnGapVar = themeColumnGapVar(columnGap);
   const radiusHelper = (validRadii as readonly unknown[]).includes(radius)
     ? radius
     : undefined;
@@ -913,6 +964,25 @@ export const Theme: React.FC<ThemeProps> = ({
         'radius sizes set no variable, so this does nothing. To round one ' +
         `element, put radius="${radiusHelper}" on it. To change the radius ` +
         "across the page, set bulmaVars={{ '--bulma-radius': '…' }} instead."
+    );
+  }
+
+  // The same for a gap step in `columnGap`, which reads like the columns
+  // gutter it once set and, at the root, has no element for its class.
+  const columnGapStep =
+    typeof columnGap === 'number' ? String(columnGap) : columnGap;
+  if (
+    isRoot &&
+    columnGapStep !== undefined &&
+    (validGaps as readonly unknown[]).includes(columnGapStep)
+  ) {
+    warnOnce(
+      'Theme:root-column-gap',
+      `[bestax-bulma] <Theme isRoot columnGap="${columnGapStep}">: a root ` +
+        `Theme has no wrapper element for is-column-gap-${columnGapStep}, ` +
+        'and a gap step sets no variable, so this does nothing. To change ' +
+        'the columns gutter across the page, set ' +
+        "bulmaVars={{ '--bulma-column-gap': '…' }} instead."
     );
   }
 
@@ -937,6 +1007,7 @@ export const Theme: React.FC<ThemeProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...otherProps,
     radius: radiusHelper,
+    columnGap,
   });
 
   // Merge bulmaVars and individual props, with props taking precedence
@@ -950,8 +1021,11 @@ export const Theme: React.FC<ThemeProps> = ({
     if (radiusVar !== undefined) {
       vars['--bulma-radius'] = radiusVar;
     }
+    if (columnGapVar !== undefined) {
+      vars['--bulma-column-gap'] = columnGapVar;
+    }
     return vars;
-  }, [bulmaVars, bulmaVarProps, radiusVar]);
+  }, [bulmaVars, bulmaVarProps, radiusVar, columnGapVar]);
 
   // This Theme's place among root Themes; see `rootThemeRules`.
   const [rootOrder] = useState(() => nextRootOrder++);
