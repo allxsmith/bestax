@@ -117,7 +117,9 @@ import {
   renderSkillsPluginManifest,
   AGENT_PLUGIN,
   renderAgentPluginManifest,
+  PLACED_PLUGIN_FIELDS,
 } from './gen-skills-rosters.mjs';
+import { SEMVER } from './consumer-sbom-meta.mjs';
 import {
   ORDERED_CATEGORIES,
   MANAGED_CATEGORIES,
@@ -3508,6 +3510,34 @@ export function skillsPluginManifestViolations(rootText, skillsText) {
 }
 
 /**
+ * A field of the Claude manifest that neither renderer handles would be
+ * dropped from both derived manifests while their freshness checks pass (see
+ * PLACED_PLUGIN_FIELDS). An unreadable or unparseable manifest is reported by
+ * the two checks below, so it is not reported again here.
+ */
+export function pluginSourceFieldViolations(rootText) {
+  const { source } = SKILLS_PLUGIN;
+  let root;
+  try {
+    root = JSON.parse(rootText);
+  } catch {
+    return [];
+  }
+  if (root === null || typeof root !== 'object' || Array.isArray(root)) {
+    return [];
+  }
+  return Object.keys(root)
+    .filter(key => !PLACED_PLUGIN_FIELDS.includes(key))
+    .map(
+      key =>
+        `${source}: ${JSON.stringify(key)} is not handled by either derived ` +
+        `manifest, so both would drop it. Add it to renderSkillsPluginManifest ` +
+        `and renderAgentPluginManifest, or leave it out of one on purpose, ` +
+        `then list it in PLACED_PLUGIN_FIELDS (scripts/gen-skills-rosters.mjs).`
+    );
+}
+
+/**
  * The root Agent Plugins `plugin.json` is generated from the Claude manifest
  * (AGENT_PLUGIN in gen-skills-rosters.mjs), except `version`, which a person
  * owns. So every other field must match, and `version` must at least be a
@@ -3538,7 +3568,7 @@ export function agentPluginManifestViolations(rootText, agentText) {
     return [`${target}: is not valid JSON. Run pnpm gen:skills.`];
   }
   const violations = [];
-  if (!/^\d+\.\d+\.\d+(?:[-+][\w.-]+)?$/.test(agent.version ?? '')) {
+  if (!SEMVER.test(String(agent.version ?? ''))) {
     violations.push(
       `${target}: "version" must be a semantic version such as 1.0.0, ` +
         `not ${JSON.stringify(agent.version)}.`
@@ -3654,6 +3684,7 @@ async function checkSkillsRoster() {
     readFile(join(REPO, rel), 'utf8').catch(() => undefined);
   const rootManifest = await readOrUndefined(SKILLS_PLUGIN.source);
   violations.push(
+    ...pluginSourceFieldViolations(rootManifest),
     ...skillsPluginManifestViolations(
       rootManifest,
       await readOrUndefined(SKILLS_PLUGIN.target)

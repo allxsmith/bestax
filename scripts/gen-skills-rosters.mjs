@@ -129,15 +129,17 @@ export function renderSkillsPluginManifest(root) {
  * The root `plugin.json`, in the vendor-neutral Agent Plugins format. Cursor,
  * Kiro and the awesome-copilot catalog read only this shape, and Codex,
  * Copilot CLI, VS Code and Grok Build prefer it over `.claude-plugin/` when
- * both exist. It is the Claude manifest plus `$schema` and `version`, so it is
- * derived from that manifest too.
+ * both exist. It carries the Claude manifest's fields plus `$schema` and
+ * `version`, so it is derived from that manifest too.
  *
- * Two fields are deliberate. `mcpServers` is not in the Agent Plugins schema,
- * whose clients read `mcp.json` by convention and ignore unknown fields, but
- * Grok Build reads this file first and finds MCP servers only through that
- * field. `version` is the one field a person owns: the generator keeps
- * whatever the committed file says, because it names a plugin release cut for
- * the catalogs that pin one, and nothing in the repo can infer it.
+ * Two fields are deliberate. `mcpServers` is not in the Agent Plugins schema.
+ * Its clients find MCP servers in `mcp.json` by fixed location, and the spec
+ * has them report and ignore an unknown top-level field and keep loading. But
+ * Grok Build reads this file first, and without the field it looks for
+ * `.mcp.json`, not `mcp.json`, so dropping it would cost Grok the server.
+ * `version` is the one field a person owns: the generator keeps whatever the
+ * committed file says, because it names a plugin release cut for the catalogs
+ * that pin one, and nothing in the repo can infer it.
  */
 export const AGENT_PLUGIN = {
   target: 'plugin.json',
@@ -161,6 +163,25 @@ export function renderAgentPluginManifest(root, version) {
     })
   );
 }
+
+/**
+ * Every field of the Claude manifest the two renderers above handle. They
+ * copy fields one by one, so a field missing from them would vanish from the
+ * derived manifests with the freshness checks still green, because both sides
+ * of each comparison run through the same renderer. The skills-roster check
+ * fails on a Claude manifest field outside this list instead. Place a new
+ * field in each renderer, or leave it out of one on purpose, then list it.
+ */
+export const PLACED_PLUGIN_FIELDS = [
+  'name',
+  'description',
+  'author',
+  'homepage',
+  'repository',
+  'license',
+  'keywords',
+  'mcpServers',
+];
 
 /**
  * Every derived plugin manifest as `[repo-relative path, object]`, read from

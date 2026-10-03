@@ -27,6 +27,7 @@ import {
   frontmatterNameViolations,
   skillsPluginManifestViolations,
   agentPluginManifestViolations,
+  pluginSourceFieldViolations,
 } from './check-conformance.mjs';
 import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
 
@@ -713,6 +714,36 @@ test('a missing, unparseable, stale or unversioned root manifest is caught', asy
   const unversioned = { ...fresh };
   delete unversioned.version;
   only(root, JSON.stringify(unversioned), /must be a semantic version/);
+  // The repo's SEMVER grammar, not a loose pattern: a leading zero fails, and
+  // prerelease with build metadata passes.
+  only(
+    root,
+    JSON.stringify({ ...fresh, version: '01.2.3' }),
+    /must be a semantic version/
+  );
+  const tagged = renderAgentPluginManifest(
+    JSON.parse(root),
+    '1.2.3-rc.1+build.4'
+  );
+  assert.deepEqual(
+    agentPluginManifestViolations(root, JSON.stringify(tagged)),
+    []
+  );
+});
+
+test('a Claude manifest field neither derived manifest handles is caught', async () => {
+  const { SKILLS_PLUGIN } = await import('./gen-skills-rosters.mjs');
+  const root = repoFile(SKILLS_PLUGIN.source);
+  assert.deepEqual(pluginSourceFieldViolations(root), []);
+  const found = pluginSourceFieldViolations(
+    JSON.stringify({ ...JSON.parse(root), hooks: './hooks.json' })
+  );
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.match(found[0], /"hooks" is not handled by either derived manifest/);
+  // Unreadable or broken input is the freshness checks' to report.
+  assert.deepEqual(pluginSourceFieldViolations(undefined), []);
+  assert.deepEqual(pluginSourceFieldViolations('{'), []);
+  assert.deepEqual(pluginSourceFieldViolations('[]'), []);
 });
 
 test('pluginManifests keeps the committed version, and starts at 1.0.0 without one', async t => {
