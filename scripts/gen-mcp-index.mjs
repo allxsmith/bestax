@@ -39,7 +39,7 @@
  */
 import { readFile, writeFile, readdir, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, relative, dirname, basename, extname } from 'node:path';
+import { join, relative, dirname, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
@@ -50,6 +50,12 @@ import {
   firstSentence,
 } from './lib/api-page.mjs';
 import { readSkillNames } from './lib/skills.mjs';
+import {
+  mdFiles,
+  missingApiPages,
+  missingApiPagesMessage,
+  readApiPages,
+} from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
 import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
@@ -90,31 +96,6 @@ const SCHEMA_VERSION = 1;
 // tool call away on the component's own file. Same budget the skill catalog uses.
 const MAX_PURPOSE = 160;
 
-// Display order + human labels for the category dirs, mirroring
-// gen-component-catalog.mjs. Categories NOT listed are appended alphabetically
-// with a title-cased label, so a new api category is never silently dropped.
-const CATEGORY_ORDER = [
-  ['elements', 'Elements'],
-  ['components', 'Components'],
-  ['form', 'Form'],
-  ['columns', 'Columns'],
-  ['grid', 'Grid'],
-  ['layout', 'Layout'],
-  ['helpers', 'Helpers'],
-];
-
-// Exported names that intentionally have NO standalone API page (documented on
-// a parent page). A NEW component missing its page will not be here, so the
-// completeness guard flags it.
-const UNDOCUMENTED_EXPORTS = new Set([
-  'Tbody',
-  'Td',
-  'Tfoot',
-  'Th',
-  'Thead',
-  'Tr', // documented on the Table page
-]);
-
 // Deterministic, locale-independent comparator. localeCompare varies with the
 // runtime's ICU version and would make CI's regenerate-and-diff flake.
 const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -123,24 +104,6 @@ const collapse = s =>
   String(s ?? '')
     .replace(/\s+/g, ' ')
     .trim();
-
-async function subdirs(dir) {
-  const entries = await readdir(dir, { withFileTypes: true });
-  return entries
-    .filter(e => e.isDirectory())
-    .map(e => e.name)
-    .sort(byCodePoint);
-}
-
-async function mdFiles(dir) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (entry.name.endsWith('.md')) out.push(full);
-  }
-  return out.sort(byCodePoint);
-}
 
 /** Body of the `## Overview` section, first sentence, clipped for the catalog. */
 function purposeOf(fm, sections, lines) {
@@ -429,28 +392,6 @@ async function readSkills() {
   return out.sort((a, b) => byCodePoint(a.name, b.name));
 }
 
-function parseExportedComponents(src) {
-  const out = [];
-  for (const line of src.split(/\r?\n/)) {
-    let m = line.match(/^export \* from '\.\/([^/]+)\/([^'/]+)'/);
-    if (m) {
-      out.push({ name: m[2], cat: m[1] });
-      continue;
-    }
-    m = line.match(/^export \{ ([^}]+) \} from '\.\/([^/]+)\/([^'/]+)'/);
-    if (m) {
-      for (const raw of m[1].split(',')) {
-        const name = raw
-          .trim()
-          .split(/\s+as\s+/)
-          .pop();
-        if (name) out.push({ name, cat: m[2] });
-      }
-    }
-  }
-  return out;
-}
-
 /**
  * Serialise through prettier, exactly as gen-api-docs.mjs does for markdown.
  *
@@ -555,16 +496,10 @@ export async function bulmaClassTable() {
 }
 
 export async function build() {
-  const present = new Set(await subdirs(API_DIR));
-  const known = CATEGORY_ORDER.filter(([dir]) => present.has(dir));
-  const knownDirs = new Set(known.map(([dir]) => dir));
-  const categories = [
-    ...known,
-    ...[...present]
-      .filter(dir => !knownDirs.has(dir))
-      .sort(byCodePoint)
-      .map(dir => [dir, dir.charAt(0).toUpperCase() + dir.slice(1)]),
-  ];
+  // Category dirs in display order, each with its titled pages. The
+  // completeness guard reads the same list, so a page it counts as
+  // documented is a page this index serves.
+  const categories = await readApiPages(API_DIR);
 
   // Page path -> frontmatter title, for resolving Related Components links.
   const pageByPath = new Map();
@@ -579,28 +514,15 @@ export async function build() {
   const components = new Map();
   const cssVarIndex = {};
   const categoryList = [];
-  // category -> page basenames, for the completeness guard. Deliberately keyed
-  // on the FILE rather than the frontmatter title, matching
-  // gen-component-catalog.mjs: `export * from './helpers/Config'` names a
-  // module, and the page that documents it is `config.md` titled
-  // `ConfigProvider`. Matching on title would flag that as missing.
-  const pagesByCat = new Map();
 
-  for (const [dir, label] of categories) {
+  for (const { dir, label, pages } of categories) {
     const members = [];
-    for (const file of await mdFiles(join(API_DIR, dir))) {
-      const src = await readFile(file, 'utf8');
-      const relPath = relative(API_DIR, file).split('\\').join('/');
-      const fm = frontmatter(src);
-      if (!fm.title) continue;
+    for (const { src, fm, relPath, slug } of pages) {
       const name = fm.title;
-      if (!pagesByCat.has(dir)) pagesByCat.set(dir, new Set());
-      pagesByCat.get(dir).add(basename(file, '.md').toLowerCase());
 
       const { lines, sections } = sectionSpans(src);
       const find = re => sections.find(s => re.test(s.heading));
       const purpose = purposeOf(fm, sections, lines);
-      const slug = relPath.replace(/\.md$/, '');
       // `slug` stays the file-path identity; the URL takes the route
       // Docusaurus actually serves, which collapses `grid/grid` (#597).
       const docsUrl = `${DOCS_BASE}/api/${docsRoute(slug)}`;
@@ -719,15 +641,14 @@ export async function build() {
   return {
     catalog,
     components,
-    pagesByCat,
+    missing: missingApiPages(await readFile(INDEX_TS, 'utf8'), categories),
     skills: { skills: await readSkills() },
     bulmaClasses: await bulmaClassTable(),
   };
 }
 
 export async function main() {
-  const { catalog, components, pagesByCat, skills, bulmaClasses } =
-    await build();
+  const { catalog, components, missing, skills, bulmaClasses } = await build();
 
   // Rewrite the component directory rather than overwriting in place: a
   // component that was removed must lose its file, or the staleness gate
@@ -750,26 +671,8 @@ export async function main() {
 
   // Completeness guard. Runs after writing so the failure names what to fix
   // rather than leaving a half-written index behind.
-  const exports = parseExportedComponents(await readFile(INDEX_TS, 'utf8'));
-  const missing = exports
-    .filter(
-      e =>
-        /^[A-Z]/.test(e.name) && // components are PascalCase (skip hooks/utils)
-        !e.name.endsWith('Base') && // escape-hatch variants: documented w/ wrapper
-        !UNDOCUMENTED_EXPORTS.has(e.name) &&
-        !pagesByCat.get(e.cat)?.has(e.name.toLowerCase())
-    )
-    .map(e => `${e.cat}/${e.name}`)
-    .sort(byCodePoint);
-
   if (missing.length) {
-    console.error(
-      `\nERROR: ${missing.length} exported component(s) are missing from the MCP ` +
-        `index:\n  ${missing.join('\n  ')}\n\n` +
-        `Add an API page (docs/docs/api/<category>/<name>.md) whose frontmatter ` +
-        `title: matches the export, or add the name to UNDOCUMENTED_EXPORTS in ` +
-        `scripts/gen-mcp-index.mjs if it is documented on a parent page.\n`
-    );
+    console.error(missingApiPagesMessage(missing, 'the MCP index'));
     process.exit(1);
   }
 

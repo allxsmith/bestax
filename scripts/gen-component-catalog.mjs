@@ -26,11 +26,17 @@
  * deterministic across machines/Node versions, so sorting is by code point (not
  * locale collation) and parsing tolerates CRLF.
  */
-import { readFile, readdir, writeFile } from 'node:fs/promises';
-import { join, relative, dirname, basename } from 'node:path';
+import { readFile, writeFile } from 'node:fs/promises';
+import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { docsRoute } from './lib/docs-url.mjs';
+import {
+  missingApiPages,
+  missingApiPagesMessage,
+  readApiPages,
+} from './lib/api-catalog.mjs';
+import { byCodePoint } from './lib/skills.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -45,61 +51,6 @@ const OUT = join(
 );
 const DOCS_BASE = 'https://bestax.io/docs/api';
 const MAX_PURPOSE = 160;
-
-// Preferred display order + human labels for the category dirs under
-// docs/docs/api. Categories NOT listed here are still included (appended,
-// alphabetically, with a title-cased label) so a new api category is never
-// silently dropped.
-const CATEGORY_ORDER = [
-  ['elements', 'Elements'],
-  ['components', 'Components'],
-  ['form', 'Form'],
-  ['columns', 'Columns'],
-  ['grid', 'Grid'],
-  ['layout', 'Layout'],
-  ['helpers', 'Helpers'],
-];
-
-// Exported names that intentionally have NO standalone API page (they're
-// documented on a parent page). A NEW component missing its page will NOT be
-// here, so it gets flagged by the completeness guard. (`*Base` escape-hatch
-// variants are excluded by rule, not listed here.)
-const UNDOCUMENTED_EXPORTS = new Set([
-  'Tbody',
-  'Td',
-  'Tfoot',
-  'Th',
-  'Thead',
-  'Tr', // documented on the Table page
-]);
-
-// Deterministic, locale-independent comparator (code-point order). localeCompare
-// varies with the runtime's ICU version and would make CI's regenerate-and-diff
-// check flake across Node versions.
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-
-async function subdirs(dir) {
-  const entries = await readdir(dir, { withFileTypes: true });
-  return entries.filter(e => e.isDirectory()).map(e => e.name);
-}
-
-async function mdFiles(dir) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (entry.name.endsWith('.md')) out.push(full);
-  }
-  return out;
-}
-
-function frontmatterTitle(src) {
-  // Tolerate CRLF: match up to the closing `---` on its own line.
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return null;
-  const t = m[1].match(/^title:[ \t]*(.+?)[ \t]*$/m);
-  return t ? t[1].replace(/^['"]|['"]$/g, '') : null;
-}
 
 // Drop a trailing unbalanced inline-code backtick left by truncation.
 function balanceBackticks(s) {
@@ -155,62 +106,21 @@ function overviewSentence(src) {
   return clip(s);
 }
 
-// Parse the public barrel for exported component names (Uppercase-initial value
-// exports). Used only by the completeness guard.
-function parseExportedComponents(src) {
-  const out = [];
-  for (const line of src.split(/\r?\n/)) {
-    let m = line.match(/^export \* from '\.\/([^/]+)\/([^'/]+)'/);
-    if (m) {
-      out.push({ name: m[2], cat: m[1] });
-      continue;
-    }
-    // `export { A, B } from './cat/Mod'` — value exports only (not `export type`).
-    m = line.match(/^export \{ ([^}]+) \} from '\.\/([^/]+)\/([^'/]+)'/);
-    if (m) {
-      for (const raw of m[1].split(',')) {
-        const name = raw
-          .trim()
-          .split(/\s+as\s+/)
-          .pop();
-        if (name) out.push({ name, cat: m[2] });
-      }
-    }
-  }
-  return out;
-}
-
 async function main() {
-  // Discover category dirs; order the known ones first, append any unknown.
-  const present = new Set(await subdirs(API_DIR));
-  const known = CATEGORY_ORDER.filter(([dir]) => present.has(dir));
-  const knownDirs = new Set(known.map(([dir]) => dir));
-  const extra = [...present]
-    .filter(dir => !knownDirs.has(dir))
-    .sort(byCodePoint)
-    .map(dir => [dir, dir.charAt(0).toUpperCase() + dir.slice(1)]);
-  const categories = [...known, ...extra];
+  // Category dirs in display order, each with its titled pages. The
+  // completeness guard below reads the same list, so a page it counts as
+  // documented is a page this catalog lists.
+  const categories = await readApiPages(API_DIR);
 
   const sections = [];
-  const documentedByCat = new Map(); // cat -> Set of page basenames (lowercased)
   let total = 0;
 
-  for (const [dir, label] of categories) {
-    const files = (await mdFiles(join(API_DIR, dir))).sort(byCodePoint);
-    const pages = new Set();
-    const rows = [];
-    for (const file of files) {
-      pages.add(basename(file, '.md').toLowerCase());
-      const src = await readFile(file, 'utf8');
-      const title = frontmatterTitle(src);
-      if (!title) continue;
-      const slug = relative(API_DIR, file)
-        .replace(/\.md$/, '')
-        .split('\\')
-        .join('/');
-      rows.push({ title, purpose: overviewSentence(src), slug });
-    }
-    documentedByCat.set(dir, pages);
+  for (const { label, pages } of categories) {
+    const rows = pages.map(({ src, fm, slug }) => ({
+      title: fm.title,
+      purpose: overviewSentence(src),
+      slug,
+    }));
     rows.sort((a, b) => byCodePoint(a.title, b.title));
     if (!rows.length) continue;
     total += rows.length;
@@ -271,27 +181,9 @@ ${sections.join('\n\n')}
   process.stdout.write(`Wrote ${relative(REPO, OUT)} (${total} components)\n`);
 
   // Completeness guard: every exported component must have an API page.
-  const exports = parseExportedComponents(await readFile(INDEX_TS, 'utf8'));
-  const missing = exports
-    .filter(
-      e =>
-        /^[A-Z]/.test(e.name) && // components are PascalCase (skip hooks/utils)
-        !e.name.endsWith('Base') && // raw escape-hatch variants: documented w/ wrapper
-        !UNDOCUMENTED_EXPORTS.has(e.name) &&
-        !documentedByCat.get(e.cat)?.has(e.name.toLowerCase())
-    )
-    .map(e => `${e.cat}/${e.name}`)
-    .sort(byCodePoint);
-
+  const missing = missingApiPages(await readFile(INDEX_TS, 'utf8'), categories);
   if (missing.length) {
-    console.error(
-      `\nERROR: ${missing.length} exported component(s) have no API page under docs/docs/api/ ` +
-        `and are missing from the catalog:\n  ` +
-        missing.join('\n  ') +
-        `\n\nAdd an API page (docs/docs/api/<category>/<name>.md), or if the export ` +
-        `is intentionally undocumented, add it to UNDOCUMENTED_EXPORTS in ` +
-        `scripts/gen-component-catalog.mjs.\n`
-    );
+    console.error(missingApiPagesMessage(missing, 'the catalog'));
     process.exit(1);
   }
 }

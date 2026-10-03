@@ -28,11 +28,12 @@ const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 let catalog;
 let components;
+let missing;
 let skills;
 let bulmaClasses;
 
 before(async () => {
-  ({ catalog, components, skills, bulmaClasses } = await build());
+  ({ catalog, components, missing, skills, bulmaClasses } = await build());
 });
 
 test('the catalog pins the library version it was generated from', async () => {
@@ -47,6 +48,7 @@ test('the catalog pins the library version it was generated from', async () => {
 test('every exported component reaches the index', () => {
   // The completeness guard in main() fails the build on this; assert it here
   // too so the reason is visible without reading a process exit code.
+  assert.deepEqual(missing, []);
   assert.ok(components.size >= 80, `only ${components.size} components`);
   for (const name of ['Button', 'Navbar', 'Field', 'Columns', 'Hero']) {
     assert.ok(components.has(name), `${name} missing from the index`);

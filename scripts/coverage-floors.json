@@ -13,6 +13,7 @@
   "scripts/gen-mcp-index.mjs": { "lines": 86, "branches": 85, "functions": 88 },
   "scripts/gen-skills-rosters.mjs": { "lines": 72, "branches": 20, "functions": 50 },
   "scripts/handoff-message.mjs": { "lines": 100, "branches": 100, "functions": 100 },
+  "scripts/lib/api-catalog.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/api-page.mjs": { "lines": 69, "branches": 76, "functions": 44 },
   "scripts/lib/api-sources.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/bypass-annotations.mjs": { "lines": 100, "branches": 89, "functions": 100 },
