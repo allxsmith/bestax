@@ -6,7 +6,7 @@
 // scripts/lib/shell-words.mjs (#436) exists to prevent. All four import from
 // here now; a predicate change lands once or not at all.
 
-import { readdir, stat } from 'node:fs/promises';
+import { lstat, readdir, stat } from 'node:fs/promises';
 import { realpathSync } from 'node:fs';
 import { join, dirname, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -42,7 +42,9 @@ export function byCodePoint(a, b) {
 export async function readSkillDirs(dir) {
   const found = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    if (!entry.isDirectory()) continue;
+    // A symbolic link is listed rather than skipped, so a linked skill is
+    // refused by skillFiles instead of quietly missing from every bundle.
+    if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
 
     // A regular file specifically: a directory named SKILL.md would satisfy
     // a bare existence probe and then break every consumer that reads it.
@@ -122,21 +124,43 @@ export function isDsStore(path) {
  * order, and nothing isDsStore matches. What the MCP index lists, so it
  * cannot list a file the sync scripts leave out.
  */
+/**
+ * The error code a skill refusal carries: a skill file that is untracked or a
+ * symbolic link. Callers tell it apart from an unexpected failure, such as a
+ * permission error, which should keep its own message and stack.
+ */
+export const SKILL_REFUSAL = 'ESKILLREFUSAL';
+
+function skillRefusal(message) {
+  return Object.assign(new Error(message), { code: SKILL_REFUSAL });
+}
+
+export function isSkillRefusal(err) {
+  return err?.code === SKILL_REFUSAL;
+}
+
 export async function skillFiles(dir) {
+  if ((await lstat(dir)).isSymbolicLink()) {
+    throw skillRefusal(
+      `${dir} is a symbolic link. Commit a regular directory.`
+    );
+  }
   const out = [];
   const walk = async rel => {
     const entries = await readdir(join(dir, rel), { withFileTypes: true });
     for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
       const next = rel ? `${rel}/${e.name}` : e.name;
-      if (isDsStore(next)) continue;
-      // A symbolic link is refused, not skipped. cp would follow it and ship
-      // the target, while this listing and the fingerprint built on it would
-      // never see a change behind it.
+      // A symbolic link is refused, not skipped, before the .DS_Store
+      // exemption so no link slips through under that name. cp would recreate
+      // it as a link to the absolute source path, which dangles once the
+      // package leaves this machine, and this listing and the fingerprint
+      // built on it would never see a change behind it.
       if (e.isSymbolicLink()) {
-        throw new Error(
+        throw skillRefusal(
           `${join(dir, next)} is a symbolic link. Commit a regular file.`
         );
       }
+      if (isDsStore(next)) continue;
       if (e.isDirectory()) await walk(next);
       else if (e.isFile()) out.push(next);
     }
@@ -153,7 +177,7 @@ export async function skillFiles(dir) {
 export function assertSkillsVetted(skillsDir, names, verb) {
   const untracked = untrackedSkillPaths(skillsDir, names);
   if (untracked.length) {
-    throw new Error(
+    throw skillRefusal(
       `refusing to ${verb} untracked file(s) under skills/: ` +
         `${untracked.join(', ')}. \`git add\` them to vet them, or remove them.`
     );

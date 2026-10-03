@@ -11,6 +11,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  chmodSync,
   rmSync,
   symlinkSync,
   utimesSync,
@@ -22,7 +23,7 @@ import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 import { syncFailureText, syncSkills } from './lib/sync-skills.mjs';
-import { skillFiles } from './lib/skills.mjs';
+import { readSkillDirs, skillFiles } from './lib/skills.mjs';
 
 /** A repo-shaped temp dir holding skills/ with two skills and some noise. */
 function fixture(t) {
@@ -226,4 +227,86 @@ test('a refusal prints its message, anything else keeps its stack', () => {
   assert.equal(syncFailureText(crash), crash.stack);
   assert.match(syncFailureText(crash), /TypeError: boom\n\s+at /);
   assert.equal(syncFailureText('plain'), 'plain');
+});
+
+test('a symlinked skill directory is listed, then refused rather than skipped', async t => {
+  for (const locked of [false, true]) {
+    const f = fixture(t);
+    const outside = join(f.root, 'outside-skill');
+    mkdirSync(outside);
+    writeFileSync(join(outside, 'SKILL.md'), '---\nname: bestax-c\n---\n');
+    symlinkSync(outside, join(f.src, 'bestax-c'));
+    const dirs = await readSkillDirs(f.src);
+    assert.deepEqual(
+      dirs.find(d => d.name === 'bestax-c'),
+      { name: 'bestax-c', hasSkillFile: true },
+      'the linked skill is not silently dropped'
+    );
+    await assert.rejects(
+      syncSkills(locked ? f : unlocked(f)),
+      /^Error: \[sync-skills\] .*bestax-c is a symbolic link\. Commit a regular directory\.$/
+    );
+    assert.ok(!existsSync(f.dest), 'copied anyway');
+  }
+});
+
+test('a symlink named .DS_Store is refused, not exempted', async t => {
+  const f = fixture(t);
+  symlinkSync(
+    join(f.src, 'bestax-a', 'SKILL.md'),
+    join(f.src, 'bestax-b', '.DS_Store')
+  );
+  await assert.rejects(
+    syncSkills(unlocked(f)),
+    /bestax-b\/\.DS_Store is a symbolic link/
+  );
+});
+
+test('an unexpected error is not tagged as a refusal and keeps its stack', async t => {
+  if (process.getuid?.() === 0) return t.skip('root ignores file modes');
+  const f = fixture(t);
+  const locked = join(f.src, 'bestax-a', 'references');
+  chmodSync(locked, 0o000);
+  // Restored here, not in t.after: the fixture's cleanup hook runs first and
+  // could not remove a directory it cannot read.
+  let err;
+  try {
+    err = await syncSkills(unlocked(f)).then(
+      () => assert.fail('resolved'),
+      e => e
+    );
+  } finally {
+    chmodSync(locked, 0o755);
+  }
+  assert.equal(err.code, 'EACCES');
+  assert.doesNotMatch(err.message, /^\[sync-skills\]/);
+  assert.equal(syncFailureText(err), err.stack);
+});
+
+test('a committed symlink in a real repository is refused as a link', async t => {
+  const f = fixture(t);
+  const git = (...args) =>
+    execFileSync(
+      'git',
+      [
+        '-C',
+        f.root,
+        '-c',
+        'user.name=t',
+        '-c',
+        'user.email=t@t',
+        '-c',
+        'commit.gpgsign=false',
+        ...args,
+      ],
+      { stdio: 'pipe' }
+    );
+  symlinkSync('SKILL.md', join(f.src, 'bestax-b', 'alias.md'));
+  git('init', '-q');
+  git('add', '-A');
+  git('commit', '-q', '-m', 'fixture');
+  await assert.rejects(
+    syncSkills(unlocked(f)),
+    /^Error: \[sync-skills\] .*bestax-b\/alias\.md is a symbolic link\. Commit a regular file\.$/
+  );
 });

@@ -17,6 +17,7 @@ import { join } from 'node:path';
 import {
   assertSkillsVetted,
   isDsStore,
+  isSkillRefusal,
   readSkillNames,
   skillFiles,
 } from './skills.mjs';
@@ -74,11 +75,14 @@ export async function syncSkills({
   // manual publish with no gate anywhere in the path. `git add` is the act
   // of vetting, and a tree without git (an exported tarball) skips the gate.
   // A symbolic link is refused here too, for every caller: skillFiles throws
-  // on one, and cp would otherwise follow it and ship its target.
+  // on one, and cp would otherwise recreate it pointing at this checkout.
+  // Only those refusals get the tag. Anything else, such as a permission
+  // error, passes through with its own message and stack.
   try {
     assertSkillsVetted(src, names, 'bundle');
     for (const name of names) await skillFiles(join(src, name));
   } catch (err) {
+    if (!isSkillRefusal(err)) throw err;
     throw new Error(`${TAG} ${err.message}`, { cause: err });
   }
 
