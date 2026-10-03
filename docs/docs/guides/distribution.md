@@ -2,7 +2,7 @@
 title: Distribution and Listings
 sidebar_label: Distribution
 sidebar_position: 12
-description: Every registry, marketplace, directory and curated list that carries Bestax, and which of them only change when a maintainer updates them by hand.
+description: The registries, marketplaces, directories and curated lists we know carry Bestax, and which of them only change when a maintainer updates them by hand.
 ---
 
 # Distribution and Listings
@@ -124,6 +124,9 @@ Say in the pull request which listings need an update, then open those updates o
   `BESTAX_MCP_NO_VERSION_CHECK` variable.
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock and cursor.directory give
   `npx -y bestax-mcp@1` as the command.
+- **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
+  it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
+  need the same change.
 - **Changing an install command.** awesome-claude-code-and-skills and claude-code-skills-zh give
   `npx skills add https://github.com/allxsmith/bestax --skill <name>`.
 - **Moving or renaming a package folder.** Entries link to `tree/main/bestax-mcp`,

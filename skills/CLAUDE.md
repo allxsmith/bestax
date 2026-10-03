@@ -43,7 +43,7 @@ intro bullet exist.
 
 Outside the repo, several lists and directories name the skills or say how many there are, and
 some host copies. No check sees them. Adding, renaming or removing a skill means updating the
-Manual listings in `docs/docs/guides/distribution.md` ("What goes stale").
+listings that `docs/docs/guides/distribution.md` names under "What goes stale".
 
 ## Rules
 
