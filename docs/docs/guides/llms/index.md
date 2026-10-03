@@ -157,8 +157,12 @@ The `bestax` plugin installs the [Agent Skills](/docs/skills/intro) and the
 ```
 
 It starts the server with the same `npx -y bestax-mcp@1` command as the setup above, so
-skip `claude mcp add` when you use it. It has no hooks or commands of its own. Run
-`/plugin marketplace update bestax` to pick up skill changes.
+skip `claude mcp add` when you use it. It has no hooks or commands of its own.
+
+To pick up skill changes, choose **Update now** on bestax in the **Installed** tab of
+`/plugin`, or run `claude plugin update bestax@bestax` in your shell and then `/reload-plugins`
+in your session. Claude Code does not auto-update plugins from this marketplace until you
+choose **Enable auto-update** for it in the **Marketplaces** tab of `/plugin`.
 
 Other agents read the same plugin from the repository:
 
