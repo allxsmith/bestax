@@ -95,15 +95,19 @@ import {
 } from './lib/pack-time-protocols.mjs';
 import {
   fenceMask,
+  frontmatter,
+  frontmatterTitle,
   readRegions,
   sectionSpans,
   splitLines,
 } from './lib/api-page.mjs';
+import { mdFiles } from './lib/api-catalog.mjs';
 import {
   SKILL_DIR_NAME,
-  readSkillDirs as libReadSkillDirs,
-  readSkillNames as libReadSkillNames,
+  bundledSkillNames,
+  readSkillDirs,
   rosterSkillNames,
+  skillSlug,
 } from './lib/skills.mjs';
 import { renderPage } from './gen-api-docs.mjs';
 import {
@@ -197,18 +201,12 @@ const STORY_EXEMPT = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
-// Shared helpers (same parsing rules as gen-component-catalog.mjs).
+// Shared helpers. The page walk and frontmatter reader are the generators'
+// own (scripts/lib), so a page this checks is a page they read.
 // ---------------------------------------------------------------------------
 
-async function mdFiles(dir) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (/\.mdx?$/.test(entry.name)) out.push(full);
-  }
-  return out;
-}
+/** Every .md and .mdx file under `dir`, at any depth, sorted. */
+const docFiles = dir => mdFiles(dir, /\.mdx?$/);
 
 async function walk(dir, ext) {
   const out = [];
@@ -218,13 +216,6 @@ async function walk(dir, ext) {
     else if (entry.name.endsWith(ext)) out.push(full);
   }
   return out;
-}
-
-function frontmatterTitle(src) {
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return null;
-  const t = m[1].match(/^title:[ \t]*(.+?)[ \t]*$/m);
-  return t ? t[1].replace(/^['"]|['"]$/g, '') : null;
 }
 
 function parseExportedModules(src) {
@@ -241,7 +232,7 @@ function parseExportedModules(src) {
 // API pages by category: cat -> [{ title, relPath }]
 async function apiComponents() {
   const byCat = new Map();
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const title = frontmatterTitle(await readFile(file, 'utf8'));
     if (!title) continue;
     const rel = relative(API_DIR, file).split('\\').join('/');
@@ -321,7 +312,7 @@ async function checkListingsSync() {
 
 async function checkDocsSections() {
   const violations = [];
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     const src = await readFile(file, 'utf8');
     const isHelper = rel.startsWith('helpers/');
@@ -414,7 +405,7 @@ function managedPage(rel) {
 // pair is the documented per-region opt-out, so it must not be silent.
 async function checkDocsSectionOrder() {
   const violations = [];
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     if (!orderedPage(rel)) continue;
     const src = await readFile(file, 'utf8');
@@ -469,7 +460,7 @@ async function checkDocsSectionOrder() {
 // .github/**.
 async function checkDocsGenerated() {
   const violations = [];
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     if (!managedPage(rel)) continue;
     const src = await readFile(file, 'utf8');
@@ -1910,7 +1901,7 @@ async function checkAutodocsTag() {
 async function countInlineStyles() {
   const counts = {};
   const stories = await walk(join(REPO, 'bulma-ui', 'src'), '.stories.tsx');
-  const docs = await mdFiles(join(REPO, 'docs', 'docs'));
+  const docs = await docFiles(join(REPO, 'docs', 'docs'));
   for (const file of [...stories, ...docs]) {
     const n = ((await readFile(file, 'utf8')).match(/style=\{\{/g) || [])
       .length;
@@ -3067,7 +3058,7 @@ export const expiryRemediation = label =>
  * directions, so a roster still advertising a deleted skill fails too. That
  * half has no other guard — sync-skills.mjs just silently stops copying it.
  *
- * The docs-site surfaces are held through the slug transform (directory name
+ * The docs-site surfaces are held through the slug (`skillSlug`, directory name
  * minus `bestax-`, exactly what gen-mcp-index.mjs ships as `promptName`): the
  * sidebar entries and the intro bullet roster here, and the per-skill page
  * files in `skillsPageViolations`. A new skill fails conformance until its
@@ -3118,7 +3109,7 @@ export const SKILL_ROSTERS = [
           ),
         fromToken: slug => `bestax-${slug}`,
         example: n =>
-          `- **[…](./${n.replace(/^bestax-/, '')})** — one line on when to reach for it.`,
+          `- **[…](./${skillSlug(n)})** — one line on when to reach for it.`,
       },
     ],
   },
@@ -3182,7 +3173,7 @@ export const SKILL_ROSTERS = [
             .map(m => m[1])
             .filter(slug => slug !== 'intro'),
         fromToken: slug => `bestax-${slug}`,
-        example: n => `'skills/${n.replace(/^bestax-/, '')}',`,
+        example: n => `'skills/${skillSlug(n)}',`,
       },
     ],
   },
@@ -3292,18 +3283,9 @@ function section(heading) {
   };
 }
 
-// The roster definition itself lives in scripts/lib/skills.mjs, shared with
-// both sync scripts and gen-mcp-index.mjs so the four consumers cannot drift.
-// Re-exported here because this check and its tests are the historical home.
-export { SKILL_DIR_NAME, rosterSkillNames };
-
-export async function readSkillDirs(dir = join(REPO, 'skills')) {
-  return libReadSkillDirs(dir);
-}
-
-export async function readSkillNames(dir = join(REPO, 'skills')) {
-  return libReadSkillNames(dir);
-}
+// The roster definition itself (readSkillDirs, rosterSkillNames and the rest)
+// lives in scripts/lib/skills.mjs, shared with both sync scripts and
+// gen-mcp-index.mjs so the consumers cannot drift.
 
 /**
  * What is wrong with the directories themselves, before any roster is read.
@@ -3403,8 +3385,8 @@ export function rosterViolations(skills, sources) {
 }
 
 /**
- * The per-skill docs pages, keyed by slug (directory name minus `bestax-`) —
- * the same transform gen-mcp-index.mjs ships as `promptName`. Pure, like
+ * The per-skill docs pages, keyed by skillSlug (directory name minus
+ * `bestax-`), which gen-mcp-index.mjs also ships as `promptName`. Pure, like
  * rosterViolations, so the branches can be driven with fixtures.
  */
 export function skillsPageViolations(skills, pageFiles) {
@@ -3421,7 +3403,7 @@ export function skillsPageViolations(skills, pageFiles) {
       .map(f => f.replace(/\.(md|mdx)$/, ''))
   );
   for (const name of skills) {
-    const slug = name.replace(/^bestax-/, '');
+    const slug = skillSlug(name);
     if (!slugs.has(slug)) {
       violations.push(
         `docs/docs/skills/${slug}.mdx: missing — every skill has a docs page ` +
@@ -3430,7 +3412,7 @@ export function skillsPageViolations(skills, pageFiles) {
       );
     }
   }
-  const knownSlugs = new Set(skills.map(n => n.replace(/^bestax-/, '')));
+  const knownSlugs = new Set(skills.map(skillSlug));
   for (const slug of slugs) {
     if (slug === 'intro' || knownSlugs.has(slug)) continue;
     violations.push(
@@ -3443,31 +3425,32 @@ export function skillsPageViolations(skills, pageFiles) {
 }
 
 /**
- * Frontmatter `name:` must equal the directory name. Every prose roster and
- * install line is held to the DIRECTORY name, while gen-mcp-index.mjs keys the
- * shipped MCP manifest off the FRONTMATTER (`fm.name || name`, and promptName
- * derives from it) — with no gate, one edit ships two disagreeing rosters
- * while everything stays green.
+ * Frontmatter `name:` must be present and equal the directory name, as the
+ * Agent Skills spec requires. Every roster here, the install lines and the
+ * MCP manifest follow the DIRECTORY, while `npx skills add` and every agent
+ * that loads a skill read the FRONTMATTER. Without this gate one edit would
+ * install a skill under a name no roster or MCP prompt uses, with everything
+ * green.
  */
 export function frontmatterNameViolations(entries) {
   const violations = [];
   for (const { name, fmName } of entries) {
-    if (fmName && fmName !== name) {
+    if (!fmName) {
+      violations.push(
+        `skills/${name}/SKILL.md: frontmatter has no name. The Agent Skills ` +
+          `spec requires one, equal to the directory name. Add "name: ${name}".`
+      );
+    } else if (fmName !== name) {
       violations.push(
         `skills/${name}/SKILL.md: frontmatter says "name: ${fmName}" but the ` +
-          `directory is ${name}. The rosters follow the directory and the MCP ` +
-          `manifest follows the frontmatter, so a mismatch ships two ` +
-          `disagreeing rosters. Rename one to match the other.`
+          `directory is ${name}. The Agent Skills spec requires them to ` +
+          `match: the rosters and the MCP manifest follow the directory, and ` +
+          `agents load the skill by its frontmatter name. Rename one to match ` +
+          `the other.`
       );
     }
   }
   return violations;
-}
-
-function skillFrontmatterName(text) {
-  const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!fm) return null;
-  return fm[1].match(/^name:\s*['"]?([^'"\r\n]+?)['"]?\s*$/m)?.[1] ?? null;
 }
 
 async function checkSkillsRoster() {
@@ -3507,9 +3490,9 @@ async function checkSkillsRoster() {
     try {
       fmEntries.push({
         name,
-        fmName: skillFrontmatterName(
+        fmName: frontmatter(
           await readFile(join(skillsDir, name, 'SKILL.md'), 'utf8')
-        ),
+        ).name,
       });
     } catch {
       // The dir listing said SKILL.md exists; a read race is not this
@@ -3532,7 +3515,7 @@ async function checkSkillsRoster() {
   // region fails conformance without a separate gen:check step. Compared on
   // the BUNDLED name set (every dir with a SKILL.md), matching the generator,
   // not the prose-expressible subset the copies above are held to.
-  const bundled = dirs.filter(d => d.hasSkillFile).map(d => d.name);
+  const bundled = bundledSkillNames(dirs);
   for (const { file, fence } of SKILLS_INSTALL_TARGETS) {
     let text;
     try {
@@ -3975,7 +3958,7 @@ export async function checkFragileProse(root = REPO) {
     // Migration guides are exempt: their counts describe a frozen upstream
     // (a vendored version of another library), and the ones that matter are
     // asserted by the mapping-coverage tests in bestax-migrate.
-    ...(await ifPresent(join(root, 'docs', 'docs', 'guides'), mdFiles))
+    ...(await ifPresent(join(root, 'docs', 'docs', 'guides'), docFiles))
       .filter(f => !f.includes(`${sep}migration${sep}`))
       .map(f => [f, 'guide']),
   ];

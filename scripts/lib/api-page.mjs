@@ -1,6 +1,6 @@
 /**
  * Markdown surgery for the API reference pages: generated-region markers,
- * top-level section spans, and frontmatter upserts.
+ * top-level section spans, and frontmatter reads and upserts.
  *
  * Everything here is FENCE-AWARE. `docs/docs/api/helpers/theme.md` contains a
  * `---` inside a code fence, and several pages show HTML comments inside `html`
@@ -223,6 +223,29 @@ export function sectionBody(lines, section) {
 }
 
 /**
+ * The flat `key: value` lines of a frontmatter block, values trimmed and
+ * unquoted, or {} when there is no block. The one reader for API pages and
+ * SKILL.md alike. Nested YAML is not parsed. A key with nothing after it
+ * reads as '', never as the line below it, and a repeated key keeps its last
+ * value. CRLF is tolerated.
+ */
+export function frontmatter(src) {
+  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!m) return {};
+  const out = {};
+  for (const line of m[1].split(/\r?\n/)) {
+    const kv = line.match(/^([A-Za-z_][\w-]*):[ \t]*(.*)$/);
+    if (kv) out[kv[1]] = kv[2].trim().replace(/^['"]|['"]$/g, '');
+  }
+  return out;
+}
+
+/** A page's frontmatter `title:`, or null when it has none. */
+export function frontmatterTitle(src) {
+  return frontmatter(src).title || null;
+}
+
+/**
  * Insert or update a frontmatter key, preserving key order and the rest of the
  * block. Used for `description:` — `docusaurus-plugin-llms` picks each page's
  * llms.txt description from the first non-heading paragraph, which after
@@ -274,13 +297,15 @@ export function upsertFrontmatter(src, key, value, after = null) {
 }
 
 /**
- * First sentence of a prose line.
+ * First sentence of a prose line: up to the first period that ends a word,
+ * before whitespace or the end of the line, and only when that is long
+ * enough to be a real sentence, so an early abbreviation like "e.g." keeps
+ * the whole line instead of cutting it short.
  *
- * Deliberately the SAME rule as `overviewSentence()` in
- * gen-component-catalog.mjs — a period ending a word of more than one character
- * (so "e.g." doesn't split), and only when the result is long enough to be a
- * real sentence. The generated Overview must round-trip through that function
- * unchanged, or the skill catalog churns on every run.
+ * gen-api-docs writes the generated Overview with this, and both catalogs cut
+ * their one-liner with it, so the generated sentence round-trips through the
+ * catalogs unchanged. The skill catalog once kept its own copy, which had
+ * already drifted on what may follow the period.
  */
 export function firstSentence(text) {
   const s = String(text).replace(/\s+/g, ' ').trim();

@@ -38,31 +38,15 @@ import {
   varRootCandidates,
 } from './lib/props-extract.mjs';
 import { GENERATED_EXEMPT } from './lib/api-sources.mjs';
+import { frontmatterTitle } from './lib/api-page.mjs';
+import { mdFiles } from './lib/api-catalog.mjs';
+import { byCodePoint } from './lib/skills.mjs';
 
 const require = createRequire(import.meta.url);
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
 const API_DIR = join(REPO, 'docs', 'docs', 'api');
 const OUT = join(HERE, 'lib', 'api-sources.mjs');
-
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-
-async function mdFiles(dir) {
-  const out = [];
-  for (const e of await readdir(dir, { withFileTypes: true })) {
-    const f = join(dir, e.name);
-    if (e.isDirectory()) out.push(...(await mdFiles(f)));
-    else if (e.name.endsWith('.md')) out.push(f);
-  }
-  return out.sort(byCodePoint);
-}
-
-function frontmatterTitle(src) {
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return null;
-  const t = m[1].match(/^title:[ \t]*(.+?)[ \t]*$/m);
-  return t ? t[1].replace(/^['"]|['"]$/g, '') : null;
-}
 
 /** Every SCSS partial that could register component variables. */
 async function candidatePartials() {

@@ -23,7 +23,7 @@
  * Regenerate with `pnpm gen` (which also refreshes the skill catalog, since
  * generated Overview sentences feed its one-liners).
  */
-import { readFile, writeFile, readdir } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, relative, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -37,7 +37,9 @@ import {
   upsertFrontmatter,
   renderTable,
   firstSentence,
+  frontmatterTitle,
 } from './lib/api-page.mjs';
+import { mdFiles } from './lib/api-catalog.mjs';
 import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
@@ -52,25 +54,6 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
 const API_DIR = join(REPO, 'docs', 'docs', 'api');
 const PACKAGE = '@allxsmith/bestax-bulma';
-
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-
-async function mdFiles(dir) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (entry.name.endsWith('.md')) out.push(full);
-  }
-  return out.sort(byCodePoint);
-}
-
-function frontmatterTitle(src) {
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return null;
-  const t = m[1].match(/^title:[ \t]*(.+?)[ \t]*$/m);
-  return t ? t[1].replace(/^['"]|['"]$/g, '') : null;
-}
 
 /**
  * Component name -> the API page that documents it, e.g. `Column` ->

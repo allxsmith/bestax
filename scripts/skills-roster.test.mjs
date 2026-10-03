@@ -16,17 +16,21 @@ import { fileURLToPath } from 'node:url';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
+import { frontmatter } from './lib/api-page.mjs';
 import {
   SKILL_ROSTERS,
-  readSkillDirs,
-  readSkillNames,
-  rosterSkillNames,
   rosterViolations,
   skillDirViolations,
   skillsPageViolations,
   frontmatterNameViolations,
 } from './check-conformance.mjs';
-import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
+import {
+  pathsInsideSkills,
+  readSkillDirs,
+  readSkillNames,
+  rosterSkillNames,
+  untrackedSkillPaths,
+} from './lib/skills.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -444,17 +448,43 @@ test('per-skill docs pages: missing and orphaned pages are both caught', () => {
 });
 
 test('a frontmatter name that disagrees with the directory is caught', () => {
-  // Every prose roster follows the DIRECTORY name while gen-mcp-index keys the
-  // shipped MCP manifest off the FRONTMATTER — without this gate a rename in
-  // one place ships two disagreeing rosters with everything green.
+  // Every roster and the MCP manifest follow the DIRECTORY name while agents
+  // load a skill by its FRONTMATTER name. Without this gate a rename in one
+  // place installs a skill under a name nothing else uses, with everything
+  // green.
   const v = frontmatterNameViolations([
     { name: 'bestax-optimize', fmName: 'bestax-css-optimize' },
     { name: 'bestax-form', fmName: 'bestax-form' },
-    { name: 'bestax-icons', fmName: null },
   ]);
   assert.equal(v.length, 1, v.join('\n'));
   assert.match(v[0], /bestax-optimize/);
   assert.match(v[0], /bestax-css-optimize/);
+});
+
+test('a missing or empty frontmatter name is caught, not read off the next line', () => {
+  // The old reader matched `^name:\s*…$`, and `\s` crosses a newline, so an
+  // empty `name:` took the whole next line as the name. The shared reader
+  // reads it as empty, and the spec requires the field, so it fails as
+  // missing rather than as a confusing mismatch.
+  const empty = frontmatter(
+    '---\r\nname:\r\ndescription: Build forms.\r\n---\r\n# Form\r\n'
+  );
+  assert.equal(empty.name, '');
+  assert.equal(empty.description, 'Build forms.');
+  for (const fmName of [
+    empty.name,
+    frontmatter('---\nlicense: MIT\n---').name,
+  ]) {
+    const v = frontmatterNameViolations([{ name: 'bestax-form', fmName }]);
+    assert.equal(v.length, 1, v.join('\n'));
+    assert.match(v[0], /has no name/);
+    assert.match(v[0], /name: bestax-form/);
+  }
+  assert.equal(
+    frontmatter("---\nname: 'bestax-form'\n---").name,
+    'bestax-form'
+  );
+  assert.deepEqual(frontmatter('# no frontmatter\nname: x\n'), {});
 });
 
 test('the tests and the check derive the comparison set the same way', () => {
@@ -565,16 +595,12 @@ test('the generated install regions are fresh on the real tree', async () => {
   const { TARGETS, REGION_ID, renderInstallBlock } =
     await import('./gen-skills-rosters.mjs');
   const { readRegions } = await import('./lib/api-page.mjs');
-  const { readSkillNames } = await import('./lib/skills.mjs');
-  const skills = await readSkillNames(
-    fileURLToPath(new URL('../skills', import.meta.url))
-  );
   for (const { file, fence } of TARGETS) {
     const region = readRegions(repoFile(file), file).get(REGION_ID);
     assert.ok(region, `${file} lost its ${REGION_ID} marker pair`);
     assert.equal(
       region.body,
-      renderInstallBlock(skills, fence),
+      renderInstallBlock(SKILLS, fence),
       `${file} is stale — run pnpm gen:skills`
     );
   }

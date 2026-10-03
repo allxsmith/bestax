@@ -28,9 +28,11 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   committed — enough for the staleness gate to catch a new or renamed skill,
   without putting a second copy of ~390 KB of markdown in every skill diff.
   Several Turbo tasks can invoke that script at the same time, so it takes a lock
-  and no-ops when the tree already matches the source; keep both properties if
-  you touch it, and see its trailing "Concurrency" note for why the freshness
-  check is required rather than merely an optimisation.
+  and no-ops when the tree already matches the source. The copy itself is
+  `scripts/lib/sync-skills.mjs` at the repo root, shared with create-bestax.
+  Keep both properties if you touch either file, and see the shared file's
+  trailing "Concurrency" note for why the freshness check is required rather
+  than merely an optimisation.
 - `gen:mcp:check` runs `git add --intent-to-add` before diffing. The output is a
   directory, and `git diff --exit-code` cannot see an untracked file — a newly
   added component would otherwise pass the gate.

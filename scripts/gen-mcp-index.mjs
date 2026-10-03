@@ -37,14 +37,33 @@
  *
  * Regenerate with `pnpm gen:mcp` (or `pnpm gen`, which runs all three).
  */
-import { readFile, writeFile, readdir, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, relative, dirname, basename, extname } from 'node:path';
+import { join, relative, dirname, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
-import { sectionSpans, sectionBody, firstSentence } from './lib/api-page.mjs';
-import { readSkillNames } from './lib/skills.mjs';
+import {
+  frontmatter,
+  sectionSpans,
+  sectionBody,
+  firstSentence,
+} from './lib/api-page.mjs';
+import {
+  assertSkillsVetted,
+  byCodePoint,
+  readSkillNames,
+  skillFiles,
+  skillSlug,
+} from './lib/skills.mjs';
+import {
+  clipAtWord,
+  firstProseLine,
+  mdFiles,
+  missingApiPages,
+  missingApiPagesMessage,
+  readApiPages,
+} from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
 import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
@@ -81,95 +100,22 @@ const DOCS_BASE = 'https://bestax.io/docs';
  */
 const SCHEMA_VERSION = 1;
 
-// Catalog one-liners are for scanning, not reading; the full summary is one
-// tool call away on the component's own file. Same budget the skill catalog uses.
-const MAX_PURPOSE = 160;
-
-// Display order + human labels for the category dirs, mirroring
-// gen-component-catalog.mjs. Categories NOT listed are appended alphabetically
-// with a title-cased label, so a new api category is never silently dropped.
-const CATEGORY_ORDER = [
-  ['elements', 'Elements'],
-  ['components', 'Components'],
-  ['form', 'Form'],
-  ['columns', 'Columns'],
-  ['grid', 'Grid'],
-  ['layout', 'Layout'],
-  ['helpers', 'Helpers'],
-];
-
-// Exported names that intentionally have NO standalone API page (documented on
-// a parent page). A NEW component missing its page will not be here, so the
-// completeness guard flags it.
-const UNDOCUMENTED_EXPORTS = new Set([
-  'Tbody',
-  'Td',
-  'Tfoot',
-  'Th',
-  'Thead',
-  'Tr', // documented on the Table page
-]);
-
-// Deterministic, locale-independent comparator. localeCompare varies with the
-// runtime's ICU version and would make CI's regenerate-and-diff flake.
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-
 const collapse = s =>
   String(s ?? '')
     .replace(/\s+/g, ' ')
     .trim();
 
-async function subdirs(dir) {
-  const entries = await readdir(dir, { withFileTypes: true });
-  return entries
-    .filter(e => e.isDirectory())
-    .map(e => e.name)
-    .sort(byCodePoint);
-}
-
-async function mdFiles(dir) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (entry.name.endsWith('.md')) out.push(full);
-  }
-  return out.sort(byCodePoint);
-}
-
-function frontmatter(src) {
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return {};
-  const out = {};
-  for (const line of m[1].split(/\r?\n/)) {
-    const kv = line.match(/^([A-Za-z_][\w-]*):[ \t]*(.*)$/);
-    if (kv) out[kv[1]] = kv[2].trim().replace(/^['"]|['"]$/g, '');
-  }
-  return out;
-}
-
-/** Body of the `## Overview` section, first sentence, clipped for the catalog. */
+/**
+ * A page's catalog one-liner: the frontmatter description, or else the first
+ * prose line of its `## Overview` section, cut to its first sentence and
+ * clipped at a word.
+ */
 function purposeOf(fm, sections, lines) {
-  const explicit = collapse(fm.description);
   const overview = sections.find(s => /^Overview$/i.test(s.heading));
   const text =
-    explicit ||
-    collapse(
-      (overview ? sectionBody(lines, overview) : '')
-        .split(/\r?\n/)
-        // Skip admonitions, JSX, imports, headings, images, lists and quotes —
-        // the same filter gen-component-catalog.mjs applies.
-        .find(l => l.trim() && !/^(:::|<|import\b|#|!\[|[-*|>])/.test(l.trim()))
-    );
-  if (!text) return '';
-  const sentence = firstSentence(text);
-  if (sentence.length <= MAX_PURPOSE) return sentence;
-  const cut = sentence.slice(0, MAX_PURPOSE);
-  const at = Math.max(cut.lastIndexOf(' '), MAX_PURPOSE - 40);
-  return `${cut
-    .slice(0, at)
-    .replace(/[,;:([]$/, '')
-    .trim()}…`;
+    collapse(fm.description) ||
+    firstProseLine(overview ? sectionBody(lines, overview) : '');
+  return text ? clipAtWord(firstSentence(text)) : '';
 }
 
 /**
@@ -355,11 +301,18 @@ function propRow(r) {
  * The skills roster, READ from the directory — never a hardcoded list. The
  * predicate (a directory holding a SKILL.md) lives in scripts/lib/skills.mjs,
  * shared with both sync scripts and check-conformance.
+ *
+ * The manifest lists what the sync scripts ship, so it reads the skills the
+ * way they do: it refuses untracked files exactly as they refuse to bundle
+ * them, and lists files through the same walk that leaves `.DS_Store` out.
+ * Indexing every file on disk let a local run list a file that never ships.
  */
-async function readSkills() {
+export async function readSkills(skillsDir = SKILLS_DIR) {
+  const names = await readSkillNames(skillsDir);
+  assertSkillsVetted(skillsDir, names, 'index');
   const out = [];
-  for (const name of await readSkillNames(SKILLS_DIR)) {
-    const skillFile = join(SKILLS_DIR, name, 'SKILL.md');
+  for (const name of names) {
+    const skillFile = join(skillsDir, name, 'SKILL.md');
     const src = await readFile(skillFile, 'utf8');
     const fm = frontmatter(src);
     // Walks nested directories, not just the top level. A skill that serves
@@ -382,27 +335,17 @@ async function readSkills() {
     // one, and agents discover ids through `get_skill` rather than hardcoding
     // them, so the rename is accepted rather than aliased.
     const listing = async sub => {
-      const root = join(SKILLS_DIR, name, sub);
+      const root = join(skillsDir, name, sub);
       if (!existsSync(root)) return [];
       const files = [];
-      const walk = async rel => {
-        const entries = await readdir(join(root, rel), { withFileTypes: true });
-        for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
-          const next = rel ? `${rel}/${e.name}` : e.name;
-          if (e.isDirectory()) {
-            await walk(next);
-            continue;
-          }
-          if (!e.isFile()) continue;
-          const body = await readFile(join(root, next), 'utf8');
-          files.push({
-            id: next.replace(extname(e.name), '').replace(/\//g, '-'),
-            file: `${sub}/${next}`,
-            bytes: Buffer.byteLength(body),
-          });
-        }
-      };
-      await walk('');
+      for (const rel of await skillFiles(root)) {
+        const body = await readFile(join(root, rel), 'utf8');
+        files.push({
+          id: rel.replace(extname(rel), '').replace(/\//g, '-'),
+          file: `${sub}/${rel}`,
+          bytes: Buffer.byteLength(body),
+        });
+      }
       // `a-b/x.md` and `a/b-x.md` both flatten to `a-b-x`, and `id` is the
       // MCP resource lookup key — two files answering to one key would make
       // the served content depend on ordering. No such pair exists today;
@@ -420,40 +363,22 @@ async function readSkills() {
       return files.sort((a, b) => byCodePoint(a.id, b.id));
     };
     out.push({
-      name: fm.name || name,
+      // Keyed off the directory, like every roster and install line. The
+      // skills-roster check holds the frontmatter name to it, as the Agent
+      // Skills spec requires.
+      name,
       // The frontmatter description is already written as a trigger surface —
       // keyword-dense, ending in a "Use when…" clause. It is exactly what an
       // MCP tool/prompt description needs, so it ships verbatim.
       description: collapse(fm.description),
-      // `bestax-theming` -> `theming`. The prompt name an MCP client shows.
-      promptName: (fm.name || name).replace(/^bestax-/, ''),
+      // The prompt name an MCP client shows.
+      promptName: skillSlug(name),
       dir: name,
       references: await listing('references'),
       examples: await listing('examples'),
     });
   }
-  return out.sort((a, b) => byCodePoint(a.name, b.name));
-}
-
-function parseExportedComponents(src) {
-  const out = [];
-  for (const line of src.split(/\r?\n/)) {
-    let m = line.match(/^export \* from '\.\/([^/]+)\/([^'/]+)'/);
-    if (m) {
-      out.push({ name: m[2], cat: m[1] });
-      continue;
-    }
-    m = line.match(/^export \{ ([^}]+) \} from '\.\/([^/]+)\/([^'/]+)'/);
-    if (m) {
-      for (const raw of m[1].split(',')) {
-        const name = raw
-          .trim()
-          .split(/\s+as\s+/)
-          .pop();
-        if (name) out.push({ name, cat: m[2] });
-      }
-    }
-  }
+  // In readSkillNames' order, which is code-point order.
   return out;
 }
 
@@ -561,16 +486,10 @@ export async function bulmaClassTable() {
 }
 
 export async function build() {
-  const present = new Set(await subdirs(API_DIR));
-  const known = CATEGORY_ORDER.filter(([dir]) => present.has(dir));
-  const knownDirs = new Set(known.map(([dir]) => dir));
-  const categories = [
-    ...known,
-    ...[...present]
-      .filter(dir => !knownDirs.has(dir))
-      .sort(byCodePoint)
-      .map(dir => [dir, dir.charAt(0).toUpperCase() + dir.slice(1)]),
-  ];
+  // Category dirs in display order, each with its titled pages. The
+  // completeness guard reads the same list, so a page it counts as
+  // documented is a page this index serves.
+  const categories = await readApiPages(API_DIR);
 
   // Page path -> frontmatter title, for resolving Related Components links.
   const pageByPath = new Map();
@@ -585,28 +504,15 @@ export async function build() {
   const components = new Map();
   const cssVarIndex = {};
   const categoryList = [];
-  // category -> page basenames, for the completeness guard. Deliberately keyed
-  // on the FILE rather than the frontmatter title, matching
-  // gen-component-catalog.mjs: `export * from './helpers/Config'` names a
-  // module, and the page that documents it is `config.md` titled
-  // `ConfigProvider`. Matching on title would flag that as missing.
-  const pagesByCat = new Map();
 
-  for (const [dir, label] of categories) {
+  for (const { dir, label, pages } of categories) {
     const members = [];
-    for (const file of await mdFiles(join(API_DIR, dir))) {
-      const src = await readFile(file, 'utf8');
-      const relPath = relative(API_DIR, file).split('\\').join('/');
-      const fm = frontmatter(src);
-      if (!fm.title) continue;
+    for (const { src, fm, relPath, slug } of pages) {
       const name = fm.title;
-      if (!pagesByCat.has(dir)) pagesByCat.set(dir, new Set());
-      pagesByCat.get(dir).add(basename(file, '.md').toLowerCase());
 
       const { lines, sections } = sectionSpans(src);
       const find = re => sections.find(s => re.test(s.heading));
       const purpose = purposeOf(fm, sections, lines);
-      const slug = relPath.replace(/\.md$/, '');
       // `slug` stays the file-path identity; the URL takes the route
       // Docusaurus actually serves, which collapses `grid/grid` (#597).
       const docsUrl = `${DOCS_BASE}/api/${docsRoute(slug)}`;
@@ -725,15 +631,14 @@ export async function build() {
   return {
     catalog,
     components,
-    pagesByCat,
+    missing: missingApiPages(await readFile(INDEX_TS, 'utf8'), categories),
     skills: { skills: await readSkills() },
     bulmaClasses: await bulmaClassTable(),
   };
 }
 
 export async function main() {
-  const { catalog, components, pagesByCat, skills, bulmaClasses } =
-    await build();
+  const { catalog, components, missing, skills, bulmaClasses } = await build();
 
   // Rewrite the component directory rather than overwriting in place: a
   // component that was removed must lose its file, or the staleness gate
@@ -756,26 +661,8 @@ export async function main() {
 
   // Completeness guard. Runs after writing so the failure names what to fix
   // rather than leaving a half-written index behind.
-  const exports = parseExportedComponents(await readFile(INDEX_TS, 'utf8'));
-  const missing = exports
-    .filter(
-      e =>
-        /^[A-Z]/.test(e.name) && // components are PascalCase (skip hooks/utils)
-        !e.name.endsWith('Base') && // escape-hatch variants: documented w/ wrapper
-        !UNDOCUMENTED_EXPORTS.has(e.name) &&
-        !pagesByCat.get(e.cat)?.has(e.name.toLowerCase())
-    )
-    .map(e => `${e.cat}/${e.name}`)
-    .sort(byCodePoint);
-
   if (missing.length) {
-    console.error(
-      `\nERROR: ${missing.length} exported component(s) are missing from the MCP ` +
-        `index:\n  ${missing.join('\n  ')}\n\n` +
-        `Add an API page (docs/docs/api/<category>/<name>.md) whose frontmatter ` +
-        `title: matches the export, or add the name to UNDOCUMENTED_EXPORTS in ` +
-        `scripts/gen-mcp-index.mjs if it is documented on a parent page.\n`
-    );
+    console.error(missingApiPagesMessage(missing, 'the MCP index'));
     process.exit(1);
   }
 

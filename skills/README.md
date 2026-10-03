@@ -101,7 +101,7 @@ skills/
 ```
 
 > `component-catalog.md` is generated from the API docs by `scripts/gen-component-catalog.mjs`
-> (`npm run gen:catalog`). Don't edit it by hand.
+> (`pnpm gen:catalog`). Don't edit it by hand.
 
 ## See also
 
