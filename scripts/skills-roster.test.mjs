@@ -26,7 +26,12 @@ import {
   skillsPageViolations,
   frontmatterNameViolations,
 } from './check-conformance.mjs';
-import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
+import {
+  pathsInsideSkills,
+  trackedRepoPaths,
+  trackedSkillPaths,
+  untrackedSkillPaths,
+} from './lib/skills.mjs';
 
 const repoFile = rel =>
   readFileSync(fileURLToPath(new URL(`../${rel}`, import.meta.url)), 'utf8');
@@ -536,6 +541,67 @@ test('the vetting gate flags untracked files only in its OWN repository', async 
     ]),
     []
   );
+});
+
+test('the tracked views share the gate and its repository rule', async t => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } =
+    await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+
+  const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-tracked-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const git = (cwd, ...args) =>
+    execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
+
+  // Its own repository: tracked files of bundled skills only, as paths
+  // relative to skills/, and untracked or out-of-skill files left out.
+  const own = path.join(root, 'own');
+  const skillsDir = path.join(own, 'skills');
+  mkdirSync(path.join(skillsDir, 'bestax-form', 'references'), {
+    recursive: true,
+  });
+  writeFileSync(path.join(skillsDir, 'bestax-form', 'SKILL.md'), '# s\n');
+  writeFileSync(
+    path.join(skillsDir, 'bestax-form', 'references', 'api.md'),
+    '# a\n'
+  );
+  writeFileSync(path.join(skillsDir, 'README.md'), '# r\n');
+  writeFileSync(path.join(own, 'LICENSE'), 'MIT\n');
+  symlinkSync('LICENSE', path.join(own, 'COPYING'));
+  git(own, 'init', '-q');
+  git(own, 'add', '-A');
+  writeFileSync(path.join(skillsDir, 'bestax-form', 'notes.md'), 'draft\n');
+  writeFileSync(path.join(own, 'NOTICE'), 'n\n');
+  assert.deepEqual(trackedSkillPaths(skillsDir, ['bestax-form']), [
+    'bestax-form/SKILL.md',
+    'bestax-form/references/api.md',
+  ]);
+  assert.deepEqual(trackedSkillPaths(skillsDir, ['bestax-icons']), []);
+  assert.deepEqual(
+    trackedRepoPaths(own, ['LICENSE', 'NOTICE', 'COPYING']),
+    ['COPYING', 'LICENSE'],
+    'a tracked link is listed, so a caller must lstat it'
+  );
+
+  // An exported tree inside some other repository, and a tree with no
+  // repository at all: null, so a caller can tell "ask nothing" from
+  // "nothing tracked" and fall back to the disk as the syncs do.
+  const outer = path.join(root, 'outer');
+  const exported = path.join(outer, 'exported');
+  mkdirSync(path.join(exported, 'skills', 'bestax-form'), { recursive: true });
+  writeFileSync(path.join(exported, 'LICENSE'), 'MIT\n');
+  git(outer, 'init', '-q');
+  assert.equal(
+    trackedSkillPaths(path.join(exported, 'skills'), ['bestax-form']),
+    null
+  );
+  assert.equal(trackedRepoPaths(exported, ['LICENSE']), null);
+  const bare = path.join(root, 'bare');
+  mkdirSync(path.join(bare, 'skills'), { recursive: true });
+  assert.equal(trackedSkillPaths(path.join(bare, 'skills'), []), null);
+  assert.deepEqual(untrackedSkillPaths(path.join(bare, 'skills'), []), []);
 });
 
 test('an adjacent fence with no blank line cannot merge into the scope', () => {
