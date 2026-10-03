@@ -173,16 +173,19 @@ have their own unions, so `<Button color="ghost">` is correct and the value
 rule has no business reporting it.
 
 There is also one element where a wrong value still does something, and the
-rule knows it. `radius` on `Theme` is the border radius helper, as everywhere
-else, but `Theme` used to set `--bulma-radius` from it, and a string outside
-the helper's values still does, through a deprecated route. The rule reports
-that with its own message, pointing at `bulmaVars`, unless the value is a near
-miss of one of the helper's values, which gets the usual suggestion:
+rule knows it. `radius` on `Theme` is the border radius helper and `columnGap`
+the column gap helper, as everywhere else, but `Theme` used to set
+`--bulma-radius` and `--bulma-column-gap` from them, and a string outside the
+helper's values still does, through a deprecated route. The rule reports that
+with its own message, pointing at `bulmaVars`, unless the value is a near miss
+of one of the helper's values, which gets the usual suggestion:
 
 ```jsx nolint
-<Theme radius="6px" />                            // ✗ deprecated → bulmaVars
-<Theme radius="radiusles" />                      // ✗ Did you mean `radiusless`?
-<Theme bulmaVars={{ '--bulma-radius': '6px' }} /> // ✓
+<Theme radius="6px" />                                  // ✗ deprecated → bulmaVars
+<Theme radius="radiusles" />                            // ✗ Did you mean `radiusless`?
+<Theme bulmaVars={{ '--bulma-radius': '6px' }} />       // ✓
+<Theme columnGap="1rem" />                              // ✗ deprecated → bulmaVars
+<Theme bulmaVars={{ '--bulma-column-gap': '1rem' }} />  // ✓
 ```
 
 It knows the documented extras, so these are all accepted:
@@ -191,6 +194,7 @@ It knows the documented extras, so these are all accepted:
 <Box display="none" />             // ✓ display also takes `none`
 <Box textColor="inherit" />        // ✓ and the CSS-wide keywords
 <Box bgColor="scheme-main-bis" />  // ✓ bgColor also takes the scheme colours
+<Box display="flex" gap={2} />     // ✓ the gap props take a step as a number
 ```
 
 ### no-deprecated-props

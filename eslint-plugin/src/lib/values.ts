@@ -29,6 +29,7 @@ import {
   validFlexWraps,
   validFloats,
   validFontFamilies,
+  validGaps,
   validInteractions,
   validJustifyContents,
   validOverflows,
@@ -170,6 +171,11 @@ export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
   ['responsive', validResponsives],
   ['pos', validPositions],
   ['aspectRatio', validAspectRatios],
+  // `gapless` is a boolean and stays out, like the other switches. The steps
+  // are also accepted as numbers; see NUMERIC_STEPS.
+  ['gap', validGaps],
+  ['columnGap', validGaps],
+  ['rowGap', validGaps],
   ['colorShade', validColorShades],
   ['backgroundColorShade', validColorShades],
   // The colour props take the tuple plus the two CSS-wide keywords that
@@ -180,6 +186,25 @@ export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
     'backgroundColor',
     [...validColors, ...validSchemeColors, 'inherit', 'current'],
   ],
+]);
+
+/**
+ * Props that take their steps as numbers as well as strings, so `gap={2}`
+ * renders `is-gap-2` where `m={2}` renders nothing.
+ *
+ * The gap props are the case: `Grid` took its gaps as numbers before they
+ * were shared helper props, and every gap prop still does. A number is
+ * judged against the tuple read as strings, so `gap={1.5}` is accepted and
+ * `gap={9}` is not.
+ *
+ * Keyed by prop like the rest of this file, so `Columns`, whose own `gap`
+ * takes whole steps only, is not told that `gap={1.5}` renders nothing
+ * there. TypeScript rejects that one, and silence is the safe direction.
+ */
+export const NUMERIC_STEPS: ReadonlySet<string> = new Set([
+  'gap',
+  'columnGap',
+  'rowGap',
 ]);
 
 /**
@@ -222,6 +247,11 @@ export const REMOVES_ONLY: ReadonlyMap<string, string> = new Map([
  * Only a string takes that route. A number or `true` goes to the helper on
  * `Theme` as well, so the ordinary messages about those stay true.
  *
+ * `columnGap` is the same story one release later: `--bulma-column-gap` minted
+ * it as a variable prop, untyped but working, until the gap helpers became
+ * shared helper props. A string that is not a gap step still sets the
+ * variable on `Theme`, so `<Theme columnGap="1rem" />` gets the same report.
+ *
  * `--bulma-shadow` would have collided the same way and was kept out of
  * Theme's variable map from the start, so `shadow` needs no entry.
  *
@@ -235,7 +265,15 @@ export const REMOVES_ONLY: ReadonlyMap<string, string> = new Map([
 export const DEPRECATED_VARIABLE_ROUTE: ReadonlyMap<
   string,
   ReadonlyMap<string, string>
-> = new Map([['Theme', new Map([['radius', '--bulma-radius']])]]);
+> = new Map([
+  [
+    'Theme',
+    new Map([
+      ['radius', '--bulma-radius'],
+      ['columnGap', '--bulma-column-gap'],
+    ]),
+  ],
+]);
 
 /** Props that emit a class only when a flex `display` is also set. */
 export const FLEX_CONTAINER_PROPS: readonly string[] = [

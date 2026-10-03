@@ -27,9 +27,9 @@
  *
  * The table is keyed by prop rather than by element. The one fact about a
  * particular element the rule needs is `DEPRECATED_VARIABLE_ROUTE`: on
- * `Theme`, a `radius` string outside the tuple still sets `--bulma-radius`
- * through a deprecated route, so that report says so rather than claiming
- * nothing renders. A near miss of a valid value still gets the suggestion
+ * `Theme`, a `radius` or `columnGap` string outside the tuple still sets a
+ * variable through a deprecated route, so that report says so rather than
+ * claiming nothing renders. A near miss of a valid value still gets the suggestion
  * there, because it is most likely that value mistyped, and pointing it at
  * `bulmaVars` would only move the typo.
  */
@@ -37,6 +37,7 @@ import type { Rule } from 'eslint';
 import {
   DEPRECATED_VARIABLE_ROUTE,
   HELPER_VALUES,
+  NUMERIC_STEPS,
   REMOVES_ONLY,
 } from '../lib/values.js';
 import {
@@ -100,6 +101,8 @@ const rule: Rule.RuleModule = {
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Write `{{prop}}="{{value}}"`.',
       numericInvalid:
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings. `"{{value}}"` is not a value it accepts either. Valid values: {{valid}}.',
+      numericStepInvalid:
+        '`{{prop}}={{{value}}}` is not a step {{prop}} accepts, so the class is never emitted and nothing renders. Valid values: {{valid}}.',
       shorthand:
         '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
       shorthandRemoves:
@@ -122,7 +125,7 @@ const rule: Rule.RuleModule = {
         const element = elementOf(context, opening, imports);
         if (element === null) return;
         // Props whose out-of-tuple strings still set a variable on this
-        // element. `Theme`'s `radius` is the case; see
+        // element. `Theme`'s `radius` and `columnGap` are the cases; see
         // DEPRECATED_VARIABLE_ROUTE.
         const routes = DEPRECATED_VARIABLE_ROUTE.get(element);
         for (const attr of valuesThatRender(opening)) {
@@ -155,6 +158,23 @@ const rule: Rule.RuleModule = {
           // quotes, not the value.
           const numeric = numericValue(attr);
           if (numeric !== null) {
+            // A prop that takes its steps as numbers renders a valid one, so
+            // only a number that is not a step is worth a report, and the
+            // quotes are not the fix.
+            if (NUMERIC_STEPS.has(prop)) {
+              if (!valid.includes(String(numeric))) {
+                context.report({
+                  node: attr,
+                  messageId: 'numericStepInvalid',
+                  data: {
+                    prop,
+                    value: String(numeric),
+                    valid: valid.map(v => `\`${v}\``).join(', '),
+                  },
+                });
+              }
+              continue;
+            }
             context.report({
               node: attr,
               messageId: valid.includes(String(numeric))
