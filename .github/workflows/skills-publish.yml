@@ -2,8 +2,8 @@ name: Skills publish
 
 # Publishes the `bestax` coding-agent plugin to allxsmith/bestax-skills. That
 # repository's whole tree is generated here by scripts/gen-skills-repo.mjs,
-# from skills/, the hand-written inputs in plugin/, and the exact bestax-mcp
-# version in bestax-mcp/package.json. Each run replaces its tree with fresh
+# from skills/, the hand-written inputs in plugin/, and bestax-mcp's
+# server.json, package.json and generated skill index. Each run replaces its tree with fresh
 # output and commits only when something changed. Nobody edits bestax-skills
 # by hand: a fix lands here and this workflow carries it over. The script has
 # a node --test sibling (rule 9) and its header says why the plugin lives in
@@ -11,8 +11,8 @@ name: Skills publish
 #
 # Triggers.
 #
-#   push to main, filtered to the generator's inputs: the common case, a
-#     merged skill change.
+#   push to main, filtered to the generator's inputs and the code it runs:
+#     the common case, a merged skill change.
 #   release: semantic-release's `chore(release)` commit carries [skip ci], so
 #     a bestax-mcp release, the one event that moves the MCP pin, starts no
 #     push run. `release: published` fires for every package's release (see
@@ -43,15 +43,24 @@ name: Skills publish
 on:
   push:
     branches: [main]
+    # The generator's inputs (INPUT_FILES and skills/), every local module
+    # it imports, and this file. scripts/gen-skills-repo.test.mjs fails when
+    # the list misses one or names one the generator no longer needs.
     paths:
       - 'skills/**'
       - 'plugin/**'
       - 'bestax-mcp/package.json'
+      - 'bestax-mcp/server.json'
+      - 'bestax-mcp/data/skills.json'
       - 'LICENSE'
       - 'NOTICE'
       - 'scripts/gen-skills-repo.mjs'
       - 'scripts/lib/skills.mjs'
+      - 'scripts/lib/api-page.mjs'
       - 'scripts/consumer-sbom-meta.mjs'
+      - 'scripts/mcp-registry-publish.mjs'
+      - 'scripts/npm-install-retry.mjs'
+      - 'docs/scripts/strip-generated-markers.mjs'
       - '.github/workflows/skills-publish.yml'
   release:
     types: [published]
