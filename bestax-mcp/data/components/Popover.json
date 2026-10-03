@@ -414,7 +414,7 @@
           "name": "type",
           "type": "'button' | 'submit' | 'reset'",
           "default": "'button'",
-          "description": "Button type. Defaults to `'button'`, so a close button inside a form doesn't submit it; pass `'submit'` to submit and close.",
+          "description": "Button type. Defaults to `'button'`, so a close button inside a form doesn't submit it.",
           "required": false,
           "inherited": false,
           "deprecated": false

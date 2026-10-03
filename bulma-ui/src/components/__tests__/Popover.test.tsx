@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { Profiler, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   Popover,
@@ -557,6 +557,57 @@ describe('Popover', () => {
       expect(dialog).toHaveAccessibleName('Filter rows');
     });
 
+    it('is named before focus moves into it', () => {
+      const labelAtFocus: (string | null)[] = [];
+      const onFocusIn = () =>
+        labelAtFocus.push(
+          document
+            .querySelector('[role="dialog"]')!
+            .getAttribute('aria-labelledby')
+        );
+      document.addEventListener('focusin', onFocusIn);
+      try {
+        render(<FilterPopover />);
+        openWith();
+      } finally {
+        document.removeEventListener('focusin', onFocusIn);
+      }
+      expect(labelAtFocus).toEqual([screen.getByText('Filter rows').id]);
+    });
+
+    it('points aria-labelledby only at a header that is there', () => {
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const Panel = ({ header }: { header: boolean }) => (
+        <Popover trigger={<button>Open</button>} defaultOpen>
+          {header && <Popover.Header>Title</Popover.Header>}
+          Text
+        </Popover>
+      );
+      const { rerender } = render(<Panel header={false} />);
+      const dialog = screen.getByRole('dialog');
+      expect(dialog).not.toHaveAttribute('aria-labelledby');
+
+      rerender(<Panel header />);
+      expect(dialog).toHaveAttribute(
+        'aria-labelledby',
+        screen.getByText('Title').id
+      );
+
+      rerender(<Panel header={false} />);
+      expect(dialog).not.toHaveAttribute('aria-labelledby');
+    });
+
+    it('counts its headers again each time it opens', () => {
+      render(<FilterPopover />);
+      openWith();
+      openWith();
+      openWith();
+      expect(screen.getByRole('dialog')).toHaveAttribute(
+        'aria-labelledby',
+        screen.getByText('Filter rows').id
+      );
+    });
+
     it('takes ariaLabel over the header', () => {
       render(<FilterPopover defaultOpen ariaLabel="Row filters" />);
       const dialog = screen.getByRole('dialog');
@@ -710,6 +761,55 @@ describe('Popover', () => {
       expect(dialog.style.left).toBe('50px');
     });
 
+    it('leaves room for the stylesheet’s gap when it picks a corner', () => {
+      setViewport(1000, 1000);
+      const { container } = render(
+        <FilterPopover defaultOpen position="auto" />
+      );
+      const dialog = screen.getByRole('dialog');
+      // Room below for the panel, though not for the panel and a gap.
+      const anchor = rect({ top: 700, bottom: 730, left: 50, right: 150 });
+      measure(container, anchor, { width: 200, height: 266 });
+      expect(dialog).toHaveClass('is-bottom-left');
+
+      dialog.style.marginTop = '8px';
+      measure(container, anchor, { width: 200, height: 266 });
+      expect(dialog).toHaveClass('is-top-left');
+    });
+
+    it('renders nothing again when a scroll or resize changes nothing', () => {
+      setViewport(1000, 1000);
+      const onRender = jest.fn();
+      const { container } = render(
+        <Profiler id="popover" onRender={onRender}>
+          <FilterPopover defaultOpen appendToBody />
+        </Profiler>
+      );
+      const anchor = rect({ top: 100, bottom: 130, left: 50, right: 150 });
+      measure(container, anchor, { width: 200, height: 150 });
+      // React can render once more after an update before it bails out on
+      // equal state, so the steady state starts after one more event.
+      act(() => {
+        fireEvent.scroll(window);
+      });
+      onRender.mockClear();
+
+      act(() => {
+        fireEvent.scroll(window);
+        fireEvent.scroll(window);
+        fireEvent(window, new Event('resize'));
+      });
+      expect(onRender).not.toHaveBeenCalled();
+
+      measure(
+        container,
+        rect({ top: 120, bottom: 150, left: 50, right: 150 }),
+        { width: 200, height: 150 }
+      );
+      expect(onRender).toHaveBeenCalled();
+      expect(screen.getByRole('dialog').style.top).toBe('150px');
+    });
+
     it('closes a portaled panel on an outside pointerdown but not on one inside it', () => {
       render(
         <>
@@ -839,6 +939,78 @@ describe('Popover', () => {
     it('renders through the dot-notation', () => {
       render(<FilterPopover defaultOpen />);
       expect(screen.getByText('Filter rows')).toHaveClass('popover-header');
+    });
+  });
+
+  describe('in an iframe', () => {
+    let iframe: HTMLIFrameElement;
+    let frameDoc: Document;
+    let frameWin: Window;
+    let mount: HTMLDivElement;
+
+    beforeEach(() => {
+      iframe = document.createElement('iframe');
+      document.body.appendChild(iframe);
+      frameDoc = iframe.contentDocument!;
+      frameWin = iframe.contentWindow!;
+      mount = frameDoc.createElement('div');
+      frameDoc.body.appendChild(mount);
+    });
+
+    afterEach(() => {
+      iframe.remove();
+    });
+
+    const renderInFrame = (ui: React.ReactElement) =>
+      render(ui, { container: mount, baseElement: frameDoc.body });
+
+    const box = (r: { top: number; left: number; w: number; h: number }) =>
+      ({
+        top: r.top,
+        left: r.left,
+        bottom: r.top + r.h,
+        right: r.left + r.w,
+        width: r.w,
+        height: r.h,
+        x: r.left,
+        y: r.top,
+        toJSON: () => ({}),
+      }) as DOMRect;
+
+    it('closes on a press elsewhere in the iframe’s document', () => {
+      const outside = frameDoc.createElement('button');
+      frameDoc.body.appendChild(outside);
+      renderInFrame(<FilterPopover defaultOpen />);
+      const frame = within(frameDoc.body);
+      fireEvent.pointerDown(frame.getByRole('button', { name: 'First' }));
+      expect(frame.getByRole('dialog')).toBeInTheDocument();
+      fireEvent.pointerDown(outside);
+      expect(frame.queryByRole('dialog')).toBeNull();
+    });
+
+    it('measures against the iframe’s viewport and follows its resizes', () => {
+      Object.defineProperty(frameWin, 'innerHeight', {
+        configurable: true,
+        value: 400,
+      });
+      Object.defineProperty(frameWin, 'innerWidth', {
+        configurable: true,
+        value: 800,
+      });
+      renderInFrame(<FilterPopover defaultOpen position="auto" />);
+      const dialog = within(frameDoc.body).getByRole('dialog');
+      jest
+        .spyOn(mount.querySelector('.popover')!, 'getBoundingClientRect')
+        .mockReturnValue(box({ top: 300, left: 20, w: 80, h: 30 }));
+      jest
+        .spyOn(dialog, 'getBoundingClientRect')
+        .mockReturnValue(box({ top: 0, left: 0, w: 200, h: 150 }));
+      act(() => {
+        fireEvent(frameWin, new Event('resize'));
+      });
+      // The page's own window is taller than this, so only the iframe's
+      // height sends the panel above the trigger.
+      expect(dialog).toHaveClass('is-top-left');
     });
   });
 

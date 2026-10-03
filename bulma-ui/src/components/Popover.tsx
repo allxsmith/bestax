@@ -16,6 +16,7 @@ import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { firstTabStop, useFocusTrap } from '../helpers/useFocusTrap';
 import { useAnchoredPosition } from '../helpers/useAnchoredPosition';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
 import { buttonType } from '../helpers/buttonType';
 import { warnOnce } from '../helpers/devWarnings';
@@ -122,6 +123,8 @@ export interface PopoverProps
 interface PopoverContextValue {
   /** The id `Popover.Header` takes, which names the panel. */
   titleId: string;
+  /** Records a mounted `Popover.Header`; the returned function forgets it. */
+  registerTitle: () => () => void;
   /** Asks the popover to close. */
   close: () => void;
 }
@@ -162,6 +165,19 @@ function nearestDialog(event: Event): EventTarget | null {
       const role = (node as Element).getAttribute?.('role');
       return role === 'dialog' || role === 'alertdialog';
     }) ?? null
+  );
+}
+
+/**
+ * The gap the stylesheet puts between the panel and the trigger, in pixels.
+ * It is a margin on whichever side faces the trigger, and a negative one on
+ * a portaled panel above it, so the larger magnitude is the gap.
+ */
+function styledGap(panel: HTMLElement): number {
+  const { marginTop, marginBottom } = getComputedStyle(panel);
+  return Math.max(
+    Math.abs(parseFloat(marginTop)) || 0,
+    Math.abs(parseFloat(marginBottom)) || 0
   );
 }
 
@@ -234,8 +250,10 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     active: panelMounted,
     position,
     fixed: appendToBody,
-    // The gap comes from `--bulma-popover-offset` in the stylesheet.
+    // The gap comes from `--bulma-popover-offset` in the stylesheet, so the
+    // coordinates leave it out and `auto` reads it off the panel.
     offset: 0,
+    styledGap,
   });
 
   // The trigger renders first inside the wrapper. Read when needed rather
@@ -281,22 +299,12 @@ const PopoverComponent: React.FC<PopoverProps> = ({
       }
       close();
     };
-    document.addEventListener('pointerdown', handlePointerDown);
-    return () => document.removeEventListener('pointerdown', handlePointerDown);
+    // The wrapper is on the page whenever the panel is. Its document, an
+    // iframe's when the tree renders into one, is where presses land.
+    const doc = (rootRef.current as HTMLDivElement).ownerDocument;
+    doc.addEventListener('pointerdown', handlePointerDown);
+    return () => doc.removeEventListener('pointerdown', handlePointerDown);
   }, [panelMounted, closeOnClickOutside, close]);
-
-  useEffect(() => {
-    const panel = panelRef.current;
-    if (!panelMounted || ariaLabel || !panel) return;
-    const root = panel.getRootNode() as Document | ShadowRoot;
-    if (!root.getElementById(titleId)) {
-      warnOnce(
-        'Popover:unnamed',
-        '[bestax-bulma] <Popover> opened a panel with no accessible name. ' +
-          'Pass ariaLabel, or render a Popover.Header inside it.'
-      );
-    }
-  }, [panelMounted, ariaLabel, titleId]);
 
   const handlePanelKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'Escape' || !closeOnEscape || e.defaultPrevented) return;
@@ -368,46 +376,108 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     contentClassName
   );
 
-  const context = useMemo(() => ({ titleId, close }), [titleId, close]);
+  return (
+    // The ref after the spread: React 19 hands a function component a `ref`
+    // prop like any other, and the wrapper has to stay ours.
+    <div className={rootClasses} {...rest} ref={rootRef}>
+      {clonedTrigger}
+      {isOpen && (
+        <Portal disabled={!appendToBody}>
+          <PopoverPanel
+            panelRef={panelRef}
+            titleId={titleId}
+            ariaLabel={ariaLabel}
+            close={close}
+            id={panelId}
+            className={panelClasses}
+            style={
+              appendToBody
+                ? {
+                    position: 'fixed',
+                    top: resolved.top,
+                    left: resolved.left,
+                  }
+                : undefined
+            }
+            onKeyDown={handlePanelKeyDown}
+            onPointerDownCapture={e => {
+              insidePointerRef.current = e.nativeEvent;
+            }}
+          >
+            {children}
+          </PopoverPanel>
+        </Portal>
+      )}
+    </div>
+  );
+};
+
+interface PopoverPanelProps extends React.HTMLAttributes<HTMLDivElement> {
+  panelRef: React.RefObject<HTMLDivElement | null>;
+  titleId: string;
+  ariaLabel?: string;
+  close: () => void;
+}
+
+/**
+ * The open panel. It mounts with each opening, so it counts the
+ * `Popover.Header`s inside it afresh every time.
+ */
+function PopoverPanel({
+  panelRef,
+  titleId,
+  ariaLabel,
+  close,
+  children,
+  ...attrs
+}: PopoverPanelProps) {
+  // Headers register in a layout effect, after this first render, and this
+  // panel's own layout effect runs after theirs. Until then the panel assumes
+  // it has one, so a panel that does is named from its first commit, before
+  // focus moves in, and one that doesn't drops the reference before it paints.
+  const [titlesCounted, setTitlesCounted] = useState(false);
+  const [titleCount, setTitleCount] = useState(0);
+  const registerTitle = useCallback(() => {
+    setTitleCount(n => n + 1);
+    return () => setTitleCount(n => n - 1);
+  }, []);
+  useClientLayoutEffect(() => {
+    setTitlesCounted(true);
+  }, []);
+  const named = Boolean(ariaLabel) || titleCount > 0;
+
+  useEffect(() => {
+    if (titlesCounted && !named) {
+      warnOnce(
+        'Popover:unnamed',
+        '[bestax-bulma] <Popover> opened a panel with no accessible name. ' +
+          'Pass ariaLabel, or render a Popover.Header inside it.'
+      );
+    }
+  }, [titlesCounted, named]);
+
+  const context = useMemo(
+    () => ({ titleId, registerTitle, close }),
+    [titleId, registerTitle, close]
+  );
 
   return (
     <PopoverContext.Provider value={context}>
-      {/* The ref after the spread: React 19 hands a function component a
-          `ref` prop like any other, and the wrapper has to stay ours. */}
-      <div className={rootClasses} {...rest} ref={rootRef}>
-        {clonedTrigger}
-        {isOpen && (
-          <Portal disabled={!appendToBody}>
-            <div
-              ref={panelRef}
-              id={panelId}
-              role="dialog"
-              aria-label={ariaLabel}
-              aria-labelledby={ariaLabel ? undefined : titleId}
-              tabIndex={-1}
-              className={panelClasses}
-              style={
-                appendToBody
-                  ? {
-                      position: 'fixed',
-                      top: resolved.top,
-                      left: resolved.left,
-                    }
-                  : undefined
-              }
-              onKeyDown={handlePanelKeyDown}
-              onPointerDownCapture={e => {
-                insidePointerRef.current = e.nativeEvent;
-              }}
-            >
-              {children}
-            </div>
-          </Portal>
-        )}
+      <div
+        {...attrs}
+        ref={panelRef}
+        role="dialog"
+        aria-label={ariaLabel}
+        aria-labelledby={
+          !ariaLabel && (!titlesCounted || titleCount > 0) ? titleId : undefined
+        }
+        tabIndex={-1}
+      >
+        {children}
       </div>
     </PopoverContext.Provider>
   );
-};
+}
 
 /**
  * Props for the Popover.Header component. Its `id` is the one the panel's
@@ -433,6 +503,9 @@ export const PopoverHeader: React.FC<PopoverHeaderProps> = ({
   ...props
 }) => {
   const context = useContext(PopoverContext);
+  const registerTitle = context?.registerTitle;
+  // Before paint, so the panel is named by the time it shows.
+  useClientLayoutEffect(() => registerTitle?.(), [registerTitle]);
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   return (
     <div
@@ -520,7 +593,7 @@ export const PopoverFooter: React.FC<PopoverFooterProps> = ({
 /**
  * Props for the Popover.Close component: the props of a `Button` rendered as
  * a `<button>`.
- * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form doesn't submit it; pass `'submit'` to submit and close.
+ * @extraProp {'button' | 'submit' | 'reset'} [type='button'] - Button type. Defaults to `'button'`, so a close button inside a form doesn't submit it.
  * @extraProp {React.MouseEventHandler<HTMLButtonElement>} [onClick] - Runs before the popover closes. Call `preventDefault()` to keep it open.
  */
 export interface PopoverCloseProps

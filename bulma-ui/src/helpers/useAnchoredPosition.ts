@@ -1,7 +1,8 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useState } from 'react';
 import type { RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
+import { useClientLayoutEffect } from './useClientLayoutEffect';
 
 /** A corner of the anchor the panel opens from, once `auto` is resolved. */
 export type AnchoredCorner = Exclude<PickerPosition, 'auto'>;
@@ -31,39 +32,46 @@ export interface UseAnchoredPositionOptions {
    */
   fixed: boolean;
   /**
-   * The gap between the anchor and the panel, in pixels. Applied to the fixed
-   * coordinates and to the room `auto` asks for below the anchor.
+   * The gap between the anchor and the panel, in pixels, that the hook puts
+   * there itself: added to the fixed coordinates and to the room `auto` asks
+   * for below the anchor.
    * @defaultValue 4
    */
   offset?: number;
+  /**
+   * Reads the gap the panel's own stylesheet puts between it and the anchor,
+   * in pixels, each time the panel is measured. `auto` leaves room for it as
+   * well; the coordinates don't include it, because the stylesheet applies it.
+   */
+  styledGap?: (panel: HTMLElement) => number;
 }
-
-// A server render runs neither, and React 18 warns about a layout effect
-// there, so the server is handed the plain one.
-const useClientLayoutEffect =
-  typeof document === 'undefined' ? useEffect : useLayoutEffect;
 
 /**
  * The corner that keeps a panel of this size in the viewport, preferring
  * below the anchor and lined up with its left edge.
  */
 function resolveAuto(
+  view: Window,
   rect: DOMRect,
   panelWidth: number,
   panelHeight: number,
-  offset: number
+  gap: number
 ): AnchoredCorner {
-  const fitsBelow = rect.bottom + panelHeight + offset <= window.innerHeight;
-  const fitsRight = rect.left + panelWidth <= window.innerWidth;
+  const fitsBelow = rect.bottom + panelHeight + gap <= view.innerHeight;
+  const fitsRight = rect.left + panelWidth <= view.innerWidth;
   if (fitsBelow) return fitsRight ? 'bottom-left' : 'bottom-right';
   return fitsRight ? 'top-left' : 'top-right';
 }
 
+const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
+  a.position === b.position && a.top === b.top && a.left === b.left;
+
 /**
  * Places a floating panel against its anchor: resolves `auto` to a corner
  * and, for a panel fixed to the viewport, works out its coordinates. It
- * measures again on window resize and on any scroll, so a fixed panel
- * follows its anchor.
+ * measures again on resize and on any scroll of the anchor's window (an
+ * iframe's, when the anchor renders into one), so a fixed panel follows its
+ * anchor. A measurement that changes nothing doesn't render again.
  *
  * Measuring happens in a layout effect, so the panel is placed before it
  * paints. It needs both elements on the page while `active` is on, and
@@ -78,7 +86,7 @@ function resolveAuto(
 export function useAnchoredPosition(
   anchorRef: RefObject<HTMLElement | null>,
   panelRef: RefObject<HTMLElement | null>,
-  { active, position, fixed, offset = 4 }: UseAnchoredPositionOptions
+  { active, position, fixed, offset = 4, styledGap }: UseAnchoredPositionOptions
 ): AnchoredPosition {
   const [resolved, setResolved] = useState<AnchoredPosition>({
     position: position === 'auto' ? 'bottom-left' : position,
@@ -86,6 +94,9 @@ export function useAnchoredPosition(
 
   useClientLayoutEffect(() => {
     if (!active) return undefined;
+    const view =
+      (anchorRef.current ?? panelRef.current)?.ownerDocument.defaultView ??
+      window;
     const update = () => {
       const anchor = anchorRef.current;
       const panel = panelRef.current;
@@ -94,28 +105,33 @@ export function useAnchoredPosition(
       const { width, height } = panel.getBoundingClientRect();
       const corner =
         position === 'auto'
-          ? resolveAuto(rect, width, height, offset)
+          ? resolveAuto(
+              view,
+              rect,
+              width,
+              height,
+              offset + (styledGap?.(panel) ?? 0)
+            )
           : position;
-      if (!fixed) {
-        setResolved({ position: corner });
-        return;
-      }
-      setResolved({
-        position: corner,
-        top: corner.startsWith('bottom')
-          ? rect.bottom + offset
-          : rect.top - height - offset,
-        left: corner.endsWith('left') ? rect.left : rect.right - width,
-      });
+      const next: AnchoredPosition = fixed
+        ? {
+            position: corner,
+            top: corner.startsWith('bottom')
+              ? rect.bottom + offset
+              : rect.top - height - offset,
+            left: corner.endsWith('left') ? rect.left : rect.right - width,
+          }
+        : { position: corner };
+      setResolved(prev => (samePosition(prev, next) ? prev : next));
     };
     update();
-    window.addEventListener('resize', update, { passive: true });
-    window.addEventListener('scroll', update, { passive: true, capture: true });
+    view.addEventListener('resize', update, { passive: true });
+    view.addEventListener('scroll', update, { passive: true, capture: true });
     return () => {
-      window.removeEventListener('resize', update);
-      window.removeEventListener('scroll', update, { capture: true });
+      view.removeEventListener('resize', update);
+      view.removeEventListener('scroll', update, { capture: true });
     };
-  }, [active, anchorRef, panelRef, position, fixed, offset]);
+  }, [active, anchorRef, panelRef, position, fixed, offset, styledGap]);
 
   return resolved;
 }
