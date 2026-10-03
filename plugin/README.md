@@ -12,6 +12,15 @@ the server change there. Nothing here is edited by hand, so please open issues
 and pull requests in
 [allxsmith/bestax](https://github.com/allxsmith/bestax/issues).
 
+## What's included
+
+These Agent Skills, each of which your agent loads when a task calls for it:
+
+<!-- bestax:generated skills -->
+<!-- /bestax:generated skills -->
+
+And the bestax-mcp server, which your agent can ask about any component.
+
 ## Install
 
 ### Claude Code
@@ -62,23 +71,27 @@ or `grok plugin update bestax`.
   agent to run, such as `npm create bestax`, `pnpm dlx bestax-migrate` or
   installing an icon package, and those download packages from npm when your
   agent runs them.
-- **The MCP server** starts with `npx -y bestax-mcp@<version>`, at the exact
-  version pinned in `.claude-plugin/plugin.json` and `mcp.json`. The first
-  time, npx downloads that version and its dependencies from your npm
-  registry (registry.npmjs.org unless you changed it) and caches them. Those
-  dependencies include `@allxsmith/bestax-bulma`, `bulma`, `react` and
-  `react-dom`.
+- **The MCP server** comes from npm, at the exact version shown below. The
+  first time your agent starts it, npx downloads that version and its
+  dependencies from your npm registry (registry.npmjs.org unless you changed
+  it) and caches them. Those dependencies include `@allxsmith/bestax-bulma`,
+  `bulma`, `react` and `react-dom`.
 - The server then runs on your machine and talks to your agent over stdio. It
   answers from an index bundled in the package, makes no network requests,
   and has no update check.
 - To warn you when your project uses a different bestax-bulma release than
   its index describes, the server reads
   `node_modules/@allxsmith/bestax-bulma/package.json` in your working folder
-  and the folders above it. It reads nothing else from your project. Set
-  `BESTAX_MCP_NO_VERSION_CHECK=1` to turn that off.
+  and the folders above it. It reads nothing else from your project.
 - Some links the server prints carry `utm_source=bestax-mcp`, so a visit to
   bestax.io through one of them shows up in the site's traffic analytics.
 - The plugin has no hooks, commands, agents or scripts of its own.
+
+Your agent starts the server with this command, the same one in
+`.claude-plugin/plugin.json` and `mcp.json`:
+
+<!-- bestax:generated mcp-server -->
+<!-- /bestax:generated mcp-server -->
 
 ## Privacy Policy
 

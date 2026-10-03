@@ -10,21 +10,42 @@
  * download the monorepo for a few hundred KB of skills. Every file in it comes
  * from this script, and `.github/workflows/skills-publish.yml` replaces its
  * tree with this output on each change. Nobody edits it by hand, so a fix
- * goes here, in `plugin/`, or in `skills/`.
+ * goes here, in `plugin/`, in `skills/` or in what bestax-mcp generates.
  *
- * Inputs, all read at generation time:
+ * This script reuses the repo's own readers rather than its own copies:
  *
- * - `plugin/manifest.json`: the hand-written manifest fields, in three
- *   sections. `plugin` goes into both plugin manifests, `claude` into the
- *   Claude one only, and `marketplace` into marketplace.json. A key this
- *   script does not place fails (TEMPLATE_KEYS), so a new field is placed on
- *   purpose instead of vanishing.
- * - `plugin/README.md`: the repository's README, copied as is.
- * - `bestax-mcp/package.json`: the exact version the MCP server is pinned to.
- * - every tracked file of every skill directory (`skills/<name>/` holding a
- *   SKILL.md, read with scripts/lib/skills.mjs), and LICENSE and NOTICE from
- *   the repo root. skills/README.md and skills/CLAUDE.md describe the
- *   monorepo, not the plugin, so they stay here.
+ * - The skills come through the vetting gate in scripts/lib/skills.mjs that
+ *   create-bestax's and bestax-mcp's sync scripts use: `readSkillNames` for
+ *   the roster, `untrackedSkillPaths` to refuse an untracked file, and
+ *   `trackedSkillPaths` for what to copy. Every other input is held to the
+ *   same gate with `trackedRepoPaths` and must be a regular file, not a link.
+ * - The MCP server entry comes from `bestax-mcp/server.json`, the file the
+ *   official MCP Registry listing is published from, read and checked by
+ *   scripts/mcp-registry-publish.mjs (`readServer`). Its one npm package and
+ *   stdio transport become `npx -y <identifier>@<version>`, with the version
+ *   from bestax-mcp's package.json, since server.json holds a placeholder.
+ *   Its `environmentVariables` are listed in the README.
+ * - The README's skill list comes from `bestax-mcp/data/skills.json`, the
+ *   skill metadata scripts/gen-mcp-index.mjs reads out of each SKILL.md and
+ *   `gen:mcp:check` holds fresh. The README regions use the
+ *   `<!-- bestax:generated <id> -->` helpers in scripts/lib/api-page.mjs, and
+ *   the published README loses its markers through the same function that
+ *   strips them from the built docs (docs/scripts/strip-generated-markers.mjs).
+ * - Versions are checked with consumer-sbom-meta.mjs's `assertVersion`,
+ *   `parseReleaseTag` and `SEMVER`, and file-derived values in messages go
+ *   through its `forLog`, so a file name cannot forge a workflow command on
+ *   the failure path.
+ *
+ * gen-skills-rosters.mjs's `renderInstallBlock` feeds nothing here. Its lines
+ * install single skills with `npx skills add` from this monorepo, without the
+ * MCP server. The README installs the plugin, and its generated skill list
+ * already carries the roster.
+ *
+ * Without git, as in an exported tree, this does what the sync scripts do.
+ * The lib's gate has nothing to vet against, so untrackedSkillPaths returns
+ * [] and the skill directories are read from disk, minus `.DS_Store`. An
+ * export from `git archive` holds only tracked files, and the publish job
+ * always runs on a checkout, where the gate is live.
  *
  * Before writing, and again on what landed on disk, the tree is held to
  * Anthropic's plugin directory checks
@@ -37,16 +58,30 @@
  * with the runner's Node and no install.
  */
 import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { realpathSync } from 'node:fs';
-import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { SEMVER } from './consumer-sbom-meta.mjs';
+import { stripGeneratedMarkers } from '../docs/scripts/strip-generated-markers.mjs';
+import {
+  SEMVER,
+  assertVersion,
+  forLog,
+  parseReleaseTag,
+} from './consumer-sbom-meta.mjs';
+import {
+  fenceMask,
+  readRegions,
+  replaceRegion,
+  splitLines,
+} from './lib/api-page.mjs';
 import {
   byCodePoint,
   pathsInsideSkills,
   readSkillNames,
+  trackedRepoPaths,
+  trackedSkillPaths,
+  untrackedSkillPaths,
 } from './lib/skills.mjs';
+import { readJson, readServer } from './mcp-registry-publish.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -59,8 +94,26 @@ export const TEMPLATE = {
 /** Repo-root files copied into the tree under the same name. */
 export const COPIED = ['LICENSE', 'NOTICE'];
 
-export const MCP_PACKAGE = 'bestax-mcp/package.json';
+export const MCP_DIR = 'bestax-mcp';
+export const SKILL_INDEX = 'bestax-mcp/data/skills.json';
 export const MCP_SERVER = 'bestax';
+
+/**
+ * Every file the tree is built from besides the skills. Each must be a
+ * tracked regular file, like the skill files. The workflow's paths filter
+ * covers these, and the test sibling holds it to them.
+ */
+export const INPUT_FILES = [
+  TEMPLATE.manifest,
+  TEMPLATE.readme,
+  `${MCP_DIR}/package.json`,
+  `${MCP_DIR}/server.json`,
+  SKILL_INDEX,
+  ...COPIED,
+];
+
+/** The generated regions plugin/README.md must carry. */
+export const README_REGIONS = { skills: 'skills', mcp: 'mcp-server' };
 
 export const AGENT_PLUGIN_SCHEMA =
   'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json';
@@ -173,32 +226,20 @@ function isObject(value) {
   return value !== null && typeof value === 'object' && !Array.isArray(value);
 }
 
-function parseObject(text, file) {
-  let value;
-  try {
-    value = JSON.parse(text);
-  } catch (err) {
-    throw new Error(`${file}: is not valid JSON (${err.message}).`, {
-      cause: err,
-    });
-  }
-  if (!isObject(value)) throw new Error(`${file}: is not a JSON object.`);
-  return value;
-}
-
 /**
- * The template, checked. Throws one TreeError naming every problem: an
- * unknown section or key, a missing key, or a value of the wrong shape.
+ * The template object, checked. Throws one TreeError naming every problem:
+ * an unknown section or key, a missing key, or a value of the wrong shape.
  */
-export function parseTemplate(text) {
+export function checkTemplate(template) {
   const file = TEMPLATE.manifest;
-  const template = parseObject(text, file);
+  if (!isObject(template))
+    throw new TreeError([`${file}: is not a JSON object.`]);
   const problems = [];
   for (const section of Object.keys(template)) {
     if (!(section in TEMPLATE_KEYS)) {
       problems.push(
-        `${file}: section "${section}" is not one gen-skills-repo places. ` +
-          `Use one of ${Object.keys(TEMPLATE_KEYS).join(', ')}.`
+        `${file}: section ${forLog(section)} is not one gen-skills-repo ` +
+          `places. Use one of ${Object.keys(TEMPLATE_KEYS).join(', ')}.`
       );
     }
   }
@@ -211,9 +252,9 @@ export function parseTemplate(text) {
     for (const key of Object.keys(fields)) {
       if (!keys.includes(key)) {
         problems.push(
-          `${file}: ${section}.${key} is not placed in any generated file. ` +
-            `Place it in a render function in scripts/gen-skills-repo.mjs, ` +
-            `then list it in TEMPLATE_KEYS.`
+          `${file}: ${section}.${forLog(key)} is not placed in any generated ` +
+            `file. Place it in a render function in ` +
+            `scripts/gen-skills-repo.mjs, then list it in TEMPLATE_KEYS.`
         );
       }
     }
@@ -241,7 +282,7 @@ export function parseTemplate(text) {
   };
   if (typeof plugin.name !== 'string' || !PLUGIN_NAME.test(plugin.name)) {
     problems.push(
-      `${file}: plugin.name ${JSON.stringify(plugin.name)} must be lowercase ` +
+      `${file}: plugin.name ${forLog(plugin.name)} must be lowercase ` +
         `letters, digits and hyphens, at most 64 characters, starting and ` +
         `ending with a letter or digit.`
     );
@@ -249,7 +290,7 @@ export function parseTemplate(text) {
   if (typeof plugin.version !== 'string' || !SEMVER.test(plugin.version)) {
     problems.push(
       `${file}: plugin.version must be a semantic version such as 1.0.0, ` +
-        `not ${JSON.stringify(plugin.version)}.`
+        `not ${forLog(plugin.version)}.`
     );
   }
   string(plugin.description, 'plugin.description');
@@ -271,7 +312,7 @@ export function parseTemplate(text) {
     marketplace.name.includes('..')
   ) {
     problems.push(
-      `${file}: marketplace.name ${JSON.stringify(marketplace.name)} must be ` +
+      `${file}: marketplace.name ${forLog(marketplace.name)} must be ` +
         `letters, digits, dots, underscores and hyphens, starting with a ` +
         `letter or digit.`
     );
@@ -282,27 +323,169 @@ export function parseTemplate(text) {
   return template;
 }
 
+/** server.json package fields the launch config does not carry over. */
+const UNCARRIED_PACKAGE_FIELDS = [
+  'runtimeHint',
+  'runtimeArguments',
+  'packageArguments',
+];
+
 /**
- * `bestax-mcp@<exact version>` from bestax-mcp's package.json. The
- * directory blocks an npx launcher pinned to a range or `@latest`, and an
- * exact pin read at generation time follows every release with nothing to
- * bump by hand: a release run of skills-publish.yml republishes the tree.
+ * The plugin's launch config from a server.json and package.json pair that
+ * readServer has already checked: one npm package, named after the
+ * manifest, over stdio. Returns `{ pin, env }`, where `pin` is
+ * `<identifier>@<exact version>` and `env` is the package's
+ * environmentVariables. Throws when the pair describes a launch the plugin
+ * would not reproduce, so the plugin and the registry listing cannot start
+ * the server in different ways. The directory blocks an npx launcher pinned
+ * to a range or `@latest`, so the version must be exact.
  */
-export function mcpPin(text) {
-  const file = MCP_PACKAGE;
-  const pkg = parseObject(text, file);
-  if (pkg.name !== 'bestax-mcp') {
+export function mcpLaunch(server, manifest) {
+  const file = `${MCP_DIR}/server.json`;
+  const [pkg] = server.packages;
+  const uncarried = UNCARRIED_PACKAGE_FIELDS.filter(
+    key =>
+      pkg[key] !== undefined && !(key === 'runtimeHint' && pkg[key] === 'npx')
+  );
+  if (uncarried.length) {
     throw new Error(
-      `${file}: "name" is ${JSON.stringify(pkg.name)}, not "bestax-mcp".`
+      `${file}: packages[0] sets ${uncarried.join(', ')}, which the plugin's ` +
+        `launch config does not carry. Teach mcpLaunch in ` +
+        `scripts/gen-skills-repo.mjs to carry it, or drop it.`
     );
   }
-  if (typeof pkg.version !== 'string' || !SEMVER.test(pkg.version)) {
+  const env = pkg.environmentVariables ?? [];
+  const wellFormed =
+    Array.isArray(env) &&
+    env.every(
+      v =>
+        isObject(v) &&
+        typeof v.name === 'string' &&
+        /^[A-Z_][A-Z0-9_]*$/.test(v.name) &&
+        typeof v.description === 'string' &&
+        v.description.trim() !== ''
+    );
+  if (!wellFormed) {
     throw new Error(
-      `${file}: "version" is ${JSON.stringify(pkg.version)}, not an exact ` +
-        `semantic version, so the plugin has no version to pin.`
+      `${file}: packages[0].environmentVariables must be a list of ` +
+        `{ name, description } entries with upper-case names.`
     );
   }
-  return `bestax-mcp@${pkg.version}`;
+  const required = env.filter(v => v.isRequired === true).map(v => v.name);
+  if (required.length) {
+    throw new Error(
+      `${file}: ${required.join(', ')} is required, and the plugin has no ` +
+        `way to ask a user for it. Add a userConfig entry for it first.`
+    );
+  }
+  const version = assertVersion(
+    manifest.version,
+    `${MCP_DIR}/package.json "version"`
+  );
+  return { pin: `${pkg.identifier}@${version}`, env };
+}
+
+/**
+ * The skills in bestax-mcp's index, sorted by name, after checking that the
+ * index lists exactly the skill directories on disk. A stale index would
+ * publish a README that drifts from what the plugin carries.
+ */
+export function skillIndex(index, names) {
+  const file = SKILL_INDEX;
+  const rerun = 'Run pnpm gen:mcp, which gen:mcp:check holds fresh in CI.';
+  const skills = index?.skills;
+  if (
+    !Array.isArray(skills) ||
+    !skills.every(
+      s =>
+        isObject(s) &&
+        typeof s.name === 'string' &&
+        typeof s.dir === 'string' &&
+        typeof s.description === 'string' &&
+        s.description.trim() !== ''
+    )
+  ) {
+    throw new Error(
+      `${file}: needs a skills array of { name, dir, description }. ${rerun}`
+    );
+  }
+  const listed = skills.map(s => s.dir).sort(byCodePoint);
+  const onDisk = [...names].sort(byCodePoint);
+  if (listed.join('\n') !== onDisk.join('\n')) {
+    throw new Error(
+      `${file}: lists ${forLog(listed.join(', '))}, but skills/ holds ` +
+        `${forLog(onDisk.join(', '))}. ${rerun}`
+    );
+  }
+  return [...skills].sort((a, b) => byCodePoint(a.name, b.name));
+}
+
+const EM_DASH = '\u2014';
+
+/**
+ * The concise form of a skill description that the README lists: the first
+ * sentence, which ends at the first period followed by whitespace and a
+ * capital letter, cut before its first spaced em dash, with one closing
+ * period.
+ */
+export function skillSummary(description) {
+  const [sentence] = description.trim().split(/(?<=\.)\s+(?=[A-Z])/);
+  const [clause] = sentence.split(` ${EM_DASH} `);
+  return `${clause.replace(/[\s.]+$/, '')}.`;
+}
+
+/** The `skills` region: one line per skill, name and summary. */
+export function renderSkillList(skills) {
+  return [
+    '',
+    ...skills.map(s => `- **${s.name}**: ${skillSummary(s.description)}`),
+    '',
+  ].join('\n');
+}
+
+/** The `mcp-server` region: the launch command and the variables it reads. */
+export function renderMcpServer({ pin, env }) {
+  const lines = ['', '```text', `npx -y ${pin}`, '```', ''];
+  if (env.length) {
+    lines.push(
+      'The server reads these environment variables, all optional:',
+      '',
+      ...env.map(v => {
+        const format = v.format ? ` (${v.format})` : '';
+        const text = v.description.trim().replace(/[\s.]+$/, '');
+        return `- \`${v.name}\`${format}: ${text}.`;
+      }),
+      ''
+    );
+  }
+  return lines.join('\n');
+}
+
+/**
+ * The published README: the template with its regions filled and every
+ * marker stripped. Throws when a region is missing, rather than publish a
+ * README whose lists silently stopped updating.
+ */
+export function renderReadme(src, skills, launch) {
+  const label = TEMPLATE.readme;
+  const regions = readRegions(src, label);
+  const missing = Object.values(README_REGIONS).filter(id => !regions.has(id));
+  if (missing.length) {
+    throw new Error(
+      `${label}: has no <!-- bestax:generated ${missing.join(' / ')} --> ` +
+        `marker pair, so the README cannot say what the plugin carries. ` +
+        `Restore the markers.`
+    );
+  }
+  let out = replaceRegion(
+    src,
+    README_REGIONS.skills,
+    renderSkillList(skills),
+    label
+  );
+  out = replaceRegion(out, README_REGIONS.mcp, renderMcpServer(launch), label);
+  // A region at the end of the file would leave a blank line before EOF.
+  return stripGeneratedMarkers(out).replace(/\n+$/, '\n');
 }
 
 /** How every manifest starts the server. */
@@ -388,12 +571,12 @@ const json = value => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
  * The complete tree as a Map of repo-relative path to contents, from what
  * readSources returned (or a fixture of the same shape).
  */
-export function buildTree({ template, readme, pin, copied, skillFiles }) {
+export function buildTree({ template, readme, launch, copied, skillFiles }) {
   const tree = new Map([
     [FILES.marketplace, json(renderMarketplace(template))],
-    [FILES.claude, json(renderClaudeManifest(template, pin))],
+    [FILES.claude, json(renderClaudeManifest(template, launch.pin))],
     [FILES.agent, json(renderAgentManifest(template))],
-    [FILES.mcp, json(renderMcpConfig(pin))],
+    [FILES.mcp, json(renderMcpConfig(launch.pin))],
     [FILES.readme, readme],
   ]);
   for (const [path, content] of copied) tree.set(path, content);
@@ -403,14 +586,17 @@ export function buildTree({ template, readme, pin, copied, skillFiles }) {
 
 /**
  * Words in a README outside code, the way the directory counts them: fenced
- * blocks do not count. Inline code, HTML comments and link targets are left
- * out as well, so the count errs low rather than passing a README the
- * directory would call too short.
+ * blocks do not count, found with the fence rules scripts/lib/api-page.mjs
+ * uses. Inline code, HTML comments and link targets are left out as well, so
+ * the count errs low rather than passing a README the directory would call
+ * too short.
  */
 export function readmeWordCount(text) {
-  const prose = text
-    .replace(/^ {0,3}(`{3,}|~{3,})[^\n]*\n[\s\S]*?^ {0,3}\1[^\n]*$/gm, ' ')
-    .replace(/^ {0,3}(`{3,}|~{3,})[\s\S]*$/m, ' ')
+  const { lines } = splitLines(text);
+  const fenced = fenceMask(lines);
+  const prose = lines
+    .filter((_, i) => !fenced[i])
+    .join('\n')
     .replace(/<!--[\s\S]*?-->/g, ' ')
     .replace(/`[^`\n]*`/g, ' ')
     .replace(/\]\([^)]*\)/g, ']')
@@ -431,10 +617,13 @@ export function nameProblem(segment) {
   return null;
 }
 
-/** An npm package spec pinned to one exact version: `name@1.2.3`. */
+/**
+ * An npm package spec pinned to one exact version, such as `name@1.2.3`,
+ * split on its last `@` the way release tags are.
+ */
 export function exactNpmSpec(spec) {
-  const m = /^((?:@[a-z0-9][\w.-]*\/)?[a-z0-9][\w.-]*)@(.+)$/i.exec(spec);
-  return Boolean(m && SEMVER.test(m[2]));
+  const parsed = parseReleaseTag(spec);
+  return Boolean(parsed && SEMVER.test(parsed.version));
 }
 
 /**
@@ -446,7 +635,7 @@ export function launcherViolations(file, servers) {
   if (!isObject(servers)) return [`${file}: mcpServers is not an object.`];
   const violations = [];
   for (const [name, server] of Object.entries(servers)) {
-    const where = `${file}: mcpServers.${name}`;
+    const where = `${file}: mcpServers.${forLog(name)}`;
     if (!isObject(server) || typeof server.command !== 'string') {
       violations.push(`${where} has no command.`);
       continue;
@@ -464,15 +653,15 @@ export function launcherViolations(file, servers) {
       const spec = args.find(a => typeof a === 'string' && !a.startsWith('-'));
       if (!spec || !exactNpmSpec(spec)) {
         violations.push(
-          `${where} runs npx ${spec ?? '(no package)'}, which is not pinned ` +
-            `to an exact version. Anthropic's directory blocks an unpinned ` +
-            `npx launcher. Pin it as name@1.2.3.`
+          `${where} runs npx ${spec ? forLog(spec) : '(no package)'}, which ` +
+            `is not pinned to an exact version. Anthropic's directory blocks ` +
+            `an unpinned npx launcher. Pin it as name@1.2.3.`
         );
       }
     } else if (LAUNCHERS.has(command)) {
       violations.push(
-        `${where} runs ${command}, a package launcher this check cannot ` +
-          `read. Add a pin check for it to launcherViolations first.`
+        `${where} runs ${forLog(command)}, a package launcher this check ` +
+          `cannot read. Add a pin check for it to launcherViolations first.`
       );
     }
   }
@@ -487,12 +676,16 @@ function manifestViolations(byPath) {
       violations.push(`${file}: missing.`);
       return null;
     }
+    let value;
     try {
-      return parseObject(content.toString('utf8'), file);
-    } catch (err) {
-      violations.push(err.message);
+      value = JSON.parse(content.toString('utf8'));
+    } catch {
+      violations.push(`${file}: is not valid JSON.`);
       return null;
     }
+    if (isObject(value)) return value;
+    violations.push(`${file}: is not a JSON object.`);
+    return null;
   };
   const claude = read(FILES.claude);
   const agent = read(FILES.agent);
@@ -504,8 +697,7 @@ function manifestViolations(byPath) {
   ]) {
     if (manifest && !PLUGIN_NAME.test(String(manifest.name))) {
       violations.push(
-        `${file}: name ${JSON.stringify(manifest.name)} does not match ` +
-          `${PLUGIN_NAME}.`
+        `${file}: name ${forLog(manifest.name)} does not match ${PLUGIN_NAME}.`
       );
     }
   }
@@ -516,7 +708,8 @@ function manifestViolations(byPath) {
     const target = agent.mcpServers.replace(/^\.\//, '');
     if (!byPath.has(target)) {
       violations.push(
-        `${FILES.agent}: mcpServers names ${agent.mcpServers}, which is not in the tree.`
+        `${FILES.agent}: mcpServers names ${forLog(agent.mcpServers)}, ` +
+          `which is not in the tree.`
       );
     }
   }
@@ -541,8 +734,8 @@ function manifestViolations(byPath) {
 /**
  * Everything wrong with a tree against the directory's checks. `entries` are
  * `{ path, content, symlink }` with POSIX paths relative to the tree root and
- * `content` a Buffer (null for a symbolic link). Pure, so fixtures reach each
- * rule.
+ * `content` a Buffer (null for a symbolic link). Every path in a message goes
+ * through forLog. Pure, so fixtures reach each rule.
  */
 export function treeViolations(entries) {
   const violations = [];
@@ -557,11 +750,18 @@ export function treeViolations(entries) {
   }
   if (!byPath.has(FILES.readme)) violations.push('README.md: missing.');
   else {
-    const words = readmeWordCount(byPath.get(FILES.readme).toString('utf8'));
+    const readme = byPath.get(FILES.readme).toString('utf8');
+    const words = readmeWordCount(readme);
     if (words < LIMITS.readmeWords) {
       violations.push(
         `README.md: has ${words} words outside code, and the directory needs ` +
           `at least ${LIMITS.readmeWords}.`
+      );
+    }
+    if (readme.includes('bestax:generated')) {
+      violations.push(
+        'README.md: still carries a bestax:generated marker, which only the ' +
+          'template should hold.'
       );
     }
   }
@@ -572,60 +772,63 @@ export function treeViolations(entries) {
 
   const seen = new Map();
   for (const { path, content, symlink } of entries) {
+    const at = forLog(path);
     const segments = path.split('/');
     const base = segments.at(-1);
     if (symlink) {
-      violations.push(`${path}: is a symbolic link. Commit a regular file.`);
+      violations.push(`${at}: is a symbolic link. Commit a regular file.`);
       continue;
     }
     if (
       SYSTEM_FILES.has(base.toLowerCase()) ||
       segments.some(s => s === '__MACOSX')
     ) {
-      violations.push(`${path}: is a macOS or Windows system file.`);
+      violations.push(`${at}: is a macOS or Windows system file.`);
       continue;
     }
     if (PACKAGE_MANAGER_CONFIG.has(base.toLowerCase())) {
       violations.push(
-        `${path}: is package-manager configuration, which the directory ` +
+        `${at}: is package-manager configuration, which the directory ` +
           `blocks in a plugin that runs npx.`
       );
     }
     if (segments.length === 1 && ROOT_INSTALL_FILES.has(base)) {
       violations.push(
-        `${path}: at the plugin root makes Claude Code install dependencies, ` +
+        `${at}: at the plugin root makes Claude Code install dependencies, ` +
           `and the plugin installs nothing.`
       );
     }
     if (segments.some(s => s.startsWith('.')) && !HIDDEN_ALLOWED.has(path)) {
       violations.push(
-        `${path}: is hidden, and the plugin ships no hidden files.`
+        `${at}: is hidden, and the plugin ships no hidden files.`
       );
     }
     for (const segment of segments) {
       const problem = nameProblem(segment);
-      if (problem) violations.push(`${path}: ${problem}.`);
+      if (problem) violations.push(`${at}: ${problem}.`);
     }
     for (let i = 1; i <= segments.length; i++) {
       const prefix = segments.slice(0, i).join('/');
       const first = seen.get(prefix.toLowerCase());
       if (first === undefined) seen.set(prefix.toLowerCase(), prefix);
       else if (first !== prefix) {
-        violations.push(`${prefix}: differs from ${first} only by case.`);
+        violations.push(
+          `${forLog(prefix)}: differs from ${forLog(first)} only by case.`
+        );
       }
     }
     const size = content.length;
     if (size >= LIMITS.anyBytes) {
-      violations.push(`${path}: is ${size} bytes, at or over the 5 MiB limit.`);
+      violations.push(`${at}: is ${size} bytes, at or over the 5 MiB limit.`);
     } else if (!IMAGE_OR_FONT.test(path)) {
       if (size >= LIMITS.textBytes) {
         violations.push(
-          `${path}: is ${size} bytes, at or over the 256 KiB limit.`
+          `${at}: is ${size} bytes, at or over the 256 KiB limit.`
         );
       }
       if (!isText(content)) {
         violations.push(
-          `${path}: is not UTF-8 text. The directory takes text, images and ` +
+          `${at}: is not UTF-8 text. The directory takes text, images and ` +
             `fonts only.`
         );
       }
@@ -648,67 +851,98 @@ function isText(content) {
 }
 
 /**
- * The tracked files under `dir` (relative to `repo`), as git prints them.
- * Throws unless `repo` is the top of a git checkout: an exported tree has no
- * record of which files were vetted, and a checkout further up would answer
- * for the wrong repository. `run` is injectable for tests.
+ * Why each of INPUT_FILES cannot be read as a vetted input: missing, a
+ * symbolic link, not a regular file, or untracked. `tracked` is
+ * trackedRepoPaths' answer, and null (no git) skips only the tracked rule,
+ * as the skills' gate does.
  */
-export function trackedFiles(repo, dir, run = execFileSync) {
-  const git = args =>
-    run('git', ['-C', repo, ...args], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-  const notCheckout =
-    `${repo} is not the top of a git checkout, so which skill files are ` +
-    `tracked is unknown. Run this from a clone of allxsmith/bestax.`;
-  let toplevel;
-  try {
-    toplevel = git(['rev-parse', '--show-toplevel']).trim();
-  } catch (err) {
-    throw new Error(notCheckout, { cause: err });
+export async function inputProblems(repo, tracked) {
+  const problems = [];
+  for (const file of INPUT_FILES) {
+    const at = forLog(file);
+    const info = await lstat(join(repo, file)).catch(() => null);
+    if (!info) problems.push(`${at}: is missing.`);
+    else if (info.isSymbolicLink()) {
+      problems.push(`${at}: is a symbolic link. Commit a regular file.`);
+    } else if (!info.isFile()) problems.push(`${at}: is not a regular file.`);
+    else if (tracked && !tracked.includes(file)) {
+      problems.push(
+        `${at}: is not tracked by git. \`git add\` it to vet it, as the ` +
+          `skill syncs require.`
+      );
+    }
   }
-  if (realpathSync(toplevel) !== realpathSync(repo))
-    throw new Error(notCheckout);
-  return git(['ls-files', '-z', '--', dir]).split('\0').filter(Boolean);
+  return problems;
 }
 
 /**
- * Every input, read from `repo`. A tracked skill file that is hidden or a
- * symbolic link is reported in `problems` and not read: the plugin ships
- * neither, and dropping one silently could break the skill that uses it.
+ * Every input, read from `repo`. The inputs outside skills/ are checked
+ * first and stop the run before any is read. A skill file that is untracked,
+ * hidden or a symbolic link is reported in `problems` and not read.
  */
 export async function readSources(repo = REPO) {
-  const text = rel => readFile(join(repo, rel), 'utf8');
-  const template = parseTemplate(await text(TEMPLATE.manifest));
-  const readme = await readFile(join(repo, TEMPLATE.readme));
-  const pin = mcpPin(await text(MCP_PACKAGE));
+  const blocked = await inputProblems(
+    repo,
+    trackedRepoPaths(repo, INPUT_FILES)
+  );
+  if (blocked.length) throw new TreeError(blocked);
+
+  const template = checkTemplate(readJson(join(repo, TEMPLATE.manifest)));
+  let launch;
+  try {
+    const { server, manifest } = readServer(join(repo, MCP_DIR));
+    launch = mcpLaunch(server, manifest);
+  } catch (err) {
+    throw new Error(
+      `${MCP_DIR}/server.json no longer gives the plugin an npm package to ` +
+        `start over stdio: ${err.message}`,
+      { cause: err }
+    );
+  }
+  const skillsDir = join(repo, 'skills');
+  const names = await readSkillNames(skillsDir);
+  if (!names.length) throw new Error(`${repo}/skills holds no skills.`);
+  const skills = skillIndex(readJson(join(repo, SKILL_INDEX)), names);
+  const readme = Buffer.from(
+    renderReadme(
+      await readFile(join(repo, TEMPLATE.readme), 'utf8'),
+      skills,
+      launch
+    )
+  );
   const copied = [];
   for (const file of COPIED)
     copied.push([file, await readFile(join(repo, file))]);
 
-  const names = await readSkillNames(join(repo, 'skills'));
-  if (!names.length) throw new Error(`${repo}/skills holds no skills.`);
-  const inSkills = trackedFiles(repo, 'skills')
-    .filter(p => p.startsWith('skills/'))
-    .map(p => p.slice('skills/'.length));
-  const problems = [];
+  const problems = untrackedSkillPaths(skillsDir, names).map(
+    rel =>
+      `${forLog(`skills/${rel}`)}: is not tracked by git. \`git add\` it to ` +
+      `vet it, or remove it, as the skill syncs require.`
+  );
+  const listed =
+    trackedSkillPaths(skillsDir, names) ??
+    pathsInsideSkills(
+      (await scanTree(skillsDir)).map(e => e.path),
+      names
+    ).filter(p => !p.endsWith('.DS_Store'));
   const skillFiles = [];
-  for (const rel of pathsInsideSkills(inSkills, names)) {
+  for (const rel of listed) {
     const path = `skills/${rel}`;
     if (rel.split('/').some(s => s.startsWith('.'))) {
       problems.push(
-        `${path}: is hidden, and the plugin ships no hidden files.`
+        `${forLog(path)}: is hidden, and the plugin ships no hidden files.`
       );
       continue;
     }
     if ((await lstat(join(repo, path))).isSymbolicLink()) {
-      problems.push(`${path}: is a symbolic link. Commit a regular file.`);
+      problems.push(
+        `${forLog(path)}: is a symbolic link. Commit a regular file.`
+      );
       continue;
     }
     skillFiles.push({ path, content: await readFile(join(repo, path)) });
   }
-  return { template, readme, pin, copied, skillFiles, problems };
+  return { template, readme, launch, copied, skillFiles, problems };
 }
 
 /** Writes `tree` into `outDir`, which must be empty or not exist yet. */
@@ -759,13 +993,14 @@ export function planMismatch(tree, written) {
   const problems = [];
   for (const [path, content] of tree) {
     const got = onDisk.get(path);
-    if (!got) problems.push(`${path}: was planned but is not on disk.`);
-    else if (!got.equals(content))
-      problems.push(`${path}: on disk differs from the plan.`);
+    if (!got) problems.push(`${forLog(path)}: was planned but is not on disk.`);
+    else if (!got.equals(content)) {
+      problems.push(`${forLog(path)}: on disk differs from the plan.`);
+    }
   }
   for (const path of onDisk.keys()) {
     if (!tree.has(path))
-      problems.push(`${path}: is on disk but was not planned.`);
+      problems.push(`${forLog(path)}: is on disk but was not planned.`);
   }
   return problems;
 }
@@ -805,7 +1040,10 @@ export async function main(argv = process.argv.slice(2), io = process) {
     for (const file of files) io.stdout.write(`  ${file}\n`);
     return 0;
   } catch (err) {
-    const problems = err instanceof TreeError ? err.problems : [err.message];
+    // A TreeError's problems are escaped where they are made. Any other
+    // error is printed through forLog, since its message can quote a path.
+    const problems =
+      err instanceof TreeError ? err.problems : [forLog(err.message)];
     io.stderr.write(
       'gen-skills-repo: the bestax-skills tree failed its checks:\n'
     );
