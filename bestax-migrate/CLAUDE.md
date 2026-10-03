@@ -242,3 +242,6 @@ publishes it by manual dispatch, and `scripts/codemod-registry.mjs` holds the ch
 - **`codemod/` does not ship on npm.** `files` names only `dist`, and a test fails on an
   entry that could cover `codemod/`. Re-check with `pnpm -C bestax-migrate pack` after any
   change to `files`.
+- **Nothing but the registry package goes in `codemod/`.** `codemod publish` uploads every
+  file in it. That is why the `codemod` CLI's own package.json and lockfile live in
+  `.github/codemod-cli/`, outside this package.

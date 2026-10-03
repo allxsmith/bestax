@@ -16,25 +16,33 @@ name: Codemod Registry
 # names codemod-registry.yml, which npm's trusted publisher does not match, so
 # the CLI, compromised or not, can reach the Codemod Registry and cannot
 # publish to npm. Keep both halves: never register this workflow as a trusted
-# publisher on npm, and never fold this job into ci.yml. The job does reach
-# registry.npmjs.org, to install the CLI and to read the pinned release's
-# metadata, and holds no npm credential while it does.
+# publisher on npm, and never fold these jobs into ci.yml. Both jobs reach
+# registry.npmjs.org, to install the CLI and read package metadata, and
+# neither holds an npm credential.
 #
-# Manual only. `publish` unchecked validates and stops; checked, it also
-# publishes. Nothing here runs on a release, so nothing here can fail one.
+# Manual only, in two jobs. `validate` checks the pins, installs the CLI from
+# its committed lockfile and validates the package, with no environment, no
+# secret and no `id-token: write`; its only token is a read-only
+# GITHUB_TOKEN. `publish` runs only when the `publish` input is checked, only
+# after `validate` passed, on the exact commit `validate` checked, and it is
+# the only job with the environment, its secret and `id-token: write`.
+# Nothing here runs on a release, so nothing here can fail one.
 #
-# Credentials. The job runs in the `codemod-registry` environment, which
-# should require a maintainer's approval and admit only `main`. Its
-# CODEMOD_API_KEY secret is for the first publish: an unscoped package has to
-# exist before a Trusted Publisher can be attached to it. After that, add a
-# Trusted Publisher for this file at app.codemod.com and delete the secret,
-# and the script uses a GitHub OIDC token instead, so no long-lived registry
-# credential remains. CONTRIBUTING.md has the steps.
+# Credentials. `publish` runs in the `codemod-registry` environment, which
+# must exist BEFORE this file reaches main, with a maintainer as required
+# reviewer and deployment limited to `main`: a job naming an environment that
+# does not exist creates it, unprotected. Its CODEMOD_API_KEY secret is for the
+# first publish, because an unscoped package has to exist before a Trusted
+# Publisher can be attached to it. After that, add a Trusted Publisher for this
+# file at app.codemod.com and delete the secret, and the script uses a GitHub
+# OIDC token instead, so no long-lived registry credential remains.
+# CONTRIBUTING.md has the steps.
 #
 # Versions. codemod.yaml's version and every pin in the package follow
 # bestax-migrate/package.json, which semantic-release bumps and nothing else.
 # The `check` step fails when they disagree and names the command that moves
-# them; the script's header says why that stays a manual step.
+# them; the script's header says why that stays a manual step, and how the
+# CLI's own lockfile in .github/codemod-cli/ is regenerated.
 
 on:
   workflow_dispatch:
@@ -44,7 +52,7 @@ on:
         type: boolean
         default: false
 
-# No workflow-level grants; the single job takes exactly what it needs.
+# No workflow-level grants; each job takes exactly what it needs.
 permissions: {}
 
 # The registry refuses a version it already has; this keeps two dispatches
@@ -54,19 +62,20 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  codemod:
-    name: Validate or publish
+  validate:
+    name: Validate
     # The repository check keeps a fork's dispatch from trying. The ref check
-    # makes a dispatch from another branch skip instead of waiting for an
-    # approval. Neither is the boundary: a branch's own copy of this file can
-    # drop them, which is why the environment admits `main` only.
+    # makes a dispatch from another branch skip, and `publish` needs this
+    # job, so it skips too. Neither is the boundary: a branch's own copy of
+    # this file can drop them, which is why the environment admits `main`
+    # only.
     if: github.repository == 'allxsmith/bestax' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    environment: codemod-registry
     permissions:
-      contents: read # checkout of a public repository
-      id-token: write # GitHub OIDC for the Codemod Registry, once the API key is gone
+      contents: read # checkout of a public repository, and nothing else
+    outputs:
+      sha: ${{ steps.commit.outputs.sha }}
     env:
       # The CLI sends PostHog and Scarf telemetry by default. Set to 1, this
       # selects its null sender (crates/cli/src/main.rs in codemod/codemod).
@@ -86,27 +95,18 @@ jobs:
       # disables the whole policy.
       #
       #   github.com: the checkout (git over HTTPS, with no API call).
-      #   registry.npmjs.org: installing the CLI and its platform binary,
+      #   registry.npmjs.org: `npm ci` fetching the locked tarballs,
       #     `npm audit signatures` (registry keys and attestation bundles),
       #     and the check step's lookup of the pinned bestax-migrate release.
       #   tuf-repo-cdn.sigstore.dev: `npm audit signatures` verifies each
       #     provenance bundle against Sigstore's trust root, fetched over TUF.
       #     pacote passes tufForceCache, but tuf-js still fetches when no
       #     timestamp is cached, and a fresh runner has none.
-      #   app.codemod.com: `codemod publish` uploads here (the CLI's default
-      #     registry).
       #
-      # Deliberately absent:
-      #
-      #   token.actions.githubusercontent.com: the script asks for the OIDC
-      #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host,
-      #     which "Measuring an allowlist" lists as runner infrastructure never
-      #     to allow-list. The issuer is where the REGISTRY fetches GitHub's
-      #     keys, on its side. The OIDC path first runs on the publish after
-      #     the API key is deleted; if that run reports a refused connection,
-      #     read its report before widening anything.
-      #   Codemod's telemetry hosts: denied at the source by DISABLE_ANALYTICS.
-      #   api.github.com, nodejs.org: no API call and no setup-node.
+      # Deliberately absent: app.codemod.com, since `codemod workflow
+      # validate` reads local files (its validate.rs imports no HTTP client);
+      # Codemod's telemetry hosts, denied at the source by DISABLE_ANALYTICS;
+      # api.github.com and nodejs.org, with no API call and no setup-node.
       - name: Harden runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
@@ -115,7 +115,6 @@ jobs:
             github.com:443
             registry.npmjs.org:443
             tuf-repo-cdn.sigstore.dev:443
-            app.codemod.com:443
 
       # Copied from the other block jobs, as rule 10 asks. It proves enforcement
       # was armed at this step, not that it stays armed; rule 10 in
@@ -149,21 +148,30 @@ jobs:
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
 
-      # `ref: main`, whatever ref the dispatch named. The script and the
-      # package it publishes are then reviewed code behind main's ruleset,
-      # read by a job that can mint OIDC tokens and holds the API key.
-      #
+      # `ref: main`, whatever ref the dispatch named, so the script, the
+      # lockfile and the package are reviewed code behind main's ruleset.
       # The workflow is dispatch-only and has to be on the default branch
-      # before it can run, so rule 9's bootstrap gap does not apply: the
-      # script is on main before the first run.
+      # before it can run, so rule 9's bootstrap gap does not apply.
       - name: Checkout main
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
           persist-credentials: false
 
-      # Offline first: codemod.yaml, every pin and bestax-migrate/package.json
-      # must name one release, then npm must serve it with a provenance
+      # The commit `publish` checks out, so it publishes what this job checked
+      # even if main moves in between. Held to a full SHA before it is
+      # written to an output.
+      - name: Record the commit
+        id: commit
+        run: |
+          set -euo pipefail
+          sha=$(git rev-parse HEAD)
+          [[ "$sha" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::git rev-parse HEAD printed no full SHA."; exit 1; }
+          echo "sha=$sha" >> "$GITHUB_OUTPUT"
+
+      # Offline first: the pins and package.json name one release, and the
+      # CLI lockfile pins codemod exactly with registry integrity hashes. Then
+      # npm must serve the bestax-migrate release with a provenance
       # attestation. A stale pin fails here, before anything is installed,
       # with the command that fixes it. No setup-node, as in ai-scan's `scan`
       # job: the script and the repo helpers it imports use node: builtins
@@ -174,24 +182,21 @@ jobs:
           node --version
           node scripts/codemod-registry.mjs check
 
-      # Exact version, lifecycle scripts off, nothing published in the last
-      # 3 days (the repo's cooldown, as minimumReleaseAge in
-      # pnpm-workspace.yaml), then registry signatures and provenance
-      # verified. The native binary arrives as an optionalDependency, so no
-      # install script is needed. Dependabot does not see this pin: bump it
-      # by hand, to a release at least 3 days old.
+      # `npm ci` from the committed lockfile, so every package in the CLI's
+      # tree, the transitive detect-libc included, is one version with one
+      # integrity hash. Lifecycle scripts stay off; the native binary arrives
+      # as a locked optionalDependency, so none is needed. Then registry
+      # signatures and provenance are verified. The files are copied out
+      # first so node_modules never lands in the checkout. Dependabot version
+      # updates do not cover .github/codemod-cli/: the pin moves by hand, as
+      # the script's header says.
       - name: Install the codemod CLI
-        env:
-          CODEMOD_CLI_VERSION: '1.18.3'
         run: |
           set -euo pipefail
           dir="$RUNNER_TEMP/codemod-cli"
           mkdir -p "$dir"
-          printf '{"private":true}\n' > "$dir/package.json"
-          npm install --prefix "$dir" --ignore-scripts --save-exact \
-            --no-audit --no-fund \
-            --before "$(date -u -d '3 days ago' +%Y-%m-%dT%H:%M:%SZ)" \
-            "codemod@$CODEMOD_CLI_VERSION"
+          cp .github/codemod-cli/package.json .github/codemod-cli/package-lock.json "$dir/"
+          npm ci --prefix "$dir" --ignore-scripts --no-audit --no-fund
           npm audit signatures --prefix "$dir"
           "$dir/node_modules/.bin/codemod" --version
           echo "CODEMOD_BIN=$dir/node_modules/.bin/codemod" >> "$GITHUB_ENV"
@@ -201,11 +206,107 @@ jobs:
       - name: Validate the package
         run: '"$CODEMOD_BIN" workflow validate -w bestax-migrate/codemod'
 
+  publish:
+    name: Publish
+    needs: validate
+    # Implicitly also success(): `validate` passed on this run.
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: codemod-registry
+    permissions:
+      contents: read # checkout of a public repository
+      id-token: write # GitHub OIDC for the Codemod Registry, once the API key is gone
+    env:
+      # Same as validate's; the reasons are there.
+      DISABLE_ANALYTICS: '1'
+      CODEMOD_BOOTSTRAPPED: '1'
+    steps:
+      # Rule 10, as in `validate`, and the same REASONED, NOT MEASURED caveat.
+      # This job holds the API key or mints OIDC tokens, so its list is
+      # validate's plus the one host it publishes to:
+      #
+      #   github.com, registry.npmjs.org, tuf-repo-cdn.sigstore.dev: the
+      #     checkout, `npm ci` and `npm audit signatures`, as in `validate`.
+      #   app.codemod.com: `codemod publish` uploads here (the CLI's default
+      #     registry).
+      #
+      # Deliberately absent:
+      #
+      #   token.actions.githubusercontent.com: the script asks for the OIDC
+      #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host,
+      #     which "Measuring an allowlist" lists as runner infrastructure never
+      #     to allow-list. The issuer is where the REGISTRY fetches GitHub's
+      #     keys, on its side. The OIDC path first runs on the publish after
+      #     the API key is deleted; if that run reports a refused connection,
+      #     read its report before widening anything.
+      #   Telemetry hosts, api.github.com, nodejs.org: as in `validate`.
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            registry.npmjs.org:443
+            tuf-repo-cdn.sigstore.dev:443
+            app.codemod.com:443
+
+      # Copied from the other block jobs, as rule 10 asks; see `validate`.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      # The commit `validate` checked out of main and checked, not main as it
+      # is now. Its checks are not repeated here: the files are the same.
+      - name: Checkout the validated commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ needs.validate.outputs.sha }}
+          persist-credentials: false
+
+      # The same install as validate's, from the same committed lockfile;
+      # the reasons are there. Jobs share no filesystem, and installing here
+      # rather than carrying a tree over keeps this job's CLI exactly what
+      # the lockfile and the registry signatures say it is.
+      - name: Install the codemod CLI
+        run: |
+          set -euo pipefail
+          dir="$RUNNER_TEMP/codemod-cli"
+          mkdir -p "$dir"
+          cp .github/codemod-cli/package.json .github/codemod-cli/package-lock.json "$dir/"
+          npm ci --prefix "$dir" --ignore-scripts --no-audit --no-fund
+          npm audit signatures --prefix "$dir"
+          "$dir/node_modules/.bin/codemod" --version
+          echo "CODEMOD_BIN=$dir/node_modules/.bin/codemod" >> "$GITHUB_ENV"
+
       # The secret reaches only this step. The script uses it when it is set
       # and a GitHub OIDC token otherwise, masks whichever it uses, and hands
       # it to the CLI as CODEMOD_AUTH_TOKEN.
       - name: Publish
-        if: inputs.publish
         env:
           CODEMOD_API_KEY: ${{ secrets.CODEMOD_API_KEY }}
         run: node scripts/codemod-registry.mjs publish --cli "$CODEMOD_BIN"

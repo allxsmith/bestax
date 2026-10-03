@@ -13,8 +13,9 @@
  * .github/CLAUDE.md wants out of YAML and under `node --test`. Its modes:
  *
  *   check    codemod.yaml's version, every bestax-migrate pin in the package
- *            and bestax-migrate/package.json name one release, and npm serves
- *            that release with a provenance attestation
+ *            and bestax-migrate/package.json name one release, the committed
+ *            CLI lockfile pins the codemod CLI exactly, and npm serves the
+ *            bestax-migrate release with a provenance attestation
  *   publish  pick a credential (the CODEMOD_API_KEY secret when it is set,
  *            otherwise a GitHub OIDC token), mask it, run `codemod publish`
  *   bump     rewrite codemod.yaml's version and every pin to package.json's
@@ -38,6 +39,20 @@
  * Requiring equality there would turn every open PR red after each
  * bestax-migrate release, over files none of them touched.
  *
+ * ## The codemod CLI's own pin
+ *
+ * The workflow installs the CLI with `npm ci` from .github/codemod-cli/, a
+ * package.json and package-lock.json committed for nothing else. The lockfile
+ * fixes every package in the CLI's tree, its transitive `detect-libc`
+ * included, to one version and one integrity hash. It lives under .github/,
+ * outside the registry package (whose every file `codemod publish` uploads)
+ * and outside bestax-migrate/ (so no npm tarball can carry it), and under
+ * CODEOWNERS. `check` holds it to an exact `codemod` pin, every entry to
+ * registry.npmjs.org with a sha512 integrity, and nothing that would run on
+ * install. To move the CLI: change the pin in that package.json, then in that
+ * directory run `npm install --package-lock-only --ignore-scripts --before
+ * <3 days ago>`, which writes the lockfile and installs nothing.
+ *
  * Exit codes: 0 ok
  *             1 a check failed, or `codemod publish` failed
  *             2 bad usage, or the codemod CLI could not be started
@@ -60,6 +75,9 @@ export const PACKAGE_DIR = 'bestax-migrate/codemod';
 
 /** The npm manifest semantic-release bumps. */
 export const NPM_MANIFEST = 'bestax-migrate/package.json';
+
+/** The codemod CLI's manifest and lockfile, for `npm ci`. See the header. */
+export const CLI_DIR = '.github/codemod-cli';
 
 export const NPM_REGISTRY = 'https://registry.npmjs.org';
 
@@ -252,6 +270,112 @@ export function packageProblems(
       problems.push(
         `The registry package names bestax-migrate ${version}, ahead of ` +
           `${NPM_MANIFEST} (${npm}). It must name a release that exists.`
+      );
+    }
+  }
+  return { version, problems };
+}
+
+/** What `cliProblems` judges, read from a checkout. */
+export function readCli(root = REPO) {
+  const read = name =>
+    JSON.parse(fs.readFileSync(path.join(root, CLI_DIR, name), 'utf8'));
+  return { manifest: read('package.json'), lock: read('package-lock.json') };
+}
+
+/** Manifest fields that could add a package or run code on install. */
+const CLI_FORBIDDEN_FIELDS = [
+  'scripts',
+  'devDependencies',
+  'optionalDependencies',
+  'peerDependencies',
+  'bundleDependencies',
+  'bundledDependencies',
+  'overrides',
+  'workspaces',
+];
+
+/**
+ * Everything wrong with the committed CLI manifest and lockfile, offline.
+ *
+ * `npm ci` already refuses a lockfile that disagrees with its package.json.
+ * This checks what it does not: the codemod pin is one exact version, every
+ * locked package comes from registry.npmjs.org with a sha512 integrity, none
+ * is a link or declares an install script, and the manifest can neither be
+ * published nor add packages or scripts of its own.
+ */
+export function cliProblems({ manifest, lock }) {
+  const problems = [];
+  const where = `${CLI_DIR}/package.json`;
+  const lockWhere = `${CLI_DIR}/package-lock.json`;
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
+    return { version: null, problems: [`${where} is not a JSON object.`] };
+  }
+  if (manifest.private !== true) {
+    problems.push(
+      `${where} must say "private": true, so it is never published.`
+    );
+  }
+  for (const field of CLI_FORBIDDEN_FIELDS) {
+    if (manifest[field] !== undefined) {
+      problems.push(`${where} must not have "${field}".`);
+    }
+  }
+
+  const deps = manifest.dependencies ?? {};
+  const names = Object.keys(deps);
+  let version = null;
+  if (names.length !== 1 || names[0] !== 'codemod') {
+    problems.push(
+      `${where} must depend on codemod and nothing else; it names ` +
+        `${names.map(forLog).join(', ') || 'nothing'}.`
+    );
+  } else {
+    try {
+      version = assertVersion(deps.codemod, `${where} codemod version`);
+    } catch (err) {
+      problems.push(`${err.message} It must be one exact version.`);
+    }
+  }
+
+  if (lock?.lockfileVersion !== 3) {
+    problems.push(
+      `${lockWhere} must be lockfileVersion 3; it is ` +
+        `${forLog(lock?.lockfileVersion)}.`
+    );
+  }
+  const packages = lock?.packages ?? {};
+  if (
+    JSON.stringify(packages['']?.dependencies ?? null) !==
+    JSON.stringify(manifest.dependencies ?? null)
+  ) {
+    problems.push(
+      `${lockWhere} was not written from ${where}: their dependencies ` +
+        'differ. Regenerate it as the header of scripts/codemod-registry.mjs ' +
+        'says.'
+    );
+  }
+  const locked = packages['node_modules/codemod']?.version;
+  if (version !== null && locked !== version) {
+    problems.push(
+      `${lockWhere} locks codemod ${forLog(locked)}, not ${version}.`
+    );
+  }
+  const entries = Object.entries(packages).filter(([key]) => key !== '');
+  if (!entries.length) problems.push(`${lockWhere} locks no packages.`);
+  for (const [key, entry] of entries) {
+    const name = forLog(key);
+    if (!String(entry?.resolved ?? '').startsWith(`${NPM_REGISTRY}/`)) {
+      problems.push(
+        `${lockWhere}: ${name} does not resolve to ${NPM_REGISTRY}.`
+      );
+    }
+    if (!/^sha512-[A-Za-z0-9+/]+={0,2}$/.test(String(entry?.integrity ?? ''))) {
+      problems.push(`${lockWhere}: ${name} has no sha512 integrity.`);
+    }
+    if (entry?.link || entry?.hasInstallScript) {
+      problems.push(
+        `${lockWhere}: ${name} is a link or declares an install script.`
       );
     }
   }
@@ -498,6 +622,15 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
 
   if (mode === 'check' && rest.every(arg => arg === '--offline')) {
     const { version, problems } = packageProblems(readPackage(root));
+    let cli = { version: null, problems: [] };
+    try {
+      cli = cliProblems(readCli(root));
+    } catch (err) {
+      cli.problems.push(
+        `${CLI_DIR} could not be read: ${forLog(err.message)}.`
+      );
+    }
+    problems.push(...cli.problems);
     if (!problems.length && !rest.length) {
       problems.push(...(await npmProblems(version, fetchOptions)));
     }
@@ -508,7 +641,8 @@ export async function main(argv = process.argv.slice(2), deps = {}) {
     log(
       `codemod.yaml, every pin and ${NPM_MANIFEST} name ${PACKAGE_NAME} ` +
         `${version}` +
-        (rest.length ? '.' : ', and npm serves it with provenance.')
+        (rest.length ? '' : ', npm serves it with provenance,') +
+        ` and ${CLI_DIR} locks codemod ${cli.version}.`
     );
     return 0;
   }

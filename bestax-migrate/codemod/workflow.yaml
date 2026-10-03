@@ -13,6 +13,12 @@ version: "1"
 # `${{ params.* }}` is Codemod's own template syntax, resolved by the Codemod CLI
 # on the machine running the migration. It is what makes the approval prompt
 # show the real command rather than variable names.
+#
+# Codemod's param schema gives a string a default and an enum, and no pattern,
+# so `paths` and `options` cannot be limited to a character class here. They
+# are your own input to your own shell, and the approval prompt shows the
+# command before it runs. bestax-migrate also rejects a `source` it does not
+# know.
 params:
   schema:
     source:

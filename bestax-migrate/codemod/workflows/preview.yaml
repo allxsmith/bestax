@@ -2,7 +2,8 @@ version: "1"
 
 # The same command as ../workflow.yaml plus --dry: it reports what would change
 # and the TODOs it would leave, and writes no file. It is a workflow of its own
-# because Codemod's `--dry-run` skips shell steps.
+# because Codemod's `--dry-run` skips shell steps. ../workflow.yaml says why
+# `paths` and `options` are free text.
 params:
   schema:
     source:

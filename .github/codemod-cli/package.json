@@ -1,0 +1,8 @@
+{
+  "name": "bestax-codemod-cli",
+  "private": true,
+  "description": "The codemod CLI that .github/workflows/codemod-registry.yml installs with npm ci. Not a workspace package, never published.",
+  "dependencies": {
+    "codemod": "1.18.3"
+  }
+}

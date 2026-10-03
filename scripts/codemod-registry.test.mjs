@@ -13,6 +13,9 @@
  * turn every open PR red until someone bumped the pins. The workflow's
  * `check` is where equality is required.
  *
+ * The committed CLI lockfile in .github/codemod-cli/ is held to the same
+ * offline rules `check` applies before the workflow runs `npm ci` on it.
+ *
  * Nothing here reaches the network or spawns anything: fetch and the CLI are
  * stubbed or injected.
  */
@@ -24,6 +27,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
   BUMP_COMMAND,
+  CLI_DIR,
   NPM_MANIFEST,
   OIDC_AUDIENCE,
   PACKAGE_DIR,
@@ -32,12 +36,14 @@ import {
   WITHHELD_FROM_CLI,
   bump,
   chooseCredential,
+  cliProblems,
   compareVersions,
   findPins,
   main,
   npmProblems,
   packageProblems,
   publish,
+  readCli,
   readPackage,
   requestOidcToken,
   topLevelScalars,
@@ -66,6 +72,9 @@ function tempRepo(npmVersion) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'codemod-registry-'));
   tempDirs.push(root);
   fs.cpSync(path.join(repoRoot, PACKAGE_DIR), path.join(root, PACKAGE_DIR), {
+    recursive: true,
+  });
+  fs.cpSync(path.join(repoRoot, CLI_DIR), path.join(root, CLI_DIR), {
     recursive: true,
   });
   fs.writeFileSync(
@@ -175,14 +184,58 @@ test('the npm tarball does not ship the registry package', () => {
   }
 });
 
-test('the workflow calls the modes this script has, with a pinned CLI', () => {
-  const yml = fs.readFileSync(WORKFLOW, 'utf8');
-  assert.match(yml, /node scripts\/codemod-registry\.mjs check$/m);
+/** The workflow split into its jobs, comment lines dropped. */
+function workflowJobs() {
+  const code = fs
+    .readFileSync(WORKFLOW, 'utf8')
+    .split('\n')
+    .filter(line => !/^\s*#/.test(line))
+    .join('\n');
+  const [head, publishJob] = code.split(/^ {2}publish:$/m);
+  const [, validateJob] = head.split(/^ {2}validate:$/m);
+  return { code, validateJob, publishJob };
+}
+
+test('the workflow calls the modes this script has, and installs the CLI from its lockfile', () => {
+  const { code } = workflowJobs();
+  assert.match(code, /node scripts\/codemod-registry\.mjs check$/m);
   assert.match(
-    yml,
+    code,
     /node scripts\/codemod-registry\.mjs publish --cli "\$CODEMOD_BIN"$/m
   );
-  assert.match(yml, /CODEMOD_CLI_VERSION: '\d+\.\d+\.\d+'$/m);
+  const cp = `cp ${CLI_DIR}/package.json ${CLI_DIR}/package-lock.json "$dir/"`;
+  const ci = 'npm ci --prefix "$dir" --ignore-scripts --no-audit --no-fund';
+  for (const line of [cp, ci, 'npm audit signatures --prefix "$dir"']) {
+    assert.equal(code.split(line).length - 1, 2, `both jobs run: ${line}`);
+  }
+  assert.doesNotMatch(code, /npm (install|i) /, 'no unlocked install');
+});
+
+test('only the publish job holds the environment, the secret and id-token: write', () => {
+  const { validateJob, publishJob } = workflowJobs();
+  assert.ok(validateJob && publishJob, 'both jobs are present');
+  assert.doesNotMatch(validateJob, /id-token|environment:|secrets\./);
+  assert.match(validateJob, /^ {6}contents: read\b/m);
+  assert.match(publishJob, /^ {4}needs: validate$/m);
+  assert.match(publishJob, /^ {4}if: inputs\.publish$/m);
+  assert.match(publishJob, /^ {4}environment: codemod-registry$/m);
+  assert.match(publishJob, /^ {6}id-token: write\b/m);
+  assert.match(publishJob, /secrets\.CODEMOD_API_KEY/);
+  assert.match(
+    publishJob,
+    /ref: \$\{\{ needs\.validate\.outputs\.sha \}\}/,
+    'publish checks out the commit validate checked'
+  );
+  for (const job of [validateJob, publishJob]) {
+    assert.match(job, /egress-policy: block$/m);
+    assert.match(job, /Assert egress policy is enforced/);
+  }
+});
+
+test('the committed CLI manifest and lockfile pass every offline check', () => {
+  const { version, problems } = cliProblems(readCli(repoRoot));
+  assert.deepEqual(problems, []);
+  assert.match(version, /^\d+\.\d+\.\d+$/);
 });
 
 // ---------------------------------------------------------------------------
@@ -320,6 +373,111 @@ test('an unreadable package.json version is reported, not compared', () => {
   const pkg = fixture();
   pkg.npmVersion = undefined;
   assert.match(problemsOf(pkg).join('\n'), /package\.json version/);
+});
+
+// ---------------------------------------------------------------------------
+// cliProblems
+// ---------------------------------------------------------------------------
+
+/** A minimal CLI manifest and lockfile that pass cliProblems. */
+function cliFixture() {
+  const entry = name => ({
+    version: '1.0.0',
+    resolved: `https://registry.npmjs.org/${name}/-/${name}-1.0.0.tgz`,
+    integrity: 'sha512-AAAA+/==',
+  });
+  return {
+    manifest: { private: true, dependencies: { codemod: '1.0.0' } },
+    lock: {
+      lockfileVersion: 3,
+      packages: {
+        '': { dependencies: { codemod: '1.0.0' } },
+        'node_modules/codemod': entry('codemod'),
+        'node_modules/detect-libc': entry('detect-libc'),
+      },
+    },
+  };
+}
+
+const cliProblemsOf = pkg => cliProblems(pkg).problems.join('\n');
+
+test('the CLI fixture passes', () => {
+  assert.deepEqual(cliProblems(cliFixture()), {
+    version: '1.0.0',
+    problems: [],
+  });
+});
+
+test('the CLI manifest must be private, codemod-only and free of scripts', () => {
+  let pkg = cliFixture();
+  delete pkg.manifest.private;
+  assert.match(cliProblemsOf(pkg), /"private": true/);
+
+  for (const field of ['scripts', 'devDependencies', 'overrides']) {
+    pkg = cliFixture();
+    pkg.manifest[field] = {};
+    assert.match(cliProblemsOf(pkg), new RegExp(`must not have "${field}"`));
+  }
+
+  pkg = cliFixture();
+  pkg.manifest.dependencies['left-pad'] = '1.0.0';
+  assert.match(cliProblemsOf(pkg), /codemod and nothing else/);
+  pkg.manifest.dependencies = {};
+  assert.match(cliProblemsOf(pkg), /it names nothing/);
+
+  assert.match(
+    cliProblems({ manifest: [], lock: {} }).problems[0],
+    /not a JSON object/
+  );
+});
+
+test('the codemod pin must be one exact version, and the lockfile must agree', () => {
+  let pkg = cliFixture();
+  pkg.manifest.dependencies.codemod = '^1.0.0';
+  pkg.lock.packages[''].dependencies.codemod = '^1.0.0';
+  assert.match(cliProblemsOf(pkg), /one exact version/);
+
+  pkg = cliFixture();
+  pkg.lock.packages[''].dependencies.codemod = '1.0.1';
+  assert.match(cliProblemsOf(pkg), /was not written from/);
+
+  pkg = cliFixture();
+  pkg.lock.packages['node_modules/codemod'].version = '1.0.1';
+  assert.match(cliProblemsOf(pkg), /locks codemod "1\.0\.1", not 1\.0\.0/);
+
+  pkg = cliFixture();
+  pkg.lock.lockfileVersion = 2;
+  assert.match(cliProblemsOf(pkg), /lockfileVersion 3; it is "2"/);
+});
+
+test('every locked package comes from npm with a sha512 integrity and nothing to run', () => {
+  const cases = [
+    [
+      e => (e.resolved = 'https://evil.example/codemod.tgz'),
+      /does not resolve/,
+    ],
+    [e => delete e.resolved, /does not resolve/],
+    [e => delete e.integrity, /no sha512 integrity/],
+    [e => (e.integrity = 'sha1-abc='), /no sha512 integrity/],
+    [e => (e.link = true), /link or declares an install script/],
+    [e => (e.hasInstallScript = true), /link or declares an install script/],
+  ];
+  for (const [mutate, expected] of cases) {
+    const pkg = cliFixture();
+    mutate(pkg.lock.packages['node_modules/detect-libc']);
+    assert.match(cliProblemsOf(pkg), expected);
+  }
+  const pkg = cliFixture();
+  pkg.lock.packages = { '': pkg.lock.packages[''] };
+  assert.match(cliProblemsOf(pkg), /locks no packages/);
+});
+
+test('a lockfile key cannot add a line to the output', () => {
+  const pkg = cliFixture();
+  pkg.lock.packages['node_modules/x\n::warning::forged'] = {};
+  for (const problem of cliProblems(pkg).problems) {
+    assert.doesNotMatch(problem, /[\r\n]/);
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -593,6 +751,22 @@ test('check passes on agreeing files and npm provenance', async t => {
   });
   assert.equal(code, 0, out.lines.join('\n'));
   assert.match(out.lines[0], /npm serves it with provenance/);
+  assert.match(out.lines[0], /locks codemod \d+\.\d+\.\d+\.$/);
+});
+
+test('check fails, before npm, when the CLI lockfile is missing', async t => {
+  const calls = stubFetch(t, () => assert.fail('fetched'));
+  const root = tempRepo('2.24.0');
+  bump(root);
+  fs.rmSync(path.join(root, CLI_DIR, 'package-lock.json'));
+  const out = capture();
+  const code = await main(['check'], { root, log: out.push, warn: out.push });
+  assert.equal(code, 1);
+  assert.equal(calls.length, 0);
+  assert.match(
+    out.lines.join('\n'),
+    /::error::\.github\/codemod-cli could not be read/
+  );
 });
 
 test('check prints each problem as an error annotation and skips npm when the files are wrong', async t => {
