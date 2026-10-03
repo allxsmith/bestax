@@ -25,17 +25,19 @@
  * It is deliberately not a substitute for typechecking, and the overlap on
  * `.tsx` is expected rather than a defect.
  *
- * The table is keyed by prop rather than by element. The one fact about a
- * particular element the rule needs is `DEPRECATED_VARIABLE_ROUTE`: on
- * `Theme`, a `radius` or `columnGap` string outside the tuple still sets a
- * variable through a deprecated route, so that report says so rather than
- * claiming nothing renders. A near miss of a valid value still gets the suggestion
+ * The table is keyed by prop rather than by element. The facts about a
+ * particular element the rule needs are `ELEMENT_VALUES`, for a prop an
+ * element declares with narrower values (`Columns`' whole-step `gap`), and
+ * `DEPRECATED_VARIABLE_ROUTE`: on `Theme`, a `radius` or `columnGap` string
+ * outside the tuple still sets a variable through a deprecated route, so that
+ * report says so rather than claiming nothing renders. A near miss of a valid value still gets the suggestion
  * there, because it is most likely that value mistyped, and pointing it at
  * `bulmaVars` would only move the typo.
  */
 import type { Rule } from 'eslint';
 import {
   DEPRECATED_VARIABLE_ROUTE,
+  ELEMENT_VALUES,
   HELPER_VALUES,
   NUMERIC_STEPS,
   REMOVES_ONLY,
@@ -55,9 +57,15 @@ import {
  * Short values are not suggested for: every entry of a numeric scale is one
  * edit from `"8"`, so `textSize="8"` would be answered with "did you mean 1
  * or 2 or 3", where the full list of valid values is what actually helps.
+ *
+ * Nor is a number with a unit. `"8px"` is a CSS length, not a mistyped step,
+ * and it is two edits from the bare digit `8`, so the gap props answered it
+ * with "did you mean `8`?", a 4rem gap, where on Theme the `bulmaVars` remedy
+ * was the true one.
  */
 function suggest(value: string, valid: readonly string[]): string[] {
   if (value.length < 3) return [];
+  if (/^[\d.]+[a-z%]+$/i.test(value)) return [];
   const distance = (a: string, b: string): number => {
     const d: number[][] = Array.from({ length: a.length + 1 }, () =>
       new Array<number>(b.length + 1).fill(0)
@@ -94,17 +102,17 @@ const rule: Rule.RuleModule = {
     schema: [],
     messages: {
       invalid:
-        '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so the class is never emitted and nothing renders. Valid values: {{valid}}.',
+        '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so nothing renders. Valid values: {{valid}}.',
       invalidWithSuggestion:
-        '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so the class is never emitted and nothing renders. Did you mean {{suggestions}}?',
+        '`{{prop}}="{{value}}"` is not a value {{prop}} accepts, so nothing renders. Did you mean {{suggestions}}?',
       numeric:
-        '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Write `{{prop}}="{{value}}"`.',
+        '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings, so nothing renders. Write `{{prop}}="{{value}}"`.',
       numericInvalid:
         '`{{prop}}={{{value}}}` is a number, and {{prop}} is matched against strings. `"{{value}}"` is not a value it accepts either. Valid values: {{valid}}.',
       numericStepInvalid:
-        '`{{prop}}={{{value}}}` is not a step {{prop}} accepts, so the class is never emitted and nothing renders. Valid values: {{valid}}.',
+        '`{{prop}}={{{value}}}` is not a step {{prop}} accepts, so nothing renders. Valid values: {{valid}}.',
       shorthand:
-        '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so the class is never emitted and nothing renders. Give it a value: {{valid}}.',
+        '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so nothing renders. Give it a value: {{valid}}.',
       shorthandRemoves:
         '`{{prop}}` is `true` here, and {{prop}} is matched against strings, so nothing renders. It is also not a switch: its only value {{valid}} REMOVES the {{thing}}. Omit `{{prop}}` to keep the {{thing}}, or write `{{prop}}="{{only}}"` to remove it.',
       deprecatedVariable:
@@ -128,9 +136,12 @@ const rule: Rule.RuleModule = {
         // element. `Theme`'s `radius` and `columnGap` are the cases; see
         // DEPRECATED_VARIABLE_ROUTE.
         const routes = DEPRECATED_VARIABLE_ROUTE.get(element);
+        // Props this element declares with its own, narrower values; see
+        // ELEMENT_VALUES.
+        const own = ELEMENT_VALUES.get(element);
         for (const attr of valuesThatRender(opening)) {
           const prop: string = attr.name.name;
-          const valid = HELPER_VALUES.get(prop);
+          const valid = own?.get(prop) ?? HELPER_VALUES.get(prop);
           if (!valid) continue;
           // `true`, bare or explicit, matches no tuple of strings. Same
           // argument as the numeric case, one type further out.

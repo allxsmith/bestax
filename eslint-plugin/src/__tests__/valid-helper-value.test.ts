@@ -9,6 +9,10 @@
 import rule from '../rules/valid-helper-value.js';
 import { imported, ruleTester } from './helpers.js';
 
+const VALID_GAPS =
+  '`0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `4.5`, `5`, `5.5`, `6`, `6.5`, `7`, `7.5`, `8`';
+const SUGGEST_125 = '`1.5` or `0.5` or `2.5`';
+
 // RuleTester emits its own describe/it, so it runs at the top level.
 ruleTester.run('valid-helper-value', rule, {
   valid: [
@@ -79,6 +83,7 @@ ruleTester.run('valid-helper-value', rule, {
     imported('Box', '<Box display="flex" gap={2} rowGap={1.5} />'),
     imported('Grid', '<Grid gap={3} columnGap={2} rowGap={1} />'),
     imported('Columns', '<Columns gap={4} />'),
+    imported('Columns', '<Columns gap="2" />'),
     // `gapless` is a switch, like `overlay`.
     imported('Box', '<Box display="flex" gapless />'),
     // `columnGap` is the helper on `Theme` too, and a step renders it there.
@@ -143,7 +148,7 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [
         {
           message:
-            '`textColor="grey-lighte"` is not a value textColor accepts, so the class is never emitted and nothing renders. Did you mean `grey-light` or `grey-lighter`?',
+            '`textColor="grey-lighte"` is not a value textColor accepts, so nothing renders. Did you mean `grey-light` or `grey-lighter`?',
         },
       ],
     },
@@ -241,7 +246,33 @@ ruleTester.run('valid-helper-value', rule, {
       // A quarter step Bulma does not ship, answered with the neighbours it
       // does.
       code: imported('Box', '<Box rowGap="1.25" />'),
-      errors: [{ messageId: 'invalidWithSuggestion' }],
+      errors: [
+        {
+          messageId: 'invalidWithSuggestion',
+          data: { prop: 'rowGap', value: '1.25', suggestions: SUGGEST_125 },
+        },
+      ],
+    },
+    {
+      // Columns' own `gap` is its whole-step gutter, so a report there lists
+      // the whole steps, not the half steps that render nothing on it.
+      code: imported('Columns', '<Columns gap="1rem" />'),
+      errors: [
+        {
+          message:
+            '`gap="1rem"` is not a value gap accepts, so nothing renders. Valid values: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`.',
+        },
+      ],
+    },
+    {
+      // And a half step, which passes on every other element, is reported.
+      code: imported('Columns', '<Columns gap={1.5} />'),
+      errors: [
+        {
+          message:
+            '`gap={1.5}` is not a step gap accepts, so nothing renders. Valid values: `0`, `1`, `2`, `3`, `4`, `5`, `6`, `7`, `8`.',
+        },
+      ],
     },
     {
       // A number is a step here, so the quotes are not the fix; the step is.
@@ -249,7 +280,7 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [
         {
           message:
-            '`gap={9}` is not a step gap accepts, so the class is never emitted and nothing renders. Valid values: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `4.5`, `5`, `5.5`, `6`, `6.5`, `7`, `7.5`, `8`.',
+            '`gap={9}` is not a step gap accepts, so nothing renders. Valid values: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `4.5`, `5`, `5.5`, `6`, `6.5`, `7`, `7.5`, `8`.',
         },
       ],
     },
@@ -317,7 +348,7 @@ ruleTester.run('valid-helper-value', rule, {
       errors: [
         {
           message:
-            '`radius` is `true` here, and radius is matched against strings, so the class is never emitted and nothing renders. Give it a value: `radiusless`, `small`, `normal`, `large`, `rounded`.',
+            '`radius` is `true` here, and radius is matched against strings, so nothing renders. Give it a value: `radiusless`, `small`, `normal`, `large`, `rounded`.',
         },
       ],
     },
@@ -427,6 +458,28 @@ ruleTester.run('valid-helper-value', rule, {
             "`columnGap=\"1rem\"` is not a value columnGap accepts, so on Theme it sets `--bulma-column-gap` instead, through a deprecated route. If a columnGap of `1rem` is what you meant, write `bulmaVars={{ '--bulma-column-gap': '1rem' }}`. Valid values: `0`, `0.5`, `1`, `1.5`, `2`, `2.5`, `3`, `3.5`, `4`, `4.5`, `5`, `5.5`, `6`, `6.5`, `7`, `7.5`, `8`.",
         },
       ],
+    },
+    {
+      // A number with a unit is a CSS length, not a mistyped step, so it gets
+      // the `bulmaVars` remedy. Before, `8px` was two edits from `8` and was
+      // answered with "did you mean `8`?", a 4rem gap.
+      code: imported('Theme', '<Theme columnGap="8px">x</Theme>'),
+      errors: [
+        {
+          messageId: 'deprecatedVariable',
+          data: {
+            prop: 'columnGap',
+            value: '8px',
+            element: 'Theme',
+            cssVar: '--bulma-column-gap',
+            valid: VALID_GAPS,
+          },
+        },
+      ],
+    },
+    {
+      code: imported('Theme', '<Theme columnGap="1em">x</Theme>'),
+      errors: [{ messageId: 'deprecatedVariable' }],
     },
     {
       // A number goes to the helper on `Theme`, as for `radius`, so a number

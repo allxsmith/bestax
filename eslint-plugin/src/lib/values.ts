@@ -195,11 +195,8 @@ export const HELPER_VALUES: ReadonlyMap<string, readonly string[]> = new Map([
  * The gap props are the case: `Grid` took its gaps as numbers before they
  * were shared helper props, and every gap prop still does. A number is
  * judged against the tuple read as strings, so `gap={1.5}` is accepted and
- * `gap={9}` is not.
- *
- * Keyed by prop like the rest of this file, so `Columns`, whose own `gap`
- * takes whole steps only, is not told that `gap={1.5}` renders nothing
- * there. TypeScript rejects that one, and silence is the safe direction.
+ * `gap={9}` is not. On `Columns` the tuple is its own whole steps, from
+ * ELEMENT_VALUES, so `<Columns gap={1.5} />` is reported.
  */
 export const NUMERIC_STEPS: ReadonlySet<string> = new Set([
   'gap',
@@ -272,6 +269,27 @@ export const DEPRECATED_VARIABLE_ROUTE: ReadonlyMap<
       ['radius', '--bulma-radius'],
       ['columnGap', '--bulma-column-gap'],
     ]),
+  ],
+]);
+
+/**
+ * Props an element declares itself with narrower values than the helper prop
+ * of the same name. Keyed by element, then by prop, to the values the element
+ * renders, and read before `HELPER_VALUES`.
+ *
+ * `Columns` declares its own `gap`, the columns gutter, which renders
+ * `is-<n>` and comes in whole steps only. Judged against `validGaps`, a half
+ * step there passed although it renders nothing, and a report listed the
+ * half steps as valid. The whole steps are read off the library's tuple
+ * rather than copied.
+ */
+export const ELEMENT_VALUES: ReadonlyMap<
+  string,
+  ReadonlyMap<string, readonly string[]>
+> = new Map([
+  [
+    'Columns',
+    new Map([['gap', validGaps.filter(step => !step.includes('.'))]]),
   ],
 ]);
 
