@@ -43,9 +43,11 @@ intro bullet exist.
 
 Every skill also ships in the `bestax` plugin: `scripts/gen-skills-repo.mjs` copies each skill
 directory's tracked files into allxsmith/bestax-skills (root `CLAUDE.md`, "The bestax plugin"),
-so a new skill reaches it by construction. That generator refuses a hidden file or a symbolic
-link inside a skill, and a non-image file of 256 KiB or more, because Anthropic's plugin directory
-does.
+so a new skill reaches it by construction. It goes through the same vetting gate as the two
+syncs (`scripts/lib/skills.mjs`), so an untracked file in a skill stops it too. It also refuses a
+hidden file or a symbolic link inside a skill, and a non-image file of 256 KiB or more, because
+Anthropic's plugin directory does. Its README lists each skill with the first sentence of its
+`description`, read from bestax-mcp's index, so that sentence should stand on its own.
 
 Outside the repo, several lists and directories name the skills or say how many there are, and
 some host copies. No check sees them. Adding, renaming or removing a skill means updating the

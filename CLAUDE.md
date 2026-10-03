@@ -180,17 +180,22 @@ and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
 **The bestax plugin.** The `bestax` coding-agent plugin, the skills plus the MCP server, installs
 from its own repository, allxsmith/bestax-skills, so an install does not clone this one.
 `.github/workflows/skills-publish.yml` generates that repository's whole tree with
-`scripts/gen-skills-repo.mjs`, from `skills/`, `plugin/` and `bestax-mcp/package.json`, each
-time one of them changes on `main` and after each bestax-mcp release. Never edit bestax-skills.
-Change the source here and the workflow carries it over once merged.
+`scripts/gen-skills-repo.mjs`, from `skills/`, `plugin/` and bestax-mcp's `server.json`,
+`package.json` and `data/skills.json`, each time one of them changes on `main` and after each
+bestax-mcp release. Never edit bestax-skills. Change the source here and the workflow carries it
+over once merged. The generator reuses the repo's readers rather than its own: the skill vetting
+gate in `scripts/lib/skills.mjs`, the `server.json` reader in `scripts/mcp-registry-publish.mjs`,
+and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
 
 - `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is the one hand-owned
   version, the Agent Plugins `plugin.json`'s, for the catalogs that pin a release: bump it when
   you cut one for them. The Claude manifest sets no version, so Claude Code follows commits, and
   the bestax-mcp pin is read from bestax-mcp's `package.json`, so nothing else needs a bump.
 - `plugin/README.md` becomes the repository's README, and it must say everything the plugin
-  runs, sends or fetches. A change to what bestax-mcp does over the network, to its telemetry or
-  to its dependencies updates that README in the same PR.
+  runs, sends or fetches. Its skill list and the server's launch command and environment
+  variables are generated into its `bestax:generated` regions, from the skill index and
+  `server.json`. The prose around them is hand-written: a change to what bestax-mcp does over
+  the network, to its telemetry or to its dependencies updates it in the same PR.
 - The generator fails on a tree that breaks a rule of Anthropic's plugin directory, and its tests
   run it on the real tree, so `pnpm test` catches a skill change that would.
 
