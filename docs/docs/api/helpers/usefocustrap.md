@@ -75,7 +75,7 @@ The trap doesn't close anything. Escape, a click outside and the buttons that di
 
 ### Where focus starts
 
-On its own the trap focuses the first tab stop inside the container, or the container when there is none. `initialFocusRef` picks a specific element instead, such as the search box of a command palette.
+On its own the trap focuses the first tab stop inside the container, or the container when there is none. `initialFocusRef` picks a specific element inside the container instead, such as the search box of a command palette. The element has to be able to take focus, so a heading needs `tabIndex={-1}`. When focusing it doesn't put focus inside the container, because the ref is empty or its element is outside, disabled, hidden or can't take focus, the trap starts on the first tab stop as it would without the ref.
 
 ```tsx
 const searchRef = useRef<HTMLInputElement>(null);
@@ -118,6 +118,7 @@ Within those, what the browser's Tab skips is skipped here too, so none of it ca
 - anything not rendered: `hidden`, `display: none` on the element or an ancestor (for slotted content, an ancestor of its slot counts), `visibility: hidden`, the content of a closed `<details>`, and a child of an open shadow root's host that no slot takes
 - anything inside an `inert` subtree
 - all but one button of a radio group: the checked one, or the first when none is checked
+- every button of a radio group whose checked button is outside the container, because a group is every button that shares its name, form owner and tree (the page, or one shadow root), not only the ones in the container
 
 ### When Tab leaves anyway
 
@@ -167,7 +168,7 @@ interface UseFocusTrapOptions {
 | ------------------------- | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `containerRef`            | `RefObject<HTMLElement \| null>`              | —       | The element focus stays inside. It has to be in the DOM when the trap turns on.                                                                   |
 | `options.active`          | `boolean`                                     | `true`  | Whether the trap is on. Turning it on moves focus in; turning it off (or unmounting) releases Tab and restores focus.                             |
-| `options.initialFocusRef` | `RefObject<HTMLElement \| null>`              | —       | The element to focus when the trap turns on. Without it, or while it points at nothing, the first tab stop, then the container.                   |
+| `options.initialFocusRef` | `RefObject<HTMLElement \| null>`              | —       | An element inside the container that can take focus, focused when the trap turns on; otherwise the first tab stop, then the container.            |
 | `options.restoreFocus`    | `boolean` \| `RefObject<HTMLElement \| null>` | `true`  | Where focus goes when the trap turns off: `true` for the element focused when it turned on, a ref for that element, `false` to leave focus alone. |
 
 It returns nothing. On the server it does nothing, and the container renders as written.
