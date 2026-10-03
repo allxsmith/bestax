@@ -771,6 +771,43 @@ test('pluginManifests keeps the committed version, and starts at 1.0.0 without o
   assert.equal(fresh[AGENT_PLUGIN.target].version, AGENT_PLUGIN.firstVersion);
 });
 
+test('pluginManifests throws on a root plugin.json that is there but broken', async t => {
+  const { mkdtemp, mkdir, writeFile, rm } = await import('node:fs/promises');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+  const { AGENT_PLUGIN, SKILLS_PLUGIN, pluginManifests } =
+    await import('./gen-skills-rosters.mjs');
+
+  const dir = await mkdtemp(join(tmpdir(), 'bestax-plugin-'));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+  await mkdir(join(dir, '.claude-plugin'));
+  await writeFile(
+    join(dir, SKILLS_PLUGIN.source),
+    JSON.stringify({ name: 'demo' })
+  );
+  const target = join(dir, AGENT_PLUGIN.target);
+
+  // Each would have reset the hand-owned version to firstVersion before.
+  const rejects = async (text, re) => {
+    await writeFile(target, text);
+    await assert.rejects(pluginManifests(dir), err => {
+      assert.ok(err.message.startsWith(`${AGENT_PLUGIN.target}: `));
+      assert.match(err.message, re);
+      return true;
+    });
+  };
+  await rejects('{ "version": "2.0.0", ', /is not valid JSON/);
+  await rejects('null', /is not a JSON object/);
+  await rejects('["2.0.0"]', /is not a JSON object/);
+  await rejects('{ "name": "demo" }', /has no string "version"/);
+  await rejects('{ "version": 2 }', /has no string "version"/);
+
+  // A read error other than a missing file is not a missing file either.
+  await rm(target);
+  await mkdir(target);
+  await assert.rejects(pluginManifests(dir), /plugin\.json: could not be read/);
+});
+
 test('renderInstallBlock is a pure function of its inputs, order preserved', async () => {
   // Sorting belongs to the roster reader; the renderer must not reorder, or
   // the staleness diff would mask a reader regression.

@@ -184,28 +184,62 @@ export const PLACED_PLUGIN_FIELDS = [
 ];
 
 /**
+ * The hand-owned `version` of the committed root `plugin.json`. Only a
+ * missing file starts at `firstVersion`, because there is no version to keep
+ * yet. A file that is there but broken throws instead: falling back would
+ * reset a version that catalogs pin, and the write after it would commit the
+ * reset with every check green.
+ */
+async function committedAgentPluginVersion(repo) {
+  const file = AGENT_PLUGIN.target;
+  let text;
+  try {
+    text = await readFile(join(repo, file), 'utf8');
+  } catch (err) {
+    if (err?.code === 'ENOENT') return AGENT_PLUGIN.firstVersion;
+    throw new Error(`${file}: could not be read (${err.message}).`, {
+      cause: err,
+    });
+  }
+  const keep =
+    'so its hand-owned "version" cannot be kept. Fix the file by hand, ' +
+    'then run pnpm gen:skills again.';
+  let manifest;
+  try {
+    manifest = JSON.parse(text);
+  } catch (err) {
+    throw new Error(`${file}: is not valid JSON (${err.message}), ${keep}`, {
+      cause: err,
+    });
+  }
+  if (
+    manifest === null ||
+    typeof manifest !== 'object' ||
+    Array.isArray(manifest)
+  ) {
+    throw new Error(`${file}: is not a JSON object, ${keep}`);
+  }
+  if (typeof manifest.version !== 'string') {
+    throw new Error(`${file}: has no string "version", ${keep}`);
+  }
+  return manifest.version;
+}
+
+/**
  * Every derived plugin manifest as `[repo-relative path, object]`, read from
  * the Claude manifest and the committed root `plugin.json`'s version. `repo`
- * is injectable so a test can reach the no-root-manifest-yet branch.
+ * is injectable so a test can reach the no-root-manifest-yet branch and the
+ * broken-manifest ones.
  */
 export async function pluginManifests(repo = REPO) {
   const root = JSON.parse(
     await readFile(join(repo, SKILLS_PLUGIN.source), 'utf8')
   );
-  const committedVersion = await readFile(
-    join(repo, AGENT_PLUGIN.target),
-    'utf8'
-  )
-    .then(text => JSON.parse(text).version)
-    .catch(() => undefined);
   return [
     [SKILLS_PLUGIN.target, renderSkillsPluginManifest(root)],
     [
       AGENT_PLUGIN.target,
-      renderAgentPluginManifest(
-        root,
-        committedVersion ?? AGENT_PLUGIN.firstVersion
-      ),
+      renderAgentPluginManifest(root, await committedAgentPluginVersion(repo)),
     ],
   ];
 }
