@@ -15,19 +15,20 @@ Read [What goes stale](#what-goes-stale) before a change that could make a listi
 update this page when a listing is added, accepted, removed or changes how it updates.
 
 In the tables below, **Automatic** means it picks up releases or the repo with nothing from us,
-and **Manual** means someone has to edit or resubmit it when the trigger in the last column
-happens.
+**Manual** means someone has to edit or resubmit it when the trigger in the last column happens,
+and **Mixed** means releases flow through on their own but the change in the last column needs a
+person.
 
 ## Package registries
 
 | Where                                                                                                              | Carries                                                                                                       | Updates   | When to act                                                                                                                                                                      |
 | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [npm](https://www.npmjs.com/~allxsmith)                                                                            | `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, `@allxsmith/eslint-plugin-bestax` | Automatic | semantic-release publishes from `ci.yml`, keyed by commit scope. See `VERSIONING.md`.                                                                                            |
-| [Glama](https://glama.ai/mcp/servers/allxsmith/bestax)                                                             | `bestax-mcp`                                                                                                  | Automatic | Auto-Release rebuilds on every GitHub release in the repo and installs `bestax-mcp@latest`. Edit the Dockerfile in Glama's admin if the start command changes.                   |
+| [Glama](https://glama.ai/mcp/servers/allxsmith/bestax)                                                             | `bestax-mcp`                                                                                                  | Mixed     | Auto-Release rebuilds on every GitHub release in the repo and installs `bestax-mcp@latest`. Edit the Dockerfile in Glama's admin if the start command changes.                   |
 | [skills.sh](https://skills.sh/allxsmith/bestax)                                                                    | The skills                                                                                                    | Automatic | Listed from `npx skills add` installs.                                                                                                                                           |
 | [Context7](https://context7.com/allxsmith/bestax)                                                                  | The docs                                                                                                      | Automatic | Indexes the repo's markdown. Refresh it from the Context7 dashboard if it falls behind.                                                                                          |
 | [cursor.directory](https://cursor.directory/plugins/bestax)                                                        | The skills and `bestax-mcp`                                                                                   | Manual    | A snapshot of the skills, plus an MCP entry added by hand. Edit it when a skill is added, renamed or removed, or when the MCP command changes.                                   |
-| [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.allxsmith/bestax-mcp) | `bestax-mcp`, as `io.github.allxsmith/bestax-mcp`                                                             | Automatic | `mcp-registry.yml` publishes each `bestax-mcp@` release. Bump the mcp-publisher version and hash pinned in that workflow by hand.                                                |
+| [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.allxsmith/bestax-mcp) | `bestax-mcp`, as `io.github.allxsmith/bestax-mcp`                                                             | Automatic | `mcp-registry.yml` publishes each `bestax-mcp@` release.                                                                                                                         |
 | [Codemod Registry](https://app.codemod.com/registry/bestax-migrate)                                                | `bestax-migrate`                                                                                              | Manual    | A wrapper that pins one bestax-migrate release. After each release, run `node scripts/codemod-registry.mjs bump`, merge it, then run the Codemod Registry workflow with publish. |
 | [ClawHub](https://clawhub.ai/allxsmith)                                                                            | The skills                                                                                                    | Manual    | One upload per skill. Re-upload a skill when it changes, and upload a new one when it is added. ClawHub republishes them under MIT-0.                                            |
 
@@ -43,8 +44,8 @@ Glama labels its builds with its own version numbers, so they don't match npm.
 | [mcpmarket.com](https://mcpmarket.com)                                             | `bestax-mcp`   | Manual    | In review.                                    |
 | [Made with React.js](https://madewithreactjs.com)                                  | bestax-bulma   | Manual    | In review.                                    |
 | [llms.txt directory](https://directory.llmstxt.cloud)                              | bestax.io      | Automatic | In review. Reads `/llms.txt`.                 |
-| [skillsindex.dev](https://skillsindex.dev)                                         | Skills and MCP | Manual    | In review. Two entries, one for each.         |
-| [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP | Manual    | In review. Two entries, one for each.         |
+| [skillsindex.dev](https://skillsindex.dev)                                         | Skills and MCP | Manual    | In review.                                    |
+| [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP | Manual    | In review.                                    |
 
 ## Awesome lists
 
