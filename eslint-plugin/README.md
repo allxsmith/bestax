@@ -150,16 +150,22 @@ One family is outside its reach, knowingly: component-specific `color` props
 have their own unions, so `<Button color="ghost">` is correct and reporting it
 would be worse than reporting nothing.
 
-`radius` on `Theme` is the helper, as everywhere else, but a string outside
-its values still sets `--bulma-radius` there through a deprecated route. The
-rule reports it with a message that says so and points at `bulmaVars`, unless
-it is a near miss of one of its values, which gets the usual suggestion:
+`radius` and `columnGap` on `Theme` are the helpers, as everywhere else, but a
+string outside their values still sets `--bulma-radius` or `--bulma-column-gap`
+there through a deprecated route. The rule reports it with a message that says
+so and points at `bulmaVars`, unless it is a near miss of one of the values,
+which gets the usual suggestion:
 
 ```jsx
-<Theme radius="6px" />                            // ✗ deprecated → bulmaVars
-<Theme radius="radiusles" />                      // ✗ Did you mean `radiusless`?
-<Theme bulmaVars={{ '--bulma-radius': '6px' }} /> // ✓
+<Theme radius="6px" />                                  // ✗ deprecated → bulmaVars
+<Theme radius="radiusles" />                            // ✗ Did you mean `radiusless`?
+<Theme bulmaVars={{ '--bulma-radius': '6px' }} />       // ✓
+<Theme columnGap="1rem" />                              // ✗ deprecated → bulmaVars
+<Theme bulmaVars={{ '--bulma-column-gap': '1rem' }} />  // ✓
 ```
+
+The gap props take their steps as numbers as well, so `<Box gap={2} />` is
+accepted where `<Box m={2} />` is reported.
 
 ### no-deprecated-props
 
