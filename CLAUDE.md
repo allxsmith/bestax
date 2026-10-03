@@ -173,6 +173,19 @@ shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated inde
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
 
+## Distribution and listings
+
+`docs/docs/guides/distribution.md` lists every registry, plugin marketplace, directory and
+curated list that carries Bestax, and marks which ones only change when a maintainer updates
+them by hand. Third-party entries copy facts from this repo, and no check here can see them.
+
+- Read its "What goes stale" section before a change that adds, renames or removes a skill,
+  changes what `bestax-mcp` offers or how it starts, ships a new major, renames or moves a
+  package or a bestax.io page, or changes an install command. Say in the PR which Manual
+  listings need an update.
+- Update the page in the same PR when a listing is added, accepted or removed, or when how one
+  updates changes.
+
 ## AI development loop
 
 **The fix loop.** Issues labeled `claude-fix` (requires triage+ access, verified live) are

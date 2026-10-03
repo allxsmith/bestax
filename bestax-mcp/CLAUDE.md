@@ -109,6 +109,10 @@ Independent semantic-release keyed off the `bestax-mcp` commit scope
 ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
 
+MCP directories and lists describe what the server offers and give `npx -y bestax-mcp@1` as
+its command. A change to either, or a new major, means updating the Manual listings in
+`docs/docs/guides/distribution.md` ("What goes stale").
+
 Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills
 `data/skills/` at pack time. That directory is gitignored while the manifest
 `data/skills.json` is committed, so packing locally does not dirty the tree —
