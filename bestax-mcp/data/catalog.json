@@ -1125,7 +1125,7 @@
       "import": "import { useBulmaClasses } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
-      "exampleCount": 45
+      "exampleCount": 46
     },
     {
       "name": "useFocusTrap",

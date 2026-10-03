@@ -22,7 +22,13 @@ export type BulmaGapSize = BulmaGapValue;
 export interface ColumnsProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
-    Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+    // The column and row gap helpers are left out, as the `gap` helper is: the
+    // gutter is padding inside each column, so CSS `gap` would add to it, and
+    // only from the tablet width up, where `.columns` is flex.
+    Omit<
+      BulmaClassesProps,
+      'color' | 'backgroundColor' | 'columnGap' | 'rowGap'
+    > {
   /** Additional CSS classes for the columns container. */
   className?: string;
   /** Text color. */
@@ -44,7 +50,15 @@ export interface ColumnsProps
   /** Apply columns layout on desktop and up. */
   isDesktop?: boolean;
 
-  /** Gap size for all breakpoints. Same scale as `Grid`'s `gap` prop; wins over `gapSize` if both are set. */
+  /**
+   * Gap size for all breakpoints, the columns gutter (`is-<value>`). Whole
+   * steps of the same scale as `Grid`'s `gap` prop; wins over `gapSize` if
+   * both are set.
+   *
+   * This is not the `gap` helper prop other components take, which renders
+   * `is-gap-<value>`: on `Columns` the gutter is padding inside each column,
+   * so the helper's CSS `gap` would add to it rather than replace it.
+   */
   gap?: BulmaGapValue;
   /** Gap size for mobile. Wins over `gapSizeMobile` if both are set. */
   gapMobile?: BulmaGapValue;
@@ -115,10 +129,18 @@ const ColumnsComponent: React.FC<ColumnsProps> = ({
   const resolvedGapWidescreen = gapWidescreen ?? gapSizeWidescreen;
   const resolvedGapFullhd = gapFullhd ?? gapSizeFullhd;
 
+  // Untyped code can still pass the gap helpers ColumnsProps leaves out. They
+  // are dropped here, so they render no class and never reach the DOM.
+  const {
+    columnGap: _columnGap,
+    rowGap: _rowGap,
+    ...helperProps
+  } = props as typeof props & { columnGap?: unknown; rowGap?: unknown };
+
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
-    ...props,
+    ...helperProps,
   });
 
   const mainClass = usePrefixedClassNames('columns');

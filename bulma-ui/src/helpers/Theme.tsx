@@ -789,7 +789,11 @@ const setRootThemeRules = (order: number, rules: string): void => {
  */
 export interface ThemeProps extends Omit<
   BulmaClassesProps,
-  'color' | 'backgroundColor'
+  // On Theme, `columnGap` is the camelCase prop `bulmaVarPropMap` mints for
+  // `--bulma-column-gap`, so the column gap helper does not reach it and is
+  // left out of the type. `gap`, `rowGap` and `gapless` mint no variable and
+  // are the gap helpers here, as on every other component.
+  'color' | 'backgroundColor' | 'columnGap'
 > {
   children: ReactNode;
   className?: string;

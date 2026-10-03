@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { Columns } from '../Columns';
+import { Columns, type ColumnsProps } from '../Columns';
 import { Column } from '../Column';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -96,6 +96,50 @@ describe('Columns', () => {
   it('accepts gap values as strings, matching BulmaGapValue', () => {
     const { container } = render(<Columns gap="4" gapMobile="1" />);
     expect(container.firstChild).toHaveClass('is-4', 'is-1-mobile');
+  });
+
+  // Columns' `gap` is the columns gutter, so the shared gap helper's
+  // `is-gap-*` never renders for it, while the helper props Columns does not
+  // declare reach the helper as on any other component.
+  it('keeps gap as the columns gutter rather than the gap helper', () => {
+    const { container } = render(<Columns gap={3} />);
+    expect(container.firstChild).toHaveClass('is-3');
+    expect(container.firstChild).not.toHaveClass('is-gap-3');
+  });
+
+  // The column and row gap helpers are left out of Columns, as `gap` is:
+  // CSS `gap` would add to the gutter rather than replace it. Typed code
+  // cannot pass them, and untyped code gets no class and no DOM attribute.
+  it('leaves out the column and row gap helpers, and takes gapless', () => {
+    const { container } = render(
+      <>
+        {/* @ts-expect-error columnGap is left out of ColumnsProps */}
+        <Columns columnGap="2" />
+        <Columns
+          isMultiline
+          gapless
+          {...({ columnGap: '2', rowGap: 3 } as unknown as ColumnsProps)}
+        />
+      </>
+    );
+
+    const [typed, untyped] = Array.from(container.children);
+    expect(typed.className).toBe('columns');
+    expect(untyped.className).toBe('columns is-multiline is-gapless');
+    for (const el of [typed, untyped]) {
+      expect(el).not.toHaveAttribute('columngap');
+      expect(el).not.toHaveAttribute('rowgap');
+    }
+  });
+
+  // Bulma's `is-gapless` is both the columns modifier and the gap helper, so
+  // `gapless` beside `isGapless` renders the class once.
+  it('renders is-gapless once when gapless and isGapless are both set', () => {
+    const { container } = render(<Columns isGapless gapless />);
+    expect((container.firstChild as HTMLElement).className.split(' ')).toEqual([
+      'columns',
+      'is-gapless',
+    ]);
   });
 
   it('prefers gap* props over the deprecated gapSize* props when both are set', () => {

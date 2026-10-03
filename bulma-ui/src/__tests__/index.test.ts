@@ -206,6 +206,7 @@ const PUBLIC_EXPORTS = [
   'validFlexWraps',
   'validFloats',
   'validFontFamilies',
+  'validGaps',
   'validInteractions',
   'validJustifyContents',
   'validOverflows',

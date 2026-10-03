@@ -81,6 +81,81 @@ export const validSchemeColors = [
 export const validSizes = ['0', '1', '2', '3', '4', '5', '6', 'auto'] as const;
 
 /**
+ * Valid Bulma gap steps, taken by `gap`, `columnGap` and `rowGap`. Each whole
+ * step is 0.5rem, so `2` is 1rem and `8` is 4rem, and the half steps sit
+ * between them. They render `is-gap-<value>`, `is-column-gap-<value>` and
+ * `is-row-gap-<value>`.
+ *
+ * This is a different scale from `validSizes`: `gap="2"` is 1rem where
+ * `m="2"` is 0.5rem.
+ * @example '0', '0.5', '2', '8'
+ */
+export const validGaps = [
+  '0',
+  '0.5',
+  '1',
+  '1.5',
+  '2',
+  '2.5',
+  '3',
+  '3.5',
+  '4',
+  '4.5',
+  '5',
+  '5.5',
+  '6',
+  '6.5',
+  '7',
+  '7.5',
+  '8',
+] as const;
+
+// Spelled out rather than built from `validGaps` so the API docs can print
+// it; a type test in useSpacingClasses.test.tsx holds both halves to the
+// tuple.
+/**
+ * A gap step as `gap`, `columnGap` and `rowGap` take it: a value from
+ * `validGaps`, or the same step written as a number (`gap={2}`,
+ * `gap={1.5}`). `Grid` took its gaps as numbers before the gap helpers were
+ * shared, so every gap prop still does.
+ */
+export type BulmaGapStep =
+  | '0'
+  | '0.5'
+  | '1'
+  | '1.5'
+  | '2'
+  | '2.5'
+  | '3'
+  | '3.5'
+  | '4'
+  | '4.5'
+  | '5'
+  | '5.5'
+  | '6'
+  | '6.5'
+  | '7'
+  | '7.5'
+  | '8'
+  | 0
+  | 0.5
+  | 1
+  | 1.5
+  | 2
+  | 2.5
+  | 3
+  | 3.5
+  | 4
+  | 4.5
+  | 5
+  | 5.5
+  | 6
+  | 6.5
+  | 7
+  | 7.5
+  | 8;
+
+/**
  * Valid Bulma text size classes.
  * @example '1', '2', '3'
  */

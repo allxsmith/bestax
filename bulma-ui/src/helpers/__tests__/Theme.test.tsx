@@ -573,6 +573,42 @@ describe('Theme', () => {
     });
   });
 
+  // `gap`, `rowGap` and `gapless` mint no Theme variable, so on Theme they are
+  // the gap helpers, as on every other component.
+  it('takes the gap helpers that mint no variable as classes', () => {
+    const { container } = render(
+      <Theme gap="1" rowGap="2" gapless>
+        <div>Test</div>
+      </Theme>
+    );
+
+    expect(container.firstChild).toHaveClass('is-gap-1', 'is-row-gap-2');
+  });
+
+  // `columnGap` does: on Theme it is the prop for `--bulma-column-gap`. It is
+  // left out of ThemeProps, and it sets the variable as it always has, so even
+  // a gap step renders no column gap class.
+  it('keeps columnGap as the untyped --bulma-column-gap prop', () => {
+    const { container } = render(
+      <>
+        {/* @ts-expect-error columnGap is left out of ThemeProps */}
+        <Theme columnGap="2">
+          <div>Test</div>
+        </Theme>
+        <Theme {...({ columnGap: '1rem' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      </>
+    );
+
+    const [step, length] = Array.from(container.children) as HTMLElement[];
+    expect(step.style.getPropertyValue('--bulma-column-gap')).toBe('2');
+    expect(step).not.toHaveClass('is-column-gap-2');
+    expect(step.className).toBe('');
+    expect(length.style.getPropertyValue('--bulma-column-gap')).toBe('1rem');
+    expect(length.className).toBe('');
+  });
+
   it('skips invalid CSS variable keys when building the local style object', () => {
     // Inject a non-Bulma key via bulmaVars; the local-style branch's
     // `bulmaCssVars.includes(key) && value` guard should drop it.

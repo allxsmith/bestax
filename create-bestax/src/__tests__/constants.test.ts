@@ -324,10 +324,13 @@ describe('constants', () => {
       expect(md).toContain('not `bgColor`');
     });
 
-    it('documents the gap exception: no flex gap helper, but Grid/Columns take a gap prop', () => {
-      expect(md).toContain('Flex layouts have no `gap` helper');
-      expect(md).toContain('`Grid` and `Columns`');
-      expect(md).toContain('take a `gap` prop');
+    // The template used to say flex layouts had no gap helper and to space
+    // children with margins. Every component takes the gap helpers now, on a
+    // scale that is not the margin one, so the mapping says which step.
+    it('maps an inline gap to the gap helper and its scale', () => {
+      expect(md).toContain('`gap="2"`');
+      expect(md).toContain('`1`=0.5rem, `2`=1rem');
+      expect(md).not.toContain('no `gap` helper');
     });
   });
 
