@@ -201,8 +201,9 @@ green and every AI review thread is resolved.
   nothing left open, with every review thread resolved and every check green. A verify pass
   reviews no commits, so the PR also needs a fresh deep review of the head commit with no
   blocking findings, or a fresh review whose blocking findings later verify passes resolved.
-  `review-converged.yml` adds and removes it, `scripts/review-converged.mjs` holds the full
-  definition, and an `ai-loop` PR never gets it.
+  `review-converged.yml` adds it and removes it while the PR keeps `deep-review` and not
+  `ai-loop`, `scripts/review-converged.mjs` holds the full definition, and an `ai-loop` PR
+  never gets it.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
   head repository to be this one, so labelling a fork PR is a no-op: the job
