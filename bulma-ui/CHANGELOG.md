@@ -1,3 +1,21 @@
+# [5.24.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.23.0...@allxsmith/bestax-bulma@5.24.0) (2026-10-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** answer the granularity review on native input and blur ([7a17486](https://github.com/allxsmith/bestax/commit/7a174866bf55b680b322410487a6ce56f9e6ac70))
+* **bulma-ui:** fall back when useFocusTrap's initialFocusRef can't take focus ([c191931](https://github.com/allxsmith/bestax/commit/c191931632c461369642bb6dee219a2dd985b7a8))
+* **bulma-ui:** make useFocusTrap follow radio groups and initialFocusRef past the trap ([d6219d4](https://github.com/allxsmith/bestax/commit/d6219d458c384631ee1fa4c9204a00c4eac3231a))
+* **bulma-ui:** settle Popover's deep review findings ([feadaf4](https://github.com/allxsmith/bestax/commit/feadaf42c18af3d45867263aefb891e80e0b42d7))
+* **bulma-ui:** stop TimeInput reopening on the focus its popover hands back ([1c87c15](https://github.com/allxsmith/bestax/commit/1c87c157b48e813054369d1a95d5d2ce78e866aa))
+
+
+### Features
+
+* **bestax-mcp:** publish to the official MCP Registry ([74efc7f](https://github.com/allxsmith/bestax/commit/74efc7f89aad8c421c041313d43cd926e14cae88))
+* **bulma-ui:** add month and year pickers to DateInput through granularity ([c4cfc2b](https://github.com/allxsmith/bestax/commit/c4cfc2b1c17c7ab91305b531c4a4f73524f1d72a)), closes [#773](https://github.com/allxsmith/bestax/issues/773)
+* **bulma-ui:** add Popover ([2e17fac](https://github.com/allxsmith/bestax/commit/2e17fac3b3e1afd64d5d75d3745a6df8887e4460)), closes [#776](https://github.com/allxsmith/bestax/issues/776)
+
 # [5.23.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.22.0...@allxsmith/bestax-bulma@5.23.0) (2026-10-02)
 
 
