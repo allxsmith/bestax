@@ -29,14 +29,7 @@
  *   skills-roster        every skill directory under skills/ is named in each
  *                        hand-maintained roster (README, docs, the scaffolded
  *                        CLAUDE.md), and no roster names one that is gone
- *                        (#540), and the generated plugin manifests
- *                        (skills/.claude-plugin/plugin.json, the root
- *                        plugin.json) match .claude-plugin/plugin.json.
- *                        Distinct from skills-sync above.
- *   plugin-root          the repo root, which ships as the bestax plugin,
- *                        holds no other conventional plugin component path
- *                        (hooks/, commands/, .mcp.json, …), and mcp.json
- *                        pins bestax-mcp at its current major
+ *                        (#540). Distinct from skills-sync above.
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
@@ -117,13 +110,7 @@ import {
   REGION_ID as SKILLS_INSTALL_REGION,
   TARGETS as SKILLS_INSTALL_TARGETS,
   renderInstallBlock,
-  SKILLS_PLUGIN,
-  renderSkillsPluginManifest,
-  AGENT_PLUGIN,
-  renderAgentPluginManifest,
-  PLACED_PLUGIN_FIELDS,
 } from './gen-skills-rosters.mjs';
-import { SEMVER } from './consumer-sbom-meta.mjs';
 import {
   ORDERED_CATEGORIES,
   MANAGED_CATEGORIES,
@@ -138,7 +125,6 @@ import {
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
 import { versionRegressionProblems } from './lib/version-regression.mjs';
 import { execFileSync } from 'node:child_process';
-import { isDeepStrictEqual } from 'node:util';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -3478,249 +3464,10 @@ export function frontmatterNameViolations(entries) {
   return violations;
 }
 
-/**
- * Parse a plugin manifest's text as a JSON object, or say why it is not one:
- * unread (`undefined` text), not JSON, or JSON that is not an object (`null`,
- * an array, a number). Shared by the three plugin manifest checks below so
- * they agree on what counts as a manifest, and so none of them reaches a
- * property read on `null` and throws.
- */
-function parseManifestObject(text) {
-  if (typeof text !== 'string') return { problem: 'could not be read' };
-  let value;
-  try {
-    value = JSON.parse(text);
-  } catch {
-    return { problem: 'is not valid JSON' };
-  }
-  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
-    return { problem: 'is not a JSON object' };
-  }
-  return { value };
-}
-
-/**
- * What both derived-manifest checks do first: parse the Claude manifest and
- * one derived manifest, or return the one violation that stops the
- * comparison. A broken Claude manifest leaves the derived one unchecked, and
- * a broken derived one is fixed by regenerating it.
- */
-function derivedManifestPair(rootText, derivedText, target) {
-  const { source } = SKILLS_PLUGIN;
-  const root = parseManifestObject(rootText);
-  if (root.problem) {
-    return {
-      violation: `${source}: ${root.problem}, so ${target} went unchecked.`,
-    };
-  }
-  const derived = parseManifestObject(derivedText);
-  if (derived.problem === 'could not be read') {
-    return { violation: `${target}: missing. Run pnpm gen:skills.` };
-  }
-  if (derived.problem) {
-    return { violation: `${target}: ${derived.problem}. Run pnpm gen:skills.` };
-  }
-  return { root: root.value, derived: derived.value };
-}
-
-/**
- * `skills/.claude-plugin/plugin.json` is generated from the Claude manifest,
- * `.claude-plugin/plugin.json` (SKILLS_PLUGIN in gen-skills-rosters.mjs).
- * Compared as parsed JSON, so key order and formatting are not this check's
- * concern. Pure, taking the two file texts (undefined when unreadable), so
- * fixtures reach every branch.
- */
-export function skillsPluginManifestViolations(rootText, skillsText) {
-  const { source, target } = SKILLS_PLUGIN;
-  const pair = derivedManifestPair(rootText, skillsText, target);
-  if (pair.violation) return [pair.violation];
-  return isDeepStrictEqual(pair.derived, renderSkillsPluginManifest(pair.root))
-    ? []
-    : [`${target}: is stale against ${source}. Run pnpm gen:skills.`];
-}
-
-/**
- * A field of the Claude manifest that neither renderer handles would be
- * dropped from both derived manifests while their freshness checks pass (see
- * PLACED_PLUGIN_FIELDS). A manifest that is unreadable, not JSON or not an
- * object is reported by skillsPluginManifestViolations and
- * agentPluginManifestViolations, so it is not reported again here.
- */
-export function pluginSourceFieldViolations(rootText) {
-  const { source } = SKILLS_PLUGIN;
-  const { value: root } = parseManifestObject(rootText);
-  if (!root) return [];
-  return Object.keys(root)
-    .filter(key => !PLACED_PLUGIN_FIELDS.includes(key))
-    .map(
-      key =>
-        `${source}: ${JSON.stringify(key)} is not handled by either derived ` +
-        `manifest, so both would drop it. Add it to renderSkillsPluginManifest ` +
-        `and renderAgentPluginManifest, or leave it out of one on purpose, ` +
-        `then list it in PLACED_PLUGIN_FIELDS (scripts/gen-skills-rosters.mjs).`
-    );
-}
-
-/**
- * The root Agent Plugins `plugin.json` is generated from the Claude manifest
- * (AGENT_PLUGIN in gen-skills-rosters.mjs), except `version`, which a person
- * owns. So every other field must match, and `version` must at least be a
- * semantic version, which Kiro and the catalogs that pin one require.
- */
-export function agentPluginManifestViolations(rootText, agentText) {
-  const { source } = SKILLS_PLUGIN;
-  const { target } = AGENT_PLUGIN;
-  const pair = derivedManifestPair(rootText, agentText, target);
-  if (pair.violation) return [pair.violation];
-  const { root, derived: agent } = pair;
-  const violations = [];
-  if (!SEMVER.test(String(agent.version ?? ''))) {
-    violations.push(
-      `${target}: "version" must be a semantic version such as 1.0.0, ` +
-        `not ${JSON.stringify(agent.version)}.`
-    );
-  }
-  if (
-    !isDeepStrictEqual(agent, renderAgentPluginManifest(root, agent.version))
-  ) {
-    violations.push(
-      `${target}: is stale against ${source}. Run pnpm gen:skills.`
-    );
-  }
-  return violations;
-}
-
-/**
- * The repo root is the `bestax` plugin (root CLAUDE.md), so each client that
- * installs it scans the root for its conventional component paths, and
- * anything found there ships to every user of the plugin. These are the ones
- * besides `skills/` and `.claude-plugin/`, which the plugin uses on purpose.
- *
- * Claude Code's come from its standard plugin layout
- * (https://code.claude.com/docs/en/plugins-reference#standard-layout).
- * `rules/` is Cursor's (https://cursor.com/docs/reference/plugins). Directory
- * names end in `/`, and an entry of that name counts whatever its type. Add a
- * path when a client the plugin supports starts reading a new one.
- */
-export const ROOT_PLUGIN_COMPONENT_PATHS = [
-  'agents/',
-  'bin/',
-  'commands/',
-  'hooks/',
-  'monitors/',
-  'output-styles/',
-  'rules/',
-  'themes/',
-  'workflows/',
-  '.lsp.json',
-  '.mcp.json',
-  'settings.json',
-];
-
-/**
- * Each conventional component path in `entries` (the names at the repo root).
- * A contributor's own tooling is the usual way one gets there, so the message
- * says where that tooling goes instead.
- */
-export function rootPluginComponentViolations(entries) {
-  const present = new Set(entries);
-  return ROOT_PLUGIN_COMPONENT_PATHS.filter(path =>
-    present.has(path.replace(/\/$/, ''))
-  ).map(
-    path =>
-      `${path} at the repo root is a plugin component path, so it would ` +
-      `ship to every user of the bestax plugin. Keep contributor tooling ` +
-      `under .claude/ instead (root CLAUDE.md, "The repo root is a plugin").`
-  );
-}
-
-/**
- * The plugin starts bestax-mcp with `npx -y bestax-mcp@<major>` (`file`), a
- * range that follows every release within one major. A new major falls
- * outside it, and the plugin would keep starting the old one with every other
- * check green. So the pin is held to the major in `pkg`, or to the one after
- * it. The next major is allowed so the breaking-change PR can move the pin
- * before its release, and no open PR goes red when the release lands. A pin
- * still on the old major once the new one ships fails, because the release
- * commit cannot move it and nothing else would notice.
- */
-export const PLUGIN_MCP = {
-  file: 'mcp.json',
-  server: 'bestax',
-  pkg: 'bestax-mcp/package.json',
-};
-
-/**
- * Pure, taking the texts of mcp.json and bestax-mcp's manifest (undefined
- * when unreadable). The major is read with the repo's SEMVER grammar.
- */
-export function pluginMcpPinViolations(mcpText, pkgText) {
-  const { file, server, pkg } = PLUGIN_MCP;
-  const unchecked = `so the bestax-mcp pin in ${file} went unchecked.`;
-  const manifest = parseManifestObject(pkgText);
-  if (manifest.problem) return [`${pkg}: ${manifest.problem}, ${unchecked}`];
-  const { version } = manifest.value;
-  const semver = typeof version === 'string' ? SEMVER.exec(version) : null;
-  if (!semver) {
-    return [
-      `${pkg}: "version" is ${JSON.stringify(version)}, not a semantic ` +
-        `version, ${unchecked}`,
-    ];
-  }
-  const major = semver[1];
-  const want = `bestax-mcp@${major}`;
-  const next = `bestax-mcp@${Number(major) + 1}`;
-
-  const config = parseManifestObject(mcpText);
-  if (config.problem) {
-    return [
-      `${file}: ${config.problem}, so the plugin starts no MCP server. ` +
-        `Restore it with "${want}" in mcpServers.${server}.args.`,
-    ];
-  }
-  const args = config.value.mcpServers?.[server]?.args;
-  const pins = (Array.isArray(args) ? args : []).filter(
-    arg => typeof arg === 'string' && arg.startsWith('bestax-mcp@')
-  );
-  if (!pins.length) {
-    return [
-      `${file}: mcpServers.${server}.args runs no bestax-mcp@<major>. ` +
-        `The plugin starts the server as npx -y ${want}, so put "${want}" ` +
-        `in those args.`,
-    ];
-  }
-  return pins
-    .filter(pin => pin !== want && pin !== next)
-    .map(pin =>
-      /^bestax-mcp@\d+$/.test(pin)
-        ? `${file}: starts ${pin}, but ${pkg} is at ${version}. Change it ` +
-          `to ${want}, and every doc that quotes the old command ` +
-          `(git grep -n "${pin}"), then the listings that ` +
-          `docs/docs/guides/distribution.md names under "What goes stale".`
-        : `${file}: starts ${pin}, which is not a major pin. Use ${want}, ` +
-          `so the plugin follows each release within the current major.`
-    );
-}
-
 function skillFrontmatterName(text) {
   const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!fm) return null;
   return fm[1].match(/^name:\s*['"]?([^'"\r\n]+?)['"]?\s*$/m)?.[1] ?? null;
-}
-
-/**
- * plugin-root: the repo root ships as the bestax plugin, so hold what sits
- * there and what its mcp.json starts.
- */
-async function checkPluginRoot() {
-  const read = rel => readFile(join(REPO, rel), 'utf8').catch(() => undefined);
-  return [
-    ...rootPluginComponentViolations(await readdir(REPO)),
-    ...pluginMcpPinViolations(
-      await read(PLUGIN_MCP.file),
-      await read(PLUGIN_MCP.pkg)
-    ),
-  ];
 }
 
 async function checkSkillsRoster() {
@@ -3812,21 +3559,6 @@ async function checkSkillsRoster() {
       );
     }
   }
-
-  const readOrUndefined = rel =>
-    readFile(join(REPO, rel), 'utf8').catch(() => undefined);
-  const rootManifest = await readOrUndefined(SKILLS_PLUGIN.source);
-  violations.push(
-    ...pluginSourceFieldViolations(rootManifest),
-    ...skillsPluginManifestViolations(
-      rootManifest,
-      await readOrUndefined(SKILLS_PLUGIN.target)
-    ),
-    ...agentPluginManifestViolations(
-      rootManifest,
-      await readOrUndefined(AGENT_PLUGIN.target)
-    )
-  );
 
   const sources = {};
   for (const { file } of SKILL_ROSTERS) {
@@ -4867,7 +4599,6 @@ const CHECKS = {
   'scss-conformance': checkScssConformance,
   'skills-sync': checkSkillsSync,
   'skills-roster': checkSkillsRoster,
-  'plugin-root': checkPluginRoot,
   'style-mapping-sync': checkStyleMappingSync,
   'near-miss-sync': checkNearMissSync,
   'release-docs-sync': checkReleaseDocsSync,

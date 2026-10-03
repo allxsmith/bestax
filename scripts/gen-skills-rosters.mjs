@@ -32,12 +32,8 @@
  * pages it is one — but nothing here may opt out silently: a generator that
  * quietly emits nothing while every gate stays green is the failure mode that
  * hid LinkButton's CSS variables for months (#464).
- *
- * It also writes the plugin manifests derived from `.claude-plugin/plugin.json`:
- * `skills/.claude-plugin/plugin.json` (SKILLS_PLUGIN below) and the root
- * `plugin.json` (AGENT_PLUGIN below). Each says why it exists.
  */
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -87,163 +83,6 @@ export function renderInstallBlock(skills, fence) {
   ].join('\n');
 }
 
-/**
- * `skills/` doubles as a skills-only plugin for Anthropic's plugin directory.
- * The directory reads only the folder a submission names, and the repo-root
- * plugin does not fit it: the root holds far more files than the directory
- * accepts without review, and its MCP server runs through a ranged `npx` pin,
- * which the directory refuses. This folder is small and runs nothing.
- *
- * Its manifest is the Claude manifest minus the MCP server, with `skills`
- * pointed at the folder itself, because the skills sit directly under it.
- * Derived rather than hand-written so the two cannot drift: edit
- * `.claude-plugin/plugin.json` and run `pnpm gen:skills`. The skills-roster
- * check compares the parsed JSON, so it needs no prettier.
- */
-export const SKILLS_PLUGIN = {
-  source: '.claude-plugin/plugin.json',
-  target: 'skills/.claude-plugin/plugin.json',
-  description:
-    'The bestax Agent Skills, for building with @allxsmith/bestax-bulma, ' +
-    'React components for Bulma v1',
-};
-
-export function renderSkillsPluginManifest(root) {
-  // The JSON round trip drops fields the root does not set, so the result
-  // compares equal to a parsed file that never had them.
-  return JSON.parse(
-    JSON.stringify({
-      name: root.name,
-      description: SKILLS_PLUGIN.description,
-      author: root.author,
-      homepage: root.homepage,
-      repository: root.repository,
-      license: root.license,
-      keywords: root.keywords,
-      skills: './',
-    })
-  );
-}
-
-/**
- * The root `plugin.json`, in the vendor-neutral Agent Plugins format. Cursor,
- * Kiro and the awesome-copilot catalog read only this shape, and Codex,
- * Copilot CLI, VS Code and Grok Build prefer it over `.claude-plugin/` when
- * both exist. It carries the Claude manifest's fields plus `$schema` and
- * `version`, so it is derived from that manifest too.
- *
- * Two fields are deliberate. `mcpServers` is not in the Agent Plugins schema.
- * Its clients find MCP servers in `mcp.json` by fixed location, and the spec
- * has them report and ignore an unknown top-level field and keep loading. But
- * Grok Build reads this file first, and without the field it looks for
- * `.mcp.json`, not `mcp.json`, so dropping it would cost Grok the server.
- * `version` is the one field a person owns: the generator keeps whatever the
- * committed file says, because it names a plugin release cut for the catalogs
- * that pin one, and nothing in the repo can infer it.
- */
-export const AGENT_PLUGIN = {
-  target: 'plugin.json',
-  schema: 'https://agent-plugins.org/schemas/1.0.0/plugin.schema.json',
-  firstVersion: '1.0.0',
-};
-
-export function renderAgentPluginManifest(root, version) {
-  return JSON.parse(
-    JSON.stringify({
-      $schema: AGENT_PLUGIN.schema,
-      name: root.name,
-      version,
-      description: root.description,
-      author: root.author,
-      homepage: root.homepage,
-      repository: root.repository,
-      license: root.license,
-      keywords: root.keywords,
-      mcpServers: root.mcpServers,
-    })
-  );
-}
-
-/**
- * Every field of the Claude manifest the two renderers above handle. They
- * copy fields one by one, so a field missing from them would vanish from the
- * derived manifests with the freshness checks still green, because both sides
- * of each comparison run through the same renderer. The skills-roster check
- * fails on a Claude manifest field outside this list instead. Place a new
- * field in each renderer, or leave it out of one on purpose, then list it.
- */
-export const PLACED_PLUGIN_FIELDS = [
-  'name',
-  'description',
-  'author',
-  'homepage',
-  'repository',
-  'license',
-  'keywords',
-  'mcpServers',
-];
-
-/**
- * The hand-owned `version` of the committed root `plugin.json`. Only a
- * missing file starts at `firstVersion`, because there is no version to keep
- * yet. A file that is there but broken throws instead: falling back would
- * reset a version that catalogs pin, and the write after it would commit the
- * reset with every check green.
- */
-async function committedAgentPluginVersion(repo) {
-  const file = AGENT_PLUGIN.target;
-  let text;
-  try {
-    text = await readFile(join(repo, file), 'utf8');
-  } catch (err) {
-    if (err?.code === 'ENOENT') return AGENT_PLUGIN.firstVersion;
-    throw new Error(`${file}: could not be read (${err.message}).`, {
-      cause: err,
-    });
-  }
-  const keep =
-    'so its hand-owned "version" cannot be kept. Fix the file by hand, ' +
-    'then run pnpm gen:skills again.';
-  let manifest;
-  try {
-    manifest = JSON.parse(text);
-  } catch (err) {
-    throw new Error(`${file}: is not valid JSON (${err.message}), ${keep}`, {
-      cause: err,
-    });
-  }
-  if (
-    manifest === null ||
-    typeof manifest !== 'object' ||
-    Array.isArray(manifest)
-  ) {
-    throw new Error(`${file}: is not a JSON object, ${keep}`);
-  }
-  if (typeof manifest.version !== 'string') {
-    throw new Error(`${file}: has no string "version", ${keep}`);
-  }
-  return manifest.version;
-}
-
-/**
- * Every derived plugin manifest as `[repo-relative path, object]`, read from
- * the Claude manifest and the committed root `plugin.json`'s version. `repo`
- * is injectable so a test can reach the no-root-manifest-yet branch and the
- * broken-manifest ones.
- */
-export async function pluginManifests(repo = REPO) {
-  const root = JSON.parse(
-    await readFile(join(repo, SKILLS_PLUGIN.source), 'utf8')
-  );
-  return [
-    [SKILLS_PLUGIN.target, renderSkillsPluginManifest(root)],
-    [
-      AGENT_PLUGIN.target,
-      renderAgentPluginManifest(root, await committedAgentPluginVersion(repo)),
-    ],
-  ];
-}
-
 export async function main() {
   const skills = await readSkillNames(join(REPO, 'skills'));
   if (!skills.length) {
@@ -272,21 +111,6 @@ export async function main() {
     }
   }
   process.stdout.write(`Skill install rosters: ${skills.length} skills\n`);
-
-  const manifests = await pluginManifests();
-  for (const [rel, manifest] of manifests) {
-    const target = join(REPO, rel);
-    const text = await prettier.format(JSON.stringify(manifest), {
-      ...(await prettier.resolveConfig(target)),
-      filepath: target,
-    });
-    const current = await readFile(target, 'utf8').catch(() => null);
-    if (text !== current) {
-      await mkdir(dirname(target), { recursive: true });
-      await writeFile(target, text);
-      process.stdout.write(`Wrote ${rel}\n`);
-    }
-  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

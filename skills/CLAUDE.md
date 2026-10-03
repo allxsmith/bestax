@@ -41,16 +41,6 @@ slug transform (directory name minus the `bestax-` prefix, exactly what `gen-mcp
 ships as `promptName`). A new skill fails conformance until its docs page, sidebar entry, and
 intro bullet exist.
 
-The `bestax` Claude Code plugin is the repo root (root `CLAUDE.md` has the details), and it
-finds skills by the `skills/` convention, so a new skill reaches it by construction as well.
-
-This folder is also a plugin on its own: `.claude-plugin/plugin.json` here makes `skills/` a
-skills-only plugin for Anthropic's plugin directory, which reads only the folder it is given and
-refuses the repo-root plugin's ranged `npx` pin. `pnpm gen:skills` writes that manifest from
-`.claude-plugin/plugin.json` at the repo root, never by hand, and the skills-roster check fails
-while it is stale. `claude plugin validate skills` warns about the missing version and about
-this file, which a plugin does not load as context. Both are expected.
-
 Outside the repo, several lists and directories name the skills or say how many there are, and
 some host copies. No check sees them. Adding, renaming or removing a skill means updating the
 listings that `docs/docs/guides/distribution.md` names under "What goes stale".

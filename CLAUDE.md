@@ -12,8 +12,6 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
   its `src/generated/` metadata is **generated** (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
-- `.claude-plugin/`, `plugin.json` and `mcp.json`: the `bestax` coding-agent plugin, whose root
-  is the repo root (see "The repo root is a plugin" below)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
   (deployed from CI by `deploy-worker.yml` — a merged change under it ships to
   production immediately)
@@ -25,7 +23,6 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
 - `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
-  - and the two plugin manifests derived from `.claude-plugin/plugin.json`
 - `scripts/gen-eslint-meta.mjs` — generates the ESLint plugin's component metadata
   (`pnpm gen:eslint-meta`)
 
@@ -175,31 +172,6 @@ AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); t
 shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated index of both (see
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
-
-**The repo root is a plugin.** `.claude-plugin/marketplace.json` makes this repo a Claude Code
-marketplace, and the `bestax` plugin it lists is the repo root itself: `.claude-plugin/plugin.json`,
-the skills in `skills/` (found by convention) and the MCP server in `mcp.json`. The root
-`plugin.json` describes the same plugin in the vendor-neutral Agent Plugins format for Cursor,
-Kiro and the awesome-copilot catalog, and Codex, Copilot CLI, VS Code and Grok Build prefer it.
-So a top-level `hooks/`, `commands/`, `agents/`, `rules/`, `bin/`, `.mcp.json` or `.lsp.json`
-would ship to every user of the plugin. Keep contributor tooling under `.claude/`. The
-plugin-root conformance check fails on any of those and on the other conventional component
-paths in `ROOT_PLUGIN_COMPONENT_PATHS`, which cites the client docs each one comes from.
-
-- `pnpm gen:skills` writes the root `plugin.json` and `skills/.claude-plugin/plugin.json` from
-  `.claude-plugin/plugin.json`, and the skills-roster check fails while either is stale. Edit
-  the Claude manifest, never the two derived ones.
-- `.claude-plugin/plugin.json` sets no `version` on purpose, so Claude Code follows commits. The
-  root `plugin.json`'s `version` is the one hand-owned field: bump it when you cut a plugin
-  release for a catalog that pins one (awesome-copilot, the OpenAI directory, Kiro, Cursor's
-  Marketplace), and the generator keeps it.
-- `mcp.json` starts the server as `npx -y bestax-mcp@<major>`, on bestax-mcp's current major.
-  A breaking bestax-mcp change moves the pin to the next major in the same PR, with the docs
-  that quote the command. The plugin-root check allows that, and fails if the pin is still on
-  the old major once the new one ships.
-- `skills/` is also a skills-only plugin for Anthropic's directory (see `skills/CLAUDE.md`).
-- `claude plugin validate .claude-plugin/plugin.json` warns about the missing version and about
-  this file, which a plugin does not load as context. Both warnings are expected.
 
 ## Distribution and listings
 
