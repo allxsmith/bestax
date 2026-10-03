@@ -35,7 +35,7 @@ that can also be used on their own:
 | Group      | Hook                   | Representative props                                                                                                                                                             |
 | ---------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Color      | `useColorClasses`      | `color`, `colorShade`, `backgroundColor`, `backgroundColorShade`                                                                                                                 |
-| Spacing    | `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`                                                                                                 |
+| Spacing    | `useSpacingClasses`    | `m`, `mt`, `mr`, `mb`, `ml`, `mx`, `my`, `p`, `pt`, `pr`, `pb`, `pl`, `px`, `py`, `gap`, `columnGap`, `rowGap`, `gapless`                                                        |
 | Typography | `useTypographyClasses` | `textSize`, `textAlign`, `textTransform`, `textWeight`, `fontFamily` (+ responsive variants)                                                                                     |
 | Visibility | `useVisibilityClasses` | `display`, `visibility` (+ per-viewport variants)                                                                                                                                |
 | Flexbox    | `useFlexboxClasses`    | `flexDirection`, `flexWrap`, `justifyContent`, `alignItems`, `alignContent`, `alignSelf`, `flexGrow`, `flexShrink`                                                               |
@@ -68,7 +68,7 @@ de-dupes. Related exports:
 Re-exported through `useBulmaClasses`. Use them to type component-specific props and to drive
 Storybook `argTypes`/tests:
 
-`validColors`, `validColorShades`, `validSchemeColors`, `validSizes`, `validTextSizes`,
+`validColors`, `validColorShades`, `validSchemeColors`, `validSizes`, `validGaps`, `validTextSizes`,
 `validAlignments`, `validTextTransforms`, `validTextWeights`, `validFontFamilies`,
 `validDisplays`, `validVisibilities`, `validFlexDirections`, `validFlexWraps`,
 `validJustifyContents`, `validAlignContents`, `validAlignItems`, `validAlignSelfs`,

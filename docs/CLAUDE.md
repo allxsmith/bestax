@@ -81,8 +81,7 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   above the opening marker or below the closing one — but prose sitting _between_ two tables
   has nowhere to go, so move it out first. A `###` heading that is not one of the component's
   sub-components (`### TaginputTag`) ends the region rather than being swallowed by it.
-- No inline `style={{}}` in examples — use `Block`/helper props; there is no `gap` helper,
-  space children with `m*`/`p*`.
+- No inline `style={{}}` in examples — use `Block`/helper props.
 - Code examples must compile against the current library API; when a component changes, its
   docs page changes in the same PR (CONTRIBUTING requires docs before approval).
 - **`jsx` and `tsx` fences are linted** with the ESLint plugin's `recommended` rules, in

@@ -55,6 +55,7 @@ export function StatCard({
       // Rung 1: layout entirely with helper props — no style={{}}, no CSS.
       display="flex"
       alignItems="center"
+      gap="2"
       p="4"
       {...rest}
     >
@@ -63,7 +64,6 @@ export function StatCard({
           name={icon}
           size="large"
           textColor={color}
-          mr="4"
           // Decorative: the label below already says it, so hide it from AT —
           // Icon otherwise emits its default aria-label="icon". (To *label* an
           // icon, use Icon's own camelCase `ariaLabel`; most components take
@@ -71,7 +71,6 @@ export function StatCard({
           aria-hidden="true"
         />
       )}
-      {/* No `gap` helper exists — space siblings with margin props (mr above). */}
       <div>
         {/* as="p": the sizes are visual scale, not document structure — a bare
             <Title size> renders a heading and breaks the page outline. */}
