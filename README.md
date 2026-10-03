@@ -176,12 +176,14 @@ Building with an AI agent (Claude Code, Cursor, Copilot)? bestax-bulma ships LLM
 
   New projects get the skills automatically with `npm create bestax@latest my-app --skills` (plus a generated `CLAUDE.md`).
 
-- 🧰 **[Claude Code plugin](https://bestax.io/docs/guides/llms#claude-code-plugin)**: the skills and the MCP server in one install.
+- 🧰 **[bestax plugin](https://github.com/allxsmith/bestax-skills)**: the skills and the MCP server in one install. In Claude Code:
 
   ```text
-  /plugin marketplace add allxsmith/bestax
+  /plugin marketplace add allxsmith/bestax-skills
   /plugin install bestax@bestax
   ```
+
+  [Other agents](https://bestax.io/docs/guides/llms#bestax-plugin) install it from the same repository.
 
 ---
 

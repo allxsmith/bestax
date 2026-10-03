@@ -36,11 +36,11 @@ Each release is published to the official
 claude mcp add bestax -- npx -y bestax-mcp@1
 ```
 
-Or install the `bestax` plugin instead. It runs this same server and adds the
-bestax [Agent Skills](https://bestax.io/docs/skills/intro):
+Or install the [`bestax` plugin](https://github.com/allxsmith/bestax-skills) instead. It runs
+this same server and adds the bestax [Agent Skills](https://bestax.io/docs/skills/intro):
 
 ```text
-/plugin marketplace add allxsmith/bestax
+/plugin marketplace add allxsmith/bestax-skills
 /plugin install bestax@bestax
 ```
 

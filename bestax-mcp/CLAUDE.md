@@ -113,6 +113,12 @@ MCP directories and lists describe what the server offers and give `npx -y besta
 its command. A change to either, to how it starts, or a new major means updating the listings
 that `docs/docs/guides/distribution.md` names under "What goes stale".
 
+The `bestax` plugin in allxsmith/bestax-skills starts the server as
+`npx -y bestax-mcp@<exact version>`, read from this package's `package.json` each time
+`skills-publish.yml` regenerates it, which it does after every release. So its pin needs no hand
+edit. Its README (`plugin/README.md`) says what the server does over the network and what npx
+downloads, so a change to either updates that README in the same PR.
+
 Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills
 `data/skills/` at pack time. That directory is gitignored while the manifest
 `data/skills.json` is committed, so packing locally does not dirty the tree —

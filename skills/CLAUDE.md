@@ -41,6 +41,12 @@ slug transform (directory name minus the `bestax-` prefix, exactly what `gen-mcp
 ships as `promptName`). A new skill fails conformance until its docs page, sidebar entry, and
 intro bullet exist.
 
+Every skill also ships in the `bestax` plugin: `scripts/gen-skills-repo.mjs` copies each skill
+directory's tracked files into allxsmith/bestax-skills (root `CLAUDE.md`, "The bestax plugin"),
+so a new skill reaches it by construction. That generator refuses a hidden file or a symbolic
+link inside a skill, and a non-image file of 256 KiB or more, because Anthropic's plugin directory
+does.
+
 Outside the repo, several lists and directories name the skills or say how many there are, and
 some host copies. No check sees them. Adding, renaming or removing a skill means updating the
 listings that `docs/docs/guides/distribution.md` names under "What goes stale".

@@ -12,6 +12,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
   its `src/generated/` metadata is **generated** (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `plugin/`: the hand-written inputs of the `bestax` coding-agent plugin, which is **generated**
+  into allxsmith/bestax-skills (see "The bestax plugin" below)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
   (deployed from CI by `deploy-worker.yml` — a merged change under it ships to
   production immediately)
@@ -23,6 +25,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
 - `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
+- `scripts/gen-skills-repo.mjs`: writes the allxsmith/bestax-skills tree into a directory
+  (`node scripts/gen-skills-repo.mjs <dir>`)
 - `scripts/gen-eslint-meta.mjs` — generates the ESLint plugin's component metadata
   (`pnpm gen:eslint-meta`)
 
@@ -172,6 +176,23 @@ AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); t
 shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated index of both (see
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
+
+**The bestax plugin.** The `bestax` coding-agent plugin, the skills plus the MCP server, installs
+from its own repository, allxsmith/bestax-skills, so an install does not clone this one.
+`.github/workflows/skills-publish.yml` generates that repository's whole tree with
+`scripts/gen-skills-repo.mjs`, from `skills/`, `plugin/` and `bestax-mcp/package.json`, each
+time one of them changes on `main` and after each bestax-mcp release. Never edit bestax-skills.
+Change the source here and the workflow carries it over once merged.
+
+- `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is the one hand-owned
+  version, the Agent Plugins `plugin.json`'s, for the catalogs that pin a release: bump it when
+  you cut one for them. The Claude manifest sets no version, so Claude Code follows commits, and
+  the bestax-mcp pin is read from bestax-mcp's `package.json`, so nothing else needs a bump.
+- `plugin/README.md` becomes the repository's README, and it must say everything the plugin
+  runs, sends or fetches. A change to what bestax-mcp does over the network, to its telemetry or
+  to its dependencies updates that README in the same PR.
+- The generator fails on a tree that breaks a rule of Anthropic's plugin directory, and its tests
+  run it on the real tree, so `pnpm test` catches a skill change that would.
 
 ## Distribution and listings
 
