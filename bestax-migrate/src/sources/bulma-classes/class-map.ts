@@ -879,7 +879,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ],
   },
   // Grid's gaps take a numeric string, but its column minimum and every Cell
-  // placement are typed as numbers. The half steps (`is-gap-0.5`) have no prop.
+  // placement are typed as numbers.
   grid: {
     ...BASE,
     target: 'Grid',
