@@ -29,6 +29,7 @@ happens.
 | [cursor.directory](https://cursor.directory/plugins/bestax)                                                        | The skills and `bestax-mcp`                                                                                   | Manual    | A snapshot of the skills, plus an MCP entry added by hand. Edit it when a skill is added, renamed or removed, or when the MCP command changes.                                   |
 | [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.allxsmith/bestax-mcp) | `bestax-mcp`, as `io.github.allxsmith/bestax-mcp`                                                             | Automatic | `mcp-registry.yml` publishes each `bestax-mcp@` release. Bump the mcp-publisher version and hash pinned in that workflow by hand.                                                |
 | [Codemod Registry](https://app.codemod.com/registry/bestax-migrate)                                                | `bestax-migrate`                                                                                              | Manual    | A wrapper that pins one bestax-migrate release. After each release, run `node scripts/codemod-registry.mjs bump`, merge it, then run the Codemod Registry workflow with publish. |
+| [ClawHub](https://clawhub.ai/allxsmith)                                                                            | The skills                                                                                                    | Manual    | One upload per skill. Re-upload a skill when it changes, and upload a new one when it is added. ClawHub republishes them under MIT-0.                                            |
 
 Glama labels its builds with its own version numbers, so they don't match npm.
 
@@ -97,17 +98,16 @@ against that list.
 
 Not live yet. Each needs a merge or a sign-in first.
 
-| Where                                                                       | Carries                 | Updates   | Notes                                                                                     |
-| --------------------------------------------------------------------------- | ----------------------- | --------- | ----------------------------------------------------------------------------------------- |
-| GitHub MCP Registry                                                         | `bestax-mcp`            | Unknown   | The official listing exists, so onboarding can be requested.                              |
-| Coding-agent plugin from the repo (Claude Code, Codex, Copilot, Grok Build) | Skills and `bestax-mcp` | Automatic | Waits on [#870](https://github.com/allxsmith/bestax/pull/870). Installs follow the repo.  |
-| Anthropic plugin directory                                                  | The skills              | Manual    | After #870. Each version is reviewed before it goes live.                                 |
-| OpenAI plugin directory                                                     | The skills              | Manual    | After #870. Each upload is a ZIP with a new version.                                      |
-| Cursor Marketplace                                                          | Skills and `bestax-mcp` | Manual    | After #870. Each update is reviewed.                                                      |
-| Kiro                                                                        | Skills and `bestax-mcp` | Manual    | After #870. Needs a privacy policy and support contact in the README.                     |
-| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace)     | Skills and `bestax-mcp` | Manual    | After #870. The entry pins a commit, so a pull request there bumps it.                    |
-| [awesome-copilot](https://github.com/github/awesome-copilot)                | Skills and `bestax-mcp` | Manual    | After #870. Pins the `version` in the root `plugin.json`.                                 |
-| [ClawHub](https://clawhub.ai)                                               | The skills              | Manual    | One upload per skill. Re-upload a skill when it changes. ClawHub republishes under MIT-0. |
+| Where                                                                       | Carries                 | Updates   | Notes                                                                                    |
+| --------------------------------------------------------------------------- | ----------------------- | --------- | ---------------------------------------------------------------------------------------- |
+| GitHub MCP Registry                                                         | `bestax-mcp`            | Unknown   | The official listing exists, so onboarding can be requested.                             |
+| Coding-agent plugin from the repo (Claude Code, Codex, Copilot, Grok Build) | Skills and `bestax-mcp` | Automatic | Waits on [#870](https://github.com/allxsmith/bestax/pull/870). Installs follow the repo. |
+| Anthropic plugin directory                                                  | The skills              | Manual    | After #870. Each version is reviewed before it goes live.                                |
+| OpenAI plugin directory                                                     | The skills              | Manual    | After #870. Each upload is a ZIP with a new version.                                     |
+| Cursor Marketplace                                                          | Skills and `bestax-mcp` | Manual    | After #870. Each update is reviewed.                                                     |
+| Kiro                                                                        | Skills and `bestax-mcp` | Manual    | After #870. Needs a privacy policy and support contact in the README.                    |
+| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace)     | Skills and `bestax-mcp` | Manual    | After #870. The entry pins a commit, so a pull request there bumps it.                   |
+| [awesome-copilot](https://github.com/github/awesome-copilot)                | Skills and `bestax-mcp` | Manual    | After #870. Pins the `version` in the root `plugin.json`.                                |
 
 ## What goes stale
 
