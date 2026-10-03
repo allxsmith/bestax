@@ -39,6 +39,8 @@ Flexbox (Flexible Box Layout) is a powerful CSS layout method that allows you to
 - **flex-grow** - Controls how much an item should grow
 - **flex-shrink** - Controls how much an item should shrink
 
+The [gap helpers](#gap) put space between the items, on a flex container or a grid.
+
 ## Flex Direction
 
 The `flexDirection` prop controls the direction of the main axis in a flex container. This determines how flex items are laid out within the container.
@@ -592,6 +594,67 @@ function FlexGrowShrinkExamples() {
   );
 }
 ```
+
+## Gap
+
+The gap helpers put space between the items of a flex container, or the cells of a grid, without a margin on any of the items. `gap` spaces both axes, and `columnGap` and `rowGap` set one.
+
+| Property        | Bulma Class       | CSS Property       |
+| --------------- | ----------------- | ------------------ |
+| `gap="2"`       | `is-gap-2`        | `gap: 1rem`        |
+| `columnGap="2"` | `is-column-gap-2` | `column-gap: 1rem` |
+| `rowGap="2"`    | `is-row-gap-2`    | `row-gap: 1rem`    |
+| `gapless`       | `is-gapless`      | `gap: 0`           |
+
+Each whole step is 0.5rem, from `0` up to `8` (4rem), with a half step between each pair, such as `"1.5"` for 0.75rem. That is not the margin scale: `gap="2"` is 1rem where `m="2"` is 0.5rem. A step can also be written as a number (`gap={2}`).
+
+The helpers set the CSS `gap`, so they only take effect on a flex or grid container. Components that already are one, such as `Buttons`, `Tags` and `Grid`, take them as they are, and the helper replaces the spacing Bulma gives them.
+
+`gapless` is the shortcut for `gap="0"`, and `gap` wins when both are set. `columnGap` and `rowGap` win on their own axis over either.
+
+### Gap Examples
+
+A row of items, spaced apart and centered on each other:
+
+```tsx live
+<Block display="flex" alignItems="center" flexWrap="wrap" gap="2">
+  <Button color="primary">Save</Button>
+  <Button>Cancel</Button>
+  <Span textColor="grey">Last saved a minute ago</Span>
+</Block>
+```
+
+A vertical stack. Bulma's block elements, such as `Notification` and `Box`, bring their own bottom margin, which would add to the gap, so the example sets `mb="0"` on each:
+
+```tsx live
+<Block display="flex" flexDirection="column" gap="3">
+  <Notification color="info" mb="0">
+    First
+  </Notification>
+  <Notification color="success" mb="0">
+    Second
+  </Notification>
+  <Notification color="warning" mb="0">
+    Third
+  </Notification>
+</Block>
+```
+
+Different spacing on each axis, with wrapping:
+
+```tsx live
+<Tags columnGap="4" rowGap="1">
+  {['React', 'TypeScript', 'Bulma', 'Sass', 'Vite', 'Storybook', 'Jest'].map(
+    name => (
+      <Tag key={name} color="link">
+        {name}
+      </Tag>
+    )
+  )}
+</Tags>
+```
+
+`Grid` takes `gap`, `columnGap` and `rowGap` as its own props and renders these same classes. `Columns` has a `gap` of its own for its gutters, which takes whole steps; see [Columns](../../api/columns/columns.md).
 
 ## Complete Layout Example
 
