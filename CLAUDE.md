@@ -5,7 +5,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `bulma-ui/` — the library, published as `@allxsmith/bestax-bulma` (has its own CLAUDE.md)
 - `docs/` — Docusaurus site → https://bestax.io (has its own CLAUDE.md)
 - `create-bestax/` — the `npm create bestax` scaffolder (has its own CLAUDE.md)
-- `bestax-migrate/` — the `bestax-migrate` codemod CLI (has its own CLAUDE.md)
+- `bestax-migrate/` — the `bestax-migrate` codemod CLI, and in `codemod/` its Codemod Registry
+  wrapper (has its own CLAUDE.md)
 - `bestax-mcp/` — the `bestax-mcp` MCP server; its `data/` index is **generated**
   (has its own CLAUDE.md)
 - `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
