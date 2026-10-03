@@ -601,8 +601,7 @@ Citing egress-block as a control is now legitimate **for the first group only**,
 what it actually does: it bounds where data can go, not what a session can do with an
 allow-listed host (see I1). Widening an allowlist remains a security change under rule 2, and
 `sign-sbom`'s list is still assembled by reading the actions rather than from a measured run.
-So is `mcp-registry`'s `publish` list, which no run had exercised when it was written; its
-comment cites the sibling-job measurements each host rests on.
+So is `mcp-registry`'s `publish` list, which no run had exercised when it was written.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
