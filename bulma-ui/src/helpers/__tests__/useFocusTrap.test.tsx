@@ -133,6 +133,34 @@ describe('useFocusTrap', () => {
       expect(screen.getByTestId('trap')).toHaveFocus();
     });
 
+    it.each([
+      ['a heading without tabIndex', 'heading'],
+      ['a disabled control', 'disabled'],
+    ] as const)(
+      'falls back to the first tab stop when initialFocusRef is %s inside the container',
+      (_, which) => {
+        const WithUnfocusableInitial: React.FC = () => {
+          const headingRef = useRef<HTMLHeadingElement>(null);
+          const disabledRef = useRef<HTMLButtonElement>(null);
+          return (
+            <Trap
+              initialFocusRef={which === 'heading' ? headingRef : disabledRef}
+            >
+              <h2 ref={headingRef}>Heading</h2>
+              <button ref={disabledRef} disabled>
+                Disabled
+              </button>
+              <button>First</button>
+              <button>Last</button>
+            </Trap>
+          );
+        };
+        render(<WithUnfocusableInitial />);
+        // Focusing the element changes nothing, which left focus outside.
+        expect(button('First')).toHaveFocus();
+      }
+    );
+
     it('focuses the container when nothing inside can take focus', () => {
       render(
         <Trap>

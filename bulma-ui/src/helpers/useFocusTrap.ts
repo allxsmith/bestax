@@ -294,13 +294,19 @@ function findTabStops(container: HTMLElement): TabStops | null {
     }
     return ok;
   };
+  // Resolved once per group, filed under each of its buttons, since finding
+  // the checked one scans the radio's whole tree.
+  const groupStops = new Map<Element, HTMLElement | undefined>();
   const groupStop = (radio: HTMLInputElement): HTMLElement | undefined => {
+    if (groupStops.has(radio)) return groupStops.get(radio);
     const group = candidates.filter(el => sameGroup(radio, el));
     const on = checkedInGroup(radio);
-    if (on && isTabbableKind(on) && usable(on)) {
-      return group.find(el => el === on);
-    }
-    return group.find(usable);
+    const stop =
+      on && isTabbableKind(on) && usable(on)
+        ? group.find(el => el === on)
+        : group.find(usable);
+    for (const el of [radio, ...group]) groupStops.set(el, stop);
+    return stop;
   };
   const isStop = (el: HTMLElement): boolean =>
     usable(el) && (!isGroupedRadio(el) || groupStop(el) === el);
@@ -343,10 +349,12 @@ export interface UseFocusTrapOptions {
    */
   active?: boolean;
   /**
-   * The element inside the container to focus when the trap turns on. Without
-   * it, while it points at nothing, or when it points outside the container,
-   * focus goes to the first tab stop inside the container, and to the
-   * container itself when there is none.
+   * The element inside the container to focus when the trap turns on. It has
+   * to be one that can take focus, so a heading needs `tabIndex={-1}`. When
+   * focusing it doesn't put focus inside the container (the ref is empty, or
+   * its element is outside, disabled, hidden or can't take focus), focus goes
+   * to the first tab stop inside the container, and to the container itself
+   * when there is none.
    */
   initialFocusRef?: RefObject<HTMLElement | null>;
   /**
@@ -423,15 +431,16 @@ export function useFocusTrap(
 
     const opener = focusedElement(doc) as HTMLElement;
 
-    // An `initialFocusRef` outside the container falls back as an empty one
-    // does: focus put there would stay out, as Tab out there never reaches
-    // the container's listener.
+    // `initialFocusRef` counts only when focusing it puts focus inside. Focus
+    // put outside would stay out, as Tab there never reaches the container's
+    // listener, and focusing something that can't take focus (a heading
+    // without `tabIndex`, a disabled control) leaves focus where it was.
     const initial = initialFocusRef?.current;
-    (
-      (initial && inside(container, initial) ? initial : null) ??
-      findTabStops(container)?.first ??
-      container
-    ).focus();
+    const inTrap = initial && inside(container, initial) ? initial : null;
+    inTrap?.focus();
+    if (!inTrap || !inside(container, focusedElement(doc))) {
+      (findTabStops(container)?.first ?? container).focus();
+    }
 
     // Where focus goes if a Tab the trap let the browser handle takes it out,
     // held until that Tab has finished moving focus.
