@@ -22,7 +22,7 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { build } from './gen-mcp-index.mjs';
+import { build, readSkills } from './gen-mcp-index.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -199,6 +199,54 @@ test('references nested one level per subject still reach the index', () => {
       assert.ok(!r.id.includes('/'), `${s.name}/${r.id} has a slash in its id`);
     }
   }
+});
+
+test('the skills manifest lists exactly what the sync scripts ship', async t => {
+  // The sync scripts refuse untracked files and leave `.DS_Store` out of the
+  // copy. The index used to list every regular file on disk, so a local run
+  // could commit a manifest naming a file the server never ships.
+  const { mkdtempSync, mkdirSync, rmSync, writeFileSync } =
+    await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const { tmpdir } = await import('node:os');
+
+  const root = mkdtempSync(join(tmpdir(), 'bestax-mcp-skills-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const skillsDir = join(root, 'skills');
+  const skill = join(skillsDir, 'bestax-form');
+  mkdirSync(join(skill, 'references', 'sub'), { recursive: true });
+  writeFileSync(
+    join(skill, 'SKILL.md'),
+    '---\nname: bestax-form\ndescription: Build forms.\n---\n'
+  );
+  writeFileSync(join(skill, 'references', 'api.md'), '# api\n');
+  writeFileSync(join(skill, 'references', 'sub', 'map.md'), '# map\n');
+  writeFileSync(join(skill, 'references', '.DS_Store'), 'finder');
+  writeFileSync(join(skill, 'references', 'sub', '.DS_Store'), 'finder');
+  writeFileSync(join(root, '.gitignore'), '*.log\n');
+
+  // No repository yet, like an exported tarball: the disk minus .DS_Store.
+  const listed = async () =>
+    (await readSkills(skillsDir))[0].references.map(r => r.file);
+  const shipped = ['references/api.md', 'references/sub/map.md'];
+  assert.deepEqual(await listed(), shipped);
+
+  const git = (...args) =>
+    execFileSync('git', ['-C', root, ...args], { stdio: 'ignore' });
+  git('init', '-q');
+  git('add', 'skills', '.gitignore');
+  assert.deepEqual(await listed(), shipped, '.DS_Store stays exempt');
+
+  writeFileSync(join(skill, 'references', 'scratch.md'), 'draft\n');
+  await assert.rejects(
+    readSkills(skillsDir),
+    /refusing to index untracked file\(s\) under skills\/: bestax-form\/references\/scratch\.md/
+  );
+  rmSync(join(skill, 'references', 'scratch.md'));
+
+  // Gitignored is still unvetted: the sync scripts would refuse it too.
+  writeFileSync(join(skill, 'references', 'debug.log'), 'noise\n');
+  await assert.rejects(readSkills(skillsDir), /debug\.log/);
 });
 
 test('every skill reference id is unique within its skill', () => {

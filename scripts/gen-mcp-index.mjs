@@ -37,7 +37,7 @@
  *
  * Regenerate with `pnpm gen:mcp` (or `pnpm gen`, which runs all three).
  */
-import { readFile, writeFile, readdir, mkdir, rm } from 'node:fs/promises';
+import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, relative, dirname, extname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -49,7 +49,12 @@ import {
   sectionBody,
   firstSentence,
 } from './lib/api-page.mjs';
-import { byCodePoint, readSkillNames } from './lib/skills.mjs';
+import {
+  assertSkillsVetted,
+  byCodePoint,
+  readSkillNames,
+  skillFiles,
+} from './lib/skills.mjs';
 import {
   clipAtWord,
   firstProseLine,
@@ -295,11 +300,18 @@ function propRow(r) {
  * The skills roster, READ from the directory — never a hardcoded list. The
  * predicate (a directory holding a SKILL.md) lives in scripts/lib/skills.mjs,
  * shared with both sync scripts and check-conformance.
+ *
+ * The manifest lists what the sync scripts ship, so it reads the skills the
+ * way they do: it refuses untracked files exactly as they refuse to bundle
+ * them, and lists files through the same walk that leaves `.DS_Store` out.
+ * Indexing every file on disk let a local run list a file that never ships.
  */
-async function readSkills() {
+export async function readSkills(skillsDir = SKILLS_DIR) {
+  const names = await readSkillNames(skillsDir);
+  assertSkillsVetted(skillsDir, names, 'index');
   const out = [];
-  for (const name of await readSkillNames(SKILLS_DIR)) {
-    const skillFile = join(SKILLS_DIR, name, 'SKILL.md');
+  for (const name of names) {
+    const skillFile = join(skillsDir, name, 'SKILL.md');
     const src = await readFile(skillFile, 'utf8');
     const fm = frontmatter(src);
     // Walks nested directories, not just the top level. A skill that serves
@@ -322,27 +334,17 @@ async function readSkills() {
     // one, and agents discover ids through `get_skill` rather than hardcoding
     // them, so the rename is accepted rather than aliased.
     const listing = async sub => {
-      const root = join(SKILLS_DIR, name, sub);
+      const root = join(skillsDir, name, sub);
       if (!existsSync(root)) return [];
       const files = [];
-      const walk = async rel => {
-        const entries = await readdir(join(root, rel), { withFileTypes: true });
-        for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
-          const next = rel ? `${rel}/${e.name}` : e.name;
-          if (e.isDirectory()) {
-            await walk(next);
-            continue;
-          }
-          if (!e.isFile()) continue;
-          const body = await readFile(join(root, next), 'utf8');
-          files.push({
-            id: next.replace(extname(e.name), '').replace(/\//g, '-'),
-            file: `${sub}/${next}`,
-            bytes: Buffer.byteLength(body),
-          });
-        }
-      };
-      await walk('');
+      for (const rel of await skillFiles(root)) {
+        const body = await readFile(join(root, rel), 'utf8');
+        files.push({
+          id: rel.replace(extname(rel), '').replace(/\//g, '-'),
+          file: `${sub}/${rel}`,
+          bytes: Buffer.byteLength(body),
+        });
+      }
       // `a-b/x.md` and `a/b-x.md` both flatten to `a-b-x`, and `id` is the
       // MCP resource lookup key — two files answering to one key would make
       // the served content depend on ordering. No such pair exists today;

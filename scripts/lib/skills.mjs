@@ -92,6 +92,51 @@ export function pathsInsideSkills(candidatePaths, names) {
   return candidatePaths.filter(p => p && bundled.has(p.split('/')[0]));
 }
 
+/**
+ * Finder's `.DS_Store`, the one path the vetting gate exempts. Every bundler
+ * filters it out of its copy, and the MCP index out of its listing, so the
+ * exemption never becomes shipped content.
+ */
+export function isDsStore(path) {
+  return path.endsWith('.DS_Store');
+}
+
+/**
+ * The files under `dir` a bundler ships, as paths relative to it with
+ * forward slashes: depth first, each directory's entries in code-point
+ * order, and nothing isDsStore matches. What the MCP index lists, so it
+ * cannot list a file the sync scripts leave out.
+ */
+export async function skillFiles(dir) {
+  const out = [];
+  const walk = async rel => {
+    const entries = await readdir(join(dir, rel), { withFileTypes: true });
+    for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
+      const next = rel ? `${rel}/${e.name}` : e.name;
+      if (isDsStore(next)) continue;
+      if (e.isDirectory()) await walk(next);
+      else if (e.isFile()) out.push(next);
+    }
+  };
+  await walk('');
+  return out;
+}
+
+/**
+ * Throws when untrackedSkillPaths finds anything in the skills `names`: the
+ * refusal both sync scripts and the MCP index give, so none of them can
+ * carry a file that the others refuse. `verb` names what was refused.
+ */
+export function assertSkillsVetted(skillsDir, names, verb) {
+  const untracked = untrackedSkillPaths(skillsDir, names);
+  if (untracked.length) {
+    throw new Error(
+      `refusing to ${verb} untracked file(s) under skills/: ` +
+        `${untracked.join(', ')}. \`git add\` them to vet them, or remove them.`
+    );
+  }
+}
+
 function git(cwd, args) {
   return execFileSync('git', ['-C', cwd, ...args], {
     encoding: 'utf8',
