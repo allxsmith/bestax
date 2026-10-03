@@ -1,3 +1,40 @@
+# [1.14.0](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.13.0...bestax-mcp@1.14.0) (2026-10-03)
+
+
+### Bug Fixes
+
+* **bulma-ui:** announce polite notifications through a status region kept from mount ([#835](https://github.com/allxsmith/bestax/issues/835)) ([c93478d](https://github.com/allxsmith/bestax/commit/c93478d1d95ae8c66c1fe4526de6c0da456c47b5))
+* **bulma-ui:** answer the granularity review on native input and blur ([7a17486](https://github.com/allxsmith/bestax/commit/7a174866bf55b680b322410487a6ce56f9e6ac70))
+* **bulma-ui:** color the calendar from the color prop and read TimeInput's wheel variables ([2251e67](https://github.com/allxsmith/bestax/commit/2251e67327ddcbb8282f411db58797c2e66264df)), closes [#832](https://github.com/allxsmith/bestax/issues/832)
+* **bulma-ui:** draw the time wheel focus ring where the wheel's mask shows it ([e1d8c9f](https://github.com/allxsmith/bestax/commit/e1d8c9fdcb6397cb9b6c1ca0fe99223e87cf50f1)), closes [#832](https://github.com/allxsmith/bestax/issues/832)
+* **bulma-ui:** fall back when useFocusTrap's initialFocusRef can't take focus ([c191931](https://github.com/allxsmith/bestax/commit/c191931632c461369642bb6dee219a2dd985b7a8))
+* **bulma-ui:** give the selected calendar cell a ring that shows on its fill ([b3eecc6](https://github.com/allxsmith/bestax/commit/b3eecc63ecb10a909684708c5643a0441196e4ef))
+* **bulma-ui:** hold Portal to looking a selector up on each render ([8fe02ce](https://github.com/allxsmith/bestax/commit/8fe02cef38855526db1f4e95f9249468217920dc))
+* **bulma-ui:** judge image map areas by their image in useFocusTrap ([af7bc59](https://github.com/allxsmith/bestax/commit/af7bc59f2387e9ec8c4c6efa5b75491a7ae867b8))
+* **bulma-ui:** keep button defaults through a spread, and type the buttons that had none ([#853](https://github.com/allxsmith/bestax/issues/853)) ([0810482](https://github.com/allxsmith/bestax/commit/0810482a7c71e46c6e01d30ece763c2fbbf8ab76))
+* **bulma-ui:** keep button types and Avatar's accessible name through a spread ([#826](https://github.com/allxsmith/bestax/issues/826)) ([dc798d4](https://github.com/allxsmith/bestax/commit/dc798d429a9608225d892f0a02fdbad2f9713b53))
+* **bulma-ui:** keep the picker focus rings visible in every color ([612aa09](https://github.com/allxsmith/bestax/commit/612aa09a8973e84b351df01fc1f01dc76b2155a7))
+* **bulma-ui:** make useFocusTrap follow radio groups and initialFocusRef past the trap ([d6219d4](https://github.com/allxsmith/bestax/commit/d6219d458c384631ee1fa4c9204a00c4eac3231a))
+* **bulma-ui:** place toasts and notifications at the position they were shown with ([#834](https://github.com/allxsmith/bestax/issues/834)) ([62feab9](https://github.com/allxsmith/bestax/commit/62feab91a37e28cc753fbbb22075b302d585d141))
+* **bulma-ui:** read clicks and focus inside a shadow root ([474f2cc](https://github.com/allxsmith/bestax/commit/474f2cc98bc2d7af4cb1f44ae0c071ac8c094c0d))
+* **bulma-ui:** restore a portaled Modal's focus to an opener in a shadow root ([c564bd3](https://github.com/allxsmith/bestax/commit/c564bd3e5c64245bb632c91be9be9620229ddab4))
+* **bulma-ui:** settle Popover's deep review findings ([feadaf4](https://github.com/allxsmith/bestax/commit/feadaf42c18af3d45867263aefb891e80e0b42d7))
+* **bulma-ui:** stop Bulma's spinners under reduced motion in every stylesheet ([b234712](https://github.com/allxsmith/bestax/commit/b2347127f1944bc284cfa8a57876498067288d96)), closes [#770](https://github.com/allxsmith/bestax/issues/770)
+* **bulma-ui:** stop TimeInput reopening on the focus its popover hands back ([1c87c15](https://github.com/allxsmith/bestax/commit/1c87c157b48e813054369d1a95d5d2ce78e866aa))
+
+
+### Features
+
+* **bestax-mcp:** publish to the official MCP Registry ([74efc7f](https://github.com/allxsmith/bestax/commit/74efc7f89aad8c421c041313d43cd926e14cae88))
+* **bulma-ui:** add Bulma's position, overflow, radius and aspect-ratio helper props ([#845](https://github.com/allxsmith/bestax/issues/845)) ([64fb91c](https://github.com/allxsmith/bestax/commit/64fb91ce032c91c6867cc5d61becc9cd704d9bc5))
+* **bulma-ui:** add Collapses, an accordion group for Collapse ([#849](https://github.com/allxsmith/bestax/issues/849)) ([a12c823](https://github.com/allxsmith/bestax/commit/a12c82324ab787fc85f4da08a87877c32a0d2e2b))
+* **bulma-ui:** add Loader, Bulma's inline spinner ([c5e9eb0](https://github.com/allxsmith/bestax/commit/c5e9eb0103eb63b13ec4d05f2d9a834f6c9fb079)), closes [#770](https://github.com/allxsmith/bestax/issues/770)
+* **bulma-ui:** add month and year pickers to DateInput through granularity ([c4cfc2b](https://github.com/allxsmith/bestax/commit/c4cfc2b1c17c7ab91305b531c4a4f73524f1d72a)), closes [#773](https://github.com/allxsmith/bestax/issues/773)
+* **bulma-ui:** add Popover ([2e17fac](https://github.com/allxsmith/bestax/commit/2e17fac3b3e1afd64d5d75d3745a6df8887e4460)), closes [#776](https://github.com/allxsmith/bestax/issues/776)
+* **bulma-ui:** export ClientOnly and useIsHydrated ([2c0c1e6](https://github.com/allxsmith/bestax/commit/2c0c1e6a127052e54ba372ca4eff40131a64ba64))
+* **bulma-ui:** export Portal ([346d8c2](https://github.com/allxsmith/bestax/commit/346d8c266fa8bbfa53e1127d8930ff5b37fcc9ca))
+* **bulma-ui:** export useFocusTrap, counting the stops the browser's Tab visits ([c304fef](https://github.com/allxsmith/bestax/commit/c304fef52be75618b01c348717ff7adfcdf98c27)), closes [#772](https://github.com/allxsmith/bestax/issues/772)
+
 # [1.13.0](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.12.0...bestax-mcp@1.13.0) (2026-09-30)
 
 
