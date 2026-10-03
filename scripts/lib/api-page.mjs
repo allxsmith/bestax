@@ -240,6 +240,11 @@ export function frontmatter(src) {
   return out;
 }
 
+/** A page's frontmatter `title:`, or null when it has none. */
+export function frontmatterTitle(src) {
+  return frontmatter(src).title || null;
+}
+
 /**
  * Insert or update a frontmatter key, preserving key order and the rest of the
  * block. Used for `description:` — `docusaurus-plugin-llms` picks each page's

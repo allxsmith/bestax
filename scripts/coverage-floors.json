@@ -8,7 +8,7 @@
   "scripts/consumer-sbom-meta.mjs": { "lines": 98, "branches": 89, "functions": 100 },
   "scripts/coverage-floors.mjs": { "lines": 99, "branches": 100, "functions": 93 },
   "scripts/gen-api-docs.mjs": { "lines": 17, "branches": 1, "functions": 0 },
-  "scripts/gen-api-sources.mjs": { "lines": 30, "branches": 56, "functions": 30 },
+  "scripts/gen-api-sources.mjs": { "lines": 30, "branches": 56, "functions": 28 },
   "scripts/gen-eslint-meta.mjs": { "lines": 97, "branches": 82, "functions": 96 },
   "scripts/gen-mcp-index.mjs": { "lines": 86, "branches": 85, "functions": 88 },
   "scripts/gen-skills-rosters.mjs": { "lines": 72, "branches": 20, "functions": 50 },

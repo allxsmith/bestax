@@ -96,10 +96,12 @@ import {
 import {
   fenceMask,
   frontmatter,
+  frontmatterTitle,
   readRegions,
   sectionSpans,
   splitLines,
 } from './lib/api-page.mjs';
+import { mdFiles } from './lib/api-catalog.mjs';
 import {
   SKILL_DIR_NAME,
   readSkillDirs as libReadSkillDirs,
@@ -198,18 +200,12 @@ const STORY_EXEMPT = new Set([
 ]);
 
 // ---------------------------------------------------------------------------
-// Shared helpers (same parsing rules as gen-component-catalog.mjs).
+// Shared helpers. The page walk and frontmatter reader are the generators'
+// own (scripts/lib), so a page this checks is a page they read.
 // ---------------------------------------------------------------------------
 
-async function mdFiles(dir) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await mdFiles(full)));
-    else if (/\.mdx?$/.test(entry.name)) out.push(full);
-  }
-  return out;
-}
+/** Every .md and .mdx file under `dir`, at any depth, sorted. */
+const docFiles = dir => mdFiles(dir, /\.mdx?$/);
 
 async function walk(dir, ext) {
   const out = [];
@@ -219,13 +215,6 @@ async function walk(dir, ext) {
     else if (entry.name.endsWith(ext)) out.push(full);
   }
   return out;
-}
-
-function frontmatterTitle(src) {
-  const m = src.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-  if (!m) return null;
-  const t = m[1].match(/^title:[ \t]*(.+?)[ \t]*$/m);
-  return t ? t[1].replace(/^['"]|['"]$/g, '') : null;
 }
 
 function parseExportedModules(src) {
@@ -242,7 +231,7 @@ function parseExportedModules(src) {
 // API pages by category: cat -> [{ title, relPath }]
 async function apiComponents() {
   const byCat = new Map();
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const title = frontmatterTitle(await readFile(file, 'utf8'));
     if (!title) continue;
     const rel = relative(API_DIR, file).split('\\').join('/');
@@ -322,7 +311,7 @@ async function checkListingsSync() {
 
 async function checkDocsSections() {
   const violations = [];
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     const src = await readFile(file, 'utf8');
     const isHelper = rel.startsWith('helpers/');
@@ -415,7 +404,7 @@ function managedPage(rel) {
 // pair is the documented per-region opt-out, so it must not be silent.
 async function checkDocsSectionOrder() {
   const violations = [];
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     if (!orderedPage(rel)) continue;
     const src = await readFile(file, 'utf8');
@@ -470,7 +459,7 @@ async function checkDocsSectionOrder() {
 // .github/**.
 async function checkDocsGenerated() {
   const violations = [];
-  for (const file of await mdFiles(API_DIR)) {
+  for (const file of await docFiles(API_DIR)) {
     const rel = relative(API_DIR, file).split('\\').join('/');
     if (!managedPage(rel)) continue;
     const src = await readFile(file, 'utf8');
@@ -1911,7 +1900,7 @@ async function checkAutodocsTag() {
 async function countInlineStyles() {
   const counts = {};
   const stories = await walk(join(REPO, 'bulma-ui', 'src'), '.stories.tsx');
-  const docs = await mdFiles(join(REPO, 'docs', 'docs'));
+  const docs = await docFiles(join(REPO, 'docs', 'docs'));
   for (const file of [...stories, ...docs]) {
     const n = ((await readFile(file, 'utf8')).match(/style=\{\{/g) || [])
       .length;
@@ -3976,7 +3965,7 @@ export async function checkFragileProse(root = REPO) {
     // Migration guides are exempt: their counts describe a frozen upstream
     // (a vendored version of another library), and the ones that matter are
     // asserted by the mapping-coverage tests in bestax-migrate.
-    ...(await ifPresent(join(root, 'docs', 'docs', 'guides'), mdFiles))
+    ...(await ifPresent(join(root, 'docs', 'docs', 'guides'), docFiles))
       .filter(f => !f.includes(`${sep}migration${sep}`))
       .map(f => [f, 'guide']),
   ];

@@ -49,7 +49,7 @@ import {
   sectionBody,
   firstSentence,
 } from './lib/api-page.mjs';
-import { readSkillNames } from './lib/skills.mjs';
+import { byCodePoint, readSkillNames } from './lib/skills.mjs';
 import {
   clipAtWord,
   firstProseLine,
@@ -93,10 +93,6 @@ const DOCS_BASE = 'https://bestax.io/docs';
  * running something old.
  */
 const SCHEMA_VERSION = 1;
-
-// Deterministic, locale-independent comparator. localeCompare varies with the
-// runtime's ICU version and would make CI's regenerate-and-diff flake.
-const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
 
 const collapse = s =>
   String(s ?? '')
