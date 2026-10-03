@@ -15,7 +15,7 @@
 // without a second committed copy of 390 KB of markdown bloating every diff.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { syncSkills } from '../../scripts/lib/sync-skills.mjs';
+import { syncFailureText, syncSkills } from '../../scripts/lib/sync-skills.mjs';
 
 const pkgRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -33,6 +33,6 @@ await syncSkills({
   // data/skills itself, and `files` negates it so it never ships.
   stateDir: path.join(pkgRoot, 'data', '.sync-skills'),
 }).catch(err => {
-  console.error(err.message);
+  console.error(syncFailureText(err));
   process.exit(1);
 });

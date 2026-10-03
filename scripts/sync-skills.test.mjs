@@ -12,6 +12,7 @@ import {
   mkdtempSync,
   readFileSync,
   rmSync,
+  symlinkSync,
   utimesSync,
   writeFileSync,
 } from 'node:fs';
@@ -20,7 +21,8 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { syncSkills } from './lib/sync-skills.mjs';
+import { syncFailureText, syncSkills } from './lib/sync-skills.mjs';
+import { skillFiles } from './lib/skills.mjs';
 
 /** A repo-shaped temp dir holding skills/ with two skills and some noise. */
 function fixture(t) {
@@ -198,4 +200,30 @@ test('a signal while waiting exits 130 and leaves the lock it never held', async
   const code = await new Promise(resolve => child.on('exit', resolve));
   assert.equal(code, 130);
   assert.ok(existsSync(lockDir), 'a lock this run never held was removed');
+});
+
+test('a symbolic link in a skill is refused before anything is copied', async t => {
+  for (const locked of [false, true]) {
+    const f = fixture(t);
+    symlinkSync(
+      join(f.src, 'bestax-a', 'references', 'x.md'),
+      join(f.src, 'bestax-b', 'linked.md')
+    );
+    const opts = locked ? f : unlocked(f);
+    await assert.rejects(
+      syncSkills(opts),
+      /^Error: \[sync-skills\] .*bestax-b\/linked\.md is a symbolic link\. Commit a regular file\.$/
+    );
+    assert.ok(!existsSync(f.dest), locked ? 'locked run copied' : 'copied');
+    await assert.rejects(skillFiles(join(f.src, 'bestax-b')), /symbolic link/);
+  }
+});
+
+test('a refusal prints its message, anything else keeps its stack', () => {
+  const refusal = new Error('[sync-skills] no skills found in /x');
+  assert.equal(syncFailureText(refusal), refusal.message);
+  const crash = new TypeError('boom');
+  assert.equal(syncFailureText(crash), crash.stack);
+  assert.match(syncFailureText(crash), /TypeError: boom\n\s+at /);
+  assert.equal(syncFailureText('plain'), 'plain');
 });

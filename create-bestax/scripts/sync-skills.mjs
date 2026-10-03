@@ -29,7 +29,7 @@
 // Pass one if a third caller is ever added, and keep it out of `files`.
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import { syncSkills } from '../../scripts/lib/sync-skills.mjs';
+import { syncFailureText, syncSkills } from '../../scripts/lib/sync-skills.mjs';
 
 const pkgRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -41,6 +41,6 @@ await syncSkills({
   dest: path.join(pkgRoot, 'templates', 'skills'),
   label: 'templates/skills',
 }).catch(err => {
-  console.error(err.message);
+  console.error(syncFailureText(err));
   process.exit(1);
 });
