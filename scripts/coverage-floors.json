@@ -27,7 +27,7 @@
   "scripts/lib/resolve-ts-from-js.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/scss-vars.mjs": { "lines": 97, "branches": 89, "functions": 96 },
   "scripts/lib/shell-words.mjs": { "lines": 100, "branches": 100, "functions": 100 },
-  "scripts/lib/skills.mjs": { "lines": 98, "branches": 78, "functions": 100 },
+  "scripts/lib/skills.mjs": { "lines": 100, "branches": 87, "functions": 100 },
   "scripts/lib/version-regression.mjs": { "lines": 99, "branches": 95, "functions": 100 },
   "scripts/mcp-registry-publish.mjs": { "lines": 100, "branches": 95, "functions": 100 },
   "scripts/npm-install-retry.mjs": { "lines": 99, "branches": 91, "functions": 100 },
