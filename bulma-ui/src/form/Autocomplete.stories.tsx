@@ -402,7 +402,7 @@ export const Controlled: Story = {
 
     return (
       <ResponsiveWrapper>
-        <Block display="flex" alignItems="center" mb="4" className="is-gap-2">
+        <Block display="flex" alignItems="center" mb="4" gap="2">
           <Span>Value: &quot;{value}&quot;</Span>
           <Button size="small" onClick={handleClear}>
             Clear

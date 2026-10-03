@@ -330,6 +330,20 @@ describe('useBulmaClasses', () => {
     expect(rest).toEqual({});
   });
 
+  it('applies the gap helpers and keeps them out of rest', () => {
+    const { bulmaHelperClasses, rest } = renderUseBulmaClasses({
+      display: 'flex',
+      gap: '2',
+      columnGap: '4',
+      rowGap: '0.5',
+      gapless: true,
+    });
+    expect(bulmaHelperClasses).toBe(
+      'is-gap-2 is-column-gap-4 is-row-gap-0.5 is-flex'
+    );
+    expect(rest).toEqual({});
+  });
+
   it('ignores invalid other helper values', () => {
     const { bulmaHelperClasses } = renderUseBulmaClasses({ float: 'invalid' });
     expect(bulmaHelperClasses).toBe('');

@@ -573,6 +573,207 @@ describe('Theme', () => {
     });
   });
 
+  // Theme mints a prop for every Bulma variable, and `--bulma-column-gap`
+  // minted `columnGap`, which is a shared helper prop now. It is the helper on
+  // Theme too; a string that is not a gap step keeps the old variable route,
+  // as `radius` kept its own.
+  describe('columnGap', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('renders a gap step as the helper class and writes no variable', () => {
+      const { container } = render(
+        <Theme columnGap="2" bulmaVars={{ '--bulma-column-gap': '1rem' }}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv).toHaveClass('is-column-gap-2');
+      expect(themeDiv.style.getPropertyValue('--bulma-column-gap')).toBe(
+        '1rem'
+      );
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    // The one value whose meaning moved: `'0'` was a valid length and zeroed
+    // the gutters inside, and it is a gap step now.
+    it('renders "0" as the class rather than the variable it used to set', () => {
+      const { container } = render(
+        <Theme columnGap="0">
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv).toHaveClass('is-column-gap-0');
+      expect(themeDiv.style.getPropertyValue('--bulma-column-gap')).toBe('');
+    });
+
+    it('takes a gap step as a number', () => {
+      const { container } = render(
+        <Theme columnGap={1.5}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(container.firstChild).toHaveClass('is-column-gap-1.5');
+    });
+
+    it('still sets --bulma-column-gap for any other string, and warns', () => {
+      const { container } = render(
+        <Theme {...({ columnGap: '1rem' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-column-gap')).toBe(
+        '1rem'
+      );
+      expect(themeDiv.className).toBe('');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<Theme columnGap="1rem">')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("bulmaVars={{ '--bulma-column-gap': '1rem' }}")
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('the column gap helper ("0", "0.5", "1"')
+      );
+    });
+
+    it('lets the legacy value win over bulmaVars, as the prop always did', () => {
+      const { container } = render(
+        <Theme
+          {...({ columnGap: '2rem' } as unknown as ThemeProps)}
+          bulmaVars={{ '--bulma-column-gap': '1rem' }}
+        >
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-column-gap')).toBe(
+        '2rem'
+      );
+    });
+
+    it('sets the legacy value at :root on an isRoot Theme, without the root warning', () => {
+      const { unmount } = render(
+        <Theme isRoot {...({ columnGap: '12px' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(
+        document.getElementById('bestax-bulma-theme-vars')?.textContent
+      ).toBe(':root { --bulma-column-gap: 12px; }');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).not.toHaveBeenCalledWith(
+        expect.stringContaining('<Theme isRoot columnGap=')
+      );
+      unmount();
+    });
+
+    // A root Theme has no wrapper for the class, and a step writes no
+    // variable, so it does nothing. It reads like the gutter it once set, so
+    // it says so, once.
+    it('writes nothing for a gap step on an isRoot Theme, and warns once', () => {
+      const { rerender } = render(
+        <Theme isRoot columnGap="3">
+          <div>Test</div>
+        </Theme>
+      );
+      rerender(
+        <Theme isRoot columnGap="3">
+          <div>Test</div>
+        </Theme>
+      );
+      render(
+        <Theme isRoot columnGap={2}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('<Theme isRoot columnGap="3">')
+      );
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining("bulmaVars={{ '--bulma-column-gap': '…' }}")
+      );
+    });
+
+    it('does not warn at the root in production', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(
+          <Theme isRoot columnGap="3">
+            <div>Test</div>
+          </Theme>
+        );
+        render(
+          <Theme {...({ columnGap: '1rem' } as unknown as ThemeProps)}>
+            <div>Test</div>
+          </Theme>
+        );
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('ignores an empty string and a value that is no step, as the helper does', () => {
+      const { container } = render(
+        <>
+          <Theme {...({ columnGap: '' } as unknown as ThemeProps)}>
+            <div>Test</div>
+          </Theme>
+          <Theme {...({ columnGap: 9 } as unknown as ThemeProps)}>
+            <div>Test</div>
+          </Theme>
+          <Theme isRoot {...({ columnGap: null } as unknown as ThemeProps)}>
+            <div>Test</div>
+          </Theme>
+        </>
+      );
+
+      for (const themeDiv of Array.from(container.children)) {
+        expect(themeDiv.className).toBe('');
+        expect(
+          (themeDiv as HTMLElement).style.getPropertyValue('--bulma-column-gap')
+        ).toBe('');
+      }
+      expect(document.getElementById('bestax-bulma-theme-vars')).toBeNull();
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    // `gap` and `rowGap` mint no Theme variable, so they were always plain
+    // props there and are the helpers now, like every other helper prop.
+    it('takes the other gap helpers as classes', () => {
+      const { container } = render(
+        <Theme gap="1" rowGap="2" gapless>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(container.firstChild).toHaveClass('is-gap-1', 'is-row-gap-2');
+    });
+  });
+
   it('skips invalid CSS variable keys when building the local style object', () => {
     // Inject a non-Bulma key via bulmaVars; the local-style branch's
     // `bulmaCssVars.includes(key) && value` guard should drop it.

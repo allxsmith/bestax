@@ -44,7 +44,15 @@ export interface ColumnsProps
   /** Apply columns layout on desktop and up. */
   isDesktop?: boolean;
 
-  /** Gap size for all breakpoints. Same scale as `Grid`'s `gap` prop; wins over `gapSize` if both are set. */
+  /**
+   * Gap size for all breakpoints, the columns gutter (`is-<value>`). Whole
+   * steps of the same scale as `Grid`'s `gap` prop; wins over `gapSize` if
+   * both are set.
+   *
+   * This is not the `gap` helper prop other components take, which renders
+   * `is-gap-<value>`: on `Columns` the gutter is padding inside each column,
+   * so the helper's CSS `gap` would add to it rather than replace it.
+   */
   gap?: BulmaGapValue;
   /** Gap size for mobile. Wins over `gapSizeMobile` if both are set. */
   gapMobile?: BulmaGapValue;
