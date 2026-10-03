@@ -74,6 +74,9 @@ replace inline styles, and the Agent Skills as invocable prompts.
 
 ### Setup
 
+Listed in the official [MCP Registry](https://registry.modelcontextprotocol.io) as
+`io.github.allxsmith/bestax-mcp`, for clients that install from it.
+
 **Claude Code:**
 
 ```bash
