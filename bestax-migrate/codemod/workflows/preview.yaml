@@ -3,7 +3,7 @@ version: "1"
 # The same command as ../workflow.yaml plus --dry: it reports what would change
 # and the TODOs it would leave, and writes no file. It is a workflow of its own
 # because Codemod's `--dry-run` skips shell steps. ../workflow.yaml says why
-# `paths` and `options` are free text.
+# the params arrive as `PARAM_*` environment variables.
 params:
   schema:
     source:
@@ -30,4 +30,4 @@ nodes:
     type: automatic
     steps:
       - name: Run the pinned bestax-migrate release from npm with --dry
-        run: npx --yes bestax-migrate@2.24.0 ${{ params.source }} ${{ params.paths }} ${{ params.options }} --dry
+        run: npx --yes bestax-migrate@2.24.0 "$PARAM_SOURCE" $PARAM_PATHS $PARAM_OPTIONS --dry

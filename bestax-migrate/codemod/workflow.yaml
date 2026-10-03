@@ -8,17 +8,16 @@ version: "1"
 #   and `--target` does not move them. Point `paths` at your sources instead.
 # - Codemod's own `--dry-run` skips shell steps, so it previews nothing here.
 #   The `preview` workflow (`--workflow preview`) is the dry run.
-# - An interactive run prints the exact command and asks before running it.
+# - An interactive run prints the command and asks before running it.
 #
-# `${{ params.* }}` is Codemod's own template syntax, resolved by the Codemod CLI
-# on the machine running the migration. It is what makes the approval prompt
-# show the real command rather than variable names.
-#
-# Codemod's param schema gives a string a default and an enum, and no pattern,
-# so `paths` and `options` cannot be limited to a character class here. They
-# are your own input to your own shell, and the approval prompt shows the
-# command before it runs. bestax-migrate also rejects a `source` it does not
-# know.
+# The step reads the params from the `PARAM_*` environment variables Codemod
+# sets for shell steps, not from `${{ params.* }}` templating, so the shell
+# never parses their text as code: a `;` or `$(...)` in `paths` or `options`
+# stays an argument. Codemod's param schema has no pattern to limit them to a
+# character class, so this is what keeps them data. `paths` and `options` are
+# left unquoted on purpose, so each space-separated word is its own argument.
+# The cost is that the approval prompt shows the variable names, not the
+# values. bestax-migrate also rejects a `source` it does not know.
 params:
   schema:
     source:
@@ -45,4 +44,4 @@ nodes:
     type: automatic
     steps:
       - name: Run the pinned bestax-migrate release from npm
-        run: npx --yes bestax-migrate@2.24.0 ${{ params.source }} ${{ params.paths }} ${{ params.options }}
+        run: npx --yes bestax-migrate@2.24.0 "$PARAM_SOURCE" $PARAM_PATHS $PARAM_OPTIONS

@@ -237,8 +237,9 @@ publishes it by manual dispatch, and `scripts/codemod-registry.mjs` holds the ch
   each release.
 - **`preview` exists because Codemod's `--dry-run` skips shell steps.** It is the same
   command with `--dry`. Keep the two workflows' params in step.
-- **`${{ params.* }}` in `codemod/` is Codemod's syntax**, resolved on the user's machine,
-  not GitHub Actions'. It is what makes Codemod's approval prompt show the real command.
+- **The `codemod/` workflows read params from `PARAM_*` environment variables**, which Codemod
+  sets for shell steps. Never put `${{ params.* }}` in a `run:` line: Codemod substitutes it
+  into the command before the shell parses it, so a value could run as code.
 - **`codemod/` does not ship on npm.** `files` names only `dist`, and a test fails on an
   entry that could cover `codemod/`. Re-check with `pnpm -C bestax-migrate pack` after any
   change to `files`.
