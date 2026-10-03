@@ -129,6 +129,14 @@ export async function skillFiles(dir) {
     for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
       const next = rel ? `${rel}/${e.name}` : e.name;
       if (isDsStore(next)) continue;
+      // A symbolic link is refused, not skipped. cp would follow it and ship
+      // the target, while this listing and the fingerprint built on it would
+      // never see a change behind it.
+      if (e.isSymbolicLink()) {
+        throw new Error(
+          `${join(dir, next)} is a symbolic link. Commit a regular file.`
+        );
+      }
       if (e.isDirectory()) await walk(next);
       else if (e.isFile()) out.push(next);
     }

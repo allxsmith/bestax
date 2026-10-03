@@ -5,7 +5,7 @@
  * Everything here is FENCE-AWARE. `docs/docs/api/helpers/theme.md` contains a
  * `---` inside a code fence, and several pages show HTML comments inside `html`
  * fences — a naive line scan would treat those as a section break or a marker
- * and corrupt the page. Every scan therefore runs through `fenceMask()`.
+ * and corrupt the page.
  *
  * Region markers look like:
  *

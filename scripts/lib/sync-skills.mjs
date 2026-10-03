@@ -23,6 +23,16 @@ import {
 
 const TAG = '[sync-skills]';
 
+/**
+ * What a caller prints when syncSkills rejects. The refusals above all carry
+ * TAG and say what to do, so their message is enough. Anything else is
+ * unexpected, a filesystem or programming error, and keeps its stack trace.
+ */
+export function syncFailureText(err) {
+  const message = String(err?.message ?? err);
+  return message.startsWith(TAG) ? message : String(err?.stack ?? message);
+}
+
 // A sync is ~390 KB of file copies and takes tens of milliseconds. A lock held
 // longer than this is a crashed run, not a slow one.
 const LOCK = { staleMs: 60_000, timeoutMs: 120_000, pollMs: 50 };
@@ -63,8 +73,11 @@ export async function syncSkills({
   // state, so an untracked scratch file would ship in a local build or a
   // manual publish with no gate anywhere in the path. `git add` is the act
   // of vetting, and a tree without git (an exported tarball) skips the gate.
+  // A symbolic link is refused here too, for every caller: skillFiles throws
+  // on one, and cp would otherwise follow it and ship its target.
   try {
     assertSkillsVetted(src, names, 'bundle');
+    for (const name of names) await skillFiles(join(src, name));
   } catch (err) {
     throw new Error(`${TAG} ${err.message}`, { cause: err });
   }
