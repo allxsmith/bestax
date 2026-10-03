@@ -21,74 +21,26 @@
 // so the omission is a decision in this file rather than an absence nobody
 // sees.
 //
-// This was the last of the three roster consumers to be listed rather than
-// read; `bestax-mcp/scripts/sync-skills.mjs` and `scripts/gen-mcp-index.mjs`
-// already read the directory. The copies that CANNOT be derived are prose
-// (README, docs, the scaffolded CLAUDE.md), and those are held by
-// `pnpm check:conformance --only=skills-roster`.
-//
-// Two deliberate differences from bestax-mcp's copy survive, and its header
-// lists the same two: fs-extra stays (this package already depends on it, so
-// avoiding it buys nothing), and this is still not concurrency-safe (the only
-// callers are `build` and `prepack`, which never overlap — port the locking if
-// a third is ever added).
+// The copy itself is scripts/lib/sync-skills.mjs, shared with bestax-mcp's
+// sync, so the checks and the `.DS_Store` filter cannot drift between them.
+// This caller passes no `stateDir`, so it takes no lock and keeps no
+// fingerprint: its only callers are `build` and `prepack`, which never
+// overlap, and a state directory under templates/ would ship in the tarball.
+// Pass one if a third caller is ever added, and keep it out of `files`.
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
-import fs from 'fs-extra';
-import {
-  readSkillNames,
-  untrackedSkillPaths,
-} from '../../scripts/lib/skills.mjs';
+import { syncSkills } from '../../scripts/lib/sync-skills.mjs';
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const pkgRoot = path.resolve(here, '..');
-const skillsSrc = path.resolve(pkgRoot, '..', 'skills');
-const skillsDest = path.join(pkgRoot, 'templates', 'skills');
+const pkgRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+);
 
-if (!fs.existsSync(skillsSrc)) {
-  console.error(`[sync-skills] source not found: ${skillsSrc}`);
+await syncSkills({
+  src: path.resolve(pkgRoot, '..', 'skills'),
+  dest: path.join(pkgRoot, 'templates', 'skills'),
+  label: 'templates/skills',
+}).catch(err => {
+  console.error(err.message);
   process.exit(1);
-}
-
-// A directory with a SKILL.md is a skill — the predicate lives once in
-// scripts/lib/skills.mjs, shared with bestax-mcp's sync, gen-mcp-index and
-// check-conformance, so the four consumers cannot drift. It is what excludes
-// `skills/README.md` and `skills/CLAUDE.md` without naming them, and the list
-// comes back sorted so the copy order — and the count in the success line —
-// is deterministic.
-const skills = await readSkillNames(skillsSrc);
-
-// Checked BEFORE emptying the destination, which the hardcoded version did not
-// have to think about. Reading a roster off disk means a wrong path or a
-// renamed directory now yields zero skills instead of an error, and emptying
-// first would ship an empty bundle rather than failing.
-if (!skills.length) {
-  console.error(`[sync-skills] no skills found in ${skillsSrc}`);
-  process.exit(1);
-}
-
-// The vetting gate the deleted allowlist used to be: discovery bundles
-// whatever is on disk, and CI's skills-roster check only sees committed
-// state — so an untracked scratch directory would ship in a local build or a
-// manual publish with no gate anywhere in the path. `git add` is the act of
-// vetting; a tree without git (an exported tarball) skips the gate.
-const untracked = untrackedSkillPaths(skillsSrc, skills);
-if (untracked.length) {
-  console.error(
-    `[sync-skills] refusing to bundle untracked file(s) under skills/: ` +
-      `${untracked.join(', ')}. \`git add\` them to vet them, or remove them.`
-  );
-  process.exit(1);
-}
-
-await fs.emptyDir(skillsDest);
-
-for (const name of skills) {
-  await fs.copy(path.join(skillsSrc, name), path.join(skillsDest, name), {
-    // .DS_Store is the one path the vetting gate exempts; keep it out of the
-    // bundle too so the exemption never becomes shipped content.
-    filter: src => !src.endsWith('.DS_Store'),
-  });
-}
-
-console.log(`[sync-skills] copied ${skills.length} skills -> templates/skills`);
+});
