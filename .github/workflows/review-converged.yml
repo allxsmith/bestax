@@ -21,13 +21,17 @@ name: Review Converged Label
 
 on:
   workflow_run:
-    # A finished deep review or CI run is what changes the answer. Each entry
-    # must match that workflow's `name:`, which the test sibling checks: a
-    # renamed workflow would otherwise stop this trigger without a sound.
+    # A deep review or CI run starting or finishing is what changes the
+    # answer. Each entry must match that workflow's `name:`, which the test
+    # sibling checks: a renamed workflow would otherwise stop this trigger
+    # without a sound.
     workflows:
       - Claude Deep Review
       - CI
-    types: [completed]
+    # `requested` so a push clears the label when its CI run starts, not when
+    # it finishes: the newest summary is still pinned to the old head, so the
+    # script removes the label. The test sibling holds both types.
+    types: [requested, completed]
   schedule:
     # Watchdog: thread resolutions and commit statuses (CodeRabbit's among
     # them) fire no event this workflow hears, so re-check every hour.

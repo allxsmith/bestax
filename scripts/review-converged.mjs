@@ -415,9 +415,16 @@ export function convergenceProblems({
   if (unresolved.length)
     problems.push(`${unresolved.length} unresolved review thread(s)`);
   problems.push(...checkProblems(checkRuns, statuses));
-  if (labelNames(pr).includes(FLAG_LABEL))
-    problems.push(`carries ${FLAG_LABEL}`);
+  problems.push(...flagProblems(pr));
   return problems;
+}
+
+/**
+ * Condition 5 in the header. apply() asks it again of the PR as re-read, so a
+ * flag that lands after the evaluation stops an add the same way.
+ */
+function flagProblems(pr) {
+  return labelNames(pr).includes(FLAG_LABEL) ? [`carries ${FLAG_LABEL}`] : [];
 }
 
 /** 'add', 'remove' or 'none'. */
@@ -621,19 +628,25 @@ export async function evaluate(client, repo, pr, defaultBranch) {
 }
 
 /**
- * Apply a decision. Before adding, the PR is read again: a push, a label
- * change or a new base that landed while it was evaluated means the decision
- * was made for a state that is gone, so it is dropped. The push starts CI, and CI's
- * completion runs this again. Removing needs no such check, because a moved
- * head has no summary for it yet and would not converge either.
+ * Apply a decision. The PR is read again before either write, dry run
+ * included. The write is dropped as stale when the state it was decided on is
+ * gone: scopeOf no longer accepts the PR (closed, a new base, `deep-review`
+ * removed or `ai-loop` added), or its head moved. So a PR that left scope
+ * while it was evaluated keeps its label, as every out-of-scope PR does, and a
+ * later run judges a moved head. An add is also dropped when the PR now
+ * carries `needs-security-review`, read by the same flagProblems the
+ * evaluation used. A removal goes ahead then, since the flag only stops
+ * convergence.
  */
 async function apply(client, repo, defaultBranch, pr, decision, dryRun) {
+  const now = await client.json(`/repos/${repo}/pulls/${pr.number}`);
+  if (scopeOf(now, repo, defaultBranch) || now.head?.sha !== pr.head.sha)
+    return 'stale';
+  const hasLabel = labelNames(now).includes(LABEL);
   if (decision.action === 'add') {
-    const now = await client.json(`/repos/${repo}/pulls/${pr.number}`);
-    if (scopeOf(now, repo, defaultBranch) || now.head?.sha !== pr.head.sha)
-      return 'stale';
-    if (labelNames(now).includes(LABEL)) return 'already set';
-  }
+    if (flagProblems(now).length) return 'stale';
+    if (hasLabel) return 'already set';
+  } else if (!hasLabel) return 'already gone';
   if (dryRun) return 'dry run, not written';
   if (decision.action === 'add') await client.addLabel(repo, pr.number, LABEL);
   else await client.removeLabel(repo, pr.number, LABEL);
