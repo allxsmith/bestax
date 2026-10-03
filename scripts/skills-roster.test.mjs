@@ -25,6 +25,7 @@ import {
   skillDirViolations,
   skillsPageViolations,
   frontmatterNameViolations,
+  skillsPluginManifestViolations,
 } from './check-conformance.mjs';
 import { pathsInsideSkills, untrackedSkillPaths } from './lib/skills.mjs';
 
@@ -578,6 +579,72 @@ test('the generated install regions are fresh on the real tree', async () => {
       `${file} is stale — run pnpm gen:skills`
     );
   }
+});
+
+// --- the generated skills-only plugin manifest ----------------------------------
+
+test('the skills-only plugin manifest is fresh on the real tree', async () => {
+  const { SKILLS_PLUGIN } = await import('./gen-skills-rosters.mjs');
+  assert.deepEqual(
+    skillsPluginManifestViolations(
+      repoFile(SKILLS_PLUGIN.source),
+      repoFile(SKILLS_PLUGIN.target)
+    ),
+    []
+  );
+});
+
+test('the skills-only manifest is the root one without its MCP server', async () => {
+  const { SKILLS_PLUGIN, renderSkillsPluginManifest } =
+    await import('./gen-skills-rosters.mjs');
+  const out = renderSkillsPluginManifest({
+    name: 'demo',
+    description: 'skills and a server',
+    author: { name: 'A' },
+    license: 'MIT',
+    keywords: ['demo', 'mcp'],
+    mcpServers: './mcp.json',
+  });
+  assert.deepEqual(out, {
+    name: 'demo',
+    description: SKILLS_PLUGIN.description,
+    author: { name: 'A' },
+    license: 'MIT',
+    keywords: ['demo'],
+    skills: './',
+  });
+});
+
+test('a missing, unparseable or stale skills-only manifest is caught', async () => {
+  const { SKILLS_PLUGIN, renderSkillsPluginManifest } =
+    await import('./gen-skills-rosters.mjs');
+  const root = repoFile(SKILLS_PLUGIN.source);
+  const fresh = renderSkillsPluginManifest(JSON.parse(root));
+  // Key order and whitespace are formatting, not staleness.
+  const reordered = JSON.stringify(
+    Object.fromEntries(Object.entries(fresh).reverse())
+  );
+  assert.deepEqual(skillsPluginManifestViolations(root, reordered), []);
+
+  const only = (rootText, skillsText, re) => {
+    const found = skillsPluginManifestViolations(rootText, skillsText);
+    assert.equal(found.length, 1, found.join('\n'));
+    assert.match(found[0], re);
+  };
+  only(root, undefined, /missing\. Run pnpm gen:skills/);
+  only(root, '{', /not valid JSON\. Run pnpm gen:skills/);
+  only(undefined, reordered, /could not be read/);
+  only('{', reordered, /went unchecked/);
+  only(
+    root,
+    JSON.stringify({ ...fresh, description: 'hand-edited' }),
+    /is stale against/
+  );
+  only(
+    JSON.stringify({ ...JSON.parse(root), license: 'Apache-2.0' }),
+    reordered,
+    /is stale against/
+  );
 });
 
 test('renderInstallBlock is a pure function of its inputs, order preserved', async () => {

@@ -29,7 +29,9 @@
  *   skills-roster        every skill directory under skills/ is named in each
  *                        hand-maintained roster (README, docs, the scaffolded
  *                        CLAUDE.md), and no roster names one that is gone
- *                        (#540). Distinct from skills-sync above.
+ *                        (#540), and the generated skills-only plugin
+ *                        manifest matches the root one. Distinct from
+ *                        skills-sync above.
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
@@ -110,6 +112,8 @@ import {
   REGION_ID as SKILLS_INSTALL_REGION,
   TARGETS as SKILLS_INSTALL_TARGETS,
   renderInstallBlock,
+  SKILLS_PLUGIN,
+  renderSkillsPluginManifest,
 } from './gen-skills-rosters.mjs';
 import {
   ORDERED_CATEGORIES,
@@ -125,6 +129,7 @@ import {
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
 import { versionRegressionProblems } from './lib/version-regression.mjs';
 import { execFileSync } from 'node:child_process';
+import { isDeepStrictEqual } from 'node:util';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, '..');
@@ -3464,6 +3469,40 @@ export function frontmatterNameViolations(entries) {
   return violations;
 }
 
+/**
+ * `skills/.claude-plugin/plugin.json` is generated from the root plugin
+ * manifest (SKILLS_PLUGIN in gen-skills-rosters.mjs). Compared as parsed JSON,
+ * so key order and formatting are not this check's concern. Pure, taking the
+ * two file texts (undefined when unreadable), so fixtures reach every branch.
+ */
+export function skillsPluginManifestViolations(rootText, skillsText) {
+  const { source, target } = SKILLS_PLUGIN;
+  const parse = text => {
+    try {
+      return JSON.parse(text);
+    } catch {
+      return undefined;
+    }
+  };
+  if (typeof rootText !== 'string') {
+    return [`${source}: could not be read, so ${target} went unchecked.`];
+  }
+  const root = parse(rootText);
+  if (root === undefined) {
+    return [`${source}: is not valid JSON, so ${target} went unchecked.`];
+  }
+  if (typeof skillsText !== 'string') {
+    return [`${target}: missing. Run pnpm gen:skills.`];
+  }
+  const skills = parse(skillsText);
+  if (skills === undefined) {
+    return [`${target}: is not valid JSON. Run pnpm gen:skills.`];
+  }
+  return isDeepStrictEqual(skills, renderSkillsPluginManifest(root))
+    ? []
+    : [`${target}: is stale against ${source}. Run pnpm gen:skills.`];
+}
+
 function skillFrontmatterName(text) {
   const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!fm) return null;
@@ -3559,6 +3598,15 @@ async function checkSkillsRoster() {
       );
     }
   }
+
+  const readOrUndefined = rel =>
+    readFile(join(REPO, rel), 'utf8').catch(() => undefined);
+  violations.push(
+    ...skillsPluginManifestViolations(
+      await readOrUndefined(SKILLS_PLUGIN.source),
+      await readOrUndefined(SKILLS_PLUGIN.target)
+    )
+  );
 
   const sources = {};
   for (const { file } of SKILL_ROSTERS) {

@@ -55,6 +55,8 @@ In Claude Code, the `bestax` plugin installs every skill here plus the
 
 ```
 skills/
+  .claude-plugin/
+    plugin.json             # generated (pnpm gen:skills): skills/ as a skills-only plugin
   bestax-custom-component/
     SKILL.md                # app context (compose + public hooks + --bulma-* vars)
     references/

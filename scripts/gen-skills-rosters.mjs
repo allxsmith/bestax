@@ -32,8 +32,12 @@
  * pages it is one — but nothing here may opt out silently: a generator that
  * quietly emits nothing while every gate stays green is the failure mode that
  * hid LinkButton's CSS variables for months (#464).
+ *
+ * It also writes `skills/.claude-plugin/plugin.json`, which makes `skills/` a
+ * skills-only plugin of its own. See SKILLS_PLUGIN below for why that exists
+ * and what it is derived from.
  */
-import { readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -83,6 +87,44 @@ export function renderInstallBlock(skills, fence) {
   ].join('\n');
 }
 
+/**
+ * `skills/` doubles as a skills-only plugin for Anthropic's plugin directory.
+ * The directory reads only the folder a submission names, and the repo-root
+ * plugin does not fit it: the root holds far more files than the directory
+ * accepts without review, and its MCP server runs through a ranged `npx` pin,
+ * which the directory refuses. This folder is small and runs nothing.
+ *
+ * Its manifest is the root one minus the MCP server, with `skills` pointed at
+ * the folder itself, because the skills sit directly under it. Derived rather
+ * than hand-written so the two cannot drift: edit the root manifest and run
+ * `pnpm gen:skills`. The skills-roster check compares the parsed JSON, so it
+ * needs no prettier.
+ */
+export const SKILLS_PLUGIN = {
+  source: '.claude-plugin/plugin.json',
+  target: 'skills/.claude-plugin/plugin.json',
+  description:
+    'The bestax Agent Skills, for building with @allxsmith/bestax-bulma, ' +
+    'React components for Bulma v1',
+};
+
+export function renderSkillsPluginManifest(root) {
+  // The JSON round trip drops fields the root does not set, so the result
+  // compares equal to a parsed file that never had them.
+  return JSON.parse(
+    JSON.stringify({
+      name: root.name,
+      description: SKILLS_PLUGIN.description,
+      author: root.author,
+      homepage: root.homepage,
+      repository: root.repository,
+      license: root.license,
+      keywords: root.keywords?.filter(keyword => keyword !== 'mcp'),
+      skills: './',
+    })
+  );
+}
+
 export async function main() {
   const skills = await readSkillNames(join(REPO, 'skills'));
   if (!skills.length) {
@@ -111,6 +153,21 @@ export async function main() {
     }
   }
   process.stdout.write(`Skill install rosters: ${skills.length} skills\n`);
+
+  const root = JSON.parse(
+    await readFile(join(REPO, SKILLS_PLUGIN.source), 'utf8')
+  );
+  const target = join(REPO, SKILLS_PLUGIN.target);
+  const manifest = await prettier.format(
+    JSON.stringify(renderSkillsPluginManifest(root)),
+    { ...(await prettier.resolveConfig(target)), filepath: target }
+  );
+  const current = await readFile(target, 'utf8').catch(() => null);
+  if (manifest !== current) {
+    await mkdir(dirname(target), { recursive: true });
+    await writeFile(target, manifest);
+    process.stdout.write(`Wrote ${SKILLS_PLUGIN.target}\n`);
+  }
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {

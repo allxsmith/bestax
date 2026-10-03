@@ -1,0 +1,10 @@
+{
+  "name": "bestax",
+  "description": "The bestax Agent Skills, for building with @allxsmith/bestax-bulma, React components for Bulma v1",
+  "author": { "name": "Alex Smith", "url": "https://github.com/allxsmith" },
+  "homepage": "https://bestax.io/docs/guides/llms",
+  "repository": "https://github.com/allxsmith/bestax",
+  "license": "MIT",
+  "keywords": ["bestax", "bulma", "react", "components", "skills"],
+  "skills": "./"
+}

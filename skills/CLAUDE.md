@@ -44,6 +44,13 @@ intro bullet exist.
 The `bestax` Claude Code plugin is the repo root (root `CLAUDE.md` has the details), and it
 finds skills by the `skills/` convention, so a new skill reaches it by construction as well.
 
+This folder is also a plugin on its own: `.claude-plugin/plugin.json` here makes `skills/` a
+skills-only plugin for Anthropic's plugin directory, which reads only the folder it is given and
+refuses the root plugin's ranged `npx` pin. `pnpm gen:skills` writes that manifest from the root
+one, never by hand, and the skills-roster check fails while it is stale. `claude plugin validate
+skills` warns about the missing version and about this file, which a plugin does not load as
+context. Both are expected.
+
 Outside the repo, several lists and directories name the skills or say how many there are, and
 some host copies. No check sees them. Adding, renaming or removing a skill means updating the
 listings that `docs/docs/guides/distribution.md` names under "What goes stale".

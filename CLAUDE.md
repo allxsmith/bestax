@@ -24,7 +24,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
   which is the security contract for anything in `workflows/`)
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
-- `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
+- `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`),
+  and the skills-only plugin manifest in `skills/.claude-plugin/`
 - `scripts/gen-eslint-meta.mjs` — generates the ESLint plugin's component metadata
   (`pnpm gen:eslint-meta`)
 
@@ -183,7 +184,8 @@ CLI, VS Code and cursor.directory read the same files. So a top-level `hooks/`, 
 Keep contributor tooling under `.claude/`. The manifest sets no `version` on purpose: Claude
 Code then versions the plugin by commit, so a skill change reaches users without a bump.
 `claude plugin validate .claude-plugin/plugin.json` warns about that and about this file,
-which a plugin does not load as context. Both warnings are expected.
+which a plugin does not load as context. Both warnings are expected. `skills/` is a second,
+skills-only plugin for Anthropic's directory, with a generated manifest (see `skills/CLAUDE.md`).
 
 ## Distribution and listings
 
