@@ -1,0 +1,168 @@
+name: Review Converged Label
+
+# Keeps the `review-converged` label in step with PRs that opted into the
+# Claude deep review through the `deep-review` label, so the owner can see in
+# the PR list which ones are ready for human review. What "converged" means,
+# and every decision, lives in scripts/review-converged.mjs behind a node
+# --test sibling (rule 9 in .github/CLAUDE.md). This file only triggers it.
+#
+# PRs labeled `ai-loop` are skipped: claude-pr-loop.yml hands those off with
+# `needs-human-review`.
+#
+# No pull_request or pull_request_target trigger, and no checkout of PR code.
+# workflow_run and schedule run the default branch's copy of this file, and
+# the job checks out main to run the script. Review bodies are model-authored
+# text that the script only matches against fixed patterns and never prints.
+#
+# Runs no model and holds no secret beyond the job's GITHUB_TOKEN, so it is
+# deliberately not gated on vars.AI_LOOP_ENABLED (the house rule for
+# zero-Claude workflows, same as auto-close-duplicates.yml). Label writes made
+# with GITHUB_TOKEN emit no workflow events, so nothing re-triggers on them.
+
+on:
+  workflow_run:
+    # A finished deep review or CI run is what changes the answer. Each entry
+    # must match that workflow's `name:`, which the test sibling checks: a
+    # renamed workflow would otherwise stop this trigger without a sound.
+    workflows:
+      - Claude Deep Review
+      - CI
+    types: [completed]
+  schedule:
+    # Watchdog: thread resolutions and commit statuses (CodeRabbit's among
+    # them) fire no event this workflow hears, so re-check every hour.
+    - cron: '47 * * * *'
+  workflow_dispatch:
+    # No actor allowlist needed: GitHub only lets users with write access
+    # dispatch a workflow.
+    inputs:
+      pr:
+        description: 'PR number to check (leave empty to check every open PR)'
+        required: false
+        default: ''
+
+# No workflow-level grants. The single job takes exactly what it needs.
+permissions: {}
+
+# One global group, so two runs can never write the same label at once. A
+# per-PR group would need the PR number before the job starts, which the
+# schedule trigger does not have. Every run except a dispatch naming a PR
+# sweeps all open PRs from live data, so when GitHub replaces a pending run
+# with a newer one, the newer run covers everything the replaced one would
+# have. No cancel-in-progress: a run is a handful of API calls, and cutting
+# one short between its re-read and its label write buys nothing.
+concurrency:
+  group: review-converged
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    # The script leaves this job's own check run out of the checks it judges,
+    # matched by this name (OWN_CHECK_NAME). The test sibling holds them equal.
+    name: Sync review-converged label
+    # workflow_run: only a run for a PR whose head is in this repository can
+    # move a label this job writes. A push to main or a fork PR's run is
+    # skipped before the job starts.
+    if: |
+      github.event_name != 'workflow_run' || (
+        github.event.workflow_run.event == 'pull_request' &&
+        github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read # check out main to run the script
+      pull-requests: write # read PRs, reviews and review threads, add and remove the label
+      checks: read # check runs on the head commit
+      statuses: read # commit statuses on the head commit
+    steps:
+      # Rule 10 (.github/CLAUDE.md): a new job starts at `block`. It runs only
+      # on workflow_run, schedule and workflow_dispatch, outside the
+      # untrusted-trigger class.
+      #
+      # api.github.com: every REST and GraphQL call the script makes, and the
+      # API calls actions/checkout makes.
+      # github.com: actions/checkout's git fetch of main.
+      #
+      # Nothing else, because nothing is installed. The script is
+      # dependency-free (node: builtins and the global fetch) and runs on the
+      # runner's preinstalled Node, so there is no setup-node step and none of
+      # the hosts its toolcache-miss path needs. auto-close-duplicates runs the
+      # same checkout-and-REST shape and reached only these two hosts under
+      # block (rule 10 cites the run).
+      #
+      # Derived from what the steps below reach rather than from a measured
+      # run of this job. Resolve anything you add here first: an unresolvable
+      # entry makes the agent revert the firewall while the pre-step still
+      # exits 0.
+      - name: Harden runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+            github.com:443
+
+      # Asserts the policy the pre-step decided (agent.json) AND that the agent
+      # actually came up (agent.status, written only once the firewall rules are
+      # installed). Either alone is a false pass: #487 was the first kind, and an
+      # unresolvable host in an allowlist is the second.
+      #
+      # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
+      # NOT prove the policy stays armed — the agent writes `Initialized` and then
+      # serves, and a later runtime error makes it revert the firewall with both
+      # files still reading exactly as they do here. Rule 10 in .github/CLAUDE.md
+      # carries the mechanism and what to check when a run looks wrong.
+      #
+      # Placement is rule 10's default (immediately after harden-runner): nothing
+      # `always()`-guarded keys off this job's outputs, and the job is not itself
+      # a fail-closed path, so neither placement exception applies.
+      #
+      # Linux-only paths (macOS uses /opt/step-security); all runners are ubuntu-latest.
+      - name: Assert egress policy is enforced
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds pull-requests: write and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      # main, never a PR branch, whatever ref a dispatch was started from.
+      - name: Checkout main for the script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      # The PR number reaches the script through the environment, never
+      # interpolated into the shell, and the script rejects anything that is
+      # not a positive integer. Empty (every trigger but a dispatch naming a
+      # PR) means sweep.
+      - name: Sync the label
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR: ${{ inputs.pr }}
+        run: |
+          set -euo pipefail
+          node --version
+          node scripts/review-converged.mjs --repo="$REPO" --pr="$PR"
