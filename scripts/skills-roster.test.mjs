@@ -637,6 +637,12 @@ test('a missing, unparseable or stale skills-only manifest is caught', async () 
   only(root, '{', /not valid JSON\. Run pnpm gen:skills/);
   only(undefined, reordered, /could not be read/);
   only('{', reordered, /went unchecked/);
+  // JSON that is not an object is reported, not a TypeError that kills the
+  // whole skills-roster check.
+  for (const notObject of ['null', '[]', '42']) {
+    only(root, notObject, /is not a JSON object\. Run pnpm gen:skills/);
+    only(notObject, reordered, /is not a JSON object, so .* went unchecked/);
+  }
   only(
     root,
     JSON.stringify({ ...fresh, description: 'hand-edited' }),
@@ -701,6 +707,14 @@ test('a missing, unparseable, stale or unversioned root manifest is caught', asy
   only(root, '[', /not valid JSON\. Run pnpm gen:skills/);
   only(undefined, JSON.stringify(fresh), /could not be read/);
   only('{', JSON.stringify(fresh), /went unchecked/);
+  for (const notObject of ['null', '["1.0.0"]', '"1.0.0"']) {
+    only(root, notObject, /is not a JSON object\. Run pnpm gen:skills/);
+    only(
+      notObject,
+      JSON.stringify(fresh),
+      /is not a JSON object, so .* went unchecked/
+    );
+  }
   only(
     root,
     JSON.stringify({ ...fresh, keywords: ['hand-edited'] }),
@@ -732,7 +746,8 @@ test('a missing, unparseable, stale or unversioned root manifest is caught', asy
 });
 
 test('a Claude manifest field neither derived manifest handles is caught', async () => {
-  const { SKILLS_PLUGIN } = await import('./gen-skills-rosters.mjs');
+  const { SKILLS_PLUGIN, AGENT_PLUGIN } =
+    await import('./gen-skills-rosters.mjs');
   const root = repoFile(SKILLS_PLUGIN.source);
   assert.deepEqual(pluginSourceFieldViolations(root), []);
   const found = pluginSourceFieldViolations(
@@ -744,6 +759,14 @@ test('a Claude manifest field neither derived manifest handles is caught', async
   assert.deepEqual(pluginSourceFieldViolations(undefined), []);
   assert.deepEqual(pluginSourceFieldViolations('{'), []);
   assert.deepEqual(pluginSourceFieldViolations('[]'), []);
+  assert.deepEqual(pluginSourceFieldViolations('null'), []);
+  // And they do report it, so the silence here hides nothing.
+  for (const broken of [undefined, '{', '[]', 'null']) {
+    const skills = repoFile(SKILLS_PLUGIN.target);
+    const agent = repoFile(AGENT_PLUGIN.target);
+    assert.equal(skillsPluginManifestViolations(broken, skills).length, 1);
+    assert.equal(agentPluginManifestViolations(broken, agent).length, 1);
+  }
 });
 
 test('pluginManifests keeps the committed version, and starts at 1.0.0 without one', async t => {

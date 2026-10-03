@@ -3475,6 +3475,51 @@ export function frontmatterNameViolations(entries) {
 }
 
 /**
+ * Parse a plugin manifest's text as a JSON object, or say why it is not one:
+ * unread (`undefined` text), not JSON, or JSON that is not an object (`null`,
+ * an array, a number). Shared by the three plugin manifest checks below so
+ * they agree on what counts as a manifest, and so none of them reaches a
+ * property read on `null` and throws.
+ */
+function parseManifestObject(text) {
+  if (typeof text !== 'string') return { problem: 'could not be read' };
+  let value;
+  try {
+    value = JSON.parse(text);
+  } catch {
+    return { problem: 'is not valid JSON' };
+  }
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) {
+    return { problem: 'is not a JSON object' };
+  }
+  return { value };
+}
+
+/**
+ * What both derived-manifest checks do first: parse the Claude manifest and
+ * one derived manifest, or return the one violation that stops the
+ * comparison. A broken Claude manifest leaves the derived one unchecked, and
+ * a broken derived one is fixed by regenerating it.
+ */
+function derivedManifestPair(rootText, derivedText, target) {
+  const { source } = SKILLS_PLUGIN;
+  const root = parseManifestObject(rootText);
+  if (root.problem) {
+    return {
+      violation: `${source}: ${root.problem}, so ${target} went unchecked.`,
+    };
+  }
+  const derived = parseManifestObject(derivedText);
+  if (derived.problem === 'could not be read') {
+    return { violation: `${target}: missing. Run pnpm gen:skills.` };
+  }
+  if (derived.problem) {
+    return { violation: `${target}: ${derived.problem}. Run pnpm gen:skills.` };
+  }
+  return { root: root.value, derived: derived.value };
+}
+
+/**
  * `skills/.claude-plugin/plugin.json` is generated from the Claude manifest,
  * `.claude-plugin/plugin.json` (SKILLS_PLUGIN in gen-skills-rosters.mjs).
  * Compared as parsed JSON, so key order and formatting are not this check's
@@ -3483,28 +3528,9 @@ export function frontmatterNameViolations(entries) {
  */
 export function skillsPluginManifestViolations(rootText, skillsText) {
   const { source, target } = SKILLS_PLUGIN;
-  const parse = text => {
-    try {
-      return JSON.parse(text);
-    } catch {
-      return undefined;
-    }
-  };
-  if (typeof rootText !== 'string') {
-    return [`${source}: could not be read, so ${target} went unchecked.`];
-  }
-  const root = parse(rootText);
-  if (root === undefined) {
-    return [`${source}: is not valid JSON, so ${target} went unchecked.`];
-  }
-  if (typeof skillsText !== 'string') {
-    return [`${target}: missing. Run pnpm gen:skills.`];
-  }
-  const skills = parse(skillsText);
-  if (skills === undefined) {
-    return [`${target}: is not valid JSON. Run pnpm gen:skills.`];
-  }
-  return isDeepStrictEqual(skills, renderSkillsPluginManifest(root))
+  const pair = derivedManifestPair(rootText, skillsText, target);
+  if (pair.violation) return [pair.violation];
+  return isDeepStrictEqual(pair.derived, renderSkillsPluginManifest(pair.root))
     ? []
     : [`${target}: is stale against ${source}. Run pnpm gen:skills.`];
 }
@@ -3512,20 +3538,14 @@ export function skillsPluginManifestViolations(rootText, skillsText) {
 /**
  * A field of the Claude manifest that neither renderer handles would be
  * dropped from both derived manifests while their freshness checks pass (see
- * PLACED_PLUGIN_FIELDS). An unreadable or unparseable manifest is reported by
- * the two checks below, so it is not reported again here.
+ * PLACED_PLUGIN_FIELDS). A manifest that is unreadable, not JSON or not an
+ * object is reported by skillsPluginManifestViolations and
+ * agentPluginManifestViolations, so it is not reported again here.
  */
 export function pluginSourceFieldViolations(rootText) {
   const { source } = SKILLS_PLUGIN;
-  let root;
-  try {
-    root = JSON.parse(rootText);
-  } catch {
-    return [];
-  }
-  if (root === null || typeof root !== 'object' || Array.isArray(root)) {
-    return [];
-  }
+  const { value: root } = parseManifestObject(rootText);
+  if (!root) return [];
   return Object.keys(root)
     .filter(key => !PLACED_PLUGIN_FIELDS.includes(key))
     .map(
@@ -3546,27 +3566,9 @@ export function pluginSourceFieldViolations(rootText) {
 export function agentPluginManifestViolations(rootText, agentText) {
   const { source } = SKILLS_PLUGIN;
   const { target } = AGENT_PLUGIN;
-  const parse = text => {
-    try {
-      return JSON.parse(text);
-    } catch {
-      return undefined;
-    }
-  };
-  if (typeof rootText !== 'string') {
-    return [`${source}: could not be read, so ${target} went unchecked.`];
-  }
-  const root = parse(rootText);
-  if (root === undefined) {
-    return [`${source}: is not valid JSON, so ${target} went unchecked.`];
-  }
-  if (typeof agentText !== 'string') {
-    return [`${target}: missing. Run pnpm gen:skills.`];
-  }
-  const agent = parse(agentText);
-  if (agent === undefined) {
-    return [`${target}: is not valid JSON. Run pnpm gen:skills.`];
-  }
+  const pair = derivedManifestPair(rootText, agentText, target);
+  if (pair.violation) return [pair.violation];
+  const { root, derived: agent } = pair;
   const violations = [];
   if (!SEMVER.test(String(agent.version ?? ''))) {
     violations.push(
