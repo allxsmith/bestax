@@ -197,13 +197,15 @@ green and every AI review thread is resolved.
   reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
-  marks a `deep-review` PR whose newest deep-review summary is pinned to the head commit with
-  nothing left open, with every review thread resolved and every check green. A verify pass
-  reviews no commits, so the PR also needs a fresh deep review of the head commit with no
-  blocking findings, or a fresh review whose blocking findings later verify passes resolved.
-  `review-converged.yml` adds it and removes it while the PR keeps `deep-review` and not
-  `ai-loop`, `scripts/review-converged.mjs` holds the full definition, and an `ai-loop` PR
-  never gets it.
+  marks a `deep-review` PR based on the default branch whose newest deep-review summary is
+  pinned to the head commit with nothing left open, with every review thread resolved and
+  every check green. A verify pass reviews no commits, so the PR also needs a fresh deep
+  review of the head commit with no blocking findings, or a fresh review whose blocking
+  findings later verify passes resolved, with the pass that resolved the last of them pinned
+  to the head commit. A stacked PR gets no CI run, so it is out of scope.
+  `review-converged.yml` adds it and removes it while the PR keeps `deep-review`, not
+  `ai-loop`, and the default branch as its base. `scripts/review-converged.mjs` holds the
+  full definition, and an `ai-loop` PR never gets it.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
   head repository to be this one, so labelling a fork PR is a no-op: the job
