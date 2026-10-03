@@ -133,7 +133,7 @@ the sync script changes, because nothing asserts tarball contents.
 
 ### MCP Registry
 
-Each release is also listed in the official MCP Registry as
+Each release is also published to the official MCP Registry as
 `io.github.allxsmith/bestax-mcp`, by `.github/workflows/mcp-registry.yml` (on
 `release: published`, or by dispatch with a tag). The listing is `server.json`
 in this directory. The workflow reads it from `main`, writes the release

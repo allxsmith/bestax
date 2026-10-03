@@ -66,10 +66,10 @@ Measures active in this repository and its release pipeline:
 - **OIDC trusted publishing** — releases authenticate to npm with
   short-lived OIDC tokens minted per run; there is no long-lived `NPM_TOKEN`
   to steal.
-- **MCP Registry listing.** `bestax-mcp` is listed in the official MCP
-  Registry as `io.github.allxsmith/bestax-mcp`. Each release's listing is
-  published by `.github/workflows/mcp-registry.yml` with a short-lived GitHub
-  OIDC token, so there is no registry secret either. That workflow is kept
+- **MCP Registry listing.** Each `bestax-mcp` release's listing, as
+  `io.github.allxsmith/bestax-mcp`, is published to the official MCP Registry
+  by `.github/workflows/mcp-registry.yml` with a short-lived GitHub OIDC
+  token, so there is no registry secret either. That workflow is kept
   apart from the release job on purpose: npm's trusted publisher names
   `ci.yml`, so npm refuses any token this one mints. The `mcp-publisher`
   binary it runs is pinned to one release and checked against a SHA-256
