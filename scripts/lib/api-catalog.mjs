@@ -1,7 +1,7 @@
 /**
  * The API reference pages read as a catalog: which category directories
- * exist and in what order, which pages each one lists, and whether every
- * exported component has one.
+ * exist and in what order, which pages each one lists, whether every exported
+ * component has one, and the pieces each page's one-line purpose is cut from.
  *
  * Two generators list every documented component, gen-component-catalog.mjs
  * (the skill's component-catalog.md) and gen-mcp-index.mjs (the MCP server's
@@ -48,6 +48,12 @@ export const UNDOCUMENTED_EXPORTS = new Set([
   'Thead',
   'Tr', // documented on the Table page
 ]);
+
+/**
+ * Catalog one-liners are for scanning, not reading. The full summary is one
+ * link or tool call away, so both catalogs clip to this budget.
+ */
+export const MAX_PURPOSE = 160;
 
 /** The names of the directories directly inside `dir`, sorted. */
 export async function subdirs(dir) {
@@ -112,6 +118,70 @@ export async function readApiPages(apiDir) {
     categories.push({ dir, label, pages });
   }
   return categories;
+}
+
+/**
+ * The first line of `text` that reads as prose, trimmed, or ''. Admonitions,
+ * JSX and HTML, imports, headings, images, lists, tables and quotes are not a
+ * description, so they are skipped.
+ */
+export function firstProseLine(text) {
+  for (const raw of String(text).split(/\r?\n/)) {
+    const t = raw.trim();
+    if (t && !/^(:::|<|import\b|#|!\[|[-*|>])/.test(t)) return t;
+  }
+  return '';
+}
+
+/** Drop a trailing unbalanced inline-code backtick left by truncation. */
+function balanceBackticks(s) {
+  if ((s.match(/`/g) || []).length % 2 === 0) return s;
+  return s.slice(0, s.lastIndexOf('`')).trimEnd();
+}
+
+/**
+ * The skill catalog's clip. Shorten `s` to the last natural boundary within
+ * MAX_PURPOSE: prefer the last sentence or clause punctuation, fall back to a
+ * word boundary, then repair any split inline-code span and append an
+ * ellipsis.
+ */
+export function clipAtClause(s) {
+  if (s.length <= MAX_PURPOSE) return s;
+  let cut = s.slice(0, MAX_PURPOSE);
+  const lastPunct = Math.max(
+    cut.lastIndexOf('.'),
+    cut.lastIndexOf(','),
+    cut.lastIndexOf(';'),
+    cut.lastIndexOf(':'),
+    cut.lastIndexOf(')'),
+    cut.lastIndexOf(']')
+  );
+  if (lastPunct >= 40) {
+    cut = cut.slice(0, lastPunct + 1);
+  } else {
+    const sp = cut.lastIndexOf(' ');
+    if (sp >= 40) cut = cut.slice(0, sp);
+  }
+  // Balance code spans, then drop a dangling opener or clause separator.
+  cut = balanceBackticks(cut)
+    .replace(/[ ([]+$/, '')
+    .replace(/[,;:]$/, '');
+  return cut + '…';
+}
+
+/**
+ * The MCP catalog's clip. Shorten `s` at the last word boundary within
+ * MAX_PURPOSE (no earlier than 40 characters before it), drop a dangling
+ * opener or clause separator, and append an ellipsis.
+ */
+export function clipAtWord(s) {
+  if (s.length <= MAX_PURPOSE) return s;
+  const cut = s.slice(0, MAX_PURPOSE);
+  const at = Math.max(cut.lastIndexOf(' '), MAX_PURPOSE - 40);
+  return `${cut
+    .slice(0, at)
+    .replace(/[,;:([]$/, '')
+    .trim()}…`;
 }
 
 /**

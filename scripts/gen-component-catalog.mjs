@@ -31,7 +31,10 @@ import { join, relative, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { docsRoute } from './lib/docs-url.mjs';
+import { firstSentence } from './lib/api-page.mjs';
 import {
+  clipAtClause,
+  firstProseLine,
   missingApiPages,
   missingApiPagesMessage,
   readApiPages,
@@ -50,60 +53,15 @@ const OUT = join(
   'component-catalog.md'
 );
 const DOCS_BASE = 'https://bestax.io/docs/api';
-const MAX_PURPOSE = 160;
 
-// Drop a trailing unbalanced inline-code backtick left by truncation.
-function balanceBackticks(s) {
-  if ((s.match(/`/g) || []).length % 2 === 0) return s;
-  return s.slice(0, s.lastIndexOf('`')).trimEnd();
-}
-
-// Shorten a long purpose to the last natural boundary within the limit: prefer
-// the last sentence/clause punctuation, fall back to a word boundary, then
-// repair any split inline-code span and append an ellipsis.
-function clip(s) {
-  if (s.length <= MAX_PURPOSE) return s;
-  let cut = s.slice(0, MAX_PURPOSE);
-  const lastPunct = Math.max(
-    cut.lastIndexOf('.'),
-    cut.lastIndexOf(','),
-    cut.lastIndexOf(';'),
-    cut.lastIndexOf(':'),
-    cut.lastIndexOf(')'),
-    cut.lastIndexOf(']')
-  );
-  if (lastPunct >= 40) {
-    cut = cut.slice(0, lastPunct + 1);
-  } else {
-    const sp = cut.lastIndexOf(' ');
-    if (sp >= 40) cut = cut.slice(0, sp);
-  }
-  // Balance code spans, then drop a dangling opener or clause separator.
-  cut = balanceBackticks(cut)
-    .replace(/[ ([]+$/, '')
-    .replace(/[,;:]$/, '');
-  return cut + '…';
-}
-
+/**
+ * A page's catalog one-liner: the first sentence of the first prose line
+ * after its `## Overview` (or `### Overview`) heading, clipped at a clause.
+ */
 function overviewSentence(src) {
-  // First prose line after the `## Overview` (or `### Overview`) heading —
-  // skip admonitions / HTML / import lines that aren't a description.
   const after = src.split(/^#{2,3}[ \t]+Overview[ \t]*$/m)[1];
-  if (!after) return '';
-  let line = '';
-  for (const raw of after.split(/\r?\n/)) {
-    const t = raw.trim();
-    if (!t) continue;
-    if (/^(:::|<|import\b|#|!\[|[-*|>])/.test(t)) continue; // not a prose sentence
-    line = t;
-    break;
-  }
-  if (!line) return '';
-  let s = line.replace(/\s+/g, ' ').trim();
-  // First sentence: a period ending a word of >1 char (skips "e.g." / "i.e.").
-  const sentence = s.match(/^.*?[A-Za-z0-9)"'`][.](?=\s)/);
-  if (sentence && sentence[0].length >= 40) s = sentence[0];
-  return clip(s);
+  const line = after ? firstProseLine(after) : '';
+  return line ? clipAtClause(firstSentence(line)) : '';
 }
 
 async function main() {

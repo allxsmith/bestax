@@ -12,8 +12,13 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { firstSentence } from './lib/api-page.mjs';
 import {
   CATEGORY_ORDER,
+  MAX_PURPOSE,
+  clipAtClause,
+  clipAtWord,
+  firstProseLine,
   mdFiles,
   missingApiPages,
   missingApiPagesMessage,
@@ -158,4 +163,71 @@ test('every exported component of the real library has a page', async () => {
     ),
     []
   );
+});
+
+test('the purpose line skips everything that is not a description', () => {
+  const body = [
+    '',
+    ':::tip',
+    '<Tabs>',
+    "import X from './x';",
+    '### Sub',
+    '![shot](a.png)',
+    '- item',
+    '* item',
+    '| a | b |',
+    '> quote',
+    '   The `Box` component wraps content.   ',
+    'Second line.',
+  ].join('\r\n');
+  assert.equal(firstProseLine(body), 'The `Box` component wraps content.');
+  assert.equal(firstProseLine(':::note\n- only a list\n'), '');
+});
+
+test('firstSentence keeps only a sentence long enough to stand alone', () => {
+  const s = 'The `Box` wraps content in a padded panel with a border. More.';
+  assert.equal(
+    firstSentence(s),
+    'The `Box` wraps content in a padded panel with a border.'
+  );
+  // A period too early to end a real sentence, an abbreviation included,
+  // keeps the whole line.
+  assert.equal(
+    firstSentence('Use e.g. a card. Then more.'),
+    'Use e.g. a card. Then more.'
+  );
+  // A line ending in its only period comes back whole either way.
+  const one = 'A single sentence that runs past the forty character mark.';
+  assert.equal(firstSentence(one), one);
+});
+
+test('the two catalog clips keep short text and cut long text their own way', () => {
+  const short = 'A short purpose.';
+  assert.equal(clipAtClause(short), short);
+  assert.equal(clipAtWord(short), short);
+
+  const words = 'word '.repeat(60).trim();
+  for (const clip of [clipAtClause, clipAtWord]) {
+    const out = clip(words);
+    assert.ok(out.length <= MAX_PURPOSE + 1, out);
+    assert.ok(out.endsWith('word…'), out);
+  }
+
+  // The skill catalog prefers the last clause boundary and drops the comma.
+  const clauses = `${'a'.repeat(60)}, ${'b'.repeat(60)}, ${'c '.repeat(40)}`;
+  assert.equal(clipAtClause(clauses), `${'a'.repeat(60)}, ${'b'.repeat(60)}…`);
+  // The MCP catalog cuts at the last word inside the budget instead.
+  assert.ok(clipAtWord(clauses).endsWith('c c…'));
+
+  // A cut inside a code span drops the span rather than leave it open.
+  const code = `${'x'.repeat(30)} uses ${'y '.repeat(55)}\`zz, zz zz zz zz\` end`;
+  assert.equal(
+    clipAtClause(code),
+    `${'x'.repeat(30)} uses ${'y '.repeat(54)}y…`
+  );
+
+  // No boundary at all: a hard cut at the budget.
+  const solid = 'z'.repeat(200);
+  assert.equal(clipAtClause(solid), `${'z'.repeat(MAX_PURPOSE)}…`);
+  assert.equal(clipAtWord(solid), `${'z'.repeat(MAX_PURPOSE - 40)}…`);
 });

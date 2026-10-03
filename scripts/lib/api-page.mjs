@@ -292,13 +292,15 @@ export function upsertFrontmatter(src, key, value, after = null) {
 }
 
 /**
- * First sentence of a prose line.
+ * First sentence of a prose line: up to the first period that ends a word,
+ * before whitespace or the end of the line, and only when that is long
+ * enough to be a real sentence, so an early abbreviation like "e.g." keeps
+ * the whole line instead of cutting it short.
  *
- * Deliberately the SAME rule as `overviewSentence()` in
- * gen-component-catalog.mjs — a period ending a word of more than one character
- * (so "e.g." doesn't split), and only when the result is long enough to be a
- * real sentence. The generated Overview must round-trip through that function
- * unchanged, or the skill catalog churns on every run.
+ * gen-api-docs writes the generated Overview with this, and both catalogs cut
+ * their one-liner with it, so the generated sentence round-trips through the
+ * catalogs unchanged. The skill catalog once kept its own copy, which had
+ * already drifted on what may follow the period.
  */
 export function firstSentence(text) {
   const s = String(text).replace(/\s+/g, ' ').trim();

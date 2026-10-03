@@ -51,6 +51,8 @@ import {
 } from './lib/api-page.mjs';
 import { readSkillNames } from './lib/skills.mjs';
 import {
+  clipAtWord,
+  firstProseLine,
   mdFiles,
   missingApiPages,
   missingApiPagesMessage,
@@ -92,10 +94,6 @@ const DOCS_BASE = 'https://bestax.io/docs';
  */
 const SCHEMA_VERSION = 1;
 
-// Catalog one-liners are for scanning, not reading; the full summary is one
-// tool call away on the component's own file. Same budget the skill catalog uses.
-const MAX_PURPOSE = 160;
-
 // Deterministic, locale-independent comparator. localeCompare varies with the
 // runtime's ICU version and would make CI's regenerate-and-diff flake.
 const byCodePoint = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
@@ -105,28 +103,17 @@ const collapse = s =>
     .replace(/\s+/g, ' ')
     .trim();
 
-/** Body of the `## Overview` section, first sentence, clipped for the catalog. */
+/**
+ * A page's catalog one-liner: the frontmatter description, or else the first
+ * prose line of its `## Overview` section, cut to its first sentence and
+ * clipped at a word.
+ */
 function purposeOf(fm, sections, lines) {
-  const explicit = collapse(fm.description);
   const overview = sections.find(s => /^Overview$/i.test(s.heading));
   const text =
-    explicit ||
-    collapse(
-      (overview ? sectionBody(lines, overview) : '')
-        .split(/\r?\n/)
-        // Skip admonitions, JSX, imports, headings, images, lists and quotes —
-        // the same filter gen-component-catalog.mjs applies.
-        .find(l => l.trim() && !/^(:::|<|import\b|#|!\[|[-*|>])/.test(l.trim()))
-    );
-  if (!text) return '';
-  const sentence = firstSentence(text);
-  if (sentence.length <= MAX_PURPOSE) return sentence;
-  const cut = sentence.slice(0, MAX_PURPOSE);
-  const at = Math.max(cut.lastIndexOf(' '), MAX_PURPOSE - 40);
-  return `${cut
-    .slice(0, at)
-    .replace(/[,;:([]$/, '')
-    .trim()}…`;
+    collapse(fm.description) ||
+    firstProseLine(overview ? sectionBody(lines, overview) : '');
+  return text ? clipAtWord(firstSentence(text)) : '';
 }
 
 /**
