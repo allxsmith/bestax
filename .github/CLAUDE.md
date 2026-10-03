@@ -322,7 +322,8 @@ the marker your workflow owns.
 More generally: when probing for a machine comment, match on **marker + (bestaxbot OR a
 Bot-type author)**. Never probe one specific login. bestaxbot is a machine _User_ account, not a
 Bot-type app, so a `type == 'Bot'` test alone misses it and a login test alone breaks the next
-time the identity changes.
+time the identity changes. A probe that grants trust rather than finding a comment pins the
+identity instead, and `isDeepReviewAuthor` in `scripts/review-converged.mjs` says why.
 
 ### 7. Fork PRs never run with secrets
 
