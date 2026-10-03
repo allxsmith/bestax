@@ -1,0 +1,311 @@
+name: Skills publish
+
+# Publishes the `bestax` coding-agent plugin to allxsmith/bestax-skills. That
+# repository's whole tree is generated here by scripts/gen-skills-repo.mjs,
+# from skills/, the hand-written inputs in plugin/, and the exact bestax-mcp
+# version in bestax-mcp/package.json. Each run replaces its tree with fresh
+# output and commits only when something changed. Nobody edits bestax-skills
+# by hand: a fix lands here and this workflow carries it over. The script has
+# a node --test sibling (rule 9) and its header says why the plugin lives in
+# a repository of its own. This file holds the trust decisions.
+#
+# Triggers.
+#
+#   push to main, filtered to the generator's inputs: the common case, a
+#     merged skill change.
+#   release: semantic-release's `chore(release)` commit carries [skip ci], so
+#     a bestax-mcp release, the one event that moves the MCP pin, starts no
+#     push run. `release: published` fires for every package's release (see
+#     mcp-registry.yml for why it fires at all), and `relay` keeps only
+#     bestax-mcp@ tags. A release run's ref is its tag, which the
+#     environment below refuses, so `relay` holds no deploy key. It asks for a
+#     dispatch of this workflow on main instead. A dispatch made with
+#     GITHUB_TOKEN still starts a run, which other GITHUB_TOKEN events do not.
+#   workflow_dispatch: the first publish, a re-run, and the release relay.
+#     Dispatch needs write access, and any ref other than main skips.
+#
+# Credential. `publish` runs in the `skills-publish` environment, whose only
+# secret is BESTAX_SKILLS_DEPLOY_KEY: an SSH deploy key with write access to
+# allxsmith/bestax-skills and nothing else. The environment admits `main`
+# only, and `main` is behind this repository's ruleset, so only reviewed code
+# reaches the key. Create the environment before this file reaches main: a
+# job naming an environment that does not exist creates it, unprotected.
+# CONTRIBUTING.md ("The bestax-skills repository") has the setup.
+#
+# No required reviewer on the environment, on purpose. Every change this job
+# publishes was already reviewed when it merged, so a second approval would
+# add a click, not a check. And a run waiting for approval holds the
+# concurrency group, so a forgotten approval would leave the plugin behind
+# main with nothing failing. The cost is that a merge reaches users of the
+# plugin without a further look. Add a reviewer to the environment if that
+# trade ever changes. This file needs no edit for it.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'skills/**'
+      - 'plugin/**'
+      - 'bestax-mcp/package.json'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'scripts/gen-skills-repo.mjs'
+      - 'scripts/lib/skills.mjs'
+      - 'scripts/consumer-sbom-meta.mjs'
+      - '.github/workflows/skills-publish.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# No workflow-level grants; each job takes exactly what it needs.
+permissions: {}
+
+jobs:
+  relay:
+    name: Dispatch a publish from main
+    if: >-
+      github.repository == 'allxsmith/bestax' &&
+      github.event_name == 'release' &&
+      startsWith(github.event.release.tag_name, 'bestax-mcp@')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      actions: write # create the workflow_dispatch event, nothing else
+    steps:
+      # Rule 10: a new job ships at `block`, asserted in the default position.
+      # REASONED, NOT MEASURED, as no run exists yet: widen from the first
+      # run's report ("Measuring an allowlist" in .github/CLAUDE.md).
+      #
+      #   api.github.com: `gh workflow run` is one REST call.
+      #
+      # Deliberately absent: github.com, as there is no checkout.
+      - name: Harden runner
+        timeout-minutes: 2
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            api.github.com:443
+
+      # Copied from the other block jobs, as rule 10 asks. It proves enforcement
+      # was armed at this step, not that it stays armed; rule 10 in
+      # .github/CLAUDE.md carries the mechanism and what to check when a run
+      # looks wrong. Linux-only paths; the runner is ubuntu-latest.
+      - name: Assert egress policy is enforced
+        timeout-minutes: 2
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      # The dispatched run checks out main, which already carries the
+      # release's package.json: @semantic-release/git pushes that commit
+      # before @semantic-release/github creates the release.
+      - name: Dispatch skills-publish.yml on main
+        timeout-minutes: 2
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: gh workflow run skills-publish.yml --ref main
+
+  publish:
+    name: Publish to allxsmith/bestax-skills
+    # The repository check keeps a fork from trying. The ref check makes a
+    # dispatch from another branch skip. Neither is the boundary: a branch's
+    # own copy of this file can drop them, which is why the environment
+    # admits `main` only.
+    if: >-
+      github.repository == 'allxsmith/bestax' &&
+      github.event_name != 'release' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: skills-publish
+    permissions:
+      contents: read # checkout of a public repository
+    # One publish at a time, never cancelled midway. GitHub keeps one pending
+    # run per group and drops an older pending one for a newer one, which
+    # loses nothing: every run checks out main as it is when it starts, so
+    # the run that goes last publishes the newest tree.
+    concurrency:
+      group: skills-publish
+      cancel-in-progress: false
+    steps:
+      # Rule 10, as in `relay`, and the same REASONED, NOT MEASURED caveat.
+      # This job holds the deploy key.
+      #
+      #   github.com:443: the checkout of this repository (git over HTTPS, no
+      #     API call: the same checkout in mcp-registry's `publish` names only
+      #     this host).
+      #   github.com:22: git over SSH to allxsmith/bestax-skills, for the
+      #     clone and the push. The deploy key works over SSH only.
+      #
+      # Deliberately absent: api.github.com, as nothing here calls the API,
+      # and registry.npmjs.org and nodejs.org, as the generator imports node:
+      # builtins only and runs on the runner's Node with no install.
+      - name: Harden runner
+        timeout-minutes: 2
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:443
+            github.com:22
+
+      # Copied from the other block jobs, as rule 10 asks; see `relay`.
+      - name: Assert egress policy is enforced
+        timeout-minutes: 2
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      # `ref: main` on every trigger, never a PR, a tag or the event's commit,
+      # so the generator and its inputs are reviewed code behind the ruleset.
+      # No PR runs this workflow, so rule 9's bootstrap gap does not apply:
+      # the merge that adds the script is on main before the first run.
+      - name: Checkout main
+        timeout-minutes: 5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      # Before the key is in any step's environment. The script checks the
+      # tree against Anthropic's directory rules before and after writing it,
+      # and fails with the reasons. Deliberately no setup-node, as in
+      # mcp-registry's `publish`: the runner image's Node runs it, and the
+      # version is printed for the record.
+      - name: Generate the bestax-skills tree
+        timeout-minutes: 2
+        run: |
+          node --version
+          node scripts/gen-skills-repo.mjs "$RUNNER_TEMP/bestax-skills-tree"
+
+      # The only step that sees the key. It runs git, ssh and coreutils, and
+      # no repository code. The key goes to a file under RUNNER_TEMP that only
+      # the runner's user can read, and is never echoed. ssh trusts only
+      # GitHub's published host keys
+      # (https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints,
+      # SHA256 fingerprints +DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU,
+      # p2QAMXNIC1TJYWeIOttrVc98/R1BUFWu3/LiyKgUfQM and
+      # uNiVztksCsDhcc0u9e8BujQXVUpKZIDTMczCvj3tD2s). If GitHub rotates the
+      # key ssh negotiates, this step fails until the list here is updated
+      # from that page. That is the point: ssh accepts no host key that is
+      # not listed here.
+      #
+      # A plain push, never a force push, so bestax-skills' history is never
+      # rewritten. A hand edit there is replaced by the next publish, in a
+      # commit of its own, and a push that loses a race fails rather than
+      # overwrite the other one.
+      - name: Commit and push to allxsmith/bestax-skills
+        timeout-minutes: 5
+        env:
+          DEPLOY_KEY: ${{ secrets.BESTAX_SKILLS_DEPLOY_KEY }}
+          REMOTE: git@github.com:allxsmith/bestax-skills.git
+          SERVER_URL: ${{ github.server_url }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_KEY:-}" ]; then
+            echo "::error::BESTAX_SKILLS_DEPLOY_KEY is not set in the skills-publish environment. CONTRIBUTING.md, \"The bestax-skills repository\", has the one-time setup."
+            exit 1
+          fi
+          source_sha=$(git rev-parse HEAD)
+          tree="$RUNNER_TEMP/bestax-skills-tree"
+          repo="$RUNNER_TEMP/bestax-skills"
+          ssh_dir="$RUNNER_TEMP/bestax-skills-ssh"
+          mkdir -m 700 "$ssh_dir"
+          trap 'rm -rf "$ssh_dir"' EXIT
+          (umask 077 && printf '%s\n' "$DEPLOY_KEY" > "$ssh_dir/key")
+          unset DEPLOY_KEY
+          cat > "$ssh_dir/known_hosts" <<'EOF'
+          github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+          github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+          github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+          EOF
+          export GIT_SSH_COMMAND="ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o IdentityAgent=none -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o GlobalKnownHostsFile=/dev/null -o BatchMode=yes"
+          export GIT_TERMINAL_PROMPT=0
+
+          # Clone main, or start it when bestax-skills has no main yet, as on
+          # the first run against the empty repository. ls-remote exits 2 for
+          # a ref that is not there and 128 for anything else, such as a
+          # missing repository or a refused key.
+          status=0
+          git ls-remote --exit-code "$REMOTE" refs/heads/main > /dev/null || status=$?
+          case "$status" in
+            0)
+              git clone --quiet --depth 1 --no-tags --branch main "$REMOTE" "$repo"
+              ;;
+            2)
+              echo "allxsmith/bestax-skills has no main yet, so this run creates it."
+              git init --quiet --initial-branch=main "$repo"
+              git -C "$repo" remote add origin "$REMOTE"
+              ;;
+            *)
+              echo "::error::Could not read allxsmith/bestax-skills (git ls-remote exited $status). Check that the repository exists and that the deploy key is on it."
+              exit 1
+              ;;
+          esac
+
+          # Replace the working tree with the generated one, keeping .git.
+          find "$repo" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
+          cp -R "$tree"/. "$repo"/
+          git -C "$repo" add --all
+          if git -C "$repo" diff --cached --quiet; then
+            echo "allxsmith/bestax-skills already matches allxsmith/bestax@$source_sha. Nothing to publish."
+            exit 0
+          fi
+          git -C "$repo" diff --cached --stat
+
+          git -C "$repo" \
+            -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit --quiet \
+            -m "Publish allxsmith/bestax@$source_sha" \
+            -m "Generated by .github/workflows/skills-publish.yml from $SERVER_URL/allxsmith/bestax/commit/$source_sha. This repository is never edited by hand. Open issues and pull requests in allxsmith/bestax."
+          git -C "$repo" push --quiet origin HEAD:refs/heads/main
+          echo "Published allxsmith/bestax@$source_sha to allxsmith/bestax-skills."
