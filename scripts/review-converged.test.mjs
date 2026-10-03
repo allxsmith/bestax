@@ -34,6 +34,7 @@ import {
   forLog,
   isDeepReviewAuthor,
   labelNames,
+  latestRuns,
   latestStatuses,
   newestSummary,
   nextLink,
@@ -370,9 +371,9 @@ test('checks pass only when every one finished well', () => {
   assert.deepEqual(
     checkProblems(
       [
-        run('completed', 'success'),
-        run('completed', 'neutral'),
-        run('completed', 'skipped'),
+        run('completed', 'success', 'a'),
+        run('completed', 'neutral', 'b'),
+        run('completed', 'skipped', 'c'),
       ],
       []
     ),
@@ -435,6 +436,70 @@ test('statuses pass only on success, newest per context', () => {
   };
   assert.deepEqual(checkProblems([], [stale, GREEN_STATUS]), []);
   assert.deepEqual(checkProblems([], [GREEN_STATUS, stale]), []);
+});
+
+/** A deep-review check run, as GitHub lists one on the head commit. */
+const reviewRun = (id, startedAt, conclusion) => ({
+  id,
+  name: 'review',
+  status: 'completed',
+  conclusion,
+  started_at: `2026-10-03T${startedAt}Z`,
+  app: { slug: 'github-actions' },
+});
+
+test('a deep review cancelled and then run again converges', () => {
+  // PR #879's head: the review was cancelled for a re-steer, and the label
+  // toggle ran a fresh one that succeeded. The cancelled run stays listed.
+  const cancelled = reviewRun(111230277145, '15:14:03', 'cancelled');
+  const fresh = reviewRun(111232410036, '15:26:25', 'success');
+  for (const checkRuns of [
+    [GREEN_RUN, cancelled, fresh],
+    [fresh, GREEN_RUN, cancelled],
+  ]) {
+    const latest = latestRuns(checkRuns);
+    assert.equal(latest.length, 2);
+    assert.ok(latest.includes(GREEN_RUN) && latest.includes(fresh));
+    assert.deepEqual(convergenceProblems(converged({ checkRuns })), []);
+  }
+});
+
+test('a newer failure of the same check is not hidden by an older success', () => {
+  const passed = reviewRun(1, '15:14:03', 'success');
+  const failed = reviewRun(2, '15:26:25', 'failure');
+  for (const checkRuns of [
+    [passed, failed],
+    [failed, passed],
+  ])
+    assert.deepEqual(convergenceProblems(converged({ checkRuns })), [
+      'check "review" concluded "failure"',
+    ]);
+});
+
+test('a skipped run only stands in when every run under its name was skipped', () => {
+  // Some job names are shared between workflows, and a skipped `gate` from one
+  // of them must not hide a failed `gate` that ran.
+  const failed = { ...reviewRun(1, '15:14:03', 'failure'), name: 'gate' };
+  const skipped = { ...reviewRun(2, '15:26:25', 'skipped'), name: 'gate' };
+  assert.deepEqual(latestRuns([failed, skipped]), [failed]);
+  assert.deepEqual(latestRuns([skipped, failed]), [failed]);
+  const later = { ...skipped, id: 3, started_at: '2026-10-03T15:30:00Z' };
+  assert.deepEqual(latestRuns([later, skipped]), [later]);
+});
+
+test('latestRuns keys by app and name, and breaks a tie by id', () => {
+  const a = reviewRun(1, '15:00:00', 'failure');
+  const b = reviewRun(2, '15:00:00', 'success');
+  assert.deepEqual(latestRuns([a, b]), [b]);
+  assert.deepEqual(latestRuns([b, a]), [b]);
+  // A run with no start time is older than any that has one.
+  const undated = { ...b, id: 9, started_at: undefined };
+  assert.deepEqual(latestRuns([undated, a]), [a]);
+  // The same name from another app is a different check.
+  const other = { ...a, app: { slug: 'other' } };
+  assert.deepEqual(latestRuns([b, other]), [b, other]);
+  assert.deepEqual(latestRuns([{}, null]), [{}]);
+  assert.deepEqual(latestRuns(undefined), []);
 });
 
 test('latestStatuses breaks a timestamp tie by id', () => {
