@@ -7,10 +7,14 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import type { BulmaGapStep } from '../helpers/bulmaClassHelpers';
 
 /**
- * Allowed gap values for Bulma's 0-8 spacing scale, shared by `Grid` and
- * `Columns`. Accepts the value as a number or a numeric string.
+ * The whole steps of Bulma's 0-8 gap scale, as `Columns` takes them. Accepts
+ * the value as a number or a numeric string.
+ *
+ * `Grid`'s gap props and the shared `gap`, `columnGap` and `rowGap` helper
+ * props take the half steps as well, as `BulmaGapStep`.
  */
 export type BulmaGapValue =
   | 0
@@ -86,12 +90,16 @@ export interface GridProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** Use a fixed grid layout (`.fixed-grid > .grid`). */
   isFixed?: boolean;
-  /** Main gap for grid (Bulma `is-gap-X`). */
-  gap?: BulmaGapValue;
-  /** Column gap for grid (`is-column-gap-X`). */
-  columnGap?: BulmaGapValue;
-  /** Row gap for grid (`is-row-gap-X`). */
-  rowGap?: BulmaGapValue;
+  /**
+   * Main gap for grid (Bulma `is-gap-X`), a whole or half step of Bulma's gap
+   * scale. The same values and class as the `gap` helper prop on every other
+   * component.
+   */
+  gap?: BulmaGapStep;
+  /** Column gap for grid (`is-column-gap-X`), on the same scale as `gap`. */
+  columnGap?: BulmaGapStep;
+  /** Row gap for grid (`is-row-gap-X`), on the same scale as `gap`. */
+  rowGap?: BulmaGapStep;
   /** Minimum column width for the grid (`is-col-min-X`). */
   minCol?: BulmaMinColValue;
   /** For fixed grids: explicit column count (`has-X-cols`), or `'auto'` for auto-count. */

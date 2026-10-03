@@ -45,6 +45,43 @@ describe('Grid', () => {
     expect(grid).toHaveClass('is-row-gap-1');
   });
 
+  // Grid's gap props render Bulma's gap helpers, the same classes the shared
+  // `gap`, `columnGap` and `rowGap` helper props render, so they take the
+  // half steps too.
+  it('accepts the half steps, as numbers or strings', () => {
+    const { container } = render(
+      <Grid gap={0.5} columnGap="1.5" rowGap={7.5}>
+        <TestCell />
+      </Grid>
+    );
+    const grid = container.querySelector('.grid')!;
+    expect(grid).toHaveClass('is-gap-0.5');
+    expect(grid).toHaveClass('is-column-gap-1.5');
+    expect(grid).toHaveClass('is-row-gap-7.5');
+  });
+
+  // Grid renders its own gap props, so they never reach the helper as well
+  // and each class appears once, in the place it always had.
+  it('renders each gap class once, before the helper classes', () => {
+    const { container } = render(
+      <Grid gap={2} columnGap={1} m="2">
+        <TestCell />
+      </Grid>
+    );
+    expect(container.querySelector('.grid')?.className).toBe(
+      'grid is-gap-2 is-column-gap-1 m-2'
+    );
+  });
+
+  it('takes the gapless helper', () => {
+    const { container } = render(
+      <Grid gapless>
+        <TestCell />
+      </Grid>
+    );
+    expect(container.querySelector('.grid')).toHaveClass('is-gapless');
+  });
+
   it('renders as fixed-grid wrapper with grid inside', () => {
     const { container } = render(
       <Grid isFixed>

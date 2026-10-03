@@ -1,6 +1,10 @@
 import { useMemo, type CSSProperties } from 'react';
 import { classNames } from '../helpers/classNames';
-import { BulmaDisplayProps, BulmaViewportProps } from './bulmaClassHelpers';
+import {
+  BulmaDisplayProps,
+  BulmaViewportProps,
+  type BulmaGapStep,
+} from './bulmaClassHelpers';
 import {
   useColorClasses,
   useColorStyles,
@@ -96,6 +100,10 @@ export const useBulmaClasses = <T extends object>(
     pl,
     px,
     py,
+    gap,
+    columnGap,
+    rowGap,
+    gapless,
     textSize,
     textAlign,
     textTransform,
@@ -183,6 +191,10 @@ export const useBulmaClasses = <T extends object>(
     pl,
     px,
     py,
+    gap,
+    columnGap,
+    rowGap,
+    gapless,
   });
 
   const typographyClasses = useTypographyClasses({
@@ -296,6 +308,7 @@ export {
   validColorShades,
   validSchemeColors,
   validSizes,
+  validGaps,
   validTextSizes,
   validAlignments,
   validTextTransforms,
@@ -322,7 +335,7 @@ export {
   validPositions,
   validAspectRatios,
 } from './bulmaClassHelpers';
-export type { BulmaViewportProps, BulmaDisplayProps };
+export type { BulmaViewportProps, BulmaDisplayProps, BulmaGapStep };
 export * from './useColorClasses';
 export * from './useSpacingClasses';
 export * from './useTypographyClasses';
