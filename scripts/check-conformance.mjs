@@ -3638,9 +3638,11 @@ export function rootPluginComponentViolations(entries) {
  * The plugin starts bestax-mcp with `npx -y bestax-mcp@<major>` (`file`), a
  * range that follows every release within one major. A new major falls
  * outside it, and the plugin would keep starting the old one with every other
- * check green. So the pin is held to the major in `pkg`. That goes red on the
- * first run after a new major ships, which is the point: the release commit
- * cannot move the pin, and nothing else would notice.
+ * check green. So the pin is held to the major in `pkg`, or to the one after
+ * it. The next major is allowed so the breaking-change PR can move the pin
+ * before its release, and no open PR goes red when the release lands. A pin
+ * still on the old major once the new one ships fails, because the release
+ * commit cannot move it and nothing else would notice.
  */
 export const PLUGIN_MCP = {
   file: 'mcp.json',
@@ -3667,6 +3669,7 @@ export function pluginMcpPinViolations(mcpText, pkgText) {
   }
   const major = semver[1];
   const want = `bestax-mcp@${major}`;
+  const next = `bestax-mcp@${Number(major) + 1}`;
 
   const config = parseManifestObject(mcpText);
   if (config.problem) {
@@ -3687,7 +3690,7 @@ export function pluginMcpPinViolations(mcpText, pkgText) {
     ];
   }
   return pins
-    .filter(pin => pin !== want)
+    .filter(pin => pin !== want && pin !== next)
     .map(pin =>
       /^bestax-mcp@\d+$/.test(pin)
         ? `${file}: starts ${pin}, but ${pkg} is at ${version}. Change it ` +

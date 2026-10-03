@@ -147,9 +147,14 @@ test('a new bestax-mcp major fails until mcp.json and the docs move', () => {
   assert.match(message, /Change it to bestax-mcp@2/);
   assert.match(message, /git grep -n "bestax-mcp@1"/);
   assert.match(message, /What goes stale/);
-  // A pin AHEAD of the package fails too: npx would find no such release.
+  // One major ahead passes, so a breaking-change PR can move the pin before
+  // its release. Two ahead fails: no release can get there in one step.
+  assert.deepEqual(
+    pluginMcpPinViolations(mcpWith(['-y', 'bestax-mcp@3']), pkgAt('2.4.0')),
+    []
+  );
   only(
-    mcpWith(['-y', 'bestax-mcp@3']),
+    mcpWith(['-y', 'bestax-mcp@4']),
     pkgAt('2.4.0'),
     /Change it to bestax-mcp@2/
   );

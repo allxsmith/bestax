@@ -124,8 +124,8 @@ Say in the pull request which listings need an update, then open those updates o
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
   `BESTAX_MCP_NO_VERSION_CHECK` variable.
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock and cursor.directory give
-  `npx -y bestax-mcp@1` as the command. So does the plugin's own `mcp.json`, and the
-  `plugin-root` conformance check fails until its pin moves to the new major.
+  `npx -y bestax-mcp@1` as the command. So does the plugin's own `mcp.json`, whose pin
+  moves in the breaking-change PR. The `plugin-root` conformance check fails if it does not.
 - **A plugin release.** Once listed, awesome-copilot, the OpenAI directory, Kiro and Cursor
   Marketplace pin the `version` in the root `plugin.json`. Bump it by hand (`pnpm gen:skills`
   keeps it), then update those entries. The Grok Build entry pins a commit instead, so updating it
