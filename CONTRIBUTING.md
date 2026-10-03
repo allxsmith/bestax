@@ -404,7 +404,7 @@ One-time setup, in this order. Steps 1 and 2 come **before** the workflow is mer
 2. Sign in at [app.codemod.com](https://app.codemod.com) with GitHub, create an API key that can publish packages, and save it as a secret of that environment (not a repository secret) named `CODEMOD_API_KEY`.
 3. Merge the workflow.
 4. Run the workflow with `publish` unchecked, then checked. The first publish creates the unscoped `bestax-migrate` package with the API key.
-5. At [app.codemod.com/api-keys](https://go.codemod.com/api-keys), add a Trusted Publisher for `bestax-migrate`: owner `allxsmith`, repository `bestax`, workflow `.github/workflows/codemod-registry.yml`, environment `codemod-registry`, ref `refs/heads/main`.
+5. At [app.codemod.com/api-keys](https://app.codemod.com/api-keys), add a Trusted Publisher for `bestax-migrate`: owner `allxsmith`, repository `bestax`, workflow `.github/workflows/codemod-registry.yml`, environment `codemod-registry`, ref `refs/heads/main`.
 6. Delete the `CODEMOD_API_KEY` secret and revoke the key. Later runs publish with a GitHub OIDC token, so no long-lived registry credential remains.
 
 ---
