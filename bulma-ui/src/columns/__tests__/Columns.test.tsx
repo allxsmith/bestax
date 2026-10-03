@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react';
-import { Columns } from '../Columns';
+import { Columns, type ColumnsProps } from '../Columns';
 import { Column } from '../Column';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -107,9 +107,29 @@ describe('Columns', () => {
     expect(container.firstChild).not.toHaveClass('is-gap-3');
   });
 
-  it('takes the rowGap and gapless helpers', () => {
-    const { container } = render(<Columns isMultiline rowGap="2" gapless />);
-    expect(container.firstChild).toHaveClass('is-row-gap-2', 'is-gapless');
+  // The column and row gap helpers are left out of Columns, as `gap` is:
+  // CSS `gap` would add to the gutter rather than replace it. Typed code
+  // cannot pass them, and untyped code gets no class and no DOM attribute.
+  it('leaves out the column and row gap helpers, and takes gapless', () => {
+    const { container } = render(
+      <>
+        {/* @ts-expect-error columnGap is left out of ColumnsProps */}
+        <Columns columnGap="2" />
+        <Columns
+          isMultiline
+          gapless
+          {...({ columnGap: '2', rowGap: 3 } as unknown as ColumnsProps)}
+        />
+      </>
+    );
+
+    const [typed, untyped] = Array.from(container.children);
+    expect(typed.className).toBe('columns');
+    expect(untyped.className).toBe('columns is-multiline is-gapless');
+    for (const el of [typed, untyped]) {
+      expect(el).not.toHaveAttribute('columngap');
+      expect(el).not.toHaveAttribute('rowgap');
+    }
   });
 
   // Bulma's `is-gapless` is both the columns modifier and the gap helper, so

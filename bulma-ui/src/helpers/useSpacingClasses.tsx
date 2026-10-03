@@ -66,10 +66,9 @@ export interface BulmaSpacingProps {
   rowGap?: BulmaGapStep;
   /**
    * Removes the gap between children (`is-gapless`), the shortcut for
-   * `gap="0"`. A valid `gap` wins when both are set.
-   *
-   * On `Columns` the class is also Bulma's gapless columns modifier, so there
-   * it does what `isGapless` does.
+   * `gap="0"`; a valid `gap` wins when both are set. `Columns` is the
+   * exception: its `gap` is its gutter, and there `gapless` is Bulma's gapless
+   * columns modifier, the same as `isGapless`.
    */
   gapless?: boolean;
 }
