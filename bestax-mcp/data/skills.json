@@ -20,7 +20,7 @@
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
       "examples": [
-        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3828 }
+        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3739 }
       ]
     },
     {
