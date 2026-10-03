@@ -6,6 +6,9 @@
  * added there for contributor tooling would reach every plugin user. None
  * exists today, so a real run executes no violation branch, and an inverted
  * rule would stay green. The fixtures below are what catch that.
+ *
+ * The same goes for the plugin's bestax-mcp pin: it matches bestax-mcp's
+ * major until a new major ships, so only fixtures reach the failing branches.
  */
 import { readdirSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -15,6 +18,8 @@ import assert from 'node:assert/strict';
 import {
   ROOT_PLUGIN_COMPONENT_PATHS,
   rootPluginComponentViolations,
+  PLUGIN_MCP,
+  pluginMcpPinViolations,
 } from './check-conformance.mjs';
 
 const REPO = fileURLToPath(new URL('..', import.meta.url));
@@ -82,5 +87,131 @@ test('root CLAUDE.md names only paths the rule enforces', () => {
   assert.ok(named.length > 0, sentence[1]);
   for (const path of named) {
     assert.ok(ROOT_PLUGIN_COMPONENT_PATHS.includes(path), path);
+  }
+});
+
+// --- the bestax-mcp major mcp.json pins ----------------------------------------
+
+const repoFile = rel =>
+  readFileSync(new URL(`../${rel}`, import.meta.url), 'utf8');
+
+/** An mcp.json whose bestax server runs `args`, as the plugin's does. */
+const mcpWith = args =>
+  JSON.stringify({
+    mcpServers: {
+      [PLUGIN_MCP.server]: { type: 'stdio', command: 'npx', args },
+    },
+  });
+const pkgAt = version => JSON.stringify({ name: 'bestax-mcp', version });
+
+const only = (mcpText, pkgText, re) => {
+  const found = pluginMcpPinViolations(mcpText, pkgText);
+  assert.equal(found.length, 1, found.join('\n'));
+  assert.match(found[0], re);
+  return found[0];
+};
+
+test('the real mcp.json pins bestax-mcp at its current major', () => {
+  assert.deepEqual(
+    pluginMcpPinViolations(repoFile(PLUGIN_MCP.file), repoFile(PLUGIN_MCP.pkg)),
+    []
+  );
+  // And the real pin is a bare major, so the test above checked something.
+  const { major } = /^(?<major>\d+)\./.exec(
+    JSON.parse(repoFile(PLUGIN_MCP.pkg)).version
+  ).groups;
+  assert.ok(repoFile(PLUGIN_MCP.file).includes(`"bestax-mcp@${major}"`));
+});
+
+test('a pin on the current major passes, whatever the minor', () => {
+  for (const [version, pin] of [
+    ['1.14.0', 'bestax-mcp@1'],
+    ['2.0.0', 'bestax-mcp@2'],
+    ['0.3.1', 'bestax-mcp@0'],
+    ['10.2.3', 'bestax-mcp@10'],
+  ]) {
+    assert.deepEqual(
+      pluginMcpPinViolations(mcpWith(['-y', pin]), pkgAt(version)),
+      [],
+      `${pin} at ${version}`
+    );
+  }
+});
+
+test('a new bestax-mcp major fails until mcp.json and the docs move', () => {
+  const message = only(
+    mcpWith(['-y', 'bestax-mcp@1']),
+    pkgAt('2.0.0'),
+    /^mcp\.json: starts bestax-mcp@1, but bestax-mcp\/package\.json is at 2\.0\.0\./
+  );
+  assert.match(message, /Change it to bestax-mcp@2/);
+  assert.match(message, /git grep -n "bestax-mcp@1"/);
+  assert.match(message, /What goes stale/);
+  // A pin AHEAD of the package fails too: npx would find no such release.
+  only(
+    mcpWith(['-y', 'bestax-mcp@3']),
+    pkgAt('2.4.0'),
+    /Change it to bestax-mcp@2/
+  );
+  // Digits compare as a whole, not as a prefix.
+  only(mcpWith(['-y', 'bestax-mcp@1']), pkgAt('10.0.0'), /bestax-mcp@10/);
+});
+
+test('a pin that is not a bare major fails', () => {
+  for (const pin of [
+    'bestax-mcp@latest',
+    'bestax-mcp@1.14.0',
+    'bestax-mcp@^1',
+    'bestax-mcp@1.x',
+    'bestax-mcp@',
+  ]) {
+    only(
+      mcpWith(['-y', pin]),
+      pkgAt('1.14.0'),
+      /which is not a major pin\. Use bestax-mcp@1/
+    );
+  }
+});
+
+test('an mcp.json that runs no bestax-mcp pin fails', () => {
+  for (const mcpText of [
+    mcpWith(['-y', 'bestax-mcp']),
+    mcpWith(['-y', 'some-other-server@1']),
+    mcpWith('bestax-mcp@1'),
+    JSON.stringify({ mcpServers: { other: { args: ['-y', 'bestax-mcp@1'] } } }),
+    JSON.stringify({ mcpServers: null }),
+    JSON.stringify({}),
+  ]) {
+    only(
+      mcpText,
+      pkgAt('1.14.0'),
+      /runs no bestax-mcp@<major>\. .*"bestax-mcp@1"/
+    );
+  }
+});
+
+test('an unreadable or broken mcp.json or bestax-mcp manifest is reported', () => {
+  const pin = mcpWith(['-y', 'bestax-mcp@1']);
+  for (const [text, problem] of [
+    [undefined, 'could not be read'],
+    ['{', 'is not valid JSON'],
+    ['null', 'is not a JSON object'],
+    ['[]', 'is not a JSON object'],
+  ]) {
+    only(
+      text,
+      pkgAt('1.14.0'),
+      new RegExp(`^mcp\\.json: ${problem}, so the plugin starts no MCP server`)
+    );
+    only(
+      pin,
+      text,
+      new RegExp(
+        `^bestax-mcp/package\\.json: ${problem}, so the bestax-mcp pin`
+      )
+    );
+  }
+  for (const version of [undefined, 1, '1.0', 'v1.0.0', '01.0.0']) {
+    only(pin, pkgAt(version), /"version" is .*, not a semantic version/);
   }
 });

@@ -35,7 +35,8 @@
  *                        Distinct from skills-sync above.
  *   plugin-root          the repo root, which ships as the bestax plugin,
  *                        holds no other conventional plugin component path
- *                        (hooks/, commands/, .mcp.json, …)
+ *                        (hooks/, commands/, .mcp.json, …), and mcp.json
+ *                        pins bestax-mcp at its current major
  *   near-miss-sync       the Toast/Dialog/LinkButton guidance says the same thing
  *                        in the generated CLAUDE.md and bestax-layout-scaffold,
  *                        pairing each component with the substitution it loses to
@@ -3633,6 +3634,71 @@ export function rootPluginComponentViolations(entries) {
   );
 }
 
+/**
+ * The plugin starts bestax-mcp with `npx -y bestax-mcp@<major>` (`file`), a
+ * range that follows every release within one major. A new major falls
+ * outside it, and the plugin would keep starting the old one with every other
+ * check green. So the pin is held to the major in `pkg`. That goes red on the
+ * first run after a new major ships, which is the point: the release commit
+ * cannot move the pin, and nothing else would notice.
+ */
+export const PLUGIN_MCP = {
+  file: 'mcp.json',
+  server: 'bestax',
+  pkg: 'bestax-mcp/package.json',
+};
+
+/**
+ * Pure, taking the texts of mcp.json and bestax-mcp's manifest (undefined
+ * when unreadable). The major is read with the repo's SEMVER grammar.
+ */
+export function pluginMcpPinViolations(mcpText, pkgText) {
+  const { file, server, pkg } = PLUGIN_MCP;
+  const unchecked = `so the bestax-mcp pin in ${file} went unchecked.`;
+  const manifest = parseManifestObject(pkgText);
+  if (manifest.problem) return [`${pkg}: ${manifest.problem}, ${unchecked}`];
+  const { version } = manifest.value;
+  const semver = typeof version === 'string' ? SEMVER.exec(version) : null;
+  if (!semver) {
+    return [
+      `${pkg}: "version" is ${JSON.stringify(version)}, not a semantic ` +
+        `version, ${unchecked}`,
+    ];
+  }
+  const major = semver[1];
+  const want = `bestax-mcp@${major}`;
+
+  const config = parseManifestObject(mcpText);
+  if (config.problem) {
+    return [
+      `${file}: ${config.problem}, so the plugin starts no MCP server. ` +
+        `Restore it with "${want}" in mcpServers.${server}.args.`,
+    ];
+  }
+  const args = config.value.mcpServers?.[server]?.args;
+  const pins = (Array.isArray(args) ? args : []).filter(
+    arg => typeof arg === 'string' && arg.startsWith('bestax-mcp@')
+  );
+  if (!pins.length) {
+    return [
+      `${file}: mcpServers.${server}.args runs no bestax-mcp@<major>. ` +
+        `The plugin starts the server as npx -y ${want}, so put "${want}" ` +
+        `in those args.`,
+    ];
+  }
+  return pins
+    .filter(pin => pin !== want)
+    .map(pin =>
+      /^bestax-mcp@\d+$/.test(pin)
+        ? `${file}: starts ${pin}, but ${pkg} is at ${version}. Change it ` +
+          `to ${want}, and every doc that quotes the old command ` +
+          `(git grep -n "${pin}"), then the listings that ` +
+          `docs/docs/guides/distribution.md names under "What goes stale".`
+        : `${file}: starts ${pin}, which is not a major pin. Use ${want}, ` +
+          `so the plugin follows each release within the current major.`
+    );
+}
+
 function skillFrontmatterName(text) {
   const fm = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!fm) return null;
@@ -3641,10 +3707,17 @@ function skillFrontmatterName(text) {
 
 /**
  * plugin-root: the repo root ships as the bestax plugin, so hold what sits
- * there.
+ * there and what its mcp.json starts.
  */
 async function checkPluginRoot() {
-  return rootPluginComponentViolations(await readdir(REPO));
+  const read = rel => readFile(join(REPO, rel), 'utf8').catch(() => undefined);
+  return [
+    ...rootPluginComponentViolations(await readdir(REPO)),
+    ...pluginMcpPinViolations(
+      await read(PLUGIN_MCP.file),
+      await read(PLUGIN_MCP.pkg)
+    ),
+  ];
 }
 
 async function checkSkillsRoster() {

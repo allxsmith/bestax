@@ -193,6 +193,9 @@ paths in `ROOT_PLUGIN_COMPONENT_PATHS`, which cites the client docs each one com
   root `plugin.json`'s `version` is the one hand-owned field: bump it when you cut a plugin
   release for a catalog that pins one (awesome-copilot, the OpenAI directory, Kiro, Cursor's
   Marketplace), and the generator keeps it.
+- `mcp.json` starts the server as `npx -y bestax-mcp@<major>`, on bestax-mcp's current major.
+  The plugin-root check fails once a new major ships, until the pin moves. Move the docs that
+  quote the command in the same change.
 - `skills/` is also a skills-only plugin for Anthropic's directory (see `skills/CLAUDE.md`).
 - `claude plugin validate .claude-plugin/plugin.json` warns about the missing version and about
   this file, which a plugin does not load as context. Both warnings are expected.

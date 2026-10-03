@@ -111,7 +111,9 @@ ways that publish fails quietly are documented in `VERSIONING.md` and
 
 MCP directories and lists describe what the server offers and give `npx -y bestax-mcp@1` as
 its command. A change to either, to how it starts, or a new major means updating the listings
-that `docs/docs/guides/distribution.md` names under "What goes stale".
+that `docs/docs/guides/distribution.md` names under "What goes stale". The repo's own
+`bestax` plugin pins the major in the root `mcp.json`, and the plugin-root conformance check
+fails after a new major ships until that pin moves.
 
 Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills
 `data/skills/` at pack time. That directory is gitignored while the manifest
