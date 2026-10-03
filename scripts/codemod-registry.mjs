@@ -243,13 +243,17 @@ export function packageProblems(
     if (WORKFLOW_FILE.test(rel)) {
       // Per `run:` line, not per file: a pin in a comment or in one step
       // would otherwise clear a second step that runs an unpinned
-      // bestax-migrate, which resolves latest on the user's machine. A block
-      // scalar (`run: |`) reads as `|`, which names no pin, so it is refused
-      // rather than read wrongly.
+      // bestax-migrate, which resolves latest on the user's machine. A
+      // trailing ` #` comment is dropped first, as the shell would, and every
+      // bestax-migrate left on the line must carry `@`. A block scalar
+      // (`run: |`) reads as `|`, which names no pin, so it is refused rather
+      // than read wrongly.
       const runs = [...String(text).matchAll(/^[ \t]*run:[ \t]*(.*)$/gm)].map(
-        match => match[1].trim()
+        match => match[1].replace(/(^|\s)#.*$/, '').trim()
       );
-      if (!runs.length || runs.some(line => findPins(line).length === 0)) {
+      const unpinned = line =>
+        findPins(line).length === 0 || /bestax-migrate(?!@)/.test(line);
+      if (!runs.length || runs.some(unpinned)) {
         problems.push(
           `${PACKAGE_DIR}/${rel} runs no pinned release: every "run:" line ` +
             'must name "bestax-migrate@<version>" on the same line.'

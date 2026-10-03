@@ -355,6 +355,18 @@ test('every run line must carry the pin, not just the file', () => {
   // A block scalar cannot be read line by line, so it is refused.
   pkg.texts[1][1] = 'run: |\n  npx --yes bestax-migrate@2.0.0 x --dry';
   assert.match(problemsOf(pkg).join('\n'), /preview\.yaml runs no pinned/);
+  // A pin in a trailing comment is not part of the command.
+  pkg.texts[1][1] =
+    'run: npx --yes bestax-migrate x --dry # bestax-migrate@2.0.0';
+  assert.match(problemsOf(pkg).join('\n'), /preview\.yaml runs no pinned/);
+  // A pinned and an unpinned invocation on one line.
+  pkg.texts[1][1] =
+    'run: npx --yes bestax-migrate@2.0.0 x --dry && npx bestax-migrate x';
+  assert.match(problemsOf(pkg).join('\n'), /preview\.yaml runs no pinned/);
+  // The real command shape still passes.
+  pkg.texts[1][1] =
+    'run: npx --yes bestax-migrate@2.0.0 "$PARAM_SOURCE" $PARAM_PATHS --dry';
+  assert.deepEqual(problemsOf(pkg), []);
 });
 
 test('a value read from a file cannot add a line to the output', () => {
