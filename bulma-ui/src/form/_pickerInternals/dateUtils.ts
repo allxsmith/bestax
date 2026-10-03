@@ -49,6 +49,17 @@ export function endOfMonth(d: Date): Date {
 }
 
 /**
+ * Local midnight on `year`-`month`-`day` (`month` from 0), like the
+ * `Date(y, m, d)` constructor except that years 0–99 stay as given rather than
+ * turning into 1900–1999.
+ */
+export function makeDate(year: number, month = 0, day = 1): Date {
+  const d = new Date(2000, 0, 1);
+  d.setFullYear(year, month, day);
+  return d;
+}
+
+/**
  * First instant of the day, month or year containing `d`. Works by setters on
  * a copy rather than the `Date(y, m, d)` constructor, which reads years 0–99
  * as 1900–1999: segmented typing passes through such years on the way to a

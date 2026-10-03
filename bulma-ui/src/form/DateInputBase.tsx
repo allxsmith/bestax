@@ -29,6 +29,7 @@ import {
   clampDate,
   isSameDay,
   isPeriodUnselectable,
+  makeDate,
   startOfPeriod,
   endOfPeriod,
 } from './_pickerInternals/dateUtils';
@@ -36,7 +37,9 @@ import { Calendar } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import { supportsInputType } from './_pickerInternals/nativeInputSupport';
 import type { SegmentKind } from './_pickerInternals/segmentMap';
+import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
 const pad2 = (n: number): string => String(n).padStart(2, '0');
@@ -44,11 +47,13 @@ const pad2 = (n: number): string => String(n).padStart(2, '0');
 /**
  * The value as the native input and the hidden form input carry it:
  * `YYYY-MM-DD`, `YYYY-MM` or `YYYY`, the shapes `<input type="date">` and
- * `<input type="month">` use.
+ * `<input type="month">` use. The year is padded to four digits, as those
+ * inputs require and as the `YYYY` token displays it.
  */
 const toIsoValue = (d: Date, granularity: DateGranularity): string => {
-  if (granularity === 'year') return `${d.getFullYear()}`;
-  const month = `${d.getFullYear()}-${pad2(d.getMonth() + 1)}`;
+  const year = String(d.getFullYear()).padStart(4, '0');
+  if (granularity === 'year') return year;
+  const month = `${year}-${pad2(d.getMonth() + 1)}`;
   return granularity === 'month' ? month : `${month}-${pad2(d.getDate())}`;
 };
 
@@ -56,7 +61,7 @@ const toIsoValue = (d: Date, granularity: DateGranularity): string => {
 const fromIsoValue = (s: string, granularity: DateGranularity): Date | null => {
   if (granularity === 'month') {
     const m = /^(\d{4})-(\d{2})$/.exec(s);
-    return m ? new Date(Number(m[1]), Number(m[2]) - 1, 1) : null;
+    return m ? makeDate(Number(m[1]), Number(m[2]) - 1) : null;
   }
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
   if (!m) return null;
@@ -123,8 +128,9 @@ export interface DateInputBaseProps
    * day grid, `'month'` a grid of the focused year's months whose header
    * steps a year at a time, and `'year'` the year list. A month or year value
    * is the first day of that period at local midnight, so `onChange` gets
-   * `new Date(2026, 5, 1)` for June 2026, and a `value` elsewhere in the
-   * period shows as that period without being rewritten. `min`, `max`,
+   * `new Date(2026, 5, 1)` for June 2026. A `value` elsewhere in the period
+   * shows as that period and stays as given until the user picks a period or
+   * types a different one. `min`, `max`,
    * `shouldDisableDate` and `unselectableDates` judge whole periods: a month
    * or year can be picked while any day in it can, so a `min` of 15 June
    * still allows June, and June commits as 1 June, earlier than that `min`.
@@ -151,9 +157,13 @@ export interface DateInputBaseProps
   /** Render the calendar inline (no popover). */
   inline?: boolean;
   /**
-   * Use `<input type="date">` on coarse-pointer + small-viewport devices, or
-   * `<input type="month">` when `granularity` is `'month'`. HTML has no year
-   * input, so `'year'` granularity always renders the calendar.
+   * Use `<input type="date">` on coarse-pointer + small-viewport devices. At
+   * `'month'` granularity it uses `<input type="month">` where the browser
+   * implements one, as Chromium browsers, Safari on iOS and Firefox for
+   * Android do, and the calendar where it doesn't, as in desktop Firefox.
+   * Desktop Safari accepts the type but draws no month control, so forcing
+   * `true` there shows a plain text box. HTML has no year input, so `'year'`
+   * granularity always renders the calendar.
    */
   mobileNative?: boolean | 'auto';
   /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. */
@@ -299,8 +309,15 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const { shouldUseNative } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
     });
-    // HTML has no year input, so a year picker always renders the calendar.
-    const useNative = !inline && shouldUseNative && granularity !== 'year';
+    // The day picker goes native as it always has. A month picker does only
+    // where the browser implements the month input, asked after hydration so
+    // the server and the first client render agree. HTML has no year input,
+    // so a year picker always renders the calendar.
+    const hydrated = useIsHydrated();
+    const hasNativeInput =
+      isDayGranularity ||
+      (granularity === 'month' && hydrated && supportsInputType('month'));
+    const useNative = !inline && shouldUseNative && hasNativeInput;
 
     const inputClass = usePrefixedClassNames('input', {
       [`is-${color}`]: !!color,
@@ -407,11 +424,38 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       unselectableDates,
     ]);
 
+    // Typing, and the re-parse on blur or Enter, that lands in the period the
+    // value already holds commits nothing, so a `value` elsewhere in its month
+    // or year isn't rewritten by focus passing through the field.
+    const commitTyped = useCallback(
+      (next: Date | null) => {
+        if (
+          next &&
+          value &&
+          !isDayGranularity &&
+          startOfPeriod(next, granularity).getTime() ===
+            startOfPeriod(value, granularity).getTime()
+        ) {
+          setText(formatDate(value, resolvedFormat, locale));
+          return;
+        }
+        commitValue(next);
+      },
+      [
+        value,
+        isDayGranularity,
+        granularity,
+        resolvedFormat,
+        locale,
+        commitValue,
+      ]
+    );
+
     const { inputHandlers } = useSegmentedEntry({
       format: resolvedFormat,
       skipKinds: SKIPPED_SEGMENTS[granularity],
       value,
-      commitValue,
+      commitValue: commitTyped,
       formatFn: formatDate,
       tryParse,
       text,

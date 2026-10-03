@@ -23,6 +23,7 @@ import {
   endOfPeriod,
   isDayUnselectable,
   isPeriodUnselectable,
+  makeDate,
 } from '../_pickerInternals/dateUtils';
 
 describe('dateUtils', () => {
@@ -315,6 +316,20 @@ describe('dateUtils', () => {
       expect(startOfPeriod(early, 'year').getFullYear()).toBe(19);
       expect(startOfPeriod(early, 'month').getFullYear()).toBe(19);
       expect(endOfPeriod(early, 'year').getFullYear()).toBe(19);
+    });
+  });
+
+  describe('makeDate', () => {
+    it('builds local midnight, defaulting to the first of January', () => {
+      expect(makeDate(2024, 5, 15)).toEqual(new Date(2024, 5, 15));
+      expect(makeDate(2024, 5)).toEqual(new Date(2024, 5, 1));
+      expect(makeDate(2024)).toEqual(new Date(2024, 0, 1));
+    });
+
+    it('keeps years below 100 as given', () => {
+      const d = makeDate(19, 2, 4);
+      expect([d.getFullYear(), d.getMonth(), d.getDate()]).toEqual([19, 2, 4]);
+      expect([d.getHours(), d.getMinutes()]).toEqual([0, 0]);
     });
   });
 

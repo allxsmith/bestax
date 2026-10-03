@@ -901,6 +901,76 @@ describe('Calendar month granularity', () => {
     expect(getByLabelText('Année suivante')).toBeInTheDocument();
   });
 
+  describe('tab stop', () => {
+    const tabStop = (container: HTMLElement) =>
+      monthCells(container).filter(c => c.tabIndex === 0);
+
+    it.each([
+      ['the later neighbour', [5], 5, 'July'],
+      ['the earlier one when the later is out too', [5, 6], 5, 'May'],
+      ['back from December', [11], 11, 'November'],
+      ['on from January past a blocked February', [0, 1], 0, 'March'],
+    ])(
+      'moves off a disabled focused month to %s',
+      (_case, blocked, focused, expected) => {
+        const { container } = render(
+          <PeriodHarness
+            granularity="month"
+            focusedDate={new Date(2024, focused, 15)}
+            shouldDisableDate={d => blocked.includes(d.getMonth())}
+          />
+        );
+        const stops = tabStop(container);
+        expect(stops).toHaveLength(1);
+        expect(stops[0]).toHaveAttribute('aria-label', expected);
+        expect(stops[0]).not.toBeDisabled();
+      }
+    );
+
+    it('makes the month Tab reaches the focused one, so keys move from it', () => {
+      const onFocusedDateChange = jest.fn();
+      const onSelect = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          granularity="month"
+          shouldDisableDate={d => d.getMonth() === 5}
+          onFocusedDateChange={onFocusedDateChange}
+          onSelect={onSelect}
+        />
+      );
+      act(() => tabStop(container)[0].focus());
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2024, 6, 1));
+      press(container, 'ArrowRight');
+      expect(document.activeElement).toHaveAttribute('aria-label', 'August');
+      press(container, 'Enter');
+      expect(onSelect).toHaveBeenCalledWith(new Date(2024, 7, 1));
+    });
+
+    it('stays on the focused month when every month is disabled', () => {
+      const { container } = render(
+        <PeriodHarness granularity="month" shouldDisableDate={() => true} />
+      );
+      expect(tabStop(container)[0]).toHaveAttribute('aria-label', 'June');
+    });
+  });
+
+  it('keeps a year below 100 when a month is picked', () => {
+    const early = new Date(2024, 5, 15);
+    early.setFullYear(19);
+    const onSelect = jest.fn();
+    const { container, getByText } = render(
+      <PeriodHarness
+        granularity="month"
+        focusedDate={early}
+        onSelect={onSelect}
+      />
+    );
+    expect(getByText('19')).toBeInTheDocument();
+    fireEvent.click(monthCell(container, 'March'));
+    const picked: Date = onSelect.mock.calls[0][0];
+    expect([picked.getFullYear(), picked.getMonth()]).toEqual([19, 2]);
+  });
+
   it('shows caller-supplied month names on the cells', () => {
     const names = [
       'M1',
@@ -1145,6 +1215,31 @@ describe('Calendar year granularity', () => {
     expect(press(container, 'Escape')).toBe(true);
     expect(press(container, 'a')).toBe(true);
     expect(list(container)).not.toBeNull();
+  });
+
+  it('keeps a year below 100 when it is picked or reached', () => {
+    const early = new Date(2024, 5, 15);
+    early.setFullYear(19);
+    const onSelect = jest.fn();
+    const onFocusedDateChange = jest.fn();
+    const { container } = render(
+      <PeriodHarness
+        granularity="year"
+        focusedDate={early}
+        yearsRange={[15, 25]}
+        shouldDisableDate={d => d.getFullYear() === 20}
+        onSelect={onSelect}
+        onFocusedDateChange={onFocusedDateChange}
+      />
+    );
+    // The predicate sees year 20 itself, not 1920.
+    expect(yearOption(container, 20)).toBeDisabled();
+    press(container, 'ArrowRight');
+    expect((onFocusedDateChange.mock.calls[0][0] as Date).getFullYear()).toBe(
+      21
+    );
+    fireEvent.click(yearOption(container, 22));
+    expect((onSelect.mock.calls[0][0] as Date).getFullYear()).toBe(22);
   });
 
   it('keeps the listed years still while focus moves', () => {

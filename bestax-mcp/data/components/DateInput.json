@@ -439,7 +439,7 @@
           "name": "granularity",
           "type": "'day' | 'month' | 'year'",
           "default": "'day'",
-          "description": "What the calendar shows and what a selection means: `'day'` shows the day grid, `'month'` a grid of the focused year's months whose header steps a year at a time, and `'year'` the year list. A month or year value is the first day of that period at local midnight, so `onChange` gets `new Date(2026, 5, 1)` for June 2026, and a `value` elsewhere in the period shows as that period without being rewritten. `min`, `max`, `shouldDisableDate` and `unselectableDates` judge whole periods: a month or year can be picked while any day in it can, so a `min` of 15 June still allows June, and June commits as 1 June, earlier than that `min`. The default `format` follows the granularity (`'YYYY-MM'`, `'YYYY'`); a custom `format` with finer tokens still renders them, but typing skips them. `firstDayOfWeek`, `dayNames` and `nearbyMonthDays` only affect the day grid, and an `inline` calendar's hidden form value is `YYYY-MM` or `YYYY`. The `labels` keys `chooseMonth` / `chooseYear` name the launcher and popover, and `prevYear` / `nextYear` the month grid's header buttons.",
+          "description": "What the calendar shows and what a selection means: `'day'` shows the day grid, `'month'` a grid of the focused year's months whose header steps a year at a time, and `'year'` the year list. A month or year value is the first day of that period at local midnight, so `onChange` gets `new Date(2026, 5, 1)` for June 2026. A `value` elsewhere in the period shows as that period and stays as given until the user picks a period or types a different one. `min`, `max`, `shouldDisableDate` and `unselectableDates` judge whole periods: a month or year can be picked while any day in it can, so a `min` of 15 June still allows June, and June commits as 1 June, earlier than that `min`. The default `format` follows the granularity (`'YYYY-MM'`, `'YYYY'`); a custom `format` with finer tokens still renders them, but typing skips them. `firstDayOfWeek`, `dayNames` and `nearbyMonthDays` only affect the day grid, and an `inline` calendar's hidden form value is `YYYY-MM` or `YYYY`. The `labels` keys `chooseMonth` / `chooseYear` name the launcher and popover, and `prevYear` / `nextYear` the month grid's header buttons.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -484,7 +484,7 @@
           "name": "mobileNative",
           "type": "boolean | 'auto'",
           "default": "'auto'",
-          "description": "Use `<input type=\"date\">` on coarse-pointer + small-viewport devices, or `<input type=\"month\">` when `granularity` is `'month'`. HTML has no year input, so `'year'` granularity always renders the calendar.",
+          "description": "Use `<input type=\"date\">` on coarse-pointer + small-viewport devices. At `'month'` granularity it uses `<input type=\"month\">` where the browser implements one, as Chromium browsers, Safari on iOS and Firefox for Android do, and the calendar where it doesn't, as in desktop Firefox. Desktop Safari accepts the type but draws no month control, so forcing `true` there shows a plain text box. HTML has no year input, so `'year'` granularity always renders the calendar.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -666,7 +666,7 @@
           "name": "name",
           "type": "string",
           "default": null,
-          "description": "Form field name. Forwarded to a hidden ISO-formatted input.",
+          "description": "Form field name. The text field submits the text it displays. The native input on touch devices submits the ISO value (`YYYY-MM-DD`, or `YYYY-MM` at month granularity), and an `inline` calendar, which has no visible input, submits it from a hidden input (`YYYY-MM-DD`, `YYYY-MM` or `YYYY`).",
           "required": false,
           "inherited": false,
           "deprecated": false

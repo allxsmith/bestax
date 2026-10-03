@@ -3,8 +3,10 @@ import { render, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { DateInput } from '../DateInput';
 import { DateInputBase } from '../DateInputBase';
+import { renderToStaticMarkup } from 'react-dom/server';
 import { Field } from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
+import * as nativeInputSupport from '../_pickerInternals/nativeInputSupport';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -1142,6 +1144,68 @@ describe('DateInput month granularity', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
+  it.each([
+    ['month', '2024-06'],
+    ['year', '2024'],
+  ] as const)(
+    'leaves a controlled mid-%s value alone when focus passes through',
+    (granularity, text) => {
+      // Blur re-parses the displayed period, which lands on its first day.
+      // That is the period the value already holds, so nothing commits.
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInput
+          granularity={granularity}
+          value={new Date(2024, 5, 20)}
+          onChange={handler}
+          popover={false}
+        />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      focusInput(input);
+      fireEvent.blur(input);
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe(text);
+    }
+  );
+
+  it('leaves a mid-month value alone when typing lands on its month', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        granularity="month"
+        defaultValue={new Date(2024, 5, 20)}
+        onChange={handler}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.keyDown(input, { key: 'ArrowRight' }); // month
+    fireEvent.keyDown(input, { key: '0' });
+    fireEvent.keyDown(input, { key: '6' }); // June again
+    fireEvent.keyDown(input, { key: 'Tab' });
+    fireEvent.blur(input);
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06');
+  });
+
+  it('still drops the time from a day value on blur, as before', () => {
+    // The day picker re-parses its text on blur, which commits midnight.
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        value={new Date(2024, 5, 20, 14, 30)}
+        onChange={handler}
+        popover={false}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    fireEvent.blur(input);
+    expect(handler).toHaveBeenCalledWith(new Date(2024, 5, 20));
+  });
+
   it('opens on the month grid and commits the first of the picked month', () => {
     const handler = jest.fn();
     const { getByRole, getByLabelText, queryByRole } = render(
@@ -1342,6 +1406,29 @@ describe('DateInput month granularity', () => {
     );
   });
 
+  it.each([
+    ['month', '0019-06'],
+    ['year', '0019'],
+  ] as const)(
+    'pads a year below 1000 to four digits in the %s form value',
+    (granularity, expected) => {
+      const early = new Date(2024, 5, 1);
+      early.setFullYear(19);
+      const { container } = render(
+        <DateInput
+          granularity={granularity}
+          inline
+          name="period"
+          defaultValue={early}
+        />
+      );
+      expect(
+        (container.querySelector('input[type="hidden"]') as HTMLInputElement)
+          .value
+      ).toBe(expected);
+    }
+  );
+
   it('submits YYYY-MM from an inline calendar', () => {
     const { container } = render(
       <DateInput
@@ -1419,6 +1506,58 @@ describe('DateInput month granularity', () => {
       });
       fireEvent.change(input);
       expect(handler).toHaveBeenCalledWith(null);
+    });
+
+    it('keeps a year below 100 as given', () => {
+      const handler = jest.fn();
+      const { container } = render(
+        <DateInput granularity="month" mobileNative onChange={handler} />
+      );
+      fireEvent.change(native(container), { target: { value: '0019-03' } });
+      const committed = handler.mock.calls[0][0] as Date;
+      expect([committed.getFullYear(), committed.getMonth()]).toEqual([19, 2]);
+    });
+
+    describe('where the browser has no month input', () => {
+      afterEach(() => jest.restoreAllMocks());
+
+      it('renders the calendar instead', () => {
+        // A browser without the type reads it back as text, so typing into
+        // it would parse every partial keystroke to null.
+        const supports = jest
+          .spyOn(nativeInputSupport, 'supportsInputType')
+          .mockReturnValue(false);
+        const { container, getByRole } = render(
+          <DateInput
+            granularity="month"
+            mobileNative
+            defaultValue={new Date(2024, 5, 20)}
+          />
+        );
+        expect(supports).toHaveBeenCalledWith('month');
+        expect(native(container)).toBeNull();
+        expect((getByRole('combobox') as HTMLInputElement).value).toBe(
+          '2024-06'
+        );
+      });
+
+      it('keeps the day picker on its native date input', () => {
+        const supports = jest.spyOn(nativeInputSupport, 'supportsInputType');
+        const { container } = render(<DateInput mobileNative />);
+        expect(container.querySelector('input[type="date"]')).not.toBeNull();
+        expect(supports).not.toHaveBeenCalled();
+      });
+    });
+
+    it('renders the calendar on the server, before it can ask', () => {
+      const supports = jest.spyOn(nativeInputSupport, 'supportsInputType');
+      const html = renderToStaticMarkup(
+        <DateInput granularity="month" mobileNative />
+      );
+      expect(html).not.toContain('type="month"');
+      expect(html).toContain('role="combobox"');
+      expect(supports).not.toHaveBeenCalled();
+      supports.mockRestore();
     });
   });
 });

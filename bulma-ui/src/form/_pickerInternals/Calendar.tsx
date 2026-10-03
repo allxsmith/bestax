@@ -27,6 +27,7 @@ import {
   isPeriodUnselectable,
   isSameDay,
   isSameMonth,
+  makeDate,
   startOfDay,
   startOfMonth,
 } from './dateUtils';
@@ -118,6 +119,20 @@ function monthStep(key: string, col: number): [number, 1 | -1] | null {
     default:
       return null;
   }
+}
+
+/**
+ * The month nearest `month` that `disabled` leaves enabled, `month` itself
+ * when it is. At equal distance the later month wins. With every month
+ * disabled it stays `month`, as there is nothing to reach.
+ */
+function nearestEnabledMonth(month: number, disabled: boolean[]): number {
+  if (!disabled[month]) return month;
+  for (let d = 1; d < 12; d++) {
+    if (month + d < 12 && !disabled[month + d]) return month + d;
+    if (month - d >= 0 && !disabled[month - d]) return month - d;
+  }
+  return month;
 }
 
 /**
@@ -227,7 +242,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   );
   const isYearUnselectable = useCallback(
     (year: number) =>
-      isPeriodUnselectable(new Date(year, 0, 1), 'year', {
+      isPeriodUnselectable(makeDate(year), 'year', {
         min,
         max,
         shouldDisableDate,
@@ -431,6 +446,24 @@ export const Calendar: React.FC<CalendarProps> = ({
     [isYearGranularity, yearList, isYearUnselectable]
   );
 
+  // Which of the focused year's months have no selectable day.
+  const disabledMonths = useMemo(
+    () =>
+      granularity === 'month'
+        ? Array.from({ length: 12 }, (_, m) =>
+            isMonthUnselectable(makeDate(focusedYear, m))
+          )
+        : [],
+    [granularity, focusedYear, isMonthUnselectable]
+  );
+  // The month grid's one tab stop. A disabled button can't take focus, so
+  // when the focused month is disabled the stop moves to the nearest enabled
+  // month, and focusing it makes it the focused month.
+  const tabStopMonth = nearestEnabledMonth(
+    focusedDate.getMonth(),
+    disabledMonths
+  );
+
   const handleYearSelect = useCallback(
     (year: number) => {
       const next = new Date(focusedDate);
@@ -447,8 +480,8 @@ export const Calendar: React.FC<CalendarProps> = ({
   // pick and `onSelect` gets the year's first day.
   const handleYearPick = useCallback(
     (year: number) => {
-      onFocusedDateChange(clampDate(new Date(year, 0, 1), min, max));
-      onSelect(new Date(year, 0, 1));
+      onFocusedDateChange(clampDate(makeDate(year), min, max));
+      onSelect(makeDate(year));
     },
     [min, max, onFocusedDateChange, onSelect]
   );
@@ -461,7 +494,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       const last = yearList[yearList.length - 1];
       for (let y = year; y >= first && y <= last; y += direction) {
         if (!disabledYears.has(y)) {
-          onFocusedDateChange(clampDate(new Date(y, 0, 1), min, max));
+          onFocusedDateChange(clampDate(makeDate(y), min, max));
           return;
         }
       }
@@ -687,10 +720,10 @@ export const Calendar: React.FC<CalendarProps> = ({
           {MONTH_ROWS.map(row => (
             <div key={row[0]} role="row" className={monthsRowClass}>
               {row.map(month => {
-                const date = new Date(focusedYear, month, 1);
-                const disabled = isMonthUnselectable(date);
+                const date = makeDate(focusedYear, month);
+                const disabled = disabledMonths[month];
                 const isSelected = !!value && isSameMonth(value, date);
-                const isFocused = month === focusedDate.getMonth();
+                const isFocused = month === tabStopMonth;
                 const isCurrent = isSameMonth(date, today);
                 const cellClass = prefixedClassNames(
                   classPrefix,
@@ -714,6 +747,13 @@ export const Calendar: React.FC<CalendarProps> = ({
                     data-focused={isFocused ? 'true' : undefined}
                     disabled={disabled}
                     className={cellClass}
+                    onFocus={() => {
+                      // Reached by Tab while the focused month is disabled,
+                      // or by pointer: keys move on from here.
+                      if (month !== focusedDate.getMonth()) {
+                        onFocusedDateChange(clampDate(date, min, max));
+                      }
+                    }}
                     onClick={() => {
                       onFocusedDateChange(clampDate(date, min, max));
                       onSelect(date);
