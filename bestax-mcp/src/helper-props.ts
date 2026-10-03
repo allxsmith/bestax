@@ -71,8 +71,12 @@ export interface HelperGroup {
  */
 export const HELPER_GROUPS: Record<string, HelperGroup> = {
   spacing: {
-    headings: ['### Margin'],
+    headings: ['### Margin', '### Gap'],
     props: [
+      'gap',
+      'columnGap',
+      'rowGap',
+      'gapless',
       'm',
       'mt',
       'mr',
