@@ -196,7 +196,11 @@ green and every AI review thread is resolved.
 - **Labels:** `ai-loop` (in the loop), `needs-human-review` (converged or contested — owner
   reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
-  an auto-applied `claude-assisted` provenance label.
+  an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
+  marks a `deep-review` PR whose newest deep review covers the head commit with nothing
+  left open, with every review thread resolved and every check green.
+  `review-converged.yml` adds and removes it, `scripts/review-converged.mjs` holds the full
+  definition, and an `ai-loop` PR never gets it.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
   head repository to be this one, so labelling a fork PR is a no-op: the job

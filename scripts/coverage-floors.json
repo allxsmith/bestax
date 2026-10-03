@@ -34,6 +34,7 @@
   "scripts/parse-scan-verdict.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/render-triage-comment.mjs": { "lines": 95, "branches": 88, "functions": 93 },
   "scripts/require-pnpm-publish.mjs": { "lines": 99, "branches": 78, "functions": 100 },
+  "scripts/review-converged.mjs": { "lines": 100, "branches": 98, "functions": 100 },
   "scripts/sanitize-repro-draft.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/verify-attestation.mjs": { "lines": 98, "branches": 89, "functions": 100 },
   "scripts/verify-oidc-context.mjs": { "lines": 98, "branches": 66, "functions": 100 }

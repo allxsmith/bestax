@@ -35,7 +35,9 @@ load-bearing**, not the file the change lives in:
   it. `ai-loop`, `ai-loop-paused` and `deep-review` steer automation the same way. Deleting or
   renaming one of those disables a control **with no workflow diff at all**, which is the exact
   hazard this section exists to name. A new `documentation` label is inert; a label a workflow
-  reads is middle row.
+  reads is middle row. `review-converged` is written by `review-converged.yml` for the owner
+  to read. That workflow reads it back only to decide whether to add or remove it, and no
+  automation gates on it.
 - **Schedules are not uniformly inert.** A `schedule:` on `ai-scan` or the stale sweep decides
   when a security control runs. A docs-build cadence does not.
 - **`dependabot.yml` ignores are not uniformly inert.** A `semver-major` ignore only declines a
@@ -532,7 +534,7 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
-  (`validate` and `publish`). The command below lists them.
+  (`validate` and `publish`), `review-converged` (`sync`). The command below lists them.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
   group by measuring every member instead of guessing for them. They all now **use** the same
   allowlist, and the gap between that and what the measurement produced is the part worth
