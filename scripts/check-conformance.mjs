@@ -3290,12 +3290,20 @@ function section(heading) {
 /**
  * What is wrong with the directories themselves, before any roster is read.
  * Pure, and separate from the walk, for the same reason rosterViolations is:
- * neither branch fires on the real tree, so only fixtures execute them.
+ * none of its branches fires on the real tree, so only fixtures execute them.
  */
 export function skillDirViolations(dirs) {
   const violations = [];
-  for (const { name, hasSkillFile } of dirs) {
-    if (!hasSkillFile) {
+  for (const { name, hasSkillFile, isSymlink } of dirs) {
+    if (isSymlink) {
+      // The sync scripts and the MCP index refuse it through skillFiles, so
+      // reporting it here keeps every tool on the same skill set.
+      violations.push(
+        `skills/${name}/: is a symbolic link, and the sync scripts and the ` +
+          `MCP index refuse a linked skill. Commit the real directory, or ` +
+          `remove the link.`
+      );
+    } else if (!hasSkillFile) {
       // A directory that looks like a skill and is not. The old hardcoded list
       // at least failed on a name it could not resolve; discovery just skips
       // it, which would be the same silent omission in a new place.

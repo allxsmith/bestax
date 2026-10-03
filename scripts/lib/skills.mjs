@@ -38,13 +38,27 @@ export function byCodePoint(a, b) {
  * A dotted directory WITHOUT a SKILL.md is tooling and is ignored; one WITH a
  * SKILL.md is reported, because every consumer of this predicate really would
  * bundle it.
+ *
+ * `isSymlink` marks a symbolic link to a directory. It stays in the skill set
+ * so every tool sees the same skills, and every tool refuses it: the
+ * conformance check reports it, and skillFiles throws on it for the sync
+ * scripts and the MCP index.
  */
 export async function readSkillDirs(dir) {
   const found = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
-    // A symbolic link is listed rather than skipped, so a linked skill is
-    // refused by skillFiles instead of quietly missing from every bundle.
-    if (!entry.isDirectory() && !entry.isSymbolicLink()) continue;
+    // A symbolic link counts only when it points at a directory, so a linked
+    // file such as `AGENTS.md -> CLAUDE.md` is not mistaken for a skill. A
+    // linked directory is listed and marked rather than skipped, so every
+    // consumer refuses it instead of quietly leaving it out.
+    const isSymlink = entry.isSymbolicLink();
+    const isDir = isSymlink
+      ? await stat(join(dir, entry.name)).then(
+          s => s.isDirectory(),
+          () => false
+        )
+      : entry.isDirectory();
+    if (!isDir) continue;
 
     // A regular file specifically: a directory named SKILL.md would satisfy
     // a bare existence probe and then break every consumer that reads it.
@@ -57,7 +71,7 @@ export async function readSkillDirs(dir) {
 
     if (entry.name.startsWith('.') && !hasSkillFile) continue;
 
-    found.push({ name: entry.name, hasSkillFile });
+    found.push({ name: entry.name, hasSkillFile, isSymlink });
   }
   return found.sort((a, b) => byCodePoint(a.name, b.name));
 }
@@ -119,48 +133,65 @@ export function isDsStore(path) {
 }
 
 /**
- * The files under `dir` a bundler ships, as paths relative to it with
- * forward slashes: depth first, each directory's entries in code-point
- * order, and nothing isDsStore matches. What the MCP index lists, so it
- * cannot list a file the sync scripts leave out.
- */
-/**
- * The error code a skill refusal carries: a skill file that is untracked or a
- * symbolic link. Callers tell it apart from an unexpected failure, such as a
- * permission error, which should keep its own message and stack.
+ * The error code a refusal carries: a skill file that is untracked or a
+ * symbolic link, or a sync that cannot start. Its message says what to do.
+ * Callers tell it apart from an unexpected failure, such as a permission
+ * error, which should keep its own message and stack.
  */
 export const SKILL_REFUSAL = 'ESKILLREFUSAL';
 
-function skillRefusal(message) {
-  return Object.assign(new Error(message), { code: SKILL_REFUSAL });
+/** An Error with `message` and `options` that carries SKILL_REFUSAL. */
+export function skillRefusal(message, options) {
+  return Object.assign(new Error(message, options), { code: SKILL_REFUSAL });
 }
 
 export function isSkillRefusal(err) {
   return err?.code === SKILL_REFUSAL;
 }
 
+/**
+ * What a command line prints when it fails: the message alone for a refusal,
+ * which already says what to do, and the full stack for anything else, a
+ * filesystem or programming error someone has to debug. The sync scripts and
+ * gen-mcp-index all print through this, so they classify a failure the same
+ * way, by its code.
+ */
+export function failureText(err) {
+  if (isSkillRefusal(err)) return String(err.message);
+  return String(err?.stack ?? err?.message ?? err);
+}
+
+/**
+ * The files under `dir` a bundler ships, as paths relative to it with
+ * forward slashes: depth first, each directory's entries in code-point
+ * order, and nothing isDsStore matches. What the MCP index lists, so it
+ * cannot list a file the sync scripts leave out. Throws a refusal on a
+ * symbolic link, at `dir` itself or anywhere below it.
+ */
 export async function skillFiles(dir) {
   if ((await lstat(dir)).isSymbolicLink()) {
-    throw skillRefusal(
-      `${dir} is a symbolic link. Commit a regular directory.`
-    );
+    throw skillRefusal(`${dir} is a symbolic link. Commit the real directory.`);
   }
   const out = [];
   const walk = async rel => {
     const entries = await readdir(join(dir, rel), { withFileTypes: true });
     for (const e of entries.sort((a, b) => byCodePoint(a.name, b.name))) {
       const next = rel ? `${rel}/${e.name}` : e.name;
-      // A symbolic link is refused, not skipped, before the .DS_Store
-      // exemption so no link slips through under that name. cp would recreate
-      // it as a link to the absolute source path, which dangles once the
-      // package leaves this machine, and this listing and the fingerprint
-      // built on it would never see a change behind it.
+      // .DS_Store is skipped first, file or link alike, since
+      // `ln -s /dev/null .DS_Store` is a common way to stop Finder writing
+      // one. Skipping a link is safe because the bundlers copy only the
+      // files this walk lists, so nothing under that name can ship.
+      if (isDsStore(next)) continue;
+      // Any other symbolic link is refused, not skipped. Copied as a link it
+      // would point at this checkout and dangle once the package leaves this
+      // machine. Followed, it would ship whatever it points at, which the
+      // vetting gate never saw.
       if (e.isSymbolicLink()) {
         throw skillRefusal(
-          `${join(dir, next)} is a symbolic link. Commit a regular file.`
+          `${join(dir, next)} is a symbolic link. ` +
+            'Commit the real file or directory.'
         );
       }
-      if (isDsStore(next)) continue;
       if (e.isDirectory()) await walk(next);
       else if (e.isFile()) out.push(next);
     }
