@@ -1,0 +1,47 @@
+version: "1"
+
+# A wrapper: Codemod's workflow engine has no jscodeshift step, so this runs the
+# published bestax-migrate CLI (jscodeshift inside) as a shell step.
+#
+# For people running `npx codemod bestax-migrate`:
+# - Run it from your app root. Shell steps run in the directory you start from,
+#   and `--target` does not move them. Point `paths` at your sources instead.
+# - Codemod's own `--dry-run` skips shell steps, so it previews nothing here.
+#   The `preview` workflow (`--workflow preview`) is the dry run.
+# - An interactive run prints the command and asks before running it.
+#
+# The step reads the params from the `PARAM_*` environment variables Codemod
+# sets for shell steps, not from `${{ params.* }}` templating, so the shell
+# never parses their text as code: a `;` or `$(...)` in `paths` or `options`
+# stays an argument. Codemod's param schema has no pattern to limit them to a
+# character class, so this is what keeps them data. `paths` and `options` are
+# left unquoted on purpose, so each space-separated word is its own argument.
+# The cost is that the approval prompt shows the variable names, not the
+# values. bestax-migrate also rejects a `source` it does not know.
+params:
+  schema:
+    source:
+      name: "Source"
+      description: "What the app uses today: react-bulma-components (v4), rbx (v2), bloomer (0.6), or bulma-classes (Bulma classes on plain JSX)"
+      type: string
+      oneOf:
+        - type: string
+          enum: ["react-bulma-components", "rbx", "bloomer", "bulma-classes"]
+    paths:
+      name: "Paths"
+      description: "Space-separated files or directories to migrate, relative to where you run the command"
+      type: string
+      default: "src"
+    options:
+      name: "Extra options"
+      description: "Optional bestax-migrate flags, such as --css keep, --no-deps or --extensions js,jsx. See https://github.com/allxsmith/bestax/tree/main/bestax-migrate#options"
+      type: string
+      default: ""
+
+nodes:
+  - id: migrate
+    name: Migrate to @allxsmith/bestax-bulma
+    type: automatic
+    steps:
+      - name: Run the pinned bestax-migrate release from npm
+        run: npx --yes bestax-migrate@2.24.0 "$PARAM_SOURCE" $PARAM_PATHS $PARAM_OPTIONS

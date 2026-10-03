@@ -1,0 +1,32 @@
+schema_version: "1.0"
+
+# The Codemod Registry listing for the bestax-migrate CLI. This package holds no
+# transform code. Its workflows run the npm release of bestax-migrate that they
+# pin, so `version` here, every pin in the workflows, and ../package.json must
+# name the same release. .github/workflows/codemod-registry.yml publishes it,
+# and `node scripts/codemod-registry.mjs bump` moves every pin at once.
+name: "bestax-migrate"
+version: "2.24.0"
+description: "Migrate a React app from react-bulma-components v4, rbx v2, bloomer 0.6 or raw Bulma classes on JSX to @allxsmith/bestax-bulma on Bulma v1. Rewrites imports, components, props, stylesheets and package.json, and leaves a TODO(bestax-migrate) comment wherever no safe conversion exists."
+author: "Alex Smith"
+license: "MIT"
+repository: "https://github.com/allxsmith/bestax"
+category: "migration"
+
+workflows:
+  - name: main
+    path: workflow.yaml
+    default: true
+    description: "Apply the migration"
+  - name: preview
+    path: workflows/preview.yaml
+    description: "Report what would change and write nothing (bestax-migrate --dry)"
+
+targets:
+  languages: ["typescript", "javascript"]
+
+keywords: ["cross-migration", "react", "bulma", "react-bulma-components", "rbx", "bloomer", "bestax"]
+
+registry:
+  access: "public"
+  visibility: "public"

@@ -1,0 +1,33 @@
+version: "1"
+
+# The same command as ../workflow.yaml plus --dry: it reports what would change
+# and the TODOs it would leave, and writes no file. It is a workflow of its own
+# because Codemod's `--dry-run` skips shell steps. ../workflow.yaml says why
+# the params arrive as `PARAM_*` environment variables.
+params:
+  schema:
+    source:
+      name: "Source"
+      description: "What the app uses today: react-bulma-components (v4), rbx (v2), bloomer (0.6), or bulma-classes (Bulma classes on plain JSX)"
+      type: string
+      oneOf:
+        - type: string
+          enum: ["react-bulma-components", "rbx", "bloomer", "bulma-classes"]
+    paths:
+      name: "Paths"
+      description: "Space-separated files or directories to check, relative to where you run the command"
+      type: string
+      default: "src"
+    options:
+      name: "Extra options"
+      description: "Optional bestax-migrate flags, such as --css keep, --no-deps or --extensions js,jsx. See https://github.com/allxsmith/bestax/tree/main/bestax-migrate#options"
+      type: string
+      default: ""
+
+nodes:
+  - id: preview
+    name: Preview the migration to @allxsmith/bestax-bulma (no writes)
+    type: automatic
+    steps:
+      - name: Run the pinned bestax-migrate release from npm with --dry
+        run: npx --yes bestax-migrate@2.24.0 "$PARAM_SOURCE" $PARAM_PATHS $PARAM_OPTIONS --dry

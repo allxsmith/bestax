@@ -64,6 +64,19 @@ Anything without a safe automatic conversion is left in place with a `// TODO(be
 npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
 ```
 
+### Through the Codemod Registry
+
+bestax-migrate is also in the [Codemod Registry](https://app.codemod.com/registry) as `bestax-migrate`, for teams that run their migrations through Codemod. That package runs this CLI from npm at a pinned release, which can trail the newest one:
+
+```bash
+# Preview (no writes)
+npx codemod bestax-migrate --workflow preview --param source=react-bulma-components
+# Apply
+npx codemod bestax-migrate --param source=react-bulma-components
+```
+
+Run it from your app root. `--param paths="src lib"` (default `src`) and `--param options="--css keep"` pass through to the CLI. Codemod's own `--dry-run` skips the shell step this package runs, so use the `preview` workflow for a dry run.
+
 ## Options
 
 | Flag                 | Description                                                                                    |

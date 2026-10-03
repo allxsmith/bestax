@@ -4,6 +4,7 @@
   "scripts/check-consumer-sbom.mjs": { "lines": 99, "branches": 88, "functions": 100 },
   "scripts/check-pointer-urls.mjs": { "lines": 98, "branches": 86, "functions": 100 },
   "scripts/check-security-txt-expiry.mjs": { "lines": 94, "branches": 84, "functions": 88 },
+  "scripts/codemod-registry.mjs": { "lines": 99, "branches": 94, "functions": 100 },
   "scripts/consumer-sbom-meta.mjs": { "lines": 98, "branches": 89, "functions": 100 },
   "scripts/coverage-floors.mjs": { "lines": 99, "branches": 100, "functions": 93 },
   "scripts/gen-api-docs.mjs": { "lines": 17, "branches": 1, "functions": 0 },

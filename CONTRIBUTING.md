@@ -398,6 +398,21 @@ The CI `publish` job grants `id-token: write`. It no longer pins an npm version:
 
 `bestax-mcp`'s listing in the official MCP Registry is published by a different workflow, `mcp-registry.yml`, from each `bestax-mcp@` GitHub release. Do **not** add that workflow as a trusted publisher on npm. It runs a third-party binary while holding `id-token: write`, and npm refusing that workflow's tokens is what keeps the binary away from npm. It needs no secret: the registry accepts its GitHub OIDC token for the `io.github.allxsmith` namespace.
 
+### Codemod Registry (bestax-migrate)
+
+`bestax-migrate/codemod/` is a small wrapper package in the [Codemod Registry](https://app.codemod.com/registry) that runs one pinned `bestax-migrate` release from npm. A maintainer publishes it by hand with `.github/workflows/codemod-registry.yml` (Actions, "Codemod Registry", run on `main`, `publish` checked). Left unchecked, only its `validate` job runs, which holds no secret and no `id-token: write`. Do **not** add that workflow as a trusted publisher on npm. Its `publish` job runs the third-party `codemod` CLI while holding `id-token: write`, and npm refusing that workflow's tokens is what keeps the CLI away from npm.
+
+The wrapper does not follow `bestax-migrate` releases on its own. To move it to the release `bestax-migrate/package.json` is at, run `node scripts/codemod-registry.mjs bump`, commit the result as `build(bestax-migrate): …` (which releases nothing), merge it, then run the workflow with `publish` checked. Until then its check step fails, naming that command. The `codemod` CLI itself is installed with `npm ci` from `.github/codemod-cli/`, and the header of `scripts/codemod-registry.mjs` says how to move that pin.
+
+One-time setup, in this order. Steps 1 and 2 come **before** the workflow is merged: a job that names an environment which does not exist creates it on the spot, with no reviewer and no branch rule, so the environment has to be there, protected, before anything on `main` can name it.
+
+1. Create a GitHub environment named `codemod-registry` with the maintainer as required reviewer and deployment branches limited to `main`.
+2. Sign in at [app.codemod.com](https://app.codemod.com) with GitHub, create an API key that can publish packages, and save it as a secret of that environment (not a repository secret) named `CODEMOD_API_KEY`.
+3. Merge the workflow.
+4. Run the workflow with `publish` unchecked, then checked. The first publish creates the unscoped `bestax-migrate` package with the API key.
+5. At [app.codemod.com/api-keys](https://app.codemod.com/api-keys), add a Trusted Publisher for `bestax-migrate`: owner `allxsmith`, repository `bestax`, workflow `.github/workflows/codemod-registry.yml`, environment `codemod-registry`, ref `refs/heads/main`.
+6. Delete the `CODEMOD_API_KEY` secret and revoke the key. Later runs publish with a GitHub OIDC token, so no long-lived registry credential remains.
+
 ---
 
 ## Code Quality Standards

@@ -128,6 +128,12 @@ The commit is still GPG-signed with the maintainer's key, so it shows as **Verif
 Preview locally without publishing: see "semantic-release dry-run" in
 [`CONTRIBUTING.md`](./CONTRIBUTING.md).
 
+`bestax-migrate`'s Codemod Registry package (`bestax-migrate/codemod/`) is not part of this
+process. It pins one `bestax-migrate` release, which semantic-release does not move, so a
+release leaves the registry serving the previous version until a `build(bestax-migrate)`
+change moves the pin and a maintainer publishes it with `codemod-registry.yml`. The steps
+are in [`CONTRIBUTING.md`](./CONTRIBUTING.md#codemod-registry-bestax-migrate).
+
 ## Example Scenarios
 
 ```bash

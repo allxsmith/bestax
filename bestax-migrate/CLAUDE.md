@@ -219,3 +219,30 @@ in a fresh scaffold until legacy imports show up. The canonical roster of surfac
 must agree on bundling lives in `create-bestax/CLAUDE.md`'s sync rules — don't restate
 it here. When the mapping gains or loses coverage, update
 `skills/bestax-migrate/references/` and the docs migration guide in the same PR.
+
+### Codemod Registry
+
+`codemod/` is this CLI's package in the Codemod Registry (`npx codemod bestax-migrate`).
+The registry has no jscodeshift engine, so it is a wrapper: its workflows run
+`npx --yes bestax-migrate@<version>` as a Codemod shell step. `.github/workflows/codemod-registry.yml`
+publishes it by manual dispatch, and `scripts/codemod-registry.mjs` holds the checks.
+
+- **The pins name one exact release and trail `package.json` between bumps.**
+  codemod.yaml's `version`, each `bestax-migrate@` in `codemod/`, and `package.json` must
+  agree when the workflow publishes, and the registry refuses a version it already has.
+  semantic-release moves only `package.json`, so the pins stay put until
+  `node scripts/codemod-registry.mjs bump` moves them in a `build(bestax-migrate)` change.
+  The test sibling holds the committed pins to agreeing with each other and to not leading
+  `package.json`. It never requires equality, because that would fail every open PR after
+  each release.
+- **`preview` exists because Codemod's `--dry-run` skips shell steps.** It is the same
+  command with `--dry`. Keep the two workflows' params in step.
+- **The `codemod/` workflows read params from `PARAM_*` environment variables**, which Codemod
+  sets for shell steps. Never put `${{ params.* }}` in a `run:` line: Codemod substitutes it
+  into the command before the shell parses it, so a value could run as code.
+- **`codemod/` does not ship on npm.** `files` names only `dist`, and a test fails on an
+  entry that could cover `codemod/`. Re-check with `pnpm -C bestax-migrate pack` after any
+  change to `files`.
+- **Nothing but the registry package goes in `codemod/`.** `codemod publish` uploads every
+  file in it. That is why the `codemod` CLI's own package.json and lockfile live in
+  `.github/codemod-cli/`, outside this package.

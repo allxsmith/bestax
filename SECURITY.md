@@ -76,6 +76,20 @@ Measures active in this repository and its release pipeline:
   committed in the workflow.
 - **SHA-pinned GitHub Actions** — every third-party action is pinned to a
   full commit SHA, not a movable tag.
+- **Codemod Registry listing.** `bestax-migrate` is also published to the
+  Codemod Registry, as a wrapper that runs one pinned, provenance-signed npm
+  release of the CLI. A maintainer publishes it by hand with
+  `.github/workflows/codemod-registry.yml`. Its validation job holds no
+  secret and cannot mint OIDC tokens; only the publish job, which runs in an
+  environment that needs the maintainer's approval, can. That workflow is
+  kept apart from the release job on purpose: npm's trusted publisher names
+  `ci.yml`, so npm refuses any token this one mints. The `codemod` CLI it
+  runs is installed with `npm ci` from a committed lockfile, so every
+  package in its tree is fixed to one version and integrity hash, with
+  lifecycle scripts off, then checked with `npm audit signatures`, and each
+  job is limited to its own egress allowlist. Publishing authenticates with
+  an API key only until a Trusted Publisher replaces it with short-lived
+  GitHub OIDC tokens.
 - **Socket.dev** — the Socket GitHub App reviews every pull request for
   malware, install scripts, obfuscated code, and privilege escalation in
   dependency changes, and posts two checks on every pull request. Its policy
