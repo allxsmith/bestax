@@ -83,8 +83,11 @@ jobs:
       github.repository == 'allxsmith/bestax' &&
       startsWith(github.event.release.tag_name || inputs.tag, 'bestax-mcp@')
     runs-on: ubuntu-latest
-    # Above the publish step's retry budget plus a hung attempt or two.
-    timeout-minutes: 30
+    # Every step before Publish has its own timeout-minutes, and Publish is
+    # bounded by the script's retry budget plus its last attempt.
+    # scripts/mcp-registry-publish.test.mjs holds their sum, with a margin for
+    # runner setup and teardown, inside this.
+    timeout-minutes: 45
     permissions:
       contents: read # checkout of a public repository
       id-token: write # GitHub OIDC login to the MCP Registry, nothing else
@@ -130,6 +133,7 @@ jobs:
       #     redirect no longer goes there.
       #   api.github.com, nodejs.org: no API call and no setup-node.
       - name: Harden runner
+        timeout-minutes: 2
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
           egress-policy: block
@@ -143,6 +147,7 @@ jobs:
       # .github/CLAUDE.md carries the mechanism and what to check when a run
       # looks wrong. Linux-only paths; the runner is ubuntu-latest.
       - name: Assert egress policy is enforced
+        timeout-minutes: 2
         run: |
           set -uo pipefail
           # harden-runner has several deliberate "install nothing, exit 0" paths
@@ -193,6 +198,7 @@ jobs:
       # No PR runs this workflow, so rule 9's bootstrap gap does not apply:
       # the first release run happens after the merge that adds the script.
       - name: Checkout main
+        timeout-minutes: 5
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
@@ -208,6 +214,7 @@ jobs:
       # TAG reaches the script through `env:`, never interpolated into the
       # script body; on a dispatch it is typed by hand.
       - name: Write the release version into server.json
+        timeout-minutes: 2
         run: |
           node --version
           node scripts/mcp-registry-publish.mjs prepare --tag "$TAG" --dir bestax-mcp
@@ -217,6 +224,7 @@ jobs:
       # dispatch typo, which would otherwise wait out the whole retry budget
       # for a version npm will never serve.
       - name: Check the tag exists
+        timeout-minutes: 2
         run: |
           if ! git ls-remote --exit-code --tags origin "refs/tags/$TAG" > /dev/null; then
             echo "::error::$TAG is not a tag in this repository."
@@ -243,6 +251,9 @@ jobs:
       # this pin: bump the version and the hash together, by hand, from the
       # new release's checksums file.
       - name: Install mcp-publisher
+        # Every attempt --retry allows, each cut off by --max-time, plus
+        # curl's backoff between them.
+        timeout-minutes: 5
         env:
           MCP_PUBLISHER_VERSION: v1.8.1
           MCP_PUBLISHER_SHA256: a06c9096dcb9727c13555b6be26c7effa707b01f06a4c561ba7a3635443cf2cc
@@ -250,7 +261,7 @@ jobs:
           set -euo pipefail
           dir="$RUNNER_TEMP/mcp-publisher"
           mkdir -p "$dir"
-          curl --proto '=https' --tlsv1.2 -fsSL --retry 3 \
+          curl --proto '=https' --tlsv1.2 -fsSL --retry 3 --max-time 60 \
             -o "$dir/mcp-publisher.tar.gz" \
             "https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}/mcp-publisher_linux_amd64.tar.gz"
           echo "${MCP_PUBLISHER_SHA256}  $dir/mcp-publisher.tar.gz" | sha256sum --check --strict -
