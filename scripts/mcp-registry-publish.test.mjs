@@ -8,15 +8,17 @@
  * the first group runs against the COMMITTED bestax-mcp/server.json and
  * package.json, so a mistake in either file fails a PR instead of a release.
  *
- * Nothing here reaches the network or spawns anything: fetch, the publisher,
- * the clock and the wait are all injected, so the whole retry budget costs no
- * time and the assertions are about what the policy spends, not about how
- * long it takes.
+ * Nothing here reaches the network or runs the publisher: fetch, the
+ * publisher, the clock and the wait are all injected, so the whole retry
+ * budget costs no time and the assertions are about what the policy spends,
+ * not about how long it takes. The one subprocess is the script itself, run
+ * with no arguments to check its entry point.
  *
  * `.mjs` and `node --test` rather than jest, matching the other root scripts.
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -32,6 +34,7 @@ import {
   ATTEMPT_TIMEOUT_MS,
   LOOKUP_TIMEOUT_MS,
   checkServer,
+  defaultSleep,
   main,
   parseArgs,
   prepare,
@@ -229,6 +232,19 @@ test('a name outside the registry grammar is refused without echoing it raw', ()
   );
 });
 
+test('a manifest with no name, or a server.json that is not an object, is refused', () => {
+  const { server, manifest } = fixture();
+  for (const nameless of [null, {}, { name: '' }, { name: 42 }]) {
+    assert.throws(() => checkServer(server, nameless), /has no name/);
+  }
+  for (const notObject of [null, 'io.github.o/pkg', 42]) {
+    assert.throws(
+      () => checkServer(notObject, manifest),
+      /is not a JSON object/
+    );
+  }
+});
+
 // ---------------------------------------------------------------------------
 // The tag
 // ---------------------------------------------------------------------------
@@ -311,6 +327,39 @@ test('prepare checks the files before it trusts the tag', () => {
   assert.equal(
     JSON.parse(fs.readFileSync(path.join(dir, 'server.json'), 'utf8')).version,
     VERSION_PLACEHOLDER
+  );
+});
+
+test('a file that cannot be read, or is not JSON, is named in the error', () => {
+  const missing = path.join(os.tmpdir(), 'mcp-registry-no-such-dir');
+  assert.throws(
+    () => prepare({ tag: 'pkg@1.0.0', dir: missing, log: () => {} }),
+    err =>
+      err.message ===
+        `cannot read ${path.join(missing, 'package.json')}: ENOENT` &&
+      err.cause?.code === 'ENOENT'
+  );
+
+  const { server, manifest } = fixture();
+  const serverPath = path.join(tempPackage(server, manifest), 'server.json');
+  fs.writeFileSync(serverPath, '{"name": "io.github.o/pkg",\n');
+  assert.throws(
+    () => readPrepared(serverPath),
+    err =>
+      err.message.startsWith(`${serverPath} is not valid JSON: `) &&
+      !err.message.includes('\n') &&
+      err.cause instanceof SyntaxError
+  );
+});
+
+test('readPrepared refuses a file with no valid name', () => {
+  const { server, manifest } = fixture();
+  const stamped = stampVersion(server, '1.0.0');
+  delete stamped.name;
+  const dir = tempPackage(stamped, manifest);
+  assert.throws(
+    () => readPrepared(path.join(dir, 'server.json')),
+    /has no valid name/
   );
 });
 
@@ -506,6 +555,20 @@ test('without that last look the same run is exhausted', async () => {
   assert.equal(result.outcome, 'exhausted');
   assert.equal(result.attempts, 3);
   assert.equal(h.state.checks, 4);
+});
+
+test('the default wait is a real timer of the length asked for', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout'] });
+  let done = false;
+  const waiting = defaultSleep(SLEEP_SECONDS * 1000).then(() => {
+    done = true;
+  });
+  t.mock.timers.tick(SLEEP_SECONDS * 1000 - 1);
+  await Promise.resolve();
+  assert.equal(done, false);
+  t.mock.timers.tick(1);
+  await waiting;
+  assert.equal(done, true);
 });
 
 test('a concurrent run publishing first ends this one cleanly', async () => {
@@ -747,6 +810,79 @@ test('a publisher binary that is missing exits 2, not 1', async () => {
     }
   );
   assert.equal(code, 2);
+});
+
+test('a file either mode cannot use exits 1 before anything runs', async () => {
+  const missing = path.join(os.tmpdir(), 'mcp-registry-no-such-dir');
+  const runs = [
+    ['prepare', '--tag', 'pkg@1.0.0', '--dir', missing],
+    [
+      'publish',
+      '--server-json',
+      path.join(missing, 'server.json'),
+      '--publisher',
+      '/bin/pub',
+    ],
+  ];
+  for (const argv of runs) {
+    const logs = [];
+    const code = await main(argv, {
+      log: l => logs.push(l),
+      fetch: () => assert.fail('nothing should be fetched'),
+      spawn: () => assert.fail('nothing should be spawned'),
+    });
+    assert.equal(code, 1, argv[0]);
+    assert.match(logs.join('\n'), /^::error::cannot read .*ENOENT$/m);
+  }
+});
+
+test('a version found after a failed attempt exits 0 without claiming it was already there', async () => {
+  const { server, manifest } = fixture();
+  const dir = tempPackage(stampVersion(server, '1.0.0'), manifest);
+  const logs = [];
+  let lookups = 0;
+  let t = 0;
+  const code = await main(
+    [
+      'publish',
+      '--server-json',
+      path.join(dir, 'server.json'),
+      '--publisher',
+      '/bin/pub',
+    ],
+    {
+      log: l => logs.push(l),
+      // Not there before the attempt; there at the next look.
+      fetch: async () =>
+        lookups++ === 0
+          ? { status: 404, json: async () => ({}) }
+          : {
+              status: 200,
+              json: async () => ({
+                server: { name: 'io.github.o/pkg', version: '1.0.0' },
+              }),
+            },
+      spawn: () => ({ status: 1 }),
+      now: () => t,
+      sleep: async ms => {
+        t += ms;
+      },
+    }
+  );
+  assert.equal(code, 0);
+  assert.match(logs.at(-1), /^::notice::.*found after 1 attempt\(s\)/);
+});
+
+test('run as a script, a usage error exits 2', () => {
+  // The workflow runs this file with node, so its entry point is checked
+  // the same way: no arguments is a usage error.
+  const result = spawnSync(
+    process.execPath,
+    [path.join(repoRoot, 'scripts', 'mcp-registry-publish.mjs')],
+    { encoding: 'utf8' }
+  );
+  assert.equal(result.status, 2);
+  assert.match(result.stdout, /^::error::usage: /);
 });
 
 // ---------------------------------------------------------------------------
