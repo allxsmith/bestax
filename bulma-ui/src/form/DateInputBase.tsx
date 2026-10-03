@@ -12,6 +12,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import {
   PickerPosition,
   DayOfWeek,
+  DateGranularity,
   PickerLabels,
   mergeLabels,
 } from './_pickerInternals/pickerTypes';
@@ -20,21 +21,67 @@ import {
   parseDate,
   DateFormatOption,
   DEFAULT_DATE_FORMAT,
+  DEFAULT_MONTH_FORMAT,
+  DEFAULT_YEAR_FORMAT,
 } from './_pickerInternals/formatters';
-import { isWithin, clampDate, isSameDay } from './_pickerInternals/dateUtils';
+import {
+  isWithin,
+  clampDate,
+  isSameDay,
+  isPeriodUnselectable,
+  makeDate,
+  startOfPeriod,
+  endOfPeriod,
+} from './_pickerInternals/dateUtils';
 import { Calendar } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import { supportsInputType } from './_pickerInternals/nativeInputSupport';
+import type { SegmentKind } from './_pickerInternals/segmentMap';
+import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
-const toIsoDate = (d: Date): string =>
-  `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+const pad2 = (n: number): string => String(n).padStart(2, '0');
 
-const fromIsoDate = (s: string): Date | null => {
+/**
+ * The value as the native input and the hidden form input carry it:
+ * `YYYY-MM-DD`, `YYYY-MM` or `YYYY`, the shapes `<input type="date">` and
+ * `<input type="month">` use. The year is padded to four digits, as those
+ * inputs require and as the `YYYY` token displays it.
+ */
+const toIsoValue = (d: Date, granularity: DateGranularity): string => {
+  const year = String(d.getFullYear()).padStart(4, '0');
+  if (granularity === 'year') return year;
+  const month = `${year}-${pad2(d.getMonth() + 1)}`;
+  return granularity === 'month' ? month : `${month}-${pad2(d.getDate())}`;
+};
+
+/** Read a native `type="date"` or `type="month"` value back into a Date. */
+const fromIsoValue = (s: string, granularity: DateGranularity): Date | null => {
+  if (granularity === 'month') {
+    const m = /^(\d{4})-(\d{2})$/.exec(s);
+    return m ? makeDate(Number(m[1]), Number(m[2]) - 1) : null;
+  }
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
   if (!m) return null;
   return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+};
+
+const DEFAULT_FORMATS: Record<DateGranularity, string> = {
+  day: DEFAULT_DATE_FORMAT,
+  month: DEFAULT_MONTH_FORMAT,
+  year: DEFAULT_YEAR_FORMAT,
+};
+
+// Segments finer than the granularity render but are never edited.
+const SKIPPED_SEGMENTS: Record<
+  DateGranularity,
+  readonly SegmentKind[] | undefined
+> = {
+  day: undefined,
+  month: ['day'],
+  year: ['month', 'day'],
 };
 
 /**
@@ -77,7 +124,29 @@ export interface DateInputBaseProps
   /** Placeholder text for the input. */
   placeholder?: string;
   /**
-   * Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD'`.
+   * What the calendar shows and what a selection means: `'day'` shows the
+   * day grid, `'month'` a grid of the focused year's months whose header
+   * steps a year at a time, and `'year'` the year list. A month or year value
+   * is the first day of that period at local midnight, so `onChange` gets
+   * `new Date(2026, 5, 1)` for June 2026. A `value` elsewhere in the period
+   * shows as that period and stays as given until the user picks a period or
+   * types a different one. `min`, `max`,
+   * `shouldDisableDate` and `unselectableDates` judge whole periods: a month
+   * or year can be picked while any day in it can, so a `min` of 15 June
+   * still allows June, and June commits as 1 June, earlier than that `min`.
+   * The default `format` follows the granularity (`'YYYY-MM'`, `'YYYY'`); a
+   * custom `format` with finer tokens still renders them, but typing skips
+   * them. `firstDayOfWeek`, `dayNames` and `nearbyMonthDays` only affect the
+   * day grid, and an `inline` calendar's hidden form value is `YYYY-MM` or
+   * `YYYY`. The `labels` keys `chooseMonth` / `chooseYear` name the launcher
+   * and popover, and `prevYear` / `nextYear` the month grid's header buttons.
+   * @defaultValue 'day'
+   */
+  granularity?: DateGranularity;
+  /**
+   * Token format string or `Intl.DateTimeFormat` options. Defaults to
+   * `'YYYY-MM-DD'`, or to `'YYYY-MM'` / `'YYYY'` when `granularity` is
+   * `'month'` / `'year'`.
    * @defaultValue 'YYYY-MM-DD'
    */
   format?: DateFormatOption;
@@ -87,7 +156,15 @@ export interface DateInputBaseProps
   locale?: string;
   /** Render the calendar inline (no popover). */
   inline?: boolean;
-  /** Use `<input type="date">` on coarse-pointer + small-viewport devices. */
+  /**
+   * Use `<input type="date">` on coarse-pointer + small-viewport devices. At
+   * `'month'` granularity it uses `<input type="month">` where the browser
+   * implements one, as Chromium browsers, Safari on iOS and Firefox for
+   * Android do, and the calendar where it doesn't, as in desktop Firefox.
+   * Desktop Safari accepts the type but draws no month control, so forcing
+   * `true` there shows a plain text box. HTML has no year input, so `'year'`
+   * granularity always renders the calendar.
+   */
   mobileNative?: boolean | 'auto';
   /** Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only. */
   editable?: boolean;
@@ -158,6 +235,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       disabled,
       readOnly,
       placeholder,
+      granularity = 'day',
       format,
       parse,
       locale,
@@ -195,6 +273,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     } = props;
 
     const t = mergeLabels(labels);
+    const isDayGranularity = granularity === 'day';
+    const resolvedFormat = format ?? DEFAULT_FORMATS[granularity];
 
     const isControlled = controlledValue !== undefined;
     const [internalValue, setInternalValue] = useState<Date | null>(
@@ -216,7 +296,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     }, [min, max]);
     const [open, setOpenState] = useState(false);
     const [text, setText] = useState<string>(
-      value ? formatDate(value, format, locale) : ''
+      value ? formatDate(value, resolvedFormat, locale) : ''
     );
 
     const inputRef = useRef<HTMLInputElement>(null);
@@ -229,7 +309,15 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const { shouldUseNative } = useNativeMobilePicker({
       force: mobileNative === 'auto' ? undefined : mobileNative,
     });
-    const useNative = !inline && shouldUseNative;
+    // The day picker goes native as it always has. A month picker does only
+    // where the browser implements the month input, asked after hydration so
+    // the server and the first client render agree. HTML has no year input,
+    // so a year picker always renders the calendar.
+    const hydrated = useIsHydrated();
+    const hasNativeInput =
+      isDayGranularity ||
+      (granularity === 'month' && hydrated && supportsInputType('month'));
+    const useNative = !inline && shouldUseNative && hasNativeInput;
 
     const inputClass = usePrefixedClassNames('input', {
       [`is-${color}`]: !!color,
@@ -253,27 +341,42 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
 
     // Sync displayed text with value when value changes externally.
     useEffect(() => {
-      setText(value ? formatDate(value, format, locale) : '');
-    }, [value, format, locale]);
+      setText(value ? formatDate(value, resolvedFormat, locale) : '');
+    }, [value, resolvedFormat, locale]);
 
     const commitValue = useCallback(
       (next: Date | null) => {
-        if (!isControlled) setInternalValue(next);
+        // A month or year value is its period's first day, however the
+        // calendar, typing or parsing arrived at it.
+        const committed =
+          next && !isDayGranularity ? startOfPeriod(next, granularity) : next;
+        if (!isControlled) setInternalValue(committed);
         // Keep the calendar's focused cell tracking typed / parsed values.
-        if (next) setFocusedDate(next);
-        onChange?.(next);
+        if (committed) setFocusedDate(committed);
+        onChange?.(committed);
       },
-      [isControlled, onChange]
+      [isControlled, onChange, isDayGranularity, granularity]
+    );
+
+    // At month or year granularity the bounds widen to the periods holding
+    // them, so the month or year containing `min` stays reachable.
+    const periodMin = useMemo(
+      () => (min && !isDayGranularity ? startOfPeriod(min, granularity) : min),
+      [min, isDayGranularity, granularity]
+    );
+    const periodMax = useMemo(
+      () => (max && !isDayGranularity ? endOfPeriod(max, granularity) : max),
+      [max, isDayGranularity, granularity]
     );
 
     const handleSelect = useCallback(
       (d: Date) => {
-        if (!isWithin(d, min, max)) return;
+        if (!isWithin(d, periodMin, periodMax)) return;
         commitValue(d);
         setFocusedDate(d);
         if (closeOnSelect) setOpen(false);
       },
-      [min, max, commitValue, closeOnSelect, setOpen]
+      [periodMin, periodMax, commitValue, closeOnSelect, setOpen]
     );
 
     const tryParse = useCallback(
@@ -283,43 +386,84 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         const fmt = typeof format === 'string' ? format : undefined;
         return parse
           ? parse(trimmed)
-          : parseDate(trimmed, fmt ?? DEFAULT_DATE_FORMAT, locale);
+          : parseDate(trimmed, fmt ?? DEFAULT_FORMATS[granularity], locale);
       },
-      [parse, format, locale]
+      [parse, format, locale, granularity]
     );
 
     // The Date the user edits when starting without a current value (today at
-    // midnight; the hook clamps to min/max on commit).
+    // midnight, or the start of this month or year; the hook clamps to
+    // min/max on commit).
     const makeBaseDate = useCallback((): Date => {
       const d = new Date();
       d.setHours(0, 0, 0, 0);
-      return d;
-    }, []);
+      return isDayGranularity ? d : startOfPeriod(d, granularity);
+    }, [isDayGranularity, granularity]);
 
     const inputReadOnlyAttr = !!readOnly || !editable;
     const canOpen = !!popover && !disabled && !readOnly;
 
     // Blocking predicate for manual entry, matching the calendar's
-    // disabled-cell logic (shouldDisableDate + unselectableDates by day).
+    // disabled-cell logic (shouldDisableDate + unselectableDates by day, or
+    // every day of the month or year blocked at those granularities).
     const isBlocked = useMemo(() => {
+      if (!isDayGranularity) {
+        const constraints = { min, max, shouldDisableDate, unselectableDates };
+        return (d: Date) => isPeriodUnselectable(d, granularity, constraints);
+      }
       if (!shouldDisableDate && !unselectableDates?.length) return undefined;
       return (d: Date) =>
         !!shouldDisableDate?.(d) ||
         !!unselectableDates?.some(u => isSameDay(u, d));
-    }, [shouldDisableDate, unselectableDates]);
+    }, [
+      isDayGranularity,
+      granularity,
+      min,
+      max,
+      shouldDisableDate,
+      unselectableDates,
+    ]);
+
+    // Typing, and the re-parse on blur or Enter, that lands in the period the
+    // value already holds commits nothing, so a `value` elsewhere in its month
+    // or year isn't rewritten by focus passing through the field.
+    const commitTyped = useCallback(
+      (next: Date | null) => {
+        if (
+          next &&
+          value &&
+          !isDayGranularity &&
+          startOfPeriod(next, granularity).getTime() ===
+            startOfPeriod(value, granularity).getTime()
+        ) {
+          setText(formatDate(value, resolvedFormat, locale));
+          return;
+        }
+        commitValue(next);
+      },
+      [
+        value,
+        isDayGranularity,
+        granularity,
+        resolvedFormat,
+        locale,
+        commitValue,
+      ]
+    );
 
     const { inputHandlers } = useSegmentedEntry({
-      format: format ?? DEFAULT_DATE_FORMAT,
+      format: resolvedFormat,
+      skipKinds: SKIPPED_SEGMENTS[granularity],
       value,
-      commitValue,
+      commitValue: commitTyped,
       formatFn: formatDate,
       tryParse,
       text,
       setText,
       makeBaseDate,
       locale,
-      min,
-      max,
+      min: periodMin,
+      max: periodMax,
       isBlocked,
       disabled,
       readOnly,
@@ -351,21 +495,24 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       [ref]
     );
 
-    // Native mobile path renders <input type="date">.
+    // Native mobile path renders <input type="date"> (type="month" for a
+    // month picker).
     if (useNative) {
       return (
         <input
           {...cleanRest}
           ref={combinedRef}
-          type="date"
+          type={isDayGranularity ? 'date' : 'month'}
           className={classNames(inputClass, bulmaHelperClasses, className)}
-          value={value ? toIsoDate(value) : ''}
+          value={value ? toIsoValue(value, granularity) : ''}
           onChange={e => {
-            const parsed = e.target.value ? fromIsoDate(e.target.value) : null;
+            const parsed = e.target.value
+              ? fromIsoValue(e.target.value, granularity)
+              : null;
             commitValue(parsed);
           }}
-          min={min ? toIsoDate(min) : undefined}
-          max={max ? toIsoDate(max) : undefined}
+          min={min ? toIsoValue(min, granularity) : undefined}
+          max={max ? toIsoValue(max, granularity) : undefined}
           disabled={disabled}
           readOnly={readOnly}
           placeholder={placeholder}
@@ -377,8 +524,18 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       );
     }
 
+    const chooseLabel =
+      granularity === 'month'
+        ? t.chooseMonth
+        : granularity === 'year'
+          ? t.chooseYear
+          : t.chooseDate;
+
     const calendar = (
       <Calendar
+        // A new granularity starts the calendar over on its own view.
+        key={granularity}
+        granularity={granularity}
         value={value}
         focusedDate={focusedDate}
         onSelect={handleSelect}
@@ -413,7 +570,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
               type="hidden"
               name={name}
               form={form}
-              value={value ? toIsoDate(value) : ''}
+              value={value ? toIsoValue(value, granularity) : ''}
               required={required}
             />
           )}
@@ -454,7 +611,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
               if (canOpen) setOpen(!open);
             }}
             disabled={!canOpen}
-            aria-label={t.chooseDate}
+            aria-label={chooseLabel}
             aria-haspopup="dialog"
             aria-controls={popoverId}
             aria-expanded={open}
@@ -470,7 +627,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
             anchorRef={containerRef}
             position={position}
             appendToBody={appendToBody}
-            ariaLabel={t.chooseDate}
+            ariaLabel={chooseLabel}
             id={popoverId}
           >
             {calendar}

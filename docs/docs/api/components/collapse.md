@@ -206,34 +206,6 @@ function example() {
 
 ---
 
-### Card Style
-
-Collapse with card styling.
-
-```tsx live
-function example() {
-  return (
-    <Collapse
-      className="collapse is-card"
-      defaultOpen
-      trigger={
-        <Block className="collapse-trigger-header">
-          <Span>Card Collapse</Span>
-          <Icon name="fas fa-chevron-down" aria-hidden="true" />
-        </Block>
-      }
-    >
-      <Paragraph>
-        This collapse is styled like a card with shadow and padding.
-      </Paragraph>
-      <Paragraph>Perfect for FAQ sections or settings panels.</Paragraph>
-    </Collapse>
-  );
-}
-```
-
----
-
 ### FAQ Example
 
 A common FAQ pattern, where answers open independently: `Collapses` with `multiple` holds the
@@ -291,7 +263,6 @@ The Collapse component supports these additional CSS classes:
 | Class         | Description                         |
 | ------------- | ----------------------------------- |
 | `is-active`   | Applied when the collapse is open   |
-| `is-card`     | Card-style with shadow and padding  |
 | `is-bordered` | Bordered style with rounded corners |
 
 ---

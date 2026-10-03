@@ -531,7 +531,8 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `deploy-worker` (`deploy`), `supply-chain` (`consumer-sbom` and `sign-sbom`),
   `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
-  `claude-pr-loop` (`fix` and `verify`). The command below lists them.
+  `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`). The command below lists
+  them.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
   group by measuring every member instead of guessing for them. They all now **use** the same
   allowlist, and the gap between that and what the measurement produced is the part worth
@@ -600,6 +601,7 @@ Citing egress-block as a control is now legitimate **for the first group only**,
 what it actually does: it bounds where data can go, not what a session can do with an
 allow-listed host (see I1). Widening an allowlist remains a security change under rule 2, and
 `sign-sbom`'s list is still assembled by reading the actions rather than from a measured run.
+So is `mcp-registry`'s `publish` list, which no run had exercised when it was written.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
@@ -706,4 +708,7 @@ mark a deliberate exception with `bestax:count-ok` on the same line and say why.
 - **Release and publish pipeline** — `ci.yml`, plus `VERSIONING.md` for the semantic-release
   contract. Note that `main` is protected by a repository ruleset whose only automation bypass
   is the release GitHub App, and its token is minted _after_ install and build so repo-owned
-  build code can never reach it.
+  build code can never reach it. bestax-mcp's MCP Registry listing is published from each
+  release by `mcp-registry.yml`, which is kept out of `ci.yml` on purpose: npm's trusted
+  publisher names `ci.yml`, and the header of `mcp-registry.yml` says why the third-party
+  publisher binary must not run under it.

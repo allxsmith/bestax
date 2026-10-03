@@ -37,6 +37,12 @@ const meta: Meta<typeof DateInput> = {
       control: 'select',
       options: [undefined, 'small', 'medium', 'large'],
     },
+    granularity: {
+      control: 'select',
+      options: ['day', 'month', 'year'],
+      description:
+        'What the calendar shows and what a selection means: a day, a month (the first of it) or a year (its first day).',
+    },
     inline: { control: 'boolean' },
     disabled: { control: 'boolean' },
     readOnly: { control: 'boolean' },
@@ -656,6 +662,73 @@ export const ManualEntryCustomParse: Story = {
       description: {
         story:
           'An `Intl` format has no segments, so typing is free-form and the `parse` callback turns the text back into a `Date` on Enter or blur. `openOnFocus={false}` keeps the calendar behind the launcher icon or `↓` while you type.',
+      },
+    },
+  },
+};
+
+export const MonthPicker: Story = {
+  render: function Render() {
+    // Held in state so `min` keeps one identity across renders.
+    const [today] = useState(() => new Date());
+    const [value, setValue] = useState<Date | null>(null);
+    return (
+      <Block>
+        <DateInput
+          label="Card expiry"
+          granularity="month"
+          format="MM/YY"
+          placeholder="MM/YY"
+          min={today}
+          value={value}
+          onChange={setValue}
+        />
+        <Paragraph>
+          Value: {value ? value.toDateString() : 'none'} (the first of the
+          month)
+        </Paragraph>
+      </Block>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`granularity="month"` opens on a grid of the year\'s months, and the header steps a year at a time. Picking a month commits its first day. `min` is today, so past months are disabled while this month stays selectable though part of it has passed.',
+      },
+    },
+  },
+};
+
+export const YearPicker: Story = {
+  args: {
+    label: 'Graduation year',
+    granularity: 'year',
+    min: new Date(1950, 0, 1),
+    max: new Date(2035, 11, 31),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`granularity="year"` makes the year list the selection surface: picking a year commits 1 January of it. Arrow keys move through the list, Home and End jump to its ends, and `min`/`max` bound it.',
+      },
+    },
+  },
+};
+
+export const InlineMonthPicker: Story = {
+  args: {
+    label: 'Billing period',
+    granularity: 'month',
+    inline: true,
+    defaultValue: new Date(),
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Rendered inline, the month grid shows without a popover. With a `name`, the hidden form value is `YYYY-MM`.',
       },
     },
   },

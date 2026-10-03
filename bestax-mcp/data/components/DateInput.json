@@ -26,6 +26,18 @@
       "code": "<DateInput label=\"Inline calendar\" inline defaultValue={new Date()} />"
     },
     {
+      "title": "Month and Year Pickers",
+      "code": "function example() {\n  const [expiry, setExpiry] = useState<Date | null>(null);\n  return (\n    <Block>\n      <DateInput\n        label=\"Card expiry\"\n        granularity=\"month\"\n        format=\"MM/YY\"\n        placeholder=\"MM/YY\"\n        min={new Date()}\n        value={expiry}\n        onChange={setExpiry}\n        mobileNative={false}\n      />\n      <Paragraph mt=\"2\">\n        Selected: {expiry ? expiry.toDateString() : 'none'}\n      </Paragraph>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Month and Year Pickers",
+      "code": "<DateInput\n  label=\"Graduation year\"\n  granularity=\"year\"\n  min={new Date(1950, 0, 1)}\n  max={new Date(2035, 11, 31)}\n/>"
+    },
+    {
+      "title": "Month and Year Pickers",
+      "code": "<DateInput\n  label=\"Billing period\"\n  granularity=\"month\"\n  inline\n  defaultValue={new Date()}\n/>"
+    },
+    {
       "title": "Min and Max",
       "code": "function example() {\n  const today = new Date();\n  const min = new Date(today.getFullYear(), today.getMonth(), 1);\n  const max = new Date(today.getFullYear(), today.getMonth() + 1, 0);\n  return (\n    <DateInput\n      label=\"This month only\"\n      min={min}\n      max={max}\n      defaultValue={today}\n    />\n  );\n}"
     },
@@ -158,7 +170,7 @@
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Date\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateInput placeholder=\"YYYY-MM-DD\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Calendar uses `role=\"grid\"` with cells as `role=\"gridcell\"`.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today.\n- Roving `tabindex` keeps a single grid cell focusable at a time.\n- Honors `prefers-reduced-motion` (skip popover fade-in).",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Calendar uses `role=\"grid\"` with cells as `role=\"gridcell\"`.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today.\n- Roving `tabindex` keeps a single grid cell focusable at a time.\n- The month grid is a `role=\"grid\"` of `role=\"row\"`s, labelled by the year in its header. Each month cell carries the full month name as its accessible name, `aria-current=\"date\"` for this month and `aria-disabled` for a month with no selectable day.\n- The year list is a `role=\"listbox\"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list.\n- The launcher and popover are named \"Choose month\" or \"Choose year\" to match the granularity; override them, and the month grid's \"Previous year\" / \"Next year\" buttons, through `labels` (`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`).\n- Honors `prefers-reduced-motion` (skip popover fade-in).",
   "related": ["DateTimeInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-dateinput",
   "summary": "The `DateInput` component is a form input that opens a popover calendar for date selection.",
@@ -424,10 +436,19 @@
           "deprecated": false
         },
         {
+          "name": "granularity",
+          "type": "'day' | 'month' | 'year'",
+          "default": "'day'",
+          "description": "What the calendar shows and what a selection means: `'day'` shows the day grid, `'month'` a grid of the focused year's months whose header steps a year at a time, and `'year'` the year list. A month or year value is the first day of that period at local midnight, so `onChange` gets `new Date(2026, 5, 1)` for June 2026. A `value` elsewhere in the period shows as that period and stays as given until the user picks a period or types a different one. `min`, `max`, `shouldDisableDate` and `unselectableDates` judge whole periods: a month or year can be picked while any day in it can, so a `min` of 15 June still allows June, and June commits as 1 June, earlier than that `min`. The default `format` follows the granularity (`'YYYY-MM'`, `'YYYY'`); a custom `format` with finer tokens still renders them, but typing skips them. `firstDayOfWeek`, `dayNames` and `nearbyMonthDays` only affect the day grid, and an `inline` calendar's hidden form value is `YYYY-MM` or `YYYY`. The `labels` keys `chooseMonth` / `chooseYear` name the launcher and popover, and `prevYear` / `nextYear` the month grid's header buttons.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
           "name": "format",
           "type": "Intl.DateTimeFormatOptions | string",
           "default": "'YYYY-MM-DD'",
-          "description": "Token format string or `Intl.DateTimeFormat` options. Default `'YYYY-MM-DD'`.",
+          "description": "Token format string or `Intl.DateTimeFormat` options. Defaults to `'YYYY-MM-DD'`, or to `'YYYY-MM'` / `'YYYY'` when `granularity` is `'month'` / `'year'`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -463,7 +484,7 @@
           "name": "mobileNative",
           "type": "boolean | 'auto'",
           "default": "'auto'",
-          "description": "Use `<input type=\"date\">` on coarse-pointer + small-viewport devices.",
+          "description": "Use `<input type=\"date\">` on coarse-pointer + small-viewport devices. At `'month'` granularity it uses `<input type=\"month\">` where the browser implements one, as Chromium browsers, Safari on iOS and Firefox for Android do, and the calendar where it doesn't, as in desktop Firefox. Desktop Safari accepts the type but draws no month control, so forcing `true` there shows a plain text box. HTML has no year input, so `'year'` granularity always renders the calendar.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -645,7 +666,7 @@
           "name": "name",
           "type": "string",
           "default": null,
-          "description": "Form field name. Forwarded to a hidden ISO-formatted input.",
+          "description": "Form field name. The text field submits the text it displays. The native input on touch devices submits the ISO value (`YYYY-MM-DD`, or `YYYY-MM` at month granularity), and an `inline` calendar, which has no visible input, submits it from a hidden input (`YYYY-MM-DD`, `YYYY-MM` or `YYYY`).",
           "required": false,
           "inherited": false,
           "deprecated": false

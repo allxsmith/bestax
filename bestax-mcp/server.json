@@ -1,0 +1,32 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.allxsmith/bestax-mcp",
+  "title": "Bestax",
+  "description": "Props, examples, CSS variables and Agent Skills for bestax-bulma React components (Bulma v1)",
+  "websiteUrl": "https://bestax.io/docs/guides/llms#mcp-server",
+  "repository": {
+    "url": "https://github.com/allxsmith/bestax",
+    "source": "github",
+    "id": "975765002",
+    "subfolder": "bestax-mcp"
+  },
+  "version": "0.0.0-set-from-release-tag",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "bestax-mcp",
+      "version": "0.0.0-set-from-release-tag",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "BESTAX_MCP_NO_VERSION_CHECK",
+          "description": "Skip comparing your installed @allxsmith/bestax-bulma version with the one the index documents",
+          "format": "boolean",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}
