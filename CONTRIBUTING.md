@@ -390,6 +390,8 @@ For this to work, each published package must have a trusted publisher configure
 
 The CI `publish` job grants `id-token: write`. It no longer pins an npm version: that pin existed because `npm publish` needed npm >= 11.5.1 for OIDC, and since #532 every package publishes with `pnpm publish`, which carries its own OIDC exchange.
 
+`bestax-mcp`'s listing in the official MCP Registry is published by a different workflow, `mcp-registry.yml`, from each `bestax-mcp@` GitHub release. Do **not** add that workflow as a trusted publisher on npm. It runs a third-party binary while holding `id-token: write`, and npm refusing that workflow's tokens is what keeps the binary away from npm. It needs no secret: the registry accepts its GitHub OIDC token for the `io.github.allxsmith` namespace.
+
 ---
 
 ## Code Quality Standards
