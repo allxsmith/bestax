@@ -168,7 +168,7 @@ const config = {
         isCloseable: true,
       },
       // Replace with your project's social card
-      image: 'img/bestax-social-card.jpg',
+      image: 'img/bestax-social-card.png',
       metadata: [
         {
           name: 'keywords',
