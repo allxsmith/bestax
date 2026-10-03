@@ -101,6 +101,12 @@ is not your PR's fault, and this is the way out:
 4. Run `pnpm install`, confirm `pnpm audit --audit-level=high` is clean, and commit the lockfile
    with it.
 
+When the advisory has no patched release at all (GitHub's `first_patched_version` is null and npm's
+latest is still in the vulnerable range), there is nothing for an override to force. Add the GHSA
+to `auditConfig.ignoreGhsas` instead, with the same review-date marker, and say in the comment above
+it how the package reaches this tree and why that exposure is acceptable, as the existing entries
+do. Remove the entry once a fix publishes.
+
 Every bypass is temporary by construction, so `pnpm check:conformance --only=bypass-expiry` fails
 the build if an entry has no annotation, and fails again once a review date arrives — that is your
 reminder to drop it, re-resolve, and leave it out if nothing changed. A standing policy that is not
