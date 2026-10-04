@@ -17,27 +17,28 @@
  *
  * 1. Its newest deep-review summary (a review by the claude[bot] app that
  *    starts with the marker) is pinned to the current head commit and leaves
- *    nothing open: a fresh review reporting `0 blocking`, or a verify pass
- *    reporting `0 open`.
+ *    nothing open: a fresh review reporting no findings (`0 blocking` and
+ *    `0 advisory`), or a verify pass reporting `0 open`.
  * 2. A fresh review stands behind the head. A verify pass settles the threads
  *    an earlier review left and reviews no commits, so on its own it proves
  *    nothing about the code, even though its summary is pinned to the head.
- *    Take the newest fresh summary:
- *    - If it reports `0 blocking`, it must be pinned to the head commit.
+ *    Take the newest fresh summary, and count its findings as blocking plus
+ *    advisory:
+ *    - If it reports no findings, it must be pinned to the head commit.
  *      Otherwise commits pushed since it would count as reviewed when nothing
  *      reviewed them.
- *    - If it reports blocking findings, the verify passes after it must have
- *      resolved at least that many between them, and the pass that brings
- *      the running total up to that count must be pinned to the head commit.
- *      That pass is the last review to read the code for those findings, so
- *      a push after it was read by no review, and only a new fresh review can
- *      cover it. Those findings are inline threads, and condition 3 already
- *      needs every thread resolved, so the count is the cross-check for a
- *      finding that never became a thread, which no verify pass can see. Its
- *      cost: a thread someone resolves by hand is in no verify count, so it
- *      holds the label back until a fresh review. Commits pushed alongside
- *      the fixes ride on that completing pass, which re-checked only the code
- *      its threads point at.
+ *    - If it reports findings, the verify passes after it must have resolved
+ *      at least that many between them, and the pass that brings the running
+ *      total up to that count must be pinned to the head commit. That pass
+ *      is the last review to read the code for those findings, so a push
+ *      after it was read by no review, and only a new fresh review can cover
+ *      it. The review posts each finding, advisories included, as its own
+ *      inline thread, and condition 3 already needs every thread resolved,
+ *      so the count is the cross-check for a finding that never became a
+ *      thread, which no verify pass can see. Its cost: a thread someone
+ *      resolves by hand is in no verify count, so it holds the label back
+ *      until a fresh review. Commits pushed alongside the fixes ride on that
+ *      completing pass, which re-checked only the code its threads point at.
  *    A summary between it and the newest that does not parse fails closed,
  *    since it may have been a fresh review with blocking findings.
  * 3. Every review thread on the PR is resolved.
@@ -256,6 +257,20 @@ export function parseSummary(body) {
   return { kind: 'unparseable', why: 'its heading matches neither shape' };
 }
 
+/**
+ * How many findings a parsed fresh summary reports. Advisories count with
+ * the blocking ones because the review posts each of them as a thread that a
+ * verify pass has to settle.
+ */
+function findingCount(parsed) {
+  return parsed.blocking + parsed.advisory;
+}
+
+/** A fresh summary's findings, as the problem text names them. */
+function findingText(parsed) {
+  return `${parsed.blocking} blocking and ${parsed.advisory} advisory`;
+}
+
 /** The label names on a PR, ignoring anything that is not a string. */
 export function labelNames(pr) {
   return (pr?.labels ?? [])
@@ -398,7 +413,8 @@ function freshProblems(found, head) {
   if (after.slice(0, -1).some(entry => entry.parsed.kind === 'unparseable'))
     problems.push('a summary after the newest fresh review did not parse');
   const { review, parsed } = found[at];
-  if (parsed.blocking === 0) {
+  const findings = findingCount(parsed);
+  if (findings === 0) {
     if (review.commit_id !== head)
       problems.push(
         `the newest fresh review is for ${shortSha(review.commit_id)}, and ` +
@@ -407,13 +423,13 @@ function freshProblems(found, head) {
     return problems;
   }
   // Walk the verify passes in order to the one whose running total first
-  // reaches the blocking count. It must be pinned to the head. A pass after
+  // reaches the finding count. It must be pinned to the head. A pass after
   // it adds no review of the commits in between, so it cannot stand in.
   let resolved = 0;
   for (const entry of after) {
     if (entry.parsed.kind !== 'verify') continue;
     resolved += entry.parsed.resolved;
-    if (resolved < parsed.blocking) continue;
+    if (resolved < findings) continue;
     // When it is the newest summary, condition 1 has judged its commit.
     if (entry !== after.at(-1) && entry.review.commit_id !== head)
       problems.push(
@@ -424,7 +440,7 @@ function freshProblems(found, head) {
     return problems;
   }
   problems.push(
-    `the newest fresh review reports ${parsed.blocking} blocking and the ` +
+    `the newest fresh review reports ${findingText(parsed)}, and the ` +
       `verify passes since resolved ${resolved}`
   );
   return problems;
@@ -455,8 +471,8 @@ export function convergenceProblems({
       );
     if (parsed.kind === 'unparseable')
       problems.push(`the newest summary did not parse: ${parsed.why}`);
-    else if (parsed.kind === 'fresh' && parsed.blocking > 0)
-      problems.push(`the newest summary reports ${parsed.blocking} blocking`);
+    else if (parsed.kind === 'fresh' && findingCount(parsed) > 0)
+      problems.push(`the newest summary reports ${findingText(parsed)}`);
     else if (parsed.kind === 'verify' && parsed.open > 0)
       problems.push(`the newest summary leaves ${parsed.open} open`);
     problems.push(...freshProblems(found, head));
