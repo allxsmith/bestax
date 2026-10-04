@@ -42,7 +42,17 @@ export interface BulmaOtherProps {
    * on this axis.
    */
   overflowY?: (typeof validAxisOverflows)[number];
-  /** Applies overlay styling if true. */
+  /**
+   * Covers the nearest positioned ancestor (`is-overlay`): `position:
+   * absolute` with `top`, `right`, `bottom` and `left` at 0.
+   *
+   * `pos` and `relative` set `position` with `!important`, so beside
+   * `overlay` either one replaces the `absolute` and keeps the zero offsets.
+   * `pos="fixed"` then covers the viewport instead of the ancestor. `sticky`,
+   * `relative` and `static` put the element back in the normal flow, where it
+   * covers nothing, and a sticky one sticks at every edge of its scroll
+   * container.
+   */
   overlay?: boolean;
   /** Interaction behavior (e.g., 'unselectable', 'clickable'). */
   interaction?: (typeof validInteractions)[number];
@@ -80,6 +90,8 @@ export interface BulmaOtherProps {
    * own CSS. `sticky` in particular does nothing until one is set.
    *
    * When `pos` is set it decides the position, and `relative` adds nothing.
+   * Beside `overlay` it replaces the overlay's `absolute` but not its zero
+   * offsets; `overlay` says what each value then does.
    */
   pos?: (typeof validPositions)[number];
   /**

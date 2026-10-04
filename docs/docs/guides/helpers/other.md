@@ -201,6 +201,8 @@ The overlay helper requires the parent element to have `position: relative`, `po
 
 :::
 
+`overlay` is `position: absolute` with `top`, `right`, `bottom` and `left` at 0. The [position](#position) helpers set `position` with `!important`, so a `pos` or `relative` beside `overlay` replaces the `absolute` and keeps the zero offsets. `overlay pos="fixed"` covers the viewport instead of the parent. `sticky`, `relative` and `static` put the element back in the normal flow, where it covers nothing, and a sticky one sticks at every edge of its scroll container.
+
 ### Overlay Examples
 
 ```tsx
@@ -694,7 +696,7 @@ The `pos` prop sets CSS `position`. It is named `pos` because several components
 | `pos="sticky"`    | `is-position-sticky`   | `position: sticky`   |
 | `relative={true}` | `is-relative`          | `position: relative` |
 
-The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one.
+The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay](#overlay) for what each value does.
 
 ### Position Examples
 

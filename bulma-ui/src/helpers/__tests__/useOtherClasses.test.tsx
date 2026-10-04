@@ -99,6 +99,15 @@ describe('useOtherClasses', () => {
         renderUseOtherClasses({ relative: true, pos: 'center' as never })
       ).toBe('is-relative');
     });
+
+    // `is-overlay` sets `absolute` without `!important` and zeroes the
+    // offsets, so beside `pos` both classes stay: the position class wins the
+    // position and the offsets remain, as the `overlay` TSDoc describes.
+    it('keeps overlay beside pos', () => {
+      expect(renderUseOtherClasses({ overlay: true, pos: 'fixed' })).toBe(
+        'is-overlay is-position-fixed'
+      );
+    });
   });
 
   // Bulma's overflow helpers are all `!important` at one class of specificity
