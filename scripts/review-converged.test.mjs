@@ -83,7 +83,7 @@ function summary(body, overrides = {}) {
   };
 }
 
-const FRESH_CLEAN = `${MARKER}\n## Deep review — 0 blocking · 5 advisory\n\n| # |`;
+const FRESH_CLEAN = `${MARKER}\n## Deep review — 0 blocking · 0 advisory\n\n${NO_FINDINGS_LINE}`;
 const VERIFY_CLEAN = `${MARKER}\n\n## Deep review (verify) — 2 resolved · 0 open\n`;
 
 /** A clean fresh review on the head, posted before the summary() default. */
@@ -564,6 +564,14 @@ test('each condition on its own stops convergence', () => {
     [
       {
         reviews: [
+          summary(`${MARKER}\n## Deep review — 0 blocking · 1 advisory`),
+        ],
+      },
+      /reports 0 blocking and 1 advisory$/,
+    ],
+    [
+      {
+        reviews: [
           EARLIER,
           summary(`${MARKER}\n## Deep review (verify) — 0 resolved · 2 open`),
         ],
@@ -638,7 +646,7 @@ test('a verify pass alone does not converge', () => {
 
 test('a clean fresh review then a verify pass on the same head converges', () => {
   assert.deepEqual(
-    problemsFor([posted(freshWith(0, 3), 1), posted(verifyWith(0, 0), 2)]),
+    problemsFor([posted(freshWith(0), 1), posted(verifyWith(0, 0), 2)]),
     []
   );
 });
@@ -661,7 +669,7 @@ test('commits pushed after a clean fresh review need another fresh review', () =
 test('blocking findings converge once verify passes resolve them and every thread is resolved', () => {
   // The fixes moved the head, and the verify pass on the new head resolved
   // both findings.
-  const fresh = posted(freshWith(2, 1), 1, { commit_id: OLD });
+  const fresh = posted(freshWith(2), 1, { commit_id: OLD });
   assert.deepEqual(problemsFor([fresh, posted(verifyWith(2, 0), 2)]), []);
   // Resolved across more than one pass counts the same.
   assert.deepEqual(
@@ -686,8 +694,8 @@ test('blocking findings converge once verify passes resolve them and every threa
   // carries, and no verify pass can see that one.
   for (const resolved of [0, 1]) {
     assert.deepEqual(problemsFor([fresh, posted(verifyWith(resolved, 0), 2)]), [
-      'the newest fresh review reports 2 blocking and the verify passes ' +
-        `since resolved ${resolved}`,
+      'the newest fresh review reports 2 blocking and 0 advisory, and the ' +
+        `verify passes since resolved ${resolved}`,
     ]);
   }
 });
@@ -731,6 +739,80 @@ test('the verify pass that resolves the last finding must be on the head', () =>
   );
 });
 
+test('an open advisory thread holds convergence back, and a resolved one does not', () => {
+  // The review posts advisories as threads too. The fix moved the head, and
+  // the verify pass there settled the one finding.
+  const reviews = [
+    posted(freshWith(0, 1), 1, { commit_id: OLD }),
+    posted(verifyWith(1, 0), 2),
+  ];
+  assert.deepEqual(
+    convergenceProblems(
+      converged({ reviews, threads: [{ isResolved: false }] })
+    ),
+    ['1 unresolved review thread(s)']
+  );
+  assert.deepEqual(
+    convergenceProblems(
+      converged({ reviews, threads: [{ isResolved: true }] })
+    ),
+    []
+  );
+  // A fresh review on the head with no blocking findings is not clean while
+  // its advisory thread is open.
+  assert.deepEqual(
+    convergenceProblems(
+      converged({
+        reviews: [posted(freshWith(0, 1), 1)],
+        threads: [{ isResolved: false }],
+      })
+    ),
+    [
+      'the newest summary reports 0 blocking and 1 advisory',
+      '1 unresolved review thread(s)',
+    ]
+  );
+});
+
+test('advisories count toward what the verify passes must resolve', () => {
+  // Advisory threads resolved by hand, with no verify pass to count them.
+  assert.deepEqual(problemsFor([posted(freshWith(0, 2), 1)]), [
+    'the newest summary reports 0 blocking and 2 advisory',
+  ]);
+  assert.deepEqual(
+    problemsFor([posted(freshWith(0, 2), 1), posted(verifyWith(1, 0), 2)]),
+    [
+      'the newest fresh review reports 0 blocking and 2 advisory, and the ' +
+        'verify passes since resolved 1',
+    ]
+  );
+  // A push that fixes an advisory is covered by the verify pass that settles
+  // the last thread on the head, as it is for a blocking finding.
+  assert.deepEqual(
+    problemsFor([
+      posted(freshWith(0, 2), 1, { commit_id: OLD }),
+      posted(verifyWith(2, 0), 2),
+    ]),
+    []
+  );
+  // The first pass resolved two of three before a push, and the pass on the
+  // head resolved the third, so that one completes the count.
+  const fresh = posted(freshWith(2, 1), 1, { commit_id: OLD });
+  assert.deepEqual(
+    problemsFor([
+      fresh,
+      posted(verifyWith(2, 1), 2, { commit_id: MID }),
+      posted(verifyWith(1, 0), 3),
+    ]),
+    []
+  );
+  // An advisory that never became a thread is in no verify count.
+  assert.deepEqual(problemsFor([fresh, posted(verifyWith(2, 0), 2)]), [
+    'the newest fresh review reports 2 blocking and 1 advisory, and the ' +
+      'verify passes since resolved 2',
+  ]);
+});
+
 test('the newest fresh review decides, and only verify passes after it count', () => {
   assert.deepEqual(
     problemsFor([
@@ -739,8 +821,8 @@ test('the newest fresh review decides, and only verify passes after it count', (
       posted(verifyWith(0, 0), 3),
     ]),
     [
-      'the newest fresh review reports 1 blocking and the verify passes ' +
-        'since resolved 0',
+      'the newest fresh review reports 1 blocking and 0 advisory, and the ' +
+        'verify passes since resolved 0',
     ]
   );
   assert.deepEqual(
@@ -751,8 +833,8 @@ test('the newest fresh review decides, and only verify passes after it count', (
       posted(verifyWith(0, 0), 4),
     ]),
     [
-      'the newest fresh review reports 1 blocking and the verify passes ' +
-        'since resolved 0',
+      'the newest fresh review reports 1 blocking and 0 advisory, and the ' +
+        'verify passes since resolved 0',
     ]
   );
 });
@@ -774,8 +856,8 @@ test('a fresh summary from anyone but the app is ignored', () => {
       posted(verifyWith(0, 0), 3),
     ]),
     [
-      'the newest fresh review reports 2 blocking and the verify passes ' +
-        'since resolved 0',
+      'the newest fresh review reports 2 blocking and 0 advisory, and the ' +
+        'verify passes since resolved 0',
     ]
   );
 });
