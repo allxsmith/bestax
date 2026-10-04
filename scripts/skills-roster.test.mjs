@@ -25,9 +25,11 @@ import {
   frontmatterNameViolations,
 } from './check-conformance.mjs';
 import {
+  isSkillRefusal,
   pathsInsideSkills,
   readSkillDirs,
   readSkillNames,
+  rootGit,
   rosterSkillNames,
   trackedRepoPaths,
   untrackedSkillPaths,
@@ -659,6 +661,100 @@ test('trackedRepoPaths shares the gate and its repository rule', async t => {
   mkdirSync(path.join(bare, 'skills'), { recursive: true });
   assert.equal(trackedRepoPaths(bare, ['LICENSE']), null);
   assert.deepEqual(untrackedSkillPaths(path.join(bare, 'skills'), []), []);
+});
+
+test('with requireCheckout, a gate git cannot run is a refusal naming why', async t => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync } =
+    await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+
+  const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-require-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const git = (cwd, ...args) =>
+    execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
+  const require = { requireCheckout: true };
+  const refused = (fn, re) =>
+    assert.throws(fn, err => {
+      assert.ok(isSkillRefusal(err), err.stack);
+      assert.match(err.message, re);
+      assert.ok(err.cause, 'the git failure is kept as the cause');
+      return true;
+    });
+
+  // No repository at all.
+  const bare = path.join(root, 'bare');
+  mkdirSync(path.join(bare, 'skills'), { recursive: true });
+  refused(
+    () => untrackedSkillPaths(path.join(bare, 'skills'), [], require),
+    /^this run requires a git checkout to vet its files, and git cannot read .*skills: fatal: not a git repository/
+  );
+  refused(
+    () => trackedRepoPaths(bare, ['LICENSE'], require),
+    /requires a git checkout .* git cannot read /
+  );
+
+  // An exported tree inside some other repository.
+  const outer = path.join(root, 'outer');
+  const exported = path.join(outer, 'exported');
+  mkdirSync(exported, { recursive: true });
+  writeFileSync(path.join(exported, 'LICENSE'), 'MIT\n');
+  git(outer, 'init', '-q');
+  refused(
+    () => trackedRepoPaths(exported, ['LICENSE'], require),
+    /git reads .*exported as part of the repository at .*outer, not .*exported$/
+  );
+
+  // git missing from PATH.
+  const savedPath = process.env.PATH;
+  process.env.PATH = path.join(root, 'no-bin');
+  try {
+    assert.equal(trackedRepoPaths(exported, ['LICENSE']), null);
+    refused(
+      () => trackedRepoPaths(exported, ['LICENSE'], require),
+      /git cannot read .*: git is not installed or not on PATH$/
+    );
+  } finally {
+    process.env.PATH = savedPath;
+  }
+
+  // Its own repository passes either way.
+  const own = path.join(root, 'own');
+  mkdirSync(path.join(own, 'skills', 'bestax-form'), { recursive: true });
+  writeFileSync(path.join(own, 'skills', 'bestax-form', 'SKILL.md'), '# s\n');
+  git(own, 'init', '-q');
+  git(own, 'add', '-A');
+  assert.deepEqual(
+    untrackedSkillPaths(path.join(own, 'skills'), ['bestax-form'], require),
+    []
+  );
+  assert.deepEqual(trackedRepoPaths(own, ['LICENSE'], require), []);
+});
+
+test('rootGit names a failed command and a root it cannot resolve', async t => {
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+
+  const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-rootgit-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  execFileSync('git', ['-C', root, 'init', '-q'], { stdio: 'ignore' });
+  assert.match(
+    rootGit(root, root, ['rev-parse', '--is-inside-work-tree']),
+    /^true/
+  );
+  assert.throws(
+    () => rootGit(root, root, ['rev-parse', '--verify', 'no-such-ref']),
+    err =>
+      isSkillRefusal(err) &&
+      /^git rev-parse failed in .*: fatal: /.test(err.message)
+  );
+  assert.throws(
+    () => rootGit(root, path.join(root, 'gone'), ['status']),
+    err => isSkillRefusal(err) && /^cannot resolve .*gone: /.test(err.message)
+  );
 });
 
 test('an adjacent fence with no blank line cannot merge into the scope', () => {

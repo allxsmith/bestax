@@ -127,10 +127,11 @@ Say in the pull request which listings need an update, then open those updates o
   `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
   exact version, and `skills-publish.yml` regenerates it after each release.
 - **A plugin release.** Once listed, awesome-copilot, the OpenAI directory, Kiro and Cursor
-  Marketplace pin the `version` in bestax-skills' root `plugin.json`, which is the one hand-owned
-  version: `plugin.version` in `plugin/manifest.json`. Bump it there, then update those entries.
-  Codex keys its plugin cache on it too. The Grok Build entry pins a commit instead, so updating it
-  takes a pull request there.
+  Marketplace pin the `version` in bestax-skills' root `plugin.json`. Its patch counts the commits
+  that touched the plugin's inputs, so it rises with each change to them without a hand bump, and
+  the MAJOR.MINOR comes from `plugin.version` in `plugin/manifest.json`. Update those entries when a
+  release should reach them. Codex keys its plugin cache on the version too. The Grok Build entry
+  pins a commit instead, so updating it takes a pull request there.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.

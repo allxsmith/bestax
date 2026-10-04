@@ -48,11 +48,24 @@
  * MCP server. The README installs the plugin, and its generated skill list
  * already carries the roster.
  *
- * Without git, as in an exported tree, this does what the sync scripts do.
- * The lib's gate has nothing to vet against, so the skill directories are
+ * The Agent Plugins manifest's version is MAJOR.MINOR from the template and
+ * a patch counted from git: the commits on HEAD that touched PUBLISH_PATHS,
+ * the list the workflow's paths filter carries. main is squash-merged and
+ * never rewritten, so the count only grows, and a catalog that pins the
+ * version sees every published change. Git that cannot count, or a shallow
+ * clone, is a refusal. pluginVersion has the rest.
+ *
+ * Without git, as in an exported tree, the skill gate does what the sync
+ * scripts do. It has nothing to vet against, so the skill directories are
  * read from disk, minus `.DS_Store`. An export from `git archive` holds only
- * tracked files, and the publish job always runs on a checkout, where the
- * gate is live.
+ * tracked files. The version still needs git history, so a run there stops
+ * at the count. The publish job passes `--require-checkout`, which turns a
+ * failed git listing into a refusal naming the cause instead of skipping the
+ * gate.
+ *
+ * Each file keeps its executable bit, as the sync scripts' copyFile does: a
+ * skill or copied file is written 0755 when its owner can execute it and
+ * 0644 otherwise, the two modes git records.
  *
  * Before writing, and again on what landed on disk, the tree is held to
  * Anthropic's plugin directory checks
@@ -62,13 +75,21 @@
  * That is also where a hidden file in a skill is refused, since skillFiles
  * lists one and the plugin ships none.
  *
- * Pure apart from readSources, writeTree, scanTree, generate and main, and it
- * imports node: builtins and local modules only, so the publish job runs it
- * with the runner's Node and no install.
+ * Pure apart from inputCommitCount, readSources, writeTree, scanTree,
+ * generate and main, and it imports node: builtins and local modules only,
+ * so the publish job runs it with the runner's Node and no install.
  */
-import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import {
+  chmod,
+  lstat,
+  mkdir,
+  readFile,
+  readdir,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import { stripGeneratedMarkers } from '../docs/scripts/generated-markers-lib.mjs';
 import {
   SEMVER,
@@ -88,10 +109,12 @@ import {
   byCodePoint,
   failureText,
   readSkillNames,
+  rootGit,
   skillRefusal,
   trackedRepoPaths,
   vettedSkillFiles,
 } from './lib/skills.mjs';
+import { isMainModule } from './lib/main-module.mjs';
 import { readJson, readServer } from './mcp-registry-publish.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -123,6 +146,39 @@ export const INPUT_FILES = [
   ...COPIED,
 ];
 
+/**
+ * Everything the tree is built from: the inputs, every local module the
+ * generator runs, and the workflow. This is the push paths filter in
+ * .github/workflows/skills-publish.yml, and the test sibling holds the two
+ * equal and the list to the generator's imports. The version's patch is the
+ * number of commits on HEAD that touched it (inputCommitCount).
+ *
+ * Adding a path only adds commits to the count. Dropping or renaming one can
+ * lower it, as the commits that touched only that path stop counting, so a
+ * change that drops a path also bumps the minor in plugin/manifest.json.
+ */
+export const PUBLISH_PATHS = [
+  'skills/**',
+  'plugin/**',
+  'bestax-mcp/package.json',
+  'bestax-mcp/server.json',
+  'bestax-mcp/data/skills.json',
+  'LICENSE',
+  'NOTICE',
+  'scripts/gen-skills-repo.mjs',
+  'scripts/lib/skills.mjs',
+  'scripts/lib/api-page.mjs',
+  'scripts/lib/main-module.mjs',
+  'scripts/consumer-sbom-meta.mjs',
+  'scripts/mcp-registry-publish.mjs',
+  'scripts/npm-install-retry.mjs',
+  'docs/scripts/generated-markers-lib.mjs',
+  '.github/workflows/skills-publish.yml',
+];
+
+/** The flag the publish job passes, so a failed git listing stops the run. */
+export const REQUIRE_CHECKOUT = '--require-checkout';
+
 /** The generated regions plugin/README.md must carry. */
 export const README_REGIONS = { skills: 'skills', mcp: 'mcp-server' };
 
@@ -133,8 +189,9 @@ export const AGENT_MCP_SCHEMA =
 
 /**
  * Every key the template may hold, by section. Each one is placed by a
- * render function below. `plugin.version` goes into the Agent Plugins
- * manifest only (see renderClaudeManifest).
+ * render function below. `plugin.version` is MAJOR.MINOR, and only the
+ * Agent Plugins manifest carries the full version (see renderClaudeManifest
+ * and pluginVersion).
  */
 export const TEMPLATE_KEYS = {
   plugin: [
@@ -167,6 +224,9 @@ export const LIMITS = {
   anyBytes: 5 * 1024 * 1024,
   readmeWords: 40,
 };
+
+/** The hand-owned part of the plugin version, such as 1.0. */
+export const MAJOR_MINOR = /^(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
 /** The checklist's plugin name rule. */
 export const PLUGIN_NAME = /^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$/;
@@ -217,8 +277,8 @@ const ROOT_INSTALL_FILES = new Set([
 /** The only hidden paths the tree has, both generated here. */
 const HIDDEN_ALLOWED = new Set([FILES.marketplace, FILES.claude]);
 
-/** Commands that download a package and run it (the checklist's list). */
-const LAUNCHERS = new Set(['npx', 'bunx', 'uvx', 'pipx', 'pnpm', 'yarn', 'uv']);
+/** The npx options launcherViolations reads. Any other one is refused. */
+const NPX_FLAGS = new Set(['-y', '--yes']);
 
 const WINDOWS_DEVICE = /^(con|prn|aux|nul|com[0-9¹²³]|lpt[0-9¹²³])(\..*)?$/i;
 // eslint-disable-next-line no-control-regex
@@ -302,10 +362,11 @@ export function checkTemplate(template) {
         `ending with a letter or digit.`
     );
   }
-  if (typeof plugin.version !== 'string' || !SEMVER.test(plugin.version)) {
+  if (typeof plugin.version !== 'string' || !MAJOR_MINOR.test(plugin.version)) {
     problems.push(
-      `${file}: plugin.version must be a semantic version such as 1.0.0, ` +
-        `not ${forLog(plugin.version)}.`
+      `${file}: plugin.version must be MAJOR.MINOR, such as 1.0, not ` +
+        `${forLog(plugin.version)}. The patch is counted from git history ` +
+        `(pluginVersion in scripts/gen-skills-repo.mjs).`
     );
   }
   string(plugin.description, 'plugin.description');
@@ -475,13 +536,28 @@ export function renderMcpServer({ pin, env }) {
 }
 
 /**
+ * readRegions or replaceRegion, with the plain Error they throw for a
+ * malformed marker (unclosed, nested or repeated) turned into a refusal
+ * carrying its message, since a template edit is an expected input error
+ * and not a bug to print a stack for. Any other error keeps its stack.
+ */
+function regionCall(fn) {
+  try {
+    return fn();
+  } catch (err) {
+    if (err?.constructor !== Error) throw err;
+    throw skillRefusal(err.message, { cause: err });
+  }
+}
+
+/**
  * The published README: the template with its regions filled and every
  * marker stripped. Throws when a region is missing, rather than publish a
  * README whose lists silently stopped updating.
  */
 export function renderReadme(src, skills, launch) {
   const label = TEMPLATE.readme;
-  const regions = readRegions(src, label);
+  const regions = regionCall(() => readRegions(src, label));
   const missing = Object.values(README_REGIONS).filter(id => !regions.has(id));
   if (missing.length) {
     throw skillRefusal(
@@ -490,13 +566,12 @@ export function renderReadme(src, skills, launch) {
         `Restore the markers.`
     );
   }
-  let out = replaceRegion(
-    src,
-    README_REGIONS.skills,
-    renderSkillList(skills),
-    label
+  let out = regionCall(() =>
+    replaceRegion(src, README_REGIONS.skills, renderSkillList(skills), label)
   );
-  out = replaceRegion(out, README_REGIONS.mcp, renderMcpServer(launch), label);
+  out = regionCall(() =>
+    replaceRegion(out, README_REGIONS.mcp, renderMcpServer(launch), label)
+  );
   // A region at the end of the file would leave a blank line before EOF.
   return stripGeneratedMarkers(out).replace(/\n+$/, '\n');
 }
@@ -523,9 +598,9 @@ export function renderMarketplace(template) {
  * No `version`, on purpose. Claude Code keeps every user on a manifest's
  * `version` until the string changes, and without one it versions the plugin
  * by the commit it installed. bestax-skills only gets a commit when its tree
- * changes, so each commit is a real change and users can update to every
- * one. A hand-owned version would hold them back until someone remembered to
- * bump it. Anthropic's directory only warns about the missing field.
+ * changes, so users can update to every one. A version here would hold them
+ * back until it changed. Anthropic's directory only warns about the missing
+ * field.
  */
 export function renderClaudeManifest(template, pin) {
   const { plugin, claude } = template;
@@ -546,20 +621,20 @@ export function renderClaudeManifest(template, pin) {
 /**
  * The vendor-neutral Agent Plugins manifest, which Cursor, Kiro and the
  * awesome-copilot catalog read, and which Codex, Copilot CLI, VS Code and
- * Grok Build prefer to `.claude-plugin/`. Its `version` is the hand-owned
- * one, for the catalogs that pin a release.
+ * Grok Build prefer to `.claude-plugin/`. Its `version` is pluginVersion's,
+ * for the catalogs that pin a release.
  *
  * `mcpServers` is not in the Agent Plugins schema. Its clients find
  * `mcp.json` by location, and the spec has them report and ignore an unknown
  * top-level field. Grok Build reads this file first, though, and without the
  * field it looks for `.mcp.json`, so dropping it would cost Grok the server.
  */
-export function renderAgentManifest(template) {
+export function renderAgentManifest(template, version) {
   const { plugin } = template;
   return {
     $schema: AGENT_PLUGIN_SCHEMA,
     name: plugin.name,
-    version: plugin.version,
+    version,
     description: plugin.description,
     author: plugin.author,
     homepage: plugin.homepage,
@@ -578,23 +653,44 @@ export function renderMcpConfig(pin) {
   };
 }
 
-const json = value => Buffer.from(`${JSON.stringify(value, null, 2)}\n`);
+/** A generated file: its bytes, written 0644. */
+const generated = content => ({ content, mode: 0o644 });
+const json = value =>
+  generated(Buffer.from(`${JSON.stringify(value, null, 2)}\n`));
 
 /**
- * The complete tree as a Map of repo-relative path to contents, from what
- * readSources returned (or a fixture of the same shape).
+ * The complete tree as a Map of repo-relative path to `{ content, mode }`,
+ * from what readSources returned (or a fixture of the same shape).
  */
-export function buildTree({ template, readme, launch, copied, skillFiles }) {
+export function buildTree({
+  template,
+  version,
+  readme,
+  launch,
+  copied,
+  skillFiles,
+}) {
   const tree = new Map([
     [FILES.marketplace, json(renderMarketplace(template))],
     [FILES.claude, json(renderClaudeManifest(template, launch.pin))],
-    [FILES.agent, json(renderAgentManifest(template))],
+    [FILES.agent, json(renderAgentManifest(template, version))],
     [FILES.mcp, json(renderMcpConfig(launch.pin))],
-    [FILES.readme, readme],
+    [FILES.readme, generated(readme)],
   ]);
-  for (const [path, content] of copied) tree.set(path, content);
-  for (const { path, content } of skillFiles) tree.set(path, content);
+  for (const { path, content, mode } of [...copied, ...skillFiles]) {
+    tree.set(path, { content, mode });
+  }
   return new Map([...tree].sort(([a], [b]) => byCodePoint(a, b)));
+}
+
+/** treeViolations entries for a tree buildTree made. */
+export function planEntries(tree) {
+  return [...tree].map(([path, { content, mode }]) => ({
+    path,
+    content,
+    mode,
+    symlink: false,
+  }));
 }
 
 /**
@@ -631,16 +727,16 @@ export function nameProblem(segment) {
 }
 
 /**
- * An npm package spec pinned to one exact version, such as `name@1.2.3`,
- * split on its last `@` the way release tags are.
- */
-/**
  * A package name on the npm registry, scoped or not. A git, URL or file spec
  * such as github:owner/repo@1.0.0 also ends in @<version>, so the name is held
  * to the registry's grammar before the version counts as an exact pin.
  */
 const NPM_NAME = /^(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*$/;
 
+/**
+ * An npm package spec pinned to one exact version, such as `name@1.2.3`,
+ * split on its last `@` the way release tags are.
+ */
 export function exactNpmSpec(spec) {
   const parsed = parseReleaseTag(spec);
   return Boolean(
@@ -649,9 +745,42 @@ export function exactNpmSpec(spec) {
 }
 
 /**
- * Each MCP server in `servers` (an mcpServers map) that runs a launcher
- * without an exact pin. Only npx is understood. Any other launcher fails
- * until a pin check for it is written, rather than passing unchecked.
+ * The package npx would run for `args`, as `{ spec }` (null when there is
+ * none), or `{ problem }` for a form this check does not read: an argument
+ * that is not a string, or any option other than -y before the package.
+ * Options such as --package, --call or --registry change what npx runs, or
+ * take a value that would pass for the package.
+ */
+function npxPackage(args) {
+  for (let i = 0; i < args.length; i++) {
+    const arg = args[i];
+    if (typeof arg !== 'string') {
+      return { problem: 'passes npx an argument that is not a string' };
+    }
+    if (arg === '--') {
+      const next = args[i + 1];
+      return typeof next === 'string' ? { spec: next } : { spec: null };
+    }
+    if (!arg.startsWith('-')) return { spec: arg };
+    if (!NPX_FLAGS.has(arg)) {
+      return {
+        problem:
+          `passes npx ${forLog(arg)}, an option this check does not read. ` +
+          `Give only -y before the pinned package`,
+      };
+    }
+  }
+  return { spec: null };
+}
+
+/**
+ * Each MCP server in `servers` (an mcpServers map) that does not start as
+ * npx with an exact pin, which is the one launch this check reads. The
+ * plugin ships no program of its own, so any other command runs something
+ * from outside it: another package launcher (npm exec or npm x, pnpm dlx,
+ * pnpx, yarn dlx, bunx or bun x, uvx, pipx), a shell or env that could start
+ * one, or a program the check does not know. Each fails until a check for it
+ * is written here, rather than passing unread.
  */
 export function launcherViolations(file, servers) {
   if (!isObject(servers)) return [`${file}: mcpServers is not an object.`];
@@ -663,33 +792,32 @@ export function launcherViolations(file, servers) {
       continue;
     }
     // The bare program name, on any platform: /usr/bin/npx, C:\\x\\npx.cmd
-    // and NPX.EXE all launch npx.
+    // and NPX.EXE all launch npx. A name with a space in it, such as
+    // "npx -y x", is not npx, and is refused below with the rest.
     const command = server.command
       .split(/[\\/]/)
       .pop()
       .toLowerCase()
       .replace(/\.(?:cmd|exe|bat|ps1)$/, '');
-    if (command === 'npx') {
-      const args = Array.isArray(server.args) ? server.args : [];
-      if (args.some(a => a === '-p' || String(a).startsWith('--package'))) {
-        violations.push(
-          `${where} passes npx a package flag, which this check does not ` +
-            `read. Give the pinned package as the first argument instead.`
-        );
-        continue;
-      }
-      const spec = args.find(a => typeof a === 'string' && !a.startsWith('-'));
-      if (!spec || !exactNpmSpec(spec)) {
-        violations.push(
-          `${where} runs npx ${spec ? forLog(spec) : '(no package)'}, which ` +
-            `is not pinned to an exact version. Anthropic's directory blocks ` +
-            `an unpinned npx launcher. Pin it as name@1.2.3.`
-        );
-      }
-    } else if (LAUNCHERS.has(command)) {
+    if (command !== 'npx') {
       violations.push(
-        `${where} runs ${forLog(command)}, a package launcher this check ` +
-          `cannot read. Add a pin check for it to launcherViolations first.`
+        `${where} runs ${forLog(command)}, and this check reads only npx. ` +
+          `Start the server with npx and an exact pin, or teach ` +
+          `launcherViolations to read ${forLog(command)} first.`
+      );
+      continue;
+    }
+    if (server.args !== undefined && !Array.isArray(server.args)) {
+      violations.push(`${where} has args that are not a list.`);
+      continue;
+    }
+    const { spec, problem } = npxPackage(server.args ?? []);
+    if (problem) violations.push(`${where} ${problem}.`);
+    else if (!spec || !exactNpmSpec(spec)) {
+      violations.push(
+        `${where} runs npx ${spec ? forLog(spec) : '(no package)'}, which ` +
+          `is not pinned to an exact version. Anthropic's directory blocks ` +
+          `an unpinned npx launcher. Pin it as name@1.2.3.`
       );
     }
   }
@@ -903,6 +1031,64 @@ export async function inputProblems(repo, tracked) {
   return problems;
 }
 
+/**
+ * The number of commits on HEAD in `repo` that touched PUBLISH_PATHS, by
+ * `git rev-list --count`. Throws a refusal naming the cause when git cannot
+ * count: no git, no repository or another one (rootGit), no HEAD, or a
+ * shallow clone, whose count would be too low and take the version back.
+ */
+export function inputCommitCount(repo) {
+  const shallow = rootGit(repo, repo, [
+    'rev-parse',
+    '--is-shallow-repository',
+  ]).trim();
+  if (shallow !== 'false') {
+    throw skillRefusal(
+      `${repo} is a shallow clone, so git cannot count every commit that ` +
+        `touched the plugin's inputs, and the version would go back. Fetch ` +
+        `the whole history, as actions/checkout does with fetch-depth: 0.`
+    );
+  }
+  const pathspecs = PUBLISH_PATHS.map(p => p.replace(/\/\*\*$/, '/'));
+  const out = rootGit(repo, repo, [
+    'rev-list',
+    '--count',
+    'HEAD',
+    '--',
+    ...pathspecs,
+  ]).trim();
+  if (!/^\d+$/.test(out)) {
+    throw skillRefusal(`git rev-list --count printed ${forLog(out)}.`);
+  }
+  return Number(out);
+}
+
+/**
+ * The Agent Plugins version: the template's MAJOR.MINOR, then `commits`,
+ * inputCommitCount's answer, as the patch. A minor bump keeps the version
+ * rising whatever the count does, which is why dropping a path from
+ * PUBLISH_PATHS goes with one.
+ */
+export function pluginVersion(majorMinor, commits) {
+  if (!Number.isSafeInteger(commits) || commits < 0) {
+    throw skillRefusal(
+      `the input commit count must be a whole number, not ${forLog(commits)}.`
+    );
+  }
+  return `${majorMinor}.${commits}`;
+}
+
+/** The mode git would record for a file of `mode`: 0755 or 0644. */
+export function fileMode(mode) {
+  return mode & 0o100 ? 0o755 : 0o644;
+}
+
+/** A tree entry for the file at `full`, with its bytes and fileMode. */
+async function fileEntry(path, full) {
+  const [content, info] = await Promise.all([readFile(full), stat(full)]);
+  return { path, content, mode: fileMode(info.mode) };
+}
+
 /** readJson for an input, its failure a refusal like the checks' own. */
 function readInput(repo, file) {
   try {
@@ -917,15 +1103,26 @@ function readInput(repo, file) {
  * first and stop the run before any is read. The skill files are the ones
  * vettedSkillFiles lists, so a symbolic link or an untracked file in a skill
  * stops the run as it stops the syncs, and nothing it did not list is read.
+ *
+ * `requireCheckout` makes a failed git listing a refusal rather than a
+ * skipped gate. `inputCommits` stands in for inputCommitCount, so a test
+ * gets the same version on any clone.
  */
-export async function readSources(repo = REPO) {
+export async function readSources(
+  repo = REPO,
+  { requireCheckout = false, inputCommits } = {}
+) {
   const blocked = await inputProblems(
     repo,
-    trackedRepoPaths(repo, INPUT_FILES)
+    trackedRepoPaths(repo, INPUT_FILES, { requireCheckout })
   );
   if (blocked.length) throw new TreeError(blocked);
 
   const template = checkTemplate(readInput(repo, TEMPLATE.manifest));
+  const version = pluginVersion(
+    template.plugin.version,
+    inputCommits ?? inputCommitCount(repo)
+  );
   let launch;
   try {
     const { server, manifest } = readServer(join(repo, MCP_DIR));
@@ -950,22 +1147,20 @@ export async function readSources(repo = REPO) {
   );
   const copied = [];
   for (const file of COPIED)
-    copied.push([file, await readFile(join(repo, file))]);
+    copied.push(await fileEntry(file, join(repo, file)));
 
   const skillFiles = [];
   for (const { name, dir, files } of await vettedSkillFiles(
     skillsDir,
     names,
-    'publish'
+    'publish',
+    { requireCheckout }
   )) {
     for (const rel of files) {
-      skillFiles.push({
-        path: `skills/${name}/${rel}`,
-        content: await readFile(join(dir, rel)),
-      });
+      skillFiles.push(await fileEntry(`skills/${name}/${rel}`, join(dir, rel)));
     }
   }
-  return { template, readme, launch, copied, skillFiles };
+  return { template, version, readme, launch, copied, skillFiles };
 }
 
 /** Writes `tree` into `outDir`, which must be empty or not exist yet. */
@@ -982,10 +1177,12 @@ export async function writeTree(outDir, tree) {
         `file survives into the published tree.`
     );
   }
-  for (const [path, content] of tree) {
+  for (const [path, { content, mode }] of tree) {
     const target = join(outDir, ...path.split('/'));
     await mkdir(dirname(target), { recursive: true });
     await writeFile(target, content);
+    // chmod rather than writeFile's mode, which the umask would trim.
+    await chmod(target, mode);
   }
 }
 
@@ -1004,21 +1201,33 @@ export async function scanTree(dir, prefix = '') {
       entries.push({
         path: rel,
         content: await readFile(full),
+        mode: info.mode & 0o777,
         symlink: false,
       });
   }
   return entries;
 }
 
-/** Files that differ between the plan and what landed on disk. */
+const octal = mode => `0${mode.toString(8)}`;
+
+/** Files whose bytes or mode differ between the plan and the disk. */
 export function planMismatch(tree, written) {
-  const onDisk = new Map(written.map(e => [e.path, e.content]));
+  const onDisk = new Map(written.map(e => [e.path, e]));
   const problems = [];
-  for (const [path, content] of tree) {
+  for (const [path, { content, mode }] of tree) {
     const got = onDisk.get(path);
-    if (!got) problems.push(`${forLog(path)}: was planned but is not on disk.`);
-    else if (!got.equals(content)) {
+    if (!got?.content) {
+      problems.push(`${forLog(path)}: was planned but is not on disk.`);
+      continue;
+    }
+    if (!got.content.equals(content)) {
       problems.push(`${forLog(path)}: on disk differs from the plan.`);
+    }
+    if (got.mode !== mode) {
+      problems.push(
+        `${forLog(path)}: has mode ${octal(got.mode)} on disk, and the ` +
+          `plan has ${octal(mode)}.`
+      );
     }
   }
   for (const path of onDisk.keys()) {
@@ -1030,17 +1239,12 @@ export function planMismatch(tree, written) {
 
 /**
  * Reads, checks, writes and checks again. Returns the sorted file list, or
- * throws a TreeError listing every problem.
+ * throws a TreeError listing every problem. `options` go to readSources.
  */
-export async function generate(outDir, repo = REPO) {
-  const sources = await readSources(repo);
+export async function generate(outDir, repo = REPO, options = {}) {
+  const sources = await readSources(repo, options);
   const tree = buildTree(sources);
-  const planned = [...tree].map(([path, content]) => ({
-    path,
-    content,
-    symlink: false,
-  }));
-  const before = treeViolations(planned);
+  const before = treeViolations(planEntries(tree));
   if (before.length) throw new TreeError(before);
   await writeTree(outDir, tree);
   const written = await scanTree(outDir);
@@ -1049,16 +1253,34 @@ export async function generate(outDir, repo = REPO) {
   return [...tree.keys()];
 }
 
-export async function main(argv = process.argv.slice(2), io = process) {
-  if (argv.length !== 1 || argv[0].startsWith('-')) {
+/**
+ * The command line: `[--require-checkout] <output directory>`. `repo` and
+ * `inputCommits` are for tests, as in readSources.
+ */
+export async function main(
+  argv = process.argv.slice(2),
+  io = process,
+  { repo = REPO, inputCommits } = {}
+) {
+  const flags = argv.filter(a => a.startsWith('-'));
+  const dirs = argv.filter(a => !a.startsWith('-'));
+  if (
+    dirs.length !== 1 ||
+    flags.length > 1 ||
+    flags.some(f => f !== REQUIRE_CHECKOUT)
+  ) {
     io.stderr.write(
-      'usage: node scripts/gen-skills-repo.mjs <output directory>\n'
+      `usage: node scripts/gen-skills-repo.mjs [${REQUIRE_CHECKOUT}] ` +
+        `<output directory>\n`
     );
     return 2;
   }
-  const outDir = resolve(argv[0]);
+  const outDir = resolve(dirs[0]);
   try {
-    const files = await generate(outDir);
+    const files = await generate(outDir, repo, {
+      requireCheckout: flags.length === 1,
+      inputCommits,
+    });
     io.stdout.write(`Wrote the bestax-skills tree to ${outDir}:\n`);
     for (const file of files) io.stdout.write(`  ${file}\n`);
     return 0;
@@ -1076,6 +1298,6 @@ export async function main(argv = process.argv.slice(2), io = process) {
   }
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+if (isMainModule(import.meta.url)) {
   process.exitCode = await main();
 }

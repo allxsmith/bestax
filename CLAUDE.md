@@ -26,7 +26,7 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
 - `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
 - `scripts/gen-skills-repo.mjs`: writes the allxsmith/bestax-skills tree into a directory
-  (`node scripts/gen-skills-repo.mjs <dir>`)
+  (`node scripts/gen-skills-repo.mjs <dir>`, in a checkout with full history)
 - `scripts/gen-eslint-meta.mjs` — generates the ESLint plugin's component metadata
   (`pnpm gen:eslint-meta`)
 
@@ -187,10 +187,12 @@ over once merged. The generator reuses the repo's readers rather than its own: t
 gate in `scripts/lib/skills.mjs`, the `server.json` reader in `scripts/mcp-registry-publish.mjs`,
 and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
 
-- `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is the one hand-owned
-  version, the Agent Plugins `plugin.json`'s, for the catalogs that pin a release: bump it when
-  you cut one for them. The Claude manifest sets no version, so Claude Code follows commits, and
-  the bestax-mcp pin is read from bestax-mcp's `package.json`, so nothing else needs a bump.
+- `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is MAJOR.MINOR only.
+  The generator appends the number of commits on `main` that touched its inputs (the workflow's
+  paths filter, `PUBLISH_PATHS`), so the Agent Plugins `plugin.json` version rises with each
+  commit to those inputs and nobody bumps it by hand. Bump the minor for a release worth naming, and whenever a
+  path leaves `PUBLISH_PATHS`, since the count can then fall. The Claude manifest sets no version,
+  so Claude Code follows commits, and the bestax-mcp pin is read from bestax-mcp's `package.json`.
 - `plugin/README.md` becomes the repository's README, and it must say everything the plugin
   runs, sends or fetches. Its skill list and the server's launch command and environment
   variables are generated into its `bestax:generated` regions, from the skill index and

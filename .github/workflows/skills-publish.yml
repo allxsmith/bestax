@@ -57,6 +57,7 @@ on:
       - 'scripts/gen-skills-repo.mjs'
       - 'scripts/lib/skills.mjs'
       - 'scripts/lib/api-page.mjs'
+      - 'scripts/lib/main-module.mjs'
       - 'scripts/consumer-sbom-meta.mjs'
       - 'scripts/mcp-registry-publish.mjs'
       - 'scripts/npm-install-retry.mjs'
@@ -216,24 +217,30 @@ jobs:
       # `ref: main` on every trigger, never a PR, a tag or the event's commit,
       # so the generator and its inputs are reviewed code behind the ruleset.
       # No PR runs this workflow, so rule 9's bootstrap gap does not apply:
-      # the merge that adds the script is on main before the first run.
+      # the merge that adds the script is on main before the first run. The
+      # whole history, because the plugin's version counts the commits that
+      # touched the generator's inputs, and the generator refuses a shallow
+      # clone.
       - name: Checkout main
         timeout-minutes: 5
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: main
+          fetch-depth: 0
           persist-credentials: false
 
       # Before the key is in any step's environment. The script checks the
       # tree against Anthropic's directory rules before and after writing it,
-      # and fails with the reasons. Deliberately no setup-node, as in
-      # mcp-registry's `publish`: the runner image's Node runs it, and the
-      # version is printed for the record.
+      # and fails with the reasons. --require-checkout makes a git listing
+      # that fails a refusal, where a local run would skip the vetting gate.
+      # Deliberately no setup-node, as in mcp-registry's `publish`: the
+      # runner image's Node runs it, and the version is printed for the
+      # record.
       - name: Generate the bestax-skills tree
         timeout-minutes: 2
         run: |
           node --version
-          node scripts/gen-skills-repo.mjs "$RUNNER_TEMP/bestax-skills-tree"
+          node scripts/gen-skills-repo.mjs --require-checkout "$RUNNER_TEMP/bestax-skills-tree"
 
       # The only step that sees the key. It runs git, ssh and coreutils, and
       # no repository code. The key goes to a file under RUNNER_TEMP that only

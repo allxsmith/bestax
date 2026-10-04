@@ -1,7 +1,7 @@
 {
   "plugin": {
     "name": "bestax",
-    "version": "1.0.0",
+    "version": "1.0",
     "description": "Build with @allxsmith/bestax-bulma, React components for Bulma v1: the bestax Agent Skills, plus the bestax-mcp server for props, examples and CSS variables",
     "author": { "name": "Alex Smith", "url": "https://github.com/allxsmith" },
     "homepage": "https://bestax.io/docs/guides/llms",

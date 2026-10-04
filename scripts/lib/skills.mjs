@@ -207,8 +207,8 @@ export async function skillFiles(dir) {
  * refusal both sync scripts and the MCP index give, so none of them can
  * carry a file that the others refuse. `verb` names what was refused.
  */
-export function assertSkillsVetted(skillsDir, names, verb) {
-  const untracked = untrackedSkillPaths(skillsDir, names);
+export function assertSkillsVetted(skillsDir, names, verb, options) {
+  const untracked = untrackedSkillPaths(skillsDir, names, options);
   if (untracked.length) {
     throw skillRefusal(
       `refusing to ${verb} untracked file(s) under skills/: ` +
@@ -225,49 +225,104 @@ export function assertSkillsVetted(skillsDir, names, verb) {
  *
  * The walk comes first and the vetting gate second, so every listed file
  * already existed when git was asked about it. Throws the refusal skillFiles
- * or assertSkillsVetted gives. `verb` names what was refused. The sync
- * scripts and scripts/gen-skills-repo.mjs all take their files from here.
+ * or assertSkillsVetted gives. `verb` names what was refused, and `options`
+ * go to untrackedSkillPaths. The sync scripts and scripts/gen-skills-repo.mjs
+ * all take their files from here.
  */
-export async function vettedSkillFiles(skillsDir, names, verb) {
+export async function vettedSkillFiles(skillsDir, names, verb, options) {
   const skills = [];
   for (const name of names) {
     const dir = join(skillsDir, name);
     skills.push({ name, dir, files: await skillFiles(dir) });
   }
-  assertSkillsVetted(skillsDir, names, verb);
+  assertSkillsVetted(skillsDir, names, verb, options);
   return skills;
 }
 
 function git(cwd, args) {
+  // stderr is captured, not shown, so a refusal can quote it.
   return execFileSync('git', ['-C', cwd, ...args], {
     encoding: 'utf8',
-    stdio: ['ignore', 'pipe', 'ignore'],
+    stdio: ['ignore', 'pipe', 'pipe'],
   });
 }
 
+/** Why a git call failed, in one line: git is missing, or git's own words. */
+function gitCause(err) {
+  if (err?.code === 'ENOENT') return 'git is not installed or not on PATH';
+  const said = String(err?.stderr ?? '')
+    .trim()
+    .split('\n')[0];
+  return said || String(err?.message ?? err);
+}
+
 /**
- * The paths `git -C <cwd> ls-files -z <args>` prints, relative to `cwd`, or
- * null when git cannot speak for this tree:
- * - git is unavailable, or the tree is not inside any repository, or
+ * The output of `git -C <cwd> <args>`, when git speaks for the repository
+ * whose top is `root`. Otherwise it throws a refusal naming the cause:
+ * - git is unavailable, or `cwd` is not inside any repository, or
  * - git resolves some OTHER repository than `root`. An exported (git-less)
  *   bestax tree nested under a git-managed directory would otherwise report
  *   every skill untracked and hard-fail the build (#550 review). The gate only
- *   speaks for the repository whose root actually contains these files.
+ *   speaks for the repository whose root actually contains these files, or
+ * - the command itself fails.
+ *
+ * Behind both views below and scripts/gen-skills-repo.mjs's commit count, so
+ * none of them can disagree about which repository they are reading.
+ */
+export function rootGit(cwd, root, args) {
+  let toplevel;
+  try {
+    toplevel = git(cwd, ['rev-parse', '--show-toplevel']).trim();
+  } catch (err) {
+    throw skillRefusal(`git cannot read ${cwd}: ${gitCause(err)}`, {
+      cause: err,
+    });
+  }
+  let same;
+  try {
+    // realpath both sides: git prints physical paths (macOS /tmp → /private/tmp).
+    same = realpathSync(toplevel) === realpathSync(resolve(root));
+  } catch (err) {
+    throw skillRefusal(`cannot resolve ${root}: ${err.message}`, {
+      cause: err,
+    });
+  }
+  if (!same) {
+    throw skillRefusal(
+      `git reads ${cwd} as part of the repository at ${toplevel}, not ${root}`
+    );
+  }
+  try {
+    return git(cwd, args);
+  } catch (err) {
+    throw skillRefusal(`git ${args[0]} failed in ${cwd}: ${gitCause(err)}`, {
+      cause: err,
+    });
+  }
+}
+
+/**
+ * The paths `git -C <cwd> ls-files -z <args>` prints, relative to `cwd`.
+ * When git cannot speak for this tree, for any of rootGit's reasons, it
+ * returns null, so an exported tree has nothing to vet against. With
+ * `requireCheckout` it throws a refusal naming the cause instead, for a
+ * caller such as the plugin publish job, where a missing gate must stop the
+ * run rather than let every file through.
  *
  * `-z` so a path git would quote, such as one with a non-ASCII name, still
- * starts with its skill directory. One helper behind both views below, so
- * they cannot disagree about which repository they are reading.
+ * starts with its skill directory.
  */
-function gitListing(cwd, root, args) {
+function gitListing(cwd, root, args, { requireCheckout = false } = {}) {
   try {
-    const toplevel = git(cwd, ['rev-parse', '--show-toplevel']).trim();
-    // realpath both sides: git prints physical paths (macOS /tmp → /private/tmp).
-    if (realpathSync(toplevel) !== realpathSync(resolve(root))) return null;
-    return git(cwd, ['ls-files', '-z', ...args])
+    return rootGit(cwd, root, ['ls-files', '-z', ...args])
       .split('\0')
       .filter(Boolean);
-  } catch {
-    return null;
+  } catch (err) {
+    if (!requireCheckout) return null;
+    throw skillRefusal(
+      `this run requires a git checkout to vet its files, and ${err.message}`,
+      { cause: err }
+    );
   }
 }
 
@@ -282,19 +337,21 @@ function gitListing(cwd, root, args) {
  * (`.DS_Store`) stays exempt via --exclude-standard.
  *
  * Returns [] when there is nothing to vet against, in the cases gitListing
- * returns null for.
+ * returns null for. With `{ requireCheckout: true }` those cases throw
+ * gitListing's refusal instead.
  */
-export function untrackedSkillPaths(skillsDir, names) {
+export function untrackedSkillPaths(skillsDir, names, options) {
   // No --exclude-standard: sync copies everything on disk, so gitignored
   // content inside a skill (.env, *.log, a stray node_modules) would ship
   // right past an exclude-standard gate. The one exemption is .DS_Store —
   // Finder drops it everywhere and the sync scripts filter it out of the
   // copy instead, so it neither blocks builds nor ships.
-  const others = gitListing(skillsDir, dirname(skillsDir), [
-    '--others',
-    '--',
-    '.',
-  ]);
+  const others = gitListing(
+    skillsDir,
+    dirname(skillsDir),
+    ['--others', '--', '.'],
+    options
+  );
   if (!others) return [];
   return pathsInsideSkills(
     others.filter(p => !isDsStore(p)),
@@ -304,11 +361,12 @@ export function untrackedSkillPaths(skillsDir, names) {
 
 /**
  * Which of `paths` (relative to `root`, the top of the repository) git
- * tracks, or null when git cannot speak for the tree, as above. For a
- * bundler's inputs outside skills/, held to the same gate as the skills:
+ * tracks, or null when git cannot speak for the tree, as above, and the
+ * same refusal with `{ requireCheckout: true }`. For a bundler's inputs
+ * outside skills/, held to the same gate as the skills:
  * scripts/gen-skills-repo.mjs reads its plugin template and bestax-mcp's
  * manifests only when git tracks them.
  */
-export function trackedRepoPaths(root, paths) {
-  return gitListing(root, root, ['--', ...paths]);
+export function trackedRepoPaths(root, paths, options) {
+  return gitListing(root, root, ['--', ...paths], options);
 }

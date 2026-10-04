@@ -22,6 +22,7 @@
   "scripts/lib/docs-url.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/fetch-retry.mjs": { "lines": 98, "branches": 86, "functions": 83 },
   "scripts/lib/fragile-prose.mjs": { "lines": 100, "branches": 97, "functions": 95 },
+  "scripts/lib/main-module.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/pack-time-protocols.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/pnpm-publish.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/props-extract.mjs": { "lines": 98, "branches": 92, "functions": 98 },

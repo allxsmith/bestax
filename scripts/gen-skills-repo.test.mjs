@@ -14,11 +14,11 @@
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   AGENT_MCP_SCHEMA,
   AGENT_PLUGIN_SCHEMA,
@@ -27,20 +27,26 @@ import {
   INPUT_FILES,
   LIMITS,
   MCP_DIR,
+  PUBLISH_PATHS,
   README_REGIONS,
+  REQUIRE_CHECKOUT,
   SKILL_INDEX,
   TEMPLATE,
   TreeError,
   buildTree,
   checkTemplate,
   exactNpmSpec,
+  fileMode,
   generate,
+  inputCommitCount,
   inputProblems,
   launcherViolations,
   main,
   mcpLaunch,
   nameProblem,
+  planEntries,
   planMismatch,
+  pluginVersion,
   readSources,
   readmeWordCount,
   renderAgentManifest,
@@ -87,11 +93,19 @@ const REAL_PIN = `${repoJson(`${MCP_DIR}/server.json`).packages[0].identifier}@$
   repoJson(`${MCP_DIR}/package.json`).version
 }`;
 
+/**
+ * The commit count every run on the real repo is given, so its version is
+ * the same on any clone, shallow ones included. inputCommitCount itself is
+ * tested on fixture repositories below.
+ */
+const COMMITS = 42;
+const counted = { inputCommits: COMMITS };
+
 // --- the real tree ------------------------------------------------------------
 
 test('generates the bestax-skills tree from the real repo', async () => {
   const out = path.join(tempDir(), 'bestax-skills');
-  const files = await generate(out);
+  const files = await generate(out, REPO, counted);
 
   for (const file of [...Object.values(FILES), ...COPIED]) {
     assert.ok(files.includes(file), `${file} is generated`);
@@ -127,6 +141,11 @@ test('generates the bestax-skills tree from the real repo', async () => {
         .equals(fs.readFileSync(path.join(REPO, file))),
       `${file} is copied byte for byte`
     );
+    assert.equal(
+      fs.statSync(path.join(out, file)).mode & 0o777,
+      fileMode(fs.statSync(path.join(REPO, file)).mode),
+      `${file} keeps its executable bit`
+    );
   }
   assert.equal(
     fs.readFileSync(path.join(out, 'LICENSE'), 'utf8'),
@@ -136,7 +155,7 @@ test('generates the bestax-skills tree from the real repo', async () => {
 
 test('the real manifests start the server server.json describes, at the release version', async () => {
   const out = path.join(tempDir(), 'bestax-skills');
-  await generate(out);
+  await generate(out, REPO, counted);
   const template = repoJson(TEMPLATE.manifest);
 
   const claude = readJson(out, FILES.claude);
@@ -148,7 +167,7 @@ test('the real manifests start the server server.json describes, at the release 
 
   const agent = readJson(out, FILES.agent);
   assert.equal(agent.$schema, AGENT_PLUGIN_SCHEMA);
-  assert.equal(agent.version, template.plugin.version);
+  assert.equal(agent.version, `${template.plugin.version}.${COMMITS}`);
   assert.equal(agent.mcpServers, './mcp.json');
 
   assert.deepEqual(readJson(out, FILES.mcp), {
@@ -166,7 +185,7 @@ test('the real manifests start the server server.json describes, at the release 
 
 test('the real README lists every indexed skill and the launch, with no markers', async () => {
   const out = path.join(tempDir(), 'bestax-skills');
-  await generate(out);
+  await generate(out, REPO, counted);
   const readme = fs.readFileSync(path.join(out, 'README.md'), 'utf8');
   assert.ok(!readme.includes('bestax:generated'));
   assert.ok(readmeWordCount(readme) >= LIMITS.readmeWords);
@@ -204,6 +223,13 @@ test('the workflow runs on every input and every module the generator imports', 
     })
   );
   assert.ok(filters.length, 'the push trigger has a paths filter');
+  // The version's patch counts commits on PUBLISH_PATHS, so the filter
+  // that starts a publish and the list that versions it are one list.
+  assert.deepEqual(
+    [...filters].sort(),
+    [...PUBLISH_PATHS].sort(),
+    'the paths filter in skills-publish.yml and PUBLISH_PATHS differ'
+  );
 
   // Every local module reachable from the generator, by its imports.
   const needed = new Set(['skills/', ...INPUT_FILES]);
@@ -234,7 +260,9 @@ test('the workflow runs on every input and every module the generator imports', 
     if (filter === '.github/workflows/skills-publish.yml') continue;
     assert.ok(
       [...needed].some(file => covers(filter, file)),
-      `the paths filter names ${filter}, which the generator does not need`
+      `the paths filter names ${filter}, which the generator does not ` +
+        `need. Drop it here and from PUBLISH_PATHS, and bump the minor in ` +
+        `${TEMPLATE.manifest}, as the commit count can fall.`
     );
   }
 });
@@ -252,20 +280,45 @@ function capture() {
   };
 }
 
-test('main prints usage without exactly one directory', async () => {
-  for (const argv of [[], ['a', 'b'], ['--help']]) {
+test('main prints usage without exactly one directory and known flags', async () => {
+  for (const argv of [
+    [],
+    ['a', 'b'],
+    ['--help'],
+    [REQUIRE_CHECKOUT],
+    ['--require-checkouts', 'a'],
+    [REQUIRE_CHECKOUT, REQUIRE_CHECKOUT, 'a'],
+  ]) {
     const { out, io } = capture();
-    assert.equal(await main(argv, io), 2);
-    assert.match(out.stderr, /usage:/);
+    assert.equal(await main(argv, io, counted), 2, argv.join(' '));
+    assert.match(out.stderr, /usage: .* \[--require-checkout\] <output/);
   }
 });
 
 test('main writes the tree and lists it', async () => {
   const { out, io } = capture();
   const dir = path.join(tempDir(), 'out');
-  assert.equal(await main([dir], io), 0);
+  assert.equal(await main([dir], io, counted), 0);
   assert.match(out.stdout, /\.claude-plugin\/plugin\.json/);
   assert.match(out.stdout, /skills\/bestax-form\/SKILL\.md/);
+  const flagged = path.join(tempDir(), 'out');
+  assert.equal(
+    await main([REQUIRE_CHECKOUT, flagged], capture().io, counted),
+    0,
+    'the real checkout passes the flag'
+  );
+});
+
+test('main runs from a checkout reached through a symbolic link', () => {
+  const linked = path.join(tempDir(), 'linked-checkout');
+  fs.symlinkSync(REPO, linked);
+  const run = spawnSync(
+    process.execPath,
+    [path.join(linked, 'scripts', 'gen-skills-repo.mjs')],
+    { encoding: 'utf8' }
+  );
+  assert.equal(run.status, 2, 'main ran and printed its usage');
+  assert.match(run.stderr, /usage:/);
 });
 
 test('main reports a refusal on one escaped line and exits 1', async () => {
@@ -273,7 +326,7 @@ test('main reports a refusal on one escaped line and exits 1', async () => {
   fs.mkdirSync(dir);
   fs.writeFileSync(path.join(dir, 'stale.txt'), 'x');
   const { out, io } = capture();
-  assert.equal(await main([dir], io), 1);
+  assert.equal(await main([dir], io, counted), 1);
   assert.match(out.stderr, /failed its checks/);
   assert.match(out.stderr, /is not empty/);
   assert.ok(
@@ -286,7 +339,7 @@ test('main prints an unexpected error with its stack, still on one line', async 
   const file = path.join(tempDir(), 'a-file');
   fs.writeFileSync(file, 'x');
   const { out, io } = capture();
-  assert.equal(await main([path.join(file, 'out')], io), 1);
+  assert.equal(await main([path.join(file, 'out')], io, counted), 1);
   assert.match(out.stderr, /ENOTDIR/);
   assert.match(out.stderr, /\\n\s+at /, 'the stack, escaped by forLog');
   assert.equal(out.stderr.trimEnd().split('\n').length, 2);
@@ -335,7 +388,7 @@ test('an unknown, missing or misplaced template key is refused', () => {
 test('template values of the wrong shape are refused', () => {
   const t = realTemplate();
   t.plugin.name = 'Bestax!';
-  t.plugin.version = '^1.0.0';
+  t.plugin.version = '1.0.0';
   t.plugin.description = ' ';
   t.plugin.author = 'Alex';
   t.plugin.homepage = 'http://bestax.io';
@@ -346,7 +399,7 @@ test('template values of the wrong shape are refused', () => {
   const problems = problemsOf(() => checkTemplate(t));
   for (const want of [
     /plugin\.name "Bestax!"/,
-    /plugin\.version must be a semantic version/,
+    /plugin\.version must be MAJOR\.MINOR, such as 1\.0, not "1\.0\.0"/,
     /plugin\.description must be a non-empty string/,
     /plugin\.author must be an object/,
     /plugin\.homepage must be an https/,
@@ -358,6 +411,40 @@ test('template values of the wrong shape are refused', () => {
     assert.ok(
       problems.some(p => want.test(p)),
       `${want} in ${problems.join(' | ')}`
+    );
+  }
+});
+
+test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
+  for (const version of ['0.0', '1.0', '2.13']) {
+    const t = realTemplate();
+    t.plugin.version = version;
+    assert.deepEqual(
+      problemsOf(() => checkTemplate(t)),
+      [],
+      version
+    );
+  }
+  for (const version of ['1', '1.0.0', '01.0', '1.00', 'v1.0', 1.0, '']) {
+    const t = realTemplate();
+    t.plugin.version = version;
+    assert.match(
+      problemsOf(() => checkTemplate(t)).join('\n'),
+      /plugin\.version must be MAJOR\.MINOR/,
+      String(version)
+    );
+  }
+  assert.equal(pluginVersion('1.0', 325), '1.0.325');
+  assert.equal(pluginVersion('2.1', 0), '2.1.0');
+  for (const bad of [-1, 1.5, NaN, '3', null, undefined, 2 ** 53]) {
+    assert.throws(
+      () => pluginVersion('1.0', bad),
+      err => {
+        assert.ok(isSkillRefusal(err));
+        assert.match(err.message, /must be a whole number/);
+        return true;
+      },
+      String(bad)
     );
   }
 });
@@ -567,14 +654,49 @@ test('a README template without its regions is refused', () => {
     () => renderReadme('# Title\n', [], { pin: 'x@1.0.0', env: [] }),
     /no <!-- bestax:generated skills \/ mcp-server --> marker pair/
   );
+});
+
+test('a malformed README region is a refusal with the helper’s message', async () => {
+  const open = id => `<!-- bestax:generated ${id} -->`;
+  const close = id => `<!-- /bestax:generated ${id} -->`;
+  for (const [src, want] of [
+    [`${open('skills')}\n`, /plugin\/README\.md:1 opens .* never closed/],
+    [
+      `${open('skills')}\n${open('mcp-server')}\n`,
+      /plugin\/README\.md:2 opens generated region "mcp-server" while "skills"/,
+    ],
+    [
+      `${open('skills')}\n${close('skills')}\n${open('skills')}\n${close('skills')}\n`,
+      /plugin\/README\.md:3 re-opens generated region "skills"/,
+    ],
+  ]) {
+    let thrown;
+    try {
+      renderReadme(src, [], { pin: 'x@1.0.0', env: [] });
+    } catch (err) {
+      thrown = err;
+    }
+    assert.ok(isSkillRefusal(thrown), want.source);
+    assert.match(thrown.message, want);
+    assert.ok(thrown.cause instanceof Error, 'the original error is kept');
+  }
+  // A bug, rather than a template error, keeps its own type and stack.
   assert.throws(
-    () =>
-      renderReadme('<!-- bestax:generated skills -->\n', [], {
-        pin: 'x@1.0.0',
-        env: [],
-      }),
-    /never closed/
+    () => renderReadme(null, [], { pin: 'x@1.0.0', env: [] }),
+    err => err instanceof TypeError && !isSkillRefusal(err)
   );
+
+  // So main prints the message alone, with no stack.
+  const root = fixtureRepo();
+  write(root, TEMPLATE.readme, `${README}\n${open('skills')}\n`);
+  const { out, io } = capture();
+  const dir = path.join(tempDir(), 'out');
+  assert.equal(await main([dir], io, { repo: root, inputCommits: 1 }), 1);
+  assert.match(
+    out.stderr,
+    /opens generated region \\"skills\\" but it is never closed/
+  );
+  assert.doesNotMatch(out.stderr, /\n\s+at |\\n\s+at /);
 });
 
 // --- the renderers ---------------------------------------------------------------
@@ -593,8 +715,8 @@ test('each manifest takes its fields from the template', () => {
   assert.equal(claude.privacyPolicyUrl, t.claude.privacyPolicyUrl);
   assert.equal(claude.supportUrl, t.claude.supportUrl);
   assert.deepEqual(claude.mcpServers.bestax.args, ['-y', pin]);
-  const agent = renderAgentManifest(t);
-  assert.equal(agent.version, t.plugin.version);
+  const agent = renderAgentManifest(t, '1.0.7');
+  assert.equal(agent.version, '1.0.7');
   assert.equal(
     agent.privacyPolicyUrl,
     undefined,
@@ -612,34 +734,42 @@ const README = Buffer.from(
     'outside code blocks, so this sentence keeps going for a while longer.\n'
 );
 
+const file = (p, text, mode = 0o644) => ({
+  path: p,
+  content: Buffer.from(text),
+  mode,
+});
+
 function fixtureSources(overrides = {}) {
   return {
     template: realTemplate(),
+    version: '1.0.7',
     readme: README,
     launch: { pin: 'bestax-mcp@1.2.3', env: [] },
-    copied: [
-      ['LICENSE', Buffer.from('MIT License\n')],
-      ['NOTICE', Buffer.from('Notice\n')],
-    ],
+    copied: [file('LICENSE', 'MIT License\n'), file('NOTICE', 'Notice\n')],
     skillFiles: [
-      {
-        path: 'skills/demo/SKILL.md',
-        content: Buffer.from('---\nname: demo\n---\n'),
-      },
-      { path: 'skills/demo/references/a.md', content: Buffer.from('# A\n') },
+      file('skills/demo/SKILL.md', '---\nname: demo\n---\n'),
+      file('skills/demo/references/a.md', '# A\n'),
+      file('skills/demo/scripts/check.sh', '#!/bin/sh\n', 0o755),
     ],
-    problems: [],
     ...overrides,
   };
 }
 
-const entriesOf = tree =>
-  [...tree].map(([p, content]) => ({ path: p, content, symlink: false }));
+const entriesOf = tree => planEntries(tree);
 
+/**
+ * treeViolations for the fixture tree after `mutate`, which gets a Map of
+ * path to bytes, so a rule test only says what it puts in or takes out.
+ */
 function violationsWith(mutate) {
-  const tree = buildTree(fixtureSources());
-  mutate(tree);
-  return treeViolations(entriesOf(tree));
+  const files = new Map(
+    [...buildTree(fixtureSources())].map(([p, { content }]) => [p, content])
+  );
+  mutate(files);
+  return treeViolations(
+    [...files].map(([p, content]) => ({ path: p, content, symlink: false }))
+  );
 }
 
 const has = (violations, re) =>
@@ -650,6 +780,28 @@ const has = (violations, re) =>
 
 test('a well-formed fixture tree has no violations', () => {
   assert.deepEqual(treeViolations(entriesOf(buildTree(fixtureSources()))), []);
+});
+
+test('buildTree writes generated files 0644 and keeps each source mode', () => {
+  const tree = buildTree(fixtureSources());
+  for (const generated of Object.values(FILES)) {
+    assert.equal(tree.get(generated).mode, 0o644, generated);
+  }
+  assert.equal(tree.get('LICENSE').mode, 0o644);
+  assert.equal(tree.get('skills/demo/SKILL.md').mode, 0o644);
+  assert.equal(tree.get('skills/demo/scripts/check.sh').mode, 0o755);
+  assert.equal(
+    JSON.parse(tree.get(FILES.agent).content.toString('utf8')).version,
+    '1.0.7'
+  );
+});
+
+test('fileMode keeps only the owner execute bit, as git does', () => {
+  assert.equal(fileMode(0o100644), 0o644);
+  assert.equal(fileMode(0o100755), 0o755);
+  assert.equal(fileMode(0o600), 0o644);
+  assert.equal(fileMode(0o700), 0o755);
+  assert.equal(fileMode(0o655), 0o644, 'group and other execute do not count');
 });
 
 test('the file limit, README, LICENSE and a skill are required', () => {
@@ -727,7 +879,10 @@ test('a path with a newline cannot start a line of a problem', () => {
   has(v, /has a character Windows or macOS refuses/);
   for (const problem of v) assert.ok(!problem.includes('\n'), problem);
   assert.ok(v.some(p => p.includes(JSON.stringify(evil))));
-  for (const problem of planMismatch(new Map([[evil, Buffer.from('x')]]), [])) {
+  for (const problem of planMismatch(
+    new Map([[evil, { content: Buffer.from('x'), mode: 0o644 }]]),
+    []
+  )) {
     assert.ok(!problem.includes('\n'), problem);
   }
 });
@@ -868,7 +1023,8 @@ test('launcherViolations reads npx and refuses launchers it cannot read', () => 
     launcherViolations('f', {
       ok: { command: 'npx', args: ['-y', 'bestax-mcp@1.2.3'] },
       path: { command: '/usr/local/bin/npx', args: ['--yes', 'a@1.0.0'] },
-      local: { command: 'node', args: ['server.js'] },
+      bare: { command: 'npx', args: ['@scope/a@1.0.0', '--port', '3'] },
+      dashes: { command: 'npx', args: ['-y', '--', 'a@1.0.0'] },
     }),
     []
   );
@@ -877,18 +1033,78 @@ test('launcherViolations reads npx and refuses launchers it cannot read', () => 
     latest: { command: 'npx', args: ['bestax-mcp@latest'] },
     flag: { command: 'npx', args: ['-p', 'a@1.0.0', 'a'] },
     noargs: { command: 'npx' },
-    bun: { command: 'bunx', args: ['a@1.0.0'] },
     broken: 'npx',
   });
   has(v, /"none" runs npx \(no package\)/);
   has(v, /"latest" runs npx "bestax-mcp@latest"/);
-  has(v, /"flag" passes npx a package flag/);
+  has(v, /"flag" passes npx "-p", an option this check does not read/);
   has(v, /"noargs" runs npx \(no package\)/);
-  has(v, /"bun" runs "bunx", a package launcher this check cannot read/);
   has(v, /"broken" has no command/);
   assert.deepEqual(launcherViolations('f', []), [
     'f: mcpServers is not an object.',
   ]);
+});
+
+test('an npx option or argument this check does not read is refused', () => {
+  const v = launcherViolations('f', {
+    pkg: { command: 'npx', args: ['--package=a@1.0.0', 'a'] },
+    call: { command: 'npx', args: ['-c', 'a@1.0.0'] },
+    // --cache takes a value, so its value would pass for the package.
+    cache: { command: 'npx', args: ['--cache', 'x@1.0.0', 'a'] },
+    registry: {
+      command: 'npx',
+      args: ['--registry=https://evil.example', 'a@1.0.0'],
+    },
+    number: { command: 'npx', args: [1, 'a@1.0.0'] },
+    notlist: { command: 'npx', args: 'a@1.0.0' },
+    trailing: { command: 'npx', args: ['-y', '--'] },
+  });
+  has(v, /"pkg" passes npx "--package=a@1\.0\.0", an option/);
+  has(v, /"call" passes npx "-c", an option/);
+  has(v, /"cache" passes npx "--cache", an option/);
+  has(v, /"registry" passes npx "--registry=https:\/\/evil\.example"/);
+  has(v, /"number" passes npx an argument that is not a string/);
+  has(v, /"notlist" has args that are not a list/);
+  has(v, /"trailing" runs npx \(no package\)/);
+  assert.equal(v.length, 7);
+});
+
+test('every launcher other than npx is refused, pinned or not', () => {
+  const launches = {
+    'npm-exec': ['npm', ['exec', '--yes', 'a@1.0.0']],
+    'npm-x': ['npm', ['x', 'a']],
+    'npm-exec-win': ['C:\\nodejs\\npm.cmd', ['exec', 'a@1.0.0']],
+    pnpx: ['pnpx', ['a@1.0.0']],
+    'pnpm-dlx': ['pnpm', ['dlx', 'a@1.0.0']],
+    'yarn-dlx': ['yarn', ['dlx', 'a@1.0.0']],
+    bunx: ['bunx', ['a@1.0.0']],
+    'bun-x': ['bun', ['x', 'a']],
+    'bunx-exe': ['BUNX.EXE', ['a']],
+    uvx: ['uvx', ['a==1.0.0']],
+    pipx: ['pipx', ['run', 'a']],
+    deno: ['deno', ['run', 'npm:a@1.0.0']],
+    env: ['/usr/bin/env', ['npx', 'a']],
+    sh: ['sh', ['-c', 'npx a']],
+    cmd: ['cmd', ['/c', 'npx', 'a']],
+    spaced: ['npx -y a', []],
+    node: ['node', ['server.js']],
+  };
+  const v = launcherViolations(
+    'f',
+    Object.fromEntries(
+      Object.entries(launches).map(([name, [command, args]]) => [
+        name,
+        { command, args },
+      ])
+    )
+  );
+  assert.equal(v.length, Object.keys(launches).length);
+  for (const name of Object.keys(launches)) {
+    has(v, new RegExp(`"${name}" runs ".+", and this check reads only npx`));
+  }
+  has(v, /"npm-exec-win" runs "npm"/);
+  has(v, /"bunx-exe" runs "bunx"/);
+  has(v, /"spaced" runs "npx -y a"/);
 });
 
 test('readmeWordCount skips code, comments and link targets', () => {
@@ -975,14 +1191,15 @@ function fixtureRepo({ init = true } = {}) {
 
 test('readSources builds the launch and README from the fixture inputs', async () => {
   const root = fixtureRepo();
-  const sources = await readSources(root);
+  const sources = await readSources(root, { inputCommits: 5 });
+  assert.equal(sources.version, '1.0.5');
   assert.deepEqual(
     sources.skillFiles.map(f => f.path),
     ['skills/demo/SKILL.md', 'skills/demo/references/a.md']
   );
   assert.equal(sources.launch.pin, 'demo-mcp@1.2.3');
   assert.deepEqual(
-    sources.copied.map(([p]) => p),
+    sources.copied.map(f => f.path),
     COPIED
   );
   const readme = sources.readme.toString('utf8');
@@ -990,15 +1207,37 @@ test('readSources builds the launch and README from the fixture inputs', async (
   assert.ok(readme.includes('npx -y demo-mcp@1.2.3\n'));
   assert.ok(readme.includes('BESTAX_MCP_NO_VERSION_CHECK'));
 
-  const files = await generate(path.join(tempDir(), 'out'), root);
+  const files = await generate(path.join(tempDir(), 'out'), root, {
+    inputCommits: 5,
+  });
   assert.ok(!files.includes('skills/README.md'));
+});
+
+test('an executable skill file stays executable, and only it', async () => {
+  const root = fixtureRepo();
+  write(root, 'skills/demo/scripts/run.sh', '#!/bin/sh\necho hi\n');
+  fs.chmodSync(path.join(root, 'skills/demo/scripts/run.sh'), 0o755);
+  fs.chmodSync(path.join(root, 'skills/demo/references/a.md'), 0o600);
+  git(root, 'add', '-A');
+  const out = path.join(tempDir(), 'out');
+  await generate(out, root, { inputCommits: 1 });
+  const mode = rel => fs.statSync(path.join(out, rel)).mode & 0o777;
+  assert.equal(mode('skills/demo/scripts/run.sh'), 0o755);
+  assert.equal(mode('skills/demo/references/a.md'), 0o644);
+  assert.equal(mode('skills/demo/SKILL.md'), 0o644);
+  assert.equal(mode(FILES.agent), 0o644);
+  const written = await scanTree(out);
+  assert.equal(
+    written.find(e => e.path === 'skills/demo/scripts/run.sh').mode,
+    0o755
+  );
 });
 
 test('an untracked skill file stops the run, as it stops the syncs', async () => {
   const root = fixtureRepo();
   write(root, 'skills/demo/untracked.md', 'not vetted\n');
   write(root, 'skills/demo/.DS_Store', 'finder\n');
-  await assert.rejects(readSources(root), err => {
+  await assert.rejects(readSources(root, counted), err => {
     assert.ok(isSkillRefusal(err));
     assert.equal(
       err.message,
@@ -1013,7 +1252,7 @@ test('a symbolic link in a skill stops the run, as it stops the syncs', async ()
   const root = fixtureRepo();
   fs.symlinkSync('references/a.md', path.join(root, 'skills/demo/link.md'));
   git(root, 'add', '-A');
-  await assert.rejects(readSources(root), err => {
+  await assert.rejects(readSources(root, counted), err => {
     assert.ok(isSkillRefusal(err));
     assert.match(err.message, /skills\/demo\/link\.md is a symbolic link/);
     return true;
@@ -1024,16 +1263,19 @@ test('a tracked hidden file in a skill fails the directory checks', async () => 
   const root = fixtureRepo();
   write(root, 'skills/demo/.eslintrc', '{}');
   git(root, 'add', '-A');
-  const sources = await readSources(root);
+  const sources = await readSources(root, counted);
   assert.ok(sources.skillFiles.some(f => f.path === 'skills/demo/.eslintrc'));
-  await assert.rejects(generate(path.join(tempDir(), 'out'), root), err => {
-    assert.ok(err instanceof TreeError);
-    assert.equal(err.code, SKILL_REFUSAL);
-    assert.deepEqual(err.problems, [
-      '"skills/demo/.eslintrc": is hidden, and the plugin ships no hidden files.',
-    ]);
-    return true;
-  });
+  await assert.rejects(
+    generate(path.join(tempDir(), 'out'), root, counted),
+    err => {
+      assert.ok(err instanceof TreeError);
+      assert.equal(err.code, SKILL_REFUSAL);
+      assert.deepEqual(err.problems, [
+        '"skills/demo/.eslintrc": is hidden, and the plugin ships no hidden files.',
+      ]);
+      return true;
+    }
+  );
 });
 
 test('every input must be a tracked regular file', async () => {
@@ -1044,7 +1286,7 @@ test('every input must be a tracked regular file', async () => {
   fs.mkdirSync(path.join(root, SKILL_INDEX));
   git(root, 'rm', '-q', '--cached', `${MCP_DIR}/server.json`);
   fs.rmSync(path.join(root, TEMPLATE.manifest));
-  await assert.rejects(readSources(root), err => {
+  await assert.rejects(readSources(root, counted), err => {
     assert.ok(err instanceof TreeError);
     assert.deepEqual(err.problems, [
       `"${TEMPLATE.manifest}": is missing.`,
@@ -1062,7 +1304,7 @@ test('without git, the tree is read from disk the way the syncs read it', async 
   const root = fixtureRepo({ init: false });
   write(root, 'skills/demo/.DS_Store', 'finder\n');
   write(root, 'skills/demo/extra.md', '# on disk\n');
-  const sources = await readSources(root);
+  const sources = await readSources(root, counted);
   assert.deepEqual(
     sources.skillFiles.map(f => f.path),
     [
@@ -1072,7 +1314,156 @@ test('without git, the tree is read from disk the way the syncs read it', async 
     ]
   );
   fs.symlinkSync('extra.md', path.join(root, 'skills/demo/link.md'));
-  await assert.rejects(readSources(root), /link\.md is a symbolic link/);
+  await assert.rejects(
+    readSources(root, counted),
+    /link\.md is a symbolic link/
+  );
+});
+
+test('without git, the version cannot be counted, so the run stops', async () => {
+  const root = fixtureRepo({ init: false });
+  await assert.rejects(readSources(root), err => {
+    assert.ok(isSkillRefusal(err));
+    assert.match(
+      err.message,
+      /^git cannot read .*: fatal: not a git repository/
+    );
+    return true;
+  });
+  const { out, io } = capture();
+  assert.equal(
+    await main([path.join(tempDir(), 'out')], io, { repo: root }),
+    1
+  );
+  assert.match(out.stderr, /git cannot read/);
+});
+
+test('with --require-checkout, a failed git listing stops the run and says why', async () => {
+  const exported = fixtureRepo({ init: false });
+  await assert.rejects(
+    readSources(exported, { requireCheckout: true, inputCommits: 1 }),
+    err => {
+      assert.ok(isSkillRefusal(err));
+      assert.match(
+        err.message,
+        /^this run requires a git checkout to vet its files, and git cannot read .*not a git repository/
+      );
+      return true;
+    }
+  );
+  const { out, io } = capture();
+  assert.equal(
+    await main([REQUIRE_CHECKOUT, path.join(tempDir(), 'out')], io, {
+      repo: exported,
+      inputCommits: 1,
+    }),
+    1
+  );
+  assert.match(out.stderr, /requires a git checkout/);
+
+  // Nested in some other repository, git speaks for that one instead.
+  const outer = tempDir();
+  git(outer, 'init', '-q');
+  const nested = path.join(outer, 'exported');
+  fs.cpSync(exported, nested, { recursive: true });
+  await assert.rejects(
+    readSources(nested, { requireCheckout: true, inputCommits: 1 }),
+    /requires a git checkout to vet its files, and git reads .* as part of the repository at /
+  );
+  // Without the flag the same trees keep the exported-tree behaviour.
+  assert.equal(
+    (await readSources(nested, { inputCommits: 1 })).version,
+    '1.0.1'
+  );
+
+  // The skill gate is held to it too, not only the inputs outside skills/:
+  // a skills/ that is a repository of its own is not the one being read.
+  const root = fixtureRepo();
+  git(path.join(root, 'skills'), 'init', '-q');
+  write(root, 'skills/demo/unvetted.md', 'x\n');
+  await assert.rejects(
+    readSources(root, { requireCheckout: true, inputCommits: 1 }),
+    /requires a git checkout to vet its files, and git reads .*skills as part of the repository at .*skills, not /
+  );
+  assert.ok(
+    (await readSources(root, { inputCommits: 1 })).skillFiles.some(f =>
+      f.path.endsWith('unvetted.md')
+    ),
+    'without the flag the gate has nothing to vet against'
+  );
+});
+
+/** Commits everything staged in `root`, with no signing and no hooks. */
+const commit = (root, message) =>
+  git(
+    root,
+    '-c',
+    'user.name=t',
+    '-c',
+    'user.email=t@t',
+    '-c',
+    'commit.gpgsign=false',
+    '-c',
+    'core.hooksPath=/dev/null',
+    'commit',
+    '-q',
+    '--allow-empty',
+    '-m',
+    message
+  );
+
+test('inputCommitCount counts the commits that touched PUBLISH_PATHS', async () => {
+  const root = fixtureRepo();
+  commit(root, 'inputs');
+  assert.equal(inputCommitCount(root), 1);
+  write(root, 'unrelated.txt', 'x\n');
+  git(root, 'add', '-A');
+  commit(root, 'not an input');
+  commit(root, 'empty');
+  assert.equal(inputCommitCount(root), 1, 'other paths do not count');
+  write(root, 'skills/demo/references/b.md', '# B\n');
+  git(root, 'add', '-A');
+  commit(root, 'a skill');
+  write(root, 'scripts/gen-skills-repo.mjs', '// x\n');
+  write(root, '.github/workflows/skills-publish.yml', 'name: x\n');
+  git(root, 'add', '-A');
+  commit(root, 'the generator and the workflow');
+  assert.equal(inputCommitCount(root), 3);
+
+  // The real count reaches the manifest when nothing is injected.
+  const out = path.join(tempDir(), 'out');
+  await generate(out, root);
+  assert.equal(readJson(out, FILES.agent).version, '1.0.3');
+});
+
+test('inputCommitCount refuses a shallow clone, no HEAD and no repository', () => {
+  const root = fixtureRepo();
+  commit(root, 'one');
+  write(root, 'skills/demo/references/b.md', '# B\n');
+  git(root, 'add', '-A');
+  commit(root, 'two');
+  const shallow = path.join(tempDir(), 'shallow');
+  execFileSync(
+    'git',
+    ['clone', '-q', '--depth', '1', pathToFileURL(root).href, shallow],
+    { stdio: 'ignore' }
+  );
+  assert.throws(
+    () => inputCommitCount(shallow),
+    err => {
+      assert.ok(isSkillRefusal(err));
+      assert.match(err.message, /is a shallow clone, .* fetch-depth: 0/);
+      return true;
+    }
+  );
+  assert.throws(
+    () => inputCommitCount(fixtureRepo()),
+    /git rev-list failed in .*: fatal: /
+  );
+  assert.throws(
+    () => inputCommitCount(fixtureRepo({ init: false })),
+    /git cannot read .*not a git repository/
+  );
 });
 
 test('a server.json that stops describing an npm stdio package is refused', async () => {
@@ -1083,7 +1474,7 @@ test('a server.json that stops describing an npm stdio package is refused', asyn
   server.packages[0].transport = { type: 'streamable-http' };
   write(root, `${MCP_DIR}/server.json`, JSON.stringify(server));
   await assert.rejects(
-    readSources(root),
+    readSources(root, counted),
     /server\.json no longer gives the plugin an npm package to start over stdio: .*transport\.type must be stdio/
   );
 });
@@ -1091,7 +1482,7 @@ test('a server.json that stops describing an npm stdio package is refused', asyn
 test('an input that is not valid JSON is refused, naming the file', async () => {
   const root = fixtureRepo();
   write(root, TEMPLATE.manifest, '{ not json');
-  await assert.rejects(readSources(root), err => {
+  await assert.rejects(readSources(root, counted), err => {
     assert.ok(isSkillRefusal(err));
     assert.match(err.message, /plugin\/manifest\.json is not valid JSON/);
     return true;
@@ -1101,10 +1492,10 @@ test('an input that is not valid JSON is refused, naming the file', async () => 
 test('a stale skill index or a repo without skills is refused', async () => {
   const stale = fixtureRepo();
   write(stale, SKILL_INDEX, JSON.stringify({ skills: [] }));
-  await assert.rejects(readSources(stale), /Run pnpm gen:mcp/);
+  await assert.rejects(readSources(stale, counted), /Run pnpm gen:mcp/);
   const empty = fixtureRepo();
   fs.rmSync(path.join(empty, 'skills/demo'), { recursive: true });
-  await assert.rejects(readSources(empty), /holds no skills/);
+  await assert.rejects(readSources(empty, counted), /holds no skills/);
 });
 
 test('writeTree refuses a directory that is not empty, or not a directory', async () => {
@@ -1131,18 +1522,28 @@ test('scanTree reports a symbolic link without following it', async () => {
 });
 
 test('planMismatch names files missing, changed or unplanned on disk', () => {
+  const at = (text, mode = 0o644) => ({ content: Buffer.from(text), mode });
   const tree = new Map([
-    ['a', Buffer.from('a')],
-    ['b', Buffer.from('b')],
+    ['a', at('a')],
+    ['b', at('b')],
+    ['d', at('d', 0o755)],
+    ['e', at('e')],
+    ['f', at('f')],
   ]);
   assert.deepEqual(
     planMismatch(tree, [
-      { path: 'b', content: Buffer.from('B') },
-      { path: 'c', content: Buffer.from('c') },
+      { path: 'b', ...at('B') },
+      { path: 'c', ...at('c') },
+      { path: 'd', ...at('d') },
+      { path: 'e', ...at('e', 0o755) },
+      { path: 'f', content: null, symlink: true },
     ]),
     [
       '"a": was planned but is not on disk.',
       '"b": on disk differs from the plan.',
+      '"d": has mode 0644 on disk, and the plan has 0755.',
+      '"e": has mode 0755 on disk, and the plan has 0644.',
+      '"f": was planned but is not on disk.',
       '"c": is on disk but was not planned.',
     ]
   );
