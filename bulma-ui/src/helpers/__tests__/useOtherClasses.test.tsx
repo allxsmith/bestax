@@ -108,6 +108,12 @@ describe('useOtherClasses', () => {
         'is-overlay is-position-fixed'
       );
     });
+
+    it('keeps overlay beside relative', () => {
+      expect(renderUseOtherClasses({ overlay: true, relative: true })).toBe(
+        'is-overlay is-relative'
+      );
+    });
   });
 
   // Bulma's overflow helpers are all `!important` at one class of specificity

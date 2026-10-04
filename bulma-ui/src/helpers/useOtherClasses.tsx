@@ -91,7 +91,7 @@ export interface BulmaOtherProps {
    *
    * When `pos` is set it decides the position, and `relative` adds nothing.
    * Beside `overlay` it replaces the overlay's `absolute` but not its zero
-   * offsets; `overlay` says what each value then does.
+   * offsets; see `overlay`.
    */
   pos?: (typeof validPositions)[number];
   /**

@@ -696,7 +696,7 @@ The `pos` prop sets CSS `position`. It is named `pos` because several components
 | `pos="sticky"`    | `is-position-sticky`   | `position: sticky`   |
 | `relative={true}` | `is-relative`          | `position: relative` |
 
-The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay](#overlay) for what each value does.
+The helpers set `position` and nothing else, so an element that is `absolute`, `fixed` or `sticky` still takes its offsets (`top`, `right`, …) from your own CSS. A sticky element does nothing until it has one. Beside `overlay`, which sets the offsets to 0, see [Overlay](#overlay).
 
 ### Position Examples
 
