@@ -1288,4 +1288,91 @@ describe('DateTimeInput focus handed back on close', () => {
     openByFocus(input);
     expect(getByRole('dialog')).toBeInTheDocument();
   });
+
+  describe('commits nothing the user did not type or pick', () => {
+    const renderWith = (defaultValue: Date | null) => {
+      const onChange = jest.fn();
+      const utils = render(
+        <>
+          <DateTimeInput defaultValue={defaultValue} onChange={onChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      const input = utils.getByRole('combobox') as HTMLInputElement;
+      const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+      const leave = () =>
+        act(() => {
+          elsewhere.focus();
+        });
+      const clickOutside = () => {
+        act(() => {
+          fireEvent.pointerDown(elsewhere);
+        });
+        leave();
+      };
+      return { ...utils, input, onChange, leave, clickOutside };
+    };
+    // The display leaves the seconds out, so a re-parse would drop them.
+    const withSeconds = new Date(2024, 5, 15, 9, 30, 45);
+
+    it('when Escape dismisses a value with seconds and focus moves on', () => {
+      const { input, onChange, leave } = renderWith(withSeconds);
+      openByFocus(input);
+      pressEscape();
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-15 09:30');
+    });
+
+    it('when the ✓ button or a click outside dismisses it', () => {
+      const {
+        input,
+        onChange,
+        leave,
+        clickOutside,
+        getByLabelText,
+        getByRole,
+      } = renderWith(withSeconds);
+      openByFocus(input);
+      act(() => {
+        fireEvent.click(getByLabelText('Done'));
+      });
+      leave();
+      openByFocus(input);
+      expect(getByRole('dialog')).toBeInTheDocument();
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('when a click outside dismisses an empty field', () => {
+      const { input, onChange, clickOutside } = renderWith(null);
+      openByFocus(input);
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('when Escape dismisses an empty field, which stays empty', () => {
+      const { input, onChange, leave } = renderWith(null);
+      openByFocus(input);
+      pressEscape();
+      expect(input).toHaveFocus();
+      expect(input).toHaveValue('');
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('but keeps a date typed after the dismiss, seconds and all', () => {
+      const { input, onChange, leave } = renderWith(withSeconds);
+      openByFocus(input);
+      pressEscape();
+      for (const key of '2025') fireEvent.keyDown(input, { key });
+      leave();
+      expect(input).toHaveValue('2025-06-15 09:30');
+      expect(onChange).toHaveBeenLastCalledWith(
+        new Date(2025, 5, 15, 9, 30, 45)
+      );
+    });
+  });
 });

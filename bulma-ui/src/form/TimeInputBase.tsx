@@ -117,7 +117,9 @@ export interface TimeInputBaseProps
   popover?: boolean;
   /**
    * Open the popover when the input is focused. Focus that a closing popover
-   * hands back to the input leaves it closed.
+   * hands back to the input leaves it closed. Dismissing it commits nothing:
+   * an empty field stays empty, and leaving afterwards commits only what was
+   * typed since.
    */
   openOnFocus?: boolean;
   /** Close the popover after a time is selected (off by default). */

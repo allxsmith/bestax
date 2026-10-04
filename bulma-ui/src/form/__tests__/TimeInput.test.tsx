@@ -1611,4 +1611,70 @@ describe('TimeInput focus handed back on close', () => {
     openByFocus(input);
     expect(getByRole('dialog')).toBeInTheDocument();
   });
+
+  describe('commits nothing the user did not type or pick', () => {
+    const renderWith = (defaultValue: Date | null) => {
+      const onChange = jest.fn();
+      const utils = render(
+        <>
+          <TimeInput defaultValue={defaultValue} onChange={onChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      const input = utils.getByRole('combobox') as HTMLInputElement;
+      const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+      const leave = () =>
+        act(() => {
+          elsewhere.focus();
+        });
+      const clickOutside = () => {
+        act(() => {
+          fireEvent.pointerDown(elsewhere);
+        });
+        leave();
+      };
+      return { ...utils, input, onChange, leave, clickOutside };
+    };
+
+    it('when Escape dismisses a value and focus moves on', () => {
+      // Seconds the HH:mm display leaves out would be lost to a re-parse.
+      const { input, onChange, leave } = renderWith(at(9, 30, 45));
+      openByFocus(input);
+      pressEscape();
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('09:30');
+    });
+
+    it('when a click outside dismisses an empty field', () => {
+      const { input, onChange, clickOutside } = renderWith(null);
+      openByFocus(input);
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('when Escape dismisses an empty field, which stays empty', () => {
+      const { input, onChange, leave } = renderWith(null);
+      openByFocus(input);
+      pressEscape();
+      expect(input).toHaveFocus();
+      expect(input).toHaveValue('');
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('but keeps a time typed after the dismiss', () => {
+      const { input, onChange, leave } = renderWith(at(9, 30));
+      openByFocus(input);
+      pressEscape();
+      fireEvent.keyDown(input, { key: '1' });
+      fireEvent.keyDown(input, { key: '1' });
+      leave();
+      expect(input).toHaveValue('11:30');
+      const last: Date = onChange.mock.lastCall![0];
+      expect([last.getHours(), last.getMinutes()]).toEqual([11, 30]);
+    });
+  });
 });

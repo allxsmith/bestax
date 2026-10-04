@@ -664,10 +664,17 @@ describe('useSegmentedEntry', () => {
       );
     };
 
-    const Picker: React.FC<{ onOpen: () => void }> = ({ onOpen }) => {
+    const Picker: React.FC<{
+      onOpen?: () => void;
+      initial?: Date | null;
+      onChange?: (d: Date | null) => void;
+    }> = ({ onOpen = () => {}, initial = at(9, 30), onChange }) => {
       const inputRef = useRef<HTMLInputElement>(null);
       const containerRef = useRef<HTMLDivElement>(null);
-      const [text, setText] = useState('09:30');
+      const [value, setValue] = useState(initial);
+      const [text, setText] = useState(
+        initial ? formatTime(initial, 'HH:mm') : ''
+      );
       const [open, setOpenState] = useState(false);
       const setOpen = useCallback(
         (next: boolean) => {
@@ -679,8 +686,11 @@ describe('useSegmentedEntry', () => {
       const makeBaseDate = useCallback(() => at(12, 0), []);
       const { inputHandlers } = useSegmentedEntry({
         format: 'HH:mm',
-        value: at(9, 30),
-        commitValue: () => {},
+        value,
+        commitValue: d => {
+          setValue(d);
+          onChange?.(d);
+        },
         formatFn: formatTime,
         tryParse: s => parseTime(s, 'HH:mm'),
         text,
@@ -746,6 +756,45 @@ describe('useSegmentedEntry', () => {
       });
       focusSeg(input);
       expect(onOpen).toHaveBeenCalledTimes(4);
+    });
+
+    it('commits nothing on leaving after it, keeping what the text leaves out', () => {
+      const onChange = jest.fn();
+      const withSeconds = at(9, 30);
+      withSeconds.setSeconds(45);
+      const { getByTestId, getByRole } = render(
+        <Picker initial={withSeconds} onChange={onChange} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      act(() => {
+        fireEvent.click(getByRole('button', { name: 'close' }));
+      });
+      act(() => {
+        input.blur();
+      });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input.value).toBe('09:30');
+    });
+
+    it('drops the seed the closed popover never used, and seeds no other', () => {
+      const onChange = jest.fn();
+      const { getByTestId, getByRole } = render(
+        <Picker initial={null} onChange={onChange} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      expect(input.value).toBe('12:00');
+      act(() => {
+        fireEvent.click(getByRole('button', { name: 'close' }));
+      });
+      expect(input).toHaveFocus();
+      expect(input.value).toBe('');
+      act(() => {
+        input.blur();
+      });
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input.value).toBe('');
     });
   });
 });
