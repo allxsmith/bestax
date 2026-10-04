@@ -1834,8 +1834,9 @@ describe('DateInput focus handed back on close', () => {
     const input = getByRole('combobox');
     openByFocus(input);
     const elsewhere = getByRole('button', { name: 'Elsewhere' });
-    // The popover closes on pointerdown, before the browser moves focus to
-    // what was clicked, so focus is handed back to the input first.
+    // pointerDown closes the popover without moving focus, so the trap hands
+    // it to the input, which must not reopen. The focus() after it stands in
+    // for the browser moving focus to what was clicked.
     act(() => {
       fireEvent.pointerDown(elsewhere);
     });
@@ -1936,6 +1937,26 @@ describe('DateInput focus handed back on close', () => {
       leave();
       expect(onChange).not.toHaveBeenCalled();
       expect(input).toHaveValue('');
+    });
+
+    it('when the launcher dismisses an empty field, which stays empty', () => {
+      const { input, onChange, getByRole, queryByRole } = renderWith({});
+      openByFocus(input);
+      expect(input).not.toHaveValue('');
+      // Pressing the launcher focuses it before the click closes the
+      // popover, so the trap has no focus to hand back.
+      const launcher = getByRole('button', { name: 'Choose date' });
+      act(() => {
+        fireEvent.pointerDown(launcher);
+        launcher.focus();
+      });
+      act(() => {
+        fireEvent.click(launcher);
+      });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(launcher).toHaveFocus();
+      expect(input).toHaveValue('');
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('but keeps a date typed after the dismiss', () => {

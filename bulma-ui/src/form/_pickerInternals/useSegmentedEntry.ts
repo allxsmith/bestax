@@ -169,6 +169,9 @@ export function useSegmentedEntry(
   // back, until focus leaves the picker.
   const handedBackRef = useRef(false);
 
+  // A seed the popover never turned into a value closes with it, wherever
+  // focus goes, so a dismissed empty field stays empty.
+  //
   // As the popover closes, its focus trap hands focus back to the input. That
   // focus is not the user arriving: it must not open the popover again under
   // `openOnFocus`, or seed an empty picker that leaving would then commit.
@@ -179,9 +182,15 @@ export function useSegmentedEntry(
   const closingRef = useRef(false);
   const wasOpenRef = useRef(isOpen);
   useLayoutEffect(() => {
-    if (wasOpenRef.current && !isOpen) closingRef.current = true;
+    if (wasOpenRef.current && !isOpen) {
+      closingRef.current = true;
+      if (!value && seedRef.current !== null && text === seedRef.current) {
+        setText('');
+      }
+      seedRef.current = null;
+    }
     wasOpenRef.current = isOpen;
-  }, [isOpen]);
+  }, [isOpen, value, text, setText]);
   useEffect(() => {
     closingRef.current = false;
   }, [isOpen]);
@@ -317,14 +326,7 @@ export function useSegmentedEntry(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const handedBack = closingRef.current;
       handedBackRef.current = handedBack;
-      if (handedBack) {
-        // A seed the closed popover never turned into a value goes with it,
-        // so the field shows what it holds and leaving commits nothing.
-        if (!value && seedRef.current !== null && text === seedRef.current) {
-          setText('');
-        }
-        seedRef.current = null;
-      } else if (openOnFocus && popover && !disabled && !readOnly) {
+      if (!handedBack && openOnFocus && popover && !disabled && !readOnly) {
         setOpen(true);
       }
       // Enter segment mode: prime an initial value (so editing works even when
@@ -350,7 +352,6 @@ export function useSegmentedEntry(
       segmentEditable,
       segmentMap,
       value,
-      text,
       makeBaseDate,
       formatFn,
       format,
