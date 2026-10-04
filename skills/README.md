@@ -41,6 +41,14 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 
 <!-- /bestax:generated skills-install -->
 
+The [`bestax` plugin](https://github.com/allxsmith/bestax-skills) installs every skill here plus
+the [`bestax-mcp`](../bestax-mcp/README.md) server in one step. In Claude Code:
+
+```text
+/plugin marketplace add allxsmith/bestax-skills
+/plugin install bestax@bestax
+```
+
 ## Layout
 
 <!-- skills-roster:tree -->

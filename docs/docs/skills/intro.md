@@ -25,6 +25,9 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-theming
 
 <!-- /bestax:generated skills-install -->
 
+The [`bestax` plugin](/docs/guides/llms#bestax-plugin) installs every skill plus the MCP server
+in one step, in Claude Code and other coding agents.
+
 Starting a new app? `pnpm create bestax@latest` offers to **preinstall these skills** into the
 generated app's `.claude/skills/` (alongside a `CLAUDE.md`), so a Claude Code session picks them up
 automatically — no manual `skills add` needed.

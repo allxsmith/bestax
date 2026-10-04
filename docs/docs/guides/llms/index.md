@@ -84,6 +84,9 @@ Each release is published to the official
 claude mcp add bestax -- npx -y bestax-mcp@1
 ```
 
+Or install the [bestax plugin](#bestax-plugin), which runs this same server and adds
+the skills.
+
 **Cursor, Claude Desktop, Windsurf, Cline** — add to your MCP config
 (`.cursor/mcp.json`, `claude_desktop_config.json`, …):
 
@@ -142,6 +145,48 @@ Set `BESTAX_MCP_NO_VERSION_CHECK=1` to turn that off.
 
 Because the index is generated from the same source as this site — TSDoc for props, the SCSS for
 variables, these pages for examples — it cannot drift from the documentation you are reading.
+
+## bestax plugin
+
+The `bestax` plugin installs the [Agent Skills](/docs/skills/intro) and the
+[MCP server](#mcp-server) together. It lives in its own repository,
+[allxsmith/bestax-skills](https://github.com/allxsmith/bestax-skills), which is generated from
+this one, so file issues here rather than there.
+
+In **Claude Code**, add its marketplace and install it:
+
+```text
+/plugin marketplace add allxsmith/bestax-skills
+/plugin install bestax@bestax
+```
+
+It starts the server with `npx -y bestax-mcp@<version>`, pinned to the latest bestax-mcp
+release, so skip `claude mcp add` when you use it. It has no hooks or commands of its own.
+
+To pick up changes, choose **Update now** on bestax in the **Installed** tab of `/plugin`, or
+run `claude plugin update bestax@bestax` in your shell and then `/reload-plugins` in your
+session. Claude Code does not auto-update plugins from this marketplace until you choose
+**Enable auto-update** for it in the **Marketplaces** tab of `/plugin`.
+
+**Codex, GitHub Copilot CLI and Grok Build** install it from the same repository:
+
+```bash
+codex plugin marketplace add allxsmith/bestax-skills
+copilot plugin install allxsmith/bestax-skills
+grok plugin install allxsmith/bestax-skills --trust
+```
+
+In Codex, adding the marketplace only lists the plugin. Run `/plugins`, install bestax and turn it
+on.
+
+In **VS Code**, run **Chat: Install Plugin From Source** from the Command Palette and enter
+`https://github.com/allxsmith/bestax-skills`.
+
+In **Kiro**, open the Powers panel, choose **Add Custom Power**, then **Import power from
+GitHub**, and enter `https://github.com/allxsmith/bestax-skills`.
+
+**Cursor** installs plugins from the Cursor Marketplace, which does not list bestax yet. Until it
+does, set up the [MCP server](#mcp-server) and the [skills](/docs/skills/intro) on their own.
 
 ## Contributing
 
