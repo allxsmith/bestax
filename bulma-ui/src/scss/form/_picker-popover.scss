@@ -56,8 +56,14 @@ $picker-trigger-hover-color: cv.getVar('text-strong') !default;
     bottom: calc(100% + cv.getVar('picker-popover-offset'));
     right: 0;
   }
+  // Portaled: fixed to the viewport at the top and left the positioning hook
+  // sets inline, so the corner's own right and bottom must not apply. Left
+  // in, `right: 0` stretches the panel to the viewport's right edge and the
+  // top corners' `bottom` collapses it to its padding.
   &.#{iv.$class-prefix}is-portal {
     position: fixed;
+    right: auto;
+    bottom: auto;
   }
 }
 
