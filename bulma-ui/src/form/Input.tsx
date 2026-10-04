@@ -22,9 +22,17 @@ export interface InputProps extends InputBaseProps {
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;
-  /** Icon props for left icon. */
+  /**
+   * Icon props for left icon.
+   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconLeft?: ControlBaseProps['iconLeft'];
-  /** Icon props for right icon. */
+  /**
+   * Icon props for right icon.
+   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconRight?: ControlBaseProps['iconRight'];
   /** Shortcut for left icon name. */
   iconLeftName?: string;

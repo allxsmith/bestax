@@ -41,9 +41,19 @@ export interface ControlBaseProps
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. */
+  /**
+   * Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
+   * The icon is decoration: Bulma gives control icons `pointer-events: none`, so a click lands on
+   * the input and a clickable node placed here never receives one. Put a button beside the input
+   * in its own addon `Control` instead.
+   */
   iconLeft?: IconProps | React.ReactNode;
-  /** Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph. */
+  /**
+   * Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
+   * The icon is decoration: Bulma gives control icons `pointer-events: none`, so a click lands on
+   * the input and a clickable node placed here never receives one. Put a button beside the input
+   * in its own addon `Control` instead.
+   */
   iconRight?: IconProps | React.ReactNode;
   /** Shortcut for left icon name. */
   iconLeftName?: string;

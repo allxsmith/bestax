@@ -24,9 +24,17 @@ export interface TimeInputProps extends TimeInputBaseProps {
   labelProps?: FieldProps['labelProps'];
   /** Render the field with horizontal layout. */
   horizontal?: boolean;
-  /** Icon props for the left icon. */
+  /**
+   * Icon props for the left icon.
+   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconLeft?: ControlBaseProps['iconLeft'];
-  /** Icon props for the right icon. */
+  /**
+   * Icon props for the right icon.
+   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconRight?: ControlBaseProps['iconRight'];
   /** Shortcut for the right icon name. */
   iconRightName?: string;
