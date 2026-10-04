@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect, userEvent, waitFor, within } from 'storybook/test';
 import { DateInput } from './DateInput';
 import { DateInputBase } from './DateInputBase';
 import { Field } from './Field';
@@ -763,6 +764,75 @@ export const InputOnly: Story = {
           'With `popover={false}` there is no calendar — the field accepts segmented keyboard entry only. Useful in dense forms where a popover would be overkill.',
       },
     },
+  },
+};
+
+const portaledCorners = [
+  'bottom-left',
+  'bottom-right',
+  'top-left',
+  'top-right',
+] as const;
+
+export const AppendToBody: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`appendToBody` renders the calendar into `document.body`, fixed to the viewport at the input, so a parent that clips its overflow cannot cut it off. Each input here opens from a different `position`.',
+      },
+    },
+  },
+  render: () => (
+    <Block>
+      {portaledCorners.map(position => (
+        <DateInput
+          key={position}
+          label={`position="${position}"`}
+          position={position}
+          appendToBody
+        />
+      ))}
+    </Block>
+  ),
+  // Opens each one and checks, in a real browser, that the panel sits on its
+  // input's edge, the gap away, and holds its content. A portaled panel that
+  // kept its corner's own `right` or `bottom` stretched to the viewport's
+  // right edge or collapsed to its padding, which jsdom cannot see.
+  play: async ({ canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    const inputs = within(canvasElement).getAllByRole('combobox');
+    for (const [i, position] of portaledCorners.entries()) {
+      await userEvent.click(inputs[i]);
+      const panel = await page.findByRole('dialog');
+      // The open animation slides the panel, so measure where it lands.
+      await Promise.all(panel.getAnimations().map(a => a.finished));
+      const anchor = inputs[i].parentElement!.getBoundingClientRect();
+      const box = panel.getBoundingClientRect();
+      const gap = parseFloat(
+        getComputedStyle(panel).getPropertyValue(
+          '--bulma-picker-popover-offset'
+        )
+      );
+      const off = (actual: number, expected: number) =>
+        Math.round(Math.abs(actual - expected));
+      expect({
+        position,
+        vertical: position.startsWith('bottom')
+          ? off(box.top, anchor.bottom + gap)
+          : off(box.bottom, anchor.top - gap),
+        horizontal: position.endsWith('left')
+          ? off(box.left, anchor.left)
+          : off(box.right, anchor.right),
+        overflow: Math.max(
+          panel.scrollHeight - panel.clientHeight,
+          panel.scrollWidth - panel.clientWidth,
+          0
+        ),
+      }).toEqual({ position, vertical: 0, horizontal: 0, overflow: 0 });
+      await userEvent.keyboard('{Escape}');
+      await waitFor(() => expect(page.queryByRole('dialog')).toBeNull());
+    }
   },
 };
 

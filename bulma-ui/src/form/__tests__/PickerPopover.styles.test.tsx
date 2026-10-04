@@ -107,6 +107,26 @@ describe.each(pickers)('%s panel placement', (_name, picker) => {
       }
     );
 
+    it.each<[Corner, string]>([
+      ['bottom-left', 'var(--bulma-picker-popover-offset)'],
+      ['bottom-right', 'var(--bulma-picker-popover-offset)'],
+      ['top-left', 'calc(-1 * var(--bulma-picker-popover-offset))'],
+      ['top-right', 'calc(-1 * var(--bulma-picker-popover-offset))'],
+    ])(
+      'takes the gap of a portaled %s panel from the offset variable',
+      (position, marginTop) => {
+        // The coordinates are the anchor's edge, so the gap is a margin on
+        // the side facing it, negative above, as on Popover. Before, the
+        // hook added a fixed 4px and the variable moved only an in-place
+        // panel.
+        const panel = openPanel(picker, prefix, {
+          position,
+          appendToBody: true,
+        });
+        expect(getComputedStyle(panel).marginTop).toBe(marginTop);
+      }
+    );
+
     it.each<[Corner, Record<string, string>]>([
       ['bottom-left', { top: offset, left: '0px' }],
       ['bottom-right', { top: offset, right: '0px' }],

@@ -15,7 +15,7 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { firstTabStop, useFocusTrap } from '../helpers/useFocusTrap';
-import { useAnchoredPosition } from '../helpers/useAnchoredPosition';
+import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
 import { buttonType } from '../helpers/buttonType';
@@ -169,19 +169,6 @@ function nearestDialog(event: Event): EventTarget | null {
 }
 
 /**
- * The gap the stylesheet puts between the panel and the trigger, in pixels.
- * It is a margin on whichever side faces the trigger, and a negative one on
- * a portaled panel above it, so the larger magnitude is the gap.
- */
-function styledGap(panel: HTMLElement): number {
-  const { marginTop, marginBottom } = getComputedStyle(panel);
-  return Math.max(
-    Math.abs(parseFloat(marginTop)) || 0,
-    Math.abs(parseFloat(marginBottom)) || 0
-  );
-}
-
-/**
  * The `Popover` component opens a panel of interactive content, such as a filter form or a set of share options, anchored to the element that toggles it.
  *
  * The panel is a non-modal `role="dialog"`: focus moves into it on open
@@ -253,7 +240,7 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     // The gap comes from `--bulma-popover-offset` in the stylesheet, so the
     // coordinates leave it out and `auto` reads it off the panel.
     offset: 0,
-    styledGap,
+    styledGap: marginGap,
   });
 
   // The trigger renders first inside the wrapper. Read when needed rather
