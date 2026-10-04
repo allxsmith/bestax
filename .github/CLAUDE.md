@@ -535,8 +535,8 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `security-txt-expiry` (`check`), `auto-close-duplicates` (`auto-close`), `claude` (`claude`),
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
-  (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay` and
-  `publish`). The command below lists them.
+  (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay`, `generate`
+  and `publish`). The command below lists them.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
   group by measuring every member instead of guessing for them. They all now **use** the same
   allowlist, and the gap between that and what the measurement produced is the part worth
@@ -606,7 +606,8 @@ what it actually does: it bounds where data can go, not what a session can do wi
 allow-listed host (see I1). Widening an allowlist remains a security change under rule 2, and
 `sign-sbom`'s list is still assembled by reading the actions rather than from a measured run.
 So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists and
-`skills-publish`'s `relay` and `publish` lists, which no run had exercised when they were written.
+`skills-publish`'s `relay`, `generate` and `publish` lists, which no run had exercised when they
+were written.
 The codemod-registry and skills-publish comments give the reason for each host.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
@@ -723,5 +724,6 @@ mark a deliberate exception with `bestax:count-ok` on the same line and say why.
   publisher names `ci.yml`, and the third-party `codemod` CLI must not run under it.
 - **The bestax plugin.** `skills-publish.yml` pushes the tree `scripts/gen-skills-repo.mjs`
   generates to allxsmith/bestax-skills, with a deploy key held in the `skills-publish`
-  environment, which admits `main` only. Its header gives the triggers, why a release reaches it
-  through a dispatch, and why the environment has no required reviewer.
+  environment, which admits `main` only. The generator runs in one job and the key sits in
+  another, which runs no repository code. The workflow's header gives the triggers, that split,
+  why a release reaches it through a dispatch, and why the environment has no required reviewer.

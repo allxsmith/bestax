@@ -63,7 +63,12 @@ import {
   treeViolations,
   writeTree,
 } from './gen-skills-repo.mjs';
-import { yamlGet, yamlItems, yamlScalar } from './check-conformance.mjs';
+import {
+  yamlGet,
+  yamlItems,
+  yamlMap,
+  yamlScalar,
+} from './check-conformance.mjs';
 import {
   SKILL_REFUSAL,
   isSkillRefusal,
@@ -286,6 +291,180 @@ test('the workflow runs on every input and every module the generator imports', 
         `count can fall.`
     );
   }
+});
+
+const WORKFLOW = '.github/workflows/skills-publish.yml';
+
+/** Lines without YAML or shell comments, for matching what actually runs. */
+const uncommented = lines =>
+  lines.filter(line => !line.trim().startsWith('#')).join('\n');
+
+/** skills-publish.yml's jobs by id, each with its keys and steps readable. */
+function workflowJobs() {
+  const lines = repoText(WORKFLOW).split('\n');
+  const reader = entryLines => ({
+    get: key => yamlScalar(yamlGet(entryLines, key)),
+    code: uncommented(entryLines),
+  });
+  return new Map(
+    [...yamlMap(yamlGet(lines, 'jobs')?.lines ?? [])].map(([id, job]) => [
+      id,
+      {
+        ...reader(job.lines),
+        steps: yamlItems(yamlGet(job.lines, 'steps')?.lines ?? []).map(reader),
+      },
+    ])
+  );
+}
+
+test('only publish holds the deploy key, and it runs no repository code', () => {
+  const jobs = workflowJobs();
+  assert.deepEqual(
+    [...jobs]
+      .filter(([, job]) => job.get('environment') || /secrets\./.test(job.code))
+      .map(([id]) => id),
+    ['publish']
+  );
+  const publish = jobs.get('publish');
+  assert.equal(publish.get('environment'), 'skills-publish');
+  assert.equal(publish.get('needs'), 'generate');
+  assert.deepEqual(
+    publish.steps.filter(s => /secrets\./.test(s.code)).map(s => s.get('name')),
+    ['Commit and push to allxsmith/bestax-skills'],
+    'the key reaches the push step alone'
+  );
+  // No checkout, so no file of this repository is on its runner.
+  assert.deepEqual(
+    publish.steps.map(s => s.get('uses')?.split('@')[0]).filter(Boolean),
+    ['step-security/harden-runner', 'actions/download-artifact']
+  );
+  for (const step of publish.steps) {
+    assert.doesNotMatch(
+      uncommented((step.get('run') ?? '').split('\n')),
+      /\b(node|npm|npx|pnpm)\s|scripts\//,
+      `${step.get('name')} runs repository code`
+    );
+  }
+  const generate = jobs.get('generate');
+  assert.ok(
+    generate.steps.some(s =>
+      s.get('uses')?.startsWith('actions/upload-artifact@')
+    ),
+    'generate hands the tree on as an artifact'
+  );
+});
+
+/**
+ * A ustar archive of `entries`, built here so a test can hold members that
+ * tar would not write from a real tree, such as `../` names.
+ */
+function tarball(entries) {
+  const blocks = [];
+  for (const {
+    name,
+    type = '0',
+    body = '',
+    mode = 0o644,
+    link = '',
+  } of entries) {
+    const data = Buffer.from(body);
+    const header = Buffer.alloc(512);
+    const put = (offset, size, text) => header.write(text, offset, size);
+    put(0, 100, name);
+    put(100, 8, `${mode.toString(8).padStart(7, '0')}\0`);
+    put(108, 8, '0000000\0');
+    put(116, 8, '0000000\0');
+    put(124, 12, `${data.length.toString(8).padStart(11, '0')}\0`);
+    put(136, 12, '00000000000\0');
+    put(148, 8, ' '.repeat(8));
+    put(156, 1, type);
+    put(157, 100, link);
+    put(257, 8, 'ustar\u000000');
+    const sum = header.reduce((total, byte) => total + byte, 0);
+    put(148, 8, `${sum.toString(8).padStart(6, '0')}\0 `);
+    blocks.push(header, data, Buffer.alloc(-data.length & 511));
+  }
+  blocks.push(Buffer.alloc(1024));
+  return Buffer.concat(blocks);
+}
+
+/** Runs the publish job's unpack step on `archive`, in a new RUNNER_TEMP. */
+function runUnpack(archive) {
+  const step = workflowJobs()
+    .get('publish')
+    .steps.find(s => s.get('name') === 'Unpack and check the tree');
+  const work = tempDir();
+  fs.mkdirSync(path.join(work, 'bestax-skills-artifact'));
+  fs.writeFileSync(
+    path.join(work, 'bestax-skills-artifact', 'bestax-skills-tree.tar'),
+    archive
+  );
+  const run = spawnSync('bash', ['-c', step.get('run')], {
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH, WORK: work },
+  });
+  return { ...run, work, tree: path.join(work, 'bestax-skills-tree') };
+}
+
+test("publish's unpack step takes the packed tree with its modes", async () => {
+  const out = path.join(tempDir(), 'tree');
+  await generate(out, fixtureRepo(), counted);
+  fs.chmodSync(path.join(out, 'skills/demo/references/a.md'), 0o755);
+  // As generate's "Pack the tree" step does.
+  const run = runUnpack(execFileSync('tar', ['-C', out, '-cf', '-', '.']));
+  assert.equal(run.status, 0, run.stdout + run.stderr);
+  const packed = await scanTree(out);
+  assert.deepEqual(await scanTree(run.tree), packed);
+  assert.ok(packed.some(e => e.mode === 0o755));
+});
+
+test("publish's unpack step refuses a link, a .git, an escape or a missing file", () => {
+  const dir = name => ({ name, type: '5', mode: 0o755 });
+  const good = [
+    dir('./'),
+    dir('./.claude-plugin/'),
+    { name: './.claude-plugin/plugin.json', body: '{}\n' },
+    { name: './plugin.json', body: '{}\n' },
+    { name: './mcp.json', body: '{}\n' },
+    dir('./skills/'),
+    dir('./skills/demo/'),
+    { name: './skills/demo/SKILL.md', body: '# demo\n' },
+  ];
+  assert.equal(runUnpack(tarball(good)).status, 0, 'the fixture is sound');
+
+  for (const [why, extra, said] of [
+    [
+      'a symbolic link',
+      { name: './skills/demo/l', type: '2', link: '/etc' },
+      /regular files and directories only/,
+    ],
+    [
+      'a hard link',
+      { name: './skills/demo/h', type: '1', link: './plugin.json' },
+      /regular files and directories only/,
+    ],
+    ['a .git', { name: './.git/config', body: '[core]\n' }, /\.git part/],
+    ['a .GIT', { name: './skills/.GIT/HEAD', body: 'x\n' }, /\.git part/],
+    ['a ../ path', { name: './../escaped', body: 'x\n' }, /refused/],
+    ['a bare ../ path', { name: '../escaped', body: 'x\n' }, /refused/],
+    [
+      'a nested ../',
+      { name: './skills/../../escaped', body: 'x\n' },
+      /refused/,
+    ],
+    ['an absolute path', { name: '/escaped', body: 'x\n' }, /refused/],
+  ]) {
+    const run = runUnpack(tarball([...good, extra]));
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(run.stdout, /::error::The tree from generate is refused/);
+    assert.match(run.stdout, said, why);
+    assert.ok(!fs.existsSync(run.tree), `${why}: nothing is unpacked`);
+    assert.ok(!fs.existsSync(path.join(run.work, 'escaped')), why);
+  }
+
+  const missing = runUnpack(tarball(good.filter(e => e.name !== './mcp.json')));
+  assert.notEqual(missing.status, 0);
+  assert.match(missing.stdout, /refused: mcp\.json is missing/);
 });
 
 // --- the CLI --------------------------------------------------------------------

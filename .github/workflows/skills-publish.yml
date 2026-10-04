@@ -24,6 +24,17 @@ name: Skills publish
 #   workflow_dispatch: the first publish, a re-run, and the release relay.
 #     Dispatch needs write access, and any ref other than main skips.
 #
+# Two jobs, so the deploy key never shares a job with repository code.
+# `generate` checks out main, runs the generator and hands the tree on as an
+# artifact. It holds no secret and names no environment. `publish` holds the
+# key and checks out nothing. Apart from the pinned actions that harden its
+# runner and download the artifact, and the egress assertion every block
+# job carries, it runs only the shell, git, ssh, tar, find and coreutils, on
+# data that `generate` produced by running main's reviewed code. It checks
+# that data before git reads it. Each job runs on a runner of its own, so
+# `generate` reaches `publish` only through the artifact and the source
+# commit it outputs, and `publish` checks both.
+#
 # Credential. `publish` runs in the `skills-publish` environment, whose only
 # secret is BESTAX_SKILLS_DEPLOY_KEY: an SSH deploy key with write access to
 # allxsmith/bestax-skills and nothing else. The environment admits `main`
@@ -72,6 +83,20 @@ on:
 
 # No workflow-level grants; each job takes exactly what it needs.
 permissions: {}
+
+# One publish at a time, never cancelled midway, held for the whole run so
+# trees reach bestax-skills in the order `generate` checked out main. A
+# group on `publish` alone would not do that: a later run's `generate` can
+# finish first, and the earlier run would then push the older tree over it.
+# GitHub keeps one pending run per group and drops an older pending one for
+# a newer one, which loses nothing, as the newer run checks out main later.
+# Only a run that can publish joins the group, on the condition `generate`
+# and `publish` share. Every other run takes a group of its own, so neither
+# a release relay nor a dispatch from another branch can drop a pending
+# publish, and one package's release cannot drop the bestax-mcp relay.
+concurrency:
+  group: ${{ github.event_name != 'release' && github.ref == 'refs/heads/main' && 'skills-publish' || format('skills-publish-{0}', github.run_id) }}
+  cancel-in-progress: false
 
 jobs:
   relay:
@@ -143,41 +168,38 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: gh workflow run skills-publish.yml --ref main
 
-  publish:
-    name: Publish to allxsmith/bestax-skills
+  generate:
+    name: Generate the bestax-skills tree
     # The repository check keeps a fork from trying. The ref check makes a
     # dispatch from another branch skip. Neither is the boundary: a branch's
-    # own copy of this file can drop them, which is why the environment
-    # admits `main` only.
+    # own copy of this file can drop them, which is why the environment on
+    # `publish` admits `main` only.
     if: >-
       github.repository == 'allxsmith/bestax' &&
       github.event_name != 'release' &&
       github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    environment: skills-publish
+    timeout-minutes: 10
     permissions:
       contents: read # checkout of a public repository
-    # One publish at a time, never cancelled midway. GitHub keeps one pending
-    # run per group and drops an older pending one for a newer one, which
-    # loses nothing: every run checks out main as it is when it starts, so
-    # the run that goes last publishes the newest tree.
-    concurrency:
-      group: skills-publish
-      cancel-in-progress: false
+    outputs:
+      source_sha: ${{ steps.source.outputs.sha }}
     steps:
       # Rule 10, as in `relay`, and the same REASONED, NOT MEASURED caveat.
-      # This job holds the deploy key.
       #
       #   github.com:443: the checkout of this repository (git over HTTPS, no
       #     API call: the same checkout in mcp-registry's `publish` names only
       #     this host).
-      #   github.com:22: git over SSH to allxsmith/bestax-skills, for the
-      #     clone and the push. The deploy key works over SSH only.
       #
       # Deliberately absent: api.github.com, as nothing here calls the API,
       # and registry.npmjs.org and nodejs.org, as the generator imports node:
-      # builtins only and runs on the runner's Node with no install.
+      # builtins only and runs on the runner's Node with no install. Also
+      # absent: the hosts upload-artifact reaches,
+      # results-receiver.actions.githubusercontent.com and a per-run
+      # productionresultssa<N>.blob.core.windows.net. They are the runner's
+      # control plane, which .github/CLAUDE.md ("Measuring an allowlist")
+      # says never to allow-list. claude-implement's `implement` uploads its
+      # log at block with neither listed, as run 36323405095 shows.
       - name: Harden runner
         timeout-minutes: 2
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
@@ -185,9 +207,8 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             github.com:443
-            github.com:22
 
-      # Copied from the other block jobs, as rule 10 asks; see `relay`.
+      # Copied from the other block jobs, as rule 10 asks. See `relay`.
       - name: Assert egress policy is enforced
         timeout-minutes: 2
         run: |
@@ -222,8 +243,7 @@ jobs:
       # No PR runs this workflow, so rule 9's bootstrap gap does not apply:
       # the merge that adds the script is on main before the first run. The
       # whole history, because the plugin's version counts the commits that
-      # touched the generator's inputs, and the generator refuses a shallow
-      # clone.
+      # touched its content, and the generator refuses a shallow clone.
       - name: Checkout main
         id: checkout
         timeout-minutes: 5
@@ -233,40 +253,192 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      # Before the key is in any step's environment. The script checks the
-      # tree against Anthropic's directory rules before and after writing it,
-      # and fails with the reasons. --require-checkout makes a git listing
-      # that fails a refusal, where a local run would skip the vetting gate.
-      # Deliberately no setup-node, as in mcp-registry's `publish`: the
-      # runner image's Node runs it, and the version is printed for the
-      # record.
+      # The commit `publish` names in its commit message. It checks the value
+      # again, as it reaches that job as data.
+      - name: Record the source commit
+        id: source
+        timeout-minutes: 1
+        env:
+          SHA: ${{ steps.checkout.outputs.commit }}
+        run: |
+          if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::actions/checkout reported no commit for main."
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      # The script checks the tree against Anthropic's directory rules before
+      # and after writing it, and fails with the reasons. --require-checkout
+      # makes a git listing that fails a refusal, where a local run would
+      # skip the vetting gate. Deliberately no setup-node, as in
+      # mcp-registry's `publish`: the runner image's Node runs it, and the
+      # version is printed for the record.
       - name: Generate the bestax-skills tree
         timeout-minutes: 2
         run: |
           node --version
           node scripts/gen-skills-repo.mjs --require-checkout "$RUNNER_TEMP/bestax-skills-tree"
 
-      # The only step that sees the key. The generator ran in an earlier step
-      # of this job, and an earlier step can change what later ones run
-      # with: $GITHUB_ENV, $GITHUB_PATH, and git or ssh config in the home
-      # directory. So the shell is named by its full path, and the script
-      # hands the key on stdin to itself, run again under `env -i` with only
-      # the variables it lists: PATH=/usr/bin:/bin, a fresh HOME under
-      # RUNNER_TEMP, no global or system git config, and a working directory
-      # git finds no repository from. Every git call also sets
-      # core.hooksPath=/dev/null, and ssh reads no config file. Under the
-      # reset it runs git, ssh and coreutils, and no repository code. git
-      # reads the generated tree in place, as its work tree, so no file in
-      # the tree lands in the clone's .git.
+      # One tar file, because an artifact keeps no file modes and leaves out
+      # hidden paths such as .claude-plugin/ by default, and the tree needs
+      # both. Every member is named ./<path>, the shape `publish` checks for.
+      - name: Pack the tree
+        timeout-minutes: 2
+        run: tar -C "$RUNNER_TEMP/bestax-skills-tree" -cf "$RUNNER_TEMP/bestax-skills-tree.tar" .
+
+      # One day, the shortest retention there is. `publish` reads it minutes
+      # later, and every run generates the tree afresh from main.
+      - name: Upload the tree
+        timeout-minutes: 5
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: bestax-skills-tree
+          path: ${{ runner.temp }}/bestax-skills-tree.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish to allxsmith/bestax-skills
+    needs: generate
+    # Same condition as `generate`, for the same reasons.
+    if: >-
+      github.repository == 'allxsmith/bestax' &&
+      github.event_name != 'release' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: skills-publish
+    # No grants: no checkout and no API call. download-artifact reads this
+    # run's own artifact with the runner's token, as test-deploy.yml's
+    # `test-deploy` job does with no `actions` grant.
+    permissions: {}
+    steps:
+      # Rule 10, as in `relay`, and the same REASONED, NOT MEASURED caveat.
+      # This job holds the deploy key.
       #
-      # That narrows what an earlier step can reach. It is not a boundary,
-      # which only a separate job, on a runner of its own, would be. The
-      # first shell starts in the job's environment, so a variable such as
-      # BASH_ENV written to $GITHUB_ENV acts before the reset. And every step
-      # runs as the same user, with passwordless sudo on a hosted runner, so
-      # an earlier step could replace git or ssh, or read this step's memory.
-      # The repository code that runs before this step is the generator on
-      # main, reviewed like this file.
+      #   github.com:22: git over SSH to allxsmith/bestax-skills, for the
+      #     ls-remote, the clone and the push. The deploy key works over SSH
+      #     only.
+      #
+      # Deliberately absent: github.com:443, as nothing here checks out this
+      # repository, and api.github.com, as nothing calls the API.
+      # download-artifact reaches the same control-plane hosts as
+      # upload-artifact in `generate`, left out for the reason given there.
+      # No block job here downloads an artifact with them unlisted yet, so
+      # that part rests on the upload and on the Actions cache, which uses
+      # the same hosts and restores at block with neither listed
+      # (.github/CLAUDE.md, "Measuring an allowlist").
+      - name: Harden runner
+        timeout-minutes: 2
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          egress-policy: block
+          allowed-endpoints: >
+            github.com:22
+
+      # Copied from the other block jobs, as rule 10 asks. See `relay`.
+      - name: Assert egress policy is enforced
+        timeout-minutes: 2
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      - name: Download the tree
+        timeout-minutes: 5
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: bestax-skills-tree
+          path: ${{ runner.temp }}/bestax-skills-artifact
+
+      # The tree is data, so it is checked before git reads it. Every member
+      # must be a regular file or a directory, named ./<path>, with no empty,
+      # `.`, `..` or `.git` part in any case. That keeps every file inside a
+      # new directory and out of the clone's .git, and leaves no link to
+      # follow. The listing is checked before anything is written, and the
+      # unpacked files again after, along with the files the plugin needs.
+      # Inline rather than in scripts/ (rule 9), because this job runs no
+      # repository code. scripts/gen-skills-repo.test.mjs runs this script
+      # against good and tampered archives.
+      - name: Unpack and check the tree
+        timeout-minutes: 2
+        env:
+          WORK: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          archive="$WORK/bestax-skills-artifact/bestax-skills-tree.tar"
+          tree="$WORK/bestax-skills-tree"
+          refuse() {
+            echo "::error::The tree from generate is refused: $1"
+            exit 1
+          }
+
+          # tar -tv starts each line with the member's type, as ls -l does.
+          types=$(LC_ALL=C tar -tvf "$archive" | cut -c1 | LC_ALL=C sort -u | tr -d '\n')
+          if [ "$types" != "-d" ]; then
+            refuse "it must hold regular files and directories only, and holds types '$types'."
+          fi
+          names=$(tar -tf "$archive")
+          shopt -s nocasematch
+          while IFS= read -r name; do
+            case "$name" in
+              ./) continue ;;
+              ./*) rel=${name#./} ;;
+              *) refuse "$(printf '%q' "$name") is not named ./<path>." ;;
+            esac
+            case "/${rel%/}/" in
+              *//* | */./* | */../* | */.git/*)
+                refuse "$(printf '%q' "$name") has an empty, ., .. or .git part." ;;
+            esac
+          done <<< "$names"
+          shopt -u nocasematch
+
+          mkdir "$tree"
+          tar --no-same-owner -xf "$archive" -C "$tree"
+          odd=$(find "$tree" -mindepth 1 \( -iname .git -o ! \( -type f -o -type d \) \) -print)
+          if [ -n "$odd" ]; then
+            refuse "the unpacked tree holds a .git, or an entry that is neither a regular file nor a directory."
+          fi
+          for file in .claude-plugin/plugin.json plugin.json mcp.json; do
+            [ -f "$tree/$file" ] || refuse "$file is missing."
+          done
+          [ -d "$tree/skills" ] || refuse "skills/ is missing."
+          echo "The tree from generate passed its checks."
+
+      # The only step that sees the key. This job runs no repository code, so
+      # the job boundary is what keeps the key from it. The reset here is
+      # defence in depth against the actions in this job's earlier steps,
+      # which can change what later steps run with through $GITHUB_ENV,
+      # $GITHUB_PATH, and git or ssh config in the home directory. So the
+      # shell is named by its full path, and the script hands the key on
+      # stdin to itself, run again under `env -i` with only the variables it
+      # lists: PATH=/usr/bin:/bin, a fresh HOME under RUNNER_TEMP, no global
+      # or system git config, and a working directory git finds no
+      # repository from. Every git call also sets core.hooksPath=/dev/null,
+      # and ssh reads no config file. git reads the checked tree in place, as
+      # its work tree, so no file in the tree lands in the clone's .git.
       #
       # The key goes to a file only the runner's user can read, in a directory
       # this step creates and removes, and is never echoed. ssh trusts only
@@ -288,7 +460,7 @@ jobs:
         shell: /usr/bin/bash --noprofile --norc -euo pipefail {0}
         env:
           DEPLOY_KEY: ${{ secrets.BESTAX_SKILLS_DEPLOY_KEY }}
-          SOURCE_SHA: ${{ steps.checkout.outputs.commit }}
+          SOURCE_SHA: ${{ needs.generate.outputs.source_sha }}
           SERVER_URL: ${{ github.server_url }}
           WORK: ${{ runner.temp }}
         run: |
@@ -318,7 +490,7 @@ jobs:
           # this step makes are new, so mkdir fails on one an earlier step
           # left in place.
           if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
-            echo "::error::actions/checkout reported no commit for main."
+            echo "::error::generate passed no source commit for main."
             exit 1
           fi
           run="$WORK/bestax-skills-push"

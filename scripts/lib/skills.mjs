@@ -306,8 +306,8 @@ export function rootGit(cwd, root, args) {
  * When git cannot speak for this tree, for any of rootGit's reasons, it
  * returns null, so an exported tree has nothing to vet against. With
  * `requireCheckout` it throws a refusal naming the cause instead, for a
- * caller such as the plugin publish job, where a missing gate must stop the
- * run rather than let every file through.
+ * caller such as the plugin workflow's generate job, where a missing gate
+ * must stop the run rather than let every file through.
  *
  * `-z` so a path git would quote, such as one with a non-ASCII name, still
  * starts with its skill directory.

@@ -61,9 +61,9 @@
  * scripts do. It has nothing to vet against, so the skill directories are
  * read from disk, minus `.DS_Store`. An export from `git archive` holds only
  * tracked files. The version still needs git history, so a run there stops
- * at the count. The publish job passes `--require-checkout`, which turns a
- * failed git listing into a refusal naming the cause instead of skipping the
- * gate.
+ * at the count. The workflow's generate job passes `--require-checkout`,
+ * which turns a failed git listing into a refusal naming the cause instead
+ * of skipping the gate.
  *
  * Each file keeps its executable bit, as the sync scripts' copyFile does: a
  * skill or copied file is written 0755 when its owner can execute it and
@@ -79,7 +79,8 @@
  *
  * Pure apart from inputCommitCount, readSources, writeTree, scanTree,
  * generate and main, and it imports node: builtins and local modules only,
- * so the publish job runs it with the runner's Node and no install.
+ * so the workflow's generate job runs it with the runner's Node and no
+ * install.
  */
 import {
   chmod,
@@ -191,7 +192,7 @@ export const PUBLISH_PATHS = [
   '.github/workflows/skills-publish.yml',
 ];
 
-/** The flag the publish job passes, so a failed git listing stops the run. */
+/** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
 
 /** The generated regions plugin/README.md must carry. */
