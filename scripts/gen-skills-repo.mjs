@@ -34,7 +34,7 @@
  *   `firstSentence`, the rule both catalogs use. The README regions use the
  *   `<!-- bestax:generated <id> -->` helpers in scripts/lib/api-page.mjs, and
  *   the published README loses its markers through the same function that
- *   strips them from the built docs (docs/scripts/strip-generated-markers.mjs).
+ *   strips them from the built docs (docs/scripts/generated-markers-lib.mjs).
  * - Versions are checked with consumer-sbom-meta.mjs's `assertVersion`,
  *   `parseReleaseTag` and `SEMVER`, and file-derived values in messages go
  *   through its `forLog`, so a file name cannot forge a workflow command on
@@ -69,7 +69,7 @@
 import { lstat, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { stripGeneratedMarkers } from '../docs/scripts/strip-generated-markers.mjs';
+import { stripGeneratedMarkers } from '../docs/scripts/generated-markers-lib.mjs';
 import {
   SEMVER,
   assertVersion,
@@ -634,9 +634,18 @@ export function nameProblem(segment) {
  * An npm package spec pinned to one exact version, such as `name@1.2.3`,
  * split on its last `@` the way release tags are.
  */
+/**
+ * A package name on the npm registry, scoped or not. A git, URL or file spec
+ * such as github:owner/repo@1.0.0 also ends in @<version>, so the name is held
+ * to the registry's grammar before the version counts as an exact pin.
+ */
+const NPM_NAME = /^(?:@[a-z0-9][a-z0-9._~-]*\/)?[a-z0-9][a-z0-9._~-]*$/;
+
 export function exactNpmSpec(spec) {
   const parsed = parseReleaseTag(spec);
-  return Boolean(parsed && SEMVER.test(parsed.version));
+  return Boolean(
+    parsed && NPM_NAME.test(parsed.package) && SEMVER.test(parsed.version)
+  );
 }
 
 /**
@@ -653,7 +662,13 @@ export function launcherViolations(file, servers) {
       violations.push(`${where} has no command.`);
       continue;
     }
-    const command = server.command.split('/').pop();
+    // The bare program name, on any platform: /usr/bin/npx, C:\\x\\npx.cmd
+    // and NPX.EXE all launch npx.
+    const command = server.command
+      .split(/[\\/]/)
+      .pop()
+      .toLowerCase()
+      .replace(/\.(?:cmd|exe|bat|ps1)$/, '');
     if (command === 'npx') {
       const args = Array.isArray(server.args) ? server.args : [];
       if (args.some(a => a === '-p' || String(a).startsWith('--package'))) {

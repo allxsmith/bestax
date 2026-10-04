@@ -836,8 +836,30 @@ test('exactNpmSpec takes only an exact version', () => {
     'bestax-mcp@^1.0.0',
     'bestax-mcp@latest',
     '@scope/pkg',
+    // Off-registry specs also end in @<version>, and none is a registry pin.
+    'github:someone/repo@1.0.0',
+    'https://host/x.tgz@1.0.0',
+    'file:../x@1.0.0',
+    'git+ssh://git@github.com/a/b.git@1.0.0',
+    'Bestax-MCP@1.0.0',
   ]) {
     assert.equal(exactNpmSpec(spec), false, spec);
+  }
+});
+
+test('launcherViolations knows npx by its program name on any platform', () => {
+  const unpinned = command =>
+    launcherViolations('f', { s: { command, args: ['-y', 'bestax-mcp'] } });
+  for (const command of [
+    'npx',
+    '/usr/local/bin/npx',
+    'npx.cmd',
+    'NPX.EXE',
+    'C:\\Program Files\\nodejs\\npx.cmd',
+  ]) {
+    const found = unpinned(command);
+    assert.equal(found.length, 1, command);
+    assert.match(found[0], /is not pinned to an exact version/, command);
   }
 });
 

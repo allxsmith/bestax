@@ -60,7 +60,7 @@ on:
       - 'scripts/consumer-sbom-meta.mjs'
       - 'scripts/mcp-registry-publish.mjs'
       - 'scripts/npm-install-retry.mjs'
-      - 'docs/scripts/strip-generated-markers.mjs'
+      - 'docs/scripts/generated-markers-lib.mjs'
       - '.github/workflows/skills-publish.yml'
   release:
     types: [published]
