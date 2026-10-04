@@ -25,7 +25,8 @@ Choose an override path:
 - **Build-time Sass.** `@use 'bulma/sass' with ($primary: #1e6b99)` when compiling Bulma's Sass.
 
 For **dark mode**, pass `colorMode` to `Theme` (`'light' | 'dark' | 'system'`). It writes Bulma's
-`data-theme` attribute on `<html>`, flipping the light/dark scheme — global, even on a scoped
+`data-theme` attribute on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a
+`classPrefix`, which the prefixed flavors read), flipping the light/dark scheme — global, even on a scoped
 `Theme`; `'system'` follows the OS `prefers-color-scheme`. Drive it from state on the app-root
 `Theme`: `<Theme isRoot colorMode={mode}>`.
 

@@ -234,7 +234,8 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 
 Bulma ships a built-in dark-mode scheme. The simplest way to drive it is the `Theme` component's
 `colorMode` prop (`'light' | 'dark' | 'system'`), which writes Bulma's `data-theme` attribute on
-`<html>` for you. `'system'` follows the OS `prefers-color-scheme`.
+`<html>` for you, plus [its prefixed form](../../api/helpers/theme.md#dark-mode) under a class
+prefix. `'system'` follows the OS `prefers-color-scheme`.
 
 ```tsx
 function DarkModeApp() {

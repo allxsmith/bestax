@@ -1094,9 +1094,17 @@ export const Theme: React.FC<ThemeProps> = ({
       try {
         root.setAttribute(name, colorMode);
       } catch {
-        // A class prefix can hold characters an attribute name cannot, and
-        // no Bulma selector can match such a name either. `data-theme` is
-        // still written, as it was before the prefixed attribute existed.
+        // A class prefix can hold characters an attribute name cannot.
+        // `data-theme` is still written, as it was before the prefixed
+        // attribute existed, but a sheet built with that prefix keeps its
+        // scheme, so say so.
+        warnOnce(
+          'Theme:color-mode-prefix',
+          `[bestax-bulma] <Theme colorMode="${colorMode}">: the class ` +
+            `prefix "${classPrefix}" makes ${name} an invalid attribute ` +
+            'name, so only data-theme is written, and a stylesheet built ' +
+            'with that prefix keeps its scheme.'
+        );
       }
     }
 

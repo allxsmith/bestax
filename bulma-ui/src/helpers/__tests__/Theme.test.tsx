@@ -1114,6 +1114,8 @@ describe('Theme', () => {
 
     it('still writes data-theme when the prefix makes no valid attribute name', () => {
       // A slash is fine in a class name and refused in an attribute name.
+      resetDevWarnings();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const { unmount } = render(
         <ConfigProvider classPrefix="md/">
           <Theme colorMode="dark">
@@ -1122,8 +1124,13 @@ describe('Theme', () => {
         </ConfigProvider>
       );
       expect(themeAttributes()).toEqual(['data-theme=dark']);
+      // The prefixed sheet's scheme does not change, so say so rather than
+      // fail quietly.
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('data-md/theme');
       unmount();
       expect(themeAttributes()).toEqual([]);
+      warnSpy.mockRestore();
     });
 
     it('sets data-theme="dark" on the document root', () => {
