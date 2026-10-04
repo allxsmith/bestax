@@ -620,6 +620,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
             appendToBody={appendToBody}
             ariaLabel={t.chooseTime}
             id={popoverId}
+            restoreFocusRef={inputRef}
           >
             {panel}
           </PickerPopover>

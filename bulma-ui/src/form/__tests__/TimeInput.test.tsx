@@ -1574,8 +1574,8 @@ describe('TimeInput focus handed back on close', () => {
     );
     openByFocus(getByRole('combobox'));
     const elsewhere = getByRole('button', { name: 'Elsewhere' });
-    // The popover closes on pointerdown, before the browser moves focus to
-    // what was clicked, so focus is handed back to the input first.
+    // pointerDown closes the popover without moving focus, and the focus()
+    // after it stands in for the browser moving focus to what was clicked.
     act(() => {
       fireEvent.pointerDown(elsewhere);
     });
@@ -1584,6 +1584,23 @@ describe('TimeInput focus handed back on close', () => {
     });
     expect(queryByRole('dialog')).toBeNull();
     expect(elsewhere).toHaveFocus();
+  });
+
+  it('hands focus to the input when the launcher opened it', () => {
+    // Some browsers don't focus a button when it is clicked, so nothing in
+    // the picker had focus when the popover opened.
+    const onOpen = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <TimeInput defaultValue={at(9, 30)} onOpen={onOpen} />
+    );
+    act(() => {
+      fireEvent.click(getByRole('button', { name: 'Choose time' }));
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+    expect(getByRole('combobox')).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
   });
 
   it('opens again when the user comes back to the input', () => {
@@ -1663,6 +1680,26 @@ describe('TimeInput focus handed back on close', () => {
       leave();
       expect(onChange).not.toHaveBeenCalled();
       expect(input).toHaveValue('');
+    });
+
+    it('when the launcher dismisses an empty field, which stays empty', () => {
+      const { input, onChange, getByRole, queryByRole } = renderWith(null);
+      openByFocus(input);
+      expect(input).toHaveValue('12:00');
+      // Pressing the launcher focuses it before the click closes the
+      // popover, so the trap has no focus to hand back.
+      const launcher = getByRole('button', { name: 'Choose time' });
+      act(() => {
+        fireEvent.pointerDown(launcher);
+        launcher.focus();
+      });
+      act(() => {
+        fireEvent.click(launcher);
+      });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(launcher).toHaveFocus();
+      expect(input).toHaveValue('');
+      expect(onChange).not.toHaveBeenCalled();
     });
 
     it('but keeps a time typed after the dismiss', () => {
