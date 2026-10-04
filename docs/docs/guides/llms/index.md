@@ -182,8 +182,11 @@ on.
 In **VS Code**, run **Chat: Install Plugin From Source** from the Command Palette and enter
 `https://github.com/allxsmith/bestax-skills`.
 
-In **Kiro**, open the Powers panel, choose **Add Custom Power**, then **Import power from
-GitHub**, and enter `https://github.com/allxsmith/bestax-skills`.
+**Kiro** installs the plugin as a [power](https://kiro.dev/docs/powers/installation/), from the
+Agent Plugins `plugin.json` at the repository root. In the IDE, open the Powers panel, choose
+**Add Custom Power**, then **Import power from GitHub**, and enter
+`https://github.com/allxsmith/bestax-skills`. Kiro CLI installs a power from a local folder, so
+clone the repository and run `kiro-cli powers install ./bestax-skills`.
 
 **Cursor** installs plugins from the Cursor Marketplace, which does not list bestax yet. Until it
 does, set up the [MCP server](#mcp-server) and the [skills](/docs/skills/intro) on their own.
