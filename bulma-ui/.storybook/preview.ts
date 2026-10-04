@@ -1,7 +1,13 @@
 import type { Preview } from '@storybook/react-vite';
 import { create } from 'storybook/theming';
-import 'bulma/css/bulma.min.css';
+// The prefixed sheet loads first. Both sheets declare the scheme on `:root`,
+// and each switches it only from its own attribute (`data-theme` for plain
+// Bulma, `data-bulma-theme` for the prefixed build), so the later sheet's
+// `:root` overrides the earlier sheet's attribute. With plain Bulma last,
+// `data-theme`, which `Theme colorMode` writes, switches the scheme for plain
+// and prefixed stories alike, and `data-bulma-theme` is the one that loses.
 import 'bulma/css/versions/bulma-prefixed.min.css';
+import 'bulma/css/bulma.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 import '@mdi/font/css/materialdesignicons.min.css';
 // Ionicons v8 are web components registered via the ESM loader in
