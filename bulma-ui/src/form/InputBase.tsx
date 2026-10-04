@@ -34,8 +34,7 @@ export interface InputBaseProps
   isFocused?: boolean;
   /**
    * Adds the `is-loading` class to the `<input>`. Bulma draws no spinner for it there: the
-   * spinner belongs to the wrapping `Control`, so set `isLoading` on that `Control`, or use
-   * `Input`, which does.
+   * spinner belongs to the wrapping `Control`, so set `isLoading` on that `Control`.
    */
   isLoading?: boolean;
   /** Additional CSS classes to apply. */

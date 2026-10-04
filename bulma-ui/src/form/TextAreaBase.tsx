@@ -40,7 +40,7 @@ export interface TextAreaBaseProps
   isFocused?: boolean;
   /**
    * Accepted and ignored: `TextAreaBase` renders no loading state. The spinner belongs to the
-   * wrapping `Control`, so set `isLoading` on that `Control`, or use `TextArea`, which does.
+   * wrapping `Control`, so set `isLoading` on that `Control`.
    */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
