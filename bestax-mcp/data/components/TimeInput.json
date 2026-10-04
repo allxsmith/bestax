@@ -506,7 +506,7 @@
           "name": "openOnFocus",
           "type": "boolean",
           "default": "true",
-          "description": "Open the popover when the input is focused.",
+          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed.",
           "required": false,
           "inherited": true,
           "deprecated": false

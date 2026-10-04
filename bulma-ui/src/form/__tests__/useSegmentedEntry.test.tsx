@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { useSegmentedEntry } from '../_pickerInternals/useSegmentedEntry';
 import type { SegmentKind } from '../_pickerInternals/segmentMap';
@@ -641,6 +641,111 @@ describe('useSegmentedEntry', () => {
       expect(input.dataset.hasmap).toBe('false');
       focusSeg(input);
       expect(input.dataset.active).toBe('none');
+    });
+  });
+
+  describe('focus handed back on close', () => {
+    // Stands in for the popover's focus trap: takes focus as it mounts and
+    // hands it back to the input from an effect cleanup as it goes.
+    const Panel: React.FC<{
+      inputRef: React.RefObject<HTMLInputElement | null>;
+      onClose: () => void;
+    }> = ({ inputRef, onClose }) => {
+      const closeRef = useRef<HTMLButtonElement>(null);
+      useEffect(() => {
+        closeRef.current?.focus();
+        const input = inputRef.current;
+        return () => input?.focus();
+      }, [inputRef]);
+      return (
+        <button ref={closeRef} onClick={onClose}>
+          close
+        </button>
+      );
+    };
+
+    const Picker: React.FC<{ onOpen: () => void }> = ({ onOpen }) => {
+      const inputRef = useRef<HTMLInputElement>(null);
+      const containerRef = useRef<HTMLDivElement>(null);
+      const [text, setText] = useState('09:30');
+      const [open, setOpenState] = useState(false);
+      const setOpen = useCallback(
+        (next: boolean) => {
+          if (next && !open) onOpen();
+          setOpenState(next);
+        },
+        [open, onOpen]
+      );
+      const makeBaseDate = useCallback(() => at(12, 0), []);
+      const { inputHandlers } = useSegmentedEntry({
+        format: 'HH:mm',
+        value: at(9, 30),
+        commitValue: () => {},
+        formatFn: formatTime,
+        tryParse: s => parseTime(s, 'HH:mm'),
+        text,
+        setText,
+        makeBaseDate,
+        isOpen: open,
+        setOpen,
+        inputRef,
+        containerRef,
+      });
+      return (
+        <div ref={containerRef}>
+          <input
+            ref={inputRef}
+            data-testid="seg"
+            value={text}
+            {...inputHandlers}
+          />
+          {open && <Panel inputRef={inputRef} onClose={() => setOpen(false)} />}
+        </div>
+      );
+    };
+
+    it('does not reopen on the focus a closing popover hands back', () => {
+      const onOpen = jest.fn();
+      const { getByTestId, getByRole, queryByRole } = render(
+        <Picker onOpen={onOpen} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      const close = getByRole('button', { name: 'close' });
+      expect(close).toHaveFocus();
+      act(() => {
+        fireEvent.click(close);
+      });
+      expect(queryByRole('button', { name: 'close' })).toBeNull();
+      expect(input).toHaveFocus();
+      expect(onOpen).toHaveBeenCalledTimes(1);
+    });
+
+    it('opens on the next focus, click or ArrowDown', () => {
+      const onOpen = jest.fn();
+      const { getByTestId, getByRole } = render(<Picker onOpen={onOpen} />);
+      const input = getByTestId('seg') as HTMLInputElement;
+      const closePanel = () =>
+        act(() => {
+          fireEvent.click(getByRole('button', { name: 'close' }));
+        });
+
+      focusSeg(input);
+      closePanel();
+      fireEvent.click(input);
+      expect(onOpen).toHaveBeenCalledTimes(2);
+
+      closePanel();
+      fireEvent.keyDown(input, { key: 'Tab' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(onOpen).toHaveBeenCalledTimes(3);
+
+      closePanel();
+      act(() => {
+        input.blur();
+      });
+      focusSeg(input);
+      expect(onOpen).toHaveBeenCalledTimes(4);
     });
   });
 });

@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -74,6 +75,12 @@ export interface UseSegmentedEntryParams {
   openOnFocus?: boolean;
   closeOnSelect?: boolean;
   isOpen: boolean;
+  /**
+   * The host's open-state setter. The hook asks it to open on focus, click
+   * or ArrowDown, except while a close is committing: the popover's focus
+   * trap hands focus back to the input as it closes, and that focus is not
+   * the user arriving, so under `openOnFocus` it must not reopen it.
+   */
   setOpen: (next: boolean) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   containerRef: React.RefObject<HTMLElement | null>;
@@ -156,6 +163,26 @@ export function useSegmentedEntry(
   // change. Kept in a ref because key handlers read+update synchronously
   // within the same event tick.
   const typedDigitsRef = useRef<string>('');
+
+  // As the popover closes, its focus trap hands focus back to the input. That
+  // focus is not the user arriving, so under `openOnFocus` it must not open
+  // the popover again. `closingRef` is set in the layout phase of the commit
+  // that closes it and cleared by that commit's effects, and React runs a
+  // commit's effect cleanups, the trap's among them, before any of its
+  // effects. The input asks to open only on focus, click or ArrowDown, so a
+  // request in between can only be the focus handed back.
+  const closingRef = useRef(false);
+  const wasOpenRef = useRef(isOpen);
+  useLayoutEffect(() => {
+    if (wasOpenRef.current && !isOpen) closingRef.current = true;
+    wasOpenRef.current = isOpen;
+  }, [isOpen]);
+  useEffect(() => {
+    closingRef.current = false;
+  }, [isOpen]);
+  const requestOpen = useCallback(() => {
+    if (!closingRef.current) setOpen(true);
+  }, [setOpen]);
 
   // Segment mode is unavailable for disabled / read-only / non-editable
   // pickers and for Intl-options / variable-width formats (segmentMap null).
@@ -275,7 +302,7 @@ export function useSegmentedEntry(
 
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      if (openOnFocus && popover && !disabled && !readOnly) setOpen(true);
+      if (openOnFocus && popover && !disabled && !readOnly) requestOpen();
       // Enter segment mode: prime an initial value (so editing works even when
       // empty), seed the text, and highlight the first editable segment.
       if (segmentEditable && segmentMap) {
@@ -292,7 +319,7 @@ export function useSegmentedEntry(
       popover,
       disabled,
       readOnly,
-      setOpen,
+      requestOpen,
       segmentEditable,
       segmentMap,
       value,
@@ -311,7 +338,7 @@ export function useSegmentedEntry(
       // a click is just a focus. With `openOnFocus={false}` (manual-entry
       // mode) the click positions the caret for typing and the popover is
       // opened explicitly via the right launcher button (or ArrowDown).
-      if (openOnFocus && popover && !disabled && !readOnly) setOpen(true);
+      if (openOnFocus && popover && !disabled && !readOnly) requestOpen();
       if (segmentEditable && segmentMap && inputRef.current) {
         const caret = inputRef.current.selectionStart ?? 0;
         const idx = segmentIndexAtCaret(segmentMap, caret);
@@ -327,7 +354,7 @@ export function useSegmentedEntry(
       popover,
       disabled,
       readOnly,
-      setOpen,
+      requestOpen,
       segmentEditable,
       segmentMap,
       inputRef,
@@ -439,7 +466,7 @@ export function useSegmentedEntry(
       // ----- free-form / popover key handling -----
       if (e.key === 'ArrowDown' && !isOpen && popover) {
         e.preventDefault();
-        setOpen(true);
+        requestOpen();
         return;
       }
       if (e.key === 'Escape' && isOpen) {
@@ -466,6 +493,7 @@ export function useSegmentedEntry(
       moveSegment,
       isOpen,
       setOpen,
+      requestOpen,
       closeOnSelect,
       popover,
       tryParse,

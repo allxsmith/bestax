@@ -115,7 +115,10 @@ export interface TimeInputBaseProps
   editable?: boolean;
   /** Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover). */
   popover?: boolean;
-  /** Open the popover when the input is focused. */
+  /**
+   * Open the popover when the input is focused. Focus that a closing popover
+   * hands back to the input leaves it closed.
+   */
   openOnFocus?: boolean;
   /** Close the popover after a time is selected (off by default). */
   closeOnSelect?: boolean;
@@ -299,10 +302,6 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       'timeinput-footer-done'
     );
 
-    // Set from the moment the popover starts to close until the close has
-    // committed. See `setOpenFromInput`.
-    const closingRef = useRef(false);
-
     const setOpen = useCallback(
       (next: boolean) => {
         setOpenState(prev => {
@@ -311,31 +310,12 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
             valueAtOpenRef.current = value;
             onOpen?.();
           } else {
-            closingRef.current = true;
             onClose?.();
           }
           return next;
         });
       },
       [onOpen, onClose, value]
-    );
-
-    // React runs a commit's effect cleanups before any of its effects, so on a
-    // close this runs after the popover's focus trap has handed focus back.
-    useEffect(() => {
-      closingRef.current = false;
-    }, [open]);
-
-    // As the popover closes, its focus trap hands focus back to the input.
-    // That focus is not the user arriving, so under `openOnFocus` it must not
-    // open the popover again. The input asks to open only on focus, click or
-    // ArrowDown, so a request while a close commits can only be that one.
-    const setOpenFromInput = useCallback(
-      (next: boolean) => {
-        if (next && closingRef.current) return;
-        setOpen(next);
-      },
-      [setOpen]
     );
 
     useEffect(() => {
@@ -409,7 +389,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       openOnFocus,
       closeOnSelect,
       isOpen: open,
-      setOpen: setOpenFromInput,
+      setOpen,
       inputRef,
       containerRef,
       onFocus,
