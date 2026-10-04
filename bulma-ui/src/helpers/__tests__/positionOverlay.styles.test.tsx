@@ -1,7 +1,7 @@
 // The `overlay` and `pos` TSDoc and the helpers guide say what the two do
 // together, and that rests on Bulma's cascade: `.is-overlay` sets `position:
 // absolute` and zeroes the offsets without `!important`, while the position
-// helpers set `position` with it. jsdom resolves no cascade, so this reads the
+// helpers set `position` with it and no offset. jsdom resolves no cascade, so this reads the
 // declarations out of the stylesheets instead, so that a Bulma release that
 // changes either side fails here rather than leaving the docs wrong.
 import fs from 'fs';
@@ -10,6 +10,7 @@ import * as sass from 'sass';
 import { validPositions } from '../bulmaClassHelpers';
 
 const PKG = path.resolve(__dirname, '../../..');
+const OFFSETS = ['top', 'right', 'bottom', 'left'];
 
 type Declaration = { value: string; important: boolean };
 type Rule = { selectors: string[]; get: (property: string) => Declaration };
@@ -45,7 +46,7 @@ function rulesOf(css: string): Rule[] {
         important: decl.getPropertyPriority(property) === 'important',
       });
       const snapshot = Object.fromEntries(
-        ['position', 'top', 'right', 'bottom', 'left'].map(p => [p, read(p)])
+        ['position', ...OFFSETS].map(p => [p, read(p)])
       );
       return {
         selectors: splitSelectors(rule.selectorText),
@@ -98,25 +99,34 @@ describe.each(SHEETS)('%s', (_label, css) => {
     expect(declarationsOf(rules, '.is-overlay', 'position')).toEqual([
       { value: 'absolute', important: false },
     ]);
-    for (const offset of ['top', 'right', 'bottom', 'left']) {
+    for (const offset of OFFSETS) {
       expect(declarationsOf(rules, '.is-overlay', offset)).toEqual([
         { value: expect.stringMatching(/^0(px)?$/), important: false },
       ]);
     }
   });
 
+  // The docs say a position beside `overlay` keeps the overlay's zero
+  // offsets, which holds only while the position helpers set none.
   it.each(validPositions.map(value => [value]))(
-    'makes is-position-%s set position with !important',
+    'makes is-position-%s set position with !important and no offset',
     value => {
-      expect(
-        declarationsOf(rules, `.is-position-${value}`, 'position')
-      ).toEqual([{ value, important: true }]);
+      const selector = `.is-position-${value}`;
+      expect(declarationsOf(rules, selector, 'position')).toEqual([
+        { value, important: true },
+      ]);
+      for (const offset of OFFSETS) {
+        expect(declarationsOf(rules, selector, offset)).toEqual([]);
+      }
     }
   );
 
-  it('makes is-relative set position with !important', () => {
+  it('makes is-relative set position with !important and no offset', () => {
     expect(declarationsOf(rules, '.is-relative', 'position')).toEqual([
       { value: 'relative', important: true },
     ]);
+    for (const offset of OFFSETS) {
+      expect(declarationsOf(rules, '.is-relative', offset)).toEqual([]);
+    }
   });
 });
