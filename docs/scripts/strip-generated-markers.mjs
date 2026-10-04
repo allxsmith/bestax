@@ -22,13 +22,23 @@
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(DOCS, 'build');
 const SRC_DIR = join(DOCS, 'docs', 'api');
-const MARKER =
+export const MARKER =
   /^[ \t]*<!--[ \t]*\/?bestax:generated[ \t][^>]*-->[ \t]*\r?\n?/gm;
+
+/**
+ * `src` with every marker line removed. Removing a marker line leaves the
+ * blank line that followed it, which would open a gap mid-paragraph, so runs
+ * of 3+ newlines collapse back to 2. scripts/gen-skills-repo.mjs strips the
+ * README it publishes to allxsmith/bestax-skills with this too.
+ */
+export function stripGeneratedMarkers(src) {
+  return src.replace(MARKER, '').replace(/\n{3,}/g, '\n\n');
+}
 
 async function markdownFiles(dir) {
   const out = [];
@@ -60,9 +70,7 @@ async function main() {
     const src = await readFile(file, 'utf8');
     const hits = src.match(MARKER);
     if (!hits) continue;
-    // Removing a marker line leaves the blank line that followed it, which
-    // would open a gap mid-paragraph. Collapse runs of 3+ newlines back to 2.
-    await writeFile(file, src.replace(MARKER, '').replace(/\n{3,}/g, '\n\n'));
+    await writeFile(file, stripGeneratedMarkers(src));
     stripped += hits.length;
     touched++;
   }
@@ -94,7 +102,10 @@ async function main() {
   );
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+// Run only as a script, so the generator can import stripGeneratedMarkers.
+if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
+  main().catch(err => {
+    console.error(err);
+    process.exit(1);
+  });
+}

@@ -5,6 +5,8 @@
 // drifted to three different sort comparators — the same shape of drift
 // scripts/lib/shell-words.mjs (#436) exists to prevent. All four import from
 // here now; a predicate change lands once or not at all.
+// scripts/gen-skills-repo.mjs, a fifth consumer, imports from here too and
+// takes its skill files from the same vetted walk as the two sync scripts.
 
 import { lstat, readdir, stat } from 'node:fs/promises';
 import { realpathSync } from 'node:fs';
@@ -215,11 +217,58 @@ export function assertSkillsVetted(skillsDir, names, verb) {
   }
 }
 
+/**
+ * Each skill in `names` under `skillsDir` with the files a bundler ships,
+ * once the checks every bundler makes pass: `{ name, dir, files }`, where
+ * `files` is skillFiles' list for `dir`. A caller copies exactly that list,
+ * so what was checked is what ships, and each skill is walked once.
+ *
+ * The walk comes first and the vetting gate second, so every listed file
+ * already existed when git was asked about it. Throws the refusal skillFiles
+ * or assertSkillsVetted gives. `verb` names what was refused. The sync
+ * scripts and scripts/gen-skills-repo.mjs all take their files from here.
+ */
+export async function vettedSkillFiles(skillsDir, names, verb) {
+  const skills = [];
+  for (const name of names) {
+    const dir = join(skillsDir, name);
+    skills.push({ name, dir, files: await skillFiles(dir) });
+  }
+  assertSkillsVetted(skillsDir, names, verb);
+  return skills;
+}
+
 function git(cwd, args) {
   return execFileSync('git', ['-C', cwd, ...args], {
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'ignore'],
   });
+}
+
+/**
+ * The paths `git -C <cwd> ls-files -z <args>` prints, relative to `cwd`, or
+ * null when git cannot speak for this tree:
+ * - git is unavailable, or the tree is not inside any repository, or
+ * - git resolves some OTHER repository than `root`. An exported (git-less)
+ *   bestax tree nested under a git-managed directory would otherwise report
+ *   every skill untracked and hard-fail the build (#550 review). The gate only
+ *   speaks for the repository whose root actually contains these files.
+ *
+ * `-z` so a path git would quote, such as one with a non-ASCII name, still
+ * starts with its skill directory. One helper behind both views below, so
+ * they cannot disagree about which repository they are reading.
+ */
+function gitListing(cwd, root, args) {
+  try {
+    const toplevel = git(cwd, ['rev-parse', '--show-toplevel']).trim();
+    // realpath both sides: git prints physical paths (macOS /tmp → /private/tmp).
+    if (realpathSync(toplevel) !== realpathSync(resolve(root))) return null;
+    return git(cwd, ['ls-files', '-z', ...args])
+      .split('\0')
+      .filter(Boolean);
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -232,31 +281,34 @@ function git(cwd, args) {
  * a scratch skill would. `git add` is the act of vetting; `.gitignore`d noise
  * (`.DS_Store`) stays exempt via --exclude-standard.
  *
- * Returns [] when there is nothing to vet against:
- * - git is unavailable, or the tree is not inside any repository, or
- * - git resolves some OTHER repository — an exported (git-less) bestax tree
- *   nested under a git-managed directory would otherwise report every skill
- *   untracked and hard-fail the build (#550 review). The gate only speaks for
- *   the repository whose root actually contains this skills directory.
+ * Returns [] when there is nothing to vet against, in the cases gitListing
+ * returns null for.
  */
 export function untrackedSkillPaths(skillsDir, names) {
-  try {
-    const toplevel = git(skillsDir, ['rev-parse', '--show-toplevel']).trim();
-    // realpath both sides: git prints physical paths (macOS /tmp → /private/tmp).
-    if (realpathSync(toplevel) !== realpathSync(resolve(dirname(skillsDir)))) {
-      return [];
-    }
-    // No --exclude-standard: sync copies everything on disk, so gitignored
-    // content inside a skill (.env, *.log, a stray node_modules) would ship
-    // right past an exclude-standard gate. The one exemption is .DS_Store —
-    // Finder drops it everywhere and the sync scripts filter it out of the
-    // copy instead, so it neither blocks builds nor ships.
-    const others = git(skillsDir, ['ls-files', '--others', '--', '.']);
-    return pathsInsideSkills(
-      others.split('\n').filter(p => !p.endsWith('.DS_Store')),
-      names
-    );
-  } catch {
-    return [];
-  }
+  // No --exclude-standard: sync copies everything on disk, so gitignored
+  // content inside a skill (.env, *.log, a stray node_modules) would ship
+  // right past an exclude-standard gate. The one exemption is .DS_Store —
+  // Finder drops it everywhere and the sync scripts filter it out of the
+  // copy instead, so it neither blocks builds nor ships.
+  const others = gitListing(skillsDir, dirname(skillsDir), [
+    '--others',
+    '--',
+    '.',
+  ]);
+  if (!others) return [];
+  return pathsInsideSkills(
+    others.filter(p => !isDsStore(p)),
+    names
+  );
+}
+
+/**
+ * Which of `paths` (relative to `root`, the top of the repository) git
+ * tracks, or null when git cannot speak for the tree, as above. For a
+ * bundler's inputs outside skills/, held to the same gate as the skills:
+ * scripts/gen-skills-repo.mjs reads its plugin template and bestax-mcp's
+ * manifests only when git tracks them.
+ */
+export function trackedRepoPaths(root, paths) {
+  return gitListing(root, root, ['--', ...paths]);
 }

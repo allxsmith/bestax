@@ -29,6 +29,7 @@ import {
   readSkillDirs,
   readSkillNames,
   rosterSkillNames,
+  trackedRepoPaths,
   untrackedSkillPaths,
 } from './lib/skills.mjs';
 
@@ -607,6 +608,57 @@ test('the vetting gate flags untracked files only in its OWN repository', async 
     ]),
     []
   );
+});
+
+test('trackedRepoPaths shares the gate and its repository rule', async t => {
+  const { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } =
+    await import('node:fs');
+  const { execFileSync } = await import('node:child_process');
+  const os = await import('node:os');
+  const path = await import('node:path');
+
+  const root = mkdtempSync(path.join(os.tmpdir(), 'bestax-tracked-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const git = (cwd, ...args) =>
+    execFileSync('git', ['-C', cwd, ...args], { stdio: 'ignore' });
+
+  // Its own repository: the tracked paths among those asked about, links
+  // included, and the untracked one left out.
+  const own = path.join(root, 'own');
+  const skillsDir = path.join(own, 'skills');
+  mkdirSync(path.join(skillsDir, 'bestax-form'), { recursive: true });
+  writeFileSync(path.join(skillsDir, 'bestax-form', 'SKILL.md'), '# s\n');
+  writeFileSync(path.join(own, 'LICENSE'), 'MIT\n');
+  symlinkSync('LICENSE', path.join(own, 'COPYING'));
+  git(own, 'init', '-q');
+  git(own, 'add', '-A');
+  writeFileSync(path.join(own, 'NOTICE'), 'n\n');
+  assert.deepEqual(
+    trackedRepoPaths(own, ['LICENSE', 'NOTICE', 'COPYING']),
+    ['COPYING', 'LICENSE'],
+    'a tracked link is listed, so a caller must lstat it'
+  );
+
+  // The listing is read with -z, so a name git would quote still starts
+  // with its skill directory and the untracked gate sees it.
+  writeFileSync(path.join(skillsDir, 'bestax-form', 'caf\u00e9.md'), 'x\n');
+  assert.deepEqual(untrackedSkillPaths(skillsDir, ['bestax-form']), [
+    'bestax-form/caf\u00e9.md',
+  ]);
+
+  // An exported tree inside some other repository, and a tree with no
+  // repository at all: null, so a caller can tell "ask nothing" from
+  // "nothing tracked", while the untracked gate has nothing to report.
+  const outer = path.join(root, 'outer');
+  const exported = path.join(outer, 'exported');
+  mkdirSync(exported, { recursive: true });
+  writeFileSync(path.join(exported, 'LICENSE'), 'MIT\n');
+  git(outer, 'init', '-q');
+  assert.equal(trackedRepoPaths(exported, ['LICENSE']), null);
+  const bare = path.join(root, 'bare');
+  mkdirSync(path.join(bare, 'skills'), { recursive: true });
+  assert.equal(trackedRepoPaths(bare, ['LICENSE']), null);
+  assert.deepEqual(untrackedSkillPaths(path.join(bare, 'skills'), []), []);
 });
 
 test('an adjacent fence with no blank line cannot merge into the scope', () => {
