@@ -35,6 +35,12 @@ name: Skills publish
 # of its own, so `generate` reaches `publish` only through the artifact and
 # the source commit it outputs, and `publish` checks both.
 #
+# Re-runs. The artifact's name carries the run attempt, so re-running
+# `publish` alone finds no tree and fails before the key is used, rather
+# than pushing a tree an earlier attempt built from an older main. Re-run
+# the whole run instead. That generates afresh from main as it is then, but
+# it runs that run's copy of this file, not main's.
+#
 # Credential. `publish` runs in the `skills-publish` environment, whose only
 # secret is BESTAX_SKILLS_DEPLOY_KEY: an SSH deploy key with write access to
 # allxsmith/bestax-skills and nothing else. The environment admits `main`
@@ -84,18 +90,24 @@ on:
 # No workflow-level grants; each job takes exactly what it needs.
 permissions: {}
 
-# One publish at a time, never cancelled midway, held for the whole run so
-# trees reach bestax-skills in the order `generate` checked out main. A
-# group on `publish` alone would not do that: a later run's `generate` can
-# finish first, and the earlier run would then push the older tree over it.
-# GitHub keeps one pending run per group and drops an older pending one for
-# a newer one, which loses nothing, as the newer run checks out main later.
-# Only a run that can publish joins the group, on the condition `generate`
-# and `publish` share. Every other run takes a group of its own, so neither
-# a release relay nor a dispatch from another branch can drop a pending
-# publish, and one package's release cannot drop the bestax-mcp relay.
+# One publishing run at a time, never cancelled midway, held for the whole
+# run so one run's `generate` and `publish` never interleave with another
+# run's. A group on `publish` alone would not do that: a later run's
+# `generate` can finish first, and the earlier run would then push the
+# older tree over it. GitHub keeps one pending run per group and drops an
+# older pending one for a newer one, which loses nothing, as the newer run
+# checks out main later.
+#
+# A run joins the shared group on the condition `generate` runs on (the
+# test sibling holds the two equal), and every other run takes a group of
+# its own. So with this file as it is, a release relay or a dispatch from
+# another branch cannot drop a pending publish, and one package's release
+# cannot drop the bestax-mcp relay. A branch dispatched with its own copy of
+# this file can still name the shared group and drop a pending publish.
+# Nothing is lost for long: the next run on main, from a push to these
+# paths, a bestax-mcp release or a dispatch, publishes main as it is then.
 concurrency:
-  group: ${{ github.event_name != 'release' && github.ref == 'refs/heads/main' && 'skills-publish' || format('skills-publish-{0}', github.run_id) }}
+  group: ${{ github.repository == 'allxsmith/bestax' && github.event_name != 'release' && github.ref == 'refs/heads/main' && 'skills-publish' || format('skills-publish-{0}', github.run_id) }}
   cancel-in-progress: false
 
 jobs:
@@ -287,24 +299,23 @@ jobs:
         run: tar -C "$RUNNER_TEMP/bestax-skills-tree" -cf "$RUNNER_TEMP/bestax-skills-tree.tar" .
 
       # One day, the shortest retention there is. `publish` reads it minutes
-      # later, and every run generates the tree afresh from main.
+      # later, and every run generates the tree afresh from main. The name
+      # carries the attempt, so only this attempt's `publish` finds it (see
+      # "Re-runs" in the header).
       - name: Upload the tree
         timeout-minutes: 5
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
         with:
-          name: bestax-skills-tree
+          name: bestax-skills-tree-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bestax-skills-tree.tar
           if-no-files-found: error
           retention-days: 1
 
   publish:
     name: Publish to allxsmith/bestax-skills
+    # No `if:` of its own: a job skips when a job it needs skipped, so this
+    # runs only when `generate` ran and succeeded.
     needs: generate
-    # Same condition as `generate`, for the same reasons.
-    if: >-
-      github.repository == 'allxsmith/bestax' &&
-      github.event_name != 'release' &&
-      github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: skills-publish
@@ -370,19 +381,24 @@ jobs:
         timeout-minutes: 5
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
-          name: bestax-skills-tree
+          name: bestax-skills-tree-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bestax-skills-artifact
 
       # The tree is data, so it is checked before git reads it. Every member
       # must be a regular file or a directory, named ./<path>, with no empty,
       # `.`, `..` or `.git` part in any case. That keeps every file inside a
       # new directory and out of the clone's .git, and leaves no link to
-      # follow. The listing is checked before anything is written, and the
-      # unpacked files again after, along with the files the plugin needs.
-      # Inline rather than in scripts/ (rule 9), because this job runs no
-      # repository code. scripts/gen-skills-repo.test.mjs runs this script
-      # against good and tampered archives.
-      - name: Unpack and check the tree
+      # follow. The listing is checked before anything is written. tar runs
+      # with TAR_OPTIONS unset, so an earlier step cannot add options to it
+      # through $GITHUB_ENV. The shell itself is open to $GITHUB_ENV the way
+      # the push step's first shell is (see there).
+      #
+      # This step and the next are the deliberate exception to rule 9 in
+      # .github/CLAUDE.md, which puts logic worth testing in scripts/. The
+      # key's job runs no repository code, so its checks cannot live there.
+      # scripts/gen-skills-repo.test.mjs runs both scripts from this file
+      # instead, against good and tampered input.
+      - name: Unpack the tree
         timeout-minutes: 2
         env:
           WORK: ${{ runner.temp }}
@@ -396,11 +412,11 @@ jobs:
           }
 
           # tar -tv starts each line with the member's type, as ls -l does.
-          types=$(LC_ALL=C tar -tvf "$archive" | cut -c1 | LC_ALL=C sort -u | tr -d '\n')
+          types=$(env -u TAR_OPTIONS LC_ALL=C tar -tvf "$archive" | cut -c1 | LC_ALL=C sort -u | tr -d '\n')
           if [ "$types" != "-d" ]; then
             refuse "it must hold regular files and directories only, and holds types '$types'."
           fi
-          names=$(tar -tf "$archive")
+          names=$(env -u TAR_OPTIONS tar -tf "$archive")
           shopt -s nocasematch
           while IFS= read -r name; do
             case "$name" in
@@ -416,7 +432,25 @@ jobs:
           shopt -u nocasematch
 
           mkdir "$tree"
-          tar --no-same-owner -xf "$archive" -C "$tree"
+          env -u TAR_OPTIONS tar --no-same-owner -xf "$archive" -C "$tree"
+          echo "The tree from generate unpacked to $tree."
+
+      # The unpacked files again, independent of how the listing was read:
+      # no .git and nothing that is not a regular file or a directory, which
+      # the listing check should already have made impossible. Then the files
+      # the plugin needs. See the step above for why this is inline.
+      - name: Check the unpacked tree
+        timeout-minutes: 2
+        env:
+          WORK: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          tree="$WORK/bestax-skills-tree"
+          refuse() {
+            echo "::error::The tree from generate is refused: $1"
+            exit 1
+          }
+
           odd=$(find "$tree" -mindepth 1 \( -iname .git -o ! \( -type f -o -type d \) \) -print)
           if [ -n "$odd" ]; then
             refuse "the unpacked tree holds a .git, or an entry that is neither a regular file nor a directory."
@@ -428,17 +462,22 @@ jobs:
           echo "The tree from generate passed its checks."
 
       # The only step that sees the key. This job runs no repository code, so
-      # the job boundary is what keeps the key from it. The reset here is
-      # defence in depth against the actions in this job's earlier steps,
-      # which can change what later steps run with through $GITHUB_ENV,
-      # $GITHUB_PATH, and git or ssh config in the home directory. So the
-      # shell is named by its full path, and the script hands the key on
-      # stdin to itself, run again under `env -i` with only the variables it
-      # lists: PATH=/usr/bin:/bin, a fresh HOME under RUNNER_TEMP, no global
-      # or system git config, and a working directory git finds no
-      # repository from. Every git call also sets core.hooksPath=/dev/null,
-      # and ssh reads no config file. git reads the checked tree in place, as
-      # its work tree, so no file in the tree lands in the clone's .git.
+      # the job boundary is what keeps the key from it. The reset below
+      # shields git and ssh from what the actions in this job's earlier steps
+      # could set up: the script hands the key on stdin to itself, run again
+      # under `env -i` with only the variables it lists, PATH=/usr/bin:/bin,
+      # a fresh HOME under RUNNER_TEMP, no global or system git config, and a
+      # working directory git finds no repository from. Every git call also
+      # sets core.hooksPath=/dev/null, and ssh reads no config file. git reads
+      # the checked tree in place, as its work tree, so no file in the tree
+      # lands in the clone's .git.
+      #
+      # The reset does not shield this step's first shell, which holds the key
+      # and starts in the job's environment. Its full path keeps $GITHUB_PATH
+      # from swapping it, but a variable an earlier step wrote to $GITHUB_ENV,
+      # such as BASH_ENV, SHELLOPTS, PS4 or LD_PRELOAD, acts on it before
+      # `env -i` runs. Only pinned actions and this file's inline steps run
+      # earlier in this job.
       #
       # The key goes to a file only the runner's user can read, in a directory
       # this step creates and removes, and is never echoed. ssh trusts only

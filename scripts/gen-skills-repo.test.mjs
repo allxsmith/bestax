@@ -304,11 +304,20 @@ const WORKFLOW = '.github/workflows/skills-publish.yml';
 const uncommented = lines =>
   lines.filter(line => !line.trim().startsWith('#')).join('\n');
 
+/** An entry's scalar, with a folded (`>-`) one joined the way YAML folds it. */
+const scalar = entry =>
+  entry && /^>-?$/.test(entry.value)
+    ? entry.lines
+        .map(line => line.trim())
+        .filter(line => line && !line.startsWith('#'))
+        .join(' ')
+    : yamlScalar(entry);
+
 /** skills-publish.yml's jobs by id, each with its keys and steps readable. */
 function workflowJobs() {
   const lines = repoText(WORKFLOW).split('\n');
   const reader = entryLines => ({
-    get: key => yamlScalar(yamlGet(entryLines, key)),
+    get: (...keys) => scalar(yamlGet(entryLines, ...keys)),
     code: uncommented(entryLines),
   });
   return new Map(
@@ -332,7 +341,6 @@ test('only publish holds the deploy key, and it runs no repository code', () => 
   );
   const publish = jobs.get('publish');
   assert.equal(publish.get('environment'), 'skills-publish');
-  assert.equal(publish.get('needs'), 'generate');
   assert.deepEqual(
     publish.steps.filter(s => /secrets\./.test(s.code)).map(s => s.get('name')),
     ['Commit and push to allxsmith/bestax-skills'],
@@ -357,6 +365,33 @@ test('only publish holds the deploy key, and it runs no repository code', () => 
     ),
     'generate hands the tree on as an artifact'
   );
+});
+
+test('a re-run of publish alone cannot find an earlier attempt’s tree', () => {
+  const jobs = workflowJobs();
+  const nameOf = (job, action) =>
+    jobs
+      .get(job)
+      .steps.find(s => s.get('uses')?.startsWith(`${action}@`))
+      .get('with', 'name');
+  const uploaded = nameOf('generate', 'actions/upload-artifact');
+  assert.equal(nameOf('publish', 'actions/download-artifact'), uploaded);
+  assert.match(uploaded, /\$\{\{ github\.run_attempt \}\}/);
+});
+
+test('a run joins the shared concurrency group on the condition generate runs on', () => {
+  const group = scalar(
+    yamlGet(repoText(WORKFLOW).split('\n'), 'concurrency', 'group')
+  );
+  const shape =
+    /^\$\{\{ (.+) && 'skills-publish' \|\| format\('skills-publish-\{0\}', github\.run_id\) \}\}$/;
+  const [, joins] = group.match(shape) ?? [];
+  assert.ok(joins, `the concurrency group keeps its shape: ${group}`);
+  const jobs = workflowJobs();
+  assert.equal(joins, jobs.get('generate').get('if'));
+  // publish needs generate, so it skips when generate does.
+  assert.equal(jobs.get('publish').get('needs'), 'generate');
+  assert.equal(jobs.get('publish').get('if'), null);
 });
 
 /**
@@ -393,21 +428,35 @@ function tarball(entries) {
   return Buffer.concat(blocks);
 }
 
-/** Runs the publish job's unpack step on `archive`, in a new RUNNER_TEMP. */
-function runUnpack(archive) {
-  const step = workflowJobs()
+/** The `run:` script of the publish step named `name`. */
+const publishScript = name =>
+  workflowJobs()
     .get('publish')
-    .steps.find(s => s.get('name') === 'Unpack and check the tree');
+    .steps.find(s => s.get('name') === name)
+    .get('run');
+
+/** Runs a step's script with RUNNER_TEMP at `work`, as the job would. */
+const runStep = (script, work, env = {}) =>
+  spawnSync('bash', ['-c', script], {
+    encoding: 'utf8',
+    env: { PATH: process.env.PATH, WORK: work, ...env },
+  });
+
+/**
+ * Runs publish's unpack step on `archive` in a new RUNNER_TEMP, then its
+ * check step if the unpack passed.
+ */
+function runUnpack(archive, env) {
   const work = tempDir();
   fs.mkdirSync(path.join(work, 'bestax-skills-artifact'));
   fs.writeFileSync(
     path.join(work, 'bestax-skills-artifact', 'bestax-skills-tree.tar'),
     archive
   );
-  const run = spawnSync('bash', ['-c', step.get('run')], {
-    encoding: 'utf8',
-    env: { PATH: process.env.PATH, WORK: work },
-  });
+  let run = runStep(publishScript('Unpack the tree'), work, env);
+  if (run.status === 0) {
+    run = runStep(publishScript('Check the unpacked tree'), work, env);
+  }
   return { ...run, work, tree: path.join(work, 'bestax-skills-tree') };
 }
 
@@ -415,8 +464,11 @@ test("publish's unpack step takes the packed tree with its modes", async () => {
   const out = path.join(tempDir(), 'tree');
   await generate(out, fixtureRepo(), counted);
   fs.chmodSync(path.join(out, 'skills/demo/references/a.md'), 0o755);
-  // As generate's "Pack the tree" step does.
-  const run = runUnpack(execFileSync('tar', ['-C', out, '-cf', '-', '.']));
+  // As generate's "Pack the tree" step does. GNU tar would reject the bogus
+  // option if the step let TAR_OPTIONS through.
+  const run = runUnpack(execFileSync('tar', ['-C', out, '-cf', '-', '.']), {
+    TAR_OPTIONS: '--no-such-option',
+  });
   assert.equal(run.status, 0, run.stdout + run.stderr);
   const packed = await scanTree(out);
   assert.deepEqual(await scanTree(run.tree), packed);
@@ -470,6 +522,44 @@ test("publish's unpack step refuses a link, a .git, an escape or a missing file"
   const missing = runUnpack(tarball(good.filter(e => e.name !== './mcp.json')));
   assert.notEqual(missing.status, 0);
   assert.match(missing.stdout, /refused: mcp\.json is missing/);
+});
+
+test("publish's check step refuses a link, a .git or a fifo already on disk", () => {
+  // The listing check keeps these out of an unpacked tree, so this runs the
+  // check step on its own, on trees made by hand.
+  const check = publishScript('Check the unpacked tree');
+  const unpacked = () => {
+    const work = tempDir();
+    const tree = path.join(work, 'bestax-skills-tree');
+    for (const file of [
+      '.claude-plugin/plugin.json',
+      'plugin.json',
+      'mcp.json',
+      'skills/demo/SKILL.md',
+    ]) {
+      write(tree, file, '{}\n');
+    }
+    return { work, tree };
+  };
+  const sound = unpacked();
+  assert.equal(runStep(check, sound.work).status, 0, 'the fixture is sound');
+
+  for (const [why, tamper] of [
+    ['a symbolic link', t => fs.symlinkSync('/etc', path.join(t, 'skills/l'))],
+    ['a .git', t => fs.mkdirSync(path.join(t, 'skills/demo/.git'))],
+    ['a .GIT file', t => write(t, '.GIT', 'x\n')],
+    ['a fifo', t => execFileSync('mkfifo', [path.join(t, 'skills/demo/pipe')])],
+  ]) {
+    const { work, tree } = unpacked();
+    tamper(tree);
+    const run = runStep(check, work);
+    assert.notEqual(run.status, 0, `${why} is refused`);
+    assert.match(
+      run.stdout,
+      /refused: the unpacked tree holds a \.git, or an entry that is neither/,
+      why
+    );
+  }
 });
 
 // --- the CLI --------------------------------------------------------------------
