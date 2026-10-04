@@ -15,6 +15,7 @@
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync, spawnSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -28,6 +29,7 @@ import {
   INPUT_FILES,
   LIMITS,
   MCP_DIR,
+  OUTPUT_FORMAT,
   PUBLISH_PATHS,
   README_REGIONS,
   REQUIRE_CHECKOUT,
@@ -173,7 +175,10 @@ test('the real manifests start the server server.json describes, at the release 
 
   const agent = readJson(out, FILES.agent);
   assert.equal(agent.$schema, AGENT_PLUGIN_SCHEMA);
-  assert.equal(agent.version, `${template.plugin.version}.${COMMITS}`);
+  assert.equal(
+    agent.version,
+    `${template.plugin.version}.${COMMITS + OUTPUT_FORMAT}`
+  );
   assert.equal(agent.mcpServers, './mcp.json');
 
   assert.deepEqual(readJson(out, FILES.mcp), {
@@ -634,8 +639,9 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
       String(version)
     );
   }
-  assert.equal(pluginVersion('1.0', 325), '1.0.325');
-  assert.equal(pluginVersion('2.1', 0), '2.1.0');
+  assert.equal(pluginVersion('1.0', 325, 0), '1.0.325');
+  assert.equal(pluginVersion('2.1', 0, 3), '2.1.3');
+  assert.equal(pluginVersion('1.0', 325), `1.0.${325 + OUTPUT_FORMAT}`);
   for (const bad of [-1, 1.5, NaN, '3', null, undefined, 2 ** 53]) {
     assert.throws(
       () => pluginVersion('1.0', bad),
@@ -647,6 +653,165 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
       String(bad)
     );
   }
+});
+
+// --- the output format ------------------------------------------------------------
+
+/**
+ * Fixed inputs for the output snapshot, written out here in full so the
+ * snapshot moves only when the generator does, never with the live skills,
+ * manifests or server.json.
+ */
+const SNAPSHOT_INPUTS = {
+  'plugin/manifest.json': `${JSON.stringify(
+    {
+      plugin: {
+        name: 'snapshot',
+        version: '1.0',
+        description: 'A fixed plugin the output snapshot builds',
+        author: { name: 'Snapshot Author', url: 'https://example.com/author' },
+        homepage: 'https://example.com/plugin',
+        repository: 'https://example.com/plugin.git',
+        license: 'MIT',
+        keywords: ['snapshot', 'fixture'],
+      },
+      claude: {
+        privacyPolicyUrl: 'https://example.com/privacy',
+        supportUrl: 'https://example.com/support',
+      },
+      marketplace: {
+        name: 'snapshot',
+        description: 'The snapshot marketplace',
+        owner: { name: 'Snapshot Author', url: 'https://example.com/author' },
+      },
+    },
+    null,
+    2
+  )}\n`,
+  'plugin/README.md': `# Snapshot plugin
+
+This plugin exists only so a test can build the same tree every time and
+notice when the generator writes it differently. It has enough words to
+clear the README length rule of the plugin directory, which counts the
+prose outside code blocks and wants forty or more of them.
+
+## Skills
+
+<!-- bestax:generated skills -->
+<!-- /bestax:generated skills -->
+
+## MCP server
+
+<!-- bestax:generated mcp-server -->
+<!-- /bestax:generated mcp-server -->
+`,
+  'bestax-mcp/package.json': `${JSON.stringify({
+    name: 'snapshot-mcp',
+    version: '2.3.4',
+    mcpName: 'io.github.example/snapshot-mcp',
+  })}\n`,
+  'bestax-mcp/server.json': `${JSON.stringify({
+    $schema:
+      'https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json',
+    name: 'io.github.example/snapshot-mcp',
+    title: 'Snapshot',
+    description: 'A fixed server the output snapshot launches',
+    websiteUrl: 'https://example.com/mcp',
+    repository: {
+      url: 'https://github.com/example/snapshot',
+      source: 'github',
+    },
+    version: '0.0.0-set-from-release-tag',
+    packages: [
+      {
+        registryType: 'npm',
+        identifier: 'snapshot-mcp',
+        version: '0.0.0-set-from-release-tag',
+        transport: { type: 'stdio' },
+        environmentVariables: [
+          {
+            name: 'SNAPSHOT_FLAG',
+            description: 'A flag the README lists',
+            format: 'boolean',
+            isRequired: false,
+          },
+        ],
+      },
+    ],
+  })}\n`,
+  'bestax-mcp/data/skills.json': `${JSON.stringify({
+    skills: [
+      {
+        name: 'demo',
+        dir: 'demo',
+        description: 'Build a demo page with every layout piece. More detail.',
+      },
+    ],
+  })}\n`,
+  LICENSE: 'MIT License\n\nCopyright (c) Snapshot Author\n',
+  NOTICE: 'Snapshot notice\n',
+  'skills/README.md': '# Not shipped\n',
+  'skills/demo/SKILL.md':
+    '---\nname: demo\ndescription: Build a demo page.\n---\n\n# Demo\n',
+  'skills/demo/references/a.md': '# A\n\nA reference.\n',
+  'skills/demo/scripts/check.sh': '#!/bin/sh\necho ok\n',
+};
+
+/**
+ * The sha256 of the tree built from SNAPSHOT_INPUTS, and the OUTPUT_FORMAT it
+ * was recorded at. Change both together, and only when a change to the
+ * generator alters its output on purpose.
+ */
+const OUTPUT_SNAPSHOT = {
+  format: 1,
+  sha256: '931418605f7f951f03ca7874a9219e18f54cc9a35cbbde861f6f52d462293f01',
+};
+
+/**
+ * The sha256 of every path, mode and byte the generator plans from
+ * SNAPSHOT_INPUTS. The version is held fixed, so neither the commit count
+ * nor OUTPUT_FORMAT moves it.
+ */
+async function snapshotHash() {
+  const root = tempDir();
+  for (const [rel, text] of Object.entries(SNAPSHOT_INPUTS)) {
+    write(root, rel, text);
+  }
+  fs.chmodSync(path.join(root, 'skills/demo/scripts/check.sh'), 0o755);
+  const sources = await readSources(root, { inputCommits: 0 });
+  const tree = buildTree({ ...sources, version: '0.0.0' });
+  assert.deepEqual(
+    treeViolations(planEntries(tree)),
+    [],
+    'the inputs are sound'
+  );
+  const hash = createHash('sha256');
+  for (const [rel, { content, mode }] of tree) {
+    hash.update(`${rel}\0${mode.toString(8)}\0${content.length}\0`);
+    hash.update(content);
+  }
+  return hash.digest('hex');
+}
+
+test('the output from fixed inputs matches the hash pinned at OUTPUT_FORMAT', async () => {
+  const sha256 = await snapshotHash();
+  const next = Math.max(OUTPUT_FORMAT, OUTPUT_SNAPSHOT.format + 1);
+  assert.equal(
+    sha256,
+    OUTPUT_SNAPSHOT.sha256,
+    `The generator's output changed for the same inputs, so the plugin ` +
+      `would publish a different tree under the same version. Set ` +
+      `OUTPUT_FORMAT in scripts/gen-skills-repo.mjs to ${next}, and ` +
+      `OUTPUT_SNAPSHOT in this file to { format: ${next}, sha256: ` +
+      `'${sha256}' }.`
+  );
+  assert.equal(
+    OUTPUT_FORMAT,
+    OUTPUT_SNAPSHOT.format,
+    `OUTPUT_FORMAT is ${OUTPUT_FORMAT}, but the output is the one pinned at ` +
+      `${OUTPUT_SNAPSHOT.format}. Raise it only with a change to the ` +
+      `output, together with OUTPUT_SNAPSHOT, and never lower it.`
+  );
 });
 
 // --- the MCP launch, from server.json ---------------------------------------------
@@ -1392,7 +1557,7 @@ function fixtureRepo({ init = true } = {}) {
 test('readSources builds the launch and README from the fixture inputs', async () => {
   const root = fixtureRepo();
   const sources = await readSources(root, { inputCommits: 5 });
-  assert.equal(sources.version, '1.0.5');
+  assert.equal(sources.version, `1.0.${5 + OUTPUT_FORMAT}`);
   assert.deepEqual(
     sources.skillFiles.map(f => f.path),
     ['skills/demo/SKILL.md', 'skills/demo/references/a.md']
@@ -1573,7 +1738,7 @@ test('with --require-checkout, a failed git listing stops the run and says why',
   // Without the flag the same trees keep the exported-tree behaviour.
   assert.equal(
     (await readSources(nested, { inputCommits: 1 })).version,
-    '1.0.1'
+    `1.0.${1 + OUTPUT_FORMAT}`
   );
 
   // The skill gate is held to it too, not only the inputs outside skills/:
@@ -1647,7 +1812,10 @@ test('inputCommitCount counts the commits that touched CONTENT_PATHS only', asyn
   // The real count reaches the manifest when nothing is injected.
   const out = path.join(tempDir(), 'out');
   await generate(out, root);
-  assert.equal(readJson(out, FILES.agent).version, `1.0.${1 + content.length}`);
+  assert.equal(
+    readJson(out, FILES.agent).version,
+    `1.0.${1 + content.length + OUTPUT_FORMAT}`
+  );
 });
 
 test('inputCommitCount refuses a shallow clone, no HEAD and no repository', () => {

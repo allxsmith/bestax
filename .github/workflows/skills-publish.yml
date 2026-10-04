@@ -29,11 +29,11 @@ name: Skills publish
 # artifact. It holds no secret and names no environment. `publish` holds the
 # key and checks out nothing. Apart from the pinned actions that harden its
 # runner and download the artifact, and the egress assertion every block
-# job carries, it runs only the shell, git, ssh, tar, find and coreutils, on
-# data that `generate` produced by running main's reviewed code. It checks
-# that data before git reads it. Each job runs on a runner of its own, so
-# `generate` reaches `publish` only through the artifact and the source
-# commit it outputs, and `publish` checks both.
+# job carries, it runs only the shell, git, ssh, tar, find, jq and
+# coreutils, on data that `generate` produced by running main's reviewed
+# code. It checks that data before git reads it. Each job runs on a runner
+# of its own, so `generate` reaches `publish` only through the artifact and
+# the source commit it outputs, and `publish` checks both.
 #
 # Credential. `publish` runs in the `skills-publish` environment, whose only
 # secret is BESTAX_SKILLS_DEPLOY_KEY: an SSH deploy key with write access to
@@ -543,17 +543,20 @@ jobs:
           fi
           publish diff --cached --stat
 
-          # The version's patch counts content commits only (CONTENT_PATHS in
-          # the generator). A changed tree under the same version is a
-          # generator change without the minor bump, or a hand edit to
+          # The version's patch is the content commit count plus OUTPUT_FORMAT
+          # in the generator. A changed tree under the same version is a
+          # generator change that did not raise OUTPUT_FORMAT, which the
+          # generator's tests should have caught, or a hand edit to
           # bestax-skills that this run replaces. Warn and still publish: the
           # tree is right, and failing would leave the plugin behind main.
+          # jq compares the values, so the JSON's layout does not matter. A
+          # new version that cannot be read warns too.
           if [ "$status" = 0 ]; then
-            bumped=$(publish diff --cached --name-only -G '^  "version": ')
-            case $'\n'"$bumped"$'\n' in
-              *$'\n'plugin.json$'\n'*) ;;
-              *) echo "::warning::The tree changed but plugin.json kept its version. A generator change that alters the published output bumps the minor in plugin/manifest.json. CONTRIBUTING.md, \"The bestax-skills repository\", says why." ;;
-            esac
+            was=$(publish show HEAD:plugin.json 2> /dev/null | jq -r .version 2> /dev/null) || was=
+            now=$(jq -r .version "$tree/plugin.json" 2> /dev/null) || now=
+            if [ -z "$now" ] || [ "$was" = "$now" ]; then
+              echo "::warning::The tree changed but plugin.json kept its version. A generator change that alters the published output raises OUTPUT_FORMAT in the generator. CONTRIBUTING.md, \"The bestax-skills repository\", says why."
+            fi
           fi
 
           publish \

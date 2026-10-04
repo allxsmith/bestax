@@ -188,14 +188,16 @@ gate in `scripts/lib/skills.mjs`, the `server.json` reader in `scripts/mcp-regis
 and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
 
 - `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is MAJOR.MINOR only.
-  The generator appends the number of commits on `main` that touched the plugin's content
-  (`CONTENT_PATHS` in the generator), so the Agent Plugins `plugin.json` version rises with each
-  content commit and nobody bumps it by hand. A commit that changes only the generator's code
-  does not move it, so a generator change that alters the published output must bump the minor in
-  the same PR. Bump it too for a release worth naming, and whenever a path leaves
-  `CONTENT_PATHS`, since the count can then fall. The workflow's paths filter is `PUBLISH_PATHS`,
-  the content plus the generator's code. The Claude manifest sets no version, so Claude Code
-  follows commits, and the bestax-mcp pin is read from bestax-mcp's `package.json`.
+  The generator appends a patch, the number of commits on `main` that touched the plugin's
+  content (`CONTENT_PATHS`) plus `OUTPUT_FORMAT`, both in the generator, so the Agent Plugins
+  `plugin.json` version rises with each content commit and nobody bumps it by hand. A generator
+  change that alters the published output raises `OUTPUT_FORMAT` in the same PR. Its tests pin a
+  hash of the tree built from fixed inputs next to `OUTPUT_FORMAT`, and fail until the two are
+  updated together, while a comment-only change passes. Bump the minor whenever a path leaves
+  `CONTENT_PATHS`, since the count can then fall. The workflow's paths filter is
+  `PUBLISH_PATHS`, the content plus the generator's code. The Claude manifest sets no version,
+  so Claude Code follows commits, and the bestax-mcp pin is read from bestax-mcp's
+  `package.json`.
 - `plugin/README.md` becomes the repository's README, and it must say everything the plugin
   runs, sends or fetches. Its skill list and the server's launch command and environment
   variables are generated into its `bestax:generated` regions, from the skill index and

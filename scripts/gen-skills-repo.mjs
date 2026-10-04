@@ -49,13 +49,13 @@
  * already carries the roster.
  *
  * The Agent Plugins manifest's version is MAJOR.MINOR from the template and
- * a patch counted from git: the commits on HEAD that touched CONTENT_PATHS,
- * the paths whose bytes reach the tree. main is squash-merged and never
+ * a patch: the commits on HEAD that touched CONTENT_PATHS, the paths whose
+ * bytes reach the tree, plus OUTPUT_FORMAT. main is squash-merged and never
  * rewritten, so the count only grows, and a catalog that pins the version
- * sees every content change. A commit to this script alone does not count,
- * so one that changes the output bumps the minor (CONTENT_PATHS says why).
- * Git that cannot count, or a shallow clone, is a refusal. pluginVersion has
- * the rest.
+ * sees every content change. A commit to this script alone does not count.
+ * One that changes the output raises OUTPUT_FORMAT, which the test sibling
+ * enforces. Git that cannot count, or a shallow clone, is a refusal.
+ * pluginVersion has the rest.
  *
  * Without git, as in an exported tree, the skill gate does what the sync
  * scripts do. It has nothing to vet against, so the skill directories are
@@ -151,16 +151,13 @@ export const INPUT_FILES = [
 
 /**
  * Every path whose bytes reach the tree: the skills and INPUT_FILES. The
- * version's patch is the number of commits on HEAD that touched one of them
+ * version's patch counts the commits on HEAD that touched one of them
  * (inputCommitCount), so a commit that changes only the generator's code
- * leaves the version where it was.
+ * does not move it. OUTPUT_FORMAT covers the code instead.
  *
- * So a generator change that alters the published output bumps the minor in
- * plugin/manifest.json in the same PR. Without the bump the workflow
- * publishes the new tree under the version the old one had. Adding a path
- * only adds commits to the count. Dropping or renaming one can lower it, as
- * the commits that touched only that path stop counting, so bump the minor
- * then too.
+ * Adding a path only adds commits to the count. Dropping or renaming one can
+ * lower it, as the commits that touched only that path stop counting, so a
+ * change that drops a path also bumps the minor in plugin/manifest.json.
  */
 export const CONTENT_PATHS = [
   'skills/**',
@@ -191,6 +188,21 @@ export const PUBLISH_PATHS = [
   'docs/scripts/generated-markers-lib.mjs',
   '.github/workflows/skills-publish.yml',
 ];
+
+/**
+ * The generator's output format, added to the content commit count to make
+ * the version's patch. Raise it by one in any change that alters the tree
+ * the generator writes from the same inputs, so the plugin's version rises
+ * with that change. Never lower it. The count only grows because main is
+ * never rewritten, and this only grows by that rule, so their sum never goes
+ * back.
+ *
+ * The test sibling pins a hash of the tree built from fixed inputs, next to
+ * the OUTPUT_FORMAT it was recorded at. A change that alters the output
+ * fails that test until this is raised and the hash pinned again. A change
+ * that leaves the output alone, such as one to comments, passes.
+ */
+export const OUTPUT_FORMAT = 1;
 
 /** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
@@ -1081,17 +1093,17 @@ export function inputCommitCount(repo) {
 
 /**
  * The Agent Plugins version: the template's MAJOR.MINOR, then `commits`,
- * inputCommitCount's answer, as the patch. A minor bump keeps the version
- * rising whatever the count does, which is why a generator change that
- * alters the output, or dropping a path from CONTENT_PATHS, goes with one.
+ * inputCommitCount's answer, plus `format` as the patch. A minor bump keeps
+ * the version rising whatever the count does, which is why dropping a path
+ * from CONTENT_PATHS goes with one.
  */
-export function pluginVersion(majorMinor, commits) {
+export function pluginVersion(majorMinor, commits, format = OUTPUT_FORMAT) {
   if (!Number.isSafeInteger(commits) || commits < 0) {
     throw skillRefusal(
       `the input commit count must be a whole number, not ${forLog(commits)}.`
     );
   }
-  return `${majorMinor}.${commits}`;
+  return `${majorMinor}.${commits + format}`;
 }
 
 /** The mode git would record for a file of `mode`: 0755 or 0644. */
