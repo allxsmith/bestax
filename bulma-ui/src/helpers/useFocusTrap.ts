@@ -404,7 +404,8 @@ export interface UseFocusTrapOptions {
  * behaviour, and a modal also has to block the page behind it, which `Modal`
  * does. Content the container renders through a portal lives elsewhere in
  * the DOM, so it is outside the trap: render nested overlays inside the
- * container, or give them a trap of their own.
+ * container, or give them a trap of their own. To trap content a `Portal`
+ * renders, pass a ref to the element inside the `Portal` as `containerRef`.
  *
  * The container has to be in the DOM when the trap turns on. The trap waits
  * for hydration, so a container that only appears once the page has

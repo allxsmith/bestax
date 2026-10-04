@@ -1295,12 +1295,17 @@ describe('useFocusTrap', () => {
   // The docs pair the two this way: the trap's ref goes on the element inside
   // the Portal, which renders into a container after the trigger.
   describe('with Portal', () => {
-    const PortaledTrap: React.FC = () => {
-      const [open, setOpen] = useState(false);
+    const PortaledTrap: React.FC<{ initialOpen?: boolean }> = ({
+      initialOpen = false,
+    }) => {
+      const [open, setOpen] = useState(initialOpen);
       const [target, setTarget] = useState<HTMLElement | null>(null);
       const buttonRef = useRef<HTMLButtonElement>(null);
       const panelRef = useRef<HTMLDivElement>(null);
-      useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
+      useFocusTrap(panelRef, {
+        active: open && target !== null,
+        restoreFocus: buttonRef,
+      });
       return (
         <>
           <div data-testid="declared-in">
@@ -1344,6 +1349,15 @@ describe('useFocusTrap', () => {
 
       fireEvent.keyDown(email, { key: 'Escape' });
       expect(share).toHaveFocus();
+    });
+
+    // The target only exists from the second commit, so a trap keyed on
+    // `open` alone would turn on before the panel and never attach.
+    it('attaches when the panel is open from the first render', () => {
+      render(<PortaledTrap initialOpen />);
+      expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus();
+      expect(pressTab(true).defaultPrevented).toBe(true);
+      expect(button('Cancel')).toHaveFocus();
     });
   });
 });

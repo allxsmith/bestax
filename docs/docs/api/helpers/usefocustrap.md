@@ -104,7 +104,11 @@ function example() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
-  useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
+  // On only once the panel can render, which waits for the target.
+  useFocusTrap(panelRef, {
+    active: open && target !== null,
+    restoreFocus: buttonRef,
+  });
 
   return (
     <>
