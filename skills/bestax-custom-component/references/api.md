@@ -124,14 +124,16 @@ first client render matches; `disabled` renders in place instead. Use it rather 
 `createPortal` yourself, which React's server renderer can't render.
 
 Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so move
-focus into it when it opens and back to its trigger when it closes. A focus trap doesn't cover
+focus into it when it opens and back to its trigger when it closes. To trap portaled content,
+put the trap's ref on the element inside the `Portal`, as below with
+`useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
 what a `Portal` inside it renders, so render nested overlays inside the trapped element.
 
 ```tsx
 {
   open && (
     <Portal>
-      <div role="dialog" aria-label="Filters" tabIndex={-1}>
+      <div ref={panelRef} role="dialog" aria-label="Filters" tabIndex={-1}>
         …
       </div>
     </Portal>

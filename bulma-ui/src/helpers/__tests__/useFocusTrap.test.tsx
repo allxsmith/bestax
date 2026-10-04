@@ -5,6 +5,7 @@ import { hydrateRoot } from 'react-dom/client';
 import { createPortal } from 'react-dom';
 import { useFocusTrap, UseFocusTrapOptions } from '../useFocusTrap';
 import { useIsHydrated } from '../useIsHydrated';
+import { Portal } from '../portal';
 
 /** Portals into document.body once the page has hydrated, as overlays do. */
 const AfterHydration: React.FC<{ children: React.ReactNode }> = ({
@@ -1288,6 +1289,61 @@ describe('useFocusTrap', () => {
         errorSpy.mockRestore();
         document.body.removeChild(container);
       }
+    });
+  });
+
+  // The docs pair the two this way: the trap's ref goes on the element inside
+  // the Portal, which renders into a container after the trigger.
+  describe('with Portal', () => {
+    const PortaledTrap: React.FC = () => {
+      const [open, setOpen] = useState(false);
+      const [target, setTarget] = useState<HTMLElement | null>(null);
+      const buttonRef = useRef<HTMLButtonElement>(null);
+      const panelRef = useRef<HTMLDivElement>(null);
+      useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
+      return (
+        <>
+          <div data-testid="declared-in">
+            <button ref={buttonRef} onClick={() => setOpen(o => !o)}>
+              Share
+            </button>
+            {open && target && (
+              <Portal container={target}>
+                <div
+                  ref={panelRef}
+                  tabIndex={-1}
+                  data-testid="panel"
+                  onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+                >
+                  <input aria-label="Email" />
+                  <button onClick={() => setOpen(false)}>Cancel</button>
+                </div>
+              </Portal>
+            )}
+          </div>
+          <div ref={setTarget} data-testid="target" />
+        </>
+      );
+    };
+
+    it('traps what the Portal renders into its container, then restores focus', () => {
+      render(<PortaledTrap />);
+      const share = button('Share');
+      act(() => share.focus());
+      fireEvent.click(share);
+
+      const panel = screen.getByTestId('panel');
+      expect(screen.getByTestId('target')).toContainElement(panel);
+      expect(screen.getByTestId('declared-in')).not.toContainElement(panel);
+      const email = screen.getByRole('textbox', { name: 'Email' });
+      expect(email).toHaveFocus();
+
+      act(() => button('Cancel').focus());
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(email).toHaveFocus();
+
+      fireEvent.keyDown(email, { key: 'Escape' });
+      expect(share).toHaveFocus();
     });
   });
 });
