@@ -257,6 +257,26 @@ describe('DateInput', () => {
       expect(hidden).not.toBeNull();
       expect((hidden as HTMLInputElement).value).toBe('2024-06-07');
     });
+
+    it('keeps DOM focus on the day the keyboard moves to', () => {
+      const { getByRole } = render(
+        <DateInput
+          inline
+          defaultValue={new Date(2024, 5, 15)}
+          // The value's own day is out, so Tab lands on the 16th.
+          shouldDisableDate={d => d.getDate() === 15}
+        />
+      );
+      const grid = getByRole('grid');
+      const stop = grid.querySelector<HTMLElement>('[tabindex="0"]')!;
+      expect(stop).toHaveTextContent('16');
+      act(() => stop.focus());
+      act(() => {
+        fireEvent.keyDown(stop, { key: 'ArrowRight' });
+      });
+      expect(document.activeElement).toHaveTextContent('17');
+      expect(document.activeElement).toHaveAttribute('tabindex', '0');
+    });
   });
 
   describe('Mobile native fallback', () => {

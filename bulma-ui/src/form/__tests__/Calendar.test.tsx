@@ -1299,3 +1299,136 @@ describe('Calendar year granularity', () => {
     });
   });
 });
+
+describe('Calendar day grid focus', () => {
+  const grid = (container: HTMLElement) =>
+    container.querySelector<HTMLElement>('[role="grid"]')!;
+  const press = (container: HTMLElement, key: string) =>
+    act(() => {
+      fireEvent.keyDown(document.activeElement ?? grid(container), { key });
+    });
+  // A day of the month on show, not a nearby month's day with the same number.
+  const day = (container: HTMLElement, n: number) =>
+    Array.from(
+      container.querySelectorAll<HTMLElement>(
+        '.dateinput-cell:not(.is-other-month)'
+      )
+    ).find(c => c.textContent === String(n))!;
+  const tabStops = (container: HTMLElement) =>
+    Array.from(
+      container.querySelectorAll<HTMLElement>('[role="gridcell"]')
+    ).filter(c => c.tabIndex === 0);
+
+  describe('without autoFocusCell, as an inline calendar renders it', () => {
+    it('leaves focus alone until the grid has it', () => {
+      const { container } = render(<PeriodHarness />);
+      expect(container.contains(document.activeElement)).toBe(false);
+      fireEvent.click(container.querySelector('.dateinput-nav-next')!);
+      expect(
+        container.querySelector('.dateinput-month-label')
+      ).toHaveTextContent('July 2024');
+      expect(container.contains(document.activeElement)).toBe(false);
+    });
+
+    it('moves DOM focus with the arrow keys', () => {
+      const { container } = render(<PeriodHarness />);
+      act(() => day(container, 15).focus());
+      press(container, 'ArrowRight');
+      expect(document.activeElement).toBe(day(container, 16));
+      press(container, 'ArrowDown');
+      expect(document.activeElement).toBe(day(container, 23));
+      expect(tabStops(container)).toEqual([day(container, 23)]);
+    });
+
+    it('follows a key that moves into another month', () => {
+      const { container } = render(<PeriodHarness />);
+      act(() => day(container, 15).focus());
+      press(container, 'PageDown');
+      expect(
+        container.querySelector('.dateinput-month-label')
+      ).toHaveTextContent('July 2024');
+      expect(document.activeElement).toBe(day(container, 15));
+      press(container, 'ArrowLeft');
+      expect(document.activeElement).toBe(day(container, 14));
+    });
+  });
+
+  describe('tab stop', () => {
+    it.each([
+      ['the later neighbour', [15], 15, 16],
+      ['the earlier one when the later is out too', [15, 16], 15, 14],
+      ["back from the month's last day", [30], 30, 29],
+      ['on from the first past a blocked second', [1, 2], 1, 3],
+    ])(
+      'moves off a disabled focused day to %s',
+      (_case, blocked, focused, expected) => {
+        const { container } = render(
+          <PeriodHarness
+            focusedDate={new Date(2024, 5, focused)}
+            shouldDisableDate={d =>
+              d.getMonth() === 5 && blocked.includes(d.getDate())
+            }
+          />
+        );
+        const stops = tabStops(container);
+        expect(stops).toEqual([day(container, expected)]);
+        expect(stops[0]).not.toBeDisabled();
+        expect(stops[0]).toHaveAttribute('data-focused', 'true');
+      }
+    );
+
+    it('makes the day Tab reaches the focused one, so keys move from it', () => {
+      const onFocusedDateChange = jest.fn();
+      const onSelect = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          shouldDisableDate={d => d.getMonth() === 5 && d.getDate() === 15}
+          onFocusedDateChange={onFocusedDateChange}
+          onSelect={onSelect}
+        />
+      );
+      act(() => tabStops(container)[0].focus());
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2024, 5, 16));
+      press(container, 'ArrowRight');
+      expect(document.activeElement).toBe(day(container, 17));
+      press(container, 'Enter');
+      expect(onSelect).toHaveBeenCalledWith(new Date(2024, 5, 17));
+    });
+
+    it("leaves a nearby month's day to its click, which turns the grid", () => {
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness onFocusedDateChange={onFocusedDateChange} />
+      );
+      // Focus comes before the click; turning the grid then would move the
+      // cell out from under the pointer.
+      const nearby = container.querySelector<HTMLElement>(
+        '.dateinput-cell.is-other-month:last-child'
+      )!;
+      act(() => nearby.focus());
+      expect(onFocusedDateChange).not.toHaveBeenCalled();
+      fireEvent.click(nearby);
+      expect(onFocusedDateChange).toHaveBeenCalledTimes(1);
+      expect(
+        container.querySelector('.dateinput-month-label')
+      ).toHaveTextContent('July 2024');
+    });
+
+    it('stays on the focused day when every day is disabled', () => {
+      const { container } = render(
+        <PeriodHarness shouldDisableDate={() => true} />
+      );
+      expect(tabStops(container)).toEqual([day(container, 15)]);
+    });
+
+    it('takes focus as the popover asks, on the stop', () => {
+      const { container } = render(
+        <PeriodHarness
+          autoFocusCell
+          shouldDisableDate={d => d.getMonth() === 5 && d.getDate() === 15}
+        />
+      );
+      expect(document.activeElement).toBe(day(container, 16));
+    });
+  });
+});

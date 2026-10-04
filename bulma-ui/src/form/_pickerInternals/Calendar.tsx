@@ -51,7 +51,11 @@ export interface CalendarProps {
   size?: 'small' | 'medium' | 'large';
   className?: string;
   id?: string;
-  /** When true, focus the cell matching `focusedDate` after each render. */
+  /**
+   * When true, focus the focused cell as it renders and whenever the focused
+   * date moves. Without it, a grid takes no focus of its own, but once it has
+   * focus, focus follows the keyboard from cell to cell.
+   */
   autoFocusCell?: boolean;
   /** Optional translatable string overrides. */
   labels?: PickerLabels;
@@ -122,17 +126,17 @@ function monthStep(key: string, col: number): [number, 1 | -1] | null {
 }
 
 /**
- * The month nearest `month` that `disabled` leaves enabled, `month` itself
- * when it is. At equal distance the later month wins. With every month
- * disabled it stays `month`, as there is nothing to reach.
+ * The cell nearest index `i` that `disabled` leaves enabled, `i` itself when
+ * it is. At equal distance the later cell wins. With every cell disabled it
+ * stays `i`, as there is nothing to reach.
  */
-function nearestEnabledMonth(month: number, disabled: boolean[]): number {
-  if (!disabled[month]) return month;
-  for (let d = 1; d < 12; d++) {
-    if (month + d < 12 && !disabled[month + d]) return month + d;
-    if (month - d >= 0 && !disabled[month - d]) return month - d;
+function nearestEnabled(i: number, disabled: boolean[]): number {
+  if (!disabled[i]) return i;
+  for (let d = 1; d < disabled.length; d++) {
+    if (i + d < disabled.length && !disabled[i + d]) return i + d;
+    if (i - d >= 0 && !disabled[i - d]) return i - d;
   }
-  return month;
+  return i;
 }
 
 /**
@@ -251,6 +255,24 @@ export const Calendar: React.FC<CalendarProps> = ({
     [min, max, shouldDisableDate, unselectableDates]
   );
 
+  // The day grid's one tab stop. A disabled button can't take focus, so when
+  // the focused day is disabled the stop moves to the nearest enabled day of
+  // the month on show, and focusing it makes it the focused day. A nearby
+  // month's day is left out, as focusing it would turn the grid to its month.
+  const tabStopDay = useMemo(() => {
+    const days = cells.filter(c => c.inCurrentMonth).map(c => c.date);
+    const i = nearestEnabled(
+      focusedDate.getDate() - 1,
+      days.map(isDateUnselectable)
+    );
+    return days[i];
+  }, [cells, focusedDate, isDateUnselectable]);
+
+  // Set as a key moves the focused day, so DOM focus can follow even when
+  // the move turns the grid to another month and the cell that had focus
+  // leaves the page with it.
+  const keyMovedRef = useRef(false);
+
   // Step from `next` by `direction` days until we hit a selectable date,
   // skipping past dates blocked by min/max, shouldDisableDate, or
   // unselectableDates. If the whole searched range is disabled, focus stays
@@ -262,6 +284,7 @@ export const Calendar: React.FC<CalendarProps> = ({
         if (min && candidate.getTime() < startOfDay(min).getTime()) return;
         if (max && candidate.getTime() > startOfDay(max).getTime()) return;
         if (!isDateUnselectable(candidate)) {
+          keyMovedRef.current = true;
           onFocusedDateChange(candidate);
           return;
         }
@@ -459,10 +482,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   // The month grid's one tab stop. A disabled button can't take focus, so
   // when the focused month is disabled the stop moves to the nearest enabled
   // month, and focusing it makes it the focused month.
-  const tabStopMonth = nearestEnabledMonth(
-    focusedDate.getMonth(),
-    disabledMonths
-  );
+  const tabStopMonth = nearestEnabled(focusedDate.getMonth(), disabledMonths);
 
   const handleYearSelect = useCallback(
     (year: number) => {
@@ -520,13 +540,19 @@ export const Calendar: React.FC<CalendarProps> = ({
     [isYearGranularity, baseView, focusedYear, yearList, moveYearFocus]
   );
 
+  // The day grid takes focus when the popover asks for it, and keeps it on
+  // the focused day while the keyboard moves through the grid. A move into
+  // another month renders the grid without the cell that had focus, which
+  // drops focus to <body>, so a key's move is followed from there too.
   useEffect(() => {
-    if (view !== 'days') return;
-    if (!autoFocusCell || !gridRef.current) return;
-    const target = gridRef.current.querySelector<HTMLElement>(
-      '[data-focused="true"]'
-    );
-    target?.focus();
+    const keyMoved = keyMovedRef.current;
+    keyMovedRef.current = false;
+    const grid = gridRef.current;
+    if (view !== 'days' || !grid) return;
+    const active = document.activeElement;
+    const dropped = keyMoved && (!active || active === document.body);
+    if (!autoFocusCell && !dropped && !grid.contains(active)) return;
+    grid.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
   }, [autoFocusCell, focusedDate, view]);
 
   // The month grid takes focus when the popover asks for it, and keeps it on
@@ -669,7 +695,7 @@ export const Calendar: React.FC<CalendarProps> = ({
             {cells.map(cell => {
               const disabled = isDateUnselectable(cell.date);
               const isSelected = !!value && isSameDay(value, cell.date);
-              const isFocused = isSameDay(cell.date, focusedDate);
+              const isFocused = isSameDay(cell.date, tabStopDay);
               const otherMonth = !cell.inCurrentMonth;
               const cellClass = prefixedClassNames(
                 classPrefix,
@@ -694,6 +720,14 @@ export const Calendar: React.FC<CalendarProps> = ({
                   data-focused={isFocused ? 'true' : undefined}
                   disabled={disabled || !display}
                   className={cellClass}
+                  onFocus={() => {
+                    // Reached by Tab while the focused day is disabled, or
+                    // by pointer: keys move on from here. A nearby month's
+                    // day waits for its click, which turns the grid.
+                    if (!otherMonth && !isSameDay(cell.date, focusedDate)) {
+                      onFocusedDateChange(cell.date);
+                    }
+                  }}
                   onClick={() => {
                     if (disabled) return;
                     onFocusedDateChange(cell.date);

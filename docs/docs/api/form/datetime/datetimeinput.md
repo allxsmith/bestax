@@ -807,6 +807,7 @@ function DateTimeInputFormDemo() {
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
 - Calendar uses `role="grid"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"`.
+- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month, so `Tab` still reaches the grid.
 - Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.
 - Tab order naturally walks from calendar → time wheels → footer (Reset / ✓).
