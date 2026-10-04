@@ -72,6 +72,13 @@ export interface CalendarProps {
   granularity?: DateGranularity;
 }
 
+/**
+ * Selects the calendar's focused cell, the one tab stop of whichever grid or
+ * year list is on show, for a popover to put focus on as it opens.
+ */
+export const CALENDAR_FOCUSED_CELL =
+  '[data-focused="true"], [data-focused-year="true"]';
+
 type CalendarView = 'days' | 'months' | 'years';
 
 const BASE_VIEW: Record<DateGranularity, CalendarView> = {

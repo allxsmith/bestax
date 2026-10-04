@@ -108,6 +108,26 @@ describe('PickerPopover', () => {
     expect(queryByTestId('inside')).not.toBeNull();
   });
 
+  it.each([
+    ['the element the selector matches', '.second', 'second'],
+    ['the first tab stop when nothing matches', '.missing', 'first'],
+  ])('opens with focus on %s', (_case, selector, expected) => {
+    const anchorRef = { current: document.createElement('div') };
+    const { getByRole } = render(
+      <PickerPopover
+        isOpen
+        onClose={() => {}}
+        anchorRef={anchorRef}
+        ariaLabel="initial"
+        initialFocusSelector={selector}
+      >
+        <button>first</button>
+        <button className="second">second</button>
+      </PickerPopover>
+    );
+    expect(getByRole('button', { name: expected })).toHaveFocus();
+  });
+
   it('renders without crashing when the anchor ref is empty', () => {
     const emptyRef = { current: null };
     const { getByRole } = render(

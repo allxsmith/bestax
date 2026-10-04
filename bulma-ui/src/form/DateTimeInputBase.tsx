@@ -30,7 +30,7 @@ import {
   clampDate,
   isSameDay,
 } from './_pickerInternals/dateUtils';
-import { Calendar } from './_pickerInternals/Calendar';
+import { Calendar, CALENDAR_FOCUSED_CELL } from './_pickerInternals/Calendar';
 import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
@@ -709,6 +709,7 @@ export const DateTimeInputBase = forwardRef<
           ariaLabel={t.chooseDateTime}
           id={popoverId}
           restoreFocusRef={inputRef}
+          initialFocusSelector={CALENDAR_FOCUSED_CELL}
         >
           {panel}
         </PickerPopover>

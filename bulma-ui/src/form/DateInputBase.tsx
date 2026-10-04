@@ -33,7 +33,7 @@ import {
   startOfPeriod,
   endOfPeriod,
 } from './_pickerInternals/dateUtils';
-import { Calendar } from './_pickerInternals/Calendar';
+import { Calendar, CALENDAR_FOCUSED_CELL } from './_pickerInternals/Calendar';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
@@ -635,6 +635,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
             ariaLabel={chooseLabel}
             id={popoverId}
             restoreFocusRef={inputRef}
+            initialFocusSelector={CALENDAR_FOCUSED_CELL}
           >
             {calendar}
           </PickerPopover>

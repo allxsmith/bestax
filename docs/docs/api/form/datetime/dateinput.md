@@ -908,7 +908,7 @@ function DateInputFormDemo() {
 ## Accessibility
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
-- Popover panel has `role="dialog"` with an accessible name.
+- Popover panel has `role="dialog"` with an accessible name. Opening it puts focus on the focused date, month or year.
 - Closing the popover with `Escape` or a pick returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Dismissing without a pick commits nothing: an empty field stays empty, and leaving afterwards commits only what you typed.
 - Calendar uses `role="grid"` with cells as `role="gridcell"`.
 - Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today.

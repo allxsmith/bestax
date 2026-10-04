@@ -211,6 +211,29 @@ describe('DateInput', () => {
       expect(pressTab(monthButton, true).defaultPrevented).toBe(true);
       expect(day).toHaveFocus();
     });
+
+    // As the date picker dialog pattern has it: the date, not the header.
+    it.each([
+      ['day', '[data-focused="true"]'],
+      ['month', '[data-focused="true"]'],
+      ['year', '[data-focused-year="true"]'],
+    ] as const)(
+      'opens the %s picker with focus on the focused cell',
+      (granularity, selector) => {
+        const { getByRole } = render(
+          <DateInput
+            granularity={granularity}
+            defaultValue={new Date(2024, 5, 15)}
+          />
+        );
+        act(() => {
+          getByRole('combobox').focus();
+        });
+        const cell = getByRole('dialog').querySelector(selector);
+        expect(cell).not.toBeNull();
+        expect(document.activeElement).toBe(cell);
+      }
+    );
   });
 
   describe('Format / parse', () => {
