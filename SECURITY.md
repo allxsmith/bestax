@@ -97,9 +97,10 @@ Measures active in this repository and its release pipeline:
   publishes only files git tracks, refuses symbolic links, and checks the
   tree against Anthropic's plugin directory rules first. The workflow
   pushes with an SSH deploy key that can write to that one repository. The
-  key is a secret of an environment that admits `main` only, it reaches only
-  the step that pushes, which runs no repository code, and ssh accepts only
-  GitHub's published host keys, pinned in the workflow. The plugin starts
+  key is a secret of an environment that admits `main` only. It reaches only
+  the push step, which runs git and ssh in a reset environment, in the same
+  job as the generator from `main`. ssh accepts only GitHub's published host
+  keys, pinned in the workflow. The plugin starts
   `bestax-mcp` through `npx` pinned to one exact version, the latest
   release, never a range.
 - **Socket.dev** — the Socket GitHub App reviews every pull request for

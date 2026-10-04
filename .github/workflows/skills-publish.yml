@@ -222,6 +222,7 @@ jobs:
       # touched the generator's inputs, and the generator refuses a shallow
       # clone.
       - name: Checkout main
+        id: checkout
         timeout-minutes: 5
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
@@ -242,9 +243,30 @@ jobs:
           node --version
           node scripts/gen-skills-repo.mjs --require-checkout "$RUNNER_TEMP/bestax-skills-tree"
 
-      # The only step that sees the key. It runs git, ssh and coreutils, and
-      # no repository code. The key goes to a file under RUNNER_TEMP that only
-      # the runner's user can read, and is never echoed. ssh trusts only
+      # The only step that sees the key. The generator ran in an earlier step
+      # of this job, and an earlier step can change what later ones run
+      # with: $GITHUB_ENV, $GITHUB_PATH, and git or ssh config in the home
+      # directory. So the shell is named by its full path, and the script
+      # hands the key on stdin to itself, run again under `env -i` with only
+      # the variables it lists: PATH=/usr/bin:/bin, a fresh HOME under
+      # RUNNER_TEMP, no global or system git config, and a working directory
+      # git finds no repository from. Every git call also sets
+      # core.hooksPath=/dev/null, and ssh reads no config file. Under the
+      # reset it runs git, ssh and coreutils, and no repository code. git
+      # reads the generated tree in place, as its work tree, so no file in
+      # the tree lands in the clone's .git.
+      #
+      # That narrows what an earlier step can reach. It is not a boundary,
+      # which only a separate job, on a runner of its own, would be. The
+      # first shell starts in the job's environment, so a variable such as
+      # BASH_ENV written to $GITHUB_ENV acts before the reset. And every step
+      # runs as the same user, with passwordless sudo on a hosted runner, so
+      # an earlier step could replace git or ssh, or read this step's memory.
+      # The repository code that runs before this step is the generator on
+      # main, reviewed like this file.
+      #
+      # The key goes to a file only the runner's user can read, in a directory
+      # this step creates and removes, and is never echoed. ssh trusts only
       # GitHub's published host keys
       # (https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints,
       # SHA256 fingerprints +DiY3wvvV6TuJJhbpZisF/zLDA0zPMSvHdkr4UvCOqU,
@@ -260,46 +282,74 @@ jobs:
       # overwrite the other one.
       - name: Commit and push to allxsmith/bestax-skills
         timeout-minutes: 5
+        shell: /usr/bin/bash --noprofile --norc -euo pipefail {0}
         env:
           DEPLOY_KEY: ${{ secrets.BESTAX_SKILLS_DEPLOY_KEY }}
-          REMOTE: git@github.com:allxsmith/bestax-skills.git
+          SOURCE_SHA: ${{ steps.checkout.outputs.commit }}
           SERVER_URL: ${{ github.server_url }}
+          WORK: ${{ runner.temp }}
         run: |
-          set -euo pipefail
-          if [ -z "${DEPLOY_KEY:-}" ]; then
-            echo "::error::BESTAX_SKILLS_DEPLOY_KEY is not set in the skills-publish environment. CONTRIBUTING.md, \"The bestax-skills repository\", has the one-time setup."
+          # The shell the runner started. It checks the key, then runs this
+          # script again under env -i with the key on stdin, so the key is in
+          # neither the new environment nor any command line.
+          if [ "${1:-}" != reset ]; then
+            if [ -z "${DEPLOY_KEY:-}" ]; then
+              echo "::error::BESTAX_SKILLS_DEPLOY_KEY is not set in the skills-publish environment. CONTRIBUTING.md, \"The bestax-skills repository\", has the one-time setup."
+              exit 1
+            fi
+            printf '%s\n' "$DEPLOY_KEY" | /usr/bin/env -i \
+              PATH=/usr/bin:/bin \
+              HOME="$WORK/bestax-skills-push/home" \
+              GIT_CONFIG_GLOBAL=/dev/null \
+              GIT_CONFIG_NOSYSTEM=1 \
+              GIT_CEILING_DIRECTORIES="$WORK" \
+              GIT_TERMINAL_PROMPT=0 \
+              WORK="$WORK" \
+              SOURCE_SHA="$SOURCE_SHA" \
+              SERVER_URL="$SERVER_URL" \
+              /usr/bin/bash --noprofile --norc -euo pipefail "$0" reset
+            exit
+          fi
+
+          # From here on, only the variables listed above. The directories
+          # this step makes are new, so mkdir fails on one an earlier step
+          # left in place.
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::actions/checkout reported no commit for main."
             exit 1
           fi
-          source_sha=$(git rev-parse HEAD)
-          tree="$RUNNER_TEMP/bestax-skills-tree"
-          repo="$RUNNER_TEMP/bestax-skills"
-          ssh_dir="$RUNNER_TEMP/bestax-skills-ssh"
-          mkdir -m 700 "$ssh_dir"
-          trap 'rm -rf "$ssh_dir"' EXIT
-          (umask 077 && printf '%s\n' "$DEPLOY_KEY" > "$ssh_dir/key")
-          unset DEPLOY_KEY
+          run="$WORK/bestax-skills-push"
+          tree="$WORK/bestax-skills-tree"
+          repo="$run/repo"
+          ssh_dir="$run/ssh"
+          mkdir -m 700 "$run" "$HOME" "$ssh_dir"
+          trap 'rm -rf -- "$ssh_dir"' EXIT
+          cd "$HOME"
+          (umask 077 && cat > "$ssh_dir/key")
           cat > "$ssh_dir/known_hosts" <<'EOF'
           github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
           github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
           github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
           EOF
-          export GIT_SSH_COMMAND="ssh -i $ssh_dir/key -o IdentitiesOnly=yes -o IdentityAgent=none -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o GlobalKnownHostsFile=/dev/null -o BatchMode=yes"
-          export GIT_TERMINAL_PROMPT=0
+          export GIT_SSH_COMMAND="ssh -F /dev/null -i $ssh_dir/key -o IdentitiesOnly=yes -o IdentityAgent=none -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o GlobalKnownHostsFile=/dev/null -o BatchMode=yes"
+          remote=git@github.com:allxsmith/bestax-skills.git
+          gitc() { git -c core.hooksPath=/dev/null "$@"; }
 
           # Clone main, or start it when bestax-skills has no main yet, as on
           # the first run against the empty repository. ls-remote exits 2 for
           # a ref that is not there and 128 for anything else, such as a
-          # missing repository or a refused key.
+          # missing repository or a refused key. No checkout: the clone gives
+          # the history to commit onto, and the tree below gives the files.
           status=0
-          git ls-remote --exit-code "$REMOTE" refs/heads/main > /dev/null || status=$?
+          gitc ls-remote --exit-code "$remote" refs/heads/main > /dev/null || status=$?
           case "$status" in
             0)
-              git clone --quiet --depth 1 --no-tags --branch main "$REMOTE" "$repo"
+              gitc clone --quiet --no-checkout --depth 1 --no-tags --branch main "$remote" "$repo"
               ;;
             2)
               echo "allxsmith/bestax-skills has no main yet, so this run creates it."
-              git init --quiet --initial-branch=main "$repo"
-              git -C "$repo" remote add origin "$REMOTE"
+              gitc init --quiet --initial-branch=main "$repo"
+              gitc -C "$repo" remote add origin "$remote"
               ;;
             *)
               echo "::error::Could not read allxsmith/bestax-skills (git ls-remote exited $status). Check that the repository exists and that the deploy key is on it."
@@ -307,21 +357,22 @@ jobs:
               ;;
           esac
 
-          # Replace the working tree with the generated one, keeping .git.
-          find "$repo" -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf -- {} +
-          cp -R "$tree"/. "$repo"/
-          git -C "$repo" add --all
-          if git -C "$repo" diff --cached --quiet; then
-            echo "allxsmith/bestax-skills already matches allxsmith/bestax@$source_sha. Nothing to publish."
+          # The generated tree, as the work tree, becomes the whole of main:
+          # the clone's index starts empty, so a file the tree no longer has is
+          # staged as deleted. git never stages a path named .git.
+          publish() { gitc --git-dir="$repo/.git" --work-tree="$tree" "$@"; }
+          publish add --all
+          if publish diff --cached --quiet; then
+            echo "allxsmith/bestax-skills already matches allxsmith/bestax@$SOURCE_SHA. Nothing to publish."
             exit 0
           fi
-          git -C "$repo" diff --cached --stat
+          publish diff --cached --stat
 
-          git -C "$repo" \
+          publish \
             -c user.name='github-actions[bot]' \
             -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
             commit --quiet \
-            -m "Publish allxsmith/bestax@$source_sha" \
-            -m "Generated by .github/workflows/skills-publish.yml from $SERVER_URL/allxsmith/bestax/commit/$source_sha. This repository is never edited by hand. Open issues and pull requests in allxsmith/bestax."
-          git -C "$repo" push --quiet origin HEAD:refs/heads/main
-          echo "Published allxsmith/bestax@$source_sha to allxsmith/bestax-skills."
+            -m "Publish allxsmith/bestax@$SOURCE_SHA" \
+            -m "Generated by .github/workflows/skills-publish.yml from $SERVER_URL/allxsmith/bestax/commit/$SOURCE_SHA. This repository is never edited by hand. Open issues and pull requests in allxsmith/bestax."
+          publish push --quiet origin HEAD:refs/heads/main
+          echo "Published allxsmith/bestax@$SOURCE_SHA to allxsmith/bestax-skills."
