@@ -129,17 +129,17 @@ function monthStep(key: string, col: number): [number, 1 | -1] | null {
 }
 
 /**
- * The month nearest `month` that `disabled` leaves enabled, `month` itself
- * when it is. At equal distance the later month wins. With every month
- * disabled it stays `month`, as there is nothing to reach.
+ * The cell nearest index `i` that `disabled` leaves enabled, `i` itself when
+ * it is. At equal distance the later cell wins. With every cell disabled it
+ * stays `i`, as there is nothing to reach.
  */
-function nearestEnabledMonth(month: number, disabled: boolean[]): number {
-  if (!disabled[month]) return month;
-  for (let d = 1; d < 12; d++) {
-    if (month + d < 12 && !disabled[month + d]) return month + d;
-    if (month - d >= 0 && !disabled[month - d]) return month - d;
+function nearestEnabled(i: number, disabled: boolean[]): number {
+  if (!disabled[i]) return i;
+  for (let d = 1; d < disabled.length; d++) {
+    if (i + d < disabled.length && !disabled[i + d]) return i + d;
+    if (i - d >= 0 && !disabled[i - d]) return i - d;
   }
-  return month;
+  return i;
 }
 
 /**
@@ -452,6 +452,20 @@ export const Calendar: React.FC<CalendarProps> = ({
       ),
     [isYearGranularity, yearList, isYearUnselectable]
   );
+  // The year list's one tab stop, after the month grid's: when the focused
+  // year is disabled the stop moves to the nearest enabled year in the list,
+  // and focusing it makes it the focused year. A year outside the list keeps
+  // the stop, which then marks no option.
+  const tabStopYear = useMemo(() => {
+    const i = yearList.indexOf(focusedYear);
+    if (i < 0) return focusedYear;
+    return yearList[
+      nearestEnabled(
+        i,
+        yearList.map(y => disabledYears.has(y))
+      )
+    ];
+  }, [yearList, focusedYear, disabledYears]);
 
   // Which of the focused year's months have no selectable day.
   const disabledMonths = useMemo(
@@ -466,10 +480,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   // The month grid's one tab stop. A disabled button can't take focus, so
   // when the focused month is disabled the stop moves to the nearest enabled
   // month, and focusing it makes it the focused month.
-  const tabStopMonth = nearestEnabledMonth(
-    focusedDate.getMonth(),
-    disabledMonths
-  );
+  const tabStopMonth = nearestEnabled(focusedDate.getMonth(), disabledMonths);
 
   const handleYearSelect = useCallback(
     (year: number) => {
@@ -784,7 +795,7 @@ export const Calendar: React.FC<CalendarProps> = ({
           onKeyDown={handleYearListKeyDown}
         >
           {yearList.map(year => {
-            const isFocused = year === focusedYear;
+            const isFocused = year === tabStopYear;
             const isToday = year === todayYear;
             // As navigation the focused year is the current one. As the
             // selection surface the value's year is selected and focus roams.
@@ -813,6 +824,13 @@ export const Calendar: React.FC<CalendarProps> = ({
                 tabIndex={isFocused ? 0 : -1}
                 disabled={disabled}
                 className={cellCls}
+                onFocus={() => {
+                  // Reached by Tab while the focused year is disabled, or by
+                  // pointer: keys move on from here.
+                  if (isYearGranularity && year !== focusedYear) {
+                    onFocusedDateChange(clampDate(makeDate(year), min, max));
+                  }
+                }}
                 onClick={() =>
                   isYearGranularity
                     ? handleYearPick(year)

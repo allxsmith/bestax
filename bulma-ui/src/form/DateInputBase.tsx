@@ -556,7 +556,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         nearbyMonthDays={nearbyMonthDays}
         color={color}
         size={size}
-        id={popoverId}
+        id={`${popoverId}-cal`}
         autoFocusCell={open}
         labels={labels}
       />
