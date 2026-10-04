@@ -254,6 +254,23 @@ describe('DateTimeInput', () => {
     expect(handler).toHaveBeenLastCalledWith(null);
   });
 
+  it('native input pads a year below 1000 to four digits', () => {
+    const early = new Date(2024, 2, 4, 14, 30);
+    early.setFullYear(19);
+    const min = new Date(2024, 0, 1, 9, 0);
+    min.setFullYear(19);
+    const { container } = render(
+      <DateTimeInput mobileNative={true} defaultValue={early} min={min} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    // Unpadded, `19-03-04T14:30` is not a valid value and the input shows
+    // nothing.
+    expect(native.value).toBe('0019-03-04T14:30');
+    expect(native.min).toBe('0019-01-01T09:00');
+  });
+
   it('native input reads a year below 100 back as given', () => {
     const handler = jest.fn();
     const { container } = render(

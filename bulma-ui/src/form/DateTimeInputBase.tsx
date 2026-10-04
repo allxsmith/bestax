@@ -38,8 +38,9 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { Icon } from '../elements/Icon';
 
+// The year is padded to four digits, as `datetime-local` requires.
 const toIsoDateTime = (d: Date, withSeconds: boolean): string => {
-  const yyyy = d.getFullYear();
+  const yyyy = String(d.getFullYear()).padStart(4, '0');
   const mo = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
