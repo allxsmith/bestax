@@ -9,6 +9,7 @@ import classNames from './classNames';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
 import { validGaps, validRadii, type BulmaGapStep } from './bulmaClassHelpers';
 import { warnOnce } from './devWarnings';
+import { useClassPrefix } from './Config';
 
 // --- FULL Bulma v1 CSS variable keys (auto-generated from CSSVAR_KEYS) ---
 const bulmaCssVars = [
@@ -782,10 +783,6 @@ const setRootThemeRules = (order: number, rules: string): void => {
  *
  * @property {React.ReactNode} children - Content to render inside the theme scope.
  * @property {string} [className] - Additional CSS classes (only when isRoot is false).
- * @property {'light' | 'dark' | 'system'} [colorMode] - Set Bulma's light/dark scheme by writing
- *   the `data-theme` attribute on the document root (`<html>`). This is always global, even on a
- *   scoped Theme. `'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`.
- *   Omit to leave the current setting untouched.
  * @property {BulmaVars} [bulmaVars] - Object mapping Bulma CSS variable names to values.
  * @property {string} [schemeH] - Scheme hue value.
  * @property {string} [schemeS] - Scheme saturation value.
@@ -841,6 +838,17 @@ export interface ThemeProps extends Omit<
    * server render does not include them.
    */
   isRoot?: boolean;
+  /**
+   * Set Bulma's light/dark scheme by writing its theme attribute on the
+   * document root (`<html>`). This is always global, even on a scoped Theme.
+   * `'system'` removes the attribute so Bulma follows the OS
+   * `prefers-color-scheme`. Omit to leave the current setting untouched.
+   *
+   * The attribute is `data-theme`. A stylesheet built with a class prefix
+   * reads Bulma's prefixed form instead (`data-bestax-theme` for the
+   * `bestax-prefixed` builds), so under a `ConfigProvider` `classPrefix`
+   * Theme writes both, and `'system'` or unmounting clears or restores both.
+   */
   colorMode?: 'light' | 'dark' | 'system';
   bulmaVars?: BulmaVars;
   /**
@@ -1056,32 +1064,54 @@ export const Theme: React.FC<ThemeProps> = ({
   // it between the cleanup and the next run.
   useEffect(() => () => setRootThemeRules(rootOrder, ''), [rootOrder]);
 
-  // Toggle Bulma's light/dark scheme by writing the `data-theme` attribute on
-  // the document root (<html>). This is always global, even on a scoped Theme.
-  // `'system'` removes the attribute so Bulma follows the OS preference.
+  // Bulma names its scheme attribute after the class prefix a stylesheet was
+  // built with (`data-<prefix>theme`), so the prefixed builds read
+  // `data-bestax-theme` and never `data-theme`.
+  const classPrefix = useClassPrefix();
+
+  // Toggle Bulma's light/dark scheme by writing the theme attribute on the
+  // document root (<html>). This is always global, even on a scoped Theme.
+  // Under a class prefix the prefixed attribute is written as well as
+  // `data-theme`, so whichever build is loaded sees it; with no prefix only
+  // `data-theme` is. `'system'` removes them so Bulma follows the OS
+  // preference.
   useEffect(() => {
     if (colorMode === undefined) {
       return;
     }
 
     const root = document.documentElement;
-    const previous = root.getAttribute('data-theme');
+    const names = classPrefix
+      ? ['data-theme', `data-${classPrefix}theme`]
+      : ['data-theme'];
+    const previous = names.map(name => root.getAttribute(name));
 
-    if (colorMode === 'system') {
-      root.removeAttribute('data-theme');
-    } else {
-      root.setAttribute('data-theme', colorMode);
+    for (const name of names) {
+      if (colorMode === 'system') {
+        root.removeAttribute(name);
+        continue;
+      }
+      try {
+        root.setAttribute(name, colorMode);
+      } catch {
+        // A class prefix can hold characters an attribute name cannot, and
+        // no Bulma selector can match such a name either. `data-theme` is
+        // still written, as it was before the prefixed attribute existed.
+      }
     }
 
-    // Restore the previous value when colorMode changes or the component unmounts.
+    // Restore the previous values when colorMode changes or the component unmounts.
     return () => {
-      if (previous === null) {
-        root.removeAttribute('data-theme');
-      } else {
-        root.setAttribute('data-theme', previous);
-      }
+      names.forEach((name, i) => {
+        const value = previous[i];
+        if (value === null) {
+          root.removeAttribute(name);
+        } else {
+          root.setAttribute(name, value);
+        }
+      });
     };
-  }, [colorMode]);
+  }, [colorMode, classPrefix]);
 
   // For local injection (when isRoot is false), prepare style object for CSS vars
   const style: CSSProperties = useMemo(() => {
