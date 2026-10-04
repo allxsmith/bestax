@@ -1715,3 +1715,50 @@ describe('TimeInput focus handed back on close', () => {
     });
   });
 });
+
+describe('TimeInput onOpen and onClose', () => {
+  const pressEscape = (on: Element) =>
+    act(() => {
+      fireEvent.keyDown(on, { key: 'Escape' });
+    });
+
+  it('fire once per open and close under StrictMode', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <React.StrictMode>
+        <TimeInput defaultValue={at(9, 30)} onOpen={onOpen} onClose={onClose} />
+      </React.StrictMode>
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('fires onClose once when the input and the popover both take Escape', () => {
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <TimeInput
+        defaultValue={at(9, 30)}
+        onClose={onClose}
+        openOnFocus={false}
+      />
+    );
+    const input = getByRole('combobox');
+    act(() => {
+      fireEvent.click(getByRole('button', { name: 'Choose time' }));
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(input);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});

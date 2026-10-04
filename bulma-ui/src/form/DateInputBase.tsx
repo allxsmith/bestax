@@ -332,14 +332,17 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const containerClass = usePrefixedClassNames('dateinput-container');
     const triggerClass = usePrefixedClassNames('dateinput-trigger');
 
+    // What the latest request asked for, so a second request in the same
+    // event sees it before React renders. The callbacks fire here rather than
+    // in a state updater, which StrictMode calls twice.
+    const requestedOpenRef = useRef(false);
     const setOpen = useCallback(
       (next: boolean) => {
-        setOpenState(prev => {
-          if (prev === next) return prev;
-          if (next) onOpen?.();
-          else onClose?.();
-          return next;
-        });
+        if (requestedOpenRef.current === next) return;
+        requestedOpenRef.current = next;
+        if (next) onOpen?.();
+        else onClose?.();
+        setOpenState(next);
       },
       [onOpen, onClose]
     );

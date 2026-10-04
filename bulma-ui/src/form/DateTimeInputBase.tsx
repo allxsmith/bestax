@@ -363,18 +363,21 @@ export const DateTimeInputBase = forwardRef<
     'datetimeinput-footer-time-pill'
   );
 
+  // What the latest request asked for, so a second request in the same event
+  // sees it before React renders. The callbacks fire here rather than in a
+  // state updater, which StrictMode calls twice.
+  const requestedOpenRef = useRef(false);
   const setOpen = useCallback(
     (next: boolean) => {
-      setOpenState(prev => {
-        if (prev === next) return prev;
-        if (next) {
-          valueAtOpenRef.current = value;
-          onOpen?.();
-        } else {
-          onClose?.();
-        }
-        return next;
-      });
+      if (requestedOpenRef.current === next) return;
+      requestedOpenRef.current = next;
+      if (next) {
+        valueAtOpenRef.current = value;
+        onOpen?.();
+      } else {
+        onClose?.();
+      }
+      setOpenState(next);
     },
     [onOpen, onClose, value]
   );
