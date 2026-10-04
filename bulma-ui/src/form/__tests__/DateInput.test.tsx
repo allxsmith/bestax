@@ -2015,6 +2015,37 @@ describe('DateInput onOpen and onClose', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it('still opens after an onClose that focuses the input', () => {
+    // Under openOnFocus that focus asks to open from inside onClose, before
+    // the close has rendered, and the later request wins.
+    const Picker = () => {
+      const inputRef = React.useRef<HTMLInputElement>(null);
+      const refocusedRef = React.useRef(false);
+      return (
+        <DateInput
+          ref={inputRef}
+          defaultValue={june15}
+          onClose={() => {
+            if (refocusedRef.current) return;
+            refocusedRef.current = true;
+            inputRef.current?.focus();
+          }}
+        />
+      );
+    };
+    const { getByRole, queryByRole } = render(<Picker />);
+    const input = getByRole('combobox');
+    act(() => {
+      input.focus();
+    });
+    pressEscape(document.activeElement!);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
   it('fires onClose once when the input and the popover both take Escape', () => {
     const onClose = jest.fn();
     const { getByRole, queryByRole } = render(

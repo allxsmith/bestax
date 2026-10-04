@@ -334,15 +334,16 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
 
     // What the latest request asked for, so a second request in the same
     // event sees it before React renders. The callbacks fire here rather than
-    // in a state updater, which StrictMode calls twice.
+    // in a state updater, which StrictMode calls twice, and after the state
+    // is set, so a request a callback makes is the one that lands last.
     const requestedOpenRef = useRef(false);
     const setOpen = useCallback(
       (next: boolean) => {
         if (requestedOpenRef.current === next) return;
         requestedOpenRef.current = next;
+        setOpenState(next);
         if (next) onOpen?.();
         else onClose?.();
-        setOpenState(next);
       },
       [onOpen, onClose]
     );
