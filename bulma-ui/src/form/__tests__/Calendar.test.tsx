@@ -1431,4 +1431,128 @@ describe('Calendar day grid focus', () => {
       expect(document.activeElement).toBe(day(container, 16));
     });
   });
+
+  describe('when the focused day becomes disabled', () => {
+    const block15 = (d: Date) => d.getMonth() === 5 && d.getDate() === 15;
+    const Page: React.FC<{ blocked?: boolean }> = ({ blocked }) => (
+      <>
+        <PeriodHarness shouldDisableDate={blocked ? block15 : undefined} />
+        <button>Elsewhere</button>
+      </>
+    );
+
+    it('moves focus to the new stop', () => {
+      const { container, rerender } = render(<Page />);
+      act(() => day(container, 15).focus());
+      rerender(<Page blocked />);
+      expect(document.activeElement).toBe(day(container, 16));
+    });
+
+    it('also when the browser had dropped focus to <body>', () => {
+      const { container, rerender } = render(<Page />);
+      act(() => day(container, 15).focus());
+      act(() => day(container, 15).blur());
+      rerender(<Page blocked />);
+      expect(document.activeElement).toBe(day(container, 16));
+    });
+
+    it('leaves focus that went elsewhere alone', () => {
+      const { container, rerender, getByRole } = render(<Page />);
+      const elsewhere = getByRole('button', { name: 'Elsewhere' });
+      act(() => day(container, 15).focus());
+      act(() => elsewhere.focus());
+      rerender(<Page blocked />);
+      expect(elsewhere).toHaveFocus();
+    });
+  });
+
+  describe('with autoFocusCell, as the popover renders it', () => {
+    beforeAll(() => {
+      // jsdom has no scrollIntoView, which the year list calls.
+      HTMLElement.prototype.scrollIntoView ??= jest.fn();
+    });
+
+    it('leaves focus on the header button the user pressed', () => {
+      const { container } = render(<PeriodHarness autoFocusCell />);
+      const next = container.querySelector<HTMLElement>('.dateinput-nav-next')!;
+      act(() => next.focus());
+      act(() => {
+        fireEvent.click(next);
+      });
+      expect(
+        container.querySelector('.dateinput-month-label')
+      ).toHaveTextContent('July 2024');
+      expect(next).toHaveFocus();
+    });
+
+    it('takes focus again as it comes back from the year list', () => {
+      const { container, getByText } = render(<PeriodHarness autoFocusCell />);
+      fireEvent.click(container.querySelector('.dateinput-month-trigger')!);
+      act(() => {
+        fireEvent.click(getByText('2025'));
+      });
+      expect(
+        container.querySelector('.dateinput-month-label')
+      ).toHaveTextContent('June 2025');
+      expect(document.activeElement).toBe(day(container, 15));
+    });
+  });
+});
+
+describe('Calendar focus inside a shadow root', () => {
+  // A docs live preview renders into one, where document.activeElement
+  // names the host rather than the focused element.
+  let host: HTMLElement;
+  let root: ShadowRoot;
+  let mount: HTMLElement;
+  beforeEach(() => {
+    host = document.createElement('div');
+    document.body.appendChild(host);
+    root = host.attachShadow({ mode: 'open' });
+    mount = document.createElement('div');
+    root.appendChild(mount);
+  });
+  afterEach(() => {
+    host.remove();
+  });
+  const press = (el: Element, key: string) =>
+    act(() => {
+      fireEvent.keyDown(el, { key });
+    });
+  const day = (n: number) =>
+    Array.from(
+      mount.querySelectorAll<HTMLElement>(
+        '.dateinput-cell:not(.is-other-month)'
+      )
+    ).find(c => c.textContent === String(n))!;
+
+  it('follows the keyboard through the day grid, into another month too', () => {
+    render(<PeriodHarness />, { container: mount });
+    act(() => day(15).focus());
+    press(day(15), 'ArrowRight');
+    expect(root.activeElement).toBe(day(16));
+    press(day(16), 'PageDown');
+    expect(mount.querySelector('.dateinput-month-label')).toHaveTextContent(
+      'July 2024'
+    );
+    expect(root.activeElement).toBe(day(16));
+  });
+
+  it('follows the keyboard through the month grid', () => {
+    render(<PeriodHarness granularity="month" />, { container: mount });
+    const june = mount.querySelector<HTMLElement>('[aria-label="June"]')!;
+    act(() => june.focus());
+    press(june, 'ArrowRight');
+    expect(root.activeElement).toHaveAttribute('aria-label', 'July');
+  });
+
+  it('follows the keyboard through the year list', () => {
+    render(<PeriodHarness granularity="year" />, { container: mount });
+    const focused = mount.querySelector<HTMLElement>(
+      '[data-focused-year="true"]'
+    )!;
+    act(() => focused.focus());
+    press(focused, 'ArrowRight');
+    expect(root.activeElement).toHaveTextContent('2025');
+  });
 });

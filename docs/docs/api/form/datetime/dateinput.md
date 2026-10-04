@@ -829,18 +829,18 @@ Digit auto-advance honors each segment's range: the month advances after a first
 
 The day grid's keys work the same on an `inline` calendar, minus opening and closing.
 
-| Key                   | Action                            |
-| --------------------- | --------------------------------- |
-| `↓`                   | Open popover (when closed)        |
-| `Enter`               | Parse typed text / select focused |
-| `Escape`              | Close popover                     |
-| `←` / `→`             | Move focused date by ±1 day       |
-| `↑` / `↓`             | Move focused date by ±7 days      |
-| `PageUp` / `PageDown` | Move focused date by ±1 month     |
-| `Shift+PageUp/Down`   | Move focused date by ±1 year      |
-| `Home` / `End`        | Jump to start / end of week       |
-| `Space`               | Select focused date               |
-| `Tab`                 | Move focus to next control        |
+| Key                   | Action                        |
+| --------------------- | ----------------------------- |
+| `↓`                   | Open popover (when closed)    |
+| `Enter`               | Select focused                |
+| `Escape`              | Close popover                 |
+| `←` / `→`             | Move focused date by ±1 day   |
+| `↑` / `↓`             | Move focused date by ±7 days  |
+| `PageUp` / `PageDown` | Move focused date by ±1 month |
+| `Shift+PageUp/Down`   | Move focused date by ±1 year  |
+| `Home` / `End`        | Jump to start / end of week   |
+| `Space`               | Select focused date           |
+| `Tab`                 | Move focus to next control    |
 
 ### On the month grid (`granularity="month"`)
 
