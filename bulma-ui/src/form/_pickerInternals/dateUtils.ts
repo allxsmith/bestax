@@ -32,8 +32,8 @@ export function isWithin(d: Date, min?: Date, max?: Date): boolean {
   return true;
 }
 
-// The boundaries build on `makeDate` (below), so a `min` or `max` in years
-// 0–99 keeps its year.
+// The boundaries build on `makeDate` (below), so a date in years 0–99 keeps
+// its year.
 
 export function startOfDay(d: Date): Date {
   return makeDate(d.getFullYear(), d.getMonth(), d.getDate());

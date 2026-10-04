@@ -29,6 +29,7 @@ import {
   setTimeOfDay,
   clampDate,
   isSameDay,
+  makeDate,
 } from './_pickerInternals/dateUtils';
 import { Calendar } from './_pickerInternals/Calendar';
 import { TimeWheels } from './_pickerInternals/TimeWheels';
@@ -57,15 +58,9 @@ const fromIsoDateTime = (s: string): Date | null => {
       s
     );
   if (!m) return null;
-  return new Date(
-    Number(m[1]),
-    Number(m[2]) - 1,
-    Number(m[3]),
-    Number(m[4]),
-    Number(m[5]),
-    m[6] ? Number(m[6]) : 0,
-    0
-  );
+  const d = makeDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  d.setHours(Number(m[4]), Number(m[5]), m[6] ? Number(m[6]) : 0, 0);
+  return d;
 };
 
 /**

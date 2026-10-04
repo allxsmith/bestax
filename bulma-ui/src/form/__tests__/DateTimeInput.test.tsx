@@ -254,6 +254,27 @@ describe('DateTimeInput', () => {
     expect(handler).toHaveBeenLastCalledWith(null);
   });
 
+  it('native input reads a year below 100 back as given', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateTimeInput mobileNative={true} enableSeconds onChange={handler} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    fireEvent.change(native, { target: { value: '0019-03-04T14:30:55' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+      committed.getHours(),
+      committed.getMinutes(),
+      committed.getSeconds(),
+      committed.getMilliseconds(),
+    ]).toEqual([19, 2, 4, 14, 30, 55, 0]);
+  });
+
   it('native input round-trips seconds when enableSeconds', () => {
     const handler = jest.fn();
     const { container } = render(

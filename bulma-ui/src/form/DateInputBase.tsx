@@ -65,7 +65,7 @@ const fromIsoValue = (s: string, granularity: DateGranularity): Date | null => {
   }
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
   if (!m) return null;
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return makeDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 };
 
 const DEFAULT_FORMATS: Record<DateGranularity, string> = {

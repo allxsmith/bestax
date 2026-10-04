@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Field } from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 import * as nativeInputSupport from '../_pickerInternals/nativeInputSupport';
+import { makeDate } from '../_pickerInternals/dateUtils';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -907,6 +908,29 @@ describe('DateInput native input value handling', () => {
     expect(committed.getFullYear()).toBe(2026);
     expect(committed.getMonth()).toBe(5);
     expect(committed.getDate()).toBe(9);
+  });
+
+  it('keeps a year below 100 as given', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateInput
+        mobileNative={true}
+        min={makeDate(19, 0, 1)}
+        max={makeDate(19, 11, 31)}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    expect(native.min).toBe('0019-01-01');
+    fireEvent.change(native, { target: { value: '0019-03-04' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+    ]).toEqual([19, 2, 4]);
   });
 
   it('clearing the native input commits null', () => {
