@@ -1168,3 +1168,124 @@ describe('DateTimeInput label association (#368)', () => {
     expect(label).not.toHaveAttribute('for');
   });
 });
+
+describe('DateTimeInput focus handed back on close', () => {
+  // The calendar focuses a cell as the popover opens. Closing must return
+  // focus to the input, and under openOnFocus (the default) that focus must
+  // not open the popover again.
+  const v = new Date(2024, 5, 15, 9, 30);
+  const openByFocus = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+  };
+  const pressEscape = () => {
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    });
+  };
+
+  it('Escape closes it and leaves focus on the input', () => {
+    const onOpen = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} onOpen={onOpen} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(input).not.toHaveFocus();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('the Done button closes it the same way', () => {
+    const onOpen = jest.fn();
+    const { getByRole, getByLabelText, queryByRole } = render(
+      <DateTimeInput defaultValue={v} onOpen={onOpen} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    act(() => {
+      fireEvent.click(getByLabelText('Done'));
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('Enter on a time wheel closes it the same way', () => {
+    const onOpen = jest.fn();
+    const { getByRole, getAllByRole, queryByRole, container } = render(
+      <DateTimeInput defaultValue={v} onOpen={onOpen} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    act(() => {
+      fireEvent.click(container.querySelector('.datetimeinput-footer-time')!);
+    });
+    const wheel = getAllByRole('spinbutton')[0];
+    act(() => {
+      wheel.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(wheel, { key: 'Enter' });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('a click outside closes it for good', () => {
+    const onOpen = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <>
+        <DateTimeInput defaultValue={v} onOpen={onOpen} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    const elsewhere = getByRole('button', { name: 'Elsewhere' });
+    // The popover closes on pointerdown, before the browser moves focus to
+    // what was clicked, so focus is handed back to the input first.
+    act(() => {
+      fireEvent.pointerDown(elsewhere);
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    act(() => {
+      elsewhere.focus();
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(elsewhere).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens again when the user comes back to the input', () => {
+    const { getByRole, queryByRole } = render(
+      <>
+        <DateTimeInput defaultValue={v} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+
+    // A click on the input focus is already on.
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+
+    // Leaving and coming back.
+    act(() => {
+      getByRole('button', { name: 'Elsewhere' }).focus();
+    });
+    openByFocus(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+});

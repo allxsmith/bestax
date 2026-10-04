@@ -170,7 +170,10 @@ export interface DateInputBaseProps
   editable?: boolean;
   /** Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover). */
   popover?: boolean;
-  /** Open the popover when the input is focused. */
+  /**
+   * Open the popover when the input is focused. Closing the popover hands
+   * focus back to the input, and that focus leaves it closed.
+   */
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
   closeOnSelect?: boolean;
@@ -629,6 +632,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
             appendToBody={appendToBody}
             ariaLabel={chooseLabel}
             id={popoverId}
+            restoreFocusRef={inputRef}
           >
             {calendar}
           </PickerPopover>

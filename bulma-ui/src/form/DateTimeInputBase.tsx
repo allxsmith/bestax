@@ -125,7 +125,10 @@ export interface DateTimeInputBaseProps
   editable?: boolean;
   /** Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`. */
   popover?: boolean;
-  /** Open the popover on focus. Default `true`. */
+  /**
+   * Open the popover on focus. Default `true`. Closing the popover hands
+   * focus back to the input, and that focus leaves it closed.
+   */
   openOnFocus?: boolean;
   /** Off by default — users typically tweak both halves before committing. */
   closeOnSelect?: boolean;
@@ -703,6 +706,7 @@ export const DateTimeInputBase = forwardRef<
           appendToBody={appendToBody}
           ariaLabel={t.chooseDateTime}
           id={popoverId}
+          restoreFocusRef={inputRef}
         >
           {panel}
         </PickerPopover>
