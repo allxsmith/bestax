@@ -32,20 +32,28 @@ export function isWithin(d: Date, min?: Date, max?: Date): boolean {
   return true;
 }
 
+// The boundaries build on `makeDate` (below), so a `min` or `max` in years
+// 0–99 keeps its year.
+
 export function startOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  return makeDate(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 export function endOfDay(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 23, 59, 59, 999);
+  const r = makeDate(d.getFullYear(), d.getMonth(), d.getDate());
+  r.setHours(23, 59, 59, 999);
+  return r;
 }
 
 export function startOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth(), 1, 0, 0, 0, 0);
+  return makeDate(d.getFullYear(), d.getMonth());
 }
 
 export function endOfMonth(d: Date): Date {
-  return new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59, 999);
+  // Day 0 of the next month is this month's last day.
+  const r = makeDate(d.getFullYear(), d.getMonth() + 1, 0);
+  r.setHours(23, 59, 59, 999);
+  return r;
 }
 
 /**
@@ -142,7 +150,7 @@ export function addMonths(d: Date, n: number): Date {
   r.setDate(1);
   r.setMonth(r.getMonth() + n);
   // Clamp day to last day of new month if original day is out of range.
-  const lastDay = new Date(r.getFullYear(), r.getMonth() + 1, 0).getDate();
+  const lastDay = makeDate(r.getFullYear(), r.getMonth() + 1, 0).getDate();
   r.setDate(Math.min(day, lastDay));
   return r;
 }
