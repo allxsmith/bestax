@@ -127,7 +127,9 @@ export interface DateTimeInputBaseProps
   popover?: boolean;
   /**
    * Open the popover on focus. Default `true`. Closing the popover hands
-   * focus back to the input, and that focus leaves it closed.
+   * focus back to the input, and that focus leaves it closed. Dismissing it
+   * commits nothing: an empty field stays empty, and leaving afterwards
+   * commits only what was typed since.
    */
   openOnFocus?: boolean;
   /** Off by default — users typically tweak both halves before committing. */

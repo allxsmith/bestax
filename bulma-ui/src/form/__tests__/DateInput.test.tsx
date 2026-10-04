@@ -1874,4 +1874,97 @@ describe('DateInput focus handed back on close', () => {
     openByFocus(input);
     expect(getByRole('dialog')).toBeInTheDocument();
   });
+
+  describe('commits nothing the user did not type or pick', () => {
+    const renderWith = (props: React.ComponentProps<typeof DateInput>) => {
+      const onChange = jest.fn();
+      const utils = render(
+        <>
+          <DateInput {...props} onChange={onChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      const input = utils.getByRole('combobox') as HTMLInputElement;
+      const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+      const leave = () =>
+        act(() => {
+          elsewhere.focus();
+        });
+      const clickOutside = () => {
+        act(() => {
+          fireEvent.pointerDown(elsewhere);
+        });
+        leave();
+      };
+      return { ...utils, input, onChange, leave, clickOutside };
+    };
+    const june15 = new Date(2024, 5, 15);
+
+    it('when Escape dismisses a value and focus moves on', () => {
+      const { input, onChange, leave } = renderWith({ defaultValue: june15 });
+      openByFocus(input);
+      pressEscape();
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-15');
+    });
+
+    it('when a click outside dismisses a value', () => {
+      const { input, onChange, clickOutside } = renderWith({
+        defaultValue: june15,
+      });
+      openByFocus(input);
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-15');
+    });
+
+    it('when a click outside dismisses an empty field', () => {
+      const { input, onChange, clickOutside } = renderWith({});
+      openByFocus(input);
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('when Escape dismisses an empty field, which stays empty', () => {
+      const { input, onChange, leave } = renderWith({});
+      openByFocus(input);
+      pressEscape();
+      expect(input).toHaveFocus();
+      expect(input).toHaveValue('');
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('but keeps a date typed after the dismiss', () => {
+      const { input, onChange, leave } = renderWith({ defaultValue: june15 });
+      openByFocus(input);
+      pressEscape();
+      for (const key of '2025') fireEvent.keyDown(input, { key });
+      leave();
+      expect(input).toHaveValue('2025-06-15');
+      expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 5, 15));
+    });
+
+    it('but commits text typed before the popover opened', () => {
+      const { input, onChange, leave, getByRole, queryByRole } = renderWith({
+        defaultValue: june15,
+        // No segments, so the text is typed freely and parsed on leaving.
+        format: { year: 'numeric', month: '2-digit', day: '2-digit' },
+        openOnFocus: false,
+      });
+      act(() => {
+        input.focus();
+      });
+      fireEvent.change(input, { target: { value: '2025-07-04' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(getByRole('dialog')).toBeInTheDocument();
+      pressEscape();
+      expect(queryByRole('dialog')).toBeNull();
+      leave();
+      expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 6, 4));
+    });
+  });
 });
