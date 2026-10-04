@@ -59,7 +59,7 @@
       "code": "<TextArea skeleton placeholder=\"Skeleton TextArea\" rows={3} />"
     }
   ],
-  "accessibility": "- **Role:** Consider using `aria-busy=\"true\"` on container elements to indicate loading state.\n- **Label:** Optionally use `aria-label=\"Loading...\"` or similar for better screen reader support.\n- **Focus:** Skeletons should not be focusable and should be replaced with real content as soon as data is available.\n\n:::tip\nSkeleton loaders provide a visual cue for loading but should not block navigation or accessibility.\n:::",
+  "accessibility": "- **Role:** Consider using `aria-busy=\"true\"` on container elements to indicate loading state.\n- **Label:** Optionally use `aria-label=\"Loading...\"` or similar for better screen reader support.\n- **Focus:** Skeletons should not be focusable and should be replaced with real content as soon as data is available.\n- **Reduced motion:** under `prefers-reduced-motion: reduce` the pulse stops and each shape stays\n  drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The\n  rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your\n  own Bulma, in either order.\n\n:::tip\nSkeleton loaders provide a visual cue for loading but should not block navigation or accessibility.\n:::",
   "related": [
     "Button",
     "Buttons",

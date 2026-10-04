@@ -207,6 +207,10 @@ A textarea with a skeleton loader, useful for simulating multi-line text input l
 - **Role:** Consider using `aria-busy="true"` on container elements to indicate loading state.
 - **Label:** Optionally use `aria-label="Loading..."` or similar for better screen reader support.
 - **Focus:** Skeletons should not be focusable and should be replaced with real content as soon as data is available.
+- **Reduced motion:** under `prefers-reduced-motion: reduce` the pulse stops and each shape stays
+  drawn in the skeleton color. That covers `Skeleton`, the `skeleton` prop and `hasSkeleton`. The
+  rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to your
+  own Bulma, in either order.
 
 :::tip
 Skeleton loaders provide a visual cue for loading but should not block navigation or accessibility.

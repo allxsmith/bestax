@@ -191,6 +191,8 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
 @use '@allxsmith/bestax-bulma/scss/elements/loader';
+@use '@allxsmith/bestax-bulma/scss/elements/progress';
+@use '@allxsmith/bestax-bulma/scss/elements/skeleton';
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 ```

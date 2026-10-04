@@ -1,0 +1,18 @@
+// Bestax Extras - Progress Styles
+// Bulma sweeps the indeterminate `.progress` bar across its track and has no
+// reduced-motion rule for it. This stops it for users who ask for less
+// motion. The bar keeps the gradient Bulma draws when it is not moving, so
+// it holds still with the value color along part of the track rather than
+// going blank.
+//
+// Bulma's CSS can land on either side of this partial, as it can for
+// `_loader.scss`, which says why. `!important` wins in every case, so the
+// override does not depend on where this file lands.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}progress:indeterminate {
+    animation: none !important;
+  }
+}
