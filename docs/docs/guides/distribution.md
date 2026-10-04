@@ -128,7 +128,7 @@ Say in the pull request which listings need an update, then open those updates o
   exact version, and `skills-publish.yml` regenerates it after each release.
 - **A plugin release.** Once listed, awesome-copilot, the OpenAI directory, Kiro and Cursor
   Marketplace pin the `version` in bestax-skills' root `plugin.json`. Its patch counts the commits
-  that touched the plugin's inputs, so it rises with each change to them without a hand bump, and
+  that touched the plugin's content, so it rises with each change to it without a hand bump, and
   the MAJOR.MINOR comes from `plugin.version` in `plugin/manifest.json`. Update those entries when a
   release should reach them. Codex keys its plugin cache on the version too. The Grok Build entry
   pins a commit instead, so updating it takes a pull request there.

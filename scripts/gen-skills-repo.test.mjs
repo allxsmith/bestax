@@ -22,6 +22,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   AGENT_MCP_SCHEMA,
   AGENT_PLUGIN_SCHEMA,
+  CONTENT_PATHS,
   COPIED,
   FILES,
   INPUT_FILES,
@@ -223,13 +224,16 @@ test('the workflow runs on every input and every module the generator imports', 
     })
   );
   assert.ok(filters.length, 'the push trigger has a paths filter');
-  // The version's patch counts commits on PUBLISH_PATHS, so the filter
-  // that starts a publish and the list that versions it are one list.
   assert.deepEqual(
     [...filters].sort(),
     [...PUBLISH_PATHS].sort(),
     'the paths filter in skills-publish.yml and PUBLISH_PATHS differ'
   );
+  // The version counts commits on CONTENT_PATHS, so every one of them must
+  // also start a publish.
+  for (const content of CONTENT_PATHS) {
+    assert.ok(filters.includes(content), `the paths filter misses ${content}`);
+  }
 
   // Every local module reachable from the generator, by its imports.
   const needed = new Set(['skills/', ...INPUT_FILES]);
@@ -261,8 +265,25 @@ test('the workflow runs on every input and every module the generator imports', 
     assert.ok(
       [...needed].some(file => covers(filter, file)),
       `the paths filter names ${filter}, which the generator does not ` +
-        `need. Drop it here and from PUBLISH_PATHS, and bump the minor in ` +
-        `${TEMPLATE.manifest}, as the commit count can fall.`
+        `need. Drop it here and from PUBLISH_PATHS.`
+    );
+  }
+
+  // CONTENT_PATHS is exactly what the tree is built from: the skills and
+  // INPUT_FILES, and none of the code.
+  const content = ['skills/', ...INPUT_FILES];
+  for (const file of content) {
+    assert.ok(
+      CONTENT_PATHS.some(p => covers(p, file)),
+      `CONTENT_PATHS misses ${file}, so the version would not count it`
+    );
+  }
+  for (const p of CONTENT_PATHS) {
+    assert.ok(
+      content.some(file => covers(p, file)),
+      `CONTENT_PATHS names ${p}, which the tree is not built from. Drop ` +
+        `it, and bump the minor in ${TEMPLATE.manifest}, as the commit ` +
+        `count can fall.`
     );
   }
 });
@@ -1412,7 +1433,7 @@ const commit = (root, message) =>
     message
   );
 
-test('inputCommitCount counts the commits that touched PUBLISH_PATHS', async () => {
+test('inputCommitCount counts the commits that touched CONTENT_PATHS only', async () => {
   const root = fixtureRepo();
   commit(root, 'inputs');
   assert.equal(inputCommitCount(root), 1);
@@ -1421,19 +1442,33 @@ test('inputCommitCount counts the commits that touched PUBLISH_PATHS', async () 
   commit(root, 'not an input');
   commit(root, 'empty');
   assert.equal(inputCommitCount(root), 1, 'other paths do not count');
-  write(root, 'skills/demo/references/b.md', '# B\n');
-  git(root, 'add', '-A');
-  commit(root, 'a skill');
-  write(root, 'scripts/gen-skills-repo.mjs', '// x\n');
-  write(root, '.github/workflows/skills-publish.yml', 'name: x\n');
+
+  // The generator's code and the workflow start a publish but do not
+  // count, so an edit to them alone leaves the version where it was.
+  const code = PUBLISH_PATHS.filter(p => !CONTENT_PATHS.includes(p));
+  assert.ok(code.includes('scripts/gen-skills-repo.mjs'));
+  for (const file of code) write(root, file, '// x\n');
   git(root, 'add', '-A');
   commit(root, 'the generator and the workflow');
-  assert.equal(inputCommitCount(root), 3);
+  assert.equal(inputCommitCount(root), 1, 'code paths do not count');
+
+  // Each content path counts, one commit each.
+  const content = [
+    'skills/demo/references/b.md',
+    ...CONTENT_PATHS.filter(p => !p.endsWith('/**')),
+    'plugin/README.md',
+  ];
+  for (const file of content) {
+    fs.appendFileSync(path.join(root, file), '\n');
+    git(root, 'add', '-A');
+    commit(root, file);
+  }
+  assert.equal(inputCommitCount(root), 1 + content.length);
 
   // The real count reaches the manifest when nothing is injected.
   const out = path.join(tempDir(), 'out');
   await generate(out, root);
-  assert.equal(readJson(out, FILES.agent).version, '1.0.3');
+  assert.equal(readJson(out, FILES.agent).version, `1.0.${1 + content.length}`);
 });
 
 test('inputCommitCount refuses a shallow clone, no HEAD and no repository', () => {

@@ -43,9 +43,12 @@ name: Skills publish
 on:
   push:
     branches: [main]
-    # The generator's inputs (INPUT_FILES and skills/), every local module
-    # it imports, and this file. scripts/gen-skills-repo.test.mjs fails when
-    # the list misses one or names one the generator no longer needs.
+    # PUBLISH_PATHS in scripts/gen-skills-repo.mjs: the plugin's content
+    # (CONTENT_PATHS), every local module the generator imports, and this
+    # file. scripts/gen-skills-repo.test.mjs fails when the list misses one
+    # or names one the generator no longer needs. A run for a code change
+    # publishes only when the tree comes out different, and the version
+    # counts content commits only.
     paths:
       - 'skills/**'
       - 'plugin/**'
@@ -367,6 +370,19 @@ jobs:
             exit 0
           fi
           publish diff --cached --stat
+
+          # The version's patch counts content commits only (CONTENT_PATHS in
+          # the generator). A changed tree under the same version is a
+          # generator change without the minor bump, or a hand edit to
+          # bestax-skills that this run replaces. Warn and still publish: the
+          # tree is right, and failing would leave the plugin behind main.
+          if [ "$status" = 0 ]; then
+            bumped=$(publish diff --cached --name-only -G '^  "version": ')
+            case $'\n'"$bumped"$'\n' in
+              *$'\n'plugin.json$'\n'*) ;;
+              *) echo "::warning::The tree changed but plugin.json kept its version. A generator change that alters the published output bumps the minor in plugin/manifest.json. CONTRIBUTING.md, \"The bestax-skills repository\", says why." ;;
+            esac
+          fi
 
           publish \
             -c user.name='github-actions[bot]' \
