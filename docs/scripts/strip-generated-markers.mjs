@@ -23,7 +23,10 @@ import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { MARKER, stripGeneratedMarkers } from './generated-markers-lib.mjs';
+import {
+  countGeneratedMarkers,
+  stripGeneratedMarkers,
+} from './generated-markers-lib.mjs';
 
 const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
 const OUT_DIR = join(DOCS, 'build');
@@ -57,10 +60,10 @@ async function main() {
   let touched = 0;
   for (const file of targets) {
     const src = await readFile(file, 'utf8');
-    const hits = src.match(MARKER);
+    const hits = countGeneratedMarkers(src);
     if (!hits) continue;
     await writeFile(file, stripGeneratedMarkers(src));
-    stripped += hits.length;
+    stripped += hits;
     touched++;
   }
   // Stripping nothing is only correct when there was nothing to strip. This
@@ -73,7 +76,7 @@ async function main() {
     const sources = existsSync(SRC_DIR) ? await markdownFiles(SRC_DIR) : [];
     let inSource = 0;
     for (const file of sources) {
-      inSource += (await readFile(file, 'utf8')).match(MARKER)?.length ?? 0;
+      inSource += countGeneratedMarkers(await readFile(file, 'utf8'));
     }
     if (inSource > 0) {
       console.error(
