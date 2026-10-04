@@ -9,6 +9,8 @@ import { useAutoLabelId } from './useAutoLabelId';
 /**
  * Props for the DateInput convenience wrapper. Extends `DateInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead.
  * @extraProp {string} [name] - Form field name. The text field submits the text it displays. The native input on touch devices submits the ISO value (`YYYY-MM-DD`, or `YYYY-MM` at month granularity), and an `inline` calendar, which has no visible input, submits it from a hidden input (`YYYY-MM-DD`, `YYYY-MM` or `YYYY`).
  * @extraProp {string} [form] - Form id the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the input as required.

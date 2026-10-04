@@ -12,6 +12,8 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and TextAreaBase into a single convenience component.
  * Supports all TextAreaBase props, plus Field-level (label, horizontal) and
  * Control-level (loading) props.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead.
  */
 export interface TextAreaProps extends TextAreaBaseProps {
   /** Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */

@@ -12,6 +12,8 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and Input into a single convenience component.
  * Supports all Input props, plus Field-level (label, horizontal) and
  * Control-level (icons, loading) props.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead.
  */
 export interface InputProps extends InputBaseProps {
   /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */

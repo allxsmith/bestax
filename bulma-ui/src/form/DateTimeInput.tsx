@@ -9,6 +9,8 @@ import { useAutoLabelId } from './useAutoLabelId';
 /**
  * Props for the DateTimeInput convenience wrapper. Extends
  * `DateTimeInputBaseProps` with Field-level and Control-level props.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead.
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Optional id of the form the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
