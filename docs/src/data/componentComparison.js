@@ -128,6 +128,7 @@ const BESTAX = {
   overlay: '/docs/guides/helpers/other',
   aspectRatio: '/docs/guides/helpers/other',
   'pos="sticky"': '/docs/guides/helpers/other',
+  gap: '/docs/guides/helpers/flex#gap',
   'bestax.css': '/docs/guides/getting-started/installation',
   // Capabilities bestax documents as a recipe rather than a component.
   'Dropdown (split button recipe)': 'components/dropdown#split-button',
@@ -1192,7 +1193,7 @@ export const categories = [
       ],
       [
         'Stack (vertical)',
-        '~Block',
+        '~gap',
         'Stack',
         'Stack',
         'Stack',
@@ -1202,7 +1203,7 @@ export const categories = [
       ],
       [
         'Group (horizontal)',
-        '~display="flex"',
+        '~gap',
         'Group',
         '~Stack',
         '~Stack',

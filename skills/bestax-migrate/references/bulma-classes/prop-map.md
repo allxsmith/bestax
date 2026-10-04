@@ -143,7 +143,8 @@ classes too: bestax has no prop for them on those components. So do a `.field`'s
 `has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
 `grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
 textarea's or select's color, because `color` renders `has-text-<color>` on it too. A half-step grid gap
-(`is-gap-0.5`) stays a class as well.
+(`is-gap-0.5`) stays a class as well: the codemod converts whole steps only, though `Grid`'s
+`gap` takes the half steps too.
 
 ## Helper classes
 

@@ -97,15 +97,15 @@ The responsive grid. `Columns` is the row; `Column` is a cell (also reachable as
 
 **Columns**
 
-| Prop                                                                             | Type                                                     |
-| -------------------------------------------------------------------------------- | -------------------------------------------------------- |
-| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                     |
-| `isCentered`                                                                     | `boolean` (center the row)                               |
-| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)               |
-| `isGapless`                                                                      | `boolean`                                                |
-| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile)                  |
-| `isDesktop`                                                                      | `boolean`                                                |
-| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` (number or string, same scale as `Grid`'s `gap`) |
+| Prop                                                                             | Type                                                       |
+| -------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `isMultiline`                                                                    | `boolean` (wrap cells onto new rows)                       |
+| `isCentered`                                                                     | `boolean` (center the row)                                 |
+| `isVCentered`                                                                    | `boolean` (vertical centering — capital V)                 |
+| `isGapless`                                                                      | `boolean`                                                  |
+| `isMobile`                                                                       | `boolean` (stay side-by-side on mobile)                    |
+| `isDesktop`                                                                      | `boolean`                                                  |
+| `gap` / `gapMobile` / `gapTablet` / `gapDesktop` / `gapWidescreen` / `gapFullhd` | `0`–`8` whole steps (number or string), the columns gutter |
 
 **Column**
 

@@ -6441,7 +6441,7 @@
     },
     {
       "why": "a Grid or Cell class, which converts only on its own `.grid` or `.cell`, and only where bestax has a prop for it",
-      "match": "^(?:is-(?:col|row)-.+|is-(?:column|row)-gap-\\d+|is-gap-\\d+|is-auto-fill)$"
+      "match": "^(?:is-(?:col|row)-(?!gap-).+|is-auto-fill)$"
     },
     {
       "why": "a `.fixed-grid` column count, which converts only on its own `.fixed-grid`",
@@ -6466,6 +6466,14 @@
     {
       "why": "a Bulma helper the codemod does not convert; the `aspectRatio` prop renders it",
       "match": "^is-aspect-ratio-.+$"
+    },
+    {
+      "why": "a Bulma helper the codemod converts only on a `.grid`, in whole steps; the `gap`, `columnGap` and `rowGap` props render it",
+      "match": "^is-(?:column-|row-)?gap-\\d(?:\\.5)?$"
+    },
+    {
+      "why": "a Bulma helper the codemod converts only on a `.columns`, as `isGapless`; the `gapless` prop renders it",
+      "match": "^is-gapless$"
     },
     {
       "why": "a Bulma helper with no bestax prop",

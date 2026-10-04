@@ -11,6 +11,7 @@
 import {
   validAspectRatios,
   validAxisOverflows,
+  validGaps,
   validPositions,
   validRadii,
 } from '@allxsmith/bestax-bulma/constants';
@@ -30,6 +31,18 @@ const rendered: Array<[string, string]> = [
   ...validAspectRatios.map(
     v => [`is-aspect-ratio-${v}`, '`aspectRatio`'] as [string, string]
   ),
+  // The gap helpers convert on `.grid` and `.columns`, which is not where
+  // this reason is read: anywhere else, the prop is what renders them.
+  ...validGaps.flatMap(v =>
+    (
+      [
+        ['is-gap', '`gap`'],
+        ['is-column-gap', '`columnGap`'],
+        ['is-row-gap', '`rowGap`'],
+      ] as const
+    ).map(([stem, prop]) => [`${stem}-${v}`, prop] as [string, string])
+  ),
+  ['is-gapless', '`gapless`'],
 ];
 
 describe('a class a bestax helper prop renders', () => {

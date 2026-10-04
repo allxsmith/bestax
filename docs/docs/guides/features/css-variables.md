@@ -279,13 +279,13 @@ function ColorPaletteApp() {
         />
         <p>Hue: {hue}°</p>
 
-        <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
+        <Block display="flex" gap="2" mt="4">
           <Button color="primary">Primary</Button>
           <Button color="info">Info</Button>
           <Button color="success">Success</Button>
           <Button color="warning">Warning</Button>
           <Button color="danger">Danger</Button>
-        </div>
+        </Block>
       </Box>
     </Theme>
   );
