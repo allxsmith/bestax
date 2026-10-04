@@ -120,7 +120,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Slider](https://bestax.io/docs/api/form/slider) — The `Slider` component provides a range slider input for selecting values within a range.
 - [Switch](https://bestax.io/docs/api/form/switch) — The `Switch` component provides a toggle switch for boolean on/off states.
 - [Taginput](https://bestax.io/docs/api/form/taginput) — The `Taginput` component provides a tag/chip input field for managing multiple tags.
-- [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state…
+- [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size…
 - [TimeInput](https://bestax.io/docs/api/form/datetime/timeinput) — The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.
 
 ## Columns

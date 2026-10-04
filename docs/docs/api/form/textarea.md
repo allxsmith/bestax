@@ -1,7 +1,7 @@
 ---
 title: TextArea
 sidebar_label: TextArea
-description: The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
+description: The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.
 ---
 
 # TextArea
@@ -10,7 +10,7 @@ description: The `TextArea` component provides a Bulma-styled multi-line text in
 
 <!-- bestax:generated overview -->
 
-The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
+The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.
 
 <!-- /bestax:generated overview -->
 
@@ -269,8 +269,8 @@ function example() {
 | `controlClassName` | `string`                                                                                                                           | —       | Additional CSS classes for the Control.                                                                                                                                                                                                                                                                     |
 | `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the textarea.                                                                                                                                                                                                                                                                      |
 | `size`             | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the textarea.                                                                                                                                                                                                                                                                             |
-| `isRounded`        | `boolean`                                                                                                                          | `false` | Rounded textarea corners.                                                                                                                                                                                                                                                                                   |
-| `isStatic`         | `boolean`                                                                                                                          | `false` | Renders textarea as static (styled readonly).                                                                                                                                                                                                                                                               |
+| `isRounded`        | `boolean`                                                                                                                          | `false` | Adds the `is-rounded` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea's corners don't change.                                                                                                                                                                                  |
+| `isStatic`         | `boolean`                                                                                                                          | `false` | Adds the `is-static` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea keeps its border, background and padding.                                                                                                                                                                 |
 | `isHovered`        | `boolean`                                                                                                                          | `false` | Applies hovered state.                                                                                                                                                                                                                                                                                      |
 | `isFocused`        | `boolean`                                                                                                                          | `false` | Applies focused state.                                                                                                                                                                                                                                                                                      |
 | `isActive`         | `boolean`                                                                                                                          | `false` | Applies Bulma's is-active modifier.                                                                                                                                                                                                                                                                         |

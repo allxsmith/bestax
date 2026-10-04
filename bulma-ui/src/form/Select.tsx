@@ -24,7 +24,7 @@ export interface SelectProps extends SelectBaseProps {
   horizontal?: boolean;
   /**
    * Icon props for left icon.
-   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * Bulma gives control icons `pointer-events: none`, so a clickable node here
    * never receives a click. Put a button beside the input in its own addon `Control` instead.
    */
   iconLeft?: ControlBaseProps['iconLeft'];

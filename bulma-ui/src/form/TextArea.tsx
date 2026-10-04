@@ -41,7 +41,7 @@ export interface TextAreaProps extends TextAreaBaseProps {
 }
 
 /**
- * The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
+ * The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.
  *
  * @function
  * @param {TextAreaProps} props - Props for TextArea.

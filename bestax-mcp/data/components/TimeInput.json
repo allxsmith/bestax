@@ -227,7 +227,7 @@
           "name": "iconLeft",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for the left icon. Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
+          "description": "Icon props for the left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -236,7 +236,7 @@
           "name": "iconRight",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for the right icon. Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
+          "description": "Icon props for the right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false

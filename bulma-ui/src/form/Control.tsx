@@ -29,6 +29,8 @@ export interface ControlBaseProps
    * Shows a loading spinner inside the control.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * The spinner sits at the right edge, where a right icon also sits, and the
+   * two overlap; leave the right icon out while loading.
    */
   isLoading?: boolean;
   /** Makes the control expand to fill available space. */
@@ -43,14 +45,14 @@ export interface ControlBaseProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
    * Icon props for left icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
-   * The icon is decoration: Bulma gives control icons `pointer-events: none`, so a click lands on
+   * Bulma gives control icons `pointer-events: none`, so a click lands on
    * the input and a clickable node placed here never receives one. Put a button beside the input
    * in its own addon `Control` instead.
    */
   iconLeft?: IconProps | React.ReactNode;
   /**
    * Icon props for right icon, or a custom node (an inline SVG, a `react-icons` component, …) rendered in place of a class-based glyph.
-   * The icon is decoration: Bulma gives control icons `pointer-events: none`, so a click lands on
+   * Bulma gives control icons `pointer-events: none`, so a click lands on
    * the input and a clickable node placed here never receives one. Put a button beside the input
    * in its own addon `Control` instead.
    */

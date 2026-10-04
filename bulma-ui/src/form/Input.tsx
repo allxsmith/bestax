@@ -24,13 +24,13 @@ export interface InputProps extends InputBaseProps {
   horizontal?: boolean;
   /**
    * Icon props for left icon.
-   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * Bulma gives control icons `pointer-events: none`, so a clickable node here
    * never receives a click. Put a button beside the input in its own addon `Control` instead.
    */
   iconLeft?: ControlBaseProps['iconLeft'];
   /**
    * Icon props for right icon.
-   * Decoration only: Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * Bulma gives control icons `pointer-events: none`, so a clickable node here
    * never receives a click. Put a button beside the input in its own addon `Control` instead.
    */
   iconRight?: ControlBaseProps['iconRight'];
@@ -50,6 +50,8 @@ export interface InputProps extends InputBaseProps {
    * Shows a loading spinner on the wrapping Control.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * The spinner sits at the right edge, where `iconRight` also sits, and the
+   * two overlap; leave the right icon out while loading.
    */
   isLoading?: boolean;
   /** Expand the control. */
