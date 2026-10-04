@@ -52,6 +52,7 @@ import {
 import {
   assertSkillsVetted,
   byCodePoint,
+  failureText,
   readSkillNames,
   skillFiles,
   skillSlug,
@@ -312,6 +313,10 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
   assertSkillsVetted(skillsDir, names, 'index');
   const out = [];
   for (const name of names) {
+    // One walk per skill, from its root, so a symbolic link anywhere in it is
+    // refused just as the sync scripts refuse it: the skill directory itself,
+    // SKILL.md, or any file below. The listings below are cut from this walk.
+    const shipped = await skillFiles(join(skillsDir, name));
     const skillFile = join(skillsDir, name, 'SKILL.md');
     const src = await readFile(skillFile, 'utf8');
     const fm = frontmatter(src);
@@ -335,14 +340,15 @@ export async function readSkills(skillsDir = SKILLS_DIR) {
     // one, and agents discover ids through `get_skill` rather than hardcoding
     // them, so the rename is accepted rather than aliased.
     const listing = async sub => {
-      const root = join(skillsDir, name, sub);
-      if (!existsSync(root)) return [];
+      const prefix = `${sub}/`;
       const files = [];
-      for (const rel of await skillFiles(root)) {
-        const body = await readFile(join(root, rel), 'utf8');
+      for (const file of shipped) {
+        if (!file.startsWith(prefix)) continue;
+        const rel = file.slice(prefix.length);
+        const body = await readFile(join(skillsDir, name, file), 'utf8');
         files.push({
           id: rel.replace(extname(rel), '').replace(/\//g, '-'),
-          file: `${sub}/${rel}`,
+          file,
           bytes: Buffer.byteLength(body),
         });
       }
@@ -672,9 +678,19 @@ export async function main() {
   );
 }
 
+/**
+ * The command line's failure handler: failureText, so a refusal prints its
+ * message and anything else its stack, then exit 1. `error` and `exit` are
+ * injectable so the tests can drive it.
+ */
+export function reportFailure(
+  err,
+  { error = console.error, exit = process.exit } = {}
+) {
+  error(failureText(err));
+  exit(1);
+}
+
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) {
-  main().catch(err => {
-    console.error(err.message ?? err);
-    process.exit(1);
-  });
+  main().catch(err => reportFailure(err));
 }

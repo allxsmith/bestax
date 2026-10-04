@@ -8,20 +8,36 @@
 // `/skills` is the single source of truth, and every destination is generated
 // and gitignored. The roster is READ, not listed (#540): every directory
 // holding a SKILL.md is copied, through the shared predicate in skills.mjs.
-import { cp, mkdir, readFile, rm, stat, writeFile } from 'node:fs/promises';
+import {
+  copyFile,
+  mkdir,
+  readFile,
+  rm,
+  stat,
+  writeFile,
+} from 'node:fs/promises';
 import { existsSync, rmSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { setTimeout as sleep } from 'node:timers/promises';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 
 import {
   assertSkillsVetted,
-  isDsStore,
+  isSkillRefusal,
   readSkillNames,
   skillFiles,
+  skillRefusal,
 } from './skills.mjs';
 
 const TAG = '[sync-skills]';
+
+/**
+ * An expected failure: tagged, and carrying the refusal code, so a caller
+ * printing failureText shows this message alone.
+ */
+function refusal(message, options) {
+  return skillRefusal(`${TAG} ${message}`, options);
+}
 
 // A sync is ~390 KB of file copies and takes tens of milliseconds. A lock held
 // longer than this is a crashed run, not a slow one.
@@ -31,8 +47,9 @@ const SIGNALS = ['SIGINT', 'SIGTERM', 'SIGHUP'];
 
 /**
  * Copy every skill under `src` into `dest`, after the checks every bundler
- * makes, and log one line saying what happened. Throws an Error whose message
- * starts with `[sync-skills]` on any expected failure, for the caller to print.
+ * makes, and log one line saying what happened. On any expected failure it
+ * throws an Error whose message starts with `[sync-skills]` and that carries
+ * the refusal code, so the caller prints it with failureText.
  *
  * - `label` is how the success line names `dest` (`templates/skills`).
  * - `stateDir`, when given, holds a lock and a fingerprint of the source.
@@ -49,28 +66,17 @@ export async function syncSkills({
   lock = {},
   log = console.log,
 }) {
-  if (!existsSync(src)) throw new Error(`${TAG} source not found: ${src}`);
+  if (!existsSync(src)) throw refusal(`source not found: ${src}`);
 
   const names = await readSkillNames(src);
 
   // Checked BEFORE emptying the destination. Reading a roster off disk means
   // a wrong path or a renamed directory yields zero skills instead of an
   // error, and emptying first would ship an empty bundle rather than failing.
-  if (!names.length) throw new Error(`${TAG} no skills found in ${src}`);
-
-  // The vetting gate the deleted allowlist used to be: discovery bundles
-  // whatever is on disk, and CI's skills-roster check only sees committed
-  // state, so an untracked scratch file would ship in a local build or a
-  // manual publish with no gate anywhere in the path. `git add` is the act
-  // of vetting, and a tree without git (an exported tarball) skips the gate.
-  try {
-    assertSkillsVetted(src, names, 'bundle');
-  } catch (err) {
-    throw new Error(`${TAG} ${err.message}`, { cause: err });
-  }
+  if (!names.length) throw refusal(`no skills found in ${src}`);
 
   if (!stateDir) {
-    await copySkills(src, dest, names);
+    await copySkills(dest, await vettedSkills(src, names));
     log(`${TAG} copied ${names.length} skills -> ${label}`);
     return;
   }
@@ -80,7 +86,6 @@ export async function syncSkills({
   const held = { dir: join(stateDir, 'lock'), held: false };
 
   await mkdir(stateDir, { recursive: true });
-  const want = await fingerprint(src, names);
 
   // Release on interrupt. Ctrl-C during `pnpm all` is the realistic way a lock
   // gets abandoned, and node does not run `finally` blocks on a signal, so
@@ -94,6 +99,11 @@ export async function syncSkills({
 
   try {
     await acquireLock(held, timing);
+    // Vetted only once the lock is held. A run can wait on it for minutes,
+    // and a file or link added meanwhile is caught here, because the
+    // fingerprint and the copy both use this list and nothing else.
+    const skills = await vettedSkills(src, names);
+    const want = await fingerprint(skills);
     const have = await readFile(stampFile, 'utf8').catch(() => '');
 
     // The freshness check is load-bearing, not an optimisation. Without it a
@@ -105,7 +115,7 @@ export async function syncSkills({
     if (have.trim() === want && existsSync(dest)) {
       log(`${TAG} up to date (${names.length} skills)`);
     } else {
-      await copySkills(src, dest, names);
+      await copySkills(dest, skills);
       // Stamped last: a run killed mid-copy leaves no stamp, so the next
       // caller redoes the work rather than trusting a half-populated tree.
       await writeFile(stampFile, `${want}\n`);
@@ -117,17 +127,53 @@ export async function syncSkills({
   }
 }
 
-/** Empty `dest`, then copy each skill into it, leaving `.DS_Store` out. */
-async function copySkills(src, dest, names) {
+/**
+ * Each skill in `names` with the files a copy ships, once every bundler's
+ * checks pass: `{ name, dir, files }`, where `files` is skillFiles' list for
+ * `dir`. The fingerprint and the copy both take this list, so what was
+ * checked is exactly what ships, and each skill is walked once.
+ *
+ * skillFiles leaves every `.DS_Store` out and refuses any other symbolic
+ * link in a skill, the skill directory included. The vetting gate is the
+ * one the deleted allowlist used to be: discovery bundles whatever is on
+ * disk, and CI's skills-roster check only sees committed state, so an
+ * untracked scratch file would ship in a local build or a manual publish
+ * with no gate anywhere in the path. `git add` is the act of vetting, and a
+ * tree without git (an exported tarball) skips the gate. It runs after the
+ * walk, so every listed file already existed when git was asked about it.
+ *
+ * Only those refusals get the tag. Anything else, such as a permission error,
+ * passes through with its own message and stack.
+ */
+async function vettedSkills(src, names) {
+  try {
+    const skills = [];
+    for (const name of names) {
+      const dir = join(src, name);
+      skills.push({ name, dir, files: await skillFiles(dir) });
+    }
+    assertSkillsVetted(src, names, 'bundle');
+    return skills;
+  } catch (err) {
+    if (!isSkillRefusal(err)) throw err;
+    throw refusal(err.message, { cause: err });
+  }
+}
+
+/**
+ * Empty `dest`, then copy exactly the files vettedSkills listed into it. A
+ * file that appeared on disk after the walk is not in the list, so it is not
+ * copied. Exported for its test.
+ */
+export async function copySkills(dest, skills) {
   await rm(dest, { recursive: true, force: true });
   await mkdir(dest, { recursive: true });
-  for (const name of names) {
-    await cp(join(src, name), join(dest, name), {
-      recursive: true,
-      // .DS_Store is the one path the vetting gate exempts. Keep it out of
-      // the bundle too so the exemption never becomes shipped content.
-      filter: path => !isDsStore(path),
-    });
+  for (const { name, dir, files } of skills) {
+    for (const rel of files) {
+      const to = join(dest, name, rel);
+      await mkdir(dirname(to), { recursive: true });
+      await copyFile(join(dir, rel), to);
+    }
   }
 }
 
@@ -136,12 +182,12 @@ async function copySkills(src, dest, names) {
 // rewrites mtimes without changing what should be copied, and re-copying is
 // the cheap half. It is the destructive `rm` that has to be avoided while
 // another process is reading.
-async function fingerprint(src, names) {
+async function fingerprint(skills) {
   const hash = createHash('sha256');
-  for (const name of names) {
-    for (const rel of await skillFiles(join(src, name))) {
+  for (const { name, dir, files } of skills) {
+    for (const rel of files) {
       hash.update(`${name}/${rel}`);
-      hash.update(await readFile(join(src, name, rel)));
+      hash.update(await readFile(join(dir, rel)));
     }
   }
   return hash.digest('hex');
@@ -203,8 +249,8 @@ async function acquireLock(lock, { staleMs, timeoutMs, pollMs }) {
       // Held far longer than a sync can legitimately take, so the holder is
       // gone. Report it now instead of burning the full timeout first.
       if (ageMs > staleMs) {
-        throw new Error(
-          `${TAG} the lock at ${lock.dir} has been held for ` +
+        throw refusal(
+          `the lock at ${lock.dir} has been held for ` +
             `${Math.round(ageMs / 1000)}s, which means an earlier run was killed ` +
             `before it could clean up. Remove that directory and re-run:\n` +
             `  rm -rf ${lock.dir}`,
@@ -213,7 +259,7 @@ async function acquireLock(lock, { staleMs, timeoutMs, pollMs }) {
       }
 
       if (Date.now() > deadline) {
-        throw new Error(`${TAG} timed out waiting for lock: ${lock.dir}`, {
+        throw refusal(`timed out waiting for lock: ${lock.dir}`, {
           cause: err,
         });
       }

@@ -22,8 +22,8 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { build, readSkills } from './gen-mcp-index.mjs';
-import { skillSlug } from './lib/skills.mjs';
+import { build, readSkills, reportFailure } from './gen-mcp-index.mjs';
+import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -250,6 +250,79 @@ test('the skills manifest lists exactly what the sync scripts ship', async t => 
   // Gitignored is still unvetted: the sync scripts would refuse it too.
   writeFileSync(join(skill, 'references', 'debug.log'), 'noise\n');
   await assert.rejects(readSkills(skillsDir), /debug\.log/);
+});
+
+test('the index refuses a symbolic link wherever the sync scripts do', async t => {
+  // The sync scripts refuse a link anywhere in a skill. The index used to
+  // walk only references/ and examples/, so it listed a linked skill
+  // directory, or a skill whose SKILL.md was a link, that no build can copy.
+  const {
+    mkdtempSync,
+    mkdirSync,
+    renameSync,
+    rmSync,
+    symlinkSync,
+    unlinkSync,
+    writeFileSync,
+  } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+
+  const root = mkdtempSync(join(tmpdir(), 'bestax-mcp-links-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const skillsDir = join(root, 'skills');
+  const skill = join(skillsDir, 'bestax-form');
+  mkdirSync(join(skill, 'references'), { recursive: true });
+  writeFileSync(
+    join(skill, 'SKILL.md'),
+    '---\nname: bestax-form\ndescription: Build forms.\n---\n'
+  );
+  writeFileSync(join(skill, 'references', 'api.md'), '# api\n');
+  const [form] = await readSkills(skillsDir);
+  assert.deepEqual(form.references, [
+    { id: 'api', file: 'references/api.md', bytes: 6 },
+  ]);
+  assert.deepEqual(form.examples, []);
+
+  const outside = join(root, 'outside');
+  mkdirSync(outside);
+  writeFileSync(
+    join(outside, 'SKILL.md'),
+    '---\nname: bestax-linked\ndescription: Linked.\n---\n'
+  );
+  symlinkSync(outside, join(skillsDir, 'bestax-linked'));
+  const linked = await readSkills(skillsDir).then(
+    () => assert.fail('a linked skill directory was indexed'),
+    err => err
+  );
+  assert.match(
+    linked.message,
+    /skills\/bestax-linked is a symbolic link\. Commit the real directory\.$/
+  );
+  assert.equal(failureText(linked), linked.message);
+  unlinkSync(join(skillsDir, 'bestax-linked'));
+
+  renameSync(join(skill, 'SKILL.md'), join(root, 'SKILL.md'));
+  symlinkSync(join(root, 'SKILL.md'), join(skill, 'SKILL.md'));
+  await assert.rejects(
+    readSkills(skillsDir),
+    /bestax-form\/SKILL\.md is a symbolic link\. Commit the real file or directory\./
+  );
+});
+
+test('the command line prints a refusal as its message, anything else as its stack', () => {
+  const report = err => {
+    const out = [];
+    reportFailure(err, {
+      error: text => out.push(text),
+      exit: code => out.push(code),
+    });
+    return out;
+  };
+  const refusal = skillRefusal('refusing to index untracked file(s)');
+  assert.deepEqual(report(refusal), [refusal.message, 1]);
+  const crash = new TypeError('boom');
+  assert.deepEqual(report(crash), [crash.stack, 1]);
+  assert.match(crash.stack, /^TypeError: boom\n\s+at /);
 });
 
 test('every skill reference id is unique within its skill', () => {

@@ -267,6 +267,47 @@ test('a hidden directory holding a SKILL.md is not skipped', () => {
   assert.match(v[0], /kebab-case/);
 });
 
+test('a symlinked skill directory is reported, as every bundler refuses it', async t => {
+  // The sync scripts and the MCP index refuse it through skillFiles. Reading
+  // it as an ordinary skill here would leave conformance green on a tree
+  // that cannot build.
+  const { mkdtempSync, mkdirSync, rmSync, symlinkSync, writeFileSync } =
+    await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const { join } = await import('node:path');
+
+  const root = mkdtempSync(join(tmpdir(), 'bestax-roster-link-'));
+  t.after(() => rmSync(root, { recursive: true, force: true }));
+  const skillsDir = join(root, 'skills');
+  mkdirSync(join(skillsDir, 'bestax-form'), { recursive: true });
+  writeFileSync(join(skillsDir, 'bestax-form', 'SKILL.md'), '# form\n');
+  writeFileSync(join(skillsDir, 'CLAUDE.md'), '# notes\n');
+  mkdirSync(join(root, 'elsewhere'));
+  writeFileSync(join(root, 'elsewhere', 'SKILL.md'), '# linked\n');
+  symlinkSync(join(root, 'elsewhere'), join(skillsDir, 'bestax-linked'));
+  // A link to a file is not a skill directory, so it is no violation either.
+  symlinkSync(join(skillsDir, 'CLAUDE.md'), join(skillsDir, 'AGENTS.md'));
+
+  const dirs = await readSkillDirs(skillsDir);
+  assert.deepEqual(
+    dirs.map(d => d.name),
+    ['bestax-form', 'bestax-linked']
+  );
+  // Still in the skill set, so every tool agrees on what the skills are.
+  assert.deepEqual(rosterSkillNames(dirs), ['bestax-form', 'bestax-linked']);
+  const v = skillDirViolations(dirs);
+  assert.equal(v.length, 1, v.join('\n'));
+  assert.match(v[0], /^skills\/bestax-linked\/: is a symbolic link/);
+  assert.match(v[0], /Commit the real directory/);
+
+  // Reported even without a SKILL.md, and only once.
+  const bare = skillDirViolations([
+    { name: 'bestax-bare', hasSkillFile: false, isSymlink: true },
+  ]);
+  assert.equal(bare.length, 1, bare.join('\n'));
+  assert.match(bare[0], /symbolic link/);
+});
+
 test('the section scope is line-anchored, not a substring search', () => {
   // `'## AI skills'` occurs inside `'### AI skills'`, so an indexOf-based scope
   // would lock onto a subheading and report an intact roster as wholly missing.
