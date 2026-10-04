@@ -36,11 +36,31 @@
  * install already wrote, which makes every assertion testable against a temp
  * directory.
  *
+ * ## Which release (#719)
+ *
+ * Everything above checks the tarball that is in the tree, which on a
+ * `release` run is not necessarily the one the release names: the install
+ * resolves `latest`, `latest` can be stale for minutes after a publish, and
+ * the previous version's attestation verifies perfectly well. That run goes
+ * green having never opened the release's own attestation.
+ *
+ * `--release` carries the release tag into this script, so it can fail when
+ * the tree holds anything else. `--print-spec` is the same decision made
+ * before the pinned install, so the workflow can pin the released package and
+ * wait out propagation rather than turn a lagged release red. The tag goes
+ * through consumer-sbom-meta.mjs's parseReleaseTag rather than a second
+ * last-`@` split here.
+ *
  * Usage:
- *   node scripts/verify-attestation.mjs --dir <scratch-tree> <pkg>...
+ *   node scripts/verify-attestation.mjs --dir <scratch-tree> --release <tag> [<pkg>...]
+ *   node scripts/verify-attestation.mjs --dir <scratch-tree> --release <tag> --print-spec
+ *
+ * `--release` is required and may be empty, which is how a scheduled or
+ * dispatched run says no release asked for it. Required because its absence
+ * would turn the check off with nothing reporting it.
  *
  * Exit codes: 0 every package's attestation checks out,
- *             1 at least one did not,
+ *             1 at least one did not, or the tree is not the release,
  *             2 bad usage or an unusable scratch tree — kept distinct so a
  *               typo'd flag is not reported as a provenance failure.
  */
@@ -49,6 +69,11 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { fetchWithRetry } from './lib/fetch-retry.mjs';
+import {
+  assertVersion,
+  forLog,
+  parseReleaseTag,
+} from './consumer-sbom-meta.mjs';
 
 /**
  * Backoff for the attestation lookup, deliberately longer than the shared
@@ -151,12 +176,20 @@ export function samePurl(a, b) {
 export function parseArgs(argv) {
   const packages = [];
   let dir = null;
+  let release = null;
+  let printSpec = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--dir') {
       dir = argv[++i] ?? null;
     } else if (arg.startsWith('--dir=')) {
       dir = arg.slice('--dir='.length);
+    } else if (arg === '--release') {
+      release = argv[++i] ?? null;
+    } else if (arg.startsWith('--release=')) {
+      release = arg.slice('--release='.length);
+    } else if (arg === '--print-spec') {
+      printSpec = true;
     } else if (arg.startsWith('-')) {
       throw new Error(`unknown option "${arg}"`);
     } else {
@@ -164,7 +197,67 @@ export function parseArgs(argv) {
     }
   }
   if (!dir) throw new Error('--dir <scratch-tree> is required');
-  return { dir, packages };
+  // Present but possibly empty, so `=== null` rather than a falsy test.
+  if (release === null) {
+    throw new Error('--release <tag> is required (empty when no release)');
+  }
+  return { dir, packages, release, printSpec };
+}
+
+/**
+ * The package and version a release tag names, or null when there is none.
+ *
+ * Empty means no release asked for this run. A tag that is present but names
+ * nothing is an error rather than a fallback to "no release": this run was
+ * asked about a release, and checking whatever the tree happens to hold is
+ * the silent pass #719 exists to close.
+ */
+export function releaseUnderTest(tag) {
+  const value = String(tag ?? '').trim();
+  if (value === '') return null;
+  const parsed = parseReleaseTag(value);
+  if (!parsed) {
+    throw new Error(
+      `release tag ${forLog(value)} does not name <package>@<version>`
+    );
+  }
+  assertVersion(parsed.version, `release tag ${forLog(value)}`);
+  return parsed;
+}
+
+/** Why a release cannot be checked against this roster, or null when it can. */
+function rosterProblem(release, packages) {
+  if (packages.includes(release.package)) return null;
+  return (
+    `the release names ${forLog(release.package)}, which is not among the ` +
+    `packages verified (${packages.join(', ')})`
+  );
+}
+
+/**
+ * What stops the tree from being some other release than the one asked about.
+ *
+ * Membership is checked as well as the version, because a release for a
+ * package the roster does not install would otherwise check out by never
+ * being looked at.
+ */
+export function checkRelease(release, packages, dir) {
+  const missing = rosterProblem(release, packages);
+  if (missing) return [missing];
+  let installed;
+  try {
+    installed = installedVersion(dir, release.package);
+  } catch (err) {
+    return [err.message];
+  }
+  if (installed !== release.version) {
+    return [
+      `the release is ${release.package}@${release.version} but the tree ` +
+        `carries ${forLog(installed)}, so the attestation checked was not ` +
+        `this release's`,
+    ];
+  }
+  return [];
 }
 
 /**
@@ -443,6 +536,29 @@ export async function main(
     return 2;
   }
 
+  let release;
+  try {
+    release = releaseUnderTest(args.release);
+  } catch (err) {
+    console.error(`::error::verify-attestation: ${err.message}`);
+    return 1;
+  }
+
+  // The spec the install step pins, printed alone on stdout so the step can
+  // capture it. Nothing is printed when no release asked, and a release for a
+  // package the tree does not carry is refused here rather than installed, so
+  // a tag can only ever pin a package the roster already names.
+  if (args.printSpec) {
+    if (!release) return 0;
+    const missing = rosterProblem(release, packages);
+    if (missing) {
+      console.error(`::error::verify-attestation: ${missing}`);
+      return 1;
+    }
+    console.log(`${release.package}@${release.version}`);
+    return 0;
+  }
+
   console.log(
     `verify-attestation: checking ${packages.length} package(s): ${packages.join(', ')}`
   );
@@ -465,6 +581,19 @@ export async function main(
     );
     for (const p of r.problems) console.error(`  - ${p}`);
   }
+
+  // Reported beside the per-package results rather than instead of them, so
+  // one run says everything that is wrong.
+  const releaseProblems = release
+    ? checkRelease(release, packages, args.dir)
+    : [];
+  if (releaseProblems.length > 0) {
+    console.error(
+      `::error::the tree is not the release this run was asked about`
+    );
+    for (const p of releaseProblems) console.error(`  - ${p}`);
+  }
+
   if (failed > 0) {
     console.error(
       `verify-attestation: ${failed}/${results.length} package(s) failed. An ` +
@@ -473,7 +602,13 @@ export async function main(
     );
     return 1;
   }
-  console.log(`verify-attestation: ${results.length} package(s) check out`);
+  if (releaseProblems.length > 0) return 1;
+  console.log(
+    `verify-attestation: ${results.length} package(s) check out` +
+      (release
+        ? `, including the release ${release.package}@${release.version}`
+        : '')
+  );
   return 0;
 }
 

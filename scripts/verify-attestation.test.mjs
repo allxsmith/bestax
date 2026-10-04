@@ -29,6 +29,8 @@ import {
   attestationUrl,
   verifyPackage,
   main,
+  releaseUnderTest,
+  checkRelease,
   SLSA_PREDICATE,
   EXPECTED,
 } from './verify-attestation.mjs';
@@ -158,30 +160,56 @@ function captureConsole(t) {
 
 // --- argument parsing -------------------------------------------------------
 
-test('parseArgs takes --dir in both spellings plus the package list', () => {
-  assert.deepEqual(parseArgs(['--dir', '/t', 'a', 'b']), {
-    dir: '/t',
-    packages: ['a', 'b'],
-  });
-  assert.deepEqual(parseArgs(['--dir=/t', 'a']), {
+test('parseArgs takes --dir and --release in both spellings plus the package list', () => {
+  assert.deepEqual(
+    parseArgs(['--dir', '/t', '--release', 'a@1.0.0', 'a', 'b']),
+    {
+      dir: '/t',
+      packages: ['a', 'b'],
+      release: 'a@1.0.0',
+      printSpec: false,
+    }
+  );
+  assert.deepEqual(parseArgs(['--dir=/t', '--release=', '--print-spec', 'a']), {
     dir: '/t',
     packages: ['a'],
+    release: '',
+    printSpec: true,
   });
 });
 
 test('parseArgs requires --dir and rejects unknown options', () => {
-  assert.throws(() => parseArgs(['a', 'b']), /--dir/);
+  assert.throws(() => parseArgs(['--release', '', 'a', 'b']), /--dir/);
   // A typo must be a usage error, not a package named "--dirs" that then
   // fails verification for a package that never existed.
   assert.throws(() => parseArgs(['--dirs', '/t', 'a']), /unknown option/);
   assert.throws(
-    () => parseArgs(['--dir=/t', '--verbose', 'a']),
+    () => parseArgs(['--dir=/t', '--release=', '--verbose', 'a']),
     /unknown option/
   );
 });
 
+test('parseArgs requires --release, and an empty one is not a missing one', () => {
+  // Absent, the release check would be off with nothing reporting it, so the
+  // flag is required; a run no release asked for passes it empty.
+  assert.throws(
+    () => parseArgs(['--dir', '/t']),
+    /--release <tag> is required/
+  );
+  assert.throws(
+    () => parseArgs(['--dir', '/t', '--release']),
+    /--release <tag> is required/
+  );
+  assert.equal(parseArgs(['--dir', '/t', '--release', '']).release, '');
+});
+
 test('an omitted package list is allowed — the roster comes from the tree', () => {
-  assert.deepEqual(parseArgs(['--dir', '/t']), { dir: '/t', packages: [] });
+  assert.deepEqual(parseArgs(['--dir', '/t', '--release', '']), {
+    dir: '/t',
+    packages: [],
+    release: '',
+    printSpec: false,
+  });
 });
 
 // --- reading the installed tree ---------------------------------------------
@@ -456,7 +484,7 @@ test('main exits 0 when every package checks out', async () => {
   const dir = await fixtureTree();
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
-    const code = await main(['--dir', dir, 'bestax-migrate'], {
+    const code = await main(['--dir', dir, '--release', '', 'bestax-migrate'], {
       retryOptions: NO_WAIT,
     });
     assert.equal(code, 0);
@@ -473,7 +501,7 @@ test('main exits 1 when a package was built somewhere else', async t => {
     'https://github.com/someone-else/evil';
   const s = stubFetch(() => ({ body: registryResponse(bad) }));
   try {
-    const code = await main(['--dir', dir, 'bestax-migrate'], {
+    const code = await main(['--dir', dir, '--release', '', 'bestax-migrate'], {
       retryOptions: NO_WAIT,
     });
     assert.equal(code, 1);
@@ -522,7 +550,10 @@ test('main derives the roster when no packages are named', async () => {
   );
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
-    assert.equal(await main(['--dir', dir], { retryOptions: NO_WAIT }), 0);
+    assert.equal(
+      await main(['--dir', dir, '--release', ''], { retryOptions: NO_WAIT }),
+      0
+    );
     assert.equal(s.calls.length, 1);
   } finally {
     s.restore();
@@ -603,4 +634,226 @@ test('a corrupted integrity is reported as a lockfile problem, not a mismatch', 
     () => installedDigest(dir, 'bestax-migrate'),
     /decoded to \d+ bytes/
   );
+});
+
+// --- which release (#719) ----------------------------------------------------
+
+test('an empty release tag means no release asked for this run', () => {
+  assert.equal(releaseUnderTest(''), null);
+  assert.equal(releaseUnderTest('  '), null);
+  assert.equal(releaseUnderTest(undefined), null);
+});
+
+test('a release tag is split on its last @, so a scoped package survives', () => {
+  assert.deepEqual(releaseUnderTest('@allxsmith/bestax-bulma@5.16.6'), {
+    package: '@allxsmith/bestax-bulma',
+    version: '5.16.6',
+  });
+});
+
+test('a release tag that names nothing fails rather than checking the tree as-is', () => {
+  assert.throws(() => releaseUnderTest('v5.16.6'), /does not name/);
+  assert.throws(() => releaseUnderTest('bestax-migrate@'), /does not name/);
+  assert.throws(
+    () => releaseUnderTest('bestax-migrate@2.0.1.4'),
+    /not a semver version/
+  );
+  // The complaint about a crafted tag must not itself be a workflow command.
+  assert.throws(
+    () => releaseUnderTest('bestax-migrate@2.0.1\n::error::forged'),
+    err => !err.message.includes('\n')
+  );
+});
+
+test('checkRelease passes a tree that carries the release', async () => {
+  const dir = await fixtureTree({ version: '2.0.1' });
+  const release = { package: 'bestax-migrate', version: '2.0.1' };
+  assert.deepEqual(checkRelease(release, ['bestax-migrate'], dir), []);
+});
+
+test('checkRelease catches the previous version standing in for the release', async () => {
+  const dir = await fixtureTree({ version: '2.0.0' });
+  const release = { package: 'bestax-migrate', version: '2.0.1' };
+  const [problem, ...rest] = checkRelease(release, ['bestax-migrate'], dir);
+  assert.deepEqual(rest, []);
+  assert.match(
+    problem,
+    /release is bestax-migrate@2\.0\.1 but the tree carries "2\.0\.0"/
+  );
+});
+
+test('checkRelease catches a release for a package the roster does not verify', async () => {
+  const dir = await fixtureTree();
+  const release = { package: 'create-bestax', version: '4.3.0' };
+  assert.match(
+    checkRelease(release, ['bestax-migrate'], dir)[0],
+    /names "create-bestax", which is not among the packages verified \(bestax-migrate\)/
+  );
+});
+
+test('checkRelease reports a rostered package missing from the tree', async () => {
+  const dir = await fixtureTree();
+  const release = { package: 'create-bestax', version: '4.3.0' };
+  assert.match(
+    checkRelease(release, ['bestax-migrate', 'create-bestax'], dir)[0],
+    /ENOENT/
+  );
+});
+
+test('main fails a release run whose tree holds the previous version, the #719 pass', async t => {
+  // The shape run 35682756557 logged: `latest` still resolved the previous
+  // version, whose attestation is valid, and the run went green on it.
+  const lines = captureConsole(t);
+  const dir = await fixtureTree({ version: '2.0.0' });
+  const s = stubFetch(() => ({
+    body: registryResponse(goodStatement({ version: '2.0.0' })),
+  }));
+  try {
+    const code = await main(
+      ['--dir', dir, '--release', 'bestax-migrate@2.0.1', 'bestax-migrate'],
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(code, 1);
+    assert.deepEqual(
+      s.calls.map(c => c.url),
+      [attestationUrl('bestax-migrate', '2.0.0')]
+    );
+  } finally {
+    s.restore();
+  }
+  // The older tarball itself checks out, which is why this was silent.
+  assert.ok(
+    lines.includes(`ok: bestax-migrate@2.0.0 — built by ${EXPECTED.repository}`)
+  );
+  const at = lines.indexOf(
+    '::error::the tree is not the release this run was asked about'
+  );
+  assert.ok(at >= 0, lines.join('\n'));
+  assert.match(lines[at + 1], /^ {2}- the release is bestax-migrate@2\.0\.1/);
+});
+
+test('main passes a release run whose tree is that release, and says so', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree({ version: '2.0.1' });
+  const s = stubFetch(() => ({
+    body: registryResponse(goodStatement({ version: '2.0.1' })),
+  }));
+  try {
+    const code = await main(
+      ['--dir', dir, '--release', 'bestax-migrate@2.0.1', 'bestax-migrate'],
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(code, 0);
+  } finally {
+    s.restore();
+  }
+  assert.equal(
+    lines.at(-1),
+    'verify-attestation: 1 package(s) check out, including the release bestax-migrate@2.0.1'
+  );
+});
+
+test('main reports a bad attestation and a wrong release together', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree({ version: '2.0.0' });
+  const bad = goodStatement({ version: '2.0.0' });
+  bad.predicate.runDetails.builder.id = 'https://example.test/self-hosted';
+  const s = stubFetch(() => ({ body: registryResponse(bad) }));
+  try {
+    const code = await main(
+      ['--dir', dir, '--release', 'bestax-migrate@2.0.1', 'bestax-migrate'],
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(code, 1);
+  } finally {
+    s.restore();
+  }
+  assert.ok(
+    lines.includes(
+      '::error::bestax-migrate@2.0.0 provenance does not check out'
+    )
+  );
+  assert.ok(
+    lines.includes(
+      '::error::the tree is not the release this run was asked about'
+    )
+  );
+});
+
+test('main refuses an unparsable release tag before fetching anything', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree();
+  const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
+  try {
+    const code = await main(
+      ['--dir', dir, '--release', 'v2.0.1', 'bestax-migrate'],
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(code, 1);
+    assert.equal(s.calls.length, 0);
+  } finally {
+    s.restore();
+  }
+  assert.deepEqual(lines, [
+    '::error::verify-attestation: release tag "v2.0.1" does not name <package>@<version>',
+  ]);
+});
+
+test('--print-spec prints the release spec alone, and fetches nothing', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree({ version: '2.0.0' });
+  const s = stubFetch(() => ({ body: '' }));
+  try {
+    const code = await main([
+      '--dir',
+      dir,
+      '--release',
+      'bestax-migrate@2.0.1',
+      '--print-spec',
+      'bestax-migrate',
+    ]);
+    assert.equal(code, 0);
+    assert.equal(s.calls.length, 0);
+  } finally {
+    s.restore();
+  }
+  // The tree still holds 2.0.0 here, and that is the point: this runs before
+  // the pin, so only the roster is checked, not the version.
+  assert.deepEqual(lines, ['bestax-migrate@2.0.1']);
+});
+
+test('--print-spec prints nothing when no release asked', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree();
+  const code = await main([
+    '--dir',
+    dir,
+    '--release',
+    '',
+    '--print-spec',
+    'bestax-migrate',
+  ]);
+  assert.equal(code, 0);
+  assert.deepEqual(lines, []);
+});
+
+test('--print-spec refuses a release for a package the roster does not install', async t => {
+  // Otherwise a tag could put any package on npm into the tree.
+  const lines = captureConsole(t);
+  const dir = await fixtureTree();
+  await writeFile(
+    join(dir, 'package.json'),
+    JSON.stringify({ dependencies: { 'bestax-migrate': '^2' } })
+  );
+  const code = await main([
+    '--dir',
+    dir,
+    '--release',
+    'left-pad@1.3.0',
+    '--print-spec',
+  ]);
+  assert.equal(code, 1);
+  assert.deepEqual(lines, [
+    '::error::verify-attestation: the release names "left-pad", which is not among the packages verified (bestax-migrate)',
+  ]);
 });

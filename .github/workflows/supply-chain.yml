@@ -1021,7 +1021,19 @@ jobs:
       # This list is the single source of truth for what gets verified: the
       # assertion step below reads the roster back out of this tree rather than
       # repeating it.
+      #
+      # On a release, the package it names is then reinstalled at the tagged
+      # version (#719). The bare install resolves `latest`, which can still be
+      # the previous version for minutes after a publish, and that version's
+      # attestation verifies fine, so the run went green without opening the
+      # release's own. verify-attestation.mjs decides the spec, and refuses a
+      # tag naming a package this roster does not install. The install goes
+      # through npm-install-retry.mjs because an exact version can be
+      # unresolvable while the registry propagates (#716). The assertion step
+      # then fails if the tree is not that release.
       - name: Install published packages into a scratch tree
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           mkdir -p "$RUNNER_TEMP/verify"
           cd "$RUNNER_TEMP/verify"
@@ -1029,6 +1041,13 @@ jobs:
           npm install --ignore-scripts \
             @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp \
             @allxsmith/eslint-plugin-bestax
+
+          SPEC=$(node "$GITHUB_WORKSPACE/scripts/verify-attestation.mjs" \
+            --dir "$RUNNER_TEMP/verify" --release "$RELEASE_TAG" --print-spec)
+          if [ -n "$SPEC" ]; then
+            node "$GITHUB_WORKSPACE/scripts/npm-install-retry.mjs" \
+              --spec "$SPEC" --dir "$RUNNER_TEMP/verify"
+          fi
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -1057,5 +1076,12 @@ jobs:
       # hand-maintained invariant with nothing enforcing it — add a newly
       # published package to one and not the other and it ships unverified,
       # silently, green.
+      #
+      # `--release` is empty on a scheduled or dispatched run, where `latest`
+      # is the right question and no version is held.
       - name: Assert the attestations say this repository built these tarballs
-        run: node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify"
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify" \
+            --release "$RELEASE_TAG"
