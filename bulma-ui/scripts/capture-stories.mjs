@@ -194,13 +194,8 @@ const page = await browser.newPage({
 // Render the story fresh under the given color scheme and screenshot it.
 // A fresh goto per theme (not an in-place toggle) so each shot is a clean
 // mount — a live toggle leaves mid-transition colors and mount-time state
-// from the other theme in the picture. Dark needs BOTH the emulated
-// prefers-color-scheme and the data-theme attribute: the preview loads
-// bulma.min.css then bulma-prefixed.min.css, and the prefixed file's
-// media-scoped light `:root` block outranks (later in cascade, equal
-// specificity) the first file's `[data-theme=dark]` block, so the
-// attribute alone changes nothing — but it stays stamped for anything
-// keyed on Bulma's explicit theme hook.
+// from the other theme in the picture. Dark emulates the OS preference and
+// stamps `data-theme="dark"`, Bulma's two routes to its dark scheme.
 async function shoot(id, theme) {
   await page.emulateMedia({ colorScheme: theme });
   await page.goto(

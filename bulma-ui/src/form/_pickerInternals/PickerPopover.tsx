@@ -23,6 +23,13 @@ export interface PickerPopoverProps {
   ariaLabelledBy?: string;
   role?: 'dialog' | 'group';
   id?: string;
+  /**
+   * Where focus goes when the popover closes. Without it, focus goes back to
+   * whatever had it when the focus trap turned on, which is read after the
+   * panel's content mounts: a calendar that focuses a cell as it mounts
+   * would be recorded instead, and that cell leaves with the panel.
+   */
+  restoreFocusRef?: React.RefObject<HTMLElement | null>;
 }
 
 const isBrowser = typeof window !== 'undefined';
@@ -42,6 +49,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   ariaLabelledBy,
   role = 'dialog',
   id,
+  restoreFocusRef,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
   const resolved = useAnchoredPosition(anchorRef, panelRef, {
@@ -84,7 +92,10 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     return () => document.removeEventListener('keydown', handler);
   }, [isOpen, closeOnEscape, onClose]);
 
-  useFocusTrap(panelRef, { active: isOpen && trapFocus });
+  useFocusTrap(panelRef, {
+    active: isOpen && trapFocus,
+    restoreFocus: restoreFocusRef ?? true,
+  });
 
   const panelClass = usePrefixedClassNames('picker-popover', {
     'is-active': isOpen,
