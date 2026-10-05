@@ -570,7 +570,7 @@
       "name": "Input",
       "kind": "component",
       "category": "form",
-      "purpose": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and…",
+      "purpose": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma…",
       "slug": "form/input",
       "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,

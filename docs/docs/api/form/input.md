@@ -1,7 +1,7 @@
 ---
 title: Input
 sidebar_label: Input
-description: The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.
+description: The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.
 ---
 
 # Input
@@ -10,7 +10,7 @@ description: The `Input` component provides a Bulma-styled text input, supportin
 
 <!-- bestax:generated overview -->
 
-The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.
+The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.
 
 <!-- /bestax:generated overview -->
 
@@ -156,11 +156,11 @@ Disabled inputs cannot be interacted with; read-only inputs can be focused but n
 
 ### Static State
 
-The `isStatic` prop renders the input as non-interactive text — useful for displaying read-only values alongside editable fields.
+The `isStatic` prop styles the input as static text, useful for displaying values alongside editable fields. It changes only the styling, so the example adds `readOnly` to stop edits.
 
 ```tsx live
 <>
-  <Input horizontal label="Username" isStatic value="Static value" />
+  <Input horizontal label="Username" isStatic readOnly value="Static value" />
   <Input horizontal label="Password" placeholder="Editable value" />
 </>
 ```
@@ -722,7 +722,7 @@ function example() {
 | `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the input.                                                                                                                                                                                                                                                                      |
 | `size`             | `'small'` \| `'medium'` \| `'large'`                                                                                               | —       | Size modifier for the input.                                                                                                                                                                                                                                                                             |
 | `isRounded`        | `boolean`                                                                                                                          | `false` | Rounded input corners.                                                                                                                                                                                                                                                                                   |
-| `isStatic`         | `boolean`                                                                                                                          | `false` | Renders input as static (read only, styled).                                                                                                                                                                                                                                                             |
+| `isStatic`         | `boolean`                                                                                                                          | `false` | Styles the input as static text. It stays editable; add `readOnly` to stop edits.                                                                                                                                                                                                                        |
 | `isHovered`        | `boolean`                                                                                                                          | `false` | Applies hovered state.                                                                                                                                                                                                                                                                                   |
 | `isFocused`        | `boolean`                                                                                                                          | `false` | Applies focused state.                                                                                                                                                                                                                                                                                   |
 | `className`        | `string`                                                                                                                           | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                         |

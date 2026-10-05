@@ -26,7 +26,7 @@ export interface InputBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Rounded input corners. */
   isRounded?: boolean;
-  /** Renders input as static (read only, styled). */
+  /** Styles the input as static text. It stays editable; add `readOnly` to stop edits. */
   isStatic?: boolean;
   /** Applies hovered state. */
   isHovered?: boolean;
