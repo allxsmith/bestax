@@ -199,9 +199,10 @@ green and every AI review thread is resolved.
   an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
   marks a `deep-review` PR based on the default branch whose newest deep-review summary is
   pinned to the head commit with nothing left open, with every review thread resolved and
-  every check green. A verify pass reviews no commits, so the PR also needs a fresh deep
-  review of the head commit with no blocking findings, or a fresh review whose blocking
-  findings later verify passes resolved, with the pass that resolved the last of them pinned
+  every check green. Every deep-review finding, advisory included, is a review thread. A
+  verify pass reviews no commits, so the PR also needs a fresh deep review of the head commit
+  with no findings, or a fresh review whose findings later verify passes resolved, as fixed or
+  as a refutation the reviewer accepted, with the pass that resolved the last of them pinned
   to the head commit. A stacked PR gets no CI run, so it is out of scope.
   `review-converged.yml` adds it and removes it while the PR keeps `deep-review`, not
   `ai-loop`, and the default branch as its base. `scripts/review-converged.mjs` holds the
