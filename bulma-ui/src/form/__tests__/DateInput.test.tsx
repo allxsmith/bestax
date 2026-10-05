@@ -933,6 +933,28 @@ describe('DateInput native input value handling', () => {
     ]).toEqual([19, 2, 4]);
   });
 
+  it('round-trips a year past 9999', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateInput
+        mobileNative={true}
+        defaultValue={makeDate(10000, 0, 1)}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    expect(native.value).toBe('10000-01-01');
+    fireEvent.change(native, { target: { value: '10000-03-04' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+    ]).toEqual([10000, 2, 4]);
+  });
+
   it('clearing the native input commits null', () => {
     const handler = jest.fn();
     const { container } = render(
@@ -1540,6 +1562,18 @@ describe('DateInput month granularity', () => {
       fireEvent.change(native(container), { target: { value: '0019-03' } });
       const committed = handler.mock.calls[0][0] as Date;
       expect([committed.getFullYear(), committed.getMonth()]).toEqual([19, 2]);
+    });
+
+    it('reads a year past 9999 back', () => {
+      const handler = jest.fn();
+      const { container } = render(
+        <DateInput granularity="month" mobileNative onChange={handler} />
+      );
+      fireEvent.change(native(container), { target: { value: '10000-03' } });
+      const committed = handler.mock.calls[0][0] as Date;
+      expect([committed.getFullYear(), committed.getMonth()]).toEqual([
+        10000, 2,
+      ]);
     });
 
     describe('where the browser has no month input', () => {

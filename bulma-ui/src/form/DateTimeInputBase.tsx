@@ -54,8 +54,9 @@ const toIsoDateTime = (d: Date, withSeconds: boolean): string => {
 const fromIsoDateTime = (s: string): Date | null => {
   // The HTML datetime-local value may carry fractional seconds (the spec
   // allows them and some engines normalize to `:ss.sss`); accept and drop.
+  // Its year is four or more digits, as `toIsoDateTime` writes one past 9999.
   const m =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/.exec(
+    /^(\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/.exec(
       s
     );
   if (!m) return null;
