@@ -518,6 +518,17 @@ describe('get_helper_props', () => {
     expect(out).toContain('get_helper_props');
   });
 
+  // A group answer carries only its own sections, so a same-page link in it can point at a
+  // section the answer does not hold. A question about `pos` has to learn what `overlay` does
+  // beside it from the answer itself, not from a link it cannot follow.
+  it.each(['pos', 'position'])(
+    'tells a %p question what overlay does beside it',
+    async group => {
+      const out = text(await call('get_helper_props', { group }));
+      expect(out).toMatch(/`overlay`[^.]*`absolute`/);
+    }
+  );
+
   // See the list_components suite for the sibling case: guidance goes where the traffic is.
   // The 20-run eval in eval/agent-loop/runs-v2/aggregate.md: every MCP-only run called this
   // tool, eight of ten still wrote 46-162 inline styles, and the two that did not were the

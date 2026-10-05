@@ -781,7 +781,7 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
 ### Position
 
-`pos` sets CSS `position`: `absolute`, `fixed`, `relative`, `static` or `sticky`. It is named `pos` because several components already have a `position` prop of their own, for where they place a popup or a toast. `relative` is the older shortcut for `pos="relative"` and still works; when both are set, `pos` wins. Beside `overlay`, which sets the offsets to 0, see [Overlay](#overlay).
+`pos` sets CSS `position`: `absolute`, `fixed`, `relative`, `static` or `sticky`. It is named `pos` because several components already have a `position` prop of their own, for where they place a popup or a toast. `relative` is the older shortcut for `pos="relative"` and still works; when both are set, `pos` wins. Beside `overlay`, a `pos` or `relative` replaces the overlay's `absolute` and keeps its zero offsets; see [Overlay](#overlay).
 
 Show a container with relative positioning that provides context for an absolutely positioned child. The helpers set `position` and nothing else, so the child keeps its `top` and `right` offsets inline:
 
