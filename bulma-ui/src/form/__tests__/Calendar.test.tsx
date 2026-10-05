@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { Calendar, CalendarProps } from '../_pickerInternals/Calendar';
+import { makeDate } from '../_pickerInternals/dateUtils';
 
 const June15_2024 = new Date(2024, 5, 15);
 
@@ -185,6 +186,22 @@ describe('Calendar', () => {
       c.hasAttribute('disabled')
     ).length;
     expect(disabledCount).toBeGreaterThan(0);
+  });
+
+  it('reads a min and max in a year below 100 as given', () => {
+    const { container } = render(
+      <Harness
+        focusedDate={makeDate(19, 5, 15)}
+        min={makeDate(19, 5, 10)}
+        max={makeDate(19, 5, 20)}
+      />
+    );
+    const enabled = Array.from(
+      container.querySelectorAll('[role="gridcell"]')
+    ).filter(c => c.getAttribute('aria-disabled') === 'false');
+    expect(enabled.map(c => Number(c.textContent))).toEqual([
+      10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+    ]);
   });
 
   it('shouldDisableDate predicate disables matching cells', () => {
@@ -969,6 +986,18 @@ describe('Calendar month granularity', () => {
     fireEvent.click(monthCell(container, 'March'));
     const picked: Date = onSelect.mock.calls[0][0];
     expect([picked.getFullYear(), picked.getMonth()]).toEqual([19, 2]);
+  });
+
+  it('reads a min in a year below 100 as given', () => {
+    const { container } = render(
+      <PeriodHarness
+        granularity="month"
+        focusedDate={makeDate(19, 5, 15)}
+        min={makeDate(19, 5, 30)}
+      />
+    );
+    expect(monthCell(container, 'June')).not.toBeDisabled();
+    expect(monthCell(container, 'May')).toBeDisabled();
   });
 
   it('shows caller-supplied month names on the cells', () => {

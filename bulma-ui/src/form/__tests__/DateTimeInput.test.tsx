@@ -254,6 +254,70 @@ describe('DateTimeInput', () => {
     expect(handler).toHaveBeenLastCalledWith(null);
   });
 
+  it('native input pads a year below 1000 to four digits', () => {
+    const early = new Date(2024, 2, 4, 14, 30);
+    early.setFullYear(19);
+    const min = new Date(2024, 0, 1, 9, 0);
+    min.setFullYear(19);
+    const { container } = render(
+      <DateTimeInput mobileNative={true} defaultValue={early} min={min} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    // Unpadded, `19-03-04T14:30` is not a valid value and the input shows
+    // nothing.
+    expect(native.value).toBe('0019-03-04T14:30');
+    expect(native.min).toBe('0019-01-01T09:00');
+  });
+
+  it('native input reads a year below 100 back as given', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateTimeInput mobileNative={true} enableSeconds onChange={handler} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    fireEvent.change(native, { target: { value: '0019-03-04T14:30:55' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+      committed.getHours(),
+      committed.getMinutes(),
+      committed.getSeconds(),
+      committed.getMilliseconds(),
+    ]).toEqual([19, 2, 4, 14, 30, 55, 0]);
+  });
+
+  it('native input round-trips a year past 9999', () => {
+    const handler = jest.fn();
+    const late = new Date(2024, 0, 1, 9, 0);
+    late.setFullYear(10000);
+    const { container } = render(
+      <DateTimeInput
+        mobileNative={true}
+        defaultValue={late}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    expect(native.value).toBe('10000-01-01T09:00');
+    fireEvent.change(native, { target: { value: '10000-03-04T14:30' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+      committed.getHours(),
+      committed.getMinutes(),
+    ]).toEqual([10000, 2, 4, 14, 30]);
+  });
+
   it('native input round-trips seconds when enableSeconds', () => {
     const handler = jest.fn();
     const { container } = render(

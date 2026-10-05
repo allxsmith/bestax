@@ -94,6 +94,24 @@ describe('dateUtils', () => {
       const end2 = endOfMonth(new Date(2023, 1, 1));
       expect(end2.getDate()).toBe(28);
     });
+
+    it('keeps years below 100 rather than reading them as 19xx', () => {
+      const early = new Date(2024, 1, 20, 13, 45, 30);
+      early.setFullYear(19);
+      expect(startOfDay(early)).toEqual(makeDate(19, 1, 20));
+      expect(startOfMonth(early)).toEqual(makeDate(19, 1, 1));
+      const parts = (d: Date) => [
+        d.getFullYear(),
+        d.getMonth(),
+        d.getDate(),
+        d.getHours(),
+        d.getMinutes(),
+        d.getSeconds(),
+        d.getMilliseconds(),
+      ];
+      expect(parts(endOfDay(early))).toEqual([19, 1, 20, 23, 59, 59, 999]);
+      expect(parts(endOfMonth(early))).toEqual([19, 1, 28, 23, 59, 59, 999]);
+    });
   });
 
   describe('arithmetic', () => {
@@ -112,6 +130,13 @@ describe('dateUtils', () => {
       const r = addMonths(new Date(2023, 0, 31), 1);
       expect(r.getMonth()).toBe(1);
       expect(r.getDate()).toBe(28);
+    });
+
+    it('addMonths clamps to the month length of a year below 100', () => {
+      // Year 0 is a leap year and 1900 is not, so reading it as 1900 would
+      // clamp to the 28th.
+      const r = addMonths(makeDate(0, 0, 31), 1);
+      expect([r.getFullYear(), r.getMonth(), r.getDate()]).toEqual([0, 1, 29]);
     });
 
     it('addYears wraps via addMonths', () => {
@@ -393,6 +418,20 @@ describe('dateUtils', () => {
           min: new Date(2024, 5, 30, 15, 0),
         })
       ).toBe(false);
+    });
+
+    it('reads a min or max in a year below 100 as given', () => {
+      const early = makeDate(19, 5, 20);
+      // A min partway through June 19 leaves the month selectable.
+      expect(
+        isPeriodUnselectable(early, 'month', { min: makeDate(19, 5, 10) })
+      ).toBe(false);
+      // A max at the end of June 19 rules out July 19.
+      expect(
+        isPeriodUnselectable(makeDate(19, 6, 1), 'month', {
+          max: makeDate(19, 5, 30),
+        })
+      ).toBe(true);
     });
 
     it('rules out a period wholly before min or after max without a walk', () => {

@@ -29,6 +29,7 @@ import {
   setTimeOfDay,
   clampDate,
   isSameDay,
+  makeDate,
 } from './_pickerInternals/dateUtils';
 import { Calendar } from './_pickerInternals/Calendar';
 import { TimeWheels } from './_pickerInternals/TimeWheels';
@@ -37,8 +38,9 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { Icon } from '../elements/Icon';
 
+// The year is padded to four digits, as `datetime-local` requires.
 const toIsoDateTime = (d: Date, withSeconds: boolean): string => {
-  const yyyy = d.getFullYear();
+  const yyyy = String(d.getFullYear()).padStart(4, '0');
   const mo = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   const hh = String(d.getHours()).padStart(2, '0');
@@ -52,20 +54,15 @@ const toIsoDateTime = (d: Date, withSeconds: boolean): string => {
 const fromIsoDateTime = (s: string): Date | null => {
   // The HTML datetime-local value may carry fractional seconds (the spec
   // allows them and some engines normalize to `:ss.sss`); accept and drop.
+  // Its year is four or more digits, as `toIsoDateTime` writes one past 9999.
   const m =
-    /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/.exec(
+    /^(\d{4,})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2})(?:\.\d{1,3})?)?$/.exec(
       s
     );
   if (!m) return null;
-  return new Date(
-    Number(m[1]),
-    Number(m[2]) - 1,
-    Number(m[3]),
-    Number(m[4]),
-    Number(m[5]),
-    m[6] ? Number(m[6]) : 0,
-    0
-  );
+  const d = makeDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  d.setHours(Number(m[4]), Number(m[5]), m[6] ? Number(m[6]) : 0, 0);
+  return d;
 };
 
 /**

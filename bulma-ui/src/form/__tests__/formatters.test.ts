@@ -152,6 +152,21 @@ describe('formatters', () => {
       expect(parseDate('')).toBeNull();
     });
 
+    it('keeps a year below 100 as given', () => {
+      // The YYYY token displays year 19 as 0019, so the text the field shows
+      // has to parse back to the same year rather than to 1919 or null.
+      const d = parseDate('0019-03-04 14:30', 'YYYY-MM-DD HH:mm');
+      expect(d).not.toBeNull();
+      expect([
+        d!.getFullYear(),
+        d!.getMonth(),
+        d!.getDate(),
+        d!.getHours(),
+        d!.getMinutes(),
+      ]).toEqual([19, 2, 4, 14, 30]);
+      expect(parseDate('0019-02-29')).toBeNull(); // year 19 is not leap
+    });
+
     it('parses single-digit D and M tokens', () => {
       const d = parseDate('7/6/2024', 'D/M/YYYY');
       expect(d).not.toBeNull();
