@@ -77,7 +77,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
 `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`, `loader`
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`, `loader`,
+`progress`, `skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -95,6 +96,10 @@ Notes:
   stops all of them under `prefers-reduced-motion: reduce`, so include it next to the Bulma
   modules in any build that shows one. Its rules are `!important`, so the order of the two
   `@use` lines does not matter.
+- `Progress` and the skeletons are stock Bulma too (`bulma/sass/elements/progress`,
+  `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials stop the
+  indeterminate bar's sweep and the skeleton pulse (`Skeleton`, the `skeleton` prop,
+  `hasSkeleton`) under `prefers-reduced-motion: reduce`, the same way and in either order.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.
