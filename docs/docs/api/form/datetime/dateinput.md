@@ -827,18 +827,20 @@ Digit auto-advance honors each segment's range: the month advances after a first
 
 ### On the popover calendar
 
-| Key                   | Action                            |
-| --------------------- | --------------------------------- |
-| `↓`                   | Open popover (when closed)        |
-| `Enter`               | Parse typed text / select focused |
-| `Escape`              | Close popover                     |
-| `←` / `→`             | Move focused date by ±1 day       |
-| `↑` / `↓`             | Move focused date by ±7 days      |
-| `PageUp` / `PageDown` | Move focused date by ±1 month     |
-| `Shift+PageUp/Down`   | Move focused date by ±1 year      |
-| `Home` / `End`        | Jump to start / end of week       |
-| `Space`               | Select focused date               |
-| `Tab`                 | Move focus to next control        |
+The day grid's keys work the same on an `inline` calendar, minus opening and closing.
+
+| Key                   | Action                        |
+| --------------------- | ----------------------------- |
+| `↓`                   | Open popover (when closed)    |
+| `Enter`               | Select focused                |
+| `Escape`              | Close popover                 |
+| `←` / `→`             | Move focused date by ±1 day   |
+| `↑` / `↓`             | Move focused date by ±7 days  |
+| `PageUp` / `PageDown` | Move focused date by ±1 month |
+| `Shift+PageUp/Down`   | Move focused date by ±1 year  |
+| `Home` / `End`        | Jump to start / end of week   |
+| `Space`               | Select focused date           |
+| `Tab`                 | Move focus to next control    |
 
 ### On the month grid (`granularity="month"`)
 
@@ -912,7 +914,7 @@ function DateInputFormDemo() {
 - Closing the popover with `Escape` or a pick returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Dismissing without a pick commits nothing: an empty field stays empty, and leaving afterwards commits only what you typed.
 - Calendar uses `role="grid"` with cells as `role="gridcell"`.
 - Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today.
-- Roving `tabindex` keeps a single grid cell focusable at a time.
+- Roving `tabindex` keeps a single grid cell focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - The month grid is a `role="grid"` of `role="row"`s, labelled by the year in its header. Each month cell carries the full month name as its accessible name, `aria-current="date"` for this month and `aria-disabled` for a month with no selectable day.
 - The year list is a `role="listbox"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list.
 - The launcher and popover are named "Choose month" or "Choose year" to match the granularity; override them, and the month grid's "Previous year" / "Next year" buttons, through `labels` (`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`).

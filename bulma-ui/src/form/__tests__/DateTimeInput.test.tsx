@@ -1169,6 +1169,46 @@ describe('DateTimeInput label association (#368)', () => {
   });
 });
 
+describe('DateTimeInput focus inside the popover', () => {
+  const v = new Date(2024, 5, 7, 10, 0);
+
+  it('keeps focus on a time wheel the keyboard edits', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} onChange={handler} />
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    const wheel = getAllByRole('spinbutton')[0];
+    act(() => wheel.focus());
+    act(() => {
+      fireEvent.keyDown(wheel, { key: 'ArrowDown' });
+    });
+    expect(handler).toHaveBeenCalled();
+    expect(wheel).toHaveFocus();
+  });
+
+  it('still moves focus into the popover each time it opens', () => {
+    const { getByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} openOnFocus={false} />
+    );
+    const launcher = getByRole('button', { name: 'Choose date and time' });
+    for (let i = 0; i < 2; i++) {
+      act(() => {
+        fireEvent.click(launcher);
+      });
+      const dialog = getByRole('dialog');
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      act(() => {
+        fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+      });
+      expect(queryByRole('dialog')).toBeNull();
+    }
+  });
+});
+
 describe('DateTimeInput focus handed back on close', () => {
   // The calendar focuses a cell as the popover opens. Closing must return
   // focus to the input, and under openOnFocus (the default) that focus must
