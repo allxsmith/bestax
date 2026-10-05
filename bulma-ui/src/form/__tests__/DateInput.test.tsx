@@ -2067,3 +2067,78 @@ describe('DateInput focus handed back on close', () => {
     });
   });
 });
+
+describe('DateInput onOpen and onClose', () => {
+  const june15 = new Date(2024, 5, 15);
+  const pressEscape = (on: Element) =>
+    act(() => {
+      fireEvent.keyDown(on, { key: 'Escape' });
+    });
+
+  it('fire once per open and close under StrictMode', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <React.StrictMode>
+        <DateInput defaultValue={june15} onOpen={onOpen} onClose={onClose} />
+      </React.StrictMode>
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('still opens after an onClose that focuses the input', () => {
+    // Under openOnFocus that focus asks to open from inside onClose, before
+    // the close has rendered, and the later request wins.
+    const Picker = () => {
+      const inputRef = React.useRef<HTMLInputElement>(null);
+      const refocusedRef = React.useRef(false);
+      return (
+        <DateInput
+          ref={inputRef}
+          defaultValue={june15}
+          onClose={() => {
+            if (refocusedRef.current) return;
+            refocusedRef.current = true;
+            inputRef.current?.focus();
+          }}
+        />
+      );
+    };
+    const { getByRole, queryByRole } = render(<Picker />);
+    const input = getByRole('combobox');
+    act(() => {
+      input.focus();
+    });
+    pressEscape(document.activeElement!);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('fires onClose once when the input and the popover both take Escape', () => {
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <DateInput defaultValue={june15} onClose={onClose} openOnFocus={false} />
+    );
+    const input = getByRole('combobox');
+    act(() => {
+      fireEvent.click(getByRole('button', { name: 'Choose date' }));
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(input);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
