@@ -1728,3 +1728,264 @@ describe('DateInput granularity under a class prefix', () => {
     expect(unprefixed(container)).toEqual([]);
   });
 });
+
+describe('DateInput focus handed back on close', () => {
+  // The calendar focuses a cell as the popover opens. Closing must return
+  // focus to the input, and under openOnFocus (the default) that focus must
+  // not open the popover again.
+  const openByFocus = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+  };
+  const pressEscape = () => {
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    });
+  };
+
+  it.each(['day', 'month', 'year'] as const)(
+    'Escape closes the %s picker and leaves focus on the input',
+    granularity => {
+      const onOpen = jest.fn();
+      const { getByRole, queryByRole } = render(
+        <DateInput
+          granularity={granularity}
+          defaultValue={new Date(2024, 5, 15)}
+          onOpen={onOpen}
+        />
+      );
+      const input = getByRole('combobox');
+      openByFocus(input);
+      expect(getByRole('dialog')).toBeInTheDocument();
+      // The calendar took focus.
+      expect(input).not.toHaveFocus();
+      pressEscape();
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input).toHaveFocus();
+      expect(onOpen).toHaveBeenCalledTimes(1);
+    }
+  );
+
+  it('picking a day with the pointer closes it the same way', () => {
+    const onOpen = jest.fn();
+    const { getByRole, getByText, queryByRole } = render(
+      <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    act(() => {
+      fireEvent.click(getByText('20'));
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    expect(input).toHaveValue('2024-06-20');
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('picking a day with Enter closes it the same way', () => {
+    const onOpen = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    const day = getByRole('dialog').querySelector<HTMLElement>(
+      '[data-focused="true"]'
+    )!;
+    act(() => {
+      day.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(day, { key: 'Enter' });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('hands focus to the input when the launcher opened it', () => {
+    const onOpen = jest.fn();
+    const { getByRole, getByLabelText, queryByRole } = render(
+      <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
+    );
+    const launcher = getByLabelText('Choose date');
+    act(() => {
+      launcher.focus();
+    });
+    act(() => {
+      fireEvent.click(launcher);
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+    expect(getByRole('combobox')).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('a click outside closes it for good', () => {
+    const onOpen = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <>
+        <DateInput defaultValue={new Date(2024, 5, 15)} onOpen={onOpen} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    const elsewhere = getByRole('button', { name: 'Elsewhere' });
+    // pointerDown closes the popover without moving focus, so the trap hands
+    // it to the input, which must not reopen. The focus() after it stands in
+    // for the browser moving focus to what was clicked.
+    act(() => {
+      fireEvent.pointerDown(elsewhere);
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input).toHaveFocus();
+    act(() => {
+      elsewhere.focus();
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(elsewhere).toHaveFocus();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens again when the user comes back to the input', () => {
+    const { getByRole, queryByRole } = render(
+      <>
+        <DateInput defaultValue={new Date(2024, 5, 15)} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = getByRole('combobox');
+    openByFocus(input);
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+
+    // A click on the input focus is already on.
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape();
+    expect(queryByRole('dialog')).toBeNull();
+
+    // Leaving and coming back.
+    act(() => {
+      getByRole('button', { name: 'Elsewhere' }).focus();
+    });
+    openByFocus(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  describe('commits nothing the user did not type or pick', () => {
+    const renderWith = (props: React.ComponentProps<typeof DateInput>) => {
+      const onChange = jest.fn();
+      const utils = render(
+        <>
+          <DateInput {...props} onChange={onChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      const input = utils.getByRole('combobox') as HTMLInputElement;
+      const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+      const leave = () =>
+        act(() => {
+          elsewhere.focus();
+        });
+      const clickOutside = () => {
+        act(() => {
+          fireEvent.pointerDown(elsewhere);
+        });
+        leave();
+      };
+      return { ...utils, input, onChange, leave, clickOutside };
+    };
+    const june15 = new Date(2024, 5, 15);
+
+    it('when Escape dismisses a value and focus moves on', () => {
+      const { input, onChange, leave } = renderWith({ defaultValue: june15 });
+      openByFocus(input);
+      pressEscape();
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-15');
+    });
+
+    it('when a click outside dismisses a value', () => {
+      const { input, onChange, clickOutside } = renderWith({
+        defaultValue: june15,
+      });
+      openByFocus(input);
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-15');
+    });
+
+    it('when a click outside dismisses an empty field', () => {
+      const { input, onChange, clickOutside } = renderWith({});
+      openByFocus(input);
+      clickOutside();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('when Escape dismisses an empty field, which stays empty', () => {
+      const { input, onChange, leave } = renderWith({});
+      openByFocus(input);
+      pressEscape();
+      expect(input).toHaveFocus();
+      expect(input).toHaveValue('');
+      leave();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('when the launcher dismisses an empty field, which stays empty', () => {
+      const { input, onChange, getByRole, queryByRole } = renderWith({});
+      openByFocus(input);
+      expect(input).not.toHaveValue('');
+      // Pressing the launcher focuses it before the click closes the
+      // popover, so the trap has no focus to hand back.
+      const launcher = getByRole('button', { name: 'Choose date' });
+      act(() => {
+        fireEvent.pointerDown(launcher);
+        launcher.focus();
+      });
+      act(() => {
+        fireEvent.click(launcher);
+      });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(launcher).toHaveFocus();
+      expect(input).toHaveValue('');
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('but keeps a date typed after the dismiss', () => {
+      const { input, onChange, leave } = renderWith({ defaultValue: june15 });
+      openByFocus(input);
+      pressEscape();
+      for (const key of '2025') fireEvent.keyDown(input, { key });
+      leave();
+      expect(input).toHaveValue('2025-06-15');
+      expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 5, 15));
+    });
+
+    it('but commits text typed before the popover opened', () => {
+      const { input, onChange, leave, getByRole, queryByRole } = renderWith({
+        defaultValue: june15,
+        // No segments, so the text is typed freely and parsed on leaving.
+        format: { year: 'numeric', month: '2-digit', day: '2-digit' },
+        openOnFocus: false,
+      });
+      act(() => {
+        input.focus();
+      });
+      fireEvent.change(input, { target: { value: '2025-07-04' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(getByRole('dialog')).toBeInTheDocument();
+      pressEscape();
+      expect(queryByRole('dialog')).toBeNull();
+      leave();
+      expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 6, 4));
+    });
+  });
+});
