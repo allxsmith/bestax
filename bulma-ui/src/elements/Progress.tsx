@@ -31,8 +31,8 @@ export interface ProgressProps
   /**
    * Current value of the progress bar. Leave it unset for an indeterminate
    * bar, which sweeps across the track. Under `prefers-reduced-motion: reduce`
-   * that bar holds still (with bestax's CSS loaded), showing the value color
-   * along the left of the track, so it can read as partly filled.
+   * that bar holds still (with bestax's CSS loaded), so it can read as
+   * partly filled.
    */
   value?: number;
   /** Maximum value of the progress bar. */

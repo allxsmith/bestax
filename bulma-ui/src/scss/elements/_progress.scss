@@ -2,8 +2,7 @@
 // Bulma sweeps the indeterminate `.progress` bar across its track and has no
 // reduced-motion rule for it. This stops it for users who ask for less
 // motion. The bar keeps the gradient Bulma draws when it is not moving, so
-// it holds still with the value color along part of the track rather than
-// going blank.
+// it holds still rather than going blank.
 //
 // Bulma's CSS can land on either side of this partial, as it can for
 // `_loader.scss`, which says why. `!important` wins in every case, so the

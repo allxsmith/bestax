@@ -34,7 +34,7 @@
       "code": "<>\n  <Progress size=\"small\" color=\"primary\" max={100} />\n  <Progress color=\"danger\" max={100} />\n  <Progress size=\"medium\" color=\"dark\" max={100} />\n  <Progress size=\"large\" color=\"info\" max={100} />\n</>"
     }
   ],
-  "accessibility": "- **Role:** The `<progress>` element is natively accessible.\n- **Labeling:** Always provide context for screen readers (e.g., with `aria-label` or visible text).\n- **Indeterminate:** Omit the `value` prop for indeterminate progress bars.\n- **Reduced motion:** under `prefers-reduced-motion: reduce` an indeterminate bar stops sweeping\n  and holds still with the value color along the left of the track, so it stays drawn. A still\n  bar can read as partly filled, so name the task in its label. That rule ships in bestax's\n  stylesheets: `bestax.css` and its variants, or `extras.css` next to your own Bulma, in either\n  order.\n\n:::warning\nEnsure your progress bars have sufficient color contrast for users with visual impairments.\n:::",
+  "accessibility": "- **Role:** The `<progress>` element is natively accessible.\n- **Labeling:** Always provide context for screen readers (e.g., with `aria-label` or visible text).\n- **Indeterminate:** Omit the `value` prop for indeterminate progress bars.\n- **Reduced motion:** under `prefers-reduced-motion: reduce` an indeterminate bar stops sweeping\n  and holds still. A still bar can read as partly filled, so name the task in its label. That\n  rule ships in bestax's stylesheets: `bestax.css` and its variants, or `extras.css` next to\n  your own Bulma, in either order.\n\n:::warning\nEnsure your progress bars have sufficient color contrast for users with visual impairments.\n:::",
   "related": ["useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-progress--default",
   "summary": "The `Progress` component displays a Bulma-styled progress bar.",
@@ -79,7 +79,7 @@
           "name": "value",
           "type": "number",
           "default": null,
-          "description": "Current value of the progress bar. Leave it unset for an indeterminate bar, which sweeps across the track. Under `prefers-reduced-motion: reduce` that bar holds still (with bestax's CSS loaded), showing the value color along the left of the track, so it can read as partly filled.",
+          "description": "Current value of the progress bar. Leave it unset for an indeterminate bar, which sweeps across the track. Under `prefers-reduced-motion: reduce` that bar holds still (with bestax's CSS loaded), so it can read as partly filled.",
           "required": false,
           "inherited": false,
           "deprecated": false
