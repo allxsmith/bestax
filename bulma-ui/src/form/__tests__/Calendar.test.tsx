@@ -1205,6 +1205,48 @@ describe('Calendar year granularity', () => {
       act(() => focusedYearOption(container).focus());
       expect(onFocusedDateChange).not.toHaveBeenCalled();
     });
+
+    it.each([
+      ['the first year when it falls before the list', 2024, [], '2030'],
+      ['the last year when it falls after the list', 2050, [], '2040'],
+      [
+        'the nearest enabled year to the end it falls past',
+        2024,
+        [2030],
+        '2031',
+      ],
+    ])(
+      'moves a focused year outside the list to %s',
+      (_case, year, blocked, expected) => {
+        const { container } = render(
+          <PeriodHarness
+            granularity="year"
+            yearsRange={[2030, 2040]}
+            focusedDate={new Date(year, 0, 1)}
+            shouldDisableDate={blockYears(...blocked)}
+          />
+        );
+        const stops = tabStops(container);
+        expect(stops).toHaveLength(1);
+        expect(stops[0]).toHaveTextContent(expected);
+        expect(stops[0]).toHaveAttribute('data-focused-year', 'true');
+      }
+    );
+
+    it('makes the end of the list Tab reaches the focused year', () => {
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          granularity="year"
+          yearsRange={[2030, 2040]}
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      act(() => tabStops(container)[0].focus());
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2030, 0, 1));
+      press(container, 'ArrowRight');
+      expect(document.activeElement).toHaveTextContent('2031');
+    });
   });
 
   it('reports the first day of the clicked year and focuses it inside min', () => {
@@ -1371,7 +1413,7 @@ describe('Calendar year granularity', () => {
       expect(document.activeElement!.textContent).toBe('2026');
     });
 
-    it('does nothing when the focused year is outside the list', () => {
+    it('focuses the end of the list a focused year outside it fell past', () => {
       const { container } = render(
         <PeriodHarness
           granularity="year"
@@ -1379,7 +1421,19 @@ describe('Calendar year granularity', () => {
           autoFocusCell
         />
       );
-      expect(focusedYearOption(container)).toBeNull();
+      expect(document.activeElement).toBe(focusedYearOption(container));
+      expect(document.activeElement!.textContent).toBe('2030');
+    });
+
+    it('does nothing when the list is empty', () => {
+      const { container } = render(
+        <PeriodHarness
+          granularity="year"
+          yearsRange={[2032, 2030]}
+          autoFocusCell
+        />
+      );
+      expect(yearOptions(container)).toHaveLength(0);
       expect(container.contains(document.activeElement)).toBe(false);
     });
   });

@@ -1804,6 +1804,27 @@ describe('DateInput year granularity', () => {
     expect(handler).toHaveBeenCalledTimes(2);
   });
 
+  // The open list stays where it opened, so a typed year can fall past it.
+  it('keeps a tab stop in the open list when a typed year falls past its end', () => {
+    const { getByRole, getByLabelText } = render(
+      <DateInput
+        granularity="year"
+        defaultValue={new Date(2024, 0, 1)}
+        openOnFocus={false}
+      />
+    );
+    fireEvent.click(getByLabelText('Choose year'));
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    for (const key of '2200') fireEvent.keyDown(input, { key });
+    expect(input.value).toBe('2200');
+    const stops = Array.from(
+      getByRole('listbox').querySelectorAll<HTMLElement>('[role="option"]')
+    ).filter(o => o.tabIndex === 0);
+    expect(stops).toHaveLength(1);
+    expect(stops[0]).toHaveTextContent('2124');
+  });
+
   it('renders the calendar even when the native input is forced', () => {
     const { container, getByRole } = render(
       <DateInput granularity="year" mobileNative />
