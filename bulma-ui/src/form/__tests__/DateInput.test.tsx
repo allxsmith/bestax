@@ -1130,6 +1130,18 @@ describe('DateInputBase remaining branches', () => {
     expect(document.querySelectorAll(`[id="${label!.id}"]`)).toHaveLength(1);
   });
 
+  // Only the popover has a panel whose id the calendar's must differ from.
+  it('leaves an inline calendar on the id it released with', () => {
+    const { container, getByRole } = render(<DateInputBase id="dob" inline />);
+    expect(container.querySelector('#dob-popover')).toContainElement(
+      getByRole('grid')
+    );
+    expect(getByRole('grid')).toHaveAttribute(
+      'aria-labelledby',
+      'dob-popover-label'
+    );
+  });
+
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {
     const onOpen = jest.fn();
     const onClose = jest.fn();
