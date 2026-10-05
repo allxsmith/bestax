@@ -1448,12 +1448,39 @@ describe('Calendar day grid focus', () => {
       expect(document.activeElement).toBe(day(container, 16));
     });
 
-    it('also when the browser had dropped focus to <body>', () => {
+    it('also when the browser drops focus to <body> as it disables it', () => {
+      // jsdom keeps focus on a button once it is disabled. Chromium blurs it
+      // there and then, inside React's commit, so this does the same.
+      const setAttribute = Element.prototype.setAttribute;
+      let dropped = false;
+      const spy = jest
+        .spyOn(Element.prototype, 'setAttribute')
+        .mockImplementation(function (this: Element, name, value) {
+          setAttribute.call(this, name, value);
+          if (name === 'disabled' && this === document.activeElement) {
+            (this as HTMLElement).blur();
+            dropped = true;
+          }
+        });
+      try {
+        const { container, rerender } = render(<Page />);
+        act(() => day(container, 15).focus());
+        rerender(<Page blocked />);
+        expect(dropped).toBe(true);
+        expect(document.activeElement).toBe(day(container, 16));
+      } finally {
+        spy.mockRestore();
+      }
+    });
+
+    it('leaves focus alone once the user has taken it off the page', () => {
+      // Clicking a blank part of the page blurs the cell with nowhere for
+      // focus to go, so it lands on <body> as a drop would.
       const { container, rerender } = render(<Page />);
       act(() => day(container, 15).focus());
       act(() => day(container, 15).blur());
       rerender(<Page blocked />);
-      expect(document.activeElement).toBe(day(container, 16));
+      expect(document.activeElement).toBe(document.body);
     });
 
     it('leaves focus that went elsewhere alone', () => {

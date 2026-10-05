@@ -282,7 +282,11 @@ export const Calendar: React.FC<CalendarProps> = ({
   }, [cells, focusedDate, isDateUnselectable]);
 
   // Whether the grid on show holds focus, or held it last before focus went
-  // nowhere: the cell that had it left the page or became disabled.
+  // nowhere: the cell that had it left the page or became disabled. A blur
+  // that takes focus out of the grid, to nowhere included, is the user
+  // leaving, so it clears this. A render that removes or disables the focused
+  // cell sends no blur here: browsers fire none, or fire it inside React's
+  // commit, where React delivers no events.
   const gridHeldFocusRef = useRef(false);
   const gridFocusHandlers = {
     onFocus: () => {
@@ -290,7 +294,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     },
     onBlur: (e: React.FocusEvent<HTMLDivElement>) => {
       const next = e.relatedTarget as Node | null;
-      if (next && !e.currentTarget.contains(next)) {
+      if (!next || !e.currentTarget.contains(next)) {
         gridHeldFocusRef.current = false;
       }
     },
