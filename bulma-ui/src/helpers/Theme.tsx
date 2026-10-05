@@ -829,10 +829,19 @@ export interface ThemeProps extends Omit<
   'color' | 'backgroundColor'
 > {
   children: ReactNode;
+  /**
+   * Additional CSS classes for the wrapper div. A root Theme (`isRoot`) has no
+   * wrapper, so there this does nothing, and says so in development.
+   */
   className?: string;
   /**
    * Inject the variables globally at `:root` instead of scoping them to a
    * wrapper div. Default: false.
+   *
+   * A root Theme renders its children with no wrapper, so `className` and the
+   * helper props, such as `m` or `shadow`, have no element to land on. They
+   * do nothing, and say so in development. `radius` and `columnGap` describe
+   * what each does at the root.
    *
    * Several root Themes can be mounted at once, and each contributes its own
    * variables. Where two set the same one, the inner or later-mounted Theme
@@ -1001,6 +1010,31 @@ export const Theme: React.FC<ThemeProps> = ({
 
     return { bulmaVarProps: varProps, otherProps: otherPropsObj };
   }, [restProps]);
+
+  // Everything left in `otherProps` lands on the wrapper div, as a helper
+  // class or an attribute, and so does `className`. A root Theme renders no
+  // wrapper, so under `isRoot` all of it is dropped. `radius` and `columnGap`
+  // are not in `otherProps`; the checks above cover them.
+  if (isRoot) {
+    const dropped = Object.entries(otherProps)
+      .filter(
+        ([, value]) => value !== undefined && value !== null && value !== false
+      )
+      .map(([key]) => key);
+    if (className) {
+      dropped.unshift('className');
+    }
+    if (dropped.length > 0) {
+      warnOnce(
+        'Theme:root-dropped-props',
+        `[bestax-bulma] <Theme isRoot>: a root Theme renders no wrapper ` +
+          `element, so ${dropped.join(', ')} ` +
+          `${dropped.length === 1 ? 'has' : 'have'} nothing to apply to. ` +
+          'Put helper props and classes on an element inside the Theme ' +
+          'instead.'
+      );
+    }
+  }
 
   // Use Bulma classes for styling (only when not isRoot). Only a helper value
   // of `radius` reaches the helper; a legacy string went to the variable.
