@@ -27,20 +27,34 @@
  *    - If it reports no findings, it must be pinned to the head commit.
  *      Otherwise commits pushed since it would count as reviewed when nothing
  *      reviewed them.
- *    - If it reports findings, the verify passes after it must have resolved
- *      at least that many between them, and the pass that brings the running
- *      total up to that count must be pinned to the head commit. That pass
- *      is the last review to read the code for those findings, so a push
- *      after it was read by no review, and only a new fresh review can cover
- *      it. The review posts each finding, advisories included, as its own
- *      inline thread, and condition 3 already needs every thread resolved,
- *      so the count is the cross-check for a finding that never became a
- *      thread, which no verify pass can see. Its cost: a thread someone
- *      resolves by hand is in no verify count, so it holds the label back
- *      until a fresh review. Commits pushed alongside the fixes ride on that
- *      completing pass, which re-checked only the code its threads point at.
+ *    - If it reports findings, the threads it opened decide, not the counts
+ *      in the summaries: a verify pass also resolves threads an earlier
+ *      review left, so its count can cover a finding that never became a
+ *      thread. The review posts each finding, advisories included, as its
+ *      own inline thread before it posts its summary, so its threads are the
+ *      ones the app opened on the commit the summary is pinned to, after the
+ *      summary before it and no later than its own. There must be at least as
+ *      many as it reports findings. Each must be settled by a verify pass:
+ *      resolved by the app, with a reply from the app after the fresh
+ *      summary. The pass that settled the last of them is the first summary
+ *      at or after that reply. It must be a verify pass pinned to the commit
+ *      the reply was posted on, and to the head commit. It is the last review
+ *      to read the code for those findings, so a push after it was read by no
+ *      review, and only a new fresh review can cover it. Commits pushed
+ *      alongside the fixes ride on that pass, which re-checked only the code
+ *      its threads point at.
  *    A summary between it and the newest that does not parse fails closed,
  *    since it may have been a fresh review with blocking findings.
+ *
+ *    The timestamps hold because claude-review.yml's concurrency group never
+ *    runs two deep reviews of one PR at once. A verify pass that posts no
+ *    summary leaves its replies to the next summary, and the commit check
+ *    catches a push in between. The costs: a thread resolved by hand holds
+ *    the label back until it is reopened and a verify pass settles it, or a
+ *    fresh review runs. And one gap remains. A run cancelled before its
+ *    summary can leave threads on the same commit as the next fresh review,
+ *    which counts them as its own, so they can stand in for a finding that
+ *    review never posted.
  * 3. Every review thread on the PR is resolved.
  * 4. On the head commit, the newest check run per app and name (latestRuns)
  *    and the newest status per context finished as success, neutral or
@@ -175,6 +189,40 @@ export function parseArgs(argv) {
  */
 export function isDeepReviewAuthor(user) {
   return user?.type === 'Bot' && /^claude(\[bot\])?$/.test(user.login ?? '');
+}
+
+/**
+ * True when the app resolved a review thread. GraphQL types `resolvedBy` as a
+ * User, so the app reads as the User `claude[bot]` there and the account type
+ * cannot tie it to the app. The login can: GitHub usernames cannot contain
+ * brackets, so no other account can have this one.
+ */
+export function isDeepReviewResolver(user) {
+  return user?.login === 'claude[bot]';
+}
+
+/**
+ * The facts this script reads off one review thread node from THREADS_QUERY:
+ * whether it is resolved and by whom, and for its opening comment and its
+ * latest comments, when each was posted, by whom, on which commit the thread
+ * was opened, and which commit the PR head was on when the comment was posted
+ * (the commit of the review GitHub files each comment under). A missing field
+ * reads as a value that matches nothing.
+ */
+export function threadFacts(node) {
+  const comment = c => ({
+    at: Date.parse(c?.createdAt ?? ''),
+    author: { login: c?.author?.login, type: c?.author?.__typename },
+    openedOn: c?.originalCommit?.oid,
+    postedOn: c?.pullRequestReview?.commit?.oid,
+  });
+  const opener = node?.opener?.nodes?.[0];
+  return {
+    resolved: node?.isResolved === true,
+    resolver: node?.resolvedBy,
+    opener: opener ? comment(opener) : null,
+    latest: (node?.latest?.nodes ?? []).map(comment),
+  };
 }
 
 /**
@@ -395,13 +443,54 @@ export function checkProblems(checkRuns, statuses) {
   return problems;
 }
 
+/** When a summary was submitted, in milliseconds. */
+function submittedAt(entry) {
+  return Date.parse(entry.review.submitted_at);
+}
+
+/**
+ * The threads a fresh review opened: opened by the app on the commit its
+ * summary is pinned to, after the summary before it and no later than its
+ * own. `threads` are threadFacts().
+ */
+function openedBy(found, at, threads) {
+  const { review } = found[at];
+  const until = submittedAt(found[at]);
+  const since = at > 0 ? submittedAt(found[at - 1]) : -Infinity;
+  return threads.filter(
+    ({ opener }) =>
+      opener !== null &&
+      isDeepReviewAuthor(opener.author) &&
+      opener.openedOn === review.commit_id &&
+      opener.at > since &&
+      opener.at <= until
+  );
+}
+
+/**
+ * The app's latest reply in a thread after `since`, or undefined. A verify
+ * pass replies before it resolves a thread, so this is the reply it settled
+ * the thread with.
+ */
+function settlingReply(thread, since) {
+  let reply;
+  for (const comment of thread.latest)
+    if (
+      isDeepReviewAuthor(comment.author) &&
+      comment.at > since &&
+      (!reply || comment.at > reply.at)
+    )
+      reply = comment;
+  return reply;
+}
+
 /**
  * Condition 2 in the header: what stops the newest fresh review from standing
- * behind the head. `found` is summaries() with each one parsed, oldest first.
- * When the newest fresh summary is also the newest summary, condition 1 has
- * already judged it and this adds nothing.
+ * behind the head. `found` is summaries() with each one parsed, oldest first,
+ * and `threads` are threadFacts(). When the newest fresh summary is also the
+ * newest summary, condition 1 has already judged it and this adds nothing.
  */
-function freshProblems(found, head) {
+function freshProblems(found, threads, head) {
   let at = found.length - 1;
   while (at >= 0 && found[at].parsed.kind !== 'fresh') at--;
   if (at === -1)
@@ -422,27 +511,52 @@ function freshProblems(found, head) {
       );
     return problems;
   }
-  // Walk the verify passes in order to the one whose running total first
-  // reaches the finding count. It must be pinned to the head. A pass after
-  // it adds no review of the commits in between, so it cannot stand in.
-  let resolved = 0;
-  for (const entry of after) {
-    if (entry.parsed.kind !== 'verify') continue;
-    resolved += entry.parsed.resolved;
-    if (resolved < findings) continue;
-    // When it is the newest summary, condition 1 has judged its commit.
-    if (entry !== after.at(-1) && entry.review.commit_id !== head)
-      problems.push(
-        'the verify pass that resolved the last of the newest fresh ' +
-          `review's findings is for ${shortSha(entry.review.commit_id)}, ` +
-          'and no fresh review covers the commits since'
-      );
-    return problems;
+  const opened = openedBy(found, at, threads);
+  if (opened.length < findings)
+    problems.push(
+      `the newest fresh review reports ${findingText(parsed)} but opened ` +
+        `${opened.length} thread(s)`
+    );
+  // An open thread is condition 3's to report.
+  const since = submittedAt(found[at]);
+  let last;
+  let unsettled = 0;
+  for (const thread of opened.filter(t => t.resolved)) {
+    const reply = settlingReply(thread, since);
+    if (!isDeepReviewResolver(thread.resolver) || !reply) unsettled++;
+    else if (!last || reply.at > last.at) last = reply;
   }
-  problems.push(
-    `the newest fresh review reports ${findingText(parsed)}, and the ` +
-      `verify passes since resolved ${resolved}`
-  );
+  if (unsettled)
+    problems.push(
+      `${unsettled} of the newest fresh review's threads were not settled ` +
+        'by a verify pass'
+    );
+  if (problems.length || !last || opened.some(t => !t.resolved))
+    return problems;
+  // The pass that settled the last thread posted the first summary at or
+  // after its reply. A run that posted none hands its replies to the next
+  // summary, which is only sound when the head had not moved in between.
+  const pass = after.find(entry => submittedAt(entry) >= last.at);
+  if (!pass)
+    problems.push(
+      "the reply that settled the newest fresh review's last thread has no " +
+        'summary after it'
+    );
+  // An unparseable summary has been reported above or by condition 1.
+  else if (pass.parsed.kind !== 'verify') return problems;
+  else if (last.postedOn !== pass.review.commit_id)
+    problems.push(
+      "the reply that settled the newest fresh review's last thread was " +
+        `posted on ${shortSha(last.postedOn)}, not on ` +
+        `${shortSha(pass.review.commit_id)} where its verify pass is pinned`
+    );
+  // When it is the newest summary, condition 1 has judged its commit.
+  else if (pass !== after.at(-1) && pass.review.commit_id !== head)
+    problems.push(
+      'the verify pass that resolved the last of the newest fresh ' +
+        `review's findings is for ${shortSha(pass.review.commit_id)}, ` +
+        'and no fresh review covers the commits since'
+    );
   return problems;
 }
 
@@ -475,7 +589,9 @@ export function convergenceProblems({
       problems.push(`the newest summary reports ${findingText(parsed)}`);
     else if (parsed.kind === 'verify' && parsed.open > 0)
       problems.push(`the newest summary leaves ${parsed.open} open`);
-    problems.push(...freshProblems(found, head));
+    problems.push(
+      ...freshProblems(found, (threads ?? []).map(threadFacts), head)
+    );
   }
   // A thread with no isResolved field counts as open.
   const unresolved = (threads ?? []).filter(t => t?.isResolved !== true);
@@ -629,18 +745,31 @@ export function createClient({
   };
 }
 
-const THREADS_QUERY = `query($owner: String!, $name: String!, $number: Int!, $after: String) {
+// `latest` is where the settling reply is looked for. A reply older than every
+// comment it reads is not found, which fails closed.
+export const THREADS_QUERY = `query($owner: String!, $name: String!, $number: Int!, $after: String) {
   repository(owner: $owner, name: $name) {
     pullRequest(number: $number) {
       reviewThreads(first: 100, after: $after) {
         pageInfo { hasNextPage endCursor }
-        nodes { isResolved }
+        nodes {
+          isResolved
+          resolvedBy { login }
+          opener: comments(first: 1) { nodes { ...facts } }
+          latest: comments(last: 50) { nodes { ...facts } }
+        }
       }
     }
   }
+}
+fragment facts on PullRequestReviewComment {
+  createdAt
+  author { login __typename }
+  originalCommit { oid }
+  pullRequestReview { commit { oid } }
 }`;
 
-/** Every review thread on a PR, as { isResolved } nodes. */
+/** Every review thread node on a PR, in the shape threadFacts reads. */
 export async function fetchThreads(client, repo, number) {
   const [owner, name] = repo.split('/');
   const threads = [];
