@@ -110,13 +110,13 @@ Nest `Theme` and `ConfigProvider` together at the root (order doesn't matter).
 ## Examples
 
 - `examples/theme-config.tsx` — a custom brand theme at the app root, plus a scoped override.
-- `examples/dark-mode.tsx` — a light/dark toggle using Bulma's `data-theme`.
+- `examples/dark-mode.tsx` — a light/dark toggle using Bulma's `data-theme` (plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`).
 
 ## Checklist
 
 - [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components.
 - [ ] Apply a global theme once with `<Theme isRoot>` (or `:root`); use scoped `<Theme>` for one-off sections.
 - [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`; a custom `--bulma-family-*` needs its font actually loaded (`index.html` `<link>` or an `@fontsource` import).
-- [ ] Implement dark mode with `data-theme` on `<html>`; do not expect a shipped dark-mode component.
+- [ ] Implement dark mode with `data-theme` on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`, which the prefixed flavors read); do not expect a shipped dark-mode component.
 - [ ] Pass `color`/`textColor`/`bgColor` (not custom CSS) to color individual components.
 - [ ] Set the icon library once with `<ConfigProvider iconLibrary="…">` at the root, not `library` on every `<Icon>`.
