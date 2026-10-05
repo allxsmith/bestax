@@ -857,6 +857,8 @@ export interface ThemeProps extends Omit<
    * reads Bulma's prefixed form instead (`data-bestax-theme` for the
    * `bestax-prefixed` builds), so under a `ConfigProvider` `classPrefix`
    * Theme writes both, and `'system'` or unmounting clears or restores both.
+   * If the prefix cannot form an attribute name, `'light'` and `'dark'`
+   * write only `data-theme` and warn in development.
    */
   colorMode?: 'light' | 'dark' | 'system';
   bulmaVars?: BulmaVars;

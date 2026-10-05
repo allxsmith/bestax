@@ -190,8 +190,9 @@ export function DarkModeToggle() {
 ### How it works
 
 `Theme`'s `colorMode` prop (`'light' | 'dark' | 'system'`) writes Bulma's `data-theme` attribute on
-`<html>`, so the whole document follows the chosen scheme — global, even on a scoped `Theme`.
-`'system'` removes the attribute so Bulma follows the OS `prefers-color-scheme`. Brand overrides
+`<html>`, plus `data-<prefix>theme` under a `ConfigProvider` `classPrefix`, which the prefixed
+flavors read. The whole document follows the chosen scheme — global, even on a scoped `Theme`.
+`'system'` removes the attributes so Bulma follows the OS `prefers-color-scheme`. Brand overrides
 from `<Theme isRoot>` still apply on top of either scheme.
 
 :::note Why there's no live demo here

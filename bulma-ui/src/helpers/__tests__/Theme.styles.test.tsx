@@ -28,12 +28,10 @@ const compile = (file: string) =>
   }).css;
 
 /**
- * Every published stylesheet built with Bulma's full theme set, read off
- * `exports` the way Loader.styles.test.tsx does, with the class prefix it
- * sets. The light-only flavor and `extras.css` carry no dark scheme for
- * `colorMode` to reach.
+ * Every published stylesheet, read off `exports` the way
+ * Loader.styles.test.tsx does, as the SCSS source it is built from.
  */
-function themedStylesheets(): Array<{ file: string; prefix: string }> {
+function publishedStylesheets(): Array<{ file: string; source: string }> {
   const manifest = JSON.parse(
     fs.readFileSync(path.join(PKG, 'package.json'), 'utf8')
   ) as { exports: Record<string, { default?: string }> };
@@ -44,23 +42,34 @@ function themedStylesheets(): Array<{ file: string; prefix: string }> {
       files.add(target.replace(/^\.\/dist\//, '').replace(/\.css$/, '.scss'));
     }
   }
-  return [...files]
-    .sort()
-    .map(file => ({
-      file,
-      source: fs.readFileSync(path.join(SCSS, file), 'utf8'),
-    }))
-    .filter(({ source }) => /bulma\/sass(?:\/themes)?['"]/.test(source))
-    .map(({ file, source }) => ({
-      file,
-      prefix: /\$class-prefix:\s*["']([^"']*)["']/.exec(source)?.[1] ?? '',
-    }));
+  return [...files].sort().map(file => ({
+    file,
+    source: fs.readFileSync(path.join(SCSS, file), 'utf8'),
+  }));
 }
 
-const SHEETS = themedStylesheets();
+const PUBLISHED = publishedStylesheets();
 
-it('checks a prefixed and an unprefixed stylesheet', () => {
-  // Floor against the manifest read or the filter going quietly empty.
+/**
+ * The published stylesheets built with Bulma's full theme set, with the
+ * class prefix each sets.
+ */
+const SHEETS = PUBLISHED.filter(({ source }) =>
+  /bulma\/sass(?:\/themes)?['"]/.test(source)
+).map(({ file, source }) => ({
+  file,
+  prefix: /\$class-prefix:\s*["']([^"']*)["']/.exec(source)?.[1] ?? '',
+}));
+
+it('checks every stylesheet with a dark scheme, prefixed and unprefixed', () => {
+  // Floor against the manifest read or the filter going quietly wrong. A
+  // sheet the filter leaves out is named here as having no dark scheme for
+  // `colorMode` to reach, so a themed sheet it drops fails this even while
+  // a sibling still covers its prefix.
+  const themed = new Set(SHEETS.map(sheet => sheet.file));
+  expect(
+    PUBLISHED.map(({ file }) => file).filter(file => !themed.has(file))
+  ).toEqual(['extras.scss', 'versions/bestax-no-dark-mode.scss']);
   expect(SHEETS.map(sheet => sheet.prefix)).toEqual(
     expect.arrayContaining(['', 'bestax-'])
   );

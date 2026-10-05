@@ -185,7 +185,7 @@
         }
       ],
       "examples": [
-        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 1148 },
+        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 1249 },
         {
           "id": "theme-config",
           "file": "examples/theme-config.tsx",
