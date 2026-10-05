@@ -805,8 +805,10 @@ export const AppendToBody: Story = {
     for (const [i, position] of portaledCorners.entries()) {
       await userEvent.click(inputs[i]);
       const panel = await page.findByRole('dialog');
-      // The open animation slides the panel, so measure where it lands.
-      await Promise.all(panel.getAnimations().map(a => a.finished));
+      // The open animation slides the panel, so measure where it lands. A
+      // cancelled animation rejects `finished` and no longer moves the panel,
+      // so it is settled rather than awaited.
+      await Promise.allSettled(panel.getAnimations().map(a => a.finished));
       const anchor = inputs[i].parentElement!.getBoundingClientRect();
       const box = panel.getBoundingClientRect();
       const gap = parseFloat(
@@ -824,9 +826,11 @@ export const AppendToBody: Story = {
         horizontal: position.endsWith('left')
           ? off(box.left, anchor.left)
           : off(box.right, anchor.right),
+        // The scroll and client sizes are each rounded to whole pixels, so
+        // 1px apart is rounding. A collapsed panel overflows by its content.
         overflow: Math.max(
-          panel.scrollHeight - panel.clientHeight,
-          panel.scrollWidth - panel.clientWidth,
+          panel.scrollHeight - panel.clientHeight - 1,
+          panel.scrollWidth - panel.clientWidth - 1,
           0
         ),
       }).toEqual({ position, vertical: 0, horizontal: 0, overflow: 0 });
