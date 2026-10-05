@@ -33,6 +33,7 @@ import {
   Progress,
   Select,
   SelectBase,
+  Sidebar,
   Skeleton,
   Taginput,
   TextArea,
@@ -274,6 +275,12 @@ const ANIMATED: Array<[string, React.ReactElement]> = [
       Heading
     </Title>,
   ],
+  // `_sidebar.scss` turns off the sidebar's own transition under reduced
+  // motion, so a pulsing sidebar meets a second reduced-motion rule.
+  [
+    'Sidebar skeleton',
+    <Sidebar key="x" isOpen inline overlay={false} skeleton />,
+  ],
 ];
 
 /** Every (element, pseudo) the stylesheet animates in this render. */
@@ -362,7 +369,8 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
   it('changes nothing but the animation under prefers-reduced-motion', () => {
     // Each indicator has to stay drawn, so the override may not touch a
     // ring's border, the bar's gradient, a skeleton's fill, or any size or
-    // display.
+    // display. Motion properties are the point of the override, so
+    // `animation-*` and `transition-*` are allowed.
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>
         {ANIMATED.map(([label, element]) => (
@@ -379,7 +387,11 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         )
       )
       .flatMap(rule => rule.properties)
-      .filter(property => !property.startsWith('animation'));
+      .filter(
+        property =>
+          !property.startsWith('animation') &&
+          !property.startsWith('transition')
+      );
     expect(extra).toEqual([]);
   });
 });
