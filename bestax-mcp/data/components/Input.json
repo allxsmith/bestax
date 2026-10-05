@@ -251,7 +251,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the wrapping Control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.",
           "required": false,
           "inherited": false,
           "deprecated": false

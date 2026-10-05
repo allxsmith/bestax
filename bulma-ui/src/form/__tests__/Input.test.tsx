@@ -127,20 +127,24 @@ describe('Input', () => {
       expect(container.querySelector('.control')).toHaveClass('is-expanded');
     });
 
-    // As the props TSDoc says: inside an existing Control there is no Control
-    // of its own for the Control-level props to reach.
-    it('renders no Control of its own inside one', () => {
+    // As the props TSDoc says: inside an existing Control within a Field there
+    // is no Control of its own for the Control-level props to reach, and the
+    // input is the Control's own child, which Bulma's sibling icon rules need.
+    it('renders no Field or Control of its own inside a Field and Control', () => {
       const { container } = render(
-        <Control>
-          <Input isLoading iconLeftName="user" data-testid="input" />
-        </Control>
+        <Field>
+          <Control>
+            <Input isLoading iconLeftName="user" data-testid="input" />
+          </Control>
+        </Field>
       );
       const controls = container.querySelectorAll('.control');
       expect(controls).toHaveLength(1);
       expect(controls[0]).not.toHaveClass('is-loading');
       expect(controls[0]).not.toHaveClass('has-icons-left');
       expect(container.querySelector('.icon')).toBeNull();
-      expect(screen.getByTestId('input')).toBeInTheDocument();
+      expect(controls[0].querySelector('.field')).toBeNull();
+      expect(screen.getByTestId('input').parentElement).toBe(controls[0]);
     });
   });
 

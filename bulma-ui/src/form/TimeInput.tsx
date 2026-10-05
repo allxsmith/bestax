@@ -9,8 +9,8 @@ import { useAutoLabelId } from './useAutoLabelId';
 /**
  * Props for the TimeInput convenience wrapper. Extends `TimeInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
- * Inside an existing `Control` it renders no `Control` of its own, so set the
- * Control-level props on that `Control` instead.
+ * Inside an existing `Control` within a `Field` it renders no `Field` or
+ * `Control` of its own, so set the Control-level props on that `Control` instead.
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Form id the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the input as required.
@@ -49,7 +49,7 @@ export interface TimeInputProps extends TimeInputBaseProps {
   /** Force the right icon container. */
   hasIconsRight?: boolean;
   /**
-   * Show a loading spinner on the control.
+   * Shows a loading spinner on the `Control` it renders.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */

@@ -12,8 +12,8 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and SelectBase into a single convenience component.
  * Supports all SelectBase props, plus Field-level (label, horizontal) and
  * Control-level (icons) props.
- * Inside an existing `Control` it renders no `Control` of its own, so set the
- * Control-level props on that `Control` instead.
+ * Inside an existing `Control` within a `Field` it renders no `Field` or
+ * `Control` of its own, so set the Control-level props on that `Control` instead.
  */
 export interface SelectProps extends SelectBaseProps {
   /** Field label. Automatically associated with the select via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */

@@ -107,7 +107,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the wrapping Control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false

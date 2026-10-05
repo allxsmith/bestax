@@ -9,8 +9,8 @@ import { useAutoLabelId } from './useAutoLabelId';
 /**
  * Props for the DateTimeInput convenience wrapper. Extends
  * `DateTimeInputBaseProps` with Field-level and Control-level props.
- * Inside an existing `Control` it renders no `Control` of its own, so set the
- * Control-level props on that `Control` instead.
+ * Inside an existing `Control` within a `Field` it renders no `Field` or
+ * `Control` of its own, so set the Control-level props on that `Control` instead.
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Optional id of the form the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
@@ -47,7 +47,7 @@ export interface DateTimeInputProps extends DateTimeInputBaseProps {
   /** Force the right icon container. */
   hasIconsRight?: boolean;
   /**
-   * Show a loading spinner on the control.
+   * Shows a loading spinner on the `Control` it renders.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */
