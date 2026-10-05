@@ -126,7 +126,11 @@ export interface TimeInputBaseProps
   closeOnSelect?: boolean;
   /** Popover anchor position relative to the input. */
   position?: PickerPosition;
-  /** Render the popover into `document.body` via portal. */
+  /**
+   * Render the popover into `document.body` via portal. On a narrow screen
+   * an in-place popover spans the bottom of the viewport, while a portaled
+   * one stays on its `position` corner.
+   */
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the input, also carried by the wheels, where it

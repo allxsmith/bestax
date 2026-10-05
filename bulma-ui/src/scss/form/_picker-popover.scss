@@ -60,7 +60,7 @@ $picker-trigger-hover-color: cv.getVar('text-strong') !default;
   // sets inline, so the corner's own right and bottom must not apply. Left
   // in, `right: 0` stretches the panel to the viewport's right edge and the
   // top corners' `bottom` collapses it to its padding. The coordinates are
-  // the anchor's edge, so the gap is a margin on the side facing it.
+  // the anchor's edge, so the gap is a margin.
   &.#{iv.$class-prefix}is-portal {
     position: fixed;
     right: auto;
