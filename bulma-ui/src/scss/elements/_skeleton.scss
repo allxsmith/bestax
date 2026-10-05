@@ -1,0 +1,21 @@
+// Bestax Extras - Skeleton Styles
+// Bulma pulses every skeleton shape (`skeleton-block`, the lines of
+// `skeleton-lines`, and the `is-skeleton` and `has-skeleton` helpers) and has
+// no reduced-motion rule for them. This stops the pulse for users who ask for
+// less motion. Each shape stays drawn in the skeleton background, so the
+// placeholder still marks where content is loading.
+//
+// Bulma's CSS can land on either side of this partial, as it can for
+// `_loader.scss`, which says why. `!important` wins in every case, so the
+// override does not depend on where this file lands.
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}skeleton-block,
+  .#{iv.$class-prefix}skeleton-lines > div,
+  .#{iv.$class-prefix}is-skeleton,
+  .#{iv.$class-prefix}has-skeleton::after {
+    animation: none !important;
+  }
+}

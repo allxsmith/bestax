@@ -57,14 +57,14 @@
   "accessibility": "- Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.\n- Use the `rows` prop to set an appropriate height for your content.",
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-textarea--default",
-  "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.",
+  "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.",
   "import": "import { TextArea, Field, Control } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/TextArea.tsx",
   "rootClass": "textarea",
   "parts": [
     {
       "path": "TextArea",
-      "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.",
+      "summary": "The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.",
       "component": null,
       "props": [
         {
@@ -107,7 +107,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the wrapping Control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -179,7 +179,7 @@
           "name": "isRounded",
           "type": "boolean",
           "default": "false",
-          "description": "Rounded textarea corners.",
+          "description": "Adds the `is-rounded` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea's corners don't change.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -188,7 +188,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Renders textarea as static (styled readonly).",
+          "description": "Adds the `is-static` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea keeps its border, background and padding.",
           "required": false,
           "inherited": true,
           "deprecated": false

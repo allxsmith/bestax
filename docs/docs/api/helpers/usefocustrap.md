@@ -96,6 +96,61 @@ Focus only moves back while the trap still holds it. If a click has already put 
 
 A trapped panel is often rendered through a portal, at the end of `document.body`. The trap waits for hydration, so it also attaches to a container that only appears once the page has hydrated, the way portaled content does.
 
+Put the ref on the element inside the [`Portal`](./portal.md), so the trap holds the portaled content itself. The panel below is declared inside a box that clips its overflow and portals into an element after it, as in the Portal page's [container example](./portal.md#into-a-container). Open it, then Tab past Cancel: focus wraps inside the panel, and Escape or either button closes it and returns focus to Share.
+
+```tsx live
+function example() {
+  const [open, setOpen] = useState(false);
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const panelRef = React.useRef<HTMLDivElement>(null);
+  // On only once the panel can render, which waits for the target.
+  useFocusTrap(panelRef, {
+    active: open && target !== null,
+    restoreFocus: buttonRef,
+  });
+
+  return (
+    <>
+      <Box overflow="clipped">
+        <Button
+          ref={buttonRef}
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-controls="share-panel"
+          onClick={() => setOpen(o => !o)}
+        >
+          Share
+        </Button>
+        {open && target && (
+          <Portal container={target}>
+            <div
+              ref={panelRef}
+              id="share-panel"
+              role="dialog"
+              aria-label="Share"
+              tabIndex={-1}
+              onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+            >
+              <Box mt="3">
+                <Input label="Email" type="email" />
+                <Buttons>
+                  <Button color="primary" onClick={() => setOpen(false)}>
+                    Send
+                  </Button>
+                  <Button onClick={() => setOpen(false)}>Cancel</Button>
+                </Buttons>
+              </Box>
+            </div>
+          </Portal>
+        )}
+      </Box>
+      <div ref={setTarget} />
+    </>
+  );
+}
+```
+
 The other way round doesn't work: a portal rendered _inside_ the trapped container puts its content somewhere else in the DOM, outside the container, where Tab from the trap can't reach it and the trap doesn't hold focus. Render a nested overlay inside the container, or give it a trap of its own.
 
 ### Which elements are tab stops

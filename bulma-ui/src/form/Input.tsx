@@ -12,6 +12,8 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and Input into a single convenience component.
  * Supports all Input props, plus Field-level (label, horizontal) and
  * Control-level (icons, loading) props.
+ * Inside an existing `Control` within a `Field` it renders no `Field` or
+ * `Control` of its own, so set the Control-level props on that `Control` instead.
  */
 export interface InputProps extends InputBaseProps {
   /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
@@ -22,9 +24,17 @@ export interface InputProps extends InputBaseProps {
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;
-  /** Icon props for left icon. */
+  /**
+   * Icon props for left icon.
+   * Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconLeft?: ControlBaseProps['iconLeft'];
-  /** Icon props for right icon. */
+  /**
+   * Icon props for right icon.
+   * Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconRight?: ControlBaseProps['iconRight'];
   /** Shortcut for left icon name. */
   iconLeftName?: string;
@@ -39,9 +49,11 @@ export interface InputProps extends InputBaseProps {
   /** Force right icon container. */
   hasIconsRight?: boolean;
   /**
-   * Shows a loading spinner on the wrapping Control.
+   * Shows a loading spinner on the `Control` it renders.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
+   * The spinner sits at the right edge, where `iconRight` also sits, and the
+   * two overlap; leave the right icon out while loading.
    */
   isLoading?: boolean;
   /** Expand the control. */
@@ -59,7 +71,7 @@ export interface InputProps extends InputBaseProps {
 }
 
 /**
- * The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.
+ * The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.
  *
  * @function
  * @param {InputProps} props - Props for Input.

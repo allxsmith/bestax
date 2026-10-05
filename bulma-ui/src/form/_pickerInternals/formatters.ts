@@ -1,3 +1,5 @@
+import { makeDate } from './dateUtils';
+
 export type DateFormatOption = Intl.DateTimeFormatOptions | string;
 
 export const DEFAULT_DATE_FORMAT = 'YYYY-MM-DD';
@@ -141,7 +143,8 @@ export function parseDate(
   const hours = parts.hours ?? 0;
   const minutes = parts.minutes ?? 0;
   const seconds = parts.seconds ?? 0;
-  const d = new Date(year, month, day, hours, minutes, seconds, 0);
+  const d = makeDate(year, month, day);
+  d.setHours(hours, minutes, seconds, 0);
   if (
     d.getFullYear() !== year ||
     d.getMonth() !== month ||

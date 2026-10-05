@@ -7,6 +7,7 @@ import { renderToStaticMarkup } from 'react-dom/server';
 import { Field } from '../Field';
 import { ConfigProvider } from '../../helpers/Config';
 import * as nativeInputSupport from '../_pickerInternals/nativeInputSupport';
+import { makeDate } from '../_pickerInternals/dateUtils';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -256,6 +257,26 @@ describe('DateInput', () => {
       const hidden = container.querySelector('input[type="hidden"]');
       expect(hidden).not.toBeNull();
       expect((hidden as HTMLInputElement).value).toBe('2024-06-07');
+    });
+
+    it('keeps DOM focus on the day the keyboard moves to', () => {
+      const { getByRole } = render(
+        <DateInput
+          inline
+          defaultValue={new Date(2024, 5, 15)}
+          // The value's own day is out, so Tab lands on the 16th.
+          shouldDisableDate={d => d.getDate() === 15}
+        />
+      );
+      const grid = getByRole('grid');
+      const stop = grid.querySelector<HTMLElement>('[tabindex="0"]')!;
+      expect(stop).toHaveTextContent('16');
+      act(() => stop.focus());
+      act(() => {
+        fireEvent.keyDown(stop, { key: 'ArrowRight' });
+      });
+      expect(document.activeElement).toHaveTextContent('17');
+      expect(document.activeElement).toHaveAttribute('tabindex', '0');
     });
   });
 
@@ -909,6 +930,51 @@ describe('DateInput native input value handling', () => {
     expect(committed.getDate()).toBe(9);
   });
 
+  it('keeps a year below 100 as given', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateInput
+        mobileNative={true}
+        min={makeDate(19, 0, 1)}
+        max={makeDate(19, 11, 31)}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    expect(native.min).toBe('0019-01-01');
+    fireEvent.change(native, { target: { value: '0019-03-04' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+    ]).toEqual([19, 2, 4]);
+  });
+
+  it('round-trips a year past 9999', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateInput
+        mobileNative={true}
+        defaultValue={makeDate(10000, 0, 1)}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="date"]'
+    ) as HTMLInputElement;
+    expect(native.value).toBe('10000-01-01');
+    fireEvent.change(native, { target: { value: '10000-03-04' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+    ]).toEqual([10000, 2, 4]);
+  });
+
   it('clearing the native input commits null', () => {
     const handler = jest.fn();
     const { container } = render(
@@ -1518,6 +1584,18 @@ describe('DateInput month granularity', () => {
       expect([committed.getFullYear(), committed.getMonth()]).toEqual([19, 2]);
     });
 
+    it('reads a year past 9999 back', () => {
+      const handler = jest.fn();
+      const { container } = render(
+        <DateInput granularity="month" mobileNative onChange={handler} />
+      );
+      fireEvent.change(native(container), { target: { value: '10000-03' } });
+      const committed = handler.mock.calls[0][0] as Date;
+      expect([committed.getFullYear(), committed.getMonth()]).toEqual([
+        10000, 2,
+      ]);
+    });
+
     describe('where the browser has no month input', () => {
       afterEach(() => jest.restoreAllMocks());
 
@@ -1987,5 +2065,80 @@ describe('DateInput focus handed back on close', () => {
       leave();
       expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 6, 4));
     });
+  });
+});
+
+describe('DateInput onOpen and onClose', () => {
+  const june15 = new Date(2024, 5, 15);
+  const pressEscape = (on: Element) =>
+    act(() => {
+      fireEvent.keyDown(on, { key: 'Escape' });
+    });
+
+  it('fire once per open and close under StrictMode', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <React.StrictMode>
+        <DateInput defaultValue={june15} onOpen={onOpen} onClose={onClose} />
+      </React.StrictMode>
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('still opens after an onClose that focuses the input', () => {
+    // Under openOnFocus that focus asks to open from inside onClose, before
+    // the close has rendered, and the later request wins.
+    const Picker = () => {
+      const inputRef = React.useRef<HTMLInputElement>(null);
+      const refocusedRef = React.useRef(false);
+      return (
+        <DateInput
+          ref={inputRef}
+          defaultValue={june15}
+          onClose={() => {
+            if (refocusedRef.current) return;
+            refocusedRef.current = true;
+            inputRef.current?.focus();
+          }}
+        />
+      );
+    };
+    const { getByRole, queryByRole } = render(<Picker />);
+    const input = getByRole('combobox');
+    act(() => {
+      input.focus();
+    });
+    pressEscape(document.activeElement!);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('fires onClose once when the input and the popover both take Escape', () => {
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <DateInput defaultValue={june15} onClose={onClose} openOnFocus={false} />
+    );
+    const input = getByRole('combobox');
+    act(() => {
+      fireEvent.click(getByRole('button', { name: 'Choose date' }));
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(input);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });

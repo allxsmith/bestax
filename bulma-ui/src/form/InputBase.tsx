@@ -26,13 +26,16 @@ export interface InputBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Rounded input corners. */
   isRounded?: boolean;
-  /** Renders input as static (read only, styled). */
+  /** Styles the input as static text. It stays editable; add `readOnly` to stop edits. */
   isStatic?: boolean;
   /** Applies hovered state. */
   isHovered?: boolean;
   /** Applies focused state. */
   isFocused?: boolean;
-  /** Shows loading indicator. */
+  /**
+   * Adds the `is-loading` class to the `<input>`. Bulma draws no spinner for it there: the
+   * spinner belongs to the wrapping `Control`, so set `isLoading` on that `Control`.
+   */
   isLoading?: boolean;
   /** Additional CSS classes to apply. */
   className?: string;

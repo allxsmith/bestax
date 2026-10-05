@@ -829,7 +829,7 @@ On `Image`, use its own `size` ratios instead, which also fit the picture to the
 
 ### Skeleton Examples
 
-The `skeleton` prop applies Bulma's skeleton loading effect. Here are examples for each component:
+The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessibility notes](../elements/skeleton.md#accessibility) cover it too, reduced motion included. Here are examples for each component:
 
 #### Skeleton Button
 

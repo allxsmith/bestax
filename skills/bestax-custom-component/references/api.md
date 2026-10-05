@@ -124,14 +124,16 @@ first client render matches; `disabled` renders in place instead. Use it rather 
 `createPortal` yourself, which React's server renderer can't render.
 
 Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so move
-focus into it when it opens and back to its trigger when it closes. A focus trap doesn't cover
+focus into it when it opens and back to its trigger when it closes. To trap portaled content,
+put the trap's ref on the element inside the `Portal`, as below with
+`useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
 what a `Portal` inside it renders, so render nested overlays inside the trapped element.
 
 ```tsx
 {
   open && (
     <Portal>
-      <div role="dialog" aria-label="Filters" tabIndex={-1}>
+      <div ref={panelRef} role="dialog" aria-label="Filters" tabIndex={-1}>
         …
       </div>
     </Portal>
@@ -147,9 +149,8 @@ browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are skip
 group counts once) and restores focus when it turns off. It handles Tab only: wire Escape to
 close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It waits for
 hydration, so it also finds a container that only appears after hydration, as portaled content
-does. Content the container renders through a portal is outside the trap, so render nested
-overlays inside the container. The example below shows the hook's wiring; for a real filter
-panel opened from a button, use `Popover`, which does all of this.
+does. The example below shows the hook's wiring; for a real filter panel opened from a button,
+use `Popover`, which does all of this.
 
 ```tsx
 function FilterPanel({ children }: { children: React.ReactNode }) {

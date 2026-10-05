@@ -24,15 +24,24 @@ export interface TextAreaBaseProps
     | 'white';
   /** Size modifier for the textarea. */
   size?: 'small' | 'medium' | 'large';
-  /** Rounded textarea corners. */
+  /**
+   * Adds the `is-rounded` class to the `<textarea>`. Bulma styles it on `.input` only, so the
+   * textarea's corners don't change.
+   */
   isRounded?: boolean;
-  /** Renders textarea as static (styled readonly). */
+  /**
+   * Adds the `is-static` class to the `<textarea>`. Bulma styles it on `.input` only, so the
+   * textarea keeps its border, background and padding.
+   */
   isStatic?: boolean;
   /** Applies hovered state. */
   isHovered?: boolean;
   /** Applies focused state. */
   isFocused?: boolean;
-  /** Shows loading indicator on the wrapping Control. */
+  /**
+   * Accepted and ignored: `TextAreaBase` renders no loading state. The spinner belongs to the
+   * wrapping `Control`, so set `isLoading` on that `Control`.
+   */
   isLoading?: boolean;
   /** Applies Bulma's is-active modifier. */
   isActive?: boolean;

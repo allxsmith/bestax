@@ -47,6 +47,19 @@ export interface UseAnchoredPositionOptions {
 }
 
 /**
+ * A `styledGap` for a panel whose stylesheet puts the gap in a margin on the
+ * side facing the anchor, negative on a portaled panel above it, so the
+ * larger magnitude is the gap. In pixels.
+ */
+export function marginGap(panel: HTMLElement): number {
+  const { marginTop, marginBottom } = getComputedStyle(panel);
+  return Math.max(
+    Math.abs(parseFloat(marginTop)) || 0,
+    Math.abs(parseFloat(marginBottom)) || 0
+  );
+}
+
+/**
  * The corner that keeps a panel of this size in the viewport, preferring
  * below the anchor and lined up with its left edge.
  */

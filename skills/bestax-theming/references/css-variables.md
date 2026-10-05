@@ -445,6 +445,13 @@ Under the hood this is Bulma 1.x's own mechanism — `[data-theme="dark"]` / `.t
 (plus the `prefers-color-scheme` media query). Setting the attribute by hand still works
 (`document.documentElement.setAttribute('data-theme', 'dark')`); `colorMode` just does it for you.
 
+A prefixed flavor names the attribute after its prefix: `bestax-prefixed.css` and
+`bestax-no-helpers-prefixed.css` read `data-bestax-theme` (and `.bestax-theme-dark`), never
+`data-theme`. Under `<ConfigProvider classPrefix="bestax-">`, `colorMode` writes both attributes,
+so it works with those flavors. Setting it by hand there means setting `data-bestax-theme`, and
+custom dark-mode CSS keyed off `[data-theme='dark']` still matches, because `colorMode` writes
+`data-theme` too.
+
 Under dark mode Bulma flips the scheme/text/border/background lightness variables (e.g.
 `--bulma-scheme-main-l` 100% → 9%, `--bulma-text-l` 29% → 71%). Your brand color overrides from
 `Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness

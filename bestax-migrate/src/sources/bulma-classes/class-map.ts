@@ -50,7 +50,7 @@ export interface Modifier {
  * - `mapped`: converts to `target`.
  * - `todo`: bestax has a component, but the markup does not map element by
  *   element yet; the family's outermost class gets a TODO.
- * - `plain`: valid Bulma with nothing to convert to; left alone, no TODO.
+ * - `plain`: valid Bulma, left alone with no TODO.
  * - `fold`: a wrapper the `target` renders itself from a prop, so the element
  *   folds into the one `target` inside it (`.table-container` into
  *   `Table isResponsive`).
@@ -2159,12 +2159,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     },
   },
 
-  // ---- Valid Bulma, nothing to convert to --------------------------------------
-  // The other sources emit these on purpose where bestax has no component.
+  // ---- Valid Bulma, left as markup ---------------------------------------------
+  // The other sources emit these on purpose.
   help: plain('bestax renders `.help` only inside its form controls'),
   'panel-list': plain('nothing in bestax renders `.panel-list`'),
   label: plain('bestax renders `.label` only inside its form controls'),
-  loader: plain("bestax `Loading` is an overlay, not Bulma's inline spinner"),
+  loader: plain(
+    "bestax's `Loader` draws the same ring; swap it in by hand for its progressbar role and accessible name"
+  ),
   'hero-buttons': plain(
     'a layout class inside `.hero`; bestax has no part for it'
   ),

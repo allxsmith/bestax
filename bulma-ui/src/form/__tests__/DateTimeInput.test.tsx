@@ -254,6 +254,70 @@ describe('DateTimeInput', () => {
     expect(handler).toHaveBeenLastCalledWith(null);
   });
 
+  it('native input pads a year below 1000 to four digits', () => {
+    const early = new Date(2024, 2, 4, 14, 30);
+    early.setFullYear(19);
+    const min = new Date(2024, 0, 1, 9, 0);
+    min.setFullYear(19);
+    const { container } = render(
+      <DateTimeInput mobileNative={true} defaultValue={early} min={min} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    // Unpadded, `19-03-04T14:30` is not a valid value and the input shows
+    // nothing.
+    expect(native.value).toBe('0019-03-04T14:30');
+    expect(native.min).toBe('0019-01-01T09:00');
+  });
+
+  it('native input reads a year below 100 back as given', () => {
+    const handler = jest.fn();
+    const { container } = render(
+      <DateTimeInput mobileNative={true} enableSeconds onChange={handler} />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    fireEvent.change(native, { target: { value: '0019-03-04T14:30:55' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+      committed.getHours(),
+      committed.getMinutes(),
+      committed.getSeconds(),
+      committed.getMilliseconds(),
+    ]).toEqual([19, 2, 4, 14, 30, 55, 0]);
+  });
+
+  it('native input round-trips a year past 9999', () => {
+    const handler = jest.fn();
+    const late = new Date(2024, 0, 1, 9, 0);
+    late.setFullYear(10000);
+    const { container } = render(
+      <DateTimeInput
+        mobileNative={true}
+        defaultValue={late}
+        onChange={handler}
+      />
+    );
+    const native = container.querySelector(
+      'input[type="datetime-local"]'
+    ) as HTMLInputElement;
+    expect(native.value).toBe('10000-01-01T09:00');
+    fireEvent.change(native, { target: { value: '10000-03-04T14:30' } });
+    const committed = handler.mock.calls[0][0] as Date;
+    expect([
+      committed.getFullYear(),
+      committed.getMonth(),
+      committed.getDate(),
+      committed.getHours(),
+      committed.getMinutes(),
+    ]).toEqual([10000, 2, 4, 14, 30]);
+  });
+
   it('native input round-trips seconds when enableSeconds', () => {
     const handler = jest.fn();
     const { container } = render(
@@ -1169,6 +1233,46 @@ describe('DateTimeInput label association (#368)', () => {
   });
 });
 
+describe('DateTimeInput focus inside the popover', () => {
+  const v = new Date(2024, 5, 7, 10, 0);
+
+  it('keeps focus on a time wheel the keyboard edits', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} onChange={handler} />
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    const wheel = getAllByRole('spinbutton')[0];
+    act(() => wheel.focus());
+    act(() => {
+      fireEvent.keyDown(wheel, { key: 'ArrowDown' });
+    });
+    expect(handler).toHaveBeenCalled();
+    expect(wheel).toHaveFocus();
+  });
+
+  it('still moves focus into the popover each time it opens', () => {
+    const { getByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} openOnFocus={false} />
+    );
+    const launcher = getByRole('button', { name: 'Choose date and time' });
+    for (let i = 0; i < 2; i++) {
+      act(() => {
+        fireEvent.click(launcher);
+      });
+      const dialog = getByRole('dialog');
+      expect(dialog.contains(document.activeElement)).toBe(true);
+      act(() => {
+        fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+      });
+      expect(queryByRole('dialog')).toBeNull();
+    }
+  });
+});
+
 describe('DateTimeInput focus handed back on close', () => {
   // The calendar focuses a cell as the popover opens. Closing must return
   // focus to the input, and under openOnFocus (the default) that focus must
@@ -1395,5 +1499,80 @@ describe('DateTimeInput focus handed back on close', () => {
         new Date(2025, 5, 15, 9, 30, 45)
       );
     });
+  });
+});
+
+describe('DateTimeInput onOpen and onClose', () => {
+  const v = new Date(2024, 5, 15, 9, 30);
+  const pressEscape = (on: Element) =>
+    act(() => {
+      fireEvent.keyDown(on, { key: 'Escape' });
+    });
+
+  it('fire once per open and close under StrictMode', () => {
+    const onOpen = jest.fn();
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <React.StrictMode>
+        <DateTimeInput defaultValue={v} onOpen={onOpen} onClose={onClose} />
+      </React.StrictMode>
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onOpen).toHaveBeenCalledTimes(1);
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('still opens after an onClose that focuses the input', () => {
+    // Under openOnFocus that focus asks to open from inside onClose, before
+    // the close has rendered, and the later request wins.
+    const Picker = () => {
+      const inputRef = React.useRef<HTMLInputElement>(null);
+      const refocusedRef = React.useRef(false);
+      return (
+        <DateTimeInput
+          ref={inputRef}
+          defaultValue={v}
+          onClose={() => {
+            if (refocusedRef.current) return;
+            refocusedRef.current = true;
+            inputRef.current?.focus();
+          }}
+        />
+      );
+    };
+    const { getByRole, queryByRole } = render(<Picker />);
+    const input = getByRole('combobox');
+    act(() => {
+      input.focus();
+    });
+    pressEscape(document.activeElement!);
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(document.activeElement!);
+    expect(queryByRole('dialog')).toBeNull();
+    fireEvent.click(input);
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('fires onClose once when the input and the popover both take Escape', () => {
+    const onClose = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} onClose={onClose} openOnFocus={false} />
+    );
+    const input = getByRole('combobox');
+    act(() => {
+      fireEvent.click(getByRole('button', { name: 'Choose date and time' }));
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    pressEscape(input);
+    expect(queryByRole('dialog')).toBeNull();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
