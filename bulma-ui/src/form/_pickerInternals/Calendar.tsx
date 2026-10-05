@@ -505,13 +505,13 @@ export const Calendar: React.FC<CalendarProps> = ({
   // The year list's one tab stop, after the month grid's: when the focused
   // year is disabled the stop moves to the nearest enabled year in the list,
   // and focusing it makes it the focused year. As the selection surface a
-  // year outside the list starts from the end it fell past, so the list
-  // keeps a stop. As navigation the stop marks the current year, so a year
-  // outside the list marks no option.
+  // year outside a non-empty list starts from the end it fell past, so the
+  // list keeps a stop. As navigation the stop marks the current year, so a
+  // year outside the list marks no option.
   const tabStopYear = useMemo(() => {
     let i = yearList.indexOf(focusedYear);
     if (i < 0) {
-      if (!isYearGranularity) return focusedYear;
+      if (!isYearGranularity || yearList.length === 0) return focusedYear;
       i = focusedYear < yearList[0] ? 0 : yearList.length - 1;
     }
     return yearList[
