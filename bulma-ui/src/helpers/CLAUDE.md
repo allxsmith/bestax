@@ -10,7 +10,7 @@ Three things live here:
   `bestax-prefixed` CSS flavor; all class emission must respect it — tests assert prefixed
   output) and the default icon library (`useIconLibrary`).
 - **`Theme`** — CSS-variable theming (`--bulma-*` overrides) and `colorMode`
-  (light/dark/system via `data-theme`).
+  (light/dark/system via `data-theme`, plus `data-<prefix>theme` under a class prefix).
 
 **Changing a helper prop ripples everywhere.** A new or renamed helper prop must update: the
 concern hook + `useBulmaClasses` types, tests, the helpers docs (`docs/docs/api/helpers/`,

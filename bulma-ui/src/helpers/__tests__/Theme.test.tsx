@@ -1,5 +1,5 @@
 import { StrictMode, useState } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Theme, ThemeProps } from '../Theme';
 import { ConfigProvider } from '../Config';
@@ -1136,7 +1136,109 @@ describe('Theme', () => {
 
   describe('colorMode', () => {
     afterEach(() => {
+      // Unmount first: a Theme restores the attributes it found when it
+      // unmounts, and the automatic cleanup runs after this hook.
+      cleanup();
       document.documentElement.removeAttribute('data-theme');
+      document.documentElement.removeAttribute('data-bestax-theme');
+    });
+
+    /** Every theme attribute on the document root, as `name=value`. */
+    const themeAttributes = () =>
+      Array.from(document.documentElement.attributes)
+        .filter(attr => attr.name.endsWith('theme'))
+        .map(attr => `${attr.name}=${attr.value}`)
+        .sort();
+
+    it('writes only data-theme when no class prefix is configured', () => {
+      render(
+        <Theme colorMode="dark">
+          <div>Test</div>
+        </Theme>
+      );
+      expect(themeAttributes()).toEqual(['data-theme=dark']);
+    });
+
+    it.each(['light', 'dark'] as const)(
+      'writes the prefixed attribute as well under a class prefix (%s)',
+      colorMode => {
+        render(
+          <ConfigProvider classPrefix="bestax-">
+            <Theme colorMode={colorMode}>
+              <div>Test</div>
+            </Theme>
+          </ConfigProvider>
+        );
+        expect(themeAttributes()).toEqual([
+          `data-bestax-theme=${colorMode}`,
+          `data-theme=${colorMode}`,
+        ]);
+      }
+    );
+
+    it('writes the prefixed attribute from a root Theme too', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Theme isRoot colorMode="dark">
+            <div>Test</div>
+          </Theme>
+        </ConfigProvider>
+      );
+      expect(themeAttributes()).toEqual([
+        'data-bestax-theme=dark',
+        'data-theme=dark',
+      ]);
+    });
+
+    it('removes both attributes for "system" under a class prefix', () => {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      document.documentElement.setAttribute('data-bestax-theme', 'dark');
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Theme colorMode="system">
+            <div>Test</div>
+          </Theme>
+        </ConfigProvider>
+      );
+      expect(themeAttributes()).toEqual([]);
+    });
+
+    it('restores each attribute on unmount under a class prefix', () => {
+      document.documentElement.setAttribute('data-bestax-theme', 'light');
+      const { unmount } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Theme colorMode="dark">
+            <div>Test</div>
+          </Theme>
+        </ConfigProvider>
+      );
+      expect(themeAttributes()).toEqual([
+        'data-bestax-theme=dark',
+        'data-theme=dark',
+      ]);
+      unmount();
+      expect(themeAttributes()).toEqual(['data-bestax-theme=light']);
+    });
+
+    it('still writes data-theme when the prefix makes no valid attribute name', () => {
+      // A slash is fine in a class name and refused in an attribute name.
+      resetDevWarnings();
+      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { unmount } = render(
+        <ConfigProvider classPrefix="md/">
+          <Theme colorMode="dark">
+            <div>Test</div>
+          </Theme>
+        </ConfigProvider>
+      );
+      expect(themeAttributes()).toEqual(['data-theme=dark']);
+      // The prefixed sheet's scheme does not change, so say so rather than
+      // fail quietly.
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('data-md/theme');
+      unmount();
+      expect(themeAttributes()).toEqual([]);
+      warnSpy.mockRestore();
     });
 
     it('sets data-theme="dark" on the document root', () => {
