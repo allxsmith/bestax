@@ -79,10 +79,11 @@ export interface CalendarProps {
 
 /**
  * Selects the calendar's focused cell, the one tab stop of whichever grid or
- * year list is on show, for a popover to put focus on as it opens.
+ * year list is on show, for a popover to put focus on as it opens. It runs
+ * against the whole panel, so it matches only inside the grid or the list.
  */
 export const CALENDAR_FOCUSED_CELL =
-  '[data-focused="true"], [data-focused-year="true"]';
+  '[role="grid"] [data-focused="true"], [role="listbox"] [data-focused-year="true"]';
 
 type CalendarView = 'days' | 'months' | 'years';
 
