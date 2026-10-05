@@ -238,6 +238,27 @@ describe('DateInput', () => {
 
     // The focused cell is the grid's tab stop, which moves off a disabled
     // period to the nearest enabled one.
+    it('opens the day picker on the tab stop past a disabled day', () => {
+      const { getByRole } = render(
+        <DateInput
+          defaultValue={new Date(2024, 5, 15)}
+          shouldDisableDate={d => d.getDate() === 15}
+        />
+      );
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(getByRole('dialog').contains(day)).toBe(true);
+      expect(day).toHaveAttribute('role', 'gridcell');
+      expect(day).toHaveTextContent('16');
+      // Landing there made it the focused day, so the keys move on from it.
+      act(() => {
+        fireEvent.keyDown(day, { key: 'ArrowRight' });
+      });
+      expect(document.activeElement).toHaveTextContent('17');
+    });
+
     it('opens the month picker on the tab stop past a disabled month', () => {
       const { getByRole } = render(
         <DateInput
