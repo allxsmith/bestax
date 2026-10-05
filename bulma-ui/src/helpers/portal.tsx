@@ -73,7 +73,8 @@ export interface PortalProps {
  * Tab order and focus follow the DOM too. Content portaled from inside a
  * focus trap is no longer inside the trapped element, so the trap neither
  * reaches it nor holds focus there: render nested overlays inside the
- * trapped element, or give them a trap of their own.
+ * trapped element, or give them a trap of their own. To trap portaled
+ * content, put `useFocusTrap`'s ref on the element inside the `Portal`.
  *
  * @function
  * @param {PortalProps} props - Props for the Portal component.

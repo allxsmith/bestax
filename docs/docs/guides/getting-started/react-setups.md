@@ -851,6 +851,8 @@ bestax-bulma is designed to work seamlessly with SSR frameworks. Here are some i
 
 4. **Your Own Browser-Only Code**: wrap content that differs between server and browser (a time zone, a `localStorage` value) in [`ClientOnly`](../../api/helpers/clientonly.md). It renders a fallback until the page has hydrated, so the first client render still matches the server's.
 
+5. **Portals**: [`Portal`](../../api/helpers/portal.md) renders nothing on the server and during hydration, and mounts its children in the commit that follows, so there is no hydration mismatch to chase. Portaled content is missing from the server HTML, so keep anything a reader or a crawler needs on first load out of a portal, or render it in place with `disabled`.
+
 ### Next.js Specific
 
 ```tsx

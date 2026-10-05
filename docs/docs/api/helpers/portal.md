@@ -88,7 +88,7 @@ A selector is looked up again on each render, so the content follows the target 
 
 Positioning floating content next to its trigger is up to you; `Portal` only decides where it sits in the DOM.
 
-Focus follows the DOM too. Content portaled to the end of `document.body` is last in the Tab order, so interactive floating content should take focus when it opens and hand it back to its trigger when it closes. A focus trap doesn't cover what a `Portal` inside it renders, because that content is no longer inside the trapped element: render a nested overlay inside the trapped element, or trap it separately.
+Focus follows the DOM too. Content portaled to the end of `document.body` is last in the Tab order, so interactive floating content should take focus when it opens and hand it back to its trigger when it closes. A focus trap doesn't cover what a `Portal` inside it renders, because that content is no longer inside the trapped element: render a nested overlay inside the trapped element, or trap it separately. To trap portaled content, put the trap on the element inside the `Portal`, as the [useFocusTrap portal example](./usefocustrap.md#with-portals) does.
 
 ### Context and styles
 
