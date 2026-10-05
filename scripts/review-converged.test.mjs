@@ -25,6 +25,7 @@ import {
   MARKER,
   NO_FINDINGS_LINE,
   OWN_CHECK_NAME,
+  THREADS_QUERY,
   UsageError,
   checkProblems,
   convergenceProblems,
@@ -33,6 +34,7 @@ import {
   fetchThreads,
   forLog,
   isDeepReviewAuthor,
+  isDeepReviewResolver,
   labelNames,
   latestRuns,
   latestStatuses,
@@ -43,6 +45,7 @@ import {
   planAction,
   run,
   scopeOf,
+  threadFacts,
 } from './review-converged.mjs';
 import { yamlGet, yamlItems, yamlScalar } from './check-conformance.mjs';
 
@@ -83,7 +86,7 @@ function summary(body, overrides = {}) {
   };
 }
 
-const FRESH_CLEAN = `${MARKER}\n## Deep review — 0 blocking · 5 advisory\n\n| # |`;
+const FRESH_CLEAN = `${MARKER}\n## Deep review — 0 blocking · 0 advisory\n\n${NO_FINDINGS_LINE}`;
 const VERIFY_CLEAN = `${MARKER}\n\n## Deep review (verify) — 2 resolved · 0 open\n`;
 
 /** A clean fresh review on the head, posted before the summary() default. */
@@ -175,6 +178,13 @@ test('only the Claude app counts as the deep reviewer', () => {
   );
   assert.equal(isDeepReviewAuthor({ type: 'Bot' }), false);
   assert.equal(isDeepReviewAuthor(null), false);
+});
+
+test('only the Claude app counts as resolving a thread for the deep review', () => {
+  // GraphQL types resolvedBy as a User, so the app reads as one there.
+  assert.equal(isDeepReviewResolver({ login: 'claude[bot]' }), true);
+  for (const user of [{ login: 'claude' }, { login: 'allxsmith' }, {}, null])
+    assert.equal(isDeepReviewResolver(user), false, JSON.stringify(user));
 });
 
 test('newestSummary picks the newest marker review by the app', () => {
@@ -564,6 +574,14 @@ test('each condition on its own stops convergence', () => {
     [
       {
         reviews: [
+          summary(`${MARKER}\n## Deep review — 0 blocking · 1 advisory`),
+        ],
+      },
+      /reports 0 blocking and 1 advisory$/,
+    ],
+    [
+      {
+        reviews: [
           EARLIER,
           summary(`${MARKER}\n## Deep review (verify) — 0 resolved · 2 open`),
         ],
@@ -610,19 +628,121 @@ test('a newer summary that does not parse is not covered by an older one', () =>
 // The fresh review behind the head
 // ---------------------------------------------------------------------------
 
+/** A timestamp `minute` minutes after 11:00, to the second. */
+const stamp = minute => {
+  const seconds = Math.round(minute * 60);
+  const mm = String(Math.floor(seconds / 60)).padStart(2, '0');
+  const ss = String(seconds % 60).padStart(2, '0');
+  return `2026-10-03T11:${mm}:${ss}Z`;
+};
+
 /** A summary posted at the given minute, so the order is explicit. */
 const posted = (body, minute, overrides = {}) =>
-  summary(body, {
-    id: minute,
-    submitted_at: `2026-10-03T11:${String(minute).padStart(2, '0')}:00Z`,
-    ...overrides,
-  });
+  summary(body, { id: minute, submitted_at: stamp(minute), ...overrides });
 const freshWith = (blocking, advisory = 0) =>
   `${MARKER}\n## Deep review — ${blocking} blocking · ${advisory} advisory`;
 const verifyWith = (resolved, open) =>
   `${MARKER}\n## Deep review (verify) — ${resolved} resolved · ${open} open`;
 const problemsFor = reviews => convergenceProblems(converged({ reviews }));
+const problemsWith = (reviews, threads) =>
+  convergenceProblems(converged({ reviews, threads }));
 const NO_FRESH = 'no fresh deep review, and a verify pass reviews no code';
+const NOT_SETTLED = name =>
+  `${name} of the newest fresh review's threads were not settled by a verify pass`;
+
+/** The app as GraphQL names a comment's author. */
+const APP = { login: 'claude', __typename: 'Bot' };
+const HUMAN = { login: 'allxsmith', __typename: 'User' };
+
+/** A review comment node as THREADS_QUERY returns it. */
+const commentNode = (
+  minute,
+  { author = APP, openedOn, postedOn = openedOn }
+) => ({
+  createdAt: stamp(minute),
+  author,
+  originalCommit: { oid: openedOn },
+  pullRequestReview: { commit: { oid: postedOn } },
+});
+
+/**
+ * A thread node as THREADS_QUERY returns it, opened at minute `opened` on
+ * commit `on`. Each reply is [minute, the commit the head was on, author],
+ * by the app unless it names another author. Resolved by the app unless it
+ * says otherwise.
+ */
+function thread({
+  opened,
+  on,
+  replies = [],
+  resolved = true,
+  resolvedBy = 'claude[bot]',
+  author = APP,
+}) {
+  const first = commentNode(opened, { author, openedOn: on });
+  return {
+    isResolved: resolved,
+    resolvedBy: resolved ? { login: resolvedBy } : null,
+    opener: { nodes: [first] },
+    latest: {
+      nodes: [
+        first,
+        ...replies.map(([minute, postedOn, by = APP]) =>
+          commentNode(minute, { author: by, openedOn: on, postedOn })
+        ),
+      ],
+    },
+  };
+}
+
+test('threadFacts reads a thread node, and a missing field matches nothing', () => {
+  const opener = {
+    at: Date.parse('2026-10-03T11:00:30Z'),
+    author: { login: 'claude', type: 'Bot' },
+    openedOn: OLD,
+    postedOn: OLD,
+  };
+  assert.deepEqual(
+    threadFacts(thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]] })),
+    {
+      resolved: true,
+      resolver: { login: 'claude[bot]' },
+      opener,
+      latest: [
+        opener,
+        { ...opener, at: Date.parse('2026-10-03T11:01:30Z'), postedOn: HEAD },
+      ],
+    }
+  );
+  const bare = threadFacts({
+    opener: { nodes: [{}] },
+    latest: { nodes: [null] },
+  });
+  assert.equal(bare.resolved, false);
+  assert.ok(Number.isNaN(bare.opener.at));
+  assert.equal(isDeepReviewAuthor(bare.opener.author), false);
+  assert.equal(bare.latest[0].postedOn, undefined);
+  assert.deepEqual(threadFacts(null), {
+    resolved: false,
+    resolver: undefined,
+    opener: null,
+    latest: [],
+  });
+});
+
+test('the threads query asks for every field threadFacts reads', () => {
+  for (const field of [
+    'isResolved',
+    'resolvedBy { login }',
+    'opener: comments(first: 1)',
+    'latest: comments(last:',
+    'createdAt',
+    'author { login __typename }',
+    'originalCommit { oid }',
+    'pullRequestReview { commit { oid } }',
+  ])
+    assert.ok(THREADS_QUERY.includes(field), field);
+});
 
 test('a verify pass alone does not converge', () => {
   assert.deepEqual(problemsFor([posted(verifyWith(0, 0), 1)]), [NO_FRESH]);
@@ -638,7 +758,7 @@ test('a verify pass alone does not converge', () => {
 
 test('a clean fresh review then a verify pass on the same head converges', () => {
   assert.deepEqual(
-    problemsFor([posted(freshWith(0, 3), 1), posted(verifyWith(0, 0), 2)]),
+    problemsFor([posted(freshWith(0), 1), posted(verifyWith(0, 0), 2)]),
     []
   );
 });
@@ -658,80 +778,326 @@ test('commits pushed after a clean fresh review need another fresh review', () =
   );
 });
 
-test('blocking findings converge once verify passes resolve them and every thread is resolved', () => {
-  // The fixes moved the head, and the verify pass on the new head resolved
-  // both findings.
-  const fresh = posted(freshWith(2, 1), 1, { commit_id: OLD });
-  assert.deepEqual(problemsFor([fresh, posted(verifyWith(2, 0), 2)]), []);
-  // Resolved across more than one pass counts the same.
+test('blocking findings converge once verify passes settle their threads and every thread is resolved', () => {
+  // The fixes moved the head, and the verify pass on the new head settled
+  // both threads.
+  const fresh = posted(freshWith(2), 1, { commit_id: OLD });
+  const settled = [
+    thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]] }),
+    thread({ opened: 0.6, on: OLD, replies: [[1.6, HEAD]] }),
+  ];
   assert.deepEqual(
-    problemsFor([
-      fresh,
-      posted(verifyWith(1, 1), 2, { commit_id: OLD }),
-      posted(verifyWith(1, 0), 3),
-    ]),
+    problemsWith([fresh, posted(verifyWith(2, 0), 2)], settled),
+    []
+  );
+  // Settled across more than one pass counts the same. The first thread's
+  // earlier reply said what was still wrong, and the API may list replies in
+  // any order.
+  assert.deepEqual(
+    problemsWith(
+      [
+        fresh,
+        posted(verifyWith(1, 1), 2, { commit_id: OLD }),
+        posted(verifyWith(1, 0), 3),
+      ],
+      [
+        thread({
+          opened: 0.5,
+          on: OLD,
+          replies: [
+            [2.5, HEAD],
+            [1.5, OLD],
+          ],
+        }),
+        thread({ opened: 0.6, on: OLD, replies: [[1.6, OLD]] }),
+      ]
+    ),
     []
   );
   // An open thread holds it back whatever the summaries say.
   assert.deepEqual(
-    convergenceProblems(
-      converged({
-        reviews: [fresh, posted(verifyWith(2, 0), 2)],
-        threads: [{ isResolved: true }, { isResolved: false }],
-      })
+    problemsWith(
+      [fresh, posted(verifyWith(2, 0), 2)],
+      [settled[0], thread({ opened: 0.6, on: OLD, resolved: false })]
     ),
     ['1 unresolved review thread(s)']
   );
-  // Fewer resolved than the fresh review counted leaves a finding no thread
+  // Fewer threads than the fresh review counted leaves a finding no thread
   // carries, and no verify pass can see that one.
-  for (const resolved of [0, 1]) {
-    assert.deepEqual(problemsFor([fresh, posted(verifyWith(resolved, 0), 2)]), [
-      'the newest fresh review reports 2 blocking and the verify passes ' +
-        `since resolved ${resolved}`,
-    ]);
+  for (const opened of [0, 1]) {
+    assert.deepEqual(
+      problemsWith(
+        [fresh, posted(verifyWith(2, 0), 2)],
+        settled.slice(0, opened)
+      ),
+      [
+        'the newest fresh review reports 2 blocking and 0 advisory but ' +
+          `opened ${opened} thread(s)`,
+      ]
+    );
   }
 });
 
-test('the verify pass that resolves the last finding must be on the head', () => {
+test('the verify pass that settled the last thread must be on the head', () => {
   const fresh = posted(freshWith(2), 1, { commit_id: OLD });
-  // Resolved at MID, then an unrelated push to the head and a verify pass
+  const settledOn = (commit, minutes) =>
+    minutes.map((minute, i) =>
+      thread({ opened: 0.5 + i / 10, on: OLD, replies: [[minute, commit]] })
+    );
+  // Settled at MID, then an unrelated push to the head and a verify pass
   // there that touched nothing. No review has read the head.
   assert.deepEqual(
-    problemsFor([
-      fresh,
-      posted(verifyWith(2, 0), 2, { commit_id: MID }),
-      posted(verifyWith(0, 0), 3),
-    ]),
+    problemsWith(
+      [
+        fresh,
+        posted(verifyWith(2, 0), 2, { commit_id: MID }),
+        posted(verifyWith(0, 0), 3),
+      ],
+      settledOn(MID, [1.5, 1.6])
+    ),
     [
       "the verify pass that resolved the last of the newest fresh review's " +
         'findings is for ccccccc, and no fresh review covers the commits since',
     ]
   );
-  // The same, with the last finding resolved on the head before a later
+  // The same, with the last thread settled on the head before a later
   // verify pass on the same head.
   assert.deepEqual(
-    problemsFor([
-      fresh,
-      posted(verifyWith(1, 1), 2, { commit_id: MID }),
-      posted(verifyWith(1, 0), 3),
-      posted(verifyWith(0, 0), 4),
-    ]),
+    problemsWith(
+      [
+        fresh,
+        posted(verifyWith(1, 1), 2, { commit_id: MID }),
+        posted(verifyWith(1, 0), 3),
+        posted(verifyWith(0, 0), 4),
+      ],
+      [
+        ...settledOn(MID, [1.5]),
+        thread({ opened: 0.7, on: OLD, replies: [[2.5, HEAD]] }),
+      ]
+    ),
     []
   );
-  // When the completing pass is the newest summary, condition 1 reports its
-  // commit once.
+  // When that pass is the newest summary, condition 1 reports its commit
+  // once.
   assert.deepEqual(
     convergenceProblems(
       converged({
         pr: pr({ head: { sha: 'd'.repeat(40), repo: { full_name: REPO } } }),
         reviews: [fresh, posted(verifyWith(2, 0), 2, { commit_id: MID })],
+        threads: settledOn(MID, [1.5, 1.6]),
       })
     ),
     ['the newest summary is for ccccccc, not the head ddddddd']
   );
 });
 
-test('the newest fresh review decides, and only verify passes after it count', () => {
+test('an older thread a verify pass resolves does not stand in for one the newest fresh review never opened', () => {
+  // Copilot's case on #898. The first fresh review's thread was still open
+  // when a fresh review re-ran, found one blocking and one advisory, and
+  // opened a thread for the blocking one only. The verify pass after it
+  // resolved both open threads, so its count of 2 resolved equals the
+  // findings.
+  const reviews = [
+    posted(freshWith(1), 1, { commit_id: OLD }),
+    posted(freshWith(1, 1), 3, { commit_id: OLD }),
+    posted(verifyWith(2, 0), 4),
+  ];
+  const threads = [
+    thread({ opened: 0.5, on: OLD, replies: [[3.5, HEAD]] }),
+    thread({ opened: 2.5, on: OLD, replies: [[3.6, HEAD]] }),
+  ];
+  assert.deepEqual(problemsWith(reviews, threads), [
+    'the newest fresh review reports 1 blocking and 1 advisory but opened ' +
+      '1 thread(s)',
+  ]);
+  // With a thread for the advisory too, the same PR converges.
+  assert.deepEqual(
+    problemsWith(reviews, [
+      ...threads,
+      thread({ opened: 2.6, on: OLD, replies: [[3.7, HEAD]] }),
+    ]),
+    []
+  );
+});
+
+test('a fresh review owns only the threads the app opened on its commit since the summary before it', () => {
+  const reviews = [
+    posted(freshWith(0), 1, { commit_id: OLD }),
+    posted(freshWith(1), 3, { commit_id: OLD }),
+    posted(verifyWith(1, 0), 4),
+  ];
+  const settled = { replies: [[3.5, HEAD]] };
+  const others = [
+    // Before the summary before it.
+    thread({ ...settled, opened: 0.5, on: OLD }),
+    // On another commit, as a run cancelled before its summary leaves one.
+    thread({ ...settled, opened: 2.5, on: MID }),
+    // After its own summary.
+    thread({ ...settled, opened: 3.2, on: OLD }),
+    // Opened by someone other than the app.
+    thread({ ...settled, opened: 2.5, on: OLD, author: HUMAN }),
+    thread({
+      ...settled,
+      opened: 2.5,
+      on: OLD,
+      author: { login: 'claude', __typename: 'User' },
+    }),
+  ];
+  assert.deepEqual(problemsWith(reviews, others), [
+    'the newest fresh review reports 1 blocking and 0 advisory but opened ' +
+      '0 thread(s)',
+  ]);
+  // A thread opened in the same second as its summary is its own.
+  assert.deepEqual(
+    problemsWith(reviews, [thread({ ...settled, opened: 3, on: OLD })]),
+    []
+  );
+});
+
+test('a thread is settled only when the app resolved it after replying to it in a verify pass', () => {
+  const reviews = [
+    posted(freshWith(1), 1, { commit_id: OLD }),
+    posted(verifyWith(1, 0), 2),
+  ];
+  // Resolved by hand. `claude` without the suffix is an ordinary account.
+  for (const resolvedBy of ['allxsmith', 'claude'])
+    assert.deepEqual(
+      problemsWith(reviews, [
+        thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]], resolvedBy }),
+      ]),
+      [NOT_SETTLED(1)]
+    );
+  // Resolved by the app with no reply of its own after the fresh review.
+  assert.deepEqual(
+    problemsWith(reviews, [
+      thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD, HUMAN]] }),
+    ]),
+    [NOT_SETTLED(1)]
+  );
+});
+
+test('a reply from a run that posted no summary is judged by the commit it was posted on', () => {
+  const fresh = posted(freshWith(1), 1, { commit_id: OLD });
+  // A verify pass settled the thread on MID and stopped before its summary.
+  // Then a push, and a verify pass on the head that touched nothing.
+  assert.deepEqual(
+    problemsWith(
+      [fresh, posted(verifyWith(0, 0), 3)],
+      [thread({ opened: 0.5, on: OLD, replies: [[1.5, MID]] })]
+    ),
+    [
+      "the reply that settled the newest fresh review's last thread was " +
+        'posted on ccccccc, not on aaaaaaa where its verify pass is pinned',
+    ]
+  );
+  // With no push in between, the next pass on the same commit stands for it.
+  assert.deepEqual(
+    problemsWith(
+      [fresh, posted(verifyWith(0, 0), 3)],
+      [thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]] })]
+    ),
+    []
+  );
+  // With no summary after it at all, nothing stands for it.
+  assert.deepEqual(
+    problemsWith(
+      [fresh, posted(verifyWith(0, 1), 2)],
+      [thread({ opened: 0.5, on: OLD, replies: [[2.5, HEAD]] })]
+    ),
+    [
+      'the newest summary leaves 1 open',
+      "the reply that settled the newest fresh review's last thread has no " +
+        'summary after it',
+    ]
+  );
+  // When the summary after it does not parse, condition 1 says so.
+  assert.deepEqual(
+    problemsWith(
+      [fresh, posted(`${MARKER}\nsomething`, 2)],
+      [thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]] })]
+    ),
+    ['the newest summary did not parse: its heading matches neither shape']
+  );
+});
+
+test('an open advisory thread holds convergence back, and a settled one does not', () => {
+  // The review posts advisories as threads too. The fix moved the head, and
+  // the verify pass there settled the one finding.
+  const reviews = [
+    posted(freshWith(0, 1), 1, { commit_id: OLD }),
+    posted(verifyWith(1, 0), 2),
+  ];
+  assert.deepEqual(
+    problemsWith(reviews, [thread({ opened: 0.5, on: OLD, resolved: false })]),
+    ['1 unresolved review thread(s)']
+  );
+  assert.deepEqual(
+    problemsWith(reviews, [
+      thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]] }),
+    ]),
+    []
+  );
+  // A fresh review on the head with no blocking findings is not clean while
+  // its advisory thread is open.
+  assert.deepEqual(
+    problemsWith(
+      [posted(freshWith(0, 1), 1)],
+      [thread({ opened: 0.5, on: HEAD, resolved: false })]
+    ),
+    [
+      'the newest summary reports 0 blocking and 1 advisory',
+      '1 unresolved review thread(s)',
+    ]
+  );
+});
+
+test('advisories count toward the threads the newest fresh review must open and settle', () => {
+  // Resolved by hand, with no verify pass after the fresh review.
+  assert.deepEqual(problemsFor([posted(freshWith(0, 2), 1)]), [
+    'the newest summary reports 0 blocking and 2 advisory',
+  ]);
+  const fresh = posted(freshWith(0, 2), 1, { commit_id: OLD });
+  const one = thread({ opened: 0.5, on: OLD, replies: [[1.5, HEAD]] });
+  const two = thread({ opened: 0.6, on: OLD, replies: [[1.6, HEAD]] });
+  assert.deepEqual(problemsWith([fresh, posted(verifyWith(1, 0), 2)], [one]), [
+    'the newest fresh review reports 0 blocking and 2 advisory but opened ' +
+      '1 thread(s)',
+  ]);
+  // A push that fixes an advisory is covered by the verify pass that settles
+  // the last thread on the head, as it is for a blocking finding.
+  assert.deepEqual(
+    problemsWith([fresh, posted(verifyWith(2, 0), 2)], [one, two]),
+    []
+  );
+  // The first pass settled two of three on MID before a push, and the pass
+  // on the head settled the third.
+  const mixed = posted(freshWith(2, 1), 1, { commit_id: OLD });
+  assert.deepEqual(
+    problemsWith(
+      [
+        mixed,
+        posted(verifyWith(2, 1), 2, { commit_id: MID }),
+        posted(verifyWith(1, 0), 3),
+      ],
+      [
+        thread({ opened: 0.5, on: OLD, replies: [[1.5, MID]] }),
+        thread({ opened: 0.6, on: OLD, replies: [[1.6, MID]] }),
+        thread({ opened: 0.7, on: OLD, replies: [[2.5, HEAD]] }),
+      ]
+    ),
+    []
+  );
+  // An advisory that never became a thread.
+  assert.deepEqual(
+    problemsWith([mixed, posted(verifyWith(2, 0), 2)], [one, two]),
+    [
+      'the newest fresh review reports 2 blocking and 1 advisory but opened ' +
+        '2 thread(s)',
+    ]
+  );
+});
+
+test('the newest fresh review decides, and only the threads it opened count', () => {
   assert.deepEqual(
     problemsFor([
       posted(freshWith(0), 1),
@@ -739,20 +1105,25 @@ test('the newest fresh review decides, and only verify passes after it count', (
       posted(verifyWith(0, 0), 3),
     ]),
     [
-      'the newest fresh review reports 1 blocking and the verify passes ' +
-        'since resolved 0',
+      'the newest fresh review reports 1 blocking and 0 advisory but opened ' +
+        '0 thread(s)',
     ]
   );
+  // The first fresh review's thread, settled before the second ran, is not
+  // the second's.
   assert.deepEqual(
-    problemsFor([
-      posted(freshWith(1), 1),
-      posted(verifyWith(1, 0), 2),
-      posted(freshWith(1), 3),
-      posted(verifyWith(0, 0), 4),
-    ]),
+    problemsWith(
+      [
+        posted(freshWith(1), 1),
+        posted(verifyWith(1, 0), 2),
+        posted(freshWith(1), 3),
+        posted(verifyWith(0, 0), 4),
+      ],
+      [thread({ opened: 0.5, on: HEAD, replies: [[1.5, HEAD]] })]
+    ),
     [
-      'the newest fresh review reports 1 blocking and the verify passes ' +
-        'since resolved 0',
+      'the newest fresh review reports 1 blocking and 0 advisory but opened ' +
+        '0 thread(s)',
     ]
   );
 });
@@ -774,8 +1145,8 @@ test('a fresh summary from anyone but the app is ignored', () => {
       posted(verifyWith(0, 0), 3),
     ]),
     [
-      'the newest fresh review reports 2 blocking and the verify passes ' +
-        'since resolved 0',
+      'the newest fresh review reports 2 blocking and 0 advisory but opened ' +
+        '0 thread(s)',
     ]
   );
 });
@@ -789,13 +1160,19 @@ test('a summary that does not parse after the newest fresh review fails closed',
     ]),
     ['a summary after the newest fresh review did not parse']
   );
-  // The same when the fresh review had findings that a later pass resolved.
+  // The same when the fresh review had findings that a later pass settled.
   assert.deepEqual(
-    problemsFor([
-      posted(freshWith(2), 1, { commit_id: OLD }),
-      posted(`${MARKER}\n## Deep review — lots`, 2),
-      posted(verifyWith(2, 0), 3),
-    ]),
+    problemsWith(
+      [
+        posted(freshWith(2), 1, { commit_id: OLD }),
+        posted(`${MARKER}\n## Deep review — lots`, 2),
+        posted(verifyWith(2, 0), 3),
+      ],
+      [
+        thread({ opened: 0.5, on: OLD, replies: [[2.5, HEAD]] }),
+        thread({ opened: 0.6, on: OLD, replies: [[2.6, HEAD]] }),
+      ]
+    ),
     ['a summary after the newest fresh review did not parse']
   );
 });
