@@ -1295,20 +1295,22 @@ describe('useFocusTrap', () => {
   // The docs pair the two this way: the trap's ref goes on the element inside
   // the Portal, which renders into a container after the trigger.
   describe('with Portal', () => {
-    const PortaledTrap: React.FC<{ initialOpen?: boolean }> = ({
-      initialOpen = false,
-    }) => {
+    const PortaledTrap: React.FC<{
+      initialOpen?: boolean;
+      trapDeclaredIn?: boolean;
+    }> = ({ initialOpen = false, trapDeclaredIn = false }) => {
       const [open, setOpen] = useState(initialOpen);
       const [target, setTarget] = useState<HTMLElement | null>(null);
       const buttonRef = useRef<HTMLButtonElement>(null);
+      const declaredInRef = useRef<HTMLDivElement>(null);
       const panelRef = useRef<HTMLDivElement>(null);
-      useFocusTrap(panelRef, {
+      useFocusTrap(trapDeclaredIn ? declaredInRef : panelRef, {
         active: open && target !== null,
         restoreFocus: buttonRef,
       });
       return (
         <>
-          <div data-testid="declared-in">
+          <div ref={declaredInRef} data-testid="declared-in">
             <button ref={buttonRef} onClick={() => setOpen(o => !o)}>
               Share
             </button>
@@ -1358,6 +1360,22 @@ describe('useFocusTrap', () => {
       expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus();
       expect(pressTab(true).defaultPrevented).toBe(true);
       expect(button('Cancel')).toHaveFocus();
+    });
+
+    // The other way round: a trap on the element the Portal is declared in
+    // neither reaches nor holds what the Portal renders elsewhere.
+    it('does not cover what a Portal inside the trapped element renders', () => {
+      render(<PortaledTrap initialOpen trapDeclaredIn />);
+      const share = button('Share');
+      expect(share).toHaveFocus();
+      // Share is the trap's only stop, so Tab wraps to it rather than
+      // moving on into the panel.
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(share).toHaveFocus();
+
+      // Cancel is the panel's last stop, and Tab from it is left alone.
+      act(() => button('Cancel').focus());
+      expect(pressTab().defaultPrevented).toBe(false);
     });
   });
 });

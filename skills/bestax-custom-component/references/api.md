@@ -149,9 +149,8 @@ browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are skip
 group counts once) and restores focus when it turns off. It handles Tab only: wire Escape to
 close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It waits for
 hydration, so it also finds a container that only appears after hydration, as portaled content
-does. Content the container renders through a portal is outside the trap, so render nested
-overlays inside the container. The example below shows the hook's wiring; for a real filter
-panel opened from a button, use `Popover`, which does all of this.
+does. The example below shows the hook's wiring; for a real filter panel opened from a button,
+use `Popover`, which does all of this.
 
 ```tsx
 function FilterPanel({ children }: { children: React.ReactNode }) {
