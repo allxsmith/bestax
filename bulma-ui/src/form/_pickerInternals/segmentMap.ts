@@ -12,7 +12,7 @@
  * the caller to fall back to free-form text entry.
  */
 
-import { addYears } from './dateUtils';
+import { addYears, makeDate } from './dateUtils';
 
 export type SegmentKind =
   | 'year'
@@ -152,9 +152,12 @@ const wrap = (n: number, max: number): number => ((n % max) + max) % max;
 const clamp = (n: number, min: number, max: number): number =>
   Math.max(min, Math.min(max, n));
 
-/** Number of days in the month of `d` (handles leap Februarys). */
+/**
+ * Number of days in the month of `d` (handles leap Februarys). Built on
+ * `makeDate`, so a year below 100 keeps its own leap rule.
+ */
 const daysInMonth = (d: Date): number =>
-  new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  makeDate(d.getFullYear(), d.getMonth() + 1, 0).getDate();
 
 /**
  * Returns a new Date with the given segment incremented (`delta` = +1 or -1).

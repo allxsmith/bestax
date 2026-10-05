@@ -308,8 +308,9 @@ describe('PickerPopover position resolution', () => {
     );
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-right/);
-    // Fixed-position math: top = anchor bottom + 4, left = anchor right − width.
-    expect(dialog.style.top).toBe('74px');
+    // Fixed-position math: top = anchor bottom, left = anchor right − width.
+    // The gap is the stylesheet's margin, not part of the coordinates.
+    expect(dialog.style.top).toBe('70px');
     expect(dialog.style.left).toBe('760px');
   });
 
@@ -322,8 +323,8 @@ describe('PickerPopover position resolution', () => {
     );
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-top-left/);
-    // top = anchor top − height − 4, left = anchor left.
-    expect(dialog.style.top).toBe('576px');
+    // top = anchor top − height, left = anchor left.
+    expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('50px');
   });
 
@@ -336,8 +337,8 @@ describe('PickerPopover position resolution', () => {
     );
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-top-right/);
-    // top = anchor top − height − 4, left = anchor right − width.
-    expect(dialog.style.top).toBe('576px');
+    // top = anchor top − height, left = anchor right − width.
+    expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('760px');
   });
 
@@ -350,8 +351,29 @@ describe('PickerPopover position resolution', () => {
     );
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-left/);
-    expect(dialog.style.top).toBe('74px');
+    expect(dialog.style.top).toBe('70px');
     expect(dialog.style.left).toBe('80px');
+  });
+
+  it('auto leaves room below for the gap the stylesheet puts on a portaled panel', () => {
+    setViewport(1000, 1000);
+    const result = render(<PositionedHarness />);
+    const dialog = result.getByRole('dialog');
+    // The margin `--bulma-picker-popover-offset: 20px` would give it.
+    dialog.style.marginTop = '20px';
+    jest
+      .spyOn(result.getByTestId('anchor'), 'getBoundingClientRect')
+      .mockReturnValue(
+        makeRect({ top: 670, bottom: 690, left: 50, right: 110 })
+      );
+    jest
+      .spyOn(dialog, 'getBoundingClientRect')
+      .mockReturnValue(makeRect({ top: 0, left: 0, right: 200, bottom: 300 }));
+    act(() => {
+      fireEvent(window, new Event('resize'));
+    });
+    // 690 + 300 fits the 1000px viewport, but not with the 20px gap as well.
+    expect(dialog.className).toMatch(/is-top-left/);
   });
 
   it('auto without appendToBody applies the corner class with no inline coordinates', () => {
@@ -384,7 +406,7 @@ describe('PickerPopover position resolution', () => {
       fireEvent.scroll(window);
     });
     expect(dialog.className).toMatch(/is-top-right/);
-    expect(dialog.style.top).toBe('576px');
+    expect(dialog.style.top).toBe('580px');
     expect(dialog.style.left).toBe('760px');
   });
 });

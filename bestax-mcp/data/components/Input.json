@@ -35,7 +35,7 @@
     },
     {
       "title": "Static State",
-      "code": "<>\n  <Input horizontal label=\"Username\" isStatic value=\"Static value\" />\n  <Input horizontal label=\"Password\" placeholder=\"Editable value\" />\n</>"
+      "code": "<>\n  <Input horizontal label=\"Username\" isStatic readOnly value=\"Static value\" />\n  <Input horizontal label=\"Password\" placeholder=\"Editable value\" />\n</>"
     },
     {
       "title": "With Icons (Left and Right)",
@@ -129,14 +129,14 @@
   "accessibility": "- Always provide a label. The `label` prop is automatically associated with the input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- When composing with `Field` instead, the `Field`'s own `label` associates with the input automatically when the input sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.\n- Use the correct input `type` for semantics (`text`, `email`, etc.).",
   "related": ["Control", "Field"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-input--default",
-  "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
+  "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.",
   "import": "import { Input, Field, Control, Button, Select, Icon } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Input.tsx",
   "rootClass": "input",
   "parts": [
     {
       "path": "Input",
-      "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states, and all Bulma helper props.",
+      "summary": "The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states, and all Bulma helper props.",
       "component": null,
       "props": [
         {
@@ -179,7 +179,7 @@
           "name": "iconLeft",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for left icon.",
+          "description": "Icon props for left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -188,7 +188,7 @@
           "name": "iconRight",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for right icon.",
+          "description": "Icon props for right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -251,7 +251,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the wrapping Control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). The spinner sits at the right edge, where `iconRight` also sits, and the two overlap; leave the right icon out while loading.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -341,7 +341,7 @@
           "name": "isStatic",
           "type": "boolean",
           "default": "false",
-          "description": "Renders input as static (read only, styled).",
+          "description": "Styles the input as static text. It stays editable; add `readOnly` to stop edits.",
           "required": false,
           "inherited": true,
           "deprecated": false

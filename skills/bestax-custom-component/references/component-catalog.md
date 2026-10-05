@@ -111,7 +111,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [DateTimeInput](https://bestax.io/docs/api/form/datetime/datetimeinput) — The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
 - [Field](https://bestax.io/docs/api/form/field) — The `Field` component is a Bulma-styled form field container.
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
-- [Input](https://bestax.io/docs/api/form/input) — The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static/read-only state, hover/focus/loading states…
+- [Input](https://bestax.io/docs/api/form/input) — The `Input` component provides a Bulma-styled text input, supporting colors, sizes, rounded corners, static state, hover/focus/loading states…
 - [Numberinput](https://bestax.io/docs/api/form/numberinput) — The `Numberinput` component provides a number input with increment/decrement buttons.
 - [Radio](https://bestax.io/docs/api/form/radio) — The `Radio` component provides a Bulma-styled radio button input with flexible labels and helper classes.
 - [Radios](https://bestax.io/docs/api/form/radios) — The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.
@@ -120,7 +120,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Slider](https://bestax.io/docs/api/form/slider) — The `Slider` component provides a range slider input for selecting values within a range.
 - [Switch](https://bestax.io/docs/api/form/switch) — The `Switch` component provides a toggle switch for boolean on/off states.
 - [Taginput](https://bestax.io/docs/api/form/taginput) — The `Taginput` component provides a tag/chip input field for managing multiple tags.
-- [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state…
+- [TextArea](https://bestax.io/docs/api/form/textarea) — The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size…
 - [TimeInput](https://bestax.io/docs/api/form/datetime/timeinput) — The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.
 
 ## Columns

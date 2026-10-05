@@ -1,9 +1,11 @@
 // Bulma spins `.loader` and the `is-loading` rings on buttons, controls and
 // selects, and `scss/elements/_loader.scss` stops them under
-// `prefers-reduced-motion: reduce`. That override meets Bulma's own rules in
-// every stylesheet bestax publishes, and they do not agree on which comes
-// first, so a check that only looks for the override's text proves nothing
-// about which rule wins.
+// `prefers-reduced-motion: reduce`. Its indeterminate `.progress` bar and its
+// skeleton pulse get the same treatment from `_progress.scss` and
+// `_skeleton.scss`. Those overrides meet Bulma's own rules in every
+// stylesheet bestax publishes, and they do not agree on which comes first, so
+// a check that only looks for the override's text proves nothing about which
+// rule wins.
 //
 // jsdom evaluates no media query, so this resolves the cascade itself, the
 // way a browser would for one property: every rule that sets the animation on
@@ -28,11 +30,15 @@ import {
   Loader,
   Loading,
   Numberinput,
+  Progress,
   Select,
   SelectBase,
+  Sidebar,
+  Skeleton,
   Taginput,
   TextArea,
   TimeInput,
+  Title,
 } from '../../index';
 
 const PKG = path.resolve(__dirname, '../../..');
@@ -209,8 +215,11 @@ function winningAnimation(
   return best && best.value.split(/\s+/)[0];
 }
 
-/** Each component that draws a spinner, with the prop that turns it on. */
-const SPINNERS: Array<[string, React.ReactElement]> = [
+/**
+ * Each component that draws a loading animation, with the prop that turns it
+ * on: the spinners, the indeterminate progress bar and the skeleton pulse.
+ */
+const ANIMATED: Array<[string, React.ReactElement]> = [
   ['Loader', <Loader key="x" />],
   [
     'Button isLoading',
@@ -248,10 +257,34 @@ const SPINNERS: Array<[string, React.ReactElement]> = [
   // Not Bulma's ring: `_loading.scss` spins its own icon and stops it in
   // the same file, which holds whatever order the partial lands in.
   ['Loading active', <Loading key="x" active />],
+  // A bar with no `value` is `:indeterminate`, and Bulma sweeps it.
+  ['Progress indeterminate', <Progress key="x" />],
+  ['Skeleton block', <Skeleton key="x" />],
+  ['Skeleton lines', <Skeleton key="x" variant="lines" />],
+  // The `skeleton` helper prop puts `is-skeleton` on any component.
+  [
+    'Title skeleton',
+    <Title key="x" skeleton>
+      Heading
+    </Title>,
+  ],
+  // `hasSkeleton` pulses a `::after` over part of the text.
+  [
+    'Title hasSkeleton',
+    <Title key="x" hasSkeleton>
+      Heading
+    </Title>,
+  ],
+  // `_sidebar.scss` turns off the sidebar's own transition under reduced
+  // motion, so a pulsing sidebar meets a second reduced-motion rule.
+  [
+    'Sidebar skeleton',
+    <Sidebar key="x" isOpen inline overlay={false} skeleton />,
+  ],
 ];
 
-/** Every (element, pseudo) the stylesheet spins in this render. */
-function spinnersIn(container: Element, rules: Rule[]) {
+/** Every (element, pseudo) the stylesheet animates in this render. */
+function animatedIn(container: Element, rules: Rule[]) {
   const found: Array<{ el: Element; pseudo: string }> = [];
   for (const el of Array.from(container.querySelectorAll('*'))) {
     for (const pseudo of ['', '::after', '::before']) {
@@ -262,8 +295,18 @@ function spinnersIn(container: Element, rules: Rule[]) {
   return found;
 }
 
+const tagOf = (el: Element) => {
+  const cls = el.getAttribute('class');
+  return `<${el.tagName.toLowerCase()}${cls === null ? '' : ` class="${cls}"`}>`;
+};
+
+// A skeleton line is a bare `<div>`, so its parent says which one it is.
 const describeEl = (el: Element, pseudo: string) =>
-  `<${el.tagName.toLowerCase()} class="${el.getAttribute('class')}">${pseudo}`;
+  (el.hasAttribute('class') || !el.parentElement
+    ? ''
+    : `${tagOf(el.parentElement)} > `) +
+  tagOf(el) +
+  pseudo;
 
 type Sheet = { label: string; prefix: string; css: () => string };
 
@@ -304,36 +347,38 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     rules = rulesOf(css());
   }, 60000);
 
-  it.each(SPINNERS)(
-    '%s spins normally and stops under prefers-reduced-motion',
+  it.each(ANIMATED)(
+    '%s animates normally and stops under prefers-reduced-motion',
     (_label, element) => {
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
       );
-      const spinners = spinnersIn(container, rules);
-      // It has to spin to begin with, or the check below is vacuous.
-      expect(spinners.length).toBeGreaterThan(0);
-      const stillSpinning = spinners
+      const animated = animatedIn(container, rules);
+      // It has to animate to begin with, or the check below is vacuous.
+      expect(animated.length).toBeGreaterThan(0);
+      const stillMoving = animated
         .filter(
           ({ el, pseudo }) =>
             winningAnimation(rules, el, pseudo, true) !== 'none'
         )
         .map(({ el, pseudo }) => describeEl(el, pseudo));
-      expect(stillSpinning).toEqual([]);
+      expect(stillMoving).toEqual([]);
     }
   );
 
   it('changes nothing but the animation under prefers-reduced-motion', () => {
-    // The ring has to stay drawn, so the override may not touch its border,
-    // size or display.
+    // Each indicator has to stay drawn, so the override may not touch a
+    // ring's border, the bar's gradient, a skeleton's fill, or any size or
+    // display. Motion properties are the point of the override, so
+    // `animation-*` and `transition-*` are allowed.
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>
-        {SPINNERS.map(([label, element]) => (
+        {ANIMATED.map(([label, element]) => (
           <React.Fragment key={label}>{element}</React.Fragment>
         ))}
       </ConfigProvider>
     );
-    const targets = spinnersIn(container, rules);
+    const targets = animatedIn(container, rules);
     const extra = rules
       .filter(rule => rule.reducedMotionOnly)
       .filter(rule =>
@@ -342,7 +387,11 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         )
       )
       .flatMap(rule => rule.properties)
-      .filter(property => !property.startsWith('animation'));
+      .filter(
+        property =>
+          !property.startsWith('animation') &&
+          !property.startsWith('transition')
+      );
     expect(extra).toEqual([]);
   });
 });

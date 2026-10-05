@@ -57,15 +57,18 @@ const toIsoValue = (d: Date, granularity: DateGranularity): string => {
   return granularity === 'month' ? month : `${month}-${pad2(d.getDate())}`;
 };
 
-/** Read a native `type="date"` or `type="month"` value back into a Date. */
+/**
+ * Read a native `type="date"` or `type="month"` value back into a Date. HTML
+ * allows a year of four or more digits, as `toIsoValue` writes one past 9999.
+ */
 const fromIsoValue = (s: string, granularity: DateGranularity): Date | null => {
   if (granularity === 'month') {
-    const m = /^(\d{4})-(\d{2})$/.exec(s);
+    const m = /^(\d{4,})-(\d{2})$/.exec(s);
     return m ? makeDate(Number(m[1]), Number(m[2]) - 1) : null;
   }
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+  const m = /^(\d{4,})-(\d{2})-(\d{2})$/.exec(s);
   if (!m) return null;
-  return new Date(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+  return makeDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 };
 
 const DEFAULT_FORMATS: Record<DateGranularity, string> = {
@@ -332,14 +335,18 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     const containerClass = usePrefixedClassNames('dateinput-container');
     const triggerClass = usePrefixedClassNames('dateinput-trigger');
 
+    // What the latest request asked for, so a second request in the same
+    // event sees it before React renders. The callbacks fire here rather than
+    // in a state updater, which StrictMode calls twice, and after the state
+    // is set, so a request a callback makes is the one that lands last.
+    const requestedOpenRef = useRef(false);
     const setOpen = useCallback(
       (next: boolean) => {
-        setOpenState(prev => {
-          if (prev === next) return prev;
-          if (next) onOpen?.();
-          else onClose?.();
-          return next;
-        });
+        if (requestedOpenRef.current === next) return;
+        requestedOpenRef.current = next;
+        setOpenState(next);
+        if (next) onOpen?.();
+        else onClose?.();
       },
       [onOpen, onClose]
     );

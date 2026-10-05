@@ -1,9 +1,10 @@
 // Dark mode for an app built on @allxsmith/bestax-bulma.
 //
 // The Theme component drives the light/dark scheme: pass `colorMode` and it
-// writes Bulma's `data-theme` attribute on <html>. This is global (even on a
-// scoped Theme); `'system'` removes the attribute so Bulma follows the OS
-// `prefers-color-scheme`. Wrap the app once at the root.
+// writes Bulma's `data-theme` attribute on <html>, plus `data-<prefix>theme`
+// under a ConfigProvider `classPrefix`, which the prefixed flavors read. This
+// is global (even on a scoped Theme); `'system'` removes the attributes so
+// Bulma follows the OS `prefers-color-scheme`. Wrap the app once at the root.
 import React, { useState } from 'react';
 import {
   Theme,

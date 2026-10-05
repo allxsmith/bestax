@@ -2,7 +2,10 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
-import { useAnchoredPosition } from '../../helpers/useAnchoredPosition';
+import {
+  marginGap,
+  useAnchoredPosition,
+} from '../../helpers/useAnchoredPosition';
 import { PickerPosition } from './pickerTypes';
 
 export interface PickerPopoverProps {
@@ -76,6 +79,12 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     active: isOpen,
     position,
     fixed: appendToBody,
+    // A portaled panel takes its gap from `--bulma-picker-popover-offset` as
+    // a margin, so its coordinates leave the gap out and `auto` reads it off
+    // the panel. An in-place panel's gap is in its `top` or `bottom`, which
+    // `auto` cannot read, so it keeps the hook's default estimate.
+    offset: appendToBody ? 0 : undefined,
+    styledGap: marginGap,
   });
 
   useEffect(() => {

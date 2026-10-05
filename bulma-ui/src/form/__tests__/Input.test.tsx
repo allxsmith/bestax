@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Input } from '../Input';
 import { Field } from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Input', () => {
@@ -124,6 +125,26 @@ describe('Input', () => {
     it('applies isExpanded to control', () => {
       const { container } = render(<Input isExpanded data-testid="input" />);
       expect(container.querySelector('.control')).toHaveClass('is-expanded');
+    });
+
+    // As the props TSDoc says: inside an existing Control within a Field there
+    // is no Control of its own for the Control-level props to reach, and the
+    // input is the Control's own child, which Bulma's sibling icon rules need.
+    it('renders no Field or Control of its own inside a Field and Control', () => {
+      const { container } = render(
+        <Field>
+          <Control>
+            <Input isLoading iconLeftName="user" data-testid="input" />
+          </Control>
+        </Field>
+      );
+      const controls = container.querySelectorAll('.control');
+      expect(controls).toHaveLength(1);
+      expect(controls[0]).not.toHaveClass('is-loading');
+      expect(controls[0]).not.toHaveClass('has-icons-left');
+      expect(container.querySelector('.icon')).toBeNull();
+      expect(controls[0].querySelector('.field')).toBeNull();
+      expect(screen.getByTestId('input').parentElement).toBe(controls[0]);
     });
   });
 

@@ -70,13 +70,13 @@ export default {
               './node_modules/@allxsmith/bestax-bulma/dist/**/*.js',
             ],
             // Classes bestax assembles at runtime (helper props like mt="4"
-            // → mt-4, is-active state flips, [data-theme] scheme switching)
-            // never appear verbatim in any scanned file — safelist them by
-            // pattern:
+            // → mt-4, is-active state flips, the data-theme or
+            // data-<prefix>theme scheme attribute) never appear verbatim in
+            // any scanned file — safelist them by pattern:
             safelist: {
               standard: [/^is-/, /^has-/, /^m[trblxy]?-/, /^p[trblxy]?-/],
-              deep: [/data-theme/, /theme-dark/, /theme-light/],
-              greedy: [/^bestax-/, /data-theme/],
+              deep: [/data-[\w-]*theme/, /theme-dark/, /theme-light/],
+              greedy: [/^bestax-/, /data-[\w-]*theme/],
             },
           }),
         ]

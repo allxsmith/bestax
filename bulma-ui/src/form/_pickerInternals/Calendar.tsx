@@ -11,6 +11,7 @@ import {
   usePrefixedClassNames,
 } from '../../helpers/classNames';
 import { useConfig } from '../../helpers/Config';
+import { getActiveElementInTree } from '../../helpers/shadowDom';
 import {
   DateGranularity,
   DayOfWeek,
@@ -51,7 +52,11 @@ export interface CalendarProps {
   size?: 'small' | 'medium' | 'large';
   className?: string;
   id?: string;
-  /** When true, focus the cell matching `focusedDate` after each render. */
+  /**
+   * When true, the day or month grid takes focus as it renders, and again as
+   * it comes back from the year list. With or without it, once a grid has
+   * focus, focus follows its tab stop from cell to cell.
+   */
   autoFocusCell?: boolean;
   /** Optional translatable string overrides. */
   labels?: PickerLabels;
@@ -126,6 +131,18 @@ function monthStep(key: string, col: number): [number, 1 | -1] | null {
     default:
       return null;
   }
+}
+
+/**
+ * Whether DOM focus should follow a grid's tab stop as it moves: focus is in
+ * the grid, or fell to <body> while the grid held it last, as it does when
+ * the focused cell leaves the page or becomes disabled. Focus is read in the
+ * grid's own tree, so this holds inside a shadow root too.
+ */
+function focusFollows(grid: HTMLElement, heldLast: boolean): boolean {
+  const active = getActiveElementInTree(grid);
+  if (grid.contains(active)) return true;
+  return heldLast && active === grid.ownerDocument.body;
 }
 
 /**
@@ -257,6 +274,38 @@ export const Calendar: React.FC<CalendarProps> = ({
       }),
     [min, max, shouldDisableDate, unselectableDates]
   );
+
+  // The day grid's one tab stop. A disabled button can't take focus, so when
+  // the focused day is disabled the stop moves to the nearest enabled day of
+  // the month on show, and focusing it makes it the focused day. A nearby
+  // month's day is left out, as focusing it would turn the grid to its month.
+  const tabStopDay = useMemo(() => {
+    const days = cells.filter(c => c.inCurrentMonth).map(c => c.date);
+    const i = nearestEnabled(
+      focusedDate.getDate() - 1,
+      days.map(isDateUnselectable)
+    );
+    return days[i];
+  }, [cells, focusedDate, isDateUnselectable]);
+
+  // Whether the grid on show holds focus, or held it last before focus went
+  // nowhere: the cell that had it left the page or became disabled. A blur
+  // that takes focus out of the grid, to nowhere included, is the user
+  // leaving, so it clears this. A render that removes or disables the focused
+  // cell sends no blur here: browsers fire none, or fire it inside React's
+  // commit, where React delivers no events.
+  const gridHeldFocusRef = useRef(false);
+  const gridFocusHandlers = {
+    onFocus: () => {
+      gridHeldFocusRef.current = true;
+    },
+    onBlur: (e: React.FocusEvent<HTMLDivElement>) => {
+      const next = e.relatedTarget as Node | null;
+      if (!next || !e.currentTarget.contains(next)) {
+        gridHeldFocusRef.current = false;
+      }
+    },
+  };
 
   // Step from `next` by `direction` days until we hit a selectable date,
   // skipping past dates blocked by min/max, shouldDisableDate, or
@@ -538,23 +587,35 @@ export const Calendar: React.FC<CalendarProps> = ({
     [isYearGranularity, baseView, focusedYear, yearList, moveYearFocus]
   );
 
+  // The day or month grid takes focus as the popover opens on it, or comes
+  // back to it from the year list.
   useEffect(() => {
-    if (view !== 'days') return;
-    if (!autoFocusCell || !gridRef.current) return;
-    const target = gridRef.current.querySelector<HTMLElement>(
-      '[data-focused="true"]'
-    );
-    target?.focus();
-  }, [autoFocusCell, focusedDate, view]);
+    if (!autoFocusCell) return;
+    const grid =
+      view === 'days'
+        ? gridRef.current
+        : view === 'months'
+          ? monthGridRef.current
+          : null;
+    grid?.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
+  }, [autoFocusCell, view]);
 
-  // The month grid takes focus when the popover asks for it, and keeps it on
-  // the focused month while the keyboard moves through the grid.
+  // From then on focus follows the tab stop only while the grid has it, or
+  // has just lost it, so focus on a header button or a time wheel stays put.
+  const tabStopDayTime = tabStopDay.getTime();
+  useEffect(() => {
+    const grid = gridRef.current;
+    if (view !== 'days' || !grid) return;
+    if (!focusFollows(grid, gridHeldFocusRef.current)) return;
+    grid.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
+  }, [tabStopDayTime, view]);
+
   useEffect(() => {
     const grid = monthGridRef.current;
     if (view !== 'months' || !grid) return;
-    if (!autoFocusCell && !grid.contains(document.activeElement)) return;
+    if (!focusFollows(grid, gridHeldFocusRef.current)) return;
     grid.querySelector<HTMLElement>('[data-focused="true"]')?.focus();
-  }, [autoFocusCell, focusedDate, view]);
+  }, [focusedYear, tabStopMonth, view]);
 
   // When the year view opens as navigation, scroll the focused year into
   // view.
@@ -590,7 +651,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   useEffect(() => {
     const list = yearGridRef.current;
     if (!isYearGranularity || !list) return;
-    if (!list.contains(document.activeElement)) return;
+    if (!list.contains(getActiveElementInTree(list))) return;
     list.querySelector<HTMLElement>('[data-focused-year="true"]')?.focus();
   }, [isYearGranularity, focusedYear]);
 
@@ -683,11 +744,12 @@ export const Calendar: React.FC<CalendarProps> = ({
             aria-labelledby={labelId}
             className={gridClass}
             onKeyDown={handleKeyDown}
+            {...gridFocusHandlers}
           >
             {cells.map(cell => {
               const disabled = isDateUnselectable(cell.date);
               const isSelected = !!value && isSameDay(value, cell.date);
-              const isFocused = isSameDay(cell.date, focusedDate);
+              const isFocused = isSameDay(cell.date, tabStopDay);
               const otherMonth = !cell.inCurrentMonth;
               const cellClass = prefixedClassNames(
                 classPrefix,
@@ -712,6 +774,14 @@ export const Calendar: React.FC<CalendarProps> = ({
                   data-focused={isFocused ? 'true' : undefined}
                   disabled={disabled || !display}
                   className={cellClass}
+                  onFocus={() => {
+                    // Reached by Tab while the focused day is disabled, or
+                    // by pointer: keys move on from here. A nearby month's
+                    // day waits for its click, which turns the grid.
+                    if (!otherMonth && !isSameDay(cell.date, focusedDate)) {
+                      onFocusedDateChange(cell.date);
+                    }
+                  }}
                   onClick={() => {
                     if (disabled) return;
                     onFocusedDateChange(cell.date);
@@ -734,6 +804,7 @@ export const Calendar: React.FC<CalendarProps> = ({
           aria-labelledby={labelId}
           className={monthsGridClass}
           onKeyDown={handleMonthKeyDown}
+          {...gridFocusHandlers}
         >
           {MONTH_ROWS.map(row => (
             <div key={row[0]} role="row" className={monthsRowClass}>

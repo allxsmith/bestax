@@ -14,7 +14,7 @@ This page provides a summary of all Bulma-styled form components in Bestax, with
 
 ### Input
 
-A Bulma-styled text input supporting color, size, rounded, static/read-only, and loading states. Pass `label`, `iconLeftName`/`iconRightName`, and `message`/`messageColor` to auto-wrap with a `Field` and `Control` — no extra boilerplate.
+A Bulma-styled text input supporting color, size, rounded, static, and loading states. Pass `label`, `iconLeftName`/`iconRightName`, and `message`/`messageColor` to auto-wrap with a `Field` and `Control` — no extra boilerplate.
 
 ```tsx live
 <Input
@@ -36,7 +36,7 @@ For complex layouts (grouped fields, addons, horizontal forms), use `InputBase` 
 
 ### TextArea
 
-A Bulma-styled multi-line text input. Supports color, size, rounded, static/read-only, and fixed size. Also accepts `label`, `message`, and `messageColor` for one-stop field usage.
+A Bulma-styled multi-line text input. Supports color, size, and fixed size. Also accepts `label`, `message`, and `messageColor` for one-stop field usage.
 
 ```tsx live
 <TextArea

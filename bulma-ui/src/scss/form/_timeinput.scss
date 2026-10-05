@@ -342,8 +342,13 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
   // Wide bottom-anchored popover when it contains a TimeInput panel — the
   // OS-native picker on iOS occupies almost the full screen width with the
   // wheels centred, so we mirror that. `:has()` is supported on iOS 15.4+,
-  // Safari 15.4+, and all current Chromium / Firefox.
-  .#{iv.$class-prefix}picker-popover:has(.#{iv.$class-prefix}timeinput-panel) {
+  // Safari 15.4+, and all current Chromium / Firefox. A portaled panel is
+  // left out: the top and left set inline on it beat this rule's, so it
+  // would stretch to the insets below rather than move, and it keeps its
+  // corner instead.
+  .#{iv.$class-prefix}picker-popover:not(.#{iv.$class-prefix}is-portal):has(
+      .#{iv.$class-prefix}timeinput-panel
+    ) {
     // Override the popover's registered radius var so border-radius (which
     // already references `cv.getVar('picker-popover-radius')`) updates
     // automatically. We use Bulma's `radius-large` scaled by 4 for an

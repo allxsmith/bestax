@@ -5,6 +5,7 @@ import {
   setAmPm,
   segmentIndexAtCaret,
 } from '../_pickerInternals/segmentMap';
+import { makeDate } from '../_pickerInternals/dateUtils';
 
 describe('buildSegmentMap', () => {
   it('parses HH:mm into hours/literal/minutes', () => {
@@ -274,6 +275,16 @@ describe('incrementSegmentValue (date segments)', () => {
     expect(next.getDate()).toBe(29);
   });
 
+  it('wraps the day by the month length of a year below 100', () => {
+    // Year 0 is a leap year and 1900 is not, so reading it as 1900 would wrap
+    // 28 February to the 1st.
+    const feb28 = makeDate(0, 1, 28);
+    const next = incrementSegmentValue(daySeg, feb28, 1, false);
+    expect([next.getFullYear(), next.getMonth(), next.getDate()]).toEqual([
+      0, 1, 29,
+    ]);
+  });
+
   it('clamps Feb 29 → Feb 28 when the year increment lands on a non-leap year', () => {
     const next = incrementSegmentValue(yearSeg, dmy(2024, 1, 29), 1, false);
     expect(next.getFullYear()).toBe(2025);
@@ -469,6 +480,20 @@ describe('setSegmentValue (date segments)', () => {
     const r = setSegmentValue(yyMap.segments[0], base(2024, 5, 7), '24', false);
     expect(r.date.getFullYear()).toBe(2024);
     expect(r.advance).toBe(true);
+  });
+
+  it('clamps by the month length of a year below 100', () => {
+    // Year 0 is a leap year and 1900 is not, so reading it as 1900 would
+    // clamp 29 February to the 28th.
+    const day = setSegmentValue(daySeg, makeDate(0, 1, 1), '29', false);
+    expect(day.date.getDate()).toBe(29);
+    // Typing a four-digit year passes through year 0 on the way.
+    const year = setSegmentValue(yearSeg, base(2024, 1, 29), '0', false);
+    expect([
+      year.date.getFullYear(),
+      year.date.getMonth(),
+      year.date.getDate(),
+    ]).toEqual([0, 1, 29]);
   });
 
   it('re-clamps the day when a year write crosses a leap boundary', () => {
