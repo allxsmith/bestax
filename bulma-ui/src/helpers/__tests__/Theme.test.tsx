@@ -814,6 +814,114 @@ describe('Theme', () => {
     expect(themeDiv.style.getPropertyValue('--not-a-bulma-var')).toBe('');
   });
 
+  // A root Theme renders no wrapper, so className and the helper props have
+  // nowhere to go. Silence would read as the props working, so it warns.
+  describe('isRoot with props meant for the wrapper', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('drops className and helper props, names them, and warns once', () => {
+      const { container, rerender } = render(
+        <Theme
+          isRoot
+          className="brand"
+          m="4"
+          shadow="shadowless"
+          primaryH="200"
+        >
+          <span data-testid="child">Test</span>
+        </Theme>
+      );
+      rerender(
+        <Theme
+          isRoot
+          className="brand"
+          m="4"
+          shadow="shadowless"
+          primaryH="200"
+        >
+          <span data-testid="child">Test</span>
+        </Theme>
+      );
+
+      // Rendering is unchanged: no wrapper, no classes, variables at :root.
+      expect(container.innerHTML).toBe('<span data-testid="child">Test</span>');
+      expect(
+        document.getElementById('bestax-bulma-theme-vars')?.textContent
+      ).toContain('--bulma-primary-h: 200;');
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '<Theme isRoot>: a root Theme renders no wrapper element, so ' +
+            'className, m, shadow have nothing to apply to.'
+        )
+      );
+    });
+
+    it('uses the singular for one dropped prop', () => {
+      render(
+        <Theme isRoot className="brand">
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('so className has nothing to apply to')
+      );
+    });
+
+    it('ignores helper props that are off or unset', () => {
+      render(
+        <Theme
+          isRoot
+          className=""
+          m={undefined}
+          clearfix={false}
+          {...({ p: null } as unknown as ThemeProps)}
+        >
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not warn on a scoped Theme, which applies them to its wrapper', () => {
+      const { container } = render(
+        <Theme className="brand" m="4">
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(container.firstChild).toHaveClass('brand', 'm-4');
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+
+    it('does not warn in production', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(
+          <Theme isRoot className="brand" m="4">
+            <div>Test</div>
+          </Theme>
+        );
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('several isRoot Themes (#736)', () => {
     const rootCss = () =>
       document.getElementById('bestax-bulma-theme-vars')?.textContent;

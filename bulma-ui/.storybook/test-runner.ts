@@ -3,9 +3,8 @@ import type { Page } from 'playwright';
 
 // Smoke-pass hooks for `test-storybook` (#283): every story must render
 // without throwing and without console errors. Run with
-// STORYBOOK_THEME=dark for a second pass with `data-theme="dark"` stamped
-// on the root — dark-mode-only CSS bugs are invisible to jsdom, so this is
-// the only automated surface that can catch them.
+// STORYBOOK_THEME=dark to make the same checks under a dark OS preference
+// with `data-theme="dark"` stamped on the root.
 const dark = process.env.STORYBOOK_THEME === 'dark';
 
 // One error sink per Playwright page; pages are reused across stories in a
@@ -16,6 +15,7 @@ const consoleErrors = new WeakMap<Page, string[]>();
 const config: TestRunnerConfig = {
   async preVisit(page) {
     if (dark) {
+      await page.emulateMedia({ colorScheme: 'dark' });
       await page.evaluate(() =>
         document.documentElement.setAttribute('data-theme', 'dark')
       );

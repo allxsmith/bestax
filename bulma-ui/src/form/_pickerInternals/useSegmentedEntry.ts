@@ -1,5 +1,6 @@
 import React, {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -74,6 +75,11 @@ export interface UseSegmentedEntryParams {
   openOnFocus?: boolean;
   closeOnSelect?: boolean;
   isOpen: boolean;
+  /**
+   * The host's open-state setter. The hook asks it to open on focus, click
+   * or ArrowDown, but not on the focus the popover's focus trap hands back
+   * to the input as it closes, which is not the user arriving.
+   */
   setOpen: (next: boolean) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
   containerRef: React.RefObject<HTMLElement | null>;
@@ -156,6 +162,38 @@ export function useSegmentedEntry(
   // change. Kept in a ref because key handlers read+update synchronously
   // within the same event tick.
   const typedDigitsRef = useRef<string>('');
+  // The text focus seeded an empty picker with, until the user edits it or
+  // leaves. While the text still matches it, nothing has been typed.
+  const seedRef = useRef<string | null>(null);
+  // Whether the input's current focus is the one a closing popover handed
+  // back, until focus leaves the picker.
+  const handedBackRef = useRef(false);
+
+  // A seed the popover never turned into a value closes with it, wherever
+  // focus goes, so a dismissed empty field stays empty.
+  //
+  // As the popover closes, its focus trap hands focus back to the input. That
+  // focus is not the user arriving: it must not open the popover again under
+  // `openOnFocus`, or seed an empty picker that leaving would then commit.
+  // `closingRef` is set in the layout phase of the commit that closes it and
+  // cleared by that commit's effects, and React runs a commit's effect
+  // cleanups, the trap's among them, before any of its effects, so a focus
+  // in between is the one handed back.
+  const closingRef = useRef(false);
+  const wasOpenRef = useRef(isOpen);
+  useLayoutEffect(() => {
+    if (wasOpenRef.current && !isOpen) {
+      closingRef.current = true;
+      if (!value && seedRef.current !== null && text === seedRef.current) {
+        setText('');
+      }
+      seedRef.current = null;
+    }
+    wasOpenRef.current = isOpen;
+  }, [isOpen, value, text, setText]);
+  useEffect(() => {
+    closingRef.current = false;
+  }, [isOpen]);
 
   // Segment mode is unavailable for disabled / read-only / non-editable
   // pickers and for Intl-options / variable-width formats (segmentMap null).
@@ -228,6 +266,7 @@ export function useSegmentedEntry(
       // would otherwise clobber it. The free-form path runs only when
       // segment mode is inactive.
       if (activeSegmentIdx !== null && segmentEditable) return;
+      seedRef.current = null;
       setText(e.target.value);
     },
     [activeSegmentIdx, segmentEditable, setText]
@@ -250,6 +289,16 @@ export function useSegmentedEntry(
       }
       setActiveSegmentIdx(null);
       typedDigitsRef.current = '';
+      seedRef.current = null;
+      const handedBack = handedBackRef.current;
+      handedBackRef.current = false;
+      // Leaving after a dismiss commits only what was typed since. Text that
+      // still shows the value wasn't, and re-parsing it could drop what the
+      // format leaves out, such as seconds.
+      if (handedBack && value && text === formatFn(value, format, locale)) {
+        onBlur?.(e);
+        return;
+      }
       const parsed = tryParse(text);
       if (parsed && isAllowed(parsed)) {
         commitValue(parsed);
@@ -275,12 +324,19 @@ export function useSegmentedEntry(
 
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
-      if (openOnFocus && popover && !disabled && !readOnly) setOpen(true);
+      const handedBack = closingRef.current;
+      handedBackRef.current = handedBack;
+      if (!handedBack && openOnFocus && popover && !disabled && !readOnly) {
+        setOpen(true);
+      }
       // Enter segment mode: prime an initial value (so editing works even when
-      // empty), seed the text, and highlight the first editable segment.
+      // empty), seed the text, and highlight the first editable segment. The
+      // segment base doesn't need the seed, so focus handed back skips it.
       if (segmentEditable && segmentMap) {
-        if (!value) {
-          setText(formatFn(makeBaseDate(), format, locale));
+        if (!value && !handedBack) {
+          const seed = formatFn(makeBaseDate(), format, locale);
+          seedRef.current = seed;
+          setText(seed);
         }
         typedDigitsRef.current = '';
         setActiveSegmentIdx(segmentMap.editable[0]);
