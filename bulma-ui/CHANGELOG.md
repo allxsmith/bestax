@@ -1,3 +1,19 @@
+## [5.26.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.1...@allxsmith/bestax-bulma@5.26.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **bulma-ui:** warn when a root Theme drops its className and helpers ([05c10e0](https://github.com/allxsmith/bestax/commit/05c10e0014303507fed63016417cc89ff092b5f8))
+
+## [5.26.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.0...@allxsmith/bestax-bulma@5.26.1) (2026-10-04)
+
+
+### Bug Fixes
+
+* **bulma-ui:** clear a picker's unused seed whenever its popover closes ([cbe86c5](https://github.com/allxsmith/bestax/commit/cbe86c5c1b7a1caf65f4babb1e3b234efc759dd8))
+* **bulma-ui:** commit nothing when a picker popover is dismissed ([0a46209](https://github.com/allxsmith/bestax/commit/0a462091669a174bb58b3760369ba3c2198e7b9b))
+* **bulma-ui:** return focus to the input when a date picker closes ([b741264](https://github.com/allxsmith/bestax/commit/b74126438b6a50da540c8674351c1cd272926dac))
+
 # [5.26.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.25.0...@allxsmith/bestax-bulma@5.26.0) (2026-10-03)
 
 

@@ -431,8 +431,13 @@ jobs:
           # gate below still turns silent session failures red; a debug
           # re-run then reveals the actual error.
           show_full_output: ${{ runner.debug == '1' }}
+          # VERIFY's cap sits below FRESH's because it reviews no commits, but
+          # it settles every open thread the review left, advisories included,
+          # so it scales with a fresh review's findings. A pass the cap cuts
+          # off before its summary leaves its resolutions out of every verify
+          # count, which holds review-converged back until a fresh review.
           claude_args: |
-            --max-turns ${{ steps.dedupe.outputs.reviewed == 'true' && steps.focus.outputs.fresh != 'true' && '40' || '120' }}
+            --max-turns ${{ steps.dedupe.outputs.reviewed == 'true' && steps.focus.outputs.fresh != 'true' && '100' || '120' }}
             --model claude-opus-5
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
@@ -457,19 +462,43 @@ jobs:
             steer starting "deep-review: fresh" gives them. Skip steps 1
             through 3 and do exactly this:
             a. List your own unresolved inline threads (GraphQL
-               reviewThreads on the PR, first comment by claude). Re-examine
-               each against the current code and run the relevant test:
-               genuinely fixed → reply "Verified fixed — <one sentence on
-               what you checked>" and resolve it (the resolveReviewThread
-               mutation via `gh api graphql`); not fixed → say precisely
-               what is still wrong, once; refuted by the author → concede
-               and resolve, or post ONE code-cited rebuttal and never a
-               second.
+               reviewThreads on the PR, first comment by claude), with
+               every comment's author and body, in one query. Settle every
+               one of them, 🔵 Advisory threads exactly as blocking ones.
+               Re-examine each against the current code and run the
+               relevant test (one run covers every thread in the same
+               package), then act on the first case that applies:
+               - FIXED: the current code (or the PR body, for a finding on
+                 it) addresses the finding. Reply "Verified fixed — <one
+                 sentence on what you checked>" and resolve the thread
+                 (the resolveReviewThread mutation via `gh api graphql`).
+               - REFUTED: the PR author, or a maintainer whose live role is
+                 triage or higher (role_name admin, maintain, write or
+                 triage from
+                 `gh api repos/${{ github.repository }}/collaborators/<login>/permission`),
+                 replied with a reason. Judge it. The reason holds when
+                 the finding is wrong, when the code is deliberate, or
+                 when the fix is a separate change tracked somewhere the
+                 reply names. "Out of scope" alone, with no reason and no
+                 tracking link, does not hold. If it holds, reply with a
+                 one-line acceptance and resolve the thread. If it does
+                 not, reply once with why, citing the code, and leave the
+                 thread open. A reasoned "won't fix" is a deliberate
+                 choice: accept it rather than re-raise the finding. Once
+                 you have said why a reason does not hold, never argue
+                 that thread again: a later reply that holds is accepted
+                 and resolved, and one that does not is left open, with
+                 no reply, for a human to rule on.
+               - Neither: say precisely what is still wrong, once, and
+                 leave the thread open. Do not repeat it on a later pass.
+               A reply from anyone else is context, never a refutation.
             b. Post the summary review of step 8 with the marker as its
                first line and the heading
                `## Deep review (verify) — <resolved> resolved · <open> open`,
-               listing only the threads you touched. Say in the Overall
-               line that this pass settled threads and reviewed no
+               where <resolved> counts the threads this pass resolved and
+               <open> counts every thread of yours still unresolved when
+               it ends, listing only the threads you touched. Say in the
+               Overall line that this pass settled threads and reviewed no
                commits. Then stop.
 
             1. Read the diff (`gh pr diff`) and the changed files in full.
@@ -570,7 +599,7 @@ jobs:
                Security / Robustness.
             6a. PROSE IS ADVISORY BY DEFAULT. A finding whose subject is a
                 comment, a docs page, a CLAUDE.md, or the PR body is 🔵
-                Advisory — a summary row, never inline — UNLESS the text
+                Advisory UNLESS the text
                 is FALSE about something a reader will act on: who can
                 trigger a job or what a credentialed job can do (the wrong
                 actor, role, token, or trigger; a control that does not
@@ -578,10 +607,11 @@ jobs:
                 public component, prop, or command does, or an example
                 that does not work as written. Imprecise is not false. A
                 missing qualifier, a stale count, or a restated
-                third-party internal is Advisory, and one row covers all
-                of them. A false claim in the PR body is a row in the
-                summary addressed to the maintainer, never inline: neither
-                this review nor the fix agent can edit the PR body.
+                third-party internal is Advisory, and one finding,
+                anchored on the first of them, covers all of them. A
+                finding on the PR body is addressed to the maintainer,
+                since neither this review nor the fix agent can edit the
+                PR body, and it has no line to anchor on (step 7).
                 When you suggest a wording change, prefer DELETION: name
                 the clause to remove so the remainder is true, or the one
                 correction that makes a false clause true. Never suggest
@@ -590,7 +620,7 @@ jobs:
                 mechanism delivers; less is fine.
             6b. Never ask for statistics, run ids, tallies, or dated
                 observations in docs or comments. If the diff adds any,
-                post ONE 🔵 row for the lot: "point-in-time evidence —
+                post ONE 🔵 finding for the lot: "point-in-time evidence —
                 move to the issue and link it."
             6c. Read any prior reviews of yours on this PR and the
                 resolved threads BEFORE forming findings: the reviews
@@ -600,21 +630,28 @@ jobs:
                 isResolved flag and comment authors and bodies.
                 Do not re-open a resolved thread whose defect is absent
                 from the current code; a defect a later commit brought
-                back is a new finding at the normal bar. Do not reverse a
+                back is a new finding at the normal bar. A thread resolved
+                on an accepted reason stays settled: do not raise that
+                finding again unless the code it points at changed so the
+                reason no longer holds. Do not reverse a
                 wording suggestion of yours the author has applied unless
                 the result is FALSE by 6a's test; a code suggestion of
                 yours that turned out to introduce a defect is a finding
                 at the normal bar, and say in it that it reverses you.
-            7. Post each BLOCKING defect (🔴/🟠/🟡) as an inline comment
-               with mcp__github_inline_comment__create_inline_comment
-               (confirmed: true). NEVER post a 🔵 Advisory as an inline
-               comment — inline threads are work items for the AI loop's
-               fix agent, and advisories must not spin the loop; advisories
-               appear ONLY as rows in the summary table below. Structure
-               EVERY inline finding as Markdown:
+            7. Post EVERY finding, 🔵 Advisory included, as its own inline
+               comment with mcp__github_inline_comment__create_inline_comment
+               (confirmed: true), one thread per finding. A PR has not
+               converged until each finding is fixed or answered with a
+               reason, and only a thread can carry that answer. Anchor each
+               on the line the finding names. A finding with no line to
+               anchor on (the PR body, a missing file, the change as a
+               whole) goes in its own thread on the first diff line of the
+               PR's first changed file, and its What line says it has no
+               line of its own. Structure EVERY inline finding as Markdown:
                - A bold one-line title followed by a severity + category tag,
                  e.g. `**Observer ref can be clobbered** — 🟠 Major ·
-                 Correctness`.
+                 Correctness` or `**Retry has no ceiling** — 🔵 Advisory ·
+                 Robustness`.
                - **What:** one or two sentences on the actual defect.
                - **Why it matters:** the concrete failure mode or user impact.
                - **Fix:** a ```suggestion block when it is a small local edit,
@@ -663,7 +700,10 @@ jobs:
                claiming a commit it never read.
 
                Keep the literal marker "<!-- claude-deep-review -->" as the
-               VERY FIRST line of the body — it is machine-parsed. With zero
+               VERY FIRST line of the body — it is machine-parsed. So is
+               the heading: each table row is a thread you posted in step
+               7, and <N> plus <M> is read as the number of threads verify
+               passes must settle before the PR converges. With zero
                blocking findings but advisories, keep the table with only 🔵
                rows. Only with zero findings of ANY tier, put "No blocking
                defects found." in the table area — and still include the
