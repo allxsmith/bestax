@@ -1,3 +1,10 @@
+## [5.26.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.1...@allxsmith/bestax-bulma@5.26.2) (2026-10-05)
+
+
+### Bug Fixes
+
+* **bulma-ui:** warn when a root Theme drops its className and helpers ([05c10e0](https://github.com/allxsmith/bestax/commit/05c10e0014303507fed63016417cc89ff092b5f8))
+
 ## [5.26.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.0...@allxsmith/bestax-bulma@5.26.1) (2026-10-04)
 
 
