@@ -13,7 +13,12 @@ const PKG = path.resolve(__dirname, '../../..');
 const OFFSETS = ['top', 'right', 'bottom', 'left'];
 
 type Declaration = { value: string; important: boolean };
-type Rule = { selectors: string[]; get: (property: string) => Declaration };
+type Rule = {
+  selectors: string[];
+  /** Every property the rule declares, shorthands such as `inset` included. */
+  properties: string[];
+  get: (property: string) => Declaration;
+};
 
 const splitSelectors = (list: string): string[] => {
   const out: string[] = [];
@@ -32,30 +37,46 @@ const splitSelectors = (list: string): string[] => {
   return out;
 };
 
-/** The top-level style rules of a stylesheet, read through jsdom's CSSOM. */
+/**
+ * Every style rule of a stylesheet, read through jsdom's CSSOM, including
+ * the ones inside `@media`, `@supports` and `@layer` blocks.
+ */
 function rulesOf(css: string): Rule[] {
   const style = document.createElement('style');
   style.textContent = css;
   document.head.appendChild(style);
-  const out = Array.from(style.sheet!.cssRules)
-    .filter((rule): rule is CSSStyleRule => rule instanceof CSSStyleRule)
-    .map(rule => {
-      const decl = rule.style;
-      const read = (property: string): Declaration => ({
-        value: decl.getPropertyValue(property).trim(),
-        important: decl.getPropertyPriority(property) === 'important',
-      });
-      const snapshot = Object.fromEntries(
-        ['position', ...OFFSETS].map(p => [p, read(p)])
-      );
-      return {
-        selectors: splitSelectors(rule.selectorText),
-        get: (property: string) => snapshot[property],
-      };
+  const flatten = (list: CSSRuleList): CSSStyleRule[] =>
+    Array.from(list).flatMap(rule =>
+      rule instanceof CSSStyleRule
+        ? [rule]
+        : 'cssRules' in rule
+          ? flatten((rule as CSSGroupingRule).cssRules)
+          : []
+    );
+  const out = flatten(style.sheet!.cssRules).map(rule => {
+    const decl = rule.style;
+    const read = (property: string): Declaration => ({
+      value: decl.getPropertyValue(property).trim(),
+      important: decl.getPropertyPriority(property) === 'important',
     });
+    const snapshot = Object.fromEntries(
+      ['position', ...OFFSETS].map(p => [p, read(p)])
+    );
+    return {
+      selectors: splitSelectors(rule.selectorText),
+      properties: Array.from(decl),
+      get: (property: string) => snapshot[property],
+    };
+  });
   style.remove();
   return out;
 }
+
+/** What each rule whose selector list has `selector` declares. */
+const propertiesOf = (rules: Rule[], selector: string) =>
+  rules
+    .filter(rule => rule.selectors.includes(selector))
+    .map(rule => rule.properties);
 
 /** Every declaration of `property` in a rule whose selector list has `selector`. */
 const declarationsOf = (rules: Rule[], selector: string, property: string) =>
@@ -63,6 +84,19 @@ const declarationsOf = (rules: Rule[], selector: string, property: string) =>
     .filter(rule => rule.selectors.includes(selector))
     .map(rule => rule.get(property))
     .filter(declaration => declaration.value !== '');
+
+// The position helpers are checked by what they declare, so a declaration
+// this reader cannot see would pass as an absent one. This pins that it sees
+// a rule inside an at-rule and the `inset` shorthand, which reading the
+// longhands of top-level rules does not.
+it('reads rules inside at-rules and the inset shorthand', () => {
+  const rules = rulesOf(
+    '@media (min-width: 1px) { @supports (top: 0) { .a { top: 0 } } }' +
+      '.b { position: fixed !important; inset: 0 }'
+  );
+  expect(propertiesOf(rules, '.a')).toEqual([['top']]);
+  expect(propertiesOf(rules, '.b')).toEqual([['position', 'inset']]);
+});
 
 const SHEETS: Array<[string, () => string]> = [
   [
@@ -107,26 +141,24 @@ describe.each(SHEETS)('%s', (_label, css) => {
   });
 
   // The docs say a position beside `overlay` keeps the overlay's zero
-  // offsets, which holds only while the position helpers set none.
+  // offsets, which holds only while the position helpers set none. Pinning
+  // that a helper declares `position` and nothing else catches an offset in
+  // any form, `inset` included.
   it.each(validPositions.map(value => [value]))(
-    'makes is-position-%s set position with !important and no offset',
+    'makes is-position-%s set only position, with !important',
     value => {
       const selector = `.is-position-${value}`;
       expect(declarationsOf(rules, selector, 'position')).toEqual([
         { value, important: true },
       ]);
-      for (const offset of OFFSETS) {
-        expect(declarationsOf(rules, selector, offset)).toEqual([]);
-      }
+      expect(propertiesOf(rules, selector)).toEqual([['position']]);
     }
   );
 
-  it('makes is-relative set position with !important and no offset', () => {
+  it('makes is-relative set only position, with !important', () => {
     expect(declarationsOf(rules, '.is-relative', 'position')).toEqual([
       { value: 'relative', important: true },
     ]);
-    for (const offset of OFFSETS) {
-      expect(declarationsOf(rules, '.is-relative', offset)).toEqual([]);
-    }
+    expect(propertiesOf(rules, '.is-relative')).toEqual([['position']]);
   });
 });
