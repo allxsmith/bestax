@@ -4898,7 +4898,7 @@
       "textColor": null,
       "bgColor": null,
       "part": false,
-      "why": "bestax `Loading` is an overlay, not Bulma's inline spinner",
+      "why": "bestax's `Loader` draws the same ring; swap it in by hand for its progressbar role and accessible name",
       "modifiers": {},
       "omits": {},
       "wrapsChildren": null,

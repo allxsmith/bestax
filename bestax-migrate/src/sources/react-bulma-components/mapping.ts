@@ -523,8 +523,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   Loader: {
     // RBC Loader is literally <div class="loader"> and Bulma v1 still ships
-    // that class — a plain element is the faithful conversion (bestax
-    // Loading is an overlay-style component, not an inline spinner).
+    // that class, so a plain element is the faithful conversion. bestax's
+    // Loader draws the same ring on a span with a progressbar role and an
+    // accessible name; swapping it in is left to the user.
     status: 'mapped',
     special: 'plain-loader',
   },

@@ -11,7 +11,9 @@ import { useAutoLabelId } from './useAutoLabelId';
  *
  * Composes Field, Control, and SelectBase into a single convenience component.
  * Supports all SelectBase props, plus Field-level (label, horizontal) and
- * Control-level (icons, loading) props.
+ * Control-level (icons) props.
+ * Inside an existing `Control` within a `Field` it renders no `Field` or
+ * `Control` of its own, so set the Control-level props on that `Control` instead.
  */
 export interface SelectProps extends SelectBaseProps {
   /** Field label. Automatically associated with the select via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
@@ -22,7 +24,11 @@ export interface SelectProps extends SelectBaseProps {
   labelProps?: FieldProps['labelProps'];
   /** Horizontal field layout. */
   horizontal?: boolean;
-  /** Icon props for left icon. */
+  /**
+   * Icon props for left icon.
+   * Bulma gives control icons `pointer-events: none`, so a clickable node here
+   * never receives a click. Put a button beside the input in its own addon `Control` instead.
+   */
   iconLeft?: ControlBaseProps['iconLeft'];
   /** Shortcut for left icon name. */
   iconLeftName?: string;

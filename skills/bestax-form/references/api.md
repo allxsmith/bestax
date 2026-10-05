@@ -44,24 +44,23 @@ Wraps a single input; adds icons and loading.
 
 `InputBase` props:
 
-| Prop                                  | Type                                                                  | Notes                          |
-| ------------------------------------- | --------------------------------------------------------------------- | ------------------------------ |
-| `color`                               | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state.                  |
-| `size`                                | `'small' \| 'medium' \| 'large'`                                      | Size.                          |
-| `isRounded`                           | `boolean`                                                             | Pill shape.                    |
-| `isStatic`                            | `boolean`                                                             | Static, read-only-styled text. |
-| `isLoading`                           | `boolean`                                                             | Loading state.                 |
-| `value` / `defaultValue` / `onChange` | —                                                                     | Standard React input.          |
-| `disabled` / `readOnly`               | `boolean`                                                             | Native states.                 |
+| Prop                                  | Type                                                                  | Notes                                              |
+| ------------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------- |
+| `color`                               | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state.                                      |
+| `size`                                | `'small' \| 'medium' \| 'large'`                                      | Size.                                              |
+| `isRounded`                           | `boolean`                                                             | Pill shape.                                        |
+| `isStatic`                            | `boolean`                                                             | Static-text styling; add `readOnly` to stop edits. |
+| `isLoading`                           | `boolean`                                                             | No spinner here; set `isLoading` on the `Control`. |
+| `value` / `defaultValue` / `onChange` | —                                                                     | Standard React input.                              |
+| `disabled` / `readOnly`               | `boolean`                                                             | Native states.                                     |
 
 `messageColor` accepts `'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'`.
 
 ## Select / SelectBase, TextArea / TextAreaBase
 
-Same convenience/raw split as Input. `Select` supports `isLoading` (on the control), `color`,
-`size`, `isRounded`, `isFullwidth`, `multiple` +
-`multipleSize`, plus the Field/Control/message props. `TextArea` adds `rows` and
-`hasFixedSize`.
+Same convenience/raw split as Input. `Select` supports `isLoading` (a spinner in place of the
+chevron), `color`, `size`, `isRounded`, `isFullwidth`, `multiple` + `multipleSize`, plus the
+Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
 ## Checkbox / Checkboxes, Radio / Radios
 

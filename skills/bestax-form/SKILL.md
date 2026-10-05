@@ -103,18 +103,18 @@ same components; prefer the lowercase-second-word spellings.)
 
 Across the convenience inputs (`Input`, `Select`, `TextArea`, and similar):
 
-| Prop                             | Type                                                                  | Purpose                                                              |
-| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- |
-| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.     |
-| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                          |
-| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                    |
-| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                          |
-| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                               |
-| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`). |
-| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`.               |
-| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                        |
-| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                      |
-| `isLoading`                      | `boolean`                                                             | Loading indicator on the Control.                                    |
+| Prop                             | Type                                                                  | Purpose                                                                    |
+| -------------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `color`                          | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger'` | Visual state — use `'danger'` for errors, `'success'` for valid.           |
+| `size`                           | `'small' \| 'medium' \| 'large'`                                      | Input size.                                                                |
+| `value` / `onChange`             | controlled value + handler                                            | Standard React controlled inputs.                                          |
+| `defaultValue`                   | uncontrolled initial value                                            | When not controlling state.                                                |
+| `disabled`, `readOnly`           | `boolean`                                                             | Native states (`readOnly` on `*Base`).                                     |
+| `label`                          | `ReactNode`                                                           | Field label (convenience components; auto-associated via `htmlFor`).       |
+| `message`                        | `ReactNode`                                                           | Help / validation text rendered as `<p class="help">`.                     |
+| `messageColor`                   | a Bulma color                                                         | Colors the help text (`'danger'` for errors).                              |
+| `iconLeftName` / `iconRightName` | `string`                                                              | Icon shortcuts; pair with `hasIconsLeft/Right`.                            |
+| `isLoading`                      | `boolean`                                                             | Loading spinner on the Control; `Select` draws it in place of the chevron. |
 
 Plus the full Bulma **helper props** (`m`, `p`, `textColor`, `display`, …) on every component
 via `useBulmaClasses`.

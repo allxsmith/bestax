@@ -227,7 +227,7 @@
           "name": "iconLeft",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for the left icon.",
+          "description": "Icon props for the left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -236,7 +236,7 @@
           "name": "iconRight",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for the right icon.",
+          "description": "Icon props for the right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -290,7 +290,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Show a loading spinner on the control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false

@@ -123,7 +123,7 @@
           "name": "iconLeft",
           "type": "IconProps | React.ReactNode",
           "default": null,
-          "description": "Icon props for left icon.",
+          "description": "Icon props for left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.",
           "required": false,
           "inherited": false,
           "deprecated": false

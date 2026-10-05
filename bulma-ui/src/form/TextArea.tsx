@@ -12,6 +12,8 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and TextAreaBase into a single convenience component.
  * Supports all TextAreaBase props, plus Field-level (label, horizontal) and
  * Control-level (loading) props.
+ * Inside an existing `Control` within a `Field` it renders no `Field` or
+ * `Control` of its own, so set the Control-level props on that `Control` instead.
  */
 export interface TextAreaProps extends TextAreaBaseProps {
   /** Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
@@ -23,7 +25,7 @@ export interface TextAreaProps extends TextAreaBaseProps {
   /** Horizontal field layout. */
   horizontal?: boolean;
   /**
-   * Shows a loading spinner on the wrapping Control.
+   * Shows a loading spinner on the `Control` it renders.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */
@@ -41,7 +43,7 @@ export interface TextAreaProps extends TextAreaBaseProps {
 }
 
 /**
- * The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, rounded corners, static/read-only state, hover/focus/loading states, fixed size, and all Bulma helper props.
+ * The `TextArea` component provides a Bulma-styled multi-line text input, supporting color, size, hover/focus/loading states, fixed size, and all Bulma helper props.
  *
  * @function
  * @param {TextAreaProps} props - Props for TextArea.
