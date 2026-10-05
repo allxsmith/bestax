@@ -77,6 +77,13 @@ export interface CalendarProps {
   granularity?: DateGranularity;
 }
 
+/**
+ * Selects the calendar's focused cell, the one tab stop of whichever grid or
+ * year list is on show, for a popover to put focus on as it opens.
+ */
+export const CALENDAR_FOCUSED_CELL =
+  '[data-focused="true"], [data-focused-year="true"]';
+
 type CalendarView = 'days' | 'months' | 'years';
 
 const BASE_VIEW: Record<DateGranularity, CalendarView> = {
@@ -494,6 +501,20 @@ export const Calendar: React.FC<CalendarProps> = ({
       ),
     [isYearGranularity, yearList, isYearUnselectable]
   );
+  // The year list's one tab stop, after the month grid's: when the focused
+  // year is disabled the stop moves to the nearest enabled year in the list,
+  // and focusing it makes it the focused year. A year outside the list keeps
+  // the stop, which then marks no option.
+  const tabStopYear = useMemo(() => {
+    const i = yearList.indexOf(focusedYear);
+    if (i < 0) return focusedYear;
+    return yearList[
+      nearestEnabled(
+        i,
+        yearList.map(y => disabledYears.has(y))
+      )
+    ];
+  }, [yearList, focusedYear, disabledYears]);
 
   // Which of the focused year's months have no selectable day.
   const disabledMonths = useMemo(
@@ -845,7 +866,7 @@ export const Calendar: React.FC<CalendarProps> = ({
           onKeyDown={handleYearListKeyDown}
         >
           {yearList.map(year => {
-            const isFocused = year === focusedYear;
+            const isFocused = year === tabStopYear;
             const isToday = year === todayYear;
             // As navigation the focused year is the current one. As the
             // selection surface the value's year is selected and focus roams.
@@ -874,6 +895,13 @@ export const Calendar: React.FC<CalendarProps> = ({
                 tabIndex={isFocused ? 0 : -1}
                 disabled={disabled}
                 className={cellCls}
+                onFocus={() => {
+                  // Reached by Tab while the focused year is disabled, or by
+                  // pointer: keys move on from here.
+                  if (isYearGranularity && year !== focusedYear) {
+                    onFocusedDateChange(clampDate(makeDate(year), min, max));
+                  }
+                }}
                 onClick={() =>
                   isYearGranularity
                     ? handleYearPick(year)

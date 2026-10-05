@@ -910,13 +910,13 @@ function DateInputFormDemo() {
 ## Accessibility
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
-- Popover panel has `role="dialog"` with an accessible name.
+- Popover panel has `role="dialog"` with an accessible name. Opening it puts focus on the focused date, month or year.
 - Closing the popover with `Escape` or a pick returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Dismissing without a pick commits nothing: an empty field stays empty, and leaving afterwards commits only what you typed.
 - Calendar uses `role="grid"` with cells as `role="gridcell"`.
 - Cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"` for today.
 - Roving `tabindex` keeps a single grid cell focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - The month grid is a `role="grid"` of `role="row"`s, labelled by the year in its header. Each month cell carries the full month name as its accessible name, `aria-current="date"` for this month and `aria-disabled` for a month with no selectable day.
-- The year list is a `role="listbox"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list.
+- The year list is a `role="listbox"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list. When the focused year is disabled, the nearest enabled year takes the tab stop, so `Tab` still reaches the list.
 - The launcher and popover are named "Choose month" or "Choose year" to match the granularity; override them, and the month grid's "Previous year" / "Next year" buttons, through `labels` (`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`).
 - Honors `prefers-reduced-motion` (skip popover fade-in).
 

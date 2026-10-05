@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
@@ -30,6 +30,12 @@ export interface PickerPopoverProps {
    * would be recorded instead, and that cell leaves with the panel.
    */
   restoreFocusRef?: React.RefObject<HTMLElement | null>;
+  /**
+   * Selects the element in the panel that takes focus as it opens, such as a
+   * calendar's focused date rather than the first button in its header. When
+   * nothing matches, or the match can't take focus, the first tab stop does.
+   */
+  initialFocusSelector?: string;
 }
 
 const isBrowser = typeof window !== 'undefined';
@@ -50,8 +56,25 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   role = 'dialog',
   id,
   restoreFocusRef,
+  initialFocusSelector,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  // Read as the trap turns on, once the panel's content has rendered.
+  const initialFocusRef = useMemo(
+    () =>
+      initialFocusSelector === undefined
+        ? undefined
+        : {
+            get current() {
+              return (
+                panelRef.current?.querySelector<HTMLElement>(
+                  initialFocusSelector
+                ) ?? null
+              );
+            },
+          },
+    [initialFocusSelector]
+  );
   const resolved = useAnchoredPosition(anchorRef, panelRef, {
     active: isOpen,
     position,
@@ -94,6 +117,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
 
   useFocusTrap(panelRef, {
     active: isOpen && trapFocus,
+    initialFocusRef,
     restoreFocus: restoreFocusRef ?? true,
   });
 

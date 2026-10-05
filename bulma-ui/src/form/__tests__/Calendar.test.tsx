@@ -1151,6 +1151,62 @@ describe('Calendar year granularity', () => {
     expect(current).toHaveClass('is-today');
   });
 
+  describe('tab stop', () => {
+    const blockYears =
+      (...years: number[]) =>
+      (d: Date) =>
+        years.includes(d.getFullYear());
+    const tabStops = (container: HTMLElement) =>
+      yearOptions(container).filter(o => o.tabIndex === 0);
+
+    it.each([
+      ['the later neighbour', [2024], '2025'],
+      ['the earlier one when the later is out too', [2024, 2025], '2023'],
+    ])(
+      'moves off a disabled focused year to %s',
+      (_case, blocked, expected) => {
+        const { container } = render(
+          <PeriodHarness
+            granularity="year"
+            shouldDisableDate={blockYears(...blocked)}
+          />
+        );
+        const stops = tabStops(container);
+        expect(stops).toHaveLength(1);
+        expect(stops[0]).toHaveTextContent(expected);
+        expect(stops[0]).not.toBeDisabled();
+        expect(stops[0]).toHaveAttribute('data-focused-year', 'true');
+      }
+    );
+
+    it('makes the year Tab reaches the focused one, so keys move from it', () => {
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          granularity="year"
+          shouldDisableDate={blockYears(2024)}
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      act(() => tabStops(container)[0].focus());
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2025, 0, 1));
+      press(container, 'ArrowRight');
+      expect(document.activeElement).toHaveTextContent('2026');
+    });
+
+    it('leaves focus moving through the list alone', () => {
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          granularity="year"
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      act(() => focusedYearOption(container).focus());
+      expect(onFocusedDateChange).not.toHaveBeenCalled();
+    });
+  });
+
   it('reports the first day of the clicked year and focuses it inside min', () => {
     const onSelect = jest.fn();
     const onFocusedDateChange = jest.fn();

@@ -212,6 +212,81 @@ describe('DateInput', () => {
       expect(pressTab(monthButton, true).defaultPrevented).toBe(true);
       expect(day).toHaveFocus();
     });
+
+    // As the date picker dialog pattern has it: the date, not the header.
+    it.each([
+      ['day', '[data-focused="true"]'],
+      ['month', '[data-focused="true"]'],
+      ['year', '[data-focused-year="true"]'],
+    ] as const)(
+      'opens the %s picker with focus on the focused cell',
+      (granularity, selector) => {
+        const { getByRole } = render(
+          <DateInput
+            granularity={granularity}
+            defaultValue={new Date(2024, 5, 15)}
+          />
+        );
+        act(() => {
+          getByRole('combobox').focus();
+        });
+        const cell = getByRole('dialog').querySelector(selector);
+        expect(cell).not.toBeNull();
+        expect(document.activeElement).toBe(cell);
+      }
+    );
+
+    // The focused cell is the grid's tab stop, which moves off a disabled
+    // period to the nearest enabled one.
+    it('opens the day picker on the tab stop past a disabled day', () => {
+      const { getByRole } = render(
+        <DateInput
+          defaultValue={new Date(2024, 5, 15)}
+          shouldDisableDate={d => d.getDate() === 15}
+        />
+      );
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(getByRole('dialog').contains(day)).toBe(true);
+      expect(day).toHaveAttribute('role', 'gridcell');
+      expect(day).toHaveTextContent('16');
+      // Landing there made it the focused day, so the keys move on from it.
+      act(() => {
+        fireEvent.keyDown(day, { key: 'ArrowRight' });
+      });
+      expect(document.activeElement).toHaveTextContent('17');
+    });
+
+    it('opens the month picker on the tab stop past a disabled month', () => {
+      const { getByRole } = render(
+        <DateInput
+          granularity="month"
+          defaultValue={new Date(2024, 5, 15)}
+          shouldDisableDate={d => d.getMonth() === 5}
+        />
+      );
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      expect(document.activeElement).toHaveAttribute('aria-label', 'July');
+    });
+
+    it('opens the year picker on the tab stop past a disabled year', () => {
+      const { getByRole } = render(
+        <DateInput
+          granularity="year"
+          defaultValue={new Date(2024, 5, 15)}
+          shouldDisableDate={d => d.getFullYear() === 2024}
+        />
+      );
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      expect(document.activeElement).toHaveAttribute('role', 'option');
+      expect(document.activeElement).toHaveTextContent('2025');
+    });
   });
 
   describe('Format / parse', () => {
@@ -1042,6 +1117,17 @@ describe('DateInputBase remaining branches', () => {
     expect(getByRole('combobox').getAttribute('aria-controls')).toBe(
       'dob-popover'
     );
+  });
+
+  it('gives the popover and its calendar ids of their own', () => {
+    const { getByRole } = render(<DateInputBase id="dob" />);
+    fireEvent.click(getByRole('combobox'));
+    expect(document.querySelectorAll('#dob-popover')).toHaveLength(1);
+    const label = document.getElementById(
+      getByRole('grid').getAttribute('aria-labelledby')!
+    );
+    expect(getByRole('dialog').contains(label)).toBe(true);
+    expect(document.querySelectorAll(`[id="${label!.id}"]`)).toHaveLength(1);
   });
 
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {

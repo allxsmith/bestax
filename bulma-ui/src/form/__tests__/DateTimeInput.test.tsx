@@ -1289,6 +1289,14 @@ describe('DateTimeInput focus handed back on close', () => {
     });
   };
 
+  it('opens with focus on the focused day, not the header', () => {
+    const { getByRole } = render(<DateTimeInput defaultValue={v} />);
+    openByFocus(getByRole('combobox'));
+    const day = getByRole('dialog').querySelector('[data-focused="true"]');
+    expect(day).toHaveTextContent('15');
+    expect(document.activeElement).toBe(day);
+  });
+
   it('Escape closes it and leaves focus on the input', () => {
     const onOpen = jest.fn();
     const { getByRole, queryByRole } = render(
