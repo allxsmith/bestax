@@ -1,3 +1,16 @@
+## [5.26.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.2...@allxsmith/bestax-bulma@5.26.3) (2026-10-05)
+
+
+### Bug Fixes
+
+* **bulma-ui:** fire the pickers' onOpen and onClose once under StrictMode ([#896](https://github.com/allxsmith/bestax/issues/896)) ([20b51ed](https://github.com/allxsmith/bestax/commit/20b51edd9aee0d67bb154481ab495cf2728c7337))
+* **bulma-ui:** let focus follow the keys in an inline calendar, and skip disabled days for the tab stop ([#885](https://github.com/allxsmith/bestax/issues/885)) ([f55af27](https://github.com/allxsmith/bestax/commit/f55af279d6426bb14db198b5b383c7d73ce64900))
+* **bulma-ui:** make Theme colorMode switch the scheme under the prefixed builds ([#894](https://github.com/allxsmith/bestax/issues/894)) ([2bd6ec2](https://github.com/allxsmith/bestax/commit/2bd6ec2b3a6c6ef841462388c5e1010e960500b6))
+* **bulma-ui:** place a portaled picker panel by its coordinates alone ([#886](https://github.com/allxsmith/bestax/issues/886)) ([040299b](https://github.com/allxsmith/bestax/commit/040299be34cafe621749a9e4c4ec6b92695f110b))
+* **bulma-ui:** read picker bounds and months in years 0 to 99 as written ([#890](https://github.com/allxsmith/bestax/issues/890)) ([02fb619](https://github.com/allxsmith/bestax/commit/02fb61963cbc3245662e86aa938ebff09553a3a7))
+* **bulma-ui:** start a date picker's focus on the focused cell ([#897](https://github.com/allxsmith/bestax/issues/897)) ([6a55714](https://github.com/allxsmith/bestax/commit/6a55714c4a82b680e60bb27c49c33ca15607a356))
+* **bulma-ui:** stop the indeterminate progress bar and skeleton pulse under reduced motion ([bcf5407](https://github.com/allxsmith/bestax/commit/bcf54077330560192ee47376a13c42782c7d9395))
+
 ## [5.26.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.1...@allxsmith/bestax-bulma@5.26.2) (2026-10-05)
 
 
