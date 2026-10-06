@@ -248,7 +248,7 @@ function example() {
 }
 ```
 
-Inside a `Control` with no `Field` around it, `Slider` renders no `Field` of its own either. A `label` or `message` needs a `Field`, though, so given either one there it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and give the `label` to that `Field`.
+Inside a `Control` with no `Field` around it, `Slider` renders no `Field` of its own either, unless you give it `label`, `message`, `horizontal` or `fieldClassName`. Those need a `Field`, so with any of them it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and set the `label`, `horizontal` and class name on that `Field` instead.
 
 ---
 

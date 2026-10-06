@@ -15,21 +15,18 @@ import { Radio } from '../Radio';
 import { Slider } from '../Slider';
 import { Rate } from '../Rate';
 import { resetDevWarnings } from '../../helpers/devWarnings';
+import type { FormFieldProps } from '../fieldProps';
 
 // #905: a convenience wrapper inside a Control with no Field around it used
 // to render a Field of its own there, a .field inside the .control, so
 // Bulma's sibling rules (`.input ~ .icon`) no longer reached the icons and
 // the field margin landed inside the control. It now renders no Field
-// unless a label or message needs one, and warns when one does.
-
-interface FieldBits {
-  label?: React.ReactNode;
-  message?: React.ReactNode;
-}
+// unless a prop that shapes the Field's markup needs one, and warns when one
+// does, so nothing but the broken case changes its output.
 
 interface Wrapper {
   name: string;
-  render: (props: FieldBits) => React.ReactElement;
+  render: (props: FormFieldProps) => React.ReactElement;
   /** The widget's own root element, which belongs directly in the Control. */
   root: string;
 }
@@ -102,6 +99,20 @@ afterEach(() => {
 const outerControl = (container: HTMLElement) =>
   container.querySelector('.control') as HTMLElement;
 
+/** Markup with React's generated ids (18 and 19 spellings) made comparable. */
+const withoutIds = (html: string) =>
+  html.replace(/_r_[0-9a-z]+_|:r[0-9a-z]+:/g, 'ID');
+
+/**
+ * The props that change nothing in the Field's markup unless a label or
+ * message renders, which is why they alone keep no Field.
+ */
+const inertWithoutLabel: FormFieldProps = {
+  labelSize: 'large',
+  labelProps: { className: 'custom-label', id: 'custom-label', htmlFor: 'x' },
+  messageColor: 'danger',
+};
+
 describe.each(wrappers)(
   '$name inside a Control',
   ({ name, render: el, root }) => {
@@ -134,7 +145,59 @@ describe.each(wrappers)(
       const message = warnSpy.mock.calls[0][0] as string;
       expect(message).toContain(`<${name} label> inside a <Control>`);
       expect(message).toContain('Wrap the <Control> in a <Field>');
-      expect(message).toContain('give the label to that <Field>');
+      expect(message).toContain('set label on that <Field>');
+    });
+
+    it.each([
+      {
+        prop: 'horizontal',
+        props: { horizontal: true },
+        fieldClass: 'is-horizontal',
+        onField: 'horizontal',
+      },
+      {
+        prop: 'fieldClassName',
+        props: { fieldClassName: 'custom-field' },
+        fieldClass: 'custom-field',
+        onField: 'className (for fieldClassName)',
+      },
+    ])(
+      'keeps its own Field for $prop in a bare Control, and warns once',
+      ({ prop, props, fieldClass, onField }) => {
+        const tree = (
+          <>
+            <Control>{el(props)}</Control>
+            <Control>{el(props)}</Control>
+          </>
+        );
+        const { container, rerender } = render(tree);
+        rerender(tree);
+
+        const control = outerControl(container);
+        const field = control.firstElementChild as HTMLElement;
+        expect(field).toHaveClass('field', fieldClass);
+        expect(field.querySelector(root)).not.toBeNull();
+
+        expect(warnSpy).toHaveBeenCalledTimes(1);
+        const message = warnSpy.mock.calls[0][0] as string;
+        expect(message).toContain(`<${name} ${prop}> inside a <Control>`);
+        expect(message).toContain('for that prop');
+        expect(message).toContain(`set ${onField} on that <Field>`);
+      }
+    );
+
+    it('keeps no Field for labelSize, labelProps or messageColor alone', () => {
+      // Standalone, they leave the Field's markup exactly as it is without
+      // them, so in a bare Control a Field for them would be the broken case.
+      const { container: bare } = render(el({}));
+      const { container: given } = render(el(inertWithoutLabel));
+      expect(withoutIds(given.innerHTML)).toBe(withoutIds(bare.innerHTML));
+
+      const { container } = render(<Control>{el(inertWithoutLabel)}</Control>);
+      const control = outerControl(container);
+      expect(control.querySelector('.field')).toBeNull();
+      expect(control.firstElementChild).toBe(control.querySelector(root));
+      expect(warnSpy).not.toHaveBeenCalled();
     });
 
     it('keeps its own Field for a message in a bare Control, and warns once', () => {
@@ -149,8 +212,8 @@ describe.each(wrappers)(
       expect(warnSpy).toHaveBeenCalledTimes(1);
       const message = warnSpy.mock.calls[0][0] as string;
       expect(message).toContain(`<${name} message> inside a <Control>`);
-      expect(message).toContain('Wrap the <Control> in a <Field>');
-      expect(message).not.toContain('give the label');
+      expect(message).toContain('Wrap the <Control> in a <Field> instead.');
+      expect(message).not.toContain('on that <Field>');
     });
 
     it('changes nothing inside a Field and Control, and does not warn', () => {
@@ -180,16 +243,46 @@ describe.each(wrappers)(
 );
 
 describe('the bare-Control warning', () => {
-  it('names a label and a message together in one warning', () => {
+  it('names every Field-shaping prop passed in one warning', () => {
     render(
       <Control>
-        <Input label="Name" message="Help text" />
+        <Input
+          label="Name"
+          message="Help text"
+          horizontal
+          fieldClassName="custom-field"
+        />
       </Control>
     );
     expect(warnSpy).toHaveBeenCalledTimes(1);
     const message = warnSpy.mock.calls[0][0] as string;
-    expect(message).toContain('<Input label message> inside a <Control>');
-    expect(message).toContain('to hold the label and message');
+    expect(message).toContain(
+      '<Input label message horizontal fieldClassName> inside a <Control>'
+    );
+    expect(message).toContain('for those props');
+    expect(message).toContain(
+      'set label, horizontal and className (for fieldClassName) on that <Field>.'
+    );
+  });
+
+  it('names two props moving to the Field without a list comma', () => {
+    render(
+      <Control>
+        <Input label="Name" horizontal />
+      </Control>
+    );
+    const message = warnSpy.mock.calls[0][0] as string;
+    expect(message).toContain('set label and horizontal on that <Field>.');
+  });
+
+  it('keeps no Field for falsy Field-shaping props', () => {
+    const { container } = render(
+      <Control>
+        <Input label="" message={null} horizontal={false} fieldClassName="" />
+      </Control>
+    );
+    expect(container.querySelector('.field')).toBeNull();
+    expect(warnSpy).not.toHaveBeenCalled();
   });
 
   it('keeps the label wired to the input in a bare Control', () => {

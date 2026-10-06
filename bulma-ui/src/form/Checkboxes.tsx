@@ -19,10 +19,11 @@ import { Checkbox } from './Checkbox';
  * Props for the Checkboxes component.
  * Inside an existing `Control` it renders no `Control` of its own. Inside an
  * outer `Field`, or a `Control` with no `Field` around it, it renders no
- * `Field` of its own either. The exception is a `label` or `message` in that
- * bare `Control`: it keeps a `Field` to hold them, nested in the `.control`,
- * and warns in development. Wrap the `Control` in a `Field` instead, and give
- * the `label` to that `Field`.
+ * `Field` of its own either. The exception is `label`, `message`, `horizontal`
+ * or `fieldClassName` in that bare `Control`: it keeps a `Field` for them,
+ * nested in the `.control`, and warns in development. Wrap the `Control` in a
+ * `Field` instead, and set the `label`, `horizontal` and class name on that
+ * `Field`.
  */
 export interface CheckboxesProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
@@ -94,6 +95,8 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     insideControl,
     label,
     message,
+    horizontal,
+    fieldClassName,
   });
   const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
     label,

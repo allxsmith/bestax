@@ -19,9 +19,10 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Inside an existing `Control` it renders no `Control` of its own, so set the
  * Control-level props on that `Control` instead. Inside an outer `Field`, or a
  * `Control` with no `Field` around it, it renders no `Field` of its own either.
- * The exception is a `label` or `message` in that bare `Control`: it keeps a
- * `Field` to hold them, nested in the `.control`, and warns in development.
- * Wrap the `Control` in a `Field` instead, and give the `label` to that `Field`.
+ * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
+ * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
+ * warns in development. Wrap the `Control` in a `Field` instead, and set the
+ * `label`, `horizontal` and class name on that `Field`.
  */
 export interface InputProps extends InputBaseProps {
   /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
@@ -135,6 +136,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       insideControl,
       label,
       message,
+      horizontal,
+      fieldClassName,
     });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,

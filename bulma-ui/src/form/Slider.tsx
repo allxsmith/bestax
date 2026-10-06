@@ -157,10 +157,11 @@ export interface SliderRangeProps extends SliderBaseProps {
  *  Props for the Slider component — a discriminated union of single and range modes.
  * Inside an existing `Control` it renders no `Control` of its own. Inside an
  * outer `Field`, or a `Control` with no `Field` around it, it renders no
- * `Field` of its own either. The exception is a `label` or `message` in that
- * bare `Control`: it keeps a `Field` to hold them, nested in the `.control`,
- * and warns in development. Wrap the `Control` in a `Field` instead, and give
- * the `label` to that `Field`.
+ * `Field` of its own either. The exception is `label`, `message`, `horizontal`
+ * or `fieldClassName` in that bare `Control`: it keeps a `Field` for them,
+ * nested in the `.control`, and warns in development. Wrap the `Control` in a
+ * `Field` instead, and set the `label`, `horizontal` and class name on that
+ * `Field`.
  * @extraProp {boolean} [disabled=false] - Whether the slider is disabled.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
@@ -314,6 +315,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       insideControl,
       label,
       message,
+      horizontal,
+      fieldClassName,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(restProps);
     // In range mode the low thumb carries `rest` (and any user id), so the
