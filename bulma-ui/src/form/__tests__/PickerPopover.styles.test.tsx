@@ -292,7 +292,7 @@ function mediaHolds(mediaText: string, width: number): boolean {
 }
 
 // What says where a box sits, and the value each has when nothing sets it.
-// The gap to the anchor can be a margin, so the vertical ones count too.
+// The gap to the anchor can be a margin, so margins count too.
 const INITIAL: Record<string, string> = {
   position: 'static',
   top: 'auto',
@@ -300,14 +300,17 @@ const INITIAL: Record<string, string> = {
   bottom: 'auto',
   left: 'auto',
   'margin-top': '0',
+  'margin-right': '0',
   'margin-bottom': '0',
+  'margin-left': '0',
 };
 const PLACEMENT = Object.keys(INITIAL);
 // Shorthands and logical properties move the box without naming these.
 const isIndirect = (property: string) =>
   property.startsWith('inset') ||
   property === 'margin' ||
-  property.startsWith('margin-block');
+  property.startsWith('margin-block') ||
+  property.startsWith('margin-inline');
 
 /**
  * The style rules that can hold at this width and say where a box sits, in
@@ -474,7 +477,9 @@ describe.each(published)('panel placement in %s', file => {
             'margin-top': position.startsWith('top')
               ? `calc(-1 * ${gap})`
               : gap,
+            'margin-right': '0',
             'margin-bottom': '0',
+            'margin-left': '0',
           });
         }
       );
@@ -536,7 +541,9 @@ describe.each(published)('panel placement in %s', file => {
         bottom: '1rem',
         left: '1rem',
         'margin-top': '0',
+        'margin-right': '0',
         'margin-bottom': '0',
+        'margin-left': '0',
       });
     }
   );
