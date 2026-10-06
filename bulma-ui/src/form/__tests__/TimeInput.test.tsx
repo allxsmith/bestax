@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
 import { Field } from '../Field';
+import { Control } from '../Control';
 import { TimeInputBase } from '../TimeInputBase';
 import { ConfigProvider } from '../../helpers/Config';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
@@ -1123,6 +1124,38 @@ describe('TimeInput launcher icon', () => {
     );
     fireEvent.click(getByLabelText('Choose time'));
     expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('gives way only to a spinner it draws itself', () => {
+    // Its own Control draws the spinner where the launcher sits.
+    const own = render(<TimeInput isLoading />);
+    expect(own.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(own.queryByLabelText('Choose time')).toBeNull();
+    own.unmount();
+
+    // Inside a Control it renders none, so nothing is drawn to give way to.
+    const inner = render(
+      <Field>
+        <Control>
+          <TimeInput isLoading />
+        </Control>
+      </Field>
+    );
+    expect(inner.container.querySelector('.is-loading')).toBeNull();
+    expect(inner.getByLabelText('Choose time').tagName).toBe('BUTTON');
+    inner.unmount();
+
+    // A loading outer Control's spinner is out of its sight, so that route
+    // passes `triggerIcon={false}`.
+    const outer = render(
+      <Field>
+        <Control isLoading>
+          <TimeInput triggerIcon={false} />
+        </Control>
+      </Field>
+    );
+    expect(outer.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(outer.queryByLabelText('Choose time')).toBeNull();
   });
 });
 

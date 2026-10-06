@@ -11,6 +11,7 @@ import { useAutoLabelId } from './useAutoLabelId';
  * `DateTimeInputBaseProps` with Field-level and Control-level props.
  * Inside an existing `Control` within a `Field` it renders no `Field` or
  * `Control` of its own, so set the Control-level props on that `Control` instead.
+ * With `isLoading` there, pass `triggerIcon={false}` too (see `triggerIcon`).
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Optional id of the form the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
@@ -47,11 +48,21 @@ export interface DateTimeInputProps extends DateTimeInputBaseProps {
   /** Force the right icon container. */
   hasIconsRight?: boolean;
   /**
-   * Shows a loading spinner on the `Control` it renders.
+   * Shows a loading spinner on the `Control` it renders, and hides the
+   * launcher (`triggerIcon`) while it does.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */
   isLoading?: boolean;
+  /**
+   * Show a clickable launcher button on the right that toggles the popover.
+   * Off by default while the `Control` this component renders shows its
+   * `isLoading` spinner, which sits at the same right edge. Inside your own
+   * `<Control isLoading>` the spinner is that `Control`'s, which this
+   * component cannot see, so pass `false` there or the two overlap.
+   * @defaultValue !isLoading
+   */
+  triggerIcon?: boolean;
   /** Expand the control to fill its container. */
   isExpanded?: boolean;
   /** Size of the wrapping Control. */
@@ -122,20 +133,23 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       [`is-${messageColor}`]: !!messageColor,
     });
 
+    // Inline mode renders a bare picker with no input, so the Control's
+    // icon-left container has nothing to anchor to. Skip the Control wrap.
+    const rendersControl = !insideControl && !baseProps.inline;
+
     // The right-side launcher is on by default; suppress it while the Control
-    // shows its loading spinner (also on the right) unless explicitly set.
+    // rendered here shows its loading spinner (also on the right) unless
+    // explicitly set. Inside another Control no spinner is drawn here.
     let content: React.ReactNode = (
       <DateTimeInputBase
         ref={ref}
         id={controlId}
         {...baseProps}
-        triggerIcon={baseProps.triggerIcon ?? !isLoading}
+        triggerIcon={baseProps.triggerIcon ?? !(isLoading && rendersControl)}
       />
     );
 
-    // Inline mode renders a bare picker with no input, so the Control's
-    // icon-left container has nothing to anchor to. Skip the Control wrap.
-    if (!insideControl && !baseProps.inline) {
+    if (rendersControl) {
       content = (
         <Control
           iconLeft={iconLeft}

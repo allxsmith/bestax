@@ -5,6 +5,7 @@ import { DateInput } from '../DateInput';
 import { DateInputBase } from '../DateInputBase';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Field } from '../Field';
+import { Control } from '../Control';
 import { ConfigProvider } from '../../helpers/Config';
 import * as nativeInputSupport from '../_pickerInternals/nativeInputSupport';
 import { makeDate } from '../_pickerInternals/dateUtils';
@@ -981,6 +982,38 @@ describe('DateInput launcher icon', () => {
     );
     expect(container.querySelector('[class*="is-left"]')).not.toBeNull();
     expect(getByLabelText('Choose date').tagName).toBe('BUTTON');
+  });
+
+  it('gives way only to a spinner it draws itself', () => {
+    // Its own Control draws the spinner where the launcher sits.
+    const own = render(<DateInput isLoading />);
+    expect(own.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(own.queryByLabelText('Choose date')).toBeNull();
+    own.unmount();
+
+    // Inside a Control it renders none, so nothing is drawn to give way to.
+    const inner = render(
+      <Field>
+        <Control>
+          <DateInput isLoading />
+        </Control>
+      </Field>
+    );
+    expect(inner.container.querySelector('.is-loading')).toBeNull();
+    expect(inner.getByLabelText('Choose date').tagName).toBe('BUTTON');
+    inner.unmount();
+
+    // A loading outer Control's spinner is out of its sight, so that route
+    // passes `triggerIcon={false}`.
+    const outer = render(
+      <Field>
+        <Control isLoading>
+          <DateInput triggerIcon={false} />
+        </Control>
+      </Field>
+    );
+    expect(outer.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(outer.queryByLabelText('Choose date')).toBeNull();
   });
 });
 

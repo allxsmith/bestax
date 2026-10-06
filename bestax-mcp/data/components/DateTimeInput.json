@@ -146,6 +146,10 @@
       "code": "function example() {\n  return (\n    <Field horizontal label=\"When\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
+      "title": "Context-Aware Rendering",
+      "code": "<Field label=\"When\">\n  <Control iconLeftName=\"calendar-alt\" isLoading>\n    <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" triggerIcon={false} />\n  </Control>\n</Field>"
+    },
+    {
       "title": "Manual Keyboard Entry",
       "code": "function example() {\n  return (\n    <DateTimeInput\n      label=\"Type across date and time\"\n      defaultValue={new Date(2024, 5, 7, 13, 45)}\n      openOnFocus={false}\n    />\n  );\n}"
     },
@@ -282,7 +286,16 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "!isLoading",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Off by default while the `Control` this component renders shows its `isLoading` spinner, which sits at the same right edge. Inside your own `<Control isLoading>` the spinner is that `Control`'s, which this component cannot see, so pass `false` there or the two overlap.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -670,15 +683,6 @@
           "type": "string",
           "default": "'calendar-alt'",
           "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "triggerIcon",
-          "type": "boolean",
-          "default": "true",
-          "description": "Show a clickable launcher button on the right that toggles the popover. Default `true`.",
           "required": false,
           "inherited": true,
           "deprecated": false

@@ -399,7 +399,7 @@
       "import": "import { DateInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 53,
-      "exampleCount": 41
+      "exampleCount": 42
     },
     {
       "name": "DateTimeInput",
@@ -410,7 +410,7 @@
       "import": "import { DateTimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 62,
-      "exampleCount": 40
+      "exampleCount": 41
     },
     {
       "name": "Delete",
@@ -1048,7 +1048,7 @@
       "import": "import { TimeInput } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 54,
-      "exampleCount": 42
+      "exampleCount": 43
     },
     {
       "name": "Title",

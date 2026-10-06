@@ -172,6 +172,10 @@
     {
       "title": "Context-Aware Rendering",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Time\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"clock\">\n            <TimeInput placeholder=\"HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Field label=\"Time\">\n  <Control iconLeftName=\"clock\" isLoading>\n    <TimeInput placeholder=\"HH:MM\" triggerIcon={false} />\n  </Control>\n</Field>"
     }
   ],
   "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- AM/PM toggle exposes `aria-pressed`.\n- Honors `prefers-reduced-motion`.",
@@ -290,7 +294,16 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "!isLoading",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Off by default while the `Control` this component renders shows its `isLoading` spinner, which sits at the same right edge. Inside your own `<Control isLoading>` the spinner is that `Control`'s, which this component cannot see, so pass `false` there or the two overlap.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -624,15 +637,6 @@
           "type": "string",
           "default": "'clock'",
           "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "triggerIcon",
-          "type": "boolean",
-          "default": "true",
-          "description": "Show a clickable launcher button on the right that toggles the popover. Default `true`.",
           "required": false,
           "inherited": true,
           "deprecated": false

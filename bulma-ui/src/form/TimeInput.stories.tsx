@@ -703,7 +703,7 @@ export const WithoutLauncher: Story = {
     docs: {
       description: {
         story:
-          'Set `triggerIcon={false}` to hide the launcher; the popover still opens on focus / click.',
+          'Set `triggerIcon={false}` to hide the launcher; the popover still opens on focus / click. Pass it too inside your own `<Control isLoading>`, whose spinner sits where the launcher does.',
       },
     },
   },

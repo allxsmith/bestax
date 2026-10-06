@@ -93,6 +93,18 @@ File input with `label`, `message`, color/size, and icon support.
 `DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
 composition like the other convenience inputs, with picker UIs (native with custom fallback).
 
+Each has a launcher button at the right edge (`triggerIcon`), which the convenience input hides
+while its own `isLoading` spinner shows there. Composed inside your own `<Control isLoading>`,
+the input cannot see that spinner, so pass `triggerIcon={false}` or the two overlap:
+
+```tsx
+<Field label="Date">
+  <Control isLoading>
+    <DateInput triggerIcon={false} />
+  </Control>
+</Field>
+```
+
 For a value that is a month or a year (card expiry, billing period, graduation year), use
 `DateInput` with `granularity="month"` or `granularity="year"` rather than building a select or a
 separate picker. The value is still a `Date`: the first day of the month, or 1 January of the
