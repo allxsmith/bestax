@@ -131,8 +131,12 @@ Say in the pull request which listings need an update, then open those updates o
   that touched the plugin's content, plus a number the generator raises when its output changes,
   so it rises with each change without a hand bump, and
   the MAJOR.MINOR comes from `plugin.version` in `plugin/manifest.json`. Update those entries when a
-  release should reach them. Codex keys its plugin cache on the version too. The Grok Build entry
-  pins a commit instead, so updating it takes a pull request there.
+  release should reach them. Codex keys its plugin cache on the version too, and Claude Code reads
+  the same version from `.claude-plugin/plugin.json`. The Grok Build entry pins a commit instead,
+  so updating it takes a pull request there.
+- **Changing the plugin icon.** Anthropic's plugin directory takes the icon in bestax-skills'
+  `.claude-plugin/icon.png` only the first time the plugin is saved or submitted, so a new
+  `plugin/icon.png` does not reach that listing on its own.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.
