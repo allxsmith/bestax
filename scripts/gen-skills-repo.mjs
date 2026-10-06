@@ -791,8 +791,11 @@ export function renderAgentManifest(template, version) {
 
 /**
  * The Gemini CLI extension manifest. Gemini reads its `mcpServers` inline,
- * with no `type`, and discovers `skills/` without a field. Its `version` is
- * pluginVersion's, like the other manifests'.
+ * with no `type`. It has no skills field, because Gemini loads an
+ * extension's skills from `skills/<name>/SKILL.md`
+ * (https://geminicli.com/docs/extensions/reference/), the layout
+ * treeViolations already requires. Its `version` is pluginVersion's, like
+ * the other manifests'.
  */
 export function renderGeminiExtension(template, pin, version) {
   const { plugin } = template;

@@ -99,7 +99,7 @@ or `grok plugin update bestax`.
 - The plugin has no hooks, commands, agents or scripts of its own.
 
 Your agent starts the server with this command, the same one in
-`.claude-plugin/plugin.json` and `mcp.json`:
+`.claude-plugin/plugin.json`, `gemini-extension.json` and `mcp.json`:
 
 <!-- bestax:generated mcp-server -->
 <!-- /bestax:generated mcp-server -->

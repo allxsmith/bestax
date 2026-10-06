@@ -182,6 +182,12 @@ on.
 In **VS Code**, run **Chat: Install Plugin From Source** from the Command Palette and enter
 `https://github.com/allxsmith/bestax-skills`.
 
+**Gemini CLI** installs the repository as an extension:
+
+```bash
+gemini extensions install https://github.com/allxsmith/bestax-skills
+```
+
 **Kiro** installs the plugin as a [power](https://kiro.dev/docs/powers/installation/), from the
 Agent Plugins `plugin.json` at the repository root. In the IDE, open the Powers panel, choose
 **Add Custom Power**, then **Import power from GitHub**, and enter
