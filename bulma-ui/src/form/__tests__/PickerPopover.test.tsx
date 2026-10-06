@@ -376,6 +376,28 @@ describe('PickerPopover position resolution', () => {
     expect(dialog.className).toMatch(/is-top-left/);
   });
 
+  it('auto leaves room below an in-place panel for its margin and no more', () => {
+    setViewport(1000, 1000);
+    const result = render(<PositionedHarness appendToBody={false} />);
+    const dialog = result.getByRole('dialog');
+    // The margin `--bulma-picker-popover-offset: 20px` would give it.
+    dialog.style.marginTop = '20px';
+    jest
+      .spyOn(result.getByTestId('anchor'), 'getBoundingClientRect')
+      .mockReturnValue(
+        makeRect({ top: 660, bottom: 680, left: 50, right: 110 })
+      );
+    jest
+      .spyOn(dialog, 'getBoundingClientRect')
+      .mockReturnValue(makeRect({ top: 0, left: 0, right: 200, bottom: 300 }));
+    act(() => {
+      fireEvent(window, new Event('resize'));
+    });
+    // 680 + 300 + 20 fills the 1000px viewport exactly.
+    expect(dialog.className).toMatch(/is-bottom-left/);
+    expect(dialog.style.top).toBe('');
+  });
+
   it('auto without appendToBody applies the corner class with no inline coordinates', () => {
     setViewport(1000, 1000);
     const { getByRole } = renderWithRects(

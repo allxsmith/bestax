@@ -79,11 +79,10 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     active: isOpen,
     position,
     fixed: appendToBody,
-    // A portaled panel takes its gap from `--bulma-picker-popover-offset` as
-    // a margin, so its coordinates leave the gap out and `auto` reads it off
-    // the panel. An in-place panel's gap is in its `top` or `bottom`, which
-    // `auto` cannot read, so it keeps the hook's default estimate.
-    offset: appendToBody ? 0 : undefined,
+    // The gap comes from `--bulma-picker-popover-offset` as a margin, in place
+    // or portaled, so the coordinates leave it out and `auto` reads it off
+    // the panel.
+    offset: 0,
     styledGap: marginGap,
   });
 

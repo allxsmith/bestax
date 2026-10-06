@@ -364,6 +364,11 @@ $timeinput-footer-padding: 0.5rem 0 0 !default;
     top: auto;
     width: auto;
     max-width: none;
+    // The sheet sits off the viewport, not the input, so it drops the gap its
+    // corner puts in a margin. Kept, a top corner's would lift it off its
+    // `bottom`, and `auto` would leave room for a gap the sheet doesn't have.
+    margin-top: 0;
+    margin-bottom: 0;
   }
   .#{iv.$class-prefix}timeinput-panel {
     display: flex;
