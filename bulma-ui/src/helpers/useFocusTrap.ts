@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import { useIsHydrated } from './useIsHydrated';
 import { getDeepestActiveElement } from './shadowDom';
@@ -407,10 +407,16 @@ export interface UseFocusTrapOptions {
  * container, or give them a trap of their own. To trap content a `Portal`
  * renders, pass a ref to the element inside the `Portal` as `containerRef`.
  *
- * The container has to be in the DOM when the trap turns on. The trap waits
- * for hydration, so a container that only appears once the page has
- * hydrated, the way portaled content does, still has it attach in the commit
- * where the container appears.
+ * The trap looks at `containerRef` again each time the component calling it
+ * renders. A container that mounts after the trap turns on, such as a panel
+ * waiting for a `Portal` target held in state, has it attach once that
+ * component renders with the container in the DOM, and one that replaces the
+ * container it holds has it move over, as it would turning off and on again.
+ * A child that mounts the container in a render of its own (from its own
+ * state, or as a `Suspense` boundary resolves) goes unseen until the
+ * component calling the hook renders again. The trap waits for hydration, so
+ * that component renders again when the page hydrates, and portaled content,
+ * which first appears then, is found.
  *
  * @function useFocusTrap
  * @param containerRef - Ref to the element focus stays inside.
@@ -433,11 +439,17 @@ export function useFocusTrap(
   // Portaled content has no server-rendered counterpart, so a portaled
   // container only exists from the commit after hydration.
   const hydrated = useIsHydrated();
+  // The container the trap is attached to, or `null` while it has none.
+  const heldRef = useRef<HTMLElement | null>(null);
+  // Bumped to run the trap again for a container that arrived later.
+  const [arrivals, setArrivals] = useState(0);
 
   useEffect(() => {
+    heldRef.current = null;
     if (!active || !hydrated) return undefined;
     const container = containerRef.current;
     if (!container) return undefined;
+    heldRef.current = container;
     const doc = container.ownerDocument;
 
     const opener = focusedElement(doc) as HTMLElement;
@@ -518,5 +530,20 @@ export function useFocusTrap(
         target.focus();
       }
     };
-  }, [active, hydrated, containerRef, initialFocusRef, restoreFocus]);
+  }, [active, hydrated, containerRef, initialFocusRef, restoreFocus, arrivals]);
+
+  // Nothing says when a ref is set, so after every render, a container the
+  // trap should hold and doesn't (one that mounted after it turned on, or
+  // replaced the one it held) runs it again. Effects run in order, so
+  // `heldRef` already reflects this render. Only a container arriving
+  // sets state: an empty ref sets none, so a trap whose container never
+  // mounts costs no render, and one whose container leaves stays as it is
+  // until another comes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose
+  useEffect(() => {
+    const container = containerRef.current;
+    if (active && hydrated && container && container !== heldRef.current) {
+      setArrivals(n => n + 1);
+    }
+  });
 }

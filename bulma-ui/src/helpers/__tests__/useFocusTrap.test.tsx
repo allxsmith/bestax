@@ -177,6 +177,111 @@ describe('useFocusTrap', () => {
     });
   });
 
+  // The container can mount in a later render than the one that turns the
+  // trap on, such as a panel waiting for a Portal target held in state.
+  describe('a container that mounts after it turns on', () => {
+    let renders = 0;
+    beforeEach(() => {
+      renders = 0;
+    });
+
+    /**
+     * Shows its container only when `shown`, and counts its renders. A trap
+     * that re-renders without end would hang the test, so it fails it instead.
+     */
+    const Late: React.FC<{
+      active?: boolean;
+      shown?: boolean;
+      version?: number;
+    }> = ({ active = true, shown = true, version = 0 }) => {
+      if (++renders > 20) throw new Error('The trap keeps re-rendering');
+      const ref = useRef<HTMLDivElement>(null);
+      useFocusTrap(ref, { active });
+      return (
+        <>
+          <button>Opener</button>
+          {shown && (
+            <div key={version} ref={ref} tabIndex={-1} data-testid="trap">
+              <button>First</button>
+              <button>Last</button>
+            </div>
+          )}
+        </>
+      );
+    };
+
+    it('attaches once the component renders with it', () => {
+      const { rerender } = render(<Late shown={false} />);
+      act(() => button('Opener').focus());
+      rerender(<Late />);
+      expect(button('First')).toHaveFocus();
+
+      act(() => button('Last').focus());
+      expect(pressTab().defaultPrevented).toBe(true);
+      expect(button('First')).toHaveFocus();
+
+      rerender(<Late active={false} />);
+      expect(button('Opener')).toHaveFocus();
+    });
+
+    it('takes one more render to attach, then settles', () => {
+      const { rerender } = render(<Late shown={false} />);
+      expect(renders).toBe(1);
+      rerender(<Late />);
+      expect(renders).toBe(3);
+      rerender(<Late />);
+      expect(renders).toBe(4);
+    });
+
+    it('renders nothing extra while the ref stays empty', () => {
+      const { rerender } = render(<Late shown={false} />);
+      rerender(<Late shown={false} />);
+      expect(renders).toBe(2);
+      expect(document.body).toHaveFocus();
+    });
+
+    it('renders nothing extra while inactive', () => {
+      const { rerender } = render(<Late active={false} />);
+      rerender(<Late active={false} />);
+      expect(renders).toBe(2);
+      expect(document.body).toHaveFocus();
+    });
+
+    it('ignores a container that mounts after it turned off', () => {
+      const { rerender } = render(<Late shown={false} />);
+      rerender(<Late active={false} shown={false} />);
+      rerender(<Late active={false} />);
+      expect(renders).toBe(3);
+      expect(document.body).toHaveFocus();
+    });
+
+    it.each([
+      ['leaves and comes back', [{ shown: false }, { shown: true }]],
+      ['is replaced in one render', [{ version: 1 }]],
+    ] as const)(
+      'moves to a new container when the one it holds %s',
+      (_, steps) => {
+        const { rerender } = render(<Late shown={false} />);
+        act(() => button('Opener').focus());
+        rerender(<Late />);
+        const held = screen.getByTestId('trap');
+        for (const step of steps) rerender(<Late version={1} {...step} />);
+
+        const replacement = screen.getByTestId('trap');
+        expect(replacement).not.toBe(held);
+        expect(button('First')).toHaveFocus();
+        act(() => button('Last').focus());
+        expect(pressTab().defaultPrevented).toBe(true);
+        expect(button('First')).toHaveFocus();
+
+        // Focus goes back to the element that had it before the first
+        // container, not to wherever it was between the two.
+        rerender(<Late version={1} active={false} />);
+        expect(button('Opener')).toHaveFocus();
+      }
+    );
+  });
+
   describe('Tab', () => {
     it('wraps from the last stop to the first', () => {
       render(<Trap />);
@@ -1298,14 +1403,16 @@ describe('useFocusTrap', () => {
     const PortaledTrap: React.FC<{
       initialOpen?: boolean;
       trapDeclaredIn?: boolean;
-    }> = ({ initialOpen = false, trapDeclaredIn = false }) => {
+      /** Holds `active` off until the target exists as well. */
+      waitForTarget?: boolean;
+    }> = ({ initialOpen = false, trapDeclaredIn = false, waitForTarget }) => {
       const [open, setOpen] = useState(initialOpen);
       const [target, setTarget] = useState<HTMLElement | null>(null);
       const buttonRef = useRef<HTMLButtonElement>(null);
       const declaredInRef = useRef<HTMLDivElement>(null);
       const panelRef = useRef<HTMLDivElement>(null);
       useFocusTrap(trapDeclaredIn ? declaredInRef : panelRef, {
-        active: open && target !== null,
+        active: waitForTarget ? open && target !== null : open,
         restoreFocus: buttonRef,
       });
       return (
@@ -1353,14 +1460,20 @@ describe('useFocusTrap', () => {
       expect(share).toHaveFocus();
     });
 
-    // The target only exists from the second commit, so a trap keyed on
-    // `open` alone would turn on before the panel and never attach.
-    it('attaches when the panel is open from the first render', () => {
-      render(<PortaledTrap initialOpen />);
-      expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus();
-      expect(pressTab(true).defaultPrevented).toBe(true);
-      expect(button('Cancel')).toHaveFocus();
-    });
+    // The target only exists from the second render, so the trap turns on a
+    // render before the panel mounts, unless `active` waits for the target.
+    it.each([
+      ['on open alone', false],
+      ['on open and the target', true],
+    ])(
+      'attaches when the panel is open from the first render, active %s',
+      (_, waitForTarget) => {
+        render(<PortaledTrap initialOpen waitForTarget={waitForTarget} />);
+        expect(screen.getByRole('textbox', { name: 'Email' })).toHaveFocus();
+        expect(pressTab(true).defaultPrevented).toBe(true);
+        expect(button('Cancel')).toHaveFocus();
+      }
+    );
 
     // The other way round: a trap on the element the Portal is declared in
     // neither reaches nor holds what the Portal renders elsewhere.
