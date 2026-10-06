@@ -2043,6 +2043,50 @@ describe('DateInput focus handed back on close', () => {
     }
   );
 
+  // The year list opened from the header is a layer of its own inside the
+  // popover, so Escape leaves it before it closes the popover.
+  it.each([
+    ['day', '15', '2024-06-15'],
+    ['month', 'Jun', '2024-06'],
+  ] as const)(
+    'Escape in the %s picker leaves the year list, then closes',
+    (granularity, cell, text) => {
+      HTMLElement.prototype.scrollIntoView = jest.fn();
+      const onClose = jest.fn();
+      const { getByRole, queryByRole } = render(
+        <DateInput
+          granularity={granularity}
+          defaultValue={new Date(2024, 5, 15)}
+          onClose={onClose}
+        />
+      );
+      const input = getByRole('combobox');
+      openByFocus(input);
+      act(() => {
+        fireEvent.click(
+          getByRole('dialog').querySelector('[aria-haspopup="listbox"]')!
+        );
+      });
+      act(() => {
+        fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+      });
+      expect(document.activeElement).toHaveTextContent('2025');
+      pressEscape();
+      expect(queryByRole('listbox')).toBeNull();
+      expect(getByRole('dialog')).toContainElement(
+        document.activeElement as HTMLElement
+      );
+      expect(document.activeElement).toHaveAttribute('data-focused', 'true');
+      expect(document.activeElement).toHaveTextContent(cell);
+      expect(onClose).not.toHaveBeenCalled();
+      pressEscape();
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input).toHaveFocus();
+      expect(input).toHaveValue(text);
+      expect(onClose).toHaveBeenCalledTimes(1);
+    }
+  );
+
   it('picking a day with the pointer closes it the same way', () => {
     const onOpen = jest.fn();
     const { getByRole, getByText, queryByRole } = render(

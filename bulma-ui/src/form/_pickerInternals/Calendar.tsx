@@ -590,8 +590,11 @@ export const Calendar: React.FC<CalendarProps> = ({
         return;
       }
       // As navigation, Escape returns to the grid the list was opened from.
+      // It stops there, so a popover around the calendar stays open and only
+      // a second Escape closes it.
       if (e.key === 'Escape') {
         e.preventDefault();
+        e.stopPropagation();
         setView(baseView);
         return;
       }
