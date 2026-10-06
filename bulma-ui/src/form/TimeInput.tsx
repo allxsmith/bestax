@@ -59,10 +59,10 @@ export interface TimeInputProps extends TimeInputBaseProps {
   isLoading?: boolean;
   /**
    * Show a clickable launcher button on the right that toggles the popover.
-   * Off by default while a loading spinner shows at the same right edge,
-   * whether from this component's `isLoading` or from the `Control` it
-   * sits in.
-   * @defaultValue !isLoading
+   * Hidden by default while a spinner shows at the same right edge: this
+   * component's `isLoading` when it renders its own `Control`, or the
+   * enclosing `Control`'s `isLoading` inside one.
+   * @defaultValue true
    */
   triggerIcon?: boolean;
   /** Expand the control to fill its container. */
