@@ -312,7 +312,7 @@ Tags without the delete button.
 The `Taginput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
 
 :::note
-Taginput does not use ControlContext, so the "With Field and Control Wrappers" example below uses Field wrapping only. The Control wrapper is shown for layout consistency but does not change the component's internal rendering.
+Taginput renders no `Control` of its own. The Control wrapper in the "With Field and Control Wrappers" example below is shown for layout consistency but does not change the component's internal rendering.
 :::
 
 #### Default (with label)
@@ -356,7 +356,7 @@ function example() {
 
 #### With Field and Control Wrappers
 
-For full manual composition, wrap in both Field and Control. Taginput does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
+For full manual composition, wrap in both Field and Control. The Field wrapper is detected and its own Field is skipped.
 
 For an icon, use Taginput's own `icon` prop rather than `<Control iconLeftName>` — Bulma's `has-icons-left` only adjusts padding on `.input`/`.select`, not on `.taginput`, so wrapping with Control's icon causes the icon to overlap the tags.
 
@@ -380,6 +380,8 @@ function example() {
   );
 }
 ```
+
+Inside a `Control` with no `Field` around it, `Taginput` renders no `Field` of its own either, unless you give it `label`, `message`, `horizontal` or `fieldClassName`. Those need a `Field`, so with any of them it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and set the `label`, `horizontal` and class name on that `Field` instead.
 
 ---
 

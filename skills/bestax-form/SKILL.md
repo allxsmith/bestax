@@ -149,7 +149,9 @@ opt out — e.g. when the labeled `Field` wraps something that is not one of tho
   (for icons, say) takes its `label`, `horizontal` and class name from a `Field` wrapped
   around that `Control`. Given `label`, `message`, `horizontal` or `fieldClassName` in a
   `Control` with no `Field` around it, it renders its own `Field` inside the `.control`,
-  which Bulma's styles don't expect, and warns in development.
+  which Bulma's styles don't expect, and warns in development. `Autocomplete` and
+  `Numberinput` are the exception: in a bare `Control` they always render their own `Field`,
+  so give that `Control` a `Field` around it.
 
 ## Validation without a library
 

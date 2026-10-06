@@ -14,8 +14,24 @@ import { Radios } from '../Radios';
 import { Radio } from '../Radio';
 import { Slider } from '../Slider';
 import { Rate } from '../Rate';
+import { File as FileInput } from '../File';
+import { Taginput } from '../Taginput';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
+
+// Every Field the wrappers render, recorded so the tests below can read which
+// props each wrapper hands its Field. The recording renders the real Field.
+const mockFieldProps: object[] = [];
+jest.mock('../Field', () => {
+  const actual = jest.requireActual<typeof import('../Field')>('../Field');
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const Recording = (props: React.ComponentProps<typeof actual.Field>) => {
+    mockFieldProps.push(props);
+    return createElement(actual.Field, props);
+  };
+  const Field = Object.assign(Recording, actual.Field);
+  return { __esModule: true, ...actual, Field, default: Field };
+});
 
 // #905: a convenience wrapper inside a Control with no Field around it used
 // to render a Field of its own there, a .field inside the .control, so
@@ -29,6 +45,8 @@ interface Wrapper {
   render: (props: FormFieldProps) => React.ReactElement;
   /** The widget's own root element, which belongs directly in the Control. */
   root: string;
+  /** False for a widget that never renders a Control of its own. */
+  ownControl?: boolean;
 }
 
 const wrappers: Wrapper[] = [
@@ -82,6 +100,18 @@ const wrappers: Wrapper[] = [
   },
   { name: 'Slider', render: p => <Slider {...p} />, root: '.slider' },
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
+  {
+    name: 'File',
+    render: p => <FileInput {...p} />,
+    root: '.file',
+    ownControl: false,
+  },
+  {
+    name: 'Taginput',
+    render: p => <Taginput {...p} />,
+    root: '.taginput',
+    ownControl: false,
+  },
 ];
 
 let warnSpy: jest.SpyInstance;
@@ -104,18 +134,42 @@ const withoutIds = (html: string) =>
   html.replace(/_r_[0-9a-z]+_|:r[0-9a-z]+:/g, 'ID');
 
 /**
+ * A value for every Field-level prop, each one that would show if it reached
+ * the markup. `Required` makes a new `FormFieldProps` member a type error
+ * here until it is given one, so the tests below cover it.
+ */
+const everyFieldProp = {
+  label: 'Name',
+  labelSize: 'large',
+  labelProps: { className: 'custom-label', id: 'custom-label', htmlFor: 'x' },
+  horizontal: true,
+  message: 'Help text',
+  messageColor: 'danger',
+  fieldClassName: 'custom-field',
+} satisfies Required<FormFieldProps>;
+
+/**
  * The props that change nothing in the Field's markup unless a label or
  * message renders, which is why they alone keep no Field.
  */
 const inertWithoutLabel: FormFieldProps = {
-  labelSize: 'large',
-  labelProps: { className: 'custom-label', id: 'custom-label', htmlFor: 'x' },
-  messageColor: 'danger',
+  labelSize: everyFieldProp.labelSize,
+  labelProps: everyFieldProp.labelProps,
+  messageColor: everyFieldProp.messageColor,
 };
+
+/** The wrapper prop behind each prop a wrapper hands its Field. */
+const fieldPropSource = new Map<string, keyof FormFieldProps>([
+  ['label', 'label'],
+  ['labelSize', 'labelSize'],
+  ['labelProps', 'labelProps'],
+  ['horizontal', 'horizontal'],
+  ['className', 'fieldClassName'],
+]);
 
 describe.each(wrappers)(
   '$name inside a Control',
-  ({ name, render: el, root }) => {
+  ({ name, render: el, root, ownControl = true }) => {
     it('renders no Field in a bare Control, so the widget is its own child', () => {
       const { container } = render(<Control>{el({})}</Control>);
       const control = outerControl(container);
@@ -231,16 +285,62 @@ describe.each(wrappers)(
       expect(warnSpy).not.toHaveBeenCalled();
     });
 
-    it('wraps itself in a Field and Control on its own, and does not warn', () => {
+    it('wraps itself in a Field on its own, and does not warn', () => {
       const { container } = render(el({ label: 'Name', message: 'Help text' }));
       const field = container.firstElementChild as HTMLElement;
       expect(field).toHaveClass('field');
       expect(field.querySelector('label.label')).toHaveTextContent('Name');
-      expect(field.querySelector('.control')).not.toBeNull();
+      if (ownControl) {
+        expect(field.querySelector(`.control > ${root}`)).not.toBeNull();
+      } else {
+        expect(field.querySelector(`:scope > ${root}`)).not.toBeNull();
+      }
       expect(warnSpy).not.toHaveBeenCalled();
     });
   }
 );
+
+// rendersOwnField keeps a hand-written list of the props that keep a Field in
+// a bare Control. These hold that list to what the wrappers actually do: each
+// wrapper hands its Field only props that come from a FormFieldProps member,
+// every member is tried, and in a bare Control the Field stays for exactly
+// the members that change the wrapper's markup when set alone.
+describe.each(wrappers)('$name Field props', ({ render: el }) => {
+  it('hands its Field only props that come from a Field-level prop', () => {
+    mockFieldProps.length = 0;
+    render(el(everyFieldProp));
+    const handed = new Set(mockFieldProps.flatMap(props => Object.keys(props)));
+    handed.delete('children');
+    expect(handed.size).toBeGreaterThan(0);
+    expect([...handed].filter(key => !fieldPropSource.has(key))).toEqual([]);
+  });
+
+  it('keeps a Field in a bare Control for exactly the props that change its markup', () => {
+    const markup = (props: FormFieldProps) => {
+      const { container, unmount } = render(el(props));
+      const html = withoutIds(container.innerHTML);
+      unmount();
+      return html;
+    };
+    const keepsField = (props: FormFieldProps) => {
+      const { container, unmount } = render(<Control>{el(props)}</Control>);
+      const kept = outerControl(container).querySelector('.field') !== null;
+      unmount();
+      return kept;
+    };
+    const plain = markup({});
+    const alone = Object.entries(everyFieldProp).map(
+      ([prop, value]) => [prop, { [prop]: value } as FormFieldProps] as const
+    );
+    const changesMarkup = alone
+      .filter(([, props]) => markup(props) !== plain)
+      .map(([prop]) => prop);
+    const keepsItsField = alone
+      .filter(([, props]) => keepsField(props))
+      .map(([prop]) => prop);
+    expect(keepsItsField).toEqual(changesMarkup);
+  });
+});
 
 describe('the bare-Control warning', () => {
   it('names every Field-shaping prop passed in one warning', () => {

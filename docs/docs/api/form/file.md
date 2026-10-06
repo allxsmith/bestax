@@ -345,7 +345,7 @@ For a boxed file input that also shows the filename, combine `isBoxed`, `hasName
 The `File` component is context-aware: it detects whether it is already inside a `Field` and skips rendering its own field wrapper if so. Use `label` to add a Bulma `<label class="label">` above the widget; use `buttonLabel` to set the CTA text.
 
 :::note
-File does not consume the Control context (it is its own self-contained widget). The "With Field and Control Wrappers" example below shows that wrapping File in a Control is harmless but doesn't change its rendering.
+File renders no `Control` of its own (it is a self-contained widget). The "With Field and Control Wrappers" example below shows that wrapping File in a Control is harmless but doesn't change its rendering.
 :::
 
 #### Default (with label)
@@ -387,7 +387,7 @@ function example() {
 
 #### With Field and Control Wrappers
 
-For full manual composition, wrap in both `Field` and `Control`. File doesn't consume Control's context but the outer Field is still detected and File's own Field wrapper is skipped.
+For full manual composition, wrap in both `Field` and `Control`. The outer Field is detected and File's own Field wrapper is skipped.
 
 ```tsx live
 function example() {
@@ -407,6 +407,8 @@ function example() {
   );
 }
 ```
+
+Inside a `Control` with no `Field` around it, `File` renders no `Field` of its own either, unless you give it `label`, `message`, `horizontal` or `fieldClassName`. Those need a `Field`, so with any of them it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and set the `label`, `horizontal` and class name on that `Field` instead.
 
 ---
 

@@ -46,6 +46,9 @@ interface OwnFieldOptions extends FieldShapingProps {
 // wrapper still renders it inside `Field > Control`. The other Field-level
 // props (`labelSize`, `labelProps`, `messageColor`) change nothing unless a
 // `label` or `message` renders, so on their own they keep no `Field`.
+// `bare-control.test.tsx` holds this list to what each wrapper hands its
+// `Field` and to which props change its markup, so a new Field-level prop
+// fails there until it is sorted into one group or the other.
 const FIELD_SHAPING: ReadonlyArray<
   [keyof FieldShapingProps, string | undefined]
 > = [
