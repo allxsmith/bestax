@@ -8,11 +8,16 @@
 // rule wins.
 //
 // jsdom evaluates no media query, so this resolves the cascade itself, the
-// way a browser would for one property: every rule that sets the animation on
-// an element (or its `::after`) is ranked by importance, then specificity,
+// way a browser would: every rule that sets an animation's name or duration
+// on an element (or its `::after`) is ranked by importance, then specificity,
 // then source order. It renders the real components, so the elements are the
 // ones the library emits, and runs over every stylesheet `package.json`
 // publishes, plus `extras.css` linked on either side of Bulma's own CSS.
+//
+// The components only cover the animations someone thought to list, so each
+// sheet is also read for every rule that starts an animation, whatever the
+// partial, and the plainest element that rule matches has to hold still under
+// reduced motion too.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -98,14 +103,69 @@ const splitSelectors = (list: string): string[] => {
   return out;
 };
 
+type Setting = { value: string; important: boolean };
+
 type Rule = {
   selectors: string[];
   properties: string[];
-  animation: string | null;
-  important: boolean;
+  /** The `animation-name` the rule sets, from the longhand or the shorthand. */
+  name: Setting | null;
+  /** The `animation-duration` the rule sets, likewise. */
+  duration: Setting | null;
   order: number;
   reducedMotionOnly: boolean;
 };
+
+/** Top-level tokens of a value, keeping `var(…)` and other functions whole. */
+const tokensOf = (value: string): string[] => {
+  const out: string[] = [];
+  let depth = 0;
+  let token = '';
+  for (const ch of value) {
+    if (ch === '(') depth++;
+    else if (ch === ')') depth--;
+    if (/\s/.test(ch) && depth === 0) {
+      if (token) out.push(token);
+      token = '';
+    } else token += ch;
+  }
+  if (token) out.push(token);
+  return out;
+};
+
+const KEYWORD =
+  /^(infinite|normal|reverse|alternate|alternate-reverse|forwards|backwards|both|running|paused|ease|ease-in|ease-out|ease-in-out|linear|step-start|step-end)$/;
+
+/**
+ * The name and duration an `animation` shorthand sets. The first time is the
+ * duration, and a `var(…)` counts as one, since that is how the partials
+ * theme it. A shorthand with no name or no time resets that longhand, to
+ * `none` and `0s`.
+ */
+function shorthand(value: string): { name: string; duration: string } {
+  if (splitSelectors(value).length > 1) {
+    throw new Error(
+      `\`animation: ${value}\` lists more than one animation, which this ` +
+        'test does not resolve. Extend `shorthand` before trusting a result.'
+    );
+  }
+  let name: string | undefined;
+  let duration: string | undefined;
+  for (const token of tokensOf(value)) {
+    if (/^[+-]?[\d.]+m?s$/.test(token) || token.startsWith('var(')) {
+      duration ??= token;
+    } else if (
+      // The name is what is left once the keywords, the iteration count
+      // and any timing function are set aside.
+      !KEYWORD.test(token) &&
+      !/^[\d.]+$/.test(token) &&
+      !token.includes('(')
+    ) {
+      name ??= token;
+    }
+  }
+  return { name: name ?? 'none', duration: duration ?? '0s' };
+}
 
 /** Every style rule in the sheet, in source order, with its media context. */
 function rulesOf(css: string): Rule[] {
@@ -129,16 +189,23 @@ function rulesOf(css: string): Rule[] {
           { length: decl.length },
           (_, i) => decl[i]
         );
-        const prop = ['animation-name', 'animation'].find(p =>
-          decl.getPropertyValue(p)
-        );
+        // jsdom keeps the shorthand whole rather than expanding it.
+        const longhand = (prop: 'name' | 'duration'): Setting | null => {
+          for (const p of [`animation-${prop}`, 'animation']) {
+            const value = decl.getPropertyValue(p).trim();
+            if (!value) continue;
+            return {
+              value: p === 'animation' ? shorthand(value)[prop] : value,
+              important: decl.getPropertyPriority(p) === 'important',
+            };
+          }
+          return null;
+        };
         out.push({
           selectors: splitSelectors(rule.selectorText),
           properties,
-          animation: prop ? decl.getPropertyValue(prop).trim() : null,
-          important: prop
-            ? decl.getPropertyPriority(prop) === 'important'
-            : false,
+          name: longhand('name'),
+          duration: longhand('duration'),
           order: out.length,
           reducedMotionOnly,
         });
@@ -190,29 +257,86 @@ const beats = (a: number[], b: number[]) => {
   return false;
 };
 
-/** The animation that applies to the element, as a browser would resolve it. */
-function winningAnimation(
+/** One animation longhand on the element, as a browser would resolve it. */
+function winning(
   rules: Rule[],
   el: Element,
   pseudo: string,
-  reducedMotion: boolean
+  reducedMotion: boolean,
+  prop: 'name' | 'duration'
 ): string | null {
   let best: { rank: number[]; value: string } | null = null;
   for (const rule of rules) {
-    if (!rule.animation || (rule.reducedMotionOnly && !reducedMotion)) continue;
+    const setting = rule[prop];
+    if (!setting || (rule.reducedMotionOnly && !reducedMotion)) continue;
     for (const selector of rule.selectors) {
       if (!matches(selector, el, pseudo)) continue;
       const rank = [
-        rule.important ? 1 : 0,
+        setting.important ? 1 : 0,
         ...specificity(selector),
         rule.order,
       ];
       if (!best || beats(rank, best.rank)) {
-        best = { rank, value: rule.animation };
+        best = { rank, value: setting.value };
       }
     }
   }
-  return best && best.value.split(/\s+/)[0];
+  return best && best.value;
+}
+
+/**
+ * Whether an animation plays on the element. The name and the duration are
+ * resolved apart, because a rule can set one and not the other: a more
+ * specific selector can rename the animation, and a reduced-motion rule that
+ * loses on the name still zeroes the duration, so nothing plays. A `var(…)`
+ * duration is taken to be non-zero.
+ */
+function moves(
+  rules: Rule[],
+  el: Element,
+  pseudo: string,
+  reducedMotion: boolean
+): boolean {
+  const name = winning(rules, el, pseudo, reducedMotion, 'name') ?? 'none';
+  const duration =
+    winning(rules, el, pseudo, reducedMotion, 'duration') ?? '0s';
+  return name !== 'none' && parseFloat(duration) !== 0;
+}
+
+/**
+ * The plainest element a selector matches: each compound becomes an element
+ * with exactly its tag and classes, nested in the one before it. A selector
+ * that takes more than that fails here rather than being skipped, so no
+ * animation goes unchecked.
+ */
+function witness(selector: string): { el: Element; pseudo: string } {
+  const found = PSEUDO.exec(selector);
+  const base = found ? selector.slice(0, found.index) : selector;
+  let el: Element = document.createElement('div');
+  for (const part of base.split(/[\s>]+/).filter(Boolean)) {
+    // Only a progress bar with no value is `:indeterminate`.
+    const tag =
+      /^[a-zA-Z][\w-]*/.exec(part)?.[0] ??
+      (part.includes(':indeterminate') ? 'progress' : 'div');
+    const next = document.createElement(tag);
+    for (const [, name] of part.matchAll(/\.([\w-]+)/g)) {
+      next.classList.add(name);
+    }
+    el = el.appendChild(next);
+  }
+  let built = false;
+  try {
+    built = el.matches(base);
+  } catch {
+    // jsdom cannot parse it; reported below like any other miss.
+  }
+  if (!built) {
+    throw new Error(
+      `${selector} sets an animation and no element could be built to ` +
+        'match it. Extend `witness` before trusting a result.'
+    );
+  }
+  return { el, pseudo: found ? `::${found[1]}` : '' };
 }
 
 /**
@@ -288,8 +412,7 @@ function animatedIn(container: Element, rules: Rule[]) {
   const found: Array<{ el: Element; pseudo: string }> = [];
   for (const el of Array.from(container.querySelectorAll('*'))) {
     for (const pseudo of ['', '::after', '::before']) {
-      const name = winningAnimation(rules, el, pseudo, false);
-      if (name && name !== 'none') found.push({ el, pseudo });
+      if (moves(rules, el, pseudo, false)) found.push({ el, pseudo });
     }
   }
   return found;
@@ -357,14 +480,38 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       // It has to animate to begin with, or the check below is vacuous.
       expect(animated.length).toBeGreaterThan(0);
       const stillMoving = animated
-        .filter(
-          ({ el, pseudo }) =>
-            winningAnimation(rules, el, pseudo, true) !== 'none'
-        )
+        .filter(({ el, pseudo }) => moves(rules, el, pseudo, true))
         .map(({ el, pseudo }) => describeEl(el, pseudo));
       expect(stillMoving).toEqual([]);
     }
   );
+
+  it('stops every animation it declares under prefers-reduced-motion', () => {
+    // The roster above only sees the components on it. This reads the
+    // animations off the sheet instead, so one added to any partial is
+    // checked without anyone listing it.
+    const animating = new Set(
+      rules
+        .filter(
+          rule =>
+            !rule.reducedMotionOnly && (rule.name?.value ?? 'none') !== 'none'
+        )
+        .flatMap(rule => rule.selectors)
+    );
+    // Floor against the rule walk going quietly empty.
+    expect(animating.size).toBeGreaterThan(0);
+    const stillMoving: string[] = [];
+    for (const selector of animating) {
+      const { el, pseudo } = witness(selector);
+      // It has to animate to begin with, or the check below is vacuous.
+      expect([selector, moves(rules, el, pseudo, false)]).toEqual([
+        selector,
+        true,
+      ]);
+      if (moves(rules, el, pseudo, true)) stillMoving.push(selector);
+    }
+    expect(stillMoving).toEqual([]);
+  });
 
   it('changes nothing but the animation under prefers-reduced-motion', () => {
     // Each indicator has to stay drawn, so the override may not touch a
