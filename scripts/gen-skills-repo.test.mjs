@@ -20,12 +20,14 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { crc32, inflateSync } from 'node:zlib';
 import {
   AGENT_MCP_SCHEMA,
   AGENT_PLUGIN_SCHEMA,
   CONTENT_PATHS,
   COPIED,
   FILES,
+  ICON_LIMITS,
   INPUT_FILES,
   LIMITS,
   MCP_DIR,
@@ -43,6 +45,7 @@ import {
   exactNpmSpec,
   fileMode,
   generate,
+  iconViolations,
   inputCommitCount,
   inputProblems,
   launcherViolations,
@@ -52,6 +55,7 @@ import {
   planEntries,
   planMismatch,
   pluginVersion,
+  pngSize,
   readSources,
   readmeWordCount,
   renderAgentManifest,
@@ -111,6 +115,61 @@ const REAL_PIN = `${repoJson(`${MCP_DIR}/server.json`).packages[0].identifier}@$
 const COMMITS = 42;
 const counted = { inputCommits: COMMITS };
 
+// --- PNG fixtures ---------------------------------------------------------------
+
+/**
+ * The chunks of a valid PNG of `width` by `height` px, every pixel black, as
+ * [type, data] pairs. The pixels are 1-bit grey in stored deflate blocks,
+ * written out here rather than by zlib, so the bytes are the same on any
+ * Node, which the output snapshot needs.
+ */
+function pngChunks(width, height) {
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(width, 0);
+  ihdr.writeUInt32BE(height, 4);
+  ihdr[8] = 1; // bit depth 1, colour type 0 (grey), the rest 0
+  // Each row is a filter byte and the row's bits, all 0.
+  const raw = Buffer.alloc((Math.ceil(width / 8) + 1) * height);
+  const zlibStream = [Buffer.from([0x78, 0x01])];
+  for (let at = 0; at < raw.length; at += 0xffff) {
+    const part = raw.subarray(at, at + 0xffff);
+    const head = Buffer.alloc(5);
+    head[0] = at + 0xffff >= raw.length ? 1 : 0;
+    head.writeUInt16LE(part.length, 1);
+    head.writeUInt16LE(~part.length & 0xffff, 3);
+    zlibStream.push(head, part);
+  }
+  // Adler-32 of all-zero bytes: a stays 1 and b counts them.
+  const adler = Buffer.alloc(4);
+  adler.writeUInt32BE((raw.length % 65521) * 0x10000 + 1);
+  zlibStream.push(adler);
+  return [
+    ['IHDR', ihdr],
+    ['IDAT', Buffer.concat(zlibStream)],
+    ['IEND', Buffer.alloc(0)],
+  ];
+}
+
+/** The bytes of a PNG made of `chunks`, each with its length and CRC. */
+function pngBytes(chunks) {
+  return Buffer.concat([
+    Buffer.from('\x89PNG\r\n\x1a\n', 'latin1'),
+    ...chunks.map(([type, data]) => {
+      const head = Buffer.alloc(8);
+      head.writeUInt32BE(data.length, 0);
+      head.write(type, 4, 'latin1');
+      const crc = Buffer.alloc(4);
+      crc.writeUInt32BE(crc32(Buffer.concat([head.subarray(4), data])));
+      return Buffer.concat([head, data, crc]);
+    }),
+  ]);
+}
+
+const png = (width, height) => pngBytes(pngChunks(width, height));
+
+/** The icon every fixture tree and fixture repository carries. */
+const ICON = png(512, 512);
+
 // --- the real tree ------------------------------------------------------------
 
 test('generates the bestax-skills tree from the real repo', async () => {
@@ -161,6 +220,13 @@ test('generates the bestax-skills tree from the real repo', async () => {
     fs.readFileSync(path.join(out, 'LICENSE'), 'utf8'),
     repoText('LICENSE')
   );
+  const icon = fs.readFileSync(path.join(out, FILES.icon));
+  assert.ok(
+    icon.equals(fs.readFileSync(path.join(REPO, TEMPLATE.icon))),
+    'the icon is copied byte for byte'
+  );
+  assert.equal(fs.statSync(path.join(out, FILES.icon)).mode & 0o777, 0o644);
+  assert.deepEqual(iconViolations(icon), []);
 });
 
 test('the real manifests start the server server.json describes, at the release version', async () => {
@@ -168,19 +234,19 @@ test('the real manifests start the server server.json describes, at the release 
   await generate(out, REPO, counted);
   const template = repoJson(TEMPLATE.manifest);
 
+  const version = `${template.plugin.version}.${COMMITS + OUTPUT_FORMAT}`;
   const claude = readJson(out, FILES.claude);
   assert.deepEqual(claude.mcpServers, {
     bestax: { command: 'npx', args: ['-y', REAL_PIN] },
   });
-  assert.equal('version' in claude, false, 'updates follow commits');
+  assert.equal(claude.version, version, 'Claude Code sees each update');
+  assert.equal(claude.icon, './.claude-plugin/icon.png');
+  assert.ok(fs.existsSync(path.join(out, claude.icon)));
   assert.equal(claude.name, 'bestax');
 
   const agent = readJson(out, FILES.agent);
   assert.equal(agent.$schema, AGENT_PLUGIN_SCHEMA);
-  assert.equal(
-    agent.version,
-    `${template.plugin.version}.${COMMITS + OUTPUT_FORMAT}`
-  );
+  assert.equal(agent.version, version, 'both manifests carry one version');
   assert.equal(agent.mcpServers, './mcp.json');
 
   assert.deepEqual(readJson(out, FILES.mcp), {
@@ -519,6 +585,12 @@ test("publish's unpack step takes the packed tree with its modes", async () => {
   const packed = await scanTree(out);
   assert.deepEqual(await scanTree(run.tree), packed);
   assert.ok(packed.some(e => e.mode === 0o755));
+  // The icon, the tree's one binary file, passes as a regular file.
+  assert.ok(fs.readFileSync(path.join(run.tree, FILES.icon)).equals(ICON));
+  assert.equal(
+    fs.statSync(path.join(run.tree, FILES.icon)).mode & 0o777,
+    0o644
+  );
 });
 
 test("publish's unpack step refuses a link, a .git, an escape or a missing file", () => {
@@ -527,13 +599,19 @@ test("publish's unpack step refuses a link, a .git, an escape or a missing file"
     dir('./'),
     dir('./.claude-plugin/'),
     { name: './.claude-plugin/plugin.json', body: '{}\n' },
+    { name: './.claude-plugin/icon.png', body: ICON },
     { name: './plugin.json', body: '{}\n' },
     { name: './mcp.json', body: '{}\n' },
     dir('./skills/'),
     dir('./skills/demo/'),
     { name: './skills/demo/SKILL.md', body: '# demo\n' },
   ];
-  assert.equal(runUnpack(tarball(good)).status, 0, 'the fixture is sound');
+  const sound = runUnpack(tarball(good));
+  assert.equal(sound.status, 0, 'the fixture is sound');
+  assert.ok(
+    fs.readFileSync(path.join(sound.tree, FILES.icon)).equals(ICON),
+    'the binary icon unpacks whole'
+  );
 
   for (const [why, extra, said] of [
     [
@@ -924,8 +1002,8 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
  * out of name order, a summary cut at a spaced em dash, one whose first
  * sentence is too short to stand alone, one with a trailing space and
  * period, variables with and without a format, references, examples, an
- * executable file and both README regions. A variable marked required has
- * no output path, as mcpLaunch refuses it.
+ * executable file, both README regions and the icon. A variable marked
+ * required has no output path, as mcpLaunch refuses it.
  */
 const SNAPSHOT_INPUTS = {
   'plugin/manifest.json': `${JSON.stringify(
@@ -974,6 +1052,7 @@ prose outside code blocks and wants forty or more of them.
 
 The snapshot plugin sends nothing anywhere.
 `,
+  'plugin/icon.png': png(512, 512),
   'bestax-mcp/package.json': `${JSON.stringify({
     name: 'snapshot-mcp',
     version: '2.3.4',
@@ -1059,8 +1138,8 @@ The snapshot plugin sends nothing anywhere.
  * generator alters its output on purpose.
  */
 const OUTPUT_SNAPSHOT = {
-  format: 1,
-  sha256: '23428e497544795ab7107e7843e362d571a0bce1419909d7dc6a75069d51b992',
+  format: 2,
+  sha256: 'fb09f751c0875f743506edb238e64e0bf4bc0fe7f1eae12d6d1e35a323a1f168',
 };
 
 /**
@@ -1371,8 +1450,9 @@ test('each manifest takes its fields from the template', () => {
     owner: t.marketplace.owner,
     plugins: [{ name: t.plugin.name, source: './' }],
   });
-  const claude = renderClaudeManifest(t, pin);
-  assert.equal(claude.version, undefined);
+  const claude = renderClaudeManifest(t, pin, '1.0.7');
+  assert.equal(claude.version, '1.0.7');
+  assert.equal(claude.icon, `./${FILES.icon}`);
   assert.equal(claude.privacyPolicyUrl, t.claude.privacyPolicyUrl);
   assert.equal(claude.supportUrl, t.claude.supportUrl);
   assert.deepEqual(claude.mcpServers.bestax.args, ['-y', pin]);
@@ -1383,6 +1463,7 @@ test('each manifest takes its fields from the template', () => {
     undefined,
     'Claude-only fields stay out'
   );
+  assert.equal(agent.icon, undefined);
   assert.equal(renderMcpConfig(pin).mcpServers.bestax.type, 'stdio');
 });
 
@@ -1407,6 +1488,7 @@ function fixtureSources(overrides = {}) {
     version: '1.0.7',
     readme: README,
     launch: { pin: 'bestax-mcp@1.2.3', env: [] },
+    icon: file(FILES.icon, ICON),
     copied: [file('LICENSE', 'MIT License\n'), file('NOTICE', 'Notice\n')],
     skillFiles: [
       file('skills/demo/SKILL.md', '---\nname: demo\n---\n'),
@@ -1451,10 +1533,172 @@ test('buildTree writes generated files 0644 and keeps each source mode', () => {
   assert.equal(tree.get('LICENSE').mode, 0o644);
   assert.equal(tree.get('skills/demo/SKILL.md').mode, 0o644);
   assert.equal(tree.get('skills/demo/scripts/check.sh').mode, 0o755);
-  assert.equal(
-    JSON.parse(tree.get(FILES.agent).content.toString('utf8')).version,
-    '1.0.7'
+  for (const manifest of [FILES.agent, FILES.claude]) {
+    assert.equal(
+      JSON.parse(tree.get(manifest).content.toString('utf8')).version,
+      '1.0.7',
+      manifest
+    );
+  }
+  assert.ok(tree.get(FILES.icon).content.equals(ICON));
+});
+
+// --- the icon ---------------------------------------------------------------------
+
+test('the test PNGs are complete, so the icon rules are tested on real PNGs', () => {
+  const [ihdr, idat] = pngChunks(1000, 3);
+  assert.deepEqual(
+    inflateSync(idat[1]),
+    Buffer.alloc((Math.ceil(1000 / 8) + 1) * 3)
   );
+  assert.equal(ihdr[1].readUInt32BE(0), 1000);
+  // Wider than one stored block of 65535 bytes.
+  assert.equal(
+    inflateSync(pngChunks(2048, 300)[1][1]).length,
+    (2048 / 8 + 1) * 300
+  );
+});
+
+test('pngSize reads the chunk layout and refuses an incomplete PNG', () => {
+  assert.deepEqual(pngSize(ICON), { width: 512, height: 512 });
+  assert.deepEqual(pngSize(png(600, 520)), { width: 600, height: 520 });
+  const [ihdr, idat, iend] = pngChunks(512, 512);
+  for (const [why, bytes, said] of [
+    ['empty', Buffer.alloc(0), /^is not a PNG$/],
+    [
+      'a JPEG',
+      Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]),
+      /^is not a PNG$/,
+    ],
+    ['a signature alone', ICON.subarray(0, 8), /does not end with an IEND/],
+    ['IDAT first', pngBytes([idat, ihdr, iend]), /does not start with an IHDR/],
+    [
+      'a short IHDR',
+      pngBytes([['IHDR', ihdr[1].subarray(0, 12)], idat, iend]),
+      /does not start with an IHDR/,
+    ],
+    ['no IDAT', pngBytes([ihdr, iend]), /has no IDAT chunk/],
+    ['cut in IDAT', ICON.subarray(0, 100), /does not end with an IEND/],
+    ['no IEND', ICON.subarray(0, -12), /does not end with an IEND/],
+    ['a cut IEND', ICON.subarray(0, -1), /does not end with an IEND/],
+    [
+      'bytes after IEND',
+      Buffer.concat([ICON, Buffer.from('x')]),
+      /does not end with an IEND/,
+    ],
+    [
+      'an IEND with data',
+      pngBytes([ihdr, idat, ['IEND', Buffer.from('x')]]),
+      /does not end with an IEND/,
+    ],
+  ]) {
+    const { problem, width } = pngSize(bytes);
+    assert.match(problem ?? '', said, why);
+    assert.equal(width, undefined, why);
+  }
+});
+
+test('the icon must be a square PNG of 512 to 2048 px, under 2 MB', () => {
+  const withIcon = bytes => violationsWith(tree => tree.set(FILES.icon, bytes));
+  // The bounds pass, and the 256 KiB text rule does not apply.
+  const largest = png(2048, 2048);
+  assert.ok(largest.length > LIMITS.textBytes);
+  assert.deepEqual(withIcon(largest), []);
+  assert.deepEqual(withIcon(png(512, 512)), []);
+
+  const rule =
+    /The directory takes a square PNG, 512 to 2048 px a side and under 2 MB, as the icon\.$/;
+  const icon = /^"\.claude-plugin\/icon\.png": /;
+  const huge = pngChunks(512, 512);
+  huge.splice(1, 0, ['tEXt', Buffer.alloc(ICON_LIMITS.bytes)]);
+  for (const [why, bytes, said] of [
+    ['not square', png(512, 600), /is 512 by 600 px\./],
+    ['too small', png(511, 511), /is 511 by 511 px\./],
+    ['too large', png(2049, 2049), /is 2049 by 2049 px\./],
+    ['over 2 MB', pngBytes(huge), /is \d+ bytes, at or over 2000000\./],
+    ['truncated', ICON.subarray(0, -12), /does not end with an IEND chunk/],
+    [
+      'a JPEG',
+      Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10, 0x4a, 0x46, 0x49, 0x46]),
+      /is not a PNG\./,
+    ],
+    [
+      'an SVG',
+      Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>\n'),
+      /is not a PNG\./,
+    ],
+    [
+      'a WebP',
+      Buffer.concat([
+        Buffer.from('RIFF'),
+        Buffer.from([0x1a, 0, 0, 0]),
+        Buffer.from('WEBPVP8 '),
+      ]),
+      /is not a PNG\./,
+    ],
+  ]) {
+    const v = withIcon(bytes);
+    assert.equal(v.length, 1, `${why}: ${v.join(' | ')}`);
+    assert.match(v[0], icon, why);
+    assert.match(v[0], said, why);
+    assert.match(v[0], rule, why);
+    assert.deepEqual(iconViolations(bytes), v, why);
+  }
+  has(
+    violationsWith(tree => tree.delete(FILES.icon)),
+    /^\.claude-plugin\/icon\.png: missing\.$/
+  );
+  // A binary file anywhere else is still refused as before.
+  has(
+    violationsWith(tree => tree.set('skills/demo/icon.bin', ICON)),
+    /icon\.bin": is not UTF-8 text/
+  );
+});
+
+test('the icon input is read as bytes and published at .claude-plugin/icon.png', async () => {
+  const root = fixtureRepo();
+  const out = path.join(tempDir(), 'out');
+  await generate(out, root, { inputCommits: 1 });
+  assert.ok(fs.readFileSync(path.join(out, FILES.icon)).equals(ICON));
+  assert.equal(fs.statSync(path.join(out, FILES.icon)).mode & 0o777, 0o644);
+  assert.equal(readJson(out, FILES.claude).icon, `./${FILES.icon}`);
+});
+
+test('a symbolic link, an untracked file or a JPEG as the icon stops the run', async () => {
+  const linked = fixtureRepo();
+  fs.rmSync(path.join(linked, TEMPLATE.icon));
+  write(linked, 'docs/logo.png', ICON);
+  fs.symlinkSync('../docs/logo.png', path.join(linked, TEMPLATE.icon));
+  git(linked, 'add', '-A');
+  await assert.rejects(readSources(linked, counted), err => {
+    assert.ok(err instanceof TreeError);
+    assert.deepEqual(err.problems, [
+      '"plugin/icon.png": is a symbolic link. Commit a regular file.',
+    ]);
+    return true;
+  });
+
+  const untracked = fixtureRepo();
+  git(untracked, 'rm', '-q', '--cached', TEMPLATE.icon);
+  await assert.rejects(
+    readSources(untracked, counted),
+    /"plugin\/icon\.png": is not tracked by git/
+  );
+
+  const jpeg = fixtureRepo();
+  write(jpeg, TEMPLATE.icon, Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 0x10]));
+  git(jpeg, 'add', '-A');
+  const out = path.join(tempDir(), 'out');
+  await assert.rejects(generate(out, jpeg, counted), err => {
+    assert.ok(err instanceof TreeError);
+    assert.equal(err.problems.length, 1);
+    assert.match(
+      err.problems[0],
+      /^"\.claude-plugin\/icon\.png": is not a PNG\./
+    );
+    return true;
+  });
+  assert.ok(!fs.existsSync(out), 'nothing is written');
 });
 
 test('fileMode keeps only the owner execute bit, as git does', () => {
@@ -1831,6 +2075,7 @@ function fixtureRepo({ init = true } = {}) {
   server.packages[0].identifier = 'demo-mcp';
   write(root, TEMPLATE.manifest, repoText(TEMPLATE.manifest));
   write(root, TEMPLATE.readme, FIXTURE_README);
+  write(root, TEMPLATE.icon, ICON);
   write(
     root,
     `${MCP_DIR}/package.json`,
@@ -1875,6 +2120,9 @@ test('readSources builds the launch and README from the fixture inputs', async (
     sources.copied.map(f => f.path),
     COPIED
   );
+  assert.equal(sources.icon.path, FILES.icon);
+  assert.ok(sources.icon.content.equals(ICON));
+  assert.equal(sources.icon.mode, 0o644);
   const readme = sources.readme.toString('utf8');
   assert.ok(readme.includes(`- **demo**: ${DEMO_SUMMARY}\n`));
   assert.ok(readme.includes('npx -y demo-mcp@1.2.3\n'));
@@ -2130,13 +2378,16 @@ test('inputCommitCount counts the commits that touched CONTENT_PATHS only', asyn
   }
   assert.equal(inputCommitCount(root), 1 + content.length);
 
-  // The real count reaches the manifest when nothing is injected.
+  // The real count reaches both manifests when nothing is injected.
   const out = path.join(tempDir(), 'out');
   await generate(out, root);
-  assert.equal(
-    readJson(out, FILES.agent).version,
-    `1.0.${1 + content.length + OUTPUT_FORMAT}`
-  );
+  for (const manifest of [FILES.agent, FILES.claude]) {
+    assert.equal(
+      readJson(out, manifest).version,
+      `1.0.${1 + content.length + OUTPUT_FORMAT}`,
+      manifest
+    );
+  }
 });
 
 test('inputCommitCount refuses a shallow clone, no HEAD and no repository', () => {
