@@ -37,42 +37,51 @@ Glama labels its builds with its own version numbers, so they don't match npm.
 
 ## Directories
 
-| Where                                                                              | Carries        | Updates   | When to act                                   |
-| ---------------------------------------------------------------------------------- | -------------- | --------- | --------------------------------------------- |
-| [mcpservers.org](https://mcpservers.org)                                           | `bestax-mcp`   | Manual    | Resubmit when what the server offers changes. |
-| [TensorBlock](https://tensorblock.co/mcp/servers/github-allxsmith-bestax-191463f6) | `bestax-mcp`   | Automatic | Built from the TensorBlock list entry below.  |
-| [LibHunt](https://www.libhunt.com/r/bestax)                                        | The repo       | Automatic | Reads the repo.                               |
-| [mcpmarket.com](https://mcpmarket.com)                                             | `bestax-mcp`   | Manual    | In review.                                    |
-| [Made with React.js](https://madewithreactjs.com)                                  | bestax-bulma   | Manual    | In review.                                    |
-| [llms.txt directory](https://directory.llmstxt.cloud)                              | bestax.io      | Automatic | In review. Reads `/llms.txt`.                 |
-| [skillsindex.dev](https://skillsindex.dev)                                         | Skills and MCP | Manual    | In review.                                    |
-| [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP | Manual    | In review.                                    |
+| Where                                                                              | Carries        | Updates   | When to act                                                                                                       |
+| ---------------------------------------------------------------------------------- | -------------- | --------- | ----------------------------------------------------------------------------------------------------------------- |
+| [mcpservers.org](https://mcpservers.org)                                           | `bestax-mcp`   | Manual    | Resubmit when what the server offers changes.                                                                     |
+| [mcprush](https://mcprush.com/allxsmith/bestax-mcp)                                | `bestax-mcp`   | Unknown   | mcprush built the page from the npm package. We did not submit it, and claiming the page is what lets us edit it. |
+| [TensorBlock](https://tensorblock.co/mcp/servers/github-allxsmith-bestax-191463f6) | `bestax-mcp`   | Automatic | Built from the TensorBlock list entry below.                                                                      |
+| [LibHunt](https://www.libhunt.com/r/bestax)                                        | The repo       | Automatic | Reads the repo.                                                                                                   |
+| [mcpmarket.com](https://mcpmarket.com)                                             | `bestax-mcp`   | Manual    | In review.                                                                                                        |
+| [Made with React.js](https://madewithreactjs.com)                                  | bestax-bulma   | Manual    | In review.                                                                                                        |
+| [llms.txt directory](https://directory.llmstxt.cloud)                              | bestax.io      | Automatic | In review. Reads `/llms.txt`.                                                                                     |
+| [skillsindex.dev](https://skillsindex.dev)                                         | Skills and MCP | Manual    | In review.                                                                                                        |
+| [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP | Manual    | In review.                                                                                                        |
 
 ## Plugin directories and marketplaces
 
-Each of these lists the `bestax` plugin from allxsmith/bestax-skills.
+The `bestax` plugin from allxsmith/bestax-skills is submitted to each of these, and none lists it yet.
 
-| Where                                                                   | Carries                 | Updates   | When to act                                                                                                                                                                                       |
-| ----------------------------------------------------------------------- | ----------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Anthropic plugin directory                                              | Skills and `bestax-mcp` | Mixed     | In review. A GitHub push webhook on bestax-skills sends it each publish, and a reviewer checks each version before it goes live.                                                                  |
-| Cursor Marketplace                                                      | Skills and `bestax-mcp` | Manual    | In review. Cursor reads bestax-skills through `.cursor-plugin/plugin.json` and reviews each update.                                                                                               |
-| Kiro                                                                    | Skills and `bestax-mcp` | Manual    | In review. Kiro reaches out if it takes the power into its registry.                                                                                                                              |
-| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace) | Skills and `bestax-mcp` | Automatic | In review in [#1237](https://github.com/xai-org/plugin-marketplace/pull/1237). The entry pins a commit, and their daily job opens a pull request that moves it when the plugin's version changes. |
-| [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual    | In review in [issue #4541](https://github.com/github/awesome-copilot/issues/4541). It pins a commit and the version in the root `plugin.json`, which stay put until we send an update.            |
+| Where                                                                   | Carries                 | Updates   | When to act                                                                                                                                                                                                                        |
+| ----------------------------------------------------------------------- | ----------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Anthropic plugin directory                                              | Skills and `bestax-mcp` | Mixed     | In review. A GitHub push webhook on bestax-skills sends it each publish, and a reviewer checks each version before it goes live.                                                                                                   |
+| Cursor Marketplace                                                      | Skills and `bestax-mcp` | Manual    | In review. Cursor reads bestax-skills through `.cursor-plugin/plugin.json` and reviews each update.                                                                                                                                |
+| Kiro                                                                    | Skills and `bestax-mcp` | Manual    | In review. Kiro reaches out if it takes the power into its registry.                                                                                                                                                               |
+| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace) | Skills and `bestax-mcp` | Automatic | In review in [#1237](https://github.com/xai-org/plugin-marketplace/pull/1237). The entry pins a commit. Their daily job opens a pull request to move it when the plugin's version changes, and the pin moves once they merge that. |
+| [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual    | In review in [issue #4541](https://github.com/github/awesome-copilot/issues/4541). It pins a commit and the version in the root `plugin.json`, which stay put until we send an update.                                             |
 
 ## Awesome lists
 
 ### Listed
 
-| List                                                                                                                | Entry          | Pull request                                                                     |
-| ------------------------------------------------------------------------------------------------------------------- | -------------- | -------------------------------------------------------------------------------- |
-| [aldi/awesome-bulma](https://github.com/aldi/awesome-bulma)                                                         | Bestax         | [#5](https://github.com/aldi/awesome-bulma/pull/5)                               |
-| [jaywcjlove/awesome-uikit](https://github.com/jaywcjlove/awesome-uikit)                                             | bestax-bulma   | [#49](https://github.com/jaywcjlove/awesome-uikit/pull/49)                       |
-| [anubhavsrivastava/awesome-ui-component-library](https://github.com/anubhavsrivastava/awesome-ui-component-library) | bestax-bulma   | [#58](https://github.com/anubhavsrivastava/awesome-ui-component-library/pull/58) |
-| [jelmer/awesome-codemods](https://github.com/jelmer/awesome-codemods)                                               | bestax-migrate | [#7](https://github.com/jelmer/awesome-codemods/pull/7)                          |
-| [acvnace/awesome-vibe-coding-resources](https://github.com/acvnace/awesome-vibe-coding-resources)                   | Bestax         | [#111](https://github.com/acvnace/awesome-vibe-coding-resources/pull/111)        |
-| [TensorBlock/awesome-mcp-servers](https://github.com/TensorBlock/awesome-mcp-servers)                               | Bestax MCP     | [#2872](https://github.com/TensorBlock/awesome-mcp-servers/pull/2872)            |
-| [AlexMili/Awesome-MCP](https://github.com/AlexMili/Awesome-MCP)                                                     | Bestax MCP     | [#231](https://github.com/AlexMili/Awesome-MCP/pull/231)                         |
+| List                                                                                                                | Entry            | Pull request                                                                     |
+| ------------------------------------------------------------------------------------------------------------------- | ---------------- | -------------------------------------------------------------------------------- |
+| [aldi/awesome-bulma](https://github.com/aldi/awesome-bulma)                                                         | Bestax           | [#5](https://github.com/aldi/awesome-bulma/pull/5)                               |
+| [jaywcjlove/awesome-uikit](https://github.com/jaywcjlove/awesome-uikit)                                             | bestax-bulma     | [#49](https://github.com/jaywcjlove/awesome-uikit/pull/49)                       |
+| [anubhavsrivastava/awesome-ui-component-library](https://github.com/anubhavsrivastava/awesome-ui-component-library) | bestax-bulma     | [#58](https://github.com/anubhavsrivastava/awesome-ui-component-library/pull/58) |
+| [jelmer/awesome-codemods](https://github.com/jelmer/awesome-codemods)                                               | bestax-migrate   | [#7](https://github.com/jelmer/awesome-codemods/pull/7)                          |
+| [acvnace/awesome-vibe-coding-resources](https://github.com/acvnace/awesome-vibe-coding-resources)                   | Bestax           | [#111](https://github.com/acvnace/awesome-vibe-coding-resources/pull/111)        |
+| [TensorBlock/awesome-mcp-servers](https://github.com/TensorBlock/awesome-mcp-servers)                               | Bestax MCP       | [#2872](https://github.com/TensorBlock/awesome-mcp-servers/pull/2872)            |
+| [AlexMili/Awesome-MCP](https://github.com/AlexMili/Awesome-MCP)                                                     | Bestax MCP       | [#231](https://github.com/AlexMili/Awesome-MCP/pull/231)                         |
+| [iamismile/web-dev-resources](https://github.com/iamismile/web-dev-resources)                                       | Bestax           | [#61](https://github.com/iamismile/web-dev-resources/pull/61)                    |
+| [OSSDrop/OSSDrop](https://github.com/OSSDrop/OSSDrop)                                                               | Bestax           | [#64](https://github.com/OSSDrop/OSSDrop/pull/64)                                |
+| [MobinX/awesome-mcp-list](https://github.com/MobinX/awesome-mcp-list)                                               | allxsmith/bestax | [#560](https://github.com/MobinX/awesome-mcp-list/pull/560)                      |
+| [toolsdk-ai/toolsdk-mcp-registry](https://github.com/toolsdk-ai/toolsdk-mcp-registry)                               | bestax-mcp       | [#587](https://github.com/toolsdk-ai/toolsdk-mcp-registry/pull/587)              |
+| [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli)                                   | Bestax           | [#161](https://github.com/Piebald-AI/awesome-gemini-cli/pull/161)                |
+| [alvinreal/awesome-opensource-ai](https://github.com/alvinreal/awesome-opensource-ai)                               | bestax-mcp       | [#800](https://github.com/alvinreal/awesome-opensource-ai/pull/800)              |
+| [slavakurilyak/awesome-ai-agents](https://github.com/slavakurilyak/awesome-ai-agents)                               | bestax-mcp       | [issue #688](https://github.com/slavakurilyak/awesome-ai-agents/issues/688)      |
+| [laolaoshiren/claude-code-skills-zh](https://github.com/laolaoshiren/claude-code-skills-zh)                         | Bestax skills    | [#31](https://github.com/laolaoshiren/claude-code-skills-zh/pull/31)             |
 
 ### In review
 
@@ -82,28 +91,20 @@ Each of these lists the `bestax` plugin from allxsmith/bestax-skills.
 | [brillout/awesome-react-components](https://github.com/brillout/awesome-react-components)                 | Bestax                 | [#616](https://github.com/brillout/awesome-react-components/pull/616)         |
 | [jgthms/bulma](https://github.com/jgthms/bulma) (README)                                                  | Bestax                 | [#4014](https://github.com/jgthms/bulma/pull/4014)                            |
 | [aycanogut/front-end-resources](https://github.com/aycanogut/front-end-resources)                         | bestax-bulma           | [#89](https://github.com/aycanogut/front-end-resources/pull/89)               |
-| [iamismile/web-dev-resources](https://github.com/iamismile/web-dev-resources)                             | Bestax                 | [#61](https://github.com/iamismile/web-dev-resources/pull/61)                 |
 | [pegaltier/awesome-utils-dev](https://github.com/pegaltier/awesome-utils-dev)                             | Bestax                 | [#81](https://github.com/pegaltier/awesome-utils-dev/pull/81)                 |
-| [OSSDrop/OSSDrop](https://github.com/OSSDrop/OSSDrop)                                                     | Bestax                 | [#64](https://github.com/OSSDrop/OSSDrop/pull/64)                             |
 | [semlinker/awesome-typescript](https://github.com/semlinker/awesome-typescript)                           | create-bestax          | [#198](https://github.com/semlinker/awesome-typescript/pull/198)              |
 | [SecretiveShell/Awesome-llms-txt](https://github.com/SecretiveShell/Awesome-llms-txt)                     | bestax.io llms.txt     | [#200](https://github.com/SecretiveShell/Awesome-llms-txt/pull/200)           |
 | [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)                           | allxsmith/bestax       | [#15446](https://github.com/punkpeye/awesome-mcp-servers/pull/15446)          |
 | [yzfly/Awesome-MCP-ZH](https://github.com/yzfly/Awesome-MCP-ZH)                                           | Bestax                 | [#653](https://github.com/yzfly/Awesome-MCP-ZH/pull/653)                      |
-| [MobinX/awesome-mcp-list](https://github.com/MobinX/awesome-mcp-list)                                     | allxsmith/bestax       | [#560](https://github.com/MobinX/awesome-mcp-list/pull/560)                   |
-| [toolsdk-ai/toolsdk-mcp-registry](https://github.com/toolsdk-ai/toolsdk-mcp-registry)                     | bestax-mcp             | [#587](https://github.com/toolsdk-ai/toolsdk-mcp-registry/pull/587)           |
 | [ai-for-developers/awesome-ai-coding-tools](https://github.com/ai-for-developers/awesome-ai-coding-tools) | Bestax                 | [#817](https://github.com/ai-for-developers/awesome-ai-coding-tools/pull/817) |
-| [Piebald-AI/awesome-gemini-cli](https://github.com/Piebald-AI/awesome-gemini-cli)                         | Bestax                 | [#161](https://github.com/Piebald-AI/awesome-gemini-cli/pull/161)             |
-| [alvinreal/awesome-opensource-ai](https://github.com/alvinreal/awesome-opensource-ai)                     | bestax-mcp             | [#800](https://github.com/alvinreal/awesome-opensource-ai/pull/800)           |
 | [eltociear/awesome-AI-driven-development](https://github.com/eltociear/awesome-AI-driven-development)     | bestax-mcp             | [#146](https://github.com/eltociear/awesome-AI-driven-development/pull/146)   |
 | [narrowin/awesome-generative-ui](https://github.com/narrowin/awesome-generative-ui)                       | bestax-mcp             | [#21](https://github.com/narrowin/awesome-generative-ui/pull/21)              |
-| [slavakurilyak/awesome-ai-agents](https://github.com/slavakurilyak/awesome-ai-agents)                     | bestax-mcp             | [issue #688](https://github.com/slavakurilyak/awesome-ai-agents/issues/688)   |
 | [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills)                       | allxsmith/bestax       | [#1132](https://github.com/VoltAgent/awesome-agent-skills/pull/1132)          |
 | [abubakarsiddik31/claude-skills-collection](https://github.com/abubakarsiddik31/claude-skills-collection) | Bestax                 | [#57](https://github.com/abubakarsiddik31/claude-skills-collection/pull/57)   |
 | [GetBindu/awesome-claude-code-and-skills](https://github.com/GetBindu/awesome-claude-code-and-skills)     | allxsmith/bestax       | [#237](https://github.com/GetBindu/awesome-claude-code-and-skills/pull/237)   |
 | [JayLZhou/Awesome-Agent-Skills](https://github.com/JayLZhou/Awesome-Agent-Skills)                         | Bestax Skills          | [#48](https://github.com/JayLZhou/Awesome-Agent-Skills/pull/48)               |
 | [kodustech/awesome-agent-skills](https://github.com/kodustech/awesome-agent-skills)                       | bestax-layout-scaffold | [#128](https://github.com/kodustech/awesome-agent-skills/pull/128)            |
 | [ZeroPointRepo/awesome-hermes-skills](https://github.com/ZeroPointRepo/awesome-hermes-skills)             | Bestax skills          | [#103](https://github.com/ZeroPointRepo/awesome-hermes-skills/pull/103)       |
-| [laolaoshiren/claude-code-skills-zh](https://github.com/laolaoshiren/claude-code-skills-zh)               | Bestax skills          | [#31](https://github.com/laolaoshiren/claude-code-skills-zh/pull/31)          |
 
 Every list entry is Manual: it holds the text we submitted until someone opens a pull request
 against that list.
@@ -140,8 +141,9 @@ Say in the pull request which listings need an update, then open those updates o
   so it rises with each change without a hand bump, and
   the MAJOR.MINOR comes from `plugin.version` in `plugin/manifest.json`. Update those entries when a
   release should reach them. Codex keys its plugin cache on the version too, and Claude Code reads
-  the same version from `.claude-plugin/plugin.json`. The Grok Build entry pins a commit instead,
-  which their daily job moves when the version changes.
+  the same version from `.claude-plugin/plugin.json`. The Grok Build entry pins a commit instead.
+  Their daily job opens a pull request to move it when the version changes, and the pin moves
+  once they merge that.
 - **Changing the plugin icon.** Anthropic's plugin directory takes the icon in bestax-skills'
   `.claude-plugin/icon.png` only the first time the plugin is saved or submitted, so a new
   `plugin/icon.png` does not reach that listing on its own. Cursor Marketplace has its own logo,
