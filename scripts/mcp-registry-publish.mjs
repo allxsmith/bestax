@@ -213,7 +213,8 @@ export function versionFromTag(tag, packageName) {
   return assertVersion(parsed.version, `release tag ${forLog(tag)}`);
 }
 
-function readJson(file) {
+/** Parse a JSON file, naming the file in either failure. */
+export function readJson(file) {
   let raw;
   try {
     raw = fs.readFileSync(file, 'utf8');
@@ -232,16 +233,27 @@ function readJson(file) {
 }
 
 /**
+ * `<dir>/server.json` and `<dir>/package.json`, read and held to each other
+ * by checkServer. scripts/gen-skills-repo.mjs builds the bestax plugin's
+ * launch config from the same pair, so the plugin and the registry listing
+ * start the same package the same way.
+ */
+export function readServer(dir) {
+  const manifest = readJson(path.join(dir, 'package.json'));
+  const server = readJson(path.join(dir, 'server.json'));
+  checkServer(server, manifest);
+  return { server, manifest };
+}
+
+/**
  * `prepare`: stamp `<dir>/server.json` in place for the release `tag`.
  *
  * In place is safe because the file is the runner's checkout, and nothing in
  * the job commits or pushes.
  */
 export function prepare({ tag, dir, log = console.log }) {
-  const manifest = readJson(path.join(dir, 'package.json'));
+  const { server, manifest } = readServer(dir);
   const serverPath = path.join(dir, 'server.json');
-  const server = readJson(serverPath);
-  checkServer(server, manifest);
   const version = versionFromTag(tag, manifest.name);
   const stamped = stampVersion(server, version);
   const json = `${JSON.stringify(stamped, null, 2)}\n`;

@@ -12,6 +12,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `eslint-plugin/` — `@allxsmith/eslint-plugin-bestax`, lint rules for the library;
   its `src/generated/` metadata is **generated** (has its own CLAUDE.md)
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
+- `plugin/`: the hand-written inputs of the `bestax` coding-agent plugin, which is **generated**
+  into allxsmith/bestax-skills (see "The bestax plugin" below)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
   (deployed from CI by `deploy-worker.yml` — a merged change under it ships to
   production immediately)
@@ -23,6 +25,8 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `scripts/gen-component-catalog.mjs` — generates the skill component catalog (`pnpm gen:catalog`)
 - `scripts/gen-mcp-index.mjs` — generates the MCP server's data index (`pnpm gen:mcp`)
 - `scripts/gen-skills-rosters.mjs` — writes the skill install rosters from `skills/` (`pnpm gen:skills`)
+- `scripts/gen-skills-repo.mjs`: writes the allxsmith/bestax-skills tree into a directory
+  (`node scripts/gen-skills-repo.mjs <dir>`, in a checkout with full history)
 - `scripts/gen-eslint-meta.mjs` — generates the ESLint plugin's component metadata
   (`pnpm gen:eslint-meta`)
 
@@ -172,6 +176,37 @@ AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); t
 shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated index of both (see
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
+
+**The bestax plugin.** The `bestax` coding-agent plugin, the skills plus the MCP server, installs
+from its own repository, allxsmith/bestax-skills, so an install does not clone this one.
+`.github/workflows/skills-publish.yml` generates that repository's whole tree with
+`scripts/gen-skills-repo.mjs`, from `skills/`, `plugin/` and bestax-mcp's `server.json`,
+`package.json` and `data/skills.json`, each time one of them changes on `main` and after each
+bestax-mcp release. Never edit bestax-skills. Change the source here and the workflow carries it
+over once merged. The generator reuses the repo's readers rather than its own: the skill vetting
+gate in `scripts/lib/skills.mjs`, the `server.json` reader in `scripts/mcp-registry-publish.mjs`,
+and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
+
+- `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is MAJOR.MINOR only.
+  The generator appends a patch, the number of commits on `main` that touched the plugin's
+  content (`CONTENT_PATHS`) plus `OUTPUT_FORMAT`, both in the generator, so the Agent Plugins
+  `plugin.json` version rises with each content commit and nobody bumps it by hand. A generator
+  change that alters the published output raises `OUTPUT_FORMAT` in the same PR. Its tests pin a
+  hash of the tree built from fixed inputs next to `OUTPUT_FORMAT`, so a change to the output for
+  those inputs fails until the two are updated together, and a comment-only change passes. They
+  see only the paths those inputs reach, so a new rendering path gets an input of its own. Bump
+  the minor whenever a path leaves `CONTENT_PATHS`, since the count can then fall. The
+  workflow's paths filter is `PUBLISH_PATHS`, the content plus the generator's code. The Claude
+  manifest sets no version, so Claude Code follows commits. The bestax-mcp pin is read from
+  bestax-mcp's `package.json`, and the publish run refuses one npm does not serve
+  (`--require-published`).
+- `plugin/README.md` becomes the repository's README, and it must say everything the plugin
+  runs, sends or fetches. Its skill list and the server's launch command and environment
+  variables are generated into its `bestax:generated` regions, from the skill index and
+  `server.json`. The prose around them is hand-written: a change to what bestax-mcp does over
+  the network, to its telemetry or to its dependencies updates it in the same PR.
+- The generator fails on a tree that breaks a rule of Anthropic's plugin directory, and its tests
+  run it on the real tree, so `pnpm test` catches a skill change that would.
 
 ## Distribution and listings
 

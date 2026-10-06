@@ -22,11 +22,10 @@ import { setTimeout as sleep } from 'node:timers/promises';
 import { dirname, join } from 'node:path';
 
 import {
-  assertSkillsVetted,
   isSkillRefusal,
   readSkillNames,
-  skillFiles,
   skillRefusal,
+  vettedSkillFiles,
 } from './skills.mjs';
 
 const TAG = '[sync-skills]';
@@ -128,10 +127,9 @@ export async function syncSkills({
 }
 
 /**
- * Each skill in `names` with the files a copy ships, once every bundler's
- * checks pass: `{ name, dir, files }`, where `files` is skillFiles' list for
- * `dir`. The fingerprint and the copy both take this list, so what was
- * checked is exactly what ships, and each skill is walked once.
+ * Each skill in `names` with the files a copy ships, from vettedSkillFiles
+ * in skills.mjs: `{ name, dir, files }`. The fingerprint and the copy both
+ * take this list, so what was checked is exactly what ships.
  *
  * skillFiles leaves every `.DS_Store` out and refuses any other symbolic
  * link in a skill, the skill directory included. The vetting gate is the
@@ -139,21 +137,14 @@ export async function syncSkills({
  * disk, and CI's skills-roster check only sees committed state, so an
  * untracked scratch file would ship in a local build or a manual publish
  * with no gate anywhere in the path. `git add` is the act of vetting, and a
- * tree without git (an exported tarball) skips the gate. It runs after the
- * walk, so every listed file already existed when git was asked about it.
+ * tree without git (an exported tarball) skips the gate.
  *
  * Only those refusals get the tag. Anything else, such as a permission error,
  * passes through with its own message and stack.
  */
 async function vettedSkills(src, names) {
   try {
-    const skills = [];
-    for (const name of names) {
-      const dir = join(src, name);
-      skills.push({ name, dir, files: await skillFiles(dir) });
-    }
-    assertSkillsVetted(src, names, 'bundle');
-    return skills;
+    return await vettedSkillFiles(src, names, 'bundle');
   } catch (err) {
     if (!isSkillRefusal(err)) throw err;
     throw refusal(err.message, { cause: err });

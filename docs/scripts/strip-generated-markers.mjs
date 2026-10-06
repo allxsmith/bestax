@@ -18,83 +18,118 @@
  * docusaurus-plugin-llms does NOT make it run after — it races, and on the
  * first attempt it ran first and found nothing to strip. Chaining after
  * `docusaurus build` is the only ordering guarantee available.
+ *
+ * The strip is fence-aware (generated-markers-lib.mjs), so a marker a page
+ * shows inside a code block stays. After stripping, a built file may keep no
+ * more marker lines than the source pages show inside fences. More means a
+ * fence left open earlier in that file hid real markers, which matters most
+ * in llms.txt and llms-full.txt, where one page's open fence reaches every
+ * page after it. The step fails then, naming the file.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, dirname } from 'node:path';
+import { join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isMainModule } from '../../scripts/lib/main-module.mjs';
+import {
+  leakedMarkers,
+  markerCounts,
+  stripMarkers,
+} from './generated-markers-lib.mjs';
 
 const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
-const OUT_DIR = join(DOCS, 'build');
-const SRC_DIR = join(DOCS, 'docs', 'api');
-const MARKER =
-  /^[ \t]*<!--[ \t]*\/?bestax:generated[ \t][^>]*-->[ \t]*\r?\n?/gm;
 
-async function markdownFiles(dir) {
+async function filesUnder(dir, pattern) {
   const out = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
     const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await markdownFiles(full)));
-    else if (entry.name.endsWith('.md')) out.push(full);
+    if (entry.isDirectory()) out.push(...(await filesUnder(full, pattern)));
+    else if (pattern.test(entry.name)) out.push(full);
   }
   return out;
 }
 
-async function main() {
-  if (!existsSync(OUT_DIR)) {
-    console.error(
-      `${OUT_DIR} does not exist — run \`docusaurus build\` first.`
-    );
-    process.exit(1);
+/**
+ * Strips the markers from `docs`'s build/ in place and checks what is left.
+ * Returns the exit code. `docs` and `io` are for tests.
+ */
+export async function stripBuild(docs = DOCS, io = console) {
+  const outDir = join(docs, 'build');
+  const srcDir = join(docs, 'docs');
+  if (!existsSync(outDir)) {
+    io.error(`${outDir} does not exist — run \`docusaurus build\` first.`);
+    return 1;
   }
 
-  const targets = await markdownFiles(OUT_DIR);
+  // The source pages: how many markers they carry, and how many of those a
+  // fence holds, which is all a built file may keep.
+  let inSource = 0;
+  let fencedInSources = 0;
+  const sources = existsSync(srcDir) ? await filesUnder(srcDir, /\.mdx?$/) : [];
+  for (const file of sources) {
+    const counts = markerCounts(await readFile(file, 'utf8'));
+    inSource += counts.unfenced;
+    fencedInSources += counts.fenced;
+  }
+
+  const targets = await filesUnder(outDir, /\.md$/);
   for (const name of ['llms.txt', 'llms-full.txt']) {
-    const full = join(OUT_DIR, name);
+    const full = join(outDir, name);
     if (existsSync(full)) targets.push(full);
   }
 
   let stripped = 0;
   let touched = 0;
+  const leaks = [];
   for (const file of targets) {
-    const src = await readFile(file, 'utf8');
-    const hits = src.match(MARKER);
-    if (!hits) continue;
-    // Removing a marker line leaves the blank line that followed it, which
-    // would open a gap mid-paragraph. Collapse runs of 3+ newlines back to 2.
-    await writeFile(file, src.replace(MARKER, '').replace(/\n{3,}/g, '\n\n'));
-    stripped += hits.length;
-    touched++;
+    const result = stripMarkers(await readFile(file, 'utf8'));
+    if (result.stripped) {
+      await writeFile(file, result.out);
+      stripped += result.stripped;
+      touched++;
+    }
+    const leak = leakedMarkers(
+      relative(outDir, file),
+      result.kept,
+      fencedInSources
+    );
+    if (leak) leaks.push(leak);
   }
+
   // Stripping nothing is only correct when there was nothing to strip. This
   // step exists BECAUSE a postBuild plugin silently ran too early and found no
   // markers (see the header), so a quiet no-op is precisely the failure to
   // guard against: the markers would ship into llms-full.txt and every `.md`
   // twin with a green build. Compare against the SOURCE pages, which is the
   // only way to tell "no managed pages yet" from "this step stopped working".
-  if (stripped === 0) {
-    const sources = existsSync(SRC_DIR) ? await markdownFiles(SRC_DIR) : [];
-    let inSource = 0;
-    for (const file of sources) {
-      inSource += (await readFile(file, 'utf8')).match(MARKER)?.length ?? 0;
-    }
-    if (inSource > 0) {
-      console.error(
-        `strip-generated-markers: stripped nothing, but the source pages carry ` +
-          `${inSource} marker(s). The built markdown moved, the marker format ` +
-          `changed, or this step ran before docusaurus-plugin-llms — the ` +
-          `markers would ship to the LLM surface. Refusing to pass silently.`
-      );
-      process.exit(1);
-    }
+  if (stripped === 0 && inSource > 0) {
+    io.error(
+      `strip-generated-markers: stripped nothing, but the source pages carry ` +
+        `${inSource} marker(s). The built markdown moved, the marker format ` +
+        `changed, or this step ran before docusaurus-plugin-llms — the ` +
+        `markers would ship to the LLM surface. Refusing to pass silently.`
+    );
+    return 1;
+  }
+  if (leaks.length) {
+    for (const leak of leaks) io.error(`strip-generated-markers: ${leak}`);
+    return 1;
   }
 
-  console.log(
+  io.log(
     `strip-generated-markers: removed ${stripped} marker(s) from ${touched} file(s)`
   );
+  return 0;
 }
 
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+if (isMainModule(import.meta.url)) {
+  stripBuild().then(
+    code => {
+      process.exitCode = code;
+    },
+    err => {
+      console.error(err);
+      process.exitCode = 1;
+    }
+  );
+}

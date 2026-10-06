@@ -46,7 +46,10 @@ rachfop/docusaurus-plugin-llms#64, which asks for a preserve-list or a pre-clean
 `<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
 strip HTML comments, and the markers are a source-control device no reader of the site needs.
 It is a build step rather than a Docusaurus plugin because `postBuild` hooks run under
-`Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it.
+`Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it. The strip
+leaves a marker shown inside a code fence, so the step fails the build when a built file keeps
+more such markers than the source pages show. A code fence left open in one page of
+`llms-full.txt` would otherwise hide every later page's markers.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs

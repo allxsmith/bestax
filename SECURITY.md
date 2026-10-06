@@ -90,6 +90,22 @@ Measures active in this repository and its release pipeline:
   job is limited to its own egress allowlist. Publishing authenticates with
   an API key only until a Trusted Publisher replaces it with short-lived
   GitHub OIDC tokens.
+- **The bestax plugin repository.** The `bestax` coding-agent plugin installs
+  from [allxsmith/bestax-skills](https://github.com/allxsmith/bestax-skills),
+  which `.github/workflows/skills-publish.yml` generates from this
+  repository's `main` and pushes. Nobody edits it by hand. The generator
+  publishes only files git tracks, refuses symbolic links, and checks the
+  tree against Anthropic's plugin directory rules first. The workflow
+  pushes with an SSH deploy key that can write to that one repository. The
+  key is a secret of an environment that admits `main` only. A job with no
+  secret runs the generator from `main` and hands the tree on as an archive.
+  The key's job checks out nothing and runs no repository code. It checks
+  that the archive holds only regular files and directories inside the
+  tree, then pushes it with git and ssh, and only its push step sees the
+  key. ssh accepts only GitHub's published host keys, pinned in the
+  workflow. The plugin starts
+  `bestax-mcp` through `npx` pinned to one exact version, the latest
+  release, never a range.
 - **Socket.dev** — the Socket GitHub App reviews every pull request for
   malware, install scripts, obfuscated code, and privilege escalation in
   dependency changes, and posts two checks on every pull request. Its policy
