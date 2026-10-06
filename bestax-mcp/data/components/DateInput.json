@@ -457,7 +457,7 @@
           "name": "parse",
           "type": "(s: string) => Date | null",
           "default": null,
-          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`).",
+          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). Leaving the field calls it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as the time of day.",
           "required": false,
           "inherited": true,
           "deprecated": false

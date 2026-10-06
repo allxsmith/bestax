@@ -153,7 +153,12 @@ export interface DateInputBaseProps
    * @defaultValue 'YYYY-MM-DD'
    */
   format?: DateFormatOption;
-  /** Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). */
+  /**
+   * Custom parser (use when `format` is `Intl.DateTimeFormatOptions`).
+   * Leaving the field calls it only if the user changed the text, so focus
+   * passing through commits nothing and the value keeps what the format
+   * leaves out, such as the time of day.
+   */
   parse?: (s: string) => Date | null;
   /** BCP-47 locale tag for day/month names and Intl formatting. */
   locale?: string;
@@ -438,7 +443,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
 
     // Typing, and the re-parse on blur or Enter, that lands in the period the
     // value already holds commits nothing, so a `value` elsewhere in its month
-    // or year isn't rewritten by focus passing through the field.
+    // or year changes only when the user picks or types a different period.
     const commitTyped = useCallback(
       (next: Date | null) => {
         if (

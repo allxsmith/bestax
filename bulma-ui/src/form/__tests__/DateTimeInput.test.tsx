@@ -1510,6 +1510,101 @@ describe('DateTimeInput focus handed back on close', () => {
   });
 });
 
+describe('DateTimeInput left without typing', () => {
+  // Leaving commits nothing nobody typed: re-parsing the display would drop
+  // the seconds it leaves out, and an empty field's seed is not the user's.
+  const renderWith = (props: React.ComponentProps<typeof DateTimeInput>) => {
+    const onChange = jest.fn();
+    const utils = render(
+      <>
+        <DateTimeInput {...props} onChange={onChange} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = utils.getByRole('combobox') as HTMLInputElement;
+    const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+    // Under openOnFocus the calendar takes the first focus, and the second
+    // is the user clicking back into the field before clicking away.
+    const visit = () => {
+      act(() => {
+        input.focus();
+      });
+      act(() => {
+        input.focus();
+      });
+      expect(input).toHaveFocus();
+      act(() => {
+        fireEvent.pointerDown(elsewhere);
+      });
+      act(() => {
+        elsewhere.focus();
+      });
+    };
+    return { ...utils, input, onChange, visit };
+  };
+
+  describe.each([
+    ['off', { openOnFocus: false }],
+    ['on, the default', {}],
+  ] as const)('with openOnFocus %s', (_, mode) => {
+    it('keeps the seconds the display leaves out', () => {
+      const { input, onChange, visit } = renderWith({
+        ...mode,
+        defaultValue: new Date(2024, 5, 15, 9, 30, 45),
+      });
+      visit();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-15 09:30');
+    });
+
+    it('leaves an empty field empty', () => {
+      const { input, onChange, visit } = renderWith(mode);
+      visit();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+  });
+
+  it('adds nothing on leaving after a typed edit, so the seconds stay', () => {
+    const { input, onChange, getByRole } = renderWith({
+      openOnFocus: false,
+      defaultValue: new Date(2024, 5, 15, 9, 30, 45),
+    });
+    act(() => {
+      input.focus();
+    });
+    for (const key of '2025') fireEvent.keyDown(input, { key });
+    const typed = onChange.mock.calls.length;
+    act(() => {
+      getByRole('button', { name: 'Elsewhere' }).focus();
+    });
+    expect(input).toHaveValue('2025-06-15 09:30');
+    expect(onChange).toHaveBeenCalledTimes(typed);
+    expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 5, 15, 9, 30, 45));
+  });
+
+  it.each([
+    ['a value', new Date(2024, 5, 15, 9, 30, 45), '2024-06-15 09:30'],
+    ['an empty field', null, ''],
+  ])(
+    'commits nothing for %s when focus opens a portaled popover',
+    (_, defaultValue, shown) => {
+      // The portal sits outside the field, so the focus the calendar takes
+      // as it opens reads as leaving.
+      const { input, onChange, getByRole } = renderWith({
+        appendToBody: true,
+        defaultValue,
+      });
+      act(() => {
+        input.focus();
+      });
+      expect(getByRole('dialog')).toBeInTheDocument();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue(shown);
+    }
+  );
+});
+
 describe('DateTimeInput onOpen and onClose', () => {
   const v = new Date(2024, 5, 15, 9, 30);
   const pressEscape = (on: Element) =>

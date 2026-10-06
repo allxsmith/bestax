@@ -163,34 +163,40 @@ export function useSegmentedEntry(
   // within the same event tick.
   const typedDigitsRef = useRef<string>('');
   // The text focus seeded an empty picker with, until the user edits it or
-  // leaves. While the text still matches it, nothing has been typed.
+  // leaves.
   const seedRef = useRef<string | null>(null);
-  // Whether the input's current focus is the one a closing popover handed
-  // back, until focus leaves the picker.
-  const handedBackRef = useRef(false);
+
+  // Whether the text is still what the picker put there, so nothing in it was
+  // typed: the value's display, or an empty picker's seed until an edit drops
+  // it. Against a value it compares text alone, so typing that ends back on
+  // the display counts as untouched.
+  const isUntouched = useCallback(
+    (s: string) =>
+      value
+        ? s === formatFn(value, format, locale)
+        : seedRef.current !== null && s === seedRef.current,
+    [value, formatFn, format, locale]
+  );
 
   // A seed the popover never turned into a value closes with it, wherever
   // focus goes, so a dismissed empty field stays empty.
   //
   // As the popover closes, its focus trap hands focus back to the input. That
   // focus is not the user arriving: it must not open the popover again under
-  // `openOnFocus`, or seed an empty picker that leaving would then commit.
-  // `closingRef` is set in the layout phase of the commit that closes it and
-  // cleared by that commit's effects, and React runs a commit's effect
-  // cleanups, the trap's among them, before any of its effects, so a focus
-  // in between is the one handed back.
+  // `openOnFocus`, or seed an empty picker. `closingRef` is set in the layout
+  // phase of the commit that closes it and cleared by that commit's effects,
+  // and React runs a commit's effect cleanups, the trap's among them, before
+  // any of its effects, so a focus in between is the one handed back.
   const closingRef = useRef(false);
   const wasOpenRef = useRef(isOpen);
   useLayoutEffect(() => {
     if (wasOpenRef.current && !isOpen) {
       closingRef.current = true;
-      if (!value && seedRef.current !== null && text === seedRef.current) {
-        setText('');
-      }
+      if (!value && isUntouched(text)) setText('');
       seedRef.current = null;
     }
     wasOpenRef.current = isOpen;
-  }, [isOpen, value, text, setText]);
+  }, [isOpen, value, isUntouched, text, setText]);
   useEffect(() => {
     closingRef.current = false;
   }, [isOpen]);
@@ -289,13 +295,13 @@ export function useSegmentedEntry(
       }
       setActiveSegmentIdx(null);
       typedDigitsRef.current = '';
+      // Leaving commits only what was typed. Re-parsing the value's display
+      // could drop what the format leaves out, such as seconds, and a seed
+      // nobody typed over is not the user's date.
+      const untouched = isUntouched(text);
       seedRef.current = null;
-      const handedBack = handedBackRef.current;
-      handedBackRef.current = false;
-      // Leaving after a dismiss commits only what was typed since. Text that
-      // still shows the value wasn't, and re-parsing it could drop what the
-      // format leaves out, such as seconds.
-      if (handedBack && value && text === formatFn(value, format, locale)) {
+      if (untouched) {
+        if (!value) setText('');
         onBlur?.(e);
         return;
       }
@@ -309,6 +315,7 @@ export function useSegmentedEntry(
     },
     [
       containerRef,
+      isUntouched,
       tryParse,
       text,
       isAllowed,
@@ -325,7 +332,6 @@ export function useSegmentedEntry(
   const handleFocus = useCallback(
     (e: React.FocusEvent<HTMLInputElement>) => {
       const handedBack = closingRef.current;
-      handedBackRef.current = handedBack;
       if (!handedBack && openOnFocus && popover && !disabled && !readOnly) {
         setOpen(true);
       }

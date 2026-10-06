@@ -110,7 +110,11 @@ export interface DateTimeInputBaseProps
    * @defaultValue 'YYYY-MM-DD HH:mm'
    */
   format?: DateFormatOption;
-  /** Custom parser. */
+  /**
+   * Custom parser. Leaving the field calls it only if the user changed the
+   * text, so focus passing through commits nothing and the value keeps what
+   * the format leaves out, such as seconds.
+   */
   parse?: (s: string) => Date | null;
   /** BCP-47 locale tag. */
   locale?: string;
