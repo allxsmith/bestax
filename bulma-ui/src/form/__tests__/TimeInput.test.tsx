@@ -1789,24 +1789,45 @@ describe('TimeInput left without typing', () => {
     expect(onChange).not.toHaveBeenCalled();
   });
 
+  it('commits nothing for a value when focus opens a portaled popover', () => {
+    // The portal sits outside the field, so the focus the wheels take as
+    // they open reads as leaving.
+    const { input, onChange, getByRole } = renderWith({
+      appendToBody: true,
+      defaultValue: new Date(2024, 5, 20, 9, 30, 45),
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('09:30');
+  });
+
   it.each([
-    ['a value', new Date(2024, 5, 20, 9, 30, 45), '09:30'],
-    ['an empty field', null, ''],
+    ['in place', false],
+    ['portaled', true],
   ])(
-    'commits nothing for %s when focus opens a portaled popover',
-    (_, defaultValue, shown) => {
-      // The portal sits outside the field, so the focus the wheels take as
-      // they open reads as leaving.
-      const { input, onChange, getByRole } = renderWith({
-        appendToBody: true,
-        defaultValue,
+    "shows an empty field's seed while a popover %s is open, then drops it",
+    (_, appendToBody) => {
+      const { input, onChange, getByRole, queryByRole } = renderWith({
+        appendToBody,
       });
       act(() => {
         input.focus();
       });
       expect(getByRole('dialog')).toBeInTheDocument();
+      expect(input).toHaveValue('12:00');
+      const elsewhere = getByRole('button', { name: 'Elsewhere' });
+      act(() => {
+        fireEvent.pointerDown(elsewhere);
+      });
+      act(() => {
+        elsewhere.focus();
+      });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input).toHaveValue('');
       expect(onChange).not.toHaveBeenCalled();
-      expect(input).toHaveValue(shown);
     }
   );
 });

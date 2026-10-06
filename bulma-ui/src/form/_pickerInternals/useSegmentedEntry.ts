@@ -299,9 +299,12 @@ export function useSegmentedEntry(
       // could drop what the format leaves out, such as seconds, and a seed
       // nobody typed over is not the user's date.
       const untouched = isUntouched(text);
-      seedRef.current = null;
+      // An open popover keeps an unused seed until it closes, so one portaled
+      // outside the picker, whose focus reads as leaving, keeps it as one
+      // inside does.
+      if (!isOpen) seedRef.current = null;
       if (untouched) {
-        if (!value) setText('');
+        if (!value && !isOpen) setText('');
         onBlur?.(e);
         return;
       }
@@ -316,6 +319,7 @@ export function useSegmentedEntry(
     [
       containerRef,
       isUntouched,
+      isOpen,
       tryParse,
       text,
       isAllowed,
