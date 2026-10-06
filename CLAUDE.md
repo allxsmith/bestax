@@ -190,8 +190,8 @@ and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
 - `plugin/manifest.json` holds the manifest fields. Its `plugin.version` is MAJOR.MINOR only.
   The generator appends a patch, the number of commits on `main` that touched the plugin's
   content (`CONTENT_PATHS`) plus `OUTPUT_FORMAT`, both in the generator, so the version in the
-  Agent Plugins `plugin.json` and in `.claude-plugin/plugin.json` rises with each content commit
-  and nobody bumps it by hand. A generator change that alters the published output raises
+  Agent Plugins `plugin.json`, `.claude-plugin/plugin.json` and `.cursor-plugin/plugin.json`
+  rises with each content commit and nobody bumps it by hand. A generator change that alters the published output raises
   `OUTPUT_FORMAT` in the same PR. Its tests pin a hash of the tree built from fixed inputs next
   to `OUTPUT_FORMAT`, so a change to the output for those inputs fails until the two are updated
   together, and a comment-only change passes. They see only the paths those inputs reach, so a
@@ -206,6 +206,12 @@ and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
   512 to 2048 px a side and under 2 MB. Its header has the ImageMagick command that renders it
   from `docs/static/img/logo.svg`. Anthropic's directory takes the icon only the first time the
   plugin is saved or submitted, so a new one does not reach an existing listing.
+- `plugin/logo.png` is the same logo on a white background, published as `assets/logo.png` and
+  named by `logo` in `.cursor-plugin/plugin.json`, the manifest the Cursor Marketplace reviews.
+  Cursor asks for a logo with a background plate, so the generator refuses one that is not a
+  complete square PNG or that can hold a transparent pixel. The generator's header has its
+  ImageMagick command too. That manifest takes its display name from `cursor.displayName` in
+  `plugin/manifest.json`.
 - `plugin/README.md` becomes the repository's README, and it must say everything the plugin
   runs, sends or fetches. Its skill list and the server's launch command and environment
   variables are generated into its `bestax:generated` regions, from the skill index and

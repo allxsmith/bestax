@@ -100,15 +100,15 @@ against that list.
 
 Not live yet. Each needs a submission or a sign-in first.
 
-| Where                                                                   | Carries                 | Updates | Notes                                                                                      |
-| ----------------------------------------------------------------------- | ----------------------- | ------- | ------------------------------------------------------------------------------------------ |
-| GitHub MCP Registry                                                     | `bestax-mcp`            | Unknown | The official listing exists, so onboarding can be requested.                               |
-| Anthropic plugin directory                                              | Skills and `bestax-mcp` | Mixed   | Submit allxsmith/bestax-skills. It follows the repo, and a reviewer checks each version.   |
-| OpenAI plugin directory                                                 | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Each upload is a ZIP with a new version.                   |
-| Cursor Marketplace                                                      | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Each update is reviewed.                                   |
-| Kiro                                                                    | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Its README has the privacy policy and support contact.     |
-| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace) | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. The entry pins a commit, so a pull request there bumps it. |
-| [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Pins the `version` in its root `plugin.json`.              |
+| Where                                                                   | Carries                 | Updates | Notes                                                                                                             |
+| ----------------------------------------------------------------------- | ----------------------- | ------- | ----------------------------------------------------------------------------------------------------------------- |
+| GitHub MCP Registry                                                     | `bestax-mcp`            | Unknown | The official listing exists, so onboarding can be requested.                                                      |
+| Anthropic plugin directory                                              | Skills and `bestax-mcp` | Mixed   | Submit allxsmith/bestax-skills. It follows the repo, and a reviewer checks each version.                          |
+| OpenAI plugin directory                                                 | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Each upload is a ZIP with a new version.                                          |
+| Cursor Marketplace                                                      | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills, which Cursor reads through `.cursor-plugin/plugin.json`. Each update is reviewed. |
+| Kiro                                                                    | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Its README has the privacy policy and support contact.                            |
+| [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace) | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. The entry pins a commit, so a pull request there bumps it.                        |
+| [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual  | Submit allxsmith/bestax-skills. Pins the `version` in its root `plugin.json`.                                     |
 
 ## What goes stale
 
@@ -126,8 +126,9 @@ Say in the pull request which listings need an update, then open those updates o
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock and cursor.directory give
   `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
   exact version, and `skills-publish.yml` regenerates it after each release.
-- **A plugin release.** Once listed, awesome-copilot, the OpenAI directory, Kiro and Cursor
-  Marketplace pin the `version` in bestax-skills' root `plugin.json`. Its patch counts the commits
+- **A plugin release.** Once listed, awesome-copilot, the OpenAI directory and Kiro pin the
+  `version` in bestax-skills' root `plugin.json`, and Cursor Marketplace the same version in
+  `.cursor-plugin/plugin.json`. Its patch counts the commits
   that touched the plugin's content, plus a number the generator raises when its output changes,
   so it rises with each change without a hand bump, and
   the MAJOR.MINOR comes from `plugin.version` in `plugin/manifest.json`. Update those entries when a
@@ -136,7 +137,8 @@ Say in the pull request which listings need an update, then open those updates o
   so updating it takes a pull request there.
 - **Changing the plugin icon.** Anthropic's plugin directory takes the icon in bestax-skills'
   `.claude-plugin/icon.png` only the first time the plugin is saved or submitted, so a new
-  `plugin/icon.png` does not reach that listing on its own.
+  `plugin/icon.png` does not reach that listing on its own. Cursor Marketplace has its own logo,
+  `assets/logo.png` in bestax-skills, from `plugin/logo.png`.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.
