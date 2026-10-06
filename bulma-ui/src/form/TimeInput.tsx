@@ -5,13 +5,13 @@ import { Control, ControlBaseProps } from './Control';
 import { TimeInputBase, TimeInputBaseProps } from './TimeInputBase';
 import { useInsideField, useInsideControl } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useControlLoading } from './controlLoading';
 
 /**
  * Props for the TimeInput convenience wrapper. Extends `TimeInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
  * Inside an existing `Control` within a `Field` it renders no `Field` or
  * `Control` of its own, so set the Control-level props on that `Control` instead.
- * With `isLoading` there, pass `triggerIcon={false}` too (see `triggerIcon`).
  * @extraProp {string} [name] - Form field name.
  * @extraProp {string} [form] - Form id the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the input as required.
@@ -51,17 +51,17 @@ export interface TimeInputProps extends TimeInputBaseProps {
   hasIconsRight?: boolean;
   /**
    * Shows a loading spinner on the `Control` it renders, and hides the
-   * launcher (`triggerIcon`) while it does.
+   * launcher (`triggerIcon`) while it does. Inside your own `Control` it
+   * renders none, so this draws nothing; set `isLoading` on that `Control`.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */
   isLoading?: boolean;
   /**
    * Show a clickable launcher button on the right that toggles the popover.
-   * Off by default while the `Control` this component renders shows its
-   * `isLoading` spinner, which sits at the same right edge. Inside your own
-   * `<Control isLoading>` the spinner is that `Control`'s, which this
-   * component cannot see, so pass `false` there or the two overlap.
+   * Off by default while a loading spinner shows at the same right edge,
+   * whether from this component's `isLoading` or from the `Control` it
+   * sits in.
    * @defaultValue !isLoading
    */
   triggerIcon?: boolean;
@@ -135,15 +135,18 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
     // icon-left container has nothing to anchor to. Skip the Control wrap.
     const rendersControl = !insideControl && !baseProps.inline;
 
-    // The right-side launcher is on by default; suppress it while the Control
-    // rendered here shows its loading spinner (also on the right) unless
-    // explicitly set. Inside another Control no spinner is drawn here.
+    // The right-side launcher is on by default; suppress it while a loading
+    // spinner (also on the right) shows, unless explicitly set. The spinner is
+    // the Control's rendered here, or else the one this sits in.
+    const outerLoading = useControlLoading();
     let content: React.ReactNode = (
       <TimeInputBase
         ref={ref}
         id={controlId}
         {...baseProps}
-        triggerIcon={baseProps.triggerIcon ?? !(isLoading && rendersControl)}
+        triggerIcon={
+          baseProps.triggerIcon ?? !(rendersControl ? isLoading : outerLoading)
+        }
       />
     );
 

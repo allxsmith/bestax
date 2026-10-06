@@ -778,7 +778,7 @@ describe('DateTimeInput launcher icon', () => {
     expect(getByRole('dialog')).toBeInTheDocument();
   });
 
-  it('gives way only to a spinner it draws itself', () => {
+  it('gives way to whichever spinner is drawn', () => {
     // Its own Control draws the spinner where the launcher sits.
     const own = render(<DateTimeInput isLoading />);
     expect(own.container.querySelectorAll('.is-loading')).toHaveLength(1);
@@ -797,17 +797,29 @@ describe('DateTimeInput launcher icon', () => {
     expect(inner.getByLabelText('Choose date and time').tagName).toBe('BUTTON');
     inner.unmount();
 
-    // A loading outer Control's spinner is out of its sight, so that route
-    // passes `triggerIcon={false}`.
+    // A loading Control it sits in draws the spinner in the same place.
     const outer = render(
       <Field>
         <Control isLoading>
-          <DateTimeInput triggerIcon={false} />
+          <DateTimeInput />
         </Control>
       </Field>
     );
     expect(outer.container.querySelectorAll('.is-loading')).toHaveLength(1);
     expect(outer.queryByLabelText('Choose date and time')).toBeNull();
+    outer.unmount();
+
+    // An explicit `triggerIcon` still wins.
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInput triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose date and time').tagName).toBe(
+      'BUTTON'
+    );
   });
 });
 

@@ -62,6 +62,10 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"Default (left icon + right launcher)\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"No launcher (popover via ↓ only)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
+      "title": "Launcher Icon",
+      "code": "<Field label=\"When\">\n  <Control iconLeftName=\"calendar-alt\" isLoading>\n    <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" />\n  </Control>\n</Field>"
+    },
+    {
       "title": "Min and Max",
       "code": "function example() {\n  const today = new Date();\n  const min = new Date(today);\n  min.setHours(9, 0, 0, 0);\n  const max = new Date(today);\n  max.setHours(17, 0, 0, 0);\n  return <DateTimeInput label=\"Office hours today\" min={min} max={max} />;\n}"
     },
@@ -144,10 +148,6 @@
     {
       "title": "Context-Aware Rendering",
       "code": "function example() {\n  return (\n    <Field horizontal label=\"When\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
-    },
-    {
-      "title": "Context-Aware Rendering",
-      "code": "<Field label=\"When\">\n  <Control iconLeftName=\"calendar-alt\" isLoading>\n    <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" triggerIcon={false} />\n  </Control>\n</Field>"
     },
     {
       "title": "Manual Keyboard Entry",
@@ -286,7 +286,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Inside your own `Control` it renders none, so this draws nothing; set `isLoading` on that `Control`. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -295,7 +295,7 @@
           "name": "triggerIcon",
           "type": "boolean",
           "default": "!isLoading",
-          "description": "Show a clickable launcher button on the right that toggles the popover. Off by default while the `Control` this component renders shows its `isLoading` spinner, which sits at the same right edge. Inside your own `<Control isLoading>` the spinner is that `Control`'s, which this component cannot see, so pass `false` there or the two overlap.",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Off by default while a loading spinner shows at the same right edge, whether from this component's `isLoading` or from the `Control` it sits in.",
           "required": false,
           "inherited": false,
           "deprecated": false
