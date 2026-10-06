@@ -219,6 +219,33 @@ test('the real README lists every indexed skill and the launch, with no markers'
   assert.ok(readme.includes('## Privacy Policy'));
 });
 
+/**
+ * Whether `glob`, a paths-filter or git glob, matches `file`: `**` takes
+ * any run of characters and `*` any run without a slash.
+ */
+const covers = (glob, file) =>
+  new RegExp(
+    `^${glob
+      .split('**')
+      .map(part =>
+        part
+          .split('*')
+          .map(text => text.replace(/[.+?^${}()|[\]\\]/g, '\\$&'))
+          .join('[^/]*')
+      )
+      .join('.*')}$`
+  ).test(file);
+
+test('covers matches a glob the way the paths filter and git do', () => {
+  assert.ok(covers('skills/**', 'skills/README.md'));
+  assert.ok(covers('skills/*/**', 'skills/demo/SKILL.md'));
+  assert.ok(covers('skills/*/**', 'skills/demo/references/a.md'));
+  assert.ok(!covers('skills/*/**', 'skills/README.md'));
+  assert.ok(covers('LICENSE', 'LICENSE'));
+  assert.ok(!covers('LICENSE', 'LICENSES'));
+  assert.ok(!covers('a.md', 'aXmd'));
+});
+
 test('the workflow runs on every input and every module the generator imports', () => {
   const lines = repoText('.github/workflows/skills-publish.yml').split('\n');
   const filters = yamlItems(
@@ -239,11 +266,6 @@ test('the workflow runs on every input and every module the generator imports', 
     [...PUBLISH_PATHS].sort(),
     'the paths filter in skills-publish.yml and PUBLISH_PATHS differ'
   );
-  // The version counts commits on CONTENT_PATHS, so every one of them must
-  // also start a publish.
-  for (const content of CONTENT_PATHS) {
-    assert.ok(filters.includes(content), `the paths filter misses ${content}`);
-  }
 
   // Every local module reachable from the generator, by its imports.
   const needed = new Set(['skills/', ...INPUT_FILES]);
@@ -260,10 +282,6 @@ test('the workflow runs on every input and every module the generator imports', 
       );
     }
   }
-  const covers = (filter, file) =>
-    filter.endsWith('/**')
-      ? file.startsWith(filter.slice(0, -2))
-      : filter === file;
   for (const file of needed) {
     assert.ok(
       filters.some(f => covers(f, file)),
@@ -279,13 +297,39 @@ test('the workflow runs on every input and every module the generator imports', 
     );
   }
 
-  // CONTENT_PATHS is exactly what the tree is built from: the skills and
-  // INPUT_FILES, and none of the code.
-  const content = ['skills/', ...INPUT_FILES];
+  // CONTENT_PATHS is exactly what the tree is built from: the tracked files
+  // inside the skill directories and INPUT_FILES. It names none of the code,
+  // nor skills/README.md or skills/CLAUDE.md, which do not ship, so a commit
+  // to one of those alone does not raise the version.
+  const skills = execFileSync(
+    'git',
+    ['-C', REPO, 'ls-files', '--', 'skills/'],
+    {
+      encoding: 'utf8',
+    }
+  )
+    .split('\n')
+    .filter(Boolean);
+  const inSkill = file => /^skills\/[^/]+\//.test(file);
+  const content = [...skills.filter(inSkill), ...INPUT_FILES];
+  const unshipped = skills.filter(file => !inSkill(file));
+  assert.ok(unshipped.includes('skills/README.md'));
   for (const file of content) {
     assert.ok(
       CONTENT_PATHS.some(p => covers(p, file)),
       `CONTENT_PATHS misses ${file}, so the version would not count it`
+    );
+    // The version counts it, so a change to it must also start a publish.
+    assert.ok(
+      filters.some(p => covers(p, file)),
+      `the paths filter misses ${file}`
+    );
+  }
+  for (const file of unshipped) {
+    assert.ok(
+      !CONTENT_PATHS.some(p => covers(p, file)),
+      `CONTENT_PATHS takes ${file}, which does not ship, so a commit to it ` +
+        `alone would raise the version`
     );
   }
   for (const p of CONTENT_PATHS) {
@@ -1891,12 +1935,25 @@ test('inputCommitCount counts the commits that touched CONTENT_PATHS only', asyn
 
   // The generator's code and the workflow start a publish but do not
   // count, so an edit to them alone leaves the version where it was.
-  const code = PUBLISH_PATHS.filter(p => !CONTENT_PATHS.includes(p));
+  const code = PUBLISH_PATHS.filter(
+    p => !p.includes('*') && !CONTENT_PATHS.includes(p)
+  );
   assert.ok(code.includes('scripts/gen-skills-repo.mjs'));
   for (const file of code) write(root, file, '// x\n');
   git(root, 'add', '-A');
   commit(root, 'the generator and the workflow');
   assert.equal(inputCommitCount(root), 1, 'code paths do not count');
+
+  // Nor do the files in skills/ outside a skill directory, which do not ship.
+  write(root, 'skills/README.md', '# changed\n');
+  write(root, 'skills/CLAUDE.md', '# notes\n');
+  git(root, 'add', '-A');
+  commit(root, 'skills/README.md and skills/CLAUDE.md');
+  assert.equal(
+    inputCommitCount(root),
+    1,
+    'unshipped skills files do not count'
+  );
 
   // Each content path counts, one commit each.
   const content = [

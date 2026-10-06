@@ -61,8 +61,8 @@ on:
   push:
     branches: [main]
     # PUBLISH_PATHS in scripts/gen-skills-repo.mjs: the plugin's content
-    # (CONTENT_PATHS), every local module the generator imports, and this
-    # file. scripts/gen-skills-repo.test.mjs fails when the list misses one
+    # (CONTENT_PATHS) with all of skills/ in place of its skill directories,
+    # every local module the generator imports, and this file. scripts/gen-skills-repo.test.mjs fails when the list misses one
     # or names one the generator no longer needs. A run for a code change
     # publishes only when the tree comes out different, and the version
     # counts content commits only.

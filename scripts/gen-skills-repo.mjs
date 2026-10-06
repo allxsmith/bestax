@@ -150,17 +150,19 @@ export const INPUT_FILES = [
 ];
 
 /**
- * Every path whose bytes reach the tree: the skills and INPUT_FILES. The
+ * Every path whose bytes reach the tree: the files inside the skill
+ * directories and INPUT_FILES, as git globs, where `*` stops at a slash. The
  * version's patch counts the commits on HEAD that touched one of them
  * (inputCommitCount), so a commit that changes only the generator's code
- * does not move it. OUTPUT_FORMAT covers the code instead.
+ * does not move it, and neither does one that changes only skills/README.md
+ * or skills/CLAUDE.md, which do not ship. OUTPUT_FORMAT covers the code.
  *
  * Adding a path only adds commits to the count. Dropping or renaming one can
  * lower it, as the commits that touched only that path stop counting, so a
  * change that drops a path also bumps the minor in plugin/manifest.json.
  */
 export const CONTENT_PATHS = [
-  'skills/**',
+  'skills/*/**',
   'plugin/**',
   'bestax-mcp/package.json',
   'bestax-mcp/server.json',
@@ -173,11 +175,14 @@ export const CONTENT_PATHS = [
  * Everything a publish depends on: CONTENT_PATHS, every local module the
  * generator runs, and the workflow. This is the push paths filter in
  * .github/workflows/skills-publish.yml, and the test sibling holds the two
- * equal and the list to the generator's imports. A run for a code change
- * publishes only when the tree it writes differs from the published one.
+ * equal and the list to the generator's imports. It takes all of skills/,
+ * wider than CONTENT_PATHS, which costs at most a run that publishes nothing.
+ * A run for a code change publishes only when the tree it writes differs
+ * from the published one.
  */
 export const PUBLISH_PATHS = [
-  ...CONTENT_PATHS,
+  'skills/**',
+  ...CONTENT_PATHS.filter(p => !p.startsWith('skills/')),
   'scripts/gen-skills-repo.mjs',
   'scripts/lib/skills.mjs',
   'scripts/lib/api-page.mjs',
@@ -1078,7 +1083,7 @@ export function inputCommitCount(repo) {
         `the whole history, as actions/checkout does with fetch-depth: 0.`
     );
   }
-  const pathspecs = CONTENT_PATHS.map(p => p.replace(/\/\*\*$/, '/'));
+  const pathspecs = CONTENT_PATHS.map(p => `:(glob)${p}`);
   const out = rootGit(repo, repo, [
     'rev-list',
     '--count',
