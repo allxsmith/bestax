@@ -21,6 +21,14 @@ name: Skills publish
 #     environment below refuses, so `relay` holds no deploy key. It asks for a
 #     dispatch of this workflow on main instead. A dispatch made with
 #     GITHUB_TOKEN still starts a run, which other GITHUB_TOKEN events do not.
+#     What the event guarantees, from bestax-mcp/release.config.js: the
+#     publish steps run in plugin order, @semantic-release/exec's `pnpm
+#     publish` before @semantic-release/github creates the release, and
+#     semantic-release stops at the first that fails. So a bestax-mcp release
+#     means npm took the version. It does not hold main back: the release
+#     commit is pushed in the prepare step, before any publish step, so a run
+#     in between, or after a failed publish, finds main pinning a version npm
+#     does not serve. `generate` passes --require-published for that.
 #   workflow_dispatch: the first publish, a re-run, and the release relay.
 #     Dispatch needs write access, and any ref other than main skips.
 #
@@ -77,6 +85,7 @@ on:
       - 'scripts/gen-skills-repo.mjs'
       - 'scripts/lib/skills.mjs'
       - 'scripts/lib/api-page.mjs'
+      - 'scripts/lib/fetch-retry.mjs'
       - 'scripts/lib/main-module.mjs'
       - 'scripts/consumer-sbom-meta.mjs'
       - 'scripts/mcp-registry-publish.mjs'
@@ -202,10 +211,13 @@ jobs:
       #   github.com:443: the checkout of this repository (git over HTTPS, no
       #     API call: the same checkout in mcp-registry's `publish` names only
       #     this host).
+      #   registry.npmjs.org:443: --require-published asks the registry for
+      #     the exact bestax-mcp version the plugin pins, with GET requests
+      #     and no install. The npx the plugin runs installs from this host.
       #
       # Deliberately absent: api.github.com, as nothing here calls the API,
-      # and registry.npmjs.org and nodejs.org, as the generator imports node:
-      # builtins only and runs on the runner's Node with no install. Also
+      # and nodejs.org, as the generator imports node: builtins and local
+      # modules only and runs on the runner's Node with no install. Also
       # absent: the hosts upload-artifact reaches,
       # results-receiver.actions.githubusercontent.com and a per-run
       # productionresultssa<N>.blob.core.windows.net. They are the runner's
@@ -220,6 +232,7 @@ jobs:
           egress-policy: block
           allowed-endpoints: >
             github.com:443
+            registry.npmjs.org:443
 
       # Copied from the other block jobs, as rule 10 asks. See `relay`.
       - name: Assert egress policy is enforced
@@ -283,14 +296,16 @@ jobs:
       # The script checks the tree against Anthropic's directory rules before
       # and after writing it, and fails with the reasons. --require-checkout
       # makes a git listing that fails a refusal, where a local run would
-      # skip the vetting gate. Deliberately no setup-node, as in
+      # skip the vetting gate. --require-published refuses a bestax-mcp pin
+      # npm does not serve (see the release trigger above), asking again for
+      # about a minute first. Deliberately no setup-node, as in
       # mcp-registry's `publish`: the runner image's Node runs it, and the
       # version is printed for the record.
       - name: Generate the bestax-skills tree
-        timeout-minutes: 2
+        timeout-minutes: 5
         run: |
           node --version
-          node scripts/gen-skills-repo.mjs --require-checkout "$RUNNER_TEMP/bestax-skills-tree"
+          node scripts/gen-skills-repo.mjs --require-checkout --require-published "$RUNNER_TEMP/bestax-skills-tree"
 
       # One tar file, because an artifact keeps no file modes and leaves out
       # hidden paths such as .claude-plugin/ by default, and the tree needs

@@ -33,9 +33,11 @@ import {
   PUBLISH_PATHS,
   README_REGIONS,
   REQUIRE_CHECKOUT,
+  REQUIRE_PUBLISHED,
   SKILL_INDEX,
   TEMPLATE,
   TreeError,
+  assertPublished,
   buildTree,
   checkTemplate,
   exactNpmSpec,
@@ -606,6 +608,127 @@ test("publish's check step refuses a link, a .git or a fifo already on disk", ()
   }
 });
 
+// --- the npm check ---------------------------------------------------------------
+
+/**
+ * Runs `fn` while globalThis.fetch answers from `respond`, and returns what
+ * `fn` returned with every request it made.
+ */
+async function withFetch(respond, fn) {
+  const real = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (url, init = {}) => {
+    calls.push({ url: String(url), method: init.method });
+    return respond(calls.length);
+  };
+  try {
+    return { result: await fn(), calls };
+  } finally {
+    globalThis.fetch = real;
+  }
+}
+
+const answer = status => ({
+  status,
+  statusText: status === 200 ? 'OK' : 'Not Found',
+  headers: new Headers(),
+  text: async () => '{}',
+});
+const NO_WAIT = { backoffMs: [0] };
+
+test('assertPublished asks npm for the exact pin and takes a 200', async () => {
+  const { calls } = await withFetch(
+    () => answer(200),
+    () => assertPublished('bestax-mcp@1.14.0', NO_WAIT)
+  );
+  assert.deepEqual(calls, [
+    { url: 'https://registry.npmjs.org/bestax-mcp/1.14.0', method: 'GET' },
+  ]);
+  const scoped = await withFetch(
+    () => answer(200),
+    () => assertPublished('@scope/pkg@1.0.0-rc.1', NO_WAIT)
+  );
+  assert.equal(
+    scoped.calls[0].url,
+    'https://registry.npmjs.org/@scope%2fpkg/1.0.0-rc.1'
+  );
+});
+
+test('assertPublished asks again after a 404, as a new release can lag', async () => {
+  const { calls } = await withFetch(
+    n => answer(n < 3 ? 404 : 200),
+    () => assertPublished('bestax-mcp@1.14.0', NO_WAIT)
+  );
+  assert.equal(calls.length, 3);
+});
+
+test('assertPublished refuses a version npm keeps answering 404 for', async () => {
+  await assert.rejects(
+    withFetch(
+      () => answer(404),
+      () => assertPublished('bestax-mcp@9.9.9', NO_WAIT)
+    ),
+    err => {
+      assert.ok(isSkillRefusal(err));
+      assert.match(
+        err.message,
+        /^npm does not serve "bestax-mcp@9\.9\.9": https:\/\/registry\.npmjs\.org\/bestax-mcp\/9\.9\.9 answered "404 Not Found" on each of 5 asks\./
+      );
+      return true;
+    }
+  );
+});
+
+test('assertPublished refuses when npm cannot be reached', async () => {
+  await assert.rejects(
+    withFetch(
+      () => {
+        throw new TypeError('fetch failed', {
+          cause: new Error('getaddrinfo ENOTFOUND registry.npmjs.org'),
+        });
+      },
+      () => assertPublished('bestax-mcp@1.14.0', NO_WAIT)
+    ),
+    err => {
+      assert.ok(isSkillRefusal(err));
+      assert.match(
+        err.message,
+        /^could not ask npm whether it serves "bestax-mcp@1\.14\.0" \("getaddrinfo ENOTFOUND registry\.npmjs\.org"\), so nothing was published\./
+      );
+      return true;
+    }
+  );
+});
+
+test('main with --require-published writes the tree only when npm serves the pin', async () => {
+  const served = capture();
+  const dir = path.join(tempDir(), 'out');
+  const ok = await withFetch(
+    () => answer(200),
+    () =>
+      main([REQUIRE_PUBLISHED, REQUIRE_CHECKOUT, dir], served.io, {
+        ...counted,
+        fetchOptions: NO_WAIT,
+      })
+  );
+  assert.equal(ok.result, 0, served.out.stderr);
+  assert.equal(ok.calls[0].url.split('/').pop(), REAL_PIN.split('@').pop());
+
+  const missing = capture();
+  const none = path.join(tempDir(), 'out');
+  const refused = await withFetch(
+    () => answer(404),
+    () =>
+      main([REQUIRE_PUBLISHED, none], missing.io, {
+        ...counted,
+        fetchOptions: { ...NO_WAIT, attempts: 1 },
+      })
+  );
+  assert.equal(refused.result, 1);
+  assert.match(missing.out.stderr, /npm does not serve/);
+  assert.ok(!fs.existsSync(none), 'nothing is written');
+});
+
 // --- the CLI --------------------------------------------------------------------
 
 function capture() {
@@ -630,7 +753,10 @@ test('main prints usage without exactly one directory and known flags', async ()
   ]) {
     const { out, io } = capture();
     assert.equal(await main(argv, io, counted), 2, argv.join(' '));
-    assert.match(out.stderr, /usage: .* \[--require-checkout\] <output/);
+    assert.match(
+      out.stderr,
+      /usage: .* \[--require-checkout\] \[--require-published\] <output/
+    );
   }
 });
 

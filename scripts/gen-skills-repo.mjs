@@ -77,10 +77,14 @@
  * That is also where a hidden file in a skill is refused, since skillFiles
  * lists one and the plugin ships none.
  *
- * Pure apart from inputCommitCount, readSources, writeTree, scanTree,
- * generate and main, and it imports node: builtins and local modules only,
- * so the workflow's generate job runs it with the runner's Node and no
- * install.
+ * With `--require-published`, the run first asks the npm registry for the
+ * exact bestax-mcp version the plugin pins, and refuses one npm does not
+ * serve. assertPublished says when that happens.
+ *
+ * Pure apart from inputCommitCount, assertPublished, readSources, writeTree,
+ * scanTree, generate and main, and it imports node: builtins and local
+ * modules only, so the workflow's generate job runs it with the runner's
+ * Node and no install.
  */
 import {
   chmod,
@@ -117,6 +121,7 @@ import {
   trackedRepoPaths,
   vettedSkillFiles,
 } from './lib/skills.mjs';
+import { fetchWithRetry } from './lib/fetch-retry.mjs';
 import { isMainModule } from './lib/main-module.mjs';
 import { readJson, readServer } from './mcp-registry-publish.mjs';
 
@@ -186,6 +191,7 @@ export const PUBLISH_PATHS = [
   'scripts/gen-skills-repo.mjs',
   'scripts/lib/skills.mjs',
   'scripts/lib/api-page.mjs',
+  'scripts/lib/fetch-retry.mjs',
   'scripts/lib/main-module.mjs',
   'scripts/consumer-sbom-meta.mjs',
   'scripts/mcp-registry-publish.mjs',
@@ -211,6 +217,19 @@ export const OUTPUT_FORMAT = 1;
 
 /** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
+
+/** The flag the generate job passes, so a pin npm cannot serve stops the run. */
+export const REQUIRE_PUBLISHED = '--require-published';
+
+/** The registry the plugin's `npx -y` installs bestax-mcp from. */
+export const NPM_REGISTRY = 'https://registry.npmjs.org';
+
+/**
+ * Waits between asks of the registry, in ms. A run a release starts reaches
+ * the registry soon after `pnpm publish`, when a new version can still
+ * answer 404, so a 404 is asked again for about a minute before it counts.
+ */
+export const PUBLISHED_BACKOFF_MS = [5_000, 10_000, 20_000, 30_000];
 
 /** The generated regions plugin/README.md must carry. */
 export const README_REGIONS = { skills: 'skills', mcp: 'mcp-server' };
@@ -1272,11 +1291,59 @@ export function planMismatch(tree, written) {
 }
 
 /**
+ * Resolves when the npm registry serves `pin`, the exact name@version the
+ * plugin's npx starts, and throws a refusal otherwise. It fails closed: a
+ * registry that never answers is a refusal too.
+ *
+ * bestax-mcp/package.json on main can name a version npm does not serve.
+ * semantic-release runs every prepare step before any publish step, so
+ * @semantic-release/git pushes the release commit before
+ * @semantic-release/exec runs `pnpm publish`, and a publish that fails
+ * leaves main at the new version. A tree built then would send every plugin
+ * user to an npx 404. `fetchOptions` go to fetchWithRetry, for tests.
+ */
+export async function assertPublished(pin, fetchOptions = {}) {
+  const at = pin.lastIndexOf('@');
+  const name = pin.slice(0, at);
+  const version = pin.slice(at + 1);
+  const url =
+    `${NPM_REGISTRY}/${name.replace('/', '%2f')}/` +
+    encodeURIComponent(version);
+  const res = await fetchWithRetry(url, {
+    attempts: PUBLISHED_BACKOFF_MS.length + 1,
+    backoffMs: PUBLISHED_BACKOFF_MS,
+    methods: ['GET'],
+    alsoRetryable: [404],
+    ...fetchOptions,
+  });
+  if (res.outcome === 'ok') return;
+  if (res.status === 404) {
+    throw skillRefusal(
+      `npm does not serve ${forLog(pin)}: ${url} answered ` +
+        `${forLog(res.detail)} on each of ${res.attempts} asks. ` +
+        `${MCP_DIR}/package.json names a version that is not published, as ` +
+        `after a release whose publish failed, and the plugin's npx would ` +
+        `fail for every user. Publish it, and the next run carries it over.`
+    );
+  }
+  throw skillRefusal(
+    `could not ask npm whether it serves ${forLog(pin)} ` +
+      `(${forLog(res.detail ?? res.outcome)}), so nothing was published. ` +
+      `Run the workflow again.`
+  );
+}
+
+/**
  * Reads, checks, writes and checks again. Returns the sorted file list, or
- * throws a TreeError listing every problem. `options` go to readSources.
+ * throws a TreeError listing every problem. `options` go to readSources,
+ * and `requirePublished` runs assertPublished on the pin first, with
+ * `fetchOptions`.
  */
 export async function generate(outDir, repo = REPO, options = {}) {
   const sources = await readSources(repo, options);
+  if (options.requirePublished) {
+    await assertPublished(sources.launch.pin, options.fetchOptions);
+  }
   const tree = buildTree(sources);
   const before = treeViolations(planEntries(tree));
   if (before.length) throw new TreeError(before);
@@ -1288,32 +1355,36 @@ export async function generate(outDir, repo = REPO, options = {}) {
 }
 
 /**
- * The command line: `[--require-checkout] <output directory>`. `repo` and
- * `inputCommits` are for tests, as in readSources.
+ * The command line: `[--require-checkout] [--require-published] <output
+ * directory>`. `repo`, `inputCommits` and `fetchOptions` are for tests, as
+ * in readSources and assertPublished.
  */
 export async function main(
   argv = process.argv.slice(2),
   io = process,
-  { repo = REPO, inputCommits } = {}
+  { repo = REPO, inputCommits, fetchOptions } = {}
 ) {
+  const known = [REQUIRE_CHECKOUT, REQUIRE_PUBLISHED];
   const flags = argv.filter(a => a.startsWith('-'));
   const dirs = argv.filter(a => !a.startsWith('-'));
   if (
     dirs.length !== 1 ||
-    flags.length > 1 ||
-    flags.some(f => f !== REQUIRE_CHECKOUT)
+    new Set(flags).size !== flags.length ||
+    flags.some(f => !known.includes(f))
   ) {
     io.stderr.write(
-      `usage: node scripts/gen-skills-repo.mjs [${REQUIRE_CHECKOUT}] ` +
-        `<output directory>\n`
+      `usage: node scripts/gen-skills-repo.mjs ` +
+        `${known.map(f => `[${f}]`).join(' ')} <output directory>\n`
     );
     return 2;
   }
   const outDir = resolve(dirs[0]);
   try {
     const files = await generate(outDir, repo, {
-      requireCheckout: flags.length === 1,
+      requireCheckout: flags.includes(REQUIRE_CHECKOUT),
+      requirePublished: flags.includes(REQUIRE_PUBLISHED),
       inputCommits,
+      fetchOptions,
     });
     io.stdout.write(`Wrote the bestax-skills tree to ${outDir}:\n`);
     for (const file of files) io.stdout.write(`  ${file}\n`);
