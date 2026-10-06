@@ -212,6 +212,9 @@ and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
   complete square PNG or that can hold a transparent pixel. The generator's header has its
   ImageMagick command too. That manifest takes its display name from `cursor.displayName` in
   `plugin/manifest.json`.
+- `gemini-extension.json` makes bestax-skills a Gemini CLI extension, with the same server launch
+  as the Claude manifest. Gemini's extension gallery lists a repository that has this file and the
+  `gemini-cli-extension` topic. A tree cannot carry a topic, so it is set by hand on bestax-skills.
 - `plugin/README.md` becomes the repository's README, and it must say everything the plugin
   runs, sends or fetches. Its skill list and the server's launch command and environment
   variables are generated into its `bestax:generated` regions, from the skill index and

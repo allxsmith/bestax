@@ -53,6 +53,12 @@ install bestax and turn it on.
 In VS Code, run **Chat: Install Plugin From Source** from the Command Palette
 and enter `https://github.com/allxsmith/bestax-skills`.
 
+Gemini CLI installs this repository as an extension:
+
+```bash
+gemini extensions install https://github.com/allxsmith/bestax-skills
+```
+
 Kiro installs the plugin as a
 [power](https://kiro.dev/docs/powers/installation/), from the `plugin.json` at
 the root of this repository. In the IDE, open the Powers panel, choose **Add
