@@ -1,4 +1,5 @@
-import { createContext, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
+import { warnOnce } from '../helpers/devWarnings';
 
 const FieldContext = createContext(false);
 const ControlContext = createContext(false);
@@ -20,6 +21,50 @@ export const FieldProvider = FieldContext.Provider;
 
 /** Provider for Control context — used internally by Control component. */
 export const ControlProvider = ControlContext.Provider;
+
+interface OwnFieldOptions {
+  /** `useInsideField()` as the wrapper read it. */
+  insideField: boolean;
+  /** `useInsideControl()` as the wrapper read it. */
+  insideControl: boolean;
+  /** The convenience `label` prop as passed by the caller. */
+  label: React.ReactNode;
+  /** The convenience `message` prop as passed by the caller. */
+  message: React.ReactNode;
+}
+
+/**
+ * Whether a convenience form wrapper renders a `Field` of its own (#905).
+ * Never inside an outer `Field`. Inside a `Control` with no `Field` around
+ * it, a `Field` of its own would put a `.field` inside the `.control`, where
+ * Bulma's control styles break (its icon rules are sibling selectors on the
+ * input), so it renders one only to hold a `label` or `message` and warns in
+ * development that the fix is a `Field` around that `Control`. A `label` or
+ * `message` counts when it is truthy, the same test that decides whether
+ * `Field` renders the label and the wrapper renders the message.
+ * Internal; not part of the public API.
+ */
+export const rendersOwnField = (
+  component: string,
+  { insideField, insideControl, label, message }: OwnFieldOptions
+): boolean => {
+  if (insideField) return false;
+  if (!insideControl) return true;
+  const held = [label && 'label', message && 'message'].filter(
+    (name): name is string => Boolean(name)
+  );
+  if (held.length === 0) return false;
+  warnOnce(
+    `${component}:Field-in-bare-Control:${held.join('+')}`,
+    `[bestax-bulma] <${component} ${held.join(' ')}> inside a <Control> ` +
+      `with no <Field> around it renders its own <Field> to hold the ` +
+      `${held.join(' and ')}, which puts a .field inside the .control, a ` +
+      `nesting Bulma's styles are not written for. Wrap the <Control> in a ` +
+      `<Field> instead` +
+      (label ? `, and give the label to that <Field>.` : '.')
+  );
+  return true;
+};
 
 const FieldLabelIdContext = createContext<string | undefined>(undefined);
 

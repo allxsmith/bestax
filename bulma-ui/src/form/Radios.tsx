@@ -5,6 +5,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import {
   useInsideField,
   useInsideControl,
+  rendersOwnField,
   RadiosProvider,
   RadiosGroupContextValue,
 } from './FormContext';
@@ -16,6 +17,12 @@ import { Radio } from './Radio';
 
 /**
  * Props for the Radios component.
+ * Inside an existing `Control` it renders no `Control` of its own. Inside an
+ * outer `Field`, or a `Control` with no `Field` around it, it renders no
+ * `Field` of its own either. The exception is a `label` or `message` in that
+ * bare `Control`: it keeps a `Field` to hold them, nested in the `.control`,
+ * and warns in development. Wrap the `Control` in a `Field` instead, and give
+ * the `label` to that `Field`.
  */
 export interface RadiosProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
@@ -81,10 +88,16 @@ const RadiosComponent: React.FC<RadiosProps> = ({
 }) => {
   const insideField = useInsideField();
   const insideControl = useInsideControl();
+  const ownField = rendersOwnField('Radios', {
+    insideField,
+    insideControl,
+    label,
+    message,
+  });
   const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
     label,
     labelProps,
-    rendersLabel: !insideField,
+    rendersLabel: ownField,
   });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
@@ -143,7 +156,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     content = <Control>{content}</Control>;
   }
 
-  if (!insideField) {
+  if (ownField) {
     return (
       <Field
         label={label}

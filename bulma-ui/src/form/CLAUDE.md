@@ -12,7 +12,9 @@ Conventions:
 
 - `FormContext.tsx` is presence detection, not state: `useInsideField`/`useInsideControl` let
   an input skip rendering its own Field/Control wrapper when already inside one, and it backs
-  group components (Radios). Preserve that skip-if-wrapped behavior in new inputs.
+  group components (Radios). Preserve that skip-if-wrapped behavior in new inputs. Decide the
+  Field with `rendersOwnField` rather than `!insideField` alone: `Control` provides no field
+  context, so that test puts a `.field` inside a bare `.control` (#905).
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
   as escape hatches, so they are public API too.

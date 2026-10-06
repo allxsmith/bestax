@@ -7,7 +7,11 @@ import {
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Icon } from '../elements/Icon';
 import { useClassPrefix, useIconLibrary } from '../helpers/Config';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useInsideField,
+  useInsideControl,
+  rendersOwnField,
+} from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
@@ -37,6 +41,12 @@ export interface RateIconProps {
 
 /**
  * Props for the Rate component.
+ * Inside an existing `Control` it renders no `Control` of its own. Inside an
+ * outer `Field`, or a `Control` with no `Field` around it, it renders no
+ * `Field` of its own either. The exception is a `label` or `message` in that
+ * bare `Control`: it keeps a `Field` to hold them, nested in the `.control`,
+ * and warns in development. Wrap the `Control` in a `Field` instead, and give
+ * the `label` to that `Field`.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the container element.
  */
@@ -185,10 +195,16 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const ownField = rendersOwnField('Rate', {
+      insideField,
+      insideControl,
+      label,
+      message,
+    });
     const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
       label,
       labelProps,
-      rendersLabel: !insideField,
+      rendersLabel: ownField,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const [internalValue, setInternalValue] = useState(defaultValue);
@@ -548,7 +564,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       content = <Control>{content}</Control>;
     }
 
-    if (!insideField) {
+    if (ownField) {
       return (
         <Field
           label={label}

@@ -641,6 +641,8 @@ function example() {
 }
 ```
 
+Inside a `Control` with no `Field` around it, `DateTimeInput` renders no `Field` of its own either. A `label` or `message` needs a `Field`, though, so given either one there it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and give the `label` to that `Field`.
+
 ---
 
 ### Manual Keyboard Entry

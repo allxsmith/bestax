@@ -3,7 +3,11 @@ import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { SelectBase, SelectBaseProps } from './SelectBase';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useInsideField,
+  useInsideControl,
+  rendersOwnField,
+} from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 
 /**
@@ -12,8 +16,12 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and SelectBase into a single convenience component.
  * Supports all SelectBase props, plus Field-level (label, horizontal) and
  * Control-level (icons) props.
- * Inside an existing `Control` within a `Field` it renders no `Field` or
- * `Control` of its own, so set the Control-level props on that `Control` instead.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead. Inside an outer `Field`, or a
+ * `Control` with no `Field` around it, it renders no `Field` of its own either.
+ * The exception is a `label` or `message` in that bare `Control`: it keeps a
+ * `Field` to hold them, nested in the `.control`, and warns in development.
+ * Wrap the `Control` in a `Field` instead, and give the `label` to that `Field`.
  */
 export interface SelectProps extends SelectBaseProps {
   /** Field label. Automatically associated with the select via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
@@ -100,11 +108,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const ownField = rendersOwnField('Select', {
+      insideField,
+      insideControl,
+      label,
+      message,
+    });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
       id: selectProps.id,
       labelProps,
-      rendersLabel: !insideField,
+      rendersLabel: ownField,
     });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
@@ -130,7 +144,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
-    if (!insideField) {
+    if (ownField) {
       return (
         <Field
           label={label}
