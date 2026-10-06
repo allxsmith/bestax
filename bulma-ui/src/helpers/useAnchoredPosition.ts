@@ -34,7 +34,10 @@ export interface UseAnchoredPositionOptions {
   /**
    * The gap between the anchor and the panel, in pixels, that the hook puts
    * there itself: added to the fixed coordinates and to the room `auto` asks
-   * for below the anchor.
+   * for below the anchor. Popover and the pickers' popover pass `0` and take
+   * their gap from a margin in their stylesheet, read through `styledGap`, so
+   * a theme's offset moves the panel and `auto` alike. A new panel should do
+   * the same rather than rely on this default, which no stylesheet sees.
    * @defaultValue 4
    */
   offset?: number;
