@@ -932,8 +932,9 @@ export function treeViolations(entries) {
         `${LIMITS.files}.`
     );
   }
+  // A README that is a link has no content here. The loop below reports it.
   if (!byPath.has(FILES.readme)) violations.push('README.md: missing.');
-  else {
+  else if (byPath.get(FILES.readme)) {
     const readme = byPath.get(FILES.readme).toString('utf8');
     const words = readmeWordCount(readme);
     if (words < LIMITS.readmeWords) {

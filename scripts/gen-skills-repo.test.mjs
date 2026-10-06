@@ -1325,6 +1325,18 @@ test('system files, links, hidden files and package config are refused', () => {
   has(v, /"\.gitattributes": is hidden/);
 });
 
+test('a README or manifest that is a link is reported, not a crash', () => {
+  const links = new Set([FILES.readme, FILES.claude]);
+  const v = treeViolations(
+    entriesOf(buildTree(fixtureSources())).map(entry =>
+      links.has(entry.path) ? { ...entry, content: null, symlink: true } : entry
+    )
+  );
+  has(v, /"README\.md": is a symbolic link/);
+  has(v, /"\.claude-plugin\/plugin\.json": is a symbolic link/);
+  assert.ok(!v.some(p => p.startsWith('README.md: has')), 'no word count');
+});
+
 test('a path with a newline cannot start a line of a problem', () => {
   const evil = 'skills/demo/x\n::error::forged.md';
   const v = treeViolations([
