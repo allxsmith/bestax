@@ -17,7 +17,9 @@
 // The components only cover the animations someone thought to list, so each
 // sheet is also read for every rule that starts an animation, whatever the
 // partial, and the plainest element that rule matches has to hold still under
-// reduced motion too.
+// reduced motion too. A rule the walk cannot place, a selector it cannot build
+// an element for, or a value it cannot read fails the test rather than
+// dropping out of that list.
 import fs from 'fs';
 import path from 'path';
 import React from 'react';
@@ -139,8 +141,9 @@ const KEYWORD =
 /**
  * The name and duration an `animation` shorthand sets. The first time is the
  * duration, and a `var(…)` counts as one, since that is how the partials
- * theme it. A shorthand with no name or no time resets that longhand, to
- * `none` and `0s`.
+ * theme it. That reading is refused when nothing else names the animation,
+ * as the `var(…)` may be the name. A shorthand with no name or no time
+ * resets that longhand, to `none` and `0s`.
  */
 function shorthand(value: string): { name: string; duration: string } {
   if (splitSelectors(value).length > 1) {
@@ -164,6 +167,13 @@ function shorthand(value: string): { name: string; duration: string } {
       name ??= token;
     }
   }
+  if (name === undefined && duration?.startsWith('var(')) {
+    throw new Error(
+      `\`animation: ${value}\` names no animation, so the \`var(…)\` read as ` +
+        'its duration may be its name. Extend `shorthand` before trusting ' +
+        'a result.'
+    );
+  }
   return { name: name ?? 'none', duration: duration ?? '0s' };
 }
 
@@ -177,6 +187,18 @@ function rulesOf(css: string): Rule[] {
     for (const rule of Array.from(list)) {
       if (rule instanceof CSSMediaRule) {
         const media = rule.media.mediaText;
+        // Read below as a plain match, so a negated or listed query would
+        // apply its rules to the wrong users.
+        if (
+          /prefers-reduced-motion/.test(media) &&
+          /\bnot\b|\bor\b|,/.test(media)
+        ) {
+          throw new Error(
+            `@media ${media} negates or lists a reduced-motion query, which ` +
+              'this test does not resolve. Extend `rulesOf` before trusting ' +
+              'a result.'
+          );
+        }
         // A user who asked for less motion never matches `no-preference`.
         if (/prefers-reduced-motion:\s*no-preference/.test(media)) continue;
         walk(
@@ -209,11 +231,29 @@ function rulesOf(css: string): Rule[] {
           order: out.length,
           reducedMotionOnly,
         });
+      } else if (
+        'cssRules' in rule &&
+        !/^@(-\w+-)?keyframes\b/.test(rule.cssText) &&
+        /[{;\s]animation(-[a-z-]+)?\s*:/.test(rule.cssText)
+      ) {
+        // `@supports`, `@layer`, `@container` and the like change when or in
+        // what order their rules apply, which this test does not model.
+        // Bulma lays out its fixed grid in `@container`, which is no concern
+        // here, but an animation set in one has to fail rather than go
+        // unchecked. Keyframes hold no style rules.
+        throw new Error(
+          `${rule.cssText.split('{')[0].trim()} sets an animation in rules ` +
+            'this test does not walk. Extend `rulesOf` before trusting a ' +
+            'result.'
+        );
       }
     }
   };
-  walk(style.sheet!.cssRules, false);
-  style.remove();
+  try {
+    walk(style.sheet!.cssRules, false);
+  } finally {
+    style.remove();
+  }
   return out;
 }
 
@@ -340,6 +380,34 @@ function witness(selector: string): { el: Element; pseudo: string } {
 }
 
 /**
+ * Every selector in the rules that starts an animation, checked on the
+ * plainest element it matches. `stillMoving` holds the ones that play under
+ * reduced motion, including any a reduced-motion block starts itself, and
+ * `idle` the ones that start outside such a block yet do not animate there,
+ * which would leave the check on them vacuous.
+ */
+function unstopped(rules: Rule[]) {
+  const outsideReduced = new Map<string, boolean>();
+  for (const rule of rules) {
+    if ((rule.name?.value ?? 'none') === 'none') continue;
+    for (const selector of rule.selectors) {
+      outsideReduced.set(
+        selector,
+        !!outsideReduced.get(selector) || !rule.reducedMotionOnly
+      );
+    }
+  }
+  const idle: string[] = [];
+  const stillMoving: string[] = [];
+  for (const [selector, outside] of outsideReduced) {
+    const { el, pseudo } = witness(selector);
+    if (outside && !moves(rules, el, pseudo, false)) idle.push(selector);
+    if (moves(rules, el, pseudo, true)) stillMoving.push(selector);
+  }
+  return { checked: outsideReduced.size, idle, stillMoving };
+}
+
+/**
  * Each component that draws a loading animation, with the prop that turns it
  * on: the spinners, the indeterminate progress bar and the skeleton pulse.
  */
@@ -454,6 +522,42 @@ const SHEETS: Sheet[] = publishedStylesheets().flatMap((file): Sheet[] => {
   return [{ label: file, prefix, css: () => compile(file) }];
 });
 
+// The sheet-wide check is only as wide as what the rule walk collects, so
+// anything the walk would misread has to fail rather than shrink the list.
+describe('the cascade resolver', () => {
+  it('checks an animation a reduced-motion block starts', () => {
+    const rules = rulesOf(
+      '@media (prefers-reduced-motion: reduce) { .x { animation: fade 1s; } }'
+    );
+    expect(unstopped(rules)).toEqual({
+      checked: 1,
+      idle: [],
+      stillMoving: ['.x'],
+    });
+  });
+
+  it.each([
+    '@supports (display: grid) { .x { animation: spin 1s; } }',
+    '@layer base { .x { animation: spin 1s; } }',
+    '@container (min-width: 1px) { .x { animation: spin 1s; } }',
+    '@media not all and (prefers-reduced-motion: reduce) { .x { animation: none; } }',
+  ])('refuses rules it cannot place: %s', css => {
+    expect(() => rulesOf(css)).toThrow('Extend `rulesOf`');
+  });
+
+  it('passes over a rule it does not walk when nothing in it animates', () => {
+    expect(
+      rulesOf('@container (min-width: 1px) { .x { color: red; } }')
+    ).toEqual([]);
+  });
+
+  it('refuses a shorthand whose only candidate name is a var()', () => {
+    expect(() => rulesOf('.x { animation: var(--x) 1s; }')).toThrow(
+      'Extend `shorthand`'
+    );
+  });
+});
+
 it('checks every published stylesheet', () => {
   // Floor against the manifest read going quietly empty.
   expect(publishedStylesheets()).toEqual(
@@ -490,26 +594,11 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     // The roster above only sees the components on it. This reads the
     // animations off the sheet instead, so one added to any partial is
     // checked without anyone listing it.
-    const animating = new Set(
-      rules
-        .filter(
-          rule =>
-            !rule.reducedMotionOnly && (rule.name?.value ?? 'none') !== 'none'
-        )
-        .flatMap(rule => rule.selectors)
-    );
+    const { checked, idle, stillMoving } = unstopped(rules);
     // Floor against the rule walk going quietly empty.
-    expect(animating.size).toBeGreaterThan(0);
-    const stillMoving: string[] = [];
-    for (const selector of animating) {
-      const { el, pseudo } = witness(selector);
-      // It has to animate to begin with, or the check below is vacuous.
-      expect([selector, moves(rules, el, pseudo, false)]).toEqual([
-        selector,
-        true,
-      ]);
-      if (moves(rules, el, pseudo, true)) stillMoving.push(selector);
-    }
+    expect(checked).toBeGreaterThan(0);
+    // It has to animate to begin with, or the check below is vacuous.
+    expect(idle).toEqual([]);
     expect(stillMoving).toEqual([]);
   });
 
