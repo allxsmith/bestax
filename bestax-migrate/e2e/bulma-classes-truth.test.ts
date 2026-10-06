@@ -446,6 +446,48 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     expect(dead).toEqual([]);
   });
 
+  if (entry.helpersLeftOut) {
+    it('leaves out only helper props its target would not render as the helper', () => {
+      const onTag = defaultsFor(entry, entry.tag!);
+      const inside = child ? child.converted : 'x';
+      for (const [prop, why] of Object.entries(entry.helpersLeftOut!)) {
+        // The row names a helper prop, and says why.
+        const helpers = [...HELPER_TOKENS].filter(
+          ([, helper]) => helper.write.prop === prop
+        );
+        expect({ prop, helpers: helpers.length > 0, why: why !== '' }).toEqual({
+          prop,
+          helpers: true,
+          why: true,
+        });
+        for (const [token, helper] of helpers) {
+          // Each class that prop renders stays a class here...
+          const facts = factsFor(entry.tag!, [root, token], onTag, child);
+          expect({
+            token,
+            kept: plan(facts).conversion?.className?.split(' ') ?? [],
+          }).toEqual({ token, kept: expect.arrayContaining([token]) });
+          // ...because the target, given the prop, renders something else. A
+          // target that renders the class from it makes the row dead.
+          const given = normalizeHtml(
+            renderElement(
+              entry.target!,
+              { ...onTag, [prop]: helper.write.value ?? true },
+              inside
+            )
+          );
+          const asClass = normalizeHtml(
+            renderElement(entry.target!, { ...onTag, className: token }, inside)
+          );
+          expect({ token, same: given === asClass }).toEqual({
+            token,
+            same: false,
+          });
+        }
+      }
+    });
+  }
+
   if (entry.defaults) {
     it('renders the same with each default given another value', () => {
       // A default is written only when none is given, so a given one renders
