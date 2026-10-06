@@ -454,7 +454,7 @@ export const ManualEntryFreeForm: Story = {
     docs: {
       description: {
         story:
-          'When `format` is an `Intl.DateTimeFormatOptions` object (or uses single-char tokens like `D`/`M`), segment mode disables — focusing does not highlight a segment and the input parses on blur instead.',
+          'When `format` is an `Intl.DateTimeFormatOptions` object (or uses single-char tokens like `D`/`M`), segment mode disables: focusing does not highlight a segment.',
       },
     },
   },
@@ -662,7 +662,7 @@ export const ManualEntryCustomParse: Story = {
     docs: {
       description: {
         story:
-          'An `Intl` format has no segments, so typing is free-form and the `parse` callback turns the text back into a `Date` on Enter, or on blur once you have changed it. `openOnFocus={false}` keeps the calendar behind the launcher icon or `↓` while you type.',
+          'An `Intl` format has no segments, so typing is free-form and the `parse` callback turns the text you type back into a `Date` on Enter or blur. `openOnFocus={false}` keeps the calendar behind the launcher icon or `↓` while you type.',
       },
     },
   },

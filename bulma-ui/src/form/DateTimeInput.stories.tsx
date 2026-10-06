@@ -469,7 +469,7 @@ export const ManualEntryFreeForm: Story = {
     docs: {
       description: {
         story:
-          'An `Intl.DateTimeFormatOptions` format has no segment map, so entry is free-form — focusing does not highlight a segment and the text parses on Enter or blur instead.',
+          'An `Intl.DateTimeFormatOptions` format has no segment map, so entry is free-form: focusing does not highlight a segment.',
       },
     },
   },

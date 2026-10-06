@@ -2251,6 +2251,29 @@ describe('DateInput left without typing', () => {
     }
   );
 
+  it('commits nothing on Enter over the text it showed, and still closes', () => {
+    const parse = jest.fn(() => new Date(2030, 0, 15));
+    const { input, onChange, getByRole, queryByRole } = renderWith({
+      // No segments, so Enter parses the text.
+      format: { year: 'numeric', month: '2-digit', day: '2-digit' },
+      parse,
+      defaultValue: withTime,
+      openOnFocus: false,
+    });
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(parse).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('counts text typed back to what it showed as untouched', () => {
     const parse = jest.fn(() => new Date(2030, 0, 15));
     const { input, onChange, leave } = renderWith({

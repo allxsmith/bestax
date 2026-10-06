@@ -104,9 +104,9 @@ export interface TimeInputBaseProps
    */
   format?: DateFormatOption;
   /**
-   * Custom parser. Leaving the field calls it only if the user changed the
-   * text, so focus passing through commits nothing and the value keeps what
-   * the format leaves out, such as seconds and the date.
+   * Custom parser. Enter and leaving the field call it only if the user
+   * changed the text, so focus passing through commits nothing and the value
+   * keeps what the format leaves out, such as seconds and the date.
    */
   parse?: (s: string) => Date | null;
   /** BCP-47 locale tag for Intl formatting. */

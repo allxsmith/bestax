@@ -1772,6 +1772,23 @@ describe('TimeInput left without typing', () => {
     });
   });
 
+  it('commits nothing on Enter over the text it showed', () => {
+    const parse = jest.fn(() => new Date(2024, 5, 20, 9, 30));
+    const { input, onChange } = renderWith({
+      // No segments, so Enter parses the text.
+      format: { hour: '2-digit', minute: '2-digit' },
+      parse,
+      defaultValue: new Date(2024, 5, 20, 9, 30, 45),
+      openOnFocus: false,
+    });
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(parse).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it.each([
     ['a value', new Date(2024, 5, 20, 9, 30, 45), '09:30'],
     ['an empty field', null, ''],

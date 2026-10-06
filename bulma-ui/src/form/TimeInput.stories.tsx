@@ -273,7 +273,7 @@ export const ManualEntryFreeForm: Story = {
     docs: {
       description: {
         story:
-          'When `format` is an `Intl.DateTimeFormatOptions` object (or uses unpadded tokens like `H:m`), segment mode silently disables. Focusing the input does not highlight a segment, arrow keys fall through to default behavior, and the input parses on blur instead — the pre-segmented free-form behavior.',
+          'When `format` is an `Intl.DateTimeFormatOptions` object (or uses unpadded tokens like `H:m`), segment mode silently disables. Focusing the input does not highlight a segment, and arrow keys fall through to default behavior.',
       },
     },
   },

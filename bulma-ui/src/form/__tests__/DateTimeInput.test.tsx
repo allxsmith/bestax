@@ -1565,6 +1565,29 @@ describe('DateTimeInput left without typing', () => {
     });
   });
 
+  it('commits nothing on Enter over the text it showed', () => {
+    const parse = jest.fn(() => new Date(2024, 5, 15, 9, 30));
+    const { input, onChange } = renderWith({
+      // No segments, so Enter parses the text.
+      format: {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+      parse,
+      defaultValue: new Date(2024, 5, 15, 9, 30, 45),
+      openOnFocus: false,
+    });
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(parse).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it('adds nothing on leaving after a typed edit, so the seconds stay', () => {
     const { input, onChange, getByRole } = renderWith({
       openOnFocus: false,

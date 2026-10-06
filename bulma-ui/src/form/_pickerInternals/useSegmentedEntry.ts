@@ -511,10 +511,16 @@ export function useSegmentedEntry(
       }
       if (e.key === 'Enter') {
         e.preventDefault();
-        const parsed = tryParse(text);
-        if (parsed && isAllowed(parsed)) {
-          commitValue(parsed);
+        // Untouched text has nothing to commit, as on leaving, but Enter
+        // still confirms what the field shows.
+        if (isUntouched(text)) {
           if (closeOnSelect) setOpen(false);
+        } else {
+          const parsed = tryParse(text);
+          if (parsed && isAllowed(parsed)) {
+            commitValue(parsed);
+            if (closeOnSelect) setOpen(false);
+          }
         }
       }
       onKeyDown?.(e);
@@ -530,6 +536,7 @@ export function useSegmentedEntry(
       setOpen,
       closeOnSelect,
       popover,
+      isUntouched,
       tryParse,
       text,
       isAllowed,
