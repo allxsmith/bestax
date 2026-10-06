@@ -1629,6 +1629,37 @@ describe('DateTimeInput before year 1', () => {
     expect(handler).toHaveBeenCalledWith(at(1, 0, 1, 9, 30));
   });
 
+  it('keeps the calendar at year 1 under a max before it', () => {
+    // StrictMode runs the focus re-clamp twice on mount, so a clamp that
+    // swaps between the crossed bounds would end on the max.
+    const { container, getByLabelText } = render(
+      <React.StrictMode>
+        <DateTimeInput inline max={at(0, 11, 31, 12, 0)} />
+      </React.StrictMode>
+    );
+    expect(container.querySelector('.dateinput-month-label')!.textContent).toBe(
+      'January 1'
+    );
+    expect(getByLabelText('Previous month')).toBeDisabled();
+  });
+
+  it('submits a value in year 1, and nothing for one before it', () => {
+    const submitted = (defaultValue: Date) => {
+      const { container, unmount } = render(
+        <DateTimeInput inline name="when" defaultValue={defaultValue} />
+      );
+      const hidden = container.querySelector(
+        'input[type="hidden"]'
+      ) as HTMLInputElement;
+      const value = hidden.value;
+      unmount();
+      return value;
+    };
+    expect(submitted(at(1, 5, 15, 10, 30))).toBe('0001-06-15T10:30');
+    expect(submitted(at(0, 5, 15, 10, 30))).toBe('');
+    expect(submitted(at(-1, 5, 15, 10, 30))).toBe('');
+  });
+
   it('turns the time wheels on a value in year 1 but not before', () => {
     for (const [year, allowed] of [
       [1, true],

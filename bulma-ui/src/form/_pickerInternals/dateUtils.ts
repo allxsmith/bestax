@@ -217,10 +217,14 @@ export function getTimeOfDay(d: Date): {
   };
 }
 
+/**
+ * A copy of `d` moved into `[min, max]`. When `min` is after `max` nothing is
+ * in range and `min` wins, so clamping twice gives the same date and a
+ * picker's focus stays off the years before 1 under a `max` before then.
+ */
 export function clampDate(d: Date, min?: Date, max?: Date): Date {
-  if (min && isBefore(d, min)) return new Date(min);
-  if (max && isAfter(d, max)) return new Date(max);
-  return new Date(d);
+  const capped = max && isAfter(d, max) ? max : d;
+  return new Date(min && isBefore(capped, min) ? min : capped);
 }
 
 /**

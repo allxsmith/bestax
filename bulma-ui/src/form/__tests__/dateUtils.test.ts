@@ -206,6 +206,15 @@ describe('dateUtils', () => {
       expect(c).not.toBe(d);
       expect(c.getTime()).toBe(d.getTime());
     });
+
+    it('lets min win when min is after max', () => {
+      // Nothing is in range then, and landing on min keeps a picker's focus
+      // off the years before 1 under a max before then.
+      const min = makeDate(1, 0, 1);
+      const max = makeDate(0, 11, 31);
+      expect(clampDate(new Date(2024, 0, 15), min, max)).toEqual(min);
+      expect(clampDate(makeDate(-5, 0, 1), min, max)).toEqual(min);
+    });
   });
 
   describe('floorMin', () => {

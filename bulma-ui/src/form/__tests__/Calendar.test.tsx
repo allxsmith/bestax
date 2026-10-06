@@ -252,6 +252,36 @@ describe('Calendar', () => {
         unmount();
       }
     });
+
+    it('steps no further back from a month already before min', () => {
+      const cases: [Date, Date | undefined][] = [
+        // No min, so the floor at year 1.
+        [makeDate(0, 11, 31), undefined],
+        // A day before min in an earlier month, as picking min's year from
+        // the year list can leave it.
+        [new Date(2024, 2, 15), new Date(2024, 5, 15)],
+      ];
+      for (const [focusedDate, min] of cases) {
+        const { getByLabelText, unmount } = render(
+          <PeriodHarness focusedDate={focusedDate} min={min} />
+        );
+        expect(getByLabelText('Previous month')).toBeDisabled();
+        expect(getByLabelText('Next month')).not.toBeDisabled();
+        unmount();
+      }
+    });
+  });
+
+  it('steps no further on from a month already after max', () => {
+    // As picking max's year from the year list can leave it.
+    const { getByLabelText } = render(
+      <PeriodHarness
+        focusedDate={new Date(2024, 8, 15)}
+        max={new Date(2024, 5, 15)}
+      />
+    );
+    expect(getByLabelText('Next month')).toBeDisabled();
+    expect(getByLabelText('Previous month')).not.toBeDisabled();
   });
 
   it('shouldDisableDate predicate disables matching cells', () => {

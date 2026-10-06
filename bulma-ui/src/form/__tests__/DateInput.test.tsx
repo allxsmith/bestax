@@ -2262,6 +2262,49 @@ describe('DateInput before year 1', () => {
     expect(handler).toHaveBeenCalledWith(makeDate(1, 0, 1));
   });
 
+  it('keeps the calendar at year 1 under a max before it', () => {
+    // StrictMode runs the focus re-clamp twice on mount, so a clamp that
+    // swaps between the crossed bounds would end on the max.
+    const { container, getByLabelText } = render(
+      <React.StrictMode>
+        <DateInput inline max={makeDate(0, 11, 31)} />
+      </React.StrictMode>
+    );
+    expect(container.querySelector('.dateinput-month-label')!.textContent).toBe(
+      'January 1'
+    );
+    expect(getByLabelText('Previous month')).toBeDisabled();
+  });
+
+  it.each([
+    ['day', '0001-06-15'],
+    ['month', '0001-06'],
+    ['year', '0001'],
+  ] as const)(
+    'submits a %s in year 1, and nothing for a value before it',
+    (granularity, expected) => {
+      const submitted = (defaultValue: Date) => {
+        const { container, unmount } = render(
+          <DateInput
+            granularity={granularity}
+            inline
+            name="period"
+            defaultValue={defaultValue}
+          />
+        );
+        const hidden = container.querySelector(
+          'input[type="hidden"]'
+        ) as HTMLInputElement;
+        const value = hidden.value;
+        unmount();
+        return value;
+      };
+      expect(submitted(makeDate(1, 5, 15))).toBe(expected);
+      expect(submitted(makeDate(0, 5, 15))).toBe('');
+      expect(submitted(makeDate(-1, 5, 15))).toBe('');
+    }
+  );
+
   describe('segmented typing', () => {
     it('steps into year 1 and no further', () => {
       const handler = jest.fn();

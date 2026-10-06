@@ -28,6 +28,7 @@ import {
   isWithin,
   setTimeOfDay,
   clampDate,
+  FIRST_YEAR,
   floorMin,
   isSameDay,
   makeDate,
@@ -39,8 +40,11 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { Icon } from '../elements/Icon';
 
-// The year is padded to four digits, as `datetime-local` requires.
+// The year is padded to four digits, as `datetime-local` requires. HTML has
+// no such shape for a year before 1, so a date then is empty, as that input
+// would make it.
 const toIsoDateTime = (d: Date, withSeconds: boolean): string => {
+  if (d.getFullYear() < FIRST_YEAR) return '';
   const yyyy = String(d.getFullYear()).padStart(4, '0');
   const mo = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');

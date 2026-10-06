@@ -455,26 +455,22 @@ export const Calendar: React.FC<CalendarProps> = ({
   const todayYear = today.getFullYear();
 
   // The header steps a month at a time over the day grid and a year at a
-  // time over the month grid, kept inside min/max.
-  const prevMonthAnchor = addMonths(focusedDate, -1);
-  const nextMonthAnchor = addMonths(focusedDate, 1);
+  // time over the month grid, kept inside min/max. A step is off once the
+  // month or year on show holds the bound or lies past it, as picking a year
+  // from the list can leave it.
   const prevAnchor = isDayGranularity
-    ? prevMonthAnchor
+    ? addMonths(focusedDate, -1)
     : clampDate(addYears(focusedDate, -1), min, max);
   const nextAnchor = isDayGranularity
-    ? nextMonthAnchor
+    ? addMonths(focusedDate, 1)
     : clampDate(addYears(focusedDate, 1), min, max);
+  const focusedMonth = startOfMonth(focusedDate).getTime();
   const prevDisabled = isDayGranularity
-    ? prevMonthAnchor.getTime() < startOfDay(min).getTime() &&
-      isSameMonth(focusedDate, min)
+    ? focusedMonth <= startOfMonth(min).getTime()
     : focusedYear <= min.getFullYear();
   const nextDisabled = isDayGranularity
-    ? !!(
-        max &&
-        nextMonthAnchor.getTime() > startOfDay(max).getTime() &&
-        isSameMonth(focusedDate, max)
-      )
-    : !!(max && focusedYear >= max.getFullYear());
+    ? !!max && focusedMonth >= startOfMonth(max).getTime()
+    : !!max && focusedYear >= max.getFullYear();
 
   const labelId = id ? `${id}-label` : undefined;
   const monthLabel = isDayGranularity
