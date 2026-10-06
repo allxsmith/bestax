@@ -48,14 +48,14 @@
  * MCP server. The README installs the plugin, and its generated skill list
  * already carries the roster.
  *
- * The Agent Plugins manifest's version is MAJOR.MINOR from the template and
- * a patch: the commits on HEAD that touched CONTENT_PATHS, the paths whose
+ * Both plugin manifests carry the same version: MAJOR.MINOR from the template
+ * and a patch, the commits on HEAD that touched CONTENT_PATHS, the paths whose
  * bytes reach the tree, plus OUTPUT_FORMAT. main is squash-merged and never
- * rewritten, so the count only grows, and a catalog that pins the version
- * sees every content change. A commit to this script alone does not count.
- * One that changes the output raises OUTPUT_FORMAT, which the test sibling
- * enforces. Git that cannot count, or a shallow clone, is a refusal.
- * pluginVersion has the rest.
+ * rewritten, so the count only grows, and Claude Code and every catalog that
+ * pins the version see each content change. A commit to this script alone
+ * does not count. One that changes the output raises OUTPUT_FORMAT, which the
+ * test sibling enforces. Git that cannot count, or a shallow clone, is a
+ * refusal. pluginVersion has the rest.
  *
  * Without git, as in an exported tree, the skill gate does what the sync
  * scripts do. It has nothing to vet against, so the skill directories are
@@ -68,6 +68,21 @@
  * Each file keeps its executable bit, as the sync scripts' copyFile does: a
  * skill or copied file is written 0755 when its owner can execute it and
  * 0644 otherwise, the two modes git records.
+ *
+ * plugin/icon.png is the plugin's icon. It is published as
+ * `.claude-plugin/icon.png`, where Anthropic's directory looks for one, and
+ * the Claude manifest names it in `icon`. It is read as bytes, and in place
+ * of the text rules treeViolations holds it to the directory's icon rules
+ * (iconViolations): a complete PNG, square, 512 to 2048 px a side and under
+ * 2 MB. It is rendered from the docs logo with ImageMagick 7:
+ *
+ *   magick -background none -density 737.28 docs/static/img/logo.svg \
+ *     -resize 1024x1024 -gravity center -extent 1024x1024 -strip \
+ *     PNG32:plugin/icon.png
+ *
+ * The directory takes a listing's icon only the first time the plugin is
+ * saved or submitted, so a new icon here does not reach a listing that
+ * already exists.
  *
  * Before writing, and again on what landed on disk, the tree is held to
  * Anthropic's plugin directory checks
@@ -131,6 +146,7 @@ const REPO = join(HERE, '..');
 export const TEMPLATE = {
   manifest: 'plugin/manifest.json',
   readme: 'plugin/README.md',
+  icon: 'plugin/icon.png',
 };
 
 /** Repo-root files copied into the tree under the same name. */
@@ -148,6 +164,7 @@ export const MCP_SERVER = 'bestax';
 export const INPUT_FILES = [
   TEMPLATE.manifest,
   TEMPLATE.readme,
+  TEMPLATE.icon,
   `${MCP_DIR}/package.json`,
   `${MCP_DIR}/server.json`,
   SKILL_INDEX,
@@ -215,7 +232,7 @@ export const PUBLISH_PATHS = [
  * The test sees only what its inputs reach, so a change that adds a
  * rendering path adds an input that reaches it.
  */
-export const OUTPUT_FORMAT = 1;
+export const OUTPUT_FORMAT = 2;
 
 /** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
@@ -243,9 +260,8 @@ export const AGENT_MCP_SCHEMA =
 
 /**
  * Every key the template may hold, by section. Each one is placed by a
- * render function below. `plugin.version` is MAJOR.MINOR, and only the
- * Agent Plugins manifest carries the full version (see renderClaudeManifest
- * and pluginVersion).
+ * render function below. `plugin.version` is MAJOR.MINOR, and both plugin
+ * manifests carry the full version that pluginVersion makes from it.
  */
 export const TEMPLATE_KEYS = {
   plugin: [
@@ -262,10 +278,14 @@ export const TEMPLATE_KEYS = {
   marketplace: ['name', 'description', 'owner'],
 };
 
-/** The generated files besides the copies and the skills. */
+/**
+ * The files the tree holds besides the COPIED files and the skills. The
+ * icon is plugin/icon.png's bytes, and the rest are generated here.
+ */
 export const FILES = {
   marketplace: '.claude-plugin/marketplace.json',
   claude: '.claude-plugin/plugin.json',
+  icon: '.claude-plugin/icon.png',
   agent: 'plugin.json',
   mcp: 'mcp.json',
   readme: 'README.md',
@@ -279,6 +299,13 @@ export const LIMITS = {
   readmeWords: 40,
 };
 
+/**
+ * The directory's icon rules, from the warning it gives a plugin without an
+ * icon: 512 to 2048 px on each side, under 2 MB. The size takes 2 MB as
+ * 2,000,000 bytes, the stricter reading.
+ */
+export const ICON_LIMITS = { minSide: 512, maxSide: 2048, bytes: 2_000_000 };
+
 /** The hand-owned part of the plugin version, such as 1.0. */
 export const MAJOR_MINOR = /^(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 
@@ -288,7 +315,10 @@ export const PLUGIN_NAME = /^[a-z0-9]([a-z0-9-]{0,62}[a-z0-9])?$/;
 /** Claude Code's marketplace name rule (marketplace-reference). */
 export const MARKETPLACE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
-/** Exempt from the text and 256 KiB rules, though not from the 5 MiB one. */
+/**
+ * Exempt from the text and 256 KiB rules, though not from the 5 MiB one. The
+ * icon is held to iconViolations instead.
+ */
 const IMAGE_OR_FONT = /\.(png|jpe?g|gif|webp|svg|woff2?|ttf|otf)$/i;
 
 const SYSTEM_FILES = new Set(['.ds_store', 'thumbs.db', 'desktop.ini']);
@@ -328,8 +358,8 @@ const ROOT_INSTALL_FILES = new Set([
   'pnpm-lock.yaml',
 ]);
 
-/** The only hidden paths the tree has, both generated here. */
-const HIDDEN_ALLOWED = new Set([FILES.marketplace, FILES.claude]);
+/** The only hidden paths the tree has, all placed here. */
+const HIDDEN_ALLOWED = new Set([FILES.marketplace, FILES.claude, FILES.icon]);
 
 /** The npx options launcherViolations reads. Any other one is refused. */
 const NPX_FLAGS = new Set(['-y', '--yes']);
@@ -649,23 +679,28 @@ export function renderMarketplace(template) {
  * The Claude Code manifest. It declares the server inline, because Claude
  * Code reads `.mcp.json` and not the Agent Plugins `mcp.json`.
  *
- * No `version`, on purpose. Claude Code keeps every user on a manifest's
- * `version` until the string changes, and without one it versions the plugin
- * by the commit it installed. bestax-skills only gets a commit when its tree
- * changes, so users can update to every one. A version here would hold them
- * back until it changed. Anthropic's directory only warns about the missing
- * field.
+ * Its `version` is pluginVersion's, the same as the Agent Plugins manifest's.
+ * Claude Code keeps every user on a manifest's `version` until the string
+ * changes. This one rises with every content commit, and with OUTPUT_FORMAT
+ * when the output changes, so users still get each update. Without it,
+ * Anthropic's directory and `claude plugin validate` warn.
+ *
+ * Anthropic's directory reads `icon` and the two URLs for the listing, and
+ * Claude Code ignores them. The directory would also find the icon at its
+ * path without the field.
  */
-export function renderClaudeManifest(template, pin) {
+export function renderClaudeManifest(template, pin, version) {
   const { plugin, claude } = template;
   return {
     name: plugin.name,
+    version,
     description: plugin.description,
     author: plugin.author,
     homepage: plugin.homepage,
     repository: plugin.repository,
     license: plugin.license,
     keywords: plugin.keywords,
+    icon: `./${FILES.icon}`,
     privacyPolicyUrl: claude.privacyPolicyUrl,
     supportUrl: claude.supportUrl,
     mcpServers: { [MCP_SERVER]: mcpServer(pin) },
@@ -721,17 +756,18 @@ export function buildTree({
   version,
   readme,
   launch,
+  icon,
   copied,
   skillFiles,
 }) {
   const tree = new Map([
     [FILES.marketplace, json(renderMarketplace(template))],
-    [FILES.claude, json(renderClaudeManifest(template, launch.pin))],
+    [FILES.claude, json(renderClaudeManifest(template, launch.pin, version))],
     [FILES.agent, json(renderAgentManifest(template, version))],
     [FILES.mcp, json(renderMcpConfig(launch.pin))],
     [FILES.readme, generated(readme)],
   ]);
-  for (const { path, content, mode } of [...copied, ...skillFiles]) {
+  for (const { path, content, mode } of [icon, ...copied, ...skillFiles]) {
     tree.set(path, { content, mode });
   }
   return new Map([...tree].sort(([a], [b]) => byCodePoint(a, b)));
@@ -941,6 +977,68 @@ function manifestViolations(byPath) {
   return violations;
 }
 
+/** The eight bytes every PNG starts with. */
+const PNG_SIGNATURE = Buffer.from('\x89PNG\r\n\x1a\n', 'latin1');
+
+/**
+ * The size of the PNG in `content`, as `{ width, height }`, or `{ problem }`
+ * when it is not a complete PNG: no PNG signature, a first chunk that is not
+ * IHDR, no IDAT, or bytes that do not end with an empty IEND chunk, as in a
+ * file cut short. It walks the chunks and does not decode the pixels.
+ */
+export function pngSize(content) {
+  if (!content.subarray(0, 8).equals(PNG_SIGNATURE)) {
+    return { problem: 'is not a PNG' };
+  }
+  const incomplete = why => ({ problem: `is not a complete PNG: ${why}` });
+  let at = PNG_SIGNATURE.length;
+  let pixels = false;
+  while (at + 12 <= content.length) {
+    const length = content.readUInt32BE(at);
+    const type = content.toString('latin1', at + 4, at + 8);
+    if (at === PNG_SIGNATURE.length && (type !== 'IHDR' || length !== 13)) {
+      return incomplete('it does not start with an IHDR chunk');
+    }
+    at += 12 + length;
+    if (type === 'IDAT') pixels = true;
+    if (type === 'IEND') {
+      if (length !== 0 || at !== content.length) break;
+      if (!pixels) return incomplete('it has no IDAT chunk');
+      return {
+        width: content.readUInt32BE(16),
+        height: content.readUInt32BE(20),
+      };
+    }
+  }
+  return incomplete('it does not end with an IEND chunk');
+}
+
+/**
+ * Why `content` cannot be the plugin's icon under the directory's rules
+ * (ICON_LIMITS): it must be a complete PNG (pngSize), square, 512 to 2048 px
+ * a side and under 2 MB. Empty when it can be. A JPEG, SVG or WebP is
+ * refused too, as the icon's path promises a PNG.
+ */
+export function iconViolations(content) {
+  const at = forLog(FILES.icon);
+  const { minSide, maxSide, bytes } = ICON_LIMITS;
+  const rule =
+    `The directory takes a square PNG, ${minSide} to ${maxSide} px a side ` +
+    `and under 2 MB, as the icon.`;
+  const violations = [];
+  if (content.length >= bytes) {
+    violations.push(
+      `${at}: is ${content.length} bytes, at or over ${bytes}. ${rule}`
+    );
+  }
+  const { width, height, problem } = pngSize(content);
+  if (problem) violations.push(`${at}: ${problem}. ${rule}`);
+  else if (width !== height || width < minSide || width > maxSide) {
+    violations.push(`${at}: is ${width} by ${height} px. ${rule}`);
+  }
+  return violations;
+}
+
 /**
  * Everything wrong with a tree against the directory's checks. `entries` are
  * `{ path, content, symlink }` with POSIX paths relative to the tree root and
@@ -977,6 +1075,7 @@ export function treeViolations(entries) {
     }
   }
   if (!byPath.has('LICENSE')) violations.push('LICENSE: missing.');
+  if (!byPath.has(FILES.icon)) violations.push(`${FILES.icon}: missing.`);
   if (![...byPath.keys()].some(p => /^skills\/[^/]+\/SKILL\.md$/.test(p))) {
     violations.push('skills/: holds no skills/<name>/SKILL.md.');
   }
@@ -1031,6 +1130,8 @@ export function treeViolations(entries) {
     const size = content.length;
     if (size >= LIMITS.anyBytes) {
       violations.push(`${at}: is ${size} bytes, at or over the 5 MiB limit.`);
+    } else if (path === FILES.icon) {
+      violations.push(...iconViolations(content));
     } else if (!IMAGE_OR_FONT.test(path)) {
       if (size >= LIMITS.textBytes) {
         violations.push(
@@ -1200,6 +1301,7 @@ export async function readSources(
       launch
     )
   );
+  const icon = await fileEntry(FILES.icon, join(repo, TEMPLATE.icon));
   const copied = [];
   for (const file of COPIED)
     copied.push(await fileEntry(file, join(repo, file)));
@@ -1215,7 +1317,7 @@ export async function readSources(
       skillFiles.push(await fileEntry(`skills/${name}/${rel}`, join(dir, rel)));
     }
   }
-  return { template, version, readme, launch, copied, skillFiles };
+  return { template, version, readme, launch, icon, copied, skillFiles };
 }
 
 /** Writes `tree` into `outDir`, which must be empty or not exist yet. */
