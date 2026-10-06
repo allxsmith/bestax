@@ -48,7 +48,7 @@
  * MCP server. The README installs the plugin, and its generated skill list
  * already carries the roster.
  *
- * Both plugin manifests carry the same version: MAJOR.MINOR from the template
+ * Every plugin manifest carries the same version: MAJOR.MINOR from the template
  * and a patch, the commits on HEAD that touched CONTENT_PATHS, the paths whose
  * bytes reach the tree, plus OUTPUT_FORMAT. main is squash-merged and never
  * rewritten, so the count only grows, and Claude Code and every catalog that
@@ -83,6 +83,17 @@
  * The directory takes a listing's icon only the first time the plugin is
  * saved or submitted, so a new icon here does not reach a listing that
  * already exists.
+ *
+ * plugin/logo.png is the same logo on a white background, for the Cursor
+ * Marketplace, which asks for a square logo with a background plate. It is
+ * published as `assets/logo.png` and named by `logo` in the Cursor manifest,
+ * `.cursor-plugin/plugin.json`, which Cursor's review looks for. It is read
+ * as bytes too, and logoViolations holds it to a square PNG with no alpha
+ * channel and no transparent colour. It is rendered with:
+ *
+ *   magick -background white -density 589.824 docs/static/img/logo.svg \
+ *     -resize 820x820 -gravity center -extent 1024x1024 -alpha remove \
+ *     -alpha off -strip PNG24:plugin/logo.png
  *
  * Before writing, and again on what landed on disk, the tree is held to
  * Anthropic's plugin directory checks
@@ -147,6 +158,7 @@ export const TEMPLATE = {
   manifest: 'plugin/manifest.json',
   readme: 'plugin/README.md',
   icon: 'plugin/icon.png',
+  logo: 'plugin/logo.png',
 };
 
 /** Repo-root files copied into the tree under the same name. */
@@ -165,6 +177,7 @@ export const INPUT_FILES = [
   TEMPLATE.manifest,
   TEMPLATE.readme,
   TEMPLATE.icon,
+  TEMPLATE.logo,
   `${MCP_DIR}/package.json`,
   `${MCP_DIR}/server.json`,
   SKILL_INDEX,
@@ -232,7 +245,7 @@ export const PUBLISH_PATHS = [
  * The test sees only what its inputs reach, so a change that adds a
  * rendering path adds an input that reaches it.
  */
-export const OUTPUT_FORMAT = 2;
+export const OUTPUT_FORMAT = 3;
 
 /** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
@@ -260,8 +273,8 @@ export const AGENT_MCP_SCHEMA =
 
 /**
  * Every key the template may hold, by section. Each one is placed by a
- * render function below. `plugin.version` is MAJOR.MINOR, and both plugin
- * manifests carry the full version that pluginVersion makes from it.
+ * render function below. `plugin.version` is MAJOR.MINOR, and every plugin
+ * manifest carries the full version that pluginVersion makes from it.
  */
 export const TEMPLATE_KEYS = {
   plugin: [
@@ -275,17 +288,21 @@ export const TEMPLATE_KEYS = {
     'keywords',
   ],
   claude: ['privacyPolicyUrl', 'supportUrl'],
+  cursor: ['displayName'],
   marketplace: ['name', 'description', 'owner'],
 };
 
 /**
  * The files the tree holds besides the COPIED files and the skills. The
- * icon is plugin/icon.png's bytes, and the rest are generated here.
+ * icon and the logo are plugin/icon.png's and plugin/logo.png's bytes, and
+ * the rest are generated here.
  */
 export const FILES = {
   marketplace: '.claude-plugin/marketplace.json',
   claude: '.claude-plugin/plugin.json',
   icon: '.claude-plugin/icon.png',
+  cursor: '.cursor-plugin/plugin.json',
+  logo: 'assets/logo.png',
   agent: 'plugin.json',
   mcp: 'mcp.json',
   readme: 'README.md',
@@ -317,7 +334,7 @@ export const MARKETPLACE_NAME = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
 
 /**
  * Exempt from the text and 256 KiB rules, though not from the 5 MiB one. The
- * icon is held to iconViolations instead.
+ * icon is held to iconViolations instead, and the logo to logoViolations.
  */
 const IMAGE_OR_FONT = /\.(png|jpe?g|gif|webp|svg|woff2?|ttf|otf)$/i;
 
@@ -359,7 +376,12 @@ const ROOT_INSTALL_FILES = new Set([
 ]);
 
 /** The only hidden paths the tree has, all placed here. */
-const HIDDEN_ALLOWED = new Set([FILES.marketplace, FILES.claude, FILES.icon]);
+const HIDDEN_ALLOWED = new Set([
+  FILES.marketplace,
+  FILES.claude,
+  FILES.icon,
+  FILES.cursor,
+]);
 
 /** The npx options launcherViolations reads. Any other one is refused. */
 const NPX_FLAGS = new Set(['-y', '--yes']);
@@ -424,7 +446,7 @@ export function checkTemplate(template) {
   }
   if (problems.length) throw new TreeError(problems);
 
-  const { plugin, claude, marketplace } = template;
+  const { plugin, claude, cursor, marketplace } = template;
   const string = (value, where) => {
     if (typeof value !== 'string' || !value.trim()) {
       problems.push(`${file}: ${where} must be a non-empty string.`);
@@ -466,6 +488,7 @@ export function checkTemplate(template) {
   }
   https(claude.privacyPolicyUrl, 'claude.privacyPolicyUrl');
   https(claude.supportUrl, 'claude.supportUrl');
+  string(cursor.displayName, 'cursor.displayName');
   if (
     typeof marketplace.name !== 'string' ||
     !MARKETPLACE_NAME.test(marketplace.name) ||
@@ -708,7 +731,32 @@ export function renderClaudeManifest(template, pin, version) {
 }
 
 /**
- * The vendor-neutral Agent Plugins manifest, which Cursor, Kiro and the
+ * The Cursor manifest. Cursor's marketplace review checks a plugin for
+ * `.cursor-plugin/plugin.json` and a logo committed in the repository and
+ * named by a relative path. `skills` and `mcpServers` name the folder and the
+ * Agent Plugins `mcp.json`, the file name Cursor looks for. Its `version` is
+ * pluginVersion's, like the other manifests'.
+ */
+export function renderCursorManifest(template, version) {
+  const { plugin, cursor } = template;
+  return {
+    name: plugin.name,
+    displayName: cursor.displayName,
+    version,
+    description: plugin.description,
+    author: plugin.author,
+    homepage: plugin.homepage,
+    repository: plugin.repository,
+    license: plugin.license,
+    keywords: plugin.keywords,
+    logo: FILES.logo,
+    skills: './skills/',
+    mcpServers: `./${FILES.mcp}`,
+  };
+}
+
+/**
+ * The vendor-neutral Agent Plugins manifest, which Kiro and the
  * awesome-copilot catalog read, and which Codex, Copilot CLI, VS Code and
  * Grok Build prefer to `.claude-plugin/`. Its `version` is pluginVersion's,
  * for the catalogs that pin a release.
@@ -757,17 +805,24 @@ export function buildTree({
   readme,
   launch,
   icon,
+  logo,
   copied,
   skillFiles,
 }) {
   const tree = new Map([
     [FILES.marketplace, json(renderMarketplace(template))],
     [FILES.claude, json(renderClaudeManifest(template, launch.pin, version))],
+    [FILES.cursor, json(renderCursorManifest(template, version))],
     [FILES.agent, json(renderAgentManifest(template, version))],
     [FILES.mcp, json(renderMcpConfig(launch.pin))],
     [FILES.readme, generated(readme)],
   ]);
-  for (const { path, content, mode } of [icon, ...copied, ...skillFiles]) {
+  for (const { path, content, mode } of [
+    icon,
+    logo,
+    ...copied,
+    ...skillFiles,
+  ]) {
     tree.set(path, { content, mode });
   }
   return new Map([...tree].sort(([a], [b]) => byCodePoint(a, b)));
@@ -933,12 +988,30 @@ function manifestViolations(byPath) {
     violations.push(`${file}: is not a JSON object.`);
     return null;
   };
+  // A path a manifest names: a file, or a folder when it ends in a slash.
+  const named = (file, field, ref) => {
+    if (typeof ref !== 'string') {
+      violations.push(`${file}: ${field} must name a path in the tree.`);
+      return;
+    }
+    const target = ref.replace(/^\.\//, '');
+    const found = target.endsWith('/')
+      ? [...byPath.keys()].some(p => p.startsWith(target))
+      : byPath.has(target);
+    if (!found) {
+      violations.push(
+        `${file}: ${field} names ${forLog(ref)}, which is not in the tree.`
+      );
+    }
+  };
   const claude = read(FILES.claude);
+  const cursor = read(FILES.cursor);
   const agent = read(FILES.agent);
   const marketplace = read(FILES.marketplace);
   const mcp = read(FILES.mcp);
   for (const [file, manifest] of [
     [FILES.claude, claude],
+    [FILES.cursor, cursor],
     [FILES.agent, agent],
   ]) {
     if (manifest && !PLUGIN_NAME.test(String(manifest.name))) {
@@ -951,12 +1024,11 @@ function manifestViolations(byPath) {
     violations.push(...launcherViolations(FILES.claude, claude.mcpServers));
   if (mcp) violations.push(...launcherViolations(FILES.mcp, mcp.mcpServers));
   if (agent && typeof agent.mcpServers === 'string') {
-    const target = agent.mcpServers.replace(/^\.\//, '');
-    if (!byPath.has(target)) {
-      violations.push(
-        `${FILES.agent}: mcpServers names ${forLog(agent.mcpServers)}, ` +
-          `which is not in the tree.`
-      );
+    named(FILES.agent, 'mcpServers', agent.mcpServers);
+  }
+  if (cursor) {
+    for (const field of ['logo', 'skills', 'mcpServers']) {
+      named(FILES.cursor, field, cursor[field]);
     }
   }
   if (marketplace) {
@@ -980,11 +1052,16 @@ function manifestViolations(byPath) {
 /** The eight bytes every PNG starts with. */
 const PNG_SIGNATURE = Buffer.from('\x89PNG\r\n\x1a\n', 'latin1');
 
+/** IHDR colour types that carry an alpha channel: grey and RGB with alpha. */
+const ALPHA_COLOUR_TYPES = new Set([4, 6]);
+
 /**
- * The size of the PNG in `content`, as `{ width, height }`, or `{ problem }`
- * when it is not a complete PNG: no PNG signature, a first chunk that is not
- * IHDR, no IDAT, or bytes that do not end with an empty IEND chunk, as in a
- * file cut short. It walks the chunks and does not decode the pixels.
+ * The size of the PNG in `content`, as `{ width, height, transparent }`, or
+ * `{ problem }` when it is not a complete PNG: no PNG signature, a first
+ * chunk that is not IHDR, no IDAT, or bytes that do not end with an empty
+ * IEND chunk, as in a file cut short. `transparent` says whether it can hold
+ * a pixel that is not opaque: an IHDR colour type with alpha, or a tRNS
+ * chunk. It walks the chunks and does not decode the pixels.
  */
 export function pngSize(content) {
   if (!content.subarray(0, 8).equals(PNG_SIGNATURE)) {
@@ -993,20 +1070,26 @@ export function pngSize(content) {
   const incomplete = why => ({ problem: `is not a complete PNG: ${why}` });
   let at = PNG_SIGNATURE.length;
   let pixels = false;
+  let transparent = false;
   while (at + 12 <= content.length) {
     const length = content.readUInt32BE(at);
     const type = content.toString('latin1', at + 4, at + 8);
-    if (at === PNG_SIGNATURE.length && (type !== 'IHDR' || length !== 13)) {
-      return incomplete('it does not start with an IHDR chunk');
+    if (at === PNG_SIGNATURE.length) {
+      if (type !== 'IHDR' || length !== 13) {
+        return incomplete('it does not start with an IHDR chunk');
+      }
+      transparent = ALPHA_COLOUR_TYPES.has(content[at + 17]);
     }
     at += 12 + length;
     if (type === 'IDAT') pixels = true;
+    if (type === 'tRNS') transparent = true;
     if (type === 'IEND') {
       if (length !== 0 || at !== content.length) break;
       if (!pixels) return incomplete('it has no IDAT chunk');
       return {
         width: content.readUInt32BE(16),
         height: content.readUInt32BE(20),
+        transparent,
       };
     }
   }
@@ -1035,6 +1118,28 @@ export function iconViolations(content) {
   if (problem) violations.push(`${at}: ${problem}. ${rule}`);
   else if (width !== height || width < minSide || width > maxSide) {
     violations.push(`${at}: is ${width} by ${height} px. ${rule}`);
+  }
+  return violations;
+}
+
+/**
+ * Why `content` cannot be the Cursor logo: the marketplace asks for a square
+ * logo with a background plate, so it must be a complete PNG (pngSize),
+ * square, and unable to hold a transparent pixel. Empty when it can be.
+ */
+export function logoViolations(content) {
+  const at = forLog(FILES.logo);
+  const rule =
+    'The Cursor Marketplace takes a square logo with a background plate, ' +
+    'as a PNG with no alpha channel and no transparent colour.';
+  const { width, height, transparent, problem } = pngSize(content);
+  if (problem) return [`${at}: ${problem}. ${rule}`];
+  const violations = [];
+  if (width !== height) {
+    violations.push(`${at}: is ${width} by ${height} px. ${rule}`);
+  }
+  if (transparent) {
+    violations.push(`${at}: can hold transparent pixels. ${rule}`);
   }
   return violations;
 }
@@ -1076,6 +1181,7 @@ export function treeViolations(entries) {
   }
   if (!byPath.has('LICENSE')) violations.push('LICENSE: missing.');
   if (!byPath.has(FILES.icon)) violations.push(`${FILES.icon}: missing.`);
+  if (!byPath.has(FILES.logo)) violations.push(`${FILES.logo}: missing.`);
   if (![...byPath.keys()].some(p => /^skills\/[^/]+\/SKILL\.md$/.test(p))) {
     violations.push('skills/: holds no skills/<name>/SKILL.md.');
   }
@@ -1132,6 +1238,8 @@ export function treeViolations(entries) {
       violations.push(`${at}: is ${size} bytes, at or over the 5 MiB limit.`);
     } else if (path === FILES.icon) {
       violations.push(...iconViolations(content));
+    } else if (path === FILES.logo) {
+      violations.push(...logoViolations(content));
     } else if (!IMAGE_OR_FONT.test(path)) {
       if (size >= LIMITS.textBytes) {
         violations.push(
@@ -1302,6 +1410,7 @@ export async function readSources(
     )
   );
   const icon = await fileEntry(FILES.icon, join(repo, TEMPLATE.icon));
+  const logo = await fileEntry(FILES.logo, join(repo, TEMPLATE.logo));
   const copied = [];
   for (const file of COPIED)
     copied.push(await fileEntry(file, join(repo, file)));
@@ -1317,7 +1426,7 @@ export async function readSources(
       skillFiles.push(await fileEntry(`skills/${name}/${rel}`, join(dir, rel)));
     }
   }
-  return { template, version, readme, launch, icon, copied, skillFiles };
+  return { template, version, readme, launch, icon, logo, copied, skillFiles };
 }
 
 /** Writes `tree` into `outDir`, which must be empty or not exist yet. */
