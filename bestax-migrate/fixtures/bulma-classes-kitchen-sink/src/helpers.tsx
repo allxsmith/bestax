@@ -32,6 +32,11 @@ export function Helpers() {
         Per-viewport display
       </div>
       <p className="is-sr-only">Screen readers only</p>
+      <div className="box is-flex is-gap-2 is-column-gap-0.5 has-radius-large">
+        Gaps and a radius
+      </div>
+      <p className="is-position-relative is-overflow-x-auto">Positioned</p>
+      <figure className="is-aspect-ratio-4by3 is-clipped">Ratio</figure>
     </div>
   );
 }

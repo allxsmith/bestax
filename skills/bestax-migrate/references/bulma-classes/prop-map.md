@@ -85,7 +85,7 @@ renders the same `<h2>`.
 | `.content` → `Content`                                                       | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.delete` → `Delete`                                                         | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.field` → `Field`                                                           | `is-horizontal`, `is-grouped`, `has-addons`, `is-narrow`                                                                                         | `horizontal`, `grouped`, `hasAddons`, `narrow`                                                    |
-| `.grid` → `Grid`                                                             | `is-gap-{0-8}`, `is-column-gap-{0-8}`, `is-row-gap-{0-8}`                                                                                        | `gap`, `columnGap`, `rowGap`                                                                      |
+| `.grid` → `Grid`                                                             | `is-gap-{step}`, `is-column-gap-{step}`, `is-row-gap-{step}`, `0` to `8` in half steps (`is-gap-1.5`)                                            | `gap`, `columnGap`, `rowGap`                                                                      |
 | `.grid` → `Grid`                                                             | `is-col-min-{1-32}`                                                                                                                              | `minCol` (a number: `minCol={8}`)                                                                 |
 | `.fixed-grid` → `Grid isFixed` (folded)                                      | `has-{1-12}-cols`, `has-{1-12}-cols-{viewport}`, `has-auto-count`                                                                                | `fixedCols`, `fixedCols{Viewport}` (numbers: `fixedCols={3}`), `fixedCols="auto"`                 |
 | `.cell` → `Cell`                                                             | `is-col-start-{n}`, `is-col-from-end-{n}`, `is-col-span-{n}`, `is-row-start-{n}`, `is-row-from-end-{n}`, `is-row-span-{n}`, for `n` from 1 to 12 | `colStart`, `colFromEnd`, `colSpan`, `rowStart`, `rowFromEnd`, `rowSpan` (numbers: `colSpan={2}`) |
@@ -142,9 +142,9 @@ converts only with an `aria-label` and a `type` of `button`, `submit` or `reset`
 classes too: bestax has no prop for them on those components. So do a `.field`'s
 `has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
 `grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
-textarea's or select's color, because `color` renders `has-text-<color>` on it too. A half-step grid gap
-(`is-gap-0.5`) stays a class as well: the codemod converts whole steps only, though `Grid`'s
-`gap` takes the half steps too.
+textarea's or select's color, because `color` renders `has-text-<color>` on it too. On a
+`.columns`, the gap helpers (`is-gap-*`, `is-column-gap-*`, `is-row-gap-*`) stay classes as well:
+`Columns`' own `gap` is its gutter (`is-<step>`), and it leaves the column and row gap helpers out.
 
 ## Helper classes
 
@@ -152,7 +152,10 @@ These convert on every component above and on the plain-tag wrappers.
 
 Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `black-bis`,
 `black-ter`, `grey-darker`, `grey-dark`, `grey`, `grey-light`, `grey-lighter`, `white`,
-`white-bis`, `white-ter`, `light`, `dark`, `inherit` and `current`.
+`white-bis`, `white-ter`, `light`, `dark`, `inherit` and `current`. Gap steps are `0` to `8` in
+half steps (`0`, `0.5`, `1`, … `7.5`, `8`). Overflow values are `auto`, `clip`, `hidden`, `scroll`
+and `visible`. Ratios are `1by1`, `5by4`, `4by3`, `3by2`, `5by3`, `16by9`, `2by1`, `3by1`,
+`4by5`, `3by4`, `2by3`, `3by5`, `9by16`, `1by2` and `1by3`.
 
 | Classes                                                                                                   | Prop                                                                                                                             |
 | --------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
@@ -172,10 +175,17 @@ Colors are `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `
 | `is-flex-direction-*`, `is-flex-wrap-*`, `is-justify-content-*`, `is-align-content-*`, `is-align-items-*` | `flexDirection`, `flexWrap`, `justifyContent`, `alignContent`, `alignItems`                                                      |
 | `is-align-self-*`, `is-flex-grow-*`, `is-flex-shrink-*`                                                   | `alignSelf`, `flexGrow`, `flexShrink`                                                                                            |
 | `is-pulled-left`, `is-pulled-right`                                                                       | `float`                                                                                                                          |
+| `is-gap-{step}`, `is-column-gap-{step}`, `is-row-gap-{step}`                                              | `gap`, `columnGap`, `rowGap`                                                                                                     |
+| `is-gapless`                                                                                              | `gapless`                                                                                                                        |
+| `is-position-absolute`, `-fixed`, `-relative`, `-static`, `-sticky`                                       | `pos`                                                                                                                            |
+| `is-relative`                                                                                             | `relative`                                                                                                                       |
 | `is-clipped`                                                                                              | `overflow="clipped"`                                                                                                             |
-| `is-overlay`, `is-skeleton`, `is-clearfix`, `is-relative`                                                 | `overlay`, `skeleton`, `clearfix`, `relative`                                                                                    |
+| `is-overflow-{value}`, `is-overflow-x-{value}`, `is-overflow-y-{value}`                                   | `overflow`, `overflowX`, `overflowY`                                                                                             |
+| `is-overlay`, `is-skeleton`, `is-clearfix`                                                                | `overlay`, `skeleton`, `clearfix`                                                                                                |
 | `is-unselectable`, `is-clickable`                                                                         | `interaction`                                                                                                                    |
-| `is-radiusless`, `is-shadowless`                                                                          | `radius`, `shadow`                                                                                                               |
+| `is-radiusless`, `has-radius-small`, `-normal`, `-large`, `-rounded`                                      | `radius`                                                                                                                         |
+| `is-shadowless`                                                                                           | `shadow`                                                                                                                         |
+| `is-aspect-ratio-{ratio}`                                                                                 | `aspectRatio`                                                                                                                    |
 | `is-mobile`, `is-narrow` (where the component has no prop of its own for them)                            | `responsive`                                                                                                                     |
 
 Where a component renders a color class through no typed prop, the class stays: `has-text-*`
@@ -202,6 +212,13 @@ Some classes stay put because of how bestax renders them:
   class: bestax drops the base `display` whenever a per-viewport one is set.
 - The flex-container classes (`is-justify-content-*` and the others in that row) convert only
   beside a flex `display` prop, the only place bestax renders them.
+- `is-gapless` beside an `is-gap-*` keeps its class: bestax drops `gapless` when a `gap` is set.
+  On a `.grid` both convert, since `Grid`'s own `gap` renders its class beside `gapless`.
+- `is-relative` beside an `is-position-*` keeps its class: `pos` decides the position, and bestax
+  drops `relative` beside it. `is-overlay` converts beside either.
+- A both-axes overflow (`is-overflow-hidden`, `is-clipped`) beside an `is-overflow-x-*` or
+  `is-overflow-y-*` keeps its class: beside an axis prop, bestax writes `overflow` per axis
+  instead of as its own class.
 - `is-hidden` becomes `visibility="hidden"`, which renders the same class and doesn't interact
   with `display`.
 
@@ -209,5 +226,5 @@ Some classes stay put because of how bestax renders them:
 
 Color shades (`has-text-primary-65`), the `-touch` and `-only` breakpoints of text size and
 alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
-Bulma helpers the codemod does not convert (`is-display-*`, `is-overflow-*`, `is-position-*`,
-`is-float-*`, `has-radius-*`, …) stay in `className`. They render exactly as before.
+Bulma helpers bestax has no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`,
+`is-clear-*`, …) stay in `className`. They render exactly as before.

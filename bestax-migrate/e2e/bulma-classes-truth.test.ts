@@ -1182,6 +1182,65 @@ describe('wrappers', () => {
 });
 
 /**
+ * Helpers whose props render differently beside each other than alone: a
+ * `gap` drops `gapless`, a `pos` drops `relative`, and an axis overflow
+ * writes both axes per axis. Every ordered pair from those families, and
+ * from the helpers they sit beside, on a component, a wrapper, and the two
+ * components with gap props of their own.
+ */
+describe('helpers beside each other', () => {
+  const tokens = [
+    'is-gap-0',
+    'is-gap-0.5',
+    'is-gap-8',
+    'is-column-gap-1.5',
+    'is-row-gap-3',
+    'is-gapless',
+    'is-position-absolute',
+    'is-position-fixed',
+    'is-position-relative',
+    'is-position-static',
+    'is-position-sticky',
+    'is-relative',
+    'is-overlay',
+    'is-clipped',
+    'is-overflow-hidden',
+    'is-overflow-auto',
+    'is-overflow-x-auto',
+    'is-overflow-x-hidden',
+    'is-overflow-y-scroll',
+    'is-overflow-y-clip',
+    'is-radiusless',
+    'has-radius-small',
+    'has-radius-rounded',
+    'is-aspect-ratio-16by9',
+    'is-aspect-ratio-1by1',
+  ];
+  const pairs = tokens.flatMap(first =>
+    tokens.filter(second => second !== first).map(second => [first, second])
+  );
+
+  it.each([
+    ['div', 'box'],
+    ['p', ''],
+    ['div', 'grid'],
+    ['div', 'columns'],
+  ])('renders the same on a <%s> %s', (tag, root) => {
+    for (const pair of pairs) {
+      const both = renderBoth(factsFor(tag, root ? [root, ...pair] : pair));
+      expect({ pair, converts: both !== null }).toEqual({
+        pair,
+        converts: true,
+      });
+      expect({ pair, html: both!.converted }).toEqual({
+        pair,
+        html: both!.raw,
+      });
+    }
+  });
+});
+
+/**
  * An item of a list `PLACED` names, as written inside that list and as the
  * codemod converts it: its `<li>`, the `<a>` its target renders, and a bare
  * nested list the target renders after that.

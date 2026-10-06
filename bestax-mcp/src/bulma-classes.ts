@@ -56,6 +56,8 @@ export interface RootRecord {
   wrapsChildren: Wraps | null;
   /** The component takes no helper props, so helper classes stay classes. */
   noHelpers: boolean;
+  /** Helper props the component does not take as helpers, with why. */
+  helpersLeftOut: Record<string, string>;
   /** On a tag the component doesn't render, why the element stays markup. */
   otherTagsStay: { tags: string[]; why: string } | null;
   /**
@@ -438,6 +440,7 @@ export function lookupClasses(
       omits: {},
       wrapsChildren: null,
       noHelpers: false,
+      helpersLeftOut: {},
       otherTagsStay: null,
       topLevelOnly: false,
       folds: null,
@@ -538,6 +541,11 @@ export function lookupClasses(
       stays(token, `bestax \`${target}\` has no prop that renders it`);
       continue;
     }
+    const leftOut = own(entry.helpersLeftOut, prop);
+    if (leftOut) {
+      stays(token, leftOut);
+      continue;
+    }
     if (writes.has(prop)) {
       stays(
         token,
@@ -592,6 +600,24 @@ export function lookupClasses(
         undo(prop, 'renders only beside a flex `display` (`is-flex`)');
       }
     }
+  }
+  // Props one helper set that another drops. `Grid`'s own `gap`, a modifier,
+  // keeps `gapless`.
+  const helperSet = (prop: string) => writes.get(prop)?.group !== undefined;
+  if (helperSet('gap') && helperSet('gapless')) {
+    undo('gapless', 'is dropped beside a `gap`');
+  }
+  if (helperSet('pos') && helperSet('relative')) {
+    undo('relative', 'is dropped beside a `pos`');
+  }
+  if (
+    helperSet('overflow') &&
+    (helperSet('overflowX') || helperSet('overflowY'))
+  ) {
+    undo(
+      'overflow',
+      'renders per axis beside `overflowX` or `overflowY`, not as its own class'
+    );
   }
 
   if (!target) {

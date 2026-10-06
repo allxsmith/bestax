@@ -259,6 +259,13 @@ export interface RootEntry {
   /** The target takes no helper props, so every helper class stays a class. */
   readonly noHelpers?: boolean;
   /**
+   * Helper props the target does not take as helpers, each with why, so their
+   * classes stay classes: its props type leaves the helper out, or a prop of
+   * its own by that name renders something else (`Columns`' `gap` is its
+   * gutter). The reason is for the MCP lookup.
+   */
+  readonly helpersLeftOut?: Readonly<Record<string, string>>;
+  /**
    * Tags the target doesn't render, on which the element is valid Bulma that
    * bestax renders some other way, so it stays markup with no `tag` TODO
    * there. Any other tag still gets one. The reason is for the MCP lookup.
@@ -397,6 +404,65 @@ export const ALIGN_SELFS = [
   'stretch',
 ] as const;
 export const FLEX_GROW_SHRINK = ['0', '1', '2', '3', '4', '5'] as const;
+/** Bulma's gap scale, whole and half steps, as the gap props take it. */
+export const GAPS = [
+  '0',
+  '0.5',
+  '1',
+  '1.5',
+  '2',
+  '2.5',
+  '3',
+  '3.5',
+  '4',
+  '4.5',
+  '5',
+  '5.5',
+  '6',
+  '6.5',
+  '7',
+  '7.5',
+  '8',
+] as const;
+export const POSITIONS = [
+  'absolute',
+  'fixed',
+  'relative',
+  'static',
+  'sticky',
+] as const;
+/** The CSS keywords `overflow`, `overflowX` and `overflowY` take. */
+export const AXIS_OVERFLOWS = [
+  'auto',
+  'clip',
+  'hidden',
+  'scroll',
+  'visible',
+] as const;
+export const RADII = [
+  'radiusless',
+  'small',
+  'normal',
+  'large',
+  'rounded',
+] as const;
+export const ASPECT_RATIOS = [
+  '1by1',
+  '5by4',
+  '4by3',
+  '3by2',
+  '5by3',
+  '16by9',
+  '2by1',
+  '3by1',
+  '4by5',
+  '3by4',
+  '2by3',
+  '3by5',
+  '9by16',
+  '1by2',
+  '1by3',
+] as const;
 export const VIEWPORTS = [
   'mobile',
   'tablet',
@@ -431,9 +497,6 @@ const COMPONENT_COLORS = [
   'light',
   'dark',
 ] as const;
-
-/** Bulma's whole-step spacing scale, as `Grid`'s gap props take it. */
-const GAPS = ['0', '1', '2', '3', '4', '5', '6', '7', '8'] as const;
 
 const COLUMN_SIZES = [
   '1',
@@ -538,6 +601,10 @@ const BASE = {
   textColor: 'textColor',
   bgColor: 'bgColor',
 } as const;
+
+/** Why the column and row gap helpers stay classes on a `.columns`. */
+const COLUMNS_AXIS_GAPS =
+  'bestax `Columns` leaves the column and row gap helpers out: the gutter is padding inside each column, which CSS `gap` would add to';
 
 // ---- Roots ------------------------------------------------------------------
 
@@ -834,6 +901,11 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'gapSizeWidescreen',
       'gapSizeFullhd',
     ],
+    helpersLeftOut: {
+      gap: "bestax `Columns`' own `gap` is the columns gutter (`is-<value>`), not the gap helper",
+      columnGap: COLUMNS_AXIS_GAPS,
+      rowGap: COLUMNS_AXIS_GAPS,
+    },
   },
   column: {
     ...BASE,
@@ -878,9 +950,9 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'isNarrowFullhd',
     ],
   },
-  // Grid's gaps take a numeric string, but its column minimum and every Cell
-  // placement are typed as numbers. The half steps (`is-gap-0.5`) are not
-  // converted, though `gap` takes them now; see the passthrough reason.
+  // Grid's gaps take a numeric string, half steps included, but its column
+  // minimum and every Cell placement are typed as numbers. Its gap props are
+  // its own, and render the same classes as the gap helpers.
   grid: {
     ...BASE,
     target: 'Grid',
@@ -2357,17 +2429,23 @@ export const LEGACY_09: Readonly<Record<string, string>> = {
 /**
  * `text-color` and `background` resolve to a per-target prop (`RootEntry`'s
  * `textColor`/`bgColor`); `flex-container` only renders beside a flex
- * `display`; `display` cannot mix a base value with per-viewport ones.
+ * `display`; `display` cannot mix a base value with per-viewport ones. In
+ * `gap`, `position` and `overflow`, one prop decides what another renders:
+ * a `gap` drops `gapless`, a `pos` drops `relative`, and beside an axis prop
+ * `overflow` is written per axis.
  */
 export type HelperGroup =
   | 'text-color'
   | 'background'
   | 'spacing'
+  | 'gap'
   | 'typography'
   | 'display'
   | 'visibility'
   | 'flex-container'
   | 'flex-item'
+  | 'position'
+  | 'overflow'
   | 'other';
 
 export interface HelperToken {
@@ -2510,11 +2588,20 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
     FLEX_GROW_SHRINK,
     'flexShrink'
   ),
-  ...helperTokens('other', 'is-pulled-', ['left', 'right'], 'float'),
+  ...helperTokens('gap', 'is-gap-', GAPS, 'gap'),
+  ...helperTokens('gap', 'is-column-gap-', GAPS, 'columnGap'),
+  ...helperTokens('gap', 'is-row-gap-', GAPS, 'rowGap'),
+  helperFlag('gap', 'is-gapless', 'gapless'),
+  ...helperTokens('position', 'is-position-', POSITIONS, 'pos'),
+  helperFlag('position', 'is-relative', 'relative'),
   [
     'is-clipped',
-    { group: 'other', write: { prop: 'overflow', value: 'clipped' } },
+    { group: 'overflow', write: { prop: 'overflow', value: 'clipped' } },
   ],
+  ...helperTokens('overflow', 'is-overflow-', AXIS_OVERFLOWS, 'overflow'),
+  ...helperTokens('overflow', 'is-overflow-x-', AXIS_OVERFLOWS, 'overflowX'),
+  ...helperTokens('overflow', 'is-overflow-y-', AXIS_OVERFLOWS, 'overflowY'),
+  ...helperTokens('other', 'is-pulled-', ['left', 'right'], 'float'),
   helperFlag('other', 'is-overlay', 'overlay'),
   [
     'is-unselectable',
@@ -2528,6 +2615,12 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
     'is-radiusless',
     { group: 'other', write: { prop: 'radius', value: 'radiusless' } },
   ],
+  ...helperTokens(
+    'other',
+    'has-radius-',
+    RADII.filter(radius => radius !== 'radiusless'),
+    'radius'
+  ),
   [
     'is-shadowless',
     { group: 'other', write: { prop: 'shadow', value: 'shadowless' } },
@@ -2535,7 +2628,7 @@ export const HELPER_TOKENS: ReadonlyMap<string, HelperToken> = new Map([
   ...helperTokens('other', 'is-', ['mobile', 'narrow'], 'responsive'),
   helperFlag('other', 'is-skeleton', 'skeleton'),
   helperFlag('other', 'is-clearfix', 'clearfix'),
-  helperFlag('other', 'is-relative', 'relative'),
+  ...helperTokens('other', 'is-aspect-ratio-', ASPECT_RATIOS, 'aspectRatio'),
 ]);
 
 /** Every helper prop name, for the attribute-collision check. */
@@ -2573,7 +2666,7 @@ export const PASSTHROUGH: ReadonlyArray<{
   },
   {
     why: 'a Grid or Cell class, which converts only on its own `.grid` or `.cell`, and only where bestax has a prop for it',
-    // `is-row-gap-*` is a gap helper, with a reason of its own below.
+    // `is-row-gap-*` is a gap helper.
     match: /^(?:is-(?:col|row)-(?!gap-).+|is-auto-fill)$/,
   },
   {
@@ -2583,35 +2676,6 @@ export const PASSTHROUGH: ReadonlyArray<{
   {
     why: 'an `.image` modifier, which converts only on its own `.image`, and only where bestax has a prop for it',
     match: /^(?:is-\d+by\d+|is-\d+x\d+|is-square|has-ratio)$/,
-  },
-  // Helpers bestax has a prop for that this codemod does not convert. Each
-  // names its prop, so a reader can make the change by hand.
-  {
-    why: 'a Bulma helper the codemod does not convert; the `pos` prop renders it',
-    match: /^is-position-.+$/,
-  },
-  {
-    why: 'a Bulma helper the codemod does not convert; the `overflow`, `overflowX` and `overflowY` props render it',
-    match: /^is-overflow-.+$/,
-  },
-  {
-    why: 'a Bulma helper the codemod does not convert; the `radius` prop renders it',
-    match: /^has-radius-.+$/,
-  },
-  {
-    why: 'a Bulma helper the codemod does not convert; the `aspectRatio` prop renders it',
-    match: /^is-aspect-ratio-.+$/,
-  },
-  // The gap helpers convert on their own `.grid` in whole steps, and
-  // `is-gapless` on its own `.columns`, so these reasons are for everywhere
-  // else, and for the half steps.
-  {
-    why: 'a Bulma helper the codemod converts only on a `.grid`, in whole steps; the `gap`, `columnGap` and `rowGap` props render it',
-    match: /^is-(?:column-|row-)?gap-\d(?:\.5)?$/,
-  },
-  {
-    why: 'a Bulma helper the codemod converts only on a `.columns`, as `isGapless`; the `gapless` prop renders it',
-    match: /^is-gapless$/,
   },
   {
     why: 'a Bulma helper with no bestax prop',

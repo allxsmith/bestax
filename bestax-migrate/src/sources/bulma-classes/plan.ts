@@ -999,8 +999,8 @@ function buildIcons(
  * write, the classes that leave `className`, and the props written as
  * numbers. The group rules apply, so a helper the target would drop (a
  * base `display` beside a per-viewport one, a flex-container helper with no
- * flex `display`) stays a class, and so does a modifier missing the
- * attribute it needs.
+ * flex `display`, `gapless` beside a `gap`) stays a class, as does one it
+ * leaves out, and so does a modifier missing the attribute it needs.
  */
 function propsFrom(
   entry: RootEntry,
@@ -1049,6 +1049,9 @@ function propsFrom(
           ? entry.bgColor
           : helper.write.prop;
     if (!prop || writes.has(prop)) continue;
+    if (entry.helpersLeftOut && Object.hasOwn(entry.helpersLeftOut, prop)) {
+      continue;
+    }
     writes.set(prop, helper.write.value ?? true);
     sourceOf.set(prop, token);
     groupOf.set(prop, helper.group);
@@ -1076,6 +1079,18 @@ function propsFrom(
     for (const prop of [...writes.keys()]) {
       if (groupOf.get(prop) === 'flex-container') undo(prop);
     }
+  }
+  // Props one helper wrote that another drops (`groupOf` holds only what
+  // helpers wrote). A `gap` drops `gapless`, though `Grid`'s own `gap`, a
+  // modifier, does not; `pos` drops `relative`; and beside an axis prop,
+  // `overflow` is written per axis instead of as its own class.
+  if (groupOf.has('gap') && groupOf.has('gapless')) undo('gapless');
+  if (groupOf.has('pos') && groupOf.has('relative')) undo('relative');
+  if (
+    groupOf.has('overflow') &&
+    (groupOf.has('overflowX') || groupOf.has('overflowY'))
+  ) {
+    undo('overflow');
   }
   return { writes, converted, numbers };
 }
