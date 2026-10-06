@@ -13,6 +13,9 @@
     "privacyPolicyUrl": "https://bestax.io/docs/guides/telemetry",
     "supportUrl": "https://github.com/allxsmith/bestax/issues"
   },
+  "cursor": {
+    "displayName": "Bestax"
+  },
   "marketplace": {
     "name": "bestax",
     "description": "The bestax plugin for @allxsmith/bestax-bulma, React components for Bulma v1",

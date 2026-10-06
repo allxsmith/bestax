@@ -49,6 +49,7 @@ import {
   inputCommitCount,
   inputProblems,
   launcherViolations,
+  logoViolations,
   main,
   mcpLaunch,
   nameProblem,
@@ -60,6 +61,7 @@ import {
   readmeWordCount,
   renderAgentManifest,
   renderClaudeManifest,
+  renderCursorManifest,
   renderMarketplace,
   renderMcpConfig,
   renderMcpServer,
@@ -170,6 +172,22 @@ const png = (width, height) => pngBytes(pngChunks(width, height));
 /** The icon every fixture tree and fixture repository carries. */
 const ICON = png(512, 512);
 
+/**
+ * The logo every fixture tree and fixture repository carries. Grey with no
+ * alpha, so opaque, and a different size from the icon so the two cannot be
+ * swapped unnoticed.
+ */
+const LOGO = png(600, 600);
+
+/** `chunks` with the IHDR colour type set to `type`. */
+function withColourType(chunks, type) {
+  const [[, ihdr], ...rest] = chunks;
+  const changed = Buffer.from(ihdr);
+  changed[9] = type;
+  if (type !== 0) changed[8] = 8; // a bit depth every colour type allows
+  return [['IHDR', changed], ...rest];
+}
+
 // --- the real tree ------------------------------------------------------------
 
 test('generates the bestax-skills tree from the real repo', async () => {
@@ -227,6 +245,13 @@ test('generates the bestax-skills tree from the real repo', async () => {
   );
   assert.equal(fs.statSync(path.join(out, FILES.icon)).mode & 0o777, 0o644);
   assert.deepEqual(iconViolations(icon), []);
+  const logo = fs.readFileSync(path.join(out, FILES.logo));
+  assert.ok(
+    logo.equals(fs.readFileSync(path.join(REPO, TEMPLATE.logo))),
+    'the logo is copied byte for byte'
+  );
+  assert.equal(fs.statSync(path.join(out, FILES.logo)).mode & 0o777, 0o644);
+  assert.deepEqual(logoViolations(logo), []);
 });
 
 test('the real manifests start the server server.json describes, at the release version', async () => {
@@ -246,8 +271,18 @@ test('the real manifests start the server server.json describes, at the release 
 
   const agent = readJson(out, FILES.agent);
   assert.equal(agent.$schema, AGENT_PLUGIN_SCHEMA);
-  assert.equal(agent.version, version, 'both manifests carry one version');
+  assert.equal(agent.version, version, 'every manifest carries one version');
   assert.equal(agent.mcpServers, './mcp.json');
+
+  const cursor = readJson(out, FILES.cursor);
+  assert.equal(cursor.name, 'bestax');
+  assert.equal(cursor.displayName, 'Bestax');
+  assert.equal(cursor.version, version, 'every manifest carries one version');
+  assert.equal(cursor.logo, 'assets/logo.png');
+  assert.equal(cursor.mcpServers, './mcp.json');
+  for (const ref of [cursor.logo, cursor.skills, cursor.mcpServers]) {
+    assert.ok(fs.existsSync(path.join(out, ref)), ref);
+  }
 
   assert.deepEqual(readJson(out, FILES.mcp), {
     $schema: AGENT_MCP_SCHEMA,
@@ -937,6 +972,7 @@ test('template values of the wrong shape are refused', () => {
   t.plugin.homepage = 'http://bestax.io';
   t.plugin.keywords = ['ok', 3];
   t.claude.privacyPolicyUrl = 42;
+  t.cursor.displayName = '';
   t.marketplace.name = 'a..b';
   t.marketplace.owner = { url: 'https://example.com' };
   const problems = problemsOf(() => checkTemplate(t));
@@ -948,6 +984,7 @@ test('template values of the wrong shape are refused', () => {
     /plugin\.homepage must be an https/,
     /plugin\.keywords must be an array of strings/,
     /claude\.privacyPolicyUrl must be an https/,
+    /cursor\.displayName must be a non-empty string/,
     /marketplace\.name "a\.\.b"/,
     /marketplace\.owner\.name must be a non-empty string/,
   ]) {
@@ -1002,8 +1039,8 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
  * out of name order, a summary cut at a spaced em dash, one whose first
  * sentence is too short to stand alone, one with a trailing space and
  * period, variables with and without a format, references, examples, an
- * executable file, both README regions and the icon. A variable marked
- * required has no output path, as mcpLaunch refuses it.
+ * executable file, both README regions, the icon and the logo. A variable
+ * marked required has no output path, as mcpLaunch refuses it.
  */
 const SNAPSHOT_INPUTS = {
   'plugin/manifest.json': `${JSON.stringify(
@@ -1022,6 +1059,7 @@ const SNAPSHOT_INPUTS = {
         privacyPolicyUrl: 'https://example.com/privacy',
         supportUrl: 'https://example.com/support',
       },
+      cursor: { displayName: 'Snapshot' },
       marketplace: {
         name: 'snapshot',
         description: 'The snapshot marketplace',
@@ -1053,6 +1091,7 @@ prose outside code blocks and wants forty or more of them.
 The snapshot plugin sends nothing anywhere.
 `,
   'plugin/icon.png': png(512, 512),
+  'plugin/logo.png': png(600, 600),
   'bestax-mcp/package.json': `${JSON.stringify({
     name: 'snapshot-mcp',
     version: '2.3.4',
@@ -1138,8 +1177,8 @@ The snapshot plugin sends nothing anywhere.
  * generator alters its output on purpose.
  */
 const OUTPUT_SNAPSHOT = {
-  format: 2,
-  sha256: 'fb09f751c0875f743506edb238e64e0bf4bc0fe7f1eae12d6d1e35a323a1f168',
+  format: 3,
+  sha256: 'a7e2a606b442890d0927340b3122c4aec69be10b5e9d73de52e7edcf5614ac46',
 };
 
 /**
@@ -1465,6 +1504,20 @@ test('each manifest takes its fields from the template', () => {
   );
   assert.equal(agent.icon, undefined);
   assert.equal(renderMcpConfig(pin).mcpServers.bestax.type, 'stdio');
+  assert.deepEqual(renderCursorManifest(t, '1.0.7'), {
+    name: t.plugin.name,
+    displayName: t.cursor.displayName,
+    version: '1.0.7',
+    description: t.plugin.description,
+    author: t.plugin.author,
+    homepage: t.plugin.homepage,
+    repository: t.plugin.repository,
+    license: t.plugin.license,
+    keywords: t.plugin.keywords,
+    logo: FILES.logo,
+    skills: './skills/',
+    mcpServers: `./${FILES.mcp}`,
+  });
 });
 
 // --- the rules, on fixtures -------------------------------------------------------
@@ -1489,6 +1542,7 @@ function fixtureSources(overrides = {}) {
     readme: README,
     launch: { pin: 'bestax-mcp@1.2.3', env: [] },
     icon: file(FILES.icon, ICON),
+    logo: file(FILES.logo, LOGO),
     copied: [file('LICENSE', 'MIT License\n'), file('NOTICE', 'Notice\n')],
     skillFiles: [
       file('skills/demo/SKILL.md', '---\nname: demo\n---\n'),
@@ -1533,7 +1587,7 @@ test('buildTree writes generated files 0644 and keeps each source mode', () => {
   assert.equal(tree.get('LICENSE').mode, 0o644);
   assert.equal(tree.get('skills/demo/SKILL.md').mode, 0o644);
   assert.equal(tree.get('skills/demo/scripts/check.sh').mode, 0o755);
-  for (const manifest of [FILES.agent, FILES.claude]) {
+  for (const manifest of [FILES.agent, FILES.claude, FILES.cursor]) {
     assert.equal(
       JSON.parse(tree.get(manifest).content.toString('utf8')).version,
       '1.0.7',
@@ -1541,6 +1595,7 @@ test('buildTree writes generated files 0644 and keeps each source mode', () => {
     );
   }
   assert.ok(tree.get(FILES.icon).content.equals(ICON));
+  assert.ok(tree.get(FILES.logo).content.equals(LOGO));
 });
 
 // --- the icon ---------------------------------------------------------------------
@@ -1560,8 +1615,40 @@ test('the test PNGs are complete, so the icon rules are tested on real PNGs', ()
 });
 
 test('pngSize reads the chunk layout and refuses an incomplete PNG', () => {
-  assert.deepEqual(pngSize(ICON), { width: 512, height: 512 });
-  assert.deepEqual(pngSize(png(600, 520)), { width: 600, height: 520 });
+  assert.deepEqual(pngSize(ICON), {
+    width: 512,
+    height: 512,
+    transparent: false,
+  });
+  assert.deepEqual(pngSize(png(600, 520)), {
+    width: 600,
+    height: 520,
+    transparent: false,
+  });
+  // Grey and RGB, plain or with a palette, are opaque. Their alpha
+  // variants are not, and neither is any PNG with a tRNS chunk.
+  for (const [type, transparent] of [
+    [0, false],
+    [2, false],
+    [3, false],
+    [4, true],
+    [6, true],
+  ]) {
+    const bytes = pngBytes(withColourType(pngChunks(16, 16), type));
+    assert.equal(
+      pngSize(bytes).transparent,
+      transparent,
+      `colour type ${type}`
+    );
+  }
+  const [ihdrChunk, idatChunk, iendChunk] = pngChunks(16, 16);
+  assert.equal(
+    pngSize(
+      pngBytes([ihdrChunk, ['tRNS', Buffer.alloc(2)], idatChunk, iendChunk])
+    ).transparent,
+    true,
+    'a tRNS chunk'
+  );
   const [ihdr, idat, iend] = pngChunks(512, 512);
   for (const [why, bytes, said] of [
     ['empty', Buffer.alloc(0), /^is not a PNG$/],
@@ -1699,6 +1786,137 @@ test('a symbolic link, an untracked file or a JPEG as the icon stops the run', a
     return true;
   });
   assert.ok(!fs.existsSync(out), 'nothing is written');
+});
+
+// --- the Cursor logo and manifest ---------------------------------------------
+
+test('the logo must be a square PNG that cannot hold a transparent pixel', () => {
+  const withLogo = bytes => violationsWith(tree => tree.set(FILES.logo, bytes));
+  assert.deepEqual(withLogo(LOGO), []);
+  assert.deepEqual(
+    withLogo(pngBytes(withColourType(pngChunks(64, 64), 2))),
+    []
+  );
+
+  const rule =
+    /The Cursor Marketplace takes a square logo with a background plate, as a PNG with no alpha channel and no transparent colour\.$/;
+  const logo = /^"assets\/logo\.png": /;
+  const [ihdr, idat, iend] = pngChunks(64, 64);
+  for (const [why, bytes, said] of [
+    ['not square', png(600, 500), /is 600 by 500 px\./],
+    [
+      'RGB with alpha',
+      pngBytes(withColourType(pngChunks(64, 64), 6)),
+      /can hold transparent pixels\./,
+    ],
+    [
+      'grey with alpha',
+      pngBytes(withColourType(pngChunks(64, 64), 4)),
+      /can hold transparent pixels\./,
+    ],
+    [
+      'a tRNS chunk',
+      pngBytes([ihdr, ['tRNS', Buffer.alloc(2)], idat, iend]),
+      /can hold transparent pixels\./,
+    ],
+    ['truncated', LOGO.subarray(0, -12), /does not end with an IEND chunk/],
+    [
+      'an SVG',
+      Buffer.from('<svg xmlns="http://www.w3.org/2000/svg"></svg>\n'),
+      /is not a PNG\./,
+    ],
+  ]) {
+    const v = withLogo(bytes);
+    assert.equal(v.length, 1, `${why}: ${v.join(' | ')}`);
+    assert.match(v[0], logo, why);
+    assert.match(v[0], said, why);
+    assert.match(v[0], rule, why);
+    assert.deepEqual(logoViolations(bytes), v, why);
+  }
+  // Both faults at once are both reported.
+  assert.equal(
+    logoViolations(pngBytes(withColourType(pngChunks(64, 32), 6))).length,
+    2
+  );
+  has(
+    violationsWith(tree => tree.delete(FILES.logo)),
+    /^assets\/logo\.png: missing\.$/
+  );
+});
+
+test('the Cursor manifest must name a logo, skills and mcp.json in the tree', () => {
+  const withCursor = change =>
+    violationsWith(tree => {
+      const manifest = JSON.parse(tree.get(FILES.cursor).toString('utf8'));
+      change(manifest);
+      tree.set(FILES.cursor, Buffer.from(JSON.stringify(manifest)));
+    });
+  assert.deepEqual(
+    withCursor(() => {}),
+    []
+  );
+  has(
+    withCursor(m => (m.logo = 'assets/missing.png')),
+    /^\.cursor-plugin\/plugin\.json: logo names "assets\/missing\.png", which is not in the tree\.$/
+  );
+  has(
+    withCursor(m => (m.skills = './agents/')),
+    /^\.cursor-plugin\/plugin\.json: skills names "\.\/agents\/", which is not in the tree\.$/
+  );
+  has(
+    withCursor(m => delete m.mcpServers),
+    /^\.cursor-plugin\/plugin\.json: mcpServers must name a path in the tree\.$/
+  );
+  has(
+    withCursor(m => (m.name = 'Bestax')),
+    /^\.cursor-plugin\/plugin\.json: name "Bestax" does not match/
+  );
+  has(
+    violationsWith(tree => tree.delete(FILES.cursor)),
+    /^\.cursor-plugin\/plugin\.json: missing\.$/
+  );
+  // The folder rule wants a file inside the folder, not a name that starts
+  // the same way.
+  has(
+    violationsWith(tree => {
+      const manifest = JSON.parse(tree.get(FILES.cursor).toString('utf8'));
+      manifest.skills = './skill/';
+      tree.set(FILES.cursor, Buffer.from(JSON.stringify(manifest)));
+    }),
+    /skills names "\.\/skill\/", which is not in the tree/
+  );
+});
+
+test('the logo input is read as bytes and published at assets/logo.png', async () => {
+  const root = fixtureRepo();
+  const out = path.join(tempDir(), 'out');
+  await generate(out, root, { inputCommits: 1 });
+  assert.ok(fs.readFileSync(path.join(out, FILES.logo)).equals(LOGO));
+  assert.equal(fs.statSync(path.join(out, FILES.logo)).mode & 0o777, 0o644);
+  assert.equal(readJson(out, FILES.cursor).logo, FILES.logo);
+
+  const transparent = fixtureRepo();
+  write(
+    transparent,
+    TEMPLATE.logo,
+    pngBytes(withColourType(pngChunks(64, 64), 6))
+  );
+  git(transparent, 'add', '-A');
+  const refused = path.join(tempDir(), 'out');
+  await assert.rejects(generate(refused, transparent, counted), err => {
+    assert.ok(err instanceof TreeError);
+    assert.deepEqual(err.problems.length, 1);
+    assert.match(err.problems[0], /^"assets\/logo\.png": can hold transparent/);
+    return true;
+  });
+  assert.ok(!fs.existsSync(refused), 'nothing is written');
+
+  const untracked = fixtureRepo();
+  git(untracked, 'rm', '-q', '--cached', TEMPLATE.logo);
+  await assert.rejects(
+    readSources(untracked, counted),
+    /"plugin\/logo\.png": is not tracked by git/
+  );
 });
 
 test('fileMode keeps only the owner execute bit, as git does', () => {
@@ -2076,6 +2294,7 @@ function fixtureRepo({ init = true } = {}) {
   write(root, TEMPLATE.manifest, repoText(TEMPLATE.manifest));
   write(root, TEMPLATE.readme, FIXTURE_README);
   write(root, TEMPLATE.icon, ICON);
+  write(root, TEMPLATE.logo, LOGO);
   write(
     root,
     `${MCP_DIR}/package.json`,
@@ -2123,6 +2342,8 @@ test('readSources builds the launch and README from the fixture inputs', async (
   assert.equal(sources.icon.path, FILES.icon);
   assert.ok(sources.icon.content.equals(ICON));
   assert.equal(sources.icon.mode, 0o644);
+  assert.equal(sources.logo.path, FILES.logo);
+  assert.ok(sources.logo.content.equals(LOGO));
   const readme = sources.readme.toString('utf8');
   assert.ok(readme.includes(`- **demo**: ${DEMO_SUMMARY}\n`));
   assert.ok(readme.includes('npx -y demo-mcp@1.2.3\n'));
