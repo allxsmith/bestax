@@ -210,8 +210,9 @@ jobs:
       # results-receiver.actions.githubusercontent.com and a per-run
       # productionresultssa<N>.blob.core.windows.net. They are the runner's
       # control plane, which .github/CLAUDE.md ("Measuring an allowlist")
-      # says never to allow-list. claude-implement's `implement` uploads its
-      # log at block with neither listed, as run 36323405095 shows.
+      # says never to allow-list, as harden-runner does not gate it and the
+      # blob host's name changes from run to run. claude-implement's
+      # `implement` job uploads its log at block with neither listed.
       - name: Harden runner
         timeout-minutes: 2
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
