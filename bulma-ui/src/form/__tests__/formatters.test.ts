@@ -11,6 +11,7 @@ import {
   DEFAULT_TIME_FORMAT_24,
   DEFAULT_TIME_FORMAT_12,
 } from '../_pickerInternals/formatters';
+import { makeDate } from '../_pickerInternals/dateUtils';
 
 describe('formatters', () => {
   describe('formatDate (token format)', () => {
@@ -26,6 +27,14 @@ describe('formatters', () => {
 
     it('two-digit year', () => {
       expect(formatDate(new Date(2024, 0, 1), 'YY-MM-DD')).toBe('24-01-01');
+    });
+
+    it('pads a year from 1 to 999 to four digits with YYYY', () => {
+      expect(formatDate(makeDate(1, 0, 1), 'YYYY-MM-DD')).toBe('0001-01-01');
+      expect(formatDate(makeDate(19, 5, 7), 'YYYY')).toBe('0019');
+      expect(formatDate(makeDate(999, 11, 31), 'YYYY-MM-DD')).toBe(
+        '0999-12-31'
+      );
     });
 
     it('uses default when format is undefined', () => {

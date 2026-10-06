@@ -27,6 +27,7 @@ import {
 import {
   isWithin,
   clampDate,
+  floorMin,
   isSameDay,
   isPeriodUnselectable,
   makeDate,
@@ -116,7 +117,11 @@ export interface DateInputBaseProps
   onOpen?: () => void;
   /** Fired when the popover closes. */
   onClose?: () => void;
-  /** Earliest selectable date. */
+  /**
+   * Earliest selectable date. A `min` before year 1 is raised to 1 January of
+   * year 1, where the range starts without one too: HTML's date and month
+   * inputs hold no earlier year, so the calendar and typing stop there.
+   */
   min?: Date;
   /** Latest selectable date. */
   max?: Date;
@@ -290,8 +295,11 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     );
     const value = isControlled ? (controlledValue ?? null) : internalValue;
 
+    // Nothing before year 1 is in range, as in HTML's date inputs.
+    const lowerBound = useMemo(() => floorMin(min), [min]);
+
     const initialFocused = useMemo(
-      () => clampDate(value ?? new Date(), min, max),
+      () => clampDate(value ?? new Date(), lowerBound, max),
       // intentionally only on mount: keep focusedDate stable until value/open change
       // eslint-disable-next-line react-hooks/exhaustive-deps
       []
@@ -300,8 +308,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // Re-clamp focusedDate if min/max change after mount so the focused cell
     // never disappears outside the displayable range.
     useEffect(() => {
-      setFocusedDate(prev => clampDate(prev, min, max));
-    }, [min, max]);
+      setFocusedDate(prev => clampDate(prev, lowerBound, max));
+    }, [lowerBound, max]);
     const [open, setOpenState] = useState(false);
     const [text, setText] = useState<string>(
       value ? formatDate(value, resolvedFormat, locale) : ''
@@ -373,8 +381,9 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // At month or year granularity the bounds widen to the periods holding
     // them, so the month or year containing `min` stays reachable.
     const periodMin = useMemo(
-      () => (min && !isDayGranularity ? startOfPeriod(min, granularity) : min),
-      [min, isDayGranularity, granularity]
+      () =>
+        isDayGranularity ? lowerBound : startOfPeriod(lowerBound, granularity),
+      [lowerBound, isDayGranularity, granularity]
     );
     const periodMax = useMemo(
       () => (max && !isDayGranularity ? endOfPeriod(max, granularity) : max),
@@ -523,7 +532,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
               : null;
             commitValue(parsed);
           }}
-          min={min ? toIsoValue(min, granularity) : undefined}
+          min={min ? toIsoValue(lowerBound, granularity) : undefined}
           max={max ? toIsoValue(max, granularity) : undefined}
           disabled={disabled}
           readOnly={readOnly}

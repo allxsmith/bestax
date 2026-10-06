@@ -18,7 +18,9 @@ function formatToken(d: Date, token: string): string {
     case 'YYYY':
       // Zero-pad to a fixed 4 chars so the rendered width matches the
       // segment-map width during digit-by-digit keyboard entry (and to match
-      // ISO 8601). Years >9999 keep their natural width.
+      // ISO 8601), so year 19 shows as `0019`. Years >9999 keep their natural
+      // width. The pickers commit no year below 1, so a minus sign reaches
+      // this only from a `value` passed in.
       return pad(d.getFullYear(), 4);
     case 'YY':
       return pad(d.getFullYear() % 100);

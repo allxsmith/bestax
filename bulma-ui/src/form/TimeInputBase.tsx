@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useId,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -24,6 +25,7 @@ import {
 } from './_pickerInternals/formatters';
 import {
   setTimeOfDay,
+  floorMin,
   isWithin,
   snapTimeToIncrement,
 } from './_pickerInternals/dateUtils';
@@ -88,7 +90,11 @@ export interface TimeInputBaseProps
   onOpen?: () => void;
   /** Fired when the popover closes. */
   onClose?: () => void;
-  /** Earliest selectable time. */
+  /**
+   * Earliest selectable time. A `min` before year 1 is raised to midnight on
+   * 1 January of year 1, and a `value` dated before then is out of range, so
+   * the wheels and typing change nothing on it, as in the date pickers.
+   */
   min?: Date;
   /** Latest selectable time. */
   max?: Date;
@@ -332,6 +338,9 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       setText(value ? formatTime(value, defaultFormat, locale) : '');
     }, [value, defaultFormat, locale]);
 
+    // A value's date before year 1 is out of range, as in the date pickers.
+    const lowerBound = useMemo(() => floorMin(min), [min]);
+
     const commitValue = useCallback(
       (next: Date | null) => {
         if (!isControlled) setInternalValue(next);
@@ -344,10 +353,10 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       (parts: { hours: number; minutes: number; seconds?: number }) => {
         const base = value ?? new Date();
         const next = setTimeOfDay(base, parts);
-        if (!isWithin(next, min, max)) return;
+        if (!isWithin(next, lowerBound, max)) return;
         commitValue(next);
       },
-      [value, min, max, commitValue]
+      [value, lowerBound, max, commitValue]
     );
 
     const tryParse = useCallback(
@@ -389,7 +398,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       setText,
       makeBaseDate,
       locale,
-      min,
+      min: lowerBound,
       max,
       isBlocked: unselectableTimes,
       disabled,

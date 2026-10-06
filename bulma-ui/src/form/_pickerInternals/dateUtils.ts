@@ -68,6 +68,23 @@ export function makeDate(year: number, month = 0, day = 1): Date {
 }
 
 /**
+ * The earliest year the pickers accept. HTML's date, month and datetime-local
+ * inputs hold no year below 1, so the calendar, typing and parsing stop there
+ * too.
+ */
+export const FIRST_YEAR = 1;
+
+/**
+ * The lower bound a picker applies: `min`, raised to local midnight on
+ * 1 January of {@link FIRST_YEAR} when it is earlier or absent. A `min` in
+ * range comes back as the same object.
+ */
+export function floorMin(min?: Date): Date {
+  const floor = makeDate(FIRST_YEAR);
+  return min && min.getTime() >= floor.getTime() ? min : floor;
+}
+
+/**
  * First instant of the day, month or year containing `d`. Works by setters on
  * a copy rather than the `Date(y, m, d)` constructor, which reads years 0–99
  * as 1900–1999: segmented typing passes through such years on the way to a

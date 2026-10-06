@@ -24,6 +24,8 @@ import {
   addYears,
   buildMonthGrid,
   clampDate,
+  FIRST_YEAR,
+  floorMin,
   isDayUnselectable,
   isPeriodUnselectable,
   isSameDay,
@@ -39,6 +41,10 @@ export interface CalendarProps {
   focusedDate: Date;
   onSelect: (d: Date) => void;
   onFocusedDateChange: (d: Date) => void;
+  /**
+   * Earliest selectable date. One before year 1, or none, counts as the start
+   * of year 1.
+   */
   min?: Date;
   max?: Date;
   shouldDisableDate?: (d: Date) => boolean;
@@ -62,7 +68,8 @@ export interface CalendarProps {
   labels?: PickerLabels;
   /**
    * Inclusive `[min, max]` year range shown in the year-dropdown view.
-   * Defaults to ±100 years around the focused year, clamped by `min`/`max`.
+   * Defaults to ±100 years around the focused year, clamped by `min`/`max`
+   * and never reaching below year 1.
    * At `'year'` granularity the window centres on the year focused when the
    * calendar mounted, so moving focus never reflows the list.
    */
@@ -193,7 +200,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   focusedDate,
   onSelect,
   onFocusedDateChange,
-  min,
+  min: minProp,
   max,
   shouldDisableDate,
   unselectableDates,
@@ -220,6 +227,8 @@ export const Calendar: React.FC<CalendarProps> = ({
   const isDayGranularity = granularity === 'day';
   const isYearGranularity = granularity === 'year';
   const [view, setView] = useState<CalendarView>(baseView);
+  // Nothing before year 1 can be picked or reached, as in HTML's date inputs.
+  const min = useMemo(() => floorMin(minProp), [minProp]);
 
   const computedDayNames = useMemo(() => {
     if (dayNames && dayNames.length === 7) return dayNames;
@@ -315,7 +324,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     (next: Date, direction: 1 | -1) => {
       let candidate = next;
       for (let i = 0; i < 366; i++) {
-        if (min && candidate.getTime() < startOfDay(min).getTime()) return;
+        if (candidate.getTime() < startOfDay(min).getTime()) return;
         if (max && candidate.getTime() > startOfDay(max).getTime()) return;
         if (!isDateUnselectable(candidate)) {
           onFocusedDateChange(candidate);
@@ -392,7 +401,7 @@ export const Calendar: React.FC<CalendarProps> = ({
       let candidate = next;
       for (let i = 0; i < 120; i++) {
         const month = startOfMonth(candidate).getTime();
-        if (min && month < startOfMonth(min).getTime()) return;
+        if (month < startOfMonth(min).getTime()) return;
         if (max && month > startOfMonth(max).getTime()) return;
         if (!isMonthUnselectable(candidate)) {
           onFocusedDateChange(candidate);
@@ -456,12 +465,9 @@ export const Calendar: React.FC<CalendarProps> = ({
     ? nextMonthAnchor
     : clampDate(addYears(focusedDate, 1), min, max);
   const prevDisabled = isDayGranularity
-    ? !!(
-        min &&
-        prevMonthAnchor.getTime() < startOfDay(min).getTime() &&
-        isSameMonth(focusedDate, min)
-      )
-    : !!(min && focusedYear <= min.getFullYear());
+    ? prevMonthAnchor.getTime() < startOfDay(min).getTime() &&
+      isSameMonth(focusedDate, min)
+    : focusedYear <= min.getFullYear();
   const nextDisabled = isDayGranularity
     ? !!(
         max &&
@@ -482,7 +488,9 @@ export const Calendar: React.FC<CalendarProps> = ({
   const windowYear = isYearGranularity ? mountYear : focusedYear;
 
   const yearList = useMemo<number[]>(() => {
-    const minYear = min ? min.getFullYear() : windowYear - 100;
+    const minYear = minProp
+      ? min.getFullYear()
+      : Math.max(FIRST_YEAR, windowYear - 100);
     const maxYear = max ? max.getFullYear() : windowYear + 100;
     const [lo, hi] = yearsRange ?? [minYear, maxYear];
     const start = Math.max(lo, minYear);
@@ -490,7 +498,7 @@ export const Calendar: React.FC<CalendarProps> = ({
     const out: number[] = [];
     for (let y = start; y <= end; y++) out.push(y);
     return out;
-  }, [windowYear, min, max, yearsRange]);
+  }, [windowYear, minProp, min, max, yearsRange]);
 
   // Only the selection surface disables years; as navigation every listed
   // year can be visited.

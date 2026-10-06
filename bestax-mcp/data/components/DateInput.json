@@ -394,7 +394,7 @@
           "name": "min",
           "type": "Date",
           "default": null,
-          "description": "Earliest selectable date.",
+          "description": "Earliest selectable date. A `min` before year 1 is raised to 1 January of year 1, where the range starts without one too: HTML's date and month inputs hold no earlier year, so the calendar and typing stop there.",
           "required": false,
           "inherited": true,
           "deprecated": false

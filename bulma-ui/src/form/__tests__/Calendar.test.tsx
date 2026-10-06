@@ -204,6 +204,56 @@ describe('Calendar', () => {
     ]);
   });
 
+  describe('before year 1', () => {
+    // 1 January of year 1 is a Monday, so a Sunday-first grid opens on
+    // 31 December of year 0.
+    const yearZeroCell = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('[role="gridcell"]')).find(
+        c => c.textContent === '31' && c.className.includes('is-other-month')
+      ) as HTMLButtonElement;
+    const firstOfYearOne = (container: HTMLElement) =>
+      Array.from(container.querySelectorAll('[role="gridcell"]')).find(
+        c => c.textContent === '1' && !c.className.includes('is-other-month')
+      ) as HTMLButtonElement;
+
+    it('selects a day in year 1 and disables the days before it', () => {
+      const onSelect = jest.fn();
+      const { container, getByLabelText } = render(
+        <PeriodHarness focusedDate={makeDate(1, 0, 15)} onSelect={onSelect} />
+      );
+      expect(yearZeroCell(container)).toBeDisabled();
+      expect(getByLabelText('Previous month')).toBeDisabled();
+      fireEvent.click(firstOfYearOne(container));
+      expect(onSelect).toHaveBeenCalledWith(makeDate(1, 0, 1));
+    });
+
+    it('keeps keyboard focus from leaving year 1 backwards', () => {
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          focusedDate={makeDate(1, 0, 1)}
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      const grid = container.querySelector('[role="grid"]')!;
+      fireEvent.keyDown(grid, { key: 'ArrowLeft' });
+      fireEvent.keyDown(grid, { key: 'PageUp' });
+      expect(onFocusedDateChange).not.toHaveBeenCalled();
+    });
+
+    it('reads a min in year 0 or a negative year as the start of year 1', () => {
+      for (const min of [makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
+        const { container, getByLabelText, unmount } = render(
+          <PeriodHarness focusedDate={makeDate(1, 0, 15)} min={min} />
+        );
+        expect(yearZeroCell(container)).toBeDisabled();
+        expect(firstOfYearOne(container)).not.toBeDisabled();
+        expect(getByLabelText('Previous month')).toBeDisabled();
+        unmount();
+      }
+    });
+  });
+
   it('shouldDisableDate predicate disables matching cells', () => {
     const onSelect = jest.fn();
     const { container } = render(
@@ -564,6 +614,29 @@ describe('Calendar', () => {
       expect(options.length).toBe(3); // 2030..2032
       expect(container.querySelector('[aria-selected="true"]')).toBeNull();
       expect(scrollIntoViewMock).not.toHaveBeenCalled();
+    });
+
+    it('stops the default range at year 1', () => {
+      const { container } = render(
+        <PeriodHarness focusedDate={makeDate(19, 5, 15)} />
+      );
+      openYearView(container as HTMLElement);
+      const options = container.querySelectorAll('[role="option"]');
+      expect(options[0].textContent).toBe('1');
+      expect(options[options.length - 1].textContent).toBe('119');
+    });
+
+    it('starts at year 1 for a min in year 0 or a negative year', () => {
+      for (const min of [makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
+        const { container, unmount } = render(
+          <PeriodHarness focusedDate={makeDate(19, 5, 15)} min={min} />
+        );
+        openYearView(container as HTMLElement);
+        expect(container.querySelector('[role="option"]')!.textContent).toBe(
+          '1'
+        );
+        unmount();
+      }
     });
 
     it('disables month nav buttons while the year view is open', () => {
@@ -971,6 +1044,24 @@ describe('Calendar month granularity', () => {
     });
   });
 
+  it('stops stepping back at year 1', () => {
+    for (const min of [undefined, makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
+      const onSelect = jest.fn();
+      const { container, getByLabelText, unmount } = render(
+        <PeriodHarness
+          granularity="month"
+          focusedDate={makeDate(1, 5, 15)}
+          min={min}
+          onSelect={onSelect}
+        />
+      );
+      expect(getByLabelText('Previous year')).toBeDisabled();
+      fireEvent.click(monthCell(container, 'January'));
+      expect(onSelect).toHaveBeenCalledWith(makeDate(1, 0, 1));
+      unmount();
+    }
+  });
+
   it('keeps a year below 100 when a month is picked', () => {
     const early = new Date(2024, 5, 15);
     early.setFullYear(19);
@@ -1325,6 +1416,26 @@ describe('Calendar year granularity', () => {
     );
     fireEvent.click(yearOption(container, 22));
     expect((onSelect.mock.calls[0][0] as Date).getFullYear()).toBe(22);
+  });
+
+  it('lists no year before 1', () => {
+    for (const min of [undefined, makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
+      const onSelect = jest.fn();
+      const { container, unmount } = render(
+        <PeriodHarness
+          granularity="year"
+          focusedDate={makeDate(19, 5, 15)}
+          min={min}
+          onSelect={onSelect}
+        />
+      );
+      expect(yearOptions(container)[0].textContent).toBe('1');
+      press(container, 'Home');
+      expect(focusedYearOption(container).textContent).toBe('1');
+      fireEvent.click(yearOption(container, 1));
+      expect(onSelect).toHaveBeenCalledWith(makeDate(1));
+      unmount();
+    }
   });
 
   it('keeps the listed years still while focus moves', () => {

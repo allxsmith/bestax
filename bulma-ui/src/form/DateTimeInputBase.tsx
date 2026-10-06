@@ -28,6 +28,7 @@ import {
   isWithin,
   setTimeOfDay,
   clampDate,
+  floorMin,
   isSameDay,
   makeDate,
 } from './_pickerInternals/dateUtils';
@@ -95,7 +96,12 @@ export interface DateTimeInputBaseProps
   onOpen?: () => void;
   /** Fired when the popover closes. */
   onClose?: () => void;
-  /** Lower bound for the combined date-time. */
+  /**
+   * Lower bound for the combined date-time. A `min` before year 1 is raised
+   * to midnight on 1 January of year 1, where the range starts without one
+   * too: HTML's datetime-local input holds no earlier year, so the calendar,
+   * the time wheels and typing stop there.
+   */
   min?: Date;
   /** Upper bound for the combined date-time. */
   max?: Date;
@@ -275,16 +281,19 @@ export const DateTimeInputBase = forwardRef<
   );
   const value = isControlled ? (controlledValue ?? null) : internalValue;
 
+  // Nothing before year 1 is in range, as in HTML's date inputs.
+  const lowerBound = useMemo(() => floorMin(min), [min]);
+
   const initialFocused = useMemo(
-    () => clampDate(value ?? new Date(), min, max),
+    () => clampDate(value ?? new Date(), lowerBound, max),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
   const [focusedDate, setFocusedDate] = useState<Date>(initialFocused);
   // Re-clamp focusedDate when min/max change so the focused cell stays valid.
   useEffect(() => {
-    setFocusedDate(prev => clampDate(prev, min, max));
-  }, [min, max]);
+    setFocusedDate(prev => clampDate(prev, lowerBound, max));
+  }, [lowerBound, max]);
 
   const defaultFormat: DateFormatOption =
     format ??
@@ -406,21 +415,21 @@ export const DateTimeInputBase = forwardRef<
         minutes: value?.getMinutes() ?? 0,
         seconds: enableSeconds ? (value?.getSeconds() ?? 0) : undefined,
       });
-      if (!isWithin(merged, min, max)) return;
+      if (!isWithin(merged, lowerBound, max)) return;
       commitValue(merged);
       setFocusedDate(d);
     },
-    [value, enableSeconds, min, max, commitValue]
+    [value, enableSeconds, lowerBound, max, commitValue]
   );
 
   const handleTimeChange = useCallback(
     (parts: { hours: number; minutes: number; seconds?: number }) => {
       const base = value ?? focusedDate;
       const next = setTimeOfDay(base, parts);
-      if (!isWithin(next, min, max)) return;
+      if (!isWithin(next, lowerBound, max)) return;
       commitValue(next);
     },
-    [value, focusedDate, min, max, commitValue]
+    [value, focusedDate, lowerBound, max, commitValue]
   );
 
   const tryParse = useCallback(
@@ -463,7 +472,7 @@ export const DateTimeInputBase = forwardRef<
     setText,
     makeBaseDate,
     locale,
-    min,
+    min: lowerBound,
     max,
     isBlocked,
     disabled,
@@ -509,7 +518,7 @@ export const DateTimeInputBase = forwardRef<
             : null;
           commitValue(parsed);
         }}
-        min={min ? toIsoDateTime(min, enableSeconds) : undefined}
+        min={min ? toIsoDateTime(lowerBound, enableSeconds) : undefined}
         max={max ? toIsoDateTime(max, enableSeconds) : undefined}
         disabled={disabled}
         readOnly={readOnly}

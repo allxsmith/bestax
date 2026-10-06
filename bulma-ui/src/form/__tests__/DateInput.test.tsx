@@ -2228,3 +2228,161 @@ describe('DateInput onOpen and onClose', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 });
+
+// HTML's date and month inputs hold no year below 1, so the picker stops there
+// on every path a value can arrive by.
+describe('DateInput before year 1', () => {
+  const lastYear = (handler: jest.Mock) =>
+    (
+      handler.mock.calls[handler.mock.calls.length - 1][0] as Date
+    ).getFullYear();
+  const focusInput = (input: HTMLElement) =>
+    act(() => {
+      input.focus();
+    });
+
+  it('picks a day in year 1 from the calendar and disables the days before', () => {
+    const handler = jest.fn();
+    const { container, getByLabelText } = render(
+      <DateInput inline defaultValue={makeDate(1, 0, 15)} onChange={handler} />
+    );
+    expect(getByLabelText('Previous month')).toBeDisabled();
+    const cells = Array.from(container.querySelectorAll('[role="gridcell"]'));
+    // 1 January of year 1 is a Monday, so the grid opens on 31 December of
+    // year 0.
+    const yearZero = cells.find(
+      c => c.textContent === '31' && c.className.includes('is-other-month')
+    );
+    expect(yearZero).toBeDisabled();
+    fireEvent.click(
+      cells.find(
+        c => c.textContent === '1' && !c.className.includes('is-other-month')
+      )!
+    );
+    expect(handler).toHaveBeenCalledWith(makeDate(1, 0, 1));
+  });
+
+  describe('segmented typing', () => {
+    it('steps into year 1 and no further', () => {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInput defaultValue={makeDate(2, 5, 15)} onChange={handler} />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      focusInput(input);
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(lastYear(handler)).toBe(1);
+      expect(input.value).toBe('0001-06-15');
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(input.value).toBe('0001-06-15');
+    });
+
+    it('commits nothing for a typed year 0 until it reaches year 1', () => {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInput defaultValue={new Date(2024, 5, 15)} onChange={handler} />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      focusInput(input);
+      fireEvent.keyDown(input, { key: '0' });
+      fireEvent.keyDown(input, { key: '0' });
+      fireEvent.keyDown(input, { key: '0' });
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('2024-06-15');
+      fireEvent.keyDown(input, { key: '1' });
+      expect(handler).toHaveBeenCalledTimes(1);
+      expect(input.value).toBe('0001-06-15');
+    });
+
+    it('leaves a value in year 0 only towards year 1', () => {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInput value={makeDate(0, 5, 15)} onChange={handler} />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      focusInput(input);
+      // Down to a negative year is out of range.
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(handler).not.toHaveBeenCalled();
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+      expect(lastYear(handler)).toBe(1);
+    });
+  });
+
+  describe('parsing', () => {
+    const typeAndLeave = (input: HTMLInputElement, text: string) => {
+      fireEvent.change(input, { target: { value: text } });
+      fireEvent.blur(input);
+    };
+
+    it('reads year 1 and rejects year 0 with the default parse', () => {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInputBase openOnFocus={false} onChange={handler} />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      typeAndLeave(input, '0000-06-16');
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('');
+      typeAndLeave(input, '0001-06-16');
+      expect(handler).toHaveBeenCalledWith(makeDate(1, 5, 16));
+    });
+
+    it('rejects a negative year from a custom parse', () => {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInputBase
+          openOnFocus={false}
+          parse={() => makeDate(-1, 5, 16)}
+          onChange={handler}
+        />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      typeAndLeave(input, '16 June 2 BC');
+      expect(handler).not.toHaveBeenCalled();
+      expect(input.value).toBe('');
+    });
+  });
+
+  describe('native input', () => {
+    it.each([
+      ['day', 'date', '0001-01-01'],
+      ['month', 'month', '0001-01'],
+    ] as const)(
+      'gives the %s input a min of year 1 for one before it',
+      (granularity, type, expected) => {
+        for (const min of [makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
+          const { container, unmount } = render(
+            <DateInput granularity={granularity} mobileNative min={min} />
+          );
+          expect(
+            (
+              container.querySelector(
+                `input[type="${type}"]`
+              ) as HTMLInputElement
+            ).min
+          ).toBe(expected);
+          unmount();
+        }
+      }
+    );
+
+    it('reads year 1 back, while the input itself drops year 0 and below', () => {
+      const handler = jest.fn();
+      const { container } = render(
+        <DateInput mobileNative onChange={handler} />
+      );
+      const native = container.querySelector(
+        'input[type="date"]'
+      ) as HTMLInputElement;
+      // HTML has no year 0 or negative year, so the input empties itself.
+      fireEvent.change(native, { target: { value: '0000-03-04' } });
+      fireEvent.change(native, { target: { value: '-0001-03-04' } });
+      expect(native.value).toBe('');
+      expect(handler).not.toHaveBeenCalledWith(expect.any(Date));
+      fireEvent.change(native, { target: { value: '0001-03-04' } });
+      expect(handler).toHaveBeenLastCalledWith(makeDate(1, 2, 4));
+    });
+  });
+});
