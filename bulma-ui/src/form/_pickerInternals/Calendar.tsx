@@ -168,10 +168,11 @@ function nearestEnabled(i: number, disabled: boolean[]): number {
 }
 
 /**
- * The year list's keyboard when it is the selection surface: arrows move a
- * year or a row, Home/End go to the list's ends. Returns the year to start
- * from and the direction to search past disabled years, or `null` for a key
- * the list doesn't handle.
+ * The year list's keyboard, as the selection surface and as navigation:
+ * arrows move a year or a row, Home/End go to the list's ends. Returns the
+ * year to start from and the direction to search past disabled years, or
+ * `null` for a key the list doesn't handle. As navigation no year is
+ * disabled, so only the year is used.
  */
 function yearStep(
   key: string,
@@ -580,19 +581,36 @@ export const Calendar: React.FC<CalendarProps> = ({
   );
 
   const handleYearListKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (!isYearGranularity) {
-        // As navigation, Escape returns to the grid the list was opened from.
-        if (e.key === 'Escape') {
-          e.preventDefault();
-          setView(baseView);
-        }
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (isYearGranularity) {
+        const step = yearStep(e.key, focusedYear, yearList);
+        if (!step) return;
+        e.preventDefault();
+        moveYearFocus(step[0], step[1]);
         return;
       }
-      const step = yearStep(e.key, focusedYear, yearList);
+      // As navigation, Escape returns to the grid the list was opened from.
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setView(baseView);
+        return;
+      }
+      // The other keys move DOM focus from the year that has it and leave
+      // the focused date alone. The list is centred on that date, so moving
+      // it would reflow the list under the keyboard, and it would turn the
+      // grid behind the list before anything is picked. Enter or Space
+      // clicks the year with focus, which picks it.
+      const options = Array.from(
+        e.currentTarget.querySelectorAll<HTMLElement>('[role="option"]')
+      );
+      const from = options.indexOf(e.target as HTMLElement);
+      if (from < 0) return;
+      const step = yearStep(e.key, yearList[from], yearList);
       if (!step) return;
       e.preventDefault();
-      moveYearFocus(step[0], step[1]);
+      // The listed years run one apart, so a year's index is its distance
+      // from the first. A step past either end finds no option.
+      options[step[0] - yearList[0]]?.focus();
     },
     [isYearGranularity, baseView, focusedYear, yearList, moveYearFocus]
   );
@@ -907,7 +925,9 @@ export const Calendar: React.FC<CalendarProps> = ({
                 className={cellCls}
                 onFocus={() => {
                   // Reached by Tab while the focused year is disabled, or by
-                  // pointer: keys move on from here.
+                  // pointer: keys move on from here. As navigation, focusing
+                  // a year by key or pointer commits nothing until it is
+                  // picked.
                   if (isYearGranularity && year !== focusedYear) {
                     onFocusedDateChange(clampDate(makeDate(year), min, max));
                   }
