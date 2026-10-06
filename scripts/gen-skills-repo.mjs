@@ -209,9 +209,11 @@ export const PUBLISH_PATHS = [
  * back.
  *
  * The test sibling pins a hash of the tree built from fixed inputs, next to
- * the OUTPUT_FORMAT it was recorded at. A change that alters the output
- * fails that test until this is raised and the hash pinned again. A change
- * that leaves the output alone, such as one to comments, passes.
+ * the OUTPUT_FORMAT it was recorded at. A change that alters the output for
+ * those inputs fails that test until this is raised and the hash pinned
+ * again, and a change that leaves it alone, such as one to comments, passes.
+ * The test sees only what its inputs reach, so a change that adds a
+ * rendering path adds an input that reaches it.
  */
 export const OUTPUT_FORMAT = 1;
 

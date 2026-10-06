@@ -192,12 +192,14 @@ and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
   content (`CONTENT_PATHS`) plus `OUTPUT_FORMAT`, both in the generator, so the Agent Plugins
   `plugin.json` version rises with each content commit and nobody bumps it by hand. A generator
   change that alters the published output raises `OUTPUT_FORMAT` in the same PR. Its tests pin a
-  hash of the tree built from fixed inputs next to `OUTPUT_FORMAT`, and fail until the two are
-  updated together, while a comment-only change passes. Bump the minor whenever a path leaves
-  `CONTENT_PATHS`, since the count can then fall. The workflow's paths filter is
-  `PUBLISH_PATHS`, the content plus the generator's code. The Claude manifest sets no version,
-  so Claude Code follows commits, and the bestax-mcp pin is read from bestax-mcp's
-  `package.json`.
+  hash of the tree built from fixed inputs next to `OUTPUT_FORMAT`, so a change to the output for
+  those inputs fails until the two are updated together, and a comment-only change passes. They
+  see only the paths those inputs reach, so a new rendering path gets an input of its own. Bump
+  the minor whenever a path leaves `CONTENT_PATHS`, since the count can then fall. The
+  workflow's paths filter is `PUBLISH_PATHS`, the content plus the generator's code. The Claude
+  manifest sets no version, so Claude Code follows commits. The bestax-mcp pin is read from
+  bestax-mcp's `package.json`, and the publish run refuses one npm does not serve
+  (`--require-published`).
 - `plugin/README.md` becomes the repository's README, and it must say everything the plugin
   runs, sends or fetches. Its skill list and the server's launch command and environment
   variables are generated into its `bestax:generated` regions, from the skill index and

@@ -920,7 +920,12 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
 /**
  * Fixed inputs for the output snapshot, written out here in full so the
  * snapshot moves only when the generator does, never with the live skills,
- * manifests or server.json.
+ * manifests or server.json. They reach most rendering paths: skills listed
+ * out of name order, a summary cut at a spaced em dash, one whose first
+ * sentence is too short to stand alone, one with a trailing space and
+ * period, variables with and without a format, references, examples, an
+ * executable file and both README regions. A variable marked required has
+ * no output path, as mcpLaunch refuses it.
  */
 const SNAPSHOT_INPUTS = {
   'plugin/manifest.json': `${JSON.stringify(
@@ -964,6 +969,10 @@ prose outside code blocks and wants forty or more of them.
 
 <!-- bestax:generated mcp-server -->
 <!-- /bestax:generated mcp-server -->
+
+## Privacy Policy
+
+The snapshot plugin sends nothing anywhere.
 `,
   'bestax-mcp/package.json': `${JSON.stringify({
     name: 'snapshot-mcp',
@@ -987,13 +996,18 @@ prose outside code blocks and wants forty or more of them.
         registryType: 'npm',
         identifier: 'snapshot-mcp',
         version: '0.0.0-set-from-release-tag',
+        runtimeHint: 'npx',
         transport: { type: 'stdio' },
         environmentVariables: [
           {
             name: 'SNAPSHOT_FLAG',
-            description: 'A flag the README lists',
+            description: 'A flag the README lists. ',
             format: 'boolean',
             isRequired: false,
+          },
+          {
+            name: 'SNAPSHOT_HOME',
+            description: 'Where the server keeps its cache',
           },
         ],
       },
@@ -1002,19 +1016,41 @@ prose outside code blocks and wants forty or more of them.
   'bestax-mcp/data/skills.json': `${JSON.stringify({
     skills: [
       {
-        name: 'demo',
-        dir: 'demo',
-        description: 'Build a demo page with every layout piece. More detail.',
+        name: 'zeta-forms',
+        dir: 'zeta-forms',
+        description:
+          'Build accessible forms with every field type, validation and help text — inputs, selects and checkboxes. Then more.',
+      },
+      {
+        name: 'alpha-layout',
+        dir: 'alpha-layout',
+        description:
+          'Short start. Then the rest of a description that runs on.',
+      },
+      {
+        name: 'mid-theme',
+        dir: 'mid-theme',
+        description:
+          'Theme an app with CSS variables, dark mode and brand colours . ',
       },
     ],
   })}\n`,
   LICENSE: 'MIT License\n\nCopyright (c) Snapshot Author\n',
   NOTICE: 'Snapshot notice\n',
   'skills/README.md': '# Not shipped\n',
-  'skills/demo/SKILL.md':
-    '---\nname: demo\ndescription: Build a demo page.\n---\n\n# Demo\n',
-  'skills/demo/references/a.md': '# A\n\nA reference.\n',
-  'skills/demo/scripts/check.sh': '#!/bin/sh\necho ok\n',
+  'skills/CLAUDE.md': '# Not shipped either\n',
+  'skills/zeta-forms/SKILL.md':
+    '---\nname: zeta-forms\ndescription: Build forms.\n---\n\n# Forms\n',
+  'skills/zeta-forms/references/api.md': '# API\n\nThe form fields.\n',
+  'skills/zeta-forms/references/deep/nested.md': '# Nested\n',
+  'skills/alpha-layout/SKILL.md':
+    '---\nname: alpha-layout\ndescription: Lay out a page.\n---\n\n# Layout\n',
+  'skills/alpha-layout/examples/page.tsx':
+    'export const Page = () => <main>Hi</main>;\n',
+  'skills/mid-theme/SKILL.md':
+    '---\nname: mid-theme\ndescription: Theme an app.\n---\n\n# Theme\n',
+  'skills/mid-theme/scripts/check.sh': '#!/bin/sh\necho ok\n',
+  'skills/mid-theme/references/css-variables.md': '# Variables\n',
 };
 
 /**
@@ -1024,7 +1060,7 @@ prose outside code blocks and wants forty or more of them.
  */
 const OUTPUT_SNAPSHOT = {
   format: 1,
-  sha256: '931418605f7f951f03ca7874a9219e18f54cc9a35cbbde861f6f52d462293f01',
+  sha256: '23428e497544795ab7107e7843e362d571a0bce1419909d7dc6a75069d51b992',
 };
 
 /**
@@ -1037,7 +1073,7 @@ async function snapshotHash() {
   for (const [rel, text] of Object.entries(SNAPSHOT_INPUTS)) {
     write(root, rel, text);
   }
-  fs.chmodSync(path.join(root, 'skills/demo/scripts/check.sh'), 0o755);
+  fs.chmodSync(path.join(root, 'skills/mid-theme/scripts/check.sh'), 0o755);
   const sources = await readSources(root, { inputCommits: 0 });
   const tree = buildTree({ ...sources, version: '0.0.0' });
   assert.deepEqual(
