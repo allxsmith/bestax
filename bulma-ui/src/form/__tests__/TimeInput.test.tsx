@@ -1167,6 +1167,37 @@ describe('TimeInput launcher icon', () => {
     );
     expect(forced.getByLabelText('Choose time').tagName).toBe('BUTTON');
   });
+
+  it('TimeInputBase gives way to a loading Control it sits in', () => {
+    const loading = render(
+      <Field>
+        <Control isLoading>
+          <TimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(loading.queryByLabelText('Choose time')).toBeNull();
+    loading.unmount();
+
+    const idle = render(
+      <Field>
+        <Control>
+          <TimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(idle.getByLabelText('Choose time').tagName).toBe('BUTTON');
+    idle.unmount();
+
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <TimeInputBase triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose time').tagName).toBe('BUTTON');
+  });
 });
 
 // -------------------------------------------------------------------------

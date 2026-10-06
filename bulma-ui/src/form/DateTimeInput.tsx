@@ -5,7 +5,6 @@ import { Control, ControlBaseProps } from './Control';
 import { DateTimeInputBase, DateTimeInputBaseProps } from './DateTimeInputBase';
 import { useInsideField, useInsideControl } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
-import { useControlLoading } from './controlLoading';
 
 /**
  * Props for the DateTimeInput convenience wrapper. Extends
@@ -133,26 +132,15 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    // Inline mode renders a bare picker with no input, so the Control's
-    // icon-left container has nothing to anchor to. Skip the Control wrap.
-    const rendersControl = !insideControl && !baseProps.inline;
-
-    // The right-side launcher is on by default; suppress it while a loading
-    // spinner (also on the right) shows, unless explicitly set. The spinner is
-    // the Control's rendered here, or else the one this sits in.
-    const outerLoading = useControlLoading();
+    // The base hides its launcher while the Control it sits in is loading,
+    // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <DateTimeInputBase
-        ref={ref}
-        id={controlId}
-        {...baseProps}
-        triggerIcon={
-          baseProps.triggerIcon ?? !(rendersControl ? isLoading : outerLoading)
-        }
-      />
+      <DateTimeInputBase ref={ref} id={controlId} {...baseProps} />
     );
 
-    if (rendersControl) {
+    // Inline mode renders a bare picker with no input, so the Control's
+    // icon-left container has nothing to anchor to. Skip the Control wrap.
+    if (!insideControl && !baseProps.inline) {
       content = (
         <Control
           iconLeft={iconLeft}

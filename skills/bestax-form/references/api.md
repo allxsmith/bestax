@@ -93,10 +93,12 @@ File input with `label`, `message`, color/size, and icon support.
 `DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
 composition like the other convenience inputs, with picker UIs (native with custom fallback).
 
-Each has a launcher button at the right edge (`triggerIcon`) that gives way to a loading spinner
-there, whether the convenience input's own `isLoading` draws it or a `Control` it sits in does.
-Inside your own `Control`, put `isLoading` on that `Control`: the input renders no `Control` of
-its own there, so its own `isLoading` draws nothing.
+All six have a launcher button at the right edge (`triggerIcon`) that gives way to the loading
+spinner of the `Control` they sit in, which shares that edge. A convenience input sits in the
+`Control` it renders for its own `isLoading`, unless it is inside your own `Control`; a `*Base`
+variant only ever sits in yours. Inside your own `Control`, put `isLoading` on that `Control`: the
+convenience input renders no `Control` of its own there, so its own `isLoading` draws nothing.
+Passing `triggerIcon` explicitly overrides this.
 
 ```tsx
 <Field label="Date">

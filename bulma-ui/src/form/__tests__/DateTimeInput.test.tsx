@@ -821,6 +821,39 @@ describe('DateTimeInput launcher icon', () => {
       'BUTTON'
     );
   });
+
+  it('DateTimeInputBase gives way to a loading Control it sits in', () => {
+    const loading = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(loading.queryByLabelText('Choose date and time')).toBeNull();
+    loading.unmount();
+
+    const idle = render(
+      <Field>
+        <Control>
+          <DateTimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(idle.getByLabelText('Choose date and time').tagName).toBe('BUTTON');
+    idle.unmount();
+
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInputBase triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose date and time').tagName).toBe(
+      'BUTTON'
+    );
+  });
 });
 
 // -------------------------------------------------------------------------

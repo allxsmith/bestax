@@ -36,6 +36,7 @@ import { TimeWheels } from './_pickerInternals/TimeWheels';
 import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
+import { useControlLoading } from './controlLoading';
 import { Icon } from '../elements/Icon';
 
 // The year is padded to four digits, as `datetime-local` requires.
@@ -181,7 +182,12 @@ export interface DateTimeInputBaseProps
   unselectableTimes?: (d: Date) => boolean;
   /** Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide. */
   iconLeftName?: string;
-  /** Show a clickable launcher button on the right that toggles the popover. Default `true`. */
+  /**
+   * Show a clickable launcher button on the right that toggles the popover.
+   * Hidden by default while a `Control` it sits in shows its `isLoading`
+   * spinner, which shares that right edge.
+   * @defaultValue true
+   */
   triggerIcon?: boolean;
   /** Glyph for the right launcher button. */
   triggerIconName?: string;
@@ -253,13 +259,16 @@ export const DateTimeInputBase = forwardRef<
     onKeyDown,
     onBlur,
     iconLeftName: _iconLeftName,
-    triggerIcon = true,
+    triggerIcon: triggerIconProp,
     triggerIconName = 'chevron-down',
     audioTick = false,
     haptics = false,
     labels,
     ...rest
   } = props;
+  // The launcher gives way to the loading spinner of a Control this sits in.
+  const controlLoading = useControlLoading();
+  const triggerIcon = triggerIconProp ?? !controlLoading;
   const t = mergeLabels(labels);
 
   // Platform-appropriate feedback routing for the time wheel: on iOS (no

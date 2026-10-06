@@ -1,8 +1,9 @@
 import { createContext, useContext } from 'react';
 
 // Whether the nearest enclosing `Control` shows its `isLoading` spinner. The
-// picker inputs read it so their right-side launcher gives way to a spinner
-// drawn by a `Control` they sit in, which they render none of themselves.
+// picker bases read it so their right-side launcher gives way to that
+// spinner, which sits at the same edge, whether the `Control` is the one a
+// convenience input renders or one the caller wrapped around the input.
 // Kept apart from `FormContext`, whose contexts only report whether a `Field`
 // or `Control` is present. Internal; not part of the public API.
 const ControlLoadingContext = createContext(false);

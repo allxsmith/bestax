@@ -1025,6 +1025,37 @@ describe('DateInput launcher icon', () => {
     );
     expect(forced.getByLabelText('Choose date').tagName).toBe('BUTTON');
   });
+
+  it('DateInputBase gives way to a loading Control it sits in', () => {
+    const loading = render(
+      <Field>
+        <Control isLoading>
+          <DateInputBase />
+        </Control>
+      </Field>
+    );
+    expect(loading.queryByLabelText('Choose date')).toBeNull();
+    loading.unmount();
+
+    const idle = render(
+      <Field>
+        <Control>
+          <DateInputBase />
+        </Control>
+      </Field>
+    );
+    expect(idle.getByLabelText('Choose date').tagName).toBe('BUTTON');
+    idle.unmount();
+
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <DateInputBase triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose date').tagName).toBe('BUTTON');
+  });
 });
 
 describe('DateInput native input value handling', () => {
