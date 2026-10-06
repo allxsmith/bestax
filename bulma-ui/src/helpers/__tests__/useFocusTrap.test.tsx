@@ -178,8 +178,9 @@ describe('useFocusTrap', () => {
   });
 
   // The container can mount in a later render than the one that turns the
-  // trap on, such as a panel waiting for a Portal target held in state.
-  describe('a container that mounts after it turns on', () => {
+  // trap on, such as a panel waiting for a Portal target held in state, and
+  // can leave or be replaced while the trap stays on.
+  describe('a container that comes and goes while it is on', () => {
     let renders = 0;
     beforeEach(() => {
       renders = 0;
@@ -274,10 +275,56 @@ describe('useFocusTrap', () => {
         expect(pressTab().defaultPrevented).toBe(true);
         expect(button('First')).toHaveFocus();
 
-        // Focus goes back to the element that had it before the first
-        // container, not to wherever it was between the two.
         rerender(<Late version={1} active={false} />);
         expect(button('Opener')).toHaveFocus();
+      }
+    );
+
+    it('lets go and hands focus back when its container leaves', () => {
+      const { rerender } = render(<Late shown={false} />);
+      act(() => button('Opener').focus());
+      rerender(<Late />);
+      expect(button('First')).toHaveFocus();
+
+      renders = 0;
+      rerender(<Late shown={false} />);
+      expect(button('Opener')).toHaveFocus();
+      // One more render to let go, then nothing more.
+      expect(renders).toBe(2);
+      rerender(<Late shown={false} />);
+      expect(renders).toBe(3);
+    });
+
+    // Each render mounts a new container here, and the render the trap asks
+    // for attaches before the trap looks again, so it settles.
+    it.each(['a key that changes', 'a component type made'])(
+      'settles on a container remounted by %s on every render',
+      how => {
+        const Remounting: React.FC<{ step: number }> = () => {
+          if (++renders > 20) throw new Error('The trap keeps re-rendering');
+          const ref = useRef<HTMLDivElement>(null);
+          useFocusTrap(ref);
+          const panel = (key?: number) => (
+            <div key={key} ref={ref} tabIndex={-1} data-testid="trap">
+              <button>First</button>
+              <button>Last</button>
+            </div>
+          );
+          if (how === 'a key that changes') return panel(renders);
+          const Panel = () => panel();
+          // eslint-disable-next-line react-hooks/static-components -- remounts on purpose
+          return <Panel />;
+        };
+
+        const { rerender } = render(<Remounting step={0} />);
+        expect(renders).toBe(1);
+        rerender(<Remounting step={1} />);
+        expect(renders).toBe(3);
+        rerender(<Remounting step={2} />);
+        expect(renders).toBe(5);
+        expect(button('First')).toHaveFocus();
+        act(() => button('Last').focus());
+        expect(pressTab().defaultPrevented).toBe(true);
       }
     );
   });

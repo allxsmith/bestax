@@ -84,7 +84,7 @@ useFocusTrap(paletteRef, { active: open, initialFocusRef: searchRef });
 
 ### Where focus goes back to
 
-`restoreFocus` decides where focus lands when the trap turns off, whether because `active` went `false` or because the component unmounted.
+`restoreFocus` decides where focus lands when the trap turns off, whether because `active` went `false`, the container left the page or the component unmounted.
 
 - `true` (the default) returns it to the element that had focus when the trap turned on.
 - A ref sends it to that element instead. Prefer this for a panel opened from a button: some browsers don't focus a button when it is clicked, and content that focuses itself as it mounts (an `autoFocus` input) takes focus before the trap can see where it came from.

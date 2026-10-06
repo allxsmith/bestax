@@ -410,8 +410,9 @@ export interface UseFocusTrapOptions {
  * The trap looks at `containerRef` again each time the component calling it
  * renders. A container that mounts after the trap turns on, such as a panel
  * waiting for a `Portal` target held in state, has it attach once that
- * component renders with the container in the DOM, and one that replaces the
- * container it holds has it move over, as it would turning off and on again.
+ * component renders with the container in the DOM. When the container leaves
+ * or is replaced, the trap lets go of it as it would turning off, handing
+ * focus back, and attaches to the next one.
  * A child that mounts the container in a render of its own (from its own
  * state, or as a `Suspense` boundary resolves) goes unseen until the
  * component calling the hook renders again. The trap waits for hydration, so
@@ -441,8 +442,8 @@ export function useFocusTrap(
   const hydrated = useIsHydrated();
   // The container the trap is attached to, or `null` while it has none.
   const heldRef = useRef<HTMLElement | null>(null);
-  // Bumped to run the trap again for a container that arrived later.
-  const [arrivals, setArrivals] = useState(0);
+  // Bumped to run the trap again when the container in the ref changes.
+  const [refChanges, setRefChanges] = useState(0);
 
   useEffect(() => {
     heldRef.current = null;
@@ -530,20 +531,27 @@ export function useFocusTrap(
         target.focus();
       }
     };
-  }, [active, hydrated, containerRef, initialFocusRef, restoreFocus, arrivals]);
+  }, [
+    active,
+    hydrated,
+    containerRef,
+    initialFocusRef,
+    restoreFocus,
+    refChanges,
+  ]);
 
-  // Nothing says when a ref is set, so after every render, a container the
-  // trap should hold and doesn't (one that mounted after it turned on, or
-  // replaced the one it held) runs it again. Effects run in order, so
-  // `heldRef` already reflects this render. Only a container arriving
-  // sets state: an empty ref sets none, so a trap whose container never
-  // mounts costs no render, and one whose container leaves stays as it is
-  // until another comes.
+  // Nothing says when a ref is set, so after every render, a ref that no
+  // longer matches what the trap holds (a container that mounted, left or was
+  // replaced) runs it again. Effects run in order, so whenever the effect
+  // above ran in this commit, it read the ref just before this does, and a
+  // mismatch means the ref changed in a render it didn't run for. The render
+  // a bump asks for runs it, so the two match and the trap settles. An empty
+  // ref matches a trap holding nothing, so a container that never mounts
+  // costs no render.
   // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose
   useEffect(() => {
-    const container = containerRef.current;
-    if (active && hydrated && container && container !== heldRef.current) {
-      setArrivals(n => n + 1);
+    if (active && hydrated && containerRef.current !== heldRef.current) {
+      setRefChanges(n => n + 1);
     }
   });
 }
