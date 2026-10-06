@@ -263,6 +263,33 @@ overrides:
   # protected consumers already on 5.x, and it cannot express "do not upgrade".
   # Prune once Docusaurus requires >=5.2.6 itself.
   'webpack-dev-server@5': '>=5.2.6 <6'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched proxy-addr (transitive via bestax-mcp>@modelcontextprotocol/sdk
+  # >express) for the critical IP spoofing advisory GHSA-jqcg-44mw-7w3h, fixed in
+  # 2.0.8. express asks for ~2.0.7, so this stays inside its range. 2.0.8 is past
+  # the cooldown, so no exclude entry is needed. Prune once express resolves to
+  # >=2.0.8 without the force.
+  'proxy-addr@<2.0.8': '>=2.0.8'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched tinypool (transitive via @docusaurus/core) for the critical
+  # prototype pollution advisories GHSA-5gmw-xhrv-c9v3 and the run() follow-up,
+  # fixed in 2.1.2. Docusaurus asks for the 1.x line, so this crosses a major
+  # inside the docs build. The docs build in CI is the check that it still works.
+  # If it breaks, replace this with a dated auditConfig.ignoreGhsas entry: the
+  # gadget needs attacker-controlled worker options, and the docs build passes
+  # only its own. Past the cooldown, so no exclude entry is needed.
+  'tinypool@<2.1.2': '>=2.1.2'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched source-map-js (transitive via vite and Docusaurus >postcss) for
+  # the high advisory GHSA-68fv-2mgg-jv7q, fixed in 1.2.2 on the 1.x line that
+  # postcss asks for. Past the cooldown. Prune once postcss resolves to >=1.2.2.
+  'source-map-js@<1.2.2': '>=1.2.2'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched compression (transitive via the Docusaurus dev server's
+  # webpack-dev-server, dev-only, never shipped) for the high advisory
+  # GHSA-vc2v-76pw-4v95, fixed in 1.8.2. Past the cooldown. Prune once
+  # webpack-dev-server resolves to >=1.8.2 without the force.
+  'compression@<1.8.2': '>=1.8.2'
 
 # --- Audit exceptions (no patched release exists) ---
 
