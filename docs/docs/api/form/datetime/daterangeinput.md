@@ -122,7 +122,7 @@ function Weekdays() {
 
 ### Typing the Dates
 
-Each input has the segmented entry `DateInput` has. With `openOnFocus={false}` the inputs are for typing, and the launcher or `↓` opens the calendar. An empty end starts from the start date, so you only type what differs.
+Each input has the segmented entry `DateInput` has. With `openOnFocus={false}` the inputs are for typing, `Tab` moves from the start input to the end input, and the launcher or `↓` opens the calendar. An empty end starts from the start date, so you only type what differs.
 
 ```tsx live
 <DateRangeInput
@@ -200,7 +200,7 @@ Inside a `Control`, `DateRangeInput` renders no `Control` of its own, so the pro
 
 ### On the inputs
 
-Each input takes the keys of [`DateInput`'s segmented entry](./dateinput.md#on-the-input-segmented-entry). `Tab` moves from the start input to the end input and on to the launcher. Moving between the inputs leaves the popover as it is; arriving in the field opens it under `openOnFocus`, and so does a click on either input.
+Each input takes the keys of [`DateInput`'s segmented entry](./dateinput.md#on-the-input-segmented-entry). Moving between the inputs leaves the popover as it is; arriving in the field opens it under `openOnFocus`, and so does a click on either input.
 
 ### On the calendar
 
