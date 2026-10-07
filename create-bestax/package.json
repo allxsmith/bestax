@@ -72,6 +72,7 @@
     "@types/prompts": "^2.4.9",
     "@types/wait-on": "^5.3.4",
     "jest": "^30.2.0",
+    "semver": "^7.8.5",
     "ts-jest": "^29.4.12",
     "typescript": "^6.0.3",
     "wait-on": "^9.1.0"
