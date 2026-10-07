@@ -25,6 +25,37 @@ $tabs-content-padding: 1rem !default;
   );
 }
 
+// Keyboard focus ring for Tabs.Tab. The focusable element is the
+// <li role="tab">, but the <a> inside it is the tab you see: a ring on the
+// <li> is clipped by the overflow of .tabs and, in toggle tabs, painted over
+// by the next tab. So the ring is drawn inside the <a>, with Bulma's focus
+// colour, style and width. Plain links in a Tabs.Item have no role="tab"
+// and keep Bulma's own a:focus-visible ring.
+.#{iv.$class-prefix}tabs li[role="tab"] {
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible > a {
+    outline-color: hsl(cv.getVar("focus-h"), cv.getVar("focus-s"), cv.getVar("focus-l"));
+    outline-style: cv.getVar("focus-style");
+    outline-width: cv.getVar("focus-width");
+    outline-offset: calc(-1 * #{cv.getVar("focus-width")});
+  }
+}
+
+// A selected toggle tab is filled with the link colour, which the focus
+// colour matches by default, so its ring takes the tab's text colour
+// (currentColor, which Bulma sets from its toggle tab variables) and sits one
+// ring width further in, keeping a band of the fill outside it to set it off
+// from the page around the tab.
+.#{iv.$class-prefix}tabs.#{iv.$class-prefix}is-toggle
+  li[role="tab"].#{iv.$class-prefix}is-active:focus-visible
+  > a {
+  outline-color: currentColor;
+  outline-offset: calc(-2 * #{cv.getVar("focus-width")});
+}
+
 // Content item visibility (works for both horizontal and vertical)
 .#{iv.$class-prefix}tabs-content-item {
   display: none;
