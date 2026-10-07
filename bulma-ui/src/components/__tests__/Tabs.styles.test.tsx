@@ -90,6 +90,28 @@ describe('Tabs focus ring', () => {
     expect(a.outlineOffset).toBe('calc(-1 * var(--bulma-focus-width))');
   });
 
+  it('dims a disabled tab and keeps the pointer off its link', () => {
+    render(
+      <Tabs>
+        <Tabs.List>
+          <Tabs.Tab index={0}>One</Tabs.Tab>
+          <Tabs.Tab index={1} disabled>
+            Two
+          </Tabs.Tab>
+        </Tabs.List>
+      </Tabs>
+    );
+    const a = getComputedStyle(link(tab('Two')));
+    expect(getComputedStyle(tab('Two')).cursor).toBe('not-allowed');
+    expect(a.opacity).toBe('0.5');
+    // Hover and clicks fall through to the <li>, so Bulma's hover colours
+    // never light up a tab that can't be picked.
+    expect(a.pointerEvents).toBe('none');
+    expect(getComputedStyle(tab('One')).cursor).not.toBe('not-allowed');
+    expect(getComputedStyle(link(tab('One'))).opacity).not.toBe('0.5');
+    expect(getComputedStyle(link(tab('One'))).pointerEvents).not.toBe('none');
+  });
+
   it('leaves the links of a Tabs.Item navigation to Bulma', () => {
     render(
       <Tabs>

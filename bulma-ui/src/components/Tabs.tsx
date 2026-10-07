@@ -67,9 +67,19 @@ function useRegistry<T>(): [T[], (record: T) => () => void] {
 }
 
 /**
- * The tab a key press moves focus to, found among the sibling tabs in the
- * DOM, skipping disabled ones and wrapping at either end. `undefined` for a
- * key the tab list does not handle, or when no enabled tab is left to go to.
+ * The list a tab belongs to: its `role="tablist"` ancestor, so an element
+ * wrapped around a tab doesn't cut it off from the others, or its parent when
+ * it sits outside a tab list.
+ */
+function tabListOf(tab: HTMLElement): HTMLElement {
+  return (tab.closest('[role="tablist"]') ?? tab.parentElement) as HTMLElement;
+}
+
+/**
+ * The tab a key press moves focus to, found among the tabs of the same list
+ * in DOM order, skipping disabled ones and wrapping at either end.
+ * `undefined` for a key the tab list does not handle, or when no enabled tab
+ * is left to go to.
  */
 function findTargetTab(
   current: HTMLElement,
@@ -77,8 +87,8 @@ function findTargetTab(
   vertical: boolean
 ): HTMLElement | undefined {
   const tabs = Array.from(
-    (current.parentElement as HTMLElement).children
-  ).filter(el => el.getAttribute('role') === 'tab') as HTMLElement[];
+    tabListOf(current).querySelectorAll<HTMLElement>('[role="tab"]')
+  );
   const isEnabled = (el: HTMLElement) =>
     el.getAttribute('aria-disabled') !== 'true';
 
@@ -254,10 +264,14 @@ const TabsComponent: React.FC<TabsProps> = ({
   // the list the stop follows it, so Tab and Shift+Tab leave the list from
   // whichever tab has focus; once focus leaves, the stop is the selected tab
   // again. A disabled tab never holds it, and when the selected tab is
-  // disabled or missing the first enabled tab does, so the list can always be
-  // reached. Before the tabs register (the server render and the first client
-  // render), the selected tab holds it.
-  const enabledTabs = tabs.filter(t => !t.disabled);
+  // disabled or missing the enabled tab with the lowest index does, so the
+  // list can always be reached. Before the tabs register (the server render
+  // and the first client render), the selected tab holds it. The registry is
+  // in the order the tabs last registered, which a tab changing its
+  // `disabled` or `id` reshuffles, hence the sort.
+  const enabledTabs = tabs
+    .filter(t => !t.disabled)
+    .sort((a, b) => a.index - b.index);
   const canHoldStop = (index: number | null) =>
     enabledTabs.some(t => t.index === index);
   let tabStop: number | null;
@@ -436,7 +450,8 @@ export interface TabProps extends Omit<
   /**
    * Disables the tab. A disabled tab is marked `aria-disabled`, cannot be
    * activated, is skipped by the arrow keys, Home and End, and never holds
-   * the tab list's tab stop.
+   * the tab list's tab stop. The bestax extras styles also dim it and turn
+   * off its hover.
    */
   disabled?: boolean;
   /** Icon name for the tab. */
@@ -540,8 +555,9 @@ export const Tab: React.FC<TabProps> = ({
 
   const handleBlur = (e: React.FocusEvent<HTMLLIElement>) => {
     onBlur?.(e);
-    const list = e.currentTarget.parentElement as HTMLElement;
-    if (!list.contains(e.relatedTarget)) ctx?.setFocusedTab(null);
+    if (!tabListOf(e.currentTarget).contains(e.relatedTarget)) {
+      ctx?.setFocusedTab(null);
+    }
   };
 
   return (

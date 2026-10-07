@@ -56,6 +56,19 @@ $tabs-content-padding: 1rem !default;
   outline-offset: calc(-2 * #{cv.getVar("focus-width")});
 }
 
+// A disabled Tabs.Tab is marked aria-disabled and skipped by the keyboard,
+// so it looks disabled too, the way bestax's disabled checkboxes and radios
+// do. Its <a> takes no pointer events, so Bulma's hover colours never light
+// it up and the not-allowed cursor comes from the <li> underneath.
+.#{iv.$class-prefix}tabs li[role="tab"][aria-disabled="true"] {
+  cursor: not-allowed;
+
+  > a {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+}
+
 // Content item visibility (works for both horizontal and vertical)
 .#{iv.$class-prefix}tabs-content-item {
   display: none;

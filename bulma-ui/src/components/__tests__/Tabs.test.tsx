@@ -1107,6 +1107,29 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
       expect(tabIndexes()).toEqual(['0', '-1', '-1', '-1']);
     });
 
+    it('falls back in tab order, not in the order the tabs last registered', () => {
+      // Enabling Two re-runs only its registration, which used to move it
+      // behind Three in the registry and hand Three the fallback stop.
+      const ui = (loading: boolean) => (
+        <Tabs value={0}>
+          <Tabs.List>
+            <Tabs.Tab index={0} disabled>
+              One
+            </Tabs.Tab>
+            <Tabs.Tab index={1} disabled={loading}>
+              Two
+            </Tabs.Tab>
+            <Tabs.Tab index={2}>Three</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      const { rerender } = render(ui(true));
+      expect(tab('Three')).toHaveAttribute('tabindex', '0');
+      rerender(ui(false));
+      expect(tab('Two')).toHaveAttribute('tabindex', '0');
+      expect(tab('Three')).toHaveAttribute('tabindex', '-1');
+    });
+
     it('puts the stop on the selected tab in server-rendered markup', () => {
       const html = renderToStaticMarkup(
         <Tabs defaultValue={1}>
@@ -1211,6 +1234,32 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
       expect(key(tab('One'), 'ArrowRight', { ctrlKey: true })).toBe(true);
       expect(key(tab('One'), 'ArrowRight', { metaKey: true })).toBe(true);
       expect(key(tab('One'), 'Enter', { metaKey: true })).toBe(true);
+      expect(tab('One')).toHaveFocus();
+    });
+
+    it('moves between tabs that each sit in a wrapper of their own', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <span>
+              <Tabs.Tab index={0}>One</Tabs.Tab>
+            </span>
+            <span>
+              <Tabs.Tab index={1}>Two</Tabs.Tab>
+            </span>
+          </Tabs.List>
+        </Tabs>
+      );
+      focus(tab('One'));
+      key(tab('One'), 'ArrowRight');
+      expect(tab('Two')).toHaveFocus();
+      // Moving between the wrapped tabs stays inside the list, so the stop
+      // follows focus rather than snapping back to the selected tab.
+      expect(tab('Two')).toHaveAttribute('tabindex', '0');
+      expect(tab('One')).toHaveAttribute('tabindex', '-1');
+      key(tab('Two'), 'End');
+      expect(tab('Two')).toHaveFocus();
+      key(tab('Two'), 'Home');
       expect(tab('One')).toHaveFocus();
     });
 
