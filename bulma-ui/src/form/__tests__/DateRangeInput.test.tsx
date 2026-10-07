@@ -504,6 +504,82 @@ describe('DateRangeInput', () => {
     });
   });
 
+  describe('presses on the field around the inputs', () => {
+    // jsdom lays nothing out, so each input gets a box: the start spans
+    // 10 to 100 and the end 120 to 210, which puts the middle at 110.
+    const layOut = () => {
+      const box = (left: number, right: number) =>
+        ({ left, right, top: 0, bottom: 30 }) as DOMRect;
+      jest
+        .spyOn(startInput(), 'getBoundingClientRect')
+        .mockReturnValue(box(10, 100));
+      jest
+        .spyOn(endInput(), 'getBoundingClientRect')
+        .mockReturnValue(box(120, 210));
+    };
+    const field = () =>
+      document.querySelector<HTMLElement>('.daterangeinput-field')!;
+    const separator = () =>
+      document.querySelector<HTMLElement>('.daterangeinput-separator')!;
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('go to the nearer input, as a press on it would', () => {
+      render(<DateRangeInput openOnFocus={false} />);
+      layOut();
+      expect(fireEvent.mouseDown(field(), { clientX: 2 })).toBe(false);
+      expect(startInput()).toHaveFocus();
+      fireEvent.mouseDown(separator(), { clientX: 112 });
+      expect(endInput()).toHaveFocus();
+      fireEvent.mouseDown(separator(), { clientX: 108 });
+      expect(startInput()).toHaveFocus();
+      fireEvent.mouseDown(field(), { clientX: 215 });
+      expect(endInput()).toHaveFocus();
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+
+    it('open the popover under openOnFocus, from the other input too', () => {
+      render(<DateRangeInput />);
+      layOut();
+      act(() => {
+        endInput().focus();
+      });
+      act(() => {
+        fireEvent.keyDown(document, { key: 'Escape' });
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(endInput()).toHaveFocus();
+      act(() => {
+        fireEvent.mouseDown(field(), { clientX: 2 });
+      });
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('leave a press on an input, a secondary button or a disabled field alone', () => {
+      const { rerender } = render(<DateRangeInput openOnFocus={false} />);
+      layOut();
+      expect(fireEvent.mouseDown(startInput(), { clientX: 50 })).toBe(true);
+      expect(fireEvent.mouseDown(field(), { clientX: 2, button: 2 })).toBe(
+        true
+      );
+      expect(startInput()).not.toHaveFocus();
+      rerender(<DateRangeInput openOnFocus={false} disabled />);
+      expect(fireEvent.mouseDown(field(), { clientX: 2 })).toBe(true);
+      expect(startInput()).not.toHaveFocus();
+    });
+
+    it('focus a read-only field without opening it', () => {
+      render(<DateRangeInput readOnly />);
+      layOut();
+      act(() => {
+        fireEvent.mouseDown(field(), { clientX: 215 });
+      });
+      expect(endInput()).toHaveFocus();
+      expect(screen.queryByRole('dialog')).toBeNull();
+    });
+  });
+
   describe('typing', () => {
     const typeInto = (input: HTMLInputElement, keys: string) => {
       act(() => {

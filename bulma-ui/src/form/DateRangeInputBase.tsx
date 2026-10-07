@@ -671,6 +671,23 @@ export const DateRangeInputBase = forwardRef<
 
   const canOpen = !!popover && !disabled && !readOnly;
   const inputReadOnly = !!readOnly || !editable;
+
+  // The field reads as one text box, so a press on it that misses both
+  // inputs, on its padding, the gap or the separator, goes to the nearer
+  // input and does what a press on that input does.
+  const handleFieldMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const startInput = startRef.current as HTMLInputElement;
+    const endInput = endRef.current as HTMLInputElement;
+    if (disabled || e.button !== 0) return;
+    if (e.target === startInput || e.target === endInput) return;
+    e.preventDefault();
+    const middle =
+      (startInput.getBoundingClientRect().right +
+        endInput.getBoundingClientRect().left) /
+      2;
+    (e.clientX < middle ? startInput : endInput).focus();
+    if (openOnFocus && canOpen) requestOpen(true);
+  };
   const comboboxProps = {
     type: 'text',
     role: 'combobox',
@@ -694,7 +711,7 @@ export const DateRangeInputBase = forwardRef<
       onFocus={handleFocus}
       onFocusCapture={handleFocusCapture}
     >
-      <div className={fieldClass}>
+      <div className={fieldClass} onMouseDown={handleFieldMouseDown}>
         <input
           {...comboboxProps}
           ref={combinedRef}
