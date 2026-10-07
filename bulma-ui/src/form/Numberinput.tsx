@@ -75,9 +75,9 @@ export interface NumberinputProps
   /**
    * Renders the plusminus controls without a `.field` row of their own, so
    * they join the row of a `Field` with `hasAddons` or `grouped` they sit
-   * in. On by default directly inside a `Field` and off elsewhere, including
-   * inside a `Control`: a `Control` stacks its children, so there the
-   * controls keep their own row.
+   * in. On by default inside a `Field`, unless a `Control` is anywhere above
+   * it: a `Control` stacks its children, so there the controls keep their
+   * own row.
    * @defaultValue auto
    */
   bare?: boolean;
@@ -178,7 +178,8 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
   ) => {
     const insideField = useInsideField();
     // Bare controls join their parent's row, which a `.control` does not lay
-    // out, so inside one they keep their own.
+    // out. `useInsideControl()` is true anywhere below a `Control`, even past
+    // a `Field` nested in it, so there they keep their own row as well.
     const insideControl = useInsideControl();
     const effectiveBare = bare ?? (insideField && !insideControl);
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
