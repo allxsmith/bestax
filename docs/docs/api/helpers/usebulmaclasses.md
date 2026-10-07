@@ -674,6 +674,8 @@ Without `overflowY` the box would grow to fit the list, because an aspect ratio 
 
 ### Overlay
 
+`overlay` is `position: absolute` with `top`, `right`, `bottom` and `left` at 0, so it covers the nearest positioned ancestor. The [position](#position) helpers set `position` with `!important`, so a `pos` or `relative` beside `overlay` replaces the `absolute` and keeps the zero offsets. `overlay pos="fixed"` covers the viewport instead. `sticky`, `relative` and `static` put the element back in the normal flow, where it covers nothing, and a sticky one sticks at every edge of its scroll container.
+
 Show an overlay (toggle with button click):
 
 ```tsx
@@ -779,7 +781,7 @@ Show containers with and without clearfix to demonstrate the importance of clear
 
 ### Position
 
-`pos` sets CSS `position`: `absolute`, `fixed`, `relative`, `static` or `sticky`. It is named `pos` because several components already have a `position` prop of their own, for where they place a popup or a toast. `relative` is the older shortcut for `pos="relative"` and still works; when both are set, `pos` wins. Beside `overlay`, which sets the offsets to 0, see the helpers guide's [Overlay](../../guides/helpers/other.md#overlay) section.
+`pos` sets CSS `position`: `absolute`, `fixed`, `relative`, `static` or `sticky`. It is named `pos` because several components already have a `position` prop of their own, for where they place a popup or a toast. `relative` is the older shortcut for `pos="relative"` and still works; when both are set, `pos` wins. Beside `overlay`, a `pos` or `relative` replaces the overlay's `absolute` and keeps its zero offsets; see [Overlay](#overlay).
 
 Show a container with relative positioning that provides context for an absolutely positioned child. The helpers set `position` and nothing else, so the child keeps its `top` and `right` offsets inline:
 

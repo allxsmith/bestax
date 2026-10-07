@@ -1,5 +1,5 @@
-// The `overlay` and `pos` TSDoc and the helpers guide say what the two do
-// together, and that rests on Bulma's cascade: `.is-overlay` sets `position:
+// The `overlay` and `pos` TSDoc and the useBulmaClasses API page say what the
+// two do together, and that rests on Bulma's cascade: `.is-overlay` sets `position:
 // absolute` and zeroes the offsets without `!important`, while the position
 // helpers set `position` with it and no offset. jsdom resolves no cascade, so this reads the
 // declarations out of the stylesheets instead, so that a Bulma release that
