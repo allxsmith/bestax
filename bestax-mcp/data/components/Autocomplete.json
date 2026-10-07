@@ -47,14 +47,14 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Fruit\">\n      <Field.Body>\n        <Field>\n          <Autocomplete\n            data={['Apple', 'Banana', 'Cherry']}\n            placeholder=\"Search fruit...\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Fruit\" labelProps={{ htmlFor: 'fruit-field' }}>\n      <Field.Body>\n        <Field>\n          <Autocomplete\n            id=\"fruit-field\"\n            data={['Apple', 'Banana', 'Cherry']}\n            placeholder=\"Search fruit...\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Fruit\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"search\">\n            <Autocomplete\n              data={['Apple', 'Banana', 'Cherry']}\n              placeholder=\"Search fruit...\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Fruit\"\n      labelProps={{ htmlFor: 'fruit-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"search\">\n            <Autocomplete\n              id=\"fruit-field-control\"\n              data={['Apple', 'Banana', 'Cherry']}\n              placeholder=\"Search fruit...\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- Uses `role=\"combobox\"` with `aria-expanded`\n- Has `aria-haspopup=\"listbox\"` and `aria-autocomplete=\"list\"`\n- Dropdown items use `role=\"option\"` with `aria-selected`\n- Disabled items have `aria-disabled`\n- The `clearable` clear button is a native button named \"Clear\": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it\n- Full keyboard navigation support",
+  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it. Inside a labeled `Field`, that `Field`'s label names the input the same way.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- Uses `role=\"combobox\"` with `aria-expanded`\n- Has `aria-haspopup=\"listbox\"` and `aria-autocomplete=\"list\"`\n- Dropdown items use `role=\"option\"` with `aria-selected`\n- Disabled items have `aria-disabled`\n- The `clearable` clear button is a native button named \"Clear\": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it\n- Full keyboard navigation support",
   "related": ["Input", "Select", "Taginput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-autocomplete",
   "summary": "The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.",
@@ -71,7 +71,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
           "required": false,
           "inherited": false,
           "deprecated": false

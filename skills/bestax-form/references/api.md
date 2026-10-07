@@ -8,16 +8,16 @@ via `useBulmaClasses`.
 
 Container and layout. Compound parts: `Field.Label`, `Field.Body`.
 
-| Prop                    | Type                                              | Notes                                                                                                                                  |
-| ----------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `horizontal`            | `boolean`                                         | Label + control side by side. Auto-wraps children in `Field.Body`.                                                                     |
-| `grouped`               | `boolean \| 'centered' \| 'right' \| 'multiline'` | Controls in a row.                                                                                                                     |
-| `hasAddons`             | `boolean \| 'centered' \| 'right'`                | Attached controls.                                                                                                                     |
-| `narrow`                | `boolean`                                         | Constrain to content width (inside horizontal bodies).                                                                                 |
-| `label`                 | `ReactNode`                                       | Convenience label; auto-associates with a single composed `InputBase`/`SelectBase`/`TextAreaBase` (skipped for `grouped`/`hasAddons`). |
-| `labelSize`             | `'small' \| 'normal' \| 'medium' \| 'large'`      | Label size.                                                                                                                            |
-| `labelProps`            | label attributes                                  | Props for the `<label>`. An explicit `htmlFor` (even `undefined`) takes over the association; otherwise it is set automatically.       |
-| `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                                                                                           |
+| Prop                    | Type                                              | Notes                                                                                                                                                                                              |
+| ----------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `horizontal`            | `boolean`                                         | Label + control side by side. Auto-wraps children in `Field.Body`.                                                                                                                                 |
+| `grouped`               | `boolean \| 'centered' \| 'right' \| 'multiline'` | Controls in a row.                                                                                                                                                                                 |
+| `hasAddons`             | `boolean \| 'centered' \| 'right'`                | Attached controls.                                                                                                                                                                                 |
+| `narrow`                | `boolean`                                         | Constrain to content width (inside horizontal bodies).                                                                                                                                             |
+| `label`                 | `ReactNode`                                       | Names the one control it holds: a composed base or convenience input through its id, a group through `aria-labelledby` (skipped for `grouped`/`hasAddons`; a nested `Field` starts its own scope). |
+| `labelSize`             | `'small' \| 'normal' \| 'medium' \| 'large'`      | Label size.                                                                                                                                                                                        |
+| `labelProps`            | label attributes                                  | Props for the `<label>`. An explicit `htmlFor` (even `undefined`) takes over the association; otherwise it is set automatically. An `id` here is what a group's `aria-labelledby` points at.       |
+| `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                                                                                                                                                       |
 
 ## Control — `form/Control.tsx`
 

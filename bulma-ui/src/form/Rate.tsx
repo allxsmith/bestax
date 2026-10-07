@@ -57,7 +57,7 @@ export interface RateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
-  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `aria-label` or `aria-labelledby` on the group; it then replaces the `aria-label="Rating"` fallback too. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -209,6 +209,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       label,
       labelProps,
       rendersLabel: ownField,
+      callerProps: props,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const [internalValue, setInternalValue] = useState(defaultValue);

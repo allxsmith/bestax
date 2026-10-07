@@ -55,7 +55,7 @@ export interface TaginputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered) and dropped inside an outer `Field`. */
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`); it then replaces the `aria-label="Add tag"` fallback too. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -278,7 +278,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
     // At the tag limit the text input is not rendered, so there is nothing to
     // wire the label to.
-    const { controlId, fieldLabelProps } = useAutoLabelId({
+    const { controlId, fieldLabelProps, labelled } = useAutoLabelId({
       label,
       id,
       labelProps,
@@ -670,15 +670,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                // Fallback name, dropped only when the rendered label actually
-                // targets this input (aria-label would win otherwise). A
-                // labelProps.htmlFor pointing elsewhere keeps the fallback so
-                // the input is never nameless.
-                aria-label={
-                  controlId && fieldLabelProps?.htmlFor === controlId
-                    ? undefined
-                    : 'Add tag'
-                }
+                // Fallback name, dropped only when a rendered label actually
+                // targets this input, its own or a surrounding Field's
+                // (aria-label would win otherwise). A label pointing elsewhere
+                // keeps the fallback so the input is never nameless.
+                aria-label={labelled ? undefined : 'Add tag'}
               />
             )}
           </div>

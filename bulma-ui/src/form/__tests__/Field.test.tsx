@@ -5,6 +5,19 @@ import { Control } from '../Control';
 import InputBase from '../InputBase';
 import SelectBase from '../SelectBase';
 import TextAreaBase from '../TextAreaBase';
+import { Numberinput } from '../Numberinput';
+import { Slider } from '../Slider';
+import { DateInput } from '../DateInput';
+import { TimeInput } from '../TimeInput';
+import { DateTimeInput } from '../DateTimeInput';
+import { Autocomplete } from '../Autocomplete';
+import { Taginput } from '../Taginput';
+import { File } from '../File';
+import { Radios } from '../Radios';
+import { Radio } from '../Radio';
+import { Checkboxes } from '../Checkboxes';
+import { Checkbox } from '../Checkbox';
+import { Rate } from '../Rate';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Field', () => {
@@ -497,5 +510,247 @@ describe('label auto-association (#495)', () => {
   it('a labeled Field with no adopting control renders the for anyway', () => {
     const { container } = render(<Field label="Only text">plain</Field>);
     expect(labelEl(container).getAttribute('for')).toBeTruthy();
+  });
+});
+
+describe('label names the convenience controls (#939)', () => {
+  const labelEl = (container: HTMLElement) =>
+    container.querySelector('label.label') as HTMLElement;
+
+  // Each control that renders one input of its own, with how to find it.
+  const singles: Array<[string, () => React.ReactElement, () => HTMLElement]> =
+    [
+      [
+        'Numberinput',
+        () => <Numberinput />,
+        () => screen.getByRole('spinbutton'),
+      ],
+      [
+        'the stepper Numberinput',
+        () => <Numberinput variant="stepper" />,
+        () => screen.getByRole('spinbutton'),
+      ],
+      ['Slider', () => <Slider />, () => screen.getByRole('slider')],
+      ['DateInput', () => <DateInput />, () => screen.getByRole('combobox')],
+      ['TimeInput', () => <TimeInput />, () => screen.getByRole('combobox')],
+      [
+        'DateTimeInput',
+        () => <DateTimeInput />,
+        () => screen.getByRole('combobox'),
+      ],
+      [
+        'Autocomplete',
+        () => <Autocomplete data={['Apple']} placeholder="Search" />,
+        () => screen.getByRole('combobox'),
+      ],
+      ['Taginput', () => <Taginput />, () => screen.getByRole('textbox')],
+      [
+        'File',
+        () => <File />,
+        () => document.querySelector('input[type="file"]') as HTMLElement,
+      ],
+    ];
+
+  it.each(singles)('names %s from the Field label', (_, element, control) => {
+    const { container } = render(<Field label="Pick">{element()}</Field>);
+    const input = control();
+    expect(input.id).toBeTruthy();
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+    expect(screen.getByLabelText('Pick')).toBe(input);
+  });
+
+  it.each(singles)(
+    'names %s from the Field label inside a Control',
+    (_, element, control) => {
+      const { container } = render(
+        <Field label="Pick">
+          <Control>{element()}</Control>
+        </Field>
+      );
+      expect(labelEl(container)).toHaveAttribute('for', control().id);
+    }
+  );
+
+  it.each([
+    ['Numberinput', 'spinbutton'],
+    ['Slider', 'slider'],
+    ['DateInput', 'combobox'],
+    ['Autocomplete', 'combobox'],
+    ['Taginput', 'textbox'],
+  ])('gives %s the Field label as its accessible name', (name, role) => {
+    const element = singles.find(([n]) => n === name)![1];
+    render(<Field label="Pick">{element()}</Field>);
+    expect(screen.getByRole(role, { name: 'Pick' })).toBeInTheDocument();
+  });
+
+  it('names the low thumb of a range Slider, as its own label does', () => {
+    const { container } = render(
+      <Field label="Pick">
+        <Slider range />
+      </Field>
+    );
+    const low = container.querySelector('.slider-input-low') as HTMLElement;
+    expect(labelEl(container)).toHaveAttribute('for', low.id);
+    const high = container.querySelector('.slider-input-high') as HTMLElement;
+    expect(high).not.toHaveAttribute('id');
+  });
+
+  it('keeps an id the caller set on the control', () => {
+    const { container } = render(
+      <Field label="Pick">
+        <Slider id="mine" />
+      </Field>
+    );
+    expect(screen.getByRole('slider')).toHaveAttribute('id', 'mine');
+    expect(labelEl(container).getAttribute('for')).not.toBe('mine');
+  });
+
+  it('keeps the "Add tag" fallback on a Taginput the label does not target', () => {
+    render(
+      <Field label="Pick">
+        <Taginput id="mine" />
+      </Field>
+    );
+    expect(screen.getByRole('textbox')).toHaveAttribute(
+      'aria-label',
+      'Add tag'
+    );
+  });
+
+  it('leaves an inline picker alone: it has no input to name', () => {
+    const { container } = render(
+      <Field label="Pick">
+        <DateInput inline />
+      </Field>
+    );
+    // Nothing but the label itself takes or derives an id from the target.
+    const target = labelEl(container).getAttribute('for') as string;
+    expect(container.querySelector(`[id^="${target}"]:not(label)`)).toBeNull();
+  });
+
+  // Each group control, built with whatever ARIA props the test passes.
+  const groups: Array<
+    [string, (aria?: React.AriaAttributes) => React.ReactElement, string]
+  > = [
+    [
+      'Radios',
+      aria => (
+        <Radios name="pick" {...aria}>
+          <Radio value="a">A</Radio>
+        </Radios>
+      ),
+      'radiogroup',
+    ],
+    [
+      'Checkboxes',
+      aria => (
+        <Checkboxes {...aria}>
+          <Checkbox value="a">A</Checkbox>
+        </Checkboxes>
+      ),
+      'group',
+    ],
+    ['Rate', aria => <Rate {...aria} />, 'radiogroup'],
+  ];
+
+  it.each(groups)(
+    'names the %s group through aria-labelledby',
+    (_, element, role) => {
+      const { container } = render(<Field label="Pick">{element()}</Field>);
+      const label = labelEl(container);
+      expect(label.id).toBeTruthy();
+      expect(label.id).not.toBe(label.getAttribute('for'));
+      expect(screen.getByRole(role, { name: 'Pick' })).toHaveAttribute(
+        'aria-labelledby',
+        label.id
+      );
+    }
+  );
+
+  it.each(groups)(
+    'names the %s group inside a Control too',
+    (_, element, role) => {
+      render(
+        <Field label="Pick">
+          <Control>{element()}</Control>
+        </Field>
+      );
+      expect(screen.getByRole(role, { name: 'Pick' })).toBeInTheDocument();
+    }
+  );
+
+  it.each(groups)(
+    'lets an aria-label the caller set on %s win',
+    (_, element, role) => {
+      render(<Field label="Pick">{element({ 'aria-label': 'Mine' })}</Field>);
+      const group = screen.getByRole(role, { name: 'Mine' });
+      expect(group).not.toHaveAttribute('aria-labelledby');
+    }
+  );
+
+  it.each(groups)(
+    'lets an aria-labelledby the caller set on %s win',
+    (_, element, role) => {
+      render(
+        <Field label="Pick">
+          <span id="other">Other</span>
+          {element({ 'aria-labelledby': 'other' })}
+        </Field>
+      );
+      expect(screen.getByRole(role, { name: 'Other' })).toBeInTheDocument();
+    }
+  );
+
+  it('drops the "Rating" fallback once the Field label names a Rate', () => {
+    render(
+      <Field label="Pick">
+        <Rate />
+      </Field>
+    );
+    expect(screen.getByRole('radiogroup')).not.toHaveAttribute('aria-label');
+  });
+
+  it('points a group at a labelProps.id of the caller', () => {
+    const { container } = render(
+      <Field label="Pick" labelProps={{ id: 'pick-label' }}>
+        <Rate />
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute('id', 'pick-label');
+    expect(screen.getByRole('radiogroup')).toHaveAttribute(
+      'aria-labelledby',
+      'pick-label'
+    );
+  });
+
+  it.each([
+    ['grouped', { grouped: true }],
+    ['hasAddons', { hasAddons: true }],
+    ['labelProps.htmlFor opt-out', { labelProps: { htmlFor: undefined } }],
+  ])('names no group in a %s Field', (_, fieldProps) => {
+    const { container } = render(
+      <Field label="Pick" {...fieldProps}>
+        <Rate />
+      </Field>
+    );
+    expect(labelEl(container)).not.toHaveAttribute('id');
+    const group = screen.getByRole('radiogroup');
+    expect(group).not.toHaveAttribute('aria-labelledby');
+    expect(group).toHaveAttribute('aria-label', 'Rating');
+  });
+
+  it('a nested unlabeled Field shadows the outer label for groups too', () => {
+    render(
+      <Field label="Outer">
+        <Field>
+          <Radios name="pick">
+            <Radio value="a">A</Radio>
+          </Radios>
+        </Field>
+      </Field>
+    );
+    expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
+      'aria-labelledby'
+    );
   });
 });

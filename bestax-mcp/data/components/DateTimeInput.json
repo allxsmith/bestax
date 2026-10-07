@@ -143,11 +143,11 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"When\">\n      <Field.Body>\n        <Field>\n          <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"When\" labelProps={{ htmlFor: 'when-field' }}>\n      <Field.Body>\n        <Field>\n          <DateTimeInput id=\"when-field\" placeholder=\"YYYY-MM-DD HH:MM\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"When\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"When\"\n      labelProps={{ htmlFor: 'when-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateTimeInput\n              id=\"when-field-control\"\n              placeholder=\"YYYY-MM-DD HH:MM\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Manual Keyboard Entry",
@@ -187,7 +187,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`.",
+          "description": "Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
           "required": false,
           "inherited": false,
           "deprecated": false

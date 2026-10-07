@@ -204,13 +204,29 @@ const FieldLabelIdContext = createContext<string | undefined>(undefined);
  * The id a labeled Field wants its single composed control to adopt (#495).
  * `undefined` outside a Field, in unlabeled/grouped/addons Fields, or when the
  * user took over the association with an explicit `labelProps.htmlFor`.
- * Consumed only by the single-control bases (InputBase, SelectBase,
- * TextAreaBase). Internal; not part of the public API.
+ * Consumed by the single-control bases (InputBase, SelectBase, TextAreaBase)
+ * and, through `useAutoLabelId`, by the convenience inputs that render an
+ * input of their own (#939). Internal; not part of the public API.
  */
 export const useFieldLabelId = () => useContext(FieldLabelIdContext);
 
 /** Provider for the Field label-target id — used internally by Field. */
 export const FieldLabelIdProvider = FieldLabelIdContext.Provider;
+
+const FieldLabelElementIdContext = createContext<string | undefined>(undefined);
+
+/**
+ * The id of a labeled Field's own `<label>`, for a group control (Radios,
+ * Checkboxes, Rate) to point `aria-labelledby` at, since a group cannot take
+ * the label's `htmlFor` (#939). Set under the same conditions as
+ * {@link useFieldLabelId}. Consumed through `useAutoLabelledBy`.
+ * Internal; not part of the public API.
+ */
+export const useFieldLabelElementId = () =>
+  useContext(FieldLabelElementIdContext);
+
+/** Provider for the Field label's own id, used internally by Field. */
+export const FieldLabelElementIdProvider = FieldLabelElementIdContext.Provider;
 
 /**
  * Shape of the Radios group context. The group provides:

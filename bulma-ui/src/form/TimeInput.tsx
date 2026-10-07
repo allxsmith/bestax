@@ -31,7 +31,7 @@ import { useAutoLabelId } from './useAutoLabelId';
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the underlying `<input>`.
  */
 export interface TimeInputProps extends TimeInputBaseProps {
-  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`. */
+  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
@@ -166,6 +166,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       labelProps,
       // Inline mode renders a bare panel with no input to label.
       rendersLabel: ownField && !baseProps.inline,
+      hasInput: !baseProps.inline,
     });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
