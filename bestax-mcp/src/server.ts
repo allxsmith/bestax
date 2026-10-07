@@ -558,7 +558,7 @@ export async function createServer(
       const rows = Object.entries(catalog.cssVarIndex)
         .filter(([css]) => css.toLowerCase().includes(q))
         .slice(0, 60)
-        .map(([css, owner]) => [`\`${css}\``, owner]);
+        .map(([css, declarers]) => [`\`${css}\``, declarers.join(', ')]);
       if (!rows.length) {
         return textResult(`No CSS variable matches "${query}".`, note());
       }

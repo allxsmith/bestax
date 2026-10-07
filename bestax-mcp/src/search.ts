@@ -161,14 +161,16 @@ export function searchAll(
   }
 
   if (want('css-var')) {
-    for (const [cssVar, owner] of Object.entries(catalog.cssVarIndex)) {
+    for (const [cssVar, declarers] of Object.entries(catalog.cssVarIndex)) {
       const s = score(cssVar, cssVar, terms, q);
       if (s > 0) {
         hits.push({
           kind: 'css-var',
           name: cssVar,
-          detail: `declared by ${owner}`,
-          next: `get_css_variables({ component: "${owner}" })`,
+          // Every declarer, since an override reaches each; the next call goes to
+          // the first, the component the variable is named after (#964).
+          detail: `declared by ${declarers.join(', ')}`,
+          next: `get_css_variables({ component: "${declarers[0]}" })`,
           score: s,
         });
       }

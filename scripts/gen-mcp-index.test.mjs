@@ -22,7 +22,12 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { build, readSkills, reportFailure } from './gen-mcp-index.mjs';
+import {
+  build,
+  orderDeclarers,
+  readSkills,
+  reportFailure,
+} from './gen-mcp-index.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -127,11 +132,102 @@ test('CSS variables are indexed back to their component', () => {
   assert.ok(button.cssVars.length > 0);
   const row = button.cssVars.find(v => v.css === '--bulma-button-h');
   assert.ok(row, '--bulma-button-h missing');
-  assert.equal(catalog.cssVarIndex['--bulma-button-h'], 'Button');
+  assert.deepEqual(catalog.cssVarIndex['--bulma-button-h'], ['Button']);
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
     assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
   }
+});
+
+test('every CSS variable lists every declarer, the one it is named after first (#964)', () => {
+  // The index kept one name per variable, whichever declarer the generator read
+  // last, so DateInput's calendar variables were "declared by DateTimeInput".
+  const declarers = new Map();
+  for (const [name, record] of components) {
+    for (const v of record.cssVars) {
+      if (!declarers.has(v.css)) declarers.set(v.css, new Set());
+      declarers.get(v.css).add(name);
+    }
+  }
+  const byCode = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  // How much of the variable a component's name accounts for: its lower-cased
+  // name, with or without hyphens between words, followed by `-` or the end.
+  const namedLength = (css, name) => {
+    const rest = css.replace(/^--bulma-/, '');
+    const keys = [
+      name.toLowerCase(),
+      name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase(),
+    ].filter(k => rest === k || rest.startsWith(`${k}-`));
+    return Math.max(0, ...keys.map(k => k.length));
+  };
+
+  assert.deepEqual(
+    Object.keys(catalog.cssVarIndex).sort(byCode),
+    [...declarers.keys()].sort(byCode),
+    'the index covers exactly the variables the components declare'
+  );
+  let shared = 0;
+  for (const [css, listed] of Object.entries(catalog.cssVarIndex)) {
+    assert.ok(Array.isArray(listed), `${css} is not a list`);
+    assert.deepEqual(
+      [...listed].sort(byCode),
+      [...declarers.get(css)].sort(byCode),
+      `${css} lists ${listed}`
+    );
+    if (listed.length > 1) shared++;
+    const best = Math.max(...listed.map(n => namedLength(css, n)));
+    const [first, ...others] = listed;
+    if (best > 0) {
+      assert.equal(namedLength(css, first), best, `${css} lists ${listed}`);
+    }
+    // Code-point order after the owner, or throughout when there is none.
+    const tail = best > 0 ? others : listed;
+    assert.deepEqual([...tail].sort(byCode), tail, `${css} lists ${listed}`);
+  }
+  assert.ok(shared > 0, 'no variable is declared by more than one component');
+
+  // The cases the rule exists for.
+  for (const [css, expected] of [
+    ['--bulma-dateinput-cell-color', ['DateInput', 'DateTimeInput']],
+    ['--bulma-timeinput-separator-color', ['TimeInput', 'DateTimeInput']],
+    ['--bulma-subtitle-color', ['SubTitle', 'Title']],
+    ['--bulma-title-color', ['Title', 'SubTitle']],
+  ]) {
+    assert.deepEqual(catalog.cssVarIndex[css], expected, css);
+  }
+  const input = catalog.cssVarIndex['--bulma-input-border-color'];
+  assert.equal(input?.[0], 'Input');
+  assert.ok(input.includes('Select'), 'every declarer stays listed');
+});
+
+test('a variable goes to the declarer whose name accounts for most of it', () => {
+  assert.deepEqual(
+    orderDeclarers('--bulma-icon-text-spacing', ['Icon', 'IconText']),
+    ['IconText', 'Icon']
+  );
+  assert.deepEqual(
+    orderDeclarers('--bulma-icon-dimensions', ['IconText', 'Icon']),
+    ['Icon', 'IconText']
+  );
+  // Named after none of them: code-point order, and each name once.
+  assert.deepEqual(
+    orderDeclarers('--bulma-picker-popover-shadow', [
+      'TimeInput',
+      'DateInput',
+      'DateTimeInput',
+      'TimeInput',
+    ]),
+    ['DateInput', 'DateTimeInput', 'TimeInput']
+  );
+  // A name the variable merely starts with, mid-word, is not its name.
+  assert.deepEqual(
+    orderDeclarers('--bulma-dateinputs-x', ['TimeInput', 'DateInput']),
+    ['DateInput', 'TimeInput']
+  );
+  assert.deepEqual(orderDeclarers('--bulma-box', ['Card', 'Box']), [
+    'Box',
+    'Card',
+  ]);
 });
 
 test('related components resolve to real component names', () => {

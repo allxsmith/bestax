@@ -497,6 +497,26 @@ describe('get_css_variables', () => {
     const res = await call('get_css_variables', {});
     expect(failed(res)).toBe(true);
   });
+
+  // The index named whichever declarer the generator read last, so DateInput's
+  // calendar variables were "declared by DateTimeInput" (#964).
+  it('names every declarer, the one a variable is named after first', async () => {
+    const out = text(
+      await call('get_css_variables', { query: 'dateinput-cell-color' })
+    );
+    expect(out).toContain(
+      '| `--bulma-dateinput-cell-color` | DateInput, DateTimeInput |'
+    );
+
+    const search = text(
+      await call('search_bestax', {
+        query: '--bulma-dateinput-cell-color',
+        kind: 'css-var',
+      })
+    );
+    expect(search).toContain('declared by DateInput, DateTimeInput');
+    expect(search).toContain('get_css_variables({ component: "DateInput" })');
+  });
 });
 
 describe('get_helper_props', () => {
