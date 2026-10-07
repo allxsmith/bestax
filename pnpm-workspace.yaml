@@ -114,8 +114,9 @@ overrides:
   # tooling with its native build blocked above) — high libvips CVEs. Floor
   # raised to 0.35.4 for GHSA-rgj7-g3m4-5g8c, which widened the affected range
   # past the previous force and reddened every open PR until this moved.
-  # 0.35.4 (2026-08-26) is past the cooldown, so no exclude entry is needed.
-  'sharp@<0.35.4': '>=0.35.4'
+  # Raised again to 0.35.5 for GHSA-wq5f-xc86-pv6w (librsvg). 0.35.5
+  # (2026-09-27) is past the cooldown, so no exclude entry is needed.
+  'sharp@<0.35.5': '>=0.35.5'
   # bestax:review 2026-11-13 — quarterly sweep
   # Force patched postcss (transitive via vite/storybook and the Docusaurus
   # webpack CSS pipeline) — high advisory GHSA-r28c-9q8g-f849: sourceMappingURL
@@ -290,6 +291,12 @@ overrides:
   # GHSA-vc2v-76pw-4v95, fixed in 1.8.2. Past the cooldown. Prune once
   # webpack-dev-server resolves to >=1.8.2 without the force.
   'compression@<1.8.2': '>=1.8.2'
+  # bestax:review 2026-11-13 — quarterly sweep
+  # Force patched shell-quote (transitive via the Docusaurus dev server's
+  # webpack-dev-server>launch-editor, dev-only, never shipped) for the critical
+  # advisory GHSA-pqg4-j6r4-53mv, fixed in 1.11.0. Past the cooldown. Prune
+  # once launch-editor resolves to >=1.11.0 without the force.
+  'shell-quote@<1.11.0': '>=1.11.0'
 
 # --- Audit exceptions (no patched release exists) ---
 
