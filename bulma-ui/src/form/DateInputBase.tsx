@@ -195,8 +195,7 @@ export interface DateInputBaseProps
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
    * an empty field stays empty, and leaving afterwards commits only what was
-   * typed since. With it off, the launcher or Alt+ArrowDown opens it, as
-   * ArrowDown alone steps the active segment.
+   * typed since. With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
