@@ -802,6 +802,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
         hours: h,
         minutes: m,
         seconds: s,
+        milliseconds: 0,
       });
       return !unselectableTimes(probe);
     },

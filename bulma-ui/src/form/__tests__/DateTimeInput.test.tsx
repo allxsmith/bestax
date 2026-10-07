@@ -2156,3 +2156,130 @@ describe('DateTimeInput before year 1', () => {
     });
   });
 });
+
+describe('DateTimeInput times seeded from the clock', () => {
+  // The clock reads 14:23:10.507. A time the picker starts from it keeps
+  // none of what the field does not show: the seconds without enableSeconds,
+  // and the milliseconds always.
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+  const last = (handler: jest.Mock) => handler.mock.lastCall![0] as Date;
+  const openOnFocusedDay = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+    return document.activeElement as HTMLElement;
+  };
+
+  it('Enter on the focused day of an empty field picks it at midnight', () => {
+    for (const enableSeconds of [false, true]) {
+      const handler = jest.fn();
+      const { getByRole, unmount } = render(
+        <DateTimeInput enableSeconds={enableSeconds} onChange={handler} />
+      );
+      const day = openOnFocusedDay(getByRole('combobox'));
+      expect(day).toHaveTextContent('7');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'Enter' });
+      });
+      expect(last(handler)).toEqual(new Date(2026, 9, 7, 0, 0, 0, 0));
+      unmount();
+    }
+  });
+
+  it('a picked day keeps the whole time of a value, by key or by click', () => {
+    const value = new Date(2026, 9, 7, 10, 30, 45, 250);
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput value={value} onChange={handler} />
+    );
+    const day = openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.keyDown(day, { key: 'ArrowRight' });
+    });
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 8, 10, 30, 45, 250));
+    const ninth = Array.from(
+      getByRole('dialog').querySelectorAll('[role="gridcell"]')
+    ).find(c => c.textContent === '9')!;
+    act(() => {
+      fireEvent.click(ninth);
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 9, 10, 30, 45, 250));
+  });
+
+  it('a value set after mounting empty gives the picked day its time, not the clock', () => {
+    const handler = jest.fn();
+    const { getByRole, rerender } = render(
+      <DateTimeInput value={null} onChange={handler} />
+    );
+    rerender(
+      <DateTimeInput value={new Date(2026, 9, 7, 9, 15)} onChange={handler} />
+    );
+    const day = openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.keyDown(day, { key: 'Enter' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 7, 9, 15, 0, 0));
+  });
+
+  it('turning a wheel on an empty field starts from a whole minute', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput onChange={handler} />
+    );
+    openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+    });
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 7, 1, 0, 0, 0));
+  });
+
+  it('turning the seconds wheel on an empty field starts from a whole second', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput enableSeconds onChange={handler} />
+    );
+    openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+    });
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[2], { key: 'ArrowUp' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 7, 0, 0, 1, 0));
+  });
+
+  it('typing into an empty field starts from the clock, less what the format hides', () => {
+    for (const [enableSeconds, seeded] of [
+      [false, new Date(2027, 9, 7, 14, 23, 0, 0)],
+      [true, new Date(2027, 9, 7, 14, 23, 10, 0)],
+    ] as const) {
+      const handler = jest.fn();
+      const { getByRole, unmount } = render(
+        <DateTimeInput
+          enableSeconds={enableSeconds}
+          openOnFocus={false}
+          onChange={handler}
+        />
+      );
+      const input = getByRole('combobox');
+      act(() => {
+        input.focus();
+      });
+      fireEvent.keyDown(input, { key: 'ArrowUp' }); // year segment
+      expect(last(handler)).toEqual(seeded);
+      unmount();
+    }
+  });
+});

@@ -1177,6 +1177,26 @@ describe('DateInput native input value handling', () => {
 });
 
 describe('DateInputBase remaining branches', () => {
+  it('Enter on the focused day of an empty field picks it at midnight, not at the clock', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    try {
+      const handler = jest.fn();
+      const { getByRole } = render(<DateInput onChange={handler} />);
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(day).toHaveTextContent('7');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'Enter' });
+      });
+      expect(handler).toHaveBeenLastCalledWith(new Date(2026, 9, 7));
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('controlled value={null} renders an empty input', () => {
     const { getByRole } = render(<DateInputBase value={null} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('');

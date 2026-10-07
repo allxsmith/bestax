@@ -1377,6 +1377,30 @@ describe('TimeInputBase remaining branches', () => {
     expect(arg.getHours()).toBe(0);
   });
 
+  it('a wheel on an empty field keeps none of the clock it starts from but the date', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    try {
+      for (const [enableSeconds, wheel, expected] of [
+        [false, 0, new Date(2026, 9, 7, 1, 0, 0, 0)],
+        [true, 2, new Date(2026, 9, 7, 0, 0, 1, 0)],
+      ] as const) {
+        const handler = jest.fn();
+        const { getByRole, getAllByRole, unmount } = render(
+          <TimeInput enableSeconds={enableSeconds} onChange={handler} />
+        );
+        fireEvent.click(getByRole('combobox'));
+        fireEvent.keyDown(getAllByRole('spinbutton')[wheel], {
+          key: 'ArrowUp',
+        });
+        expect(handler).toHaveBeenLastCalledWith(expected);
+        unmount();
+      }
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('rejects a wheel change that falls outside min/max', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(

@@ -32,6 +32,7 @@ import {
   isSameDay,
   isPeriodUnselectable,
   makeDate,
+  startOfDay,
   startOfPeriod,
   endOfPeriod,
 } from './_pickerInternals/dateUtils';
@@ -316,8 +317,10 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // Nothing before year 1 is in range, as in HTML's date inputs.
     const lowerBound = useMemo(() => floorMin(min), [min]);
 
+    // An empty field focuses today at midnight, the time a click on a day
+    // gives, so Enter on the focused day picks no time from the clock.
     const initialFocused = useMemo(
-      () => clampDate(value ?? new Date(), lowerBound, max),
+      () => clampDate(value ?? startOfDay(new Date()), lowerBound, max),
       // intentionally only on mount: keep focusedDate stable until value/open change
       // eslint-disable-next-line react-hooks/exhaustive-deps
       []

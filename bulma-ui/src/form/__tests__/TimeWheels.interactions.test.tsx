@@ -874,6 +874,33 @@ describe('TimeWheels keyboard and value mapping', () => {
     expect(lastDate(handler).getSeconds()).toBe(29);
   });
 
+  it('asks unselectableTimes about whole seconds, without the milliseconds of the clock', () => {
+    jest.useFakeTimers({
+      doNotFake: [
+        'performance',
+        'requestAnimationFrame',
+        'cancelAnimationFrame',
+      ],
+    });
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    try {
+      const predicate = jest.fn((d: Date) => d.getMilliseconds() !== 0);
+      const fn = jest.fn();
+      const { getAllByRole } = render(
+        <TimeWheels
+          value={{ hours: 10, minutes: 0 }}
+          onChange={fn}
+          unselectableTimes={predicate}
+        />
+      );
+      expect(predicate).toHaveBeenCalled();
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+      expect(fn).toHaveBeenLastCalledWith({ hours: 11, minutes: 0 });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('defaults a missing seconds part to 0 when enableSeconds is on', () => {
     const fn = jest.fn();
     const { getAllByRole } = render(

@@ -363,10 +363,17 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       [isControlled, onChange]
     );
 
+    // An empty field starts from today, at the whole minute or second the
+    // wheels show.
     const handleSpinnerChange = useCallback(
       (parts: { hours: number; minutes: number; seconds?: number }) => {
-        const base = value ?? new Date();
-        const next = setTimeOfDay(base, parts);
+        const next = value
+          ? setTimeOfDay(value, parts)
+          : setTimeOfDay(new Date(), {
+              ...parts,
+              seconds: parts.seconds ?? 0,
+              milliseconds: 0,
+            });
         if (!isWithin(next, lowerBound, max)) return;
         commitValue(next);
       },

@@ -96,7 +96,11 @@ export interface DateTimeInputBaseProps
   value?: Date | null;
   /** Initial value for uncontrolled usage. */
   defaultValue?: Date | null;
-  /** Fired when either the date or time portion changes. */
+  /**
+   * Fired when either the date or time portion changes. Picking a day keeps
+   * the value's time of day, seconds included, and an empty field's day is
+   * picked at midnight.
+   */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
   onOpen?: () => void;
@@ -451,24 +455,36 @@ export const DateTimeInputBase = forwardRef<
     [isControlled, onChange]
   );
 
+  // A picked day takes the value's whole time of day, seconds and all, or
+  // midnight in an empty field. The day handed over by the keyboard is the
+  // calendar's focused date, which can carry the time of the clock it
+  // started from, so none of its time is kept.
   const handleDateSelect = useCallback(
     (d: Date) => {
       const merged = setTimeOfDay(d, {
         hours: value?.getHours() ?? 0,
         minutes: value?.getMinutes() ?? 0,
-        seconds: enableSeconds ? (value?.getSeconds() ?? 0) : undefined,
+        seconds: value?.getSeconds() ?? 0,
+        milliseconds: value?.getMilliseconds() ?? 0,
       });
       if (!isWithin(merged, lowerBound, max)) return;
       commitValue(merged);
       setFocusedDate(d);
     },
-    [value, enableSeconds, lowerBound, max, commitValue]
+    [value, lowerBound, max, commitValue]
   );
 
+  // The wheels set the value's time. An empty field starts from the focused
+  // day, at the whole minute or second the wheels show.
   const handleTimeChange = useCallback(
     (parts: { hours: number; minutes: number; seconds?: number }) => {
-      const base = value ?? focusedDate;
-      const next = setTimeOfDay(base, parts);
+      const next = value
+        ? setTimeOfDay(value, parts)
+        : setTimeOfDay(focusedDate, {
+            ...parts,
+            seconds: parts.seconds ?? 0,
+            milliseconds: 0,
+          });
       if (!isWithin(next, lowerBound, max)) return;
       commitValue(next);
     },
@@ -486,8 +502,16 @@ export const DateTimeInputBase = forwardRef<
     [parse, defaultFormat, locale]
   );
 
-  // The Date the user edits when starting without a current value (now).
-  const makeBaseDate = useCallback((): Date => new Date(), []);
+  // The Date the user edits when starting without a current value: now, at
+  // the whole minute, or the whole second with `enableSeconds`.
+  const makeBaseDate = useCallback(
+    (): Date =>
+      setTimeOfDay(new Date(), {
+        seconds: enableSeconds ? undefined : 0,
+        milliseconds: 0,
+      }),
+    [enableSeconds]
+  );
 
   const inputReadOnlyAttr = !!readOnly || !editable;
   const canOpen = !!popover && !disabled && !readOnly;
