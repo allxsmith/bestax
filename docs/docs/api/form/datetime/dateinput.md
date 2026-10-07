@@ -867,6 +867,18 @@ The month grid follows the day grid, a month per cell in rows of three. Months w
 | `Enter` / `Space`     | Select the focused month                |
 | `Escape`              | Close the popover                       |
 
+### On the year list opened from the header (`granularity="day"` or `"month"`)
+
+Clicking the month and year in the header, or the year over the month grid, opens the year list to jump to another year. Its keys move focus only, so the grid behind it stays where it was until a year is picked.
+
+| Key               | Action                                                                    |
+| ----------------- | ------------------------------------------------------------------------- |
+| `←` / `→`         | Move focus by ±1 year                                                     |
+| `↑` / `↓`         | Move focus by ±1 row                                                      |
+| `Home` / `End`    | Jump to the first / last year in the list                                 |
+| `Enter` / `Space` | Jump to the focused year and go back to the grid                          |
+| `Escape`          | Go back to the grid without jumping; a second `Escape` closes the popover |
+
 ### On the year list (`granularity="year"`)
 
 | Key               | Action                                    |

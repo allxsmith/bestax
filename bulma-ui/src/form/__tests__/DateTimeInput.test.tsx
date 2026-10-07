@@ -114,6 +114,26 @@ describe('DateTimeInput', () => {
     expect(queryByRole('dialog')).toBeNull();
   });
 
+  it('Escape leaves the year list first, then closes the popover', () => {
+    HTMLElement.prototype.scrollIntoView = jest.fn();
+    const v = new Date(2024, 5, 7, 13, 45);
+    const { getByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(
+      getByRole('dialog').querySelector('[aria-haspopup="listbox"]')!
+    );
+    const year = getByRole('listbox').querySelector<HTMLElement>(
+      '[data-focused-year="true"]'
+    )!;
+    fireEvent.keyDown(year, { key: 'Escape' });
+    expect(queryByRole('listbox')).toBeNull();
+    expect(queryByRole('dialog')).not.toBeNull();
+    fireEvent.keyDown(queryByRole('dialog')!, { key: 'Escape' });
+    expect(queryByRole('dialog')).toBeNull();
+  });
+
   it('selecting a date preserves the time-of-day', () => {
     const v = new Date(2024, 5, 7, 13, 45);
     const handler = jest.fn();

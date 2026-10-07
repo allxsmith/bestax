@@ -224,7 +224,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the input's control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the input's control. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). Use this rather than `isLoading` on a `Control` around the Numberinput: that spinner sits at the `Control`'s right edge, on top of whichever button is there, while this one stays inside the input.",
           "required": false,
           "inherited": false,
           "deprecated": false
