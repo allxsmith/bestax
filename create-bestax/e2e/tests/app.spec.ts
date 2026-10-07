@@ -282,3 +282,113 @@ test.describe('Scaffolded App - Full Page', () => {
     });
   });
 });
+
+/**
+ * Behavior the screenshots can't pin down: each of these held in one flavor
+ * or at one width and broke in another, so they are asserted directly and run
+ * in every scenario.
+ */
+test.describe('Scaffolded App - Layout and Accessibility', () => {
+  test('does not scroll sideways at phone width', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/');
+    await expect(page.locator('h1').first()).toBeVisible();
+
+    const overflow = await page.evaluate(
+      () =>
+        document.documentElement.scrollWidth -
+        document.documentElement.clientWidth
+    );
+    expect(overflow).toBeLessThanOrEqual(0);
+  });
+
+  test('centers the title and evens the card heights in every flavor', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    await expect(page.locator('h1').first()).toHaveCSS('text-align', 'center');
+
+    const heights = await page
+      .locator('.card, .bestax-card')
+      .evaluateAll(cards =>
+        cards.map(card => Math.round(card.getBoundingClientRect().height))
+      );
+    expect(heights).toHaveLength(3);
+    expect(new Set(heights).size).toBe(1);
+  });
+
+  test('spaces each card icon from its title', async ({ page }) => {
+    await page.goto('/');
+    const titles = page.locator(
+      ':is(.card-header-title, .bestax-card-header-title):has(:is(.icon, .bestax-icon))'
+    );
+    test.skip((await titles.count()) === 0, 'scaffolded without icons');
+
+    // From the icon's right edge to where the first glyph of the title text
+    // is drawn, wherever in the title the text node sits.
+    const gaps = await titles.evaluateAll(items =>
+      items.map(item => {
+        const icon = item.querySelector('.icon, .bestax-icon')!;
+        const walker = document.createTreeWalker(item, NodeFilter.SHOW_TEXT);
+        let text: Node | null = walker.nextNode();
+        while (text && (icon.contains(text) || !text.textContent?.trim())) {
+          text = walker.nextNode();
+        }
+        const range = document.createRange();
+        range.selectNodeContents(text!);
+        return (
+          range.getClientRects()[0].left - icon.getBoundingClientRect().right
+        );
+      })
+    );
+    for (const gap of gaps) expect(gap).toBeGreaterThan(0);
+  });
+
+  test('closes the success notification from its delete button', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await page
+      .locator('button')
+      .filter({ hasText: 'Toggle Notification' })
+      .click();
+
+    const notification = page.locator(
+      '[class*="notification"][class*="is-success"]'
+    );
+    await expect(notification).toBeVisible();
+    await notification
+      .getByRole('button', { name: 'Close notification' })
+      .click();
+    await expect(notification).toHaveCount(0);
+  });
+
+  test('has one main landmark, no banners, and no skipped heading levels', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    await expect(page.getByRole('main')).toHaveCount(1);
+    // A card header outside every landmark is exposed as a page banner.
+    await expect(page.getByRole('banner')).toHaveCount(0);
+
+    const levels = await page
+      .locator('h1, h2, h3, h4, h5, h6')
+      .evaluateAll(headings => headings.map(h => Number(h.tagName.slice(1))));
+    expect(levels[0]).toBe(1);
+    levels.slice(1).forEach((level, i) => {
+      expect(level - levels[i]).toBeLessThanOrEqual(1);
+    });
+  });
+
+  test('marks the link in running text by more than its color', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    await expect(page.getByRole('link', { name: 'bestax.io' })).toHaveCSS(
+      'text-decoration-line',
+      'underline'
+    );
+  });
+});

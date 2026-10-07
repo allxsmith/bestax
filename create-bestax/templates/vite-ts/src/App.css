@@ -1,1 +1,7 @@
 /* App-specific styles - keep minimal, let Bulma handle the styling */
+
+/* A link inside running text needs more than its color to stand out
+   (WCAG 1.4.1), and no helper prop sets an underline. */
+.text-link {
+  text-decoration: underline;
+}

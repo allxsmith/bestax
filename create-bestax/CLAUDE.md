@@ -62,6 +62,13 @@ peer install — `react`/`react-dom` alongside the CLI.
   silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
+- The scaffolder edits the starter `App` with string patterns, so `src/__tests__/templates.test.ts`
+  runs every edit against the real templates. Under a `noHelpers` flavor each helper prop in
+  the starter becomes a named class from `NO_HELPERS_STARTER_CLASSES` in `src/constants.ts`;
+  a helper prop added to the starter needs a row there, and that test fails until it has one.
+- An icon library's `packageVersion` follows the newest arm of bestax-bulma's peer range for
+  it, not the newest release: on a 0.x package the caret holds the minor, so a pin past the
+  peer range makes npm refuse the scaffold's install. The same test holds the two together.
 
 ## Testing
 

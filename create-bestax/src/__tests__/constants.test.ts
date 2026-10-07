@@ -334,6 +334,50 @@ describe('constants', () => {
     });
   });
 
+  // The no-helpers flavors ship none of the classes the helper props compile
+  // to, so the table that sends every inline style to a helper prop would
+  // send an agent to props that render nothing (#948).
+  describe.each(['no-helpers', 'no-helpers-prefixed'])(
+    'CLAUDE_MD under the %s flavor',
+    bulmaFlavor => {
+      const md = CLAUDE_MD('my-app', { bulmaFlavor, iconLibrary: 'none' });
+
+      it('says helper props render nothing in this app', () => {
+        expect(md).toContain('**helper props render nothing**');
+        expect(md).toContain("this app's flavor has no helper classes");
+      });
+
+      it('sends inline styles to a named class instead of a helper prop', () => {
+        expect(md).toContain('Never inline `style={{}}`');
+        expect(md).toContain(
+          'Write a named class in `src/App.css` and pass it via `className`.'
+        );
+        expect(md).not.toContain('Helper props instead');
+        expect(md).not.toContain('No helper matches');
+      });
+    }
+  );
+
+  it('CLAUDE_MD keeps the helper-prop table for every flavor that has helpers', () => {
+    for (const flavor of BULMA_FLAVORS.filter(f => !f.noHelpers)) {
+      const md = CLAUDE_MD('my-app', {
+        bulmaFlavor: flavor.name,
+        iconLibrary: 'none',
+      });
+      expect(md).toContain('Helper props instead');
+      expect(md).not.toContain('helper props render nothing');
+    }
+  });
+
+  it('CLAUDE_MD says only the outlined Material Symbols style is loaded', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'material-symbols',
+    });
+    expect(md).toContain('Only the outlined style is loaded');
+    expect(md).toContain('`material-symbols/rounded.css`');
+  });
+
   describe('DEFAULT_PROJECT_NAME', () => {
     it('should be a valid project name', () => {
       expect(DEFAULT_PROJECT_NAME).toBeDefined();
