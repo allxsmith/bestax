@@ -84,7 +84,7 @@ useFocusTrap(paletteRef, { active: open, initialFocusRef: searchRef });
 
 ### Where focus goes back to
 
-`restoreFocus` decides where focus lands when the trap turns off, whether because `active` went `false` or because the component unmounted.
+`restoreFocus` decides where focus lands when the trap turns off, whether because `active` went `false`, the container left the page or the component unmounted.
 
 - `true` (the default) returns it to the element that had focus when the trap turned on.
 - A ref sends it to that element instead. Prefer this for a panel opened from a button: some browsers don't focus a button when it is clicked, and content that focuses itself as it mounts (an `autoFocus` input) takes focus before the trap can see where it came from.
@@ -94,7 +94,7 @@ Focus only moves back while the trap still holds it. If a click has already put 
 
 ### With portals
 
-A trapped panel is often rendered through a portal, at the end of `document.body`. The trap waits for hydration, so it also attaches to a container that only appears once the page has hydrated, the way portaled content does.
+A trapped panel is often rendered through a portal, at the end of `document.body`, and a portaled panel can mount a render after the trap turns on: once the page has hydrated, or once a target held in state exists. The trap waits for hydration and looks for its container again each time the component calling it renders, so it attaches to the panel once the panel is there.
 
 Put the ref on the element inside the [`Portal`](./portal.md), so the trap holds the portaled content itself. The panel below is declared inside a box that clips its overflow and portals into an element after it, as in the Portal page's [container example](./portal.md#into-a-container). Open it, then Tab past Cancel: focus wraps inside the panel, and Escape or either button closes it and returns focus to Share.
 
@@ -104,11 +104,7 @@ function example() {
   const [target, setTarget] = useState<HTMLElement | null>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
-  // On only once the panel can render, which waits for the target.
-  useFocusTrap(panelRef, {
-    active: open && target !== null,
-    restoreFocus: buttonRef,
-  });
+  useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef });
 
   return (
     <>
@@ -221,7 +217,7 @@ interface UseFocusTrapOptions {
 
 | Parameter                 | Type                                          | Default | Description                                                                                                                                       |
 | ------------------------- | --------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `containerRef`            | `RefObject<HTMLElement \| null>`              | —       | The element focus stays inside. It has to be in the DOM when the trap turns on.                                                                   |
+| `containerRef`            | `RefObject<HTMLElement \| null>`              | —       | The element focus stays inside.                                                                                                                   |
 | `options.active`          | `boolean`                                     | `true`  | Whether the trap is on. Turning it on moves focus in; turning it off (or unmounting) releases Tab and restores focus.                             |
 | `options.initialFocusRef` | `RefObject<HTMLElement \| null>`              | —       | An element inside the container that can take focus, focused when the trap turns on; otherwise the first tab stop, then the container.            |
 | `options.restoreFocus`    | `boolean` \| `RefObject<HTMLElement \| null>` | `true`  | Where focus goes when the trap turns off: `true` for the element focused when it turned on, a ref for that element, `false` to leave focus alone. |
