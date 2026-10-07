@@ -40,6 +40,7 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
 import { Icon } from '../elements/Icon';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 
 // The year is padded to four digits, as `datetime-local` requires. HTML has
 // no such shape for a year before 1, so a date then is empty, as that input
@@ -416,6 +417,30 @@ export const DateTimeInputBase = forwardRef<
     if (!open) setTimeOpen(false);
   }, [open]);
 
+  // The footer's Time button opens the wheels, and the hours wheel takes
+  // focus so the keys turn it straight away. Closing them hands focus back
+  // to the button: focus in them would fall to the page as they unmount,
+  // and a pointer press outside them has already dropped it on the panel or
+  // the page. Focus the keys moved on to another control, such as a
+  // calendar day, stays there.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const timeButtonRef = useRef<HTMLButtonElement>(null);
+  const timeOverlayRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!timeOpen) return;
+    timeOverlayRef.current
+      ?.querySelector<HTMLElement>('[role="spinbutton"]')
+      ?.focus();
+  }, [timeOpen]);
+  const closeTime = useCallback(() => {
+    const panel = panelRef.current;
+    const active = getActiveElementInTree(panel);
+    const movedOn =
+      !!panel?.contains(active) && !timeOverlayRef.current?.contains(active);
+    if (!movedOn) timeButtonRef.current?.focus();
+    setTimeOpen(false);
+  }, []);
+
   const commitValue = useCallback(
     (next: Date | null) => {
       if (!isControlled) setInternalValue(next);
@@ -557,13 +582,14 @@ export const DateTimeInputBase = forwardRef<
 
   const panel = (
     <div
+      ref={panelRef}
       className={panelClass}
       onKeyDown={e => {
         // First Escape collapses the floating time wheels; the popover's own
         // Escape handler (which closes the whole panel) only sees the second.
         if (timeOpen && e.key === 'Escape') {
           e.stopPropagation();
-          setTimeOpen(false);
+          closeTime();
         }
       }}
     >
@@ -590,12 +616,13 @@ export const DateTimeInputBase = forwardRef<
         />
         {timeOpen && (
           <div
+            ref={timeOverlayRef}
             className={timeOverlayClass}
             onClick={e => {
               // Tap outside the wheel card (on the covered calendar area)
               // collapses the wheels without selecting a date, matching the
               // native behavior.
-              if (e.target === e.currentTarget) setTimeOpen(false);
+              if (e.target === e.currentTarget) closeTime();
             }}
           >
             <div className={timeCardClass}>
@@ -623,9 +650,10 @@ export const DateTimeInputBase = forwardRef<
       </div>
       <div className={footerClass}>
         <button
+          ref={timeButtonRef}
           type="button"
           className={footerTimeClass}
-          onClick={() => setTimeOpen(o => !o)}
+          onClick={() => (timeOpen ? closeTime() : setTimeOpen(true))}
           aria-expanded={timeOpen}
           disabled={disabled}
         >

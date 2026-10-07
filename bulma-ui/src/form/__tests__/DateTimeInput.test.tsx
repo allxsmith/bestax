@@ -1372,6 +1372,135 @@ describe('DateTimeInput focus inside the popover', () => {
   });
 });
 
+describe('DateTimeInput focus and the time wheels', () => {
+  const v = new Date(2024, 5, 7, 10, 0);
+  const openPopover = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+  };
+  const pressTimeButton = (button: HTMLElement) => {
+    act(() => {
+      button.focus();
+    });
+    act(() => {
+      fireEvent.click(button);
+    });
+  };
+
+  it('moves focus to the hours wheel as the Time button opens the wheels', () => {
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels[0]).toHaveAttribute('aria-label', 'hours');
+    expect(wheels[0]).toHaveFocus();
+  });
+
+  it('hands focus back to the Time button when Escape closes the wheels', () => {
+    const { getByRole, queryAllByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    const timeButton = getByRole('button', { name: /Time/ });
+    pressTimeButton(timeButton);
+    const minutes = getAllByRole('spinbutton')[1];
+    act(() => {
+      minutes.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(minutes, { key: 'Escape' });
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('hands focus back to the Time button when it or a click outside the card closes them', () => {
+    const { getByRole, getAllByRole, queryAllByRole, container } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    const timeButton = getByRole('button', { name: /Time/ });
+    // A click on the button need not focus it, so focus can still be on a
+    // wheel as the button closes them.
+    pressTimeButton(timeButton);
+    expect(getAllByRole('spinbutton')[0]).toHaveFocus();
+    act(() => {
+      fireEvent.click(timeButton);
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+    // A press on the overlay takes focus off the wheel before the click,
+    // as a browser does for a press on something that takes no focus.
+    pressTimeButton(timeButton);
+    const hours = getAllByRole('spinbutton')[0];
+    expect(hours).toHaveFocus();
+    act(() => {
+      hours.blur();
+    });
+    act(() => {
+      fireEvent.click(container.querySelector('.datetimeinput-time-overlay')!);
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+  });
+
+  it('leaves focus on a calendar day when Escape closes the wheels from there', () => {
+    const { getByRole, queryAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    const day = getByRole('dialog').querySelector<HTMLElement>(
+      '[data-focused="true"]'
+    )!;
+    act(() => {
+      day.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(day, { key: 'Escape' });
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(day).toHaveFocus();
+  });
+
+  it('keeps focus on the wheel the keys turn', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} onChange={handler} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    const hours = getAllByRole('spinbutton')[0];
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'ArrowUp' });
+    });
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'ArrowUp' });
+    });
+    expect((handler.mock.lastCall![0] as Date).getHours()).toBe(12);
+    expect(hours).toHaveFocus();
+  });
+
+  it('does the same inline', () => {
+    const { getByRole, getAllByRole, queryAllByRole } = render(
+      <DateTimeInput defaultValue={v} inline />
+    );
+    const timeButton = getByRole('button', { name: /Time/ });
+    pressTimeButton(timeButton);
+    const hours = getAllByRole('spinbutton')[0];
+    expect(hours).toHaveFocus();
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'Escape' });
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+  });
+});
+
 describe('DateTimeInput focus handed back on close', () => {
   // The calendar focuses a cell as the popover opens. Closing must return
   // focus to the input, and under openOnFocus (the default) that focus must
