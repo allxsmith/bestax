@@ -149,6 +149,77 @@ test('related components resolve to real component names', () => {
   }
 });
 
+/**
+ * Every id the built Storybook answers to, derived the way its indexer derives
+ * them: Storybook's own CSF parser, from bulma-ui's `storybook`, run over the
+ * files bulma-ui's `.storybook/main.ts` globs. Borrowing the parser rather than
+ * re-implementing its id rules is the point, since a hand-written link that
+ * squashed `MutuallyExclusive` to `mutuallyexclusive` is the bug this guards,
+ * and resolving it from bulma-ui adds no dependency to the root.
+ *
+ * Besides each story, a component id on its own (`form-dateinput`) is a link
+ * Storybook resolves to that component's first entry, and a component tagged
+ * `autodocs` also answers to `<component>--docs`.
+ */
+async function storybookIds() {
+  const { readdir } = await import('node:fs/promises');
+  const { createRequire } = await import('node:module');
+  const { pathToFileURL } = await import('node:url');
+  const ui = join(REPO, 'bulma-ui');
+  const uiRequire = createRequire(join(ui, 'package.json'));
+  const { loadCsf } = await import(
+    pathToFileURL(uiRequire.resolve('storybook/internal/csf-tools')).href
+  );
+  const { sanitize } = await import(
+    pathToFileURL(uiRequire.resolve('storybook/internal/csf')).href
+  );
+  const ids = new Set();
+  const entries = await readdir(join(ui, 'src'), {
+    recursive: true,
+    withFileTypes: true,
+  });
+  for (const entry of entries) {
+    if (!entry.isFile() || !/\.stories\.[cm]?[jt]sx?$/.test(entry.name)) {
+      continue;
+    }
+    const file = join(entry.parentPath, entry.name);
+    const csf = loadCsf(await readFile(file, 'utf8'), {
+      fileName: file,
+      makeTitle: title => {
+        // Storybook would auto-title it from the path, which this does not model.
+        assert.ok(title, `${file} has no title`);
+        return title;
+      },
+    }).parse();
+    const component = sanitize(csf.meta.title);
+    ids.add(component);
+    if (csf.meta.tags?.includes('autodocs')) ids.add(`${component}--docs`);
+    for (const story of csf.stories) ids.add(story.id);
+  }
+  return ids;
+}
+
+test('every Storybook link in the index opens a story that exists', async () => {
+  // The links are hand-written on the API pages and copied here verbatim, and
+  // three of them opened "Couldn't find story" (#936). Every link anywhere in a
+  // record counts, the helper pages' prose included.
+  const ids = await storybookIds();
+  assert.ok(ids.has('elements-button--default'), 'story ids were not derived');
+  const broken = [];
+  let checked = 0;
+  for (const [name, record] of components) {
+    for (const [url] of JSON.stringify(record).matchAll(
+      /https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g
+    )) {
+      checked++;
+      const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
+      if (!id || !ids.has(id)) broken.push(`${name}: ${url}`);
+    }
+  }
+  assert.ok(checked > 0, 'no Storybook links found to check');
+  assert.deepEqual(broken, []);
+});
+
 test('the skills roster is read from the directory, not a hardcoded list', () => {
   assert.ok(skills.skills.length >= 7, 'skills missing');
   const names = skills.skills.map(s => s.name);
