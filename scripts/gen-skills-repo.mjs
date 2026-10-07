@@ -1164,6 +1164,29 @@ export function iconViolations(content) {
 }
 
 /**
+ * A private way to report a vulnerability: an email link, or a repository's
+ * GitHub Security page, where private reporting lives.
+ */
+const REPORTING_CHANNEL =
+  /\(mailto:[^)\s]+@[^)\s]+\)|https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/security\b/;
+
+/**
+ * Why `content` cannot be the published SECURITY.md: bestax-skills has its
+ * issues turned off, so the file is the only place that says where to report,
+ * and it must link at least one private channel (REPORTING_CHANNEL). Empty
+ * when it does.
+ */
+export function securityViolations(content) {
+  if (REPORTING_CHANNEL.test(content.toString('utf8'))) return [];
+  return [
+    `${FILES.security}: links no private way to report a vulnerability, ` +
+      `such as a mailto: link or a repository's GitHub Security page. ` +
+      `bestax-skills has its issues turned off, so this file is the only ` +
+      `place a reporter can learn where to go.`,
+  ];
+}
+
+/**
  * Why `content` cannot be the Cursor logo: the marketplace asks for a square
  * logo with a background plate, so it must be a complete PNG (pngSize),
  * square, and unable to hold a transparent pixel. Empty when it can be.
@@ -1225,6 +1248,8 @@ export function treeViolations(entries) {
   if (!byPath.has(FILES.logo)) violations.push(`${FILES.logo}: missing.`);
   if (!byPath.has(FILES.security)) {
     violations.push(`${FILES.security}: missing.`);
+  } else if (byPath.get(FILES.security)) {
+    violations.push(...securityViolations(byPath.get(FILES.security)));
   }
   if (![...byPath.keys()].some(p => /^skills\/[^/]+\/SKILL\.md$/.test(p))) {
     violations.push('skills/: holds no skills/<name>/SKILL.md.');

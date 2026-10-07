@@ -69,6 +69,7 @@ import {
   renderReadme,
   renderSkillList,
   scanTree,
+  securityViolations,
   skillIndex,
   skillSummary,
   treeViolations,
@@ -179,6 +180,9 @@ const ICON = png(512, 512);
  * swapped unnoticed.
  */
 const LOGO = png(600, 600);
+
+/** The SECURITY.md every fixture tree and fixture repository carries. */
+const SECURITY = 'Report privately to [us](mailto:security@example.com).\n';
 
 /** `chunks` with the IHDR colour type set to `type`. */
 function withColourType(chunks, type) {
@@ -1105,7 +1109,8 @@ The snapshot plugin sends nothing anywhere.
 `,
   'plugin/icon.png': png(512, 512),
   'plugin/logo.png': png(600, 600),
-  'plugin/SECURITY.md': '# Security Policy\n\nReport privately.\n',
+  'plugin/SECURITY.md':
+    '# Security Policy\n\nEmail [us](mailto:security@example.com).\n',
   'bestax-mcp/package.json': `${JSON.stringify({
     name: 'snapshot-mcp',
     version: '2.3.4',
@@ -1192,7 +1197,7 @@ The snapshot plugin sends nothing anywhere.
  */
 const OUTPUT_SNAPSHOT = {
   format: 5,
-  sha256: 'b992fc7c8a23d1c534dafe4cbc11d2acab4e9437797bf89b5b6524d2d0d14e9e',
+  sha256: '8ce20d0121bd264e046987a2f772215e81abafe880610c352a674b24afeff273',
 };
 
 /**
@@ -1563,7 +1568,7 @@ function fixtureSources(overrides = {}) {
     launch: { pin: 'bestax-mcp@1.2.3', env: [] },
     icon: file(FILES.icon, ICON),
     logo: file(FILES.logo, LOGO),
-    security: file(FILES.security, '# Security Policy\n'),
+    security: file(FILES.security, SECURITY),
     copied: [file('LICENSE', 'MIT License\n'), file('NOTICE', 'Notice\n')],
     skillFiles: [
       file('skills/demo/SKILL.md', '---\nname: demo\n---\n'),
@@ -1913,11 +1918,30 @@ test('the Cursor manifest must name a logo, skills and mcp.json in the tree', ()
   );
 });
 
-test('the tree must carry SECURITY.md', () => {
+test('the tree must carry a SECURITY.md that links a private channel', () => {
   has(
     violationsWith(tree => tree.delete(FILES.security)),
     /^SECURITY\.md: missing\.$/
   );
+  const withSecurity = text =>
+    violationsWith(tree => tree.set(FILES.security, Buffer.from(text)));
+  for (const ok of [
+    'Email [us](mailto:security@example.com).\n',
+    'Report on the [Security tab](https://github.com/owner/repo.name/security).\n',
+    'See https://github.com/owner/repo/security/advisories/new\n',
+  ]) {
+    assert.deepEqual(withSecurity(ok), [], ok);
+    assert.deepEqual(securityViolations(Buffer.from(ok)), [], ok);
+  }
+  for (const gutted of [
+    '',
+    '# Security Policy\n\nOpen an issue.\n',
+    'Email security@example.com.\n',
+    'See https://github.com/owner/repo/issues\n',
+    'Write to [us](mailto:nobody).\n',
+  ]) {
+    has(withSecurity(gutted), /^SECURITY\.md: links no private way to report/);
+  }
 });
 
 test('the Gemini manifest must keep the plugin name and an exact npx pin', () => {
@@ -2353,7 +2377,7 @@ function fixtureRepo({ init = true } = {}) {
   write(root, TEMPLATE.readme, FIXTURE_README);
   write(root, TEMPLATE.icon, ICON);
   write(root, TEMPLATE.logo, LOGO);
-  write(root, TEMPLATE.security, '# Security Policy\n');
+  write(root, TEMPLATE.security, SECURITY);
   write(
     root,
     `${MCP_DIR}/package.json`,
@@ -2403,7 +2427,7 @@ test('readSources builds the launch and README from the fixture inputs', async (
   assert.equal(sources.icon.mode, 0o644);
   assert.equal(sources.logo.path, FILES.logo);
   assert.equal(sources.security.path, FILES.security);
-  assert.equal(sources.security.content.toString(), '# Security Policy\n');
+  assert.equal(sources.security.content.toString(), SECURITY);
   assert.ok(sources.logo.content.equals(LOGO));
   const readme = sources.readme.toString('utf8');
   assert.ok(readme.includes(`- **demo**: ${DEMO_SUMMARY}\n`));
