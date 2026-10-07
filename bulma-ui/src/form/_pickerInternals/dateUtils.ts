@@ -155,6 +155,36 @@ export function isPeriodUnselectable(
   return true;
 }
 
+/**
+ * Whether `end` can close a range that opens on `start`: it falls on `start`'s
+ * day or later, and, unless `allowDisabled`, no day between the two is one
+ * that `shouldDisableDate` or `unselectableDates` disables. The ends' own
+ * constraints, `min` and `max` among them, are the caller's to check. Bounds
+ * can't fall between two days inside them, so they are not walked.
+ */
+export function canCloseRange(
+  start: Date,
+  end: Date,
+  c: DayConstraints,
+  allowDisabled = false
+): boolean {
+  const first = startOfDay(start);
+  const last = startOfDay(end).getTime();
+  if (last < first.getTime()) return false;
+  if (allowDisabled) return true;
+  const blocks: DayConstraints = {
+    shouldDisableDate: c.shouldDisableDate,
+    unselectableDates: c.unselectableDates,
+  };
+  if (!blocks.shouldDisableDate && !blocks.unselectableDates?.length) {
+    return true;
+  }
+  for (let d = addDays(first, 1); d.getTime() < last; d = addDays(d, 1)) {
+    if (isDayUnselectable(d, blocks)) return false;
+  }
+  return true;
+}
+
 export function addDays(d: Date, n: number): Date {
   const r = new Date(d);
   r.setDate(r.getDate() + n);

@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useId,
   useMemo,
   useRef,
   useState,
@@ -12,8 +13,10 @@ import {
 } from '../../helpers/classNames';
 import { useConfig } from '../../helpers/Config';
 import { getActiveElementInTree } from '../../helpers/shadowDom';
+import { visuallyHidden } from '../../helpers/statusRegion';
 import {
   DateGranularity,
+  DateRangeValue,
   DayOfWeek,
   PickerLabels,
   mergeLabels,
@@ -23,6 +26,7 @@ import {
   addMonths,
   addYears,
   buildMonthGrid,
+  canCloseRange,
   clampDate,
   FIRST_YEAR,
   floorMin,
@@ -34,12 +38,14 @@ import {
   startOfDay,
   startOfMonth,
 } from './dateUtils';
-import { getDayNames, getMonthNames } from './formatters';
+import { formatDate, getDayNames, getMonthNames } from './formatters';
 
 export interface CalendarProps {
-  value: Date | null;
+  /** The selected date. Unused in range mode, which reads `range`. */
+  value?: Date | null;
   focusedDate: Date;
-  onSelect: (d: Date) => void;
+  /** Called with a picked date. Range mode calls `onRangeSelect` instead. */
+  onSelect?: (d: Date) => void;
   onFocusedDateChange: (d: Date) => void;
   /**
    * Earliest selectable date. One before year 1, or none, counts as the start
@@ -82,6 +88,28 @@ export interface CalendarProps {
    * receives the period's first day.
    */
   granularity?: DateGranularity;
+  /**
+   * The committed range, start first, which turns on range mode. The day grid
+   * then picks two days: the first pick marks a start inside the calendar and
+   * commits nothing, and the second calls `onRangeSelect` with both ends. A
+   * pick that cannot end the range starts a new one instead: one before the
+   * start, or one past a disabled day unless `allowDisabledInRange` is set.
+   * While a start is pending the grid previews the range to the hovered day,
+   * or to the focused day, and hides the committed one. A range with a start
+   * and no end opens with that start pending. Escape takes back a pending pick
+   * and stops there, so a popover around the calendar stays open; a pending
+   * start that came from `range` is not a pick, and Escape goes on. Only the
+   * day grid picks ranges; at month or year granularity the calendar picks
+   * one period through `onSelect`.
+   */
+  range?: DateRangeValue;
+  /** Range mode: called with both ends once the second day is picked. */
+  onRangeSelect?: (start: Date, end: Date) => void;
+  /**
+   * Range mode: let a range include days that `shouldDisableDate` or
+   * `unselectableDates` disable. Its ends can still not be such days.
+   */
+  allowDisabledInRange?: boolean;
 }
 
 /**
@@ -93,6 +121,8 @@ export const CALENDAR_FOCUSED_CELL =
   '[role="grid"] [data-focused="true"], [role="listbox"] [data-focused-year="true"]';
 
 type CalendarView = 'days' | 'months' | 'years';
+
+const noop = () => {};
 
 const BASE_VIEW: Record<DateGranularity, CalendarView> = {
   day: 'days',
@@ -167,6 +197,21 @@ function nearestEnabled(i: number, disabled: boolean[]): number {
   return i;
 }
 
+/** The long, spoken form of a date in a range's announcement. */
+const LONG_DATE: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+};
+
+/** A range's pending start: its start, when it has no end. */
+const pendingStartOf = (range?: DateRangeValue): Date | null =>
+  range?.[0] && !range[1] ? startOfDay(range[0]) : null;
+
+/** A date's time, or `null` for none, for comparing ranges by value. */
+const timeOf = (d: Date | null | undefined): number | null =>
+  d ? d.getTime() : null;
+
 /**
  * The year list's keyboard when it is the selection surface: arrows move a
  * year or a row, Home/End go to the list's ends. Returns the year to start
@@ -199,7 +244,7 @@ function yearStep(
 export const Calendar: React.FC<CalendarProps> = ({
   value,
   focusedDate,
-  onSelect,
+  onSelect = noop,
   onFocusedDateChange,
   min: minProp,
   max,
@@ -218,6 +263,9 @@ export const Calendar: React.FC<CalendarProps> = ({
   labels,
   yearsRange,
   granularity = 'day',
+  range,
+  onRangeSelect,
+  allowDisabledInRange = false,
 }) => {
   const gridRef = useRef<HTMLDivElement>(null);
   const monthGridRef = useRef<HTMLDivElement>(null);
@@ -298,6 +346,91 @@ export const Calendar: React.FC<CalendarProps> = ({
     return days[i];
   }, [cells, focusedDate, isDateUnselectable]);
 
+  // ----- Range mode -----
+  const rangeMode = !!range && isDayGranularity;
+  const valuePending = rangeMode ? pendingStartOf(range) : null;
+
+  // The start of a range being picked, which nothing outside the calendar
+  // sees until its end is picked too. It starts as the range's own pending
+  // start, and starts there again whenever the range changes from outside.
+  const [anchor, setAnchor] = useState<Date | null>(valuePending);
+  const rangeKey = `${timeOf(range?.[0])}|${timeOf(range?.[1])}`;
+  const [anchorRangeKey, setAnchorRangeKey] = useState(rangeKey);
+  if (anchorRangeKey !== rangeKey) {
+    setAnchorRangeKey(rangeKey);
+    setAnchor(valuePending);
+  }
+  // The day under the pointer while a start is pending, which the preview
+  // runs to ahead of the focused day.
+  const [hoverDate, setHoverDate] = useState<Date | null>(null);
+
+  // Whether `day` can end a range that starts on `start`.
+  const canEndAt = useCallback(
+    (start: Date, day: Date) =>
+      !isDateUnselectable(day) &&
+      canCloseRange(
+        start,
+        day,
+        { shouldDisableDate, unselectableDates },
+        allowDisabledInRange
+      ),
+    [
+      isDateUnselectable,
+      shouldDisableDate,
+      unselectableDates,
+      allowDisabledInRange,
+    ]
+  );
+
+  // A pick in range mode: the end of the pending range when it can be one,
+  // and otherwise the start of a new one.
+  const pickRangeDay = useCallback(
+    (picked: Date) => {
+      const day = startOfDay(picked);
+      // The pointer is on the picked day, which the focused day now is too.
+      setHoverDate(null);
+      if (anchor && canEndAt(anchor, day)) {
+        setAnchor(null);
+        onRangeSelect?.(anchor, day);
+      } else {
+        setAnchor(day);
+      }
+    },
+    [anchor, canEndAt, onRangeSelect]
+  );
+
+  // What the grid shows: while a start is pending, the range from it to the
+  // hovered or focused day, when that day can end it; otherwise the
+  // committed range.
+  let shownStart: Date | null;
+  let shownEnd: Date | null;
+  if (anchor) {
+    shownStart = anchor;
+    const previewEnd = startOfDay(hoverDate ?? focusedDate);
+    shownEnd = canEndAt(anchor, previewEnd) ? previewEnd : null;
+  } else {
+    shownStart = range?.[0] ? startOfDay(range[0]) : null;
+    shownEnd = range?.[1] ? startOfDay(range[1]) : null;
+  }
+  const previewing = !!anchor;
+
+  // Ids for the words that name a range's ends and state the whole range.
+  const reactId = useId();
+  const rangeIdBase = id ?? `calendar-${reactId}`;
+  const rangeStartId = `${rangeIdBase}-range-start`;
+  const rangeEndId = `${rangeIdBase}-range-end`;
+  const rangeSummaryId = `${rangeIdBase}-range-summary`;
+  // The selection in words: the pending start alone, or the committed ends.
+  const selectedEnd = previewing ? null : shownEnd;
+  const rangeSummary = [
+    shownStart &&
+      `${t.rangeStart}: ${formatDate(shownStart, LONG_DATE, locale)}`,
+    selectedEnd &&
+      `${t.rangeEnd}: ${formatDate(selectedEnd, LONG_DATE, locale)}`,
+  ]
+    .filter(Boolean)
+    .join(', ');
+
   // Whether the grid on show holds focus, or held it last before focus went
   // nowhere: the cell that had it left the page or became disabled. A blur
   // that takes focus out of the grid, to nowhere included, is the user
@@ -339,6 +472,8 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      // A key takes the range preview back from the pointer.
+      setHoverDate(null);
       switch (e.key) {
         case 'ArrowLeft':
           e.preventDefault();
@@ -387,11 +522,33 @@ export const Calendar: React.FC<CalendarProps> = ({
         case 'Enter':
         case ' ':
           e.preventDefault();
-          if (!isDateUnselectable(focusedDate)) onSelect(focusedDate);
+          if (isDateUnselectable(focusedDate)) break;
+          if (rangeMode) pickRangeDay(focusedDate);
+          else onSelect(focusedDate);
+          break;
+        case 'Escape':
+          // A pending pick is taken back, and the key stops there so a
+          // popover around the calendar stays open. The range's own pending
+          // start is no pick, so Escape goes on to close the popover.
+          if (anchor && !(valuePending && isSameDay(anchor, valuePending))) {
+            e.preventDefault();
+            e.stopPropagation();
+            setAnchor(valuePending);
+          }
           break;
       }
     },
-    [focusedDate, firstDayOfWeek, isDateUnselectable, moveFocus, onSelect]
+    [
+      focusedDate,
+      firstDayOfWeek,
+      isDateUnselectable,
+      moveFocus,
+      onSelect,
+      rangeMode,
+      pickRangeDay,
+      anchor,
+      valuePending,
+    ]
   );
 
   // The month grid's counterpart to `moveFocus`: step by `direction` months
@@ -752,20 +909,48 @@ export const Calendar: React.FC<CalendarProps> = ({
             ref={gridRef}
             role="grid"
             aria-labelledby={labelId}
+            aria-multiselectable={rangeMode || undefined}
+            aria-describedby={rangeMode ? rangeSummaryId : undefined}
             className={gridClass}
             onKeyDown={handleKeyDown}
+            onMouseLeave={anchor ? () => setHoverDate(null) : undefined}
             {...gridFocusHandlers}
           >
             {cells.map(cell => {
               const disabled = isDateUnselectable(cell.date);
-              const isSelected = !!value && isSameDay(value, cell.date);
+              const time = cell.date.getTime();
+              // Range mode. The range on show has its ends filled. Every day
+              // of a committed range is selected, and of a preview only the
+              // start.
+              const isStart = time === timeOf(shownStart);
+              const isEnd = time === timeOf(shownEnd);
+              const inRange =
+                !!shownStart &&
+                !!shownEnd &&
+                time > shownStart.getTime() &&
+                time < shownEnd.getTime();
+              const isPreview = previewing && (inRange || (isEnd && !isStart));
+              const isFilled = rangeMode
+                ? isStart || (isEnd && !previewing)
+                : !!value && isSameDay(value, cell.date);
+              const isSelected =
+                isFilled || (rangeMode && !previewing && inRange);
+              const describedBy = rangeMode
+                ? [isStart && rangeStartId, isEnd && !previewing && rangeEndId]
+                    .filter(Boolean)
+                    .join(' ') || undefined
+                : undefined;
               const isFocused = isSameDay(cell.date, tabStopDay);
               const otherMonth = !cell.inCurrentMonth;
               const cellClass = prefixedClassNames(
                 classPrefix,
                 'dateinput-cell',
                 {
-                  'is-selected': isSelected,
+                  'is-selected': isFilled,
+                  'is-range-start': isStart,
+                  'is-range-end': isEnd,
+                  'is-in-range': inRange,
+                  'is-preview': isPreview,
                   'is-today': cell.isToday,
                   'is-disabled': disabled,
                   'is-other-month': otherMonth,
@@ -781,6 +966,7 @@ export const Calendar: React.FC<CalendarProps> = ({
                   aria-selected={isSelected}
                   aria-disabled={disabled}
                   aria-current={cell.isToday ? 'date' : undefined}
+                  aria-describedby={describedBy}
                   data-focused={isFocused ? 'true' : undefined}
                   disabled={disabled || !display}
                   className={cellClass}
@@ -792,10 +978,14 @@ export const Calendar: React.FC<CalendarProps> = ({
                       onFocusedDateChange(cell.date);
                     }
                   }}
+                  onMouseEnter={
+                    anchor ? () => setHoverDate(cell.date) : undefined
+                  }
                   onClick={() => {
                     if (disabled) return;
                     onFocusedDateChange(cell.date);
-                    onSelect(cell.date);
+                    if (rangeMode) pickRangeDay(cell.date);
+                    else onSelect(cell.date);
                   }}
                   style={!display ? { visibility: 'hidden' } : undefined}
                 >
@@ -923,6 +1113,23 @@ export const Calendar: React.FC<CalendarProps> = ({
             );
           })}
         </div>
+      )}
+
+      {rangeMode && (
+        // The words the day cells and the grid point at. The live region
+        // stays mounted while the year list is open, so it is in the page
+        // already when a pick changes what it says.
+        <>
+          <span id={rangeStartId} hidden>
+            {t.rangeStart}
+          </span>
+          <span id={rangeEndId} hidden>
+            {t.rangeEnd}
+          </span>
+          <div id={rangeSummaryId} aria-live="polite" style={visuallyHidden}>
+            {rangeSummary}
+          </div>
+        </>
       )}
     </div>
   );

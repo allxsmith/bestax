@@ -9,6 +9,12 @@ export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 export type DateGranularity = 'day' | 'month' | 'year';
 
 /**
+ * A range of days, start first. Either end may be `null` while the range is
+ * half filled, and `[null, null]` is empty.
+ */
+export type DateRangeValue = [Date | null, Date | null];
+
+/**
  * Translatable strings used across all four pickers. Pass via the `labels`
  * prop to override defaults; consumers manage their own locale-driven mapping.
  */
@@ -25,6 +31,10 @@ export interface PickerLabels {
   chooseMonth?: string;
   /** Launcher, popover and year list name when the picker selects a year. */
   chooseYear?: string;
+  /** Range picking: names the start of a range, in the calendar and the field. */
+  rangeStart?: string;
+  /** Range picking: names the end of a range, in the calendar and the field. */
+  rangeEnd?: string;
   // Time spinner
   hours?: string;
   minutes?: string;
@@ -61,6 +71,8 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   chooseDate: 'Choose date',
   chooseMonth: 'Choose month',
   chooseYear: 'Choose year',
+  rangeStart: 'Start date',
+  rangeEnd: 'End date',
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',
