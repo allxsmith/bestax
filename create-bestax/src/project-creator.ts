@@ -311,9 +311,11 @@ export class ProjectCreator {
 
           if (fs.existsSync(mainFilePath)) {
             let content = await fs.readFile(mainFilePath, 'utf8');
-            // Add the icon library import after the CSS imports
+            // Add the icon library import after the bestax stylesheet import,
+            // whichever one the flavor wrote: bestax.css for complete, a
+            // versions/bestax-*.css file for every other flavor (#946).
             const cssImportMatch = content.match(
-              /import\s+['"](?:@allxsmith\/bestax-bulma\/(?:bestax|extras)\.css|bulma\/css\/.*?)['"]\s*;?/
+              /import\s+['"](?:@allxsmith\/bestax-bulma\/[^'"]+\.css|bulma\/css\/.*?)['"]\s*;?/
             );
             if (cssImportMatch) {
               const insertPosition =

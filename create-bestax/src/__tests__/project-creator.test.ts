@@ -6,6 +6,7 @@ import {
   beforeEach,
   afterEach,
 } from '@jest/globals';
+import { readFileSync } from 'node:fs';
 
 // Mock fs-extra
 jest.unstable_mockModule('fs-extra', () => ({
@@ -786,6 +787,74 @@ describe('ProjectCreator', () => {
 
       expect(fs.default.writeFile).toHaveBeenCalled();
     });
+  });
+
+  describe('icon CSS after each Bulma flavor (#946)', () => {
+    // Real template entry files, held in memory, so the flavor step and the
+    // icon step run against what a scaffold actually starts from.
+    let files: Map<string, string>;
+
+    beforeEach(() => {
+      files = new Map();
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(p => files.has(String(p)));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockImplementation((async (p: unknown) =>
+        files.get(String(p))) as unknown as typeof fs.readFile);
+      (
+        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+      ).mockImplementation((async (p: unknown, content: unknown) => {
+        files.set(String(p), String(content));
+      }) as unknown as typeof fs.writeFile);
+      (
+        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+      ).mockImplementation((async (p: unknown) =>
+        JSON.parse(files.get(String(p)) ?? '{}')) as typeof fs.readJson);
+      (
+        fs.default.writeJson as jest.MockedFunction<typeof fs.writeJson>
+      ).mockImplementation((async (p: unknown, data: unknown) => {
+        files.set(String(p), JSON.stringify(data));
+      }) as typeof fs.writeJson);
+    });
+
+    const cssIconLibraries = _ICON_LIBRARIES.filter(lib => lib.importStatement);
+    const cases = _BULMA_FLAVORS.flatMap(flavor =>
+      cssIconLibraries.map(library => [flavor.name, library.name] as const)
+    );
+
+    it.each(cases)(
+      'the %s flavor with %s imports the icon CSS right after its stylesheet',
+      async (flavorName, libraryName) => {
+        const flavor = _BULMA_FLAVORS.find(f => f.name === flavorName)!;
+        const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
+
+        for (const template of ['vite', 'vite-ts']) {
+          const mainFile = template === 'vite-ts' ? 'main.tsx' : 'main.jsx';
+          const root = `/app-${template}`;
+          const mainPath = `${root}/src/${mainFile}`;
+          files.set(
+            mainPath,
+            readFileSync(
+              new URL(
+                `../../templates/${template}/src/${mainFile}`,
+                import.meta.url
+              ),
+              'utf8'
+            )
+          );
+          files.set(`${root}/package.json`, '{"dependencies":{}}');
+
+          await projectCreator.setupBulmaFlavor(root, flavorName, template);
+          await projectCreator.setupIconLibrary(root, libraryName, template);
+
+          expect(files.get(mainPath)).toContain(
+            `${flavor.importStatement}\n${library.importStatement}`
+          );
+        }
+      }
+    );
   });
 
   describe('setupConfigProvider', () => {
