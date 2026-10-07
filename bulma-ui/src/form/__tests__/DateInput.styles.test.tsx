@@ -197,6 +197,21 @@ describe('calendar focus rings', () => {
   );
 });
 
+describe('day grid layout', () => {
+  it('lays each week out as a row of seven days, the weeks stacked', () => {
+    // The day grid is a grid of rows, so the seven columns belong to each
+    // row rather than to the grid.
+    const { container } = render(<DateInput inline />);
+    const week = getComputedStyle(container.querySelector('.dateinput-week')!);
+    expect(week.display).toBe('grid');
+    expect(week.gridTemplateColumns).toBe('repeat(7, 1fr)');
+    const grid = getComputedStyle(container.querySelector('.dateinput-grid')!);
+    expect(grid.display).toBe('grid');
+    expect(grid.gridTemplateColumns).toBe('');
+    expect(week.gap).toBe(grid.gap);
+  });
+});
+
 describe('calendar variables', () => {
   it('registers only variables that some rule reads', () => {
     const set = setProperties(sheet.cssRules);

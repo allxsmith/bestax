@@ -227,6 +227,23 @@ const LONG_DATE: Intl.DateTimeFormatOptions = {
 const pendingStartOf = (range?: DateRangeValue): Date | null =>
   range?.[0] && !range[1] ? startOfDay(range[0]) : null;
 
+/**
+ * The day grid's cells in rows of a week. A grid owns rows and rows own
+ * cells, so assistive technology can walk the grid, and the selection it
+ * reports, row by row.
+ */
+const inWeeks = (days: React.ReactElement[], className: string) => {
+  const rows: React.ReactElement[] = [];
+  for (let i = 0; i < days.length; i += 7) {
+    rows.push(
+      <div key={i} role="row" className={className}>
+        {days.slice(i, i + 7)}
+      </div>
+    );
+  }
+  return rows;
+};
+
 /** A date's time, or `null` for none, for comparing ranges by value. */
 const timeOf = (d: Date | null | undefined): number | null =>
   d ? d.getTime() : null;
@@ -628,6 +645,7 @@ export const Calendar: React.FC<CalendarProps> = ({
   const dayNamesRowClass = usePrefixedClassNames('dateinput-day-names');
   const dayNameClass = usePrefixedClassNames('dateinput-day-name');
   const gridClass = usePrefixedClassNames('dateinput-grid');
+  const weekClass = usePrefixedClassNames('dateinput-week');
   const monthsGridClass = usePrefixedClassNames('dateinput-months-grid');
   const monthsRowClass = usePrefixedClassNames('dateinput-months-row');
   const yearsGridClass = usePrefixedClassNames('dateinput-years-grid');
@@ -940,93 +958,96 @@ export const Calendar: React.FC<CalendarProps> = ({
             onMouseLeave={anchor ? () => setHoverDate(null) : undefined}
             {...gridFocusHandlers}
           >
-            {cells.map(cell => {
-              const disabled = isDateUnselectable(cell.date);
-              const time = cell.date.getTime();
-              // Range mode. The range on show has its ends filled. Every day
-              // of a committed range is selected, and of a preview only the
-              // start.
-              const isStart = time === timeOf(shownStart);
-              const isEnd = time === timeOf(shownEnd);
-              const inRange =
-                !!shownStart &&
-                !!shownEnd &&
-                time > shownStart.getTime() &&
-                time < shownEnd.getTime();
-              // The day a pending range would end on, which isn't picked
-              // yet, so its description says what picking it does.
-              const isPreviewEnd = previewing && isEnd && !isStart;
-              const isPreview = (previewing && inRange) || isPreviewEnd;
-              const isFilled = rangeMode
-                ? isStart || (isEnd && !previewing)
-                : !!value && isSameDay(value, cell.date);
-              const isSelected =
-                isFilled || (rangeMode && !previewing && inRange);
-              const describedBy = rangeMode
-                ? [
-                    isStart && rangeStartId,
-                    isEnd && !previewing && rangeEndId,
-                    isPreviewEnd && rangePreviewEndId,
-                  ]
-                    .filter(Boolean)
-                    .join(' ') || undefined
-                : undefined;
-              const isFocused = isSameDay(cell.date, tabStopDay);
-              const otherMonth = !cell.inCurrentMonth;
-              const cellClass = prefixedClassNames(
-                classPrefix,
-                'dateinput-cell',
-                {
-                  'is-selected': isFilled,
-                  'is-range-start': isStart,
-                  'is-range-end': isEnd,
-                  'is-in-range': inRange,
-                  'is-preview': isPreview,
-                  'is-today': cell.isToday,
-                  'is-disabled': disabled,
-                  'is-other-month': otherMonth,
-                }
-              );
-              const display = !otherMonth || nearbyMonthDays;
-              return (
-                <button
-                  key={cell.date.toISOString()}
-                  type="button"
-                  role="gridcell"
-                  tabIndex={isFocused ? 0 : -1}
-                  aria-selected={isSelected}
-                  aria-disabled={disabled}
-                  aria-current={cell.isToday ? 'date' : undefined}
-                  aria-describedby={describedBy}
-                  data-focused={isFocused ? 'true' : undefined}
-                  disabled={disabled || !display}
-                  className={cellClass}
-                  onFocus={() => {
-                    // Reached by Tab while the focused day is disabled, or
-                    // by pointer: keys move on from here. A nearby month's
-                    // day waits for its click, which turns the grid.
-                    if (!otherMonth && !isSameDay(cell.date, focusedDate)) {
-                      onFocusedDateChange(cell.date);
-                    }
-                  }}
-                  // Mouseover rather than mouseenter: browsers send it to a
-                  // disabled day as well, where React holds mouseenter back,
-                  // so the preview leaves the last enabled day behind.
-                  onMouseOver={
-                    anchor ? () => setHoverDate(cell.date) : undefined
+            {inWeeks(
+              cells.map(cell => {
+                const disabled = isDateUnselectable(cell.date);
+                const time = cell.date.getTime();
+                // Range mode. The range on show has its ends filled. Every day
+                // of a committed range is selected, and of a preview only the
+                // start.
+                const isStart = time === timeOf(shownStart);
+                const isEnd = time === timeOf(shownEnd);
+                const inRange =
+                  !!shownStart &&
+                  !!shownEnd &&
+                  time > shownStart.getTime() &&
+                  time < shownEnd.getTime();
+                // The day a pending range would end on, which isn't picked
+                // yet, so its description says what picking it does.
+                const isPreviewEnd = previewing && isEnd && !isStart;
+                const isPreview = (previewing && inRange) || isPreviewEnd;
+                const isFilled = rangeMode
+                  ? isStart || (isEnd && !previewing)
+                  : !!value && isSameDay(value, cell.date);
+                const isSelected =
+                  isFilled || (rangeMode && !previewing && inRange);
+                const describedBy = rangeMode
+                  ? [
+                      isStart && rangeStartId,
+                      isEnd && !previewing && rangeEndId,
+                      isPreviewEnd && rangePreviewEndId,
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || undefined
+                  : undefined;
+                const isFocused = isSameDay(cell.date, tabStopDay);
+                const otherMonth = !cell.inCurrentMonth;
+                const cellClass = prefixedClassNames(
+                  classPrefix,
+                  'dateinput-cell',
+                  {
+                    'is-selected': isFilled,
+                    'is-range-start': isStart,
+                    'is-range-end': isEnd,
+                    'is-in-range': inRange,
+                    'is-preview': isPreview,
+                    'is-today': cell.isToday,
+                    'is-disabled': disabled,
+                    'is-other-month': otherMonth,
                   }
-                  onClick={() => {
-                    if (disabled) return;
-                    onFocusedDateChange(cell.date);
-                    if (rangeMode) pickRangeDay(cell.date);
-                    else onSelect?.(cell.date);
-                  }}
-                  style={!display ? { visibility: 'hidden' } : undefined}
-                >
-                  {cell.date.getDate()}
-                </button>
-              );
-            })}
+                );
+                const display = !otherMonth || nearbyMonthDays;
+                return (
+                  <button
+                    key={cell.date.toISOString()}
+                    type="button"
+                    role="gridcell"
+                    tabIndex={isFocused ? 0 : -1}
+                    aria-selected={isSelected}
+                    aria-disabled={disabled}
+                    aria-current={cell.isToday ? 'date' : undefined}
+                    aria-describedby={describedBy}
+                    data-focused={isFocused ? 'true' : undefined}
+                    disabled={disabled || !display}
+                    className={cellClass}
+                    onFocus={() => {
+                      // Reached by Tab while the focused day is disabled, or
+                      // by pointer: keys move on from here. A nearby month's
+                      // day waits for its click, which turns the grid.
+                      if (!otherMonth && !isSameDay(cell.date, focusedDate)) {
+                        onFocusedDateChange(cell.date);
+                      }
+                    }}
+                    // Mouseover rather than mouseenter: browsers send it to a
+                    // disabled day as well, where React holds mouseenter back,
+                    // so the preview leaves the last enabled day behind.
+                    onMouseOver={
+                      anchor ? () => setHoverDate(cell.date) : undefined
+                    }
+                    onClick={() => {
+                      if (disabled) return;
+                      onFocusedDateChange(cell.date);
+                      if (rangeMode) pickRangeDay(cell.date);
+                      else onSelect?.(cell.date);
+                    }}
+                    style={!display ? { visibility: 'hidden' } : undefined}
+                  >
+                    {cell.date.getDate()}
+                  </button>
+                );
+              }),
+              weekClass
+            )}
           </div>
         </>
       )}

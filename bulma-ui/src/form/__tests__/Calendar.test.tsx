@@ -34,6 +34,25 @@ describe('Calendar', () => {
     expect(container.querySelectorAll('[role="gridcell"]').length).toBe(42);
   });
 
+  it('groups the days into rows of a week', () => {
+    // A grid owns rows, and rows own cells, so assistive technology can walk
+    // the grid, and the days it marks selected, row by row.
+    const { container } = render(<Harness />);
+    const grid = container.querySelector('[role="grid"]')!;
+    const rows = Array.from(grid.children);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row).toHaveAttribute('role', 'row');
+      expect(row).toHaveClass('dateinput-week');
+      expect(row.querySelectorAll(':scope > [role="gridcell"]')).toHaveLength(
+        7
+      );
+    }
+    expect(grid.querySelectorAll('[role="gridcell"]')).toHaveLength(
+      rows.length * 7
+    );
+  });
+
   it('renders 7 day name headers', () => {
     const { container } = render(<Harness />);
     expect(
