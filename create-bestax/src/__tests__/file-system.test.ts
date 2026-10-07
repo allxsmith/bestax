@@ -14,6 +14,7 @@ jest.unstable_mockModule('fs-extra', () => ({
   default: {
     existsSync: jest.fn(),
     readdirSync: jest.fn(),
+    statSync: jest.fn(),
     emptyDir: jest.fn(),
     ensureDir: jest.fn(),
     copy: jest.fn(),
@@ -25,6 +26,7 @@ jest.unstable_mockModule('fs-extra', () => ({
   },
   existsSync: jest.fn(),
   readdirSync: jest.fn(),
+  statSync: jest.fn(),
   emptyDir: jest.fn(),
   ensureDir: jest.fn(),
   copy: jest.fn(),
@@ -40,6 +42,7 @@ const {
   checkDirectoryExists,
   isDirectoryEmpty,
   listDirectoryEntries,
+  existsAsNonDirectory,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -135,6 +138,36 @@ describe('file-system', () => {
         'notes.txt',
         'src',
       ]);
+    });
+  });
+
+  describe('existsAsNonDirectory', () => {
+    const statSync = fs.default.statSync as jest.MockedFunction<
+      typeof fs.statSync
+    >;
+
+    it('is false when nothing is there', async () => {
+      statSync.mockReturnValue(
+        undefined as unknown as ReturnType<typeof fs.statSync>
+      );
+      expect(await existsAsNonDirectory('/test/path')).toBe(false);
+      expect(statSync).toHaveBeenCalledWith('/test/path', {
+        throwIfNoEntry: false,
+      });
+    });
+
+    it('is false for a directory', async () => {
+      statSync.mockReturnValue({
+        isDirectory: () => true,
+      } as unknown as ReturnType<typeof fs.statSync>);
+      expect(await existsAsNonDirectory('/test/path')).toBe(false);
+    });
+
+    it('is true for a file', async () => {
+      statSync.mockReturnValue({
+        isDirectory: () => false,
+      } as unknown as ReturnType<typeof fs.statSync>);
+      expect(await existsAsNonDirectory('/test/notes.txt')).toBe(true);
     });
   });
 

@@ -5,6 +5,7 @@ import fs from 'fs-extra';
 import {
   checkDirectoryExists,
   listDirectoryEntries,
+  existsAsNonDirectory,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -98,12 +99,18 @@ export class ProjectCreator {
    * question leaves the user's files where they were (#945). Only --overwrite
    * or a yes at the prompt removes files. -y never does, and neither -y nor a
    * missing terminal can ask, so both stop at a non-empty directory instead.
+   * A file at the target path stops the run too, whatever the flags say.
    */
   async checkExistingDirectory(
     targetPath: string,
     targetDir: string,
     options?: CLIOptions
   ): Promise<ExistingDirectoryPlan> {
+    if (await existsAsNonDirectory(targetPath)) {
+      displayError(MESSAGES.NOT_A_DIRECTORY(targetDir));
+      return 'stop';
+    }
+
     const entries = await listDirectoryEntries(targetPath);
     if (entries.length === 0) {
       return 'empty';
@@ -118,7 +125,7 @@ export class ProjectCreator {
       return 'stop';
     }
 
-    if (!(await promptOverwriteDirectory(targetDir))) {
+    if (!(await promptOverwriteDirectory(targetDir, entries))) {
       displayCancelled();
       return 'stop';
     }

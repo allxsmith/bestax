@@ -41,6 +41,7 @@ jest.unstable_mockModule('../file-system.js', () => ({
   checkDirectoryExists: jest.fn(),
   isDirectoryEmpty: jest.fn(),
   listDirectoryEntries: jest.fn(async () => []),
+  existsAsNonDirectory: jest.fn(async () => false),
   emptyDirectory: jest.fn(),
   ensureDirectory: jest.fn(),
   copyDirectory: jest.fn(),
@@ -202,7 +203,10 @@ describe('ProjectCreator', () => {
 
       expect(result).toBe('overwrite');
       expect(confirm).toHaveBeenCalledWith(
-        expect.objectContaining({ name: 'overwrite' })
+        expect.objectContaining({
+          name: 'overwrite',
+          message: expect.stringContaining('(notes.txt)'),
+        })
       );
       // Emptying waits for the last prompt, so a later Ctrl+C keeps the files.
       expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
@@ -252,6 +256,26 @@ describe('ProjectCreator', () => {
       expect(errorOutput()).toContain('project is not empty');
       expect(errorOutput()).toContain('.git, notes.txt, src');
       expect(errorOutput()).toContain('--overwrite');
+    });
+
+    it('stops with a plain message when the path is a file, not a directory', async () => {
+      (
+        fileSystem.existsAsNonDirectory as jest.MockedFunction<
+          typeof fileSystem.existsAsNonDirectory
+        >
+      ).mockResolvedValueOnce(true);
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/notes.txt',
+        'notes.txt',
+        { yes: true, overwrite: true }
+      );
+
+      expect(result).toBe('stop');
+      expect(listDirectoryEntries).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain(
+        'notes.txt already exists and is not a directory'
+      );
     });
 
     it('lists a long directory by its first entries and a count', async () => {

@@ -40,8 +40,10 @@ export const MESSAGES = {
     'Re-run non-interactively with a project name and flags, e.g.:\n' +
     '  npm create bestax@latest my-app -- -t vite-ts -b complete -i none -y\n' +
     'Run with --help to see all options.',
-  DIRECTORY_NOT_EMPTY: (dir: string) =>
-    `Directory ${chalk.yellow(dir)} is not empty. Remove existing files and continue?`,
+  DIRECTORY_NOT_EMPTY: (dir: string, entries: string[]) =>
+    `Directory ${chalk.yellow(dir)} is not empty (${listEntries(entries)}). Remove existing files and continue?`,
+  NOT_A_DIRECTORY: (dir: string) =>
+    `${dir} already exists and is not a directory, so nothing was written. Choose another project name.`,
   // Shown instead of the question above when it cannot be asked: under -y, or
   // without a terminal. -y never answers it (#945), so this must not suggest -y.
   DIRECTORY_NOT_EMPTY_REFUSED: (dir: string, entries: string[]) =>

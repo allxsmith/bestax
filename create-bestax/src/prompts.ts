@@ -36,14 +36,16 @@ export async function promptProjectName(): Promise<string | null> {
   return response.projectName || null;
 }
 
+/** Asks to remove `entries` from targetDir, naming them, since a yes deletes them. */
 export async function promptOverwriteDirectory(
-  targetDir: string
+  targetDir: string,
+  entries: string[]
 ): Promise<boolean> {
   ensureInteractive();
   const response = await prompts({
     type: 'confirm',
     name: 'overwrite',
-    message: MESSAGES.DIRECTORY_NOT_EMPTY(targetDir),
+    message: MESSAGES.DIRECTORY_NOT_EMPTY(targetDir, entries),
     initial: false,
   });
 

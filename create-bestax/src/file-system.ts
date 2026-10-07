@@ -16,6 +16,17 @@ export async function isDirectoryEmpty(targetPath: string): Promise<boolean> {
   return files.length === 0;
 }
 
+/**
+ * Whether something other than a directory, such as a file, already sits at
+ * targetPath. listDirectoryEntries cannot read one, so callers check first.
+ */
+export async function existsAsNonDirectory(
+  targetPath: string
+): Promise<boolean> {
+  const stat = fs.statSync(targetPath, { throwIfNoEntry: false });
+  return stat !== undefined && !stat.isDirectory();
+}
+
 /** A directory's top-level entries, sorted; none when it does not exist. */
 export async function listDirectoryEntries(
   targetPath: string
