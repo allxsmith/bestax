@@ -79,6 +79,11 @@ function termHit(hay: string, term: string): number {
  * Whole-phrase and exact-name matches dominate; term coverage breaks ties. A
  * miss on any term is not fatal — "button icon" should still find Button —
  * but scoring coverage means the thing matching both wins.
+ *
+ * In a query of several words, a word in the name counts for more than the same
+ * word in the prose around it. The whole-query checks above it almost never fire
+ * then ("date picker" is in no name), and without this a prop whose description
+ * mentions a date picker outscored DateInput, whose name says "date" (#934).
  */
 function score(haystack: string, name: string, terms: string[], query: string) {
   const hay = norm(haystack);
@@ -90,8 +95,123 @@ function score(haystack: string, name: string, terms: string[], query: string) {
   else if (termHit(lowerName, query)) s += 25;
   if (hay.includes(query)) s += 20;
   for (const t of terms) s += termHit(hay, t) * 5;
+  if (terms.length > 1) {
+    for (const t of terms) {
+      if (lowerName === t) s += 30;
+      else if (t.length >= 3 && lowerName.includes(t)) s += 15;
+    }
+  }
   return s;
 }
+
+/**
+ * What other libraries, and the people who learned on them, call a bestax
+ * component, keyed by the phrase lower-cased with its spaces and hyphens
+ * removed. A query that names one of these finds the component as if it had
+ * named it, and so does a name `get_component` cannot resolve.
+ *
+ * "date picker" is the example in search_bestax's own schema, and it put
+ * DateInput 33rd, behind a prop that mentions a date picker in passing (#934).
+ * Where a phrase fits more than one component the first is the closest fit.
+ *
+ * A vocabulary rather than a roster: a component missing from it is still found
+ * by its name and summary. A test holds every name here to the catalog, so a
+ * rename cannot leave an entry pointing nowhere.
+ */
+export const ALIASES: Readonly<Record<string, readonly string[]>> = {
+  accordion: ['Collapses', 'Collapse'],
+  autosuggest: ['Autocomplete'],
+  avatargroup: ['Avatars'],
+  buttongroup: ['Buttons'],
+  calendar: ['DateInput', 'DateTimeInput'],
+  checkboxgroup: ['Checkboxes'],
+  chip: ['Taginput'],
+  chipinput: ['Taginput'],
+  combobox: ['Autocomplete'],
+  confirmdialog: ['Dialog'],
+  datepicker: ['DateInput', 'DateTimeInput'],
+  datetimepicker: ['DateTimeInput'],
+  drawer: ['Sidebar'],
+  dropdownmenu: ['Dropdown'],
+  dropzone: ['File'],
+  fileupload: ['File'],
+  modaldialog: ['Modal', 'Dialog'],
+  offcanvas: ['Sidebar'],
+  pager: ['Pagination'],
+  popup: ['Popover'],
+  progressbar: ['Progress'],
+  radiogroup: ['Radios'],
+  rangeslider: ['Slider'],
+  rating: ['Rate'],
+  selectbox: ['Select'],
+  separator: ['Divider'],
+  slideshow: ['Carousel'],
+  snackbar: ['Toast'],
+  spinbutton: ['Numberinput'],
+  spinner: ['Loader'],
+  stepper: ['Steps', 'Numberinput'],
+  taggroup: ['Tags'],
+  tagsinput: ['Taginput'],
+  timepicker: ['TimeInput', 'DateTimeInput'],
+  toggle: ['Switch'],
+  typeahead: ['Autocomplete'],
+  upload: ['File'],
+  wizard: ['Steps'],
+};
+
+/** What an alias is worth: as much as the component's own name, so it ranks first. */
+const ALIAS_SCORE = 100;
+
+/**
+ * Every run of up to four consecutive words in `text`, joined: "date time
+ * picker" yields `datetime`, `timepicker` and `datetimepicker` as well as each
+ * word. Splitting on anything but a letter or digit is what lets "date-picker",
+ * "Date Picker" and `<DatePicker>` all reach the `datepicker` key.
+ */
+function phrases(text: string): string[] {
+  const words = norm(text)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  const out: string[] = [];
+  for (let i = 0; i < words.length; i++) {
+    let joined = '';
+    for (let j = i; j < Math.min(words.length, i + 4); j++) {
+      joined += words[j];
+      out.push(joined);
+    }
+  }
+  return out;
+}
+
+/**
+ * The components a query names by an alias, each with what that is worth. A
+ * longer phrase is worth more, so "date time picker" prefers `datetimepicker`
+ * to the `timepicker` inside it, and a later name for the same phrase less.
+ */
+export function aliasMatches(query: string): Map<string, number> {
+  const out = new Map<string, number>();
+  for (const phrase of phrases(query)) {
+    const key = Object.hasOwn(ALIASES, phrase)
+      ? phrase
+      : phrase.endsWith('s') && Object.hasOwn(ALIASES, phrase.slice(0, -1))
+        ? phrase.slice(0, -1)
+        : null;
+    if (!key) continue;
+    ALIASES[key].forEach((name, i) => {
+      const s = ALIAS_SCORE + 2 * key.length - 10 * i;
+      if (s > (out.get(name) ?? 0)) out.set(name, s);
+    });
+  }
+  return out;
+}
+
+/**
+ * Added to a component that matches at all. Components are what a search is
+ * usually for, and a prop or a CSS variable that mentions the same words, or
+ * shares the component's name (`DateInput.popover` for "popover"), should not
+ * outrank the component itself (#934).
+ */
+const COMPONENT_BONUS = 30;
 
 export function searchAll(
   query: string,
@@ -107,8 +227,20 @@ export function searchAll(
   const want = (k: HitKind) => kinds.includes(k);
 
   if (want('component')) {
+    const aliased = aliasMatches(q);
     for (const c of catalog.components) {
-      const s = score(`${c.name} ${c.purpose} ${c.category}`, c.name, terms, q);
+      const hay = `${c.name} ${c.purpose} ${c.category}`;
+      const alias = aliased.get(c.name) ?? 0;
+      const matched = score(hay, c.name, terms, q) + alias;
+      // The bonus is for a component the query is about: one it names, or one whose
+      // summary has every word. A summary that shares one word ("at a time" for "time
+      // picker") is the same passing mention a prop's description is.
+      const lowerName = norm(c.name);
+      const about =
+        alias > 0 ||
+        terms.some(t => t.length >= 3 && termHit(lowerName, t) > 0) ||
+        terms.every(t => termHit(norm(hay), t) > 0);
+      const s = matched > 0 && about ? matched + COMPONENT_BONUS : matched;
       if (s > 0) {
         hits.push({
           kind: 'component',
@@ -195,10 +327,20 @@ export function searchAll(
     }
   }
 
-  return hits.sort(
+  hits.sort(
     (a, b) =>
       b.score - a.score || (a.name < b.name ? -1 : a.name > b.name ? 1 : 0)
   );
+  // Several examples can share a heading, and each became its own row with the same
+  // name and the same next call: three "DateInput: Month and Year Pickers" rows for
+  // "date picker", spending the limit on one answer. The best-scoring one stands.
+  const seen = new Set<string>();
+  return hits.filter(h => {
+    const key = `${h.kind}\u0000${h.name}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 /** Edit distance, capped — the names are short and the corpus is 87 entries. */
@@ -226,17 +368,23 @@ function editDistance(a: string, b: string): number {
  * actually happen are a dropped or transposed letter — and a first-letter
  * heuristic answered "Buton" with "Badge, Block, Box", which is worse than
  * saying nothing.
+ *
+ * A name another library uses (`DatePicker`) is no typo of the bestax one, so
+ * the aliases come first, best fit first, and edit distance fills the rest.
  */
 export function suggest(input: string, names: string[], limit = 3): string[] {
   const q = norm(input);
-  return (
-    names
-      .map(n => ({ n, d: editDistance(q, norm(n)) }))
-      // Scale with length so short names don't swallow every query, and long
-      // ones still tolerate a typo or two.
-      .filter(x => x.d <= Math.max(1, Math.floor(x.n.length / 3)))
-      .sort((a, b) => a.d - b.d || (a.n < b.n ? -1 : 1))
-      .slice(0, limit)
-      .map(x => x.n)
-  );
+  const known = new Set(names);
+  const aliased = [...aliasMatches(input)]
+    .filter(([n]) => known.has(n))
+    .sort((a, b) => b[1] - a[1] || (a[0] < b[0] ? -1 : 1))
+    .map(([n]) => n);
+  const near = names
+    .map(n => ({ n, d: editDistance(q, norm(n)) }))
+    // Scale with length so short names don't swallow every query, and long
+    // ones still tolerate a typo or two.
+    .filter(x => x.d <= Math.max(1, Math.floor(x.n.length / 3)))
+    .sort((a, b) => a.d - b.d || (a.n < b.n ? -1 : 1))
+    .map(x => x.n);
+  return [...new Set([...aliased, ...near])].slice(0, limit);
 }

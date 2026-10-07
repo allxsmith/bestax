@@ -178,6 +178,19 @@ describe('search_bestax', () => {
     );
     expect(out).toContain('list_components');
   });
+
+  // The example in the tool's own schema, which put DateInput 33rd (#934).
+  it('answers "date picker" with DateInput first', async () => {
+    const out = text(await call('search_bestax', { query: 'date picker' }));
+    const [first] = out.split('\n').slice(2);
+    expect(first).toMatch(/^\| component \| DateInput \|/);
+  });
+
+  it('suggests DateInput for a DatePicker that does not exist', async () => {
+    const res = await call('get_component', { name: 'DatePicker' });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('Did you mean "DateInput"');
+  });
 });
 
 describe('list_components', () => {
