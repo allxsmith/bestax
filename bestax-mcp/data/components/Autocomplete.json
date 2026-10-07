@@ -143,7 +143,7 @@
           "name": "clearable",
           "type": "boolean",
           "default": "false",
-          "description": "Whether to show a clear button.",
+          "description": "Whether to show a clear button while the input holds a value. It hides while the input is disabled, and gives way to a loading spinner at the same right edge: the one `loading` draws, or that of a `Control` with `isLoading` around the Autocomplete.",
           "required": false,
           "inherited": false,
           "deprecated": false

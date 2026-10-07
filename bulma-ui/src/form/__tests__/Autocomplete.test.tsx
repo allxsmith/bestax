@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import { Autocomplete, AutocompleteItem } from '../Autocomplete';
 import { Field } from '../Field';
+import { Control } from '../Control';
 
 const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
 
@@ -295,6 +296,41 @@ describe('Autocomplete', () => {
 
       fireEvent.change(input, { target: { value: 'test' } });
 
+      expect(
+        screen.queryByRole('button', { name: 'Clear' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('gives way to the loading spinner of a Control it sits in', () => {
+      const autocomplete = (
+        <Autocomplete data={fruits} value="Apple" clearable />
+      );
+      const wrappers = {
+        'Field > Control': (isLoading: boolean) => (
+          <Field>
+            <Control isLoading={isLoading}>{autocomplete}</Control>
+          </Field>
+        ),
+        'bare Control': (isLoading: boolean) => (
+          <Control isLoading={isLoading}>{autocomplete}</Control>
+        ),
+      };
+      for (const [name, wrap] of Object.entries(wrappers)) {
+        const loading = render(wrap(true));
+        expect({
+          name,
+          clear: loading.queryByRole('button', { name: 'Clear' }),
+        }).toEqual({ name, clear: null });
+        loading.unmount();
+
+        const idle = render(wrap(false));
+        expect(idle.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
+        idle.unmount();
+      }
+    });
+
+    it('gives way to its own loading spinner, which sits in the same spot', () => {
+      render(<Autocomplete data={fruits} value="Apple" clearable loading />);
       expect(
         screen.queryByRole('button', { name: 'Clear' })
       ).not.toBeInTheDocument();

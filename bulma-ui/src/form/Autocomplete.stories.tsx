@@ -194,6 +194,36 @@ export const Clearable: Story = {
   },
 };
 
+export const ClearInLoadingControl: Story = {
+  name: 'Clear button in a loading Control',
+  render: function ClearInLoadingControlExample() {
+    const [value, setValue] = useState('Apple');
+    return (
+      <ResponsiveWrapper>
+        <Field label="Fruit" labelProps={{ htmlFor: 'fruit-loading' }}>
+          <Control isLoading>
+            <Autocomplete
+              id="fruit-loading"
+              data={fruits}
+              value={value}
+              onInput={setValue}
+              clearable
+            />
+          </Control>
+        </Field>
+      </ResponsiveWrapper>
+    );
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'The clear button gives way to the spinner of a loading `Control` around the Autocomplete, which sits at the same right edge, and to its own `loading` spinner the same way. It comes back once loading ends.',
+      },
+    },
+  },
+};
+
 /**
  * Opens dropdown when input is focused.
  */
