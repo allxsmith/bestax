@@ -24,6 +24,7 @@ import {
   isDayUnselectable,
   isPeriodUnselectable,
   makeDate,
+  floorMin,
 } from '../_pickerInternals/dateUtils';
 
 describe('dateUtils', () => {
@@ -204,6 +205,35 @@ describe('dateUtils', () => {
       const c = clampDate(d);
       expect(c).not.toBe(d);
       expect(c.getTime()).toBe(d.getTime());
+    });
+
+    it('lets min win when min is after max', () => {
+      // Nothing is in range then, and landing on min keeps a picker's focus
+      // off the years before 1 under a max before then.
+      const min = makeDate(1, 0, 1);
+      const max = makeDate(0, 11, 31);
+      expect(clampDate(new Date(2024, 0, 15), min, max)).toEqual(min);
+      expect(clampDate(makeDate(-5, 0, 1), min, max)).toEqual(min);
+    });
+  });
+
+  describe('floorMin', () => {
+    const yearOne = makeDate(1, 0, 1);
+
+    it('starts at midnight on 1 January of year 1 without a min', () => {
+      expect(floorMin()).toEqual(yearOne);
+    });
+
+    it('keeps a min in year 1 or later as the same object', () => {
+      const firstDay = makeDate(1, 0, 1);
+      const later = makeDate(1, 5, 15);
+      expect(floorMin(firstDay)).toBe(firstDay);
+      expect(floorMin(later)).toBe(later);
+    });
+
+    it('raises a min in year 0 or a negative year to year 1', () => {
+      expect(floorMin(makeDate(0, 11, 31))).toEqual(yearOne);
+      expect(floorMin(makeDate(-5, 5, 15))).toEqual(yearOne);
     });
   });
 

@@ -5,6 +5,7 @@ import { Field } from '../Field';
 import { TimeInputBase } from '../TimeInputBase';
 import { ConfigProvider } from '../../helpers/Config';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
+import { makeDate } from '../_pickerInternals/dateUtils';
 
 beforeAll(() => {
   if (!window.matchMedia) {
@@ -1907,5 +1908,68 @@ describe('TimeInput onOpen and onClose', () => {
     pressEscape(input);
     expect(queryByRole('dialog')).toBeNull();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+// The date pickers hold no year below 1, and neither does the date a time
+// value carries.
+describe('TimeInput before year 1', () => {
+  const inYear = (year: number, h: number) => {
+    const d = makeDate(year, 5, 15);
+    d.setHours(h);
+    return d;
+  };
+  const cases = [
+    [1, true],
+    [0, false],
+    [-1, false],
+  ] as const;
+
+  it('turns the wheels on a value in year 1 but not before', () => {
+    for (const [year, allowed] of cases) {
+      const handler = jest.fn();
+      const { getByRole, getAllByRole, unmount } = render(
+        <TimeInput value={inYear(year, 10)} onChange={handler} />
+      );
+      fireEvent.click(getByRole('combobox'));
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      if (allowed) expect(handler).toHaveBeenCalledWith(inYear(year, 11));
+      else expect(handler).not.toHaveBeenCalled();
+      unmount();
+    }
+  });
+
+  it('types into a value in year 1 but not before', () => {
+    for (const [year, allowed] of cases) {
+      const handler = jest.fn();
+      const { getByRole, unmount } = render(
+        <TimeInput
+          value={inYear(year, 10)}
+          onChange={handler}
+          openOnFocus={false}
+        />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      act(() => {
+        input.focus();
+      });
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+      if (allowed) expect(handler).toHaveBeenCalledWith(inYear(year, 11));
+      else expect(handler).not.toHaveBeenCalled();
+      unmount();
+    }
+  });
+
+  it('reads a min in year 0 or a negative year as the start of year 1', () => {
+    for (const min of [makeDate(0, 6, 1), makeDate(-5, 0, 1)]) {
+      const handler = jest.fn();
+      const { getByRole, getAllByRole, unmount } = render(
+        <TimeInput value={inYear(0, 10)} min={min} onChange={handler} />
+      );
+      fireEvent.click(getByRole('combobox'));
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      expect(handler).not.toHaveBeenCalled();
+      unmount();
+    }
   });
 });

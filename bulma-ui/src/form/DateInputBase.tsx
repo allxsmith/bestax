@@ -27,6 +27,8 @@ import {
 import {
   isWithin,
   clampDate,
+  FIRST_YEAR,
+  floorMin,
   isSameDay,
   isPeriodUnselectable,
   makeDate,
@@ -48,9 +50,11 @@ const pad2 = (n: number): string => String(n).padStart(2, '0');
  * The value as the native input and the hidden form input carry it:
  * `YYYY-MM-DD`, `YYYY-MM` or `YYYY`, the shapes `<input type="date">` and
  * `<input type="month">` use. The year is padded to four digits, as those
- * inputs require and as the `YYYY` token displays it.
+ * inputs require and as the `YYYY` token displays it. HTML has no such shape
+ * for a year before 1, so a date then is empty, as those inputs would make it.
  */
 const toIsoValue = (d: Date, granularity: DateGranularity): string => {
+  if (d.getFullYear() < FIRST_YEAR) return '';
   const year = String(d.getFullYear()).padStart(4, '0');
   if (granularity === 'year') return year;
   const month = `${year}-${pad2(d.getMonth() + 1)}`;
@@ -116,7 +120,11 @@ export interface DateInputBaseProps
   onOpen?: () => void;
   /** Fired when the popover closes. */
   onClose?: () => void;
-  /** Earliest selectable date. */
+  /**
+   * Earliest selectable date. A `min` before year 1 is raised to 1 January of
+   * year 1, where the range starts without one too: HTML's date and month
+   * inputs hold no earlier year, so the calendar and typing stop there.
+   */
   min?: Date;
   /** Latest selectable date. */
   max?: Date;
@@ -295,8 +303,11 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     );
     const value = isControlled ? (controlledValue ?? null) : internalValue;
 
+    // Nothing before year 1 is in range, as in HTML's date inputs.
+    const lowerBound = useMemo(() => floorMin(min), [min]);
+
     const initialFocused = useMemo(
-      () => clampDate(value ?? new Date(), min, max),
+      () => clampDate(value ?? new Date(), lowerBound, max),
       // intentionally only on mount: keep focusedDate stable until value/open change
       // eslint-disable-next-line react-hooks/exhaustive-deps
       []
@@ -305,8 +316,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // Re-clamp focusedDate if min/max change after mount so the focused cell
     // never disappears outside the displayable range.
     useEffect(() => {
-      setFocusedDate(prev => clampDate(prev, min, max));
-    }, [min, max]);
+      setFocusedDate(prev => clampDate(prev, lowerBound, max));
+    }, [lowerBound, max]);
     const [open, setOpenState] = useState(false);
     const [text, setText] = useState<string>(
       value ? formatDate(value, resolvedFormat, locale) : ''
@@ -378,8 +389,9 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // At month or year granularity the bounds widen to the periods holding
     // them, so the month or year containing `min` stays reachable.
     const periodMin = useMemo(
-      () => (min && !isDayGranularity ? startOfPeriod(min, granularity) : min),
-      [min, isDayGranularity, granularity]
+      () =>
+        isDayGranularity ? lowerBound : startOfPeriod(lowerBound, granularity),
+      [lowerBound, isDayGranularity, granularity]
     );
     const periodMax = useMemo(
       () => (max && !isDayGranularity ? endOfPeriod(max, granularity) : max),
@@ -528,7 +540,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
               : null;
             commitValue(parsed);
           }}
-          min={min ? toIsoValue(min, granularity) : undefined}
+          min={min ? toIsoValue(lowerBound, granularity) : undefined}
           max={max ? toIsoValue(max, granularity) : undefined}
           disabled={disabled}
           readOnly={readOnly}

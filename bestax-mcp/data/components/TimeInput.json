@@ -398,7 +398,7 @@
           "name": "min",
           "type": "Date",
           "default": null,
-          "description": "Earliest selectable time.",
+          "description": "Earliest selectable time. A `min` before year 1 is raised to midnight on 1 January of year 1, and a `value` dated before then is out of range, so the wheels and typing change nothing on it, as in the date pickers.",
           "required": false,
           "inherited": true,
           "deprecated": false
