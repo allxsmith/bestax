@@ -825,7 +825,7 @@ function DateTimeInputFormDemo() {
 - Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.
 - Calendar uses `role="grid"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"`.
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
-- Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.
+- Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.
 - Tab order naturally walks from calendar → time wheels → footer (Reset / ✓).
 

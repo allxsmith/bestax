@@ -782,7 +782,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[0].querySelectorAll('button[role="option"]')
+      wheels[0].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const threes = buttons.filter(b => b.textContent?.trim() === '03');
     expect(threes.length).toBeGreaterThan(0);
@@ -802,7 +802,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[0].querySelectorAll('button[role="option"]')
+      wheels[0].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const threes = buttons.filter(b => b.textContent?.trim() === '03');
     expect(threes.length).toBeGreaterThan(0);
@@ -879,7 +879,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[2].querySelectorAll('button[role="option"]')
+      wheels[2].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const blocked = buttons.filter(b => b.textContent?.trim() === '33');
     expect(blocked.length).toBeGreaterThan(0);

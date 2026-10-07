@@ -721,8 +721,9 @@ const WheelInner = <T,>(
           <button
             key={vIdx}
             type="button"
-            role="option"
-            aria-selected={selected}
+            // A spinbutton owns no options: it states its value through
+            // aria-valuetext, so the items are pointer targets only.
+            aria-hidden="true"
             tabIndex={-1}
             className={itemClass(selected)}
             style={{

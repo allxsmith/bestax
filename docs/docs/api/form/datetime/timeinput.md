@@ -970,7 +970,7 @@ function TimeInputFormDemo() {
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
-- Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.
+- Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - AM/PM toggle exposes `aria-pressed`.
 - Honors `prefers-reduced-motion`.
 
