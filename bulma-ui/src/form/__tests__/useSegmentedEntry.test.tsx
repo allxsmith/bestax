@@ -613,6 +613,20 @@ describe('useSegmentedEntry', () => {
     expect(input.dataset.open).toBe('true');
   });
 
+  it('opens nothing on ArrowDown when read-only or disabled', () => {
+    for (const props of [{ readOnly: true }, { disabled: true }]) {
+      const { getByTestId, unmount } = render(
+        <Harness initial={at(13, 45)} openOnFocus={false} {...props} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      expect(input.dataset.open).toBe('false');
+      unmount();
+    }
+  });
+
   describe('Alt+ArrowDown and Alt+ArrowUp', () => {
     it('open and close the popover in segment mode without stepping the segment', () => {
       const onChange = jest.fn();

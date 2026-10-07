@@ -974,6 +974,19 @@ describe('DateInput launcher icon', () => {
     expect(queryByRole('dialog')).toBeNull();
   });
 
+  it('keeps a readOnly field closed on ArrowDown too', () => {
+    const { getByRole, queryByRole } = render(
+      <DateInput readOnly defaultValue={new Date(2024, 5, 7)} />
+    );
+    const input = getByRole('combobox');
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+    expect(queryByRole('dialog')).toBeNull();
+  });
+
   it('editable={false} keeps the launcher working (picker-only)', () => {
     const { getByLabelText, getByRole } = render(
       <DateInput editable={false} openOnFocus={false} />

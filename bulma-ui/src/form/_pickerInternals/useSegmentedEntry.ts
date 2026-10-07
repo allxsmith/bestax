@@ -518,8 +518,15 @@ export function useSegmentedEntry(
       }
       // ----- free-form / popover key handling -----
       // With no segment to step, ArrowDown opens the popover with or without
-      // Alt, and Alt+ArrowUp closes it.
-      if (e.key === 'ArrowDown' && !isOpen && popover) {
+      // Alt, unless the field is read-only or disabled, as focus and the
+      // launcher don't open it then either. Alt+ArrowUp closes it.
+      if (
+        e.key === 'ArrowDown' &&
+        !isOpen &&
+        popover &&
+        !disabled &&
+        !readOnly
+      ) {
         e.preventDefault();
         setOpen(true);
         return;
@@ -561,6 +568,8 @@ export function useSegmentedEntry(
       setOpen,
       closeOnSelect,
       popover,
+      disabled,
+      readOnly,
       isUntouched,
       tryParse,
       text,
