@@ -526,7 +526,7 @@ If you haven't started your project yet, `pnpm create bestax@latest` will instal
 
 Every button example above pairs its icon with visible text. When the icon _is_ the whole label — a toolbar or a card action with no room for words — the accessible name has to come from somewhere else, because there is no text for a screen reader to announce.
 
-Put the name on the `Button` with `aria-label`, and hide the `Icon` from assistive technology with `aria-hidden`:
+Put the name on the `Button` with `aria-label`, and leave the `Icon` hidden from assistive technology, as it is whenever it has no `ariaLabel`:
 
 ```tsx live
 import { Button, Icon } from '@allxsmith/bestax-bulma';
@@ -543,9 +543,9 @@ function IconOnlyExample() {
 The two attributes do different jobs, and only the first one names the button:
 
 - **`aria-label` on the `Button`** is the accessible name. It takes precedence over anything inside the button, so it alone supplies the name a screen reader reads out (alongside the "button" role and any state, which come from the element itself). Make it name the action ("Delete item"), not the picture ("Trash icon").
-- **`aria-hidden` on the `Icon`** does not change that name. It keeps the icon out of the accessibility tree entirely, so assistive technology never exposes a stray `"icon"` node when moving through the page element by element. Correct decorative markup, not part of the naming.
+- **`aria-hidden` on the `Icon`** does not change that name. It keeps the icon out of the accessibility tree entirely, so assistive technology never exposes a stray node when moving through the page element by element. An `Icon` with no `ariaLabel` renders it on its own, so writing it out, as these examples do, changes nothing. Correct decorative markup, not part of the naming.
 
-Leave the `aria-label` off and the name falls back to the button's contents, which is where `Icon` bites: it sets `aria-label="icon"` by default, so the button ends up announcing the single word "icon".
+Leave the `aria-label` off and the button has no name at all, since the only thing inside it is a hidden icon. Don't fix that with the `Icon`'s `ariaLabel`: it would name the picture, not the action.
 
 The same pattern applies to every library on this page. Only the `library` prop and the icon `name` change:
 

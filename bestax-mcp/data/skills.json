@@ -20,7 +20,7 @@
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
       "examples": [
-        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3739 }
+        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3734 }
       ]
     },
     {
@@ -43,11 +43,11 @@
         {
           "id": "icon-libraries",
           "file": "references/icon-libraries.md",
-          "bytes": 6199
+          "bytes": 6227
         }
       ],
       "examples": [
-        { "id": "icon-usage", "file": "examples/icon-usage.tsx", "bytes": 2720 }
+        { "id": "icon-usage", "file": "examples/icon-usage.tsx", "bytes": 2801 }
       ]
     },
     {

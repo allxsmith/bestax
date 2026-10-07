@@ -1,6 +1,10 @@
 import { render, screen } from '@testing-library/react';
 import { Icon } from '../Icon';
+import { Button } from '../Button';
 import { ConfigProvider } from '../../helpers/Config';
+
+/** The icon's container span: the first span on the page. */
+const iconSpan = () => document.body.querySelector('span') as HTMLElement;
 
 describe('Icon', () => {
   it('renders a Font Awesome icon by default', () => {
@@ -95,7 +99,7 @@ describe('Icon', () => {
 
   it('applies Bulma size modifier', () => {
     render(<Icon name="star" size="large" />);
-    const span = screen.getByLabelText('icon');
+    const span = iconSpan();
     expect(span).toHaveClass('icon');
     expect(span).toHaveClass('is-large');
   });
@@ -104,7 +108,7 @@ describe('Icon', () => {
     render(
       <Icon name="star" className="my-custom-class" m="2" textColor="primary" />
     );
-    const span = screen.getByLabelText('icon');
+    const span = iconSpan();
     expect(span).toHaveClass('icon');
     expect(span).toHaveClass('my-custom-class');
     // m="2" and textColor="primary" should result in Bulma classes
@@ -297,7 +301,7 @@ describe('Icon', () => {
       expect(i).toHaveClass('material-symbols-outlined', 'is-size-1');
       expect(i).toHaveTextContent('settings');
 
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('icon', 'is-large');
     });
 
@@ -408,7 +412,7 @@ describe('Icon', () => {
           <Icon name="star" />
         </ConfigProvider>
       );
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('my-prefix-icon');
     });
 
@@ -418,7 +422,7 @@ describe('Icon', () => {
           <Icon name="star" />
         </ConfigProvider>
       );
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('icon');
     });
 
@@ -428,7 +432,7 @@ describe('Icon', () => {
           <Icon name="star" />
         </ConfigProvider>
       );
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('icon');
     });
 
@@ -439,7 +443,7 @@ describe('Icon', () => {
         </ConfigProvider>
       );
 
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('bulma-icon');
       expect(span).toHaveClass('bulma-is-large');
       expect(span).toHaveClass('bulma-m-2');
@@ -448,7 +452,7 @@ describe('Icon', () => {
     it('works without prefix', () => {
       render(<Icon name="heart" size="medium" p="3" />);
 
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('icon');
       expect(span).toHaveClass('is-medium');
       expect(span).toHaveClass('p-3');
@@ -486,21 +490,21 @@ describe('Icon', () => {
       );
       // No name was derived (legacy parser only handles strings) and the
       // component still renders without crashing.
-      expect(screen.getByLabelText('icon')).toBeInTheDocument();
+      expect(iconSpan()).toBeInTheDocument();
     });
   });
 
   describe('containerClassName override', () => {
     it('uses containerClassName instead of the default `icon` class', () => {
       render(<Icon name="star" containerClassName="panel-icon" />);
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('panel-icon');
       expect(span).not.toHaveClass('icon');
     });
 
     it('appends a separate is-${size} modifier when containerClassName + size are both set', () => {
       render(<Icon name="star" containerClassName="panel-icon" size="small" />);
-      const span = screen.getByLabelText('icon');
+      const span = iconSpan();
       expect(span).toHaveClass('panel-icon');
       expect(span).toHaveClass('is-small');
       expect(span).not.toHaveClass('icon');
@@ -567,6 +571,125 @@ describe('Icon', () => {
       const { container } = render(<Icon ariaLabel="Empty node">{null}</Icon>);
       expect(screen.getByLabelText('Empty node')).toHaveClass('icon');
       expect(container.querySelector('i')).not.toBeInTheDocument();
+    });
+  });
+
+  describe('Accessibility', () => {
+    it.each([
+      ['a Font Awesome glyph', <Icon key="fa" name="star" />],
+      [
+        'a Material ligature',
+        <Icon key="mi" name="rocket_launch" library="material-icons" />,
+      ],
+      ['an Ionicon', <Icon key="ion" name="heart" library="ion" />],
+      [
+        'a custom node',
+        <Icon key="node">
+          <svg />
+        </Icon>,
+      ],
+      ['an empty icon string', <Icon key="empty" icon="" />],
+    ])('hides %s with no name by default', (_name, icon) => {
+      render(icon);
+      const span = iconSpan();
+      expect(span).toHaveAttribute('aria-hidden', 'true');
+      expect(span).not.toHaveAttribute('aria-label');
+      expect(span).not.toHaveAttribute('role');
+    });
+
+    it('treats an empty ariaLabel as decorative', () => {
+      render(<Icon name="star" ariaLabel="" />);
+      expect(iconSpan()).toHaveAttribute('aria-hidden', 'true');
+      expect(iconSpan()).not.toHaveAttribute('aria-label');
+    });
+
+    it('treats an empty native aria-label as decorative too', () => {
+      render(<Icon name="star" aria-label="" />);
+      expect(iconSpan()).toHaveAttribute('aria-hidden', 'true');
+      expect(iconSpan()).not.toHaveAttribute('role');
+    });
+
+    it('makes a named icon an image named by its label alone', () => {
+      render(<Icon name="star" ariaLabel="Favourite" />);
+      const img = screen.getByRole('img', { name: 'Favourite' });
+      expect(img).toBe(iconSpan());
+      expect(img).not.toHaveAttribute('aria-hidden');
+    });
+
+    it('keeps a Material ligature out of a named icon', () => {
+      render(
+        <Icon
+          name="rocket_launch"
+          library="material-icons"
+          ariaLabel="Launch"
+        />
+      );
+      expect(screen.getByRole('img')).toHaveAccessibleName('Launch');
+    });
+
+    it('adds nothing to the name of a button around a decorative icon', () => {
+      render(
+        <Button>
+          <Icon name="rocket_launch" library="material-icons" />
+          <span>Quick Start</span>
+        </Button>
+      );
+      expect(screen.getByRole('button')).toHaveAccessibleName('Quick Start');
+    });
+
+    it('names a button around a named icon with the label, not the ligature', () => {
+      render(
+        <Button>
+          <Icon
+            name="rocket_launch"
+            library="material-icons"
+            ariaLabel="Launch"
+          />
+          <span>Quick Start</span>
+        </Button>
+      );
+      expect(screen.getByRole('button')).toHaveAccessibleName(
+        'Launch Quick Start'
+      );
+    });
+
+    it('counts a native aria-label as a name', () => {
+      render(<Icon name="xmark" aria-label="Close" />);
+      const img = screen.getByRole('img', { name: 'Close' });
+      expect(img).not.toHaveAttribute('aria-hidden');
+    });
+
+    it('counts a native aria-labelledby as a name', () => {
+      render(
+        <>
+          <Icon name="xmark" aria-labelledby="close-label" />
+          <p id="close-label">Close</p>
+        </>
+      );
+      const img = screen.getByRole('img', { name: 'Close' });
+      expect(img).not.toHaveAttribute('aria-hidden');
+      expect(img).not.toHaveAttribute('aria-label');
+    });
+
+    it('lets a native aria-label win over ariaLabel, as before', () => {
+      render(<Icon name="xmark" ariaLabel="Dismiss" aria-label="Close" />);
+      expect(screen.getByRole('img')).toHaveAccessibleName('Close');
+    });
+
+    it('lets an explicit aria-hidden or role win over the defaults', () => {
+      render(
+        <>
+          <Icon name="star" ariaLabel="Favourite" aria-hidden="true" />
+          <Icon name="heart" aria-hidden={false} />
+          <Icon name="bell" ariaLabel="Alerts" role="presentation" />
+        </>
+      );
+      const [hidden, shown, presentational] = Array.from(
+        document.body.querySelectorAll<HTMLElement>('span.icon')
+      );
+      expect(hidden).toHaveAttribute('aria-hidden', 'true');
+      expect(shown).toHaveAttribute('aria-hidden', 'false');
+      expect(presentational).toHaveAttribute('role', 'presentation');
     });
   });
 });

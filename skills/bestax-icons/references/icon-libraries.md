@@ -126,5 +126,5 @@ Multiple segments via `items`:
 />
 ```
 
-Icons inside `IconText` sit next to their visible text — mark them decorative with
-`aria-hidden` (see SKILL.md's accessibility rules).
+Icons inside `IconText` sit next to their visible text, so leave them decorative: no
+`ariaLabel`, or an explicit `aria-hidden` (see SKILL.md's accessibility rules).
