@@ -326,6 +326,17 @@ export class ProjectCreator {
                 library.importStatement +
                 content.slice(insertPosition);
               await fs.writeFile(mainFilePath, content);
+            } else {
+              // Without its stylesheet every icon renders blank or as its
+              // name, so say so rather than finish as if it worked (#946).
+              console.log(
+                chalk.yellow(
+                  MESSAGES.ICON_CSS_NOT_ADDED(
+                    `src/${mainFileName}`,
+                    library.importStatement
+                  )
+                )
+              );
             }
           }
         }

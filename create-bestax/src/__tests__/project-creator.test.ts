@@ -7,6 +7,7 @@ import {
   afterEach,
 } from '@jest/globals';
 import { readFileSync } from 'node:fs';
+import { TEMPLATES } from '../constants.js';
 
 // Mock fs-extra
 jest.unstable_mockModule('fs-extra', () => ({
@@ -793,6 +794,19 @@ describe('ProjectCreator', () => {
     // Real template entry files, held in memory, so the flavor step and the
     // icon step run against what a scaffold actually starts from.
     let files: Map<string, string>;
+    const inMemoryFs = [
+      fs.default.existsSync,
+      fs.default.readFile,
+      fs.default.writeFile,
+      fs.default.readJson,
+      fs.default.writeJson,
+    ] as unknown as jest.Mock[];
+
+    // clearAllMocks keeps implementations, so drop this block's in-memory fs
+    // rather than leave it behind for every later test in the file.
+    afterEach(() => {
+      inMemoryFs.forEach(mock => mock.mockReset());
+    });
 
     beforeEach(() => {
       files = new Map();
@@ -830,8 +844,9 @@ describe('ProjectCreator', () => {
         const flavor = _BULMA_FLAVORS.find(f => f.name === flavorName)!;
         const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
 
-        for (const template of ['vite', 'vite-ts']) {
-          const mainFile = template === 'vite-ts' ? 'main.tsx' : 'main.jsx';
+        for (const { name: template } of TEMPLATES) {
+          // The same entry-file rule setupIconLibrary applies.
+          const mainFile = template.includes('-ts') ? 'main.tsx' : 'main.jsx';
           const root = `/app-${template}`;
           const mainPath = `${root}/src/${mainFile}`;
           files.set(
@@ -855,6 +870,22 @@ describe('ProjectCreator', () => {
         }
       }
     );
+
+    it('warns when the entry file has no bestax stylesheet import to follow', async () => {
+      const library = _ICON_LIBRARIES.find(l => l.name === 'fontawesome')!;
+      const mainPath = '/app-bare/src/main.jsx';
+      files.set(mainPath, "import App from './App.jsx';\n");
+      files.set('/app-bare/package.json', '{"dependencies":{}}');
+
+      await projectCreator.setupIconLibrary('/app-bare', 'fontawesome', 'vite');
+
+      expect(files.get(mainPath)).not.toContain(library.importStatement);
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `src/main.jsx has no bestax stylesheet import to follow, so ${library.importStatement} was not added`
+        )
+      );
+    });
   });
 
   describe('setupConfigProvider', () => {
