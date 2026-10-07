@@ -21,7 +21,7 @@ const FeatureList = [
     Svg: require('@site/static/img/card/iconmonstr-connection-2.svg').default,
     description: (
       <>
-        Lean runtime: the entire library is ~49KB min+gzip of JS, and
+        Lean runtime: the entire library is ~65KB min+gzip of JS, and
         tree-shakeable ESM means your app ships only what it imports. Styles are
         your call — pick a prebuilt Bulma CSS flavor or trim further with
         modular Sass. Just one dependency: Bulma.

@@ -6,7 +6,7 @@ license: MIT
 
 # Optimizing CSS size with @allxsmith/bestax-bulma
 
-The JS side is tree-shakable (the **entire** library is ~49 KB min+gzip). The stylesheet is
+The JS side is tree-shakable (the **entire** library is ~65 KB min+gzip). The stylesheet is
 not: a prebuilt flavor ships all of Bulma + the bestax extras regardless of which components
 the app renders. Judge stylesheet weight by the **gzipped** transfer size — never the raw
 `dist/` number.
@@ -116,7 +116,7 @@ partial inventory, and a worked example are in `references/modular-build.md`.
 
 - **Named imports.** `import * as Bestax from '@allxsmith/bestax-bulma'` defeats tree
   shaking. Convert to named imports (`import { Button, Card } from …`) — a JS-side saving
-  (whole library ≈ 49 KB min+gzip), so report it honestly as minor.
+  (whole library ≈ 65 KB min+gzip), so report it honestly as minor.
 - **Unused icon libraries.** Scaffolded apps may carry an icon library the app never uses:
   icon-font packages in `package.json` (`@fortawesome/fontawesome-free`, `@mdi/font`,
   `material-icons`, `material-symbols`) with their CSS imports in `src/main.*`, or Ionicons

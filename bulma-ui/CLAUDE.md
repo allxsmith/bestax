@@ -134,6 +134,12 @@ These keep it working, and each of them failed once:
 - Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is marketing-visible (the READMEs link the live bundlephobia badge) — check `pnpm bundle:stats`
   (writes `dist/stats.html`) when adding anything with real runtime weight.
+- A module must not do anything on import that another module relies on. The ESM build is
+  one file per module (`dist/esm/`, behind `dist/index.esm.js`), and `"sideEffects"` lets an
+  app's bundler skip every module it never imports, so import-time work in a skipped module
+  silently never runs (#937). Declaring things and setting a component's own `displayName`
+  are fine. `scripts/tree-shaking.test.mjs` checks the built modules for this, and holds a
+  single-component import to a small slice of the library.
 
 ## Releases
 
