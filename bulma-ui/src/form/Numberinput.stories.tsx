@@ -118,7 +118,7 @@ const meta: Meta<typeof Numberinput> = {
     bare: {
       control: 'boolean',
       description:
-        'Bare mode: the plusminus controls render without their own row, to join the row of a parent Field (hasAddons or grouped). On by default directly inside a Field, off inside a Control',
+        'Bare mode: the plusminus controls render without their own row, to join the row of a parent Field (hasAddons or grouped). On by default inside a Field, off inside a Control',
     },
   },
 };

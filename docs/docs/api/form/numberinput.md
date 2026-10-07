@@ -191,7 +191,7 @@ A disabled number input.
 The `Numberinput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
 
 :::note
-The plus and minus buttons sit in a row of their own. Directly inside a `Field` they render bare instead, without that row, so they join the row of a `Field` with `hasAddons` or `grouped` (set `bare` to choose either way). Inside a `Control` they keep their own row, because a `Control` stacks what it holds. The stepper variant always keeps its own row.
+The plus and minus buttons sit in a row of their own. Inside a `Field` they render bare instead, without that row, so they join the row of a `Field` with `hasAddons` or `grouped` (set `bare` to choose either way). Inside a `Control` they keep their own row, because a `Control` stacks what it holds. The stepper variant always keeps its own row.
 :::
 
 #### Default (with label)
@@ -243,7 +243,7 @@ function example() {
 
 #### With Field and Control Wrappers
 
-For full manual composition, wrap in both Field and Control. The Field wrapper is detected and its own Field is skipped, and inside the Control the buttons keep their own row. Leave icons and `isLoading` off that Control: Bulma places them at its edges, where the buttons sit, and its icon rules would also restyle the glyphs inside the buttons. For a spinner, set `isLoading` on the Numberinput itself.
+For full manual composition, wrap in both Field and Control. The Field wrapper is detected and its own Field is skipped, and inside the Control the buttons keep their own row. Leave icons and `isLoading` off that Control: Bulma places them at its edges, where the buttons sit, and its icon rules would also restyle the glyphs inside the buttons. For a spinner, set `isLoading` on the Numberinput itself. That Control belongs in a plain `Field`: in a `Field` with `hasAddons` or `grouped`, put the Numberinput in directly, where it renders bare and joins that row.
 
 ```tsx live
 function example() {

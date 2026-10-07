@@ -832,6 +832,36 @@ describe('Numberinput', () => {
       expect(root).toHaveStyle({ display: 'contents' });
     });
 
+    // The docs and stories pass `bare={false}` where the Field lays out no row.
+    it.each([
+      [
+        'a plain Field',
+        (child: React.ReactElement) => <Field>{child}</Field>,
+        'field',
+      ],
+      [
+        'Field.Body',
+        (child: React.ReactElement) => (
+          <Field horizontal label="Quantity">
+            <Field.Body>{child}</Field.Body>
+          </Field>
+        ),
+        'field-body',
+      ],
+    ])(
+      'keeps its own row in %s when bare is false',
+      (_name, wrap, parentClass) => {
+        const { container } = render(
+          wrap(<Numberinput defaultValue={5} bare={false} />)
+        );
+        const root = container.querySelector('.numberinput') as HTMLElement;
+        expect(root.parentElement).toHaveClass(parentClass);
+        expect(root).toHaveClass('field', 'is-grouped');
+        expect(root).not.toHaveStyle({ display: 'contents' });
+        expect(root.querySelectorAll(':scope > .control')).toHaveLength(3);
+      }
+    );
+
     it('still joins the row of a Field it sits in directly', () => {
       const { container } = render(
         <Field hasAddons>
