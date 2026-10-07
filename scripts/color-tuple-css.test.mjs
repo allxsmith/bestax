@@ -2657,12 +2657,15 @@ describe('the colour tuples agree with the shipped stylesheet', () => {
  * Read from the internal rather than from the components that feed it,
  * because the internal is where the class lands and every feeder has to pass
  * a value this type admits, so one read covers `TimeInput`, `DateInput`,
- * `DateTimeInput` and any later caller without a list of them here.
+ * `DateTimeInput` and any later caller without a list of them here. `props`
+ * names the interface that declares `color`, exported or not, since a props
+ * type built from several interfaces declares it on one of them.
  */
 function acceptedColors(file, props) {
   const source = codeOnly(readFileSync(file, 'utf8'));
   const body = new RegExp(
-    `export interface ${props}\\s*\\{([\\s\\S]*?)\\n\\}`
+    `^(?:export )?interface ${props}\\s*\\{([\\s\\S]*?)\\n\\}`,
+    'm'
   ).exec(source);
   const color = body && /\bcolor\?:\s*([^;]+);/.exec(body[1]);
   assert.ok(
@@ -2693,8 +2696,10 @@ describe('the picker internals style every colour they accept', () => {
       partial: '_timeinput.scss',
     },
     {
+      // `CalendarProps` is a union of its single-date and range modes over
+      // these, which every calendar takes, `color` among them.
       file: join(PICKER_INTERNALS, 'Calendar.tsx'),
-      props: 'CalendarProps',
+      props: 'CalendarBaseProps',
       root: 'dateinput',
       partial: '_dateinput.scss',
     },
