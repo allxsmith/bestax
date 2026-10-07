@@ -51,7 +51,7 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Quantity\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"hashtag\">\n            <Numberinput defaultValue={1} min={1} max={10} color=\"primary\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Quantity\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Numberinput defaultValue={1} min={1} max={10} color=\"primary\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
   "accessibility": "- Uses native number input element\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- +/- buttons have `aria-label` for screen readers\n- Arrow keys increment/decrement the value\n- Buttons are disabled at min/max boundaries",
@@ -187,8 +187,8 @@
         {
           "name": "bare",
           "type": "boolean",
-          "default": "false",
-          "description": "Removes button borders and background.",
+          "default": "auto",
+          "description": "Renders the plusminus controls without a `.field` row of their own, so they join the row of a `Field` with `hasAddons` or `grouped` they sit in. On by default directly inside a `Field` and off elsewhere, including inside a `Control`: a `Control` stacks its children, so there the controls keep their own row.",
           "required": false,
           "inherited": false,
           "deprecated": false

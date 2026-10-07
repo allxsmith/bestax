@@ -118,7 +118,7 @@ const meta: Meta<typeof Numberinput> = {
     bare: {
       control: 'boolean',
       description:
-        'Bare mode — no outer field wrapper, for composing inside a parent Field',
+        'Bare mode: the plusminus controls render without their own row, to join the row of a parent Field (hasAddons or grouped). On by default directly inside a Field, off inside a Control',
     },
   },
 };
@@ -553,6 +553,31 @@ export const WithAddonsRight: Story = {
         <Numberinput bare value={value} onChange={setValue} color="primary" />
         <Control>
           <Button>Button</Button>
+        </Control>
+      </Field>
+    );
+  },
+};
+
+/**
+ * Inside `Field > Control` the buttons keep their own row, because a
+ * `Control` stacks what it holds.
+ */
+export const InFieldAndControl: Story = {
+  name: 'In a Field and Control',
+  render: function InFieldAndControlExample() {
+    const [value, setValue] = useState(1);
+    return (
+      <Field label="Quantity" labelProps={{ htmlFor: 'quantity-in-control' }}>
+        <Control>
+          <Numberinput
+            id="quantity-in-control"
+            value={value}
+            onChange={setValue}
+            min={1}
+            max={10}
+            color="primary"
+          />
         </Control>
       </Field>
     );

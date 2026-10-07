@@ -3,6 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Numberinput, NumberInput } from '../Numberinput';
 import { Field } from '../Field';
+import { Control } from '../Control';
 
 describe('Numberinput', () => {
   describe('Rendering', () => {
@@ -792,6 +793,67 @@ describe('Numberinput', () => {
         'aria-label',
         'Increase value'
       );
+    });
+
+    // A `.control` stacks its children, so bare controls inside one sit in a
+    // column instead of joining the Field's row.
+    it.each([
+      ['plusminus', {}, 'is-grouped'],
+      ['compact', { compact: true }, 'has-addons'],
+    ])(
+      'keeps its own %s row inside Field > Control',
+      (_name, props, rowClass) => {
+        const { container } = render(
+          <Field>
+            <Control>
+              <Numberinput defaultValue={5} {...props} />
+            </Control>
+          </Field>
+        );
+        const root = container.querySelector('.numberinput') as HTMLElement;
+        expect(root.parentElement).toHaveClass('control');
+        expect(root).toHaveClass('field', rowClass);
+        expect(root).not.toHaveStyle({ display: 'contents' });
+        expect(root.querySelectorAll(':scope > .control')).toHaveLength(3);
+        expect(container.querySelectorAll('.field')).toHaveLength(2);
+      }
+    );
+
+    it('still goes bare inside Field > Control when bare is set', () => {
+      const { container } = render(
+        <Field>
+          <Control>
+            <Numberinput defaultValue={5} bare />
+          </Control>
+        </Field>
+      );
+      const root = container.querySelector('.numberinput') as HTMLElement;
+      expect(root).not.toHaveClass('field');
+      expect(root).toHaveStyle({ display: 'contents' });
+    });
+
+    it('still joins the row of a Field it sits in directly', () => {
+      const { container } = render(
+        <Field hasAddons>
+          <Numberinput defaultValue={5} />
+        </Field>
+      );
+      const root = container.querySelector('.numberinput') as HTMLElement;
+      expect(root.parentElement).toHaveClass('field', 'has-addons');
+      expect(root).not.toHaveClass('field');
+      expect(root).toHaveStyle({ display: 'contents' });
+    });
+
+    it('keeps its Field and row in a Control with no Field around it', () => {
+      const { container } = render(
+        <Control>
+          <Numberinput defaultValue={5} />
+        </Control>
+      );
+      const root = container.querySelector('.numberinput') as HTMLElement;
+      expect(root).toHaveClass('field', 'is-grouped');
+      expect(root.parentElement).toHaveClass('field');
+      expect(root.parentElement?.parentElement).toHaveClass('control');
     });
   });
 
