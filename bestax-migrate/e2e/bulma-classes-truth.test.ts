@@ -446,6 +446,48 @@ describe.each(mapped)('`.%s`', (root, entry) => {
     expect(dead).toEqual([]);
   });
 
+  if (entry.helpersLeftOut) {
+    it('leaves out only helper props its target would not render as the helper', () => {
+      const onTag = defaultsFor(entry, entry.tag!);
+      const inside = child ? child.converted : 'x';
+      for (const [prop, why] of Object.entries(entry.helpersLeftOut!)) {
+        // The row names a helper prop, and says why.
+        const helpers = [...HELPER_TOKENS].filter(
+          ([, helper]) => helper.write.prop === prop
+        );
+        expect({ prop, helpers: helpers.length > 0, why: why !== '' }).toEqual({
+          prop,
+          helpers: true,
+          why: true,
+        });
+        for (const [token, helper] of helpers) {
+          // Each class that prop renders stays a class here...
+          const facts = factsFor(entry.tag!, [root, token], onTag, child);
+          expect({
+            token,
+            kept: plan(facts).conversion?.className?.split(' ') ?? [],
+          }).toEqual({ token, kept: expect.arrayContaining([token]) });
+          // ...because the target, given the prop, renders something else. A
+          // target that renders the class from it makes the row dead.
+          const given = normalizeHtml(
+            renderElement(
+              entry.target!,
+              { ...onTag, [prop]: helper.write.value ?? true },
+              inside
+            )
+          );
+          const asClass = normalizeHtml(
+            renderElement(entry.target!, { ...onTag, className: token }, inside)
+          );
+          expect({ token, same: given === asClass }).toEqual({
+            token,
+            same: false,
+          });
+        }
+      }
+    });
+  }
+
   if (entry.defaults) {
     it('renders the same with each default given another value', () => {
       // A default is written only when none is given, so a given one renders
@@ -1178,6 +1220,65 @@ describe('wrappers', () => {
 
   it('leaves a wrapper tag with no helper class alone', () => {
     expect(plan(factsFor('p', ['my-app-class'])).conversion).toBeNull();
+  });
+});
+
+/**
+ * Helpers whose props render differently beside each other than alone: a
+ * `gap` drops `gapless`, a `pos` drops `relative`, and an axis overflow
+ * writes both axes per axis. Every ordered pair from those families, and
+ * from the helpers they sit beside, on a component, a wrapper, and the two
+ * components with gap props of their own.
+ */
+describe('helpers beside each other', () => {
+  const tokens = [
+    'is-gap-0',
+    'is-gap-0.5',
+    'is-gap-8',
+    'is-column-gap-1.5',
+    'is-row-gap-3',
+    'is-gapless',
+    'is-position-absolute',
+    'is-position-fixed',
+    'is-position-relative',
+    'is-position-static',
+    'is-position-sticky',
+    'is-relative',
+    'is-overlay',
+    'is-clipped',
+    'is-overflow-hidden',
+    'is-overflow-auto',
+    'is-overflow-x-auto',
+    'is-overflow-x-hidden',
+    'is-overflow-y-scroll',
+    'is-overflow-y-clip',
+    'is-radiusless',
+    'has-radius-small',
+    'has-radius-rounded',
+    'is-aspect-ratio-16by9',
+    'is-aspect-ratio-1by1',
+  ];
+  const pairs = tokens.flatMap(first =>
+    tokens.filter(second => second !== first).map(second => [first, second])
+  );
+
+  it.each([
+    ['div', 'box'],
+    ['p', ''],
+    ['div', 'grid'],
+    ['div', 'columns'],
+  ])('renders the same on a <%s> %s', (tag, root) => {
+    for (const pair of pairs) {
+      const both = renderBoth(factsFor(tag, root ? [root, ...pair] : pair));
+      expect({ pair, converts: both !== null }).toEqual({
+        pair,
+        converts: true,
+      });
+      expect({ pair, html: both!.converted }).toEqual({
+        pair,
+        html: both!.raw,
+      });
+    }
   });
 });
 

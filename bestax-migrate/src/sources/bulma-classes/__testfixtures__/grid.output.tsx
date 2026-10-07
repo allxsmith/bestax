@@ -8,8 +8,8 @@ export function Gallery() {
         <Cell rowStart={2} colFromEnd={1}>Three</Cell>
         <Cell bgColor="light">Four</Cell>
       </Grid>
-      <Grid className="is-gap-0.5">
-        <Cell>A half-step gap stays a class</Cell>
+      <Grid gap="0.5">
+        <Cell>A half-step gap</Cell>
       </Grid>
       <Grid isFixed fixedCols={3}>
         <Cell>Fixed</Cell>

@@ -77,8 +77,8 @@ stock stylesheet.
   `table` become their bestax components, with their modifier classes as props (`is-primary` →
   `color="primary"`, `is-half` → `size="half"`).
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
-  `has-text-centered` → `textAlign="centered"`), and on the plain tags bestax wraps:
-  `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
+  `has-text-centered` → `textAlign="centered"`, `is-position-sticky` → `pos="sticky"`), and on
+  the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing

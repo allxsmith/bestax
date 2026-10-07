@@ -47,8 +47,10 @@ function stylesheetClasses(): Set<string> {
         const bare = selector
           .replace(/\[[^\]]*\]/g, '')
           .replace(/"[^"]*"|'[^']*'/g, '');
-        for (const match of bare.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g)) {
-          classes.add(match[1]);
+        // A name can carry an escaped character (`.is-gap-0\.5`), which the
+        // class itself spells plainly.
+        for (const match of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
+          classes.add(match[1].replace(/\\(.)/g, '$1'));
         }
       }
       selector = '';

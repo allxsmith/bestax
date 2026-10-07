@@ -339,6 +339,31 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     expect(compare(cases)).toEqual([]);
   });
 
+  it('on every pair of the helpers whose props drop or rewrite each other', () => {
+    const beside = Object.entries(table.helpers)
+      .filter(
+        ([token, helper]) =>
+          ['gap', 'position', 'overflow'].includes(helper.group) ||
+          token === 'is-overlay'
+      )
+      .map(([token]) => token);
+    const cases: Array<[string, string[]]> = [];
+    for (const first of beside) {
+      for (const second of beside) {
+        if (first === second) continue;
+        cases.push(['p', [first, second]]);
+        for (const root of ['box', 'grid', 'columns']) {
+          cases.push(['div', [root, first, second]]);
+        }
+      }
+    }
+    expect(cases.length).toBeGreaterThan(1000);
+    const mismatches = compare(cases);
+    expect({ count: mismatches.length, first: mismatches.slice(0, 5) }).toEqual(
+      { count: 0, first: [] }
+    );
+  });
+
   // With no tag, the lookup answers for the tag the component renders on its
   // own. The planner needs a tag, so it runs on that one: a heading's on <p>,
   // where its size is exact, and classes with no root on <p>, whose

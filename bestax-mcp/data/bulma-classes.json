@@ -21,6 +21,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -48,6 +49,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -103,6 +105,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -137,6 +140,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -174,6 +178,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -205,6 +210,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -232,6 +238,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -259,6 +266,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -286,6 +294,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -313,6 +322,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -340,6 +350,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -367,6 +378,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -473,6 +485,11 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {
+        "gap": "bestax `Columns`' own `gap` is the columns gutter (`is-<value>`), not the gap helper",
+        "columnGap": "bestax `Columns` leaves the column and row gap helpers out: the gutter is padding inside each column, which CSS `gap` would add to",
+        "rowGap": "bestax `Columns` leaves the column and row gap helpers out: the gutter is padding inside each column, which CSS `gap` would add to"
+      },
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1140,6 +1157,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1159,49 +1177,89 @@
       "why": null,
       "modifiers": {
         "is-gap-0": { "writes": [{ "prop": "gap", "value": "0" }] },
+        "is-gap-0.5": { "writes": [{ "prop": "gap", "value": "0.5" }] },
         "is-gap-1": { "writes": [{ "prop": "gap", "value": "1" }] },
+        "is-gap-1.5": { "writes": [{ "prop": "gap", "value": "1.5" }] },
         "is-gap-2": { "writes": [{ "prop": "gap", "value": "2" }] },
+        "is-gap-2.5": { "writes": [{ "prop": "gap", "value": "2.5" }] },
         "is-gap-3": { "writes": [{ "prop": "gap", "value": "3" }] },
+        "is-gap-3.5": { "writes": [{ "prop": "gap", "value": "3.5" }] },
         "is-gap-4": { "writes": [{ "prop": "gap", "value": "4" }] },
+        "is-gap-4.5": { "writes": [{ "prop": "gap", "value": "4.5" }] },
         "is-gap-5": { "writes": [{ "prop": "gap", "value": "5" }] },
+        "is-gap-5.5": { "writes": [{ "prop": "gap", "value": "5.5" }] },
         "is-gap-6": { "writes": [{ "prop": "gap", "value": "6" }] },
+        "is-gap-6.5": { "writes": [{ "prop": "gap", "value": "6.5" }] },
         "is-gap-7": { "writes": [{ "prop": "gap", "value": "7" }] },
+        "is-gap-7.5": { "writes": [{ "prop": "gap", "value": "7.5" }] },
         "is-gap-8": { "writes": [{ "prop": "gap", "value": "8" }] },
         "is-column-gap-0": {
           "writes": [{ "prop": "columnGap", "value": "0" }]
         },
+        "is-column-gap-0.5": {
+          "writes": [{ "prop": "columnGap", "value": "0.5" }]
+        },
         "is-column-gap-1": {
           "writes": [{ "prop": "columnGap", "value": "1" }]
+        },
+        "is-column-gap-1.5": {
+          "writes": [{ "prop": "columnGap", "value": "1.5" }]
         },
         "is-column-gap-2": {
           "writes": [{ "prop": "columnGap", "value": "2" }]
         },
+        "is-column-gap-2.5": {
+          "writes": [{ "prop": "columnGap", "value": "2.5" }]
+        },
         "is-column-gap-3": {
           "writes": [{ "prop": "columnGap", "value": "3" }]
+        },
+        "is-column-gap-3.5": {
+          "writes": [{ "prop": "columnGap", "value": "3.5" }]
         },
         "is-column-gap-4": {
           "writes": [{ "prop": "columnGap", "value": "4" }]
         },
+        "is-column-gap-4.5": {
+          "writes": [{ "prop": "columnGap", "value": "4.5" }]
+        },
         "is-column-gap-5": {
           "writes": [{ "prop": "columnGap", "value": "5" }]
+        },
+        "is-column-gap-5.5": {
+          "writes": [{ "prop": "columnGap", "value": "5.5" }]
         },
         "is-column-gap-6": {
           "writes": [{ "prop": "columnGap", "value": "6" }]
         },
+        "is-column-gap-6.5": {
+          "writes": [{ "prop": "columnGap", "value": "6.5" }]
+        },
         "is-column-gap-7": {
           "writes": [{ "prop": "columnGap", "value": "7" }]
+        },
+        "is-column-gap-7.5": {
+          "writes": [{ "prop": "columnGap", "value": "7.5" }]
         },
         "is-column-gap-8": {
           "writes": [{ "prop": "columnGap", "value": "8" }]
         },
         "is-row-gap-0": { "writes": [{ "prop": "rowGap", "value": "0" }] },
+        "is-row-gap-0.5": { "writes": [{ "prop": "rowGap", "value": "0.5" }] },
         "is-row-gap-1": { "writes": [{ "prop": "rowGap", "value": "1" }] },
+        "is-row-gap-1.5": { "writes": [{ "prop": "rowGap", "value": "1.5" }] },
         "is-row-gap-2": { "writes": [{ "prop": "rowGap", "value": "2" }] },
+        "is-row-gap-2.5": { "writes": [{ "prop": "rowGap", "value": "2.5" }] },
         "is-row-gap-3": { "writes": [{ "prop": "rowGap", "value": "3" }] },
+        "is-row-gap-3.5": { "writes": [{ "prop": "rowGap", "value": "3.5" }] },
         "is-row-gap-4": { "writes": [{ "prop": "rowGap", "value": "4" }] },
+        "is-row-gap-4.5": { "writes": [{ "prop": "rowGap", "value": "4.5" }] },
         "is-row-gap-5": { "writes": [{ "prop": "rowGap", "value": "5" }] },
+        "is-row-gap-5.5": { "writes": [{ "prop": "rowGap", "value": "5.5" }] },
         "is-row-gap-6": { "writes": [{ "prop": "rowGap", "value": "6" }] },
+        "is-row-gap-6.5": { "writes": [{ "prop": "rowGap", "value": "6.5" }] },
         "is-row-gap-7": { "writes": [{ "prop": "rowGap", "value": "7" }] },
+        "is-row-gap-7.5": { "writes": [{ "prop": "rowGap", "value": "7.5" }] },
         "is-row-gap-8": { "writes": [{ "prop": "rowGap", "value": "8" }] },
         "is-col-min-1": {
           "writes": [{ "prop": "minCol", "value": "1", "numeric": true }]
@@ -1309,6 +1367,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1553,6 +1612,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1602,6 +1662,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1633,6 +1694,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1664,6 +1726,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1701,6 +1764,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1733,6 +1797,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1760,6 +1825,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1795,6 +1861,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1842,6 +1909,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1890,6 +1958,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1946,6 +2015,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -1973,6 +2043,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2020,6 +2091,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2047,6 +2119,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2074,6 +2147,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2101,6 +2175,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2128,6 +2203,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2155,6 +2231,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2182,6 +2259,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2209,6 +2287,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2236,6 +2315,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2263,6 +2343,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2290,6 +2371,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2317,6 +2399,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2360,6 +2443,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2387,6 +2471,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2414,6 +2499,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2441,6 +2527,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2468,6 +2555,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2495,6 +2583,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2525,6 +2614,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2552,6 +2642,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2590,6 +2681,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2631,6 +2723,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2661,6 +2754,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2714,6 +2808,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2747,6 +2842,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2791,6 +2887,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2822,6 +2919,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2876,6 +2974,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2923,6 +3022,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2950,6 +3050,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -2977,6 +3078,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3004,6 +3106,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3031,6 +3134,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3058,6 +3162,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3085,6 +3190,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3132,6 +3238,7 @@
       "buildsIcons": false,
       "buildsFile": true,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3159,6 +3266,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3186,6 +3294,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3213,6 +3322,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3240,6 +3350,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3267,6 +3378,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3294,6 +3406,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3321,6 +3434,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3348,6 +3462,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3375,6 +3490,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3402,6 +3518,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3433,6 +3550,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3460,6 +3578,7 @@
       "buildsIcons": true,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3518,6 +3637,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3545,6 +3665,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3572,6 +3693,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3599,6 +3721,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": true,
       "items": {
@@ -3640,6 +3763,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3667,6 +3791,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3694,6 +3819,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3721,6 +3847,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3748,6 +3875,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3775,6 +3903,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3802,6 +3931,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3829,6 +3959,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3856,6 +3987,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3883,6 +4015,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3910,6 +4043,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3937,6 +4071,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3964,6 +4099,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -3991,6 +4127,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4018,6 +4155,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4063,6 +4201,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4090,6 +4229,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4119,6 +4259,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4148,6 +4289,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4182,6 +4324,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4209,6 +4352,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4247,6 +4391,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4274,6 +4419,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4301,6 +4447,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4328,6 +4475,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": true,
+      "helpersLeftOut": {},
       "otherTagsStay": {
         "tags": ["label", "div"],
         "why": "a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents"
@@ -4358,6 +4506,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4407,6 +4556,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4434,6 +4584,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4801,6 +4952,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4828,6 +4980,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4855,6 +5008,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4882,6 +5036,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4909,6 +5064,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4936,6 +5092,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4963,6 +5120,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -4990,6 +5148,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -5017,6 +5176,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -5044,6 +5204,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -5071,6 +5232,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -5098,6 +5260,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -5125,6 +5288,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -5152,6 +5316,7 @@
       "buildsIcons": false,
       "buildsFile": false,
       "noHelpers": false,
+      "helpersLeftOut": {},
       "otherTagsStay": null,
       "topLevelOnly": false,
       "items": null,
@@ -6386,6 +6551,269 @@
       "group": "flex-item",
       "write": { "prop": "flexShrink", "value": "5" }
     },
+    "is-gap-0": { "group": "gap", "write": { "prop": "gap", "value": "0" } },
+    "is-gap-0.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "0.5" }
+    },
+    "is-gap-1": { "group": "gap", "write": { "prop": "gap", "value": "1" } },
+    "is-gap-1.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "1.5" }
+    },
+    "is-gap-2": { "group": "gap", "write": { "prop": "gap", "value": "2" } },
+    "is-gap-2.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "2.5" }
+    },
+    "is-gap-3": { "group": "gap", "write": { "prop": "gap", "value": "3" } },
+    "is-gap-3.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "3.5" }
+    },
+    "is-gap-4": { "group": "gap", "write": { "prop": "gap", "value": "4" } },
+    "is-gap-4.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "4.5" }
+    },
+    "is-gap-5": { "group": "gap", "write": { "prop": "gap", "value": "5" } },
+    "is-gap-5.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "5.5" }
+    },
+    "is-gap-6": { "group": "gap", "write": { "prop": "gap", "value": "6" } },
+    "is-gap-6.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "6.5" }
+    },
+    "is-gap-7": { "group": "gap", "write": { "prop": "gap", "value": "7" } },
+    "is-gap-7.5": {
+      "group": "gap",
+      "write": { "prop": "gap", "value": "7.5" }
+    },
+    "is-gap-8": { "group": "gap", "write": { "prop": "gap", "value": "8" } },
+    "is-column-gap-0": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "0" }
+    },
+    "is-column-gap-0.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "0.5" }
+    },
+    "is-column-gap-1": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "1" }
+    },
+    "is-column-gap-1.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "1.5" }
+    },
+    "is-column-gap-2": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "2" }
+    },
+    "is-column-gap-2.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "2.5" }
+    },
+    "is-column-gap-3": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "3" }
+    },
+    "is-column-gap-3.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "3.5" }
+    },
+    "is-column-gap-4": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "4" }
+    },
+    "is-column-gap-4.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "4.5" }
+    },
+    "is-column-gap-5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "5" }
+    },
+    "is-column-gap-5.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "5.5" }
+    },
+    "is-column-gap-6": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "6" }
+    },
+    "is-column-gap-6.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "6.5" }
+    },
+    "is-column-gap-7": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "7" }
+    },
+    "is-column-gap-7.5": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "7.5" }
+    },
+    "is-column-gap-8": {
+      "group": "gap",
+      "write": { "prop": "columnGap", "value": "8" }
+    },
+    "is-row-gap-0": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "0" }
+    },
+    "is-row-gap-0.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "0.5" }
+    },
+    "is-row-gap-1": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "1" }
+    },
+    "is-row-gap-1.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "1.5" }
+    },
+    "is-row-gap-2": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "2" }
+    },
+    "is-row-gap-2.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "2.5" }
+    },
+    "is-row-gap-3": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "3" }
+    },
+    "is-row-gap-3.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "3.5" }
+    },
+    "is-row-gap-4": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "4" }
+    },
+    "is-row-gap-4.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "4.5" }
+    },
+    "is-row-gap-5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "5" }
+    },
+    "is-row-gap-5.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "5.5" }
+    },
+    "is-row-gap-6": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "6" }
+    },
+    "is-row-gap-6.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "6.5" }
+    },
+    "is-row-gap-7": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "7" }
+    },
+    "is-row-gap-7.5": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "7.5" }
+    },
+    "is-row-gap-8": {
+      "group": "gap",
+      "write": { "prop": "rowGap", "value": "8" }
+    },
+    "is-gapless": { "group": "gap", "write": { "prop": "gapless" } },
+    "is-position-absolute": {
+      "group": "position",
+      "write": { "prop": "pos", "value": "absolute" }
+    },
+    "is-position-fixed": {
+      "group": "position",
+      "write": { "prop": "pos", "value": "fixed" }
+    },
+    "is-position-relative": {
+      "group": "position",
+      "write": { "prop": "pos", "value": "relative" }
+    },
+    "is-position-static": {
+      "group": "position",
+      "write": { "prop": "pos", "value": "static" }
+    },
+    "is-position-sticky": {
+      "group": "position",
+      "write": { "prop": "pos", "value": "sticky" }
+    },
+    "is-relative": { "group": "position", "write": { "prop": "relative" } },
+    "is-clipped": {
+      "group": "overflow",
+      "write": { "prop": "overflow", "value": "clipped" }
+    },
+    "is-overflow-auto": {
+      "group": "overflow",
+      "write": { "prop": "overflow", "value": "auto" }
+    },
+    "is-overflow-clip": {
+      "group": "overflow",
+      "write": { "prop": "overflow", "value": "clip" }
+    },
+    "is-overflow-hidden": {
+      "group": "overflow",
+      "write": { "prop": "overflow", "value": "hidden" }
+    },
+    "is-overflow-scroll": {
+      "group": "overflow",
+      "write": { "prop": "overflow", "value": "scroll" }
+    },
+    "is-overflow-visible": {
+      "group": "overflow",
+      "write": { "prop": "overflow", "value": "visible" }
+    },
+    "is-overflow-x-auto": {
+      "group": "overflow",
+      "write": { "prop": "overflowX", "value": "auto" }
+    },
+    "is-overflow-x-clip": {
+      "group": "overflow",
+      "write": { "prop": "overflowX", "value": "clip" }
+    },
+    "is-overflow-x-hidden": {
+      "group": "overflow",
+      "write": { "prop": "overflowX", "value": "hidden" }
+    },
+    "is-overflow-x-scroll": {
+      "group": "overflow",
+      "write": { "prop": "overflowX", "value": "scroll" }
+    },
+    "is-overflow-x-visible": {
+      "group": "overflow",
+      "write": { "prop": "overflowX", "value": "visible" }
+    },
+    "is-overflow-y-auto": {
+      "group": "overflow",
+      "write": { "prop": "overflowY", "value": "auto" }
+    },
+    "is-overflow-y-clip": {
+      "group": "overflow",
+      "write": { "prop": "overflowY", "value": "clip" }
+    },
+    "is-overflow-y-hidden": {
+      "group": "overflow",
+      "write": { "prop": "overflowY", "value": "hidden" }
+    },
+    "is-overflow-y-scroll": {
+      "group": "overflow",
+      "write": { "prop": "overflowY", "value": "scroll" }
+    },
+    "is-overflow-y-visible": {
+      "group": "overflow",
+      "write": { "prop": "overflowY", "value": "visible" }
+    },
     "is-pulled-left": {
       "group": "other",
       "write": { "prop": "float", "value": "left" }
@@ -6393,10 +6821,6 @@
     "is-pulled-right": {
       "group": "other",
       "write": { "prop": "float", "value": "right" }
-    },
-    "is-clipped": {
-      "group": "other",
-      "write": { "prop": "overflow", "value": "clipped" }
     },
     "is-overlay": { "group": "other", "write": { "prop": "overlay" } },
     "is-unselectable": {
@@ -6410,6 +6834,22 @@
     "is-radiusless": {
       "group": "other",
       "write": { "prop": "radius", "value": "radiusless" }
+    },
+    "has-radius-small": {
+      "group": "other",
+      "write": { "prop": "radius", "value": "small" }
+    },
+    "has-radius-normal": {
+      "group": "other",
+      "write": { "prop": "radius", "value": "normal" }
+    },
+    "has-radius-large": {
+      "group": "other",
+      "write": { "prop": "radius", "value": "large" }
+    },
+    "has-radius-rounded": {
+      "group": "other",
+      "write": { "prop": "radius", "value": "rounded" }
     },
     "is-shadowless": {
       "group": "other",
@@ -6425,7 +6865,66 @@
     },
     "is-skeleton": { "group": "other", "write": { "prop": "skeleton" } },
     "is-clearfix": { "group": "other", "write": { "prop": "clearfix" } },
-    "is-relative": { "group": "other", "write": { "prop": "relative" } }
+    "is-aspect-ratio-1by1": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "1by1" }
+    },
+    "is-aspect-ratio-5by4": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "5by4" }
+    },
+    "is-aspect-ratio-4by3": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "4by3" }
+    },
+    "is-aspect-ratio-3by2": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "3by2" }
+    },
+    "is-aspect-ratio-5by3": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "5by3" }
+    },
+    "is-aspect-ratio-16by9": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "16by9" }
+    },
+    "is-aspect-ratio-2by1": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "2by1" }
+    },
+    "is-aspect-ratio-3by1": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "3by1" }
+    },
+    "is-aspect-ratio-4by5": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "4by5" }
+    },
+    "is-aspect-ratio-3by4": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "3by4" }
+    },
+    "is-aspect-ratio-2by3": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "2by3" }
+    },
+    "is-aspect-ratio-3by5": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "3by5" }
+    },
+    "is-aspect-ratio-9by16": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "9by16" }
+    },
+    "is-aspect-ratio-1by2": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "1by2" }
+    },
+    "is-aspect-ratio-1by3": {
+      "group": "other",
+      "write": { "prop": "aspectRatio", "value": "1by3" }
+    }
   },
   "legacy": {
     "tile": "Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)"
@@ -6450,30 +6949,6 @@
     {
       "why": "an `.image` modifier, which converts only on its own `.image`, and only where bestax has a prop for it",
       "match": "^(?:is-\\d+by\\d+|is-\\d+x\\d+|is-square|has-ratio)$"
-    },
-    {
-      "why": "a Bulma helper the codemod does not convert; the `pos` prop renders it",
-      "match": "^is-position-.+$"
-    },
-    {
-      "why": "a Bulma helper the codemod does not convert; the `overflow`, `overflowX` and `overflowY` props render it",
-      "match": "^is-overflow-.+$"
-    },
-    {
-      "why": "a Bulma helper the codemod does not convert; the `radius` prop renders it",
-      "match": "^has-radius-.+$"
-    },
-    {
-      "why": "a Bulma helper the codemod does not convert; the `aspectRatio` prop renders it",
-      "match": "^is-aspect-ratio-.+$"
-    },
-    {
-      "why": "a Bulma helper the codemod converts only on a `.grid`, in whole steps; the `gap`, `columnGap` and `rowGap` props render it",
-      "match": "^is-(?:column-|row-)?gap-\\d(?:\\.5)?$"
-    },
-    {
-      "why": "a Bulma helper the codemod converts only on a `.columns`, as `isGapless`; the `gapless` prop renders it",
-      "match": "^is-gapless$"
     },
     {
       "why": "a Bulma helper with no bestax prop",

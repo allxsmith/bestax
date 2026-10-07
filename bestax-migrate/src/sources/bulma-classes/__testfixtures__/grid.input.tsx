@@ -8,7 +8,7 @@ export function Gallery() {
         <div className="cell has-background-light">Four</div>
       </div>
       <div className="grid is-gap-0.5">
-        <div className="cell">A half-step gap stays a class</div>
+        <div className="cell">A half-step gap</div>
       </div>
       <div className="fixed-grid has-3-cols">
         <div className="grid">

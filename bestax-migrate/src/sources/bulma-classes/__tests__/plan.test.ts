@@ -257,6 +257,117 @@ describe('plan', () => {
         [['isMobile', true]]
       );
     });
+
+    it('converts the gap, position, overflow, radius and aspect-ratio helpers', () => {
+      expect(
+        plan(
+          facts(
+            'div',
+            'box is-flex is-gap-1.5 is-row-gap-3 is-position-sticky is-overflow-y-auto has-radius-large is-aspect-ratio-16by9'
+          )
+        ).conversion
+      ).toEqual({
+        target: 'Box',
+        props: [
+          ['display', 'flex'],
+          ['gap', '1.5'],
+          ['rowGap', '3'],
+          ['pos', 'sticky'],
+          ['overflowY', 'auto'],
+          ['radius', 'large'],
+          ['aspectRatio', '16by9'],
+        ],
+        className: null,
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('p', 'is-gapless is-overflow-x-clip')).conversion?.props
+      ).toEqual([
+        ['gapless', true],
+        ['overflowX', 'clip'],
+      ]);
+    });
+
+    it('keeps is-gapless beside a gap, which bestax renders in its place', () => {
+      expect(
+        plan(facts('div', 'box is-gapless is-gap-2 is-column-gap-1')).conversion
+      ).toEqual({
+        target: 'Box',
+        props: [
+          ['gap', '2'],
+          ['columnGap', '1'],
+        ],
+        className: 'is-gapless',
+        drop: [],
+        numbers: [],
+      });
+      // Grid's own gap renders its class itself, beside the gapless helper.
+      expect(
+        plan(facts('div', 'grid is-gap-2 is-gapless')).conversion?.props
+      ).toEqual([
+        ['gap', '2'],
+        ['gapless', true],
+      ]);
+    });
+
+    it('keeps is-relative beside a position, which bestax renders in its place', () => {
+      expect(
+        plan(facts('div', 'box is-relative is-position-absolute is-overlay'))
+          .conversion
+      ).toEqual({
+        target: 'Box',
+        props: [
+          ['pos', 'absolute'],
+          ['overlay', true],
+        ],
+        className: 'is-relative',
+        drop: [],
+        numbers: [],
+      });
+    });
+
+    it('keeps a both-axes overflow beside an axis one, which bestax writes per axis', () => {
+      expect(
+        plan(facts('div', 'box is-overflow-hidden is-overflow-y-auto'))
+          .conversion
+      ).toEqual({
+        target: 'Box',
+        props: [['overflowY', 'auto']],
+        className: 'is-overflow-hidden',
+        drop: [],
+        numbers: [],
+      });
+      expect(
+        plan(facts('div', 'box is-overflow-x-scroll is-clipped')).conversion
+      ).toEqual({
+        target: 'Box',
+        props: [['overflowX', 'scroll']],
+        className: 'is-clipped',
+        drop: [],
+        numbers: [],
+      });
+    });
+
+    it('keeps the gap helpers on Columns, whose own gap is its gutter', () => {
+      expect(
+        plan(
+          facts(
+            'div',
+            'columns is-gap-2 is-column-gap-1 is-row-gap-1 is-gapless is-3'
+          )
+        ).conversion
+      ).toEqual({
+        target: 'Columns',
+        props: [
+          ['isGapless', true],
+          ['gap', '3'],
+        ],
+        className: 'is-gap-2 is-column-gap-1 is-row-gap-1',
+        drop: [],
+        numbers: [],
+      });
+    });
   });
 
   describe('wrappers', () => {
@@ -1496,16 +1607,20 @@ describe('plan', () => {
       });
     });
 
-    it("keeps a gap a string, which Grid's gap takes, and a half step as a class", () => {
-      expect(plan(facts('div', 'grid is-gap-2 is-gap-0.5')).conversion).toEqual(
-        {
-          target: 'Grid',
-          props: [['gap', '2']],
-          className: 'is-gap-0.5',
-          drop: [],
-          numbers: [],
-        }
-      );
+    it("keeps a gap a string, which Grid's gap takes, half steps included", () => {
+      expect(
+        plan(facts('div', 'grid is-gap-0.5 is-column-gap-7.5 is-gap-2'))
+          .conversion
+      ).toEqual({
+        target: 'Grid',
+        props: [
+          ['gap', '0.5'],
+          ['columnGap', '7.5'],
+        ],
+        className: 'is-gap-2',
+        drop: [],
+        numbers: [],
+      });
     });
   });
 
