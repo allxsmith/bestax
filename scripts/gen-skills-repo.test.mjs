@@ -37,6 +37,7 @@ import {
   REQUIRE_CHECKOUT,
   REQUIRE_PUBLISHED,
   SKILL_INDEX,
+  SOURCE_REPOSITORY,
   TEMPLATE,
   TreeError,
   assertPublished,
@@ -1927,8 +1928,9 @@ test('the tree must carry a SECURITY.md that links a private channel', () => {
     violationsWith(tree => tree.set(FILES.security, Buffer.from(text)));
   for (const ok of [
     'Email [us](mailto:security@example.com).\n',
-    'Report on the [Security tab](https://github.com/owner/repo.name/security).\n',
-    'See https://github.com/owner/repo/security/advisories/new\n',
+    `Report on the [Security tab](${SOURCE_REPOSITORY}/security).\n`,
+    `See ${SOURCE_REPOSITORY}/security/advisories/new\n`,
+    `${SOURCE_REPOSITORY}/security`,
   ]) {
     assert.deepEqual(withSecurity(ok), [], ok);
     assert.deepEqual(securityViolations(Buffer.from(ok)), [], ok);
@@ -1939,9 +1941,18 @@ test('the tree must carry a SECURITY.md that links a private channel', () => {
     'Email security@example.com.\n',
     'See https://github.com/owner/repo/issues\n',
     'Write to [us](mailto:nobody).\n',
+    // Another repository's Security page, or a path that only starts like
+    // the right one.
+    'Report on [GitHub](https://github.com/owner/repo/security).\n',
+    `Report on [GitHub](${SOURCE_REPOSITORY}-skills/security).\n`,
+    `See [the policy](${SOURCE_REPOSITORY}/security-policy).\n`,
   ]) {
     has(withSecurity(gutted), /^SECURITY\.md: links no private way to report/);
   }
+});
+
+test('SOURCE_REPOSITORY is the repository server.json names', () => {
+  assert.equal(SOURCE_REPOSITORY, realServer().repository.url);
 });
 
 test('the Gemini manifest must keep the plugin name and an exact npx pin', () => {

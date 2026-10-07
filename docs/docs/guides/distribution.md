@@ -131,7 +131,8 @@ Say in the pull request which listings need an update, then open those updates o
 - **Adding, renaming or removing a skill.** Entries that name skills or say how many there are:
   claude-skills-collection, awesome-hermes-skills, claude-code-skills-zh, Awesome-Agent-Skills
   (JayLZhou), awesome-claude-code-and-skills and kodustech (both name
-  `bestax-layout-scaffold`), skillsindex.dev, agenticskills.io, cursor.directory and ClawHub.
+  `bestax-layout-scaffold`), skillsindex.dev, agenticskills.io, cursor.directory, ClawHub, Build
+  with Claude (which also gives a count), awesome-ai-plugins and karanb192/awesome-claude-skills.
 - **Changing what `bestax-mcp` offers.** Most MCP entries say it serves props, examples, CSS
   variables and Agent Skills, offline, with no API key. awesome-AI-driven-development also gives
   an example count, in English and Japanese. toolsdk-mcp-registry documents the

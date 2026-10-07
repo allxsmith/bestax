@@ -1164,11 +1164,22 @@ export function iconViolations(content) {
 }
 
 /**
- * A private way to report a vulnerability: an email link, or a repository's
- * GitHub Security page, where private reporting lives.
+ * The repository the plugin is generated from, whose GitHub Security page
+ * takes private vulnerability reports. The test sibling holds it to
+ * server.json's `repository.url`.
  */
-const REPORTING_CHANNEL =
-  /\(mailto:[^)\s]+@[^)\s]+\)|https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/security\b/;
+export const SOURCE_REPOSITORY = 'https://github.com/allxsmith/bestax';
+
+/**
+ * A private way to report a vulnerability: an email link, or
+ * SOURCE_REPOSITORY's Security page or a page under it, but not another
+ * repository's or a path that only starts the same way.
+ */
+const REPORTING_CHANNEL = new RegExp(
+  String.raw`\(mailto:[^)\s]+@[^)\s]+\)|` +
+    `${SOURCE_REPOSITORY}/security`.replace(/[.*+?^${}()|[\]\\/]/g, '\\$&') +
+    String.raw`(?=[/)\s]|$)`
+);
 
 /**
  * Why `content` cannot be the published SECURITY.md: bestax-skills has its
@@ -1180,7 +1191,7 @@ export function securityViolations(content) {
   if (REPORTING_CHANNEL.test(content.toString('utf8'))) return [];
   return [
     `${FILES.security}: links no private way to report a vulnerability, ` +
-      `such as a mailto: link or a repository's GitHub Security page. ` +
+      `such as a mailto: link or the Security page of ${SOURCE_REPOSITORY}. ` +
       `bestax-skills has its issues turned off, so this file is the only ` +
       `place a reporter can learn where to go.`,
   ];
