@@ -68,6 +68,15 @@ $datetimeinput-time-overlay-blur: 3px !default;
   }
 }
 
+// The scrim appears at once for users who ask for less motion. The stop is
+// `!important`, so a more specific rule that sets the animation cannot
+// outrank it.
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}datetimeinput-time-overlay {
+    animation: none !important;
+  }
+}
+
 // Floating wheel card — visually a small popover over the calendar, so
 // revealing the wheels never grows the panel or forces scrolling.
 .#{iv.$class-prefix}datetimeinput-time-card {

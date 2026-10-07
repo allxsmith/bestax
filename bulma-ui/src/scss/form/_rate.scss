@@ -299,9 +299,11 @@ $rate-pop-scale: 1.2 !default;
 }
 
 // Reduced motion
+// The pop is set on `.rate-item.is-active`, which is more specific than the
+// rule here, so the stop is `!important` to win over it.
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}rate-item {
     transition: none;
-    animation: none;
+    animation: none !important;
   }
 }

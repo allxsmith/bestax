@@ -240,6 +240,12 @@ Register **all** themable values — durations and offsets included — and pref
 tokens (`scheme-main`, `text`, `border`). When the component is themeable, add rows to
 `skills/bestax-theming/references/themeable-components.md` and `css-variables.md` in the same PR.
 
+The reduced-motion rule has to outrank every rule that starts the animation. On the same
+selector it wins by coming later; when the animation sits on a more specific selector, such as
+a state class (`.mycomponent.is-active`), make the stop `animation: none !important`. A styles
+test reads every animation out of each published stylesheet and fails on one that still plays
+under reduced motion.
+
 The canonical reference file is `bulma-ui/src/scss/components/_dialog.scss`.
 
 ## Stories
