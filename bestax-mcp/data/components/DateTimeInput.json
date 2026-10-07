@@ -62,6 +62,10 @@
       "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"Default (left icon + right launcher)\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"No launcher (popover via ↓ only)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
+      "title": "Launcher Icon",
+      "code": "<Field label=\"When\">\n  <Control iconLeftName=\"calendar-alt\" isLoading>\n    <DateTimeInput placeholder=\"YYYY-MM-DD HH:MM\" />\n  </Control>\n</Field>"
+    },
+    {
       "title": "Min and Max",
       "code": "function example() {\n  const today = new Date();\n  const min = new Date(today);\n  min.setHours(9, 0, 0, 0);\n  const max = new Date(today);\n  max.setHours(17, 0, 0, 0);\n  return <DateTimeInput label=\"Office hours today\" min={min} max={max} />;\n}"
     },
@@ -282,7 +286,16 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a loading spinner on the `Control` it renders. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Inside your own `Control` it renders none, so this draws nothing; set `isLoading` on that `Control`. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a spinner shows at the same right edge: this component's `isLoading` when it renders its own `Control`, or the enclosing `Control`'s `isLoading` inside one.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -670,15 +683,6 @@
           "type": "string",
           "default": "'calendar-alt'",
           "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "triggerIcon",
-          "type": "boolean",
-          "default": "true",
-          "description": "Show a clickable launcher button on the right that toggles the popover. Default `true`.",
           "required": false,
           "inherited": true,
           "deprecated": false

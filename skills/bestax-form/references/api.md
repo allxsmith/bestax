@@ -93,6 +93,21 @@ File input with `label`, `message`, color/size, and icon support.
 `DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
 composition like the other convenience inputs, with picker UIs (native with custom fallback).
 
+All six have a launcher button at the right edge (`triggerIcon`) that gives way to the loading
+spinner of the `Control` they sit in, which shares that edge. A convenience input sits in the
+`Control` it renders for its own `isLoading`, unless it is inside your own `Control`; a `*Base`
+variant only ever sits in yours. Inside your own `Control`, put `isLoading` on that `Control`: the
+convenience input renders no `Control` of its own there, so its own `isLoading` draws nothing.
+Passing `triggerIcon` explicitly overrides this.
+
+```tsx
+<Field label="Date">
+  <Control isLoading>
+    <DateInput />
+  </Control>
+</Field>
+```
+
 For a value that is a month or a year (card expiry, billing period, graduation year), use
 `DateInput` with `granularity="month"` or `granularity="year"` rather than building a select or a
 separate picker. The value is still a `Date`: the first day of the month, or 1 January of the

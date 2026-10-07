@@ -58,11 +58,21 @@ export interface TimeInputProps extends TimeInputBaseProps {
   /** Force the right icon container. */
   hasIconsRight?: boolean;
   /**
-   * Shows a loading spinner on the `Control` it renders.
+   * Shows a loading spinner on the `Control` it renders, and hides the
+   * launcher (`triggerIcon`) while it does. Inside your own `Control` it
+   * renders none, so this draws nothing; set `isLoading` on that `Control`.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */
   isLoading?: boolean;
+  /**
+   * Show a clickable launcher button on the right that toggles the popover.
+   * Hidden by default while a spinner shows at the same right edge: this
+   * component's `isLoading` when it renders its own `Control`, or the
+   * enclosing `Control`'s `isLoading` inside one.
+   * @defaultValue true
+   */
+  triggerIcon?: boolean;
   /** Expand the control to fill its container. */
   isExpanded?: boolean;
   /** Size of the wrapping Control. */
@@ -137,15 +147,10 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    // The right-side launcher is on by default; suppress it while the Control
-    // shows its loading spinner (also on the right) unless explicitly set.
+    // The base hides its launcher while the Control it sits in is loading,
+    // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <TimeInputBase
-        ref={ref}
-        id={controlId}
-        {...baseProps}
-        triggerIcon={baseProps.triggerIcon ?? !isLoading}
-      />
+      <TimeInputBase ref={ref} id={controlId} {...baseProps} />
     );
 
     // Inline mode renders a bare panel with no input, so the Control's

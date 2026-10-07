@@ -13,6 +13,7 @@ import { Icon, IconProps } from '../elements/Icon';
 import { isIconProps } from '../elements/iconProps';
 import { useConfig } from '../helpers/Config';
 import { ControlProvider } from './FormContext';
+import { ControlLoadingProvider } from './controlLoading';
 
 /**
  * Props for the Control component.
@@ -200,7 +201,9 @@ export const Control = React.forwardRef<
           {...restProps}
           {...rest}
         >
-          {children}
+          <ControlLoadingProvider value={!!isLoading}>
+            {children}
+          </ControlLoadingProvider>
           {leftIconValue &&
             (isIconProps(leftIconValue) ? (
               <Icon

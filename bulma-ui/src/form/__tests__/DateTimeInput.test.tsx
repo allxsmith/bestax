@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { DateTimeInput } from '../DateTimeInput';
 import { Field } from '../Field';
+import { Control } from '../Control';
 import { DateTimeInputBase } from '../DateTimeInputBase';
 import { makeDate } from '../_pickerInternals/dateUtils';
 
@@ -776,6 +777,83 @@ describe('DateTimeInput launcher icon', () => {
     );
     fireEvent.click(getByLabelText('Choose date and time'));
     expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('gives way to whichever spinner is drawn', () => {
+    // Its own Control draws the spinner where the launcher sits.
+    const own = render(<DateTimeInput isLoading />);
+    expect(own.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(own.queryByLabelText('Choose date and time')).toBeNull();
+    own.unmount();
+
+    // Inside a Control it renders none, so nothing is drawn to give way to.
+    const inner = render(
+      <Field>
+        <Control>
+          <DateTimeInput isLoading />
+        </Control>
+      </Field>
+    );
+    expect(inner.container.querySelector('.is-loading')).toBeNull();
+    expect(inner.getByLabelText('Choose date and time').tagName).toBe('BUTTON');
+    inner.unmount();
+
+    // A loading Control it sits in draws the spinner in the same place.
+    const outer = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInput />
+        </Control>
+      </Field>
+    );
+    expect(outer.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(outer.queryByLabelText('Choose date and time')).toBeNull();
+    outer.unmount();
+
+    // An explicit `triggerIcon` still wins.
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInput triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose date and time').tagName).toBe(
+      'BUTTON'
+    );
+  });
+
+  it('DateTimeInputBase gives way to a loading Control it sits in', () => {
+    const loading = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(loading.queryByLabelText('Choose date and time')).toBeNull();
+    loading.unmount();
+
+    const idle = render(
+      <Field>
+        <Control>
+          <DateTimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(idle.getByLabelText('Choose date and time').tagName).toBe('BUTTON');
+    idle.unmount();
+
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <DateTimeInputBase triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose date and time').tagName).toBe(
+      'BUTTON'
+    );
   });
 });
 

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { TimeInput } from './TimeInput';
+import { Control } from './Control';
+import { Field } from './Field';
 import { Block } from '../elements/Block';
 import { Paragraph } from '../elements/Paragraph';
 
@@ -704,6 +706,25 @@ export const WithoutLauncher: Story = {
       description: {
         story:
           'Set `triggerIcon={false}` to hide the launcher; the popover still opens on focus / click.',
+      },
+    },
+  },
+};
+
+export const LauncherInLoadingControl: Story = {
+  name: 'Launcher in a loading Control',
+  render: () => (
+    <Field label="Time">
+      <Control iconLeftName="clock" isLoading>
+        <TimeInput placeholder="HH:MM" />
+      </Control>
+    </Field>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Inside your own `Control`, set `isLoading` on that `Control`. The launcher gives way to its spinner, which shares the right edge, and so does the launcher of a `TimeInputBase` composed the same way.',
       },
     },
   },

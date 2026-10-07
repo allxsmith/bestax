@@ -374,6 +374,25 @@ export const WithoutLauncher: Story = {
   },
 };
 
+export const LauncherInLoadingControl: Story = {
+  name: 'Launcher in a loading Control',
+  render: () => (
+    <Field label="Date">
+      <Control iconLeftName="calendar" isLoading>
+        <DateInput placeholder="YYYY-MM-DD" />
+      </Control>
+    </Field>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Inside your own `Control`, set `isLoading` on that `Control`. The launcher gives way to its spinner, which shares the right edge, and so does the launcher of a `DateInputBase` composed the same way.',
+      },
+    },
+  },
+};
+
 export const WithIcon: Story = {
   name: 'Left icon (custom glyph / hide)',
   render: () => (

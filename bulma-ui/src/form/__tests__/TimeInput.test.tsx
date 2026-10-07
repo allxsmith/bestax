@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { TimeInput } from '../TimeInput';
 import { Field } from '../Field';
+import { Control } from '../Control';
 import { TimeInputBase } from '../TimeInputBase';
 import { ConfigProvider } from '../../helpers/Config';
 import { __resetAudioTickForTest } from '../_pickerInternals/audioTick';
@@ -1124,6 +1125,79 @@ describe('TimeInput launcher icon', () => {
     );
     fireEvent.click(getByLabelText('Choose time'));
     expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('gives way to whichever spinner is drawn', () => {
+    // Its own Control draws the spinner where the launcher sits.
+    const own = render(<TimeInput isLoading />);
+    expect(own.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(own.queryByLabelText('Choose time')).toBeNull();
+    own.unmount();
+
+    // Inside a Control it renders none, so nothing is drawn to give way to.
+    const inner = render(
+      <Field>
+        <Control>
+          <TimeInput isLoading />
+        </Control>
+      </Field>
+    );
+    expect(inner.container.querySelector('.is-loading')).toBeNull();
+    expect(inner.getByLabelText('Choose time').tagName).toBe('BUTTON');
+    inner.unmount();
+
+    // A loading Control it sits in draws the spinner in the same place.
+    const outer = render(
+      <Field>
+        <Control isLoading>
+          <TimeInput />
+        </Control>
+      </Field>
+    );
+    expect(outer.container.querySelectorAll('.is-loading')).toHaveLength(1);
+    expect(outer.queryByLabelText('Choose time')).toBeNull();
+    outer.unmount();
+
+    // An explicit `triggerIcon` still wins.
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <TimeInput triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose time').tagName).toBe('BUTTON');
+  });
+
+  it('TimeInputBase gives way to a loading Control it sits in', () => {
+    const loading = render(
+      <Field>
+        <Control isLoading>
+          <TimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(loading.queryByLabelText('Choose time')).toBeNull();
+    loading.unmount();
+
+    const idle = render(
+      <Field>
+        <Control>
+          <TimeInputBase />
+        </Control>
+      </Field>
+    );
+    expect(idle.getByLabelText('Choose time').tagName).toBe('BUTTON');
+    idle.unmount();
+
+    const forced = render(
+      <Field>
+        <Control isLoading>
+          <TimeInputBase triggerIcon />
+        </Control>
+      </Field>
+    );
+    expect(forced.getByLabelText('Choose time').tagName).toBe('BUTTON');
   });
 });
 
