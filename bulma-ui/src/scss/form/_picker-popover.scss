@@ -40,39 +40,42 @@ $picker-trigger-hover-color: cv.getVar('text-strong') !default;
   animation: picker-popover-fade-in
     cv.getVar('picker-popover-animation-duration') ease;
 
+  // The gap is a margin on the side facing the anchor, as on Popover, so the
+  // positioning hook can read it off the panel when `auto` picks a corner.
   &.#{iv.$class-prefix}is-bottom-left {
-    top: calc(100% + cv.getVar('picker-popover-offset'));
+    top: 100%;
     left: 0;
+    margin-top: cv.getVar('picker-popover-offset');
   }
   &.#{iv.$class-prefix}is-bottom-right {
-    top: calc(100% + cv.getVar('picker-popover-offset'));
+    top: 100%;
     right: 0;
+    margin-top: cv.getVar('picker-popover-offset');
   }
   &.#{iv.$class-prefix}is-top-left {
-    bottom: calc(100% + cv.getVar('picker-popover-offset'));
+    bottom: 100%;
     left: 0;
+    margin-bottom: cv.getVar('picker-popover-offset');
   }
   &.#{iv.$class-prefix}is-top-right {
-    bottom: calc(100% + cv.getVar('picker-popover-offset'));
+    bottom: 100%;
     right: 0;
+    margin-bottom: cv.getVar('picker-popover-offset');
   }
   // Portaled: fixed to the viewport at the top and left the positioning hook
   // sets inline, so the corner's own right and bottom must not apply. Left
   // in, `right: 0` stretches the panel to the viewport's right edge and the
   // top corners' `bottom` collapses it to its padding. The coordinates are
-  // the anchor's edge, so the gap is a margin.
+  // the anchor's edge, so a panel above it pulls up by the gap instead.
   &.#{iv.$class-prefix}is-portal {
     position: fixed;
     right: auto;
     bottom: auto;
 
-    &.#{iv.$class-prefix}is-bottom-left,
-    &.#{iv.$class-prefix}is-bottom-right {
-      margin-top: cv.getVar('picker-popover-offset');
-    }
     &.#{iv.$class-prefix}is-top-left,
     &.#{iv.$class-prefix}is-top-right {
       margin-top: calc(-1 * #{cv.getVar('picker-popover-offset')});
+      margin-bottom: 0;
     }
   }
 }

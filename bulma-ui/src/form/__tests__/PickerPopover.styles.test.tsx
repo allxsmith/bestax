@@ -7,7 +7,7 @@ import * as sass from 'sass';
 import { readdirSync } from 'fs';
 import path from 'path';
 import type { ReactElement } from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
@@ -22,23 +22,24 @@ const OPTIONS = {
   logger: sass.Logger.silent,
 };
 
-const sheets: HTMLStyleElement[] = [];
+/** The partial, compiled under each class prefix, by prefix. */
+const sheets: Record<string, HTMLStyleElement> = {};
 
 beforeAll(() => {
-  for (const source of [
-    `@use 'form/picker-popover';`,
-    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
+  for (const [prefix, source] of Object.entries({
+    '': `@use 'form/picker-popover';`,
+    'bestax-': `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: 'bestax-');
      @use 'form/picker-popover';`,
-  ]) {
+  })) {
     const el = document.createElement('style');
     el.textContent = sass.compileString(source, OPTIONS).css;
     document.head.appendChild(el);
-    sheets.push(el);
+    sheets[prefix] = el;
   }
 });
 
 afterAll(() => {
-  for (const el of sheets) el.remove();
+  for (const el of Object.values(sheets)) el.remove();
 });
 
 type Corner = Exclude<PickerPosition, 'auto'>;
@@ -49,7 +50,7 @@ const corners: Corner[] = [
   'top-right',
 ];
 
-type PickerProps = { position: Corner; appendToBody: boolean };
+type PickerProps = { position: PickerPosition; appendToBody: boolean };
 const pickers: [string, (props: PickerProps) => ReactElement][] = [
   ['DateInput', props => <DateInput {...props} />],
   ['TimeInput', props => <TimeInput {...props} />],
@@ -74,7 +75,9 @@ function openPanel(
   return panel;
 }
 
-const offset = 'calc(100% + var(--bulma-picker-popover-offset))';
+const gap = 'var(--bulma-picker-popover-offset)';
+// The edge an in-place panel faces the input with, the gap past it.
+const offset = `calc(100% + ${gap})`;
 
 describe.each(pickers)('%s panel placement', (_name, picker) => {
   describe.each(prefixes)('with class prefix "%s"', prefix => {
@@ -98,10 +101,10 @@ describe.each(pickers)('%s panel placement', (_name, picker) => {
     );
 
     it.each<[Corner, Record<string, string>]>([
-      ['bottom-left', { top: offset, left: '0px' }],
-      ['bottom-right', { top: offset, right: '0px' }],
-      ['top-left', { bottom: offset, left: '0px' }],
-      ['top-right', { bottom: offset, right: '0px' }],
+      ['bottom-left', { top: '100%', left: '0px', 'margin-top': gap }],
+      ['bottom-right', { top: '100%', right: '0px', 'margin-top': gap }],
+      ['top-left', { bottom: '100%', left: '0px', 'margin-bottom': gap }],
+      ['top-right', { bottom: '100%', right: '0px', 'margin-bottom': gap }],
     ])('keeps an in-place %s panel on its corner', (position, expected) => {
       const panel = openPanel(picker, prefix, {
         position,
@@ -118,6 +121,65 @@ describe.each(pickers)('%s panel placement', (_name, picker) => {
         ]);
       }
     });
+  });
+});
+
+const box = (top: number, left: number, height: number, width: number) =>
+  ({
+    top,
+    left,
+    bottom: top + height,
+    right: left + width,
+    height,
+    width,
+    x: left,
+    y: top,
+    toJSON: () => ({}),
+  }) as DOMRect;
+
+describe.each(pickers)('%s auto placement in place', (_name, picker) => {
+  describe.each(prefixes)('with class prefix "%s"', prefix => {
+    it.each<[string, number, Corner]>([
+      ['4px', 4, 'bottom-left'],
+      ['4px', 3, 'top-left'],
+      ['20px', 20, 'bottom-left'],
+      ['20px', 19, 'top-left'],
+    ])(
+      'with a %s offset and %ipx free below, opens at %s',
+      (value, room, expected) => {
+        // A theme's offset, resolved the way a browser would: jsdom leaves
+        // `var()` as written, which reads as no gap at all.
+        const themed = document.createElement('style');
+        themed.textContent = sheets[prefix].textContent!.split(gap).join(value);
+        document.head.appendChild(themed);
+        try {
+          render(
+            <ConfigProvider classPrefix={prefix}>
+              {picker({ position: 'auto', appendToBody: false })}
+            </ConfigProvider>
+          );
+          fireEvent.click(screen.getByRole('combobox'));
+          const panel = screen.getByRole('dialog');
+          const height = 300;
+          jest
+            .spyOn(panel.parentElement!, 'getBoundingClientRect')
+            .mockReturnValue(
+              box(window.innerHeight - room - height - 40, 20, 40, 200)
+            );
+          jest
+            .spyOn(panel, 'getBoundingClientRect')
+            .mockReturnValue(box(0, 0, height, 280));
+          act(() => {
+            fireEvent(window, new Event('resize'));
+          });
+          // Below, the panel needs the room the offset puts between it and
+          // the input, as well as its own height.
+          expect(panel).toHaveClass(`${prefix}is-${expected}`);
+        } finally {
+          themed.remove();
+        }
+      }
+    );
   });
 });
 
@@ -229,8 +291,26 @@ function mediaHolds(mediaText: string, width: number): boolean {
   });
 }
 
-const PLACEMENT = ['position', 'top', 'right', 'bottom', 'left'];
-const isInset = (property: string) => property.startsWith('inset');
+// What says where a box sits, and the value each has when nothing sets it.
+// The gap to the anchor can be a margin, so margins count too.
+const INITIAL: Record<string, string> = {
+  position: 'static',
+  top: 'auto',
+  right: 'auto',
+  bottom: 'auto',
+  left: 'auto',
+  'margin-top': '0',
+  'margin-right': '0',
+  'margin-bottom': '0',
+  'margin-left': '0',
+};
+const PLACEMENT = Object.keys(INITIAL);
+// Shorthands and logical properties move the box without naming these.
+const isIndirect = (property: string) =>
+  property.startsWith('inset') ||
+  property === 'margin' ||
+  property.startsWith('margin-block') ||
+  property.startsWith('margin-inline');
 
 /**
  * The style rules that can hold at this width and say where a box sits, in
@@ -244,7 +324,7 @@ function placementRules(
   for (const rule of Array.from(rules)) {
     if (rule instanceof CSSStyleRule) {
       const declared = Array.from(rule.style);
-      if (declared.some(p => PLACEMENT.includes(p) || isInset(p))) {
+      if (declared.some(p => PLACEMENT.includes(p) || isIndirect(p))) {
         found.push(rule);
       }
     } else if (rule instanceof CSSMediaRule) {
@@ -271,7 +351,7 @@ function matches(el: Element, selector: string): boolean {
  * Where the cascade puts the element under these rules and its inline style.
  * Each property takes the declaration ranked highest by importance, then
  * inline over a rule, then specificity, then source order. A property
- * nothing declares is empty, as jsdom reports it.
+ * nothing declares has its initial value.
  */
 function placement(el: HTMLElement, rules: CSSStyleRule[]) {
   const winners = new Map<string, { rank: Rank; value: string }>();
@@ -287,10 +367,10 @@ function placement(el: HTMLElement, rules: CSSStyleRule[]) {
   rules.forEach((rule, order) => {
     const matching = splitList(rule.selectorText).filter(s => matches(el, s));
     if (matching.length === 0) return;
-    // An `inset` shorthand moves the box without naming these properties.
-    expect([rule.selectorText, Array.from(rule.style).filter(isInset)]).toEqual(
-      [rule.selectorText, []]
-    );
+    expect([
+      rule.selectorText,
+      Array.from(rule.style).filter(isIndirect),
+    ]).toEqual([rule.selectorText, []]);
     const rank = highest(matching.map(specificity));
     for (const property of PLACEMENT) {
       offer(
@@ -304,8 +384,36 @@ function placement(el: HTMLElement, rules: CSSStyleRule[]) {
     offer(property, [important(el.style, property), 1, 0, 0, 0, 0], el.style);
   }
   return Object.fromEntries(
-    PLACEMENT.map(property => [property, winners.get(property)?.value ?? ''])
+    PLACEMENT.map(property => [
+      property,
+      winners.get(property)?.value ?? INITIAL[property],
+    ])
   );
+}
+
+const isZero = (length: string) => /^0(px)?$/.test(length);
+
+/**
+ * Where each side of a positioned box sits from its containing block's, as
+ * an inset alone would say it. On the side whose inset is set, the edge is
+ * that inset plus the margin there. The other side's inset is auto, and the
+ * box's height puts that edge where it falls, whatever the margin there.
+ */
+function edges({ position, ...placed }: Record<string, string>) {
+  const edge = (side: string) => {
+    const inset = placed[side];
+    const margin = placed[`margin-${side}`] ?? '0';
+    return inset === 'auto' || isZero(margin)
+      ? inset
+      : `calc(${inset} + ${margin})`;
+  };
+  return {
+    position,
+    top: edge('top'),
+    right: edge('right'),
+    bottom: edge('bottom'),
+    left: edge('left'),
+  };
 }
 
 /** Parses CSS into a sheet without leaving it on the document. */
@@ -359,12 +467,57 @@ describe.each(published)('panel placement in %s', file => {
           // on top of them stretches or collapses the fixed box.
           expect(panel.style.top).not.toBe('');
           expect(panel.style.left).not.toBe('');
+          // The gap is the margin on top, negative above the input.
           expect(placement(panel, rules)).toEqual({
             position: 'fixed',
             top: panel.style.top,
             right: 'auto',
             bottom: 'auto',
             left: panel.style.left,
+            'margin-top': position.startsWith('top')
+              ? `calc(-1 * ${gap})`
+              : gap,
+            'margin-right': '0',
+            'margin-bottom': '0',
+            'margin-left': '0',
+          });
+        }
+      );
+    });
+
+    // On a phone an in-place TimeInput panel is a sheet, checked below.
+    const inPlace =
+      width === PHONE
+        ? pickers.filter(([name]) => name !== 'TimeInput')
+        : pickers;
+
+    describe.each(inPlace)('%s', (_name, picker) => {
+      it.each<[Corner, Record<string, string>]>([
+        [
+          'bottom-left',
+          { top: offset, right: 'auto', bottom: 'auto', left: '0' },
+        ],
+        [
+          'bottom-right',
+          { top: offset, right: '0', bottom: 'auto', left: 'auto' },
+        ],
+        ['top-left', { top: 'auto', right: 'auto', bottom: offset, left: '0' }],
+        [
+          'top-right',
+          { top: 'auto', right: '0', bottom: offset, left: 'auto' },
+        ],
+      ])(
+        'keeps an in-place %s panel the offset off its corner',
+        (position, sides) => {
+          // Compared as edges, where the inset and the margin facing the
+          // input add up to the gap past it.
+          const panel = openPanel(picker, prefix, {
+            position,
+            appendToBody: false,
+          });
+          expect(edges(placement(panel, rules))).toEqual({
+            position: 'absolute',
+            ...sides,
           });
         }
       );
@@ -375,7 +528,8 @@ describe.each(published)('panel placement in %s', file => {
     'keeps an in-place TimeInput panel at %s a sheet on a phone',
     position => {
       // On a small screen an in-place TimeInput panel spans the bottom of
-      // the viewport instead of sitting on its corner.
+      // the viewport instead of sitting on its corner. No margin moves it,
+      // so `auto` reads no gap whichever corner it is given.
       const panel = openPanel(props => <TimeInput {...props} />, prefix, {
         position,
         appendToBody: false,
@@ -386,6 +540,10 @@ describe.each(published)('panel placement in %s', file => {
         right: '1rem',
         bottom: '1rem',
         left: '1rem',
+        'margin-top': '0',
+        'margin-right': '0',
+        'margin-bottom': '0',
+        'margin-left': '0',
       });
     }
   );

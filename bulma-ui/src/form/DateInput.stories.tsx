@@ -767,12 +767,78 @@ export const InputOnly: Story = {
   },
 };
 
-const portaledCorners = [
+const corners = [
   'bottom-left',
   'bottom-right',
   'top-left',
   'top-right',
 ] as const;
+
+// Opens each input in turn and checks, in a real browser, that its panel sits
+// on the input's edge, the gap away, and holds its content. jsdom does no
+// layout, so it cannot see where a panel lands.
+const playCorners: Story['play'] = async ({ canvasElement }) => {
+  const page = within(canvasElement.ownerDocument.body);
+  const inputs = within(canvasElement).getAllByRole('combobox');
+  for (const [i, position] of corners.entries()) {
+    await userEvent.click(inputs[i]);
+    const panel = await page.findByRole('dialog');
+    // The open animation slides the panel, so measure where it lands. A
+    // cancelled animation rejects `finished` and no longer moves the panel,
+    // so it is settled rather than awaited.
+    await Promise.allSettled(panel.getAnimations().map(a => a.finished));
+    const anchor = inputs[i].parentElement!.getBoundingClientRect();
+    const box = panel.getBoundingClientRect();
+    const gap = parseFloat(
+      getComputedStyle(panel).getPropertyValue('--bulma-picker-popover-offset')
+    );
+    const off = (actual: number, expected: number) =>
+      Math.round(Math.abs(actual - expected));
+    expect({
+      position,
+      vertical: position.startsWith('bottom')
+        ? off(box.top, anchor.bottom + gap)
+        : off(box.bottom, anchor.top - gap),
+      horizontal: position.endsWith('left')
+        ? off(box.left, anchor.left)
+        : off(box.right, anchor.right),
+      // The scroll and client sizes are each rounded to whole pixels, so
+      // 1px apart is rounding. A collapsed panel overflows by its content.
+      overflow: Math.max(
+        panel.scrollHeight - panel.clientHeight - 1,
+        panel.scrollWidth - panel.clientWidth - 1,
+        0
+      ),
+    }).toEqual({ position, vertical: 0, horizontal: 0, overflow: 0 });
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() => expect(page.queryByRole('dialog')).toBeNull());
+  }
+};
+
+export const Positions: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          '`position` picks the corner of the input the calendar opens from, `--bulma-picker-popover-offset` away from it. Each input here opens from a different one.',
+      },
+    },
+  },
+  render: () => (
+    <Block>
+      {corners.map(position => (
+        <DateInput
+          key={position}
+          label={`position="${position}"`}
+          position={position}
+        />
+      ))}
+    </Block>
+  ),
+  // In place, the gap is a margin on the side facing the input, and it has
+  // to add up with the corner's inset for the panel to land the gap away.
+  play: playCorners,
+};
 
 export const AppendToBody: Story = {
   parameters: {
@@ -785,7 +851,7 @@ export const AppendToBody: Story = {
   },
   render: () => (
     <Block>
-      {portaledCorners.map(position => (
+      {corners.map(position => (
         <DateInput
           key={position}
           label={`position="${position}"`}
@@ -795,49 +861,9 @@ export const AppendToBody: Story = {
       ))}
     </Block>
   ),
-  // Opens each one and checks, in a real browser, that the panel sits on its
-  // input's edge, the gap away, and holds its content. A portaled panel that
-  // kept its corner's own `right` or `bottom` stretched to the viewport's
-  // right edge or collapsed to its padding, which jsdom cannot see.
-  play: async ({ canvasElement }) => {
-    const page = within(canvasElement.ownerDocument.body);
-    const inputs = within(canvasElement).getAllByRole('combobox');
-    for (const [i, position] of portaledCorners.entries()) {
-      await userEvent.click(inputs[i]);
-      const panel = await page.findByRole('dialog');
-      // The open animation slides the panel, so measure where it lands. A
-      // cancelled animation rejects `finished` and no longer moves the panel,
-      // so it is settled rather than awaited.
-      await Promise.allSettled(panel.getAnimations().map(a => a.finished));
-      const anchor = inputs[i].parentElement!.getBoundingClientRect();
-      const box = panel.getBoundingClientRect();
-      const gap = parseFloat(
-        getComputedStyle(panel).getPropertyValue(
-          '--bulma-picker-popover-offset'
-        )
-      );
-      const off = (actual: number, expected: number) =>
-        Math.round(Math.abs(actual - expected));
-      expect({
-        position,
-        vertical: position.startsWith('bottom')
-          ? off(box.top, anchor.bottom + gap)
-          : off(box.bottom, anchor.top - gap),
-        horizontal: position.endsWith('left')
-          ? off(box.left, anchor.left)
-          : off(box.right, anchor.right),
-        // The scroll and client sizes are each rounded to whole pixels, so
-        // 1px apart is rounding. A collapsed panel overflows by its content.
-        overflow: Math.max(
-          panel.scrollHeight - panel.clientHeight - 1,
-          panel.scrollWidth - panel.clientWidth - 1,
-          0
-        ),
-      }).toEqual({ position, vertical: 0, horizontal: 0, overflow: 0 });
-      await userEvent.keyboard('{Escape}');
-      await waitFor(() => expect(page.queryByRole('dialog')).toBeNull());
-    }
-  },
+  // A portaled panel that keeps its corner's own `right` or `bottom`
+  // stretches to the viewport's right edge or collapses to its padding.
+  play: playCorners,
 };
 
 export const Composed: Story = {
