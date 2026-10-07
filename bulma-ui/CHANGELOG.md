@@ -1,3 +1,32 @@
+## [5.26.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.3...@allxsmith/bestax-bulma@5.26.4) (2026-10-07)
+
+
+### Bug Fixes
+
+* **bulma-ui:** attach useFocusTrap to a container that mounts after it turns on ([17a944d](https://github.com/allxsmith/bestax/commit/17a944df91e12c5ece64b7a313a0c32d19cc4a8a))
+* **bulma-ui:** bring File and Taginput under the bare-Control Field rule ([cdaa6c2](https://github.com/allxsmith/bestax/commit/cdaa6c212e8ea5f21796c08f25a0281fac26448a))
+* **bulma-ui:** commit nothing when Enter confirms untouched picker text ([773e146](https://github.com/allxsmith/bestax/commit/773e146f12d448e2883aa24fb035ad52adccfd8d))
+* **bulma-ui:** commit nothing when focus leaves a picker untouched ([30b4849](https://github.com/allxsmith/bestax/commit/30b4849fbb9df94503ea586d668e9ddc4cafb34b))
+* **bulma-ui:** hide a picker's launcher for a loading Control it sits in ([9a3888e](https://github.com/allxsmith/bestax/commit/9a3888e53f979641b643d2bd0bbcaf3864602933))
+* **bulma-ui:** hide a picker's launcher only for the spinner it draws ([7a28a0e](https://github.com/allxsmith/bestax/commit/7a28a0e3c2a2c3cfb18ca56550da22261287cbfd))
+* **bulma-ui:** hold the year-1 floor under a max before it ([4f6eb18](https://github.com/allxsmith/bestax/commit/4f6eb18b48cc480d7a6d280aa68d79ed8e71ff9f))
+* **bulma-ui:** keep a tab stop in the year list when the year falls outside it ([fe028c1](https://github.com/allxsmith/bestax/commit/fe028c16d533b1d3c514115a0a32eb7bf2891b7b))
+* **bulma-ui:** keep an empty picker's seed while a portaled popover is open ([1e66528](https://github.com/allxsmith/bestax/commit/1e66528ab9623e6e0bdd7aef6dc03b0b526cad00))
+* **bulma-ui:** keep an inline date picker's calendar on its released id ([c26da07](https://github.com/allxsmith/bestax/commit/c26da07fa087d2832a0e51e8dd46f8e0f2f46278)), closes [#897](https://github.com/allxsmith/bestax/issues/897) [#897](https://github.com/allxsmith/bestax/issues/897)
+* **bulma-ui:** keep the Field for horizontal and fieldClassName in a bare Control ([e4dc513](https://github.com/allxsmith/bestax/commit/e4dc5135dc240bfa8141143d264e1f91e50c5f80))
+* **bulma-ui:** let the picker bases give way to a loading Control too ([66e803a](https://github.com/allxsmith/bestax/commit/66e803a971aef98fffeaa77a81b20c6b6ff3b8c5))
+* **bulma-ui:** let useFocusTrap go of a container that leaves while it is on ([8c56d7a](https://github.com/allxsmith/bestax/commit/8c56d7a100b24ad336ecfcc7839cbb033a76ff80))
+* **bulma-ui:** make auto leave room for an in-place picker panel's themed offset ([8c534bd](https://github.com/allxsmith/bestax/commit/8c534bdcd2bae8f7b152579dcf59a7d0e8dfe4ad)), closes [#904](https://github.com/allxsmith/bestax/issues/904)
+* **bulma-ui:** match a picker's opening focus only inside its calendar ([e3c22ed](https://github.com/allxsmith/bestax/commit/e3c22ed238f27e4d872c60600b316c8856cc1413))
+* **bulma-ui:** stop form wrappers nesting a Field in a bare Control ([2c6d295](https://github.com/allxsmith/bestax/commit/2c6d2954d09374fcc9b331f5db9290d4a980ea9e))
+* **bulma-ui:** stop the date pickers at year 1 ([853142a](https://github.com/allxsmith/bestax/commit/853142aa59dd766f93406af3110c26378e521d79))
+* **bulma-ui:** stop the Rate pop and DateTimeInput scrim under reduced motion ([3a59129](https://github.com/allxsmith/bestax/commit/3a59129ad53cb92a8568a85621f6715121ed74f0))
+
+
+### Features
+
+* **bestax-migrate:** convert the gap, position, overflow, radius and aspect-ratio helpers ([13dcf63](https://github.com/allxsmith/bestax/commit/13dcf636a34178fba0eba5fe3c1512e88f2fdd02))
+
 ## [5.26.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.2...@allxsmith/bestax-bulma@5.26.3) (2026-10-05)
 
 
