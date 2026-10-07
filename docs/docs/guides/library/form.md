@@ -304,6 +304,35 @@ function DateInputExample() {
 
 ---
 
+### DateRangeInput
+
+A start and end date in one field: two segmented inputs and one popover calendar that picks the start and then the end, previewing the range on the way. `min`, `max` and the disabled-date props apply to both ends, and the range submits with a form as two dates.
+
+```tsx live
+function DateRangeInputExample() {
+  const [range, setRange] = React.useState([null, null]);
+  const [start, end] = range;
+  return (
+    <div>
+      <DateRangeInput
+        label="Stay"
+        placeholder="YYYY-MM-DD"
+        value={range}
+        onChange={setRange}
+      />
+      <p className="mt-2">
+        {start ? start.toDateString() : 'No start'} to{' '}
+        {end ? end.toDateString() : 'no end'}
+      </p>
+    </div>
+  );
+}
+```
+
+[View full documentation.](../../api/form/datetime/daterangeinput)
+
+---
+
 ### TimeInput
 
 A time-of-day input that opens a popover wheel spinner, with segmented keyboard entry directly in the field. Supports 12/24-hour formats, optional seconds, custom increments, min/max bounds, and a native fallback on touch devices.
