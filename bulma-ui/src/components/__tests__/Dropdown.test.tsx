@@ -470,6 +470,38 @@ describe('Dropdown', () => {
     removeEventListenerSpy.mockRestore();
   });
 
+  test('the menu owns nothing focusable but its items', () => {
+    render(
+      <Dropdown label="Menu">
+        <DropdownItem>Item 1</DropdownItem>
+      </Dropdown>
+    );
+    const menu = screen.getByRole('menu');
+    const content = menu.querySelector('.dropdown-content')!;
+    expect(content).not.toHaveAttribute('tabindex');
+    Array.from(menu.querySelectorAll('[tabindex]')).forEach(el =>
+      expect(el).toHaveAttribute('role', 'menuitem')
+    );
+  });
+
+  test('a click between items keeps focus in the menu while it stays open', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dropdown label="Menu" closeOnClick={false}>
+        <DropdownItem>Item 1</DropdownItem>
+        <DropdownDivider />
+        <DropdownItem>Item 2</DropdownItem>
+      </Dropdown>
+    );
+    await user.click(screen.getByRole('button', { name: 'Menu' }));
+    await user.click(screen.getByRole('separator'));
+    const menu = screen.getByRole('menu');
+    expect(menu).toHaveFocus();
+    // The arrow keys still reach the items from there.
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByText('Item 1')).toHaveFocus();
+  });
+
   test('handleMenuClick does nothing when closeOnClick is falsy', () => {
     render(
       <Dropdown label="Menu" closeOnClick={false}>
@@ -1581,6 +1613,21 @@ describe('Dropdown focus after an item runs', () => {
     );
     await openMenu(user);
     await user.click(screen.getByText('Archive'));
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+  });
+
+  test('a click between items hands focus back to the trigger too', async () => {
+    const user = userEvent.setup();
+    render(
+      <Dropdown label="Menu">
+        <Dropdown.Item>Archive</Dropdown.Item>
+        <Dropdown.Divider />
+        <Dropdown.Item>Delete</Dropdown.Item>
+      </Dropdown>
+    );
+    await openMenu(user);
+    await user.click(screen.getByRole('separator'));
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
     expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
   });
 
