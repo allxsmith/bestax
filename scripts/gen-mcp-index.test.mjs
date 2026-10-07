@@ -105,6 +105,38 @@ test('helper pages ship as prose, not as an empty props table', () => {
   assert.deepEqual(hook.parts, []);
   assert.ok(hook.doc.length > 1000, 'helper doc body is missing');
   assert.ok(!hook.doc.startsWith('---'), 'frontmatter must be stripped');
+  // A hook's signature block ships on its own, a small answer where the
+  // whole page is not.
+  const trap = components.get('useFocusTrap');
+  assert.match(trap.api, /function useFocusTrap\(/);
+  assert.ok(trap.api.length < trap.doc.length / 4, 'api is the whole page');
+});
+
+test('components documented on helpers pages get a props table (#933)', () => {
+  // Theme, ConfigProvider, Portal and ClientOnly have props interfaces, and
+  // shipping them as prose left get_props with no table to give.
+  for (const [name, prop] of [
+    ['Theme', 'colorMode'],
+    ['ConfigProvider', 'iconLibrary'],
+    ['Portal', 'container'],
+    ['ClientOnly', 'fallback'],
+  ]) {
+    const record = components.get(name);
+    assert.equal(record.kind, 'component', `${name} is not a component`);
+    assert.equal(record.category, 'helpers');
+    assert.ok(
+      record.parts[0]?.props.some(p => p.name === prop),
+      `${name} has no ${prop} row`
+    );
+    // The page still ships, for include: ["reference"].
+    assert.ok(record.doc.length > 1000, `${name} lost its page`);
+    assert.ok(record.summary, `${name} has no summary`);
+    const entry = catalog.components.find(c => c.name === name);
+    assert.equal(entry.kind, 'component');
+    assert.ok(entry.propCount > 0, `${name} counts no props`);
+  }
+  // Nothing outside helpers/ carries a page it does not need.
+  assert.equal(components.get('Button').doc, undefined);
 });
 
 test('usage examples are harvested with their headings', () => {

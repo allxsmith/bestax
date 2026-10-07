@@ -85,8 +85,13 @@ export interface ComponentRecord {
   cssVars: CssVar[];
   sourceFile?: string;
   rootClass?: string | null;
-  /** Helper pages ship as prose — they have no props interface. */
+  /**
+   * The whole page, for a page written as prose (`helpers/`). A hook's page is
+   * all it has; a component documented there (Theme) has its props table too.
+   */
   doc?: string;
+  /** A hook's `## API` signature block, its answer to a props table. */
+  api?: string | null;
 }
 
 export interface CatalogEntry {

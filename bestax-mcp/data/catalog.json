@@ -282,13 +282,13 @@
     },
     {
       "name": "ClientOnly",
-      "kind": "helper",
+      "kind": "component",
       "category": "helpers",
       "purpose": "`ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then, so content that depends on browser-only state doesn't…",
       "slug": "helpers/clientonly",
       "import": "import { ClientOnly } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 0,
+      "propCount": 2,
       "exampleCount": 3
     },
     {
@@ -348,13 +348,13 @@
     },
     {
       "name": "ConfigProvider",
-      "kind": "helper",
+      "kind": "component",
       "category": "helpers",
       "purpose": "The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.",
       "slug": "helpers/config",
       "import": "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 0,
+      "propCount": 3,
       "exampleCount": 0
     },
     {
@@ -777,13 +777,13 @@
     },
     {
       "name": "Portal",
-      "kind": "helper",
+      "kind": "component",
       "category": "helpers",
       "purpose": "`Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's…",
       "slug": "helpers/portal",
       "import": "import { Portal } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 0,
+      "propCount": 3,
       "exampleCount": 3
     },
     {
@@ -1030,13 +1030,13 @@
     },
     {
       "name": "Theme",
-      "kind": "helper",
+      "kind": "component",
       "category": "helpers",
       "purpose": "The `Theme` component provides a powerful way to customize Bulma's appearance using CSS custom properties (CSS variables).",
       "slug": "helpers/theme",
       "import": "import { Theme } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 0,
+      "propCount": 43,
       "exampleCount": 12
     },
     {

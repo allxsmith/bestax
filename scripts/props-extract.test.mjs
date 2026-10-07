@@ -318,6 +318,39 @@ test('the OwnProps split does not reclassify own props as inherited', () => {
   );
 });
 
+test('a component declared as a function still resolves its props and summary', () => {
+  // `export function Portal({ … }: PortalProps)`. Read as constants only, both
+  // came back with no table and no summary, and nothing said so (#933).
+  for (const [name, prop] of [
+    ['Portal', 'container'],
+    ['ClientOnly', 'fallback'],
+  ]) {
+    const info = extractComponent(name, { markdown: false });
+    const rows = info.tables[0]?.rows ?? [];
+    assert.ok(
+      rows.some(r => r.name === prop),
+      `${name} has no ${prop} row, got ${rows.map(r => r.name)}`
+    );
+    assert.match(info.tsdoc, /^Renders its children/, `${name} has no summary`);
+  }
+  assert.equal(row('Portal', 'disabled', { markdown: false }).default, 'false');
+});
+
+test('a component the barrel re-exports with `export *` from another module resolves', () => {
+  // `export * from './helpers/Config'` keys the module, `Config`, and the
+  // component is `ConfigProvider` (#933).
+  const info = extractComponent('ConfigProvider', { markdown: false });
+  assert.match(info.sourceFile, /\/helpers\/Config\.tsx$/);
+  assert.deepEqual(
+    info.tables[0].rows.map(r => r.name),
+    ['children', 'classPrefix', 'iconLibrary']
+  );
+  assert.throws(
+    () => extractComponent('NotAnExport'),
+    /NotAnExport is not exported from bulma-ui\/src\/index\.ts/
+  );
+});
+
 test('a component whose props type cannot be named fails loudly', () => {
   // The decision, not just its absence. `extractComponent` reads the real
   // `bulma-ui/src` tree, so the throwing branch cannot be reached from a

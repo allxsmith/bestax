@@ -91,6 +91,8 @@ const CLASS_MAP = join(
 );
 
 const PACKAGE = '@allxsmith/bestax-bulma';
+/** A name a page can document as a component: an exported identifier, capitalised. */
+const COMPONENT_NAME = /^[A-Z][A-Za-z0-9]*$/;
 const DOCS_BASE = 'https://bestax.io/docs';
 
 /**
@@ -524,12 +526,25 @@ export async function build() {
       // Docusaurus actually serves, which collapses `grid/grid` (#597).
       const docsUrl = `${DOCS_BASE}/api/${docsRoute(slug)}`;
 
-      // `helpers/` documents hooks and utilities: four of its six pages use
-      // `## API` with a signature block and have no props interface at all.
-      // Running the props extractor over them yields nothing, so they ship as
-      // prose instead — which is what `get_helper_props` wants anyway.
-      const isHelper =
+      // `helpers/` pages are prose rather than generated tables, and most of
+      // them document hooks and utilities with an `## API` signature block and
+      // no props at all. Those ship as prose, with the signature on its own.
+      //
+      // The rest document components (Theme, ConfigProvider, Portal,
+      // ClientOnly), and those get the props table every other component
+      // gets, from their props interface (#933). Shipping them as prose too
+      // left get_props with no table to give and pointed a builder at
+      // get_helper_props, which describes none of them. Their page still
+      // ships, for `include: ["reference"]`, since it carries prose the
+      // table does not, such as the hooks a provider pairs with.
+      const proseOnly =
         GENERATED_EXEMPT.has(dir) || GENERATED_EXEMPT.has(relPath);
+      const info =
+        !proseOnly || COMPONENT_NAME.test(name)
+          ? extractComponent(name, { markdown: false })
+          : null;
+      const isHelper =
+        proseOnly && !info?.tables.some(t => (t.rows ?? []).length);
 
       const common = {
         name,
@@ -551,20 +566,25 @@ export async function build() {
         storybook: storybookLink(lines, find(/^Additional Resources$/i)),
       };
 
+      // The whole page. These are reference prose, not tables, and an agent
+      // asking "how do I do spacing without inline styles" needs all of it.
+      const doc = proseOnly ? withoutFrontmatter(src).trimEnd() : null;
+
       let record;
       if (isHelper) {
+        const api = find(/^API$/i);
         record = {
           ...common,
           summary: purpose,
           import: `import { ${name} } from '${PACKAGE}';`,
-          // The whole page. These are reference prose, not tables, and an agent
-          // asking "how do I do spacing without inline styles" needs all of it.
-          doc: withoutFrontmatter(src).trimEnd(),
+          // The signature block alone: what a hook takes and returns, at a
+          // fraction of the page. It is the hook's answer to a props table.
+          api: api ? sectionBody(lines, api) : null,
+          doc,
           parts: [],
           cssVars: [],
         };
       } else {
-        const info = extractComponent(name, { markdown: false });
         const cssVars = await cssVarsFor(info);
         for (const v of cssVars) cssVarIndex[v.css] = name;
         record = {
@@ -594,6 +614,7 @@ export async function build() {
             })),
           })),
           cssVars,
+          ...(doc ? { doc } : {}),
         };
       }
 

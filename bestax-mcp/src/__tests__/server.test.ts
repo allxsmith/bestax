@@ -426,7 +426,7 @@ describe('get_props', () => {
 
   it('explains that a hook has no props rather than returning nothing', async () => {
     const out = text(await call('get_props', { component: 'useBulmaClasses' }));
-    expect(out).toContain('hook');
+    expect(out).toContain('is not a component, so it has no prop table');
   });
 
   it('never leaks markdown escaping into a type', async () => {
@@ -615,9 +615,9 @@ describe('get_helper_props', () => {
   });
 
   describe('get_component on a helper', () => {
-    // Three separate surfaces used to send a builder to get_component for a helper, and
-    // get_component on a helper is now itself a pointer — so each was a hop that answered
-    // nothing. All three now name get_helper_props directly.
+    // useBulmaClasses is where the helper props are documented, so its answers name
+    // get_helper_props as well as its own signature. Every other hook's must not: that
+    // tool describes none of them (#933).
     it('is reachable in one hop from search and from get_props', async () => {
       const search = text(
         await call('search_bestax', { query: 'useBulmaClasses' })
@@ -627,22 +627,25 @@ describe('get_helper_props', () => {
         .find(
           l => l.includes('| component |') && l.includes('useBulmaClasses')
         );
-      expect(helperRow).toContain('get_helper_props');
-      expect(helperRow).not.toContain('get_component');
+      expect(helperRow).toContain('get_component({ name: "useBulmaClasses" })');
 
       const props = text(
         await call('get_props', { component: 'useBulmaClasses' })
       );
-      expect(props).toContain('get_helper_props');
-      expect(props).not.toContain('get_component');
+      expect(props).toContain('useBulmaClasses(props)');
+      expect(props).toContain('get_helper_props()');
     });
 
-    it('is a pointer by default, not the whole reference', async () => {
+    it('is its signature and pointers by default, not the whole reference', async () => {
       const out = text(
         await call('get_component', { name: 'useBulmaClasses' })
       );
-      expect(out.length).toBeLessThan(1_000);
+      // The page runs to tens of thousands of characters; the default answer is the
+      // `## API` block and where to go next.
+      expect(out.length).toBeLessThan(3_000);
+      expect(out).toContain('## API');
       expect(out).toContain('get_helper_props');
+      expect(out).toContain('include: ["reference"]');
     });
 
     it('returns the full prose when it is asked for', async () => {
@@ -654,6 +657,80 @@ describe('get_helper_props', () => {
       );
       expect(out.length).toBeGreaterThan(40_000);
     });
+  });
+});
+
+// Theme, ConfigProvider, Portal and ClientOnly are documented on helpers pages, and
+// used to be answered as hooks: no prop table, and a pointer at get_helper_props,
+// which describes none of them (#933).
+describe('components documented on helpers pages', () => {
+  const TABLE = '| Prop | Type | Default | Notes |';
+
+  it.each([
+    ['Theme', '`colorMode`'],
+    ['ConfigProvider', '`iconLibrary`'],
+    ['Portal', '`container`'],
+    ['ClientOnly', '`fallback`'],
+  ])('get_props gives %s a prop table', async (component, prop) => {
+    const res = await call('get_props', { component });
+    expect(failed(res)).toBe(false);
+    const out = text(res);
+    expect(out).toContain(TABLE);
+    expect(out).toContain(prop);
+    expect(out).not.toContain('get_helper_props()');
+    // A table, not the page: Theme's page is about 40k characters.
+    expect(out.length).toBeLessThan(10_000);
+  });
+
+  it('get_component shows the table by default and the page on request', async () => {
+    const out = text(await call('get_component', { name: 'Theme' }));
+    expect(out).toContain(TABLE);
+    expect(out).toContain('`colorMode`');
+    expect(out.length).toBeLessThan(10_000);
+
+    const full = text(
+      await call('get_component', { name: 'Theme', include: ['reference'] })
+    );
+    expect(full).toContain('## Reference');
+    expect(full).toContain('### CSS Variable Props');
+  });
+
+  it.each([
+    ['colorMode', 'Theme.colorMode'],
+    ['iconLibrary', 'ConfigProvider.iconLibrary'],
+  ])('search_bestax finds %s as a prop', async (query, name) => {
+    const out = text(await call('search_bestax', { query }));
+    expect(out).toMatch(
+      new RegExp(`\\| prop \\| ${name.replace('.', '\\.')} \\|`)
+    );
+  });
+
+  it('points a hook at its own documentation, not at get_helper_props', async () => {
+    const props = text(await call('get_props', { component: 'useFocusTrap' }));
+    expect(props).toContain('function useFocusTrap(');
+    expect(props).toContain('include: ["reference"]');
+    expect(props).toContain('get_examples({ component: "useFocusTrap" })');
+    expect(props).not.toContain('get_helper_props');
+
+    const component = text(
+      await call('get_component', { name: 'useFocusTrap' })
+    );
+    expect(component).toContain('function useFocusTrap(');
+    expect(component).not.toContain('get_helper_props');
+
+    const search = text(await call('search_bestax', { query: 'useFocusTrap' }));
+    const row = search
+      .split('\n')
+      .find(l => l.includes('| component |') && l.includes('useFocusTrap'));
+    expect(row).toContain('get_component({ name: "useFocusTrap" })');
+  });
+
+  it('points a page with no API block at its reference', async () => {
+    const out = text(
+      await call('get_props', { component: 'Valid value constants' })
+    );
+    expect(out).toContain('For its API, pass `include: ["reference"]`');
+    expect(out).not.toContain('get_helper_props');
   });
 });
 

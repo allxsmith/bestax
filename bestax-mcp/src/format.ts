@@ -123,6 +123,54 @@ export function renderPart(part: Part, { heading = true } = {}): string {
   return out.join('\n\n');
 }
 
+/**
+ * The page `get_helper_props` reads: the helper props reference lives on this
+ * hook's documentation, so it is the one helper whose answer names that tool.
+ */
+export const HELPER_PROPS_PAGE = 'useBulmaClasses';
+
+/**
+ * What a hook or utility has instead of a props table: its `## API` signature
+ * block, when the page has one, and where the rest of its documentation is.
+ *
+ * Both `get_component` and `get_props` answer with this. It used to point every
+ * helper at `get_helper_props`, which describes the helper props and none of
+ * these hooks, so `useFocusTrap` was sent somewhere that never mentions it
+ * (#933). The pointers carry the page size because useBulmaClasses' page runs
+ * to tens of thousands of characters, and a caller deciding whether to fetch
+ * it should know that first.
+ */
+export function renderHelperApi(record: ComponentRecord): string {
+  const out: string[] = [];
+  if (record.api) out.push('## API', record.api);
+  const next = [
+    `pass \`include: ["reference"]\` to \`get_component\` for its whole ` +
+      `documentation page (${(record.doc ?? '').length.toLocaleString(
+        'en-US'
+      )} characters)`,
+  ];
+  if (record.examples.length) {
+    next.push(
+      `call \`get_examples({ component: "${record.name}" })\` for its ` +
+        `${record.examples.length} working example${
+          record.examples.length === 1 ? '' : 's'
+        }`
+    );
+  }
+  out.push(
+    `\`${record.name}\` is not a component, so it has no prop table. ` +
+      `${record.api ? 'For more than the signature above' : 'For its API'}, ` +
+      `${next.join(', or ')}.`
+  );
+  if (record.name === HELPER_PROPS_PAGE) {
+    out.push(
+      'The helper props it reads, with their accepted values, are in ' +
+        '`get_helper_props()`, or `get_helper_props({ group })` for one area.'
+    );
+  }
+  return out.join('\n\n');
+}
+
 export function renderComponent(
   record: ComponentRecord,
   include: string[]
@@ -131,31 +179,25 @@ export function renderComponent(
   if (record.summary) out.push(record.summary);
   out.push(`\`\`\`tsx\n${record.import}\n\`\`\``);
 
+  // A page written as prose is opt-in, because useBulmaClasses' runs to tens of
+  // thousands of characters. It used to be pushed unconditionally for every helper,
+  // so the DEFAULT call returned all of it and no argument could ask for less.
+  const reference = include.includes('reference') && record.doc;
   if (record.kind === 'helper') {
-    // Helper pages are reference prose with signature blocks, not tables — and for
-    // useBulmaClasses that prose is 51,054 characters. It used to be pushed unconditionally,
-    // outside any `include` check, so the DEFAULT call returned all of it and no argument
-    // could ask for less. Now it is opt-in, and the default is a pointer at the tool that
-    // exists to serve exactly this and can narrow it by group.
-    if (include.includes('reference') && record.doc) {
-      out.push(record.doc);
-    } else {
-      out.push(
-        `This is a helper, not a component — its reference is large and grouped. ` +
-          `Call \`get_helper_props()\` for every prop with its accepted values, or ` +
-          `\`get_helper_props({ group })\` for one area with examples. ` +
-          `Pass \`include: ["reference"]\` here for the full prose.`
-      );
+    out.push(reference || renderHelperApi(record));
+  } else {
+    if (include.includes('props')) {
+      const [root, ...subs] = record.parts;
+      if (root) out.push(renderPart(root, { heading: false }));
+      if (subs.length) {
+        out.push(
+          `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +
+            `Call \`get_props\` with a dot-path for any of them.`
+        );
+      }
     }
-  } else if (include.includes('props')) {
-    const [root, ...subs] = record.parts;
-    if (root) out.push(renderPart(root, { heading: false }));
-    if (subs.length) {
-      out.push(
-        `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +
-          `Call \`get_props\` with a dot-path for any of them.`
-      );
-    }
+    // A component documented in prose (Theme) keeps its page alongside the table.
+    if (reference) out.push('## Reference', reference);
   }
 
   if (include.includes('examples') && record.examples.length) {

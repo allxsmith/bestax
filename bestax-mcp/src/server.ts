@@ -37,10 +37,12 @@ import {
 } from './data.js';
 import {
   errorResult,
+  HELPER_PROPS_PAGE,
   renderCatalog,
   renderComponent,
   renderCssVars,
   renderExamples,
+  renderHelperApi,
   renderPart,
   renderSkills,
   table,
@@ -101,8 +103,10 @@ const INCLUDES = [
   'cssVars',
   'accessibility',
   'related',
-  // Helpers only: the full reference prose. Opt-in because useBulmaClasses' is 51,054
-  // characters and it used to arrive on the default call whether asked for or not.
+  // The whole page, for one written as prose (helpers/: hooks, and the components
+  // documented there, such as Theme). Opt-in because useBulmaClasses' runs to tens of
+  // thousands of characters and it used to arrive on the default call whether asked for
+  // or not.
   'reference',
 ] as const;
 
@@ -415,13 +419,10 @@ export async function createServer(
       const record = await loadComponent(resolved);
 
       if (record.kind === 'helper') {
+        // The signature itself rather than a pointer at a tool that has it, so the
+        // question is answered on this call.
         return textResult(
-          // Points at get_helper_props, not get_component. get_component on a helper is
-          // itself now a pointer here, so sending a builder there made this a three-hop
-          // chain for one question.
-          `\`${record.name}\` is a hook/utility, not a component — it has no ` +
-            `prop table. Call get_helper_props() for every helper prop with its ` +
-            `accepted values, or get_helper_props({ group }) for one area.`,
+          `# ${record.name}\n\n${renderHelperApi(record)}`,
           note()
         );
       }
@@ -586,7 +587,7 @@ export async function createServer(
     async ({ group }) => {
       // The helper reference lives on the hook's own docs page, which is prose
       // with signature blocks rather than a props table.
-      const record = await loadComponent('useBulmaClasses');
+      const record = await loadComponent(HELPER_PROPS_PAGE);
       const doc = record.doc ?? '';
       const rule = await inlineStyleRule();
       if (!group) return textResult(rule + renderHelperDefault(doc), note());
