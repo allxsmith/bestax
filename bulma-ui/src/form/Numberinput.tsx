@@ -2,7 +2,7 @@ import React, { forwardRef, useState, useCallback, useRef } from 'react';
 import type { JSX } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField } from './FormContext';
+import { useInsideField, useInsideControl } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -72,7 +72,14 @@ export interface NumberinputProps
   controlsRounded?: boolean;
   /** Uses compact button spacing. */
   compact?: boolean;
-  /** Removes button borders and background. */
+  /**
+   * Renders the plusminus controls without a `.field` row of their own, so
+   * they join the row of a `Field` with `hasAddons` or `grouped` they sit
+   * in. On by default inside a `Field`, unless a `Control` is anywhere above
+   * it: a `Control` stacks its children, so there the controls keep their
+   * own row.
+   * @defaultValue auto
+   */
   bare?: boolean;
   /** Style variant for the control buttons. */
   variant?: NumberinputVariant;
@@ -173,7 +180,11 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
     ref
   ) => {
     const insideField = useInsideField();
-    const effectiveBare = bare ?? insideField;
+    // Bare controls join their parent's row, which a `.control` does not lay
+    // out. `useInsideControl()` is true anywhere below a `Control`, even past
+    // a `Field` nested in it, so there they keep their own row as well.
+    const insideControl = useInsideControl();
+    const effectiveBare = bare ?? (insideField && !insideControl);
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const [internalValue, setInternalValue] = useState<number | undefined>(
       defaultValue

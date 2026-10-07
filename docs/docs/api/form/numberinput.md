@@ -191,7 +191,7 @@ A disabled number input.
 The `Numberinput` component is context-aware: it detects whether it is already inside a `Field` and adjusts its rendering accordingly. This means you can use it standalone with a `label` prop (it wraps itself in a Field), or inside a `Field` (it skips rendering its own).
 
 :::note
-Numberinput does not use ControlContext, so the "With Field and Control Wrappers" example below uses Field wrapping only. The Control wrapper is shown for layout consistency but does not change the component's internal rendering.
+The plus and minus buttons sit in a row of their own. Inside a `Field` they render bare instead, without that row, so they join the row of a `Field` with `hasAddons` or `grouped` (set `bare` to choose either way). Inside a `Control` they keep their own row, because a `Control` stacks what it holds. The stepper variant always keeps its own row.
 :::
 
 #### Default (with label)
@@ -212,15 +212,26 @@ The simplest usage — the component automatically renders its own Field wrapper
 
 #### With Field Wrapper
 
-When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
+When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own. A plain `Field` lays out no row, so pass `bare={false}` to keep the buttons in a row of their own.
 
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Quantity">
+    <Field
+      horizontal
+      label="Quantity"
+      labelProps={{ htmlFor: 'quantity-field' }}
+    >
       <Field.Body>
         <Field>
-          <Numberinput defaultValue={1} min={1} max={10} color="primary" />
+          <Numberinput
+            id="quantity-field"
+            bare={false}
+            defaultValue={1}
+            min={1}
+            max={10}
+            color="primary"
+          />
         </Field>
       </Field.Body>
     </Field>
@@ -232,16 +243,26 @@ function example() {
 
 #### With Field and Control Wrappers
 
-For full manual composition, wrap in both Field and Control. Numberinput does not consume ControlContext, but the Field wrapper is still detected and its own Field is skipped.
+For full manual composition, wrap in both Field and Control. The Field wrapper is detected and its own Field is skipped, and inside the Control the buttons keep their own row. Leave icons and `isLoading` off that Control: Bulma places them at its edges, where the buttons sit, and its icon rules would also restyle the glyphs inside the buttons. For a spinner, set `isLoading` on the Numberinput itself. That Control belongs in a plain `Field`: in a `Field` with `hasAddons` or `grouped`, put the Numberinput in directly, where it renders bare and joins that row.
 
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Quantity">
+    <Field
+      horizontal
+      label="Quantity"
+      labelProps={{ htmlFor: 'quantity-field-control' }}
+    >
       <Field.Body>
         <Field>
-          <Control iconLeftName="hashtag">
-            <Numberinput defaultValue={1} min={1} max={10} color="primary" />
+          <Control>
+            <Numberinput
+              id="quantity-field-control"
+              defaultValue={1}
+              min={1}
+              max={10}
+              color="primary"
+            />
           </Control>
         </Field>
       </Field.Body>
@@ -319,7 +340,7 @@ Set `editable={false}` when you want users to only use the +/- buttons, preventi
 | `controlsPosition` | `'left'` \| `'right'` \| `'both'`                                                                        | `'both'`      | Position of +/- buttons.                                                                                                                                                                                                                                                                                                                                  |
 | `controlsRounded`  | `boolean`                                                                                                | `false`       | Use rounded buttons.                                                                                                                                                                                                                                                                                                                                      |
 | `compact`          | `boolean`                                                                                                | `false`       | Uses compact button spacing.                                                                                                                                                                                                                                                                                                                              |
-| `bare`             | `boolean`                                                                                                | `false`       | Removes button borders and background.                                                                                                                                                                                                                                                                                                                    |
+| `bare`             | `boolean`                                                                                                | `auto`        | Renders the plusminus controls without a `.field` row of their own, so they join the row of a `Field` with `hasAddons` or `grouped` they sit in. On by default inside a `Field`, unless a `Control` is anywhere above it: a `Control` stacks its children, so there the controls keep their own row.                                                      |
 | `variant`          | `'plusminus'` \| `'stepper'`                                                                             | `'plusminus'` | Style variant for the control buttons.                                                                                                                                                                                                                                                                                                                    |
 | `disabled`         | `boolean`                                                                                                | `false`       | Whether the input is disabled.                                                                                                                                                                                                                                                                                                                            |
 | `editable`         | `boolean`                                                                                                | `true`        | Whether the input can be typed in.                                                                                                                                                                                                                                                                                                                        |

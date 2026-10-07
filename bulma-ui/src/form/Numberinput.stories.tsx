@@ -118,7 +118,7 @@ const meta: Meta<typeof Numberinput> = {
     bare: {
       control: 'boolean',
       description:
-        'Bare mode — no outer field wrapper, for composing inside a parent Field',
+        'Bare mode: the plusminus controls render without their own row, to join the row of a parent Field (hasAddons or grouped). On by default inside a Field, off inside a Control',
     },
   },
 };
@@ -342,7 +342,8 @@ export const NonEditable: Story = {
 };
 
 /**
- * Practical quantity selector example.
+ * Practical quantity selector example. A plain `Field` lays out no row, so
+ * `bare={false}` keeps the buttons in a row of their own.
  */
 export const QuantitySelector: Story = {
   render: function QuantityExample() {
@@ -350,8 +351,12 @@ export const QuantitySelector: Story = {
 
     return (
       <Field>
-        <label className="label">Quantity</label>
+        <label className="label" htmlFor="quantity-selector">
+          Quantity
+        </label>
         <Numberinput
+          id="quantity-selector"
+          bare={false}
           value={quantity}
           onChange={setQuantity}
           min={1}
@@ -385,8 +390,12 @@ export const QuantityWithError: Story = {
 
     return (
       <Field>
-        <label className="label">Quantity</label>
+        <label className="label" htmlFor="quantity-with-error">
+          Quantity
+        </label>
         <Numberinput
+          id="quantity-with-error"
+          bare={false}
           value={value}
           onChange={setValue}
           min={0}
@@ -410,8 +419,12 @@ export const RateWithSuccess: Story = {
 
     return (
       <Field>
-        <label className="label">Rate</label>
+        <label className="label" htmlFor="rate-with-success">
+          Rate
+        </label>
         <Numberinput
+          id="rate-with-success"
+          bare={false}
           value={value}
           onChange={setValue}
           step={0.5}
@@ -560,6 +573,31 @@ export const WithAddonsRight: Story = {
 };
 
 /**
+ * Inside `Field > Control` the buttons keep their own row, because a
+ * `Control` stacks what it holds.
+ */
+export const InFieldAndControl: Story = {
+  name: 'In a Field and Control',
+  render: function InFieldAndControlExample() {
+    const [value, setValue] = useState(1);
+    return (
+      <Field label="Quantity" labelProps={{ htmlFor: 'quantity-in-control' }}>
+        <Control>
+          <Numberinput
+            id="quantity-in-control"
+            value={value}
+            onChange={setValue}
+            min={1}
+            max={10}
+            color="primary"
+          />
+        </Control>
+      </Field>
+    );
+  },
+};
+
+/**
  * Bare mode at all sizes inside a parent `Field hasAddons`.
  */
 export const WithAddonsSizes: Story = {
@@ -679,13 +717,18 @@ export const WithLabel: Story = {
 
 /**
  * Inside Field — the outer Field turns off Numberinput's auto Field rendering via context.
- * Demonstrates horizontal layout composition.
+ * Demonstrates horizontal layout composition. `Field.Body` lays out a row only
+ * from tablet width up, so `bare={false}` keeps the buttons in a row of their own.
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Quantity">
+    <Field
+      horizontal
+      label="Quantity"
+      labelProps={{ htmlFor: 'quantity-field' }}
+    >
       <Field.Body>
-        <Numberinput />
+        <Numberinput id="quantity-field" bare={false} />
       </Field.Body>
     </Field>
   ),
@@ -693,16 +736,19 @@ export const WithFieldWrapper: Story = {
 
 /**
  * Full manual composition — Field+Control provided externally.
- * Numberinput manages its own control internally, so the outer Control
- * simply provides context signaling.
+ * Numberinput manages its own control internally.
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Quantity">
+    <Field
+      horizontal
+      label="Quantity"
+      labelProps={{ htmlFor: 'quantity-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Numberinput />
+            <Numberinput id="quantity-field-control" />
           </Control>
         </Field>
       </Field.Body>
