@@ -1289,6 +1289,56 @@ describe('Calendar month granularity', () => {
       expect(getByText('2024')).toBeInTheDocument();
       expect(document.activeElement).toBe(focusedMonth(container));
     });
+
+    const tabStops = (container: HTMLElement) =>
+      yearOptions(container).filter(o => o.tabIndex === 0);
+
+    // The year focus moved to is the list's one tab stop, so Tab leaves the
+    // list and comes back to that year, while the current year stays marked.
+    it('moves the tab stop with focus, so Tab leaves the list', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PeriodHarness granularity="month" />);
+      openYears(container);
+      const listbox = container.querySelector<HTMLElement>('[role="listbox"]')!;
+      await user.keyboard('{ArrowDown}');
+      expect(tabStops(container)).toEqual([yearOption(container, 2028)]);
+      await user.tab({ shift: true });
+      expect(document.activeElement).toHaveAttribute(
+        'aria-haspopup',
+        'listbox'
+      );
+      await user.tab();
+      expect(document.activeElement).toBe(yearOption(container, 2028));
+      await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}');
+      expect(tabStops(container)).toEqual([yearOption(container, 2016)]);
+      await user.tab();
+      expect(listbox).not.toContainElement(
+        document.activeElement as HTMLElement
+      );
+      expect(focusedYearOption(container)).toHaveTextContent('2024');
+      expect(yearOption(container, 2024)).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+    });
+
+    it('puts the tab stop back on the current year once the list moves past the one left', async () => {
+      const user = userEvent.setup();
+      const props = {
+        granularity: 'month' as const,
+        value: null,
+        onSelect: () => {},
+        onFocusedDateChange: () => {},
+      };
+      const { container, rerender } = render(
+        <Calendar {...props} focusedDate={new Date(2024, 5, 15)} />
+      );
+      openYears(container);
+      await user.keyboard('{ArrowUp}');
+      expect(tabStops(container)).toEqual([yearOption(container, 2020)]);
+      rerender(<Calendar {...props} focusedDate={new Date(2300, 5, 15)} />);
+      expect(tabStops(container)).toEqual([yearOption(container, 2300)]);
+    });
   });
 
   describe('focus', () => {

@@ -511,8 +511,8 @@ export const Calendar: React.FC<CalendarProps> = ({
   // year is disabled the stop moves to the nearest enabled year in the list,
   // and focusing it makes it the focused year. As the selection surface a
   // year outside a non-empty list starts from the end it fell past, so the
-  // list keeps a stop. As navigation the stop marks the current year, so a
-  // year outside the list marks no option.
+  // list keeps a stop. As navigation it marks the current year, so a year
+  // outside the list marks no option, and the stop itself follows focus.
   const tabStopYear = useMemo(() => {
     let i = yearList.indexOf(focusedYear);
     if (i < 0) {
@@ -526,6 +526,14 @@ export const Calendar: React.FC<CalendarProps> = ({
       )
     ];
   }, [yearList, focusedYear, disabledYears, isYearGranularity]);
+
+  // As navigation the keys move focus and leave the focused year alone, so
+  // the tab stop goes to the year that last had focus while it is listed,
+  // and Tab leaves the list rather than landing on the current year. It
+  // starts over each time the list opens.
+  const [navYear, setNavYear] = useState<number | null>(null);
+  const listTabStop =
+    navYear !== null && yearList.includes(navYear) ? navYear : tabStopYear;
 
   // Which of the focused year's months have no selectable day.
   const disabledMonths = useMemo(
@@ -713,7 +721,10 @@ export const Calendar: React.FC<CalendarProps> = ({
             className={monthTriggerClass}
             aria-haspopup="listbox"
             aria-expanded={view === 'years'}
-            onClick={() => setView(v => (v === 'years' ? baseView : 'years'))}
+            onClick={() => {
+              setNavYear(null);
+              setView(v => (v === 'years' ? baseView : 'years'));
+            }}
           >
             <span className={monthLabelClass} id={labelId} aria-live="polite">
               {monthLabel}
@@ -923,15 +934,18 @@ export const Calendar: React.FC<CalendarProps> = ({
                 aria-disabled={isYearGranularity ? disabled : undefined}
                 aria-current={isYearGranularity && isToday ? 'date' : undefined}
                 data-focused-year={isFocused ? 'true' : undefined}
-                tabIndex={isFocused ? 0 : -1}
+                tabIndex={year === listTabStop ? 0 : -1}
                 disabled={disabled}
                 className={cellCls}
                 onFocus={() => {
-                  // Reached by Tab while the focused year is disabled, or by
-                  // pointer: keys move on from here. As navigation, focusing
-                  // a year by key or pointer commits nothing until it is
-                  // picked.
-                  if (isYearGranularity && year !== focusedYear) {
+                  // As navigation, focusing a year by key or pointer only
+                  // moves the tab stop: nothing is committed until a year is
+                  // picked. As the selection surface it is reached by Tab
+                  // while the focused year is disabled, or by pointer, and
+                  // keys move on from here.
+                  if (!isYearGranularity) {
+                    setNavYear(year);
+                  } else if (year !== focusedYear) {
                     onFocusedDateChange(clampDate(makeDate(year), min, max));
                   }
                 }}
