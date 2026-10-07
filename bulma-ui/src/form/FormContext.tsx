@@ -134,6 +134,11 @@ interface OwnControlOptions extends ControlLevelProps {
   insideControl: boolean;
   /** A picker's `inline`, which renders no `Control` inside one or out. */
   inline?: boolean;
+  /**
+   * The left glyph the wrapper's own `Control` shows when the caller sets no
+   * `iconLeftName`; read only then. The pickers have one.
+   */
+  defaultIconLeftName?: string;
 }
 
 // Each Control-level prop, with what takes its place on the `Control` the
@@ -165,6 +170,10 @@ const ON_CONTROL: Record<keyof ControlLevelProps, string> = {
  * only the props it hands its own `Control`, as the caller gave them, so a
  * default the wrapper fills in itself never warns. A prop counts when it is
  * truthy, since a falsy one would change nothing on a `Control` either.
+ * `iconLeftSize` and `hasIconsLeft` show nothing on a `Control` without a
+ * glyph, so when they move and the caller chose no left icon, the advice
+ * names the wrapper's default glyph too, and following it draws what the
+ * wrapper's own `Control` did.
  * Internal; not part of the public API.
  */
 export const rendersOwnControl = (
@@ -187,12 +196,22 @@ export const rendersOwnControl = (
         `inline picker.`
     );
   } else {
+    const toSet = held.map(prop => ON_CONTROL[prop]);
+    const needsGlyph =
+      (options.iconLeftSize || options.hasIconsLeft) &&
+      !options.iconLeft &&
+      options.iconLeftName === undefined &&
+      options.defaultIconLeftName;
+    if (needsGlyph) {
+      toSet.push(
+        `iconLeftName="${options.defaultIconLeftName}" (its default icon)`
+      );
+    }
     warnOnce(
       `${component}:Control-props-in-Control:${held.join('+')}`,
       `[bestax-bulma] <${component} ${names}> inside a <Control> renders ` +
         `no <Control> of its own, so ${doNothing} nothing there. Set ` +
-        `${listOf(held.map(prop => ON_CONTROL[prop]))} on that <Control> ` +
-        `instead.`
+        `${listOf(toSet)} on that <Control> instead.`
     );
   }
   return false;
