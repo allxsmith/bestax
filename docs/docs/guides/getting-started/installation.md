@@ -53,7 +53,7 @@ The viewport meta tag is **essential** for Bulma's responsive features. Without 
 ## Package Installation
 
 :::info Prefer the installer
-`pnpm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
+`pnpm create bestax@latest` scaffolds a working app with the package already in its `package.json` and the CSS already wired up, so the only step left is installing its dependencies. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
 :::
 
 <PackageManagerTabs>

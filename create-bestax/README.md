@@ -29,9 +29,6 @@ npm create bestax@latest my-app
 
 # Using npx
 npx create-bestax@latest my-app
-
-# Alternative naming
-npm create bestax-bulma@latest my-app
 ```
 
 ### Interactive Mode
@@ -46,7 +43,7 @@ You'll be asked to:
 
 1. Enter a project name
 2. Select a framework (Vite or Vite + TypeScript)
-3. Choose a Bulma CSS flavor (Complete or Minimal)
+3. Choose a Bulma CSS flavor (the `--bulma` options below)
 4. Select an icon library (Font Awesome, Material Icons, etc.)
 5. Choose whether to install the bestax AI skills into `.claude/skills/`
 
