@@ -21,33 +21,35 @@ person, and **Unknown** means we have not confirmed how it updates.
 
 ## Package registries
 
-| Where                                                                                                              | Carries                                                                                                       | Updates   | When to act                                                                                                                                                    |
-| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [npm](https://www.npmjs.com/~allxsmith)                                                                            | `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, `@allxsmith/eslint-plugin-bestax` | Automatic | semantic-release publishes from `ci.yml`, keyed by commit scope. See `VERSIONING.md`.                                                                          |
-| [`bestax` plugin](https://github.com/allxsmith/bestax-skills), in allxsmith/bestax-skills                          | The skills and `bestax-mcp`                                                                                   | Automatic | `skills-publish.yml` regenerates it from `main` on each change and after each `bestax-mcp` release.                                                            |
-| [Glama](https://glama.ai/mcp/servers/allxsmith/bestax)                                                             | `bestax-mcp`                                                                                                  | Mixed     | Auto-Release rebuilds on every GitHub release in the repo and installs `bestax-mcp@latest`. Edit the Dockerfile in Glama's admin if the start command changes. |
-| [skills.sh](https://skills.sh/allxsmith/bestax)                                                                    | The skills                                                                                                    | Automatic | Listed from `npx skills add` installs.                                                                                                                         |
-| [Context7](https://context7.com/allxsmith/bestax)                                                                  | The docs                                                                                                      | Mixed     | Indexes the repo's markdown. Refresh it from the Context7 dashboard if it falls behind.                                                                        |
-| [cursor.directory](https://cursor.directory/plugins/bestax)                                                        | The skills and `bestax-mcp`                                                                                   | Manual    | A snapshot of the skills, plus an MCP entry added by hand. Edit it when a skill is added, renamed or removed, or when the MCP command changes.                 |
-| [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.allxsmith/bestax-mcp) | `bestax-mcp`, as `io.github.allxsmith/bestax-mcp`                                                             | Automatic | `mcp-registry.yml` publishes each `bestax-mcp@` release.                                                                                                       |
-| [Codemod Registry](https://app.codemod.com/registry/bestax-migrate)                                                | `bestax-migrate`                                                                                              | Manual    | A wrapper that pins one bestax-migrate release. Bump and republish it after each release, as `CONTRIBUTING.md` describes under "Codemod Registry".             |
-| [ClawHub](https://clawhub.ai/allxsmith)                                                                            | The skills                                                                                                    | Manual    | One upload per skill. Re-upload a skill when it changes, and upload a new one when it is added. ClawHub republishes them under MIT-0.                          |
+| Where                                                                                                              | Carries                                                                                                       | Updates   | When to act                                                                                                                                                                                     |
+| ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [npm](https://www.npmjs.com/~allxsmith)                                                                            | `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, `@allxsmith/eslint-plugin-bestax` | Automatic | semantic-release publishes from `ci.yml`, keyed by commit scope. See `VERSIONING.md`.                                                                                                           |
+| [`bestax` plugin](https://github.com/allxsmith/bestax-skills), in allxsmith/bestax-skills                          | The skills and `bestax-mcp`                                                                                   | Automatic | `skills-publish.yml` regenerates it from `main` on each change and after each `bestax-mcp` release.                                                                                             |
+| [Glama](https://glama.ai/mcp/servers/allxsmith/bestax)                                                             | `bestax-mcp`                                                                                                  | Mixed     | Auto-Release rebuilds on every GitHub release in the repo and installs `bestax-mcp@latest`. Edit the Dockerfile in Glama's admin if the start command changes.                                  |
+| [skills.sh](https://skills.sh/allxsmith/bestax)                                                                    | The skills                                                                                                    | Automatic | Listed from `npx skills add` installs.                                                                                                                                                          |
+| [Context7](https://context7.com/allxsmith/bestax)                                                                  | The docs                                                                                                      | Mixed     | Indexes the repo's markdown. Refresh it from the Context7 dashboard if it falls behind.                                                                                                         |
+| [cursor.directory](https://cursor.directory/plugins/bestax)                                                        | The skills and `bestax-mcp`                                                                                   | Manual    | A copy of each skill's text and an MCP entry, pasted by hand. Refresh the copies when a skill changes, and edit the entry when a skill is added, renamed or removed or the MCP command changes. |
+| [Official MCP Registry](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.allxsmith/bestax-mcp) | `bestax-mcp`, as `io.github.allxsmith/bestax-mcp`                                                             | Automatic | `mcp-registry.yml` publishes each `bestax-mcp@` release.                                                                                                                                        |
+| [Codemod Registry](https://app.codemod.com/registry/bestax-migrate)                                                | `bestax-migrate`                                                                                              | Manual    | A wrapper that pins one bestax-migrate release. Bump and republish it after each release, as `CONTRIBUTING.md` describes under "Codemod Registry".                                              |
+| [ClawHub](https://clawhub.ai/allxsmith)                                                                            | The skills                                                                                                    | Manual    | One upload per skill. Re-upload a skill when it changes, and upload a new one when it is added. ClawHub republishes them under MIT-0.                                                           |
 
 Glama labels its builds with its own version numbers, so they don't match npm.
 
 ## Directories
 
-| Where                                                                              | Carries        | Updates   | When to act                                                                                                       |
-| ---------------------------------------------------------------------------------- | -------------- | --------- | ----------------------------------------------------------------------------------------------------------------- |
-| [mcpservers.org](https://mcpservers.org)                                           | `bestax-mcp`   | Manual    | Resubmit when what the server offers changes.                                                                     |
-| [mcprush](https://mcprush.com/allxsmith/bestax-mcp)                                | `bestax-mcp`   | Unknown   | mcprush built the page from the npm package. We did not submit it, and claiming the page is what lets us edit it. |
-| [TensorBlock](https://tensorblock.co/mcp/servers/github-allxsmith-bestax-191463f6) | `bestax-mcp`   | Automatic | Built from the TensorBlock list entry below.                                                                      |
-| [LibHunt](https://www.libhunt.com/r/bestax)                                        | The repo       | Automatic | Reads the repo.                                                                                                   |
-| [mcpmarket.com](https://mcpmarket.com)                                             | `bestax-mcp`   | Manual    | In review.                                                                                                        |
-| [Made with React.js](https://madewithreactjs.com)                                  | bestax-bulma   | Manual    | In review.                                                                                                        |
-| [llms.txt directory](https://directory.llmstxt.cloud)                              | bestax.io      | Automatic | In review. Reads `/llms.txt`.                                                                                     |
-| [skillsindex.dev](https://skillsindex.dev)                                         | Skills and MCP | Manual    | In review.                                                                                                        |
-| [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP | Manual    | In review.                                                                                                        |
+| Where                                                                              | Carries        | Updates   | When to act                                                                                                                                         |
+| ---------------------------------------------------------------------------------- | -------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [mcpservers.org](https://mcpservers.org)                                           | `bestax-mcp`   | Manual    | Resubmit when what the server offers changes.                                                                                                       |
+| [mcprush](https://mcprush.com/allxsmith/bestax-mcp)                                | `bestax-mcp`   | Unknown   | mcprush built the page from the npm package. We did not submit it, and claiming the page is what lets us edit it.                                   |
+| [TensorBlock](https://tensorblock.co/mcp/servers/github-allxsmith-bestax-191463f6) | `bestax-mcp`   | Automatic | Built from the TensorBlock list entry below.                                                                                                        |
+| [LibHunt](https://www.libhunt.com/r/bestax)                                        | The repo       | Automatic | Reads the repo.                                                                                                                                     |
+| [mcpmarket.com](https://mcpmarket.com)                                             | `bestax-mcp`   | Manual    | In review.                                                                                                                                          |
+| [Made with React.js](https://madewithreactjs.com)                                  | bestax-bulma   | Manual    | In review.                                                                                                                                          |
+| [llms.txt directory](https://directory.llmstxt.cloud)                              | bestax.io      | Automatic | In review. Reads `/llms.txt`.                                                                                                                       |
+| [skillsindex.dev](https://skillsindex.dev)                                         | Skills and MCP | Manual    | In review.                                                                                                                                          |
+| [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP | Manual    | In review.                                                                                                                                          |
+| [mcpm.sh registry](https://github.com/pathintegral-institute/mcpm.sh)              | `bestax-mcp`   | Manual    | In review in [#427](https://github.com/pathintegral-institute/mcpm.sh/pull/427). The entry gives `npx -y bestax-mcp@1` and lists each tool by name. |
+| [Kilo marketplace](https://github.com/Kilo-Org/kilo-marketplace)                   | `bestax-mcp`   | Manual    | In review in [#339](https://github.com/Kilo-Org/kilo-marketplace/pull/339). The entry gives `npx -y bestax-mcp@1`.                                  |
 
 ## Plugin directories and marketplaces
 
@@ -62,7 +64,7 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual    | In review in [issue #4541](https://github.com/github/awesome-copilot/issues/4541). It pins a commit and the version in the root `plugin.json`, which stay put until we send an update. |
 | [Build with Claude](https://github.com/davepoon/buildwithclaude)        | Skills and `bestax-mcp` | Manual    | Listed through [#385](https://github.com/davepoon/buildwithclaude/pull/385). The entry carries the version from `plugin.json`, so a pull request there bumps it.                       |
 | [HOL Registry](https://hol.org/plugins)                                 | Skills and `bestax-mcp` | Mixed     | Listed through the awesome-ai-plugins entry below. HOL scans bestax-skills on its own, and the list entry is a line of text.                                                           |
-| [Gemini CLI extensions](https://geminicli.com/extensions)               | Skills and `bestax-mcp` | Automatic | Not listed yet. The gallery lists repositories with a `gemini-extension.json` and the `gemini-cli-extension` topic, and bestax-skills has both.                                        |
+| [Gemini CLI extensions](https://geminicli.com/extensions)               | Skills and `bestax-mcp` | Automatic | Listed. The gallery lists repositories with a `gemini-extension.json` and the `gemini-cli-extension` topic, and bestax-skills has both. Installs follow the repository.                |
 
 ## Awesome lists
 
@@ -86,6 +88,7 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [slavakurilyak/awesome-ai-agents](https://github.com/slavakurilyak/awesome-ai-agents)                               | bestax-mcp       | [issue #688](https://github.com/slavakurilyak/awesome-ai-agents/issues/688)      |
 | [laolaoshiren/claude-code-skills-zh](https://github.com/laolaoshiren/claude-code-skills-zh)                         | Bestax skills    | [3256076](https://github.com/laolaoshiren/claude-code-skills-zh/commit/3256076)  |
 | [hashgraph-online/awesome-ai-plugins](https://github.com/hashgraph-online/awesome-ai-plugins)                       | Bestax           | [#623](https://github.com/hashgraph-online/awesome-ai-plugins/pull/623)          |
+| [pegaltier/awesome-utils-dev](https://github.com/pegaltier/awesome-utils-dev)                                       | Bestax           | [#81](https://github.com/pegaltier/awesome-utils-dev/pull/81)                    |
 
 ### In review
 
@@ -95,7 +98,6 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [brillout/awesome-react-components](https://github.com/brillout/awesome-react-components)                 | Bestax                 | [#616](https://github.com/brillout/awesome-react-components/pull/616)         |
 | [jgthms/bulma](https://github.com/jgthms/bulma) (README)                                                  | Bestax                 | [#4014](https://github.com/jgthms/bulma/pull/4014)                            |
 | [aycanogut/front-end-resources](https://github.com/aycanogut/front-end-resources)                         | bestax-bulma           | [#89](https://github.com/aycanogut/front-end-resources/pull/89)               |
-| [pegaltier/awesome-utils-dev](https://github.com/pegaltier/awesome-utils-dev)                             | Bestax                 | [#81](https://github.com/pegaltier/awesome-utils-dev/pull/81)                 |
 | [semlinker/awesome-typescript](https://github.com/semlinker/awesome-typescript)                           | create-bestax          | [#198](https://github.com/semlinker/awesome-typescript/pull/198)              |
 | [SecretiveShell/Awesome-llms-txt](https://github.com/SecretiveShell/Awesome-llms-txt)                     | bestax.io llms.txt     | [#200](https://github.com/SecretiveShell/Awesome-llms-txt/pull/200)           |
 | [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)                           | allxsmith/bestax       | [#15446](https://github.com/punkpeye/awesome-mcp-servers/pull/15446)          |
@@ -110,6 +112,7 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [kodustech/awesome-agent-skills](https://github.com/kodustech/awesome-agent-skills)                       | bestax-layout-scaffold | [#128](https://github.com/kodustech/awesome-agent-skills/pull/128)            |
 | [ZeroPointRepo/awesome-hermes-skills](https://github.com/ZeroPointRepo/awesome-hermes-skills)             | Bestax skills          | [#103](https://github.com/ZeroPointRepo/awesome-hermes-skills/pull/103)       |
 | [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)                     | Bestax skills          | [#383](https://github.com/karanb192/awesome-claude-skills/pull/383)           |
+| [mcpHQ/awesome-mcp-servers](https://github.com/mcpHQ/awesome-mcp-servers)                                 | Bestax                 | [#135](https://github.com/mcpHQ/awesome-mcp-servers/pull/135)                 |
 
 Every list entry is Manual: it holds the text we submitted until someone opens a pull request
 against that list.
@@ -133,12 +136,14 @@ Say in the pull request which listings need an update, then open those updates o
   (JayLZhou), awesome-claude-code-and-skills and kodustech (both name
   `bestax-layout-scaffold`), skillsindex.dev, agenticskills.io, cursor.directory, ClawHub, Build
   with Claude (which also gives a count), awesome-ai-plugins and karanb192/awesome-claude-skills.
+- **Editing a skill.** cursor.directory and ClawHub hold copies of each skill's text, so they keep
+  the old wording until someone pastes or uploads the new one.
 - **Changing what `bestax-mcp` offers.** Most MCP entries say it serves props, examples, CSS
   variables and Agent Skills, offline, with no API key. awesome-AI-driven-development also gives
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
-  `BESTAX_MCP_NO_VERSION_CHECK` variable.
-- **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock and cursor.directory give
-  `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
+  `BESTAX_MCP_NO_VERSION_CHECK` variable, and the mcpm.sh registry lists each tool by name.
+- **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock, cursor.directory, the mcpm.sh
+  registry and the Kilo marketplace give `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
   exact version, and `skills-publish.yml` regenerates it after each release.
 - **A plugin release.** Once listed, awesome-copilot, the OpenAI directory and Kiro pin the
   `version` in bestax-skills' root `plugin.json`, Cursor Marketplace the same version in
@@ -153,6 +158,8 @@ Say in the pull request which listings need an update, then open those updates o
   `.claude-plugin/icon.png` only the first time the plugin is saved or submitted, so a new
   `plugin/icon.png` does not reach that listing on its own. Cursor Marketplace has its own logo,
   `assets/logo.png` in bestax-skills, from `plugin/logo.png`.
+- **Raising the Node version `bestax-mcp` needs.** The mcpm.sh registry and the Kilo marketplace
+  repeat the `engines` floor from `bestax-mcp/package.json` as a requirement.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.
@@ -168,4 +175,6 @@ Say in the pull request which listings need an update, then open those updates o
 - **A new Bulma major.** Nearly every entry says "Bulma v1".
 
 Bestax is called bestax-bulma on React component-library lists and Bestax everywhere else.
-Package names stay as they are.
+Package names stay as they are. Write a new or refreshed description so it says early on that
+Bestax is for building with Bulma v1, since Bulma is the name people search for. Older entries,
+such as the description in `bestax-mcp/server.json`, still put it last.
