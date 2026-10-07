@@ -1,3 +1,16 @@
+## [5.26.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.4...@allxsmith/bestax-bulma@5.26.5) (2026-10-07)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let Autocomplete's clear button give way to a loading spinner ([5c11fb2](https://github.com/allxsmith/bestax/commit/5c11fb27e29ac051f6def012727f51d72aec43a3))
+* **bulma-ui:** let Escape in a popover's year dropdown go back to the grid ([a8b1dbf](https://github.com/allxsmith/bestax/commit/a8b1dbfc47cb23189fe1aa2e83666428752b0af4)), closes [#901](https://github.com/allxsmith/bestax/issues/901)
+* **bulma-ui:** let the arrow keys move through the calendar's year dropdown ([6abc329](https://github.com/allxsmith/bestax/commit/6abc32963e4c8a7af070a7b121be1693bc5e7ce0)), closes [#901](https://github.com/allxsmith/bestax/issues/901)
+* **bulma-ui:** move the year dropdown's tab stop with the arrow keys ([f56daf5](https://github.com/allxsmith/bestax/commit/f56daf56714110904020dee9b2a3a4286fb9d376))
+* **bulma-ui:** reach Taginput's delete buttons and Autocomplete's clear button ([21a064b](https://github.com/allxsmith/bestax/commit/21a064b25892cb8c96b3d2b833400fe55251eaa9))
+* **bulma-ui:** warn when a wrapper inside a Control drops its Control-level props ([cbf434b](https://github.com/allxsmith/bestax/commit/cbf434be4d251850b787001182566582c5761c91)), closes [#921](https://github.com/allxsmith/bestax/issues/921)
+* **bulma-ui:** warn when an inline picker drops its Control-level props ([f0494bd](https://github.com/allxsmith/bestax/commit/f0494bdc0da4da8c9703b3d1fa259752f0c90d77)), closes [#921](https://github.com/allxsmith/bestax/issues/921)
+
 ## [5.26.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.3...@allxsmith/bestax-bulma@5.26.4) (2026-10-07)
 
 
