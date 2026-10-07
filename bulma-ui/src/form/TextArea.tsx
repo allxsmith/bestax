@@ -7,6 +7,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 
@@ -16,9 +17,10 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and TextAreaBase into a single convenience component.
  * Supports all TextAreaBase props, plus Field-level (label, horizontal) and
  * Control-level (loading) props.
- * Inside an existing `Control` it renders no `Control` of its own, so set the
- * Control-level props on that `Control` instead. Inside an outer `Field`, or a
- * `Control` with no `Field` around it, it renders no `Field` of its own either.
+ * Inside an existing `Control` it renders no `Control` of its own, so its
+ * Control-level props do nothing there and warn in development; set them on
+ * that `Control` instead. Inside an outer `Field`, or a `Control` with no
+ * `Field` around it, it renders no `Field` of its own either.
  * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
  * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
  * warns in development. Wrap the `Control` in a `Field` instead, and set the
@@ -100,6 +102,12 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       horizontal,
       fieldClassName,
     });
+    const ownControl = rendersOwnControl('TextArea', {
+      insideControl,
+      isLoading: controlIsLoading,
+      controlSize,
+      controlClassName,
+    });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
       id: textAreaProps.id,
@@ -112,7 +120,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     let content = <TextAreaBase ref={ref} id={controlId} {...textAreaProps} />;
 
-    if (!insideControl) {
+    if (ownControl) {
       content = (
         <Control
           isLoading={controlIsLoading}

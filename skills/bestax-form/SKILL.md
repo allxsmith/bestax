@@ -145,9 +145,12 @@ opt out — e.g. when the labeled `Field` wraps something that is not one of tho
 - **Composed** (`Field` + `Control` + `InputBase`) — when you need grouped controls, addons,
   multiple controls per field, or custom layout. The convenience components detect they're
   already inside a `Field`/`Control` and won't double-wrap, so you can mix the two. Inside a
-  `Control` they render no `Field` either, so a convenience input you place in a `Control`
-  (for icons, say) takes its `label`, `horizontal` and class name from a `Field` wrapped
-  around that `Control`. Given `label`, `message`, `horizontal` or `fieldClassName` in a
+  `Control` they render no `Control` of their own, so set their Control-level props, such as
+  the icon props, `isLoading` and `controlSize`, on that `Control`: given to the input there,
+  they do nothing and warn in development. `Select` draws its own `isLoading`, so that one
+  stays on the `Select`. Inside a `Control` they render no `Field` either, so a convenience
+  input you place in a `Control` (for icons, say) takes its `label`, `horizontal` and class
+  name from a `Field` wrapped around that `Control`. Given `label`, `message`, `horizontal` or `fieldClassName` in a
   `Control` with no `Field` around it, it renders its own `Field` inside the `.control`,
   which Bulma's styles don't expect, and warns in development. `Autocomplete` and
   `Numberinput` are the exception: in a bare `Control` they always render their own `Field`,

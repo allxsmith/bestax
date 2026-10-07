@@ -6,6 +6,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
   RadiosProvider,
   RadiosGroupContextValue,
 } from './FormContext';
@@ -155,7 +156,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
 
   let content = radiosElement;
 
-  if (!insideControl) {
+  if (rendersOwnControl('Radios', { insideControl })) {
     content = <Control>{content}</Control>;
   }
 

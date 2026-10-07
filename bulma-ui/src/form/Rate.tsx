@@ -11,6 +11,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -563,7 +564,7 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     let content = rateElement;
 
-    if (!insideControl) {
+    if (rendersOwnControl('Rate', { insideControl })) {
       content = <Control>{content}</Control>;
     }
 

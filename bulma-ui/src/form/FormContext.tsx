@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { warnOnce } from '../helpers/devWarnings';
+import type { ControlBaseProps } from './Control';
 
 const FieldContext = createContext(false);
 const ControlContext = createContext(false);
@@ -98,6 +99,89 @@ export const rendersOwnField = (
       (moved.length > 0 ? `, and set ${listOf(moved)} on that <Field>.` : '.')
   );
   return true;
+};
+
+/** The props a convenience form wrapper hands its own `Control`. Internal. */
+export interface ControlLevelProps {
+  /** Shows the `Control`'s loading spinner. */
+  isLoading?: boolean;
+  /** The `Control`'s left icon. */
+  iconLeft?: ControlBaseProps['iconLeft'];
+  /** Shortcut for the left icon's name. */
+  iconLeftName?: string;
+  /** Shortcut for the left icon's size. */
+  iconLeftSize?: ControlBaseProps['iconLeftSize'];
+  /** The `Control`'s right icon. */
+  iconRight?: ControlBaseProps['iconRight'];
+  /** Shortcut for the right icon's name. */
+  iconRightName?: string;
+  /** Shortcut for the right icon's size. */
+  iconRightSize?: ControlBaseProps['iconRightSize'];
+  /** Reserves the `Control`'s left icon space. */
+  hasIconsLeft?: boolean;
+  /** Reserves the `Control`'s right icon space. */
+  hasIconsRight?: boolean;
+  /** Expands the `Control`. */
+  isExpanded?: boolean;
+  /** Set on the `Control` as its `size`. */
+  controlSize?: ControlBaseProps['size'];
+  /** Set on the `Control` as its class. */
+  controlClassName?: string;
+}
+
+interface OwnControlOptions extends ControlLevelProps {
+  /** `useInsideControl()` as the wrapper read it. */
+  insideControl: boolean;
+}
+
+// Each Control-level prop, with what takes its place on the `Control` the
+// caller wrapped around the wrapper. `bare-control.test.tsx` holds this to
+// what each wrapper hands its own `Control`, so a new Control-level prop
+// fails there until it is added here and passed to `rendersOwnControl`.
+const ON_CONTROL: Record<keyof ControlLevelProps, string> = {
+  isLoading: 'isLoading',
+  iconLeft: 'iconLeft',
+  iconLeftName: 'iconLeftName',
+  iconLeftSize: 'iconLeftSize',
+  iconRight: 'iconRight',
+  iconRightName: 'iconRightName',
+  iconRightSize: 'iconRightSize',
+  hasIconsLeft: 'hasIconsLeft',
+  hasIconsRight: 'hasIconsRight',
+  isExpanded: 'isExpanded',
+  controlSize: 'size (for controlSize)',
+  controlClassName: 'className (for controlClassName)',
+};
+
+/**
+ * Whether a convenience form wrapper renders a `Control` of its own (#921):
+ * only outside one. Inside a `Control` it renders none, so the props it
+ * would have handed its own do nothing there, and it warns in development,
+ * naming them and saying to set them on that `Control`. A wrapper passes only
+ * the props it hands its own `Control`, as the caller gave them, so a
+ * default the wrapper fills in itself never warns. A prop counts when it is
+ * truthy, since a falsy one would change nothing on a `Control` either.
+ * Internal; not part of the public API.
+ */
+export const rendersOwnControl = (
+  component: string,
+  options: OwnControlOptions
+): boolean => {
+  if (!options.insideControl) return true;
+  const held = (
+    Object.keys(ON_CONTROL) as Array<keyof ControlLevelProps>
+  ).filter(prop => options[prop]);
+  if (held.length > 0) {
+    warnOnce(
+      `${component}:Control-props-in-Control:${held.join('+')}`,
+      `[bestax-bulma] <${component} ${held.join(' ')}> inside a <Control> ` +
+        `renders no <Control> of its own, so ` +
+        `${held.length > 1 ? 'those props do' : 'that prop does'} nothing ` +
+        `there. Set ${listOf(held.map(prop => ON_CONTROL[prop]))} on that ` +
+        `<Control> instead.`
+    );
+  }
+  return false;
 };
 
 const FieldLabelIdContext = createContext<string | undefined>(undefined);
