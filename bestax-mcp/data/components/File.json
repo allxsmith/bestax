@@ -11,6 +11,10 @@
     },
     {
       "title": "With Filename Display",
+      "code": "<File\n  hasName\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
+    },
+    {
+      "title": "With Filename Display",
       "code": "<File\n  hasName\n  fileName=\"resume.pdf\"\n  buttonLabel=\"Choose a file…\"\n  iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n/>"
     },
     {
@@ -70,7 +74,7 @@
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Document\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"paperclip\">\n            <File\n              buttonLabel=\"Choose a file…\"\n              iconLeft={<Icon name=\"upload\" aria-hidden=\"true\" />}\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
+  "accessibility": "- The root is a `<div class=\"file\">` with a nested `<label>` and `<input type=\"file\">`.\n- The label is always clickable.\n- The focus ring shows for keyboard focus only, drawn inside the CTA in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). On a colored `File` it takes the CTA's text color instead, so it shows against the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone the input shows no focus ring.\n- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated.\n- Add `aria-label` to the `<input>` for accessibility if your label is not plain text.",
   "related": ["Field", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-file--default",
   "summary": "The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, \"has name\", and filename display.",
@@ -169,7 +173,7 @@
           "name": "hasName",
           "type": "boolean",
           "default": "false",
-          "description": "Show a file name indicator.",
+          "description": "Show a file name area. Without `fileName` it shows what the user picked: the file's name, or a count such as \"3 files\" when `multiple` lets them pick several. Before a pick there is no name area. A reset of the input's form clears it, but clearing the input from code fires no change event and leaves it showing, so pass `fileName` to control the text then.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -223,7 +227,7 @@
           "name": "fileName",
           "type": "string",
           "default": null,
-          "description": "File name to display.",
+          "description": "Text for the file name area (with `hasName`), for a file chosen earlier or your own wording. Setting it takes over from the picked file's name; an empty string shows no name area.",
           "required": false,
           "inherited": false,
           "deprecated": false

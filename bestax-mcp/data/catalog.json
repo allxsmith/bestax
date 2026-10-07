@@ -498,7 +498,7 @@
       "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 22,
-      "exampleCount": 16
+      "exampleCount": 17
     },
     {
       "name": "Footer",
