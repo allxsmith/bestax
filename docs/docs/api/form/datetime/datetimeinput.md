@@ -781,7 +781,7 @@ A single field spans year → month → day → hours → minutes (→ seconds �
 
 Clicking the month and year in the calendar's header opens the year list to jump to another year. There `←` / `→` move focus by a year, `↑` / `↓` by a row, `Home` / `End` go to the list's ends, and `Enter` / `Space` jump to the focused year. The calendar stays on its month until a year is picked, and `Escape` goes back to it without jumping (a second `Escape` closes the popover).
 
-Activate the footer **time** button (`Enter` / `Space`) to float the wheels over the calendar. On a time wheel: `↑` / `↓` change the value, `←` / `→` move between the hours / minutes / (seconds) columns, and `Enter` commits and closes. While the wheels are open, `Escape` collapses them (a second `Escape` closes the popover), and clicking anywhere outside the wheel card dismisses them.
+Activate the footer **time** button (`Enter` / `Space`) to float the wheels over the calendar. On a time wheel: `↑` / `↓` raise / lower the value, `PageUp` / `PageDown` by 5, `Home` / `End` jump to the lowest / highest, `←` / `→` move between the hours / minutes / (seconds) columns, and `Enter` commits and closes. While the wheels are open, `Escape` collapses them (a second `Escape` closes the popover), and clicking anywhere outside the wheel card dismisses them.
 
 ---
 

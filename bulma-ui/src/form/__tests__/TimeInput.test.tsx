@@ -118,26 +118,26 @@ describe('TimeInput', () => {
     expect(getAllByRole('spinbutton').length).toBe(2);
   });
 
-  it('ArrowDown on hours wheel increments the hour', () => {
+  it('ArrowUp on hours wheel increments the hour', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
-    fireEvent.keyDown(hoursWheel, { key: 'ArrowDown' });
+    fireEvent.keyDown(hoursWheel, { key: 'ArrowUp' });
     expect(handler).toHaveBeenCalled();
     const arg: Date = handler.mock.calls[0][0];
     expect(arg.getHours()).toBe(11);
   });
 
-  it('ArrowUp on hours wheel decrements the hour', () => {
+  it('ArrowDown on hours wheel decrements the hour', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(10, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
     const arg: Date = handler.mock.calls[0][0];
     expect(arg.getHours()).toBe(9);
   });
@@ -228,7 +228,7 @@ describe('TimeInput', () => {
     expect(labels).toContain('01');
   });
 
-  it('ArrowDown on AM/PM wheel toggles to PM in 12h mode', () => {
+  it('ArrowUp on AM/PM wheel toggles to PM in 12h mode', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(9, 0)} hourFormat="12" onChange={handler} />
@@ -237,7 +237,7 @@ describe('TimeInput', () => {
     const wheels = getAllByRole('spinbutton');
     // hours, minutes, ampm — ampm is last in 12h mode w/o seconds
     const ampmWheel = wheels[wheels.length - 1];
-    fireEvent.keyDown(ampmWheel, { key: 'ArrowDown' });
+    fireEvent.keyDown(ampmWheel, { key: 'ArrowUp' });
     const arg: Date = handler.mock.calls[0][0];
     expect(arg.getHours()).toBe(21);
   });
@@ -414,8 +414,8 @@ describe('TimeInput', () => {
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
-    fireEvent.keyDown(hoursWheel, { key: 'ArrowDown' }); // 11
-    fireEvent.keyDown(hoursWheel, { key: 'ArrowDown' }); // 12
+    fireEvent.keyDown(hoursWheel, { key: 'ArrowUp' }); // 11
+    fireEvent.keyDown(hoursWheel, { key: 'ArrowUp' }); // 12
     fireEvent.click(getByText('Cancel'));
     const last = handler.mock.calls[handler.mock.calls.length - 1][0] as Date;
     expect(last.getHours()).toBe(10);
@@ -497,7 +497,7 @@ describe('TimeInput', () => {
       />
     );
     fireEvent.click(getByRole('combobox'));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     const arg: Date = handler.mock.calls[0][0];
     expect(arg.getHours()).toBe(13);
   });
@@ -527,13 +527,13 @@ describe('TimeInput', () => {
     expect(getByText('Valider')).toBeInTheDocument();
   });
 
-  it('PageDown advances the hour wheel by 5', () => {
+  it('PageUp advances the hour wheel by 5', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(2, 0)} onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'PageDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'PageUp' });
     const arg: Date = handler.mock.calls[handler.mock.calls.length - 1][0];
     expect(arg.getHours()).toBe(7);
   });
@@ -1245,7 +1245,7 @@ describe('TimeInput mobile footer', () => {
       />
     );
     fireEvent.click(getByRole('combobox'));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     expect((handler.mock.calls[0][0] as Date).getHours()).toBe(14);
     fireEvent.click(getByText('Reset'));
     const reverted = handler.mock.calls[
@@ -1302,7 +1302,7 @@ describe('TimeInputBase remaining branches', () => {
     );
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     expect((handler.mock.calls[0][0] as Date).getHours()).toBe(11);
     // The parent did not update `value`, so the text stays at 10:00.
     expect(input.value).toBe('10:00');
@@ -1339,7 +1339,7 @@ describe('TimeInputBase remaining branches', () => {
       <TimeInput onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     const arg = handler.mock.calls[0][0] as Date;
     expect(arg.getHours()).toBe(1);
     expect(arg.getMinutes()).toBe(0);
@@ -1353,7 +1353,7 @@ describe('TimeInputBase remaining branches', () => {
     fireEvent.click(getByRole('combobox'));
     const wheels = getAllByRole('spinbutton');
     expect(wheels.length).toBe(3);
-    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     const arg = handler.mock.calls[0][0] as Date;
     expect(arg.getSeconds()).toBe(1);
     expect(arg.getHours()).toBe(0);
@@ -1370,8 +1370,8 @@ describe('TimeInputBase remaining branches', () => {
       />
     );
     fireEvent.click(getByRole('combobox'));
-    // ArrowUp decrements to 09:00, which is below min — change is dropped.
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    // ArrowDown steps back to 09:00, below min, so the change is dropped.
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
     expect(handler).not.toHaveBeenCalled();
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('10:00');
   });
@@ -2006,7 +2006,7 @@ describe('TimeInput before year 1', () => {
         <TimeInput value={inYear(year, 10)} onChange={handler} />
       );
       fireEvent.click(getByRole('combobox'));
-      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
       if (allowed) expect(handler).toHaveBeenCalledWith(inYear(year, 11));
       else expect(handler).not.toHaveBeenCalled();
       unmount();

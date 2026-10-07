@@ -922,12 +922,16 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 
 ### On a wheel column (when the popover is open)
 
-| Key                   | Action                               |
-| --------------------- | ------------------------------------ |
-| `↑` / `↓`             | Increment / decrement focused column |
-| `PageUp` / `PageDown` | Increment / decrement by 5×          |
-| `Tab`                 | Move focus to next column            |
-| `Enter`               | Commit live value, close popover     |
+| Key                   | Action                                   |
+| --------------------- | ---------------------------------------- |
+| `↑` / `↓`             | Increment / decrement focused column     |
+| `PageUp` / `PageDown` | Increment / decrement by 5×              |
+| `Home` / `End`        | Jump to the column's lowest / highest    |
+| `←` / `→`             | Move focus to the previous / next column |
+| `Tab`                 | Move focus to next column                |
+| `Enter`               | Commit live value, close popover         |
+
+The values run down each wheel, so `↑` brings the value below the band into it, the way dragging the wheel up or scrolling down over it does.
 
 ---
 

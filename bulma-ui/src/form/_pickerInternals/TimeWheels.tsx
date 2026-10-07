@@ -394,24 +394,27 @@ const WheelInner = <T,>(
     [disabled, cancelRaf, commitPosition]
   );
 
+  // The keys are a spinbutton's: up raises the value and down lowers it. The
+  // values run down the wheel, so up brings the one below the band into it,
+  // the way a drag or a scroll that moves the items up does.
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          moveBy(-1);
+          moveBy(1);
           break;
         case 'ArrowDown':
           e.preventDefault();
-          moveBy(1);
+          moveBy(-1);
           break;
         case 'PageUp':
           e.preventDefault();
-          moveBy(-5);
+          moveBy(5);
           break;
         case 'PageDown':
           e.preventDefault();
-          moveBy(5);
+          moveBy(-5);
           break;
         case 'Home':
           e.preventDefault();
