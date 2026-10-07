@@ -664,6 +664,67 @@ describe('DateRangeInput', () => {
       expect(lastRange(onChange)).toEqual([june(12), june(20)]);
     });
 
+    it('keeps the end while the digits of a start year are still coming', () => {
+      // The first digit makes year 0002, too far from the end to walk for
+      // the disabled day, so that start can't keep the end. The year isn't
+      // finished, so the digit waits rather than clearing the end.
+      const onChange = jest.fn();
+      render(
+        <DateRangeInput
+          openOnFocus={false}
+          defaultValue={[june(10), june(20)]}
+          unselectableDates={[new Date(2024, 11, 25)]}
+          onChange={onChange}
+        />
+      );
+      typeInto(startInput(), '2');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(endInput()).toHaveValue('2024-06-20');
+      type(startInput(), '024');
+      expect(lastRange(onChange)).toEqual([june(10), june(20)]);
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(endInput()).toHaveValue('2024-06-20');
+    });
+
+    it('keeps the end while a start month is half typed past a disabled day', () => {
+      // Typing 10 for October passes through January, which has a disabled
+      // day between it and the end. October doesn't.
+      const onChange = jest.fn();
+      const oct = (day: number) => new Date(2024, 9, day);
+      render(
+        <DateRangeInput
+          openOnFocus={false}
+          defaultValue={[oct(5), oct(25)]}
+          unselectableDates={[new Date(2024, 2, 1)]}
+          onChange={onChange}
+        />
+      );
+      act(() => {
+        startInput().focus();
+      });
+      fireEvent.keyDown(startInput(), { key: 'ArrowRight' });
+      type(startInput(), '1');
+      expect(onChange).not.toHaveBeenCalled();
+      type(startInput(), '0');
+      expect(lastRange(onChange)).toEqual([oct(5), oct(25)]);
+      expect(endInput()).toHaveValue('2024-10-25');
+    });
+
+    it('still clears the end for a finished start that cannot keep it', () => {
+      const onChange = jest.fn();
+      render(
+        <DateRangeInput
+          openOnFocus={false}
+          defaultValue={[june(10), june(20)]}
+          unselectableDates={[new Date(2023, 11, 25)]}
+          onChange={onChange}
+        />
+      );
+      typeInto(startInput(), '2023');
+      expect(lastRange(onChange)).toEqual([new Date(2023, 5, 10), null]);
+      expect(endInput()).toHaveValue('');
+    });
+
     it('reads free-form text as focus moves to the other input', () => {
       const onChange = jest.fn();
       render(

@@ -421,6 +421,16 @@ export const DateRangeInputBase = forwardRef<
     },
     [end, constraints, allowDisabledInRange, commitRange]
   );
+  // Every digit typed into the start commits, so a start passes through
+  // values on its way to the one being typed. The first digits of a year make
+  // a start centuries back, which can't keep the end once a disabled day may
+  // lie between. Such a value waits for the segment's next digit rather than
+  // clearing an end the finished start may keep.
+  const startCostsEnd = useCallback(
+    (d: Date) =>
+      !!end && !canCloseRange(d, end, constraints, allowDisabledInRange),
+    [end, constraints, allowDisabledInRange]
+  );
   const commitEnd = useCallback(
     (next: Date | null) => {
       commitRange([start, next]);
@@ -497,6 +507,7 @@ export const DateRangeInputBase = forwardRef<
     setText: setStartText,
     makeBaseDate: today,
     isBlocked: isBlockedDay,
+    isUnfinishedBlocked: startCostsEnd,
     inputRef: startRef,
     containerRef: startRef,
     onFocus: () => {
