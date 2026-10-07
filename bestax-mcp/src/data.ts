@@ -177,6 +177,28 @@ export async function resolveName(input: string): Promise<string | null> {
   return ci ? ci.name : null;
 }
 
+/**
+ * The part a dot-path names (`Navbar.Brand`), or null for a plain name. Cleaned
+ * the way `resolveName` cleans, so `<Navbar.Brand>` names it too.
+ */
+export function dotPath(input: string): string | null {
+  const cleaned = input.trim().replace(/^<|\/?>$/g, '');
+  return cleaned.includes('.') ? cleaned : null;
+}
+
+/**
+ * This server's own version, from the manifest that ships beside `dist/`. It is
+ * what `serverInfo.version` reports: the version of the implementation, as the
+ * protocol defines it, while the library version the index documents is in the
+ * instructions and in every drift warning.
+ */
+export async function loadServerVersion(): Promise<string> {
+  const pkg = await readJson<{ version: string }>(
+    join(HERE, '..', 'package.json')
+  );
+  return pkg.version;
+}
+
 export function loadComponent(name: string): Promise<ComponentRecord> {
   let cached = componentCache.get(name);
   if (!cached) {

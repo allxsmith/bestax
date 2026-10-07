@@ -286,7 +286,7 @@
       "category": "helpers",
       "purpose": "`ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then, so content that depends on browser-only state doesn't…",
       "slug": "helpers/clientonly",
-      "import": "import { ClientOnly } from '@allxsmith/bestax-bulma';",
+      "import": "import { ClientOnly, useIsHydrated } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
       "exampleCount": 3
@@ -352,7 +352,7 @@
       "category": "helpers",
       "purpose": "The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.",
       "slug": "helpers/config",
-      "import": "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
+      "import": "import { ConfigProvider, useConfig } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
       "exampleCount": 0
@@ -1100,7 +1100,7 @@
       "category": "helpers",
       "purpose": "The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.",
       "slug": "helpers/valid-values",
-      "import": "import { Valid value constants } from '@allxsmith/bestax-bulma';",
+      "import": "import {\n  validColors,\n  validSizes,\n  validViewports,\n} from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
       "exampleCount": 0
@@ -1144,7 +1144,7 @@
       "category": "helpers",
       "purpose": "`usePrefixedClassNames` builds a component class string that honors the `classPrefix` from `ConfigProvider` — the hook every bestax component uses for its own…",
       "slug": "helpers/useprefixedclassnames",
-      "import": "import { usePrefixedClassNames } from '@allxsmith/bestax-bulma';",
+      "import": "import {\n  usePrefixedClassNames,\n  prefixedClassNames,\n  createPrefixedClassNames,\n} from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 0,
       "exampleCount": 2

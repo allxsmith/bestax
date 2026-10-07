@@ -22,7 +22,13 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { build, readSkills, reportFailure } from './gen-mcp-index.mjs';
+import {
+  build,
+  helperImport,
+  readSkills,
+  reportFailure,
+} from './gen-mcp-index.mjs';
+import { sectionSpans } from './lib/api-page.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -105,6 +111,57 @@ test('helper pages ship as prose, not as an empty props table', () => {
   assert.deepEqual(hook.parts, []);
   assert.ok(hook.doc.length > 1000, 'helper doc body is missing');
   assert.ok(!hook.doc.startsWith('---'), 'frontmatter must be stripped');
+});
+
+test('every import the index shows is an import statement', () => {
+  // The constants page used to ship `import { Valid value constants } from …`,
+  // built from its title (#935).
+  const statement =
+    /^import \{\s*([\s\S]+?)\s*\} from '@allxsmith\/bestax-bulma';$/;
+  for (const [name, record] of components) {
+    const m = record.import.match(statement);
+    assert.ok(m, `${name} imports with ${JSON.stringify(record.import)}`);
+    for (const binding of m[1]
+      .split(',')
+      .map(b => b.trim())
+      .filter(Boolean)) {
+      assert.match(binding, /^[A-Za-z_$][\w$]*$/, `${name}: ${binding}`);
+    }
+  }
+  assert.match(
+    components.get('Valid value constants').import,
+    /\bvalidColors\b/
+  );
+});
+
+test("a prose page's import comes from its Import section", () => {
+  const importOf = (name, body) => {
+    const { lines, sections } = sectionSpans(
+      `---\ntitle: X\n---\n\n## Import\n\n${body}\n`
+    );
+    const section = sections.find(s => s.heading === 'Import');
+    return helperImport(name, lines, section, 'helpers/x.md');
+  };
+  assert.equal(
+    importOf(
+      'Some constants',
+      "```tsx\nimport { a, b } from '@allxsmith/bestax-bulma';\n```"
+    ),
+    "import { a, b } from '@allxsmith/bestax-bulma';"
+  );
+  // A block importing from somewhere else is not the library's import.
+  assert.equal(
+    importOf('useThing', "```ts\nimport { x } from 'elsewhere';\n```"),
+    "import { useThing } from '@allxsmith/bestax-bulma';"
+  );
+  assert.throws(
+    () => importOf('Some constants', 'No code here.'),
+    /helpers\/x\.md: "Some constants" is not an identifier/
+  );
+  assert.equal(
+    helperImport('useThing', [], undefined, 'helpers/x.md'),
+    "import { useThing } from '@allxsmith/bestax-bulma';"
+  );
 });
 
 test('usage examples are harvested with their headings', () => {

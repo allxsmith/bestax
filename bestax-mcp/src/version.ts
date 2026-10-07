@@ -11,10 +11,11 @@
  * so when they disagree. Not finding it is not an error — someone evaluating
  * the library before installing it is a normal thing to be doing.
  *
- * Set BESTAX_MCP_NO_VERSION_CHECK=1 to skip this entirely.
+ * Set BESTAX_MCP_NO_VERSION_CHECK=1 to skip this entirely, and
+ * BESTAX_MCP_PROJECT_DIR to look somewhere other than the working directory.
  */
 import { readFile } from 'node:fs/promises';
-import { dirname, join, parse } from 'node:path';
+import { dirname, join, parse, resolve } from 'node:path';
 
 import { attributed } from './format.js';
 
@@ -27,6 +28,18 @@ export interface VersionInfo {
   installed: string | null;
   /** How far apart they are. */
   drift: 'none' | 'patch' | 'minor' | 'major' | 'unknown';
+  /** Whether a project was looked in at all, which opting out turns off. */
+  checked: boolean;
+}
+
+/**
+ * Where to look for the installed library. A client starts a stdio server in a
+ * directory of its choosing, which is not always the project, and not every
+ * client's config can say otherwise; every one can set an environment variable.
+ */
+export function projectDir(): string {
+  const dir = process.env.BESTAX_MCP_PROJECT_DIR?.trim();
+  return dir ? resolve(dir) : process.cwd();
 }
 
 /**
@@ -72,7 +85,7 @@ function compare(indexed: string, installed: string): VersionInfo['drift'] {
  * package can throw for reasons that have nothing to do with the answer.
  */
 export async function findInstalledVersion(
-  cwd: string = process.cwd()
+  cwd: string = projectDir()
 ): Promise<string | null> {
   let dir = cwd;
   const { root } = parse(dir);
@@ -143,7 +156,7 @@ export async function resolveVersions(
   cwd?: string
 ): Promise<VersionInfo> {
   if (versionCheckDisabled()) {
-    return { indexed, installed: null, drift: 'none' };
+    return { indexed, installed: null, drift: 'none', checked: false };
   }
   // Never let a version probe decide whether the docs server starts. Everything below is
   // best-effort by design, and the caller runs it before the transport connects.
@@ -155,6 +168,7 @@ export async function resolveVersions(
     indexed,
     installed,
     drift: installed ? compare(indexed, installed) : 'none',
+    checked: true,
   };
 }
 
@@ -174,5 +188,25 @@ export function versionNote(info: VersionInfo): string | null {
     `⚠ This index documents ${PACKAGE} ${info.indexed}; this project has ` +
     `${info.installed}. Props, defaults and CSS variables may differ — check ` +
     `${attributed('https://bestax.io/docs')} before relying on anything above.`
+  );
+}
+
+/**
+ * What to say, once, when the check found no installed library to compare with.
+ *
+ * Not finding it is a normal state for someone trying the library before
+ * installing it, but it is also what a client that starts the server outside
+ * the project looks like, and that one used to get answers for whichever
+ * version the index documents with no word that nothing had been checked
+ * (#935). Said once per session rather than on every answer, for the reason
+ * patch drift is silent: a line on every response is a line a model skips.
+ */
+export function missingInstallNote(info: VersionInfo): string | null {
+  if (!info.checked || info.installed) return null;
+  return (
+    `Note: no installed ${PACKAGE} was found, so these answers describe ` +
+    `${info.indexed} and were not checked against your project. If it is ` +
+    `installed, this server is looking in the wrong directory: start it in ` +
+    `your project, or set BESTAX_MCP_PROJECT_DIR to the project's path.`
   );
 }
