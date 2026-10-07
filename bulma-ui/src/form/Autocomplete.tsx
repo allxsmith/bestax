@@ -4,6 +4,7 @@ import React, {
   useRef,
   useEffect,
   useCallback,
+  useId,
 } from 'react';
 import {
   classNames,
@@ -202,6 +203,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     const [internalValue, setInternalValue] = useState('');
     const [isActive, setIsActive] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const listboxId = `${useId()}-listbox`;
 
     // Use controlled or internal value
     const inputValue =
@@ -452,6 +454,21 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     const showClear =
       clearable && !!inputValue && !disabled && !loading && !controlLoading;
 
+    // The combobox controls its listbox and points at the highlighted option.
+    // The listbox takes its name from the label this renders, or a fallback
+    // when it renders none.
+    const listOpen = isActive && (filteredData.length > 0 || !!empty);
+    const listLabelId =
+      !insideField && label
+        ? ((fieldLabelProps?.id as string | undefined) ?? `${listboxId}-label`)
+        : undefined;
+    const activeOptionId =
+      listOpen &&
+      highlightedIndex >= 0 &&
+      highlightedIndex < filteredData.length
+        ? `${listboxId}-${highlightedIndex}`
+        : undefined;
+
     const autocompleteElement = (
       <div ref={containerRef} className={combinedClasses} {...rest}>
         <div className={controlClasses}>
@@ -470,7 +487,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             onFocus={handleFocus}
             onKeyDown={handleKeyDown}
             role="combobox"
-            aria-expanded={isActive}
+            aria-expanded={listOpen}
+            aria-controls={listboxId}
+            aria-activedescendant={activeOptionId}
             aria-haspopup="listbox"
             aria-autocomplete="list"
             autoComplete="off"
@@ -504,13 +523,16 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           )}
         </div>
 
-        {isActive && (filteredData.length > 0 || empty) && (
+        {listOpen && (
           <div className={dropdownMenuClasses}>
             <div
               ref={dropdownRef}
               className={dropdownContentClass}
               style={{ maxHeight: `${maxHeight}px`, overflowY: 'auto' }}
+              id={listboxId}
               role="listbox"
+              aria-labelledby={listLabelId}
+              aria-label={listLabelId ? undefined : 'Suggestions'}
               onScroll={handleDropdownScroll}
             >
               {header && <div className={dropdownHeaderClass}>{header}</div>}
@@ -532,6 +554,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   return (
                     <a
                       key={index}
+                      id={`${listboxId}-${index}`}
                       data-index={index}
                       className={itemClasses}
                       onClick={() => !isDisabled && handleSelect(item)}
@@ -564,7 +587,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={fieldLabelProps}
+          labelProps={
+            listLabelId
+              ? { ...fieldLabelProps, id: listLabelId }
+              : fieldLabelProps
+          }
           horizontal={horizontal}
           className={fieldClassName}
         >

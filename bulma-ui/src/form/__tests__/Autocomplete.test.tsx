@@ -598,6 +598,110 @@ describe('Autocomplete', () => {
       expect(screen.getAllByRole('option').length).toBeGreaterThan(0);
     });
 
+    it('points the combobox at its listbox with aria-controls', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      const listbox = screen.getByRole('listbox');
+      expect(listbox.id).toBeTruthy();
+      expect(input).toHaveAttribute('aria-controls', listbox.id);
+    });
+
+    it('keeps aria-expanded false while no list is on screen', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'zzz' } });
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(input).toHaveAttribute('aria-expanded', 'false');
+    });
+
+    it('points aria-activedescendant at the highlighted option', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(input).not.toHaveAttribute('aria-activedescendant');
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      const second = screen.getAllByRole('option')[1];
+      expect(second).toHaveAttribute('aria-selected', 'true');
+      expect(input).toHaveAttribute('aria-activedescendant', second.id);
+
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(input).not.toHaveAttribute('aria-activedescendant');
+    });
+
+    it('drops aria-activedescendant when filtering leaves the highlight behind', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'e' } });
+      for (let i = 0; i < 4; i++) {
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+      }
+      expect(input).toHaveAttribute('aria-activedescendant');
+      // "err" leaves two options, so the fourth-place highlight points past them.
+      fireEvent.change(input, { target: { value: 'err' } });
+      expect(screen.getAllByRole('option')).toHaveLength(2);
+      expect(input).not.toHaveAttribute('aria-activedescendant');
+    });
+
+    it('names the listbox by its label', () => {
+      render(<Autocomplete data={fruits} label="Fruit" />);
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'a' },
+      });
+      expect(screen.getByRole('listbox')).toHaveAccessibleName('Fruit');
+    });
+
+    it('names the listbox through a labelProps id of your own', () => {
+      render(
+        <Autocomplete
+          data={fruits}
+          label="Fruit"
+          labelProps={{ id: 'fruit-label' }}
+        />
+      );
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'a' },
+      });
+      expect(screen.getByRole('listbox')).toHaveAttribute(
+        'aria-labelledby',
+        'fruit-label'
+      );
+      expect(screen.getByRole('listbox')).toHaveAccessibleName('Fruit');
+    });
+
+    it.each([
+      ['with no label', <Autocomplete key="bare" data={fruits} />],
+      [
+        'inside an outer Field',
+        <Field key="field" label="Fruit">
+          <Autocomplete data={fruits} label="Dropped" />
+        </Field>,
+      ],
+    ])('falls back to a name for the listbox %s', (_name, ui) => {
+      render(ui);
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'a' },
+      });
+      const listbox = screen.getByRole('listbox');
+      expect(listbox).toHaveAccessibleName('Suggestions');
+      expect(listbox).not.toHaveAttribute('aria-labelledby');
+    });
+
+    it('gives each Autocomplete its own listbox id', () => {
+      render(
+        <>
+          <Autocomplete data={fruits} />
+          <Autocomplete data={fruits} />
+        </>
+      );
+      const [a, b] = screen.getAllByRole('combobox');
+      expect(a.getAttribute('aria-controls')).not.toBe(
+        b.getAttribute('aria-controls')
+      );
+    });
+
     it('has aria-selected on highlighted item', () => {
       render(<Autocomplete data={fruits} keepFirst />);
       const input = screen.getByRole('combobox');

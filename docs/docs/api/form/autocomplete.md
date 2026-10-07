@@ -401,8 +401,10 @@ function AutocompleteFormDemo() {
 
 - The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.
 - A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.
-- Uses `role="combobox"` with `aria-expanded`
-- Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`
+- Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen
+- Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`, and `aria-controls` pointing at the list
+- Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it
+- The list is a `role="listbox"` named by the `label` prop's label. Inside an outer `Field`, or with no `label`, it falls back to `aria-label="Suggestions"`
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
