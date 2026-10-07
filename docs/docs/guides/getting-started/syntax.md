@@ -103,7 +103,7 @@ Modifiers can be combined to create complex styling:
 Or, in this library, as a single React component:
 
 ```tsx live
-<Button color="primary" size="large" outlined rounded>
+<Button color="primary" size="large" isOutlined isRounded>
   Fancy Button
 </Button>
 ```
@@ -137,7 +137,7 @@ Instead of this HTML:
 You write this React:
 
 ```tsx live
-<Button color="primary" size="large" rounded loading>
+<Button color="primary" size="large" isRounded isLoading>
   Loading
 </Button>
 ```
@@ -417,7 +417,7 @@ In addition to helper classes, each component has its own specific properties th
 <>
   <Block>
     <p>Button-specific properties</p>
-    <Button color="primary" size="large" outlined rounded loading>
+    <Button color="primary" size="large" isOutlined isRounded isLoading>
       Button Text
     </Button>
   </Block>
@@ -430,7 +430,7 @@ In addition to helper classes, each component has its own specific properties th
           placeholder="Email"
           color="success"
           size="medium"
-          rounded
+          isRounded
         />
       </Control>
     </Field>
