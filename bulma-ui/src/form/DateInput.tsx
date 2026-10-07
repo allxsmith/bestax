@@ -7,15 +7,19 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the DateInput convenience wrapper. Extends `DateInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
- * Inside an existing `Control` it renders no `Control` of its own, so set the
- * Control-level props on that `Control` instead. Inside an outer `Field`, or a
- * `Control` with no `Field` around it, it renders no `Field` of its own either.
+ * Inside an existing `Control` it renders no `Control` of its own, so its
+ * Control-level props do nothing there and warn in development; set them on
+ * that `Control` instead. In `inline` mode it renders no `Control` anywhere,
+ * so they do nothing inside a `Control` or out, and warn in development
+ * there too. Inside an outer `Field`, or a `Control` with no `Field` around
+ * it, it renders no `Field` of its own either.
  * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
  * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
  * warns in development. Wrap the `Control` in a `Field` instead, and set the
@@ -60,7 +64,8 @@ export interface DateInputProps extends DateInputBaseProps {
   /**
    * Shows a loading spinner on the `Control` it renders, and hides the
    * launcher (`triggerIcon`) while it does. Inside your own `Control` it
-   * renders none, so this draws nothing; set `isLoading` on that `Control`.
+   * renders none, so this draws nothing and warns in development; set
+   * `isLoading` on that `Control`.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
    * drawn (with bestax's CSS loaded).
    */
@@ -105,8 +110,8 @@ export interface DateInputProps extends DateInputBaseProps {
  * />
  */
 export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
-  (
-    {
+  (props, ref) => {
+    const {
       label,
       labelSize,
       labelProps,
@@ -127,9 +132,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       fieldClassName,
       controlClassName,
       ...baseProps
-    },
-    ref
-  ) => {
+    } = props;
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('DateInput', {
@@ -139,6 +142,27 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       message,
       horizontal,
       fieldClassName,
+    });
+    // Inline mode renders a bare calendar with no input, so the Control's
+    // icon-left container has nothing to anchor to, and it renders no
+    // Control inside one or out. The left icon is checked as the caller
+    // passed it: the default glyph is this component's own choice, not a
+    // prop the caller set.
+    const ownControl = rendersOwnControl('DateInput', {
+      insideControl,
+      inline: baseProps.inline,
+      isLoading,
+      iconLeft,
+      iconLeftName: props.iconLeftName,
+      iconLeftSize,
+      iconRight,
+      iconRightName,
+      iconRightSize,
+      hasIconsLeft,
+      hasIconsRight,
+      isExpanded,
+      controlSize,
+      controlClassName,
     });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
@@ -157,9 +181,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
       <DateInputBase ref={ref} id={controlId} {...baseProps} />
     );
 
-    // Inline mode renders a bare calendar with no input, so the Control's
-    // icon-left container has nothing to anchor to. Skip the Control wrap.
-    if (!insideControl && !baseProps.inline) {
+    if (ownControl) {
       content = (
         <Control
           iconLeft={iconLeft}

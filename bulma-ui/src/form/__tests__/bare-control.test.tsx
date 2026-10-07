@@ -18,6 +18,7 @@ import { File as FileInput } from '../File';
 import { Taginput } from '../Taginput';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
+import type { ControlLevelProps } from '../FormContext';
 
 // Every Field the wrappers render, recorded so the tests below can read which
 // props each wrapper hands its Field. The recording renders the real Field.
@@ -33,6 +34,19 @@ jest.mock('../Field', () => {
   return { __esModule: true, ...actual, Field, default: Field };
 });
 
+// Every Control rendered, recorded the same way, so the tests below can read
+// which props each wrapper hands its own Control.
+const mockControlProps: object[] = [];
+jest.mock('../Control', () => {
+  const actual = jest.requireActual<typeof import('../Control')>('../Control');
+  const { createElement } = jest.requireActual<typeof import('react')>('react');
+  const Control = (props: React.ComponentProps<typeof actual.Control>) => {
+    mockControlProps.push(props);
+    return createElement(actual.Control, props);
+  };
+  return { __esModule: true, ...actual, Control, default: Control };
+});
+
 // #905: a convenience wrapper inside a Control with no Field around it used
 // to render a Field of its own there, a .field inside the .control, so
 // Bulma's sibling rules (`.input ~ .icon`) no longer reached the icons and
@@ -42,7 +56,7 @@ jest.mock('../Field', () => {
 
 interface Wrapper {
   name: string;
-  render: (props: FormFieldProps) => React.ReactElement;
+  render: (props: FormFieldProps & ControlLevelProps) => React.ReactElement;
   /** The widget's own root element, which belongs directly in the Control. */
   root: string;
   /** False for a widget that never renders a Control of its own. */
@@ -102,7 +116,9 @@ const wrappers: Wrapper[] = [
   { name: 'Rate', render: p => <Rate {...p} />, root: '.rate' },
   {
     name: 'File',
-    render: p => <FileInput {...p} />,
+    // Its own `iconLeft` is narrower than the Control's, and the tests that
+    // pass Control-level props skip it, since it renders no Control.
+    render: p => <FileInput {...(p as FormFieldProps)} />,
     root: '.file',
     ownControl: false,
   },
@@ -413,6 +429,371 @@ describe('the bare-Control warning', () => {
         </Control>
       );
       expect(outerControl(container).firstElementChild).toHaveClass('field');
+      expect(warnSpy).not.toHaveBeenCalled();
+    } finally {
+      process.env.NODE_ENV = previous;
+    }
+  });
+});
+
+// #921: inside a Control, a wrapper renders no Control of its own, so the
+// props it would have handed that Control do nothing there. It now warns in
+// development, naming them, and renders exactly what it rendered before.
+
+/**
+ * A value for every Control-level prop, each one that would show on a
+ * Control. `Required` makes a new `ControlLevelProps` member a type error
+ * here until it is given one, so the tests below cover it.
+ */
+const everyControlProp = {
+  isLoading: true,
+  iconLeft: <span className="custom-left">L</span>,
+  iconLeftName: 'user',
+  iconLeftSize: 'small',
+  iconRight: <span className="custom-right">R</span>,
+  iconRightName: 'check',
+  iconRightSize: 'small',
+  hasIconsLeft: true,
+  hasIconsRight: true,
+  isExpanded: true,
+  controlSize: 'large',
+  controlClassName: 'custom-control',
+} satisfies Required<ControlLevelProps>;
+
+const controlLevelProps = Object.keys(everyControlProp) as Array<
+  keyof ControlLevelProps
+>;
+
+/**
+ * Every Control-level prop given a value of its own, so a value a Control
+ * receives names the prop it came from. Strings, because every Control prop
+ * renders one without complaint.
+ */
+const traced = Object.fromEntries(
+  controlLevelProps.map(prop => [prop, `traced-${prop}`])
+) as ControlLevelProps;
+const tracedProp = new Map<unknown, keyof ControlLevelProps>(
+  controlLevelProps.map(prop => [traced[prop], prop])
+);
+
+/** What a wrapper hands its own Control when given every traced value. */
+const handedToControl = (el: Wrapper['render']) => {
+  mockControlProps.length = 0;
+  const { unmount } = render(el(traced));
+  unmount();
+  return mockControlProps
+    .flatMap(props => Object.entries(props))
+    .filter(([key]) => key !== 'children');
+};
+
+/**
+ * Each Control-level prop that reaches a wrapper's own Control, with the
+ * Control prop it arrives as.
+ */
+const reachesControl = (el: Wrapper['render']) => {
+  const reached = new Map<keyof ControlLevelProps, string>();
+  for (const [key, value] of handedToControl(el)) {
+    const prop = tracedProp.get(value);
+    if (prop) reached.set(prop, key);
+  }
+  return reached;
+};
+
+/** The Control-level warnings logged so far. */
+const controlWarnings = () =>
+  warnSpy.mock.calls
+    .map(([message]) => message as string)
+    .filter(message => message.includes('renders no <Control> of its own'));
+
+/** The props a Control-level warning names, and what it says to set. */
+const parseControlWarning = (message: string) => {
+  const named = /<\w+ ([^>]+)> inside a <Control>/.exec(message)?.[1] ?? '';
+  const toSet = /Set (.+) on that <Control> instead\./.exec(message)?.[1] ?? '';
+  return {
+    named: named.split(' ').sort(),
+    toSet: toSet.split(/, | and /).sort(),
+  };
+};
+
+const ownsControl = wrappers.filter(({ ownControl = true }) => ownControl);
+
+describe.each(ownsControl)(
+  '$name Control-level props',
+  ({ name, render: el }) => {
+    let errorSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      // Every wrapper is given every Control-level prop here, and one that
+      // does not take a prop passes it on to the DOM, where React logs it as
+      // an unknown attribute. That noise is expected.
+      errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      errorSpy.mockRestore();
+    });
+
+    it('hands its Control only props that come from a Control-level prop', () => {
+      const untraced = handedToControl(el)
+        .filter(([, value]) => !tracedProp.has(value))
+        .map(([key]) => key);
+      expect(untraced).toEqual([]);
+    });
+
+    it('warns inside a Control for exactly the props that reach its own', () => {
+      const reached = reachesControl(el);
+      render(<Control>{el(traced)}</Control>);
+      const warnings = controlWarnings();
+      expect(warnings).toHaveLength(reached.size > 0 ? 1 : 0);
+      if (reached.size === 0) return;
+
+      const { named, toSet } = parseControlWarning(warnings[0]);
+      expect(warnings[0]).toContain(`<${name} `);
+      expect(named).toEqual([...reached.keys()].sort());
+      expect(toSet).toEqual(
+        [...reached]
+          .map(([prop, key]) => (key === prop ? prop : `${key} (for ${prop})`))
+          .sort()
+      );
+    });
+
+    it('renders the same inside a Control with or without those props', () => {
+      const given = Object.fromEntries(
+        [...reachesControl(el).keys()].map(prop => [
+          prop,
+          everyControlProp[prop],
+        ])
+      ) as ControlLevelProps;
+      const { container: without } = render(<Control>{el({})}</Control>);
+      const { container } = render(<Control>{el(given)}</Control>);
+      expect(withoutIds(container.innerHTML)).toBe(
+        withoutIds(without.innerHTML)
+      );
+    });
+
+    it('warns once per set of props, however often it renders', () => {
+      const reached = [...reachesControl(el).keys()];
+      const tree = (
+        <>
+          <Control>{el(everyControlProp)}</Control>
+          <Control>{el(everyControlProp)}</Control>
+          {reached.map(prop => (
+            <Control key={prop}>
+              {el({ [prop]: everyControlProp[prop] })}
+            </Control>
+          ))}
+        </>
+      );
+      const { rerender } = render(tree);
+      rerender(tree);
+
+      // One for the whole set, and one for each prop given alone, which is
+      // the same set when the wrapper takes a single prop.
+      const warnings = controlWarnings();
+      expect(warnings).toHaveLength(
+        reached.length > 1 ? reached.length + 1 : reached.length
+      );
+      expect(new Set(warnings).size).toBe(warnings.length);
+    });
+
+    it('stays quiet outside a Control', () => {
+      render(el(everyControlProp));
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  }
+);
+
+type PickerProps = ControlLevelProps & { inline?: boolean };
+
+const pickers = [
+  {
+    name: 'DateInput',
+    render: (p: PickerProps) => <DateInput {...p} />,
+    defaultIcon: 'calendar',
+  },
+  {
+    name: 'TimeInput',
+    render: (p: PickerProps) => <TimeInput {...p} />,
+    defaultIcon: 'clock',
+  },
+  {
+    name: 'DateTimeInput',
+    render: (p: PickerProps) => <DateTimeInput {...p} />,
+    defaultIcon: 'calendar-alt',
+  },
+];
+
+describe('the Control-level warning', () => {
+  it.each([
+    { name: 'Input', render: (p: ControlLevelProps) => <Input {...p} /> },
+    ...pickers,
+  ])(
+    'traces every Control-level prop from $name to its Control',
+    ({ render: el }) => {
+      expect([...reachesControl(el).keys()].sort()).toEqual(
+        [...controlLevelProps].sort()
+      );
+    }
+  );
+
+  it('names every Control-level prop passed in one warning', () => {
+    render(
+      <Control>
+        <Input
+          isLoading
+          iconLeftName="user"
+          controlSize="large"
+          controlClassName="custom-control"
+        />
+      </Control>
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const message = warnSpy.mock.calls[0][0] as string;
+    expect(message).toContain(
+      '<Input isLoading iconLeftName controlSize controlClassName> inside a ' +
+        '<Control> renders no <Control> of its own, so those props do ' +
+        'nothing there.'
+    );
+    expect(message).toContain(
+      'Set isLoading, iconLeftName, size (for controlSize) and className ' +
+        '(for controlClassName) on that <Control> instead.'
+    );
+  });
+
+  it('names a single prop as that prop', () => {
+    render(
+      <Control>
+        <Input isLoading />
+      </Control>
+    );
+    const message = warnSpy.mock.calls[0][0] as string;
+    expect(message).toContain('so that prop does nothing there.');
+    expect(message).toContain('Set isLoading on that <Control> instead.');
+  });
+
+  it('ignores falsy Control-level props, which a Control ignores too', () => {
+    render(
+      <Control>
+        <Input
+          isLoading={false}
+          iconLeft={null}
+          iconLeftName=""
+          hasIconsLeft={false}
+          controlClassName=""
+        />
+      </Control>
+    );
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('warns inside a Control with a Field around it too', () => {
+    render(
+      <Field label="Name">
+        <Control>
+          <Input isLoading />
+        </Control>
+      </Field>
+    );
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(controlWarnings()).toHaveLength(1);
+  });
+
+  it.each(pickers)(
+    "never warns for $name's own default icon, only for one passed",
+    ({ name, render: el, defaultIcon }) => {
+      render(<Control>{el({})}</Control>);
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      render(<Control>{el({ iconLeftName: defaultIcon })}</Control>);
+      expect(controlWarnings()).toEqual([
+        expect.stringContaining(`<${name} iconLeftName> inside a <Control>`),
+      ]);
+    }
+  );
+
+  it.each(pickers)(
+    "warns for $name's own isLoading inside a loading Control, where it draws nothing",
+    ({ name, render: el }) => {
+      const { container: without } = render(
+        <Control isLoading>{el({})}</Control>
+      );
+      const { container } = render(
+        <Control isLoading>{el({ isLoading: true })}</Control>
+      );
+      expect(withoutIds(container.innerHTML)).toBe(
+        withoutIds(without.innerHTML)
+      );
+      expect(controlWarnings()).toEqual([
+        expect.stringContaining(`<${name} isLoading> inside a <Control>`),
+      ]);
+    }
+  );
+
+  // An inline picker renders no Control inside a Control or outside one, so
+  // it drops its Control-level props in both places, and says so the same
+  // way in both rather than pointing at a Control.
+  it.each(pickers)(
+    'warns once for an inline $name given Control-level props, inside a Control or not',
+    ({ name, render: el }) => {
+      const given = { inline: true, isLoading: true, controlSize: 'large' };
+      const { container: plain } = render(el({ inline: true }));
+      const { container } = render(el(given as PickerProps));
+      expect(withoutIds(container.innerHTML)).toBe(withoutIds(plain.innerHTML));
+      render(<Control>{el(given as PickerProps)}</Control>);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain(
+        `<${name} inline isLoading controlSize> renders no <Control> in ` +
+          'inline mode, inside a <Control> or not, so those props do nothing.'
+      );
+      expect(message).toContain('Leave them out of an inline picker.');
+    }
+  );
+
+  it.each(pickers)(
+    "never warns for an inline $name's own default icon, only for one passed",
+    ({ name, render: el, defaultIcon }) => {
+      render(el({ inline: true }));
+      render(<Control>{el({ inline: true })}</Control>);
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      render(el({ inline: true, iconLeftName: defaultIcon }));
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain(`<${name} inline iconLeftName> renders no`);
+      expect(message).toContain('so that prop does nothing.');
+      expect(message).toContain('Leave it out of an inline picker.');
+    }
+  );
+
+  it("does not warn for a Select's isLoading, which its select draws", () => {
+    const { container } = render(
+      <Control>
+        <Select isLoading>
+          <option>One</option>
+        </Select>
+      </Control>
+    );
+    expect(container.querySelector('.select')).toHaveClass('is-loading');
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('is silent in production, and renders the same', () => {
+    const tree = (
+      <Control>
+        <Input isLoading iconLeftName="user" />
+      </Control>
+    );
+    const { container: dev } = render(tree);
+    warnSpy.mockClear();
+    resetDevWarnings();
+
+    const previous = process.env.NODE_ENV;
+    process.env.NODE_ENV = 'production';
+    try {
+      const { container } = render(tree);
+      expect(withoutIds(container.innerHTML)).toBe(withoutIds(dev.innerHTML));
       expect(warnSpy).not.toHaveBeenCalled();
     } finally {
       process.env.NODE_ENV = previous;

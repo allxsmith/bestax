@@ -40,7 +40,9 @@ Wraps a single input; adds icons and loading.
 (`label`, `labelSize`, `labelProps`, `horizontal`), Control-level (`iconLeftName`,
 `iconRightName`, `iconLeftSize`, `iconRightSize`, `hasIconsLeft`, `hasIconsRight`, `isLoading`,
 `isExpanded`, `controlSize`), message (`message`, `messageColor`), and container class overrides
-(`fieldClassName`, `controlClassName`).
+(`fieldClassName`, `controlClassName`). Inside your own `Control` it renders no `Control` of its
+own, so the Control-level props and `controlClassName` do nothing there and warn in development;
+set them on that `Control` instead.
 
 `InputBase` props:
 
@@ -91,13 +93,16 @@ File input with `label`, `message`, color/size, and icon support.
 ## Date / time inputs
 
 `DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
-composition like the other convenience inputs, with picker UIs (native with custom fallback).
+composition like the other convenience inputs, with picker UIs (native with custom fallback). An
+`inline` picker renders no `Control` anywhere, so leave its Control-level props out: they do
+nothing there and warn in development.
 
 All six have a launcher button at the right edge (`triggerIcon`) that gives way to the loading
 spinner of the `Control` they sit in, which shares that edge. A convenience input sits in the
 `Control` it renders for its own `isLoading`, unless it is inside your own `Control`; a `*Base`
 variant only ever sits in yours. Inside your own `Control`, put `isLoading` on that `Control`: the
-convenience input renders no `Control` of its own there, so its own `isLoading` draws nothing.
+convenience input renders no `Control` of its own there, so its own `isLoading` draws nothing and
+warns in development.
 Passing `triggerIcon` explicitly overrides this.
 
 ```tsx

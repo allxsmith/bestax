@@ -422,7 +422,7 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 </Control>
 ```
 
-An `Input` inside a `Control` renders no `Control` of its own, and no `Field` either, so it stays the `Control`'s own child. To give it a `label`, `message`, `horizontal` layout or `fieldClassName`, wrap the `Control` in a `Field` and set the `label`, `horizontal` and class name on that `Field`. Without that `Field`, any of those props makes the `Input` render its own `Field` inside the `Control`, and it warns in development.
+An `Input` inside a `Control` renders no `Control` of its own, and no `Field` either, so it stays the `Control`'s own child. Its Control-level props, such as `isLoading` and the icon props, belong on that `Control`: given to the `Input` there, they do nothing and warn in development. To give it a `label`, `message`, `horizontal` layout or `fieldClassName`, wrap the `Control` in a `Field` and set the `label`, `horizontal` and class name on that `Field`. Without that `Field`, any of those props makes the `Input` render its own `Field` inside the `Control`, and it warns in development.
 
 [View full documentation.](../../api/form/control)
 

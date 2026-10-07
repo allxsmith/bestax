@@ -6,6 +6,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
   CheckboxesProvider,
   CheckboxesGroupContextValue,
 } from './FormContext';
@@ -153,7 +154,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
 
   let content = checkboxesElement;
 
-  if (!insideControl) {
+  if (rendersOwnControl('Checkboxes', { insideControl })) {
     content = <Control>{content}</Control>;
   }
 

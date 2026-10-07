@@ -670,6 +670,8 @@ function example() {
 }
 ```
 
+Inside a `Control`, `Input` renders no `Control` of its own, so the props it would hand one, such as `isLoading`, the icon props, `controlSize` and `controlClassName`, do nothing there and warn in development. Set them on that `Control` instead, as `iconLeftName` is above.
+
 Inside a `Control` with no `Field` around it, `Input` renders no `Field` of its own either, unless you give it `label`, `message`, `horizontal` or `fieldClassName`. Those need a `Field`, so with any of them it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and set the `label`, `horizontal` and class name on that `Field` instead.
 
 ---

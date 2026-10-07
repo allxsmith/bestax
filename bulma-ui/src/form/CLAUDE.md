@@ -21,6 +21,11 @@ Conventions:
   cannot fix them: Autocomplete's own markup carries a `.control`, and Numberinput's root is
   itself a `.field`, so either one still nests inside a bare `Control` with no Field of its
   own. Bringing them in means changing that markup first.
+  Decide the Control with `rendersOwnControl` the same way: pass it every prop you hand your
+  own `Control`, as the caller gave it rather than after a default, so that inside a caller's
+  `Control`, where those props do nothing, it can warn about the ones set (#921). A picker
+  passes its `inline` too, since inline it renders no Control in either place. A new
+  Control-level prop joins `ControlLevelProps`, and `bare-control.test.tsx` fails until it does.
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
   as escape hatches, so they are public API too.

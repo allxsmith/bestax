@@ -17,6 +17,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
 } from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
@@ -890,7 +891,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     let content = sliderElement;
 
-    if (!insideControl) {
+    if (rendersOwnControl('Slider', { insideControl })) {
       content = <Control>{content}</Control>;
     }
 

@@ -7,6 +7,7 @@ import {
   useInsideField,
   useInsideControl,
   rendersOwnField,
+  rendersOwnControl,
 } from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 
@@ -16,9 +17,10 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and SelectBase into a single convenience component.
  * Supports all SelectBase props, plus Field-level (label, horizontal) and
  * Control-level (icons) props.
- * Inside an existing `Control` it renders no `Control` of its own, so set the
- * Control-level props on that `Control` instead. Inside an outer `Field`, or a
- * `Control` with no `Field` around it, it renders no `Field` of its own either.
+ * Inside an existing `Control` it renders no `Control` of its own, so its
+ * Control-level props do nothing there and warn in development; set them on
+ * that `Control` instead. Inside an outer `Field`, or a `Control` with no
+ * `Field` around it, it renders no `Field` of its own either.
  * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
  * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
  * warns in development. Wrap the `Control` in a `Field` instead, and set the
@@ -117,6 +119,17 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       horizontal,
       fieldClassName,
     });
+    // Not isLoading, which the select draws itself and so keeps in a Control.
+    const ownControl = rendersOwnControl('Select', {
+      insideControl,
+      iconLeft,
+      iconLeftName,
+      iconLeftSize,
+      hasIconsLeft,
+      isExpanded,
+      controlSize,
+      controlClassName,
+    });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
       id: selectProps.id,
@@ -129,7 +142,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
     let content = <SelectBase ref={ref} id={controlId} {...selectProps} />;
 
-    if (!insideControl) {
+    if (ownControl) {
       content = (
         <Control
           iconLeft={iconLeft}
