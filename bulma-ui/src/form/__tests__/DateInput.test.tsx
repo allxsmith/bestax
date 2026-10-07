@@ -1314,8 +1314,7 @@ describe('DateInput month granularity', () => {
   ] as const)(
     'leaves a controlled mid-%s value alone when focus passes through',
     (granularity, text) => {
-      // Blur re-parses the displayed period, which lands on its first day.
-      // That is the period the value already holds, so nothing commits.
+      // Leaving without typing re-parses nothing, so the value keeps its day.
       const handler = jest.fn();
       const { getByRole } = render(
         <DateInput
@@ -1354,8 +1353,9 @@ describe('DateInput month granularity', () => {
     expect(input.value).toBe('2024-06');
   });
 
-  it('still drops the time from a day value on blur, as before', () => {
-    // The day picker re-parses its text on blur, which commits midnight.
+  it('keeps the time of day on a day value when focus passes through', () => {
+    // Leaving without typing re-parses nothing, so the time the display
+    // leaves out survives rather than becoming midnight.
     const handler = jest.fn();
     const { getByRole } = render(
       <DateInput
@@ -1367,7 +1367,8 @@ describe('DateInput month granularity', () => {
     const input = getByRole('combobox') as HTMLInputElement;
     focusInput(input);
     fireEvent.blur(input);
-    expect(handler).toHaveBeenCalledWith(new Date(2024, 5, 20));
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('2024-06-20');
   });
 
   it('opens on the month grid and commits the first of the picked month', () => {
@@ -1563,10 +1564,14 @@ describe('DateInput month granularity', () => {
     );
     const input = getByRole('combobox') as HTMLInputElement;
     focusInput(input);
-    fireEvent.blur(input);
     const now = new Date();
+    expect(input.value).toBe(
+      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+    );
+    // Leaving without typing commits nothing; a keystroke edits the seed.
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
     expect(handler).toHaveBeenCalledWith(
-      new Date(now.getFullYear(), now.getMonth(), 1)
+      new Date(now.getFullYear() + 1, now.getMonth(), 1)
     );
   });
 
@@ -2184,6 +2189,158 @@ describe('DateInput focus handed back on close', () => {
       leave();
       expect(onChange).toHaveBeenLastCalledWith(new Date(2025, 6, 4));
     });
+  });
+});
+
+describe('DateInput left without typing', () => {
+  // Leaving commits nothing nobody typed: re-parsing the display would drop
+  // what the format leaves out, and an empty field's seed is not the user's.
+  const renderWith = (props: React.ComponentProps<typeof DateInput>) => {
+    const onChange = jest.fn();
+    const utils = render(
+      <>
+        <DateInput {...props} onChange={onChange} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = utils.getByRole('combobox') as HTMLInputElement;
+    const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+    const leave = () => {
+      act(() => {
+        fireEvent.pointerDown(elsewhere);
+      });
+      act(() => {
+        elsewhere.focus();
+      });
+    };
+    // Under openOnFocus the calendar takes the first focus, and the second
+    // is the user clicking back into the field before clicking away.
+    const visit = () => {
+      act(() => {
+        input.focus();
+      });
+      act(() => {
+        input.focus();
+      });
+      expect(input).toHaveFocus();
+      leave();
+    };
+    return { ...utils, input, onChange, leave, visit };
+  };
+  const withTime = new Date(2024, 5, 20, 14, 30);
+
+  describe.each([
+    ['off', { openOnFocus: false }],
+    ['on, the default', {}],
+  ] as const)('with openOnFocus %s', (_, mode) => {
+    it('keeps the time of day a day value carries', () => {
+      const { input, onChange, visit } = renderWith({
+        ...mode,
+        defaultValue: withTime,
+      });
+      visit();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('2024-06-20');
+    });
+
+    it('leaves an empty field empty', () => {
+      const { input, onChange, visit } = renderWith(mode);
+      visit();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+
+    it('does not call parse on the text it showed', () => {
+      const parse = jest.fn(() => new Date(2030, 0, 15));
+      const { onChange, visit } = renderWith({
+        ...mode,
+        parse,
+        defaultValue: withTime,
+      });
+      visit();
+      expect(parse).not.toHaveBeenCalled();
+      expect(onChange).not.toHaveBeenCalled();
+    });
+  });
+
+  it('commits nothing for a value when focus opens a portaled popover', () => {
+    // The portal sits outside the field, so the focus the calendar takes as
+    // it opens reads as leaving.
+    const { input, onChange, getByRole } = renderWith({
+      appendToBody: true,
+      defaultValue: withTime,
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('2024-06-20');
+  });
+
+  it.each([
+    ['in place', false],
+    ['portaled', true],
+  ])(
+    "shows an empty field's seed while a popover %s is open, then drops it",
+    (_, appendToBody) => {
+      const { input, onChange, getByRole, queryByRole, leave } = renderWith({
+        appendToBody,
+      });
+      act(() => {
+        input.focus();
+      });
+      expect(getByRole('dialog')).toBeInTheDocument();
+      expect(input).not.toHaveValue('');
+      leave();
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input).toHaveValue('');
+      expect(onChange).not.toHaveBeenCalled();
+    }
+  );
+
+  it('commits nothing on Enter over the text it showed, and still closes', () => {
+    const parse = jest.fn(() => new Date(2030, 0, 15));
+    const { input, onChange, getByRole, queryByRole } = renderWith({
+      // No segments, so Enter parses the text.
+      format: { year: 'numeric', month: '2-digit', day: '2-digit' },
+      parse,
+      defaultValue: withTime,
+      openOnFocus: false,
+    });
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(parse).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('counts text typed back to what it showed as untouched', () => {
+    const parse = jest.fn(() => new Date(2030, 0, 15));
+    const { input, onChange, leave } = renderWith({
+      // No segments, so the text is typed freely.
+      format: { year: 'numeric', month: '2-digit', day: '2-digit' },
+      parse,
+      defaultValue: withTime,
+      openOnFocus: false,
+    });
+    act(() => {
+      input.focus();
+    });
+    const shown = input.value;
+    fireEvent.change(input, { target: { value: 'tomorrow' } });
+    fireEvent.change(input, { target: { value: shown } });
+    leave();
+    expect(parse).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue(shown);
   });
 });
 

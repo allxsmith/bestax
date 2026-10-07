@@ -444,7 +444,7 @@
           "name": "parse",
           "type": "(s: string) => Date | null",
           "default": null,
-          "description": "Custom parser.",
+          "description": "Custom parser. Enter and leaving the field call it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as seconds.",
           "required": false,
           "inherited": true,
           "deprecated": false

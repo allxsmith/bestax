@@ -1716,6 +1716,122 @@ describe('TimeInput focus handed back on close', () => {
   });
 });
 
+describe('TimeInput left without typing', () => {
+  // Leaving commits nothing nobody typed: re-parsing the display would drop
+  // the seconds and the day it leaves out, and an empty field's seed is not
+  // the user's.
+  const renderWith = (props: React.ComponentProps<typeof TimeInput>) => {
+    const onChange = jest.fn();
+    const utils = render(
+      <>
+        <TimeInput {...props} onChange={onChange} />
+        <button>Elsewhere</button>
+      </>
+    );
+    const input = utils.getByRole('combobox') as HTMLInputElement;
+    const elsewhere = utils.getByRole('button', { name: 'Elsewhere' });
+    // Under openOnFocus the wheels take the first focus, and the second is
+    // the user clicking back into the field before clicking away.
+    const visit = () => {
+      act(() => {
+        input.focus();
+      });
+      act(() => {
+        input.focus();
+      });
+      expect(input).toHaveFocus();
+      act(() => {
+        fireEvent.pointerDown(elsewhere);
+      });
+      act(() => {
+        elsewhere.focus();
+      });
+    };
+    return { ...utils, input, onChange, visit };
+  };
+
+  describe.each([
+    ['off', { openOnFocus: false }],
+    ['on, the default', {}],
+  ] as const)('with openOnFocus %s', (_, mode) => {
+    it('keeps the day and seconds the display leaves out', () => {
+      const { input, onChange, visit } = renderWith({
+        ...mode,
+        defaultValue: new Date(2024, 5, 20, 9, 30, 45),
+      });
+      visit();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('09:30');
+    });
+
+    it('leaves an empty field empty', () => {
+      const { input, onChange, visit } = renderWith(mode);
+      visit();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(input).toHaveValue('');
+    });
+  });
+
+  it('commits nothing on Enter over the text it showed', () => {
+    const parse = jest.fn(() => new Date(2024, 5, 20, 9, 30));
+    const { input, onChange } = renderWith({
+      // No segments, so Enter parses the text.
+      format: { hour: '2-digit', minute: '2-digit' },
+      parse,
+      defaultValue: new Date(2024, 5, 20, 9, 30, 45),
+      openOnFocus: false,
+    });
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(parse).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it('commits nothing for a value when focus opens a portaled popover', () => {
+    // The portal sits outside the field, so the focus the wheels take as
+    // they open reads as leaving.
+    const { input, onChange, getByRole } = renderWith({
+      appendToBody: true,
+      defaultValue: new Date(2024, 5, 20, 9, 30, 45),
+    });
+    act(() => {
+      input.focus();
+    });
+    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('09:30');
+  });
+
+  it.each([
+    ['in place', false],
+    ['portaled', true],
+  ])(
+    "shows an empty field's seed while a popover %s is open, then drops it",
+    (_, appendToBody) => {
+      const { input, onChange, getByRole, queryByRole } = renderWith({
+        appendToBody,
+      });
+      act(() => {
+        input.focus();
+      });
+      expect(getByRole('dialog')).toBeInTheDocument();
+      expect(input).toHaveValue('12:00');
+      const elsewhere = getByRole('button', { name: 'Elsewhere' });
+      act(() => {
+        fireEvent.pointerDown(elsewhere);
+      });
+      act(() => {
+        elsewhere.focus();
+      });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input).toHaveValue('');
+      expect(onChange).not.toHaveBeenCalled();
+    }
+  );
+});
+
 describe('TimeInput onOpen and onClose', () => {
   const pressEscape = (on: Element) =>
     act(() => {
