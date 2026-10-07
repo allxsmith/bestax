@@ -380,7 +380,7 @@
           "name": "onChange",
           "type": "(d: Date | null) => void",
           "default": null,
-          "description": "Fired when the value changes.",
+          "description": "Fired when the value changes. A day picked in the calendar, by click or by key, arrives at local midnight.",
           "required": false,
           "inherited": true,
           "deprecated": false

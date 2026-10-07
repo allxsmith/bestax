@@ -116,7 +116,10 @@ export interface DateInputBaseProps
   value?: Date | null;
   /** Initial date for uncontrolled usage. */
   defaultValue?: Date | null;
-  /** Fired when the value changes. */
+  /**
+   * Fired when the value changes. A day picked in the calendar, by click or
+   * by key, arrives at local midnight.
+   */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
   onOpen?: () => void;
@@ -317,10 +320,8 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // Nothing before year 1 is in range, as in HTML's date inputs.
     const lowerBound = useMemo(() => floorMin(min), [min]);
 
-    // An empty field focuses today at midnight, the time a click on a day
-    // gives, so Enter on the focused day picks no time from the clock.
     const initialFocused = useMemo(
-      () => clampDate(value ?? startOfDay(new Date()), lowerBound, max),
+      () => clampDate(value ?? new Date(), lowerBound, max),
       // intentionally only on mount: keep focusedDate stable until value/open change
       // eslint-disable-next-line react-hooks/exhaustive-deps
       []
@@ -411,8 +412,12 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       [max, isDayGranularity, granularity]
     );
 
+    // A pick is the day at midnight, as a click on its cell gives. Enter hands
+    // over the focused date, which can carry a time of day from the clock, a
+    // value or a bound, so its time is dropped here.
     const handleSelect = useCallback(
-      (d: Date) => {
+      (picked: Date) => {
+        const d = startOfDay(picked);
         if (!isWithin(d, periodMin, periodMax)) return;
         commitValue(d);
         setFocusedDate(d);

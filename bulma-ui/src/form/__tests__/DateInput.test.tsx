@@ -1197,6 +1197,110 @@ describe('DateInputBase remaining branches', () => {
     }
   });
 
+  it('Enter picks a day at midnight, as a click does, whatever time the value has', () => {
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateInput
+        defaultValue={new Date(2026, 9, 7, 14, 30, 45, 250)}
+        closeOnSelect={false}
+        onChange={handler}
+      />
+    );
+    act(() => {
+      getByRole('combobox').focus();
+    });
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'ArrowRight' });
+    });
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
+    });
+    expect(handler).toHaveBeenLastCalledWith(new Date(2026, 9, 8));
+    act(() => {
+      fireEvent.click(
+        Array.from(
+          getByRole('dialog').querySelectorAll('[role="gridcell"]')
+        ).find(c => c.textContent === '10')!
+      );
+    });
+    expect(handler).toHaveBeenLastCalledWith(new Date(2026, 9, 10));
+  });
+
+  it('Enter picks at midnight after typing has moved a value with a time of day', () => {
+    const handler = jest.fn();
+    const { getByRole, getByLabelText } = render(
+      <DateInput
+        defaultValue={new Date(2026, 9, 7, 14, 30, 45, 250)}
+        openOnFocus={false}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox');
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowUp' }); // year segment
+    expect(handler).toHaveBeenLastCalledWith(
+      new Date(2027, 9, 7, 14, 30, 45, 250)
+    );
+    act(() => {
+      fireEvent.click(getByLabelText('Choose date'));
+    });
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
+    });
+    expect(handler).toHaveBeenLastCalledWith(new Date(2027, 9, 7));
+  });
+
+  it('Enter picks at midnight on an empty field clamped to a max with a time of day', () => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    try {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInput max={new Date(2026, 8, 30, 15, 0)} onChange={handler} />
+      );
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(day).toHaveTextContent('30');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'Enter' });
+      });
+      expect(handler).toHaveBeenLastCalledWith(new Date(2026, 8, 30));
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
+  it('opens an empty field under a min with a time of day on a day it can pick', () => {
+    // Midnight on the min's own day is before the min, so that day can't be
+    // picked; the focus lands on the next one, and Enter picks it at midnight.
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    try {
+      const handler = jest.fn();
+      const { getByRole } = render(
+        <DateInput
+          min={new Date(2027, 0, 1, 9, 30, 15, 123)}
+          onChange={handler}
+        />
+      );
+      act(() => {
+        getByRole('combobox').focus();
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(day).toHaveTextContent('2');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'Enter' });
+      });
+      expect(handler).toHaveBeenLastCalledWith(new Date(2027, 0, 2));
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   it('controlled value={null} renders an empty input', () => {
     const { getByRole } = render(<DateInputBase value={null} />);
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('');
