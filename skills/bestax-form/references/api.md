@@ -93,7 +93,9 @@ File input with `label`, `message`, color/size, and icon support.
 ## Date / time inputs
 
 `DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
-composition like the other convenience inputs, with picker UIs (native with custom fallback).
+composition like the other convenience inputs, with picker UIs (native with custom fallback). An
+`inline` picker renders no `Control` anywhere, so leave its Control-level props out: they do
+nothing there and warn in development.
 
 All six have a launcher button at the right edge (`triggerIcon`) that gives way to the loading
 spinner of the `Control` they sit in, which shares that edge. A convenience input sits in the

@@ -729,15 +729,41 @@ describe('the Control-level warning', () => {
     }
   );
 
+  // An inline picker renders no Control inside a Control or outside one, so
+  // it drops its Control-level props in both places, and says so the same
+  // way in both rather than pointing at a Control.
   it.each(pickers)(
-    'does not warn for an inline $name, which renders no Control anywhere',
-    ({ render: el }) => {
-      render(
-        <Control>
-          {el({ inline: true, isLoading: true, iconLeftName: 'clock' })}
-        </Control>
+    'warns once for an inline $name given Control-level props, inside a Control or not',
+    ({ name, render: el }) => {
+      const given = { inline: true, isLoading: true, controlSize: 'large' };
+      const { container: plain } = render(el({ inline: true }));
+      const { container } = render(el(given as PickerProps));
+      expect(withoutIds(container.innerHTML)).toBe(withoutIds(plain.innerHTML));
+      render(<Control>{el(given as PickerProps)}</Control>);
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain(
+        `<${name} inline isLoading controlSize> renders no <Control> in ` +
+          'inline mode, inside a <Control> or not, so those props do nothing.'
       );
-      expect(controlWarnings()).toEqual([]);
+      expect(message).toContain('Leave them out of an inline picker.');
+    }
+  );
+
+  it.each(pickers)(
+    "never warns for an inline $name's own default icon, only for one passed",
+    ({ name, render: el, defaultIcon }) => {
+      render(el({ inline: true }));
+      render(<Control>{el({ inline: true })}</Control>);
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      render(el({ inline: true, iconLeftName: defaultIcon }));
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain(`<${name} inline iconLeftName> renders no`);
+      expect(message).toContain('so that prop does nothing.');
+      expect(message).toContain('Leave it out of an inline picker.');
     }
   );
 

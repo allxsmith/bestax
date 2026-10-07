@@ -132,6 +132,8 @@ export interface ControlLevelProps {
 interface OwnControlOptions extends ControlLevelProps {
   /** `useInsideControl()` as the wrapper read it. */
   insideControl: boolean;
+  /** A picker's `inline`, which renders no `Control` inside one or out. */
+  inline?: boolean;
 }
 
 // Each Control-level prop, with what takes its place on the `Control` the
@@ -157,8 +159,10 @@ const ON_CONTROL: Record<keyof ControlLevelProps, string> = {
  * Whether a convenience form wrapper renders a `Control` of its own (#921):
  * only outside one. Inside a `Control` it renders none, so the props it
  * would have handed its own do nothing there, and it warns in development,
- * naming them and saying to set them on that `Control`. A wrapper passes only
- * the props it hands its own `Control`, as the caller gave them, so a
+ * naming them and saying to set them on that `Control`. An `inline` picker
+ * renders none in either place, so it drops them inside a `Control` or not,
+ * and its warning says so without pointing at a `Control`. A wrapper passes
+ * only the props it hands its own `Control`, as the caller gave them, so a
  * default the wrapper fills in itself never warns. A prop counts when it is
  * truthy, since a falsy one would change nothing on a `Control` either.
  * Internal; not part of the public API.
@@ -167,18 +171,28 @@ export const rendersOwnControl = (
   component: string,
   options: OwnControlOptions
 ): boolean => {
-  if (!options.insideControl) return true;
+  if (!options.inline && !options.insideControl) return true;
   const held = (
     Object.keys(ON_CONTROL) as Array<keyof ControlLevelProps>
   ).filter(prop => options[prop]);
-  if (held.length > 0) {
+  if (held.length === 0) return false;
+  const names = held.join(' ');
+  const doNothing = held.length > 1 ? 'those props do' : 'that prop does';
+  if (options.inline) {
+    warnOnce(
+      `${component}:Control-props-inline:${held.join('+')}`,
+      `[bestax-bulma] <${component} inline ${names}> renders no <Control> ` +
+        `in inline mode, inside a <Control> or not, so ${doNothing} ` +
+        `nothing. Leave ${held.length > 1 ? 'them' : 'it'} out of an ` +
+        `inline picker.`
+    );
+  } else {
     warnOnce(
       `${component}:Control-props-in-Control:${held.join('+')}`,
-      `[bestax-bulma] <${component} ${held.join(' ')}> inside a <Control> ` +
-        `renders no <Control> of its own, so ` +
-        `${held.length > 1 ? 'those props do' : 'that prop does'} nothing ` +
-        `there. Set ${listOf(held.map(prop => ON_CONTROL[prop]))} on that ` +
-        `<Control> instead.`
+      `[bestax-bulma] <${component} ${names}> inside a <Control> renders ` +
+        `no <Control> of its own, so ${doNothing} nothing there. Set ` +
+        `${listOf(held.map(prop => ON_CONTROL[prop]))} on that <Control> ` +
+        `instead.`
     );
   }
   return false;

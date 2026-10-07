@@ -16,8 +16,10 @@ import { useAutoLabelId } from './useAutoLabelId';
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
  * Inside an existing `Control` it renders no `Control` of its own, so its
  * Control-level props do nothing there and warn in development; set them on
- * that `Control` instead. Inside an outer `Field`, or a `Control` with no
- * `Field` around it, it renders no `Field` of its own either.
+ * that `Control` instead. In `inline` mode it renders no `Control` anywhere,
+ * so they do nothing inside a `Control` or out, and warn in development
+ * there too. Inside an outer `Field`, or a `Control` with no `Field` around
+ * it, it renders no `Field` of its own either.
  * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
  * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
  * warns in development. Wrap the `Control` in a `Field` instead, and set the
@@ -138,27 +140,26 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
       fieldClassName,
     });
     // Inline mode renders a bare panel with no input, so the Control's
-    // icon-left container has nothing to anchor to. It renders no Control
-    // anywhere, so it never warns about skipping one. The left icon is checked
-    // as the caller passed it: the default glyph is this component's own
-    // choice, not a prop the caller set.
-    const ownControl =
-      !baseProps.inline &&
-      rendersOwnControl('TimeInput', {
-        insideControl,
-        isLoading,
-        iconLeft,
-        iconLeftName: props.iconLeftName,
-        iconLeftSize,
-        iconRight,
-        iconRightName,
-        iconRightSize,
-        hasIconsLeft,
-        hasIconsRight,
-        isExpanded,
-        controlSize,
-        controlClassName,
-      });
+    // icon-left container has nothing to anchor to, and it renders no
+    // Control inside one or out. The left icon is checked as the caller
+    // passed it: the default glyph is this component's own choice, not a
+    // prop the caller set.
+    const ownControl = rendersOwnControl('TimeInput', {
+      insideControl,
+      inline: baseProps.inline,
+      isLoading,
+      iconLeft,
+      iconLeftName: props.iconLeftName,
+      iconLeftSize,
+      iconRight,
+      iconRightName,
+      iconRightSize,
+      hasIconsLeft,
+      hasIconsRight,
+      isExpanded,
+      controlSize,
+      controlClassName,
+    });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
       id: baseProps.id,

@@ -814,7 +814,7 @@ function example() {
 }
 ```
 
-Inside a `Control`, `DateInput` renders no `Control` of its own, so the props it would hand one, such as `isLoading`, the icon props, `controlSize` and `controlClassName`, do nothing there and warn in development. Set them on that `Control` instead, as `iconLeftName` is above. Its default left icon is left out there too, without a warning, since you did not set it.
+Inside a `Control`, `DateInput` renders no `Control` of its own, so the props it would hand one, such as `isLoading`, the icon props, `controlSize` and `controlClassName`, do nothing there and warn in development. Set them on that `Control` instead, as `iconLeftName` is above. Its default left icon is left out there too, without a warning, since you did not set it. An `inline` picker renders no `Control` anywhere, so these props do nothing on it inside a `Control` or out, and it warns about them too.
 
 Inside a `Control` with no `Field` around it, `DateInput` renders no `Field` of its own either, unless you give it `label`, `message`, `horizontal` or `fieldClassName`. Those need a `Field`, so with any of them it keeps its own `Field` inside the `Control` and warns in development. Wrap the `Control` in a `Field`, as above, and set the `label`, `horizontal` and class name on that `Field` instead.
 
