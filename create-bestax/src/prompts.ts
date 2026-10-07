@@ -50,7 +50,11 @@ export async function promptOverwriteDirectory(
   return response.overwrite === true;
 }
 
-export async function promptInstallSkills(): Promise<boolean> {
+/**
+ * Returns null when the user cancels (Ctrl+C), like every other scaffold
+ * question, so the caller stops instead of reading the cancel as "no" (#950).
+ */
+export async function promptInstallSkills(): Promise<boolean | null> {
   ensureInteractive();
   const response = await prompts({
     type: 'confirm',
@@ -59,7 +63,7 @@ export async function promptInstallSkills(): Promise<boolean> {
     initial: true,
   });
 
-  return response.skills === true;
+  return typeof response.skills === 'boolean' ? response.skills : null;
 }
 
 export async function promptTemplate(): Promise<string | null> {

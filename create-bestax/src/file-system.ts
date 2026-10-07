@@ -16,6 +16,16 @@ export async function isDirectoryEmpty(targetPath: string): Promise<boolean> {
   return files.length === 0;
 }
 
+/** A directory's top-level entries, sorted; none when it does not exist. */
+export async function listDirectoryEntries(
+  targetPath: string
+): Promise<string[]> {
+  if (!fs.existsSync(targetPath)) {
+    return [];
+  }
+  return fs.readdirSync(targetPath).sort();
+}
+
 export async function emptyDirectory(targetPath: string): Promise<void> {
   await fs.emptyDir(targetPath);
 }

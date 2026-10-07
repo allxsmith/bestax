@@ -4,7 +4,7 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import {
   checkDirectoryExists,
-  isDirectoryEmpty,
+  listDirectoryEntries,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -26,9 +26,10 @@ import {
   displayError,
   displayCancelled,
 } from './display.js';
-import { validateProjectName } from './validators.js';
+import { validateProjectName, toValidPackageName } from './validators.js';
 import {
   MESSAGES,
+  TEMPLATES,
   ICON_LIBRARIES,
   BULMA_FLAVORS,
   CLAUDE_MD,
@@ -61,7 +62,15 @@ export interface CLIOptions {
   skills?: boolean;
   telemetry?: boolean;
   yes?: boolean;
+  overwrite?: boolean;
 }
+
+/**
+ * What create() does with the target directory once every prompt is answered:
+ * write into it as is ('empty'), remove what it holds first ('overwrite'), or
+ * nothing at all ('stop', with the reason already shown).
+ */
+export type ExistingDirectoryPlan = 'empty' | 'overwrite' | 'stop';
 
 export class ProjectCreator {
   private templatesDir: string;
@@ -83,25 +92,60 @@ export class ProjectCreator {
     return promptProjectName();
   }
 
+  /**
+   * Decides what happens to an existing target directory without touching it:
+   * create() empties it only after the last prompt, so a Ctrl+C at any later
+   * question leaves the user's files where they were (#945). Only --overwrite
+   * or a yes at the prompt removes files. -y never does, and neither -y nor a
+   * missing terminal can ask, so both stop at a non-empty directory instead.
+   */
   async checkExistingDirectory(
     targetPath: string,
-    targetDir: string
-  ): Promise<boolean> {
-    const exists = await checkDirectoryExists(targetPath);
-    const isEmpty = await isDirectoryEmpty(targetPath);
-
-    if (exists && !isEmpty) {
-      const shouldOverwrite = await promptOverwriteDirectory(targetDir);
-
-      if (!shouldOverwrite) {
-        return false;
-      }
-
-      console.log(chalk.yellow(`\n  Emptying ${targetDir}...`));
-      await emptyDirectory(targetPath);
+    targetDir: string,
+    options?: CLIOptions
+  ): Promise<ExistingDirectoryPlan> {
+    const entries = await listDirectoryEntries(targetPath);
+    if (entries.length === 0) {
+      return 'empty';
     }
 
-    return true;
+    if (options?.overwrite) {
+      return 'overwrite';
+    }
+
+    if (options?.yes || !process.stdin.isTTY) {
+      displayError(MESSAGES.DIRECTORY_NOT_EMPTY_REFUSED(targetDir, entries));
+      return 'stop';
+    }
+
+    if (!(await promptOverwriteDirectory(targetDir))) {
+      displayCancelled();
+      return 'stop';
+    }
+    return 'overwrite';
+  }
+
+  /**
+   * Every flag's value is checked here, before any prompt runs or anything on
+   * disk changes, so a typo can never cost the user an emptied directory (#945).
+   */
+  validateOptions(options?: CLIOptions): string | null {
+    const validTemplates = TEMPLATES.map(t => t.name);
+    if (options?.template && !validTemplates.includes(options.template)) {
+      return `Invalid template: ${options.template}. Valid options are: ${validTemplates.join(', ')}`;
+    }
+
+    const validFlavors = BULMA_FLAVORS.map(f => f.name);
+    if (options?.bulma && !validFlavors.includes(options.bulma)) {
+      return `Invalid Bulma flavor: ${options.bulma}. Valid options are: ${validFlavors.join(', ')}`;
+    }
+
+    const validLibraries = ICON_LIBRARIES.map(lib => lib.name);
+    if (options?.icon && !validLibraries.includes(options.icon)) {
+      return `Invalid icon library: ${options.icon}. Valid options are: ${validLibraries.join(', ')}`;
+    }
+
+    return null;
   }
 
   getTemplatePath(template: string): string {
@@ -474,6 +518,12 @@ export class ProjectCreator {
   async create(projectDir?: string, options?: CLIOptions): Promise<void> {
     displayHeader();
 
+    const optionsError = this.validateOptions(options);
+    if (optionsError) {
+      displayError(optionsError);
+      process.exit(1);
+    }
+
     // Get project name
     const targetDir = await this.getProjectName(projectDir);
     if (!targetDir) {
@@ -485,36 +535,20 @@ export class ProjectCreator {
     const targetPath = path.resolve(process.cwd(), targetDir);
     const projectName = path.basename(targetPath);
 
-    // Check existing directory (skip prompt if --yes is provided)
-    const canContinue = options?.yes
-      ? true
-      : await this.checkExistingDirectory(targetPath, targetDir);
-    if (!canContinue) {
-      displayCancelled();
+    // Decide about an existing directory now, but empty it only after the
+    // last prompt below (#945).
+    const directoryPlan = await this.checkExistingDirectory(
+      targetPath,
+      targetDir,
+      options
+    );
+    if (directoryPlan === 'stop') {
       process.exit(1);
-    }
-
-    // If --yes and directory exists, empty it
-    if (
-      options?.yes &&
-      (await checkDirectoryExists(targetPath)) &&
-      !(await isDirectoryEmpty(targetPath))
-    ) {
-      console.log(chalk.yellow(`\n  Emptying ${targetDir}...`));
-      await emptyDirectory(targetPath);
     }
 
     // Select template (use option or prompt)
     let template: string | null;
     if (options?.template) {
-      // Validate the provided template
-      const validTemplates = ['vite', 'vite-ts'];
-      if (!validTemplates.includes(options.template)) {
-        displayError(
-          `Invalid template: ${options.template}. Valid options are: ${validTemplates.join(', ')}`
-        );
-        process.exit(1);
-      }
       template = options.template;
     } else if (options?.yes) {
       template = 'vite'; // default template
@@ -529,14 +563,6 @@ export class ProjectCreator {
     // Select Bulma flavor (use option or prompt)
     let bulmaFlavor: string | null;
     if (options?.bulma) {
-      // Validate the provided Bulma flavor
-      const validFlavors = BULMA_FLAVORS.map(f => f.name);
-      if (!validFlavors.includes(options.bulma)) {
-        displayError(
-          `Invalid Bulma flavor: ${options.bulma}. Valid options are: ${validFlavors.join(', ')}`
-        );
-        process.exit(1);
-      }
       bulmaFlavor = options.bulma;
     } else if (options?.yes) {
       bulmaFlavor = 'complete'; // default flavor
@@ -551,14 +577,6 @@ export class ProjectCreator {
     // Select icon library (use option or prompt)
     let iconLibrary: string | null;
     if (options?.icon) {
-      // Validate the provided icon library
-      const validLibraries = ICON_LIBRARIES.map(lib => lib.name);
-      if (!validLibraries.includes(options.icon)) {
-        displayError(
-          `Invalid icon library: ${options.icon}. Valid options are: ${validLibraries.join(', ')}`
-        );
-        process.exit(1);
-      }
       iconLibrary = options.icon;
     } else if (options?.yes) {
       iconLibrary = 'none'; // default icon library
@@ -571,22 +589,35 @@ export class ProjectCreator {
     }
 
     // Install AI skills? (use option -> --yes default -> prompt)
-    let installSkills: boolean;
+    let installSkills: boolean | null;
     if (options?.skills !== undefined) {
       installSkills = options.skills;
     } else if (options?.yes) {
       installSkills = true;
     } else {
       installSkills = await promptInstallSkills();
+      if (installSkills === null) {
+        displayCancelled();
+        process.exit(1);
+      }
     }
 
-    // Create project
-    console.log();
-    console.log(chalk.green(MESSAGES.CREATING_PROJECT(targetPath)));
-
     try {
+      if (directoryPlan === 'overwrite') {
+        console.log(chalk.yellow(MESSAGES.EMPTYING_DIRECTORY(targetDir)));
+        await emptyDirectory(targetPath);
+      }
+
+      // Create project
+      console.log();
+      console.log(chalk.green(MESSAGES.CREATING_PROJECT(targetPath)));
+      const packageName = toValidPackageName(projectName);
+      if (packageName !== projectName) {
+        console.log(chalk.dim(MESSAGES.PACKAGE_NAME_NORMALIZED(packageName)));
+      }
+
       await this.copyTemplate(template, targetPath);
-      await updatePackageJson(targetPath, projectName);
+      await updatePackageJson(targetPath, packageName);
       await this.updateIndexHtmlTitle(targetPath, projectName);
       await this.setupBulmaFlavor(targetPath, bulmaFlavor, template);
       await this.setupIconLibrary(targetPath, iconLibrary, template);

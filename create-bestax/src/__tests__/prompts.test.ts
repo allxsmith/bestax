@@ -229,12 +229,12 @@ describe('prompts', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when user cancels prompt', async () => {
+    it('should return null, not "no", when the user cancels (#950)', async () => {
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
 
       const result = await promptInstallSkills();
 
-      expect(result).toBe(false);
+      expect(result).toBeNull();
     });
   });
 

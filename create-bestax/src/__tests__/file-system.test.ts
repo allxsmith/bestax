@@ -39,6 +39,7 @@ const fs = await import('fs-extra');
 const {
   checkDirectoryExists,
   isDirectoryEmpty,
+  listDirectoryEntries,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -110,6 +111,30 @@ describe('file-system', () => {
       ).mockReturnValue(['file.txt'] as unknown);
       const result = await isDirectoryEmpty('/test/path');
       expect(result).toBe(false);
+    });
+  });
+
+  describe('listDirectoryEntries', () => {
+    it('returns no entries for a directory that does not exist', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+      expect(await listDirectoryEntries('/test/path')).toEqual([]);
+      expect(fs.default.readdirSync).not.toHaveBeenCalled();
+    });
+
+    it('returns the top-level entries in a stable, sorted order', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+      (
+        fs.default.readdirSync as jest.MockedFunction<typeof fs.readdirSync>
+      ).mockReturnValue(['src', 'notes.txt', '.git'] as unknown);
+      expect(await listDirectoryEntries('/test/path')).toEqual([
+        '.git',
+        'notes.txt',
+        'src',
+      ]);
     });
   });
 
