@@ -1373,6 +1373,32 @@ describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
       expect(tab('Two')).toHaveFocus();
     });
 
+    it('leaves keys on a control inside a tab to that control', () => {
+      const onChange = jest.fn();
+      render(
+        <Tabs onChange={onChange}>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+            <Tabs.Tab index={1}>
+              Two <button type="button">Close</button>
+              <input aria-label="Rename" />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      const close = screen.getByRole('button', { name: 'Close' });
+      const rename = screen.getByRole('textbox', { name: 'Rename' });
+      focus(close);
+      expect(key(close, 'Enter')).toBe(true);
+      expect(key(close, ' ')).toBe(true);
+      focus(rename);
+      expect(key(rename, 'ArrowLeft')).toBe(true);
+      expect(key(rename, 'Home')).toBe(true);
+      expect(rename).toHaveFocus();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(tab('One')).toHaveAttribute('aria-selected', 'true');
+    });
+
     it('lets onKeyDown take a key over by preventing its default', () => {
       render(
         <Tabs>

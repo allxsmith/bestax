@@ -528,7 +528,16 @@ export const Tab: React.FC<TabProps> = ({
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLLIElement>) => {
     onKeyDown?.(e);
-    if (e.defaultPrevented || e.altKey || e.ctrlKey || e.metaKey) return;
+    // A key on something inside the tab is that element's to answer.
+    if (
+      e.defaultPrevented ||
+      e.target !== e.currentTarget ||
+      e.altKey ||
+      e.ctrlKey ||
+      e.metaKey
+    ) {
+      return;
+    }
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       // Activate through a click on the inner <a>, the element a pointer
