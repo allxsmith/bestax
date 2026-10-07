@@ -253,6 +253,11 @@ test('generates the bestax-skills tree from the real repo', async () => {
   );
   assert.equal(fs.statSync(path.join(out, FILES.logo)).mode & 0o777, 0o644);
   assert.deepEqual(logoViolations(logo), []);
+  assert.equal(
+    fs.readFileSync(path.join(out, FILES.security), 'utf8'),
+    repoText(TEMPLATE.security),
+    'SECURITY.md is copied as written'
+  );
 });
 
 test('the real manifests start the server server.json describes, at the release version', async () => {
@@ -1047,8 +1052,8 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
  * out of name order, a summary cut at a spaced em dash, one whose first
  * sentence is too short to stand alone, one with a trailing space and
  * period, variables with and without a format, references, examples, an
- * executable file, both README regions, the icon and the logo. A variable
- * marked required has no output path, as mcpLaunch refuses it.
+ * executable file, both README regions, the icon, the logo and SECURITY.md.
+ * A variable marked required has no output path, as mcpLaunch refuses it.
  */
 const SNAPSHOT_INPUTS = {
   'plugin/manifest.json': `${JSON.stringify(
@@ -1100,6 +1105,7 @@ The snapshot plugin sends nothing anywhere.
 `,
   'plugin/icon.png': png(512, 512),
   'plugin/logo.png': png(600, 600),
+  'plugin/SECURITY.md': '# Security Policy\n\nReport privately.\n',
   'bestax-mcp/package.json': `${JSON.stringify({
     name: 'snapshot-mcp',
     version: '2.3.4',
@@ -1185,8 +1191,8 @@ The snapshot plugin sends nothing anywhere.
  * generator alters its output on purpose.
  */
 const OUTPUT_SNAPSHOT = {
-  format: 4,
-  sha256: '585a84131e5054253ce26c74292e1b15c9773660e1310af1d55c4c7938613b29',
+  format: 5,
+  sha256: 'b992fc7c8a23d1c534dafe4cbc11d2acab4e9437797bf89b5b6524d2d0d14e9e',
 };
 
 /**
@@ -1557,6 +1563,7 @@ function fixtureSources(overrides = {}) {
     launch: { pin: 'bestax-mcp@1.2.3', env: [] },
     icon: file(FILES.icon, ICON),
     logo: file(FILES.logo, LOGO),
+    security: file(FILES.security, '# Security Policy\n'),
     copied: [file('LICENSE', 'MIT License\n'), file('NOTICE', 'Notice\n')],
     skillFiles: [
       file('skills/demo/SKILL.md', '---\nname: demo\n---\n'),
@@ -1903,6 +1910,13 @@ test('the Cursor manifest must name a logo, skills and mcp.json in the tree', ()
       tree.set(FILES.cursor, Buffer.from(JSON.stringify(manifest)));
     }),
     /skills names "\.\/skill\/", which is not in the tree/
+  );
+});
+
+test('the tree must carry SECURITY.md', () => {
+  has(
+    violationsWith(tree => tree.delete(FILES.security)),
+    /^SECURITY\.md: missing\.$/
   );
 });
 
@@ -2339,6 +2353,7 @@ function fixtureRepo({ init = true } = {}) {
   write(root, TEMPLATE.readme, FIXTURE_README);
   write(root, TEMPLATE.icon, ICON);
   write(root, TEMPLATE.logo, LOGO);
+  write(root, TEMPLATE.security, '# Security Policy\n');
   write(
     root,
     `${MCP_DIR}/package.json`,
@@ -2387,6 +2402,8 @@ test('readSources builds the launch and README from the fixture inputs', async (
   assert.ok(sources.icon.content.equals(ICON));
   assert.equal(sources.icon.mode, 0o644);
   assert.equal(sources.logo.path, FILES.logo);
+  assert.equal(sources.security.path, FILES.security);
+  assert.equal(sources.security.content.toString(), '# Security Policy\n');
   assert.ok(sources.logo.content.equals(LOGO));
   const readme = sources.readme.toString('utf8');
   assert.ok(readme.includes(`- **demo**: ${DEMO_SUMMARY}\n`));

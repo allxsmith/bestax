@@ -95,6 +95,11 @@
  *     -resize 820x820 -gravity center -extent 1024x1024 -alpha remove \
  *     -alpha off -strip PNG24:plugin/logo.png
  *
+ * plugin/SECURITY.md is copied as the repository's SECURITY.md, as written.
+ * bestax-skills has its issues turned off, so it says where to report a
+ * vulnerability and links the monorepo's full policy rather than copying it.
+ * Plugin scanners and directories look for the file at the root.
+ *
  * `gemini-extension.json` makes the repository a Gemini CLI extension. Gemini
  * finds the skills in `skills/` by itself, and the manifest starts the server
  * the way the Claude manifest does. The extension gallery lists a repository
@@ -165,6 +170,7 @@ export const TEMPLATE = {
   readme: 'plugin/README.md',
   icon: 'plugin/icon.png',
   logo: 'plugin/logo.png',
+  security: 'plugin/SECURITY.md',
 };
 
 /** Repo-root files copied into the tree under the same name. */
@@ -184,6 +190,7 @@ export const INPUT_FILES = [
   TEMPLATE.readme,
   TEMPLATE.icon,
   TEMPLATE.logo,
+  TEMPLATE.security,
   `${MCP_DIR}/package.json`,
   `${MCP_DIR}/server.json`,
   SKILL_INDEX,
@@ -251,7 +258,7 @@ export const PUBLISH_PATHS = [
  * The test sees only what its inputs reach, so a change that adds a
  * rendering path adds an input that reaches it.
  */
-export const OUTPUT_FORMAT = 4;
+export const OUTPUT_FORMAT = 5;
 
 /** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
@@ -300,8 +307,8 @@ export const TEMPLATE_KEYS = {
 
 /**
  * The files the tree holds besides the COPIED files and the skills. The
- * icon and the logo are plugin/icon.png's and plugin/logo.png's bytes, and
- * the rest are generated here.
+ * icon, the logo and SECURITY.md are plugin/icon.png's, plugin/logo.png's
+ * and plugin/SECURITY.md's bytes, and the rest are generated here.
  */
 export const FILES = {
   marketplace: '.claude-plugin/marketplace.json',
@@ -313,6 +320,7 @@ export const FILES = {
   gemini: 'gemini-extension.json',
   mcp: 'mcp.json',
   readme: 'README.md',
+  security: 'SECURITY.md',
 };
 
 /** The directory's limits, from the checklist in the header. */
@@ -831,6 +839,7 @@ export function buildTree({
   launch,
   icon,
   logo,
+  security,
   copied,
   skillFiles,
 }) {
@@ -846,6 +855,7 @@ export function buildTree({
   for (const { path, content, mode } of [
     icon,
     logo,
+    security,
     ...copied,
     ...skillFiles,
   ]) {
@@ -1213,6 +1223,9 @@ export function treeViolations(entries) {
   if (!byPath.has('LICENSE')) violations.push('LICENSE: missing.');
   if (!byPath.has(FILES.icon)) violations.push(`${FILES.icon}: missing.`);
   if (!byPath.has(FILES.logo)) violations.push(`${FILES.logo}: missing.`);
+  if (!byPath.has(FILES.security)) {
+    violations.push(`${FILES.security}: missing.`);
+  }
   if (![...byPath.keys()].some(p => /^skills\/[^/]+\/SKILL\.md$/.test(p))) {
     violations.push('skills/: holds no skills/<name>/SKILL.md.');
   }
@@ -1442,6 +1455,10 @@ export async function readSources(
   );
   const icon = await fileEntry(FILES.icon, join(repo, TEMPLATE.icon));
   const logo = await fileEntry(FILES.logo, join(repo, TEMPLATE.logo));
+  const security = await fileEntry(
+    FILES.security,
+    join(repo, TEMPLATE.security)
+  );
   const copied = [];
   for (const file of COPIED)
     copied.push(await fileEntry(file, join(repo, file)));
@@ -1457,7 +1474,17 @@ export async function readSources(
       skillFiles.push(await fileEntry(`skills/${name}/${rel}`, join(dir, rel)));
     }
   }
-  return { template, version, readme, launch, icon, logo, copied, skillFiles };
+  return {
+    template,
+    version,
+    readme,
+    launch,
+    icon,
+    logo,
+    security,
+    copied,
+    skillFiles,
+  };
 }
 
 /** Writes `tree` into `outDir`, which must be empty or not exist yet. */
