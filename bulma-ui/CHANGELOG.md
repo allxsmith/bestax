@@ -1,3 +1,13 @@
+## [5.26.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.5...@allxsmith/bestax-bulma@5.26.6) (2026-10-07)
+
+
+### Bug Fixes
+
+* **bulma-ui:** give the calendar's day grid rows of a week ([971a196](https://github.com/allxsmith/bestax/commit/971a1965bc781bb95d284f2647612985cc6eae50)), closes [#774](https://github.com/allxsmith/bestax/issues/774)
+* **bulma-ui:** keep Numberinput's buttons in a row inside Field > Control ([4dff84c](https://github.com/allxsmith/bestax/commit/4dff84c59a68b80a6f6d14caf5355f555537c1e2))
+* **bulma-ui:** keep Numberinput's Field examples in a row and labelled ([c937c88](https://github.com/allxsmith/bestax/commit/c937c88f69720e5d168948e73d56cad01441e12a))
+* **bulma-ui:** say where Numberinput goes bare and test bare={false} in a Field ([0461631](https://github.com/allxsmith/bestax/commit/04616319387aa96805b06842973ba90de9a832df))
+
 ## [5.26.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.4...@allxsmith/bestax-bulma@5.26.5) (2026-10-07)
 
 
