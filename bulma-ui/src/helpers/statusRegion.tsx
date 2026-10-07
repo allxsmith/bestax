@@ -63,8 +63,9 @@ const noAnnouncementsYet: Announcements = {
 // the accessibility tree. The declarations match the `extras-sr-only` mixin,
 // plus `clip-path`, which replaces the deprecated `clip`. The negative margin
 // pulls the 1px box back inside the page, so it doesn't add scrollable
-// overflow.
-const visuallyHidden: React.CSSProperties = {
+// overflow. Exported for other live regions that must work without a
+// stylesheet, such as a range calendar's.
+export const visuallyHidden: React.CSSProperties = {
   position: 'absolute',
   width: '1px',
   height: '1px',

@@ -6,9 +6,10 @@ import { makeDate } from '../_pickerInternals/dateUtils';
 
 const June15_2024 = new Date(2024, 5, 15);
 
-const Harness: React.FC<
-  Partial<React.ComponentProps<typeof Calendar>>
-> = props => {
+/** The props of a calendar that picks one date. */
+type SingleProps = Extract<CalendarProps, { onSelect: (d: Date) => void }>;
+
+const Harness: React.FC<Partial<SingleProps>> = props => {
   const [focused, setFocused] = React.useState(June15_2024);
   const [value, setValue] = React.useState<Date | null>(null);
   return (
@@ -32,6 +33,25 @@ describe('Calendar', () => {
   it('renders 42 cells', () => {
     const { container } = render(<Harness />);
     expect(container.querySelectorAll('[role="gridcell"]').length).toBe(42);
+  });
+
+  it('groups the days into rows of a week', () => {
+    // A grid owns rows, and rows own cells, so assistive technology can walk
+    // the grid, and the days it marks selected, row by row.
+    const { container } = render(<Harness />);
+    const grid = container.querySelector('[role="grid"]')!;
+    const rows = Array.from(grid.children);
+    expect(rows.length).toBeGreaterThan(0);
+    for (const row of rows) {
+      expect(row).toHaveAttribute('role', 'row');
+      expect(row).toHaveClass('dateinput-week');
+      expect(row.querySelectorAll(':scope > [role="gridcell"]')).toHaveLength(
+        7
+      );
+    }
+    expect(grid.querySelectorAll('[role="gridcell"]')).toHaveLength(
+      rows.length * 7
+    );
   });
 
   it('renders 7 day name headers', () => {
@@ -749,7 +769,7 @@ describe('Calendar', () => {
  * `Harness` above gives up once a test passes a handler of its own.
  */
 const PeriodHarness: React.FC<
-  Partial<CalendarProps> & { initialValue?: Date | null }
+  Partial<SingleProps> & { initialValue?: Date | null }
 > = ({
   onSelect,
   onFocusedDateChange,

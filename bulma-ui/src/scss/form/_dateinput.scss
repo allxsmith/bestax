@@ -132,10 +132,17 @@ $dateinput-nav-button-size: 1.75rem !default;
   }
 }
 
+// The day names and each week of the grid lay out in seven columns. The
+// grid stacks its weeks, which are rows so it can own them as a grid must.
 .#{iv.$class-prefix}dateinput-day-names,
-.#{iv.$class-prefix}dateinput-grid {
+.#{iv.$class-prefix}dateinput-week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.#{iv.$class-prefix}dateinput-grid {
+  display: grid;
   gap: 2px;
 }
 

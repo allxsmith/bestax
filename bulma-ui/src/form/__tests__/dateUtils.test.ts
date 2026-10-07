@@ -25,6 +25,8 @@ import {
   isPeriodUnselectable,
   makeDate,
   floorMin,
+  canCloseRange,
+  RANGE_WALK_LIMIT,
 } from '../_pickerInternals/dateUtils';
 
 describe('dateUtils', () => {
@@ -500,6 +502,63 @@ describe('dateUtils', () => {
           unselectableDates: leap.slice(1),
         })
       ).toBe(false);
+    });
+  });
+
+  describe('canCloseRange', () => {
+    const june = (day: number, hours = 0) => new Date(2024, 5, day, hours);
+    const weekends = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
+
+    it('closes on the start day or after it, by day', () => {
+      expect(canCloseRange(june(10), june(10), {})).toBe(true);
+      expect(canCloseRange(june(10, 15), june(10, 9), {})).toBe(true);
+      expect(canCloseRange(june(10), june(20), {})).toBe(true);
+      expect(canCloseRange(june(10), june(9, 23), {})).toBe(false);
+    });
+
+    it('will not reach over a day the predicate or the list disables', () => {
+      // Friday 14 June to Monday 17 June crosses a weekend.
+      const c = { shouldDisableDate: weekends };
+      expect(canCloseRange(june(14), june(17), c)).toBe(false);
+      expect(canCloseRange(june(10), june(14), c)).toBe(true);
+      const listed = { unselectableDates: [june(12, 8)] };
+      expect(canCloseRange(june(10), june(14), listed)).toBe(false);
+      expect(canCloseRange(june(12), june(14), listed)).toBe(true);
+    });
+
+    it('reaches over them when disabled days are allowed', () => {
+      const c = { shouldDisableDate: weekends };
+      expect(canCloseRange(june(14), june(17), c, true)).toBe(true);
+      expect(canCloseRange(june(14), june(13), c, true)).toBe(false);
+    });
+
+    it('walks no further than its limit, and refuses a longer span', () => {
+      // Every day between is checked, so a span beyond the limit is refused
+      // rather than walked day by day.
+      const shouldDisableDate = jest.fn(() => false);
+      const start = june(1);
+      const atLimit = addDays(start, RANGE_WALK_LIMIT);
+      expect(canCloseRange(start, atLimit, { shouldDisableDate })).toBe(true);
+      shouldDisableDate.mockClear();
+      expect(
+        canCloseRange(start, addDays(atLimit, 1), { shouldDisableDate })
+      ).toBe(false);
+      expect(shouldDisableDate.mock.calls.length).toBeLessThanOrEqual(
+        RANGE_WALK_LIMIT
+      );
+    });
+
+    it('needs no limit when nothing is walked', () => {
+      const far = addDays(june(1), RANGE_WALK_LIMIT * 10);
+      expect(canCloseRange(june(1), far, {})).toBe(true);
+      expect(
+        canCloseRange(june(1), far, { shouldDisableDate: weekends }, true)
+      ).toBe(true);
+    });
+
+    it('leaves the bounds to the caller', () => {
+      const c = { min: june(12), max: june(12), unselectableDates: [] };
+      expect(canCloseRange(june(10), june(14), c)).toBe(true);
     });
   });
 });
