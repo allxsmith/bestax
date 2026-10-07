@@ -139,6 +139,16 @@ export interface RootEntry {
   /** Attributes the target renders when the element does not set them. */
   readonly defaults?: Readonly<Record<string, string>>;
   /**
+   * What the target renders in place of `defaults` once the element names
+   * itself through one of `by`, set to anything but an empty string (`Icon`
+   * makes a named icon an image and hides any other). A name given as an
+   * expression may render as none, so the element then sets both.
+   */
+  readonly namedDefaults?: {
+    readonly by: readonly string[];
+    readonly defaults: Readonly<Record<string, string>>;
+  };
+  /**
    * An attribute the target always writes on the tags in `on`: `fallback`
    * when the element sets none, or sets it to anything but one of `keeps`
    * (`Card.FooterItem`'s `type` on its <button>). The element converts there
@@ -1761,14 +1771,19 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  // With children, `Icon` renders `.icon` around them as given, and writes an
-  // `aria-label` (`"icon"` unless it's given one).
+  // With children, `Icon` renders `.icon` around them as given. It hides an
+  // icon with no name, and makes one named by `aria-label` or
+  // `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
     tag: 'span',
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
-    defaults: { 'aria-label': 'icon' },
+    defaults: { 'aria-hidden': 'true' },
+    namedDefaults: {
+      by: ['aria-label', 'aria-labelledby'],
+      defaults: { role: 'img' },
+    },
     requiresChildren: true,
     needsElementChildren: true,
     ownProps: [

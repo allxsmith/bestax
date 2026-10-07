@@ -1123,10 +1123,19 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
       })) {
         same(name, [
           iconChild(['fas', 'fa-home'], [], {
-            'aria-label': 'x',
+            'aria-hidden': 'true',
             [name]: value,
           }),
         ]);
+      }
+      // A named icon is an image, as `Icon` renders one, and an empty name
+      // is none.
+      for (const [label, attributes] of Object.entries({
+        'a name': { 'aria-label': 'x', role: 'img' },
+        'a name by reference': { 'aria-labelledby': 'x', role: 'img' },
+        'an empty name': { 'aria-label': '', 'aria-hidden': 'true' },
+      })) {
+        same(label, [iconChild(['fas', 'fa-home'], [], attributes)]);
       }
     });
 

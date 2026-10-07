@@ -46,6 +46,7 @@ const VOCABULARY: ReadonlySet<string> = new Set([
     ...(entry.untypedAttrs ?? []),
     ...(entry.numberAttrs ?? []),
     ...Object.keys(entry.defaults ?? {}),
+    ...Object.keys(entry.namedDefaults?.defaults ?? {}),
     ...Object.keys(entry.dropsAttr ?? {}),
     ...Object.keys(entry.writesAttr ?? {}),
   ]),
