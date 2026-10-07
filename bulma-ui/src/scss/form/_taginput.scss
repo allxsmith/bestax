@@ -354,3 +354,11 @@ $taginput-transition-duration: cv.getVar("duration") !default;
     }
   }
 }
+
+// A loading Control around the Taginput draws its spinner at its right edge,
+// over the first row of tags, where the delete button of the last tag in that
+// row can land. Let clicks through the spinner there, the way the Taginput's
+// own loader does.
+.#{iv.$class-prefix}control.#{iv.$class-prefix}is-loading:has(.#{iv.$class-prefix}taginput)::after {
+  pointer-events: none;
+}

@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Autocomplete, AutocompleteItem } from '../Autocomplete';
 import { Field } from '../Field';
+import { Control } from '../Control';
 
 const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
 
@@ -289,12 +291,64 @@ describe('Autocomplete', () => {
       expect(onSelect).toHaveBeenCalledWith(null);
     });
 
+    it('reaches the clear button by keyboard and clears with Enter or Space', async () => {
+      const user = userEvent.setup();
+      const onInput = jest.fn();
+      render(<Autocomplete data={fruits} clearable onInput={onInput} />);
+      const input = screen.getByRole('combobox');
+
+      for (const key of ['{Enter}', ' ']) {
+        await user.type(input, 'ap');
+        await user.tab();
+        expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
+        await user.keyboard(key);
+        expect(onInput).toHaveBeenLastCalledWith('');
+        expect(input).toHaveValue('');
+        expect(input).toHaveFocus();
+      }
+    });
+
     it('does not show clear button when disabled', () => {
       render(<Autocomplete data={fruits} clearable disabled />);
       const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'test' } });
 
+      expect(
+        screen.queryByRole('button', { name: 'Clear' })
+      ).not.toBeInTheDocument();
+    });
+
+    it('gives way to the loading spinner of a Control it sits in', () => {
+      const autocomplete = (
+        <Autocomplete data={fruits} value="Apple" clearable />
+      );
+      const wrappers = {
+        'Field > Control': (isLoading: boolean) => (
+          <Field>
+            <Control isLoading={isLoading}>{autocomplete}</Control>
+          </Field>
+        ),
+        'bare Control': (isLoading: boolean) => (
+          <Control isLoading={isLoading}>{autocomplete}</Control>
+        ),
+      };
+      for (const [name, wrap] of Object.entries(wrappers)) {
+        const loading = render(wrap(true));
+        expect({
+          name,
+          clear: loading.queryByRole('button', { name: 'Clear' }),
+        }).toEqual({ name, clear: null });
+        loading.unmount();
+
+        const idle = render(wrap(false));
+        expect(idle.getByRole('button', { name: 'Clear' })).toBeInTheDocument();
+        idle.unmount();
+      }
+    });
+
+    it('gives way to its own loading spinner, which sits in the same spot', () => {
+      render(<Autocomplete data={fruits} value="Apple" clearable loading />);
       expect(
         screen.queryByRole('button', { name: 'Clear' })
       ).not.toBeInTheDocument();

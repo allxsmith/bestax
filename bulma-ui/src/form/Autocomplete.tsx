@@ -16,6 +16,7 @@ import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
+import { useControlLoading } from './controlLoading';
 
 /**
  * An item in the Autocomplete dropdown list.
@@ -58,7 +59,12 @@ export interface AutocompleteProps
   placeholder?: string;
   /** Object property to use as the display field. */
   field?: string;
-  /** Whether to show a clear button. */
+  /**
+   * Whether to show a clear button while the input holds a value.
+   * It hides while the input is disabled, and gives way to a loading
+   * spinner at the same right edge: the one `loading` draws, or that of a
+   * `Control` with `isLoading` around the Autocomplete.
+   */
   clearable?: boolean;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
@@ -440,6 +446,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     });
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
+    // The clear button gives way to a spinner at its spot: the `loading` one,
+    // or that of a loading Control this sits in.
+    const controlLoading = useControlLoading();
+    const showClear =
+      clearable && !!inputValue && !disabled && !loading && !controlLoading;
+
     const autocompleteElement = (
       <div ref={containerRef} className={combinedClasses} {...rest}>
         <div className={controlClasses}>
@@ -463,11 +475,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             aria-autocomplete="list"
             autoComplete="off"
           />
-          {clearable && inputValue && !disabled && (
-            <span
+          {showClear && (
+            <button
+              type="button"
               className={iconRightClickableClass}
               onClick={handleClear}
-              role="button"
               aria-label="Clear"
             >
               <svg
@@ -478,11 +490,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                 strokeWidth="2"
                 width="16"
                 height="16"
+                aria-hidden="true"
               >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-            </span>
+            </button>
           )}
           {loading && (
             <span className={iconRightClass}>
