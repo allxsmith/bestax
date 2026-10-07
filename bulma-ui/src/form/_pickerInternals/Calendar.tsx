@@ -79,10 +79,11 @@ export interface CalendarProps {
 
 /**
  * Selects the calendar's focused cell, the one tab stop of whichever grid or
- * year list is on show, for a popover to put focus on as it opens.
+ * year list is on show, for a popover to put focus on as it opens. It runs
+ * against the whole panel, so it matches only inside the grid or the list.
  */
 export const CALENDAR_FOCUSED_CELL =
-  '[data-focused="true"], [data-focused-year="true"]';
+  '[role="grid"] [data-focused="true"], [role="listbox"] [data-focused-year="true"]';
 
 type CalendarView = 'days' | 'months' | 'years';
 
@@ -503,18 +504,23 @@ export const Calendar: React.FC<CalendarProps> = ({
   );
   // The year list's one tab stop, after the month grid's: when the focused
   // year is disabled the stop moves to the nearest enabled year in the list,
-  // and focusing it makes it the focused year. A year outside the list keeps
-  // the stop, which then marks no option.
+  // and focusing it makes it the focused year. As the selection surface a
+  // year outside a non-empty list starts from the end it fell past, so the
+  // list keeps a stop. As navigation the stop marks the current year, so a
+  // year outside the list marks no option.
   const tabStopYear = useMemo(() => {
-    const i = yearList.indexOf(focusedYear);
-    if (i < 0) return focusedYear;
+    let i = yearList.indexOf(focusedYear);
+    if (i < 0) {
+      if (!isYearGranularity || yearList.length === 0) return focusedYear;
+      i = focusedYear < yearList[0] ? 0 : yearList.length - 1;
+    }
     return yearList[
       nearestEnabled(
         i,
         yearList.map(y => disabledYears.has(y))
       )
     ];
-  }, [yearList, focusedYear, disabledYears]);
+  }, [yearList, focusedYear, disabledYears, isYearGranularity]);
 
   // Which of the focused year's months have no selectable day.
   const disabledMonths = useMemo(

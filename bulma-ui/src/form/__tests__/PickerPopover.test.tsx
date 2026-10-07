@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
+import { Calendar, CALENDAR_FOCUSED_CELL } from '../_pickerInternals/Calendar';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -127,6 +128,38 @@ describe('PickerPopover', () => {
     );
     expect(getByRole('button', { name: expected })).toHaveFocus();
   });
+
+  // A panel can hold more than the calendar, as DateTimeInput's does.
+  it.each([
+    ['day', 'data-focused', 'grid'],
+    ['year', 'data-focused-year', 'listbox'],
+  ] as const)(
+    'opens a %s calendar on its own focused cell, not another marked one',
+    (granularity, attribute, role) => {
+      const anchorRef = { current: document.createElement('div') };
+      const { getByRole } = render(
+        <PickerPopover
+          isOpen
+          onClose={() => {}}
+          anchorRef={anchorRef}
+          ariaLabel="calendar"
+          initialFocusSelector={CALENDAR_FOCUSED_CELL}
+        >
+          <button {...{ [attribute]: 'true' }}>elsewhere</button>
+          <Calendar
+            granularity={granularity}
+            value={null}
+            focusedDate={new Date(2024, 5, 15)}
+            onSelect={() => {}}
+            onFocusedDateChange={() => {}}
+          />
+        </PickerPopover>
+      );
+      const cell = getByRole(role).querySelector(`[${attribute}="true"]`);
+      expect(cell).not.toBeNull();
+      expect(document.activeElement).toBe(cell);
+    }
+  );
 
   it('renders without crashing when the anchor ref is empty', () => {
     const emptyRef = { current: null };

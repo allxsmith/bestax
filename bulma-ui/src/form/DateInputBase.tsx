@@ -563,7 +563,10 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
         nearbyMonthDays={nearbyMonthDays}
         color={color}
         size={size}
-        id={`${popoverId}-cal`}
+        // The popover panel takes `popoverId`, so the calendar inside it
+        // takes one of its own. Inline there is no panel, and the calendar
+        // keeps the id it released with.
+        id={inline ? popoverId : `${popoverId}-cal`}
         autoFocusCell={open}
         labels={labels}
       />

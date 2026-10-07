@@ -1130,6 +1130,18 @@ describe('DateInputBase remaining branches', () => {
     expect(document.querySelectorAll(`[id="${label!.id}"]`)).toHaveLength(1);
   });
 
+  // Only the popover has a panel whose id the calendar's must differ from.
+  it('leaves an inline calendar on the id it released with', () => {
+    const { container, getByRole } = render(<DateInputBase id="dob" inline />);
+    expect(container.querySelector('#dob-popover')).toContainElement(
+      getByRole('grid')
+    );
+    expect(getByRole('grid')).toHaveAttribute(
+      'aria-labelledby',
+      'dob-popover-label'
+    );
+  });
+
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {
     const onOpen = jest.fn();
     const onClose = jest.fn();
@@ -1802,6 +1814,27 @@ describe('DateInput year granularity', () => {
     expect(lastCall(handler)).toEqual(new Date(2022, 0, 1));
     fireEvent.keyDown(input, { key: 'ArrowUp' }); // 2023: after max
     expect(handler).toHaveBeenCalledTimes(2);
+  });
+
+  // The open list stays where it opened, so a typed year can fall past it.
+  it('keeps a tab stop in the open list when a typed year falls past its end', () => {
+    const { getByRole, getByLabelText } = render(
+      <DateInput
+        granularity="year"
+        defaultValue={new Date(2024, 0, 1)}
+        openOnFocus={false}
+      />
+    );
+    fireEvent.click(getByLabelText('Choose year'));
+    const input = getByRole('combobox') as HTMLInputElement;
+    focusInput(input);
+    for (const key of '2200') fireEvent.keyDown(input, { key });
+    expect(input.value).toBe('2200');
+    const stops = Array.from(
+      getByRole('listbox').querySelectorAll<HTMLElement>('[role="option"]')
+    ).filter(o => o.tabIndex === 0);
+    expect(stops).toHaveLength(1);
+    expect(stops[0]).toHaveTextContent('2124');
   });
 
   it('renders the calendar even when the native input is forced', () => {
