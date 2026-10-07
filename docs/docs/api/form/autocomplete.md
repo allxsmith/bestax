@@ -405,6 +405,7 @@ function AutocompleteFormDemo() {
 - Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
+- The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
 - Full keyboard navigation support
 
 ---

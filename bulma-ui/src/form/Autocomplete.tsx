@@ -476,10 +476,10 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             autoComplete="off"
           />
           {showClear && (
-            <span
+            <button
+              type="button"
               className={iconRightClickableClass}
               onClick={handleClear}
-              role="button"
               aria-label="Clear"
             >
               <svg
@@ -490,11 +490,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                 strokeWidth="2"
                 width="16"
                 height="16"
+                aria-hidden="true"
               >
                 <line x1="18" y1="6" x2="6" y2="18" />
                 <line x1="6" y1="6" x2="18" y2="18" />
               </svg>
-            </span>
+            </button>
           )}
           {loading && (
             <span className={iconRightClass}>

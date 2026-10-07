@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Autocomplete, AutocompleteItem } from '../Autocomplete';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -288,6 +289,23 @@ describe('Autocomplete', () => {
 
       expect(onInput).toHaveBeenLastCalledWith('');
       expect(onSelect).toHaveBeenCalledWith(null);
+    });
+
+    it('reaches the clear button by keyboard and clears with Enter or Space', async () => {
+      const user = userEvent.setup();
+      const onInput = jest.fn();
+      render(<Autocomplete data={fruits} clearable onInput={onInput} />);
+      const input = screen.getByRole('combobox');
+
+      for (const key of ['{Enter}', ' ']) {
+        await user.type(input, 'ap');
+        await user.tab();
+        expect(screen.getByRole('button', { name: 'Clear' })).toHaveFocus();
+        await user.keyboard(key);
+        expect(onInput).toHaveBeenLastCalledWith('');
+        expect(input).toHaveValue('');
+        expect(input).toHaveFocus();
+      }
     });
 
     it('does not show clear button when disabled', () => {
