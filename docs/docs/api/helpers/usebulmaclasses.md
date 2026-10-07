@@ -192,8 +192,13 @@ The snippets below rebuild simplified components by hand purely to show how `use
 `MyColumns` forwards all of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
 
 ```tsx live
+import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
+
 function example() {
-  function MyColumns({ children, ...props }) {
+  function MyColumns({
+    children,
+    ...props
+  }: BulmaClassesProps & { children?: React.ReactNode }) {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     return (
       <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
@@ -945,6 +950,8 @@ import {
 Here is a small custom component that only needs color and spacing helpers:
 
 ```tsx live
+import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
+
 function example() {
   function PriceTag({
     color,
@@ -952,7 +959,7 @@ function example() {
     backgroundColorShade,
     m,
     children,
-  }) {
+  }: BulmaClassesProps & { children?: React.ReactNode }) {
     const colorClasses = useColorClasses({
       color,
       backgroundColor,

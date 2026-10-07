@@ -41,12 +41,7 @@ function example() {
   return (
     <Collapse
       trigger={
-        <Block
-          p="3"
-          bgColor="white-ter"
-          cursor="pointer"
-          style={{ borderRadius: '4px' }}
-        >
+        <Block p="3" cursor="pointer">
           <Strong>Click to expand</Strong>
         </Block>
       }
@@ -74,12 +69,7 @@ function example() {
     <Collapse
       defaultOpen
       trigger={
-        <Block
-          p="3"
-          bgColor="white-ter"
-          cursor="pointer"
-          style={{ borderRadius: '4px' }}
-        >
+        <Block p="3" cursor="pointer">
           <Strong>This starts open</Strong>
         </Block>
       }
@@ -104,12 +94,7 @@ function example() {
     <Collapse
       animation={false}
       trigger={
-        <Block
-          p="3"
-          bgColor="white-ter"
-          cursor="pointer"
-          style={{ borderRadius: '4px' }}
-        >
+        <Block p="3" cursor="pointer">
           <Strong>No animation</Strong>
         </Block>
       }
@@ -146,7 +131,7 @@ function example() {
         open={isOpen}
         onOpenChange={setIsOpen}
         trigger={
-          <Block p="3" bgColor="white-ter" style={{ borderRadius: '4px' }}>
+          <Block p="3">
             Controlled collapse (click here or the button above)
           </Block>
         }

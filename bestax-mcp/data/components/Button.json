@@ -8,11 +8,11 @@
     { "title": "Default Button", "code": "<Button>Default Button</Button>" },
     {
       "title": "All Colors",
-      "code": "<Buttons>\n  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (\n    <Button key={color} color={color}>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
+      "code": "<Buttons>\n  {(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const).map(\n    color => (\n      <Button key={color} color={color}>\n        {color.charAt(0).toUpperCase() + color.slice(1)}\n      </Button>\n    )\n  )}\n</Buttons>"
     },
     {
       "title": "All Sizes",
-      "code": "<Buttons>\n  {['small', 'normal', 'medium', 'large'].map(size => (\n    <Button key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
+      "code": "<Buttons>\n  {(['small', 'normal', 'medium', 'large'] as const).map(size => (\n    <Button key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
     },
     {
       "title": "Light Variant",
@@ -94,7 +94,7 @@
     },
     {
       "title": "Forwarded ref",
-      "code": "function example() {\n  const buttonRef = React.useRef(null);\n  const [tag, setTag] = React.useState(null);\n\n  return (\n    <>\n      <Button color=\"primary\" ref={buttonRef}>\n        Target\n      </Button>\n      <Button ml=\"2\" onClick={() => setTag(buttonRef.current?.tagName)}>\n        Read the tag from its ref\n      </Button>\n      <p>Rendered element: {tag ?? '—'}</p>\n    </>\n  );\n}"
+      "code": "function example() {\n  const buttonRef = React.useRef<HTMLButtonElement>(null);\n  const [tag, setTag] = React.useState<string>();\n\n  return (\n    <>\n      <Button color=\"primary\" ref={buttonRef}>\n        Target\n      </Button>\n      <Button ml=\"2\" onClick={() => setTag(buttonRef.current?.tagName)}>\n        Read the tag from its ref\n      </Button>\n      <p>Rendered element: {tag ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- **Labeling:** Always provide descriptive content for buttons for screen readers.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.\n- **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.\n\n:::note\nIf your button has only an icon, use `aria-label` to provide accessible text.\n:::",

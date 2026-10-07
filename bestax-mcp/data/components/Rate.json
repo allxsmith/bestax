@@ -36,7 +36,7 @@
     },
     {
       "title": "Custom Icons",
-      "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke=\"currentColor\"\n      strokeWidth={isActive ? 0 : 2}\n      style={{ color: '#f14668' }}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      showScore\n    />\n  );\n}"
+      "code": "function example() {\n  const [rating, setRating] = useState(3);\n\n  const HeartIcon = ({ isActive }: { isActive: boolean }) => (\n    <svg\n      xmlns=\"http://www.w3.org/2000/svg\"\n      viewBox=\"0 0 24 24\"\n      fill={isActive ? 'currentColor' : 'none'}\n      stroke=\"currentColor\"\n      strokeWidth={isActive ? 0 : 2}\n      style={{ color: '#f14668' }}\n    >\n      <path d=\"M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z\" />\n    </svg>\n  );\n\n  return (\n    <Rate\n      value={rating}\n      onChange={setRating}\n      customIcon={({ isActive }) => <HeartIcon isActive={isActive} />}\n      showScore\n    />\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
@@ -48,7 +48,7 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"star\">\n            <Rate defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Rate defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
   "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",

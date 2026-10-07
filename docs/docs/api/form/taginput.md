@@ -39,8 +39,10 @@ The component is exported as `Taginput`; a deprecated `TagInput` alias names the
 Simple tag input without suggestions.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [tags, setTags] = useState(['React', 'TypeScript']);
+  const [tags, setTags] = useState<TaginputTag[]>(['React', 'TypeScript']);
 
   return (
     <Block>
@@ -60,8 +62,10 @@ function example() {
 Tag input with suggestion dropdown.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [tags, setTags] = useState(['React']);
+  const [tags, setTags] = useState<TaginputTag[]>(['React']);
   const suggestions = [
     'React',
     'Vue',
@@ -92,8 +96,10 @@ function example() {
 Only allow tags from the suggestion list.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<TaginputTag[]>([]);
   const categories = [
     'Bug',
     'Feature',
@@ -202,8 +208,10 @@ Tag inputs in different sizes.
 Limit the number of tags allowed.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [tags, setTags] = useState(['One', 'Two']);
+  const [tags, setTags] = useState<TaginputTag[]>(['One', 'Two']);
 
   return (
     <Block>
@@ -229,8 +237,10 @@ function example() {
 Enable duplicate tag values.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [tags, setTags] = useState(['Tag']);
+  const [tags, setTags] = useState<TaginputTag[]>(['Tag']);
 
   return (
     <Taginput
@@ -251,8 +261,10 @@ function example() {
 Change which keys create a new tag.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [tags, setTags] = useState([]);
+  const [tags, setTags] = useState<TaginputTag[]>([]);
 
   return (
     <Block>
@@ -405,7 +417,9 @@ Inside a `Control` with no `Field` around it, `Taginput` renders no `Field` of i
 Use `value` and `onChange` to manage state externally:
 
 ```tsx
-const [tags, setTags] = useState(['React']);
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
+const [tags, setTags] = useState<TaginputTag[]>(['React']);
 <Taginput value={tags} onChange={setTags} />;
 ```
 

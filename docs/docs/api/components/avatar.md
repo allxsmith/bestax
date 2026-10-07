@@ -135,8 +135,8 @@ automatic initials/icon fallback runs.
 
 ```tsx live
 function example() {
-  const avatarRef = React.useRef(null);
-  const [tag, setTag] = React.useState(null);
+  const avatarRef = React.useRef<HTMLElement>(null);
+  const [tag, setTag] = React.useState<string>();
 
   return (
     <>
