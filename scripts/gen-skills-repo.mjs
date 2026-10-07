@@ -95,6 +95,12 @@
  *     -resize 820x820 -gravity center -extent 1024x1024 -alpha remove \
  *     -alpha off -strip PNG24:plugin/logo.png
  *
+ * `gemini-extension.json` makes the repository a Gemini CLI extension. Gemini
+ * finds the skills in `skills/` by itself, and the manifest starts the server
+ * the way the Claude manifest does. The extension gallery lists a repository
+ * that carries this file and the `gemini-cli-extension` topic, which is set
+ * by hand on allxsmith/bestax-skills because a tree cannot carry a topic.
+ *
  * Before writing, and again on what landed on disk, the tree is held to
  * Anthropic's plugin directory checks
  * (https://claude.com/docs/plugins/pre-submission-checklist) in
@@ -245,7 +251,7 @@ export const PUBLISH_PATHS = [
  * The test sees only what its inputs reach, so a change that adds a
  * rendering path adds an input that reaches it.
  */
-export const OUTPUT_FORMAT = 3;
+export const OUTPUT_FORMAT = 4;
 
 /** The flag the generate job passes, so a failed git listing stops the run. */
 export const REQUIRE_CHECKOUT = '--require-checkout';
@@ -304,6 +310,7 @@ export const FILES = {
   cursor: '.cursor-plugin/plugin.json',
   logo: 'assets/logo.png',
   agent: 'plugin.json',
+  gemini: 'gemini-extension.json',
   mcp: 'mcp.json',
   readme: 'README.md',
 };
@@ -782,6 +789,24 @@ export function renderAgentManifest(template, version) {
   };
 }
 
+/**
+ * The Gemini CLI extension manifest. Gemini reads its `mcpServers` inline,
+ * with no `type`. It has no skills field, because Gemini loads an
+ * extension's skills from `skills/<name>/SKILL.md`
+ * (https://geminicli.com/docs/extensions/reference/), the layout
+ * treeViolations already requires. Its `version` is pluginVersion's, like
+ * the other manifests'.
+ */
+export function renderGeminiExtension(template, pin, version) {
+  const { plugin } = template;
+  return {
+    name: plugin.name,
+    version,
+    description: plugin.description,
+    mcpServers: { [MCP_SERVER]: mcpServer(pin) },
+  };
+}
+
 /** The Agent Plugins MCP config. */
 export function renderMcpConfig(pin) {
   return {
@@ -814,6 +839,7 @@ export function buildTree({
     [FILES.claude, json(renderClaudeManifest(template, launch.pin, version))],
     [FILES.cursor, json(renderCursorManifest(template, version))],
     [FILES.agent, json(renderAgentManifest(template, version))],
+    [FILES.gemini, json(renderGeminiExtension(template, launch.pin, version))],
     [FILES.mcp, json(renderMcpConfig(launch.pin))],
     [FILES.readme, generated(readme)],
   ]);
@@ -1007,12 +1033,14 @@ function manifestViolations(byPath) {
   const claude = read(FILES.claude);
   const cursor = read(FILES.cursor);
   const agent = read(FILES.agent);
+  const gemini = read(FILES.gemini);
   const marketplace = read(FILES.marketplace);
   const mcp = read(FILES.mcp);
   for (const [file, manifest] of [
     [FILES.claude, claude],
     [FILES.cursor, cursor],
     [FILES.agent, agent],
+    [FILES.gemini, gemini],
   ]) {
     if (manifest && !PLUGIN_NAME.test(String(manifest.name))) {
       violations.push(
@@ -1023,6 +1051,9 @@ function manifestViolations(byPath) {
   if (claude)
     violations.push(...launcherViolations(FILES.claude, claude.mcpServers));
   if (mcp) violations.push(...launcherViolations(FILES.mcp, mcp.mcpServers));
+  if (gemini) {
+    violations.push(...launcherViolations(FILES.gemini, gemini.mcpServers));
+  }
   if (agent && typeof agent.mcpServers === 'string') {
     named(FILES.agent, 'mcpServers', agent.mcpServers);
   }

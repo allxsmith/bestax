@@ -62,6 +62,7 @@ import {
   renderAgentManifest,
   renderClaudeManifest,
   renderCursorManifest,
+  renderGeminiExtension,
   renderMarketplace,
   renderMcpConfig,
   renderMcpServer,
@@ -283,6 +284,13 @@ test('the real manifests start the server server.json describes, at the release 
   for (const ref of [cursor.logo, cursor.skills, cursor.mcpServers]) {
     assert.ok(fs.existsSync(path.join(out, ref)), ref);
   }
+
+  assert.deepEqual(readJson(out, FILES.gemini), {
+    name: 'bestax',
+    version,
+    description: template.plugin.description,
+    mcpServers: { bestax: { command: 'npx', args: ['-y', REAL_PIN] } },
+  });
 
   assert.deepEqual(readJson(out, FILES.mcp), {
     $schema: AGENT_MCP_SCHEMA,
@@ -1177,8 +1185,8 @@ The snapshot plugin sends nothing anywhere.
  * generator alters its output on purpose.
  */
 const OUTPUT_SNAPSHOT = {
-  format: 3,
-  sha256: 'a7e2a606b442890d0927340b3122c4aec69be10b5e9d73de52e7edcf5614ac46',
+  format: 4,
+  sha256: '585a84131e5054253ce26c74292e1b15c9773660e1310af1d55c4c7938613b29',
 };
 
 /**
@@ -1518,6 +1526,12 @@ test('each manifest takes its fields from the template', () => {
     skills: './skills/',
     mcpServers: `./${FILES.mcp}`,
   });
+  assert.deepEqual(renderGeminiExtension(t, pin, '1.0.7'), {
+    name: t.plugin.name,
+    version: '1.0.7',
+    description: t.plugin.description,
+    mcpServers: { bestax: { command: 'npx', args: ['-y', pin] } },
+  });
 });
 
 // --- the rules, on fixtures -------------------------------------------------------
@@ -1587,7 +1601,12 @@ test('buildTree writes generated files 0644 and keeps each source mode', () => {
   assert.equal(tree.get('LICENSE').mode, 0o644);
   assert.equal(tree.get('skills/demo/SKILL.md').mode, 0o644);
   assert.equal(tree.get('skills/demo/scripts/check.sh').mode, 0o755);
-  for (const manifest of [FILES.agent, FILES.claude, FILES.cursor]) {
+  for (const manifest of [
+    FILES.agent,
+    FILES.claude,
+    FILES.cursor,
+    FILES.gemini,
+  ]) {
     assert.equal(
       JSON.parse(tree.get(manifest).content.toString('utf8')).version,
       '1.0.7',
@@ -1884,6 +1903,31 @@ test('the Cursor manifest must name a logo, skills and mcp.json in the tree', ()
       tree.set(FILES.cursor, Buffer.from(JSON.stringify(manifest)));
     }),
     /skills names "\.\/skill\/", which is not in the tree/
+  );
+});
+
+test('the Gemini manifest must keep the plugin name and an exact npx pin', () => {
+  const withGemini = change =>
+    violationsWith(tree => {
+      const manifest = JSON.parse(tree.get(FILES.gemini).toString('utf8'));
+      change(manifest);
+      tree.set(FILES.gemini, Buffer.from(JSON.stringify(manifest)));
+    });
+  assert.deepEqual(
+    withGemini(() => {}),
+    []
+  );
+  has(
+    withGemini(m => (m.mcpServers.bestax.args = ['-y', 'bestax-mcp@^1.2.3'])),
+    /^gemini-extension\.json: mcpServers\."bestax" runs npx "bestax-mcp@\^1\.2\.3", which is not pinned/
+  );
+  has(
+    withGemini(m => (m.name = 'Bestax')),
+    /^gemini-extension\.json: name "Bestax" does not match/
+  );
+  has(
+    violationsWith(tree => tree.delete(FILES.gemini)),
+    /^gemini-extension\.json: missing\.$/
   );
 });
 
