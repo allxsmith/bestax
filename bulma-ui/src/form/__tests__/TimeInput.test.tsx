@@ -242,10 +242,28 @@ describe('TimeInput', () => {
     expect(arg.getHours()).toBe(21);
   });
 
-  it('ArrowDown opens the popover', () => {
-    const { getByRole } = render(<TimeInput openOnFocus={false} />);
-    fireEvent.keyDown(getByRole('combobox'), { key: 'ArrowDown' });
+  it('Alt+ArrowDown opens the popover from the focused field, and Alt+ArrowUp closes it', () => {
+    const handler = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <TimeInput
+        openOnFocus={false}
+        defaultValue={at(10, 0)}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
     expect(getByRole('dialog')).toBeInTheDocument();
+    act(() => {
+      input.focus();
+    });
+    fireEvent.keyDown(input, { key: 'ArrowUp', altKey: true });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(input.value).toBe('10:00');
+    expect(handler).not.toHaveBeenCalled();
   });
 
   it('Escape closes the popover', () => {

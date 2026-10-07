@@ -139,10 +139,26 @@ describe('DateInput', () => {
       expect(getByRole('dialog')).toBeInTheDocument();
     });
 
-    it('opens on ArrowDown', () => {
-      const { getByRole } = render(<DateInput openOnFocus={false} />);
-      fireEvent.keyDown(getByRole('combobox'), { key: 'ArrowDown' });
+    it('opens on Alt+ArrowDown from the focused field, where ArrowDown steps the year', () => {
+      const handler = jest.fn();
+      const { getByRole, queryByRole } = render(
+        <DateInput
+          openOnFocus={false}
+          defaultValue={new Date(2026, 9, 7)}
+          onChange={handler}
+        />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      act(() => {
+        input.focus();
+      });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input.value).toBe('2025-10-07');
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
       expect(getByRole('dialog')).toBeInTheDocument();
+      expect(input.value).toBe('2025-10-07');
+      expect(handler).toHaveBeenCalledTimes(1);
     });
 
     it('closes on Escape', () => {
