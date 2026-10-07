@@ -212,6 +212,9 @@ and the region helpers in `scripts/lib/api-page.mjs`. Its header lists the rest.
   complete square PNG or that can hold a transparent pixel. The generator's header has its
   ImageMagick command too. That manifest takes its display name from `cursor.displayName` in
   `plugin/manifest.json`.
+- `plugin/SECURITY.md` is copied as written to bestax-skills' `SECURITY.md`. That repository has
+  its issues turned off, so the file gives the private reporting channels and links the monorepo's
+  `SECURITY.md` for the rest. A change to how vulnerabilities are reported updates both.
 - `gemini-extension.json` makes bestax-skills a Gemini CLI extension, with the same server launch
   as the Claude manifest. Gemini's extension gallery lists a repository that has this file and the
   `gemini-cli-extension` topic. A tree cannot carry a topic, so it is set by hand on bestax-skills.

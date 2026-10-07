@@ -51,7 +51,7 @@ Glama labels its builds with its own version numbers, so they don't match npm.
 
 ## Plugin directories and marketplaces
 
-The `bestax` plugin from allxsmith/bestax-skills is submitted to each of these, and none lists it yet.
+Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last column says whether it lists the plugin yet.
 
 | Where                                                                   | Carries                 | Updates   | When to act                                                                                                                                                                            |
 | ----------------------------------------------------------------------- | ----------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -60,6 +60,9 @@ The `bestax` plugin from allxsmith/bestax-skills is submitted to each of these, 
 | Kiro                                                                    | Skills and `bestax-mcp` | Manual    | In review. Kiro reaches out if it takes the power into its registry.                                                                                                                   |
 | [Grok Build marketplace](https://github.com/xai-org/plugin-marketplace) | Skills and `bestax-mcp` | Automatic | In review in [#1237](https://github.com/xai-org/plugin-marketplace/pull/1237). The entry pins a commit, which moves when their maintainers merge a version-bump pull request.          |
 | [awesome-copilot](https://github.com/github/awesome-copilot)            | Skills and `bestax-mcp` | Manual    | In review in [issue #4541](https://github.com/github/awesome-copilot/issues/4541). It pins a commit and the version in the root `plugin.json`, which stay put until we send an update. |
+| [Build with Claude](https://github.com/davepoon/buildwithclaude)        | Skills and `bestax-mcp` | Manual    | Listed through [#385](https://github.com/davepoon/buildwithclaude/pull/385). The entry carries the version from `plugin.json`, so a pull request there bumps it.                       |
+| [HOL Registry](https://hol.org/plugins)                                 | Skills and `bestax-mcp` | Mixed     | Listed through the awesome-ai-plugins entry below. HOL scans bestax-skills on its own, and the list entry is a line of text.                                                           |
+| [Gemini CLI extensions](https://geminicli.com/extensions)               | Skills and `bestax-mcp` | Automatic | Not listed yet. The gallery lists repositories with a `gemini-extension.json` and the `gemini-cli-extension` topic, and bestax-skills has both.                                        |
 
 ## Awesome lists
 
@@ -82,6 +85,7 @@ The `bestax` plugin from allxsmith/bestax-skills is submitted to each of these, 
 | [alvinreal/awesome-opensource-ai](https://github.com/alvinreal/awesome-opensource-ai)                               | bestax-mcp       | [#800](https://github.com/alvinreal/awesome-opensource-ai/pull/800)              |
 | [slavakurilyak/awesome-ai-agents](https://github.com/slavakurilyak/awesome-ai-agents)                               | bestax-mcp       | [issue #688](https://github.com/slavakurilyak/awesome-ai-agents/issues/688)      |
 | [laolaoshiren/claude-code-skills-zh](https://github.com/laolaoshiren/claude-code-skills-zh)                         | Bestax skills    | [3256076](https://github.com/laolaoshiren/claude-code-skills-zh/commit/3256076)  |
+| [hashgraph-online/awesome-ai-plugins](https://github.com/hashgraph-online/awesome-ai-plugins)                       | Bestax           | [#623](https://github.com/hashgraph-online/awesome-ai-plugins/pull/623)          |
 
 ### In review
 
@@ -105,6 +109,7 @@ The `bestax` plugin from allxsmith/bestax-skills is submitted to each of these, 
 | [JayLZhou/Awesome-Agent-Skills](https://github.com/JayLZhou/Awesome-Agent-Skills)                         | Bestax Skills          | [#48](https://github.com/JayLZhou/Awesome-Agent-Skills/pull/48)               |
 | [kodustech/awesome-agent-skills](https://github.com/kodustech/awesome-agent-skills)                       | bestax-layout-scaffold | [#128](https://github.com/kodustech/awesome-agent-skills/pull/128)            |
 | [ZeroPointRepo/awesome-hermes-skills](https://github.com/ZeroPointRepo/awesome-hermes-skills)             | Bestax skills          | [#103](https://github.com/ZeroPointRepo/awesome-hermes-skills/pull/103)       |
+| [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)                     | Bestax skills          | [#383](https://github.com/karanb192/awesome-claude-skills/pull/383)           |
 
 Every list entry is Manual: it holds the text we submitted until someone opens a pull request
 against that list.
@@ -113,10 +118,10 @@ against that list.
 
 Not live yet. Each needs a submission or a sign-in first.
 
-| Where                   | Carries      | Updates | Notes                                                                                                            |
-| ----------------------- | ------------ | ------- | ---------------------------------------------------------------------------------------------------------------- |
-| GitHub MCP Registry     | `bestax-mcp` | Unknown | The official listing exists, so onboarding can be requested.                                                     |
-| OpenAI plugin directory | The skills   | Manual  | It takes remote MCP servers only, so `bestax-mcp` would not come along. Each upload is a ZIP with a new version. |
+| Where                   | Carries      | Updates | Notes                                                                                                                                                                                              |
+| ----------------------- | ------------ | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GitHub MCP Registry     | `bestax-mcp` | Unknown | Onboarding requested in [discussion #1257](https://github.com/github/github-mcp-server/discussions/1257#discussioncomment-18787001). New versions sync from the official listing once it is added. |
+| OpenAI plugin directory | The skills   | Manual  | It takes remote MCP servers only, so `bestax-mcp` would not come along. Each upload is a ZIP with a new version.                                                                                   |
 
 ## What goes stale
 
@@ -126,7 +131,8 @@ Say in the pull request which listings need an update, then open those updates o
 - **Adding, renaming or removing a skill.** Entries that name skills or say how many there are:
   claude-skills-collection, awesome-hermes-skills, claude-code-skills-zh, Awesome-Agent-Skills
   (JayLZhou), awesome-claude-code-and-skills and kodustech (both name
-  `bestax-layout-scaffold`), skillsindex.dev, agenticskills.io, cursor.directory and ClawHub.
+  `bestax-layout-scaffold`), skillsindex.dev, agenticskills.io, cursor.directory, ClawHub, Build
+  with Claude (which also gives a count), awesome-ai-plugins and karanb192/awesome-claude-skills.
 - **Changing what `bestax-mcp` offers.** Most MCP entries say it serves props, examples, CSS
   variables and Agent Skills, offline, with no API key. awesome-AI-driven-development also gives
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
@@ -135,8 +141,8 @@ Say in the pull request which listings need an update, then open those updates o
   `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
   exact version, and `skills-publish.yml` regenerates it after each release.
 - **A plugin release.** Once listed, awesome-copilot, the OpenAI directory and Kiro pin the
-  `version` in bestax-skills' root `plugin.json`, and Cursor Marketplace the same version in
-  `.cursor-plugin/plugin.json`. Its patch counts the commits
+  `version` in bestax-skills' root `plugin.json`, Cursor Marketplace the same version in
+  `.cursor-plugin/plugin.json`, and Build with Claude a copy of it in its own entry. Its patch counts the commits
   that touched the plugin's content, plus a number the generator raises when its output changes,
   so it rises with each change without a hand bump, and
   the MAJOR.MINOR comes from `plugin.version` in `plugin/manifest.json`. Update those entries when a

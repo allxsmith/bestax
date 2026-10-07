@@ -37,6 +37,7 @@ import {
   REQUIRE_CHECKOUT,
   REQUIRE_PUBLISHED,
   SKILL_INDEX,
+  SOURCE_REPOSITORY,
   TEMPLATE,
   TreeError,
   assertPublished,
@@ -69,6 +70,7 @@ import {
   renderReadme,
   renderSkillList,
   scanTree,
+  securityViolations,
   skillIndex,
   skillSummary,
   treeViolations,
@@ -180,6 +182,9 @@ const ICON = png(512, 512);
  */
 const LOGO = png(600, 600);
 
+/** The SECURITY.md every fixture tree and fixture repository carries. */
+const SECURITY = 'Report privately to [us](mailto:security@example.com).\n';
+
 /** `chunks` with the IHDR colour type set to `type`. */
 function withColourType(chunks, type) {
   const [[, ihdr], ...rest] = chunks;
@@ -253,6 +258,11 @@ test('generates the bestax-skills tree from the real repo', async () => {
   );
   assert.equal(fs.statSync(path.join(out, FILES.logo)).mode & 0o777, 0o644);
   assert.deepEqual(logoViolations(logo), []);
+  assert.equal(
+    fs.readFileSync(path.join(out, FILES.security), 'utf8'),
+    repoText(TEMPLATE.security),
+    'SECURITY.md is copied as written'
+  );
 });
 
 test('the real manifests start the server server.json describes, at the release version', async () => {
@@ -1047,8 +1057,8 @@ test('plugin.version is MAJOR.MINOR, and the patch is the commit count', () => {
  * out of name order, a summary cut at a spaced em dash, one whose first
  * sentence is too short to stand alone, one with a trailing space and
  * period, variables with and without a format, references, examples, an
- * executable file, both README regions, the icon and the logo. A variable
- * marked required has no output path, as mcpLaunch refuses it.
+ * executable file, both README regions, the icon, the logo and SECURITY.md.
+ * A variable marked required has no output path, as mcpLaunch refuses it.
  */
 const SNAPSHOT_INPUTS = {
   'plugin/manifest.json': `${JSON.stringify(
@@ -1100,6 +1110,8 @@ The snapshot plugin sends nothing anywhere.
 `,
   'plugin/icon.png': png(512, 512),
   'plugin/logo.png': png(600, 600),
+  'plugin/SECURITY.md':
+    '# Security Policy\n\nEmail [us](mailto:security@example.com).\n',
   'bestax-mcp/package.json': `${JSON.stringify({
     name: 'snapshot-mcp',
     version: '2.3.4',
@@ -1185,8 +1197,8 @@ The snapshot plugin sends nothing anywhere.
  * generator alters its output on purpose.
  */
 const OUTPUT_SNAPSHOT = {
-  format: 4,
-  sha256: '585a84131e5054253ce26c74292e1b15c9773660e1310af1d55c4c7938613b29',
+  format: 5,
+  sha256: '8ce20d0121bd264e046987a2f772215e81abafe880610c352a674b24afeff273',
 };
 
 /**
@@ -1557,6 +1569,7 @@ function fixtureSources(overrides = {}) {
     launch: { pin: 'bestax-mcp@1.2.3', env: [] },
     icon: file(FILES.icon, ICON),
     logo: file(FILES.logo, LOGO),
+    security: file(FILES.security, SECURITY),
     copied: [file('LICENSE', 'MIT License\n'), file('NOTICE', 'Notice\n')],
     skillFiles: [
       file('skills/demo/SKILL.md', '---\nname: demo\n---\n'),
@@ -1904,6 +1917,42 @@ test('the Cursor manifest must name a logo, skills and mcp.json in the tree', ()
     }),
     /skills names "\.\/skill\/", which is not in the tree/
   );
+});
+
+test('the tree must carry a SECURITY.md that links a private channel', () => {
+  has(
+    violationsWith(tree => tree.delete(FILES.security)),
+    /^SECURITY\.md: missing\.$/
+  );
+  const withSecurity = text =>
+    violationsWith(tree => tree.set(FILES.security, Buffer.from(text)));
+  for (const ok of [
+    'Email [us](mailto:security@example.com).\n',
+    `Report on the [Security tab](${SOURCE_REPOSITORY}/security).\n`,
+    `See ${SOURCE_REPOSITORY}/security/advisories/new\n`,
+    `${SOURCE_REPOSITORY}/security`,
+  ]) {
+    assert.deepEqual(withSecurity(ok), [], ok);
+    assert.deepEqual(securityViolations(Buffer.from(ok)), [], ok);
+  }
+  for (const gutted of [
+    '',
+    '# Security Policy\n\nOpen an issue.\n',
+    'Email security@example.com.\n',
+    'See https://github.com/owner/repo/issues\n',
+    'Write to [us](mailto:nobody).\n',
+    // Another repository's Security page, or a path that only starts like
+    // the right one.
+    'Report on [GitHub](https://github.com/owner/repo/security).\n',
+    `Report on [GitHub](${SOURCE_REPOSITORY}-skills/security).\n`,
+    `See [the policy](${SOURCE_REPOSITORY}/security-policy).\n`,
+  ]) {
+    has(withSecurity(gutted), /^SECURITY\.md: links no private way to report/);
+  }
+});
+
+test('SOURCE_REPOSITORY is the repository server.json names', () => {
+  assert.equal(SOURCE_REPOSITORY, realServer().repository.url);
 });
 
 test('the Gemini manifest must keep the plugin name and an exact npx pin', () => {
@@ -2339,6 +2388,7 @@ function fixtureRepo({ init = true } = {}) {
   write(root, TEMPLATE.readme, FIXTURE_README);
   write(root, TEMPLATE.icon, ICON);
   write(root, TEMPLATE.logo, LOGO);
+  write(root, TEMPLATE.security, SECURITY);
   write(
     root,
     `${MCP_DIR}/package.json`,
@@ -2387,6 +2437,8 @@ test('readSources builds the launch and README from the fixture inputs', async (
   assert.ok(sources.icon.content.equals(ICON));
   assert.equal(sources.icon.mode, 0o644);
   assert.equal(sources.logo.path, FILES.logo);
+  assert.equal(sources.security.path, FILES.security);
+  assert.equal(sources.security.content.toString(), SECURITY);
   assert.ok(sources.logo.content.equals(LOGO));
   const readme = sources.readme.toString('utf8');
   assert.ok(readme.includes(`- **demo**: ${DEMO_SUMMARY}\n`));
