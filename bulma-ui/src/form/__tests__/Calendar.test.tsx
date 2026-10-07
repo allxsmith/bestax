@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { Calendar, CalendarProps } from '../_pickerInternals/Calendar';
 import { makeDate } from '../_pickerInternals/dateUtils';
 
@@ -711,6 +712,27 @@ describe('Calendar', () => {
       expect(container.querySelector('[role="grid"]')).not.toBeNull();
     });
 
+    it('arrows move focus through the years and Enter jumps to the one with focus', async () => {
+      const user = userEvent.setup();
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          autoFocusCell
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      openYearView(container as HTMLElement);
+      await user.keyboard('{ArrowUp}{ArrowLeft}');
+      expect(document.activeElement).toBe(yearOption(container, 2019));
+      expect(onFocusedDateChange).not.toHaveBeenCalled();
+      await user.keyboard('{Enter}');
+      // The day grid comes back on the same month and day of that year.
+      expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2019, 5, 15));
+      expect(container.querySelector('[role="listbox"]')).toBeNull();
+      expect(document.activeElement).toHaveAttribute('data-focused', 'true');
+      expect(document.activeElement).toHaveTextContent('15');
+    });
+
     it('clicking the trigger again toggles back to the day view', () => {
       const { container } = render(<Harness />);
       openYearView(container as HTMLElement);
@@ -1185,6 +1207,137 @@ describe('Calendar month granularity', () => {
       openYears(container);
       openYears(container);
       expect(grid(container)).not.toBeNull();
+    });
+
+    // The keys move DOM focus and leave the focused year alone: the list is
+    // centred on it, so moving it would reflow the list under the keyboard.
+    it('moves focus through the years with the arrows, Home and End', async () => {
+      const user = userEvent.setup();
+      const onFocusedDateChange = jest.fn();
+      const { container } = render(
+        <PeriodHarness
+          granularity="month"
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      openYears(container);
+      const listbox = container.querySelector<HTMLElement>('[role="listbox"]')!;
+      expect(document.activeElement).toBe(yearOption(container, 2024));
+      for (const [keys, year] of [
+        ['a', 2024],
+        ['{ArrowRight}', 2025],
+        ['{ArrowDown}', 2029],
+        ['{ArrowLeft}', 2028],
+        ['{ArrowUp}', 2024],
+        ['{Home}', 1924],
+        ['{ArrowLeft}{ArrowUp}', 1924],
+        ['{End}', 2124],
+        ['{ArrowRight}{ArrowDown}', 2124],
+      ] as const) {
+        await user.keyboard(keys);
+        expect(listbox).toContainElement(document.activeElement as HTMLElement);
+        expect(document.activeElement).toBe(yearOption(container, year));
+      }
+      expect(onFocusedDateChange).not.toHaveBeenCalled();
+      expect(yearOptions(container)[0]).toHaveTextContent('1924');
+      expect(focusedYearOption(container)).toHaveTextContent('2024');
+      expect(listbox).toHaveAttribute('aria-label', '2024');
+    });
+
+    it.each([
+      ['Enter', '{Enter}'],
+      ['Space', ' '],
+    ])(
+      '%s jumps to the year with focus and returns to the month grid',
+      async (_key, keys) => {
+        const user = userEvent.setup();
+        const onFocusedDateChange = jest.fn();
+        const { container } = render(
+          <PeriodHarness
+            granularity="month"
+            autoFocusCell
+            onFocusedDateChange={onFocusedDateChange}
+          />
+        );
+        openYears(container);
+        await user.keyboard('{ArrowRight}{ArrowRight}');
+        await user.keyboard(keys);
+        expect(onFocusedDateChange).toHaveBeenCalledTimes(1);
+        expect(onFocusedDateChange).toHaveBeenCalledWith(new Date(2026, 5, 15));
+        expect(container.querySelector('[role="listbox"]')).toBeNull();
+        expect(document.activeElement).toBe(focusedMonth(container));
+        expect(document.activeElement).toHaveAttribute('aria-label', 'June');
+      }
+    );
+
+    it('Escape after moving returns to the month grid on the year it left', async () => {
+      const user = userEvent.setup();
+      const onFocusedDateChange = jest.fn();
+      const { container, getByText } = render(
+        <PeriodHarness
+          granularity="month"
+          autoFocusCell
+          onFocusedDateChange={onFocusedDateChange}
+        />
+      );
+      openYears(container);
+      await user.keyboard('{ArrowDown}{ArrowDown}');
+      expect(document.activeElement).toBe(yearOption(container, 2032));
+      await user.keyboard('{Escape}');
+      expect(container.querySelector('[role="listbox"]')).toBeNull();
+      expect(onFocusedDateChange).not.toHaveBeenCalled();
+      expect(getByText('2024')).toBeInTheDocument();
+      expect(document.activeElement).toBe(focusedMonth(container));
+    });
+
+    const tabStops = (container: HTMLElement) =>
+      yearOptions(container).filter(o => o.tabIndex === 0);
+
+    // The year focus moved to is the list's one tab stop, so Tab leaves the
+    // list and comes back to that year, while the current year stays marked.
+    it('moves the tab stop with focus, so Tab leaves the list', async () => {
+      const user = userEvent.setup();
+      const { container } = render(<PeriodHarness granularity="month" />);
+      openYears(container);
+      const listbox = container.querySelector<HTMLElement>('[role="listbox"]')!;
+      await user.keyboard('{ArrowDown}');
+      expect(tabStops(container)).toEqual([yearOption(container, 2028)]);
+      await user.tab({ shift: true });
+      expect(document.activeElement).toHaveAttribute(
+        'aria-haspopup',
+        'listbox'
+      );
+      await user.tab();
+      expect(document.activeElement).toBe(yearOption(container, 2028));
+      await user.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}');
+      expect(tabStops(container)).toEqual([yearOption(container, 2016)]);
+      await user.tab();
+      expect(listbox).not.toContainElement(
+        document.activeElement as HTMLElement
+      );
+      expect(focusedYearOption(container)).toHaveTextContent('2024');
+      expect(yearOption(container, 2024)).toHaveAttribute(
+        'aria-selected',
+        'true'
+      );
+    });
+
+    it('puts the tab stop back on the current year once the list moves past the one left', async () => {
+      const user = userEvent.setup();
+      const props = {
+        granularity: 'month' as const,
+        value: null,
+        onSelect: () => {},
+        onFocusedDateChange: () => {},
+      };
+      const { container, rerender } = render(
+        <Calendar {...props} focusedDate={new Date(2024, 5, 15)} />
+      );
+      openYears(container);
+      await user.keyboard('{ArrowUp}');
+      expect(tabStops(container)).toEqual([yearOption(container, 2020)]);
+      rerender(<Calendar {...props} focusedDate={new Date(2300, 5, 15)} />);
+      expect(tabStops(container)).toEqual([yearOption(container, 2300)]);
     });
   });
 
