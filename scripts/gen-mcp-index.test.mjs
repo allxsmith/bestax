@@ -199,24 +199,61 @@ async function storybookIds() {
   return ids;
 }
 
-test('every Storybook link in the index opens a story that exists', async () => {
-  // The links are hand-written on the API pages and copied here verbatim, and
-  // three of them opened "Couldn't find story" (#936). Every link anywhere in a
-  // record counts, the helper pages' prose included.
+/** The Storybook links in `text` whose id Storybook does not build. */
+function brokenStorybookLinks(text, ids) {
+  const urls = [
+    ...text.matchAll(/https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g),
+  ].map(m => m[0]);
+  return {
+    count: urls.length,
+    broken: urls.filter(url => {
+      const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
+      return !id || !ids.has(id);
+    }),
+  };
+}
+
+test('every Storybook link in the index and the docs opens a story that exists', async () => {
+  // The links are hand-written on the API pages, and three of them opened
+  // "Couldn't find story" (#936). Every link anywhere in a record counts, the
+  // helper pages' prose included, and so does every link on a docs page: the
+  // index copies only the one under Additional Resources, and bestax.io
+  // publishes the rest, such as the See Also links on the Columns and Grid
+  // pages.
+  const { readdir } = await import('node:fs/promises');
   const ids = await storybookIds();
   assert.ok(ids.has('elements-button--default'), 'story ids were not derived');
   const broken = [];
-  let checked = 0;
+
+  let inIndex = 0;
   for (const [name, record] of components) {
-    for (const [url] of JSON.stringify(record).matchAll(
-      /https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g
-    )) {
-      checked++;
-      const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
-      if (!id || !ids.has(id)) broken.push(`${name}: ${url}`);
-    }
+    const found = brokenStorybookLinks(JSON.stringify(record), ids);
+    inIndex += found.count;
+    broken.push(...found.broken.map(url => `index ${name}: ${url}`));
   }
-  assert.ok(checked > 0, 'no Storybook links found to check');
+  // An extraction that broke would empty the field on every record at once, and
+  // the few links in helper-page prose would still pass a smaller floor.
+  const linked = [...components.values()].filter(r => r.storybook).length;
+  assert.ok(
+    linked > components.size / 2,
+    `only ${linked} of ${components.size} records have a Storybook link`
+  );
+
+  const docs = join(REPO, 'docs', 'docs');
+  let onPages = 0;
+  for (const entry of await readdir(docs, {
+    recursive: true,
+    withFileTypes: true,
+  })) {
+    if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue;
+    const file = join(entry.parentPath, entry.name);
+    const found = brokenStorybookLinks(await readFile(file, 'utf8'), ids);
+    onPages += found.count;
+    const page = file.slice(REPO.length + 1);
+    broken.push(...found.broken.map(url => `${page}: ${url}`));
+  }
+  assert.ok(onPages >= inIndex, 'the docs pages were not read');
+
   assert.deepEqual(broken, []);
 });
 
