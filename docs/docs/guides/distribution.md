@@ -158,6 +158,8 @@ Say in the pull request which listings need an update, then open those updates o
   `.claude-plugin/icon.png` only the first time the plugin is saved or submitted, so a new
   `plugin/icon.png` does not reach that listing on its own. Cursor Marketplace has its own logo,
   `assets/logo.png` in bestax-skills, from `plugin/logo.png`.
+- **Raising the Node version `bestax-mcp` needs.** The mcpm.sh registry and the Kilo marketplace
+  repeat the `engines` floor from `bestax-mcp/package.json` as a requirement.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.
@@ -173,5 +175,6 @@ Say in the pull request which listings need an update, then open those updates o
 - **A new Bulma major.** Nearly every entry says "Bulma v1".
 
 Bestax is called bestax-bulma on React component-library lists and Bestax everywhere else.
-Package names stay as they are. Every description says early on that Bestax is for building with
-Bulma v1, since Bulma is the name people search for.
+Package names stay as they are. Write a new or refreshed description so it says early on that
+Bestax is for building with Bulma v1, since Bulma is the name people search for. Older entries,
+such as the description in `bestax-mcp/server.json`, still put it last.
