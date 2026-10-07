@@ -13,7 +13,11 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useInsideField,
+  useInsideControl,
+  rendersOwnField,
+} from './FormContext';
 import { Field } from './Field';
 import { Control } from './Control';
 import { FormFieldProps } from './fieldProps';
@@ -151,6 +155,13 @@ export interface SliderRangeProps extends SliderBaseProps {
 
 /**
  *  Props for the Slider component — a discriminated union of single and range modes.
+ * Inside an existing `Control` it renders no `Control` of its own. Inside an
+ * outer `Field`, or a `Control` with no `Field` around it, it renders no
+ * `Field` of its own either. The exception is `label`, `message`, `horizontal`
+ * or `fieldClassName` in that bare `Control`: it keeps a `Field` for them,
+ * nested in the `.control`, and warns in development. Wrap the `Control` in a
+ * `Field` instead, and set the `label`, `horizontal` and class name on that
+ * `Field`.
  * @extraProp {boolean} [disabled=false] - Whether the slider is disabled.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLElement>} [ref] - Ref forwarded to the input element.
@@ -299,6 +310,14 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
 
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const ownField = rendersOwnField('Slider', {
+      insideField,
+      insideControl,
+      label,
+      message,
+      horizontal,
+      fieldClassName,
+    });
     const { bulmaHelperClasses, rest } = useBulmaClasses(restProps);
     // In range mode the low thumb carries `rest` (and any user id), so the
     // label targets it; each thumb keeps its own aria-label for AT.
@@ -306,7 +325,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       label,
       id: restProps.id,
       labelProps,
-      rendersLabel: !insideField,
+      rendersLabel: ownField,
     });
 
     // Resolve tooltip mode: explicit tooltip prop takes precedence, else showOutput maps to 'auto'
@@ -875,7 +894,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       content = <Control>{content}</Control>;
     }
 
-    if (!insideField) {
+    if (ownField) {
       return (
         <Field
           label={label}

@@ -3,7 +3,11 @@ import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { TextAreaBase, TextAreaBaseProps } from './TextAreaBase';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useInsideField,
+  useInsideControl,
+  rendersOwnField,
+} from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 
 /**
@@ -12,8 +16,13 @@ import { useAutoLabelId } from './useAutoLabelId';
  * Composes Field, Control, and TextAreaBase into a single convenience component.
  * Supports all TextAreaBase props, plus Field-level (label, horizontal) and
  * Control-level (loading) props.
- * Inside an existing `Control` within a `Field` it renders no `Field` or
- * `Control` of its own, so set the Control-level props on that `Control` instead.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead. Inside an outer `Field`, or a
+ * `Control` with no `Field` around it, it renders no `Field` of its own either.
+ * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
+ * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
+ * warns in development. Wrap the `Control` in a `Field` instead, and set the
+ * `label`, `horizontal` and class name on that `Field`.
  */
 export interface TextAreaProps extends TextAreaBaseProps {
   /** Field label. Automatically associated with the textarea via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
@@ -83,11 +92,19 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const ownField = rendersOwnField('TextArea', {
+      insideField,
+      insideControl,
+      label,
+      message,
+      horizontal,
+      fieldClassName,
+    });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
       id: textAreaProps.id,
       labelProps,
-      rendersLabel: !insideField,
+      rendersLabel: ownField,
     });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
@@ -109,7 +126,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
-    if (!insideField) {
+    if (ownField) {
       return (
         <Field
           label={label}

@@ -1,4 +1,5 @@
-import { createContext, useContext } from 'react';
+import React, { createContext, useContext } from 'react';
+import { warnOnce } from '../helpers/devWarnings';
 
 const FieldContext = createContext(false);
 const ControlContext = createContext(false);
@@ -20,6 +21,84 @@ export const FieldProvider = FieldContext.Provider;
 
 /** Provider for Control context — used internally by Control component. */
 export const ControlProvider = ControlContext.Provider;
+
+/** The wrapper props that change what its own `Field` renders. */
+interface FieldShapingProps {
+  /** Rendered as the `Field`'s label. */
+  label?: React.ReactNode;
+  /** Rendered as help text after the widget. */
+  message?: React.ReactNode;
+  /** Lays the `Field` out horizontally. */
+  horizontal?: boolean;
+  /** Set on the `Field` as its class. */
+  fieldClassName?: string;
+}
+
+interface OwnFieldOptions extends FieldShapingProps {
+  /** `useInsideField()` as the wrapper read it. */
+  insideField: boolean;
+  /** `useInsideControl()` as the wrapper read it. */
+  insideControl: boolean;
+}
+
+// Each Field-shaping prop, with what takes its place on a `Field` the caller
+// wraps around the `Control`. `message` needs nothing there, because the
+// wrapper still renders it inside `Field > Control`. The other Field-level
+// props (`labelSize`, `labelProps`, `messageColor`) change nothing unless a
+// `label` or `message` renders, so on their own they keep no `Field`.
+// `bare-control.test.tsx` holds this list to what each wrapper hands its
+// `Field` and to which props change its markup, so a new Field-level prop
+// fails there until it is sorted into one group or the other.
+const FIELD_SHAPING: ReadonlyArray<
+  [keyof FieldShapingProps, string | undefined]
+> = [
+  ['label', 'label'],
+  ['message', undefined],
+  ['horizontal', 'horizontal'],
+  ['fieldClassName', 'className (for fieldClassName)'],
+];
+
+/** `a`, `a and b`, `a, b and c`. */
+const listOf = (items: string[]): string =>
+  items.length > 1
+    ? `${items.slice(0, -1).join(', ')} and ${items[items.length - 1]}`
+    : items[0];
+
+/**
+ * Whether a convenience form wrapper renders a `Field` of its own (#905).
+ * Never inside an outer `Field`. Inside a `Control` with no `Field` around
+ * it, a `Field` of its own would put a `.field` inside the `.control`, where
+ * Bulma's control styles break (its icon rules are sibling selectors on the
+ * input). So it renders one there only when a prop that shapes the `Field`'s
+ * markup is set (`label`, `message`, `horizontal`, `fieldClassName`), keeping
+ * the markup it always had, and warns in development that the fix is a
+ * `Field` around that `Control`. A prop counts when it is truthy, the same
+ * test that decides whether it changes the `Field`'s output.
+ * Internal; not part of the public API.
+ */
+export const rendersOwnField = (
+  component: string,
+  options: OwnFieldOptions
+): boolean => {
+  if (options.insideField) return false;
+  if (!options.insideControl) return true;
+  const held = FIELD_SHAPING.filter(([prop]) => options[prop]);
+  if (held.length === 0) return false;
+  const names = held.map(([prop]) => prop);
+  const moved = held
+    .map(([, onField]) => onField)
+    .filter((onField): onField is string => onField !== undefined);
+  warnOnce(
+    `${component}:Field-in-bare-Control:${names.join('+')}`,
+    `[bestax-bulma] <${component} ${names.join(' ')}> inside a <Control> ` +
+      `with no <Field> around it renders its own <Field> for ` +
+      `${names.length > 1 ? 'those props' : 'that prop'}, which puts a ` +
+      `.field inside the .control, a nesting Bulma's styles are not ` +
+      `written for. Wrap the <Control> in a <Field> instead` +
+      (moved.length > 0 ? `, and set ${listOf(moved)} on that <Field>.` : '.')
+  );
+  return true;
+};
 
 const FieldLabelIdContext = createContext<string | undefined>(undefined);
 

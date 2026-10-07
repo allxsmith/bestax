@@ -422,6 +422,8 @@ A Bulma-styled wrapper for form controls, providing consistent spacing, icon pla
 </Control>
 ```
 
+An `Input` inside a `Control` renders no `Control` of its own, and no `Field` either, so it stays the `Control`'s own child. To give it a `label`, `message`, `horizontal` layout or `fieldClassName`, wrap the `Control` in a `Field` and set the `label`, `horizontal` and class name on that `Field`. Without that `Field`, any of those props makes the `Input` render its own `Field` inside the `Control`, and it warns in development.
+
 [View full documentation.](../../api/form/control)
 
 :::tip

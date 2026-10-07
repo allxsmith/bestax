@@ -13,7 +13,11 @@ import {
 import { useConfig, useIconLibrary } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { isEventInside } from '../helpers/shadowDom';
-import { useInsideField } from './FormContext';
+import {
+  useInsideField,
+  useInsideControl,
+  rendersOwnField,
+} from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -37,6 +41,12 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
  * Props for the Taginput component.
+ * Inside an outer `Field`, or a `Control` with no `Field` around it, it
+ * renders no `Field` of its own. The exception is `label`, `message`,
+ * `horizontal` or `fieldClassName` in that bare `Control`: it keeps a `Field`
+ * for them, nested in the `.control`, and warns in development. Wrap the
+ * `Control` in a `Field` instead, and set the `label`, `horizontal` and class
+ * name on that `Field`.
  * @extraProp {string} [className] - Additional CSS classes.
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Ref forwarded to the input element.
  */
@@ -228,6 +238,15 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     ref
   ) => {
     const insideField = useInsideField();
+    const insideControl = useInsideControl();
+    const ownField = rendersOwnField('Taginput', {
+      insideField,
+      insideControl,
+      label,
+      message,
+      horizontal,
+      fieldClassName,
+    });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const defaultIconLibrary = useIconLibrary();
@@ -263,7 +282,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       label,
       id,
       labelProps,
-      rendersLabel: !insideField && !isMaxReached,
+      rendersLabel: ownField && !isMaxReached,
     });
 
     // Get display value from tag
@@ -710,7 +729,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       </div>
     );
 
-    if (!insideField) {
+    if (ownField) {
       return (
         <Field
           label={label}

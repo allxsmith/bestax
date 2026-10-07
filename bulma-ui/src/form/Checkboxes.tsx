@@ -5,6 +5,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import {
   useInsideField,
   useInsideControl,
+  rendersOwnField,
   CheckboxesProvider,
   CheckboxesGroupContextValue,
 } from './FormContext';
@@ -16,6 +17,13 @@ import { Checkbox } from './Checkbox';
 
 /**
  * Props for the Checkboxes component.
+ * Inside an existing `Control` it renders no `Control` of its own. Inside an
+ * outer `Field`, or a `Control` with no `Field` around it, it renders no
+ * `Field` of its own either. The exception is `label`, `message`, `horizontal`
+ * or `fieldClassName` in that bare `Control`: it keeps a `Field` for them,
+ * nested in the `.control`, and warns in development. Wrap the `Control` in a
+ * `Field` instead, and set the `label`, `horizontal` and class name on that
+ * `Field`.
  */
 export interface CheckboxesProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
@@ -82,10 +90,18 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
 }) => {
   const insideField = useInsideField();
   const insideControl = useInsideControl();
+  const ownField = rendersOwnField('Checkboxes', {
+    insideField,
+    insideControl,
+    label,
+    message,
+    horizontal,
+    fieldClassName,
+  });
   const { ariaLabelledBy, fieldLabelProps } = useAutoLabelledBy({
     label,
     labelProps,
-    rendersLabel: !insideField,
+    rendersLabel: ownField,
   });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,
@@ -141,7 +157,7 @@ const CheckboxesComponent: React.FC<CheckboxesProps> = ({
     content = <Control>{content}</Control>;
   }
 
-  if (!insideField) {
+  if (ownField) {
     return (
       <Field
         label={label}

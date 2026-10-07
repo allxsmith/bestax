@@ -3,14 +3,23 @@ import { usePrefixedClassNames } from '../helpers/classNames';
 import { Field, FieldProps } from './Field';
 import { Control, ControlBaseProps } from './Control';
 import { DateInputBase, DateInputBaseProps } from './DateInputBase';
-import { useInsideField, useInsideControl } from './FormContext';
+import {
+  useInsideField,
+  useInsideControl,
+  rendersOwnField,
+} from './FormContext';
 import { useAutoLabelId } from './useAutoLabelId';
 
 /**
  * Props for the DateInput convenience wrapper. Extends `DateInputBaseProps`
  * with Field-level (label, horizontal) and Control-level (icons, loading) props.
- * Inside an existing `Control` within a `Field` it renders no `Field` or
- * `Control` of its own, so set the Control-level props on that `Control` instead.
+ * Inside an existing `Control` it renders no `Control` of its own, so set the
+ * Control-level props on that `Control` instead. Inside an outer `Field`, or a
+ * `Control` with no `Field` around it, it renders no `Field` of its own either.
+ * The exception is `label`, `message`, `horizontal` or `fieldClassName` in that
+ * bare `Control`: it keeps a `Field` for them, nested in the `.control`, and
+ * warns in development. Wrap the `Control` in a `Field` instead, and set the
+ * `label`, `horizontal` and class name on that `Field`.
  * @extraProp {string} [name] - Form field name. The text field submits the text it displays. The native input on touch devices submits the ISO value (`YYYY-MM-DD`, or `YYYY-MM` at month granularity), and an `inline` calendar, which has no visible input, submits it from a hidden input (`YYYY-MM-DD`, `YYYY-MM` or `YYYY`).
  * @extraProp {string} [form] - Form id the input belongs to.
  * @extraProp {boolean} [required=false] - Marks the input as required.
@@ -113,12 +122,20 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
   ) => {
     const insideField = useInsideField();
     const insideControl = useInsideControl();
+    const ownField = rendersOwnField('DateInput', {
+      insideField,
+      insideControl,
+      label,
+      message,
+      horizontal,
+      fieldClassName,
+    });
     const { controlId, fieldLabelProps } = useAutoLabelId({
       label,
       id: baseProps.id,
       labelProps,
       // Inline mode renders a bare calendar with no input to label.
-      rendersLabel: !insideField && !baseProps.inline,
+      rendersLabel: ownField && !baseProps.inline,
     });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
@@ -160,7 +177,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
 
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
-    if (!insideField) {
+    if (ownField) {
       return (
         <Field
           label={label}
