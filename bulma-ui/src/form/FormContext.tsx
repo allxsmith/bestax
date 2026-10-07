@@ -136,7 +136,9 @@ interface OwnControlOptions extends ControlLevelProps {
   inline?: boolean;
   /**
    * The left glyph the wrapper's own `Control` shows when the caller sets no
-   * `iconLeftName`; read only then. The pickers have one.
+   * `iconLeftName`; read only then. `bare-control.test.tsx` reads that glyph
+   * from what each wrapper hands its own `Control`, so a wrapper that gains
+   * one fails there until it passes it here.
    */
   defaultIconLeftName?: string;
 }
@@ -187,14 +189,13 @@ export const rendersOwnControl = (
   if (held.length === 0) return false;
   const names = held.join(' ');
   const doNothing = held.length > 1 ? 'those props do' : 'that prop does';
+  let message: string;
   if (options.inline) {
-    warnOnce(
-      `${component}:Control-props-inline:${held.join('+')}`,
+    message =
       `[bestax-bulma] <${component} inline ${names}> renders no <Control> ` +
-        `in inline mode, inside a <Control> or not, so ${doNothing} ` +
-        `nothing. Leave ${held.length > 1 ? 'them' : 'it'} out of an ` +
-        `inline picker.`
-    );
+      `in inline mode, inside a <Control> or not, so ${doNothing} ` +
+      `nothing. Leave ${held.length > 1 ? 'them' : 'it'} out of an ` +
+      `inline picker.`;
   } else {
     const toSet = held.map(prop => ON_CONTROL[prop]);
     const needsGlyph =
@@ -207,13 +208,15 @@ export const rendersOwnControl = (
         `iconLeftName="${options.defaultIconLeftName}" (its default icon)`
       );
     }
-    warnOnce(
-      `${component}:Control-props-in-Control:${held.join('+')}`,
+    message =
       `[bestax-bulma] <${component} ${names}> inside a <Control> renders ` +
-        `no <Control> of its own, so ${doNothing} nothing there. Set ` +
-        `${listOf(toSet)} on that <Control> instead.`
-    );
+      `no <Control> of its own, so ${doNothing} nothing there. Set ` +
+      `${listOf(toSet)} on that <Control> instead.`;
   }
+  // Keyed by the message itself: the props named do not settle the advice
+  // (an empty `iconLeftName` and an unset one name the same props), so two
+  // calls that would advise differently must not share a key.
+  warnOnce(message, message);
   return false;
 };
 
