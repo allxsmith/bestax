@@ -156,11 +156,21 @@ export function isPeriodUnselectable(
 }
 
 /**
+ * The most days {@link canCloseRange} walks between a range's ends, about
+ * eleven years. A span it would have to walk further is refused, so the check
+ * stays cheap enough to run on every pointer move over the calendar.
+ */
+export const RANGE_WALK_LIMIT = 4000;
+
+/**
  * Whether `end` can close a range that opens on `start`: it falls on `start`'s
  * day or later, and, unless `allowDisabled`, no day between the two is one
- * that `shouldDisableDate` or `unselectableDates` disables. The ends' own
- * constraints, `min` and `max` among them, are the caller's to check. Bounds
- * can't fall between two days inside them, so they are not walked.
+ * that `shouldDisableDate` or `unselectableDates` disables. Checking that
+ * walks the days between, so with either rule set and `allowDisabled` off,
+ * an `end` more than {@link RANGE_WALK_LIMIT} days after `start` is refused.
+ * The ends' own constraints, `min` and `max` among them, are the caller's to
+ * check. Bounds can't fall between two days inside them, so they are not
+ * walked.
  */
 export function canCloseRange(
   start: Date,
@@ -179,8 +189,14 @@ export function canCloseRange(
   if (!blocks.shouldDisableDate && !blocks.unselectableDates?.length) {
     return true;
   }
-  for (let d = addDays(first, 1); d.getTime() < last; d = addDays(d, 1)) {
-    if (isDayUnselectable(d, blocks)) return false;
+  for (
+    let d = addDays(first, 1), walked = 1;
+    d.getTime() < last;
+    d = addDays(d, 1), walked++
+  ) {
+    if (walked >= RANGE_WALK_LIMIT || isDayUnselectable(d, blocks)) {
+      return false;
+    }
   }
   return true;
 }

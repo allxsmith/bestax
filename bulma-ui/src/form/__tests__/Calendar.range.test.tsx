@@ -8,7 +8,10 @@ import type { DateRangeValue } from '../_pickerInternals/pickerTypes';
 const June15_2024 = new Date(2024, 5, 15);
 const june = (day: number) => new Date(2024, 5, day);
 
-type HarnessProps = Partial<CalendarProps> & {
+/** The props of a calendar that picks a range. */
+type RangeProps = Extract<CalendarProps, { range: DateRangeValue }>;
+
+type HarnessProps = Partial<RangeProps> & {
   initialRange?: DateRangeValue;
   initialFocused?: Date;
 };
@@ -186,7 +189,7 @@ describe('Calendar range mode', () => {
   it('previews the range to the hovered day without selecting it', () => {
     const { container } = render(<RangeHarness />);
     fireEvent.click(cell(container, 10));
-    fireEvent.mouseEnter(cell(container, 13));
+    fireEvent.mouseOver(cell(container, 13));
     expect(daysWith(container, 'is-in-range')).toEqual([11, 12]);
     expect(daysWith(container, 'is-range-end')).toEqual([13]);
     expect(daysWith(container, 'is-preview')).toEqual([11, 12, 13]);
@@ -196,7 +199,7 @@ describe('Calendar range mode', () => {
   it('hands the preview back to the focused day as the pointer leaves', () => {
     const { container } = render(<RangeHarness />);
     fireEvent.click(cell(container, 10));
-    fireEvent.mouseEnter(cell(container, 13));
+    fireEvent.mouseOver(cell(container, 13));
     fireEvent.mouseLeave(grid(container));
     expect(daysWith(container, 'is-preview')).toEqual([]);
     expect(daysWith(container, 'is-range-end')).toEqual([10]);
@@ -206,7 +209,7 @@ describe('Calendar range mode', () => {
     const { container } = render(
       <RangeHarness initialRange={[june(3), june(6)]} />
     );
-    fireEvent.mouseEnter(cell(container, 13));
+    fireEvent.mouseOver(cell(container, 13));
     expect(daysWith(container, 'is-preview')).toEqual([]);
     expect(selectedDays(container)).toEqual([3, 4, 5, 6]);
   });
@@ -214,7 +217,7 @@ describe('Calendar range mode', () => {
   it('previews no span to a day before the start', () => {
     const { container } = render(<RangeHarness />);
     fireEvent.click(cell(container, 10));
-    fireEvent.mouseEnter(cell(container, 4));
+    fireEvent.mouseOver(cell(container, 4));
     expect(daysWith(container, 'is-preview')).toEqual([]);
     expect(daysWith(container, 'is-range-end')).toEqual([]);
   });
@@ -236,7 +239,7 @@ describe('Calendar range mode', () => {
   it('lets a key take the preview back from the pointer', () => {
     const { container } = render(<RangeHarness initialFocused={june(10)} />);
     fireEvent.keyDown(grid(container), { key: 'Enter' });
-    fireEvent.mouseEnter(cell(container, 20));
+    fireEvent.mouseOver(cell(container, 20));
     expect(daysWith(container, 'is-range-end')).toEqual([20]);
     fireEvent.keyDown(grid(container), { key: 'ArrowRight' });
     expect(daysWith(container, 'is-range-end')).toEqual([11]);
@@ -276,19 +279,33 @@ describe('Calendar range mode', () => {
         <RangeHarness shouldDisableDate={weekends} />
       );
       fireEvent.click(cell(container, 13));
-      fireEvent.mouseEnter(cell(container, 17));
+      fireEvent.mouseOver(cell(container, 17));
       expect(daysWith(container, 'is-preview')).toEqual([]);
-      fireEvent.mouseEnter(cell(container, 14));
+      fireEvent.mouseOver(cell(container, 14));
       expect(daysWith(container, 'is-preview')).toEqual([14]);
     });
 
-    it('previews nothing to a disabled day itself', () => {
+    it('drops the preview as the pointer reaches a disabled day', () => {
+      // Browsers send mouseover to a disabled button, but React holds back
+      // mouseenter there, so a preview that listened for it stayed on the
+      // last enabled day.
       const { container } = render(
         <RangeHarness shouldDisableDate={weekends} />
       );
       fireEvent.click(cell(container, 13));
-      fireEvent.mouseEnter(cell(container, 15));
+      fireEvent.mouseOver(cell(container, 14));
+      expect(daysWith(container, 'is-preview')).toEqual([14]);
+      fireEvent.mouseOver(cell(container, 15));
       expect(daysWith(container, 'is-preview')).toEqual([]);
+      expect(daysWith(container, 'is-range-end')).toEqual([]);
+    });
+
+    it('keeps the preview while the pointer crosses the gap between days', () => {
+      const { container } = render(<RangeHarness />);
+      fireEvent.click(cell(container, 10));
+      fireEvent.mouseOver(cell(container, 13));
+      fireEvent.mouseOver(grid(container));
+      expect(daysWith(container, 'is-range-end')).toEqual([13]);
     });
 
     it('counts unselectableDates as disabled days', () => {
@@ -399,6 +416,51 @@ describe('Calendar range mode', () => {
     });
   });
 
+  describe('a start the constraints rule out', () => {
+    it('never closes a range when the bounds rule it out', () => {
+      const onRangeSelect = jest.fn();
+      const { container } = render(
+        <RangeHarness
+          initialRange={[june(1), null]}
+          min={june(10)}
+          onRangeSelect={onRangeSelect}
+        />
+      );
+      fireEvent.mouseOver(cell(container, 20));
+      expect(daysWith(container, 'is-in-range')).toEqual([]);
+      fireEvent.click(cell(container, 20));
+      expect(onRangeSelect).not.toHaveBeenCalled();
+      expect(selectedDays(container)).toEqual([20]);
+    });
+
+    it('never closes a range when it is a disabled day', () => {
+      // Nothing between 12 and 14 is disabled, so only the start rules it out.
+      const onRangeSelect = jest.fn();
+      const { container } = render(
+        <RangeHarness
+          initialRange={[june(12), null]}
+          unselectableDates={[june(12)]}
+          onRangeSelect={onRangeSelect}
+        />
+      );
+      fireEvent.click(cell(container, 14));
+      expect(onRangeSelect).not.toHaveBeenCalled();
+      expect(selectedDays(container)).toEqual([14]);
+    });
+
+    it('never closes a range once a new bound rules it out', () => {
+      const onRangeSelect = jest.fn();
+      const { container, rerender } = render(
+        <RangeHarness onRangeSelect={onRangeSelect} />
+      );
+      fireEvent.click(cell(container, 12));
+      rerender(<RangeHarness min={june(14)} onRangeSelect={onRangeSelect} />);
+      fireEvent.click(cell(container, 20));
+      expect(onRangeSelect).not.toHaveBeenCalled();
+      expect(selectedDays(container)).toEqual([20]);
+    });
+  });
+
   describe("the value's own start", () => {
     it('is pending, so the next pick sets the end', () => {
       const onRangeSelect = jest.fn();
@@ -432,6 +494,7 @@ describe('Calendar range mode', () => {
           focusedDate={June15_2024}
           onFocusedDateChange={() => {}}
           range={[june(3), june(6)]}
+          onRangeSelect={() => {}}
         />
       );
       fireEvent.click(cell(container, 20));
@@ -442,6 +505,7 @@ describe('Calendar range mode', () => {
           focusedDate={June15_2024}
           onFocusedDateChange={() => {}}
           range={[june(8), null]}
+          onRangeSelect={() => {}}
         />
       );
       expect(selectedDays(container)).toEqual([8]);
@@ -454,6 +518,7 @@ describe('Calendar range mode', () => {
           focusedDate={June15_2024}
           onFocusedDateChange={() => {}}
           range={[june(3), june(6)]}
+          onRangeSelect={() => {}}
         />
       );
       fireEvent.click(cell(container, 20));
@@ -463,6 +528,7 @@ describe('Calendar range mode', () => {
           focusedDate={June15_2024}
           onFocusedDateChange={() => {}}
           range={[june(3), june(6)]}
+          onRangeSelect={() => {}}
         />
       );
       expect(selectedDays(container)).toEqual([20]);
@@ -480,42 +546,39 @@ describe('Calendar range mode', () => {
     expect(onRangeSelect).toHaveBeenCalledWith(june(28), new Date(2024, 6, 2));
   });
 
-  it('commits without a handler to call', () => {
-    const { container } = render(
-      <Calendar
-        focusedDate={June15_2024}
-        onFocusedDateChange={() => {}}
-        range={[null, null]}
-      />
-    );
-    fireEvent.click(cell(container, 10));
-    expect(() => fireEvent.click(cell(container, 12))).not.toThrow();
-  });
-
-  it('picks a single date without a handler to call', () => {
-    const { container } = render(
-      <Calendar focusedDate={June15_2024} onFocusedDateChange={() => {}} />
-    );
-    expect(() => fireEvent.click(cell(container, 10))).not.toThrow();
-  });
-
-  it('picks a single month at month granularity, range or not', () => {
-    const onSelect = jest.fn();
-    const onRangeSelect = jest.fn();
-    const { getByRole } = render(
-      <Calendar
-        granularity="month"
-        focusedDate={June15_2024}
-        onFocusedDateChange={() => {}}
-        onSelect={onSelect}
-        range={[null, null]}
-        onRangeSelect={onRangeSelect}
-      />
-    );
-    expect(getByRole('grid')).not.toHaveAttribute('aria-multiselectable');
-    fireEvent.click(getByRole('gridcell', { name: 'March' }));
-    expect(onSelect).toHaveBeenCalledWith(new Date(2024, 2, 1));
-    expect(onRangeSelect).not.toHaveBeenCalled();
+  it('keeps the props of each mode exact', () => {
+    // Checked by the test typecheck: each directive must meet an error.
+    const base = { focusedDate: June15_2024, onFocusedDateChange: () => {} };
+    const single: CalendarProps = { ...base, value: null, onSelect: () => {} };
+    const ranged: CalendarProps = {
+      ...base,
+      range: [null, null],
+      onRangeSelect: () => {},
+    };
+    const range: DateRangeValue = [null, null];
+    const handlers = { onRangeSelect: () => {} };
+    const lacksOnSelect = { ...base, value: null };
+    const lacksOnRangeSelect = { ...base, range };
+    const withBoth = { ...base, range, ...handlers, onSelect: () => {} };
+    const ofMonths = { ...base, range, ...handlers, granularity: 'month' };
+    // @ts-expect-error A single-date calendar sends its pick to onSelect.
+    const noSelect: CalendarProps = lacksOnSelect;
+    // @ts-expect-error A range calendar sends its range to onRangeSelect.
+    const noRangeSelect: CalendarProps = lacksOnRangeSelect;
+    // @ts-expect-error A range calendar has no single-date handler.
+    const mixed: CalendarProps = withBoth;
+    // @ts-expect-error Only the day grid picks a range.
+    const monthRange: CalendarProps = ofMonths as typeof ofMonths & {
+      granularity: 'month';
+    };
+    expect([
+      single,
+      ranged,
+      noSelect,
+      noRangeSelect,
+      mixed,
+      monthRange,
+    ]).toHaveLength(6);
   });
 
   describe('descriptions', () => {
@@ -535,23 +598,47 @@ describe('Calendar range mode', () => {
       expect(description(cell(container, 10))).toBe('Start date End date');
     });
 
-    it('names the pending start but not the preview end', () => {
+    it('names the pending start, and the preview end as one to choose', () => {
       const { container } = render(<RangeHarness />);
       fireEvent.click(cell(container, 10));
-      fireEvent.mouseEnter(cell(container, 13));
+      fireEvent.mouseOver(cell(container, 13));
       expect(description(cell(container, 10))).toBe('Start date');
-      expect(cell(container, 13)).not.toHaveAttribute('aria-describedby');
+      expect(description(cell(container, 13))).toBe('Choose as end date');
+      expect(cell(container, 12)).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('describes the focused day as the preview end from the keyboard', () => {
+      const { container } = render(<RangeHarness initialFocused={june(10)} />);
+      fireEvent.keyDown(grid(container), { key: 'Enter' });
+      expect(description(cell(container, 10))).toBe('Start date');
+      fireEvent.keyDown(grid(container), { key: 'ArrowRight' });
+      expect(description(cell(container, 11))).toBe('Choose as end date');
+      expect(description(cell(container, 10))).toBe('Start date');
+    });
+
+    it('describes no preview end over a day that would start a new range', () => {
+      const { container } = render(<RangeHarness />);
+      fireEvent.click(cell(container, 10));
+      fireEvent.mouseOver(cell(container, 4));
+      expect(cell(container, 4)).not.toHaveAttribute('aria-describedby');
     });
 
     it('takes its words from labels', () => {
       const { container } = render(
         <RangeHarness
           initialRange={[june(10), june(13)]}
-          labels={{ rangeStart: 'Arrivée', rangeEnd: 'Départ' }}
+          labels={{
+            rangeStart: 'Arrivée',
+            rangeEnd: 'Départ',
+            rangePreviewEnd: 'Choisir comme départ',
+          }}
         />
       );
       expect(description(cell(container, 10))).toBe('Arrivée');
       expect(description(cell(container, 13))).toBe('Départ');
+      fireEvent.click(cell(container, 20));
+      fireEvent.mouseOver(cell(container, 22));
+      expect(description(cell(container, 22))).toBe('Choisir comme départ');
     });
 
     it('keeps its ids under the calendar id when it has one', () => {

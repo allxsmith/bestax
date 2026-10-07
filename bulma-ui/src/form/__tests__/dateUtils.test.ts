@@ -26,6 +26,7 @@ import {
   makeDate,
   floorMin,
   canCloseRange,
+  RANGE_WALK_LIMIT,
 } from '../_pickerInternals/dateUtils';
 
 describe('dateUtils', () => {
@@ -529,6 +530,30 @@ describe('dateUtils', () => {
       const c = { shouldDisableDate: weekends };
       expect(canCloseRange(june(14), june(17), c, true)).toBe(true);
       expect(canCloseRange(june(14), june(13), c, true)).toBe(false);
+    });
+
+    it('walks no further than its limit, and refuses a longer span', () => {
+      // Every day between is checked, so a span beyond the limit is refused
+      // rather than walked day by day.
+      const shouldDisableDate = jest.fn(() => false);
+      const start = june(1);
+      const atLimit = addDays(start, RANGE_WALK_LIMIT);
+      expect(canCloseRange(start, atLimit, { shouldDisableDate })).toBe(true);
+      shouldDisableDate.mockClear();
+      expect(
+        canCloseRange(start, addDays(atLimit, 1), { shouldDisableDate })
+      ).toBe(false);
+      expect(shouldDisableDate.mock.calls.length).toBeLessThanOrEqual(
+        RANGE_WALK_LIMIT
+      );
+    });
+
+    it('needs no limit when nothing is walked', () => {
+      const far = addDays(june(1), RANGE_WALK_LIMIT * 10);
+      expect(canCloseRange(june(1), far, {})).toBe(true);
+      expect(
+        canCloseRange(june(1), far, { shouldDisableDate: weekends }, true)
+      ).toBe(true);
     });
 
     it('leaves the bounds to the caller', () => {

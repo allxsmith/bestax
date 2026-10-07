@@ -35,6 +35,11 @@ export interface PickerLabels {
   rangeStart?: string;
   /** Range picking: names the end of a range, in the calendar and the field. */
   rangeEnd?: string;
+  /**
+   * Range picking: describes the day a pending range would end on, the one
+   * the pointer or the keyboard is on, until it is picked.
+   */
+  rangePreviewEnd?: string;
   // Time spinner
   hours?: string;
   minutes?: string;
@@ -73,6 +78,7 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   chooseYear: 'Choose year',
   rangeStart: 'Start date',
   rangeEnd: 'End date',
+  rangePreviewEnd: 'Choose as end date',
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',

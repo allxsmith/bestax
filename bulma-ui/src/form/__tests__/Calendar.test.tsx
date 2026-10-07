@@ -5,9 +5,10 @@ import { makeDate } from '../_pickerInternals/dateUtils';
 
 const June15_2024 = new Date(2024, 5, 15);
 
-const Harness: React.FC<
-  Partial<React.ComponentProps<typeof Calendar>>
-> = props => {
+/** The props of a calendar that picks one date. */
+type SingleProps = Extract<CalendarProps, { onSelect: (d: Date) => void }>;
+
+const Harness: React.FC<Partial<SingleProps>> = props => {
   const [focused, setFocused] = React.useState(June15_2024);
   const [value, setValue] = React.useState<Date | null>(null);
   return (
@@ -727,7 +728,7 @@ describe('Calendar', () => {
  * `Harness` above gives up once a test passes a handler of its own.
  */
 const PeriodHarness: React.FC<
-  Partial<CalendarProps> & { initialValue?: Date | null }
+  Partial<SingleProps> & { initialValue?: Date | null }
 > = ({
   onSelect,
   onFocusedDateChange,
