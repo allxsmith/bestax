@@ -213,6 +213,8 @@ For teams that want a custom class prefix matching their brand or organization. 
 
    </PackageManagerTabs>
 
+   If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
+
 2. **Create a custom SCSS file:**
 
    ```scss title="src/styles/mycompany-bestax.scss"

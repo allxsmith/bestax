@@ -105,6 +105,8 @@ pnpm add -D sass
 
 </PackageManagerTabs>
 
+If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
+
 #### Required base styles
 
 Before importing component partials, include Bulma's base (CSS reset, generic element styles, keyframes) and themes (CSS custom properties on `:root`):

@@ -77,8 +77,10 @@ export function splitSegments(command) {
  * These rules go beyond swapping the prefix:
  * - `dlx` is a whole-prefix replacement (`npx`, `bunx`), not a verb swap.
  * - bun spells the dev-dependency flag `-d`, not `-D`.
- * - npm needs `--` to pass flags through a `create` scaffolder; yarn and bun
- *   forward arguments directly and would hand the `--` to the scaffolder.
+ * - npm needs `--` to pass flags through a `create` scaffolder, so its tab
+ *   gains one before the first flag. pnpm, yarn and bun forward the flags
+ *   directly and would hand a `--` on to the scaffolder, which then ignores
+ *   the flags after it, so a `create` authored with `--` throws instead.
  * - yarn's `create` drops a starter's `@latest` tag, which Yarn Classic cannot
  *   run and neither yarn needs.
  * - `--frozen-lockfile` is pnpm's spelling of "install exactly the lockfile".
@@ -95,10 +97,17 @@ export function translateSegment(segment, manager) {
   const [verb, ...rest] = tokens;
 
   if (!VERBS.has(verb)) return segment;
+  // Before the pnpm return: the pnpm tab is the authored fence verbatim, so it
+  // cannot drop the `--`, and the fence is what has to change.
+  if (verb === 'create' && rest.includes('--')) {
+    throw new Error(
+      `"${segment}": pnpm passes \`--\` on to the scaffolder, which then ignores ` +
+        'the flags after it. Write them without it; the npm tab adds one.'
+    );
+  }
   if (manager === 'pnpm') return `pnpm ${segment}`;
 
   const join = parts => parts.filter(Boolean).join(' ');
-  const withoutDoubleDash = () => rest.filter(token => token !== '--');
   const bunFlags = () => rest.map(token => (token === '-D' ? '-d' : token));
   const frozen = rest.includes(FROZEN);
   const withoutFrozen = () => rest.filter(token => token !== FROZEN);
@@ -117,8 +126,22 @@ export function translateSegment(segment, manager) {
           return frozen
             ? join(['npm', 'ci', ...withoutFrozen()])
             : join(['npm', 'install', ...rest]);
+        case 'create': {
+          // npm reads flags before a `--` as its own, so the scaffolder's go
+          // after one.
+          const flag = rest.findIndex(token => token.startsWith('-'));
+          return flag < 0
+            ? join(['npm', 'create', ...rest])
+            : join([
+                'npm',
+                'create',
+                ...rest.slice(0, flag),
+                '--',
+                ...rest.slice(flag),
+              ]);
+        }
         default:
-          // create / run keep npm's own verb, and `create` keeps `--`.
+          // run keeps npm's own verb.
           return join(['npm', verb, ...rest]);
       }
     case 'yarn':
@@ -138,7 +161,7 @@ export function translateSegment(segment, manager) {
           // fails there. Both Classic and Berry fetch the latest version of a
           // bare name, so dropping `@latest` asks for the same thing and runs
           // on either. Any other version is a real request and stays.
-          const [starter, ...args] = withoutDoubleDash();
+          const [starter, ...args] = rest;
           return join([
             'yarn',
             'create',
@@ -160,7 +183,7 @@ export function translateSegment(segment, manager) {
         case 'add':
           return join(['bun', 'add', ...bunFlags()]);
         case 'create':
-          return join(['bun', 'create', ...withoutDoubleDash()]);
+          return join(['bun', 'create', ...rest]);
         case 'dlx':
           return join(['bunx', ...rest]);
         default:
