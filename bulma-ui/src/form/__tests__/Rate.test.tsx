@@ -38,14 +38,12 @@ describe('Rate', () => {
 
     it('renders with default value', () => {
       render(<Rate defaultValue={3} />);
-      const container = screen.getByRole('radiogroup');
-      expect(container).toHaveAttribute('aria-valuenow', '3');
+      expect(screen.getByRole('radio', { name: '3 stars' })).toBeChecked();
     });
 
     it('renders with controlled value', () => {
       render(<Rate value={4} onChange={() => {}} />);
-      const container = screen.getByRole('radiogroup');
-      expect(container).toHaveAttribute('aria-valuenow', '4');
+      expect(screen.getByRole('radio', { name: '4 stars' })).toBeChecked();
     });
 
     it('applies custom className', () => {
@@ -92,8 +90,7 @@ describe('Rate', () => {
       const stars = screen.getAllByRole('radio');
       await userEvent.click(stars[3]); // Click 4th star
 
-      const container = screen.getByRole('radiogroup');
-      expect(container).toHaveAttribute('aria-valuenow', '4');
+      expect(stars[3]).toBeChecked();
     });
 
     it('highlights all stars up to selected value', () => {
@@ -371,28 +368,62 @@ describe('Rate', () => {
       );
     });
 
-    it('has aria-valuenow on container', () => {
+    it('puts no aria-value attributes on the radiogroup, which does not allow them', () => {
+      render(<Rate value={3.5} onChange={() => {}} precision={0.5} />);
+      const group = screen.getByRole('radiogroup');
+      expect(group).not.toHaveAttribute('aria-valuenow');
+      expect(group).not.toHaveAttribute('aria-valuemin');
+      expect(group).not.toHaveAttribute('aria-valuemax');
+      expect(group).not.toHaveAttribute('aria-valuetext');
+    });
+
+    it('points the group at the checked star with aria-activedescendant', () => {
       render(<Rate defaultValue={3} />);
-      expect(screen.getByRole('radiogroup')).toHaveAttribute(
-        'aria-valuenow',
-        '3'
+      const group = screen.getByRole('radiogroup');
+      const checked = screen.getByRole('radio', { name: '3 stars' });
+      expect(checked.id).toBeTruthy();
+      expect(group).toHaveAttribute('aria-activedescendant', checked.id);
+    });
+
+    it('follows the value with aria-activedescendant as the keys change it', () => {
+      render(<Rate defaultValue={3} />);
+      const group = screen.getByRole('radiogroup');
+      fireEvent.keyDown(group, { key: 'ArrowRight' });
+      expect(group).toHaveAttribute(
+        'aria-activedescendant',
+        screen.getByRole('radio', { name: '4 stars' }).id
       );
     });
 
-    it('has aria-valuemin on container', () => {
+    it('leaves aria-activedescendant off with no value', () => {
       render(<Rate />);
+      expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
+        'aria-activedescendant'
+      );
+      screen
+        .getAllByRole('radio')
+        .forEach(star => expect(star).not.toBeChecked());
+    });
+
+    it('checks the last star for a value above max, so the reference resolves', () => {
+      render(<Rate value={7} max={5} onChange={() => {}} />);
+      const last = screen.getByRole('radio', { name: '5 stars' });
+      expect(last).toBeChecked();
       expect(screen.getByRole('radiogroup')).toHaveAttribute(
-        'aria-valuemin',
-        '0'
+        'aria-activedescendant',
+        last.id
       );
     });
 
-    it('has aria-valuemax on container', () => {
-      render(<Rate max={10} />);
-      expect(screen.getByRole('radiogroup')).toHaveAttribute(
-        'aria-valuemax',
-        '10'
+    it('gives each Rate its own star ids', () => {
+      render(
+        <>
+          <Rate defaultValue={1} />
+          <Rate defaultValue={1} />
+        </>
       );
+      const [a, b] = screen.getAllByRole('radio', { name: '1 star' });
+      expect(a.id).not.toBe(b.id);
     });
 
     it('each star has radio role', () => {
@@ -565,10 +596,30 @@ describe('Rate', () => {
       expect(handleChange).toHaveBeenCalledWith(3.5);
     });
 
-    it('aria-valuenow reflects fractional values', () => {
+    it('a fractional value checks the star it falls in and names it by the value', () => {
       render(<Rate value={3.5} onChange={() => {}} precision={0.5} />);
-      const container = screen.getByRole('radiogroup');
-      expect(container).toHaveAttribute('aria-valuenow', '3.5');
+      const checked = screen.getByRole('radio', { checked: true });
+      expect(checked).toHaveAccessibleName('3.5 stars');
+      expect(screen.getAllByRole('radio')[3]).toBe(checked);
+      // The other stars keep their whole-number names.
+      expect(screen.getByRole('radio', { name: '3 stars' })).not.toBeChecked();
+      expect(
+        screen.getByRole('radio', { name: '5 stars' })
+      ).toBeInTheDocument();
+    });
+
+    it('names a fractional value without floating-point noise', () => {
+      render(<Rate value={0.1 + 0.2} onChange={() => {}} precision={0.1} />);
+      expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(
+        '0.3 stars'
+      );
+    });
+
+    it('checks and names the star a fractional value falls in at whole precision too', () => {
+      render(<Rate value={4.3} disabled />);
+      expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(
+        '4.3 stars'
+      );
     });
 
     it('score shows decimal format for fractional values', () => {
@@ -761,7 +812,7 @@ describe('Rate', () => {
       expect(handleChange).not.toHaveBeenCalled();
     });
 
-    it('precision hover updates aria-valuenow on mouse move', () => {
+    it('precision hover refines the partial fill on mouse move', () => {
       const { container } = render(<Rate value={0} precision={0.5} />);
       stubRectsOnRateItems(container);
 
@@ -773,10 +824,9 @@ describe('Rate', () => {
       fireEvent.mouseEnter(stars[1]);
       fireEvent.mouseMove(stars[1], { clientX: 25 });
 
-      // displayValue (used for radiogroup aria-valuenow) is currentValue,
-      // not hoverValue, so to verify hover-driven precision we check the
-      // partial-fill clipPath which is driven by displayValue and updates
-      // when hoverValue is set.
+      // Hover changes no checked state (that follows currentValue), so to
+      // verify hover-driven precision we check the partial-fill clipPath,
+      // which is driven by displayValue and updates when hoverValue is set.
       const clipPaths = container.querySelectorAll('clipPath rect');
       // At hoverValue=1.5, icon index 1 has fillPercent=50, so a partial
       // SVG with a clip rect of width 12 should be present.
@@ -819,8 +869,9 @@ describe('Rate', () => {
       // Index 2, clientX 45 -> snapped to 2.5
       fireEvent.click(stars[2], { clientX: 45 });
 
-      const radiogroup = screen.getByRole('radiogroup');
-      expect(radiogroup).toHaveAttribute('aria-valuenow', '2.5');
+      expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(
+        '2.5 stars'
+      );
     });
 
     it('keyboard step in uncontrolled precision mode updates internal value', () => {
@@ -831,7 +882,9 @@ describe('Rate', () => {
       const radiogroup = screen.getByRole('radiogroup');
       fireEvent.keyDown(radiogroup, { key: 'ArrowRight' });
 
-      expect(radiogroup).toHaveAttribute('aria-valuenow', '2.5');
+      expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(
+        '2.5 stars'
+      );
     });
   });
 
