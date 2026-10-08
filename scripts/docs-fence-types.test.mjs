@@ -1,14 +1,16 @@
 /**
  * Type-check every live example in the docs, the way a reader's new app would.
  *
- * A `tsx live` fence runs on the site through react-live, which strips types
- * without checking them, so an example can pass a prop a component does not
- * take, or start state as `useState(null)` and hand the setter to a typed
- * callback, and still render. The ESLint pass in eslint-plugin-docs.test.mjs
- * reads the same fences, but it checks the plugin's rules, not the types. This
- * compiles each fence as its own module against the library's build, with the
- * compiler options a new Vite `react-ts` app starts with, and fails on any
- * error.
+ * A `tsx live` or `jsx live` fence runs on the site through react-live, which
+ * strips types without checking them, so an example can pass a prop a
+ * component does not take, or start state as `useState(null)` and hand the
+ * setter to a typed callback, and still render. The ESLint pass in
+ * eslint-plugin-docs.test.mjs reads the same fences, but it checks the
+ * plugin's rules, not the types. This compiles each fence as its own `.tsx`
+ * module against the library's build, with the compiler options a new Vite
+ * `react-ts` app starts with, and fails on any error. A `jsx` fence compiles
+ * as `.tsx` too, since the site renders it the same way, so it is held to the
+ * same types.
  *
  * Each fence is read the way the site runs it. `transformCode` in
  * `docs/src/theme/CodeBlock/index.js` drops a live fence's `import` and
@@ -43,6 +45,11 @@ const LIBRARY = '@allxsmith/bestax-bulma';
 const LIBRARY_DIR = join(REPO, 'bulma-ui');
 const ROOT = 'docs/docs';
 const OPT_OUT = 'notypecheck';
+/**
+ * The site renders a fence of any language live once `live` is in its info
+ * string. These are the languages the ESLint pass reads as examples.
+ */
+const LIVE_LANGS = new Set(['jsx', 'tsx']);
 const PROFILE_CARD = join(
   REPO,
   'docs/src/components/SkillExamples/ProfileCard.jsx'
@@ -86,7 +93,7 @@ export function liveFences(src) {
       .replace(/^ {0,3}(`{3,}|~{3,})/, '')
       .trim()
       .split(/\s+/);
-    if (lang !== 'tsx' || !meta.includes('live')) continue;
+    if (!LIVE_LANGS.has(lang) || !meta.includes('live')) continue;
     out.push({
       open,
       body: lines.slice(open + 1, close),
@@ -265,6 +272,8 @@ const page = (file, body, info = 'tsx live') => ({
 
 const FIXTURES = [
   page('fixture/wrong-prop.md', '<Button outlined>Go</Button>'),
+  page('fixture/jsx-live.md', '<Button outlined>Go</Button>', 'jsx live'),
+  page('fixture/jsx-static.md', '<Button outlined>Go</Button>', 'jsx'),
   page(
     'fixture/untyped-state.md',
     [
@@ -339,6 +348,15 @@ describe('the docs live examples type-check', () => {
     const [problem, ...rest] = about('fixture/wrong-prop.md');
     assert.equal(rest.length, 0);
     assert.match(problem, /^fixture\/wrong-prop\.md:4: TS\d+ /);
+  });
+
+  it('checks a jsx live fence the same way, and no fence that is not live', () => {
+    const tsx = about('fixture/wrong-prop.md');
+    assert.equal(tsx.length, 1);
+    assert.deepEqual(about('fixture/jsx-live.md'), [
+      tsx[0].replace('wrong-prop.md', 'jsx-live.md'),
+    ]);
+    assert.deepEqual(about('fixture/jsx-static.md'), []);
   });
 
   it('reports state too narrow for the callback it feeds', () => {
