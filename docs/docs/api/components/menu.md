@@ -80,7 +80,9 @@ Use the `as` prop on `Menu.Item` to render a custom link component, such as a ro
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
-  const Link = props => <a>{props.children}</a>;
+  const Link = (props: { to: string; children?: React.ReactNode }) => (
+    <a>{props.children}</a>
+  );
   return (
     <Menu>
       <Menu.Label>App</Menu.Label>
@@ -147,7 +149,7 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
 
 ```tsx live
 function example() {
-  const itemRef = React.useRef(null);
+  const itemRef = React.useRef<HTMLAnchorElement>(null);
 
   return (
     <>

@@ -153,8 +153,8 @@ function example() {
 
 ```tsx live
 function example() {
-  const dropdownRef = React.useRef(null);
-  const [tag, setTag] = React.useState(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [tag, setTag] = React.useState<string>();
 
   return (
     <>

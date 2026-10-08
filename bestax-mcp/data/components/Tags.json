@@ -27,7 +27,7 @@
     },
     {
       "title": "Mixed Tags",
-      "code": "function example() {\n  const [show, setShow] = useState();\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
+      "code": "function example() {\n  const [show, setShow] = useState(true);\n\n  return (\n    <Tags>\n      <Tag color=\"primary\" size=\"medium\">\n        Primary Medium\n      </Tag>\n      <Tag color=\"success\" isRounded>\n        Success Rounded\n      </Tag>\n      {/* Dismissible tag */}\n      {show && <Tag color=\"danger\" isDelete onDelete={() => setShow(false)} />}\n      <Tag color=\"info\">Info</Tag>\n    </Tags>\n  );\n}"
     },
     {
       "title": "Add-ons with Delete Tag",

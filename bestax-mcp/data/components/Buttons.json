@@ -11,11 +11,11 @@
     },
     {
       "title": "All Colors Group",
-      "code": "<Buttons>\n  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (\n    <Button key={color} color={color}>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
+      "code": "<Buttons>\n  {(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const).map(\n    color => (\n      <Button key={color} color={color}>\n        {color.charAt(0).toUpperCase() + color.slice(1)}\n      </Button>\n    )\n  )}\n</Buttons>"
     },
     {
       "title": "All Sizes Group",
-      "code": "<Buttons>\n  {['small', 'normal', 'medium', 'large'].map(size => (\n    <Button key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
+      "code": "<Buttons>\n  {(['small', 'normal', 'medium', 'large'] as const).map(size => (\n    <Button key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </Button>\n  ))}\n</Buttons>"
     },
     {
       "title": "Group Size",

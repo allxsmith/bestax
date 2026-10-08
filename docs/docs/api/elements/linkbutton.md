@@ -90,11 +90,13 @@ Colors work with the ghost variant too.
 
 ```tsx live
 <Buttons>
-  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (
-    <LinkButton key={color} color={color}>
-      {color.charAt(0).toUpperCase() + color.slice(1)}
-    </LinkButton>
-  ))}
+  {(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const).map(
+    color => (
+      <LinkButton key={color} color={color}>
+        {color.charAt(0).toUpperCase() + color.slice(1)}
+      </LinkButton>
+    )
+  )}
 </Buttons>
 ```
 
@@ -110,7 +112,7 @@ Colors work with the ghost variant too.
 
 ```tsx live
 <Buttons>
-  {['small', 'normal', 'medium', 'large'].map(size => (
+  {(['small', 'normal', 'medium', 'large'] as const).map(size => (
     <LinkButton key={size} size={size}>
       {size.charAt(0).toUpperCase() + size.slice(1)}
     </LinkButton>
@@ -139,9 +141,9 @@ import { LinkButton } from '@allxsmith/bestax-bulma';
 
 ```tsx live
 function example() {
-  const defaultRef = React.useRef(null);
-  const anchorRef = React.useRef(null);
-  const [tags, setTags] = React.useState(null);
+  const defaultRef = React.useRef<HTMLButtonElement>(null);
+  const anchorRef = React.useRef<HTMLAnchorElement>(null);
+  const [tags, setTags] = React.useState<string>();
 
   return (
     <>

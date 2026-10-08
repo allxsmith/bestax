@@ -54,11 +54,13 @@ This example shows a group of buttons, each with a different `color` prop (`prim
 
 ```tsx live
 <Buttons>
-  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (
-    <Button key={color} color={color}>
-      {color.charAt(0).toUpperCase() + color.slice(1)}
-    </Button>
-  ))}
+  {(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const).map(
+    color => (
+      <Button key={color} color={color}>
+        {color.charAt(0).toUpperCase() + color.slice(1)}
+      </Button>
+    )
+  )}
 </Buttons>
 ```
 
@@ -68,7 +70,7 @@ Demonstrates a group of buttons with different `size` props (`small`, `normal`, 
 
 ```tsx live
 <Buttons>
-  {['small', 'normal', 'medium', 'large'].map(size => (
+  {(['small', 'normal', 'medium', 'large'] as const).map(size => (
     <Button key={size} size={size}>
       {size.charAt(0).toUpperCase() + size.slice(1)}
     </Button>

@@ -186,7 +186,9 @@ Use the `as` prop on `Navbar.Item` to render a custom link component, such as a 
 ```tsx live
 // import { Link } from 'react-router-dom';
 function example() {
-  const Link = props => <a>{props.children}</a>;
+  const Link = (props: { to: string; children?: React.ReactNode }) => (
+    <a>{props.children}</a>
+  );
   return (
     <Navbar>
       <Navbar.Menu active>
@@ -363,7 +365,7 @@ function example() {
     'dark',
     'light',
     'white',
-  ];
+  ] as const;
   return (
     <>
       {colors.map(color => (
@@ -395,8 +397,8 @@ function example() {
 
 ```tsx live
 function example() {
-  const navRef = React.useRef(null);
-  const [height, setHeight] = React.useState(null);
+  const navRef = React.useRef<HTMLElement>(null);
+  const [height, setHeight] = React.useState<number>();
 
   return (
     <>
