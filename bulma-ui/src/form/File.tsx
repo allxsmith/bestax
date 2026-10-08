@@ -65,8 +65,9 @@ export interface FileProps
   /**
    * Show a file name area. Without `fileName` it shows what the user picked: the file's name, or
    * a count when `multiple` lets them pick several (see `pickedFilesLabel`). Before a pick there is
-   * no name area. A reset of the input's form clears the name, but clearing the input from code
-   * fires no change event and leaves it showing, so pass `fileName` to control the text then.
+   * no name area, and the root takes Bulma's `is-empty`, which keeps the CTA's corners rounded. A
+   * reset of the input's form clears the name, but clearing the input from code fires no change
+   * event and leaves it showing, so pass `fileName` to control the text then.
    */
   hasName?: boolean;
   /** Text on the file CTA button (defaults to "Choose a file…"). */
@@ -215,6 +216,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       'is-boxed': isBoxed,
       'is-fullwidth': isFullwidth ?? isFullWidth,
       'has-name': hasName,
+      'is-empty': hasName && !shownName,
     });
     const fileClass = classNames(
       mainClass,

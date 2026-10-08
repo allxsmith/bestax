@@ -78,6 +78,7 @@
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute, extname, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
 
 // The registration parser lives in lib/ so the API-docs generator shares it —
 // it additionally exposes values and selector nesting, which the CSS variable
@@ -575,6 +576,70 @@ export function orphanPartialViolations(rel, keys, claimed, documentedKeys) {
   ];
 }
 
+/**
+ * Rule 4 of the partial walk: a variable in a partial's own namespace (its
+ * file name, `_collapse.scss` owning `collapse-*`) that it consumes through
+ * `cv.getVar` must be registered there, or nothing makes it themable. A key
+ * Bulma registers itself is themable already: a partial that extends a stock
+ * component shares that component's namespace without owning its variables,
+ * as `_file.scss` reads Bulma's `file-radius`.
+ *
+ * Pure and fixture-driven, like orphanPartialViolations, so both halves of
+ * the rule are held by a test and not only by today's partials.
+ *
+ * @param rel         repo-relative partial path, for each violation's location
+ * @param partialName the partial's name, which is its namespace
+ * @param lines       the partial's source lines
+ * @param registered  Set of keys the partial registers
+ * @param bulmaKeys   Set of keys Bulma's own partials register
+ */
+export function unregisteredVarViolations(
+  rel,
+  partialName,
+  lines,
+  registered,
+  bulmaKeys
+) {
+  const violations = [];
+  lines.forEach((line, i) => {
+    const code = line.replace(/\/\/.*$/, '');
+    for (const m of code.matchAll(/cv\.getVar\(\s*['"]([a-z0-9-]+)['"]/g)) {
+      const key = m[1];
+      if (
+        key.startsWith(`${partialName}-`) &&
+        !registered.has(key) &&
+        !bulmaKeys.has(key)
+      ) {
+        violations.push(
+          `${rel}:${i + 1} consumes cv.getVar('${key}') but never registers ` +
+            `it, and Bulma does not either. Add it to the ` +
+            `cv.register-vars((...)) block, since every themable value (colors, ` +
+            `radii, durations, offsets) must be registered.`
+        );
+      }
+    }
+  });
+  return violations;
+}
+
+/** Every variable key Bulma's own partials register, read once. */
+let bulmaKeySet;
+async function bulmaKeys() {
+  if (!bulmaKeySet) {
+    const sassDir = join(
+      dirname(createRequire(import.meta.url).resolve('bulma/package.json')),
+      'sass'
+    );
+    bulmaKeySet = new Set();
+    for (const file of await readdir(sassDir, { recursive: true })) {
+      if (!file.endsWith('.scss')) continue;
+      const src = await readFile(join(sassDir, file), 'utf8');
+      for (const { key } of registerVarsEntries(src)) bulmaKeySet.add(key);
+    }
+  }
+  return bulmaKeySet;
+}
+
 async function checkScssConformance() {
   const violations = [];
   const scssRoot = join(REPO, 'bulma-ui', 'src', 'scss');
@@ -708,19 +773,19 @@ async function checkScssConformance() {
               `registered via register-vars.`
           );
         }
-
-        // 4. Component-namespaced vars consumed via cv.getVar must be
-        //    registered (register-vars) in this partial.
-        for (const m of code.matchAll(/cv\.getVar\(\s*['"]([a-z0-9-]+)['"]/g)) {
-          if (m[1].startsWith(`${partialName}-`) && !registered.has(m[1])) {
-            violations.push(
-              `${loc} consumes cv.getVar('${m[1]}') but never registers it. ` +
-                `Add it to the cv.register-vars((...)) block — every themable ` +
-                `value (colors, radii, durations, offsets) must be registered.`
-            );
-          }
-        }
       });
+
+      // 4. Component-namespaced vars consumed via cv.getVar must be
+      //    registered (register-vars) in this partial, unless Bulma does.
+      violations.push(
+        ...unregisteredVarViolations(
+          rel,
+          partialName,
+          lines,
+          registered,
+          await bulmaKeys()
+        )
+      );
     }
   }
   // The lifecycle sweep the exemption docstring promises: an ORPHAN_EXEMPT

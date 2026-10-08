@@ -14,7 +14,10 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { orphanPartialViolations } from './check-conformance.mjs';
+import {
+  orphanPartialViolations,
+  unregisteredVarViolations,
+} from './check-conformance.mjs';
 
 const REL = 'bulma-ui/src/scss/elements/_zzz.scss';
 const KEYS = ['zzz-gap', 'zzz-color'];
@@ -99,6 +102,70 @@ test('an exempted orphan is quiet while the gap it names persists', () => {
       popover,
       ['picker-popover-x'],
       new Set([popover]),
+      new Set()
+    ),
+    []
+  );
+});
+
+// ---- Rule 4: a partial's own variables are registered somewhere (#978) -----
+
+const FILE = 'bulma-ui/src/scss/form/_zzz.scss';
+const consuming = key => [
+  '.#{iv.$class-prefix}zzz {',
+  `  gap: cv.getVar("${key}");`,
+  '}',
+];
+
+test('an own variable nobody registers is a violation naming its line', () => {
+  const v = unregisteredVarViolations(
+    FILE,
+    'zzz',
+    consuming('zzz-gap'),
+    new Set(),
+    new Set()
+  );
+  assert.equal(v.length, 1);
+  assert.match(v[0], /_zzz\.scss:2 /);
+  assert.match(v[0], /zzz-gap/);
+  assert.match(v[0], /register-vars/);
+});
+
+test('an own variable the partial registers is nobody’s business', () => {
+  assert.deepEqual(
+    unregisteredVarViolations(
+      FILE,
+      'zzz',
+      consuming('zzz-gap'),
+      new Set(['zzz-gap']),
+      new Set()
+    ),
+    []
+  );
+});
+
+test('a variable Bulma registers is nobody’s business in a partial sharing its namespace', () => {
+  // A partial extending a stock component, as _file.scss reads Bulma's
+  // file-radius: the variable is themable, through Bulma's registration.
+  assert.deepEqual(
+    unregisteredVarViolations(
+      FILE,
+      'zzz',
+      consuming('zzz-radius'),
+      new Set(),
+      new Set(['zzz-radius'])
+    ),
+    []
+  );
+});
+
+test('a variable outside the namespace, or in a comment, is nobody’s business', () => {
+  assert.deepEqual(
+    unregisteredVarViolations(
+      FILE,
+      'zzz',
+      [...consuming('focus-width'), '// gap: cv.getVar("zzz-gap");'],
+      new Set(),
       new Set()
     ),
     []

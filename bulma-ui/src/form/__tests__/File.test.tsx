@@ -264,6 +264,51 @@ describe('File hasName shows the picked file (#941)', () => {
     });
   });
 
+  // Bulma squares the CTA's inner corners under has-name, to meet the name
+  // area; is-empty is its modifier for a has-name File with no name (#978).
+  describe('is-empty while there is no name to show', () => {
+    const root = (container: HTMLElement) => container.querySelector('.file');
+
+    it('is set before a pick', () => {
+      const { container } = render(<File hasName />);
+      expect(root(container)).toHaveClass('has-name', 'is-empty');
+    });
+
+    it('goes once a file is picked, and comes back when a pick leaves none', () => {
+      const { container } = render(<File hasName />);
+      pick(fileInput(container), aFile('resume.pdf'));
+      expect(root(container)).not.toHaveClass('is-empty');
+      pick(fileInput(container));
+      expect(root(container)).toHaveClass('is-empty');
+    });
+
+    it('is not set while fileName gives a name', () => {
+      const { container } = render(<File hasName fileName="resume.pdf" />);
+      expect(root(container)).not.toHaveClass('is-empty');
+    });
+
+    it('is set for an empty fileName', () => {
+      const { container } = render(<File hasName fileName="" />);
+      expect(root(container)).toHaveClass('is-empty');
+    });
+
+    it('is not set without hasName', () => {
+      const { container } = render(<File />);
+      expect(root(container)).not.toHaveClass('is-empty');
+    });
+
+    it('takes the class prefix', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <File hasName />
+        </ConfigProvider>
+      );
+      expect(container.querySelector('.bestax-file')).toHaveClass(
+        'bestax-is-empty'
+      );
+    });
+  });
+
   it('keeps firing the caller’s onChange', () => {
     const handleChange = jest.fn();
     const { container } = render(<File hasName onChange={handleChange} />);
