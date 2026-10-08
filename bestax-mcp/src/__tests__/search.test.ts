@@ -16,7 +16,7 @@ import {
   type ComponentRecord,
   type Skill,
 } from '../data.js';
-import { searchAll, suggest, type HitKind } from '../search.js';
+import { ALIASES, searchAll, suggest, type HitKind } from '../search.js';
 
 const ALL: HitKind[] = ['component', 'prop', 'example', 'css-var', 'skill'];
 
@@ -91,6 +91,113 @@ describe('searchAll', () => {
   });
 });
 
+// The queries a builder types when it does not know the component's name, which is
+// the case search_bestax exists for. "date picker" used to put DateInput 33rd, behind
+// a prop whose description mentions a date picker and every --bulma-dateinput-*
+// variable (#934).
+describe('ranking realistic queries', () => {
+  let all: ComponentRecord[];
+  beforeAll(async () => {
+    all = await Promise.all(catalog.components.map(c => loadComponent(c.name)));
+  });
+  const top = (query: string, n = 1) =>
+    searchAll(query, catalog, all, skills, ALL)
+      .slice(0, n)
+      .map(h => `${h.kind}:${h.name}`);
+
+  it.each([
+    ['date picker', 'DateInput'],
+    ['datepicker', 'DateInput'],
+    ['Date-Picker', 'DateInput'],
+    ['calendar', 'DateInput'],
+    ['time picker', 'TimeInput'],
+    ['timepicker', 'TimeInput'],
+    ['datetime picker', 'DateTimeInput'],
+    ['date time picker', 'DateTimeInput'],
+    ['popover', 'Popover'],
+    ['dropdown menu', 'Dropdown'],
+    ['select', 'Select'],
+    ['toggle', 'Switch'],
+    ['accordion', 'Collapses'],
+    ['combobox', 'Autocomplete'],
+    ['typeahead', 'Autocomplete'],
+    ['star rating', 'Rate'],
+    ['chips', 'Taginput'],
+    ['drawer', 'Sidebar'],
+    ['spinner', 'Loader'],
+    ['snackbar', 'Toast'],
+    ['file upload', 'File'],
+    ['progress bar', 'Progress'],
+    ['wizard', 'Steps'],
+    ['button', 'Button'],
+    ['loading', 'Loading'],
+    ['theme', 'Theme'],
+    // Described rather than named. A summary that has most of the words is
+    // enough, and a prop or an example named after one of them, or after a word
+    // like "that", is not (#934 review).
+    ['vertical spacing between elements', 'Block'],
+    ['element that animates into view', 'Reveal'],
+    ['the button', 'Button'],
+    ['a form with a date picker', 'DateInput'],
+    // A component named outright outranks one an alias in the same query reaches.
+    ['breadcrumbs with separators', 'Breadcrumb'],
+  ])('"%s" puts %s first', (query, component) => {
+    expect(top(query)).toEqual([`component:${component}`]);
+  });
+
+  it.each([
+    ['date picker', ['DateInput', 'DateTimeInput']],
+    ['modal dialog', ['Dialog', 'Modal']],
+    // The components a query names outright and the one its alias reaches, with
+    // neither crowding the other out.
+    ['navbar with a dropdown menu', ['Dropdown', 'Menu', 'Navbar']],
+    ['modal with a calendar inside', ['DateInput', 'Modal']],
+  ])(
+    '"%s" puts every component it names ahead of anything else',
+    (query, names) => {
+      expect(top(query, names.length).sort()).toEqual(
+        names.map(n => `component:${n}`)
+      );
+    }
+  );
+
+  it('ranks a matching component above a prop of the same name', () => {
+    const hits = searchAll('popover', catalog, all, skills, ALL);
+    const component = hits.findIndex(h => h.name === 'Popover');
+    const prop = hits.findIndex(h => h.name === 'DateInput.popover');
+    expect(prop).toBeGreaterThan(component);
+  });
+
+  it('still answers an exact prop name with that prop', () => {
+    // No component is named closeOnEscape, so the bonus a component gets must not
+    // lift one whose prose happens to mention it above the props themselves.
+    const [first] = searchAll('closeOnEscape', catalog, all, skills, ALL);
+    expect(first.kind).toBe('prop');
+    expect(first.name).toMatch(/\.closeOnEscape$/);
+  });
+
+  it('lists examples that share a heading once', () => {
+    // DateInput has several examples under one heading, and each was its own row,
+    // with the same name and the same next call.
+    const rows = searchAll(
+      'month and year pickers',
+      catalog,
+      all,
+      skills,
+      ALL
+    ).map(h => `${h.kind}:${h.name}`);
+    expect(rows).toContain('example:DateInput: Month and Year Pickers');
+    expect(new Set(rows).size).toBe(rows.length);
+  });
+
+  it('names only components that exist', () => {
+    const names = new Set(catalog.components.map(c => c.name));
+    for (const targets of Object.values(ALIASES)) {
+      for (const name of targets) expect(names).toContain(name);
+    }
+  });
+});
+
 describe('suggest', () => {
   const names = catalogNames();
   function catalogNames() {
@@ -105,6 +212,16 @@ describe('suggest', () => {
     ['Colums', 'Columns'],
   ])('suggests %s -> %s', (typo, expected) => {
     expect(suggest(typo, names())).toContain(expected);
+  });
+
+  it.each([
+    ['DatePicker', 'DateInput'],
+    ['date-picker', 'DateInput'],
+    ['TimePicker', 'TimeInput'],
+    ['Toggle', 'Switch'],
+    ['Accordion', 'Collapses'],
+  ])('suggests %s -> %s by what it is called elsewhere', (name, expected) => {
+    expect(suggest(name, names())[0]).toBe(expected);
   });
 
   it('suggests nothing for input that resembles nothing', () => {

@@ -25,6 +25,12 @@
           "description": "Skip comparing your installed @allxsmith/bestax-bulma version with the one the index documents",
           "format": "boolean",
           "isRequired": false
+        },
+        {
+          "name": "BESTAX_MCP_PROJECT_DIR",
+          "description": "Your project directory, where the installed @allxsmith/bestax-bulma version is read from; defaults to the directory the server starts in",
+          "format": "filepath",
+          "isRequired": false
         }
       ]
     }

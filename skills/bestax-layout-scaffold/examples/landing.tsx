@@ -10,7 +10,7 @@
 // also needs the `has-navbar-fixed-top` class on <html> so the page is padded
 // below it (never an inline padding offset) — Bulma requires this and the
 // library does NOT add it for you.
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Navbar,
   Hero,
