@@ -933,6 +933,7 @@ In free-form entry there is no segment to step, so a plain `↓` opens the popov
 | `←` / `→`             | Move focus to the previous / next column |
 | `Tab`                 | Move focus to next column                |
 | `Enter`               | Commit live value, close popover         |
+| `Escape` / `Alt+↑`    | Close popover                            |
 
 The values run down each wheel, so `↑` brings the value below the band into it, the way dragging the wheel up or scrolling down over it does.
 

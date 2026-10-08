@@ -266,6 +266,32 @@ describe('TimeInput', () => {
     expect(handler).not.toHaveBeenCalled();
   });
 
+  it('Alt+ArrowUp on the wheel opening put focus on closes the popover and turns nothing', () => {
+    const handler = jest.fn();
+    const { getByRole, queryByRole } = render(
+      <TimeInput
+        openOnFocus={false}
+        defaultValue={at(10, 0)}
+        onChange={handler}
+      />
+    );
+    const input = getByRole('combobox') as HTMLInputElement;
+    act(() => {
+      input.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+    });
+    const hours = document.activeElement as HTMLElement;
+    expect(hours).toHaveAttribute('role', 'spinbutton');
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'ArrowUp', altKey: true });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(handler).not.toHaveBeenCalled();
+    expect(input).toHaveFocus();
+  });
+
   it('Escape closes the popover', () => {
     const { getByRole, queryByRole } = render(<TimeInput />);
     fireEvent.click(getByRole('combobox'));

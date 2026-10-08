@@ -161,6 +161,30 @@ describe('DateInput', () => {
       expect(handler).toHaveBeenCalledTimes(1);
     });
 
+    it('closes on Alt+ArrowUp from the calendar, where opening put focus, and moves nothing', () => {
+      const { getByRole, queryByRole } = render(
+        <DateInput openOnFocus={false} defaultValue={new Date(2026, 9, 7)} />
+      );
+      const input = getByRole('combobox') as HTMLInputElement;
+      act(() => {
+        input.focus();
+      });
+      act(() => {
+        fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(day).toHaveTextContent('7');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'ArrowUp', altKey: true });
+      });
+      expect(queryByRole('dialog')).toBeNull();
+      expect(input).toHaveFocus();
+      act(() => {
+        fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      });
+      expect(document.activeElement).toHaveTextContent('7');
+    });
+
     it('closes on Escape', () => {
       const { getByRole, queryByRole } = render(<DateInput />);
       fireEvent.click(getByRole('combobox'));

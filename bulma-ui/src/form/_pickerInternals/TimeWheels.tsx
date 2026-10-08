@@ -21,7 +21,12 @@ import {
   usePrefixedClassNames,
 } from '../../helpers/classNames';
 import { useConfig } from '../../helpers/Config';
-import { HourFormat, PickerLabels, mergeLabels } from './pickerTypes';
+import {
+  HourFormat,
+  PickerLabels,
+  isPopoverToggleKey,
+  mergeLabels,
+} from './pickerTypes';
 import { setTimeOfDay } from './dateUtils';
 import { tickHaptic as fireTickHaptic } from './haptics';
 import { playAudioTick, unlockAudioTick } from './audioTick';
@@ -399,6 +404,7 @@ const WheelInner = <T,>(
   // the way a drag or a scroll that moves the items up does.
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (isPopoverToggleKey(e)) return;
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();

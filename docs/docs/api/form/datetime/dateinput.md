@@ -849,7 +849,7 @@ The day grid's keys work the same on an `inline` calendar, minus opening and clo
 | Key                   | Action                        |
 | --------------------- | ----------------------------- |
 | `Enter`               | Select focused                |
-| `Escape`              | Close popover                 |
+| `Escape` / `Alt+↑`    | Close popover                 |
 | `←` / `→`             | Move focused date by ±1 day   |
 | `↑` / `↓`             | Move focused date by ±7 days  |
 | `PageUp` / `PageDown` | Move focused date by ±1 month |
@@ -869,7 +869,7 @@ The month grid follows the day grid, a month per cell in rows of three. Months w
 | `PageUp` / `PageDown` | Move focus by ±1 year                   |
 | `Home` / `End`        | Jump to the first / last month of a row |
 | `Enter` / `Space`     | Select the focused month                |
-| `Escape`              | Close the popover                       |
+| `Escape` / `Alt+↑`    | Close the popover                       |
 
 ### On the year list opened from the header (`granularity="day"` or `"month"`)
 
@@ -882,16 +882,17 @@ Clicking the month and year in the header, or the year over the month grid, open
 | `Home` / `End`    | Jump to the first / last year in the list                                 |
 | `Enter` / `Space` | Jump to the focused year and go back to the grid                          |
 | `Escape`          | Go back to the grid without jumping; a second `Escape` closes the popover |
+| `Alt+↑`           | Close the popover                                                         |
 
 ### On the year list (`granularity="year"`)
 
-| Key               | Action                                    |
-| ----------------- | ----------------------------------------- |
-| `←` / `→`         | Move focus by ±1 year                     |
-| `↑` / `↓`         | Move focus by ±1 row                      |
-| `Home` / `End`    | Jump to the first / last year in the list |
-| `Enter` / `Space` | Select the focused year                   |
-| `Escape`          | Close the popover                         |
+| Key                | Action                                    |
+| ------------------ | ----------------------------------------- |
+| `←` / `→`          | Move focus by ±1 year                     |
+| `↑` / `↓`          | Move focus by ±1 row                      |
+| `Home` / `End`     | Jump to the first / last year in the list |
+| `Enter` / `Space`  | Select the focused year                   |
+| `Escape` / `Alt+↑` | Close the popover                         |
 
 ---
 

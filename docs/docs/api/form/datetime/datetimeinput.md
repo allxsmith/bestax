@@ -772,7 +772,7 @@ In free-form entry there is no segment to step, so a plain `↓` opens the popov
 
 | Key                   | Action                                          |
 | --------------------- | ----------------------------------------------- |
-| `Escape`              | Close popover                                   |
+| `Escape` / `Alt+↑`    | Close popover                                   |
 | `←` / `→`             | Move focused date by ±1 day                     |
 | `↑` / `↓`             | Move focused date by ±7 days                    |
 | `PageUp` / `PageDown` | Move focused date by ±1 month                   |

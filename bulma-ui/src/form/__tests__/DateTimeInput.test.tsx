@@ -1399,6 +1399,24 @@ describe('DateTimeInput focus and the time wheels', () => {
     expect(wheels[0]).toHaveFocus();
   });
 
+  it('closes the popover on Alt+ArrowUp from a wheel, turning nothing', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} onChange={handler} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], {
+        key: 'ArrowUp',
+        altKey: true,
+      });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(handler).not.toHaveBeenCalled();
+    expect(getByRole('combobox')).toHaveFocus();
+  });
+
   it('hands focus back to the Time button when Escape closes the wheels', () => {
     const { getByRole, queryAllByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={v} />
