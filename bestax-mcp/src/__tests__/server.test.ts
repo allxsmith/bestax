@@ -715,6 +715,12 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('file has-name')).toContain(
       "With `hasName` and no `.file-name` it renders Bulma's `is-empty` too, so that class isn't needed there."
     );
+    // The class's own row says the same, rather than keeping it as a class.
+    const out = await lookup('file has-name is-empty');
+    expect(out).toContain(
+      '| `is-empty` | rendered by `File` | with no `.file-name` in the tree; beside one it stays in `className` |'
+    );
+    expect(out).not.toMatch(/\| `is-empty` \| stays in `className` \|/);
   });
 
   it('writes a prop typed as a number as a number', async () => {

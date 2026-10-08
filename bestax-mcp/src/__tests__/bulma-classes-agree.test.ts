@@ -127,9 +127,10 @@ function planned(tag: string, tokens: string[]): Outcome {
       counted = counts.prop;
     }
     // One that renders the whole `.file` tree holds it, inside a `.field`,
-    // which the lookup states as a condition, with a name in it beside
-    // `has-name`: with none, `File` renders Bulma's `is-empty` too, which the
-    // lookup states as well.
+    // which the lookup states as a condition. Beside `has-name` the tree is
+    // the one the lookup's answer describes: with a name in it, unless
+    // Bulma's `is-empty` marks the slot empty, which `File` renders itself
+    // when it has no name and the lookup says so on that class's row.
     if (entry?.status === 'mapped' && entry.buildsFile && !childElements) {
       const bare = (tag: string, token: string, extra = {}) => ({
         tag,
@@ -154,7 +155,7 @@ function planned(tag: string, tokens: string[]): Outcome {
                 }),
               ],
             }),
-            ...(tokens.includes('has-name')
+            ...(tokens.includes('has-name') && !tokens.includes('is-empty')
               ? [
                   bare('span', 'file-name', {
                     staticContent: true,
@@ -378,6 +379,16 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
   // own. The planner needs a tag, so it runs on that one: a heading's on <p>,
   // where its size is exact, and classes with no root on <p>, whose
   // Paragraph takes the same color props the no-tag answer names.
+  it('on a `.file` whose name slot is-empty marks, which File renders itself', () => {
+    const cases: Array<[string, string[]]> = [
+      ['div', ['file', 'has-name', 'is-empty']],
+      ['div', ['file', 'has-name', 'is-empty', 'is-boxed', 'mt-2']],
+      // Without `has-name`, `File` renders no `is-empty`, so it stays a class.
+      ['div', ['file', 'is-empty']],
+    ];
+    expect(compare(cases)).toEqual([]);
+  });
+
   it('with no tag, on the tag the component renders by itself', () => {
     const mismatches: string[] = [];
     const check = (tag: string, tokens: string[]) => {

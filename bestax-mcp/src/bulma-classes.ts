@@ -173,6 +173,8 @@ export type Verdict =
   /** A family bestax converts as a whole, by hand. */
   | { kind: 'family'; why: string }
   | { kind: 'prop'; writes: PropWrite[]; condition?: string }
+  /** A class the component renders itself, so it goes, on a condition. */
+  | { kind: 'rendered'; target: string; condition: string }
   | { kind: 'class'; why: string };
 
 export type Element =
@@ -574,6 +576,22 @@ export function lookupClasses(
     });
   }
 
+  // `File` renders Bulma's `is-empty` itself beside `hasName` while it has
+  // no name to show, so with no `.file-name` the class goes with the tree.
+  // The lookup can't see the tree, so the row says which tree it means.
+  if (
+    entry.buildsFile &&
+    writes.has('hasName') &&
+    tokens.includes('is-empty')
+  ) {
+    verdicts.set('is-empty', {
+      kind: 'rendered',
+      target: target!,
+      condition:
+        'with no `.file-name` in the tree; beside one it stays in `className`',
+    });
+  }
+
   let undone = false;
   /** Take a prop back, naming it: the class stays, but the prop is real. */
   const undo = (prop: string, why: string) => {
@@ -902,6 +920,12 @@ export function renderLookup(lookup: Lookup): string {
           `\`${token}\``,
           verdict.writes.map(writeText).join(' '),
           verdict.condition ?? '',
+        ];
+      case 'rendered':
+        return [
+          `\`${token}\``,
+          `rendered by \`${verdict.target}\``,
+          verdict.condition,
         ];
       case 'class':
         return [`\`${token}\``, 'stays in `className`', verdict.why];
