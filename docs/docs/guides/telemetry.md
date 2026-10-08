@@ -131,13 +131,15 @@ report and nothing fetches.
 
 `bestax-mcp` sends **no telemetry at all** and makes no network requests — it
 stays fully offline. Some of the links it prints carry a
-`utm_source=bestax-mcp` query parameter: the Docs and Storybook links on
-component responses and the link in the version-drift notice are tagged at
-render time. Skill bodies and reference docs (`get_skill`, the MCP prompts and
-resources) are served verbatim from the bundled markdown — rewriting URLs
-inside arbitrary markdown and code examples risks corrupting them — so the
-bestax.io links in those are untagged. If you visit the docs site through a
-tagged link, that visit is attributable in the site's own traffic analytics.
+`utm_source=bestax-mcp` query parameter. That covers the Docs and Storybook
+links on component answers, the link in the version-drift notice, and the
+bestax.io links inside component answers too, such as a summary's link to a
+related page. The server adds the tag as it writes each answer and leaves code
+examples exactly as they are. Skill bodies and reference docs (`get_skill`, the
+MCP prompts and the skill resources) are served verbatim from the bundled
+markdown, so the bestax.io links in those stay untagged. If you visit the docs
+site through a tagged link, that visit is attributable in the site's own
+traffic analytics.
 That is the only measurement, and it happens on bestax.io like any other page
 visit.
 
