@@ -10,6 +10,7 @@ import { Slider } from '../Slider';
 import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
+import { DateRangeInput } from '../DateRangeInput';
 import { Autocomplete } from '../Autocomplete';
 import { Taginput } from '../Taginput';
 import { File } from '../File';
@@ -748,6 +749,7 @@ describe('label names the convenience controls (#939)', () => {
       'group',
     ],
     ['Rate', aria => <Rate {...aria} />, 'radiogroup'],
+    ['DateRangeInput', aria => <DateRangeInput {...aria} />, 'group'],
   ];
 
   it.each(groups)(

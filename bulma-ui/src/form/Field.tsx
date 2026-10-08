@@ -30,7 +30,7 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase` or `TextAreaBase`, or a bestax input that renders a single input of its own (`Input`, `Numberinput`, `Slider`, `DateInput`, `Autocomplete`, `Taginput`, `File` and the like), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
+  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase` or `TextAreaBase`, or a bestax input that renders a single input of its own (`Input`, `Numberinput`, `Slider`, `DateInput`, `Autocomplete`, `Taginput`, `File` and the like), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
@@ -238,9 +238,10 @@ const FieldComponent: React.FC<FieldProps> = ({
     label && !userWiredLabel && !grouped && !hasAddons
       ? generatedId
       : undefined;
-  // A group control (Radios, Checkboxes, Rate) cannot take that `for`, so it
-  // points `aria-labelledby` at the label itself (#939). The label gets an id
-  // whenever the association is on, unless the caller gave it one.
+  // A group control (Radios, Checkboxes, Rate, DateRangeInput) cannot take
+  // that `for`, so it points `aria-labelledby` at the label itself (#939).
+  // The label gets an id whenever the association is on, unless the caller
+  // gave it one.
   const labelId =
     labelProps?.id ?? (targetId ? `${targetId}-label` : undefined);
   // What the rendered label's `for` points at, generated or the caller's, so

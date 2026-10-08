@@ -1,0 +1,962 @@
+{
+  "name": "DateRangeInput",
+  "kind": "component",
+  "category": "form",
+  "slug": "form/datetime/daterangeinput",
+  "docsUrl": "https://bestax.io/docs/api/form/datetime/daterangeinput",
+  "examples": [
+    {
+      "title": "Basic DateRangeInput",
+      "code": "function example() {\n  return <DateRangeInput label=\"Stay\" placeholder=\"YYYY-MM-DD\" />;\n}"
+    },
+    {
+      "title": "Controlled",
+      "code": "function ControlledRange() {\n  const [range, setRange] = React.useState([null, null]);\n  const [start, end] = range;\n  return (\n    <Block>\n      <DateRangeInput label=\"Report period\" value={range} onChange={setRange} />\n      <Paragraph>\n        {start ? start.toDateString() : 'No start'} to{' '}\n        {end ? end.toDateString() : 'no end'}\n      </Paragraph>\n      <Button size=\"small\" onClick={() => setRange([null, null])}>\n        Clear\n      </Button>\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Inline",
+      "code": "<DateRangeInput label=\"Stay\" inline name=\"stay\" />"
+    },
+    {
+      "title": "Min and Max",
+      "code": "function NextMonth() {\n  const today = new Date();\n  const inAMonth = new Date();\n  inAMonth.setMonth(inAMonth.getMonth() + 1);\n  return (\n    <DateRangeInput label=\"Within the next month\" min={today} max={inAMonth} />\n  );\n}"
+    },
+    {
+      "title": "Disabled Dates",
+      "code": "function Weekdays() {\n  const weekend = d => d.getDay() === 0 || d.getDay() === 6;\n  return (\n    <Block>\n      <DateRangeInput label=\"Weekdays only\" shouldDisableDate={weekend} />\n      <DateRangeInput\n        label=\"Over weekends\"\n        shouldDisableDate={weekend}\n        allowDisabledInRange\n      />\n    </Block>\n  );\n}"
+    },
+    {
+      "title": "Typing the Dates",
+      "code": "<DateRangeInput\n  label=\"Type the dates\"\n  openOnFocus={false}\n  placeholder=\"YYYY-MM-DD\"\n/>"
+    },
+    {
+      "title": "Format and Locale",
+      "code": "<DateRangeInput\n  label=\"Séjour\"\n  locale=\"fr-FR\"\n  firstDayOfWeek={1}\n  format=\"DD/MM/YYYY\"\n  labels={{\n    rangeStart: 'Arrivée',\n    rangeEnd: 'Départ',\n    rangePreviewEnd: 'Choisir comme départ',\n    rangeSeparator: 'au',\n    chooseDateRange: 'Choisir les dates',\n  }}\n/>"
+    },
+    {
+      "title": "Mobile Native",
+      "code": "<DateRangeInput label=\"Stay\" mobileNative />"
+    },
+    {
+      "title": "Sizes and Colors",
+      "code": "<Block>\n  <DateRangeInput label=\"Small\" size=\"small\" controlSize=\"small\" />\n  <DateRangeInput label=\"Success\" color=\"success\" />\n  <DateRangeInput label=\"Large\" size=\"large\" controlSize=\"large\" />\n</Block>"
+    },
+    {
+      "title": "Context-Aware Rendering",
+      "code": "<Field label=\"Leave\">\n  <Control iconLeftName=\"calendar-alt\">\n    <DateRangeInput />\n  </Control>\n</Field>"
+    }
+  ],
+  "accessibility": "- The root is a `role=\"group\"` named by `label` through `aria-labelledby`, since the label names two inputs rather than one. Inside a labeled `Field`, that `Field`'s label names the group the same way, unless you give it an `aria-label` or `aria-labelledby` of your own.\n- Each input is a `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded` and `aria-controls`, and its own name: \"Start date\" or \"End date\", from the `labels` keys `rangeStart` and `rangeEnd`. The separator between them is hidden from assistive technology.\n- The popover is a `role=\"dialog\"` named \"Choose date range\" (`labels.chooseDateRange`). Opening it puts focus on the calendar's focused day, and closing it returns focus to the input you were last in, or to the start input.\n- The day grid is `aria-multiselectable`, and its days sit in a `role=\"row\"` per week. Every day of the range is `aria-selected`, both ends included. While the end is still being picked, only the start is: the preview is not a selection.\n- The start and end days are described as \"Start date\" and \"End date\", so moving onto either says which it is. While the end is still being picked, the day the range would end on is described as \"Choose as end date\" (`labels.rangePreviewEnd`).\n- A polite live region in the calendar states the range in words, such as \"Start date: June 10, 2024, End date: June 13, 2024\", and announces each pick. The grid points at it too, so moving into the grid reads the current range.\n- Everything else is the calendar `DateInput` uses: a roving `tabindex`, `aria-disabled` on disabled days and `aria-current=\"date\"` on today.",
+  "related": ["DateInput", "DateTimeInput", "Field"],
+  "storybook": "https://bestax.io/storybook/?path=/story/form-daterangeinput",
+  "summary": "The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.",
+  "import": "import { DateRangeInput } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/form/DateRangeInput.tsx",
+  "rootClass": "daterangeinput",
+  "parts": [
+    {
+      "path": "DateRangeInput",
+      "summary": "The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.",
+      "component": null,
+      "props": [
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Field label naming the whole range. Associated through `aria-labelledby` on the `role=\"group\"` root, since it names two inputs rather than one; uses your `labelProps.id` when provided, otherwise a generated one. Each input keeps its own name, \"Start date\" or \"End date\" (`labels.rangeStart` / `labels.rangeEnd`). Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `aria-label` or `aria-labelledby` on the group.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelSize",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size for the label.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labelProps",
+          "type": "React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }",
+          "default": null,
+          "description": "Props for the label element. An `htmlFor` here is dropped, since the label names the group rather than one input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "horizontal",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with horizontal layout.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeft",
+          "type": "IconProps | React.ReactNode",
+          "default": null,
+          "description": "Icon props for the left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the field in its own addon `Control` instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRight",
+          "type": "IconProps | React.ReactNode",
+          "default": null,
+          "description": "Icon props for the right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the field in its own addon `Control` instead.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightName",
+          "type": "string",
+          "default": null,
+          "description": "Shortcut for the right icon name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for left icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconRightSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Shortcut for right icon size.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsLeft",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force the left icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasIconsRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Force the right icon container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Inside your own `Control` it renders none, so this draws nothing and warns in development; set `isLoading` on that `Control`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a spinner shows at the same right edge: this component's `isLoading` when it renders its own `Control`, or the enclosing `Control`'s `isLoading` inside one.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isExpanded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Expand the control to fill its container.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlSize",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the wrapping Control.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "message",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Help/validation text below the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "messageColor",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Color modifier for the help message.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "fieldClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Field wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "controlClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the Control wrapper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "DateRangeValue",
+          "default": null,
+          "description": "Controlled range, start first. Either end may be `null`, and `[null, null]` is empty.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "DateRangeValue",
+          "default": null,
+          "description": "Initial range for uncontrolled usage.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(range: DateRangeValue) => void",
+          "default": null,
+          "description": "Fired when the range changes, with the start first. Typing commits one end at a time, so a range half typed arrives as `[start, null]`. The calendar commits only a finished range: its first pick marks the start inside the calendar and its second commits both ends in one call. The range stays ordered, so the end is never before the start.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable date, for either end. A `min` before year 1 is raised to 1 January of year 1, where the range starts without one too.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable date, for either end.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable both inputs and the launcher.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make both inputs read-only and keep the popover closed.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text, shown in both inputs while they are empty.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "'YYYY-MM-DD'",
+          "description": "Token format string or `Intl.DateTimeFormat` options, used by both inputs.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). Enter and leaving an input call it only if the user changed its text.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the calendar inline, with no inputs and no popover. The hidden form inputs still carry the range.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use two native `<input type=\"date\">`s on coarse-pointer, small-viewport devices (`'auto'`), always (`true`) or never (`false`). The end input's `min` follows the start, and a change goes through the same rules as typing.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in both inputs. `false` makes the field picker-only.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the calendar popover exists. `false` makes the field input-only.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when focus arrives in the field. Moving focus between the two inputs, or back from the launcher, leaves it closed, and so does the focus a closing popover hands back. A click on either input opens it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the popover once the range is picked. The first pick, which only marks the start, never closes it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Popover anchor position relative to the field.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover into `document.body` via portal.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field, also carried by the calendar, where it colors the range's ends and the band between them.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with rounded corners.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate to disable specific dates (e.g. weekends). A disabled day can be neither end, typing rejects it, and a range can't include one unless `allowDisabledInRange` is set.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "allowDisabledInRange",
+          "type": "boolean",
+          "default": "false",
+          "description": "Let a range include days that `shouldDisableDate` or `unselectableDates` disable, such as a stay over a night with no check-ins. Its ends still can't be such days. Off, a pick in the calendar past a disabled day starts a new range there, typing refuses an end past one, and a start typed with one before the end clears the end. Finding one walks the days between, so off, a span too long to walk is refused as well.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 12 month-name labels.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show dimmed dates from adjacent months in the grid.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": "'calendar'",
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides. `rangeStart` and `rangeEnd` name the two inputs and the range's ends in the calendar, `rangePreviewEnd` describes the day a pending range would end on, `rangeSeparator` sits between the inputs, and `chooseDateRange` names the launcher and the popover.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. Two hidden inputs submit the range as `YYYY-MM-DD`, named `name[start]` and `name[end]`, in every mode. The visible inputs carry no name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "startName",
+          "type": "string",
+          "default": null,
+          "description": "Name of the hidden input carrying the start, in place of `name[start]`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "endName",
+          "type": "string",
+          "default": null,
+          "description": "Name of the hidden input carrying the end, in place of `name[end]`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Form id the hidden inputs belong to.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Mark both visible inputs required, so a form won't submit with either end empty. An `inline` calendar has no visible input, so it is not checked there.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Id of the start input. The end input takes `${id}-end`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes for the root, the `role=\"group\"` that holds the two inputs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the start `<input>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-dateinput-min-width",
+      "sass": "$dateinput-min-width",
+      "default": "16rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-size",
+      "sass": "$dateinput-cell-size",
+      "default": "2.25rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-radius",
+      "sass": "$dateinput-cell-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-color",
+      "sass": "$dateinput-cell-color",
+      "default": "var(--bulma-text)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-hover-bg",
+      "sass": "$dateinput-cell-hover-bg",
+      "default": "hsla(0, 0%, 50%, 0.13)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-selected-bg",
+      "sass": "$dateinput-cell-selected-bg",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-selected-color",
+      "sass": "$dateinput-cell-selected-color",
+      "default": "var(--bulma-primary-invert)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-today-color",
+      "sass": "$dateinput-cell-today-color",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-focus-ring-color",
+      "sass": "$dateinput-focus-ring-color",
+      "default": "var(--bulma-primary)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-disabled-color",
+      "sass": "$dateinput-cell-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-other-month-color",
+      "sass": "$dateinput-cell-other-month-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-header-padding",
+      "sass": "$dateinput-header-padding",
+      "default": "0.5rem 0",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-day-name-color",
+      "sass": "$dateinput-day-name-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-day-name-size",
+      "sass": "$dateinput-day-name-size",
+      "default": "var(--bulma-size-7)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-nav-button-size",
+      "sass": "$dateinput-nav-button-size",
+      "default": "1.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-range-bg",
+      "sass": "$dateinput-cell-range-bg",
+      "default": "color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 18%, transparent)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-range-preview-bg",
+      "sass": "$dateinput-cell-range-preview-bg",
+      "default": "color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 9%, transparent)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-daterangeinput-gap",
+      "sass": "$daterangeinput-gap",
+      "default": "0.5em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-daterangeinput-separator-color",
+      "sass": "$daterangeinput-separator-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-picker-popover-z-index",
+      "sass": "$picker-popover-z-index",
+      "default": "30",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-background",
+      "sass": "$picker-popover-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-radius",
+      "sass": "$picker-popover-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-shadow",
+      "sass": "$picker-popover-shadow",
+      "default": "0 8px 24px hsla(0, 0%, 0%, 0.18)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-border-color",
+      "sass": "$picker-popover-border-color",
+      "default": "var(--bulma-border)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-padding",
+      "sass": "$picker-popover-padding",
+      "default": "0.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-offset",
+      "sass": "$picker-popover-offset",
+      "default": "4px",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-picker-popover-animation-duration",
+      "sass": "$picker-popover-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-h",
+      "sass": "$input-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-s",
+      "sass": "$input-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-l",
+      "sass": "$input-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-border-style",
+      "sass": "$input-border-style",
+      "default": "solid",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-border-width",
+      "sass": "$input-border-width",
+      "default": "var(--bulma-control-border-width)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-border-l",
+      "sass": "$input-border-l",
+      "default": "var(--bulma-border-l)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-border-l-delta",
+      "sass": "$input-border-l-delta",
+      "default": "0%",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-border-color",
+      "sass": "$input-border-color",
+      "default": "hsl(var(--bulma-input-h), var(--bulma-input-s), calc(var(--bulma-input-border-l) + var(--bulma-input-border-l-delta)))",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-hover-border-l-delta",
+      "sass": "$input-hover-border-l-delta",
+      "default": "var(--bulma-hover-border-l-delta)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-active-border-l-delta",
+      "sass": "$input-active-border-l-delta",
+      "default": "var(--bulma-active-border-l-delta)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-focus-h",
+      "sass": "$input-focus-h",
+      "default": "var(--bulma-focus-h)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-focus-s",
+      "sass": "$input-focus-s",
+      "default": "var(--bulma-focus-s)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-focus-l",
+      "sass": "$input-focus-l",
+      "default": "var(--bulma-focus-l)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-size",
+      "sass": "$input-focus-shadow-size",
+      "default": "var(--bulma-focus-shadow-size)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-focus-shadow-alpha",
+      "sass": "$input-focus-shadow-alpha",
+      "default": "var(--bulma-focus-shadow-alpha)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-color-l",
+      "sass": "$input-color-l",
+      "default": "var(--bulma-text-strong-l)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-background-l",
+      "sass": "$input-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-background-l-delta",
+      "sass": "$input-background-l-delta",
+      "default": "0%",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-height",
+      "sass": "$input-height",
+      "default": "var(--bulma-control-height)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-shadow",
+      "sass": "$input-shadow",
+      "default": "inset 0 0.0625em 0.125em hsla(var(--bulma-scheme-h), var(--bulma-scheme-s), var(--bulma-scheme-invert-l), 0.05)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-placeholder-color",
+      "sass": "$input-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-strong-l), 0.3)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-disabled-color",
+      "sass": "$input-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-disabled-background-color",
+      "sass": "$input-disabled-background-color",
+      "default": "var(--bulma-background)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-disabled-border-color",
+      "sass": "$input-disabled-border-color",
+      "default": "var(--bulma-background)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-disabled-placeholder-color",
+      "sass": "$input-disabled-placeholder-color",
+      "default": "hsla(var(--bulma-text-h), var(--bulma-text-s), var(--bulma-text-weak-l), 0.3)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-arrow",
+      "sass": "$input-arrow",
+      "default": "var(--bulma-link)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-icon-color",
+      "sass": "$input-icon-color",
+      "default": "var(--bulma-text-light)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-icon-hover-color",
+      "sass": "$input-icon-hover-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-icon-focus-color",
+      "sass": "$input-icon-focus-color",
+      "default": "var(--bulma-link)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-input-radius",
+      "sass": "$input-radius",
+      "default": "var(--bulma-radius)",
+      "scope": "element"
+    }
+  ]
+}

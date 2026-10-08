@@ -92,12 +92,12 @@ File input with `label`, `message`, color/size, and icon support.
 
 ## Date / time inputs
 
-`DateInput`, `TimeInput`, `DateTimeInput` (convenience) and their `*Base` variants. Field/Control
-composition like the other convenience inputs, with picker UIs (native with custom fallback). An
-`inline` picker renders no `Control` anywhere, so leave its Control-level props out: they do
-nothing there and warn in development.
+`DateInput`, `TimeInput`, `DateTimeInput`, `DateRangeInput` (convenience) and their `*Base`
+variants. Field/Control composition like the other convenience inputs, with picker UIs (native
+with custom fallback). An `inline` picker renders no `Control` anywhere, so leave its
+Control-level props out: they do nothing there and warn in development.
 
-All six have a launcher button at the right edge (`triggerIcon`) that gives way to the loading
+Every one of them has a launcher button at the right edge (`triggerIcon`) that gives way to the loading
 spinner of the `Control` they sit in, which shares that edge. A convenience input sits in the
 `Control` it renders for its own `isLoading`, unless it is inside your own `Control`; a `*Base`
 variant only ever sits in yours. Inside your own `Control`, put `isLoading` on that `Control`: the
@@ -128,6 +128,30 @@ year. The default `format` becomes `'YYYY-MM'` or `'YYYY'`, and `min` / `max` /
   value={expiry}
   onChange={setExpiry}
 />
+```
+
+For a start and an end (a stay, a report period, a leave request), use `DateRangeInput`
+rather than two `DateInput`s with hand-wired `min`/`max`. Its value is a `[start, end]` pair
+of `Date | null`, kept in order. The calendar picks the start, then the end, and reports
+only finished ranges; typing reports each end as it changes, so handle `[start, null]`.
+`min`, `max`, `shouldDisableDate` and `unselectableDates` apply to both ends, and a range
+can't include a disabled day unless you pass `allowDisabledInRange`. With a `name`, two
+hidden inputs submit `name[start]` and `name[end]` as `YYYY-MM-DD` (`startName` / `endName`
+rename them). `label` names the whole field as a group; the two inputs are named by
+`labels.rangeStart` / `labels.rangeEnd`.
+
+```tsx
+const [stay, setStay] = useState<DateRangeValue>([null, null]);
+
+<DateRangeInput
+  label="Stay"
+  name="stay"
+  min={new Date()}
+  value={stay}
+  onChange={setStay}
+  color={stay[0] && !stay[1] ? 'danger' : undefined}
+  message={stay[0] && !stay[1] ? 'Pick a check-out date.' : undefined}
+/>;
 ```
 
 ## Validation-related props (no library)

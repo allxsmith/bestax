@@ -95,6 +95,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.          |
+| `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.         |
 
 (`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
 same components; prefer the lowercase-second-word spellings.)
@@ -130,17 +131,17 @@ The `label` prop on the single-control convenience inputs (`Input`, `Select`, `T
 generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
 happens when the component renders its own `Field` (nested inside one, the `label` prop is
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
-`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`)
-associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
-and `aria-labelledby` pointing at the label. Composing yourself also associates: a labeled
-`Field` names the one control it holds, whether a composed `InputBase`/`SelectBase`/
-`TextAreaBase` or any input above (through the id), or a group (through `aria-labelledby`,
-unless you gave the group an `aria-label` or `aria-labelledby`). It is skipped for
-`grouped`/`hasAddons`, and a nested `Field` starts its own scope, so a horizontal `Field`
-whose body holds an inner `Field` needs `labelProps={{ htmlFor }}` plus the control's `id`
-(for a group, `labelProps={{ id }}` plus its `aria-labelledby`). Pass `labelProps={{ htmlFor }}`
-plus a matching `id` only when you want a stable id, or `labelProps={{ htmlFor: undefined }}`
-to opt out.
+`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`,
+`DateRangeInput`) associate their `label` too, but group-style: the wrapper gets
+`role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
+also associates: a labeled `Field` names the one control it holds, whether a composed
+`InputBase`/`SelectBase`/`TextAreaBase` or any input above (through the id), or a group
+(through `aria-labelledby`, unless you gave the group an `aria-label` or `aria-labelledby`).
+It is skipped for `grouped`/`hasAddons`, and a nested `Field` starts its own scope, so a
+horizontal `Field` whose body holds an inner `Field` needs `labelProps={{ htmlFor }}` plus the
+control's `id` (for a group, `labelProps={{ id }}` plus its `aria-labelledby`). Pass
+`labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
+`labelProps={{ htmlFor: undefined }}` to opt out.
 
 ## Convenience vs composed
 

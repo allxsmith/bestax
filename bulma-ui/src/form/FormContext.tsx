@@ -134,6 +134,13 @@ interface OwnControlOptions extends ControlLevelProps {
   insideControl: boolean;
   /** A picker's `inline`, which renders no `Control` inside one or out. */
   inline?: boolean;
+  /**
+   * The left glyph the wrapper's own `Control` shows when the caller sets no
+   * `iconLeftName`; read only then. `bare-control.test.tsx` reads that glyph
+   * from what each wrapper hands its own `Control`, so a wrapper that gains
+   * one fails there until it passes it here.
+   */
+  defaultIconLeftName?: string;
 }
 
 // Each Control-level prop, with what takes its place on the `Control` the
@@ -165,6 +172,10 @@ const ON_CONTROL: Record<keyof ControlLevelProps, string> = {
  * only the props it hands its own `Control`, as the caller gave them, so a
  * default the wrapper fills in itself never warns. A prop counts when it is
  * truthy, since a falsy one would change nothing on a `Control` either.
+ * `iconLeftSize` and `hasIconsLeft` show nothing on a `Control` without a
+ * glyph, so when they move and the caller chose no left icon, the advice
+ * names the wrapper's default glyph too, and following it draws what the
+ * wrapper's own `Control` did.
  * Internal; not part of the public API.
  */
 export const rendersOwnControl = (
@@ -178,23 +189,34 @@ export const rendersOwnControl = (
   if (held.length === 0) return false;
   const names = held.join(' ');
   const doNothing = held.length > 1 ? 'those props do' : 'that prop does';
+  let message: string;
   if (options.inline) {
-    warnOnce(
-      `${component}:Control-props-inline:${held.join('+')}`,
+    message =
       `[bestax-bulma] <${component} inline ${names}> renders no <Control> ` +
-        `in inline mode, inside a <Control> or not, so ${doNothing} ` +
-        `nothing. Leave ${held.length > 1 ? 'them' : 'it'} out of an ` +
-        `inline picker.`
-    );
+      `in inline mode, inside a <Control> or not, so ${doNothing} ` +
+      `nothing. Leave ${held.length > 1 ? 'them' : 'it'} out of an ` +
+      `inline picker.`;
   } else {
-    warnOnce(
-      `${component}:Control-props-in-Control:${held.join('+')}`,
+    const toSet = held.map(prop => ON_CONTROL[prop]);
+    const needsGlyph =
+      (options.iconLeftSize || options.hasIconsLeft) &&
+      !options.iconLeft &&
+      options.iconLeftName === undefined &&
+      options.defaultIconLeftName;
+    if (needsGlyph) {
+      toSet.push(
+        `iconLeftName="${options.defaultIconLeftName}" (its default icon)`
+      );
+    }
+    message =
       `[bestax-bulma] <${component} ${names}> inside a <Control> renders ` +
-        `no <Control> of its own, so ${doNothing} nothing there. Set ` +
-        `${listOf(held.map(prop => ON_CONTROL[prop]))} on that <Control> ` +
-        `instead.`
-    );
+      `no <Control> of its own, so ${doNothing} nothing there. Set ` +
+      `${listOf(toSet)} on that <Control> instead.`;
   }
+  // Keyed by the message itself: the props named do not settle the advice
+  // (an empty `iconLeftName` and an unset one name the same props), so two
+  // calls that would advise differently must not share a key.
+  warnOnce(message, message);
   return false;
 };
 
@@ -217,7 +239,7 @@ const FieldLabelElementIdContext = createContext<string | undefined>(undefined);
 
 /**
  * The id of a labeled Field's own `<label>`, for a group control (Radios,
- * Checkboxes, Rate) to point `aria-labelledby` at, since a group cannot take
+ * Checkboxes, Rate, DateRangeInput) to point `aria-labelledby` at, since a group cannot take
  * the label's `htmlFor` (#939). Set under the same conditions as
  * {@link useFieldLabelId}. Consumed through `useAutoLabelledBy`.
  * Internal; not part of the public API.
