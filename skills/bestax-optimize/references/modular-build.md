@@ -7,11 +7,13 @@ This is the "Option C" pattern from the
 ## Prerequisites
 
 ```sh
+npm install bulma
 npm install -D sass
 ```
 
 `sass` is Bulma's own compiler, dev-only. Vite compiles `.scss` out of the box — no plugin.
-`bulma` is already present as a dependency of `@allxsmith/bestax-bulma`, and the library
+`bulma` has to be a dependency of the app itself: bestax-bulma depends on it, but under pnpm's
+default layout the app's Sass can only load the packages the app lists. The library
 publishes its SCSS sources (`src/scss` ships in the npm package, exposed via the
 `@allxsmith/bestax-bulma/scss/*` export).
 
