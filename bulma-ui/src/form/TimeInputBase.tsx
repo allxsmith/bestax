@@ -130,7 +130,7 @@ export interface TimeInputBaseProps
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
    * an empty field stays empty, and leaving afterwards commits only what was
-   * typed since.
+   * typed since. With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /** Close the popover after a time is selected (off by default). */
@@ -362,10 +362,17 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       [isControlled, onChange]
     );
 
+    // An empty field starts from today, at the whole minute or second the
+    // wheels show.
     const handleSpinnerChange = useCallback(
       (parts: { hours: number; minutes: number; seconds?: number }) => {
-        const base = value ?? new Date();
-        const next = setTimeOfDay(base, parts);
+        const next = value
+          ? setTimeOfDay(value, parts)
+          : setTimeOfDay(new Date(), {
+              ...parts,
+              seconds: parts.seconds ?? 0,
+              milliseconds: 0,
+            });
         if (!isWithin(next, lowerBound, max)) return;
         commitValue(next);
       },

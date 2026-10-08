@@ -551,7 +551,7 @@ export const ManualEntryLocale: Story = {
     docs: {
       description: {
         story:
-          'The same locales, typing-first — `openOnFocus={false}` keeps the calendar closed until you use the launcher icon or `↓`, so each field takes segmented entry directly.',
+          'The same locales, typing-first — `openOnFocus={false}` keeps the calendar closed until you use the launcher icon or `Alt+↓`, so each field takes segmented entry directly.',
       },
     },
   },
@@ -567,7 +567,7 @@ export const ManualEntryFirstDayOfWeek: Story = {
     docs: {
       description: {
         story:
-          'With `openOnFocus={false}` the Monday-first calendar only opens from the launcher icon or `↓` — focusing the field starts segmented typing instead.',
+          'With `openOnFocus={false}` the Monday-first calendar only opens from the launcher icon or `Alt+↓` — focusing the field starts segmented typing instead.',
       },
     },
   },
@@ -583,7 +583,7 @@ export const ManualEntryLauncherIcon: Story = {
     docs: {
       description: {
         story:
-          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `↓`) is the only way to open the calendar — clicking into the field just starts typing.',
+          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `Alt+↓`) is the only way to open the calendar — clicking into the field just starts typing.',
       },
     },
   },
@@ -617,7 +617,7 @@ export const ManualEntrySizes: Story = {
     docs: {
       description: {
         story:
-          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the calendar waits for the launcher icon or `↓`.',
+          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the calendar waits for the launcher icon or `Alt+↓`.',
       },
     },
   },
@@ -637,7 +637,7 @@ export const ManualEntryColors: Story = {
     docs: {
       description: {
         story:
-          'Every color with `openOnFocus={false}` — type into each field directly; the calendar only opens from the launcher icon or `↓`.',
+          'Every color with `openOnFocus={false}` — type into each field directly; the calendar only opens from the launcher icon or `Alt+↓`.',
       },
     },
   },
@@ -654,7 +654,7 @@ export const ManualEntryHorizontalField: Story = {
     docs: {
       description: {
         story:
-          'The horizontal layout with `openOnFocus={false}` — focus drops you straight into segmented typing, and the calendar stays behind the launcher icon or `↓`.',
+          'The horizontal layout with `openOnFocus={false}` — focus drops you straight into segmented typing, and the calendar stays behind the launcher icon or `Alt+↓`.',
       },
     },
   },
