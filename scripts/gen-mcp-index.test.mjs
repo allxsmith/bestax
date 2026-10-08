@@ -186,18 +186,27 @@ test('every CSS variable lists every declarer, the one it is named after first (
   }
   assert.ok(shared > 0, 'no variable is declared by more than one component');
 
-  // The cases the rule exists for.
-  for (const [css, expected] of [
-    ['--bulma-dateinput-cell-color', ['DateInput', 'DateTimeInput']],
-    ['--bulma-timeinput-separator-color', ['TimeInput', 'DateTimeInput']],
-    ['--bulma-subtitle-color', ['SubTitle', 'Title']],
-    ['--bulma-title-color', ['Title', 'SubTitle']],
+  // The cases the rule exists for: a variable several components declare goes
+  // first to the one it is named after. Who else declares it moves as
+  // components are added (DateRangeInput reads the calendar's), so only the
+  // owner is pinned here; the loop above holds the rest of each list.
+  for (const [css, owner] of [
+    ['--bulma-dateinput-cell-color', 'DateInput'],
+    ['--bulma-timeinput-separator-color', 'TimeInput'],
+    ['--bulma-subtitle-color', 'SubTitle'],
+    ['--bulma-title-color', 'Title'],
+    ['--bulma-input-border-color', 'Input'],
   ]) {
-    assert.deepEqual(catalog.cssVarIndex[css], expected, css);
+    const listed = catalog.cssVarIndex[css];
+    assert.equal(listed?.[0], owner, `${css} lists ${listed}`);
+    assert.ok(listed.length > 1, `${css} has no other declarer to rank`);
   }
-  const input = catalog.cssVarIndex['--bulma-input-border-color'];
-  assert.equal(input?.[0], 'Input');
-  assert.ok(input.includes('Select'), 'every declarer stays listed');
+  assert.ok(
+    catalog.cssVarIndex['--bulma-dateinput-cell-color'].includes(
+      'DateTimeInput'
+    ),
+    'the declarer #964 named stays listed'
+  );
 });
 
 test('a variable goes to the declarer whose name accounts for most of it', () => {

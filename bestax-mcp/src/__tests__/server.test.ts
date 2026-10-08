@@ -13,6 +13,7 @@ import { describe, expect, it, beforeAll } from '@jest/globals';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 
+import { loadCatalog } from '../data.js';
 import { createServer } from '../server.js';
 
 type TextResult = {
@@ -501,12 +502,19 @@ describe('get_css_variables', () => {
   // The index named whichever declarer the generator read last, so DateInput's
   // calendar variables were "declared by DateTimeInput" (#964).
   it('names every declarer, the one a variable is named after first', async () => {
+    // The list comes from the index, since who else declares the calendar's
+    // variables grows with the pickers; what is pinned is DateInput leading it.
+    const declarers = (await loadCatalog()).cssVarIndex[
+      '--bulma-dateinput-cell-color'
+    ];
+    expect(declarers[0]).toBe('DateInput');
+    expect(declarers).toContain('DateTimeInput');
+    const named = declarers.join(', ');
+
     const out = text(
       await call('get_css_variables', { query: 'dateinput-cell-color' })
     );
-    expect(out).toContain(
-      '| `--bulma-dateinput-cell-color` | DateInput, DateTimeInput |'
-    );
+    expect(out).toContain(`| \`--bulma-dateinput-cell-color\` | ${named} |`);
 
     const search = text(
       await call('search_bestax', {
@@ -514,7 +522,7 @@ describe('get_css_variables', () => {
         kind: 'css-var',
       })
     );
-    expect(search).toContain('declared by DateInput, DateTimeInput');
+    expect(search).toContain(`declared by ${named}`);
     expect(search).toContain('get_css_variables({ component: "DateInput" })');
   });
 });
