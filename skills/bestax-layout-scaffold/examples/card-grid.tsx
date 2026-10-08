@@ -5,7 +5,6 @@
 // it (flexGrow="1"), so short blurbs don't leave ragged card bottoms.
 // (`height: 100%` on the card would NOT work — it resolves against auto
 // height. For uniform grids, Grid/Cell gives equal heights for free.)
-import React from 'react';
 import {
   Section,
   Container,

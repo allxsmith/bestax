@@ -298,7 +298,7 @@ Bundlers don't tree-shake CSS: the variation you import lands in your production
 
 For the full playbook — including an opt-in PurgeCSS step that strips unused selectors — see [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css).
 
-The bestax React library itself is a separate, much smaller cost: ~49KB min+gzip of JS for the _entire_ library, and tree-shaking means your app only ships the components it imports.
+The bestax React library itself is a separate, smaller cost: ~65KB min+gzip of JS for the _entire_ library, and tree-shaking means your app only ships the components it imports.
 
 ---
 

@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-93 documented components. Generated from the API docs — every exported
+94 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -108,6 +108,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
 - [Control](https://bestax.io/docs/api/form/control) — The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state…
 - [DateInput](https://bestax.io/docs/api/form/datetime/dateinput) — The `DateInput` component is a form input that opens a popover calendar for date selection.
+- [DateRangeInput](https://bestax.io/docs/api/form/datetime/daterangeinput) — The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.
 - [DateTimeInput](https://bestax.io/docs/api/form/datetime/datetimeinput) — The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.
 - [Field](https://bestax.io/docs/api/form/field) — The `Field` component is a Bulma-styled form field container.
 - [File](https://bestax.io/docs/api/form/file) — The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.

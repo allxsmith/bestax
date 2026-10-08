@@ -5,6 +5,16 @@ export type HourFormat = '12' | '24';
 
 export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
+/**
+ * Whether a key is Alt+ArrowDown or Alt+ArrowUp, which open and close a
+ * picker's popover. The calendar and the time wheels leave both to it rather
+ * than reading them as plain arrows.
+ */
+export const isPopoverToggleKey = (e: {
+  altKey: boolean;
+  key: string;
+}): boolean => e.altKey && (e.key === 'ArrowDown' || e.key === 'ArrowUp');
+
 /** The unit a date picker selects: a day, a month or a year. */
 export type DateGranularity = 'day' | 'month' | 'year';
 
@@ -40,6 +50,10 @@ export interface PickerLabels {
    * the pointer or the keyboard is on, until it is picked.
    */
   rangePreviewEnd?: string;
+  /** Range picking: shown between the start and end inputs. */
+  rangeSeparator?: string;
+  /** Range picking: names the launcher and the popover. */
+  chooseDateRange?: string;
   // Time spinner
   hours?: string;
   minutes?: string;
@@ -79,6 +93,8 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   rangeStart: 'Start date',
   rangeEnd: 'End date',
   rangePreviewEnd: 'Choose as end date',
+  rangeSeparator: '–',
+  chooseDateRange: 'Choose date range',
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',

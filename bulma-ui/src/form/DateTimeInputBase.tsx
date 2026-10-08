@@ -40,6 +40,7 @@ import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker'
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
 import { Icon } from '../elements/Icon';
+import { getActiveElementInTree } from '../helpers/shadowDom';
 
 // The year is padded to four digits, as `datetime-local` requires. HTML has
 // no such shape for a year before 1, so a date then is empty, as that input
@@ -95,7 +96,12 @@ export interface DateTimeInputBaseProps
   value?: Date | null;
   /** Initial value for uncontrolled usage. */
   defaultValue?: Date | null;
-  /** Fired when either the date or time portion changes. */
+  /**
+   * Fired when either the date or time portion changes. Picking a day keeps
+   * the value's whole time of day, down to seconds and milliseconds the field
+   * doesn't show, and `min` and `max` judge the picked day at that time. An
+   * empty field's day is picked at midnight.
+   */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
   onOpen?: () => void;
@@ -141,7 +147,7 @@ export interface DateTimeInputBaseProps
    * Open the popover on focus. Default `true`. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
    * an empty field stays empty, and leaving afterwards commits only what was
-   * typed since.
+   * typed since. With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /** Off by default — users typically tweak both halves before committing. */
@@ -415,6 +421,34 @@ export const DateTimeInputBase = forwardRef<
     if (!open) setTimeOpen(false);
   }, [open]);
 
+  // The footer's Time button opens the wheels, and the hours wheel takes
+  // focus so the keys turn it straight away. The calendar they cover is
+  // inert meanwhile, so no tab stop, pointer or screen reader reaches a day
+  // behind them; the attribute is set on the element, as React 18 has no
+  // `inert` prop. Closing the wheels hands focus back to the button: focus
+  // in them would fall to the page as they unmount, and a pointer press
+  // outside them has already dropped it on the panel or the page. Focus the
+  // keys moved on to the footer, such as Reset, stays there.
+  const panelRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
+  const timeButtonRef = useRef<HTMLButtonElement>(null);
+  const timeOverlayRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    calendarRef.current?.toggleAttribute('inert', timeOpen);
+    if (!timeOpen) return;
+    timeOverlayRef.current
+      ?.querySelector<HTMLElement>('[role="spinbutton"]')
+      ?.focus();
+  }, [timeOpen]);
+  const closeTime = useCallback(() => {
+    const panel = panelRef.current;
+    const active = getActiveElementInTree(panel);
+    const movedOn =
+      !!panel?.contains(active) && !timeOverlayRef.current?.contains(active);
+    if (!movedOn) timeButtonRef.current?.focus();
+    setTimeOpen(false);
+  }, []);
+
   const commitValue = useCallback(
     (next: Date | null) => {
       if (!isControlled) setInternalValue(next);
@@ -425,24 +459,36 @@ export const DateTimeInputBase = forwardRef<
     [isControlled, onChange]
   );
 
+  // A picked day takes the value's whole time of day, seconds and all, or
+  // midnight in an empty field. The day handed over by the keyboard is the
+  // calendar's focused date, which can carry the time of the clock it
+  // started from, so none of its time is kept.
   const handleDateSelect = useCallback(
     (d: Date) => {
       const merged = setTimeOfDay(d, {
         hours: value?.getHours() ?? 0,
         minutes: value?.getMinutes() ?? 0,
-        seconds: enableSeconds ? (value?.getSeconds() ?? 0) : undefined,
+        seconds: value?.getSeconds() ?? 0,
+        milliseconds: value?.getMilliseconds() ?? 0,
       });
       if (!isWithin(merged, lowerBound, max)) return;
       commitValue(merged);
       setFocusedDate(d);
     },
-    [value, enableSeconds, lowerBound, max, commitValue]
+    [value, lowerBound, max, commitValue]
   );
 
+  // The wheels set the value's time. An empty field starts from the focused
+  // day, at the whole minute or second the wheels show.
   const handleTimeChange = useCallback(
     (parts: { hours: number; minutes: number; seconds?: number }) => {
-      const base = value ?? focusedDate;
-      const next = setTimeOfDay(base, parts);
+      const next = value
+        ? setTimeOfDay(value, parts)
+        : setTimeOfDay(focusedDate, {
+            ...parts,
+            seconds: parts.seconds ?? 0,
+            milliseconds: 0,
+          });
       if (!isWithin(next, lowerBound, max)) return;
       commitValue(next);
     },
@@ -460,8 +506,16 @@ export const DateTimeInputBase = forwardRef<
     [parse, defaultFormat, locale]
   );
 
-  // The Date the user edits when starting without a current value (now).
-  const makeBaseDate = useCallback((): Date => new Date(), []);
+  // The Date the user edits when starting without a current value: now, at
+  // the whole minute, or the whole second with `enableSeconds`.
+  const makeBaseDate = useCallback(
+    (): Date =>
+      setTimeOfDay(new Date(), {
+        seconds: enableSeconds ? undefined : 0,
+        milliseconds: 0,
+      }),
+    [enableSeconds]
+  );
 
   const inputReadOnlyAttr = !!readOnly || !editable;
   const canOpen = !!popover && !disabled && !readOnly;
@@ -556,45 +610,49 @@ export const DateTimeInputBase = forwardRef<
 
   const panel = (
     <div
+      ref={panelRef}
       className={panelClass}
       onKeyDown={e => {
         // First Escape collapses the floating time wheels; the popover's own
         // Escape handler (which closes the whole panel) only sees the second.
         if (timeOpen && e.key === 'Escape') {
           e.stopPropagation();
-          setTimeOpen(false);
+          closeTime();
         }
       }}
     >
       <div className={calendarWrapClass}>
-        <Calendar
-          value={value}
-          focusedDate={focusedDate}
-          onSelect={handleDateSelect}
-          onFocusedDateChange={setFocusedDate}
-          min={min}
-          max={max}
-          shouldDisableDate={shouldDisableDate}
-          unselectableDates={unselectableDates}
-          firstDayOfWeek={firstDayOfWeek}
-          locale={locale}
-          dayNames={dayNames}
-          monthNames={monthNames}
-          nearbyMonthDays={nearbyMonthDays}
-          color={color}
-          size={size}
-          id={`${popoverId}-cal`}
-          autoFocusCell={open}
-          labels={labels}
-        />
+        <div ref={calendarRef}>
+          <Calendar
+            value={value}
+            focusedDate={focusedDate}
+            onSelect={handleDateSelect}
+            onFocusedDateChange={setFocusedDate}
+            min={min}
+            max={max}
+            shouldDisableDate={shouldDisableDate}
+            unselectableDates={unselectableDates}
+            firstDayOfWeek={firstDayOfWeek}
+            locale={locale}
+            dayNames={dayNames}
+            monthNames={monthNames}
+            nearbyMonthDays={nearbyMonthDays}
+            color={color}
+            size={size}
+            id={`${popoverId}-cal`}
+            autoFocusCell={open}
+            labels={labels}
+          />
+        </div>
         {timeOpen && (
           <div
+            ref={timeOverlayRef}
             className={timeOverlayClass}
             onClick={e => {
               // Tap outside the wheel card (on the covered calendar area)
               // collapses the wheels without selecting a date, matching the
               // native behavior.
-              if (e.target === e.currentTarget) setTimeOpen(false);
+              if (e.target === e.currentTarget) closeTime();
             }}
           >
             <div className={timeCardClass}>
@@ -622,9 +680,10 @@ export const DateTimeInputBase = forwardRef<
       </div>
       <div className={footerClass}>
         <button
+          ref={timeButtonRef}
           type="button"
           className={footerTimeClass}
-          onClick={() => setTimeOpen(o => !o)}
+          onClick={() => (timeOpen ? closeTime() : setTimeOpen(true))}
           aria-expanded={timeOpen}
           disabled={disabled}
         >

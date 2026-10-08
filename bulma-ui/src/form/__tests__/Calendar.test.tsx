@@ -2036,3 +2036,44 @@ describe('Calendar focus inside a shadow root', () => {
     expect(root.activeElement).toHaveTextContent('2025');
   });
 });
+
+describe('Calendar and the popover toggle keys', () => {
+  // Alt+ArrowDown and Alt+ArrowUp open and close a picker's popover, so the
+  // calendar leaves them to it in every view rather than moving focus.
+  beforeAll(() => {
+    HTMLElement.prototype.scrollIntoView = jest.fn();
+  });
+  const toggleKeys = (el: Element) =>
+    ['ArrowUp', 'ArrowDown'].map(key =>
+      fireEvent.keyDown(el, { key, altKey: true })
+    );
+
+  it.each([
+    ['the day grid', 'day', '[data-focused="true"]'],
+    ['the month grid', 'month', '[data-focused="true"]'],
+    ['the year list', 'year', '[data-focused-year="true"]'],
+  ] as const)('in %s', (_view, granularity, selector) => {
+    const onFocusedDateChange = jest.fn();
+    const { container } = render(
+      <PeriodHarness
+        granularity={granularity}
+        onFocusedDateChange={onFocusedDateChange}
+      />
+    );
+    const focused = container.querySelector(selector)!;
+    expect(toggleKeys(focused)).toEqual([true, true]);
+    expect(onFocusedDateChange).not.toHaveBeenCalled();
+  });
+
+  it('in the year list opened from the header', () => {
+    const onFocusedDateChange = jest.fn();
+    const { container } = render(
+      <PeriodHarness onFocusedDateChange={onFocusedDateChange} />
+    );
+    fireEvent.click(container.querySelector('[aria-haspopup="listbox"]')!);
+    const year = container.querySelector('[data-focused-year="true"]')!;
+    expect(toggleKeys(year)).toEqual([true, true]);
+    expect(container.querySelector('[role="listbox"]')).not.toBeNull();
+    expect(onFocusedDateChange).not.toHaveBeenCalled();
+  });
+});

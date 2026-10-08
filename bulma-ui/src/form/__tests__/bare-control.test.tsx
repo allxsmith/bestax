@@ -7,6 +7,7 @@ import { Select } from '../Select';
 import { TextArea } from '../TextArea';
 import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
+import { DateRangeInput } from '../DateRangeInput';
 import { TimeInput } from '../TimeInput';
 import { Checkboxes } from '../Checkboxes';
 import { Checkbox } from '../Checkbox';
@@ -93,6 +94,11 @@ const wrappers: Wrapper[] = [
     name: 'TimeInput',
     render: p => <TimeInput {...p} />,
     root: '.timeinput-container',
+  },
+  {
+    name: 'DateRangeInput',
+    render: p => <DateRangeInput {...p} />,
+    root: '.daterangeinput',
   },
   {
     name: 'Checkboxes',
@@ -600,6 +606,45 @@ describe.each(ownsControl)(
       render(el(everyControlProp));
       expect(warnSpy).not.toHaveBeenCalled();
     });
+
+    // A left icon size or column shows nothing on a Control with no glyph.
+    // The glyph a wrapper's own Control draws by default is read from the
+    // recording, so a wrapper that gains one fails here until the advice
+    // names it.
+    it.each([
+      { prop: 'iconLeftSize', given: { iconLeftSize: 'small' } },
+      { prop: 'hasIconsLeft', given: { hasIconsLeft: true } },
+    ] satisfies Array<{
+      prop: string;
+      given: Pick<ControlLevelProps, 'iconLeftSize' | 'hasIconsLeft'>;
+    }>)(
+      'advises a Control that draws what its own did for $prop',
+      ({ prop, given }) => {
+        const reached = reachesControl(el).has(prop as keyof ControlLevelProps);
+        mockControlProps.length = 0;
+        const { container: own } = render(el(given));
+        const glyph = (mockControlProps[0] as ControlLevelProps | undefined)
+          ?.iconLeftName;
+        render(<Control>{el(given)}</Control>);
+        const warnings = controlWarnings();
+        expect(warnings).toHaveLength(reached ? 1 : 0);
+        if (!reached) return;
+
+        expect(warnings[0]).toContain(
+          glyph
+            ? `Set ${prop} and iconLeftName="${glyph}" (its default icon) on`
+            : `Set ${prop} on`
+        );
+        const { container: advised } = render(
+          <Control {...given} iconLeftName={glyph}>
+            {el({})}
+          </Control>
+        );
+        expect(withoutIds(outerControl(advised).outerHTML)).toBe(
+          withoutIds(outerControl(own).outerHTML)
+        );
+      }
+    );
   }
 );
 
@@ -620,6 +665,11 @@ const pickers = [
     name: 'DateTimeInput',
     render: (p: PickerProps) => <DateTimeInput {...p} />,
     defaultIcon: 'calendar-alt',
+  },
+  {
+    name: 'DateRangeInput',
+    render: (p: PickerProps) => <DateRangeInput {...p} />,
+    defaultIcon: 'calendar',
   },
 ];
 
@@ -708,6 +758,94 @@ describe('the Control-level warning', () => {
       expect(controlWarnings()).toEqual([
         expect.stringContaining(`<${name} iconLeftName> inside a <Control>`),
       ]);
+    }
+  );
+
+  // A left icon size or column shows nothing on a Control with no glyph, and
+  // a picker's own Control supplies one. Advice to move those props alone
+  // would leave the caller's Control without the icon the picker drew.
+  it.each(
+    pickers.flatMap(picker =>
+      (
+        [
+          { prop: 'iconLeftSize', given: { iconLeftSize: 'small' } },
+          { prop: 'hasIconsLeft', given: { hasIconsLeft: true } },
+        ] satisfies Array<{
+          prop: string;
+          given: Pick<ControlLevelProps, 'iconLeftSize' | 'hasIconsLeft'>;
+        }>
+      ).map(left => ({ ...picker, ...left }))
+    )
+  )(
+    "names $name's default icon in the advice for $prop, which then draws what its own Control did",
+    ({ name, render: el, defaultIcon, prop, given }) => {
+      render(<Control>{el(given)}</Control>);
+      const message = controlWarnings()[0];
+      expect(message).toContain(`<${name} ${prop}> inside a <Control>`);
+      expect(message).toContain(
+        `Set ${prop} and iconLeftName="${defaultIcon}" (its default icon) ` +
+          'on that <Control> instead.'
+      );
+
+      const { container: own } = render(el(given));
+      const { container: advised } = render(
+        <Control {...given} iconLeftName={defaultIcon}>
+          {el({})}
+        </Control>
+      );
+      // Standalone, the picker also wraps its Control in a Field of its own.
+      expect(withoutIds(outerControl(advised).outerHTML)).toBe(
+        withoutIds(outerControl(own).outerHTML)
+      );
+    }
+  );
+
+  it.each(pickers)(
+    "leaves $name's default icon out of the advice when the caller chose the icon",
+    ({ render: el }) => {
+      render(
+        <Control>
+          {el({ iconLeftSize: 'small', iconLeftName: '' })}
+          {el({ iconLeftSize: 'small', iconLeft: <span>L</span> })}
+          {el({ isLoading: true, iconRightName: 'check' })}
+        </Control>
+      );
+      const warnings = controlWarnings();
+      expect(warnings).toHaveLength(3);
+      for (const message of warnings) {
+        expect(message).not.toContain('default icon');
+      }
+    }
+  );
+
+  it('names no default icon for a wrapper without one', () => {
+    render(
+      <Control>
+        <Input iconLeftSize="small" hasIconsLeft />
+      </Control>
+    );
+    const message = controlWarnings()[0];
+    expect(message).toContain(
+      'Set iconLeftSize and hasIconsLeft on that <Control> instead.'
+    );
+  });
+
+  it.each(pickers)(
+    'warns separately for $name sites that hide the icon and that keep the default',
+    ({ render: el, defaultIcon }) => {
+      // The same props reach the warning either way, since an empty
+      // iconLeftName counts as unset, but only one wants the default glyph.
+      const hidden = el({ iconLeftSize: 'small', iconLeftName: '' });
+      const kept = el({ iconLeftSize: 'small' });
+      render(<Control>{hidden}</Control>);
+      render(<Control>{kept}</Control>);
+      render(<Control>{hidden}</Control>);
+
+      const glyph = `iconLeftName="${defaultIcon}" (its default icon)`;
+      const warnings = controlWarnings();
+      expect(warnings).toHaveLength(2);
+      expect(warnings[0]).not.toContain(glyph);
+      expect(warnings[1]).toContain(glyph);
     }
   );
 

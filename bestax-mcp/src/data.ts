@@ -160,6 +160,19 @@ export function loadCatalog(): Promise<Catalog> {
 const componentCache = new Map<string, Promise<ComponentRecord>>();
 
 /**
+ * A name as a model writes it, without the JSX around it: `<Button>`,
+ * `<Button />` and ` Button ` are all `Button`. Trimmed again after the tag is
+ * stripped, since the self-closing form leaves the space before `/>` behind,
+ * and that space made `<Button />` an unknown component.
+ */
+function cleanName(input: string): string {
+  return input
+    .trim()
+    .replace(/^<|\/?>$/g, '')
+    .trim();
+}
+
+/**
  * Resolve a user-supplied name to a real component.
  *
  * Tolerant on purpose — a model asks for `navbar`, `<Button>` or
@@ -168,13 +181,34 @@ const componentCache = new Map<string, Promise<ComponentRecord>>();
  */
 export async function resolveName(input: string): Promise<string | null> {
   const catalog = await loadCatalog();
-  const cleaned = input.trim().replace(/^<|\/?>$/g, '');
-  const root = cleaned.split('.')[0];
+  const root = cleanName(input).split('.')[0];
   const exact = catalog.components.find(c => c.name === root);
   if (exact) return exact.name;
   const lower = root.toLowerCase();
   const ci = catalog.components.find(c => c.name.toLowerCase() === lower);
   return ci ? ci.name : null;
+}
+
+/**
+ * The part a dot-path names (`Navbar.Brand`), or null for a plain name. Cleaned
+ * the way `resolveName` cleans, so `<Navbar.Brand>` names it too.
+ */
+export function dotPath(input: string): string | null {
+  const cleaned = cleanName(input);
+  return cleaned.includes('.') ? cleaned : null;
+}
+
+/**
+ * This server's own version, from the manifest that ships beside `dist/`. It is
+ * what `serverInfo.version` reports: the version of the implementation, as the
+ * protocol defines it, while the library version the index documents is in the
+ * instructions and in every drift warning.
+ */
+export async function loadServerVersion(): Promise<string> {
+  const pkg = await readJson<{ version: string }>(
+    join(HERE, '..', 'package.json')
+  );
+  return pkg.version;
 }
 
 export function loadComponent(name: string): Promise<ComponentRecord> {

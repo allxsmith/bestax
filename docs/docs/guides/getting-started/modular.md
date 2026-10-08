@@ -25,22 +25,12 @@ Modular optimization has two independent axes:
 
 ## JS: named imports and tree shaking
 
-bestax-bulma is published as ES modules with `"sideEffects": ["**/*.css", "**/*.scss"]` in its `package.json`. That means Vite, Webpack 5, Rollup, esbuild, Next.js, and other modern bundlers strip out any component you don't reference — no extra configuration required.
+bestax-bulma is published as ES modules, one file per source module, with `"sideEffects": ["**/*.css", "**/*.scss"]` in its `package.json`. That means Vite, Webpack 5, Rollup, esbuild, Next.js, and other modern bundlers strip out any component you don't reference — no extra configuration required.
 
 ```tsx
 // Good — only the components you name are bundled
 import { Button, Box, Card } from '@allxsmith/bestax-bulma';
 ```
-
-:::warning Don't default-import the whole library
-This defeats tree shaking and pulls in every component:
-
-```tsx
-// Bad — forces the whole library into your bundle
-import * as Bestax from '@allxsmith/bestax-bulma';
-```
-
-:::
 
 ### Component categories
 
@@ -289,7 +279,7 @@ These require no SCSS toolchain — swap the import path and you're done.
 
 - **`bestax.css`**: ~800KB minified on disk, **~82KB gzipped** over the wire (Bulma + extras). The raw number is what your bundler reports at build time; the gzipped number is what users download. Fine for most apps — but it ships in full regardless of how many components you use, because bundlers don't tree-shake CSS. See the full [File Size Comparison](/docs/guides/getting-started/variations#file-size-comparison) for every prebuilt variation, and [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css) for the complete trimming playbook.
 - **Hand-rolled modular SCSS**: can cut the CSS significantly if you only use a handful of components, but expect diminishing returns after gzip.
-- **JS bundle**: the entire library is ~49KB min+gzip, and tree shaking is automatic with named imports — you don't need to do anything beyond avoiding `import * as ...`.
+- **JS bundle**: the entire library is ~65KB min+gzip, and tree shaking is automatic with named imports.
 
 ## When to go modular
 
