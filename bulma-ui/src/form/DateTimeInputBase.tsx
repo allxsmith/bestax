@@ -421,15 +421,19 @@ export const DateTimeInputBase = forwardRef<
   }, [open]);
 
   // The footer's Time button opens the wheels, and the hours wheel takes
-  // focus so the keys turn it straight away. Closing them hands focus back
-  // to the button: focus in them would fall to the page as they unmount,
-  // and a pointer press outside them has already dropped it on the panel or
-  // the page. Focus the keys moved on to another control, such as a
-  // calendar day, stays there.
+  // focus so the keys turn it straight away. The calendar they cover is
+  // inert meanwhile, so no tab stop, pointer or screen reader reaches a day
+  // behind them; the attribute is set on the element, as React 18 has no
+  // `inert` prop. Closing the wheels hands focus back to the button: focus
+  // in them would fall to the page as they unmount, and a pointer press
+  // outside them has already dropped it on the panel or the page. Focus the
+  // keys moved on to the footer, such as Reset, stays there.
   const panelRef = useRef<HTMLDivElement>(null);
+  const calendarRef = useRef<HTMLDivElement>(null);
   const timeButtonRef = useRef<HTMLButtonElement>(null);
   const timeOverlayRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    calendarRef.current?.toggleAttribute('inert', timeOpen);
     if (!timeOpen) return;
     timeOverlayRef.current
       ?.querySelector<HTMLElement>('[role="spinbutton"]')
@@ -617,26 +621,28 @@ export const DateTimeInputBase = forwardRef<
       }}
     >
       <div className={calendarWrapClass}>
-        <Calendar
-          value={value}
-          focusedDate={focusedDate}
-          onSelect={handleDateSelect}
-          onFocusedDateChange={setFocusedDate}
-          min={min}
-          max={max}
-          shouldDisableDate={shouldDisableDate}
-          unselectableDates={unselectableDates}
-          firstDayOfWeek={firstDayOfWeek}
-          locale={locale}
-          dayNames={dayNames}
-          monthNames={monthNames}
-          nearbyMonthDays={nearbyMonthDays}
-          color={color}
-          size={size}
-          id={`${popoverId}-cal`}
-          autoFocusCell={open}
-          labels={labels}
-        />
+        <div ref={calendarRef}>
+          <Calendar
+            value={value}
+            focusedDate={focusedDate}
+            onSelect={handleDateSelect}
+            onFocusedDateChange={setFocusedDate}
+            min={min}
+            max={max}
+            shouldDisableDate={shouldDisableDate}
+            unselectableDates={unselectableDates}
+            firstDayOfWeek={firstDayOfWeek}
+            locale={locale}
+            dayNames={dayNames}
+            monthNames={monthNames}
+            nearbyMonthDays={nearbyMonthDays}
+            color={color}
+            size={size}
+            id={`${popoverId}-cal`}
+            autoFocusCell={open}
+            labels={labels}
+          />
+        </div>
         {timeOpen && (
           <div
             ref={timeOverlayRef}

@@ -1466,23 +1466,45 @@ describe('DateTimeInput focus and the time wheels', () => {
     expect(timeButton).toHaveFocus();
   });
 
-  it('leaves focus on a calendar day when Escape closes the wheels from there', () => {
+  it('leaves focus on Reset when Escape closes the wheels from there', () => {
     const { getByRole, queryAllByRole } = render(
       <DateTimeInput defaultValue={v} />
     );
     openPopover(getByRole('combobox'));
     pressTimeButton(getByRole('button', { name: /Time/ }));
-    const day = getByRole('dialog').querySelector<HTMLElement>(
-      '[data-focused="true"]'
-    )!;
+    const reset = getByRole('button', { name: 'Reset' });
     act(() => {
-      day.focus();
+      reset.focus();
     });
     act(() => {
-      fireEvent.keyDown(day, { key: 'Escape' });
+      fireEvent.keyDown(reset, { key: 'Escape' });
     });
     expect(queryAllByRole('spinbutton')).toHaveLength(0);
-    expect(day).toHaveFocus();
+    expect(reset).toHaveFocus();
+  });
+
+  it('takes the calendar the wheels cover out of reach until they close', () => {
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    const grid = getByRole('grid');
+    expect(grid.closest('[inert]')).toBeNull();
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    expect(grid.closest('[inert]')).not.toBeNull();
+    // So the hours wheel is the first tab stop, and Shift+Tab wraps to the
+    // footer rather than reaching a day behind the wheels.
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], {
+        key: 'Tab',
+        shiftKey: true,
+      });
+    });
+    expect(getByRole('button', { name: 'Done' })).toHaveFocus();
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    });
+    expect(grid.closest('[inert]')).toBeNull();
   });
 
   it('keeps focus on the wheel the keys turn', () => {
