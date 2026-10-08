@@ -43,7 +43,7 @@
         {
           "id": "icon-libraries",
           "file": "references/icon-libraries.md",
-          "bytes": 6663
+          "bytes": 6201
         }
       ],
       "examples": [
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 9397
+          "bytes": 9431
         }
       ],
       "examples": []

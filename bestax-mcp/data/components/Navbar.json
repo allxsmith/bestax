@@ -31,7 +31,7 @@
     },
     {
       "title": "Custom Link Component",
-      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = props => <a>{props.children}</a>;\n  return (\n    <Navbar>\n      <Navbar.Menu active>\n        <Navbar.Start>\n          <Navbar.Item as={Link} to=\"/\">\n            Home\n          </Navbar.Item>\n          <Navbar.Item as={Link} to=\"/pricing\">\n            Pricing\n          </Navbar.Item>\n        </Navbar.Start>\n      </Navbar.Menu>\n    </Navbar>\n  );\n}"
+      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = (props: { to: string; children?: React.ReactNode }) => (\n    <a>{props.children}</a>\n  );\n  return (\n    <Navbar>\n      <Navbar.Menu active>\n        <Navbar.Start>\n          <Navbar.Item as={Link} to=\"/\">\n            Home\n          </Navbar.Item>\n          <Navbar.Item as={Link} to=\"/pricing\">\n            Pricing\n          </Navbar.Item>\n        </Navbar.Start>\n      </Navbar.Menu>\n    </Navbar>\n  );\n}"
     },
     {
       "title": "Transparent Navbar",
@@ -63,11 +63,11 @@
     },
     {
       "title": "Color Modifiers",
-      "code": "function example() {\n  const colors = [\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n    'black',\n    'dark',\n    'light',\n    'white',\n  ];\n  return (\n    <>\n      {colors.map(color => (\n        <Navbar key={color} color={color} mb=\"2\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n            </Navbar.Item>\n          </Navbar.Brand>\n          <Navbar.Menu active>\n            <Navbar.Start>\n              <Navbar.Item href=\"#\">Home</Navbar.Item>\n              <Navbar.Item href=\"#\">Docs</Navbar.Item>\n              <Navbar.Item href=\"#\">Components</Navbar.Item>\n            </Navbar.Start>\n          </Navbar.Menu>\n        </Navbar>\n      ))}\n    </>\n  );\n}"
+      "code": "function example() {\n  const colors = [\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n    'black',\n    'dark',\n    'light',\n    'white',\n  ] as const;\n  return (\n    <>\n      {colors.map(color => (\n        <Navbar key={color} color={color} mb=\"2\">\n          <Navbar.Brand>\n            <Navbar.Item href=\"#\">\n              <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n            </Navbar.Item>\n          </Navbar.Brand>\n          <Navbar.Menu active>\n            <Navbar.Start>\n              <Navbar.Item href=\"#\">Home</Navbar.Item>\n              <Navbar.Item href=\"#\">Docs</Navbar.Item>\n              <Navbar.Item href=\"#\">Components</Navbar.Item>\n            </Navbar.Start>\n          </Navbar.Menu>\n        </Navbar>\n      ))}\n    </>\n  );\n}"
     },
     {
       "title": "Forwarded ref",
-      "code": "function example() {\n  const navRef = React.useRef(null);\n  const [height, setHeight] = React.useState(null);\n\n  return (\n    <>\n      <Navbar ref={navRef}>\n        <Navbar.Brand>\n          <Navbar.Item href=\"#\">Home</Navbar.Item>\n        </Navbar.Brand>\n      </Navbar>\n      <Button mt=\"3\" onClick={() => setHeight(navRef.current?.offsetHeight)}>\n        Measure the navbar\n      </Button>\n      <p>Height: {height == null ? '—' : `${height}px`}</p>\n    </>\n  );\n}"
+      "code": "function example() {\n  const navRef = React.useRef<HTMLElement>(null);\n  const [height, setHeight] = React.useState<number>();\n\n  return (\n    <>\n      <Navbar ref={navRef}>\n        <Navbar.Brand>\n          <Navbar.Item href=\"#\">Home</Navbar.Item>\n        </Navbar.Brand>\n      </Navbar>\n      <Button mt=\"3\" onClick={() => setHeight(navRef.current?.offsetHeight)}>\n        Measure the navbar\n      </Button>\n      <p>Height: {height == null ? '—' : `${height}px`}</p>\n    </>\n  );\n}"
     },
     {
       "title": "Compound (dot-notation) usage",

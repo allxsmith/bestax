@@ -179,8 +179,8 @@ Links work seamlessly inline within text content.
 
 ```tsx live
 function example() {
-  const linkRef = React.useRef(null);
-  const [tag, setTag] = React.useState(null);
+  const linkRef = React.useRef<HTMLAnchorElement>(null);
+  const [tag, setTag] = React.useState<string>();
 
   return (
     <>

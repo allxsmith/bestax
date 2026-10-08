@@ -92,18 +92,20 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
 
 ```tsx live
 <>
-  {[
-    'primary',
-    'link',
-    'info',
-    'success',
-    'warning',
-    'danger',
-    'black',
-    'dark',
-    'light',
-    'white',
-  ].map(color => (
+  {(
+    [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+      'black',
+      'dark',
+      'light',
+      'white',
+    ] as const
+  ).map(color => (
     <Panel key={color} color={color}>
       <Panel.Heading>
         {color.charAt(0).toUpperCase() + color.slice(1)} Panel

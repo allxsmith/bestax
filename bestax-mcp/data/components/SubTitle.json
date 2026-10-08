@@ -31,7 +31,7 @@
     },
     {
       "title": "All Sizes",
-      "code": "<>\n  {['1', '2', '3', '4', '5', '6'].map(size => (\n    <SubTitle key={size} size={size}>\n      SubTitle Size {size}\n    </SubTitle>\n  ))}\n</>"
+      "code": "<>\n  {(['1', '2', '3', '4', '5', '6'] as const).map(size => (\n    <SubTitle key={size} size={size}>\n      SubTitle Size {size}\n    </SubTitle>\n  ))}\n</>"
     },
     {
       "title": "Title and Subtitle Pairings",

@@ -216,7 +216,7 @@ You can use the `Field` component to create horizontal layouts for static and ed
 <>
   <Field horizontal label="Username">
     <Control>
-      <Input isStatic value="Static value" />
+      <Input isStatic readOnly value="Static value" />
     </Control>
   </Field>
   <Field horizontal label="Password">

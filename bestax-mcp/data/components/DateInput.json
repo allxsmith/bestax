@@ -15,11 +15,11 @@
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [value, setValue] = useState(new Date());\n  return (\n    <Block>\n      <DateInput label=\"Date\" value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState<Date | null>(new Date());\n  return (\n    <Block>\n      <DateInput label=\"Date\" value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [value, setValue] = useState(new Date());\n  return (\n    <Block>\n      <DateInput\n        label=\"Date\"\n        value={value}\n        onChange={setValue}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState<Date | null>(new Date());\n  return (\n    <Block>\n      <DateInput\n        label=\"Date\"\n        value={value}\n        onChange={setValue}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Inline",
@@ -67,11 +67,11 @@
     },
     {
       "title": "Formats",
-      "code": "function example() {\n  const parse = s => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n    />\n  );\n}"
+      "code": "function example() {\n  const parse = (s: string) => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n    />\n  );\n}"
     },
     {
       "title": "Formats",
-      "code": "function example() {\n  const parse = s => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse — typing-first\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+      "code": "function example() {\n  const parse = (s: string) => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse — typing-first\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
       "title": "Launcher Icon",
@@ -95,7 +95,7 @@
     },
     {
       "title": "Manual Keyboard Entry",
-      "code": "function example() {\n  const [v, setV] = useState(() => new Date(2024, 5, 7));\n  return (\n    <Block>\n      <DateInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toDateString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => new Date(2024, 5, 7));\n  return (\n    <Block>\n      <DateInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toDateString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Manual Keyboard Entry",
