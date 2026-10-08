@@ -683,6 +683,14 @@ describe('Icon', () => {
       expect(span).not.toHaveAttribute('aria-hidden');
     });
 
+    it.each([0, -1])(
+      'leaves an unnamed icon with a tabIndex of %s visible, since it can take focus',
+      tabIndex => {
+        render(<Icon name="trash" tabIndex={tabIndex} />);
+        expect(iconSpan()).not.toHaveAttribute('aria-hidden');
+      }
+    );
+
     it('still hides an unnamed icon whose role is spread as undefined', () => {
       const spread: { role?: string } = { role: undefined };
       render(<Icon name="star" {...spread} />);
