@@ -201,6 +201,12 @@ export const CLAUDE_MD = (
   const houseStyleOpening = flavor?.noHelpers
     ? NO_HELPERS_HOUSE_STYLE
     : HELPER_HOUSE_STYLE;
+  // The wrapper elements are only a way out where their helper props render.
+  const utilityClassRule = flavor?.noHelpers
+    ? `- Don't hand-write Bulma utility classes either: this flavor doesn't ship them, so a
+  \`has-text-…\` class renders nothing, and the named class above is what works.`
+    : `- Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
+  take the same helper props: \`Span\`, \`Paragraph\`, \`Strong\`, not \`<span className="has-text-…">\`.`;
   return `# ${projectName}
 
 This app is built with [\`@allxsmith/bestax-bulma\`](https://bestax.io) — React components for
@@ -213,8 +219,7 @@ ${setupLines.join('\n')}
 ## House style
 
 ${houseStyleOpening}
-- Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
-  take the same helper props: \`Span\`, \`Paragraph\`, \`Strong\`, not \`<span className="has-text-…">\`.
+${utilityClassRule}
   The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
   \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
   component renders those elements.

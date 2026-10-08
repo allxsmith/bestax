@@ -61,10 +61,16 @@ describe('vite-ts template TypeScript projects', () => {
   // `tsc -b` writes every referenced project's output unless it is told not
   // to, and a vite.config.js written next to vite.config.ts is the file Vite
   // then loads (#947).
-  it('emits nothing from any project the build script type-checks', () => {
-    const root = path.join(templatesDir, 'vite-ts', 'tsconfig.json');
-    const seen: string[] = [];
+  // The same walk has to reach both halves of the build: `vite build` checks
+  // no types, so a graph that stopped reaching the project for `src/` would
+  // build green while type-checking nothing.
+  it('type-checks src/ and vite.config.ts, and emits nothing from either', () => {
+    const templateDir = path.join(templatesDir, 'vite-ts');
+    const seen = new Set<string>();
+    const checked: string[] = [];
     const visit = (configPath: string) => {
+      if (seen.has(configPath)) return;
+      seen.add(configPath);
       const parsed = ts.getParsedCommandLineOfConfigFile(
         configPath,
         {},
@@ -76,7 +82,6 @@ describe('vite-ts template TypeScript projects', () => {
         }
       );
       if (!parsed) throw new Error(`could not parse ${configPath}`);
-      seen.push(path.basename(configPath));
       if (parsed.fileNames.length > 0) {
         expect({
           config: path.basename(configPath),
@@ -85,13 +90,17 @@ describe('vite-ts template TypeScript projects', () => {
           config: path.basename(configPath),
           noEmit: true,
         });
+        checked.push(...parsed.fileNames);
       }
       for (const ref of parsed.projectReferences ?? []) {
         visit(ts.resolveProjectReferencePath(ref));
       }
     };
-    visit(root);
-    expect(seen).toContain('tsconfig.node.json');
+    visit(path.join(templateDir, 'tsconfig.json'));
+
+    const src = path.join(templateDir, 'src') + path.sep;
+    expect(checked.some(file => file.startsWith(src))).toBe(true);
+    expect(checked).toContain(path.join(templateDir, 'vite.config.ts'));
   });
 });
 

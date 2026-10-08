@@ -367,8 +367,26 @@ describe('constants', () => {
         expect(md).not.toContain('Helper props instead');
         expect(md).not.toContain('No helper matches');
       });
+
+      // Neither a hand-written helper class nor the wrapper element's helper
+      // prop renders anything in this flavor, so the utility-class rule must
+      // not offer the wrapper as the way out.
+      it('does not send hand-written utility classes to helper props instead', () => {
+        expect(md).toContain("Don't hand-write Bulma utility classes");
+        expect(md).not.toContain('take the same helper props');
+        expect(md).toContain('`has-navbar-fixed-top`');
+      });
     }
   );
+
+  it('CLAUDE_MD offers the helper-prop wrappers where the flavor has helpers', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'none',
+    });
+    expect(md).toContain('take the same helper props');
+    expect(md).toContain('`Span`, `Paragraph`, `Strong`');
+  });
 
   it('CLAUDE_MD keeps the helper-prop table for every flavor that has helpers', () => {
     for (const flavor of BULMA_FLAVORS.filter(f => !f.noHelpers)) {
