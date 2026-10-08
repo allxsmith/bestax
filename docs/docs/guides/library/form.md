@@ -309,8 +309,10 @@ function DateInputExample() {
 A start and end date in one field: two segmented inputs and one popover calendar that picks the start and then the end, previewing the range on the way. `min`, `max` and the disabled-date props apply to both ends, and the range submits with a form as two dates.
 
 ```tsx live
+import type { DateRangeValue } from '@allxsmith/bestax-bulma';
+
 function DateRangeInputExample() {
-  const [range, setRange] = React.useState([null, null]);
+  const [range, setRange] = React.useState<DateRangeValue>([null, null]);
   const [start, end] = range;
   return (
     <div>
