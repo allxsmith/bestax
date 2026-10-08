@@ -16,6 +16,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
+import { loadComponent } from '../data.js';
 import { createServer } from '../server.js';
 
 type TextResult = {
@@ -407,6 +408,78 @@ describe('get_component', () => {
       const out = text(await call('get_component', { name: 'Block' }));
       expect(out).not.toContain('CSS variable');
     });
+  });
+});
+
+// The links inside index text were made canonical by the generator, and are tagged at
+// render time like the footer's, so a visit that starts in an answer is counted as one.
+// Code, skill bodies and skill references are served as written.
+describe('the bestax.io links inside answers', () => {
+  const TAG = 'utm_source=bestax-mcp';
+  /** Every markdown link target into bestax.io in a piece of text. */
+  const siteLinks = (out: string) =>
+    [...out.matchAll(/\]\(<?(https:\/\/bestax\.io[^)\s>]*)/g)].map(m => m[1]);
+
+  it('tags the link in an accessibility note, keeping its fragment', async () => {
+    const out = text(
+      await call('get_component', {
+        name: 'Avatars',
+        include: ['accessibility'],
+      })
+    );
+    expect(out).toContain(
+      "[Avatar's accessibility notes](https://bestax.io/docs/api/components/avatar?utm_source=bestax-mcp#accessibility)"
+    );
+    // The code span beside it is served as written.
+    expect(out).toContain('``surplusLabel={count => `${count} weitere`}``');
+  });
+
+  it.each([
+    ['get_component', { name: 'Columns' }],
+    ['get_props', { component: 'Grid.Cell' }],
+    ['list_components', {}],
+    ['search_bestax', { query: 'columns' }],
+    ['get_component', { name: 'useBulmaClasses' }],
+    ['get_component', { name: 'useBulmaClasses', include: ['reference'] }],
+    ['get_helper_props', { group: 'layout' }],
+  ])('tags every one in %s %j', async (tool, args) => {
+    const links = siteLinks(text(await call(tool, args)));
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) expect(link).toContain(TAG);
+  });
+
+  it.each(['Avatar', 'Footer', 'Input'])(
+    "serves %s's example code as written",
+    async component => {
+      const record = await loadComponent(component);
+      const examples = record.examples.filter(e =>
+        e.code.includes('https://bestax.io')
+      );
+      expect(examples.length).toBeGreaterThan(0);
+      for (const e of examples) {
+        const out = text(
+          await call('get_examples', { component, query: e.title })
+        );
+        expect(out).toContain('```tsx\n' + e.code + '\n```');
+      }
+    }
+  );
+
+  it('serves a skill as written, untagged links included', async () => {
+    const skill = text(await call('get_skill', { name: 'bestax-optimize' }));
+    const prompt = (
+      (await client.getPrompt({ name: 'optimize' })).messages[0].content as {
+        text: string;
+      }
+    ).text;
+    const resource = String(
+      (await client.readResource({ uri: 'bestax://skills/bestax-optimize' }))
+        .contents[0].text
+    );
+    for (const out of [skill, prompt, resource]) {
+      expect(siteLinks(out).length).toBeGreaterThan(0);
+      expect(out).not.toContain(TAG);
+    }
   });
 });
 

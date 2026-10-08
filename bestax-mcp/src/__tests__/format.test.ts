@@ -1,16 +1,24 @@
 /**
- * Unit tests for `attributed`, the link tagger.
+ * Unit tests for `attributed`, the link tagger, and `attributedLinks`, which
+ * applies it to the links inside index text.
  *
  * The server is offline by design (openWorldHint: false), so the tag on its
  * outbound links is the only attribution signal it has — these pin the
- * function's contract. The emission paths themselves are asserted where the
- * links surface: server.test.ts for the component link line, version.test.ts
- * for the drift note.
+ * functions' contracts. The emission paths themselves are asserted where the
+ * links surface: server.test.ts for the component link line and the links in
+ * index answers, version.test.ts for the drift note.
  */
 import { describe, expect, it } from '@jest/globals';
 
 import { loadComponent } from '../data.js';
-import { attributed, renderComponent } from '../format.js';
+import {
+  attributed,
+  attributedLinks,
+  referenceOf,
+  referencePointer,
+  renderComponent,
+  renderHelperApi,
+} from '../format.js';
 
 describe('attributed', () => {
   it('appends with ? when the URL has no query string', () => {
@@ -70,6 +78,215 @@ describe('attributed', () => {
     ).toBe(
       'https://bestax.io/storybook/?path=/story/elements-button&utm_source=bestax-mcp#anchor'
     );
+  });
+});
+
+describe('attributedLinks', () => {
+  const DOCS = 'https://bestax.io/docs/api/components/avatar';
+  const TAGGED = `${DOCS}?utm_source=bestax-mcp`;
+
+  it('tags a link into bestax.io', () => {
+    expect(attributedLinks(`See [Avatar](${DOCS}).`)).toBe(
+      `See [Avatar](${TAGGED}).`
+    );
+  });
+
+  it('keeps a fragment after the query', () => {
+    expect(attributedLinks(`[notes](${DOCS}#accessibility)`)).toBe(
+      `[notes](${TAGGED}#accessibility)`
+    );
+  });
+
+  it('joins an existing query with &, as on a Storybook link', () => {
+    const story =
+      'https://bestax.io/storybook/?path=/story/helpers-portal--default';
+    expect(attributedLinks(`[story](${story})`)).toBe(
+      `[story](${story}&utm_source=bestax-mcp)`
+    );
+  });
+
+  it('tags a target in angle brackets, inside them', () => {
+    expect(attributedLinks(`[Avatar](<${DOCS}>)`)).toBe(
+      `[Avatar](<${TAGGED}>)`
+    );
+  });
+
+  it('tags a target followed by a title, and keeps the title', () => {
+    expect(attributedLinks(`[Avatar](${DOCS} "The page")`)).toBe(
+      `[Avatar](${TAGGED} "The page")`
+    );
+    expect(attributedLinks(`[Avatar](<${DOCS}> 'The page')`)).toBe(
+      `[Avatar](<${TAGGED}> 'The page')`
+    );
+  });
+
+  it('tags a link whose text is a code span', () => {
+    expect(attributedLinks(`[\`Avatar\`](${DOCS})`)).toBe(
+      `[\`Avatar\`](${TAGGED})`
+    );
+  });
+
+  it('tags every link in the text, across lines', () => {
+    expect(
+      attributedLinks(`- [one](${DOCS})\n- [two](${DOCS}#props) and more`)
+    ).toBe(`- [one](${TAGGED})\n- [two](${TAGGED}#props) and more`);
+  });
+
+  it('is idempotent, and leaves an already-tagged link as it is', () => {
+    const once = attributedLinks(`[a](${DOCS}#x) and [b](<${DOCS}>)`);
+    expect(attributedLinks(once)).toBe(once);
+    expect(attributedLinks(`[a](${TAGGED})`)).toBe(`[a](${TAGGED})`);
+  });
+
+  it.each([
+    ['another host', '[Bulma](https://bulma.io/documentation/)'],
+    ['a host that only starts like it', '[x](https://bestax.io.example.com/a)'],
+    ['plain http', '[x](http://bestax.io/docs)'],
+    ['a relative page', '[Avatar](./avatar.md)'],
+    ['a fragment on the same page', '[props](#props)'],
+    ['a site-absolute path', '[docs](/docs/api)'],
+    ['a bare URL', `Read ${DOCS} first.`],
+    ['an autolink', `Read <${DOCS}> first.`],
+    ['an image', `![logo](https://bestax.io/img/logo.svg)`],
+    ['brackets that open no link', `see ](${DOCS}) here`],
+    ['an escaped bracket', `\\[Avatar](${DOCS})`],
+    ['a destination with a space in it', `[Avatar](${DOCS} not a title)`],
+    ['a link inside a code span', `Write \`[Avatar](${DOCS})\` there.`],
+    [
+      'a code span of two backticks, holding one',
+      `\`\` \`[Avatar](${DOCS})\` \`\``,
+    ],
+  ])('leaves %s alone', (_, markdown) => {
+    expect(attributedLinks(markdown)).toBe(markdown);
+  });
+
+  it('tags the link around an image, not the image', () => {
+    const img = '![logo](https://bestax.io/img/logo.svg)';
+    expect(attributedLinks(`[${img}](${DOCS})`)).toBe(`[${img}](${TAGGED})`);
+  });
+
+  it('reads three backticks with more after them as a code span, not a fence', () => {
+    // A fence would leave the next line alone too.
+    const md = `\`\`\`[inside](${DOCS})\`\`\`\n[after](${DOCS})`;
+    expect(attributedLinks(md)).toBe(
+      md.replace(`[after](${DOCS})`, `[after](${TAGGED})`)
+    );
+  });
+
+  it('reads a lone backtick as text, not the start of a code span', () => {
+    expect(attributedLinks(`one \` tick, then [Avatar](${DOCS})`)).toBe(
+      `one \` tick, then [Avatar](${TAGGED})`
+    );
+  });
+
+  it('leaves fenced code alone, and tags the prose around it', () => {
+    const fenced = (fence: string, indent = '') =>
+      [
+        `[before](${DOCS})`,
+        '',
+        `${indent}${fence}md`,
+        `${indent}[inside](${DOCS})`,
+        `${indent}${fence}`,
+        '',
+        `[after](${DOCS})`,
+      ].join('\n');
+    for (const [fence, indent] of [
+      ['```', ''],
+      ['~~~', ''],
+      ['```', '   '],
+    ]) {
+      expect(attributedLinks(fenced(fence, indent))).toBe(
+        [
+          `[before](${TAGGED})`,
+          '',
+          `${indent}${fence}md`,
+          `${indent}[inside](${DOCS})`,
+          `${indent}${fence}`,
+          '',
+          `[after](${TAGGED})`,
+        ].join('\n')
+      );
+    }
+  });
+
+  it('leaves a fence in a list item alone', () => {
+    const md = [
+      `1. Read [the page](${DOCS}):`,
+      '',
+      '   ```tsx',
+      `   // [inside](${DOCS})`,
+      '   ```',
+      '',
+      `2. Then [this](${DOCS}#props).`,
+    ].join('\n');
+    expect(attributedLinks(md)).toBe(
+      [
+        `1. Read [the page](${TAGGED}):`,
+        '',
+        '   ```tsx',
+        `   // [inside](${DOCS})`,
+        '   ```',
+        '',
+        `2. Then [this](${TAGGED}#props).`,
+      ].join('\n')
+    );
+  });
+
+  it('closes a fence only on a run of its own character, at least as long', () => {
+    const md = [
+      '````md',
+      '```',
+      `[inside](${DOCS})`,
+      '~~~',
+      `[inside](${DOCS})`,
+      '````',
+      `[after](${DOCS})`,
+    ].join('\n');
+    expect(attributedLinks(md)).toBe(
+      md.replace(`[after](${DOCS})`, `[after](${TAGGED})`)
+    );
+  });
+
+  it('leaves everything after a fence that never closes', () => {
+    const md = `[before](${DOCS})\n\n\`\`\`\n[inside](${DOCS})\n\n[still](${DOCS})`;
+    expect(attributedLinks(md)).toBe(
+      md.replace(`[before](${DOCS})`, `[before](${TAGGED})`)
+    );
+  });
+
+  it('returns text with no bestax.io link unchanged', () => {
+    const md = 'No links here, and `code` with [a](./b.md).';
+    expect(attributedLinks(md)).toBe(md);
+  });
+});
+
+describe('the prose page size the pointers quote', () => {
+  // The size is what `include: ["reference"]` returns, and that page is served with
+  // its links tagged, so the size counts the tags.
+  it('is the length of the page as served', async () => {
+    const record = await loadComponent('useBulmaClasses');
+    const served = referenceOf(record);
+    expect(served).not.toBe(record.doc);
+    expect(served).toBe(attributedLinks(record.doc ?? ''));
+    const size = `(${served.length.toLocaleString('en-US')} characters)`;
+    expect(renderHelperApi(record)).toContain(size);
+    expect(referencePointer(record)).toContain(size);
+    expect(renderComponent(record, ['reference'])).toContain(served);
+  });
+});
+
+describe('renderComponent on code', () => {
+  // No example in the index holds a markdown link into bestax.io today, so one is made
+  // here: whatever an example holds is part of the program, and is served as written.
+  it('serves an example as written, a link-shaped string included', async () => {
+    const record = await loadComponent('Button');
+    const code =
+      "const md = '[Button](https://bestax.io/docs/api/elements/button)';";
+    const out = renderComponent(
+      { ...record, examples: [{ title: 'A link in code', code }] },
+      ['examples']
+    );
+    expect(out).toContain('```tsx\n' + code + '\n```');
   });
 });
 

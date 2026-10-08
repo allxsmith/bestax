@@ -49,6 +49,7 @@ import {
   renderHelperApi,
   renderPart,
   renderSkills,
+  referenceOf,
   referencePointer,
   table,
   textResult,
@@ -714,7 +715,7 @@ export async function createServer(
       // The helper reference lives on the hook's own docs page, which is prose
       // with signature blocks rather than a props table.
       const record = await loadComponent(HELPER_PROPS_PAGE);
-      const doc = record.doc ?? '';
+      const doc = referenceOf(record);
       const rule = await inlineStyleRule();
       if (!group) return textResult(rule + renderHelperDefault(doc), note());
 

@@ -34,12 +34,19 @@ const cell = (text: string) =>
  * only — the URLs in `data/` are generated and stay canonical. Idempotent, and
  * anything that is not an http(s) URL passes through unchanged.
  *
- * Coverage is deliberately partial: only links this server composes itself —
+ * Two kinds of link go through here. The ones this server composes itself:
  * the Docs/Storybook footer on component responses and the version-drift
- * notice — go through here. Skill bodies and reference docs are served
- * verbatim from the bundled markdown, untagged links included, because
- * rewriting URLs inside arbitrary markdown/code examples risks corrupting
- * them. Do not "fix" that by running this over served markdown.
+ * notice. And the bestax.io links inside index text, such as a summary, an
+ * accessibility note or a prose page, which the generator made canonical and
+ * `attributedLinks` tags at render time, one field at a time, leaving code
+ * fences and code spans alone.
+ *
+ * Skill bodies and skill reference docs are not index text. `get_skill`, the
+ * MCP prompts and the skill resources serve them verbatim from the bundled
+ * markdown, untagged links included, and so do the skill-sourced sections
+ * prepended to other answers. Do not "fix" that by running either function
+ * over them, or over a whole response: examples are code, and a URL inside
+ * one is part of the program.
  */
 export function attributed(url: string): string {
   if (!/^https?:\/\//.test(url)) return url;
@@ -59,6 +66,133 @@ export function attributed(url: string): string {
   return `${withoutHash}${sep}utm_source=bestax-mcp${hash}`;
 }
 
+/** Stands in for a code span or an escaped character in a block's shadow. */
+const MASK = '\0';
+
+/**
+ * A link destination into bestax.io, read in a block's shadow: `](` then the
+ * URL, bare or in angle brackets, and what may close a link after it (a title,
+ * then `)`). A bare URL in prose has no `](` before it, and `bestax.io.other`
+ * fails the character after the host. Neither class admits MASK, so a target
+ * that runs into a code span is never read.
+ */
+const SITE_TARGET =
+  /\]\([ \t]*\n?[ \t]*(<https:\/\/bestax\.io(?:[/?#][^<>\n\0]*)?>|https:\/\/bestax\.io(?:[/?#][^\s<>()\0]*)?)(?=(?:\s+(?:"[^"]*"|'[^']*'|\([^()]*\)))?\s*\))/g;
+
+/**
+ * A block as inline markdown reads it: code spans and backslash-escaped
+ * characters replaced by MASK, the same length, so an offset in one is the
+ * same place in the other. A run of backticks with no run of the same length
+ * after it opens nothing, and stays.
+ */
+function shadowOf(block: string): string {
+  let out = '';
+  let i = 0;
+  while (i < block.length) {
+    if (block[i] === '\\' && /[!-/:-@[-`{-~]/.test(block[i + 1] ?? '')) {
+      out += MASK + MASK;
+      i += 2;
+      continue;
+    }
+    if (block[i] !== '`') {
+      out += block[i++];
+      continue;
+    }
+    let run = 1;
+    while (block[i + run] === '`') run++;
+    let close = block.indexOf('`', i + run);
+    while (close !== -1) {
+      let length = 1;
+      while (block[close + length] === '`') length++;
+      if (length === run) break;
+      close = block.indexOf('`', close + length);
+    }
+    const end = close === -1 ? i + run : close + run;
+    out += close === -1 ? block.slice(i, end) : MASK.repeat(end - i);
+    i = end;
+  }
+  return out;
+}
+
+/**
+ * Whether the `]` at `close` ends a link's text: a `[` opens it, and no `!`
+ * before that makes it an image.
+ */
+function closesLinkText(shadow: string, close: number): boolean {
+  let depth = 0;
+  for (let i = close - 1; i >= 0; i--) {
+    if (shadow[i] === ']') depth++;
+    else if (shadow[i] === '[' && depth-- === 0) return shadow[i - 1] !== '!';
+  }
+  return false;
+}
+
+/** One block of prose, with no fence or blank line in it, its site links tagged. */
+function attributedBlock(block: string): string {
+  if (!block.includes('https://bestax.io')) return block;
+  const shadow = shadowOf(block);
+  let out = '';
+  let last = 0;
+  for (const match of shadow.matchAll(SITE_TARGET)) {
+    if (!closesLinkText(shadow, match.index)) continue;
+    const target = match[1];
+    const at = match.index + match[0].length - target.length;
+    out +=
+      block.slice(last, at) +
+      (target.startsWith('<')
+        ? `<${attributed(target.slice(1, -1))}>`
+        : attributed(target));
+    last = at + target.length;
+  }
+  return out + block.slice(last);
+}
+
+/**
+ * `attributed` applied to the destination of every markdown link into
+ * bestax.io in a piece of index text: `[text](https://bestax.io/…)`, in angle
+ * brackets or not, with a title or without. Everything else is left as it is
+ * written: fenced code (``` or ~~~, at any indent, as a fence in a list item
+ * sits), code spans, images, a bare URL, a relative link, a link to another
+ * host. Idempotent, like `attributed`.
+ *
+ * For one field of a record at a time, never a whole response: see
+ * `attributed` for what must not go through here.
+ */
+export function attributedLinks(markdown: string): string {
+  if (!markdown.includes('https://bestax.io')) return markdown;
+  const out: string[] = [];
+  let block: string[] = [];
+  let fence: { char: string; length: number } | null = null;
+  const flush = () => {
+    if (block.length) out.push(attributedBlock(block.join('\n')));
+    block = [];
+  };
+  for (const line of markdown.split('\n')) {
+    if (fence) {
+      const t = line.trim();
+      if (t.length >= fence.length && t === fence.char.repeat(t.length)) {
+        fence = null;
+      }
+      out.push(line);
+      continue;
+    }
+    // A backtick fence's info string holds no backtick, so ```a``` is a code span.
+    const open = /^[ \t]*(`{3,}|~{3,})(.*)$/.exec(line);
+    if (open && !(open[1][0] === '`' && open[2].includes('`'))) {
+      flush();
+      fence = { char: open[1][0], length: open[1].length };
+      out.push(line);
+    } else if (!line.trim()) {
+      flush();
+      out.push(line);
+    } else {
+      block.push(line);
+    }
+  }
+  flush();
+  return out.join('\n');
+}
+
 export function table(headers: string[], rows: string[][]): string {
   if (!rows.length) return '';
   return [
@@ -72,9 +206,11 @@ function propRows(props: PropRow[]): string[][] {
   return props.map(p => {
     const notes = [
       p.deprecated
-        ? `**Deprecated.**${p.deprecationNote ? ` ${p.deprecationNote}` : ''}`
+        ? `**Deprecated.**${
+            p.deprecationNote ? ` ${attributedLinks(p.deprecationNote)}` : ''
+          }`
         : '',
-      p.description,
+      attributedLinks(p.description),
       // The valid-value unions are too large to inline in a cell; name the page
       // that lists them so the model can ask for it rather than guess.
       p.valuesRef ? `(values: ${p.valuesRef})` : '',
@@ -94,7 +230,7 @@ export function renderPart(
 ): string {
   const out: string[] = [];
   if (heading) out.push(`### ${part.path}`);
-  if (summary && part.summary) out.push(part.summary);
+  if (summary && part.summary) out.push(attributedLinks(part.summary));
   if (part.component) {
     out.push(
       `Also exported standalone as \`${part.component}\` — call \`get_props\` with that name for its full table.`
@@ -118,7 +254,9 @@ export function renderPart(
         '',
         ...part.types.map(
           t =>
-            `- \`${t.name}\`: \`${t.expansion}\`${t.summary ? ` — ${t.summary}` : ''}`
+            `- \`${t.name}\`: \`${t.expansion}\`${
+              t.summary ? ` — ${attributedLinks(t.summary)}` : ''
+            }`
         ),
       ].join('\n')
     );
@@ -133,6 +271,13 @@ export function renderPart(
 export const HELPER_PROPS_PAGE = 'useBulmaClasses';
 
 /**
+ * A prose page as it is served, its bestax.io links tagged. The size the
+ * pointers quote is this text's, so it matches what the caller gets.
+ */
+export const referenceOf = (record: ComponentRecord): string =>
+  attributedLinks(record.doc ?? '');
+
+/**
  * What a hook or utility has instead of a props table: its `## API` signature
  * block, when the page has one, and where the rest of its documentation is.
  *
@@ -145,10 +290,10 @@ export const HELPER_PROPS_PAGE = 'useBulmaClasses';
  */
 export function renderHelperApi(record: ComponentRecord): string {
   const out: string[] = [];
-  if (record.api) out.push('## API', record.api);
+  if (record.api) out.push('## API', attributedLinks(record.api));
   const next = [
     `pass \`include: ["reference"]\` to \`get_component\` for its whole ` +
-      `documentation page (${(record.doc ?? '').length.toLocaleString(
+      `documentation page (${referenceOf(record).length.toLocaleString(
         'en-US'
       )} characters)`,
   ];
@@ -183,7 +328,7 @@ export function referencePointer(record: ComponentRecord): string {
   return (
     `\`${record.name}\`'s documentation page has more than this table: ` +
     `\`get_component({ name: "${record.name}", include: ["reference"] })\` ` +
-    `returns all of it (${(record.doc ?? '').length.toLocaleString(
+    `returns all of it (${referenceOf(record).length.toLocaleString(
       'en-US'
     )} characters).`
   );
@@ -216,7 +361,7 @@ export function renderComponent(
         `notes are the whole family's, and ` +
         `\`get_component({ name: "${record.name}" })\` has the family's table.`
     );
-    if (part.summary) out.push(part.summary);
+    if (part.summary) out.push(attributedLinks(part.summary));
   } else {
     if (focus && !focus.part) {
       out.push(
@@ -230,14 +375,14 @@ export function renderComponent(
             : 'It has no parts.')
       );
     }
-    if (record.summary) out.push(record.summary);
+    if (record.summary) out.push(attributedLinks(record.summary));
   }
   out.push(`\`\`\`tsx\n${record.import}\n\`\`\``);
 
   // A page written as prose is opt-in, because useBulmaClasses' runs to tens of
   // thousands of characters. It used to be pushed unconditionally for every helper,
   // so the DEFAULT call returned all of it and no argument could ask for less.
-  const reference = include.includes('reference') && record.doc;
+  const reference = include.includes('reference') && referenceOf(record);
   if (record.kind === 'helper') {
     out.push(reference || renderHelperApi(record));
   } else {
@@ -293,7 +438,7 @@ export function renderComponent(
     );
   }
   if (include.includes('accessibility') && record.accessibility) {
-    out.push('## Accessibility', record.accessibility);
+    out.push('## Accessibility', attributedLinks(record.accessibility));
   }
   if (include.includes('related') && record.related.length) {
     out.push(`**Related:** ${record.related.map(r => `\`${r}\``).join(', ')}.`);
@@ -374,7 +519,9 @@ export function renderCatalog(entries: CatalogEntry[]): string {
         `## ${category}`,
         ...list.map(
           e =>
-            `- **${e.name}**${e.compound ? ' (compound)' : ''} — ${e.purpose}`
+            `- **${e.name}**${e.compound ? ' (compound)' : ''} — ${attributedLinks(
+              e.purpose
+            )}`
         ),
       ].join('\n')
     )
