@@ -277,9 +277,12 @@ test('a variable goes to the declarer whose name accounts for most of it', () =>
     orderDeclarers('--bulma-icon-text-spacing', ['Icon', 'IconText']),
     ['IconText', 'Icon']
   );
+  // Each case below puts a co-declarer that sorts first, so crediting the owner
+  // and leaving code-point order give different answers, and the case can fail.
+  // A shorter name wins where the longer one does not match.
   assert.deepEqual(
-    orderDeclarers('--bulma-icon-dimensions', ['IconText', 'Icon']),
-    ['Icon', 'IconText']
+    orderDeclarers('--bulma-icon-dimensions', ['IconText', 'Field', 'Icon']),
+    ['Icon', 'Field', 'IconText']
   );
   // Named after none of them: code-point order, and each name once.
   assert.deepEqual(
@@ -293,12 +296,13 @@ test('a variable goes to the declarer whose name accounts for most of it', () =>
   );
   // A name the variable merely starts with, mid-word, is not its name.
   assert.deepEqual(
-    orderDeclarers('--bulma-dateinputs-x', ['TimeInput', 'DateInput']),
-    ['DateInput', 'TimeInput']
+    orderDeclarers('--bulma-dateinputs-x', ['Control', 'DateInput']),
+    ['Control', 'DateInput']
   );
-  assert.deepEqual(orderDeclarers('--bulma-box', ['Card', 'Box']), [
+  // The whole of the variable is a name, so Box leads the earlier Block.
+  assert.deepEqual(orderDeclarers('--bulma-box', ['Block', 'Box']), [
     'Box',
-    'Card',
+    'Block',
   ]);
 });
 
