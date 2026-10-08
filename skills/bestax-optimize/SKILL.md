@@ -83,6 +83,7 @@ and the `sass` compiler as a dev dependency (Bulma's own build tool — Vite com
 natively):
 
 ```sh
+# with the project's own package manager (pnpm add, yarn add) if it isn't npm
 npm install bulma
 npm install -D sass
 ```

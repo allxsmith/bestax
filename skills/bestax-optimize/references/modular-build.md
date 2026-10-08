@@ -7,6 +7,7 @@ This is the "Option C" pattern from the
 ## Prerequisites
 
 ```sh
+# with the project's own package manager (pnpm add, yarn add) if it isn't npm
 npm install bulma
 npm install -D sass
 ```
