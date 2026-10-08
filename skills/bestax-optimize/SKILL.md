@@ -77,10 +77,14 @@ recommending it, grep the app's source for helper props on bestax components:
 
 ## Lever 2 — modular Sass build
 
-Compile only the Bulma modules + bestax extras partials the app actually uses. Needs the
-`sass` compiler as a dev dependency (Bulma's own build tool — Vite compiles `.scss` natively):
+Compile only the Bulma modules + bestax extras partials the app actually uses. Needs `bulma`
+as a dependency of the app itself (under pnpm, the app's Sass can only load what the app lists)
+and the `sass` compiler as a dev dependency (Bulma's own build tool — Vite compiles `.scss`
+natively):
 
 ```sh
+# with the project's own package manager (pnpm add, yarn add) if it isn't npm
+npm install bulma
 npm install -D sass
 ```
 
