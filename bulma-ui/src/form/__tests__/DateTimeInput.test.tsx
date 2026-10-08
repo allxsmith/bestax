@@ -1556,6 +1556,37 @@ describe('DateTimeInput focus and the time wheels', () => {
     expect(hours).toHaveFocus();
   });
 
+  it('collapses the wheels on Enter inline, where there is no popover to close', () => {
+    for (const wheel of [0, 2]) {
+      const handler = jest.fn();
+      const { getByRole, getAllByRole, queryAllByRole, unmount } = render(
+        <DateTimeInput
+          defaultValue={v}
+          enableSeconds
+          inline
+          onChange={handler}
+        />
+      );
+      const timeButton = getByRole('button', { name: /Time/ });
+      pressTimeButton(timeButton);
+      const spin = getAllByRole('spinbutton')[wheel];
+      act(() => {
+        fireEvent.keyDown(spin, { key: 'ArrowUp' });
+      });
+      act(() => {
+        fireEvent.keyDown(spin, { key: 'Enter' });
+      });
+      expect(queryAllByRole('spinbutton')).toHaveLength(0);
+      expect(timeButton).toHaveFocus();
+      expect(handler).toHaveBeenLastCalledWith(
+        wheel === 0
+          ? new Date(2024, 5, 7, 11, 0, 0)
+          : new Date(2024, 5, 7, 10, 0, 1)
+      );
+      unmount();
+    }
+  });
+
   it('does the same inline', () => {
     const { getByRole, getAllByRole, queryAllByRole } = render(
       <DateTimeInput defaultValue={v} inline />

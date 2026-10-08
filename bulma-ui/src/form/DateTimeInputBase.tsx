@@ -671,7 +671,10 @@ export const DateTimeInputBase = forwardRef<
                 labels={labels}
                 itemHeight={wheelItemHeight}
                 audioTick={effectiveAudioTick}
-                onCommit={() => setOpen(false)}
+                // Enter on a wheel commits the time, which the wheels already
+                // did live, and closes: the popover, or inline, where there
+                // is no popover, the wheels, as Escape does.
+                onCommit={() => (inline ? closeTime() : setOpen(false))}
               />
             </div>
           </div>
