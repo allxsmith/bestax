@@ -835,7 +835,9 @@ export function renderLookup(lookup: Lookup): string {
               `content as \`buttonLabel\` (left out for its default text), ` +
               `each \`.file-icon\`'s content as \`iconLeft\` or ` +
               `\`iconRight\`, and the \`.file-name\`'s text as \`fileName\` ` +
-              `beside \`hasName\`. Outside a \`Field\` it renders a ` +
+              `beside \`hasName\`. With \`hasName\` and no \`.file-name\` it ` +
+              `renders Bulma's \`is-empty\` too, so that class isn't needed ` +
+              `there. Outside a \`Field\` it renders a ` +
               `\`.field\` of its own around it.`
             : '') +
           (element.topLevel
