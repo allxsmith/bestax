@@ -18,7 +18,10 @@ const scssBase = {
   outputStyle: 'compressed',
   includePaths: ['src/scss', '../node_modules'],
   sourceMap: true,
-  silenceDeprecations: ['import', 'global-builtin', 'if-function'],
+  // Bulma's own `if()` calls. Our sources raise no deprecation, which
+  // src/__tests__/scss-deprecations.test.ts holds them to, so nothing else is
+  // silenced here and a new one prints during the build.
+  silenceDeprecations: ['if-function'],
   // The plugin doesn't track @use'd partials, so without this `rollup --watch`
   // never rebuilds the CSS bundles when a partial changes.
   watch: 'src/scss',
