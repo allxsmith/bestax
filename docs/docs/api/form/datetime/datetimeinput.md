@@ -585,7 +585,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 </Block>
 ```
 
-**Inline:** rendered inline, the panel shows the color without opening a popover. The calendar takes it on the selected date, today's date and its keyboard focus ring; open the time row and the wheels take it on their selection band. The footer's time pill and Done button stay `primary`.
+**Inline:** rendered inline, the panel shows the color without opening a popover. The calendar takes it on the selected date, today's date and its keyboard focus ring; open the time row and the wheels take it on their selection band. The footer's time pill and Done button don't take the color.
 
 ```tsx live
 <DateTimeInput label="Danger" color="danger" inline defaultValue={new Date()} />
@@ -956,10 +956,10 @@ When you pass an explicit token `format`, **that format is the source of truth f
 | `--bulma-dateinput-cell-hover-bg` ‡               | `$dateinput-cell-hover-bg`               | `hsla(0, 0%, 50%, 0.13)`                                                                                                 |
 | `--bulma-dateinput-cell-selected-bg` ‡            | `$dateinput-cell-selected-bg`            | `var(--bulma-primary)`                                                                                                   |
 | `--bulma-dateinput-cell-selected-color` ‡         | `$dateinput-cell-selected-color`         | `var(--bulma-primary-invert)`                                                                                            |
-| `--bulma-dateinput-cell-today-color` ‡            | `$dateinput-cell-today-color`            | `var(--bulma-primary)`                                                                                                   |
-| `--bulma-dateinput-focus-ring-color` ‡            | `$dateinput-focus-ring-color`            | `var(--bulma-primary)`                                                                                                   |
+| `--bulma-dateinput-cell-today-color` ‡            | `$dateinput-cell-today-color`            | `var(--bulma-primary-on-scheme)`                                                                                         |
+| `--bulma-dateinput-focus-ring-color` ‡            | `$dateinput-focus-ring-color`            | `var(--bulma-primary-on-scheme)`                                                                                         |
 | `--bulma-dateinput-cell-disabled-color` ‡         | `$dateinput-cell-disabled-color`         | `var(--bulma-text-weak)`                                                                                                 |
-| `--bulma-dateinput-cell-other-month-color` ‡      | `$dateinput-cell-other-month-color`      | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-dateinput-cell-other-month-color` ‡      | `$dateinput-cell-other-month-color`      | `color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))`                                                          |
 | `--bulma-dateinput-header-padding` ‡              | `$dateinput-header-padding`              | `0.5rem 0`                                                                                                               |
 | `--bulma-dateinput-day-name-color` ‡              | `$dateinput-day-name-color`              | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-dateinput-day-name-size` ‡               | `$dateinput-day-name-size`               | `var(--bulma-size-7)`                                                                                                    |
