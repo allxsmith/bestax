@@ -1,7 +1,6 @@
 // Centered single-column page — auth, settings, focused forms.
 // A narrow column is centered with `<Columns isCentered>`; on mobile the column
 // becomes full width automatically.
-import React from 'react';
 import {
   Section,
   Container,

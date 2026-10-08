@@ -62,7 +62,10 @@ the API pages and the skill catalog.
   `bestax-bulma` release it was generated from; the server resolves the version
   actually installed in the user's project and appends a warning on minor or
   major drift. Patch drift stays silent on purpose — a note on every response is
-  a note a model learns to skip. `BESTAX_MCP_NO_VERSION_CHECK=1` disables it.
+  a note a model learns to skip. Finding no install is said once, on the first
+  answer, since it is also what a server started outside the project looks like;
+  `BESTAX_MCP_PROJECT_DIR` points the probe at the project for a client that
+  does that. `BESTAX_MCP_NO_VERSION_CHECK=1` disables the check.
 - **Unhelpful answers are bugs.** A missing component suggests near misses by
   edit distance; a bad dot-path lists the real ones; a component with no CSS
   variables says so rather than returning blank. An empty response reads as a
@@ -85,8 +88,9 @@ rule in `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS`
 declares this exact pair. Two things follow. `npx bestax-mcp` installs the
 library, `bulma`, and — npm's automatic peer install — `react`/`react-dom`
 alongside the server. And the version probe in `src/version.ts` walks up from
-`cwd`, so under `npx` the server's own copy in the npx cache is never on that
-path; installed as a project devDependency instead, npm may hoist this
+`cwd` (or `BESTAX_MCP_PROJECT_DIR`), so under `npx` the server's own copy in
+the npx cache is never on that path; installed as a project devDependency
+instead, npm may hoist this
 dependency's copy to the project's top-level `node_modules`, and when the
 project has no copy of its own the probe reports that one.
 

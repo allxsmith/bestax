@@ -9,9 +9,12 @@
  * These run against the committed index, not fixtures. The index is the
  * product; a test that stubs it proves nothing about what ships.
  */
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, afterAll, beforeAll } from '@jest/globals';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { loadCatalog } from '../data.js';
 import { createServer } from '../server.js';
@@ -178,6 +181,19 @@ describe('search_bestax', () => {
       await call('search_bestax', { query: 'zzzzz-no-such-thing' })
     );
     expect(out).toContain('list_components');
+  });
+
+  // The example in the tool's own schema, which put DateInput 33rd (#934).
+  it('answers "date picker" with DateInput first', async () => {
+    const out = text(await call('search_bestax', { query: 'date picker' }));
+    const [first] = out.split('\n').slice(2);
+    expect(first).toMatch(/^\| component \| DateInput \|/);
+  });
+
+  it('suggests DateInput for a DatePicker that does not exist', async () => {
+    const res = await call('get_component', { name: 'DatePicker' });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('Did you mean "DateInput"');
   });
 });
 
@@ -1080,5 +1096,204 @@ describe('edge cases that would otherwise read as "no answer"', () => {
       await call('get_examples', { component: 'Button', query: '!!!!' })
     );
     expect(out).toMatch(/No Button examples match|has no examples/);
+  });
+});
+
+// Rough edges from a smoke test of a published release (#935).
+describe('rough edges', () => {
+  const codeOf = async (uri: string) =>
+    client.readResource({ uri }).then(
+      () => null,
+      (err: { code?: number }) => err.code
+    );
+
+  it('reports its own version as serverInfo, not the library version', async () => {
+    const pkg = JSON.parse(
+      await readFile(join(process.cwd(), 'package.json'), 'utf8')
+    ) as { version: string };
+    expect(client.getServerVersion()).toMatchObject({
+      name: 'bestax',
+      version: pkg.version,
+    });
+    // The library version stays where a reader looks for it.
+    const catalog = JSON.parse(
+      await readFile(join(process.cwd(), 'data', 'catalog.json'), 'utf8')
+    ) as { generatedFrom: { version: string } };
+    expect(client.getInstructions()).toContain(catalog.generatedFrom.version);
+  });
+
+  it('shows an import a page written as prose can compile', async () => {
+    const out = text(
+      await call('get_component', { name: 'Valid value constants' })
+    );
+    expect(out).toContain('validColors');
+    expect(out).not.toContain('import { Valid value constants }');
+  });
+
+  it('prints the summary once', async () => {
+    for (const name of ['Button', 'Popover', 'Input']) {
+      const out = text(await call('get_component', { name }));
+      const opening = out.split('\n\n')[1];
+      expect(out.split(opening).length - 1).toBe(1);
+    }
+  });
+
+  it('answers a dot-path with the part it names', async () => {
+    const out = text(await call('get_component', { name: 'Navbar.Brand' }));
+    expect(out).toMatch(/^# Navbar\.Brand\n/);
+    expect(out).toContain('is a part of `Navbar`');
+    expect(out).not.toContain('**Subcomponents:**');
+
+    const resource = await client.readResource({
+      uri: 'bestax://components/Navbar.Brand',
+    });
+    expect(String(resource.contents[0].text)).toMatch(/^# Navbar\.Brand\n/);
+  });
+
+  // The self-closing form leaves a space before `/>`, which made `<Navbar.Brand />`
+  // a part that does not exist and `<Button />` a component that does not.
+  it('reads a name written as a self-closing tag', async () => {
+    const part = text(
+      await call('get_component', { name: '<Navbar.Brand />' })
+    );
+    expect(part).toMatch(/^# Navbar\.Brand\n/);
+    expect(part).not.toContain('has no part');
+
+    const res = await call('get_component', { name: '<Button />' });
+    expect(failed(res)).toBe(false);
+    expect(text(res)).toMatch(/^# Button\n/);
+  });
+
+  it('says in its schema that get_component takes a dot-path', async () => {
+    const tool = (await client.listTools()).tools.find(
+      t => t.name === 'get_component'
+    );
+    expect(tool?.description).toContain('"Navbar.Brand"');
+    expect(JSON.stringify(tool?.inputSchema.properties?.name)).toContain(
+      'Navbar.Brand'
+    );
+  });
+
+  it('says so when a dot-path names no part', async () => {
+    const out = text(await call('get_component', { name: 'Navbar.Nope' }));
+    expect(out).toMatch(/^# Navbar\n/);
+    expect(out).toContain('has no part `Navbar.Nope`');
+    expect(out).toContain('`Navbar.Brand`');
+  });
+
+  it('says `path` is for subcomponents when it is given a prop', async () => {
+    const res = await call('get_props', {
+      component: 'Button',
+      path: 'Button.isLoadng',
+    });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('names a subcomponent');
+    expect(text(res)).toContain('`isLoading`');
+
+    const typo = text(
+      await call('get_props', { component: 'Navbar', path: 'Navbar.Brnd' })
+    );
+    expect(typo).toContain('Did you mean "Navbar.Brand"?');
+  });
+
+  it("explains Theme's variables rather than saying it has none", async () => {
+    for (const query of [undefined, 'primary']) {
+      const out = text(
+        await call('get_css_variables', { component: 'Theme', query })
+      );
+      expect(out).not.toContain('registers no CSS variables');
+      expect(out).toContain('reference: "css-variables"');
+    }
+  });
+
+  it('marks a missing query and an unknown helper group as errors', async () => {
+    for (const query of ['', '   ']) {
+      expect(failed(await call('search_bestax', { query }))).toBe(true);
+    }
+    expect(
+      failed(await call('get_helper_props', { group: 'animations' }))
+    ).toBe(true);
+  });
+
+  it('answers an unknown resource as not found, not as an internal error', async () => {
+    for (const uri of [
+      'bestax://components/DatePicker',
+      'bestax://skills/nope',
+      'bestax://skills/nope/references/x',
+      'bestax://skills/bestax-theming/references/nope',
+    ]) {
+      expect(await codeOf(uri)).toBe(-32602);
+    }
+  });
+
+  it('reads a skill by the short name get_skill takes, and its examples', async () => {
+    const skill = await client.readResource({ uri: 'bestax://skills/theming' });
+    expect(String(skill.contents[0].text).length).toBeGreaterThan(500);
+    // get_skill lists dark-mode among what it can read; so does the resource now.
+    const example = await client.readResource({
+      uri: 'bestax://skills/bestax-theming/references/dark-mode',
+    });
+    expect(String(example.contents[0].text).length).toBeGreaterThan(100);
+  });
+
+  it('completes skill names by what has been typed, and reference ids', async () => {
+    const named = await client.complete({
+      ref: { type: 'ref/resource', uri: 'bestax://skills/{name}' },
+      argument: { name: 'name', value: 'them' },
+    });
+    expect(named.completion.values).toEqual(['bestax-theming']);
+
+    const ref = await client.complete({
+      ref: {
+        type: 'ref/resource',
+        uri: 'bestax://skills/{name}/references/{ref}',
+      },
+      argument: { name: 'ref', value: 'dark' },
+      context: { arguments: { name: 'bestax-theming' } },
+    });
+    expect(ref.completion.values).toEqual(['dark-mode']);
+  });
+});
+
+// A client that starts the server outside the project used to get answers checked
+// against nothing, and no word of it (#935).
+describe('with no installed library to check against', () => {
+  let elsewhere: Client;
+  let dir: string;
+
+  beforeAll(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'bestax-mcp-elsewhere-'));
+    const server = await createServer({ cwd: dir });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    elsewhere = new Client({ name: 'test', version: '0' });
+    await Promise.all([
+      server.connect(serverTransport),
+      elsewhere.connect(clientTransport),
+    ]);
+  });
+
+  afterAll(async () => {
+    await elsewhere.close();
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('says so once, naming the variable that points it at the project', async () => {
+    const first = text(
+      await elsewhere.callTool({
+        name: 'get_component',
+        arguments: { name: 'Button' },
+      })
+    );
+    expect(first).toContain('no installed @allxsmith/bestax-bulma was found');
+    expect(first).toContain('BESTAX_MCP_PROJECT_DIR');
+
+    const second = text(
+      await elsewhere.callTool({
+        name: 'get_component',
+        arguments: { name: 'Button' },
+      })
+    );
+    expect(second).not.toContain('no installed');
   });
 });
