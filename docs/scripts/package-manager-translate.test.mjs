@@ -14,6 +14,7 @@ import {
   renderCommand,
   unrenderPnpm,
   lintCommand,
+  commandFromFence,
 } from '../src/components/PackageManagerTabs/translate.mjs';
 
 test('pnpm is first, so it is the default tab', () => {
@@ -233,6 +234,62 @@ test('a create command authored with `--` fails, on every tab', () => {
           manager
         ),
       /pnpm passes `--` on to the scaffolder/
+    );
+  }
+});
+
+test('the npm tab looks for flags before a trailing comment only', () => {
+  // A word in the comment that starts with `-` is prose, not a flag to pass on.
+  assert.equal(
+    translateSegment(
+      'create bestax@latest my-app # use --template to pick',
+      'npm'
+    ),
+    'npm create bestax@latest my-app # use --template to pick'
+  );
+  assert.equal(
+    translateSegment(
+      'create vite@latest my-app --template react # scaffold',
+      'npm'
+    ),
+    'npm create vite@latest my-app -- --template react # scaffold'
+  );
+  // Nor does a `--` in the comment trip the authored-`--` check.
+  assert.equal(
+    translateSegment('create vite@latest my-app # npm wants -- here', 'pnpm'),
+    'pnpm create vite@latest my-app # npm wants -- here'
+  );
+});
+
+test('commandFromFence recovers the command behind a canonical fence', () => {
+  assert.equal(
+    commandFromFence(
+      'pnpm create vite@latest my-app --template react\ncd my-app'
+    ),
+    'create vite@latest my-app --template react; cd my-app'
+  );
+});
+
+test('commandFromFence fails a fence that is not canonical pnpm', () => {
+  assert.throws(
+    () => commandFromFence('pnpm add  foo'),
+    /not a canonical pnpm command/
+  );
+});
+
+test('commandFromFence fails a fence that names a package manager', () => {
+  // Every tab would show this line as written, so the pnpm tab would carry
+  // npm's `--` and pnpm would hand it to create-vite, dropping --template.
+  // The round trip cannot see it, since nothing in it is translated.
+  for (const fence of [
+    'npm create vite@latest my-app -- --template react',
+    'npx skills add x',
+    'pnpm add foo\nyarn add bar',
+  ]) {
+    assert.throws(
+      () => commandFromFence(fence),
+      /already names a package manager/,
+      fence
     );
   }
 });
