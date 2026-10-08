@@ -143,7 +143,7 @@ Autocomplete with different colors and sizes.
 
 ### With Object Data
 
-Autocomplete with object items. `onSelect` passes back the object from `data` itself, so finding it in your own array gives it back with your fields typed.
+Autocomplete with object items. `onSelect` passes back the item you picked, so looking it up in your own array by its `value` gives it back with your fields typed.
 
 ```tsx live
 function example() {
@@ -161,7 +161,13 @@ function example() {
         field="label"
         placeholder="Search users..."
         openOnFocus
-        onSelect={item => setSelected(users.find(u => u === item) ?? null)}
+        onSelect={item =>
+          setSelected(
+            users.find(
+              u => u.value === (typeof item === 'string' ? item : item?.value)
+            ) ?? null
+          )
+        }
       />
       {selected && (
         <Paragraph mt="2">
@@ -177,7 +183,7 @@ function example() {
 
 ### Custom Item Template
 
-Autocomplete with custom item rendering. `itemTemplate` receives the same objects, so the template looks each one up the same way.
+Autocomplete with custom item rendering. `itemTemplate` receives each item the same way, so the template looks it up by `value` too.
 
 ```tsx live
 function example() {
@@ -194,7 +200,9 @@ function example() {
       placeholder="Search users..."
       openOnFocus
       itemTemplate={item => {
-        const user = users.find(u => u === item);
+        const user = users.find(
+          u => u.value === (typeof item === 'string' ? item : item.value)
+        );
         return (
           <Block display="flex" justifyContent="space-between">
             <Span>{user?.label}</Span>

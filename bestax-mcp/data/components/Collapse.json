@@ -7,19 +7,19 @@
   "examples": [
     {
       "title": "Basic Collapse",
-      "code": "function example() {\n  return (\n    <Collapse\n      trigger={\n        <Block p=\"3\" cursor=\"pointer\">\n          <Strong>Click to expand</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>\n          This is the collapsible content. It can contain any React elements.\n        </Paragraph>\n        <Paragraph>Click the header again to collapse.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Collapse\n      bordered\n      trigger={\n        <Block p=\"3\" cursor=\"pointer\">\n          <Strong>Click to expand</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>\n          This is the collapsible content. It can contain any React elements.\n        </Paragraph>\n        <Paragraph>Click the header again to collapse.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
     },
     {
       "title": "Default Open",
-      "code": "function example() {\n  return (\n    <Collapse\n      defaultOpen\n      trigger={\n        <Block p=\"3\" cursor=\"pointer\">\n          <Strong>This starts open</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>This content is visible by default.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Collapse\n      bordered\n      defaultOpen\n      trigger={\n        <Block p=\"3\" cursor=\"pointer\">\n          <Strong>This starts open</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>This content is visible by default.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
     },
     {
       "title": "Without Animation",
-      "code": "function example() {\n  return (\n    <Collapse\n      animation={false}\n      trigger={\n        <Block p=\"3\" cursor=\"pointer\">\n          <Strong>No animation</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>This collapse has animation disabled.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Collapse\n      bordered\n      animation={false}\n      trigger={\n        <Block p=\"3\" cursor=\"pointer\">\n          <Strong>No animation</Strong>\n        </Block>\n      }\n    >\n      <Block p=\"3\">\n        <Paragraph>This collapse has animation disabled.</Paragraph>\n      </Block>\n    </Collapse>\n  );\n}"
     },
     {
       "title": "Controlled Mode",
-      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n\n  return (\n    <Block>\n      <Block mb=\"4\">\n        <Button color=\"primary\" onClick={() => setIsOpen(!isOpen)}>\n          {isOpen ? 'Close' : 'Open'} Collapse\n        </Button>\n        <Span ml=\"4\">State: {isOpen ? 'Open' : 'Closed'}</Span>\n      </Block>\n      <Collapse\n        open={isOpen}\n        onOpenChange={setIsOpen}\n        trigger={\n          <Block p=\"3\">\n            Controlled collapse (click here or the button above)\n          </Block>\n        }\n      >\n        <Block p=\"3\">\n          <Paragraph>This collapse is controlled by external state.</Paragraph>\n        </Block>\n      </Collapse>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [isOpen, setIsOpen] = useState(false);\n\n  return (\n    <Block>\n      <Block mb=\"4\">\n        <Button color=\"primary\" onClick={() => setIsOpen(!isOpen)}>\n          {isOpen ? 'Close' : 'Open'} Collapse\n        </Button>\n        <Span ml=\"4\">State: {isOpen ? 'Open' : 'Closed'}</Span>\n      </Block>\n      <Collapse\n        bordered\n        open={isOpen}\n        onOpenChange={setIsOpen}\n        trigger={\n          <Block p=\"3\">\n            Controlled collapse (click here or the button above)\n          </Block>\n        }\n      >\n        <Block p=\"3\">\n          <Paragraph>This collapse is controlled by external state.</Paragraph>\n        </Block>\n      </Collapse>\n    </Block>\n  );\n}"
     },
     {
       "title": "Accordion",

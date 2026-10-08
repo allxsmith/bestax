@@ -198,7 +198,7 @@ function example() {
   function MyColumns({
     children,
     ...props
-  }: BulmaClassesProps & { children?: React.ReactNode }) {
+  }: BulmaClassesProps & React.ComponentPropsWithoutRef<'div'>) {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     return (
       <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
