@@ -129,14 +129,19 @@ $datetimeinput-time-overlay-blur: 3px !default;
     opacity: 0.5;
   }
 
+  // `text`, not `text-weak`: the label is small, and `text-weak` falls below
+  // 4.5:1 once the row's hover or focus fill sits behind it, in either scheme.
   & > span:first-child {
-    color: cv.getVar('text-weak');
+    color: cv.getVar('text');
     font-size: cv.getVar('size-7');
   }
 }
 
+// The pill's text sits on the panel's surface, so it takes `primary`'s
+// `-on-scheme` variant, which Bulma lightens on a dark scheme until it
+// contrasts there. Plain `primary` is too dark to read on a dark panel.
 .#{iv.$class-prefix}datetimeinput-footer-time-pill {
-  color: cv.getVar('primary');
+  color: cv.getVar('primary-on-scheme');
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   padding: 0.15em 0.6em;

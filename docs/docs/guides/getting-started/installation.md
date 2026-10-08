@@ -9,7 +9,7 @@ sidebar_position: 1
 This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
 
 :::tip Quick Setup
-Most users should run `pnpm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript) and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
+Most users should run `pnpm create bestax@latest`, which wires up the CSS imports, icon fonts and TypeScript for you and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
 :::
 
 :::info Already Configured?
@@ -53,7 +53,7 @@ The viewport meta tag is **essential** for Bulma's responsive features. Without 
 ## Package Installation
 
 :::info Prefer the installer
-`pnpm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
+`pnpm create bestax@latest` scaffolds a working app with the package already in its `package.json` and the CSS already wired up, so the only step left is installing its dependencies. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
 :::
 
 <PackageManagerTabs>
@@ -328,9 +328,6 @@ bestax-bulma supports tree shaking. Always use named imports:
 ```js
 // ✅ Good - Only imports what you need
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
-
-// ❌ Bad - Imports entire library
-import * as Bulma from '@allxsmith/bestax-bulma';
 ```
 
 ### Analyzing Bundle Size
@@ -359,7 +356,7 @@ pnpm dlx webpack-bundle-analyzer stats.json
 
 ### Expected Sizes
 
-- **bestax-bulma JS**: ~49KB min+gzip for the _entire_ library — with named imports, tree shaking means your app ships only the components it uses.
+- **bestax-bulma JS**: ~65KB min+gzip for the _entire_ library — with named imports, tree shaking means your app ships only the components it uses.
 - **CSS (`bestax.css`, the combined Bulma + extras bundle)**: ~800KB minified on disk, ~82KB gzipped over the wire. CSS is not tree-shaken — the whole file ships regardless of which components you use. Leaner prebuilt variations and a modular Sass path exist; see [CSS Variations](/docs/guides/getting-started/variations#file-size-comparison) for measured sizes and [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css) for the full trimming playbook.
 - **PurgeCSS** can strip unused selectors further, but it is not wired into any scaffold or template — [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css#lever-2--purge-unused-selectors-build-step-biggest-win) covers the opt-in setup and the safelist patterns dynamic class names need to survive the purge.
 

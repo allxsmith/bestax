@@ -10,7 +10,7 @@
 //
 // `ConfigProvider` wraps the shell once at the root to set the app-wide icon
 // library (so <Icon> needs no `library` prop) and, optionally, a class prefix.
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ConfigProvider,
   Navbar,
