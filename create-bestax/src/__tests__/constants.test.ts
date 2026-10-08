@@ -362,7 +362,7 @@ describe('constants', () => {
       it('sends inline styles to a named class instead of a helper prop', () => {
         expect(md).toContain('Never inline `style={{}}`');
         expect(md).toContain(
-          'Write a named class in `src/App.css` and pass it via `className`.'
+          "Write a named class in `src/App.css`, which loads after Bulma's CSS, and pass it via `className`."
         );
         expect(md).not.toContain('Helper props instead');
         expect(md).not.toContain('No helper matches');

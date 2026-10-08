@@ -18,8 +18,12 @@ import { fileURLToPath } from 'url';
 import ts from 'typescript';
 
 const { ProjectCreator } = await import('../project-creator.js');
-const { BULMA_FLAVORS, ICON_LIBRARIES, NO_HELPERS_STARTER_CLASSES } =
-  await import('../constants.js');
+const {
+  BULMA_FLAVORS,
+  CSS_ORDER_COMMENT,
+  ICON_LIBRARIES,
+  NO_HELPERS_STARTER_CLASSES,
+} = await import('../constants.js');
 
 const templatesDir = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -223,6 +227,46 @@ describe.each(TEMPLATES)('%s template icon setup', template => {
       expect(main).toContain(iconImport);
       expect(main.indexOf(iconImport)).toBeGreaterThan(
         main.indexOf(flavorImport)
+      );
+    }
+  );
+});
+
+// The entry file imports the stylesheets ahead of App, and the no-helpers
+// classes in App.css depend on that order, so the comment saying why has to
+// survive the flavor step rewriting the import under it.
+describe.each(TEMPLATES)('%s template entry file', template => {
+  it('explains the stylesheet order where the scaffolder will look for it', async () => {
+    const main = await fs.readFile(
+      path.join(templatesDir, template, 'src', mainFile(template)),
+      'utf8'
+    );
+    expect(main).toContain(
+      `${CSS_ORDER_COMMENT}\nimport '@allxsmith/bestax-bulma/bestax.css';`
+    );
+  });
+
+  it.each(['complete', 'no-helpers'])(
+    'keeps that comment above the %s flavor stylesheet',
+    async flavor => {
+      const target = await scaffold(template);
+      await projectCreator.setupBulmaFlavor(target, flavor, template);
+      await projectCreator.setupIconLibrary(target, 'fontawesome', template);
+
+      const main = await fs.readFile(
+        path.join(target, 'src', mainFile(template)),
+        'utf8'
+      );
+      const flavorImport = BULMA_FLAVORS.find(
+        f => f.name === flavor
+      )!.importStatement;
+      expect(main).toContain(`${CSS_ORDER_COMMENT}\n${flavorImport}`);
+      expect(main.split(CSS_ORDER_COMMENT)).toHaveLength(2);
+      expect(main.indexOf("import './index.css';")).toBeGreaterThan(
+        main.indexOf(flavorImport)
+      );
+      expect(main.indexOf('import App from')).toBeGreaterThan(
+        main.indexOf("import './index.css';")
       );
     }
   );

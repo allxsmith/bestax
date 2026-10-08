@@ -158,7 +158,7 @@ cases. Before writing \`style\`, translate each declaration with this table:
 
 const NO_HELPERS_HOUSE_STYLE = `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
 this app's flavor has no helper classes, so \`mt="4"\`, \`textAlign="centered"\`, \`flexGrow="1"\` and the
-rest render nothing. Write a named class in \`src/App.css\` and pass it via \`className\`.
+rest render nothing. Write a named class in \`src/App.css\`, which loads after Bulma's CSS, and pass it via \`className\`.
 `;
 
 export const CLAUDE_MD = (
@@ -429,6 +429,13 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
       "import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';",
   },
 ];
+
+// Sits above the stylesheet import in the templates' entry files, and the
+// scaffolder writes it back when it swaps in a flavor's stylesheet, so the
+// reason for the import order survives. The no-helpers classes depend on it.
+export const CSS_ORDER_COMMENT =
+  "// Bestax's stylesheet loads before the app's own CSS, so a named class in\n" +
+  '// src/App.css wins over a Bulma rule of the same weight.';
 
 export interface StarterClass {
   // The helper prop exactly as the starter App writes it.

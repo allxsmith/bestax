@@ -38,6 +38,7 @@ import {
   CONFIG_PROVIDER_ICON_VALUES,
   NO_HELPERS_STARTER_CLASSES,
   NO_HELPERS_APP_CSS,
+  CSS_ORDER_COMMENT,
   type ClaudeMdOptions,
 } from './constants.js';
 import { detectPackageManager } from './package-manager.js';
@@ -256,15 +257,17 @@ export class ProjectCreator {
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
 
-      // Replace the default bestax CSS import with the selected flavor
+      // Replace the default bestax CSS import, and the comment block directly
+      // above it, with the selected flavor's import under the comment that
+      // says why the stylesheets load before the app's own CSS.
       const bestaxImportRegex =
-        /\/\/.*\n\s*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
+        /(?:[ \t]*\/\/[^\n]*\n)+[ \t]*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
       const bestaxImportSimpleRegex =
         /import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
       if (bestaxImportRegex.test(content)) {
         content = content.replace(
           bestaxImportRegex,
-          '// Import CSS\n' + flavor.importStatement
+          CSS_ORDER_COMMENT + '\n' + flavor.importStatement
         );
       } else if (bestaxImportSimpleRegex.test(content)) {
         content = content.replace(
