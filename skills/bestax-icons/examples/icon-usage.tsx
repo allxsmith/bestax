@@ -6,7 +6,6 @@
 // Set the library ONCE on ConfigProvider ('fa' | 'mdi' | 'ion' |
 // 'material-icons' | 'material-symbols' — Ionicons is 'ion', NOT 'ionicons');
 // every <Icon> below then omits `library`.
-import React from 'react';
 import {
   ConfigProvider,
   Icon,

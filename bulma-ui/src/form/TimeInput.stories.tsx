@@ -345,7 +345,7 @@ export const ManualEntry24h: Story = {
     docs: {
       description: {
         story:
-          '24-hour segmented entry with `openOnFocus={false}` — the hours segment accepts `00`–`23` directly, and the wheel popover only opens from the launcher icon or `↓`.',
+          '24-hour segmented entry with `openOnFocus={false}` — the hours segment accepts `00`–`23` directly, and the wheel popover only opens from the launcher icon or `Alt+↓`.',
       },
     },
   },
@@ -362,7 +362,7 @@ export const ManualEntryIncrementSteps: Story = {
     docs: {
       description: {
         story:
-          'Increments steer the wheels, not the keyboard — typed minutes stay free-grained, so `09:32` goes in even with a step of 5. With `openOnFocus={false}` the stepped wheels only appear from the launcher icon or `↓`.',
+          'Increments steer the wheels, not the keyboard — typed minutes stay free-grained, so `09:32` goes in even with a step of 5. With `openOnFocus={false}` the stepped wheels only appear from the launcher icon or `Alt+↓`.',
       },
     },
   },
@@ -409,7 +409,7 @@ export const ManualEntryFormats: Story = {
     docs: {
       description: {
         story:
-          'The same token formats, typing-first — `openOnFocus={false}` on each field keeps the wheels behind the launcher icon or `↓` while you type through the segments.',
+          'The same token formats, typing-first — `openOnFocus={false}` on each field keeps the wheels behind the launcher icon or `Alt+↓` while you type through the segments.',
       },
     },
   },
@@ -425,7 +425,7 @@ export const ManualEntryLauncherIcon: Story = {
     docs: {
       description: {
         story:
-          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `↓`) is the only way to open the spinner — clicking into the field just starts typing.',
+          'With `openOnFocus={false}` the custom `triggerIconName` launcher (or `Alt+↓`) is the only way to open the spinner — clicking into the field just starts typing.',
       },
     },
   },
@@ -459,7 +459,7 @@ export const ManualEntrySizes: Story = {
     docs: {
       description: {
         story:
-          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the spinner waits for the launcher icon or `↓`.',
+          'Every size with `openOnFocus={false}` — segmented typing works the same at each scale, and the spinner waits for the launcher icon or `Alt+↓`.',
       },
     },
   },
@@ -479,7 +479,7 @@ export const ManualEntryColors: Story = {
     docs: {
       description: {
         story:
-          'Every color with `openOnFocus={false}` — type into each field directly; the wheels only open from the launcher icon or `↓`.',
+          'Every color with `openOnFocus={false}` — type into each field directly; the wheels only open from the launcher icon or `Alt+↓`.',
       },
     },
   },
@@ -497,7 +497,7 @@ export const ManualEntryAudioTick: Story = {
     docs: {
       description: {
         story:
-          'The same audio-thunk feedback with `openOnFocus={false}` — typing into the field is silent; the tick fires when you open the wheels via the launcher icon (or `↓`) and scroll them.',
+          'The same audio-thunk feedback with `openOnFocus={false}` — typing into the field is silent; the tick fires when you open the wheels via the launcher icon (or `Alt+↓`) and scroll them.',
       },
     },
   },
@@ -515,7 +515,7 @@ export const ManualEntryHaptics: Story = {
     docs: {
       description: {
         story:
-          'Auto-routed haptics with `openOnFocus={false}` — the per-platform feedback fires when the wheels opened via the launcher icon (or `↓`) are scrolled, while typed entry stays feedback-free.',
+          'Auto-routed haptics with `openOnFocus={false}` — the per-platform feedback fires when the wheels opened via the launcher icon (or `Alt+↓`) are scrolled, while typed entry stays feedback-free.',
       },
     },
   },

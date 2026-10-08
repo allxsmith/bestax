@@ -379,7 +379,7 @@ Beyond the core Bulma wrappers, bestax-bulma ships additional components that fi
 | Category       | Extras                                                                                                                  |
 | -------------- | ----------------------------------------------------------------------------------------------------------------------- |
 | **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, Dialog, Loading, Popover, Reveal, Sidebar, Steps, Toast, Tooltip |
-| **Form**       | Autocomplete, DateInput, DateTimeInput, Numberinput, Rate, Slider, Switch, Taginput, TimeInput                          |
+| **Form**       | Autocomplete, DateInput, DateRangeInput, DateTimeInput, Numberinput, Rate, Slider, Switch, Taginput, TimeInput          |
 | **Elements**   | LinkButton                                                                                                              |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

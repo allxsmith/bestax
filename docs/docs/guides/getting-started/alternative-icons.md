@@ -517,7 +517,7 @@ For a complete list of available symbols and detailed usage instructions, visit 
 ---
 
 :::tip Skip the manual setup
-If you haven't started your project yet, `pnpm create bestax@latest` will install and wire up any of these icon libraries for you. See the [Quick Start](/docs/guides/intro).
+If you haven't started your project yet, `pnpm create bestax@latest` will wire up any of these icon libraries for you. See the [Quick Start](/docs/guides/intro).
 :::
 
 ---

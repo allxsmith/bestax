@@ -255,7 +255,7 @@ function CheckboxesFormDemo() {
 ## Additional Resources
 
 - [Bulma Checkboxes Documentation](https://bulma.io/documentation/form/checkbox/#grouped-checkboxes)
-- [Storybook: Checkbox Stories](https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes)
+- [Storybook: Checkboxes Stories](https://bestax.io/storybook/?path=/story/form-checkboxes--default)
 
 ---
 

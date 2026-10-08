@@ -173,6 +173,17 @@ describe('cli', () => {
       );
     });
 
+    it('should offer --overwrite and say -y never removes files (#945)', () => {
+      const program = createCLI();
+      const overwrite = program.options.find(opt => opt.long === '--overwrite');
+      const yes = program.options.find(opt => opt.long === '--yes');
+      expect(overwrite?.description).toContain('remove existing files');
+      expect(yes?.description).toContain('--overwrite');
+
+      program.parse(['my-app', '-y', '--overwrite'], { from: 'user' });
+      expect(program.opts().overwrite).toBe(true);
+    });
+
     it('should leave telemetry undefined when neither flag is given', () => {
       const program = createCLI();
       program.parse(['my-app', '-y'], { from: 'user' });

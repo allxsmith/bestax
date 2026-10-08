@@ -33,6 +33,8 @@ const PUBLIC_EXPORTS = [
   'Control',
   'DateInput',
   'DateInputBase',
+  'DateRangeInput',
+  'DateRangeInputBase',
   'DateTimeInput',
   'DateTimeInputBase',
   'Delete',

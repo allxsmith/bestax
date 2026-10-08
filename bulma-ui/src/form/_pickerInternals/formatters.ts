@@ -1,4 +1,5 @@
-import { makeDate } from './dateUtils';
+import { FIRST_YEAR, makeDate } from './dateUtils';
+import type { DateGranularity } from './pickerTypes';
 
 export type DateFormatOption = Intl.DateTimeFormatOptions | string;
 
@@ -101,6 +102,38 @@ export function formatDateTime(
   const f = fmt ?? DEFAULT_DATETIME_FORMAT;
   if (typeof f === 'string') return formatTokenString(d, f);
   return formatWithIntl(d, f, locale);
+}
+
+/**
+ * The value as a native input and a hidden form input carry it:
+ * `YYYY-MM-DD`, `YYYY-MM` or `YYYY`, the shapes `<input type="date">` and
+ * `<input type="month">` use. The year is padded to four digits, as those
+ * inputs require and as the `YYYY` token displays it. HTML has no such shape
+ * for a year before 1, so a date then is empty, as those inputs would make it.
+ */
+export function toIsoValue(d: Date, granularity: DateGranularity): string {
+  if (d.getFullYear() < FIRST_YEAR) return '';
+  const year = pad(d.getFullYear(), 4);
+  if (granularity === 'year') return year;
+  const month = `${year}-${pad(d.getMonth() + 1)}`;
+  return granularity === 'month' ? month : `${month}-${pad(d.getDate())}`;
+}
+
+/**
+ * Read a native `type="date"` or `type="month"` value back into a Date. HTML
+ * allows a year of four or more digits, as `toIsoValue` writes one past 9999.
+ */
+export function fromIsoValue(
+  s: string,
+  granularity: DateGranularity
+): Date | null {
+  if (granularity === 'month') {
+    const m = /^(\d{4,})-(\d{2})$/.exec(s);
+    return m ? makeDate(Number(m[1]), Number(m[2]) - 1) : null;
+  }
+  const m = /^(\d{4,})-(\d{2})-(\d{2})$/.exec(s);
+  if (!m) return null;
+  return makeDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
 }
 
 /**

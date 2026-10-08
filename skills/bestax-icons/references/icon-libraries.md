@@ -2,7 +2,7 @@
 
 Facts an agent can act on for each of the five libraries `Icon` supports. The library ships no
 icon fonts: the app must install the chosen library (the `npm create bestax` scaffold's
-`--icon` flag does this; in an existing app, follow Setup below).
+`--icon` flag wires it in; in an existing app, follow Setup below).
 
 ## How `Icon` renders
 

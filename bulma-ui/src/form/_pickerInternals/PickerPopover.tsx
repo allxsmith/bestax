@@ -18,6 +18,7 @@ export interface PickerPopoverProps {
   className?: string;
   trapFocus?: boolean;
   closeOnClickOutside?: boolean;
+  /** Close on Escape and on Alt+ArrowUp. Default `true`. */
   closeOnEscape?: boolean;
   ariaLabel?: string;
   ariaLabelledBy?: string;
@@ -102,10 +103,16 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     return () => document.removeEventListener('pointerdown', handler);
   }, [isOpen, closeOnClickOutside, anchorRef, onClose]);
 
+  // Escape closes it, and so does Alt+ArrowUp, the combobox's key for it,
+  // which the calendar and the time wheels inside leave to it.
   useEffect(() => {
     if (!isOpen || !closeOnEscape || !isBrowser) return undefined;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
+        e.stopPropagation();
+        onClose();
+      } else if (e.altKey && e.key === 'ArrowUp') {
+        e.preventDefault();
         e.stopPropagation();
         onClose();
       }
