@@ -41,6 +41,7 @@ import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
+import { inertProps } from '../helpers/inertProps';
 
 // The year is padded to four digits, as `datetime-local` requires. HTML has
 // no such shape for a year before 1, so a date then is empty, as that input
@@ -424,17 +425,14 @@ export const DateTimeInputBase = forwardRef<
   // The footer's Time button opens the wheels, and the hours wheel takes
   // focus so the keys turn it straight away. The calendar they cover is
   // inert meanwhile, so no tab stop, pointer or screen reader reaches a day
-  // behind them; the attribute is set on the element, as React 18 has no
-  // `inert` prop. Closing the wheels hands focus back to the button: focus
+  // behind them. Closing the wheels hands focus back to the button: focus
   // in them would fall to the page as they unmount, and a pointer press
   // outside them has already dropped it on the panel or the page. Focus the
   // keys moved on to the footer, such as Reset, stays there.
   const panelRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<HTMLDivElement>(null);
   const timeButtonRef = useRef<HTMLButtonElement>(null);
   const timeOverlayRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    calendarRef.current?.toggleAttribute('inert', timeOpen);
     if (!timeOpen) return;
     timeOverlayRef.current
       ?.querySelector<HTMLElement>('[role="spinbutton"]')
@@ -622,7 +620,7 @@ export const DateTimeInputBase = forwardRef<
       }}
     >
       <div className={calendarWrapClass}>
-        <div ref={calendarRef}>
+        <div {...inertProps(timeOpen)}>
           <Calendar
             value={value}
             focusedDate={focusedDate}
