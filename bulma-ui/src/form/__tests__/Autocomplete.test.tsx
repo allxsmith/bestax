@@ -615,6 +615,21 @@ describe('Autocomplete', () => {
       expect(input).toHaveAttribute('aria-expanded', 'false');
     });
 
+    it('leaves aria-controls off while no list is on screen, so it never dangles', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+      expect(input).not.toHaveAttribute('aria-controls');
+      fireEvent.change(input, { target: { value: 'zzz' } });
+      expect(input).not.toHaveAttribute('aria-controls');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(input).toHaveAttribute(
+        'aria-controls',
+        screen.getByRole('listbox').id
+      );
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(input).not.toHaveAttribute('aria-controls');
+    });
+
     it('points aria-activedescendant at the highlighted option', () => {
       render(<Autocomplete data={fruits} />);
       const input = screen.getByRole('combobox');
@@ -697,9 +712,12 @@ describe('Autocomplete', () => {
         </>
       );
       const [a, b] = screen.getAllByRole('combobox');
-      expect(a.getAttribute('aria-controls')).not.toBe(
-        b.getAttribute('aria-controls')
-      );
+      fireEvent.change(a, { target: { value: 'a' } });
+      fireEvent.change(b, { target: { value: 'a' } });
+      const [listA, listB] = screen.getAllByRole('listbox');
+      expect(a).toHaveAttribute('aria-controls', listA.id);
+      expect(b).toHaveAttribute('aria-controls', listB.id);
+      expect(listA.id).not.toBe(listB.id);
     });
 
     it('has aria-selected on highlighted item', () => {
