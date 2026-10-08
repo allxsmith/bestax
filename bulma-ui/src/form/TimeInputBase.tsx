@@ -498,7 +498,10 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           color={color}
           size={size}
           disabled={disabled}
-          id={popoverId}
+          // The popover panel takes `popoverId`, so the wheels inside it take
+          // one of their own. Inline there is no panel, and the wheels keep
+          // the id they released with.
+          id={inline ? popoverId : `${popoverId}-time`}
           labels={labels}
           itemHeight={wheelItemHeight}
           audioTick={effectiveAudioTick}

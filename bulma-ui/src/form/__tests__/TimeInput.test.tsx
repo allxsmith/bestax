@@ -1360,6 +1360,37 @@ describe('TimeInputBase remaining branches', () => {
     );
   });
 
+  it('gives the wheels inside the popover an id of their own', () => {
+    for (const id of ['shift-start', undefined]) {
+      const { getByRole, container, unmount } = render(
+        <TimeInputBase id={id} />
+      );
+      fireEvent.click(getByRole('combobox'));
+      const popoverId = getByRole('combobox').getAttribute('aria-controls')!;
+      const ids = Array.from(
+        document.querySelectorAll('[id]'),
+        el => el.id
+      ).filter(found => found.startsWith(popoverId));
+      expect(ids).toEqual([popoverId, `${popoverId}-time`]);
+      expect(getByRole('dialog').id).toBe(popoverId);
+      expect(container.querySelector('.timeinput')?.getAttribute('id')).toBe(
+        `${popoverId}-time`
+      );
+      unmount();
+    }
+  });
+
+  it('keeps the inline wheels on the id they had, with no popover to share it', () => {
+    const { container } = render(<TimeInputBase id="shift-start" inline />);
+    expect(
+      container.querySelectorAll('[id="shift-start-popover"]')
+    ).toHaveLength(1);
+    expect(container.querySelector('.timeinput')).toHaveAttribute(
+      'id',
+      'shift-start-popover'
+    );
+  });
+
   it('fires onOpen once even when an open request repeats, and onClose on close', () => {
     const onOpen = jest.fn();
     const onClose = jest.fn();
