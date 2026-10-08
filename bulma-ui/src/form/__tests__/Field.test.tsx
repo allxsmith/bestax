@@ -19,6 +19,9 @@ import { Radio } from '../Radio';
 import { Checkboxes } from '../Checkboxes';
 import { Checkbox } from '../Checkbox';
 import { Rate } from '../Rate';
+import { Input } from '../Input';
+import { Select } from '../Select';
+import { TextArea } from '../TextArea';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Field', () => {
@@ -611,6 +614,25 @@ describe('label names the convenience controls (#939)', () => {
   const undefinedIds: Array<
     [string, (props: { label?: string }) => React.ReactElement, () => Element]
   > = [
+    [
+      'Input',
+      props => <Input id={undefined} {...props} />,
+      () => screen.getByRole('textbox'),
+    ],
+    [
+      'Select',
+      props => (
+        <Select id={undefined} {...props}>
+          <option value="a">A</option>
+        </Select>
+      ),
+      () => screen.getByRole('combobox'),
+    ],
+    [
+      'TextArea',
+      props => <TextArea id={undefined} {...props} />,
+      () => screen.getByRole('textbox'),
+    ],
     [
       'Numberinput',
       props => <Numberinput id={undefined} {...props} />,
