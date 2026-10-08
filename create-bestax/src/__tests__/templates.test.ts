@@ -125,6 +125,29 @@ describe.each(TEMPLATES)(
       }
     );
 
+    // The icon step runs after the swap above and writes into the same App, so
+    // a helper prop it adds (the old card icons' `mr="2"`) renders nothing
+    // here and no row in the table can replace it. Scan the App a scaffold
+    // ends with, after both steps, for every icon library.
+    it.each(
+      noHelperFlavors.flatMap(flavor =>
+        ICON_LIBRARIES.map(lib => [flavor, lib.name] as const)
+      )
+    )(
+      'leaves no helper prop once the icon step has run too (%s, %s)',
+      async (flavor, iconLibrary) => {
+        const target = await scaffold(template);
+        await projectCreator.setupBulmaFlavor(target, flavor, template);
+        await projectCreator.setupIconLibrary(target, iconLibrary, template);
+
+        const app = await fs.readFile(
+          path.join(target, 'src', appFile(template)),
+          'utf8'
+        );
+        expect(app).not.toMatch(HELPER_PROP);
+      }
+    );
+
     it('leaves the helper props alone in a flavor that has them', async () => {
       const target = await scaffold(template);
       await projectCreator.setupBulmaFlavor(target, 'complete', template);

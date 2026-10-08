@@ -317,6 +317,18 @@ describe('constants', () => {
       });
     });
 
+    // Card.* sub-parts take helper props and Card.Header.Title an `as`, which
+    // the starter's own card titles use, so an agent told otherwise would
+    // strip the heading level the starter relies on.
+    it('keeps Card out of the sub-parts that take no helper props or `as`', () => {
+      const rule = md
+        .split('\n- ')
+        .find(line => line.startsWith('Compound sub-parts'));
+      expect(rule).toBeDefined();
+      expect(rule).toContain('no `as`');
+      expect(rule).not.toContain('`Card.*`');
+    });
+
     it('flags Notification as the mixed case: textColor yes, bgColor no', () => {
       // Notification omits `backgroundColor` and re-adds only `textColor`, so a
       // `bgColor` on it is inert — its background is the semantic `color` prop.
@@ -377,6 +389,26 @@ describe('constants', () => {
     expect(md).toContain('Only the outlined style is loaded');
     expect(md).toContain('`material-symbols/rounded.css`');
   });
+
+  it('CLAUDE_MD says only the filled Material Icons style is loaded', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'material-icons',
+    });
+    expect(md).toContain('Only the filled style is loaded');
+    expect(md).toContain('`material-icons/iconfont/`');
+  });
+
+  // Both Material packages' bare import pulls in every style's font, while
+  // the starter renders only the default style.
+  it.each(['material-icons', 'material-symbols'])(
+    'imports one %s font style, not the bare package',
+    name => {
+      const library = ICON_LIBRARIES.find(lib => lib.name === name)!;
+      expect(library.importStatement).not.toBe(`import '${name}';`);
+      expect(library.importStatement).toMatch(/\.css';$/);
+    }
+  );
 
   describe('DEFAULT_PROJECT_NAME', () => {
     it('should be a valid project name', () => {

@@ -319,11 +319,21 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
   });
 
   test('spaces each card icon from its title', async ({ page }) => {
+    // CI names each scenario template-flavor-icon, so whether icons were
+    // asked for comes from there, and a scaffold that asked for them but
+    // rendered none fails here rather than skipping. A run with no scenario
+    // set falls back to what the settled page shows.
+    const scenario = process.env.TEST_SCENARIO;
     await page.goto('/');
+    await expect(page.locator('h1').first()).toBeVisible();
     const titles = page.locator(
       ':is(.card-header-title, .bestax-card-header-title):has(:is(.icon, .bestax-icon))'
     );
-    test.skip((await titles.count()) === 0, 'scaffolded without icons');
+    const wantsIcons = scenario
+      ? !scenario.endsWith('-none')
+      : (await titles.count()) > 0;
+    test.skip(!wantsIcons, 'scaffolded without icons');
+    await expect(titles).toHaveCount(3);
 
     // From the icon's right edge to where the first glyph of the title text
     // is drawn, wherever in the title the text node sits.
@@ -349,19 +359,23 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
     page,
   }) => {
     await page.goto('/');
-    await page
+    const toggleButton = page
       .locator('button')
-      .filter({ hasText: 'Toggle Notification' })
-      .click();
+      .filter({ hasText: 'Toggle Notification' });
+    await toggleButton.click();
 
     const notification = page.locator(
       '[class*="notification"][class*="is-success"]'
     );
     await expect(notification).toBeVisible();
+    // From the keyboard: the close button goes away with the notification,
+    // so focus has to land somewhere the next Tab continues from.
     await notification
       .getByRole('button', { name: 'Close notification' })
-      .click();
+      .focus();
+    await page.keyboard.press('Enter');
     await expect(notification).toHaveCount(0);
+    await expect(toggleButton).toBeFocused();
   });
 
   test('has one main landmark, no banners, and no skipped heading levels', async ({

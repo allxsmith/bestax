@@ -218,7 +218,7 @@ ${houseStyleOpening}
   The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
   \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
   component renders those elements.
-- Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
+- Compound sub-parts (\`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
   attributes and their own few props — no Bulma helper props, no \`as\`/\`href\`: nest a
   \`Link\`/\`Span\` inside instead. \`Tabs.Tab\` and \`Tabs.Content.Item\` each require \`index={i}\`,
   and \`Tabs.Tab\` has built-in \`icon\`/\`disabled\` props — no nested \`Icon\` needed.
@@ -336,7 +336,14 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     color: chalk.yellow,
     packageName: 'material-icons',
     packageVersion: '^1.13.14',
-    importStatement: "import 'material-icons';",
+    // The package's bare import puts the filled, outlined, round, sharp and
+    // two-tone fonts into the build. Filled is the style Icon renders by
+    // default, so it is the only one imported.
+    importStatement: "import 'material-icons/iconfont/filled.css';",
+    setupInstructions:
+      'Only the filled style is loaded (`material-icons/iconfont/filled.css`, the variant `<Icon>` ' +
+      'uses by default). Import `outlined.css`, `round.css`, `sharp.css` or `two-tone.css` from ' +
+      '`material-icons/iconfont/` in `src/main.*` before using those variants.',
   },
   {
     name: 'material-symbols',

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -18,6 +18,9 @@ import './App.css';
 function App() {
   const [showNotification, setShowNotification] = useState(false);
   const [count, setCount] = useState(0);
+  // Where focus goes back to when the notification closes, so a keyboard
+  // user is not dropped at the top of the page.
+  const toggleRef = useRef<HTMLButtonElement>(null);
 
   return (
     <main>
@@ -97,6 +100,7 @@ function App() {
               <Column size="half">
                 <Buttons>
                   <Button
+                    ref={toggleRef}
                     color="primary"
                     onClick={() => setShowNotification(!showNotification)}
                   >
@@ -123,7 +127,10 @@ function App() {
                     color="success"
                     isLight
                     hasDelete
-                    onDelete={() => setShowNotification(false)}
+                    onDelete={() => {
+                      setShowNotification(false);
+                      toggleRef.current?.focus();
+                    }}
                   >
                     <strong>Success!</strong> Your Vite + Bestax setup is
                     working perfectly!

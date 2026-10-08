@@ -77,6 +77,8 @@ manifest to every required peer of the installed library, so a new or changed pe
   runs every edit against the real templates. Under a `noHelpers` flavor each helper prop in
   the starter becomes a named class from `NO_HELPERS_STARTER_CLASSES` in `src/constants.ts`;
   a helper prop added to the starter needs a row there, and that test fails until it has one.
+  The icon step runs after that swap and writes into the same `App`, so what it inserts can
+  use no helper prop at all; the test scans the `App` both steps leave behind.
 - An icon library's `packageVersion` follows the newest arm of bestax-bulma's peer range for
   it, not the newest release: on a 0.x package the caret holds the minor, so a pin past the
   peer range makes npm refuse the scaffold's install. The same test holds the two together.

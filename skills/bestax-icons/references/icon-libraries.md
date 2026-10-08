@@ -67,8 +67,11 @@ Set it once on `ConfigProvider` and omit `library` everywhere else.
 
 ## Google Material Icons — `'material-icons'`
 
-- **Setup:** `npm install material-icons` and `import 'material-icons';`.
-- **Scaffold flag:** `--icon material-icons`.
+- **Setup:** `npm install material-icons` and `import 'material-icons/iconfont/filled.css';`, the
+  style `Icon` renders by default. Add `outlined.css`, `round.css`, `sharp.css` or `two-tone.css`
+  from `material-icons/iconfont/` for those variants; the bare `import 'material-icons';` loads
+  all five fonts.
+- **Scaffold flag:** `--icon material-icons` (imports `filled.css` only).
 - **Names:** snake_case ligature text: `home`, `rocket_launch`, `shopping_cart`. A kebab-case
   name will not match a ligature and renders as raw text.
 - **Variants:** `filled` (default) / `outlined` / `round` / `sharp` — note **`round`**, not
