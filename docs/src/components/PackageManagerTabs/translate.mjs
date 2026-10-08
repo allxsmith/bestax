@@ -133,6 +133,10 @@ export function translateSegment(segment, manager) {
           return flags.length ? join(['yarn', 'install', ...flags]) : 'yarn';
         }
         case 'create': {
+          // The one yarn rule that runs on Yarn Classic as well as Berry; `dlx`
+          // and the frozen install are Berry-only. A pinned starter such as
+          // `vite@5` still fails on Classic for the reason below, so a pinned
+          // `create` is Berry-only too.
           // Yarn Classic installs `create-<name>` globally and then runs a
           // binary named after the whole first argument, so `bestax@latest`
           // fails there. Both Classic and Berry fetch the latest version of a

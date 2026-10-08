@@ -83,6 +83,8 @@ const TABLE = [
     'bun create @scope/starter@latest my-app',
   ],
   [
+    // Kept as written, which makes the yarn line Berry-only: Yarn Classic looks
+    // for a binary named `create-vite@5`, the same failure `@latest` caused.
     'create vite@5 my-app',
     'pnpm create vite@5 my-app',
     'npm create vite@5 my-app',

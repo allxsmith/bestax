@@ -20,13 +20,13 @@ pnpm install
 
 </PackageManagerTabs>
 
-The installer walks you through a few prompts and sets up everything for you:
+The installer walks you through a few prompts:
 
 - **Framework** — Vite (JavaScript) or Vite + TypeScript
 - **Bulma flavor** — Complete, Prefixed, No Helpers, No Helpers + Prefixed, or No Dark Mode
 - **Icon library** — Font Awesome, Material Design Icons, Material Icons, Material Symbols, Ionicons, or none
 
-It scaffolds a working app with `@allxsmith/bestax-bulma` and the icon font package you pick in its `package.json`, and the CSS imports already in `src/main.{jsx,tsx}`, so there's no CSS setup to do. It doesn't install anything, which is what the `install` line is for: run it once before you start the app.
+It scaffolds a working app with `@allxsmith/bestax-bulma` in its `package.json` and the CSS imports already in `src/main.{jsx,tsx}`, so there's no CSS setup to do. It doesn't install anything: run the install once before you start the app.
 
 ---
 
