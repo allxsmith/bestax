@@ -98,8 +98,11 @@ const DOCS_BASE = 'https://bestax.io/docs';
  * it does not understand rather than silently serving half a field — the two
  * ship in the same tarball, so a mismatch means a broken build, not a user
  * running something old.
+ *
+ * 2: `cssVarIndex` maps a variable to every component that declares it, its
+ * owner first, rather than to one name (#964).
  */
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 
 const collapse = s =>
   String(s ?? '')
@@ -301,6 +304,47 @@ async function cssVarsFor(info) {
     }
   }
   return rows;
+}
+
+/**
+ * Every component that declares a CSS variable, the one it belongs to first.
+ *
+ * Several components read the same partial: DateTimeInput renders DateInput's
+ * calendar, so it declares every `--bulma-dateinput-*` variable too, and the
+ * form controls all read Bulma's `--bulma-input-*`. The index used to keep one
+ * name per variable, whichever component the generator read last, so the
+ * calendar's variables were "declared by DateTimeInput" and an agent theming
+ * DateInput was sent to the wrong component (#964).
+ *
+ * A variable belongs to the declarer it is named after: the one whose name,
+ * lower-cased with or without hyphens between its words, the variable continues
+ * after `--bulma-`. The longest such name wins, so `--bulma-icon-text-*` goes
+ * to IconText over Icon. The rest follow in code-point order. A variable named
+ * after none of its declarers (`--bulma-picker-popover-*`, which the pickers
+ * share) has no owner, and its declarers are all in code-point order.
+ *
+ * Every declarer stays in the list, since an override reaches each of them.
+ */
+export function orderDeclarers(cssVar, names) {
+  const rest = cssVar.replace(/^--bulma-/, '');
+  const named = name => {
+    const keys = [
+      name.toLowerCase(),
+      name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase(),
+    ];
+    return Math.max(
+      0,
+      ...keys
+        .filter(k => rest === k || rest.startsWith(`${k}-`))
+        .map(k => k.length)
+    );
+  };
+  const sorted = [...new Set(names)].sort(byCodePoint);
+  const owner = sorted.reduce(
+    (best, name) => (named(name) > (best ? named(best) : 0) ? name : best),
+    null
+  );
+  return owner ? [owner, ...sorted.filter(n => n !== owner)] : sorted;
 }
 
 /** Strip the frontmatter block, leaving the page body. */
@@ -592,7 +636,7 @@ export async function build() {
       } else {
         const info = extractComponent(name, { markdown: false });
         const cssVars = await cssVarsFor(info);
-        for (const v of cssVars) cssVarIndex[v.css] = name;
+        for (const v of cssVars) (cssVarIndex[v.css] ??= []).push(name);
         record = {
           ...common,
           summary: collapse(info.tsdoc),
@@ -657,7 +701,9 @@ export async function build() {
     categories: categoryList,
     components: catalogEntries.sort((a, b) => byCodePoint(a.name, b.name)),
     cssVarIndex: Object.fromEntries(
-      Object.entries(cssVarIndex).sort((a, b) => byCodePoint(a[0], b[0]))
+      Object.entries(cssVarIndex)
+        .sort((a, b) => byCodePoint(a[0], b[0]))
+        .map(([css, names]) => [css, orderDeclarers(css, names)])
     ),
   };
 
