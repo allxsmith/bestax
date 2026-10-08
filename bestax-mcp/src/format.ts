@@ -88,10 +88,13 @@ function propRows(props: PropRow[]): string[][] {
   });
 }
 
-export function renderPart(part: Part, { heading = true } = {}): string {
+export function renderPart(
+  part: Part,
+  { heading = true, summary = true } = {}
+): string {
   const out: string[] = [];
   if (heading) out.push(`### ${part.path}`);
-  if (part.summary) out.push(part.summary);
+  if (summary && part.summary) out.push(part.summary);
   if (part.component) {
     out.push(
       `Also exported standalone as \`${part.component}\` — call \`get_props\` with that name for its full table.`
@@ -186,12 +189,49 @@ export function referencePointer(record: ComponentRecord): string {
   );
 }
 
+/**
+ * Where `get_component` lands for a dot-path: the part it names, or, for a path
+ * that names none, the family with a line saying so. It used to answer
+ * `Navbar.Brand` with Navbar's own table and no word about the switch (#935).
+ */
+export interface PartFocus {
+  /** The dot-path as asked. */
+  wanted: string;
+  /** The part it names, or null when it names none. */
+  part: Part | null;
+}
+
 export function renderComponent(
   record: ComponentRecord,
-  include: string[]
+  include: string[],
+  focus?: PartFocus
 ): string {
-  const out: string[] = [`# ${record.name}`];
-  if (record.summary) out.push(record.summary);
+  const part =
+    focus?.part && focus.part !== record.parts[0] ? focus.part : null;
+  const out: string[] = [`# ${part ? part.path : record.name}`];
+  if (part) {
+    out.push(
+      `\`${part.path}\` is a part of \`${record.name}\`, used through the import ` +
+        `below. The props are the part's own; any examples, CSS variables and ` +
+        `notes are the whole family's, and ` +
+        `\`get_component({ name: "${record.name}" })\` has the family's table.`
+    );
+    if (part.summary) out.push(part.summary);
+  } else {
+    if (focus && !focus.part) {
+      out.push(
+        `\`${record.name}\` has no part \`${focus.wanted}\`, so this is ` +
+          `\`${record.name}\` itself. ` +
+          (record.parts.length > 1
+            ? `Its parts: ${record.parts
+                .slice(1)
+                .map(p => `\`${p.path}\``)
+                .join(', ')}.`
+            : 'It has no parts.')
+      );
+    }
+    if (record.summary) out.push(record.summary);
+  }
   out.push(`\`\`\`tsx\n${record.import}\n\`\`\``);
 
   // A page written as prose is opt-in, because useBulmaClasses' runs to tens of
@@ -201,9 +241,20 @@ export function renderComponent(
   if (record.kind === 'helper') {
     out.push(reference || renderHelperApi(record));
   } else {
-    if (include.includes('props')) {
+    if (include.includes('props') && part) {
+      out.push(renderPart(part, { heading: false, summary: false }));
+    } else if (include.includes('props')) {
       const [root, ...subs] = record.parts;
-      if (root) out.push(renderPart(root, { heading: false }));
+      // The root part's summary is the component's, already printed above; printed
+      // again it doubled every answer's opening paragraph (#935).
+      if (root) {
+        out.push(
+          renderPart(root, {
+            heading: false,
+            summary: root.summary !== record.summary,
+          })
+        );
+      }
       if (subs.length) {
         out.push(
           `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +

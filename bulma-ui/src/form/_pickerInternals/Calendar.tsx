@@ -19,6 +19,7 @@ import {
   DateRangeValue,
   DayOfWeek,
   PickerLabels,
+  isPopoverToggleKey,
   mergeLabels,
 } from './pickerTypes';
 import {
@@ -514,6 +515,7 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (isPopoverToggleKey(e)) return;
       // A key takes the range preview back from the pointer.
       setHoverDate(null);
       switch (e.key) {
@@ -615,6 +617,7 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const handleMonthKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (isPopoverToggleKey(e)) return;
       if (e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
         if (!isMonthUnselectable(focusedDate)) {
@@ -789,6 +792,7 @@ export const Calendar: React.FC<CalendarProps> = ({
 
   const handleYearListKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (isPopoverToggleKey(e)) return;
       if (isYearGranularity) {
         const step = yearStep(e.key, focusedYear, yearList);
         if (!step) return;

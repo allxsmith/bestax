@@ -40,7 +40,7 @@ The popover opens to the calendar with an iOS-style footer — the selected time
 <DateTimeInput label="Appointment" placeholder="YYYY-MM-DD HH:MM" />
 ```
 
-**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `Alt+↓`).
 
 ```tsx live
 <DateTimeInput
@@ -66,7 +66,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same controlled example with `openOnFocus={false}` added: click in and type freely, and reach for the launcher icon (or `↓`) when you want the popover.
+**Typing-first** — the same controlled example with `openOnFocus={false}` added: click in and type freely, and reach for the launcher icon (or `Alt+↓`) when you want the popover.
 
 ```tsx live
 function example() {
@@ -102,7 +102,7 @@ function example() {
 The OS-native pickers use the device clock setting, so `hourFormat` is ignored there. This example forces `mobileNative={false}` so the 12-hour format shows on touch devices too.
 :::
 
-**Typing-first** — the same 12-hour field with `openOnFocus={false}`: type across the segments (press `a` / `p` on the trailing meridiem) and open the popover with the launcher icon or `↓`.
+**Typing-first** — the same 12-hour field with `openOnFocus={false}`: type across the segments (press `a` / `p` on the trailing meridiem) and open the popover with the launcher icon or `Alt+↓`.
 
 ```tsx live
 function example() {
@@ -136,7 +136,7 @@ This example forces `mobileNative={false}` so the seconds wheel shows on every d
 **Android Chrome** generally renders a seconds component in its native datetime-local picker when `step < 60` (with [some long-standing quirks](https://bugs.chromium.org/p/chromium/issues/detail?id=461718) — exact seconds-spinner behavior varies by Android version). **iOS Safari** has no seconds wheel under any circumstances. If you need a guaranteed seconds wheel, pass `mobileNative={false}` to force the custom wheel popover. See [Mobile Native](#mobile-native) below for the full iOS-vs-Android picker support matrix.
 :::
 
-**Typing-first** — the same seconds-enabled field with `openOnFocus={false}`: the typed walk gains a seconds segment (year → month → day → hours → minutes → seconds), and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same seconds-enabled field with `openOnFocus={false}`: the typed walk gains a seconds segment (year → month → day → hours → minutes → seconds), and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -172,7 +172,7 @@ Combine `hourFormat="12"` with `enableSeconds` for an `hh:mm:ss A` field — the
 The OS-native pickers honor neither half: `hourFormat` follows the device clock setting, and iOS Safari has no seconds wheel at all. This example forces `mobileNative={false}` so the 12-hour seconds wheel shows on every device.
 :::
 
-**Typing-first** — the full segment set with `openOnFocus={false}`: type through date, `hh`, `mm`, `ss`, toggle the trailing meridiem with `a` / `p`, and open the popover via the launcher icon or `↓`.
+**Typing-first** — the full segment set with `openOnFocus={false}`: type through date, `hh`, `mm`, `ss`, toggle the trailing meridiem with `a` / `p`, and open the popover via the launcher icon or `Alt+↓`.
 
 ```tsx live
 function example() {
@@ -228,7 +228,7 @@ The `format` prop takes a token string or `Intl.DateTimeFormatOptions` spanning 
 `format` is ignored by the OS-native pickers (they use the device locale), so these examples set `mobileNative={false}` to show the formats on touch devices too.
 :::
 
-**Typing-first** — a custom `DD.MM.YYYY HH:mm` format with `openOnFocus={false}`: segments follow the format order (day first) and typing `.`, space, or `:` jumps the separators — so `25.12.2026 09:30` flows straight through — with the launcher icon (or `↓`) opening the popover.
+**Typing-first** — a custom `DD.MM.YYYY HH:mm` format with `openOnFocus={false}`: segments follow the format order (day first) and typing `.`, space, or `:` jumps the separators — so `25.12.2026 09:30` flows straight through — with the launcher icon (or `Alt+↓`) opening the popover.
 
 ```tsx live
 function example() {
@@ -262,7 +262,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 </Block>
 ```
 
-**Typing-first** — the same group with `openOnFocus={false}` on every instance, so clicking a field just lets you type and the launcher icon opens the popover; note the `triggerIcon={false}` instance has no launcher, leaving its popover keyboard-only via `↓`.
+**Typing-first** — the same group with `openOnFocus={false}` on every instance, so clicking a field just lets you type and the launcher icon opens the popover; note the `triggerIcon={false}` instance has no launcher, leaving its popover keyboard-only via `Alt+↓`.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -276,7 +276,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
     openOnFocus={false}
   />
   <DateTimeInput
-    label="No launcher (popover via ↓ only)"
+    label="No launcher (popover via Alt+↓ only)"
     triggerIcon={false}
     openOnFocus={false}
   />
@@ -315,7 +315,7 @@ function example() {
 On iOS Safari the picker UI lets the user pick any value; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
-**Typing-first** — the same bounds with `openOnFocus={false}`: keystrokes and `↑` / `↓` arrows never produce a value outside `min`/`max`, and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same bounds with `openOnFocus={false}`: keystrokes and `↑` / `↓` arrows never produce a value outside `min`/`max`, and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -356,7 +356,7 @@ Blocked dates are disabled in the calendar and rejected during manual typing, th
 HTML has no predicate equivalent, so the OS-native pickers can't block any dates. This example forces `mobileNative={false}` so the rule works on touch devices; in your app keep `mobileNative="auto"` and also validate in `onChange`.
 :::
 
-**Typing-first** — the same predicate with `openOnFocus={false}`: a keystroke or arrow that lands on a blocked date is rejected (matching the disabled calendar cells), and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same predicate with `openOnFocus={false}`: a keystroke or arrow that lands on a blocked date is rejected (matching the disabled calendar cells), and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -391,7 +391,7 @@ Blocked times are skipped by the wheels and rejected during manual typing.
 Same as Disabled Dates — the OS-native pickers can't evaluate predicates. This example forces `mobileNative={false}` so the blocked hour works on touch devices too.
 :::
 
-**Typing-first** — the same blocked hour with `openOnFocus={false}`: setting the hour segment to a blocked hour is vetoed by the `unselectableTimes` predicate (just as the wheels skip it), and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same blocked hour with `openOnFocus={false}`: setting the hour segment to a blocked hour is vetoed by the `unselectableTimes` predicate (just as the wheels skip it), and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -432,7 +432,7 @@ function example() {
 The OS-native calendars use the device locale for the week start, so `firstDayOfWeek` is ignored there. This example forces `mobileNative={false}` so the Monday-first grid shows on touch devices too.
 :::
 
-**Typing-first** — the same Monday-first example with `openOnFocus={false}`: type in the field directly and bring up the popover with the launcher icon (or `↓`) to see the week start.
+**Typing-first** — the same Monday-first example with `openOnFocus={false}`: type in the field directly and bring up the popover with the launcher icon (or `Alt+↓`) to see the week start.
 
 ```tsx live
 <DateTimeInput
@@ -499,7 +499,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom popover 
 The OS-native pickers always use the device's system locale, so these examples set `mobileNative={false}` to show the per-input `locale` on touch devices too.
 :::
 
-**Typing-first** — the same locales with `openOnFocus={false}` on each instance: focus to type the localized value, and use the launcher icon (or `↓`) to open the popover.
+**Typing-first** — the same locales with `openOnFocus={false}` on each instance: focus to type the localized value, and use the launcher icon (or `Alt+↓`) to open the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -533,7 +533,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 </Block>
 ```
 
-**Typing-first** — every size with `openOnFocus={false}`: clicking any field lets you type straight away, with the launcher icon (or `↓`) opening the popover.
+**Typing-first** — every size with `openOnFocus={false}`: clicking any field lets you type straight away, with the launcher icon (or `Alt+↓`) opening the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -573,7 +573,7 @@ The OS-native pickers always use the device's system locale, so these examples s
 </Block>
 ```
 
-**Typing-first** — the same colors with `openOnFocus={false}` on every instance: type directly in any field and open the popover with the launcher icon (or `↓`).
+**Typing-first** — the same colors with `openOnFocus={false}` on every instance: type directly in any field and open the popover with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -664,7 +664,7 @@ The single input spans the whole date-time: year → month → day → hours →
 These examples use `openOnFocus={false}` so the popover doesn't cover the input.
 
 :::tip Opening the picker vs. typing
-With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
+With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `Alt+↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
 :::
 
 #### Basic
@@ -757,6 +757,7 @@ A single field spans year → month → day → hours → minutes (→ seconds �
 | Key                               | Action                                                                         |
 | --------------------------------- | ------------------------------------------------------------------------------ |
 | `↑` / `↓`                         | Increment / decrement the active segment (wraps in place)                      |
+| `Alt+↓` / `Alt+↑`                 | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`                         | Move to previous / next segment                                                |
 | `0`–`9`                           | Overwrite the active segment; auto-advances when no further digit is valid     |
 | `a` / `A` / `p` / `P`             | Toggle AM/PM on the meridiem segment (12-hour formats)                         |
@@ -765,12 +766,13 @@ A single field spans year → month → day → hours → minutes (→ seconds �
 | `Tab`                             | Clear segment selection so focus moves out naturally                           |
 | `Escape`                          | Close the popover                                                              |
 
+In free-form entry there is no segment to step, so a plain `↓` opens the popover as well.
+
 ### On the popover
 
 | Key                   | Action                                          |
 | --------------------- | ----------------------------------------------- |
-| `↓`                   | Open popover (when closed)                      |
-| `Escape`              | Close popover                                   |
+| `Escape` / `Alt+↑`    | Close popover                                   |
 | `←` / `→`             | Move focused date by ±1 day                     |
 | `↑` / `↓`             | Move focused date by ±7 days                    |
 | `PageUp` / `PageDown` | Move focused date by ±1 month                   |
@@ -781,7 +783,7 @@ A single field spans year → month → day → hours → minutes (→ seconds �
 
 Clicking the month and year in the calendar's header opens the year list to jump to another year. There `←` / `→` move focus by a year, `↑` / `↓` by a row, `Home` / `End` go to the list's ends, and `Enter` / `Space` jump to the focused year. The calendar stays on its month until a year is picked, and `Escape` goes back to it without jumping (a second `Escape` closes the popover).
 
-Activate the footer **time** button (`Enter` / `Space`) to float the wheels over the calendar. On a time wheel: `↑` / `↓` change the value, `←` / `→` move between the hours / minutes / (seconds) columns, and `Enter` commits and closes. While the wheels are open, `Escape` collapses them (a second `Escape` closes the popover), and clicking anywhere outside the wheel card dismisses them.
+Activate the footer **time** button (`Enter` / `Space`) to float the wheels over the calendar, with focus on the hours wheel. On a time wheel: `↑` / `↓` raise / lower the value, `PageUp` / `PageDown` by 5, `Home` / `End` jump to the lowest / highest, `←` / `→` move between the hours / minutes / (seconds) columns, and `Enter` commits and closes. While the wheels are open, `Escape` collapses them (a second `Escape` closes the popover), and clicking anywhere outside the wheel card dismisses them. The calendar under the wheels is out of reach while they are open, so `Tab` walks the wheels and the footer. Closing them puts focus back on the time button, unless you had moved it on to Reset or ✓, where it stays.
 
 ---
 
@@ -827,7 +829,7 @@ function DateTimeInputFormDemo() {
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.
-- Tab order naturally walks from calendar → time wheels → footer (Reset / ✓).
+- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.
 
 ---
 
@@ -878,7 +880,7 @@ The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [Time
 | `controlClassName`  | `string`                                                                         | —                    | Additional CSS classes for the Control wrapper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `value`             | `Date` \| `null`                                                                 | —                    | Controlled selected date-time.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `defaultValue`      | `Date` \| `null`                                                                 | —                    | Initial value for uncontrolled usage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `onChange`          | `(d: Date \| null) => void`                                                      | —                    | Fired when either the date or time portion changes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `onChange`          | `(d: Date \| null) => void`                                                      | —                    | Fired when either the date or time portion changes. Picking a day keeps the value's whole time of day, down to seconds and milliseconds the field doesn't show, and `min` and `max` judge the picked day at that time. An empty field's day is picked at midnight.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `onOpen`            | `() => void`                                                                     | —                    | Fired when the popover opens.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `onClose`           | `() => void`                                                                     | —                    | Fired when the popover closes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `min`               | `Date`                                                                           | —                    | Lower bound for the combined date-time. A `min` before year 1 is raised to midnight on 1 January of year 1, where the range starts without one too: HTML's datetime-local input holds no earlier year, so the calendar, the time wheels and typing stop there.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -893,7 +895,7 @@ The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [Time
 | `mobileNative`      | `boolean` \| `'auto'`                                                            | `'auto'`             | Use `<input type="datetime-local">` on coarse-pointer devices.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `editable`          | `boolean`                                                                        | `true`               | Allow segmented keyboard typing (type the date-time directly across all segments). `false` makes the field picker-only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `popover`           | `boolean`                                                                        | `true`               | Whether the calendar + time popover exists. `false` makes the field input-only (segmented typing with no popover). Default `true`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `openOnFocus`       | `boolean`                                                                        | `true`               | Open the popover on focus. Default `true`. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `openOnFocus`       | `boolean`                                                                        | `true`               | Open the popover on focus. Default `true`. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `closeOnSelect`     | `boolean`                                                                        | `false`              | Off by default — users typically tweak both halves before committing.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`      | Popover anchor position.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `appendToBody`      | `boolean`                                                                        | `false`              | Render the popover into `document.body` via portal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

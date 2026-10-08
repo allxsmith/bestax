@@ -22,7 +22,7 @@
   "related": ["Modal", "Reveal", "Skeleton"],
   "storybook": "https://bestax.io/storybook/?path=/story/helpers-clientonly--default",
   "summary": "Renders its children only in the browser, after hydration, and a `fallback` until then, so content that depends on browser-only state doesn't cause a hydration mismatch. The server render and the hydrating client render both show `fallback`, which keeps them identical; the children replace it in the commit that follows. In an app without server rendering the children show on the first render.",
-  "import": "import { ClientOnly } from '@allxsmith/bestax-bulma';",
+  "import": "import { ClientOnly, useIsHydrated } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/helpers/ClientOnly.tsx",
   "rootClass": null,
   "parts": [

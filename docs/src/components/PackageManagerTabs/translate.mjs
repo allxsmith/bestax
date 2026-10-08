@@ -74,11 +74,13 @@ export function splitSegments(command) {
 /**
  * Translate one segment for one package manager.
  *
- * Four rules go beyond swapping the prefix:
+ * These rules go beyond swapping the prefix:
  * - `dlx` is a whole-prefix replacement (`npx`, `bunx`), not a verb swap.
  * - bun spells the dev-dependency flag `-d`, not `-D`.
  * - npm needs `--` to pass flags through a `create` scaffolder; yarn and bun
  *   forward arguments directly and would hand the `--` to the scaffolder.
+ * - yarn's `create` drops a starter's `@latest` tag, which Yarn Classic cannot
+ *   run and neither yarn needs.
  * - `--frozen-lockfile` is pnpm's spelling of "install exactly the lockfile".
  *   npm has no such flag — it is a whole different verb, `npm ci` — and Berry
  *   spells it `--immutable`. bun takes the flag as-is. Getting this wrong is
@@ -130,8 +132,24 @@ export function translateSegment(segment, manager) {
           // Bare `yarn` is the idiomatic install; with flags it needs the verb.
           return flags.length ? join(['yarn', 'install', ...flags]) : 'yarn';
         }
-        case 'create':
-          return join(['yarn', 'create', ...withoutDoubleDash()]);
+        case 'create': {
+          // The one yarn rule that runs on Yarn Classic as well as Berry; `dlx`
+          // and the frozen install are Berry-only. A pinned starter such as
+          // `vite@5` still fails on Classic for the reason below, so a pinned
+          // `create` is Berry-only too.
+          // Yarn Classic installs `create-<name>` globally and then runs a
+          // binary named after the whole first argument, so `bestax@latest`
+          // fails there. Both Classic and Berry fetch the latest version of a
+          // bare name, so dropping `@latest` asks for the same thing and runs
+          // on either. Any other version is a real request and stays.
+          const [starter, ...args] = withoutDoubleDash();
+          return join([
+            'yarn',
+            'create',
+            starter?.replace(/(.)@latest$/, '$1'),
+            ...args,
+          ]);
+        }
         case 'run':
           // `yarn dev`, not `yarn run dev`.
           return join(['yarn', ...rest]);

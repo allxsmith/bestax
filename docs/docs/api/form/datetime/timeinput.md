@@ -38,7 +38,7 @@ import { TimeInput } from '@allxsmith/bestax-bulma';
 <TimeInput label="Time" placeholder="HH:MM" />
 ```
 
-**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `Alt+↓`).
 
 ```tsx live
 <TimeInput label="Time" placeholder="HH:MM" openOnFocus={false} />
@@ -64,7 +64,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same controlled example with `openOnFocus={false}`: focus and type freely; the launcher icon on the right (or `↓`) opens the popover.
+**Typing-first** — the same controlled example with `openOnFocus={false}`: focus and type freely; the launcher icon on the right (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -112,7 +112,7 @@ function example() {
 The OS-native pickers use the device's clock setting (12h/24h), so `hourFormat` is ignored there. This example forces `mobileNative={false}` so the 12-hour format shows on touch devices too.
 :::
 
-**Typing-first** — identical, but with `openOnFocus={false}` so focusing lets you type (press `a` / `p` on the AM/PM segment); the launcher icon (or `↓`) opens the popover.
+**Typing-first** — identical, but with `openOnFocus={false}` so focusing lets you type (press `a` / `p` on the AM/PM segment); the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -155,7 +155,7 @@ function example() {
 Same as above — the OS-native pickers follow the device clock setting. This example forces `mobileNative={false}` to show 24-hour on touch devices.
 :::
 
-**Typing-first** — the same 24-hour example with `openOnFocus={false}`: click in and type the time; the launcher icon (or `↓`) brings up the popover.
+**Typing-first** — the same 24-hour example with `openOnFocus={false}`: click in and type the time; the launcher icon (or `Alt+↓`) brings up the popover.
 
 ```tsx live
 function example() {
@@ -199,7 +199,7 @@ This example forces `mobileNative={false}` so the seconds wheel shows on every d
 **Android Chrome** renders a seconds spinner in its native time picker when `step < 60` (which our component sets when `enableSeconds` is true). **iOS Safari** has no seconds wheel under any circumstances — Apple's native picker UI is hard-locked to hour/minute spinners regardless of `step`. The input value can carry seconds entered programmatically, but iOS users can't pick them in the wheel. If you need a seconds wheel on iOS, pass `mobileNative={false}` to force the custom wheel popover. See [Mobile Native](#mobile-native) below for the full iOS-vs-Android picker support matrix.
 :::
 
-**Typing-first** — the same example plus `openOnFocus={false}`: type across the hours / minutes / seconds segments, and open the popover with the launcher icon (or `↓`).
+**Typing-first** — the same example plus `openOnFocus={false}`: type across the hours / minutes / seconds segments, and open the popover with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -242,7 +242,7 @@ function example() {
 iOS Safari shows every minute regardless of `step`. This example forces `mobileNative={false}` so the 15-minute stepping is enforced on every device.
 :::
 
-**Typing-first** — the same example with `openOnFocus={false}`: increments only step the wheels, not typing — typed values are free-grained — so open the stepped wheels with the launcher icon (or `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: increments only step the wheels, not typing — typed values are free-grained — so open the stepped wheels with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -290,7 +290,7 @@ function example() {
 On iOS Safari the picker UI lets the user spin to any time; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
-**Typing-first** — the same bounds with `openOnFocus={false}`: typed entry is clamped to the window just like the wheels; open the popover with the launcher icon (or `↓`).
+**Typing-first** — the same bounds with `openOnFocus={false}`: typed entry is clamped to the window just like the wheels; open the popover with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -336,7 +336,7 @@ function example() {
 HTML has no predicate equivalent, so the OS-native pickers can't block any times. This example forces `mobileNative={false}` so the rule works on touch devices; in your app keep `mobileNative="auto"` and also validate in `onChange`.
 :::
 
-**Typing-first** — the same predicate with `openOnFocus={false}`: typing or arrowing into a blocked time is rejected just like in the wheels, and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same predicate with `openOnFocus={false}`: typing or arrowing into a blocked time is rejected just like in the wheels, and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -363,7 +363,7 @@ Focus the input — the **hours** segment highlights automatically and the keybo
 These examples use `openOnFocus={false}` so the popover doesn't cover the input — set `openOnFocus={true}` (the default) and both UIs coexist. To turn segment typing off entirely, pass `editable={false}` (picker-only); to drop the popover and keep only the field, pass `popover={false}` (input-only).
 
 :::tip Opening the picker vs. typing
-With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
+With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `Alt+↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
 :::
 
 #### Basic
@@ -499,7 +499,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same example with `openOnFocus={false}`: typing stays silent — the audio thunk and band pulse fire once you open the wheels via the launcher icon (or `↓`) and scroll them.
+**Typing-first** — the same example with `openOnFocus={false}`: typing stays silent — the audio thunk and band pulse fire once you open the wheels via the launcher icon (or `Alt+↓`) and scroll them.
 
 ```tsx live
 function example() {
@@ -534,7 +534,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same auto-routed feedback with `openOnFocus={false}`: the vibrate/thunk fires when you open the wheels with the launcher icon (or `↓`) and scroll them, not while typing.
+**Typing-first** — the same auto-routed feedback with `openOnFocus={false}`: the vibrate/thunk fires when you open the wheels with the launcher icon (or `Alt+↓`) and scroll them, not while typing.
 
 ```tsx live
 function example() {
@@ -643,7 +643,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same token formats with `openOnFocus={false}` on every instance: type into the segments each format defines; the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same token formats with `openOnFocus={false}` on every instance: type into the segments each format defines; the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -723,7 +723,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 </Block>
 ```
 
-**Typing-first** — the same set with `openOnFocus={false}` on each instance: the field is type-first, which makes the right launcher icon (or `↓`) the way into the popover.
+**Typing-first** — the same set with `openOnFocus={false}` on each instance: the field is type-first, which makes the right launcher icon (or `Alt+↓`) the way into the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -734,7 +734,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
     openOnFocus={false}
   />
   <TimeInput
-    label="No launcher (press ↓ to open)"
+    label="No launcher (press Alt+↓ to open)"
     triggerIcon={false}
     openOnFocus={false}
   />
@@ -765,7 +765,7 @@ The launcher gives way to a loading spinner at the same right edge, whether the 
 </Block>
 ```
 
-**Typing-first** — the same sizes with `openOnFocus={false}` on every instance: focusing lets you type, and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same sizes with `openOnFocus={false}` on every instance: focusing lets you type, and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -805,7 +805,7 @@ The launcher gives way to a loading spinner at the same right edge, whether the 
 </Block>
 ```
 
-**Typing-first** — the same colors with `openOnFocus={false}` everywhere: click in to type, and use the launcher icon (or `↓`) to open the popover.
+**Typing-first** — the same colors with `openOnFocus={false}` everywhere: click in to type, and use the launcher icon (or `Alt+↓`) to open the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -912,6 +912,7 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | Key                   | Action                                                                         |
 | --------------------- | ------------------------------------------------------------------------------ |
 | `↑` / `↓`             | Increment / decrement the active segment (wraps at boundaries)                 |
+| `Alt+↓` / `Alt+↑`     | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`             | Move to previous / next segment (hour ↔ minute ↔ second ↔ AM/PM)               |
 | `0`–`9`               | Overwrite the active segment; auto-advances when no further digit is valid     |
 | `a` / `A` / `p` / `P` | Toggle AM/PM on the meridiem segment                                           |
@@ -920,14 +921,21 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | `Escape`              | Close popover                                                                  |
 | `Enter`               | Close popover when `closeOnSelect={true}` (value is already committed live)    |
 
+In free-form entry there is no segment to step, so a plain `↓` opens the popover as well.
+
 ### On a wheel column (when the popover is open)
 
-| Key                   | Action                               |
-| --------------------- | ------------------------------------ |
-| `↑` / `↓`             | Increment / decrement focused column |
-| `PageUp` / `PageDown` | Increment / decrement by 5×          |
-| `Tab`                 | Move focus to next column            |
-| `Enter`               | Commit live value, close popover     |
+| Key                   | Action                                   |
+| --------------------- | ---------------------------------------- |
+| `↑` / `↓`             | Increment / decrement focused column     |
+| `PageUp` / `PageDown` | Increment / decrement by 5×              |
+| `Home` / `End`        | Jump to the column's lowest / highest    |
+| `←` / `→`             | Move focus to the previous / next column |
+| `Tab`                 | Move focus to next column                |
+| `Enter`               | Commit live value, close popover         |
+| `Escape` / `Alt+↑`    | Close popover                            |
+
+The values run down each wheel, so `↑` brings the value below the band into it, the way dragging the wheel up or scrolling down over it does.
 
 ---
 
@@ -1036,7 +1044,7 @@ Combine `incrementMinutes={5}` (or `15`/`30`) with `min` and `max` to build a ti
 | `mobileNative`      | `boolean` \| `'auto'`                                                            | `'auto'`         | Use `<input type="time">` on coarse-pointer + small-viewport devices.                                                                                                                                                                                                                                                                         |
 | `editable`          | `boolean`                                                                        | `true`           | Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only.                                                                                                                                                                                                   |
 | `popover`           | `boolean`                                                                        | `true`           | Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover).                                                                                                                                                                                                                                        |
-| `openOnFocus`       | `boolean`                                                                        | `true`           | Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.                                                                                                       |
+| `openOnFocus`       | `boolean`                                                                        | `true`           | Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.                                                  |
 | `closeOnSelect`     | `boolean`                                                                        | `false`          | Close the popover after a time is selected (off by default).                                                                                                                                                                                                                                                                                  |
 | `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the input.                                                                                                                                                                                                                                                                                                |
 | `appendToBody`      | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.                                                                                                                                                             |

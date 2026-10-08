@@ -9,7 +9,7 @@
   "related": [],
   "storybook": null,
   "summary": "ConfigProvider injects configuration into all child components via React context.",
-  "import": "import { ConfigProvider } from '@allxsmith/bestax-bulma';",
+  "import": "import { ConfigProvider, useConfig } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/helpers/Config.tsx",
   "rootClass": null,
   "parts": [

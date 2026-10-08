@@ -187,6 +187,32 @@ function relatedComponents(lines, section, pageByPath, relPath) {
   return [...names].sort(byCodePoint);
 }
 
+/**
+ * The import a page written as prose shows under `## Import`: its first code
+ * block, when that block imports from the library.
+ *
+ * Built from the title instead, the constants page printed
+ * `import { Valid value constants } from …`, which is not code (#935), and the
+ * pages that pair a component with its hooks (`ConfigProvider, useConfig`) lost
+ * the hooks. The title stands in only when it is an identifier, and a page with
+ * neither stops the build rather than ship an import that cannot compile.
+ */
+export function helperImport(name, lines, section, relPath) {
+  const body = section ? sectionBody(lines, section) : '';
+  const block = body.match(
+    /^(`{3,}|~{3,})[ \t]*[jt]sx?\b[^\n]*\n([\s\S]*?)\n\1/m
+  );
+  const code = block?.[2].trim();
+  if (code && code.includes(`from '${PACKAGE}'`)) return code;
+  if (/^[A-Za-z_$][\w$]*$/.test(name)) {
+    return `import { ${name} } from '${PACKAGE}';`;
+  }
+  throw new Error(
+    `[gen-mcp-index] ${relPath}: "${name}" is not an identifier, and the page ` +
+      `has no ## Import code block importing from ${PACKAGE} to show instead.`
+  );
+}
+
 /** The Storybook deep link a page offers under `## Additional Resources`. */
 function storybookLink(lines, section) {
   if (!section) return null;
@@ -641,7 +667,7 @@ export async function build() {
         record = {
           ...common,
           summary: purpose,
-          import: `import { ${name} } from '${PACKAGE}';`,
+          import: helperImport(name, lines, find(/^Import$/i), relPath),
           // The signature block alone: what a hook takes and returns, at a
           // fraction of the page. It is the hook's answer to a props table.
           api: api ? absoluteLinks(sectionBody(lines, api), relPath) : null,
@@ -655,9 +681,14 @@ export async function build() {
         record = {
           ...common,
           summary: collapse(info.tsdoc),
-          import: `import { ${(IMPORT_COMPANIONS[name] ?? [name]).join(
-            ', '
-          )} } from '${PACKAGE}';`,
+          // A prose page's own Import block, as for a hook: IMPORT_COMPANIONS
+          // is generated from the generated pages only, so it would drop the
+          // hook a provider pairs with (`ConfigProvider, useConfig`).
+          import: proseOnly
+            ? helperImport(name, lines, find(/^Import$/i), relPath)
+            : `import { ${(IMPORT_COMPANIONS[name] ?? [name]).join(
+                ', '
+              )} } from '${PACKAGE}';`,
           sourceFile: relative(REPO, info.sourceFile).split('\\').join('/'),
           rootClass: info.rootClass ?? null,
           parts: info.tables.map(t => ({
