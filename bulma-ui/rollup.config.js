@@ -892,7 +892,28 @@ export default commandLineArgs => {
           dir: 'dist',
           format: 'esm',
           sourcemap: true,
-          entryFileNames: 'index.esm.js',
+          // One file per source module, so a consumer's bundler can drop the
+          // components an app never imports (#937). Inside a single file it
+          // can only drop a statement it can prove pure, and a top-level
+          // `forwardRef(...)` call or `X.displayName = ...` assignment is not
+          // provably pure to Rollup, rolldown or esbuild, so importing one
+          // component used to carry the whole library. Across files,
+          // `"sideEffects"` in package.json lets them skip every module whose
+          // exports go unused without analysing a single statement.
+          //
+          // That makes `"sideEffects"` load-bearing: a module whose import
+          // did something another module relies on would be skipped too.
+          // `scripts/tree-shaking.test.mjs` holds the modules to that, and
+          // measures a single-component import against the whole library.
+          //
+          // The entry keeps its name, so `module` and the exports map's
+          // `import` target are unchanged. The other modules sit under
+          // `esm/`, which the exports map does not expose. The CommonJS
+          // output above stays one file: `require()` drops nothing either way.
+          preserveModules: true,
+          preserveModulesRoot: 'src',
+          entryFileNames: chunk =>
+            chunk.isEntry ? 'index.esm.js' : 'esm/[name].js',
           banner: aiBanner,
         },
       ],
