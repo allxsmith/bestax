@@ -1400,6 +1400,25 @@ describe('DateTimeInput focus and the time wheels', () => {
     });
   };
 
+  it('ties the Time button to the wheels it opens with aria-controls', () => {
+    for (const inline of [false, true]) {
+      const { getByRole, getAllByRole, unmount } = render(
+        <DateTimeInput defaultValue={v} inline={inline} />
+      );
+      if (!inline) openPopover(getByRole('combobox'));
+      const timeButton = getByRole('button', { name: /Time/ });
+      // Collapsed, the wheels aren't rendered, so there is nothing to name.
+      expect(timeButton).not.toHaveAttribute('aria-controls');
+      pressTimeButton(timeButton);
+      const controlled = document.getElementById(
+        timeButton.getAttribute('aria-controls') ?? ''
+      );
+      expect(controlled).not.toBeNull();
+      expect(controlled).toContainElement(getAllByRole('spinbutton')[0]);
+      unmount();
+    }
+  });
+
   it('moves focus to the hours wheel as the Time button opens the wheels', () => {
     const { getByRole, getAllByRole } = render(
       <DateTimeInput defaultValue={v} />

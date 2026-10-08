@@ -350,6 +350,7 @@ export const DateTimeInputBase = forwardRef<
   const valueAtOpenRef = useRef<Date | null>(null);
   const reactId = useId();
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
+  const timeWheelsId = `${popoverId}-time`;
 
   const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
 
@@ -666,7 +667,7 @@ export const DateTimeInputBase = forwardRef<
                 color={color}
                 size={size}
                 disabled={disabled}
-                id={`${popoverId}-time`}
+                id={timeWheelsId}
                 labels={labels}
                 itemHeight={wheelItemHeight}
                 audioTick={effectiveAudioTick}
@@ -683,6 +684,9 @@ export const DateTimeInputBase = forwardRef<
           className={footerTimeClass}
           onClick={() => (timeOpen ? closeTime() : setTimeOpen(true))}
           aria-expanded={timeOpen}
+          // The wheels exist only while open, so only then is there an
+          // element for the button to name.
+          aria-controls={timeOpen ? timeWheelsId : undefined}
           disabled={disabled}
         >
           <span>{t.time}</span>
