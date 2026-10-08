@@ -50,6 +50,10 @@ export interface PickerLabels {
    * the pointer or the keyboard is on, until it is picked.
    */
   rangePreviewEnd?: string;
+  /** Range picking: shown between the start and end inputs. */
+  rangeSeparator?: string;
+  /** Range picking: names the launcher and the popover. */
+  chooseDateRange?: string;
   // Time spinner
   hours?: string;
   minutes?: string;
@@ -89,6 +93,8 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   rangeStart: 'Start date',
   rangeEnd: 'End date',
   rangePreviewEnd: 'Choose as end date',
+  rangeSeparator: '–',
+  chooseDateRange: 'Choose date range',
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',

@@ -34,6 +34,7 @@ interface HarnessProps {
   min?: Date;
   max?: Date;
   isBlocked?: (d: Date) => boolean;
+  isUnfinishedBlocked?: (d: Date) => boolean;
   skipKinds?: readonly SegmentKind[];
 }
 
@@ -57,6 +58,7 @@ const Harness: React.FC<HarnessProps> = ({
   min,
   max,
   isBlocked,
+  isUnfinishedBlocked,
   skipKinds,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +105,7 @@ const Harness: React.FC<HarnessProps> = ({
     min,
     max,
     isBlocked,
+    isUnfinishedBlocked,
     disabled,
     readOnly,
     editable,
@@ -427,6 +430,27 @@ describe('useSegmentedEntry', () => {
     fireEvent.blur(input);
     expect(handler).not.toHaveBeenCalled();
     expect(input.value).toBe('13:45');
+  });
+
+  it('holds a digit isUnfinishedBlocked rejects until the segment is finished', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness
+        initial={at(13, 45)}
+        isUnfinishedBlocked={d => d.getHours() < 10}
+        onChange={handler}
+      />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    // `0` leaves the hour unfinished at 00, which the predicate rejects, so
+    // it waits; `9` finishes it at 09, which only isBlocked could refuse.
+    fireEvent.keyDown(input, { key: '0' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('13:45');
+    fireEvent.keyDown(input, { key: '9' });
+    expect(handler).toHaveBeenCalledWith(at(9, 45));
+    expect(input.value).toBe('09:45');
   });
 
   it('still commits unblocked values when an isBlocked predicate is present', () => {

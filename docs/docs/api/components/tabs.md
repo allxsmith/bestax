@@ -14,7 +14,7 @@ The `Tabs` component provides flexible and fully-featured Bulma tab navigation f
 
 <!-- /bestax:generated overview -->
 
-It supports alignment, size, boxed and toggle styles, rounded and fullwidth options, and can display icons or custom content in each tab. Compose tabs using the `Tabs.List` and `Tabs.Item` subcomponents for maximum flexibility. (The `color` prop is deprecated: Bulma ships no tabs color CSS, so it has never had a visual effect.)
+It supports alignment, size, boxed and toggle styles, rounded and fullwidth options, and can display icons or custom content in each tab. Build tabbed panels from `Tabs.Tab` and `Tabs.Content`, which keep the selected tab, show its panel and handle the keyboard, or build Bulma navigation from `Tabs.Item` with your own links inside. (The `color` prop is deprecated: Bulma ships no tabs color CSS, so it has never had a visual effect.)
 
 :::info
 Use `Tabs` for navigation, filtering, or switching between views. Combine with icons and Bulma helpers for advanced layouts.
@@ -35,6 +35,33 @@ import { Tabs } from '@allxsmith/bestax-bulma';
 ---
 
 ## Usage
+
+### Tab Panels
+
+Give each `Tabs.Tab` and `Tabs.Content.Item` the same `index` and `Tabs` shows the panel of the selected tab. Click a tab, or press Tab to reach the list, move between tabs with the arrow keys and press Enter or Space to open one. `disabled` keeps a tab from being picked, and the arrow keys skip it. See [Accessibility](#accessibility) for every key.
+
+```tsx live
+<Tabs>
+  <Tabs.List>
+    <Tabs.Tab index={0}>Inbox</Tabs.Tab>
+    <Tabs.Tab index={1} disabled>
+      Drafts
+    </Tabs.Tab>
+    <Tabs.Tab index={2}>Sent</Tabs.Tab>
+    <Tabs.Tab index={3}>Archive</Tabs.Tab>
+  </Tabs.List>
+  <Tabs.Content>
+    <Tabs.Content.Item index={0}>Messages waiting for you.</Tabs.Content.Item>
+    <Tabs.Content.Item index={1}>Unfinished messages.</Tabs.Content.Item>
+    <Tabs.Content.Item index={2}>Messages you have sent.</Tabs.Content.Item>
+    <Tabs.Content.Item index={3}>
+      Messages you have filed away.
+    </Tabs.Content.Item>
+  </Tabs.Content>
+</Tabs>
+```
+
+---
 
 ### Centered Alignment
 
@@ -405,13 +432,24 @@ The final example showcases toggle tabs with fullwidth and large size, including
 
 ## Accessibility
 
-- The tab list renders as a semantic `<ul>` and each item as `<li>`.
-- Use clear text or icons with labels for each tab.
-- Provide `aria-label` or screen-reader text for icon-only tabs.
+Tabs built from `Tabs.Tab` follow the [WAI-ARIA tabs pattern](https://www.w3.org/WAI/ARIA/apg/patterns/tabs/), with manual activation.
 
-:::note
-Tabs do not manage tab panels or keyboard focus automatically—implement those patterns as needed for your app.
-:::
+| Key                 | Action                                                                                          |
+| ------------------- | ----------------------------------------------------------------------------------------------- |
+| `Tab` / `Shift+Tab` | Enter the tab list on the selected tab, or leave it from whichever tab has focus                |
+| `→` / `←`           | Move focus to the next / previous tab, wrapping at either end                                   |
+| `↓` / `↑`           | Move focus to the next / previous tab in a `vertical` tab list (`→` and `←` keep working there) |
+| `Home` / `End`      | Move focus to the first / last tab                                                              |
+| `Enter` / `Space`   | Activate the focused tab: select it, show its panel and call `onChange`                         |
+
+- The tab list is a single tab stop. While focus is in it, the stop follows focus, and once focus leaves it returns to the selected tab.
+- Activation is manual: moving focus with the arrow keys, `Home` or `End` doesn't change the panel or call `onChange`. `Enter`, `Space` and a click do. A key press activates the tab through a click on it, so click listeners see keyboard activation too.
+- The arrow keys, `Home` and `End` skip disabled tabs. A disabled tab is marked `aria-disabled` and never takes the tab stop. When the selected tab is disabled, or no tab matches `value`, the enabled tab with the lowest `index` takes it, so the list can still be reached.
+- `Tabs.List` is the `tablist` (marked `aria-orientation="vertical"` in a `vertical` layout), each `Tabs.Tab` is a `tab` with `aria-selected`, and each `Tabs.Content.Item` is a `tabpanel`. A tab names its panel in `aria-controls` and a panel names its tab in `aria-labelledby`, so the panel is announced with the tab's label. The ids are generated, and when you pass your own `id` to a tab or a panel, the other side follows it.
+- Panels aren't focusable themselves. When a panel holds nothing focusable, pass it `tabIndex={0}` so `Tab` moves from the tab list into it.
+- The focus ring shows for keyboard focus only, drawn inside the tab in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). A disabled tab is dimmed, with a not-allowed cursor and no hover. Both come from the bestax extras (`extras.css`, or `bestax.css`, which includes them), the same styles that show and hide the panels.
+- Built from `Tabs.Item` with links inside, as in most examples above, the tabs are Bulma navigation and none of this applies: each link is its own tab stop and keeps the browser's link behavior.
+- Use clear text or icons with labels for each tab, and provide `aria-label` or screen-reader text for icon-only tabs.
 
 ---
 
@@ -449,9 +487,9 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 | `rounded`      | `boolean`                                                                                                                          | `false` | Tabs use the rounded toggle style (only with `toggle`).                                                                                                                                                                                                                                                                                       |
 | `color`        | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | **Deprecated.** No `.tabs.is-<color>` CSS exists; the prop renders unstyled and will be removed in the next major version. Bulma color for tab underlines and active state (renders `is-<color>`). Bulma ships no tabs color CSS, so this prop has never had a visual effect for any value. Passing it logs a console warning in development. |
 | `value`        | `number`                                                                                                                           | —       | Controlled active tab index.                                                                                                                                                                                                                                                                                                                  |
-| `onChange`     | `(index: number) => void`                                                                                                          | —       | Callback when active tab changes.                                                                                                                                                                                                                                                                                                             |
+| `onChange`     | `(index: number) => void`                                                                                                          | —       | Callback when active tab changes. Called with the tab's `index` when a `Tabs.Tab` is activated: clicked, or Enter or Space pressed on it. Moving focus with the arrow keys, Home or End does not call it, because activation is manual: focus moves freely and the selected tab changes only when the user picks one.                         |
 | `defaultValue` | `number`                                                                                                                           | `0`     | Initial active tab index (uncontrolled).                                                                                                                                                                                                                                                                                                      |
-| `vertical`     | `boolean`                                                                                                                          | `false` | Renders tabs vertically.                                                                                                                                                                                                                                                                                                                      |
+| `vertical`     | `boolean`                                                                                                                          | `false` | Renders tabs vertically. With a `Tabs.Content`, the tab list is also marked `aria-orientation="vertical"` and ArrowUp and ArrowDown move focus between tabs, alongside ArrowLeft and ArrowRight (the layout stacks horizontally on mobile).                                                                                                   |
 | `side`         | `'left'` \| `'right'`                                                                                                              | —       | Side placement when `vertical` is true.                                                                                                                                                                                                                                                                                                       |
 | `expanded`     | `boolean`                                                                                                                          | `false` | Makes tabs take up the full width equally.                                                                                                                                                                                                                                                                                                    |
 | `className`    | `string`                                                                                                                           | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                       |
@@ -461,7 +499,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 **Subcomponents:**
 
 - `Tabs.List`: The `<ul>` container for tab items.
-- `Tabs.Tab`: Individual tab button. Consumes Tabs context for active state management. Renders `<a>` internally — consumers provide only the label text/children.
+- `Tabs.Tab`: Individual tab button. Consumes Tabs context for active state management. Renders `<a>` internally — consumers provide only the label text/children. Inside a `Tabs` it takes part in the tab list's keyboard support and links to the `Tabs.Content.Item` with the same `index`.
 - `Tabs.Item`: Each tab; accepts `active`, `onClick`, etc.
 - `Tabs.Content`: Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes. Applies the `.tabs-content` class.
 - `Tabs.Content.Item`: Individual content panel. Shows/hides based on active tab from context.
@@ -476,18 +514,20 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 ### Tabs.Tab
 
-| Prop           | Type                                                                       | Default   | Description                                                |
-| -------------- | -------------------------------------------------------------------------- | --------- | ---------------------------------------------------------- |
-| `index`        | `number`                                                                   | —         | **Required.** Tab index for matching with content.         |
-| `disabled`     | `boolean`                                                                  | `false`   | Disables the tab.                                          |
-| `icon`         | `string`                                                                   | —         | Icon name for the tab.                                     |
-| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —         | Icon library to use.                                       |
-| `iconVariant`  | `string`                                                                   | —         | Icon style variant (e.g., 'solid', 'outlined', 'rounded'). |
-| `iconSize`     | `'small'` \| `'medium'` \| `'large'`                                       | `'small'` | Size of the tab icon.                                      |
-| `iconFeatures` | `string` \| `string[]`                                                     | —         | Additional icon modifiers.                                 |
-| `className`    | `string`                                                                   | —         | Additional CSS classes.                                    |
-| `children`     | `React.ReactNode`                                                          | —         | Tab label content.                                         |
-| `...`          | All standard `<li>` attributes                                             | —         |                                                            |
+| Prop           | Type                                                                       | Default   | Description                                                                                                                                                                                                                        |
+| -------------- | -------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index`        | `number`                                                                   | —         | **Required.** Tab index for matching with content.                                                                                                                                                                                 |
+| `disabled`     | `boolean`                                                                  | `false`   | Disables the tab. A disabled tab is marked `aria-disabled`, cannot be activated, is skipped by the arrow keys, Home and End, and never holds the tab list's tab stop. The bestax extras styles also dim it and turn off its hover. |
+| `icon`         | `string`                                                                   | —         | Icon name for the tab.                                                                                                                                                                                                             |
+| `iconLibrary`  | `'fa'` \| `'mdi'` \| `'ion'` \| `'material-icons'` \| `'material-symbols'` | —         | Icon library to use.                                                                                                                                                                                                               |
+| `iconVariant`  | `string`                                                                   | —         | Icon style variant (e.g., 'solid', 'outlined', 'rounded').                                                                                                                                                                         |
+| `iconSize`     | `'small'` \| `'medium'` \| `'large'`                                       | `'small'` | Size of the tab icon.                                                                                                                                                                                                              |
+| `iconFeatures` | `string` \| `string[]`                                                     | —         | Additional icon modifiers.                                                                                                                                                                                                         |
+| `className`    | `string`                                                                   | —         | Additional CSS classes.                                                                                                                                                                                                            |
+| `children`     | `React.ReactNode`                                                          | —         | Tab label content.                                                                                                                                                                                                                 |
+| `id`           | `string`                                                                   | —         | The tab's id, which its panel names in `aria-labelledby`. Generated inside a `Tabs` when omitted; a passed `id` is used and the panel follows it.                                                                                  |
+| `onKeyDown`    | `React.KeyboardEventHandler<HTMLLIElement>`                                | —         | Called before the tab handles the key; call `event.preventDefault()` to stop the tab handling it.                                                                                                                                  |
+| `...`          | All standard `<li>` attributes                                             | —         |                                                                                                                                                                                                                                    |
 
 ### Tabs.Item
 
@@ -509,12 +549,14 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Tabs 
 
 ### Tabs.Content.Item
 
-| Prop        | Type                            | Default | Description                                        |
-| ----------- | ------------------------------- | ------- | -------------------------------------------------- |
-| `index`     | `number`                        | —       | **Required.** Tab index for matching with content. |
-| `className` | `string`                        | —       | Additional CSS classes.                            |
-| `children`  | `React.ReactNode`               | —       | Panel content.                                     |
-| `...`       | All standard `<div>` attributes | —       |                                                    |
+| Prop        | Type                            | Default | Description                                                                                                                                   |
+| ----------- | ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `index`     | `number`                        | —       | **Required.** Tab index for matching with content.                                                                                            |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                       |
+| `children`  | `React.ReactNode`               | —       | Panel content.                                                                                                                                |
+| `id`        | `string`                        | —       | The panel's id, which its tab names in `aria-controls`. Generated inside a `Tabs` when omitted; a passed `id` is used and the tab follows it. |
+| `tabIndex`  | `number`                        | —       | The panel is not focusable by default. Pass `0` when it holds nothing focusable, so Tab moves from the tab list into it.                      |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                               |
 
 <!-- /bestax:generated props -->
 

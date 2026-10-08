@@ -66,6 +66,15 @@ export interface UseSegmentedEntryParams {
    * every manual-entry commit; return true to reject the candidate value.
    */
   isBlocked?: (d: Date) => boolean;
+  /**
+   * Rejects a candidate only while the digits typed into its segment leave
+   * it unfinished, such as the first digits of a year. The digit stays in
+   * the segment and the next one tries again, so a value passing through a
+   * candidate it can't commit on the way to one it can costs nothing. A
+   * finished segment, an arrow step and parsed text answer to `isBlocked`
+   * alone.
+   */
+  isUnfinishedBlocked?: (d: Date) => boolean;
   disabled?: boolean;
   readOnly?: boolean;
   /** Allow segmented typing. When false, segment mode never engages. */
@@ -133,6 +142,7 @@ export function useSegmentedEntry(
     min,
     max,
     isBlocked,
+    isUnfinishedBlocked,
     disabled,
     readOnly,
     editable = true,
@@ -507,6 +517,7 @@ export function useSegmentedEntry(
                 nextBuffer,
                 isPm
               );
+              if (!advance && isUnfinishedBlocked?.(date)) return;
               applyDateFromSegment(date);
               if (advance) {
                 typedDigitsRef.current = '';
@@ -563,6 +574,7 @@ export function useSegmentedEntry(
       activeSegmentIdx,
       segmentBaseDate,
       applyDateFromSegment,
+      isUnfinishedBlocked,
       moveSegment,
       isOpen,
       setOpen,

@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
+import { expect, userEvent, within } from 'storybook/test';
 import Tabs from './Tabs';
 import { Block } from '../elements/Block';
 import { Box } from '../elements/Box';
@@ -17,7 +18,7 @@ const meta: Meta<typeof Tabs> = {
     docs: {
       description: {
         component:
-          'A stateful tab component with content panels, vertical layout, and compound subcomponents. Supports controlled and uncontrolled modes.',
+          'A stateful tab component with content panels, vertical layout, and compound subcomponents. Supports controlled and uncontrolled modes. Tabs built from `Tabs.Tab` follow the WAI-ARIA tabs pattern with manual activation: Tab reaches the selected tab, the arrow keys, Home and End move between tabs, and Enter or Space activates one.',
       },
     },
   },
@@ -26,10 +27,12 @@ const meta: Meta<typeof Tabs> = {
     align: {
       control: 'select',
       options: ['left', 'centered', 'right'],
+      description: 'Aligns the tab list left, center or right.',
     },
     size: {
       control: 'select',
       options: ['small', 'medium', 'large'],
+      description: 'Sets the size of the tab labels.',
     },
   },
 };
@@ -145,6 +148,61 @@ const ExternalNavigationTabsExample = () => {
 
 export const ExternalNavigation: Story = {
   render: () => <ExternalNavigationTabsExample />,
+};
+
+export const Keyboard: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Press Tab to reach the tab list: focus lands on the selected tab, the only tab stop in the list. ArrowLeft and ArrowRight move between tabs, wrapping at either end, and Home and End jump to the first and last. Disabled tabs are skipped. Activation is manual: moving focus does not change the panel, and Enter or Space activates the focused tab. Press Tab again to leave the list.',
+      },
+    },
+  },
+  render: () => (
+    <Tabs>
+      <Tabs.List>
+        <Tabs.Tab index={0}>Inbox</Tabs.Tab>
+        <Tabs.Tab index={1} disabled>
+          Drafts
+        </Tabs.Tab>
+        <Tabs.Tab index={2}>Sent</Tabs.Tab>
+        <Tabs.Tab index={3}>Archive</Tabs.Tab>
+      </Tabs.List>
+      <Tabs.Content>
+        <Tabs.Content.Item index={0}>
+          <Paragraph>Messages waiting for you.</Paragraph>
+        </Tabs.Content.Item>
+        <Tabs.Content.Item index={1}>
+          <Paragraph>Unfinished messages.</Paragraph>
+        </Tabs.Content.Item>
+        <Tabs.Content.Item index={2}>
+          <Paragraph>Messages you have sent.</Paragraph>
+        </Tabs.Content.Item>
+        <Tabs.Content.Item index={3}>
+          <Paragraph>Messages you have filed away.</Paragraph>
+        </Tabs.Content.Item>
+      </Tabs.Content>
+    </Tabs>
+  ),
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const tab = (name: string) => canvas.getByRole('tab', { name });
+
+    await userEvent.tab();
+    await expect(tab('Inbox')).toHaveFocus();
+
+    // Drafts is disabled, so ArrowRight skips it.
+    await userEvent.keyboard('{ArrowRight}');
+    await expect(tab('Sent')).toHaveFocus();
+    await expect(tab('Inbox')).toHaveAttribute('aria-selected', 'true');
+
+    await userEvent.keyboard('{Enter}');
+    await expect(tab('Sent')).toHaveAttribute('aria-selected', 'true');
+    await expect(
+      canvas.getByRole('tabpanel', { name: 'Sent' })
+    ).toHaveTextContent('Messages you have sent.');
+  },
 };
 
 export const AlignmentCentered: Story = {

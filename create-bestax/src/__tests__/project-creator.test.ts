@@ -6,6 +6,8 @@ import {
   beforeEach,
   afterEach,
 } from '@jest/globals';
+import { readFileSync } from 'node:fs';
+import { TEMPLATES } from '../constants.js';
 
 // Mock fs-extra
 jest.unstable_mockModule('fs-extra', () => ({
@@ -40,6 +42,8 @@ jest.unstable_mockModule('prompts', () => ({
 jest.unstable_mockModule('../file-system.js', () => ({
   checkDirectoryExists: jest.fn(),
   isDirectoryEmpty: jest.fn(),
+  listDirectoryEntries: jest.fn(async () => []),
+  existsAsNonDirectory: jest.fn(async () => false),
   emptyDirectory: jest.fn(),
   ensureDirectory: jest.fn(),
   copyDirectory: jest.fn(),
@@ -56,6 +60,10 @@ const prompts = (await import('prompts')).default;
 const fileSystem = await import('../file-system.js');
 const telemetry = await import('../telemetry.js');
 const { ProjectCreator } = await import('../project-creator.js');
+const listDirectoryEntries =
+  fileSystem.listDirectoryEntries as jest.MockedFunction<
+    typeof fileSystem.listDirectoryEntries
+  >;
 const { ICON_LIBRARIES: _ICON_LIBRARIES, BULMA_FLAVORS: _BULMA_FLAVORS } =
   await import('../constants.js');
 
@@ -110,6 +118,9 @@ beforeEach(() => {
   // against non-TTY stdin (#192); jest's stdin is not a TTY, so simulate one.
   setStdinTTY(true);
   jest.clearAllMocks();
+  // A target directory is missing or empty unless a test says otherwise; reset
+  // here because clearAllMocks keeps a previous test's implementation.
+  listDirectoryEntries.mockResolvedValue([]);
 });
 
 afterEach(() => {
@@ -165,92 +176,139 @@ describe('ProjectCreator', () => {
   });
 
   describe('checkExistingDirectory', () => {
-    it('should return true for non-existent directory', async () => {
-      (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
-          typeof fileSystem.checkDirectoryExists
-        >
-      ).mockResolvedValue(false);
-      (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
-          typeof fileSystem.isDirectoryEmpty
-        >
-      ).mockResolvedValue(true);
+    const confirm = prompts as jest.MockedFunction<typeof prompts>;
+
+    function errorOutput(): string {
+      return (console.error as jest.Mock).mock.calls.flat().join('\n');
+    }
+
+    it('has nothing to remove when the directory is missing or empty', async () => {
+      listDirectoryEntries.mockResolvedValue([]);
 
       const result = await projectCreator.checkExistingDirectory(
         '/path/to/project',
         'project'
       );
-      expect(result).toBe(true);
+
+      expect(result).toBe('empty');
+      expect(confirm).not.toHaveBeenCalled();
     });
 
-    it('should return true for empty directory', async () => {
-      (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
-          typeof fileSystem.checkDirectoryExists
-        >
-      ).mockResolvedValue(true);
-      (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
-          typeof fileSystem.isDirectoryEmpty
-        >
-      ).mockResolvedValue(true);
-
-      const result = await projectCreator.checkExistingDirectory(
-        '/path/to/project',
-        'project'
-      );
-      expect(result).toBe(true);
-    });
-
-    it('should prompt for overwrite when directory has files', async () => {
-      (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
-          typeof fileSystem.checkDirectoryExists
-        >
-      ).mockResolvedValue(true);
-      (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
-          typeof fileSystem.isDirectoryEmpty
-        >
-      ).mockResolvedValue(false);
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
-        overwrite: true,
-      });
+    it('asks before removing files, and only records the answer (#945)', async () => {
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+      confirm.mockResolvedValue({ overwrite: true });
 
       const result = await projectCreator.checkExistingDirectory(
         '/path/to/project',
         'project'
       );
 
-      expect(result).toBe(true);
-      expect(fileSystem.emptyDirectory).toHaveBeenCalledWith(
-        '/path/to/project'
+      expect(result).toBe('overwrite');
+      expect(confirm).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'overwrite',
+          message: expect.stringContaining('(notes.txt)'),
+        })
       );
-    });
-
-    it('should return false when user declines overwrite', async () => {
-      (
-        fileSystem.checkDirectoryExists as jest.MockedFunction<
-          typeof fileSystem.checkDirectoryExists
-        >
-      ).mockResolvedValue(true);
-      (
-        fileSystem.isDirectoryEmpty as jest.MockedFunction<
-          typeof fileSystem.isDirectoryEmpty
-        >
-      ).mockResolvedValue(false);
-      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
-        overwrite: false,
-      });
-
-      const result = await projectCreator.checkExistingDirectory(
-        '/path/to/project',
-        'project'
-      );
-
-      expect(result).toBe(false);
+      // Emptying waits for the last prompt, so a later Ctrl+C keeps the files.
       expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+    });
+
+    it('stops with "Operation cancelled" when the user declines', async () => {
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+      confirm.mockResolvedValue({ overwrite: false });
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/project',
+        'project'
+      );
+
+      expect(result).toBe('stop');
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Operation cancelled')
+      );
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+    });
+
+    it('takes --overwrite as the answer without asking', async () => {
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/project',
+        'project',
+        { overwrite: true }
+      );
+
+      expect(result).toBe('overwrite');
+      expect(confirm).not.toHaveBeenCalled();
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+    });
+
+    it('refuses under -y, naming what is there and the --overwrite flag', async () => {
+      listDirectoryEntries.mockResolvedValue(['.git', 'notes.txt', 'src']);
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/project',
+        'project',
+        { yes: true }
+      );
+
+      expect(result).toBe('stop');
+      expect(confirm).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain('project is not empty');
+      expect(errorOutput()).toContain('.git, notes.txt, src');
+      expect(errorOutput()).toContain('--overwrite');
+    });
+
+    it('stops with a plain message when the path is a file, not a directory', async () => {
+      (
+        fileSystem.existsAsNonDirectory as jest.MockedFunction<
+          typeof fileSystem.existsAsNonDirectory
+        >
+      ).mockResolvedValueOnce(true);
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/notes.txt',
+        'notes.txt',
+        { yes: true, overwrite: true }
+      );
+
+      expect(result).toBe('stop');
+      expect(listDirectoryEntries).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain(
+        'notes.txt already exists and is not a directory'
+      );
+    });
+
+    it('lists a long directory by its first entries and a count', async () => {
+      listDirectoryEntries.mockResolvedValue(
+        Array.from({ length: 9 }, (_, i) => `file-${i}.txt`)
+      );
+
+      await projectCreator.checkExistingDirectory(
+        '/path/to/project',
+        'project',
+        { yes: true }
+      );
+
+      expect(errorOutput()).toContain('file-4.txt and 4 more');
+      expect(errorOutput()).not.toContain('file-5.txt');
+    });
+
+    it('without a terminal, points at --overwrite rather than -y', async () => {
+      setStdinTTY(undefined);
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/project',
+        'project'
+      );
+
+      expect(result).toBe('stop');
+      expect(confirm).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain('--overwrite');
+      // The generic no-TTY advice ends in -y, which never removes files.
+      expect(errorOutput()).not.toContain('No interactive terminal detected');
     });
   });
 
@@ -788,6 +846,104 @@ describe('ProjectCreator', () => {
     });
   });
 
+  describe('icon CSS after each Bulma flavor (#946)', () => {
+    // Real template entry files, held in memory, so the flavor step and the
+    // icon step run against what a scaffold actually starts from.
+    let files: Map<string, string>;
+    const inMemoryFs = [
+      fs.default.existsSync,
+      fs.default.readFile,
+      fs.default.writeFile,
+      fs.default.readJson,
+      fs.default.writeJson,
+    ] as unknown as jest.Mock[];
+
+    // clearAllMocks keeps implementations, so drop this block's in-memory fs
+    // rather than leave it behind for every later test in the file.
+    afterEach(() => {
+      inMemoryFs.forEach(mock => mock.mockReset());
+    });
+
+    beforeEach(() => {
+      files = new Map();
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(p => files.has(String(p)));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockImplementation((async (p: unknown) =>
+        files.get(String(p))) as unknown as typeof fs.readFile);
+      (
+        fs.default.writeFile as jest.MockedFunction<typeof fs.writeFile>
+      ).mockImplementation((async (p: unknown, content: unknown) => {
+        files.set(String(p), String(content));
+      }) as unknown as typeof fs.writeFile);
+      (
+        fs.default.readJson as jest.MockedFunction<typeof fs.readJson>
+      ).mockImplementation((async (p: unknown) =>
+        JSON.parse(files.get(String(p)) ?? '{}')) as typeof fs.readJson);
+      (
+        fs.default.writeJson as jest.MockedFunction<typeof fs.writeJson>
+      ).mockImplementation((async (p: unknown, data: unknown) => {
+        files.set(String(p), JSON.stringify(data));
+      }) as typeof fs.writeJson);
+    });
+
+    const cssIconLibraries = _ICON_LIBRARIES.filter(lib => lib.importStatement);
+    const cases = _BULMA_FLAVORS.flatMap(flavor =>
+      cssIconLibraries.map(library => [flavor.name, library.name] as const)
+    );
+
+    it.each(cases)(
+      'the %s flavor with %s imports the icon CSS right after its stylesheet',
+      async (flavorName, libraryName) => {
+        const flavor = _BULMA_FLAVORS.find(f => f.name === flavorName)!;
+        const library = _ICON_LIBRARIES.find(l => l.name === libraryName)!;
+
+        for (const { name: template } of TEMPLATES) {
+          // The same entry-file rule setupIconLibrary applies.
+          const mainFile = template.includes('-ts') ? 'main.tsx' : 'main.jsx';
+          const root = `/app-${template}`;
+          const mainPath = `${root}/src/${mainFile}`;
+          files.set(
+            mainPath,
+            readFileSync(
+              new URL(
+                `../../templates/${template}/src/${mainFile}`,
+                import.meta.url
+              ),
+              'utf8'
+            )
+          );
+          files.set(`${root}/package.json`, '{"dependencies":{}}');
+
+          await projectCreator.setupBulmaFlavor(root, flavorName, template);
+          await projectCreator.setupIconLibrary(root, libraryName, template);
+
+          expect(files.get(mainPath)).toContain(
+            `${flavor.importStatement}\n${library.importStatement}`
+          );
+        }
+      }
+    );
+
+    it('warns when the entry file has no bestax stylesheet import to follow', async () => {
+      const library = _ICON_LIBRARIES.find(l => l.name === 'fontawesome')!;
+      const mainPath = '/app-bare/src/main.jsx';
+      files.set(mainPath, "import App from './App.jsx';\n");
+      files.set('/app-bare/package.json', '{"dependencies":{}}');
+
+      await projectCreator.setupIconLibrary('/app-bare', 'fontawesome', 'vite');
+
+      expect(files.get(mainPath)).not.toContain(library.importStatement);
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          `src/main.jsx has no bestax stylesheet import to follow, so ${library.importStatement} was not added`
+        )
+      );
+    });
+  });
+
   describe('setupConfigProvider', () => {
     it('should not add ConfigProvider for complete Bulma with no icons', async () => {
       await projectCreator.setupConfigProvider(
@@ -1123,6 +1279,7 @@ describe('ProjectCreator', () => {
       const options = {
         bulma: 'complete',
         icon: 'none',
+        skills: false,
       };
 
       (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
@@ -1163,6 +1320,7 @@ describe('ProjectCreator', () => {
       const options = {
         template: 'vite',
         icon: 'none',
+        skills: false,
       };
 
       (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
@@ -1311,6 +1469,7 @@ describe('ProjectCreator', () => {
       const options = {
         template: 'vite',
         bulma: 'complete',
+        skills: false,
       };
 
       (prompts as jest.MockedFunction<typeof prompts>).mockImplementation(
@@ -1428,6 +1587,7 @@ describe('ProjectCreator', () => {
           typeof fileSystem.isDirectoryEmpty
         >
       ).mockResolvedValue(false);
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
         overwrite: false,
       });
@@ -1868,6 +2028,201 @@ describe('ProjectCreator', () => {
       await expect(
         projectCreator.create('test-project', { ...fullFlags, yes: true })
       ).resolves.toBeUndefined();
+    });
+  });
+
+  describe('create, into an existing directory (#945)', () => {
+    const ask = prompts as jest.MockedFunction<typeof prompts>;
+    const answers: Record<string, Record<string, unknown>> = {
+      overwrite: { overwrite: true },
+      template: { template: 'vite' },
+      bulmaFlavor: { bulmaFlavor: 'complete' },
+      iconLibrary: { iconLibrary: 'none' },
+      skills: { skills: true },
+    };
+    let mockExit: ReturnType<typeof jest.spyOn>;
+
+    beforeEach(() => {
+      mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+      (
+        fileSystem.checkDirectoryExists as jest.MockedFunction<
+          typeof fileSystem.checkDirectoryExists
+        >
+      ).mockResolvedValue(true);
+      (
+        fileSystem.isDirectoryEmpty as jest.MockedFunction<
+          typeof fileSystem.isDirectoryEmpty
+        >
+      ).mockResolvedValue(false);
+      listDirectoryEntries.mockResolvedValue(['.git', 'notes.txt', 'src']);
+    });
+
+    afterEach(() => {
+      mockExit.mockRestore();
+    });
+
+    function errorOutput(): string {
+      return (console.error as jest.Mock).mock.calls.flat().join('\n');
+    }
+
+    /** Answers every prompt, except the one named, which is cancelled. */
+    function answerPrompts(cancelAt?: string): void {
+      ask.mockImplementation(questions => {
+        const question = Array.isArray(questions) ? questions[0] : questions;
+        const name = String(question.name);
+        return Promise.resolve(name === cancelAt ? {} : (answers[name] ?? {}));
+      });
+    }
+
+    it('-y leaves a non-empty directory untouched and exits 1 saying why', async () => {
+      await expect(
+        projectCreator.create('demo', { yes: true })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain('demo is not empty');
+      expect(errorOutput()).toContain('.git, notes.txt, src');
+      expect(errorOutput()).toContain('--overwrite');
+    });
+
+    it.each([
+      ['template', { template: 'vite-typescript' }, 'Invalid template'],
+      ['Bulma flavor', { bulma: 'dark' }, 'Invalid Bulma flavor'],
+      ['icon library', { icon: 'feather' }, 'Invalid icon library'],
+    ])(
+      'an invalid %s exits before touching the directory, even with --overwrite',
+      async (_label, flags, message) => {
+        for (const extra of [{}, { overwrite: true }]) {
+          await expect(
+            projectCreator.create('demo', { ...flags, ...extra, yes: true })
+          ).rejects.toThrow('process.exit called');
+        }
+
+        expect(mockExit).toHaveBeenCalledWith(1);
+        expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+        expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+        expect(errorOutput()).toContain(message);
+        // The flag is reported first, not the directory it never reached.
+        expect(errorOutput()).not.toContain('is not empty');
+      }
+    );
+
+    it('reports an invalid flag before asking anything', async () => {
+      await expect(
+        projectCreator.create(undefined, { template: 'vite-typescript' })
+      ).rejects.toThrow('process.exit called');
+
+      expect(ask).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain('Invalid template');
+    });
+
+    it('--overwrite empties the directory, then writes the scaffold', async () => {
+      await projectCreator.create('demo', { yes: true, overwrite: true });
+
+      const emptied = fileSystem.emptyDirectory as jest.Mock;
+      const copied = fileSystem.copyDirectory as jest.Mock;
+      expect(emptied).toHaveBeenCalledWith(expect.stringMatching(/demo$/));
+      expect(emptied.mock.invocationCallOrder[0]).toBeLessThan(
+        copied.mock.invocationCallOrder[0]
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Emptying demo')
+      );
+    });
+
+    it('without a terminal, stops before any prompt and names --overwrite', async () => {
+      setStdinTTY(undefined);
+
+      await expect(
+        projectCreator.create('demo', {
+          template: 'vite',
+          bulma: 'complete',
+          icon: 'none',
+          skills: false,
+        })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(ask).not.toHaveBeenCalled();
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain('--overwrite');
+    });
+
+    it.each(['template', 'bulmaFlavor', 'iconLibrary', 'skills'])(
+      'accepting removal, then cancelling at the %s prompt, leaves the files alone',
+      async cancelAt => {
+        answerPrompts(cancelAt);
+
+        await expect(projectCreator.create('demo', {})).rejects.toThrow(
+          'process.exit called'
+        );
+
+        expect(ask).toHaveBeenCalledWith(
+          expect.objectContaining({ name: 'overwrite' })
+        );
+        expect(console.log).toHaveBeenCalledWith(
+          expect.stringContaining('Operation cancelled')
+        );
+        expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+        expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      }
+    );
+
+    it('accepting removal empties the directory only after the last prompt', async () => {
+      answerPrompts();
+
+      await projectCreator.create('demo', {});
+
+      const emptied = fileSystem.emptyDirectory as jest.Mock;
+      expect(emptied).toHaveBeenCalledTimes(1);
+      expect(emptied.mock.invocationCallOrder[0]).toBeGreaterThan(
+        Math.max(...ask.mock.invocationCallOrder)
+      );
+    });
+  });
+
+  describe('create, naming the package (#950)', () => {
+    beforeEach(() => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+    });
+
+    it.each([
+      ['MyApp', 'myapp'],
+      ['_under', 'under'],
+    ])(
+      'writes %s as %s, a name npm accepts, and says so',
+      async (folder, packageName) => {
+        await projectCreator.create(folder, { yes: true, skills: false });
+
+        expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
+          expect.stringMatching(new RegExp(`${folder}$`)),
+          packageName
+        );
+        expect(console.log).toHaveBeenCalledWith(
+          expect.stringContaining(`package.json name: ${packageName}`)
+        );
+      }
+    );
+
+    it('keeps a name npm already accepts, with no note', async () => {
+      await projectCreator.create('my-app', { yes: true, skills: false });
+
+      expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
+        expect.stringMatching(/my-app$/),
+        'my-app'
+      );
+      expect(console.log).not.toHaveBeenCalledWith(
+        expect.stringContaining('package.json name')
+      );
     });
   });
 });
