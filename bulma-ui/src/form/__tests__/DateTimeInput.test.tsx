@@ -1090,6 +1090,18 @@ describe('DateTimeInputBase remaining branches', () => {
     expect(queryByRole('dialog')).toBeNull();
   });
 
+  it('Enter on the seconds wheel commits and closes the popover too', () => {
+    const { getByRole, getAllByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={dt()} enableSeconds />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels[2]).toHaveAttribute('aria-label', 'seconds');
+    fireEvent.keyDown(wheels[2], { key: 'Enter' });
+    expect(queryByRole('dialog')).toBeNull();
+  });
+
   it('haptics opt-in still routes wheel changes through onChange', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(

@@ -842,8 +842,8 @@ describe('TimeWheels keyboard and value mapping', () => {
     expect(document.activeElement).toBe(wheels[0]);
   });
 
-  it('Enter on the seconds wheel does not close the popover (no commit wired)', () => {
-    const { wheels, getByRole } = openPicker(
+  it('Enter on the seconds wheel commits and closes the popover, as on the others', () => {
+    const { wheels, queryByRole } = openPicker(
       <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
@@ -851,7 +851,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     fireEvent.keyDown(wheels[2], { key: 'Enter' });
-    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(queryByRole('dialog')).toBeNull();
   });
 
   it('hour and minute changes preserve the seconds part; ArrowDown steps seconds back', () => {

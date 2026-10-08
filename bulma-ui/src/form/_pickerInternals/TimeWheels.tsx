@@ -1062,6 +1062,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
               size={size}
               color={color}
               wrap
+              onCommit={onCommit}
               onFocusPrev={focusPrevOf(secondsRef)}
               onFocusNext={focusNextOf(secondsRef)}
               disabledFor={secondDisabledFor}
