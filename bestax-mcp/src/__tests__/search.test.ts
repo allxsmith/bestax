@@ -132,6 +132,15 @@ describe('ranking realistic queries', () => {
     ['button', 'Button'],
     ['loading', 'Loading'],
     ['theme', 'Theme'],
+    // Described rather than named. A summary that has most of the words is
+    // enough, and a prop or an example named after one of them, or after a word
+    // like "that", is not (#934 review).
+    ['vertical spacing between elements', 'Block'],
+    ['element that animates into view', 'Reveal'],
+    ['the button', 'Button'],
+    ['a form with a date picker', 'DateInput'],
+    // A component named outright outranks one an alias in the same query reaches.
+    ['breadcrumbs with separators', 'Breadcrumb'],
   ])('"%s" puts %s first', (query, component) => {
     expect(top(query)).toEqual([`component:${component}`]);
   });
@@ -139,6 +148,10 @@ describe('ranking realistic queries', () => {
   it.each([
     ['date picker', ['DateInput', 'DateTimeInput']],
     ['modal dialog', ['Dialog', 'Modal']],
+    // The components a query names outright and the one its alias reaches, with
+    // neither crowding the other out.
+    ['navbar with a dropdown menu', ['Dropdown', 'Menu', 'Navbar']],
+    ['modal with a calendar inside', ['DateInput', 'Modal']],
   ])(
     '"%s" puts every component it names ahead of anything else',
     (query, names) => {

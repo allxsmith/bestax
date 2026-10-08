@@ -74,6 +74,54 @@ function termHit(hay: string, term: string): number {
 }
 
 /**
+ * Words that say how a query's words relate rather than what it asks for. Kept
+ * out of its terms, since "that" in an example's title or "with" in a prop's
+ * description is no sign of what a builder wants: a query described in a
+ * sentence put an example titled "A fallback that holds the layout" above
+ * Reveal for "element that animates into view".
+ */
+const STOP_WORDS = new Set([
+  'a',
+  'an',
+  'and',
+  'as',
+  'at',
+  'by',
+  'for',
+  'from',
+  'in',
+  'inside',
+  'into',
+  'is',
+  'it',
+  'of',
+  'on',
+  'or',
+  'that',
+  'the',
+  'this',
+  'to',
+  'with',
+]);
+
+/** A query's words, less the stop words, unless it is nothing but stop words. */
+function contentWords(words: string[]): string[] {
+  const content = words.filter(w => !STOP_WORDS.has(w));
+  return content.length ? content : words;
+}
+
+/**
+ * What a word of a multi-word query is worth when it is a component's whole name,
+ * singular or plural, and what an alias is worth when the query also names
+ * another component outright: the same, so neither outweighs the other.
+ */
+const NAME_WORD_SCORE = 30;
+
+/** Whether a query word is a name, as written or with a plural `s`. */
+const isName = (word: string, lowerName: string) =>
+  word === lowerName || word === `${lowerName}s`;
+
+/**
  * Score a haystack against the query terms.
  *
  * Whole-phrase and exact-name matches dominate; term coverage breaks ties. A
@@ -97,7 +145,7 @@ function score(haystack: string, name: string, terms: string[], query: string) {
   for (const t of terms) s += termHit(hay, t) * 5;
   if (terms.length > 1) {
     for (const t of terms) {
-      if (lowerName === t) s += 30;
+      if (isName(t, lowerName)) s += NAME_WORD_SCORE;
       else if (t.length >= 3 && lowerName.includes(t)) s += 15;
     }
   }
@@ -159,19 +207,14 @@ export const ALIASES: Readonly<Record<string, readonly string[]>> = {
   wizard: ['Steps'],
 };
 
-/** What an alias is worth: as much as the component's own name, so it ranks first. */
+/** What an alias is worth: as much as the component's own name as a whole query. */
 const ALIAS_SCORE = 100;
 
 /**
- * Every run of up to four consecutive words in `text`, joined: "date time
- * picker" yields `datetime`, `timepicker` and `datetimepicker` as well as each
- * word. Splitting on anything but a letter or digit is what lets "date-picker",
- * "Date Picker" and `<DatePicker>` all reach the `datepicker` key.
+ * Every run of up to four consecutive words, joined: "date time picker" yields
+ * `datetime`, `timepicker` and `datetimepicker` as well as each word.
  */
-function phrases(text: string): string[] {
-  const words = norm(text)
-    .split(/[^a-z0-9]+/)
-    .filter(Boolean);
+function phrases(words: string[]): string[] {
   const out: string[] = [];
   for (let i = 0; i < words.length; i++) {
     let joined = '';
@@ -187,18 +230,38 @@ function phrases(text: string): string[] {
  * The components a query names by an alias, each with what that is worth. A
  * longer phrase is worth more, so "date time picker" prefers `datetimepicker`
  * to the `timepicker` inside it, and a later name for the same phrase less.
+ *
+ * Where the query also names a component outright that the alias does not
+ * reach, the alias is worth only what that name is, NAME_WORD_SCORE. At full
+ * worth one alias outweighed the noun a query was about, so "breadcrumbs with
+ * separators" answered with the Divider a separator is. `names` are the
+ * components a query can name; without them, every alias is worth its full
+ * score.
  */
-export function aliasMatches(query: string): Map<string, number> {
+export function aliasMatches(
+  query: string,
+  names: readonly string[] = []
+): Map<string, number> {
+  // Splitting on anything but a letter or digit is what lets "date-picker",
+  // "Date Picker" and `<DatePicker>` all reach the `datepicker` key.
+  const words = norm(query)
+    .split(/[^a-z0-9]+/)
+    .filter(Boolean);
+  const outright = names.filter(n => words.some(w => isName(w, norm(n))));
   const out = new Map<string, number>();
-  for (const phrase of phrases(query)) {
+  for (const phrase of phrases(words)) {
     const key = Object.hasOwn(ALIASES, phrase)
       ? phrase
       : phrase.endsWith('s') && Object.hasOwn(ALIASES, phrase.slice(0, -1))
         ? phrase.slice(0, -1)
         : null;
     if (!key) continue;
-    ALIASES[key].forEach((name, i) => {
-      const s = ALIAS_SCORE + 2 * key.length - 10 * i;
+    const reached = ALIASES[key];
+    const worth = outright.every(n => reached.includes(n))
+      ? ALIAS_SCORE + 2 * key.length
+      : NAME_WORD_SCORE;
+    reached.forEach((name, i) => {
+      const s = worth - 10 * i;
       if (s > (out.get(name) ?? 0)) out.set(name, s);
     });
   }
@@ -220,26 +283,35 @@ export function searchAll(
   skills: Skill[],
   kinds: HitKind[]
 ): Hit[] {
-  const q = norm(query.trim());
-  const terms = q.split(/\s+/).filter(Boolean);
+  const terms = contentWords(norm(query.trim()).split(/\s+/).filter(Boolean));
   if (!terms.length) return [];
+  // What the name and phrase checks compare with, less the stop words too, so "the
+  // button" asks for Button as plainly as "button" does.
+  const q = terms.join(' ');
   const hits: Hit[] = [];
   const want = (k: HitKind) => kinds.includes(k);
 
   if (want('component')) {
-    const aliased = aliasMatches(q);
+    const aliased = aliasMatches(
+      q,
+      catalog.components.map(c => c.name)
+    );
     for (const c of catalog.components) {
       const hay = `${c.name} ${c.purpose} ${c.category}`;
       const alias = aliased.get(c.name) ?? 0;
       const matched = score(hay, c.name, terms, q) + alias;
       // The bonus is for a component the query is about: one it names, or one whose
-      // summary has every word. A summary that shares one word ("at a time" for "time
-      // picker") is the same passing mention a prop's description is.
+      // summary has most of its words. A summary that shares one word of two ("at a
+      // time" for "time picker") is the same passing mention a prop's description is,
+      // and one that misses a single word of a sentence ("spacing", where Block says
+      // "margin") is not.
       const lowerName = norm(c.name);
+      const lowerHay = norm(hay);
+      const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
       const about =
         alias > 0 ||
         terms.some(t => t.length >= 3 && termHit(lowerName, t) > 0) ||
-        terms.every(t => termHit(norm(hay), t) > 0);
+        covered * 2 > terms.length;
       const s = matched > 0 && about ? matched + COMPONENT_BONUS : matched;
       if (s > 0) {
         hits.push({
