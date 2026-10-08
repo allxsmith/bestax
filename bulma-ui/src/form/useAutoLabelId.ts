@@ -89,9 +89,10 @@ interface UseAutoLabelledByOptions {
   /** True when this render actually outputs the label naming the group. */
   rendersLabel: boolean;
   /**
-   * The caller's remaining props. A non-empty `aria-label` or
-   * `aria-labelledby` among them names the group, so a surrounding Field's
-   * label then stays off it.
+   * The caller's remaining props. A non-empty `aria-label` among them names
+   * the group, and so does any `aria-labelledby` key, even an undefined one,
+   * since the group spreads them after its own attribute. Either keeps a
+   * surrounding Field's label off the group.
    */
   callerProps: object;
 }
@@ -127,7 +128,10 @@ export function useAutoLabelledBy({
     ? { ...labelProps, id: labelId, htmlFor: undefined }
     : labelProps;
   const aria = callerProps as React.AriaAttributes;
-  const callerNamed = !!(aria['aria-label'] || aria['aria-labelledby']);
+  // Presence for aria-labelledby: the caller's key replaces the attribute
+  // through the spread whatever its value, and pointing it at the Field's
+  // label would only take a Rate's fallback name away.
+  const callerNamed = !!aria['aria-label'] || 'aria-labelledby' in aria;
   const ariaLabelledBy = active
     ? labelId
     : callerNamed

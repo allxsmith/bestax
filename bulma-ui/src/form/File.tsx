@@ -139,9 +139,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       rendersLabel: ownField,
     });
     const { classPrefix } = useConfig();
+    // The input takes `controlId`, so `id` stays out of the spread, where an
+    // undefined `id` key would wipe the id the label points at.
+    const { id: _id, ...inputProps } = props;
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
-      ...props,
+      ...inputProps,
     });
 
     // Mutually exclusive alignment

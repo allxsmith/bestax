@@ -605,6 +605,66 @@ describe('label names the convenience controls (#939)', () => {
     expect(labelEl(container).getAttribute('for')).not.toBe('mine');
   });
 
+  // A wrapper forwarding an optional id passes an undefined `id` key, which a
+  // props spread after the control's own id would otherwise wipe.
+  const undefinedIds: Array<
+    [string, (props: { label?: string }) => React.ReactElement, () => Element]
+  > = [
+    [
+      'Numberinput',
+      props => <Numberinput id={undefined} {...props} />,
+      () => screen.getByRole('spinbutton'),
+    ],
+    [
+      'Slider',
+      props => <Slider id={undefined} {...props} />,
+      () => screen.getByRole('slider'),
+    ],
+    [
+      'a range Slider',
+      props => <Slider range id={undefined} {...props} />,
+      () => document.querySelector('.slider-input-low') as Element,
+    ],
+    [
+      'DateInput',
+      props => <DateInput id={undefined} {...props} />,
+      () => screen.getByRole('combobox'),
+    ],
+    [
+      'TimeInput',
+      props => <TimeInput id={undefined} {...props} />,
+      () => screen.getByRole('combobox'),
+    ],
+    [
+      'DateTimeInput',
+      props => <DateTimeInput id={undefined} {...props} />,
+      () => screen.getByRole('combobox'),
+    ],
+    [
+      'File',
+      props => <File id={undefined} {...props} />,
+      () => document.querySelector('input[type="file"]') as Element,
+    ],
+  ];
+
+  it.each(undefinedIds)(
+    'names %s from the Field label when the caller passes an undefined id',
+    (_, element, control) => {
+      const { container } = render(<Field label="Pick">{element({})}</Field>);
+      expect(control().id).toBeTruthy();
+      expect(labelEl(container)).toHaveAttribute('for', control().id);
+    }
+  );
+
+  it.each(undefinedIds)(
+    'names %s from its own label when the caller passes an undefined id',
+    (_, element, control) => {
+      const { container } = render(element({ label: 'Pick' }));
+      expect(control().id).toBeTruthy();
+      expect(labelEl(container)).toHaveAttribute('for', control().id);
+    }
+  );
+
   it.each([
     ['a generated target', {}],
     ['a hand-wired target elsewhere', { labelProps: { htmlFor: 'other' } }],
@@ -735,6 +795,27 @@ describe('label names the convenience controls (#939)', () => {
         </Field>
       );
       expect(screen.getByRole(role, { name: 'Other' })).toBeInTheDocument();
+    }
+  );
+
+  it('leaves a Rate its fallback name when the caller forwards an undefined aria-labelledby', () => {
+    render(
+      <Field label="Pick">
+        <Rate aria-labelledby={undefined} />
+      </Field>
+    );
+    expect(
+      screen.getByRole('radiogroup', { name: 'Rating' })
+    ).toBeInTheDocument();
+  });
+
+  it.each(groups)(
+    'still names the %s group when the caller forwards an undefined aria-label',
+    (_, element, role) => {
+      render(
+        <Field label="Pick">{element({ 'aria-label': undefined })}</Field>
+      );
+      expect(screen.getByRole(role, { name: 'Pick' })).toBeInTheDocument();
     }
   );
 

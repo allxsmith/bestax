@@ -175,7 +175,7 @@ export const TimeInput = forwardRef<HTMLInputElement, TimeInputProps>(
     // The base hides its launcher while the Control it sits in is loading,
     // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <TimeInputBase ref={ref} id={controlId} {...baseProps} />
+      <TimeInputBase ref={ref} {...baseProps} id={controlId} />
     );
 
     if (ownControl) {

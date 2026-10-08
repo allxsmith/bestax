@@ -696,8 +696,9 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-orientation={isVertical ? 'vertical' : undefined}
           aria-label={ariaLabel as string | undefined}
           {...getAriaProps(currentSingle)}
-          id={controlId}
           {...rest}
+          // After the spread: an undefined `id` key in rest would wipe it.
+          id={controlId}
         />
         {tooltipMode !== 'hidden' && (
           <output
@@ -778,8 +779,8 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             (ariaLabel as [string, string] | undefined)?.[0] ?? 'Minimum value'
           }
           {...getAriaProps(currentRange[0])}
-          id={controlId}
           {...rest}
+          id={controlId}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
         />
         {/* High thumb */}

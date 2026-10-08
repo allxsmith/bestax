@@ -357,8 +357,9 @@ export const Numberinput = forwardRef<HTMLInputElement, NumberinputProps>(
           aria-valuenow={currentValue ?? undefined}
           aria-valuemin={min}
           aria-valuemax={max}
-          id={controlId}
           {...rest}
+          // After the spread: an undefined `id` key in rest would wipe it.
+          id={controlId}
         />
       </div>
     );

@@ -29,8 +29,8 @@ Conventions:
 - A labeled `Field` names the one control it holds (#495, #939), and a new input keeps that
   working by going through the label hooks in `useAutoLabelId.ts` rather than wiring ids
   itself. One that renders its own input calls `useAutoLabelId` and puts `controlId` on that
-  input, passing `hasInput: false` in a mode that renders none, so nothing derives ids from
-  the Field's. A group calls `useAutoLabelledBy` with its remaining props as `callerProps`,
+  input after any props spread, where an undefined `id` key would wipe it, passing
+  `hasInput: false` in a mode that renders none, so nothing derives ids from the Field's. A group calls `useAutoLabelledBy` with its remaining props as `callerProps`,
   so an `aria-label` or `aria-labelledby` the caller set still wins, and puts
   `ariaLabelledBy` on its group element.
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the

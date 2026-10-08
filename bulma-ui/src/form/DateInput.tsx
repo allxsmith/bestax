@@ -179,7 +179,7 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     // The base hides its launcher while the Control it sits in is loading,
     // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <DateInputBase ref={ref} id={controlId} {...baseProps} />
+      <DateInputBase ref={ref} {...baseProps} id={controlId} />
     );
 
     if (ownControl) {
