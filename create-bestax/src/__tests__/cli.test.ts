@@ -105,7 +105,7 @@ const {
   displayCancelled: _displayCancelled,
 } = displayModule;
 const { ProjectCreator } = projectCreatorModule;
-const { createCLI, runCLI } = cliModule;
+const { createCLI, runCLI, dropForwardedSeparator } = cliModule;
 const {
   TEMPLATES: _TEMPLATES,
   ICON_LIBRARIES: _ICON_LIBRARIES,
@@ -411,6 +411,65 @@ describe('cli', () => {
         template: 'vite',
         bulma: 'complete',
         icon: 'mdi',
+        yes: true,
+      });
+    });
+  });
+
+  describe('a `--` the package manager forwards (#950)', () => {
+    const argvAfter = (...userArgs: string[]) => [
+      'node',
+      'create-bestax',
+      ...userArgs,
+    ];
+
+    it.each([
+      [
+        'after the name (bun create, pnpm create, bunx)',
+        argvAfter('my-app', '--', '-t', 'vite-ts', '-y'),
+      ],
+      ['before the name', argvAfter('--', 'my-app', '-t', 'vite-ts', '-y')],
+    ])('is dropped when it comes %s', (_label, argv) => {
+      expect(dropForwardedSeparator(argv)).toEqual(
+        argvAfter('my-app', '-t', 'vite-ts', '-y')
+      );
+    });
+
+    it('leaves argv without one alone, as npm and Yarn 1 deliver it', () => {
+      const argv = argvAfter('my-app', '-t', 'vite-ts', '-y');
+      expect(dropForwardedSeparator(argv)).toEqual(argv);
+    });
+
+    it('drops only the first, so a second still ends the options', () => {
+      expect(dropForwardedSeparator(argvAfter('--', '--', '-odd'))).toEqual(
+        argvAfter('--', '-odd')
+      );
+    });
+
+    it('lets runCLI read the flags after it', async () => {
+      const originalArgv = process.argv;
+      const originalExit = process.exit;
+      process.exit = jest.fn(() => {
+        throw new Error('process.exit called');
+      }) as unknown as typeof process.exit;
+      const stderr = jest
+        .spyOn(process.stderr, 'write')
+        .mockImplementation(() => true);
+      process.argv = argvAfter('my-app', '--', '-t', 'vite-ts', '-y');
+
+      try {
+        await runCLI();
+      } finally {
+        process.argv = originalArgv;
+        process.exit = originalExit;
+        stderr.mockRestore();
+      }
+
+      const instance = (
+        ProjectCreator as jest.MockedClass<typeof ProjectCreator>
+      ).mock.results.at(-1)?.value;
+      expect(instance.create).toHaveBeenCalledWith('my-app', {
+        template: 'vite-ts',
         yes: true,
       });
     });
