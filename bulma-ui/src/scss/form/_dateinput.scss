@@ -16,6 +16,19 @@ $dateinput-header-padding: 0.5rem 0 !default;
 $dateinput-day-name-color: cv.getVar('text-weak') !default;
 $dateinput-day-name-size: cv.getVar('size-7') !default;
 $dateinput-nav-button-size: 1.75rem !default;
+// A range's band: the days between its ends, tinted from the selection fill
+// so a `color` variant re-tints it too. A preview, while the end is still
+// being picked, is fainter.
+$dateinput-cell-range-bg: color-mix(
+  in srgb,
+  #{cv.getVar('dateinput-cell-selected-bg')} 18%,
+  transparent
+) !default;
+$dateinput-cell-range-preview-bg: color-mix(
+  in srgb,
+  #{cv.getVar('dateinput-cell-selected-bg')} 9%,
+  transparent
+) !default;
 
 .#{iv.$class-prefix}dateinput {
   @include cv.register-vars(
@@ -35,6 +48,8 @@ $dateinput-nav-button-size: 1.75rem !default;
       'dateinput-day-name-color': #{$dateinput-day-name-color},
       'dateinput-day-name-size': #{$dateinput-day-name-size},
       'dateinput-nav-button-size': #{$dateinput-nav-button-size},
+      'dateinput-cell-range-bg': #{$dateinput-cell-range-bg},
+      'dateinput-cell-range-preview-bg': #{$dateinput-cell-range-preview-bg},
     )
   );
 }
@@ -50,8 +65,7 @@ $dateinput-nav-button-size: 1.75rem !default;
 // (no popover wrapper), give it a subtle frame so the grid doesn't look
 // orphaned on the page. Mirrors the popover's visual weight without the
 // drop-shadow / animation.
-.#{iv.$class-prefix}dateinput-container
-  > .#{iv.$class-prefix}dateinput {
+.#{iv.$class-prefix}dateinput-container > .#{iv.$class-prefix}dateinput {
   background-color: cv.getVar('scheme-main');
   border: 1px solid cv.getVar('border');
   border-radius: cv.getVar('radius');
@@ -222,6 +236,40 @@ $dateinput-nav-button-size: 1.75rem !default;
     color: cv.getVar('dateinput-cell-disabled-color');
     cursor: not-allowed;
     opacity: 0.55;
+  }
+  // A range: its ends take the selected fill above, and the days between
+  // them the band. The hover rule above replaces a cell's fill and outranks
+  // a bare class, so each band state repeats under `:hover`, where it ties
+  // that rule and comes later, and the hover overlay is painted on top of
+  // the band as an image rather than in its place.
+  &.#{iv.$class-prefix}is-in-range {
+    &,
+    &:hover:not(:disabled) {
+      background-color: cv.getVar('dateinput-cell-range-bg');
+    }
+  }
+  // A preview, while the end is still being picked: a fainter band, and an
+  // outline on the day it would end on, which isn't picked yet. On the
+  // pointer path that day is the one under the pointer.
+  &.#{iv.$class-prefix}is-in-range.#{iv.$class-prefix}is-preview,
+  &.#{iv.$class-prefix}is-range-end.#{iv.$class-prefix}is-preview {
+    &,
+    &:hover:not(:disabled) {
+      background-color: cv.getVar('dateinput-cell-range-preview-bg');
+    }
+  }
+  &.#{iv.$class-prefix}is-range-end.#{iv.$class-prefix}is-preview {
+    border-style: dashed;
+    border-color: cv.getVar('dateinput-cell-selected-bg');
+  }
+  &.#{iv.$class-prefix}is-in-range,
+  &.#{iv.$class-prefix}is-range-end.#{iv.$class-prefix}is-preview {
+    &:hover:not(:disabled) {
+      background-image: linear-gradient(
+        cv.getVar('dateinput-cell-hover-bg'),
+        cv.getVar('dateinput-cell-hover-bg')
+      );
+    }
   }
 }
 

@@ -7,6 +7,7 @@ import { Select } from '../Select';
 import { TextArea } from '../TextArea';
 import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
+import { DateRangeInput } from '../DateRangeInput';
 import { TimeInput } from '../TimeInput';
 import { Checkboxes } from '../Checkboxes';
 import { Checkbox } from '../Checkbox';
@@ -93,6 +94,11 @@ const wrappers: Wrapper[] = [
     name: 'TimeInput',
     render: p => <TimeInput {...p} />,
     root: '.timeinput-container',
+  },
+  {
+    name: 'DateRangeInput',
+    render: p => <DateRangeInput {...p} />,
+    root: '.daterangeinput',
   },
   {
     name: 'Checkboxes',
@@ -659,6 +665,11 @@ const pickers = [
     name: 'DateTimeInput',
     render: (p: PickerProps) => <DateTimeInput {...p} />,
     defaultIcon: 'calendar-alt',
+  },
+  {
+    name: 'DateRangeInput',
+    render: (p: PickerProps) => <DateRangeInput {...p} />,
+    defaultIcon: 'calendar',
   },
 ];
 
