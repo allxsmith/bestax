@@ -49,7 +49,7 @@ That's it. You now have a production-ready React + Bulma application powered by 
 Or, if you want even less interaction:
 
 ```bash
-npm create bestax@latest my-app -y
+npm create bestax@latest my-app -- -y
 ```
 
 The `-y` flag uses all the defaults and gets you up and running in literal seconds.
@@ -205,16 +205,16 @@ Don't want to answer questions? Use flags:
 
 ```bash
 # Create a TypeScript project with Font Awesome
-npm create bestax@latest my-app -t vite-ts -i fontawesome
+npm create bestax@latest my-app -- -t vite-ts -i fontawesome
 
 # Use all defaults
-npm create bestax@latest my-app -y
+npm create bestax@latest my-app -- -y
 
 # Prefixed Bulma with Material Design Icons
-npm create bestax@latest my-app -b prefixed -i mdi
+npm create bestax@latest my-app -- -b prefixed -i mdi
 
 # Full control
-npm create bestax@latest my-app -t vite-ts -b complete -i fontawesome
+npm create bestax@latest my-app -- -t vite-ts -b complete -i fontawesome
 ```
 
 **Available options:**
@@ -250,7 +250,7 @@ Let's time it:
 
 ```bash
 # Second 0-5: Scaffold the project
-npm create bestax@latest my-demo-app -y
+npm create bestax@latest my-demo-app -- -y
 
 # Second 5-25: Install dependencies
 cd my-demo-app
@@ -288,7 +288,7 @@ Just tell your AI assistant:
 And watch it execute:
 
 ```bash
-npm create bestax@latest my-project -t vite-ts -i fontawesome -y
+npm create bestax@latest my-project -- -t vite-ts -i fontawesome -y
 cd my-project
 npm install
 ```
