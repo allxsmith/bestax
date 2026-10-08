@@ -50,6 +50,35 @@ const cell = (container: HTMLElement, day: number) =>
 
 const style = (el: Element) => getComputedStyle(el);
 
+/**
+ * What the cascade gives `el` for `property` while the pointer is on it.
+ * jsdom never matches `:hover`, so each selector is tried with `:hover`
+ * standing for a class the cell carries meanwhile, and the matching rule with
+ * the most class-level parts wins, the later one on a tie. That is the whole
+ * of specificity for the cell's rules, which are classes and pseudo-classes.
+ */
+const HOVERED = 'jsdom-hovered';
+function hovered(el: Element, property: string): string {
+  const rules = Array.from((sheets[0].sheet as CSSStyleSheet).cssRules);
+  let best = { weight: -1, value: '' };
+  el.classList.add(HOVERED);
+  for (const rule of rules) {
+    if (!(rule instanceof CSSStyleRule)) continue;
+    const value = rule.style.getPropertyValue(property);
+    if (!value) continue;
+    for (const part of rule.selectorText.split(/,(?![^(]*\))/)) {
+      const selector = part.trim().replace(/:hover/g, `.${HOVERED}`);
+      if (!el.matches(selector)) continue;
+      const weight = (
+        selector.replace(/:not\(/g, '(').match(/\.[\w-]+|:[\w-]+/g) ?? []
+      ).length;
+      if (weight >= best.weight) best = { weight, value };
+    }
+  }
+  el.classList.remove(HOVERED);
+  return best.value;
+}
+
 describe('range cells', () => {
   it('fill the ends and band the days between', () => {
     const { container } = render(
@@ -68,6 +97,41 @@ describe('range cells', () => {
     expect(style(cell(container, 14)).backgroundColor).not.toMatch(/range/);
   });
 
+  it('keep the band under the pointer, with the hover overlay on top', () => {
+    const { container } = render(
+      <DateRangeInput inline defaultValue={[june(10), june(13)]} />
+    );
+    const band = cell(container, 11);
+    expect(hovered(band, 'background-color')).toBe(
+      'var(--bulma-dateinput-cell-range-bg)'
+    );
+    expect(hovered(band, 'background-image')).toContain(
+      'var(--bulma-dateinput-cell-hover-bg)'
+    );
+    // A day outside the range takes the overlay as its fill.
+    expect(hovered(cell(container, 20), 'background-color')).toBe(
+      'var(--bulma-dateinput-cell-hover-bg)'
+    );
+  });
+
+  it('keep the preview tint on the day under the pointer', () => {
+    // The preview ends on the hovered day, so the pointer is always on it.
+    const { container } = render(<DateRangeInput inline />);
+    fireEvent.click(cell(container, 10));
+    fireEvent.mouseOver(cell(container, 13));
+    for (const day of [12, 13]) {
+      expect(hovered(cell(container, day), 'background-color')).toBe(
+        'var(--bulma-dateinput-cell-range-preview-bg)'
+      );
+    }
+    expect(hovered(cell(container, 13), 'background-image')).toContain(
+      'var(--bulma-dateinput-cell-hover-bg)'
+    );
+  });
+
+  // jsdom matches no `:hover`, so this reads the cells as the keys leave
+  // them, with the preview's end on the focused day; the two above put the
+  // pointer on them.
   it('band a preview fainter and outline the day it would end on', () => {
     const { container } = render(<DateRangeInput inline />);
     fireEvent.click(cell(container, 10));

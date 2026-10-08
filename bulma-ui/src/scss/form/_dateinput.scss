@@ -238,19 +238,38 @@ $dateinput-cell-range-preview-bg: color-mix(
     opacity: 0.55;
   }
   // A range: its ends take the selected fill above, and the days between
-  // them the band. Hovering a day in the band still shows the hover overlay.
+  // them the band. The hover rule above replaces a cell's fill and outranks
+  // a bare class, so each band state repeats under `:hover`, where it ties
+  // that rule and comes later, and the hover overlay is painted on top of
+  // the band as an image rather than in its place.
   &.#{iv.$class-prefix}is-in-range {
-    background-color: cv.getVar('dateinput-cell-range-bg');
+    &,
+    &:hover:not(:disabled) {
+      background-color: cv.getVar('dateinput-cell-range-bg');
+    }
   }
   // A preview, while the end is still being picked: a fainter band, and an
-  // outline on the day it would end on, which isn't picked yet.
+  // outline on the day it would end on, which isn't picked yet. On the
+  // pointer path that day is the one under the pointer.
   &.#{iv.$class-prefix}is-in-range.#{iv.$class-prefix}is-preview,
   &.#{iv.$class-prefix}is-range-end.#{iv.$class-prefix}is-preview {
-    background-color: cv.getVar('dateinput-cell-range-preview-bg');
+    &,
+    &:hover:not(:disabled) {
+      background-color: cv.getVar('dateinput-cell-range-preview-bg');
+    }
   }
   &.#{iv.$class-prefix}is-range-end.#{iv.$class-prefix}is-preview {
     border-style: dashed;
     border-color: cv.getVar('dateinput-cell-selected-bg');
+  }
+  &.#{iv.$class-prefix}is-in-range,
+  &.#{iv.$class-prefix}is-range-end.#{iv.$class-prefix}is-preview {
+    &:hover:not(:disabled) {
+      background-image: linear-gradient(
+        cv.getVar('dateinput-cell-hover-bg'),
+        cv.getVar('dateinput-cell-hover-bg')
+      );
+    }
   }
 }
 
