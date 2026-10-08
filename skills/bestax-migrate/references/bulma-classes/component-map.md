@@ -145,8 +145,8 @@ A `.tabs` converts around its `<ul>`, and the `<li>`s and `<a>`s inside stay as 
 renders its own `<a>` with tab roles and puts its label in a `<span>`, so converting the tabs
 themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
 `Span display="flex" alignItems="center"` around it and the label). A `.icon` converts around the
-`<i>` inside it when it carries the attribute `Icon` writes otherwise: `aria-hidden` with no name
-and no `role`, and `role="img"` beside an `aria-label` or `aria-labelledby`.
+`<i>` inside it when it carries the attribute `Icon` writes otherwise: `aria-hidden` with no name,
+no `role` and no `tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`.
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest

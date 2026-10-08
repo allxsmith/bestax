@@ -151,8 +151,8 @@ export interface RootEntry {
   /**
    * Attributes that stop the target rendering `defaults` when the element sets
    * one to a value written out (`Icon` hides an unnamed icon only when it has
-   * no `role` of its own). An expression may render as nothing, so it stops
-   * nothing.
+   * no `role` or `tabIndex` of its own). An expression may render as nothing,
+   * so it stops nothing.
    */
   readonly defaultsUnless?: readonly string[];
   /**
@@ -1780,8 +1780,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-item': part(),
   'dropdown-divider': part(),
   // With children, `Icon` renders `.icon` around them as given. It hides an
-  // icon with no name and no `role`, and makes one named by `aria-label` or
-  // `aria-labelledby` an image.
+  // icon with no name, no `role` and no `tabIndex`, and makes one named by
+  // `aria-label` or `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
@@ -1792,7 +1792,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       by: ['aria-label', 'aria-labelledby'],
       defaults: { role: 'img' },
     },
-    defaultsUnless: ['role'],
+    defaultsUnless: ['role', 'tabIndex'],
     requiresChildren: true,
     needsElementChildren: true,
     ownProps: [

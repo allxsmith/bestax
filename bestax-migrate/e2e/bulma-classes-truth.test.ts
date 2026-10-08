@@ -1135,6 +1135,7 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
         'a name by reference': { 'aria-labelledby': 'x', role: 'img' },
         'an empty name': { 'aria-label': '', 'aria-hidden': 'true' },
         'no name but a role of its own': { role: 'note' },
+        'no name but a tabIndex of its own': { tabIndex: '0' },
       })) {
         same(label, [iconChild(['fas', 'fa-home'], [], attributes)]);
       }

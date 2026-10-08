@@ -543,8 +543,9 @@ export function plan(facts: ElementFacts): Plan {
     .filter(([, rule]) => rule.on.includes(tag))
     .map(([name, rule]): [string, string] => [name, rule.fallback]);
   const naming = namingOf(entry, attributes);
-  // An attribute written out that stops the target's defaults, `Icon`'s own
-  // `role`, leaves an unnamed element nothing to add.
+  // An attribute written out that stops the target's defaults, such as
+  // `Icon`'s own `role` or `tabIndex`, leaves an unnamed element nothing to
+  // add.
   const stopped = entry.defaultsUnless?.some(
     name => attributes.has(name) && attributes.get(name) !== null
   );

@@ -739,6 +739,14 @@ describe('plan', () => {
         ]);
       });
 
+      it('needs no aria-hidden on an unnamed icon with a tabIndex of its own', () => {
+        // Icon leaves an unnamed icon that can take focus visible.
+        expect(icon({ tabIndex: '0' }).conversion?.target).toBe('Icon');
+        expect(icon({ tabIndex: null }).todos.map(t => t.rule)).toEqual([
+          'defaults:Icon',
+        ]);
+      });
+
       it('needs a role when the name is an expression', () => {
         // Named or not, an icon with a role of its own keeps it and isn't
         // hidden, so a role written out makes either outcome render as given.
