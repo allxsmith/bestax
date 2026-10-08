@@ -47,6 +47,8 @@ const PROFILE_CARD = join(
   REPO,
   'docs/src/components/SkillExamples/ProfileCard.jsx'
 );
+/** "Declared but never read" and "all imports in a declaration are unused". */
+const UNUSED = new Set([6133, 6192]);
 
 /**
  * The `compilerOptions` of a new Vite `react-ts` app's `tsconfig.app.json`,
@@ -99,11 +101,11 @@ export function liveFences(src) {
  * every line where it was, so a diagnostic's line maps straight back to the
  * page. Returns the source and how many header lines precede the body.
  */
-function asModule(body, libraryNames) {
+function asModule(body, { libraryNames, profileCard }) {
   const header = [
     "import React, { useEffect, useState } from 'react';",
     `import { ${libraryNames.join(', ')} } from '${LIBRARY}';`,
-    `import { ProfileCard } from ${JSON.stringify(PROFILE_CARD)};`,
+    `import { ProfileCard } from ${JSON.stringify(profileCard)};`,
   ];
   const lines = body.map(line => {
     const trimmed = line.trim();
@@ -150,7 +152,7 @@ function loadTools() {
     LIBRARY_DIR
   );
   assert.deepEqual(errors, [], 'the compiler options did not parse');
-  return { ts, options, libraryNames };
+  return { ts, options, libraryNames, profileCard: PROFILE_CARD };
 }
 
 /**
@@ -160,7 +162,7 @@ function loadTools() {
  * for an app that installed it.
  */
 export function checkPages(pages, tools) {
-  const { ts, options, libraryNames } = tools;
+  const { ts, options } = tools;
   const modules = new Map();
   for (const { file, src } of pages) {
     for (const fence of liveFences(src)) {
@@ -172,7 +174,7 @@ export function checkPages(pages, tools) {
       modules.set(name, {
         file,
         fence,
-        ...asModule(fence.body, libraryNames),
+        ...asModule(fence.body, tools),
       });
     }
   }
@@ -195,19 +197,25 @@ export function checkPages(pages, tools) {
       `compiler: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`
     );
   }
+  // The header imports the whole scope, and most of it goes unused, so an
+  // unused-import report there is expected. Anything else on the header means
+  // a name did not bind, such as `ProfileCard` after a move, and every fence
+  // using it would type it `any`. The header is the same in every module, so
+  // each such report is kept once.
+  const scope = new Set();
   for (const [name, { file, fence, headerLines }] of modules) {
     const sourceFile = program.getSourceFile(name);
-    const found = [
+    const found = [];
+    for (const d of [
       ...program.getSyntacticDiagnostics(sourceFile),
       ...program.getSemanticDiagnostics(sourceFile),
-    ]
-      .map(d => ({
-        line: sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line,
-        code: d.code,
-        text: ts.flattenDiagnosticMessageText(d.messageText, ' '),
-      }))
-      // The header imports the whole scope, and most of it goes unused.
-      .filter(d => d.line >= headerLines);
+    ]) {
+      const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line;
+      const code = d.code;
+      const text = ts.flattenDiagnosticMessageText(d.messageText, ' ');
+      if (line >= headerLines) found.push({ line, code, text });
+      else if (!UNUSED.has(code)) scope.add(`scope: TS${code} ${text}`);
+    }
     if (fence.optOut) {
       if (found.length === 0) {
         problems.push(
@@ -223,6 +231,7 @@ export function checkPages(pages, tools) {
       problems.push(`${file}:${line}: TS${d.code} ${d.text}`);
     }
   }
+  problems.push(...scope);
   return problems;
 }
 
@@ -355,6 +364,25 @@ describe('the docs live examples type-check', () => {
 
   it('binds the docs-only ProfileCard, as the live scope does', () => {
     assert.deepEqual(about('fixture/scope-only.md'), []);
+    assert.deepEqual(
+      problems.filter(p => p.startsWith('scope:')),
+      [],
+      'A name the site puts in scope no longer binds here, so every fence ' +
+        'using it goes unchecked. Point the header at where it lives now.'
+    );
+  });
+
+  it('reports a scope name that stops binding, once', () => {
+    const moved = join(dirname(PROFILE_CARD), 'Moved.jsx');
+    const found = checkPages(
+      [
+        page('fixture/uses-it.md', '<ProfileCard name="Ada" />'),
+        page('fixture/does-not.md', '<Box>Go</Box>'),
+      ],
+      { ...tools, profileCard: moved }
+    );
+    assert.equal(found.length, 1, found.join('\n'));
+    assert.match(found[0], /^scope: TS2307 Cannot find module '.*Moved\.jsx'/);
   });
 
   it(`holds a \`${OPT_OUT}\` fence only while it has an error`, () => {
