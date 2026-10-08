@@ -70,5 +70,10 @@ listings that `docs/docs/guides/distribution.md` names under "What goes stale".
   migration "before" that imports from its own library needs no marker, because the rules
   follow the import rather than the tag name. An example that is not code at all belongs in a
   `text` fence.
+- Every `.ts` and `.tsx` file under `skills/` is also type-checked with the compiler options of
+  create-bestax's vite-ts template, in `pnpm test` (`scripts/skill-examples-typecheck.test.mjs`),
+  because agents copy them into that scaffold and its build runs `tsc` first. Under its
+  automatic JSX runtime and `noUnusedLocals`, a default `import React` that nothing reads
+  fails that build, so import only what the file uses.
 - Storybook renders agent-generated showcases of these skills from
   `bulma-ui/src/skill-examples/` — update those when a skill's canonical example changes.

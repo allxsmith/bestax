@@ -6,7 +6,7 @@
 // palette. The <Theme> component writes those CSS variables for you:
 //   - isRoot          -> inject the variables globally at :root (use once, at the app root)
 //   - without isRoot  -> wrap children in a <div> and scope the variables to it
-import React from 'react';
+import type { ReactNode } from 'react';
 import {
   Theme,
   Button,
@@ -17,7 +17,7 @@ import {
 
 // 1) Global brand theme at the app root.
 //    Hue is unitless; saturation and lightness are percentages.
-export function ThemedApp({ children }: { children: React.ReactNode }) {
+export function ThemedApp({ children }: { children: ReactNode }) {
   return (
     <Theme
       isRoot

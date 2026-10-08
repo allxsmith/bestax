@@ -5,7 +5,7 @@
 // under a ConfigProvider `classPrefix`, which the prefixed flavors read. This
 // is global (even on a scoped Theme); `'system'` removes the attributes so
 // Bulma follows the OS `prefers-color-scheme`. Wrap the app once at the root.
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   Theme,
   Box,
