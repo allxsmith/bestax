@@ -29,7 +29,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    <PackageManagerTabs>
 
    ```bash
-   pnpm create vite@latest my-bulma-vite-app -- --template react
+   pnpm create vite@latest my-bulma-vite-app --template react
    cd my-bulma-vite-app
    pnpm install
    ```
@@ -39,7 +39,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    :::info Template Argument Explained
    - `--template react`: Uses the official React template with JavaScript
    - Alternative templates: `react-ts` (TypeScript), `react-swc` (with SWC compiler)
-   - The `--` separates npm arguments from Vite create arguments
+   - npm needs a `--` before `--template`
      :::
 
    :::tip Vite Documentation
@@ -159,7 +159,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    <PackageManagerTabs>
 
    ```bash
-   pnpm create vite@latest my-bulma-vite-ts-app -- --template react-ts
+   pnpm create vite@latest my-bulma-vite-ts-app --template react-ts
    cd my-bulma-vite-ts-app
    pnpm install
    ```
