@@ -1192,7 +1192,7 @@ describe('an element whose component builds its icons from props', () => {
   const iconText = (icon: string, text = '<span>Home</span>') =>
     `export const A = (label: string) => (\n  <span className="icon-text">\n    ${icon}\n    ${text}\n  </span>\n);\n`;
   const home =
-    '<span className="icon" aria-label="Home"><i className="fas fa-home"></i></span>';
+    '<span className="icon" aria-hidden="true"><i className="fas fa-home"></i></span>';
 
   it('imports the component alone, since its icons go into it', () => {
     const { output, rules } = migrate(iconText(home));
@@ -1206,10 +1206,13 @@ describe('an element whose component builds its icons from props', () => {
   it("writes each of an icon's attributes as `Icon` is given it", () => {
     const { output } = migrate(
       iconText(
-        '<span className="icon" aria-label={label} title="Go &amp; see" tabIndex="0" style={{ color: "red" }} hidden><i className="fas fa-home"></i></span>'
+        '<span className="icon" aria-label={label} role="img" aria-hidden={!label} title="Go &amp; see" tabIndex="0" style={{ color: "red" }} hidden><i className="fas fa-home"></i></span>'
       )
     );
-    expect(output).toMatch(/ariaLabel: label,/);
+    // `aria-label` keeps its name: an empty `ariaLabel` would render none.
+    expect(output).toMatch(/"aria-label": label,/);
+    expect(output).toMatch(/role: "img",/);
+    expect(output).toMatch(/"aria-hidden": !label,/);
     expect(output).toMatch(/title: "Go & see",/);
     expect(output).toMatch(/tabIndex: 0,/);
     expect(output).toMatch(/style: \{\s*color: "red"\s*\},/);
@@ -1228,7 +1231,7 @@ describe('an element whose component builds its icons from props', () => {
   it('moves the comments in its children to the name that stays', () => {
     const { output } = migrate(
       iconText(
-        '<span className="icon" aria-label="Home" /* the house */><i className="fas fa-home"></i></span>'
+        '<span className="icon" aria-hidden="true" /* the house */><i className="fas fa-home"></i></span>'
       )
     );
     expect(output).toMatch(/<IconText \/\* the house \*\/ iconProps=/);
@@ -1237,7 +1240,7 @@ describe('an element whose component builds its icons from props', () => {
   it('keeps the TODO an icon it takes carried, with the class', () => {
     const { output, rules } = migrate(
       iconText(
-        '<span className="icon tile" aria-label="Home"><i className="fas fa-home"></i></span>'
+        '<span className="icon tile" aria-hidden="true"><i className="fas fa-home"></i></span>'
       )
     );
     expect(rules).toEqual(['legacy:tile']);

@@ -1301,8 +1301,8 @@ describe('DateTimeInput small viewport', () => {
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     expect(getAllByRole('spinbutton').length).toBeGreaterThanOrEqual(2);
-    const option = getAllByRole('option')[0] as HTMLElement;
-    expect(option.style.height).toBe('40px');
+    const item = getAllByRole('spinbutton')[0].querySelector('button')!;
+    expect(item.style.height).toBe('40px');
   });
 });
 
