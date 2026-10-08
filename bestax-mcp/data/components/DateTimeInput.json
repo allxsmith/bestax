@@ -59,7 +59,7 @@
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"Default (left icon + right launcher)\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"No launcher (popover via ↓ only)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateTimeInput\n    label=\"Default (left icon + right launcher)\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-check\"\n    openOnFocus={false}\n  />\n  <DateTimeInput\n    label=\"No launcher (popover via Alt+↓ only)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateTimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "Launcher Icon",
@@ -170,7 +170,7 @@
       "code": "<DateTimeInput label=\"Input only\" popover={false} defaultValue={new Date()} />"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"`.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order naturally walks from calendar → time wheels → footer (Reset / ✓).",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"`.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.",
   "related": ["DateInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-datetimeinput",
   "summary": "The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.",
@@ -376,7 +376,7 @@
           "name": "onChange",
           "type": "(d: Date | null) => void",
           "default": null,
-          "description": "Fired when either the date or time portion changes.",
+          "description": "Fired when either the date or time portion changes. Picking a day keeps the value's whole time of day, down to seconds and milliseconds the field doesn't show, and `min` and `max` judge the picked day at that time. An empty field's day is picked at midnight.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -511,7 +511,7 @@
           "name": "openOnFocus",
           "type": "boolean",
           "default": "true",
-          "description": "Open the popover on focus. Default `true`. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.",
+          "description": "Open the popover on focus. Default `true`. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.",
           "required": false,
           "inherited": true,
           "deprecated": false

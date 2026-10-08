@@ -42,7 +42,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -76,7 +76,7 @@ function example() {
 }
 ```
 
-**Typing-first** — identical, but with `openOnFocus={false}` so focusing just lets you type; the calendar waits behind the launcher icon (or `↓`).
+**Typing-first** — identical, but with `openOnFocus={false}` so focusing just lets you type; the calendar waits behind the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -190,7 +190,7 @@ function example() {
 On iOS Safari the calendar lets the user pick any date; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
-**Typing-first** — the same bounds with `openOnFocus={false}`: every keystroke and `↑` / `↓` arrow is clamped to the range (out-of-range candidates are silently rejected), and the launcher icon (or `↓`) opens the calendar.
+**Typing-first** — the same bounds with `openOnFocus={false}`: every keystroke and `↑` / `↓` arrow is clamped to the range (out-of-range candidates are silently rejected), and the launcher icon (or `Alt+↓`) opens the calendar.
 
 ```tsx live
 function example() {
@@ -227,7 +227,7 @@ Disable specific dates with `shouldDisableDate` (predicate) or `unselectableDate
 HTML has no equivalent to `shouldDisableDate` or `unselectableDates`, so the OS-native pickers can't block any dates. This example forces `mobileNative={false}` so the rule works on touch devices too; in your app, keep the default `mobileNative="auto"` and also validate in `onChange`.
 :::
 
-**Typing-first** — with `openOnFocus={false}` the predicate also vetoes manual entry: typing or arrowing to a weekend is rejected, and the calendar stays tucked behind the launcher icon (or `↓`).
+**Typing-first** — with `openOnFocus={false}` the predicate also vetoes manual entry: typing or arrowing to a weekend is rejected, and the calendar stays tucked behind the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -262,7 +262,7 @@ Use an alternative token format. Supported tokens: `YYYY YY MM M DD D HH H hh h 
 The OS-native pickers use the device's locale format and don't render `placeholder` text. This example forces `mobileNative={false}` so the format/placeholder show on touch devices too.
 :::
 
-**Typing-first** — the same format with `openOnFocus={false}`: type day-first (typing `/` jumps to the next segment) and reach for the launcher icon (or `↓`) when you want the calendar.
+**Typing-first** — the same format with `openOnFocus={false}`: type day-first (typing `/` jumps to the next segment) and reach for the launcher icon (or `Alt+↓`) when you want the calendar.
 
 ```tsx live
 function example() {
@@ -376,7 +376,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 </Block>
 ```
 
-**Typing-first** — the same group with `openOnFocus={false}`, where the launcher icon earns its keep; note that the `triggerIcon={false}` instance has no launcher, so its popover is keyboard-only (`↓`).
+**Typing-first** — the same group with `openOnFocus={false}`, where the launcher icon earns its keep; note that the `triggerIcon={false}` instance has no launcher, so its popover is keyboard-only (`Alt+↓`).
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -387,7 +387,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
     openOnFocus={false}
   />
   <DateInput
-    label="No launcher — popover via ↓ only"
+    label="No launcher — popover via Alt+↓ only"
     triggerIcon={false}
     openOnFocus={false}
   />
@@ -414,7 +414,7 @@ Focus the input — the **year** segment highlights automatically and you can dr
 These examples use `openOnFocus={false}` so the popover doesn't cover the input — set `openOnFocus={true}` (the default) and both UIs coexist.
 
 :::tip Opening the picker vs. typing
-With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
+With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `Alt+↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
 :::
 
 #### Basic
@@ -551,7 +551,7 @@ Day and month names follow the supplied BCP-47 locale via `Intl.DateTimeFormat`.
 The OS-native pickers always use the device's system locale, so these examples set `mobileNative={false}` to show the per-input `locale` on touch devices too.
 :::
 
-**Typing-first** — the same locales with `openOnFocus={false}` added: type straight into each field, then compare the localized calendars via the launcher icon (or `↓`).
+**Typing-first** — the same locales with `openOnFocus={false}` added: type straight into each field, then compare the localized calendars via the launcher icon (or `Alt+↓`).
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -593,7 +593,7 @@ Set `firstDayOfWeek` to align the grid to Monday-first locales.
 The OS-native calendars use the device locale for the week start, so `firstDayOfWeek` (and `dayNames`/`monthNames`/`nearbyMonthDays`) are ignored there. This example forces `mobileNative={false}` so the Monday-first grid shows on touch devices too.
 :::
 
-**Typing-first** — the same example with `openOnFocus={false}`: type freely, then open the Monday-first grid with the launcher icon (or `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: type freely, then open the Monday-first grid with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 <DateInput
@@ -646,7 +646,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 </Block>
 ```
 
-**Typing-first** — every size with `openOnFocus={false}` so focusing just lets you type; the launcher icon (or `↓`) opens the popover.
+**Typing-first** — every size with `openOnFocus={false}` so focusing just lets you type; the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -686,7 +686,7 @@ If any of these matter, pass `mobileNative={false}` to force the custom calendar
 </Block>
 ```
 
-**Typing-first** — the same palette with `openOnFocus={false}`: click in to type, and use the launcher icon (or `↓`) for the calendar.
+**Typing-first** — the same palette with `openOnFocus={false}`: click in to type, and use the launcher icon (or `Alt+↓`) for the calendar.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -747,7 +747,7 @@ function example() {
 <DateInput label="Date of birth" horizontal placeholder="YYYY-MM-DD" />
 ```
 
-**Typing-first** — the horizontal layout with `openOnFocus={false}`: focusing lets you type straight away, and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the horizontal layout with `openOnFocus={false}`: focusing lets you type straight away, and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 <DateInput
@@ -835,6 +835,7 @@ Focus the input — the **year** segment highlights automatically and the keyboa
 | Key                           | Action                                                                         |
 | ----------------------------- | ------------------------------------------------------------------------------ |
 | `↑` / `↓`                     | Increment / decrement the active segment (year / month / day, wraps in place)  |
+| `Alt+↓` / `Alt+↑`             | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`                     | Move to previous / next segment                                                |
 | `0`–`9`                       | Overwrite the active segment; auto-advances when no further digit is valid     |
 | Separator (`-` `/` `.` space) | Skip to the next segment without inserting the character                       |
@@ -845,15 +846,16 @@ Focus the input — the **year** segment highlights automatically and the keyboa
 
 Digit auto-advance honors each segment's range: the month advances after a first digit ≥ 2 (no month 20+) but waits after `1` (for 10/11/12); the day advances after ≥ 4 but waits after `3` (for 30/31); the year buffers all four digits. Two-digit values clamp (month → 12, day → the month's length).
 
+In free-form entry there is no segment to step, so a plain `↓` opens the popover as well.
+
 ### On the popover calendar
 
 The day grid's keys work the same on an `inline` calendar, minus opening and closing.
 
 | Key                   | Action                        |
 | --------------------- | ----------------------------- |
-| `↓`                   | Open popover (when closed)    |
 | `Enter`               | Select focused                |
-| `Escape`              | Close popover                 |
+| `Escape` / `Alt+↑`    | Close popover                 |
 | `←` / `→`             | Move focused date by ±1 day   |
 | `↑` / `↓`             | Move focused date by ±7 days  |
 | `PageUp` / `PageDown` | Move focused date by ±1 month |
@@ -873,7 +875,7 @@ The month grid follows the day grid, a month per cell in rows of three. Months w
 | `PageUp` / `PageDown` | Move focus by ±1 year                   |
 | `Home` / `End`        | Jump to the first / last month of a row |
 | `Enter` / `Space`     | Select the focused month                |
-| `Escape`              | Close the popover                       |
+| `Escape` / `Alt+↑`    | Close the popover                       |
 
 ### On the year list opened from the header (`granularity="day"` or `"month"`)
 
@@ -886,16 +888,17 @@ Clicking the month and year in the header, or the year over the month grid, open
 | `Home` / `End`    | Jump to the first / last year in the list                                 |
 | `Enter` / `Space` | Jump to the focused year and go back to the grid                          |
 | `Escape`          | Go back to the grid without jumping; a second `Escape` closes the popover |
+| `Alt+↑`           | Close the popover                                                         |
 
 ### On the year list (`granularity="year"`)
 
-| Key               | Action                                    |
-| ----------------- | ----------------------------------------- |
-| `←` / `→`         | Move focus by ±1 year                     |
-| `↑` / `↓`         | Move focus by ±1 row                      |
-| `Home` / `End`    | Jump to the first / last year in the list |
-| `Enter` / `Space` | Select the focused year                   |
-| `Escape`          | Close the popover                         |
+| Key                | Action                                    |
+| ------------------ | ----------------------------------------- |
+| `←` / `→`          | Move focus by ±1 year                     |
+| `↑` / `↓`          | Move focus by ±1 row                      |
+| `Home` / `End`     | Jump to the first / last year in the list |
+| `Enter` / `Space`  | Select the focused year                   |
+| `Escape` / `Alt+↑` | Close the popover                         |
 
 ---
 
@@ -999,7 +1002,7 @@ Use `inline` instead of the popover when you have vertical room to spare — boo
 | `controlClassName`  | `string`                                                                         | —                | Additional CSS classes for the Control wrapper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `value`             | `Date` \| `null`                                                                 | —                | Controlled selected date.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `defaultValue`      | `Date` \| `null`                                                                 | —                | Initial date for uncontrolled usage.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| `onChange`          | `(d: Date \| null) => void`                                                      | —                | Fired when the value changes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `onChange`          | `(d: Date \| null) => void`                                                      | —                | Fired when the value changes. A day picked in the calendar, by click or by key, arrives at local midnight.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `onOpen`            | `() => void`                                                                     | —                | Fired when the popover opens.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `onClose`           | `() => void`                                                                     | —                | Fired when the popover closes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `min`               | `Date`                                                                           | —                | Earliest selectable date. A `min` before year 1 is raised to 1 January of year 1, where the range starts without one too: HTML's date and month inputs hold no earlier year, so the calendar and typing stop there.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
@@ -1015,7 +1018,7 @@ Use `inline` instead of the popover when you have vertical room to spare — boo
 | `mobileNative`      | `boolean` \| `'auto'`                                                            | `'auto'`         | Use `<input type="date">` on coarse-pointer + small-viewport devices. At `'month'` granularity it uses `<input type="month">` where the browser implements one, as Chromium browsers, Safari on iOS and Firefox for Android do, and the calendar where it doesn't, as in desktop Firefox. Desktop Safari accepts the type but draws no month control, so forcing `true` there shows a plain text box. HTML has no year input, so `'year'` granularity always renders the calendar.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | `editable`          | `boolean`                                                                        | `true`           | Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `popover`           | `boolean`                                                                        | `true`           | Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `openOnFocus`       | `boolean`                                                                        | `true`           | Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `openOnFocus`       | `boolean`                                                                        | `true`           | Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `closeOnSelect`     | `boolean`                                                                        | `true`           | Close the popover after a date is selected.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `appendToBody`      | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |

@@ -68,6 +68,29 @@ describe('PickerPopover', () => {
     expect(queryByTestId('inside')).not.toBeNull();
   });
 
+  it('closes on Alt+ArrowUp from inside, but not on a plain ArrowUp', () => {
+    const { getByTestId, queryByTestId } = render(<Harness />);
+    act(() => {
+      fireEvent.keyDown(getByTestId('inside'), { key: 'ArrowUp' });
+    });
+    expect(queryByTestId('inside')).not.toBeNull();
+    act(() => {
+      fireEvent.keyDown(getByTestId('inside'), {
+        key: 'ArrowUp',
+        altKey: true,
+      });
+    });
+    expect(queryByTestId('inside')).toBeNull();
+  });
+
+  it('keeps Alt+ArrowUp with Escape under closeOnEscape=false', () => {
+    const { queryByTestId } = render(<Harness closeOnEscape={false} />);
+    act(() => {
+      fireEvent.keyDown(document, { key: 'ArrowUp', altKey: true });
+    });
+    expect(queryByTestId('inside')).not.toBeNull();
+  });
+
   it('closes on outside pointerdown', () => {
     const { queryByTestId, container } = render(
       <>

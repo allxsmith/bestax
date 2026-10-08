@@ -153,7 +153,7 @@ describe('DateTimeInput', () => {
     expect(arg.getMinutes()).toBe(45);
   });
 
-  it('ArrowDown on the hours wheel increments the hour, keeping the date', () => {
+  it('ArrowUp on the hours wheel increments the hour, keeping the date', () => {
     const v = new Date(2024, 5, 7, 10, 0);
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
@@ -161,14 +161,14 @@ describe('DateTimeInput', () => {
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     expect(handler).toHaveBeenCalled();
     const arg: Date = handler.mock.calls[0][0];
     expect(arg.getDate()).toBe(7);
     expect(arg.getHours()).toBe(11);
   });
 
-  it('ArrowDown on the minutes wheel increments the minute, keeping the hour', () => {
+  it('ArrowUp on the minutes wheel increments the minute, keeping the hour', () => {
     const v = new Date(2024, 5, 7, 10, 0);
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
@@ -177,7 +177,7 @@ describe('DateTimeInput', () => {
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     const wheels = getAllByRole('spinbutton');
-    fireEvent.keyDown(wheels[1], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[1], { key: 'ArrowUp' });
     const arg: Date = handler.mock.calls[0][0];
     expect(arg.getHours()).toBe(10);
     expect(arg.getMinutes()).toBe(1);
@@ -192,7 +192,7 @@ describe('DateTimeInput', () => {
     fireEvent.click(getByRole('combobox'));
     // Reveal the wheels and change the hour (13 -> 14).
     fireEvent.click(getByRole('button', { name: /Time/ }));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     // Reset reverts to the value the popover opened with (13:45).
     fireEvent.click(getByText('Reset'));
     const reverted: Date = handler.mock.calls[handler.mock.calls.length - 1][0];
@@ -922,7 +922,7 @@ describe('DateTimeInputBase remaining branches', () => {
     const input = getByRole('combobox') as HTMLInputElement;
     fireEvent.click(input);
     fireEvent.click(getByRole('button', { name: /Time/ }));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     expect((handler.mock.calls[0][0] as Date).getHours()).toBe(14);
     // The parent did not update `value`, so the text stays at 13:45.
     expect(input.value).toBe('2024-06-07 13:45');
@@ -970,8 +970,8 @@ describe('DateTimeInputBase remaining branches', () => {
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
-    // ArrowUp decrements to 09:00, which is below min — change is dropped.
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    // ArrowDown steps back to 09:00, below min, so the change is dropped.
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
     expect(handler).not.toHaveBeenCalled();
     expect((getByRole('combobox') as HTMLInputElement).value).toBe(
       '2024-06-07 10:00'
@@ -1057,7 +1057,7 @@ describe('DateTimeInputBase remaining branches', () => {
     fireEvent.click(getByRole('button', { name: /Time/ }));
     const wheels = getAllByRole('spinbutton');
     expect(wheels.length).toBe(3);
-    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     const arg = handler.mock.calls[0][0] as Date;
     expect(arg.getSeconds()).toBe(1);
     expect(arg.getHours()).toBe(0);
@@ -1097,7 +1097,7 @@ describe('DateTimeInputBase remaining branches', () => {
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
-    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
     expect(handler).toHaveBeenCalled();
     expect((handler.mock.calls[0][0] as Date).getHours()).toBe(14);
   });
@@ -1369,6 +1369,175 @@ describe('DateTimeInput focus inside the popover', () => {
       });
       expect(queryByRole('dialog')).toBeNull();
     }
+  });
+});
+
+describe('DateTimeInput focus and the time wheels', () => {
+  const v = new Date(2024, 5, 7, 10, 0);
+  const openPopover = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+  };
+  const pressTimeButton = (button: HTMLElement) => {
+    act(() => {
+      button.focus();
+    });
+    act(() => {
+      fireEvent.click(button);
+    });
+  };
+
+  it('moves focus to the hours wheel as the Time button opens the wheels', () => {
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels[0]).toHaveAttribute('aria-label', 'hours');
+    expect(wheels[0]).toHaveFocus();
+  });
+
+  it('closes the popover on Alt+ArrowUp from a wheel, turning nothing', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={v} onChange={handler} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], {
+        key: 'ArrowUp',
+        altKey: true,
+      });
+    });
+    expect(queryByRole('dialog')).toBeNull();
+    expect(handler).not.toHaveBeenCalled();
+    expect(getByRole('combobox')).toHaveFocus();
+  });
+
+  it('hands focus back to the Time button when Escape closes the wheels', () => {
+    const { getByRole, queryAllByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    const timeButton = getByRole('button', { name: /Time/ });
+    pressTimeButton(timeButton);
+    const minutes = getAllByRole('spinbutton')[1];
+    act(() => {
+      minutes.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(minutes, { key: 'Escape' });
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+    expect(getByRole('dialog')).toBeInTheDocument();
+  });
+
+  it('hands focus back to the Time button when it or a click outside the card closes them', () => {
+    const { getByRole, getAllByRole, queryAllByRole, container } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    const timeButton = getByRole('button', { name: /Time/ });
+    // A click on the button need not focus it, so focus can still be on a
+    // wheel as the button closes them.
+    pressTimeButton(timeButton);
+    expect(getAllByRole('spinbutton')[0]).toHaveFocus();
+    act(() => {
+      fireEvent.click(timeButton);
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+    // A press on the overlay takes focus off the wheel before the click,
+    // as a browser does for a press on something that takes no focus.
+    pressTimeButton(timeButton);
+    const hours = getAllByRole('spinbutton')[0];
+    expect(hours).toHaveFocus();
+    act(() => {
+      hours.blur();
+    });
+    act(() => {
+      fireEvent.click(container.querySelector('.datetimeinput-time-overlay')!);
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
+  });
+
+  it('leaves focus on Reset when Escape closes the wheels from there', () => {
+    const { getByRole, queryAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    const reset = getByRole('button', { name: 'Reset' });
+    act(() => {
+      reset.focus();
+    });
+    act(() => {
+      fireEvent.keyDown(reset, { key: 'Escape' });
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(reset).toHaveFocus();
+  });
+
+  it('takes the calendar the wheels cover out of reach until they close', () => {
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} />
+    );
+    openPopover(getByRole('combobox'));
+    const grid = getByRole('grid');
+    expect(grid.closest('[inert]')).toBeNull();
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    expect(grid.closest('[inert]')).not.toBeNull();
+    // So the hours wheel is the first tab stop, and Shift+Tab wraps to the
+    // footer rather than reaching a day behind the wheels.
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], {
+        key: 'Tab',
+        shiftKey: true,
+      });
+    });
+    expect(getByRole('button', { name: 'Done' })).toHaveFocus();
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
+    });
+    expect(grid.closest('[inert]')).toBeNull();
+  });
+
+  it('keeps focus on the wheel the keys turn', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput defaultValue={v} onChange={handler} />
+    );
+    openPopover(getByRole('combobox'));
+    pressTimeButton(getByRole('button', { name: /Time/ }));
+    const hours = getAllByRole('spinbutton')[0];
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'ArrowUp' });
+    });
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'ArrowUp' });
+    });
+    expect((handler.mock.lastCall![0] as Date).getHours()).toBe(12);
+    expect(hours).toHaveFocus();
+  });
+
+  it('does the same inline', () => {
+    const { getByRole, getAllByRole, queryAllByRole } = render(
+      <DateTimeInput defaultValue={v} inline />
+    );
+    const timeButton = getByRole('button', { name: /Time/ });
+    pressTimeButton(timeButton);
+    const hours = getAllByRole('spinbutton')[0];
+    expect(hours).toHaveFocus();
+    act(() => {
+      fireEvent.keyDown(hours, { key: 'Escape' });
+    });
+    expect(queryAllByRole('spinbutton')).toHaveLength(0);
+    expect(timeButton).toHaveFocus();
   });
 });
 
@@ -1909,7 +2078,7 @@ describe('DateTimeInput before year 1', () => {
       );
       fireEvent.click(getByRole('combobox'));
       fireEvent.click(getByRole('button', { name: /Time/ }));
-      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowDown' });
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
       if (allowed) expect(handler).toHaveBeenCalledWith(at(year, 5, 15, 11, 0));
       else expect(handler).not.toHaveBeenCalled();
       unmount();
@@ -2025,5 +2194,132 @@ describe('DateTimeInput before year 1', () => {
       });
       expect(handler).toHaveBeenLastCalledWith(at(1, 2, 4, 14, 30));
     });
+  });
+});
+
+describe('DateTimeInput times seeded from the clock', () => {
+  // The clock reads 14:23:10.507. A time the picker starts from it keeps
+  // none of what the field does not show: the seconds without enableSeconds,
+  // and the milliseconds always.
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+  const last = (handler: jest.Mock) => handler.mock.lastCall![0] as Date;
+  const openOnFocusedDay = (input: HTMLElement) => {
+    act(() => {
+      input.focus();
+    });
+    return document.activeElement as HTMLElement;
+  };
+
+  it('Enter on the focused day of an empty field picks it at midnight', () => {
+    for (const enableSeconds of [false, true]) {
+      const handler = jest.fn();
+      const { getByRole, unmount } = render(
+        <DateTimeInput enableSeconds={enableSeconds} onChange={handler} />
+      );
+      const day = openOnFocusedDay(getByRole('combobox'));
+      expect(day).toHaveTextContent('7');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'Enter' });
+      });
+      expect(last(handler)).toEqual(new Date(2026, 9, 7, 0, 0, 0, 0));
+      unmount();
+    }
+  });
+
+  it('a picked day keeps the whole time of a value, by key or by click', () => {
+    const value = new Date(2026, 9, 7, 10, 30, 45, 250);
+    const handler = jest.fn();
+    const { getByRole } = render(
+      <DateTimeInput value={value} onChange={handler} />
+    );
+    const day = openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.keyDown(day, { key: 'ArrowRight' });
+    });
+    act(() => {
+      fireEvent.keyDown(document.activeElement!, { key: 'Enter' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 8, 10, 30, 45, 250));
+    const ninth = Array.from(
+      getByRole('dialog').querySelectorAll('[role="gridcell"]')
+    ).find(c => c.textContent === '9')!;
+    act(() => {
+      fireEvent.click(ninth);
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 9, 10, 30, 45, 250));
+  });
+
+  it('a value set after mounting empty gives the picked day its time, not the clock', () => {
+    const handler = jest.fn();
+    const { getByRole, rerender } = render(
+      <DateTimeInput value={null} onChange={handler} />
+    );
+    rerender(
+      <DateTimeInput value={new Date(2026, 9, 7, 9, 15)} onChange={handler} />
+    );
+    const day = openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.keyDown(day, { key: 'Enter' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 7, 9, 15, 0, 0));
+  });
+
+  it('turning a wheel on an empty field starts from a whole minute', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput onChange={handler} />
+    );
+    openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+    });
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 7, 1, 0, 0, 0));
+  });
+
+  it('turning the seconds wheel on an empty field starts from a whole second', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole } = render(
+      <DateTimeInput enableSeconds onChange={handler} />
+    );
+    openOnFocusedDay(getByRole('combobox'));
+    act(() => {
+      fireEvent.click(getByRole('button', { name: /Time/ }));
+    });
+    act(() => {
+      fireEvent.keyDown(getAllByRole('spinbutton')[2], { key: 'ArrowUp' });
+    });
+    expect(last(handler)).toEqual(new Date(2026, 9, 7, 0, 0, 1, 0));
+  });
+
+  it('typing into an empty field starts from the clock, less what the format hides', () => {
+    for (const [enableSeconds, seeded] of [
+      [false, new Date(2027, 9, 7, 14, 23, 0, 0)],
+      [true, new Date(2027, 9, 7, 14, 23, 10, 0)],
+    ] as const) {
+      const handler = jest.fn();
+      const { getByRole, unmount } = render(
+        <DateTimeInput
+          enableSeconds={enableSeconds}
+          openOnFocus={false}
+          onChange={handler}
+        />
+      );
+      const input = getByRole('combobox');
+      act(() => {
+        input.focus();
+      });
+      fireEvent.keyDown(input, { key: 'ArrowUp' }); // year segment
+      expect(last(handler)).toEqual(seeded);
+      unmount();
+    }
   });
 });

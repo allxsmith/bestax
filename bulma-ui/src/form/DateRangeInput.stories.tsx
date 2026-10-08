@@ -262,7 +262,7 @@ export const ManualEntry: Story = {
     docs: {
       description: {
         story:
-          'With `openOnFocus` off, both inputs are for typing: segments step with the arrow keys and fill from digits, and `Tab` moves from the start to the end. The launcher, or `ArrowDown`, opens the calendar.',
+          'With `openOnFocus` off, both inputs are for typing: segments step with the arrow keys and fill from digits, and `Tab` moves from the start to the end. The launcher, or `Alt+ArrowDown`, opens the calendar, and `Alt+ArrowUp` closes it.',
       },
     },
   },

@@ -28,7 +28,7 @@
   ],
   "accessibility": "- The group is rendered as a `<div class=\"radios\" role=\"radiogroup\">` containing labeled radio buttons.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Inside a labeled `Field`, that `Field`'s label names the group the same way, unless you give the group an `aria-label` or `aria-labelledby` of your own.\n- Each child should be a `Radio` for proper labeling and accessibility.\n- Use the same `name` for all radios in a group to ensure mutual exclusivity.",
   "related": ["Field", "Radio"],
-  "storybook": "https://bestax.io/storybook/?path=/story/form-radio--listofradios",
+  "storybook": "https://bestax.io/storybook/?path=/story/form-radios--default",
   "summary": "The `Radios` component wraps multiple `Radio` components in a Bulma-styled group.",
   "import": "import { Radios, Radio } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Radios.tsx",

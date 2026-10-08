@@ -1,3 +1,44 @@
+# [5.27.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.6...@allxsmith/bestax-bulma@5.27.0) (2026-10-08)
+
+
+### Bug Fixes
+
+* **bulma-ui:** close a picker's popover on Alt+ArrowUp from inside it ([b6da4ef](https://github.com/allxsmith/bestax/commit/b6da4efcf8f3cf0c8a3859e2da15a5ec00af6d68))
+* **bulma-ui:** drop the openOnFocus TSDoc reason that only holds for segments ([efde0d9](https://github.com/allxsmith/bestax/commit/efde0d93b79c2836668faec15d4e741e1acc6de7))
+* **bulma-ui:** keep a range's end while the start's digits are coming ([8d1f862](https://github.com/allxsmith/bestax/commit/8d1f862c1595ea97c2fcc88ee30e5d0b5be4b13b))
+* **bulma-ui:** keep a read-only date or time picker closed on ArrowDown ([ba74bf7](https://github.com/allxsmith/bestax/commit/ba74bf737bc60e5edee7b6367c0fc5cdbfa1741f))
+* **bulma-ui:** keep the calendar behind DateTimeInput's time wheels out of reach ([c7f674c](https://github.com/allxsmith/bestax/commit/c7f674c004f0f9ce2c65cbfa7de5b312ca2b0bac))
+* **bulma-ui:** keep the clock's seconds out of a picked date and time ([0af2e71](https://github.com/allxsmith/bestax/commit/0af2e716e3c3a923c57b61ea26a9106bae77a4ab))
+* **bulma-ui:** keep the range band under the pointer in the calendar ([c1f2008](https://github.com/allxsmith/bestax/commit/c1f2008b4b899f66a06831eaf49b7e6b57ed4179))
+* **bulma-ui:** key the Control-level warning by its advice ([24cda3d](https://github.com/allxsmith/bestax/commit/24cda3df6afe614e28ce1a6f4e774d136f4a4778))
+* **bulma-ui:** leave keys on a control inside a tab to that control ([4a9f7b6](https://github.com/allxsmith/bestax/commit/4a9f7b6ed59ab4201663d2259379684bd63e4f34))
+* **bulma-ui:** let File's picked-files count be reworded, and document its name in the label ([e86545c](https://github.com/allxsmith/bestax/commit/e86545ccc4c59d59bd2cc243849af0a82cc43c3c))
+* **bulma-ui:** make ArrowUp raise a time wheel's value ([c27c310](https://github.com/allxsmith/bestax/commit/c27c3105816be36f8b8332e0995827d6a5df5fe1))
+* **bulma-ui:** make Tabs keyboard operable with the WAI-ARIA tabs pattern ([fe0e7ef](https://github.com/allxsmith/bestax/commit/fe0e7ef9b5332fc91e8132b2ea9d8ffd320be1e1))
+* **bulma-ui:** move focus into DateTimeInput's time wheels as they open ([adfa9db](https://github.com/allxsmith/bestax/commit/adfa9dbca5f4f0b790b59ce06cc0e756533b0f5a))
+* **bulma-ui:** name a picker's default icon when its icon size or column moves ([6f6de39](https://github.com/allxsmith/bestax/commit/6f6de39194f6c9308049449c92c3cc381fd57f3c))
+* **bulma-ui:** name DateRangeInput's default icon in its Control-level warning ([15cbbb8](https://github.com/allxsmith/bestax/commit/15cbbb87f322c17361cfa6ce6cb6a58abac59f35)), closes [#952](https://github.com/allxsmith/bestax/issues/952)
+* **bulma-ui:** name DateRangeInput's default icon in its Control-level warning ([9cbe7ca](https://github.com/allxsmith/bestax/commit/9cbe7caa5bca700d82e4f846b6fc80d640f239d6)), closes [#952](https://github.com/allxsmith/bestax/issues/952)
+* **bulma-ui:** open DateRangeInput's popover on Alt+ArrowDown, as the other pickers ([c0e22ec](https://github.com/allxsmith/bestax/commit/c0e22ec207d6dd85e8842c3b8e137163acaa71a6))
+* **bulma-ui:** open the date and time popovers on Alt+ArrowDown ([6db22cc](https://github.com/allxsmith/bestax/commit/6db22cc24c5e1d4d0072c82e7162198dd9f4a689))
+* **bulma-ui:** order the Tabs fallback stop by index and style disabled tabs ([eefd283](https://github.com/allxsmith/bestax/commit/eefd28370471d0f8390241ca586494d0aa4a3420))
+* **bulma-ui:** pick a DateInput day at midnight by key as by click ([92c27ca](https://github.com/allxsmith/bestax/commit/92c27ca4c788baede667a7898d82dbac0b6a4b04))
+* **bulma-ui:** say a picked DateTimeInput day keeps milliseconds and meets the bounds ([3536467](https://github.com/allxsmith/bestax/commit/353646731e69e1f1683b3bf3e1af86f35562e7a1))
+* **bulma-ui:** say Tab reaches DateRangeInput's end input only when typing ([d2d3d1a](https://github.com/allxsmith/bestax/commit/d2d3d1a870e9b0ebabf69dd8b22c8b2dba604eb1))
+* **bulma-ui:** send a press on DateRangeInput's field to the nearer input ([f06b2b0](https://github.com/allxsmith/bestax/commit/f06b2b008805b78cbf6529b4f66d099fc429306b))
+* **bulma-ui:** show the picked file with File's hasName and add a keyboard focus ring ([7881db4](https://github.com/allxsmith/bestax/commit/7881db4527eb6c6e17e16c2a7867a0d85496b23e))
+* **create-bestax:** check the react ranges fit the library's peers, not equal them ([8ae5a0c](https://github.com/allxsmith/bestax/commit/8ae5a0cd417b05b6677bfb6fff0b84762f453b11)), closes [#950](https://github.com/allxsmith/bestax/issues/950)
+* **create-bestax:** import the icon CSS for every Bulma flavor, not only complete ([a712b91](https://github.com/allxsmith/bestax/commit/a712b91814481cd9b3bcb9a8720ce4249f03956c)), closes [#946](https://github.com/allxsmith/bestax/issues/946)
+* **create-bestax:** install react and react-dom so Yarn 1 reports no unmet peers ([9c9814c](https://github.com/allxsmith/bestax/commit/9c9814c73755bcd6c9a5d7d3a6fe5b5e7488d4c4)), closes [#644](https://github.com/allxsmith/bestax/issues/644) [#950](https://github.com/allxsmith/bestax/issues/950)
+* **create-bestax:** name the files the overwrite prompt removes, and stop on a file path ([39b6232](https://github.com/allxsmith/bestax/commit/39b6232b0b90bd0b57c2eb7b6943367e5d859542)), closes [#945](https://github.com/allxsmith/bestax/issues/945)
+* **create-bestax:** never empty a non-empty folder under -y, and validate flags first ([917f195](https://github.com/allxsmith/bestax/commit/917f195a628d91679c71cbdedb32f53f3cb22698)), closes [#950](https://github.com/allxsmith/bestax/issues/950) [#945](https://github.com/allxsmith/bestax/issues/945) [#950](https://github.com/allxsmith/bestax/issues/950)
+* **create-bestax:** warn when the icon CSS import has nowhere to go ([f7f0b64](https://github.com/allxsmith/bestax/commit/f7f0b64b5c7a9bd9ac51dd085dd23fa1b772a29d)), closes [#946](https://github.com/allxsmith/bestax/issues/946) [#946](https://github.com/allxsmith/bestax/issues/946)
+
+
+### Features
+
+* **bulma-ui:** add DateRangeInput ([50fcba7](https://github.com/allxsmith/bestax/commit/50fcba78a6ebbe9de16c0172c76252cb341eba73)), closes [#774](https://github.com/allxsmith/bestax/issues/774)
+
 ## [5.26.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.26.5...@allxsmith/bestax-bulma@5.26.6) (2026-10-07)
 
 

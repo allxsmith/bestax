@@ -6,7 +6,7 @@ sidebar_position: 6
 
 # Optimizing CSS Size
 
-The JavaScript side of bestax-bulma is lean and tree-shakable (~49 KB min+gzip for the
+The JavaScript side of bestax-bulma is lean and tree-shakable (~65 KB min+gzip for the
 _entire_ library — apps ship only the components they import) — but the **stylesheet** ships
 all of Bulma plus the bestax extras, whatever your app uses. With the default `complete` flavor, that's roughly **800 KB of CSS (~82 KB gzipped)** in
 a production build, essentially constant regardless of how many components you render.

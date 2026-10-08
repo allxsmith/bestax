@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import Field, { FieldLabel, FieldBody } from '../Field';
 import { Control } from '../Control';
 import InputBase from '../InputBase';
@@ -665,6 +665,25 @@ describe('label names the convenience controls (#939)', () => {
       expect(labelEl(container)).toHaveAttribute('for', control().id);
     }
   );
+
+  it("keeps a File's picked name and onChange beside the Field label's id", () => {
+    const onChange = jest.fn();
+    const { container } = render(
+      <Field label="Resume">
+        <File id={undefined} hasName onChange={onChange} />
+      </Field>
+    );
+    const input = container.querySelector(
+      'input[type="file"]'
+    ) as HTMLInputElement;
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+    fireEvent.change(input, {
+      target: { files: [new window.File(['x'], 'resume.pdf')] },
+    });
+    expect(onChange).toHaveBeenCalledTimes(1);
+    expect(screen.getByText('resume.pdf')).toHaveClass('file-name');
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+  });
 
   it.each([
     ['a generated target', {}],

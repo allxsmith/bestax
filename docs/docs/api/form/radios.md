@@ -294,7 +294,7 @@ function RadiosWrappedFormDemo() {
 ## Additional Resources
 
 - [Bulma Radios Documentation](https://bulma.io/documentation/form/radio/#grouped-radios)
-- [Storybook: Radio Stories](https://bestax.io/storybook/?path=/story/form-radio--listofradios)
+- [Storybook: Radios Stories](https://bestax.io/storybook/?path=/story/form-radios--default)
 
 ---
 

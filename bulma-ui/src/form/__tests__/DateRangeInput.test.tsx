@@ -425,16 +425,52 @@ describe('DateRangeInput', () => {
       expect(onFocusCapture).toHaveBeenCalled();
     });
 
-    it('stays closed on focus with openOnFocus off, and opens on ArrowDown', () => {
-      render(<DateRangeInput openOnFocus={false} />);
+    it('stays closed on focus with openOnFocus off, and opens on Alt+ArrowDown', () => {
+      const onChange = jest.fn();
+      render(
+        <DateRangeInput
+          openOnFocus={false}
+          defaultValue={[june(10), june(12)]}
+          onChange={onChange}
+        />
+      );
       fireEvent.focus(endInput());
       fireEvent.click(endInput());
       expect(screen.queryByRole('dialog')).toBeNull();
-      // Outside segment mode, as before the input is focused.
-      fireEvent.keyDown(screen.getByRole('combobox', { name: 'Start date' }), {
-        key: 'ArrowDown',
+      act(() => {
+        startInput().focus();
+      });
+      // A focused input is in segment mode, where ArrowDown steps the year.
+      fireEvent.keyDown(startInput(), { key: 'ArrowDown' });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(lastRange(onChange)).toEqual([new Date(2023, 5, 10), june(12)]);
+      act(() => {
+        fireEvent.keyDown(startInput(), { key: 'ArrowDown', altKey: true });
       });
       expect(screen.getByRole('dialog')).toBeInTheDocument();
+      expect(onChange).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes on Alt+ArrowUp from the calendar, where opening put focus', () => {
+      render(
+        <DateRangeInput
+          openOnFocus={false}
+          defaultValue={[june(10), june(12)]}
+        />
+      );
+      act(() => {
+        startInput().focus();
+      });
+      act(() => {
+        fireEvent.keyDown(startInput(), { key: 'ArrowDown', altKey: true });
+      });
+      const day = document.activeElement as HTMLElement;
+      expect(day).toHaveAttribute('role', 'gridcell');
+      act(() => {
+        fireEvent.keyDown(day, { key: 'ArrowUp', altKey: true });
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      expect(startInput()).toHaveFocus();
     });
 
     it('hands focus back to the input that opened it, and stays shut', () => {

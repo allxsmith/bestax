@@ -126,6 +126,7 @@ export interface DateRangeInputBaseProps
    * Open the popover when focus arrives in the field. Moving focus between
    * the two inputs, or back from the launcher, leaves it closed, and so does
    * the focus a closing popover hands back. A click on either input opens it.
+   * With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /**
