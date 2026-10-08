@@ -397,6 +397,35 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
     await expect(counterButton).toBeFocused();
   });
 
+  test('announces both notifications through a status region', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    // A live region added along with its content may not be read out, so the
+    // region is on the page, empty, before either notification is.
+    const status = page.getByRole('status');
+    await expect(status).toHaveCount(1);
+    await expect(status).toBeEmpty();
+    const region = await status.elementHandle();
+
+    await page
+      .locator('button')
+      .filter({ hasText: 'Toggle Notification' })
+      .click();
+    await expect(status).toContainText('Success!');
+
+    const counterButton = page.locator('button').filter({ hasText: 'Count:' });
+    for (let i = 0; i < 11; i++) {
+      await counterButton.click();
+    }
+    await expect(status).toContainText("You've clicked the button 11 times!");
+
+    // Still the node that was there before anything appeared in it.
+    expect(await status.evaluate((el, before) => el === before, region)).toBe(
+      true
+    );
+  });
+
   test('has one main landmark, no banners, and no skipped heading levels', async ({
     page,
   }) => {

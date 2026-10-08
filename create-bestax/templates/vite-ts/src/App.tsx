@@ -130,7 +130,11 @@ function App() {
                 </Buttons>
               </Column>
 
-              <Column size="half">
+              {/* A status region reads out what appears in it, so a screen
+                  reader hears both notifications. It stays mounted while its
+                  content changes: one added along with its content may not
+                  be announced. */}
+              <Column size="half" role="status">
                 {showNotification && (
                   <Notification
                     color="success"
