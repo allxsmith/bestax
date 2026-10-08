@@ -276,6 +276,47 @@ describe('day text on the calendar backgrounds', () => {
   };
   const color = (cell: HTMLElement) => getComputedStyle(cell).color;
 
+  // The day colours below were measured against these fills: a stronger
+  // band or hover can take them back under 4.5:1, so a change here means
+  // measuring them again.
+  it('keeps the fills the day colours were measured against', () => {
+    const { container } = render(<DateInput inline />);
+    const vars = getComputedStyle(calendarRoot(container));
+    const read = (name: string) => vars.getPropertyValue(name).trim();
+    expect(read('--bulma-dateinput-cell-hover-bg')).toBe(
+      'hsla(0, 0%, 50%, 0.13)'
+    );
+    expect(read('--bulma-dateinput-cell-range-bg')).toBe(
+      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 18%, transparent)'
+    );
+    expect(read('--bulma-dateinput-cell-range-preview-bg')).toBe(
+      'color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 9%, transparent)'
+    );
+  });
+
+  it('reads a day that is both today and a nearby month as the nearby month, in a band too', () => {
+    // November 3rd is today, and October's grid ends on November's first
+    // days, inside a range from October 20th to November 10th.
+    jest.setSystemTime(new Date(2026, 10, 3, 12));
+    const { container } = render(
+      <DateRangeInput
+        inline
+        defaultValue={[new Date(2026, 9, 20), new Date(2026, 10, 10)]}
+      />
+    );
+    const today = day(container, 3, true);
+    expect(today).toHaveClass('is-today', 'is-in-range');
+    expect(color(today)).toBe('var(--bulma-dateinput-cell-color)');
+
+    // Outside a band, the nearby month's tint wins over today's the same way.
+    const { container: single } = render(
+      <DateInput inline defaultValue={new Date(2026, 9, 20)} />
+    );
+    const plain = day(single, 3, true);
+    expect(plain).toHaveClass('is-today');
+    expect(color(plain)).toBe('var(--bulma-dateinput-cell-other-month-color)');
+  });
+
   it('reads a nearby month halfway between text-weak and text', () => {
     const { container } = render(<DateInput inline />);
     expect(

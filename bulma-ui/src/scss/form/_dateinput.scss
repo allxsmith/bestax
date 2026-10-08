@@ -286,17 +286,19 @@ $dateinput-cell-range-preview-bg: color-mix(
     // lifts it again, which takes the tints below 4.5:1 there. A nearby
     // month's day in the band reads like any day of the range, and today
     // leans a fifth of the way toward `text-strong`, which darkens it on a
-    // light scheme and lightens it on a dark one.
+    // light scheme and lightens it on a dark one. Today comes first, as it
+    // does outside a band, so a day that is both today and from a nearby
+    // month reads as the nearby month's day in either place.
     &:not(:disabled):not(.#{iv.$class-prefix}is-disabled) {
-      &.#{iv.$class-prefix}is-other-month {
-        color: cv.getVar('dateinput-cell-color');
-      }
       &.#{iv.$class-prefix}is-today {
         color: color-mix(
           in srgb,
           cv.getVar('dateinput-cell-today-color') 80%,
           cv.getVar('text-strong')
         );
+      }
+      &.#{iv.$class-prefix}is-other-month {
+        color: cv.getVar('dateinput-cell-color');
       }
     }
   }

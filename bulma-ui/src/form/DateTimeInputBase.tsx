@@ -165,8 +165,8 @@ export interface DateTimeInputBaseProps
    * drawn inside the band in the color's `-invert`, like the selected value,
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
-   * follow `primary` by default. The footer's time pill and Done button stay
-   * `primary` either way.
+   * follow `primary` by default. The footer's time pill and Done button do not
+   * follow `color`.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */
