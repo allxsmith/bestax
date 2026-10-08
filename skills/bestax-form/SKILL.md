@@ -95,6 +95,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
 | `Taginput`                                              | Tag/chip input; suggestions, confirm keys, closable tags.                 |
 | `DateInput` / `TimeInput` / `DateTimeInput` (+ `*Base`) | Date / time / datetime pickers; month or year via `granularity`.          |
+| `DateRangeInput` (+ `*Base`)                            | Start and end date: `[Date \| null, Date \| null]`, one calendar.         |
 
 (`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
 same components; prefer the lowercase-second-word spellings.)
@@ -130,8 +131,8 @@ The `label` prop on the single-control convenience inputs (`Input`, `Select`, `T
 generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
 happens when the component renders its own `Field` (nested inside one, the `label` prop is
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
-`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`)
-associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
+`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`,
+`DateRangeInput`) associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
 and `aria-labelledby` pointing at the label. Composing `Field` + bases yourself also
 associates: `Field`'s own `label` wires to a single composed `InputBase`/`SelectBase`/
 `TextAreaBase` (skipped for `grouped`/`hasAddons`). Pass `labelProps={{ htmlFor }}` plus a
