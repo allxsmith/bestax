@@ -15,6 +15,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  bulmaKeys,
   orphanPartialViolations,
   unregisteredVarViolations,
 } from './check-conformance.mjs';
@@ -170,4 +171,16 @@ test('a variable outside the namespace, or in a comment, is nobody’s business'
     ),
     []
   );
+});
+
+test('the Bulma keys rule 4 exempts are the ones Bulma registers, and no wider', async () => {
+  // The cases above pass the set by hand, so they say nothing about the one
+  // the rule reads, and a wider read fails open: rule 4 just gets quieter.
+  const keys = await bulmaKeys();
+  // The key the exemption exists for: _file.scss reads Bulma's file-radius.
+  assert.ok(keys.has('file-radius'));
+  // bestax's own _tabs.scss registers this one, in the tabs namespace it
+  // shares with Bulma, where only this set stands between rule 4 and an
+  // unregistered variable.
+  assert.ok(!keys.has('tabs-vertical-min-width'));
 });

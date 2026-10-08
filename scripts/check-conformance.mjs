@@ -622,9 +622,13 @@ export function unregisteredVarViolations(
   return violations;
 }
 
-/** Every variable key Bulma's own partials register, read once. */
+/**
+ * Every variable key Bulma's own partials register, read once. Rule 4 exempts
+ * whatever this returns, so a wider read quietly exempts more; the scss
+ * conformance test holds it to the real Bulma tree.
+ */
 let bulmaKeySet;
-async function bulmaKeys() {
+export async function bulmaKeys() {
   if (!bulmaKeySet) {
     const sassDir = join(
       dirname(createRequire(import.meta.url).resolve('bulma/package.json')),
