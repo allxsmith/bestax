@@ -615,6 +615,29 @@ describe('Rate', () => {
       );
     });
 
+    it.each([
+      ['a hair over', 4.004],
+      ['a hair under', 3.996],
+    ])(
+      "checks a value %s a whole number on that number's star, so no two stars share a name",
+      (_where, value) => {
+        render(<Rate value={value} onChange={() => {}} />);
+        const names = screen
+          .getAllByRole('radio')
+          .map(star => star.getAttribute('aria-label'));
+        expect(new Set(names).size).toBe(5);
+        const four = screen.getByRole('radio', { name: '4 stars' });
+        expect(four).toBeChecked();
+        expect(
+          screen.getByRole('radio', { name: '5 stars' })
+        ).not.toBeChecked();
+        expect(screen.getByRole('radiogroup')).toHaveAttribute(
+          'aria-activedescendant',
+          four.id
+        );
+      }
+    );
+
     it('checks and names the star a fractional value falls in at whole precision too', () => {
       render(<Rate value={4.3} disabled />);
       expect(screen.getByRole('radio', { checked: true })).toHaveAccessibleName(

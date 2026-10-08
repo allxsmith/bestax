@@ -475,9 +475,13 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
 
     // The star the value falls in is the checked radio, and it carries the
     // value: a radiogroup takes no aria-value* of its own. A fractional value
-    // names that star by the value itself ("3.5 stars").
+    // names that star by the value itself ("3.5 stars"). Both go by the value
+    // as that name writes it, to hundredths, so a value a hair over a whole
+    // number checks that number's star under its own name, and no two stars
+    // share a name.
+    const shownValue = Number(currentValue.toFixed(2));
     const checkedIndex =
-      currentValue > 0 ? Math.min(Math.ceil(currentValue), max) - 1 : -1;
+      shownValue > 0 ? Math.min(Math.ceil(shownValue), max) - 1 : -1;
 
     // Render icons
     const renderIcons = () => {
@@ -509,8 +513,8 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
             role="radio"
             aria-checked={iconIndex === checkedIndex}
             aria-label={
-              iconIndex === checkedIndex && currentValue % 1 !== 0
-                ? `${Number(currentValue.toFixed(2))} stars`
+              iconIndex === checkedIndex && shownValue % 1 !== 0
+                ? `${shownValue} stars`
                 : `${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`
             }
             tabIndex={-1}
