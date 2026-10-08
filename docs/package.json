@@ -30,10 +30,10 @@
     "clsx": "^2.0.0",
     "ionicons": "^8.1.0",
     "material-icons": "^1.13.14",
-    "material-symbols": "^0.46.0",
+    "material-symbols": "^0.47.6",
     "prism-react-renderer": "^2.3.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "react-live": "^5.0.0",
     "react-shadow": "^20.6.0"
   },
