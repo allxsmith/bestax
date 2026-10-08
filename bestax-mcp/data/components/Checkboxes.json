@@ -28,7 +28,7 @@
   ],
   "accessibility": "- The group is rendered as a `<div class=\"checkboxes\" role=\"group\">` containing labeled checkboxes.\n- The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.\n- Each child should be a `Checkbox` for proper labeling and accessibility.",
   "related": ["Checkbox", "Field"],
-  "storybook": "https://bestax.io/storybook/?path=/story/form-checkbox--listofcheckboxes",
+  "storybook": "https://bestax.io/storybook/?path=/story/form-checkboxes--default",
   "summary": "The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.",
   "import": "import { Checkboxes, Checkbox } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Checkboxes.tsx",
