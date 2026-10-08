@@ -755,7 +755,9 @@ describe('label names the convenience controls (#939)', () => {
   });
 
   it.each([
-    ['an inline picker', () => <DateInput inline />],
+    ['an inline DateInput', () => <DateInput inline />],
+    ['an inline TimeInput', () => <TimeInput inline />],
+    ['an inline DateTimeInput', () => <DateTimeInput inline />],
     [
       'a Taginput at its tag limit',
       () => <Taginput defaultValue={['React']} maxTags={1} />,
