@@ -102,7 +102,9 @@ Different dialog types with matching icons.
 
 ```tsx live
 function example() {
-  const [dialogType, setDialogType] = useState(null);
+  const [dialogType, setDialogType] = useState<
+    'success' | 'danger' | 'warning' | 'info' | null
+  >(null);
   return (
     <Block>
       <Buttons>

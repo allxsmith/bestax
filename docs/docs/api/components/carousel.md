@@ -102,7 +102,9 @@ Different indicator style options.
 
 ```tsx live
 function IndicatorExample() {
-  const [style, setStyle] = useState('dots');
+  const [style, setStyle] = useState<'dots' | 'circles' | 'lines' | 'bars'>(
+    'dots'
+  );
   return (
     <Block>
       <Buttons mb="4">

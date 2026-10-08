@@ -64,7 +64,7 @@ Manage state externally with `value` and `onChange`.
 
 ```tsx live
 function example() {
-  const [value, setValue] = useState(new Date());
+  const [value, setValue] = useState<Date | null>(new Date());
   return (
     <Block>
       <DateInput label="Date" value={value} onChange={setValue} />
@@ -80,7 +80,7 @@ function example() {
 
 ```tsx live
 function example() {
-  const [value, setValue] = useState(new Date());
+  const [value, setValue] = useState<Date | null>(new Date());
   return (
     <Block>
       <DateInput
@@ -324,7 +324,7 @@ For an `Intl.DateTimeFormatOptions` format, supply a `parse` so typed text round
 
 ```tsx live
 function example() {
-  const parse = s => {
+  const parse = (s: string) => {
     const t = Date.parse(s);
     return isNaN(t) ? null : new Date(t);
   };
@@ -344,7 +344,7 @@ function example() {
 
 ```tsx live
 function example() {
-  const parse = s => {
+  const parse = (s: string) => {
     const t = Date.parse(s);
     return isNaN(t) ? null : new Date(t);
   };
@@ -455,7 +455,7 @@ function example() {
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => new Date(2024, 5, 7));
+  const [v, setV] = useState<Date | null>(() => new Date(2024, 5, 7));
   return (
     <Block>
       <DateInput

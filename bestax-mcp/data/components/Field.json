@@ -43,7 +43,7 @@
     },
     {
       "title": "With Input (Static, Horizontal)",
-      "code": "<>\n  <Field horizontal label=\"Username\">\n    <Control>\n      <Input isStatic value=\"Static value\" />\n    </Control>\n  </Field>\n  <Field horizontal label=\"Password\">\n    <Control>\n      <Input placeholder=\"Editable value\" />\n    </Control>\n  </Field>\n</>"
+      "code": "<>\n  <Field horizontal label=\"Username\">\n    <Control>\n      <Input isStatic readOnly value=\"Static value\" />\n    </Control>\n  </Field>\n  <Field horizontal label=\"Password\">\n    <Control>\n      <Input placeholder=\"Editable value\" />\n    </Control>\n  </Field>\n</>"
     },
     {
       "title": "With Input (Icons)",
