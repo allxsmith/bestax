@@ -994,7 +994,7 @@
       "import": "import { Tabs } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 37,
-      "exampleCount": 13
+      "exampleCount": 14
     },
     {
       "name": "Tag",

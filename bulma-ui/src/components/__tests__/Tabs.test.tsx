@@ -1,10 +1,13 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { act, render, screen, fireEvent } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { renderToStaticMarkup } from 'react-dom/server';
 import Tabs, {
   Tab,
   TabList,
   TabItem,
   TabsContent,
   TabContentItem,
+  type TabsProps,
 } from '../Tabs';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetColorDeprecationWarnings } from '../../helpers/colorDeprecations';
@@ -993,5 +996,632 @@ describe('Tabs fullwidth aliases', () => {
       </ConfigProvider>
     );
     expect(screen.getByTestId('tabs')).toHaveClass('bestax-is-fullwidth');
+  });
+});
+
+describe('Tabs keyboard support (WAI-ARIA tabs pattern)', () => {
+  const LABELS = ['One', 'Two', 'Three', 'Four'];
+
+  const renderTabs = (
+    props: Partial<TabsProps> = {},
+    disabled: number[] = []
+  ) =>
+    render(
+      <>
+        <button type="button">before</button>
+        <Tabs {...props}>
+          <Tabs.List>
+            {LABELS.map((label, i) => (
+              <Tabs.Tab key={label} index={i} disabled={disabled.includes(i)}>
+                {label}
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+          <Tabs.Content>
+            {LABELS.map((label, i) => (
+              <Tabs.Content.Item key={label} index={i}>
+                {`${label} panel`}
+              </Tabs.Content.Item>
+            ))}
+          </Tabs.Content>
+        </Tabs>
+        <button type="button">after</button>
+      </>
+    );
+
+  const tab = (name: string) => screen.getByRole('tab', { name });
+  const focus = (el: HTMLElement) => act(() => el.focus());
+  const key = (el: HTMLElement, k: string, init: object = {}) =>
+    fireEvent.keyDown(el, { key: k, ...init });
+  const tabIndexes = () =>
+    LABELS.map(label => tab(label).getAttribute('tabindex'));
+
+  describe('roving tab stop', () => {
+    it('makes the selected tab the only tab stop', () => {
+      renderTabs({ defaultValue: 2 });
+      expect(tabIndexes()).toEqual(['-1', '-1', '0', '-1']);
+    });
+
+    it('enters the list on the selected tab and leaves it with one Tab press', async () => {
+      const user = userEvent.setup();
+      renderTabs({ defaultValue: 1 });
+      act(() => screen.getByRole('button', { name: 'before' }).focus());
+      await user.tab();
+      expect(tab('Two')).toHaveFocus();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'after' })).toHaveFocus();
+    });
+
+    it('moves the tab stop with focus, so Tab and Shift+Tab leave the list from any tab', async () => {
+      const user = userEvent.setup();
+      renderTabs({ defaultValue: 2 });
+      focus(tab('Three'));
+      key(tab('Three'), 'Home');
+      expect(tab('One')).toHaveFocus();
+      expect(tabIndexes()).toEqual(['0', '-1', '-1', '-1']);
+      await user.tab({ shift: true });
+      expect(screen.getByRole('button', { name: 'before' })).toHaveFocus();
+
+      focus(tab('Three'));
+      key(tab('Three'), 'ArrowLeft');
+      expect(tab('Two')).toHaveFocus();
+      await user.tab();
+      expect(screen.getByRole('button', { name: 'after' })).toHaveFocus();
+    });
+
+    it('returns the tab stop to the selected tab once focus leaves the list', () => {
+      renderTabs({ defaultValue: 0 });
+      focus(tab('One'));
+      key(tab('One'), 'ArrowRight');
+      expect(tabIndexes()).toEqual(['-1', '0', '-1', '-1']);
+      focus(screen.getByRole('button', { name: 'after' }));
+      expect(tabIndexes()).toEqual(['0', '-1', '-1', '-1']);
+    });
+
+    it('returns the tab stop to the selected tab when focus leaves to nowhere', () => {
+      renderTabs({ defaultValue: 0 });
+      focus(tab('One'));
+      key(tab('One'), 'ArrowRight');
+      act(() => tab('Two').blur());
+      expect(tabIndexes()).toEqual(['0', '-1', '-1', '-1']);
+    });
+
+    it('gives the stop to the first enabled tab when the selected one is disabled', () => {
+      renderTabs({ defaultValue: 0 }, [0]);
+      expect(tabIndexes()).toEqual(['-1', '0', '-1', '-1']);
+    });
+
+    it('gives the stop to the first enabled tab when no tab matches the value', () => {
+      renderTabs({ value: 9 });
+      expect(tabIndexes()).toEqual(['0', '-1', '-1', '-1']);
+    });
+
+    it('leaves no tab stop when every tab is disabled', () => {
+      renderTabs({ defaultValue: 0 }, [0, 1, 2, 3]);
+      expect(tabIndexes()).toEqual(['-1', '-1', '-1', '-1']);
+    });
+
+    it('does not keep the stop on a disabled tab that took focus', () => {
+      renderTabs({ defaultValue: 0 }, [1]);
+      focus(tab('Two'));
+      expect(tabIndexes()).toEqual(['0', '-1', '-1', '-1']);
+    });
+
+    it('falls back in tab order, not in the order the tabs last registered', () => {
+      // Enabling Two re-runs only its registration, which used to move it
+      // behind Three in the registry and hand Three the fallback stop.
+      const ui = (loading: boolean) => (
+        <Tabs value={0}>
+          <Tabs.List>
+            <Tabs.Tab index={0} disabled>
+              One
+            </Tabs.Tab>
+            <Tabs.Tab index={1} disabled={loading}>
+              Two
+            </Tabs.Tab>
+            <Tabs.Tab index={2}>Three</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      const { rerender } = render(ui(true));
+      expect(tab('Three')).toHaveAttribute('tabindex', '0');
+      rerender(ui(false));
+      expect(tab('Two')).toHaveAttribute('tabindex', '0');
+      expect(tab('Three')).toHaveAttribute('tabindex', '-1');
+    });
+
+    it('puts the stop on the selected tab in server-rendered markup', () => {
+      const html = renderToStaticMarkup(
+        <Tabs defaultValue={1}>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+            <Tabs.Tab index={1}>Two</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      expect(html).toMatch(
+        /aria-selected="false" tabindex="-1"[^>]*><a><span>One/
+      );
+      expect(html).toMatch(
+        /aria-selected="true" tabindex="0"[^>]*><a><span>Two/
+      );
+    });
+  });
+
+  describe('arrow keys, Home and End', () => {
+    it('ArrowRight and ArrowLeft move focus without selecting (manual activation)', () => {
+      const onChange = jest.fn();
+      renderTabs({ onChange });
+      focus(tab('One'));
+      expect(key(tab('One'), 'ArrowRight')).toBe(false);
+      expect(tab('Two')).toHaveFocus();
+      expect(key(tab('Two'), 'ArrowRight')).toBe(false);
+      expect(tab('Three')).toHaveFocus();
+      expect(key(tab('Three'), 'ArrowLeft')).toBe(false);
+      expect(tab('Two')).toHaveFocus();
+      expect(tab('One')).toHaveAttribute('aria-selected', 'true');
+      expect(tab('Two')).toHaveAttribute('aria-selected', 'false');
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('wraps from the last tab to the first and back', () => {
+      renderTabs();
+      focus(tab('Four'));
+      key(tab('Four'), 'ArrowRight');
+      expect(tab('One')).toHaveFocus();
+      key(tab('One'), 'ArrowLeft');
+      expect(tab('Four')).toHaveFocus();
+    });
+
+    it('Home and End move to the first and last tabs', () => {
+      renderTabs({ defaultValue: 1 });
+      focus(tab('Two'));
+      expect(key(tab('Two'), 'End')).toBe(false);
+      expect(tab('Four')).toHaveFocus();
+      expect(key(tab('Four'), 'Home')).toBe(false);
+      expect(tab('One')).toHaveFocus();
+    });
+
+    it('skips disabled tabs', () => {
+      renderTabs({ defaultValue: 1 }, [0, 2, 3]);
+      focus(tab('Two'));
+      key(tab('Two'), 'ArrowRight');
+      expect(tab('Two')).toHaveFocus();
+      key(tab('Two'), 'Home');
+      expect(tab('Two')).toHaveFocus();
+      key(tab('Two'), 'End');
+      expect(tab('Two')).toHaveFocus();
+    });
+
+    it('skips disabled tabs in both directions and at either end', () => {
+      renderTabs({ defaultValue: 1 }, [0, 2]);
+      focus(tab('Two'));
+      key(tab('Two'), 'ArrowRight');
+      expect(tab('Four')).toHaveFocus();
+      key(tab('Four'), 'ArrowRight');
+      expect(tab('Two')).toHaveFocus();
+      key(tab('Two'), 'ArrowLeft');
+      expect(tab('Four')).toHaveFocus();
+      key(tab('Four'), 'Home');
+      expect(tab('Two')).toHaveFocus();
+    });
+
+    it('moves on from a disabled tab that took focus, and stays put when nothing is enabled', () => {
+      const { unmount } = renderTabs({ defaultValue: 0 }, [1]);
+      focus(tab('Two'));
+      key(tab('Two'), 'ArrowRight');
+      expect(tab('Three')).toHaveFocus();
+      unmount();
+
+      renderTabs({ defaultValue: 0 }, [0, 1, 2, 3]);
+      focus(tab('Two'));
+      expect(key(tab('Two'), 'ArrowRight')).toBe(true);
+      expect(tab('Two')).toHaveFocus();
+    });
+
+    it('ignores ArrowUp and ArrowDown in a horizontal list', () => {
+      renderTabs();
+      focus(tab('One'));
+      expect(key(tab('One'), 'ArrowDown')).toBe(true);
+      expect(key(tab('One'), 'ArrowUp')).toBe(true);
+      expect(tab('One')).toHaveFocus();
+    });
+
+    it('ignores keys pressed with Alt, Control or Meta', () => {
+      renderTabs();
+      focus(tab('One'));
+      expect(key(tab('One'), 'ArrowRight', { altKey: true })).toBe(true);
+      expect(key(tab('One'), 'ArrowRight', { ctrlKey: true })).toBe(true);
+      expect(key(tab('One'), 'ArrowRight', { metaKey: true })).toBe(true);
+      expect(key(tab('One'), 'Enter', { metaKey: true })).toBe(true);
+      expect(tab('One')).toHaveFocus();
+    });
+
+    it('moves between tabs that each sit in a wrapper of their own', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <span>
+              <Tabs.Tab index={0}>One</Tabs.Tab>
+            </span>
+            <span>
+              <Tabs.Tab index={1}>Two</Tabs.Tab>
+            </span>
+          </Tabs.List>
+        </Tabs>
+      );
+      focus(tab('One'));
+      key(tab('One'), 'ArrowRight');
+      expect(tab('Two')).toHaveFocus();
+      // Moving between the wrapped tabs stays inside the list, so the stop
+      // follows focus rather than snapping back to the selected tab.
+      expect(tab('Two')).toHaveAttribute('tabindex', '0');
+      expect(tab('One')).toHaveAttribute('tabindex', '-1');
+      key(tab('Two'), 'End');
+      expect(tab('Two')).toHaveFocus();
+      key(tab('Two'), 'Home');
+      expect(tab('One')).toHaveFocus();
+    });
+
+    it('ignores other keys', () => {
+      renderTabs();
+      focus(tab('One'));
+      expect(key(tab('One'), 'a')).toBe(true);
+      expect(tab('One')).toHaveFocus();
+    });
+
+    it('uses ArrowUp and ArrowDown as well in a vertical list', () => {
+      renderTabs({ vertical: true });
+      expect(screen.getByRole('tablist')).toHaveAttribute(
+        'aria-orientation',
+        'vertical'
+      );
+      focus(tab('One'));
+      expect(key(tab('One'), 'ArrowDown')).toBe(false);
+      expect(tab('Two')).toHaveFocus();
+      expect(key(tab('Two'), 'ArrowUp')).toBe(false);
+      expect(tab('One')).toHaveFocus();
+      // The vertical layout stacks horizontally on mobile, so the
+      // horizontal keys keep working.
+      key(tab('One'), 'ArrowRight');
+      expect(tab('Two')).toHaveFocus();
+    });
+
+    it('leaves aria-orientation off a horizontal list', () => {
+      renderTabs();
+      expect(screen.getByRole('tablist')).not.toHaveAttribute(
+        'aria-orientation'
+      );
+    });
+  });
+
+  describe('Enter and Space', () => {
+    it.each(['Enter', ' '])('%j activates the focused tab', k => {
+      const onChange = jest.fn();
+      renderTabs({ onChange });
+      focus(tab('One'));
+      key(tab('One'), 'ArrowRight');
+      expect(key(tab('Two'), k)).toBe(false);
+      expect(onChange).toHaveBeenCalledWith(1);
+      expect(tab('Two')).toHaveAttribute('aria-selected', 'true');
+      expect(tab('Two')).toHaveClass('is-active');
+      expect(screen.getByText('Two panel')).toHaveClass('is-active');
+      expect(tabIndexes()).toEqual(['-1', '0', '-1', '-1']);
+    });
+
+    it('does nothing on a disabled tab', () => {
+      const onChange = jest.fn();
+      renderTabs({ onChange }, [1]);
+      focus(tab('Two'));
+      key(tab('Two'), 'Enter');
+      key(tab('Two'), ' ');
+      expect(onChange).not.toHaveBeenCalled();
+      expect(tab('One')).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('activates through a click, so click listeners see keyboard activation', () => {
+      const onClick = jest.fn();
+      render(
+        <div onClick={onClick}>
+          <Tabs>
+            <Tabs.List>
+              <Tabs.Tab index={0}>One</Tabs.Tab>
+              <Tabs.Tab index={1}>Two</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </div>
+      );
+      key(tab('Two'), 'Enter');
+      expect(onClick).toHaveBeenCalledTimes(1);
+      expect(tab('Two')).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('still activates on a mouse click', () => {
+      const onChange = jest.fn();
+      renderTabs({ onChange });
+      fireEvent.click(screen.getByText('Three'));
+      expect(onChange).toHaveBeenCalledWith(2);
+      expect(tab('Three')).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  describe('handlers passed to Tabs.Tab', () => {
+    it('calls onKeyDown, onFocus and onBlur alongside its own', () => {
+      const onKeyDown = jest.fn();
+      const onFocus = jest.fn();
+      const onBlur = jest.fn();
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab
+              index={0}
+              onKeyDown={onKeyDown}
+              onFocus={onFocus}
+              onBlur={onBlur}
+            >
+              One
+            </Tabs.Tab>
+            <Tabs.Tab index={1}>Two</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      focus(tab('One'));
+      expect(onFocus).toHaveBeenCalledTimes(1);
+      key(tab('One'), 'ArrowRight');
+      expect(onKeyDown).toHaveBeenCalledTimes(1);
+      expect(onBlur).toHaveBeenCalledTimes(1);
+      expect(tab('Two')).toHaveFocus();
+    });
+
+    it('leaves keys on a control inside a tab to that control', () => {
+      const onChange = jest.fn();
+      render(
+        <Tabs onChange={onChange}>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+            <Tabs.Tab index={1}>
+              Two <button type="button">Close</button>
+              <input aria-label="Rename" />
+            </Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      const close = screen.getByRole('button', { name: 'Close' });
+      const rename = screen.getByRole('textbox', { name: 'Rename' });
+      focus(close);
+      expect(key(close, 'Enter')).toBe(true);
+      expect(key(close, ' ')).toBe(true);
+      focus(rename);
+      expect(key(rename, 'ArrowLeft')).toBe(true);
+      expect(key(rename, 'Home')).toBe(true);
+      expect(rename).toHaveFocus();
+      expect(onChange).not.toHaveBeenCalled();
+      expect(tab('One')).toHaveAttribute('aria-selected', 'true');
+    });
+
+    it('lets onKeyDown take a key over by preventing its default', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0} onKeyDown={e => e.preventDefault()}>
+              One
+            </Tabs.Tab>
+            <Tabs.Tab index={1}>Two</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      focus(tab('One'));
+      key(tab('One'), 'ArrowRight');
+      key(tab('One'), 'Enter');
+      expect(tab('One')).toHaveFocus();
+      expect(tab('One')).toHaveAttribute('aria-selected', 'true');
+    });
+  });
+
+  describe('ARIA', () => {
+    it('links each tab to its panel and back', () => {
+      renderTabs({ defaultValue: 1 });
+      LABELS.forEach(label => {
+        const t = tab(label);
+        const panel = screen.getByText(`${label} panel`);
+        expect(t.id).toBeTruthy();
+        expect(panel.id).toBeTruthy();
+        expect(t).toHaveAttribute('aria-controls', panel.id);
+        expect(panel).toHaveAttribute('aria-labelledby', t.id);
+      });
+    });
+
+    it('gives the active panel the name of its tab', () => {
+      renderTabs({ defaultValue: 1 });
+      expect(screen.getByRole('tabpanel', { name: 'Two' })).toHaveTextContent(
+        'Two panel'
+      );
+    });
+
+    it('generates ids that differ between two Tabs on a page', () => {
+      render(
+        <>
+          <Tabs>
+            <Tabs.List>
+              <Tabs.Tab index={0}>A</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+          <Tabs>
+            <Tabs.List>
+              <Tabs.Tab index={0}>B</Tabs.Tab>
+            </Tabs.List>
+          </Tabs>
+        </>
+      );
+      expect(tab('A').id).not.toBe(tab('B').id);
+    });
+
+    it('links through ids passed to a tab or a panel', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0} id="my-tab">
+              One
+            </Tabs.Tab>
+            <Tabs.Tab index={1}>Two</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Content>
+            <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+            <Tabs.Content.Item index={1} id="my-panel">
+              Two panel
+            </Tabs.Content.Item>
+          </Tabs.Content>
+        </Tabs>
+      );
+      expect(tab('One')).toHaveAttribute('id', 'my-tab');
+      expect(screen.getByText('One panel')).toHaveAttribute(
+        'aria-labelledby',
+        'my-tab'
+      );
+      expect(tab('Two')).toHaveAttribute('aria-controls', 'my-panel');
+    });
+
+    it('links a Tabs.Content nested below the root', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+          </Tabs.List>
+          <div>
+            <Tabs.Content>
+              <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+            </Tabs.Content>
+          </div>
+        </Tabs>
+      );
+      expect(tab('One')).toHaveAttribute(
+        'aria-controls',
+        screen.getByText('One panel').id
+      );
+    });
+
+    it('points aria-controls only at a panel that exists, and aria-labelledby only at a tab that exists', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+            <Tabs.Tab index={1}>Two</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Content>
+            <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+            <Tabs.Content.Item index={5}>Orphan panel</Tabs.Content.Item>
+          </Tabs.Content>
+        </Tabs>
+      );
+      expect(tab('One')).toHaveAttribute('aria-controls');
+      expect(tab('Two')).not.toHaveAttribute('aria-controls');
+      expect(screen.getByText('Orphan panel')).not.toHaveAttribute(
+        'aria-labelledby'
+      );
+    });
+
+    it('sets no aria-controls when there are no panels', () => {
+      render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+          </Tabs.List>
+        </Tabs>
+      );
+      expect(tab('One')).toHaveAttribute('id');
+      expect(tab('One')).not.toHaveAttribute('aria-controls');
+    });
+
+    it('drops a link when its tab or panel unmounts', () => {
+      const { rerender } = render(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Content>
+            <Tabs.Content.Item index={0}>One panel</Tabs.Content.Item>
+          </Tabs.Content>
+        </Tabs>
+      );
+      rerender(
+        <Tabs>
+          <Tabs.List>
+            <Tabs.Tab index={0}>One</Tabs.Tab>
+          </Tabs.List>
+          <Tabs.Content />
+        </Tabs>
+      );
+      expect(tab('One')).not.toHaveAttribute('aria-controls');
+    });
+
+    it('marks a disabled tab aria-disabled', () => {
+      renderTabs({}, [1]);
+      expect(tab('Two')).toHaveAttribute('aria-disabled', 'true');
+      expect(tab('One')).not.toHaveAttribute('aria-disabled');
+    });
+  });
+
+  describe('Tabs as Bulma navigation (links, no Tabs.Content)', () => {
+    const nav = (
+      <Tabs align="centered" boxed vertical>
+        <Tabs.List>
+          <Tabs.Item active>
+            <a href="/home">Home</a>
+          </Tabs.Item>
+          <Tabs.Item>
+            <a href="/profile">Profile</a>
+          </Tabs.Item>
+        </Tabs.List>
+      </Tabs>
+    );
+
+    it('renders exactly the markup it rendered before keyboard support', () => {
+      const { container } = render(nav);
+      expect(container.innerHTML).toBe(
+        '<div class="tabs is-centered is-boxed"><ul role="tablist">' +
+          '<li class="is-active"><a href="/home">Home</a></li>' +
+          '<li><a href="/profile">Profile</a></li></ul></div>'
+      );
+    });
+
+    it('leaves the links in the page tab order and the arrow keys alone', async () => {
+      const user = userEvent.setup();
+      render(nav);
+      await user.tab();
+      expect(screen.getByRole('link', { name: 'Home' })).toHaveFocus();
+      expect(
+        fireEvent.keyDown(screen.getByRole('link', { name: 'Home' }), {
+          key: 'ArrowRight',
+        })
+      ).toBe(true);
+      expect(screen.getByRole('link', { name: 'Home' })).toHaveFocus();
+      await user.tab();
+      expect(screen.getByRole('link', { name: 'Profile' })).toHaveFocus();
+    });
+  });
+
+  describe('outside a Tabs', () => {
+    it('Tab keeps its own tab stop and handles keys without throwing', () => {
+      render(
+        <ul>
+          <Tab index={0}>One</Tab>
+          <Tab index={1}>Two</Tab>
+        </ul>
+      );
+      expect(tab('One')).toHaveAttribute('tabindex', '0');
+      expect(tab('One')).not.toHaveAttribute('id');
+      focus(tab('One'));
+      expect(() => key(tab('One'), 'Enter')).not.toThrow();
+      key(tab('One'), 'ArrowRight');
+      expect(tab('Two')).toHaveFocus();
+      act(() => tab('Two').blur());
+    });
+
+    it('TabContentItem renders no id or aria-labelledby', () => {
+      render(<TabContentItem index={0}>Solo</TabContentItem>);
+      const panel = screen.getByText('Solo');
+      expect(panel).not.toHaveAttribute('id');
+      expect(panel).not.toHaveAttribute('aria-labelledby');
+    });
   });
 });
