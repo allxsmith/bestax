@@ -98,8 +98,9 @@ export interface DateTimeInputBaseProps
   defaultValue?: Date | null;
   /**
    * Fired when either the date or time portion changes. Picking a day keeps
-   * the value's time of day, seconds included, and an empty field's day is
-   * picked at midnight.
+   * the value's whole time of day, down to seconds and milliseconds the field
+   * doesn't show, and `min` and `max` judge the picked day at that time. An
+   * empty field's day is picked at midnight.
    */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
