@@ -44,14 +44,14 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Rate defaultValue={3} />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\" labelProps={{ id: 'rating-label' }}>\n      <Field.Body>\n        <Field>\n          <Rate aria-labelledby=\"rating-label\" defaultValue={3} />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Rating\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Rate defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Rating\"\n      labelProps={{ id: 'rating-label-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Rate aria-labelledby=\"rating-label-control\" defaultValue={3} />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",
+  "accessibility": "- Uses `role=\"radiogroup\"` for the container\n- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label=\"Rating\"`. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback, unless you set `aria-label` or `aria-labelledby` on the Rate yourself\n- Each star has `role=\"radio\"` with `aria-checked`\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax`\n- Full keyboard navigation with arrow keys\n- Home/End keys jump to 0/max values",
   "related": ["Input", "Slider"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-rate",
   "summary": "The `Rate` component provides a star/icon-based rating system.",
@@ -68,7 +68,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role=\"radiogroup\"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label=\"Rating\"`. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "description": "Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role=\"radiogroup\"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label=\"Rating\"`. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `aria-label` or `aria-labelledby` on the group; it then replaces the `aria-label=\"Rating\"` fallback too.",
           "required": false,
           "inherited": false,
           "deprecated": false
