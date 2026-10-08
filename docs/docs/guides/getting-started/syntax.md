@@ -447,8 +447,8 @@ In addition to helper classes, each component has its own specific properties th
 
 **Component-Specific Properties in the examples above:**
 
-- **Button**: `size`, `outlined`, `rounded`, `loading` (these are not available in `useBulmaClasses`)
-- **Input**: `type`, `placeholder`, `size`, `rounded` (form-specific properties)
+- **Button**: `size`, `isOutlined`, `isRounded`, `isLoading` (these are not available in `useBulmaClasses`)
+- **Input**: `type`, `placeholder`, `size`, `isRounded` (form-specific properties)
 - **Column**: `size`, `offset` (grid layout properties)
 - **Field**: `label` (form field property)
 
