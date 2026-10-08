@@ -4,6 +4,11 @@ CLI that scaffolds a Vite app wired for `@allxsmith/bestax-bulma`. Agents and CI
 first-class consumers: **every prompt must have a flag equivalent**, and the non-interactive
 path (`-y` + flags, no TTY) must never hang or regress (#192).
 
+The one question `-y` does not answer is whether to delete a non-empty target directory: only
+`--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
+Every flag is validated before anything on disk changes, and the directory is emptied only after
+the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
+
 ## Architecture
 
 - `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program
