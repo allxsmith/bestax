@@ -617,12 +617,14 @@ describe('label names the convenience controls (#939)', () => {
     );
   });
 
-  it('leaves an inline picker alone: it has no input to name', () => {
-    const { container } = render(
-      <Field label="Pick">
-        <DateInput inline />
-      </Field>
-    );
+  it.each([
+    ['an inline picker', () => <DateInput inline />],
+    [
+      'a Taginput at its tag limit',
+      () => <Taginput defaultValue={['React']} maxTags={1} />,
+    ],
+  ])('leaves %s alone: it has no input to name', (_, element) => {
+    const { container } = render(<Field label="Pick">{element()}</Field>);
     // Nothing but the label itself takes or derives an id from the target.
     const target = labelEl(container).getAttribute('for') as string;
     expect(container.querySelector(`[id^="${target}"]:not(label)`)).toBeNull();

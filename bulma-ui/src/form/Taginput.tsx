@@ -277,12 +277,13 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
     const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
     // At the tag limit the text input is not rendered, so there is nothing to
-    // wire the label to.
+    // wire a label to, its own or a surrounding Field's.
     const { controlId, fieldLabelProps, labelled } = useAutoLabelId({
       label,
       id,
       labelProps,
       rendersLabel: ownField && !isMaxReached,
+      hasInput: !isMaxReached,
     });
 
     // Get display value from tag
