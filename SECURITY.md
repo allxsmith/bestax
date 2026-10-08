@@ -138,24 +138,31 @@ Measures active in this repository and its release pipeline:
   `contents`, `issues` and `pull-requests` write, scoped to this repository
   alone. The token expires after an hour and is minted only after the install
   and build steps have run, so repo-owned build code can never reach it.
-- **Layered automated review** — every PR is reviewed by CodeRabbit and by an
-  independent adversarial Claude review that deliberately runs a different
-  model from the one used to write AI-authored changes. AI agents working in
-  this repository are barred from modifying the workflows, release
-  configuration, or supply-chain settings that gate them.
-- **Inbound security triage** — new issues and pull requests are assessed by a
-  read-only AI session for three things: code crafted to harm whoever runs it,
-  prompt injection aimed at this repository's own automation, and social
-  engineering. Anything not positively clean is labeled `needs-security-review`,
-  which every AI entry point we control refuses until a maintainer clears it.
-  Three properties make it worth trusting: it **fails closed** (a crashed or
-  unparsable scan flags rather than passes), the session holds **no write tools,
-  no PAT, and no write-scoped token** so an injected scan cannot post to or
-  otherwise write to this repository — the labeling runs in a separate job,
-  with its own credentials, that the session never executes in — and its
-  reasoning is never published, only a coarse category, so a flag cannot be
-  used as an oracle for tuning an evasion. A clean verdict covers the text as it stood when the item
-  opened, not edits made afterwards.
+- **Layered automated review.** Every PR is reviewed by CodeRabbit and by an
+  independent Claude deep review that this repository's own workflow runs and
+  that posts as `claude[bot]`; `main` then requires green CI, an approving
+  review, and a human merge. The bot that writes AI-authored changes cannot
+  touch the workflows, release configuration, or supply-chain settings that
+  gate it: its GitHub App holds no permission to change workflows, and a
+  repository ruleset confines its branches to `claude/`.
+- **Inbound security triage.** bestaxbot screens new issues and pull requests
+  for code crafted to harm whoever runs it, prompt injection aimed at this
+  repository's own automation, and social engineering. Anything not positively
+  clean is labeled `needs-security-review`, which the bot and `@claude` refuse
+  to act on until a maintainer clears it. The screen fails closed, so an
+  inconclusive result flags rather than passes, and its reasoning is never
+  published, only the label, so a flag cannot be used as an oracle for tuning
+  an evasion. A clean result covers the text as it stood when the item opened,
+  not edits made afterwards, and third-party reviewers are not gated by it.
+- **The bot.** bestaxbot is a GitHub App maintained outside this repository.
+  Here it writes only `claude/` branches, comments, and labels. Its App holds
+  no permission to change workflows, a repository ruleset confines its branches
+  to `claude/`, and nothing it does counts as an approval or a merge, because
+  `main` requires a human for both. Its code and runtime being private is
+  defence in depth, not a control: every gate is enforced by GitHub against the
+  App's identity and holds with the code public or not. To report a misbehaving
+  bot, comment on the PR or issue and remove `ai-loop`; anything security-shaped
+  goes through the channels below.
 
 Consumers can verify provenance themselves: the npm package pages show the
 attestation ("Provenance" section), and — in projects installed with the npm

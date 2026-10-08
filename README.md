@@ -211,8 +211,8 @@ Supply-chain security here is a standing constraint on how the project is built,
 - **3-day dependency cooldown** — freshly published versions won't install. This is the main defense against account-takeover worms, which are usually yanked within hours.
 - **Frozen lockfile + audit gate** — CI installs exactly what the reviewed lockfile resolves and fails on high-severity advisories.
 - **CodeQL, Dependency Review, and Dependabot** — static analysis over both the source and the workflow files, PR-level advisory blocking, and weekly grouped dependency updates.
-- **Layered AI review before merge** — every PR gets a [CodeRabbit](https://coderabbit.ai) review plus an independent adversarial Claude review that deliberately runs a different model from the one writing AI-authored changes. On top of that, `main` requires green CI, one approving review, and a human merge. AI agents are structurally barred from editing the workflows, release config, or supply-chain settings that gate them.
-- **Inbound issues and PRs are security-triaged** — a read-only AI pass flags code crafted to harm whoever runs it, prompt injection aimed at our own automation, and social engineering. Flagged items are labeled and refused by every AI entry point until a human clears them. It fails closed, so an inconclusive scan flags rather than passes, and the model session itself has no write tools — a separate deterministic step applies the label, so the AI never posts or acts on anything.
+- **Layered AI review before merge** — every PR gets a [CodeRabbit](https://coderabbit.ai) review plus an independent Claude deep review. On top of that, `main` requires green CI, one approving review, and a human merge. The bot that writes AI-authored changes holds no permission to change workflows, and a repository ruleset confines it to its own branches, so it cannot edit the workflows, release config, or supply-chain settings that gate it.
+- **Inbound issues and PRs are security-screened** — the bot flags code crafted to harm whoever runs it, prompt injection aimed at our own automation, and social engineering. Flagged items are labeled and refused by the bot until a human clears them. It fails closed, so an inconclusive screen flags rather than passes.
 
 Full detail: [`SECURITY.md`](SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
@@ -232,7 +232,7 @@ Want to contribute or run the project locally? See [`CONTRIBUTING.md`](CONTRIBUT
 
 ```bash
 corepack enable && pnpm install --frozen-lockfile
-pnpm all   # build, typecheck, test + coverage, lint — the pre-PR gate
+pnpm all   # the pre-PR gate: build, typecheck, tests with coverage, the scripts suite, conformance, lint, format check, Storybook build
 ```
 
 This is a pnpm + Turborepo monorepo; contributor-facing AI context lives in [`CLAUDE.md`](CLAUDE.md) (mirrored for other tools in [`AGENTS.md`](AGENTS.md)).

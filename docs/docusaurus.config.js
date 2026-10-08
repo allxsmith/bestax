@@ -23,7 +23,7 @@ const llmsSecurityBlock = [
   '- Install scripts blocked unless allow-listed; versions younger than 3 days will not install',
   '- Every GitHub Action pinned to a full commit SHA',
   '- CodeQL, Dependency Review, Dependabot, and a high-severity `pnpm audit` gate',
-  '- Layered AI review (CodeRabbit + an independent adversarial Claude review) plus required green CI, an approving review, and a human merge',
+  '- Layered AI review (CodeRabbit + an independent Claude deep review) plus required green CI, an approving review, and a human merge',
   '',
   'Full detail: https://github.com/allxsmith/bestax/blob/main/SECURITY.md · https://bestax.io/docs/guides/security',
 ].join('\n');
