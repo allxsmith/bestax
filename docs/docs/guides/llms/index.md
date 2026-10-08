@@ -101,8 +101,22 @@ the skills.
 }
 ```
 
-Run it from your project directory, so it can find your installed
-`@allxsmith/bestax-bulma`.
+The server checks your installed `@allxsmith/bestax-bulma` against the version it documents
+(see [below](#offline-and-pinned-to-a-version)), looking for it from the directory it starts in.
+If your client starts servers somewhere other than your project, point it at the project with
+`BESTAX_MCP_PROJECT_DIR` in the config's `env`:
+
+```json
+{
+  "mcpServers": {
+    "bestax": {
+      "command": "npx",
+      "args": ["-y", "bestax-mcp@1"],
+      "env": { "BESTAX_MCP_PROJECT_DIR": "/path/to/your/project" }
+    }
+  }
+}
+```
 
 The `@1` pins the major version. Without it, `npx` resolves whatever is newest on every
 launch — so a breaking change, or a compromised release, reaches your agent the next time it
@@ -141,10 +155,8 @@ nothing breaks when you are offline.
 It also means the server documents one specific `bestax-bulma` release. On startup it resolves
 the version actually installed in your project, and if that differs by a minor or major version
 it appends a warning to its answers rather than confidently describing props you do not have.
-Set `BESTAX_MCP_NO_VERSION_CHECK=1` to turn that off.
-
-Because the index is generated from the same source as this site — TSDoc for props, the SCSS for
-variables, these pages for examples — it cannot drift from the documentation you are reading.
+If it finds no installed copy, its first answer says so, since that is also what a server started
+outside your project looks like. Set `BESTAX_MCP_NO_VERSION_CHECK=1` to turn the check off.
 
 ## bestax plugin
 
