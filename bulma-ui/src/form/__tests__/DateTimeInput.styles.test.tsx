@@ -16,11 +16,13 @@ const compile = (file: string) =>
   }).css;
 
 let styleEl: HTMLStyleElement;
+let sheet: CSSStyleSheet;
 
 beforeAll(() => {
   styleEl = document.createElement('style');
   styleEl.textContent = compile('form/_datetimeinput.scss');
   document.head.appendChild(styleEl);
+  sheet = styleEl.sheet as CSSStyleSheet;
 });
 
 afterAll(() => {
@@ -45,6 +47,26 @@ describe('DateTimeInput footer time row colours', () => {
   it('gives the pill at rest `primary-on-scheme`, which Bulma fits to the scheme', () => {
     const { pill } = timeRow();
     expect(getComputedStyle(pill).color).toBe('var(--bulma-primary-on-scheme)');
+  });
+
+  // jsdom's getComputedStyle can't match :hover or :focus-visible, so this
+  // reads the rule itself. The tokens above were chosen against this fill: a
+  // darker one can take `text-weak` back under 4.5:1, so a change here means
+  // measuring them again.
+  it('keeps the hover and focus fill the tokens were measured against', () => {
+    const fills = Array.from(sheet.cssRules).filter(
+      (rule): rule is CSSStyleRule =>
+        rule instanceof CSSStyleRule &&
+        /\.datetimeinput-footer-time:(hover|focus-visible)/.test(
+          rule.selectorText
+        )
+    );
+    expect(fills.map(rule => rule.selectorText)).toEqual([
+      '.datetimeinput-footer-time:hover:not(:disabled), .datetimeinput-footer-time:focus-visible',
+    ]);
+    expect(fills[0].style.getPropertyValue('background-color')).toBe(
+      'hsla(0, 0%, 50%, 0.08)'
+    );
   });
 
   it('keeps the open pill on its primary fill with the matching invert', () => {
