@@ -168,7 +168,7 @@ export function searchAll(
           kind: 'css-var',
           name: cssVar,
           // Every declarer, since an override reaches each; the next call goes to
-          // the first, the component the variable is named after (#964).
+          // the first (#964).
           detail: `declared by ${declarers.join(', ')}`,
           next: `get_css_variables({ component: "${declarers[0]}" })`,
           score: s,
