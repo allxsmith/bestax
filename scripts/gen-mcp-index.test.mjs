@@ -212,9 +212,9 @@ test('markdown the index ships carries no link that only resolves on its page', 
   assert.deepEqual(dangling, []);
   // The block the finding was about, followed to where its links now go.
   const api = components.get('useBulmaClasses').api;
-  assert.ok(
-    api.includes('https://bestax.io/docs/api/helpers/valid-values'),
-    api
+  assert.match(
+    api,
+    /\]\(https:\/\/bestax\.io\/docs\/api\/helpers\/valid-values[#)]/
   );
   assert.ok(!/table below/.test(api), 'the API block still says "below"');
 });
@@ -230,19 +230,22 @@ test('relative links resolve to the URL the docs site serves', () => {
     '```',
   ].join('\n');
   const out = absoluteLinks(md, 'helpers/usebulmaclasses.md');
-  for (const url of [
-    '(https://bestax.io/docs/api/helpers/valid-values)',
-    '(https://bestax.io/docs/api/components/card#usage)',
-    '(https://bestax.io/docs/api/grid)',
-    '(https://bestax.io/docs/guides/helpers/color)',
-    '(https://bestax.io/docs/api/helpers/usebulmaclasses#scheme-backgrounds)',
-    '(https://bestax.io/docs/skills/intro)',
-    '(https://bulma.io/documentation/)',
-  ]) {
-    assert.ok(out.includes(url), `${url} missing from:\n${out}`);
-  }
-  // Code is code, links and all.
-  assert.ok(out.includes("<a href='#keep'>[not a link](./code.md)</a>"));
+  // Every link target, in order. The last is inside the fence: code is code,
+  // links and all.
+  assert.deepEqual(
+    [...out.matchAll(/\]\(([^)\s]+)\)/g)].map(m => m[1]),
+    [
+      'https://bestax.io/docs/api/helpers/valid-values',
+      'https://bestax.io/docs/api/components/card#usage',
+      'https://bestax.io/docs/api/grid',
+      'https://bestax.io/docs/guides/helpers/color',
+      'https://bestax.io/docs/api/helpers/usebulmaclasses#scheme-backgrounds',
+      'https://bestax.io/docs/skills/intro',
+      'https://bulma.io/documentation/',
+      './code.md',
+    ]
+  );
+  assert.match(out, /<a href='#keep'>/);
 });
 
 test('usage examples are harvested with their headings', () => {
