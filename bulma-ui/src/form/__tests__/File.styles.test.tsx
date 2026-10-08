@@ -1,8 +1,7 @@
 // The keyboard focus ring of a File comes from _file.scss, which jsdom never
 // loads on its own, so className assertions cannot see it. These compile the
-// real partial and assert computed style instead (pattern:
-// Tabs.styles.test.tsx). jsdom leaves `var()` unresolved, so values that read
-// a variable are compared as written.
+// real partial and assert computed style instead. jsdom leaves `var()`
+// unresolved, so values that read a variable are compared as written.
 import * as sass from 'sass';
 import path from 'path';
 import { act, render } from '@testing-library/react';

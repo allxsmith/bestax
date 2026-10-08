@@ -41,7 +41,8 @@ export const PickedFileName: Story = {
 
 /**
  * With `multiple`, `hasName` shows the file's name when you pick one, and how
- * many you picked ("3 files") when you pick several.
+ * many you picked ("3 files") when you pick several. `pickedFilesLabel` words
+ * that count for another language.
  */
 export const PickedFileCount: Story = {
   render: () => (

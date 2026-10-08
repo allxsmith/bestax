@@ -64,9 +64,9 @@ export interface FileProps
   isCentered?: boolean;
   /**
    * Show a file name area. Without `fileName` it shows what the user picked: the file's name, or
-   * a count such as "3 files" when `multiple` lets them pick several. Before a pick there is no
-   * name area. A reset of the input's form clears it, but clearing the input from code fires no
-   * change event and leaves it showing, so pass `fileName` to control the text then.
+   * a count when `multiple` lets them pick several (see `pickedFilesLabel`). Before a pick there is
+   * no name area. A reset of the input's form clears the name, but clearing the input from code
+   * fires no change event and leaves it showing, so pass `fileName` to control the text then.
    */
   hasName?: boolean;
   /** Text on the file CTA button (defaults to "Choose a file…"). */
@@ -91,13 +91,12 @@ export interface FileProps
    * Setting it takes over from the picked file's name; an empty string shows no name area.
    */
   fileName?: string;
+  /**
+   * Builds the text `hasName` shows when several files are picked, from their count, for
+   * localization. Default: `` `${count} files` ``. A single pick shows its file's name.
+   */
+  pickedFilesLabel?: (count: number) => string;
 }
-
-/** The text `hasName` shows for a pick: one file's name, a count for several, none for none. */
-const pickedFilesText = (files: FileList | null): string | undefined => {
-  if (!files || files.length === 0) return undefined;
-  return files.length === 1 ? files[0].name : `${files.length} files`;
-};
 
 /**
  * The `File` component provides a Bulma-styled file input, supporting color, size, boxed/fullwidth/align styles, icons, "has name", and filename display.
@@ -132,6 +131,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       className,
       inputClassName,
       fileName,
+      pickedFilesLabel,
       onChange,
       ...props
     },
@@ -139,7 +139,8 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
   ) => {
     // What the user last picked, and the form a reset of which clears it.
     const [picked, setPicked] = useState<{
-      text: string;
+      count: number;
+      firstName: string;
       form: HTMLFormElement | null;
     }>();
     const pickedForm = picked?.form;
@@ -160,13 +161,20 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       };
     }, [pickedForm]);
     const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-      const text = pickedFilesText(event.target.files);
+      const { files, form } = event.target;
       setPicked(
-        text === undefined ? undefined : { text, form: event.target.form }
+        files?.length
+          ? { count: files.length, firstName: files[0].name, form }
+          : undefined
       );
       onChange?.(event);
     };
-    const shownName = fileName ?? picked?.text;
+    const pickedText =
+      picked &&
+      (picked.count === 1
+        ? picked.firstName
+        : (pickedFilesLabel?.(picked.count) ?? `${picked.count} files`));
+    const shownName = fileName ?? pickedText;
 
     const insideField = useInsideField();
     const insideControl = useInsideControl();

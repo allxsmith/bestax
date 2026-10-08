@@ -1710,8 +1710,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'is-fullwidth': 'isFullwidth',
         'is-right': 'isRight',
       }),
-      // `File` renders `{hasName && fileName && …}`, so a condition handed to
-      // it as it is would render a falsy number (`0`) as text.
+      // `File` renders its name area behind `hasName && …`, so a condition
+      // handed to it as it is would render a falsy number (`0`) as text.
       'has-name': { writes: [{ prop: 'hasName' }], onlyTrue: true },
     },
     omits: {
@@ -1745,6 +1745,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'iconRight',
       'inputClassName',
       'fileName',
+      'pickedFilesLabel',
     ],
     passThrough: ['ref'],
   },

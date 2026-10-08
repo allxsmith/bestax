@@ -223,6 +223,47 @@ describe('File hasName shows the picked file (#941)', () => {
     expect(shownName(container)).toHaveTextContent(/^3 files$/);
   });
 
+  describe('pickedFilesLabel words the count', () => {
+    it('builds the text for several files from their count', () => {
+      const label = jest.fn((count: number) => `${count} fichiers`);
+      const { container } = render(
+        <File hasName multiple pickedFilesLabel={label} />
+      );
+      pick(fileInput(container), aFile('a.png'), aFile('b.png'));
+      expect(shownName(container)).toHaveTextContent(/^2 fichiers$/);
+      expect(label).toHaveBeenCalledWith(2);
+    });
+
+    it('leaves a single pick to its file name', () => {
+      const label = jest.fn((count: number) => `${count} fichiers`);
+      const { container } = render(
+        <File hasName multiple pickedFilesLabel={label} />
+      );
+      pick(fileInput(container), aFile('one.png'));
+      expect(shownName(container)).toHaveTextContent('one.png');
+      expect(label).not.toHaveBeenCalled();
+    });
+
+    it('follows a new label without a new pick', () => {
+      const { container, rerender } = render(<File hasName multiple />);
+      pick(fileInput(container), aFile('a.png'), aFile('b.png'));
+      rerender(
+        <File hasName multiple pickedFilesLabel={n => `${n} fichiers`} />
+      );
+      expect(shownName(container)).toHaveTextContent(/^2 fichiers$/);
+    });
+
+    it('stays off the input', () => {
+      // A string, which React would write out as an attribute if it reached
+      // the input. A function it drops on its own, so that proves nothing.
+      const notAFunction = 'x' as unknown as (count: number) => string;
+      const { container } = render(
+        <File hasName pickedFilesLabel={notAFunction} />
+      );
+      expect(fileInput(container)).not.toHaveAttribute('pickedfileslabel');
+    });
+  });
+
   it('keeps firing the caller’s onChange', () => {
     const handleChange = jest.fn();
     const { container } = render(<File hasName onChange={handleChange} />);

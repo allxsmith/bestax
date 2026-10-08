@@ -497,7 +497,7 @@
       "slug": "form/file",
       "import": "import { File, Icon } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 22,
+      "propCount": 23,
       "exampleCount": 17
     },
     {
