@@ -39,7 +39,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    :::info Template Argument Explained
    - `--template react`: Uses the official React template with JavaScript
    - Alternative templates: `react-ts` (TypeScript), `react-swc` (with SWC compiler)
-   - On the npm tab, the `--` hands `--template` to Vite instead of npm
+   - npm needs a `--` before `--template`
      :::
 
    :::tip Vite Documentation
