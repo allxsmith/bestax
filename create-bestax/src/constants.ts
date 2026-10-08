@@ -59,6 +59,9 @@ export const MESSAGES = {
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
+  ICON_CSS_NOT_ADDED: (file: string, importStatement: string) =>
+    `  Warning: ${file} has no bestax stylesheet import to follow, so ${importStatement} ` +
+    'was not added. Add it by hand or the icons will not render.',
   TELEMETRY_NOTICE:
     'Help improve bestax — share anonymous usage stats?\n' +
     'Sends only the options you chose (template, Bulma flavor, icon library,\n' +

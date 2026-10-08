@@ -362,9 +362,11 @@ export class ProjectCreator {
 
           if (fs.existsSync(mainFilePath)) {
             let content = await fs.readFile(mainFilePath, 'utf8');
-            // Add the icon library import after the CSS imports
+            // Add the icon library import after the bestax stylesheet import,
+            // whichever one the flavor wrote: bestax.css for complete, a
+            // versions/bestax-*.css file for every other flavor (#946).
             const cssImportMatch = content.match(
-              /import\s+['"](?:@allxsmith\/bestax-bulma\/(?:bestax|extras)\.css|bulma\/css\/.*?)['"]\s*;?/
+              /import\s+['"](?:@allxsmith\/bestax-bulma\/[^'"]+\.css|bulma\/css\/.*?)['"]\s*;?/
             );
             if (cssImportMatch) {
               const insertPosition =
@@ -375,6 +377,17 @@ export class ProjectCreator {
                 library.importStatement +
                 content.slice(insertPosition);
               await fs.writeFile(mainFilePath, content);
+            } else {
+              // Without its stylesheet every icon renders blank or as its
+              // name, so say so rather than finish as if it worked (#946).
+              console.log(
+                chalk.yellow(
+                  MESSAGES.ICON_CSS_NOT_ADDED(
+                    `src/${mainFileName}`,
+                    library.importStatement
+                  )
+                )
+              );
             }
           }
         }
