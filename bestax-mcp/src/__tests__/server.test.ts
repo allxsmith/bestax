@@ -712,8 +712,11 @@ describe('lookup_bulma_classes', () => {
   });
 
   it('says File renders is-empty itself beside has-name with no name', async () => {
+    // And that the name is pinned empty there, as the codemod writes it, so
+    // a pick shows no name where the markup shows none.
     expect(await lookup('file has-name')).toContain(
-      "With `hasName` and no `.file-name` it renders Bulma's `is-empty` too, so that class isn't needed there."
+      'With `hasName` and no `.file-name`, write `fileName=""`, so a file the user picks shows no name where the markup shows none. ' +
+        "It renders Bulma's `is-empty` there itself, so that class isn't needed."
     );
     // The class's own row says the same, rather than keeping it as a class.
     const out = await lookup('file has-name is-empty');
