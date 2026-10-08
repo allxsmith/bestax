@@ -19,7 +19,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  createProgram,
   extractComponent,
+  topLevelInitializers,
   transparentPropWrapper,
   unsupportedPropWrapper,
   unnameablePropsError,
@@ -334,6 +336,32 @@ test('a component declared as a function still resolves its props and summary', 
     assert.match(info.tsdoc, /^Renders its children/, `${name} has no summary`);
   }
   assert.equal(row('Portal', 'disabled', { markdown: false }).default, 'false');
+});
+
+test('an overloaded component resolves to its implementation, not a signature', () => {
+  // TypeScript gives each overload signature a declaration of its own, ahead of
+  // the implementation. A signature cannot carry parameter initializers, so
+  // reading one resolved the props type and lost every default without an error.
+  const { ts } = createProgram();
+  const sf = ts.createSourceFile(
+    'widget.tsx',
+    [
+      'export function Widget(props: { a: string }): null;',
+      'export function Widget(props: { a: number }): null;',
+      "export function Widget({ size = 'normal' }: WidgetProps) { return null; }",
+      'const Gadget = (props: GadgetProps) => null;',
+      'function Gadget() { return null; }',
+    ].join('\n'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const inits = topLevelInitializers(ts, sf);
+  const widget = inits.get('Widget');
+  assert.ok(widget.body, 'Widget resolved to an overload signature');
+  assert.match(widget.parameters[0].getText(), /size = 'normal'/);
+  // A constant of the same name still wins over a function.
+  assert.ok(ts.isArrowFunction(inits.get('Gadget')));
 });
 
 test('a component the barrel re-exports with `export *` from another module resolves', () => {

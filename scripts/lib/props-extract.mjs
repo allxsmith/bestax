@@ -229,8 +229,13 @@ function unwrapExpression(ts, node) {
  * (`export function Portal(props: PortalProps)`). Read as constants only, they
  * resolved no props type and no summary, and their tables came back empty
  * without an error. A constant of the same name wins, as it always has.
+ *
+ * Only an implementation counts, never an overload signature. TypeScript gives
+ * each signature a declaration of its own, ahead of the implementation, and a
+ * signature cannot carry parameter initializers, so reading one would resolve
+ * the props type and drop every default. Exported for its tests.
  */
-function topLevelInitializers(ts, sf) {
+export function topLevelInitializers(ts, sf) {
   const out = new Map();
   for (const stmt of sf.statements) {
     if (!ts.isVariableStatement(stmt)) continue;
@@ -244,6 +249,7 @@ function topLevelInitializers(ts, sf) {
     if (
       ts.isFunctionDeclaration(stmt) &&
       stmt.name &&
+      stmt.body &&
       !out.has(stmt.name.text)
     ) {
       out.set(stmt.name.text, stmt);
