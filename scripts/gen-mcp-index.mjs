@@ -39,7 +39,7 @@
  */
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, relative, dirname, extname } from 'node:path';
+import { join, relative, dirname, extname, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
@@ -305,6 +305,40 @@ export function proseComponentInfo(name, relPath, extract = extractComponent) {
       { cause: err }
     );
   }
+}
+
+/**
+ * A page's markdown with every link made absolute, for markdown the index ships
+ * on its own: a hook's API block, a prose page, an Accessibility section. On the
+ * site `./valid-values.md` and `#scheme-backgrounds` resolve. Served away from
+ * the page, the first names a file in the reader's own workspace and the second
+ * a section the answer does not carry.
+ *
+ * A link to another page goes to the route Docusaurus serves for it, a link
+ * within the page to the page's own URL, and a site-absolute one to bestax.io.
+ * Fenced code is left as it is.
+ */
+export function absoluteLinks(markdown, relPath) {
+  const page = posix.join('api', relPath);
+  const origin = new URL(DOCS_BASE).origin;
+  const urlOf = path =>
+    `${DOCS_BASE}/${docsRoute(path.replace(/\.mdx?$/, ''))}`;
+  const resolve = target => {
+    if (target.startsWith('#')) return `${urlOf(page)}${target}`;
+    if (target.startsWith('/')) return `${origin}${target}`;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return target;
+    const [path, fragment = ''] = target.split(/(?=#)/);
+    if (!/\.mdx?$/.test(path)) return target;
+    return `${urlOf(posix.join(posix.dirname(page), path))}${fragment}`;
+  };
+  return markdown
+    .split(/^((?:```|~~~)[^\n]*\n[\s\S]*?^(?:```|~~~)[ \t]*)$/m)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part.replace(/\]\(([^)\s]+)\)/g, (_, t) => `](${resolve(t)})`)
+    )
+    .join('');
 }
 
 /** Strip the frontmatter block, leaving the page body. */
@@ -584,7 +618,7 @@ export async function build() {
         examples: usageExamples(lines, find(/^Usage$/i)),
         accessibility: (() => {
           const s = find(/^Accessibility$/i);
-          return s ? sectionBody(lines, s) : null;
+          return s ? absoluteLinks(sectionBody(lines, s), relPath) : null;
         })(),
         related: relatedComponents(
           lines,
@@ -597,7 +631,9 @@ export async function build() {
 
       // The whole page. These are reference prose, not tables, and an agent
       // asking "how do I do spacing without inline styles" needs all of it.
-      const doc = proseOnly ? withoutFrontmatter(src).trimEnd() : null;
+      const doc = proseOnly
+        ? absoluteLinks(withoutFrontmatter(src).trimEnd(), relPath)
+        : null;
 
       let record;
       if (isHelper) {
@@ -608,7 +644,7 @@ export async function build() {
           import: `import { ${name} } from '${PACKAGE}';`,
           // The signature block alone: what a hook takes and returns, at a
           // fraction of the page. It is the hook's answer to a props table.
-          api: api ? sectionBody(lines, api) : null,
+          api: api ? absoluteLinks(sectionBody(lines, api), relPath) : null,
           doc,
           parts: [],
           cssVars: [],

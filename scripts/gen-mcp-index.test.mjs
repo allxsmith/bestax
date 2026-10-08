@@ -23,6 +23,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  absoluteLinks,
   build,
   proseComponentInfo,
   readSkills,
@@ -185,6 +186,63 @@ test('a capitalised prose-page title that names no export says what to change', 
   assert.ok(
     proseComponentInfo('Portal', 'helpers/portal.md').tables[0].rows.length
   );
+});
+
+test('markdown the index ships carries no link that only resolves on its page', () => {
+  // A hook's API block, a prose page and an Accessibility section are served on
+  // their own, where `./valid-values.md` names a file in the reader's workspace
+  // and `#scheme-backgrounds` a section the answer does not carry.
+  const outsideCode = md =>
+    md
+      .split(/^(?:```|~~~)[^\n]*$/m)
+      .filter((_, i) => i % 2 === 0)
+      .join('\n');
+  const dangling = [];
+  for (const [name, record] of components) {
+    for (const field of ['api', 'doc', 'accessibility']) {
+      const md = record[field];
+      if (!md) continue;
+      for (const [, target] of outsideCode(md).matchAll(/\]\(([^)\s]+)\)/g)) {
+        if (!/^https?:\/\//.test(target)) {
+          dangling.push(`${name}.${field}: ${target}`);
+        }
+      }
+    }
+  }
+  assert.deepEqual(dangling, []);
+  // The block the finding was about, followed to where its links now go.
+  const api = components.get('useBulmaClasses').api;
+  assert.ok(
+    api.includes('https://bestax.io/docs/api/helpers/valid-values'),
+    api
+  );
+  assert.ok(!/table below/.test(api), 'the API block still says "below"');
+});
+
+test('relative links resolve to the URL the docs site serves', () => {
+  const md = [
+    'See [values](./valid-values.md), [card](../components/card.md#usage),',
+    '[grid](../grid/grid.md), [guide](../../guides/helpers/color.md),',
+    '[here](#scheme-backgrounds), [site](/docs/skills/intro) and',
+    '[out](https://bulma.io/documentation/).',
+    '```tsx',
+    "<a href='#keep'>[not a link](./code.md)</a>",
+    '```',
+  ].join('\n');
+  const out = absoluteLinks(md, 'helpers/usebulmaclasses.md');
+  for (const url of [
+    '(https://bestax.io/docs/api/helpers/valid-values)',
+    '(https://bestax.io/docs/api/components/card#usage)',
+    '(https://bestax.io/docs/api/grid)',
+    '(https://bestax.io/docs/guides/helpers/color)',
+    '(https://bestax.io/docs/api/helpers/usebulmaclasses#scheme-backgrounds)',
+    '(https://bestax.io/docs/skills/intro)',
+    '(https://bulma.io/documentation/)',
+  ]) {
+    assert.ok(out.includes(url), `${url} missing from:\n${out}`);
+  }
+  // Code is code, links and all.
+  assert.ok(out.includes("<a href='#keep'>[not a link](./code.md)</a>"));
 });
 
 test('usage examples are harvested with their headings', () => {
