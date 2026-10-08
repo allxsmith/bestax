@@ -235,12 +235,24 @@ list it, so set it in your CSS or through a `style` prop.)
 
 `--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
 `--bulma-dateinput-cell-hover-bg`, `--bulma-dateinput-cell-other-month-color`,
-`--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-selected-bg`,
+`--bulma-dateinput-cell-radius`, `--bulma-dateinput-cell-range-bg`,
+`--bulma-dateinput-cell-range-preview-bg`, `--bulma-dateinput-cell-selected-bg`,
 `--bulma-dateinput-cell-selected-color`, `--bulma-dateinput-cell-size`,
 `--bulma-dateinput-cell-today-color`, `--bulma-dateinput-day-name-color`,
 `--bulma-dateinput-day-name-size`, `--bulma-dateinput-focus-ring-color`,
 `--bulma-dateinput-header-padding`, `--bulma-dateinput-min-width`,
 `--bulma-dateinput-nav-button-size`
+
+The two `range` variables paint a range calendar (`DateRangeInput`): the band between a range's
+ends, and the fainter band shown while the end is still being picked. Both are mixed from
+`--bulma-dateinput-cell-selected-bg`, so `color` and an override of the selected fill re-tint
+them too.
+
+### DateRangeInput
+
+The field around the two inputs. Its calendar is the `DateInput` one, with the variables above.
+
+`--bulma-daterangeinput-gap`, `--bulma-daterangeinput-separator-color`
 
 ### DateTimeInput
 
@@ -288,7 +300,7 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-numberinput-stepper-button-hover-bg`, `--bulma-numberinput-stepper-button-hover-color`,
 `--bulma-numberinput-stepper-width`
 
-### Picker popover (DateInput / TimeInput / DateTimeInput)
+### Picker popover (DateInput / TimeInput / DateTimeInput / DateRangeInput)
 
 `--bulma-picker-popover-animation-duration`, `--bulma-picker-popover-background`,
 `--bulma-picker-popover-border-color`, `--bulma-picker-popover-offset`,

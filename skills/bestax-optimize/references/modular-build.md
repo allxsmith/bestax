@@ -77,7 +77,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
-`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`
+`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`, `loader`,
 `progress`, `skeleton`
@@ -91,6 +91,8 @@ Notes:
 - Extras `Tabs` **extends** stock Bulma tabs (vertical variant) — an app using `Tabs` needs
   both `bulma/sass/components/tabs` and `@allxsmith/bestax-bulma/scss/components/tabs`.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
+- `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
+  `picker-popover` too.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
