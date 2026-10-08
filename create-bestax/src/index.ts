@@ -23,6 +23,6 @@ if (majorVersion < MINIMUM_NODE_VERSION) {
 // static import left to do it, and top-level await requires a module.
 export {};
 
-const { createCLI } = await import('./cli.js');
+const { runCLI } = await import('./cli.js');
 
-await createCLI().parseAsync(process.argv);
+await runCLI();

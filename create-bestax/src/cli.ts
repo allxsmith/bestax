@@ -127,9 +127,27 @@ export function isMainModule(importMetaUrl: string, argv1: string): boolean {
   return importMetaUrl === `file://${argv1}`;
 }
 
-export async function runCLI(): Promise<void> {
+/**
+ * pnpm, bun and bunx hand a `--` to the scaffolder as it was typed, where npm
+ * and Yarn 1 strip it, so `pnpm create bestax my-app -- -t vite-ts` arrives as
+ * `my-app -- -t vite-ts`. Commander reads `--` as the end of the options, and
+ * every flag after it became an extra argument: "too many arguments" (#950).
+ * Bun users need that `--`, because `bun create` rejects short flags such as
+ * `-t` and `-y` itself. So the first `--` after the script path is dropped
+ * before parsing, and a second keeps its usual meaning.
+ */
+export function dropForwardedSeparator(argv: readonly string[]): string[] {
+  const separator = argv.indexOf('--', 2);
+  return separator === -1
+    ? [...argv]
+    : [...argv.slice(0, separator), ...argv.slice(separator + 1)];
+}
+
+export async function runCLI(
+  argv: readonly string[] = process.argv
+): Promise<void> {
   const program = createCLI();
-  await program.parseAsync();
+  await program.parseAsync(dropForwardedSeparator(argv));
 }
 
 // Only run if this is the main module
