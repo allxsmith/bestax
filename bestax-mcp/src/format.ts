@@ -263,8 +263,12 @@ export function renderComponent(
       }
     }
     // A component documented in prose (Theme) keeps its page alongside the table.
+    // The pointer speaks of "this table", so it goes only where one was printed:
+    // `include` replaces the default, and a call without `props` has none.
     if (reference) out.push('## Reference', reference);
-    else if (record.doc) out.push(referencePointer(record));
+    else if (record.doc && include.includes('props')) {
+      out.push(referencePointer(record));
+    }
   }
 
   if (include.includes('examples') && record.examples.length) {

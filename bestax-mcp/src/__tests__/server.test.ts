@@ -713,6 +713,13 @@ describe('components documented on helpers pages', () => {
     expect(text(await call('get_component', { name: 'Button' }))).not.toContain(
       '"reference"'
     );
+    // `include` replaces the default, so an answer without props has no table
+    // for the pointer to speak of, and says nothing about one.
+    for (const include of [['cssVars'], []]) {
+      expect(
+        text(await call('get_component', { name: 'Theme', include }))
+      ).not.toContain('this table');
+    }
 
     const full = text(
       await call('get_component', { name: 'Theme', include: ['reference'] })
