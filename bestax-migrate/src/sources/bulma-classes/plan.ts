@@ -241,7 +241,10 @@ export interface BuiltFile {
   /** Which of them holds the icon before that text, and after it. */
   iconLeft?: number;
   iconRight?: number;
-  /** The `.file-name`'s text. */
+  /**
+   * The `.file-name`'s text, or an empty string for a `has-name` `.file`
+   * with none, so the target shows no file a user picks.
+   */
   fileName?: string;
 }
 
@@ -764,6 +767,9 @@ export function plan(facts: ElementFacts): Plan {
     // With `has-name` and no `.file-name`, the target renders Bulma's
     // `is-empty` too, whatever a condition says, so the markup has to carry
     // it written out; it then goes with the rest of what the target renders.
+    // Its name is pinned empty, as a `.file-name` pins it to that text:
+    // unpinned, the target shows the file a user picks, and the markup never
+    // does.
     if (hasName && file.fileName === undefined) {
       if (!tokens.includes(EMPTY_NAME)) {
         return refuse(
@@ -773,6 +779,7 @@ export function plan(facts: ElementFacts): Plan {
         );
       }
       converted.add(EMPTY_NAME);
+      file = { ...file, fileName: '' };
     }
   }
 

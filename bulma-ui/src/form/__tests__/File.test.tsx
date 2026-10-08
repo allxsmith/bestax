@@ -292,6 +292,17 @@ describe('File hasName shows the picked file (#941)', () => {
       expect(root(container)).toHaveClass('is-empty');
     });
 
+    it('stays for an empty fileName after a pick, leaving the markup as it was', () => {
+      // What bestax-migrate writes for a raw `.file has-name is-empty`, whose
+      // markup a pick never changes.
+      const { container } = render(<File hasName fileName="" />);
+      const before = container.innerHTML;
+      pick(fileInput(container), aFile('resume.pdf'));
+      expect(root(container)).toHaveClass('has-name', 'is-empty');
+      expect(shownName(container)).toBeNull();
+      expect(container.innerHTML).toBe(before);
+    });
+
     it('is not set without hasName', () => {
       const { container } = render(<File />);
       expect(root(container)).not.toHaveClass('is-empty');

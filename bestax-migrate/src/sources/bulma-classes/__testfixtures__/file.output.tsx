@@ -47,7 +47,7 @@ export function Uploads({ onPick }: { onPick: () => void }) {
       </Field>
       {/* A name slot with nothing in it yet, which Bulma marks is-empty. */}
       <Field>
-        <File hasName name="letter" buttonLabel="Upload" />
+        <File hasName name="letter" buttonLabel="Upload" fileName="" />
       </Field>
       {/* The same slot without is-empty, which File would add. */}
       <Field>

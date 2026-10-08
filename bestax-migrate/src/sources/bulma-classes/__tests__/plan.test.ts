@@ -1099,6 +1099,13 @@ describe('plan', () => {
       const empty = file(tree(), 'file has-name is-empty').conversion!;
       expect(empty.props).toEqual([['hasName', true]]);
       expect(empty.className).toBeNull();
+      // Its name is pinned empty: unpinned, `File` would show the file a
+      // user picks, and drop `is-empty` with it, where the markup never does.
+      expect(empty.file).toEqual({
+        inputClassName: null,
+        buttonLabel: 0,
+        fileName: '',
+      });
       // Without it `File` adds a class the markup doesn't have, and a
       // condition can't promise one `File` renders whatever it says.
       const bare = file(tree(), 'file has-name');
