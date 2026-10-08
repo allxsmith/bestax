@@ -205,8 +205,8 @@ export function missingInstallNote(info: VersionInfo): string | null {
   if (!info.checked || info.installed) return null;
   return (
     `Note: no installed ${PACKAGE} was found, so these answers describe ` +
-    `${info.indexed} and were not checked against your project. If it is ` +
-    `installed, this server is looking in the wrong directory: start it in ` +
-    `your project, or set BESTAX_MCP_PROJECT_DIR to the project's path.`
+    `${info.indexed} and were not checked against your project. A server ` +
+    `started outside the project finds none: start it in your project, or set ` +
+    `BESTAX_MCP_PROJECT_DIR to the project's path.`
   );
 }

@@ -232,6 +232,9 @@ describe('missingInstallNote', () => {
     const note = missingInstallNote(info({}));
     expect(note).toContain('5.8.3');
     expect(note).toContain('BESTAX_MCP_PROJECT_DIR');
+    // A probe that timed out, or a project with no node_modules, finds none from
+    // the right directory too, so the note names no cause it cannot know.
+    expect(note).not.toMatch(/wrong directory/);
   });
 
   it('stays quiet when a version was found, or the check is off', () => {

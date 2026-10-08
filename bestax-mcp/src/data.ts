@@ -160,6 +160,19 @@ export function loadCatalog(): Promise<Catalog> {
 const componentCache = new Map<string, Promise<ComponentRecord>>();
 
 /**
+ * A name as a model writes it, without the JSX around it: `<Button>`,
+ * `<Button />` and ` Button ` are all `Button`. Trimmed again after the tag is
+ * stripped, since the self-closing form leaves the space before `/>` behind,
+ * and that space made `<Button />` an unknown component.
+ */
+function cleanName(input: string): string {
+  return input
+    .trim()
+    .replace(/^<|\/?>$/g, '')
+    .trim();
+}
+
+/**
  * Resolve a user-supplied name to a real component.
  *
  * Tolerant on purpose — a model asks for `navbar`, `<Button>` or
@@ -168,8 +181,7 @@ const componentCache = new Map<string, Promise<ComponentRecord>>();
  */
 export async function resolveName(input: string): Promise<string | null> {
   const catalog = await loadCatalog();
-  const cleaned = input.trim().replace(/^<|\/?>$/g, '');
-  const root = cleaned.split('.')[0];
+  const root = cleanName(input).split('.')[0];
   const exact = catalog.components.find(c => c.name === root);
   if (exact) return exact.name;
   const lower = root.toLowerCase();
@@ -182,7 +194,7 @@ export async function resolveName(input: string): Promise<string | null> {
  * the way `resolveName` cleans, so `<Navbar.Brand>` names it too.
  */
 export function dotPath(input: string): string | null {
-  const cleaned = input.trim().replace(/^<|\/?>$/g, '');
+  const cleaned = cleanName(input);
   return cleaned.includes('.') ? cleaned : null;
 }
 

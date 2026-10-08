@@ -445,12 +445,14 @@ export async function createServer(
       description:
         'Import statement, summary and prop table for one component. Add ' +
         '`include` for examples, CSS variables, accessibility notes or related ' +
-        'components.',
+        'components. A dot-path like "Navbar.Brand" answers with that part.',
       inputSchema: {
         name: z
           .string()
           .max(MAX_NAME)
-          .describe('Component name, e.g. "Button" or "Navbar"'),
+          .describe(
+            'Component name or dot-path, e.g. "Button" or "Navbar.Brand"'
+          ),
         include: z
           .array(z.enum(INCLUDES))
           .optional()
@@ -635,7 +637,10 @@ export async function createServer(
               v.css.toLowerCase().includes(query.toLowerCase())
             )
           : record.cssVars;
-        if (!vars.length && record.name === THEME && !query) {
+        // With a query too: Theme declares none of its own, so filtering them finds
+        // nothing whatever is asked, and the plain "matching" sentence is the one
+        // that misleads.
+        if (!vars.length && record.name === THEME) {
           const theming = skills.find(s =>
             s.references.some(r => r.id === 'css-variables')
           );

@@ -1109,6 +1109,30 @@ describe('rough edges', () => {
     expect(String(resource.contents[0].text)).toMatch(/^# Navbar\.Brand\n/);
   });
 
+  // The self-closing form leaves a space before `/>`, which made `<Navbar.Brand />`
+  // a part that does not exist and `<Button />` a component that does not.
+  it('reads a name written as a self-closing tag', async () => {
+    const part = text(
+      await call('get_component', { name: '<Navbar.Brand />' })
+    );
+    expect(part).toMatch(/^# Navbar\.Brand\n/);
+    expect(part).not.toContain('has no part');
+
+    const res = await call('get_component', { name: '<Button />' });
+    expect(failed(res)).toBe(false);
+    expect(text(res)).toMatch(/^# Button\n/);
+  });
+
+  it('says in its schema that get_component takes a dot-path', async () => {
+    const tool = (await client.listTools()).tools.find(
+      t => t.name === 'get_component'
+    );
+    expect(tool?.description).toContain('"Navbar.Brand"');
+    expect(JSON.stringify(tool?.inputSchema.properties?.name)).toContain(
+      'Navbar.Brand'
+    );
+  });
+
   it('says so when a dot-path names no part', async () => {
     const out = text(await call('get_component', { name: 'Navbar.Nope' }));
     expect(out).toMatch(/^# Navbar\n/);
@@ -1132,9 +1156,13 @@ describe('rough edges', () => {
   });
 
   it("explains Theme's variables rather than saying it has none", async () => {
-    const out = text(await call('get_css_variables', { component: 'Theme' }));
-    expect(out).not.toContain('registers no CSS variables');
-    expect(out).toContain('reference: "css-variables"');
+    for (const query of [undefined, 'primary']) {
+      const out = text(
+        await call('get_css_variables', { component: 'Theme', query })
+      );
+      expect(out).not.toContain('registers no CSS variables');
+      expect(out).toContain('reference: "css-variables"');
+    }
   });
 
   it('marks a missing query and an unknown helper group as errors', async () => {
