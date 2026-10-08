@@ -743,6 +743,9 @@ const WheelInner = <T,>(
               top: `${top}px`,
             }}
             disabled={itemDisabled}
+            // Keep a press from focusing the item, which assistive technology
+            // can't see; the click below hands focus to the wheel instead.
+            onMouseDown={e => e.preventDefault()}
             onClick={() => {
               moveBy(vIdx - virtualIdx);
               // Click focuses the <button> child by default; pull focus back

@@ -485,6 +485,18 @@ describe('TimeInput', () => {
     expect(document.activeElement).toBe(hoursWheel);
   });
 
+  it('keeps a press on a wheel item from focusing the hidden item', () => {
+    const { getByRole, getAllByRole } = render(
+      <TimeInput defaultValue={at(10, 0)} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const hoursWheel = getAllByRole('spinbutton')[0];
+    const item = hoursWheel.querySelector('button:not(.is-selected)')!;
+    // fireEvent returns false once a handler prevents the default, which is
+    // what stops the browser focusing the item on mousedown.
+    expect(fireEvent.mouseDown(item)).toBe(false);
+  });
+
   it('keeps the wheel items out of the spinbutton, which owns no options', () => {
     const { getByRole, getAllByRole, queryAllByRole } = render(
       <TimeInput defaultValue={at(10, 0)} />
