@@ -29,8 +29,14 @@ nothing in `src/` imports the library, the templates pin the published package t
 `--ignore-workspace`. It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
 current at pack time (bulma-ui releases first in the same job), and the sibling rule in
 `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS` declares this exact pair.
-What a consumer sees: `npm create bestax` installs the library, `bulma`, and — npm's automatic
-peer install — `react`/`react-dom` alongside the CLI.
+What a consumer sees: `npm create bestax` installs the library, `bulma`, and `react`/`react-dom`
+alongside the CLI.
+
+`react` and `react-dom` are declared dependencies too, with the library's peer ranges, though
+nothing imports them either. npm installs a dependency's peers by itself, but Yarn 1 does not,
+and without them `yarn create bestax` warned that the library's peers were unmet (#950). npm
+installs the same packages either way. `src/__tests__/package-manifest.test.ts` holds this
+manifest to every required peer of the installed library, so a new or changed peer fails there.
 
 ## Sync rules (this package re-ships other parts of the repo)
 
