@@ -328,9 +328,6 @@ bestax-bulma supports tree shaking. Always use named imports:
 ```js
 // ✅ Good - Only imports what you need
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
-
-// ❌ Bad - Imports entire library
-import * as Bulma from '@allxsmith/bestax-bulma';
 ```
 
 ### Analyzing Bundle Size

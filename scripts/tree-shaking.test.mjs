@@ -22,8 +22,8 @@
  * `"sideEffects"` stops being a formality: a bundler skips a module whose
  * exports an app does not use, so anything that module did on import, and
  * that another module relied on, silently stops happening. So the emitted
- * modules may do nothing at the top level beyond declaring things and setting
- * `displayName` on their own components.
+ * modules may do nothing at the top level beyond building components, contexts
+ * and constant tables, and setting `displayName` on their own components.
  */
 import assert from 'node:assert/strict';
 import {
@@ -60,6 +60,77 @@ const requireBuilt = () =>
       'check. Run `pnpm --filter @allxsmith/bestax-bulma build` first, or ' +
       'the whole gate with `pnpm all`.'
   );
+
+/**
+ * Calls a module may make while it loads. Each builds the value it is
+ * assigned to and touches nothing else: React's component and context
+ * factories, `withSubComponents` (whose base is checked below), and the
+ * collections and lookup tables a module builds from its own constants.
+ * Matched on the name called, so `React.forwardRef` counts as `forwardRef`.
+ */
+const LOAD_TIME_CALLS = new Set([
+  'forwardRef',
+  'memo',
+  'createContext',
+  'withSubComponents',
+  'Set',
+  'Map',
+  'fromEntries',
+  'map',
+  'filter',
+]);
+
+const calledName = callee =>
+  ts.isPropertyAccessExpression(callee)
+    ? callee.name.text
+    : ts.isIdentifier(callee)
+      ? callee.text
+      : undefined;
+
+/**
+ * Whether evaluating `node` on import does anything beyond building a value:
+ * a call outside `LOAD_TIME_CALLS`, a `withSubComponents` on an imported
+ * base, or a write. A function's body runs when the function is called, so
+ * it is skipped, unless the function is called on the spot.
+ */
+const doesWork = (node, isLocal) => {
+  if (ts.isFunctionLike(node)) return false;
+  if (ts.isCallExpression(node) || ts.isNewExpression(node)) {
+    let callee = node.expression;
+    while (ts.isParenthesizedExpression(callee)) callee = callee.expression;
+    if (ts.isArrowFunction(callee) || ts.isFunctionExpression(callee)) {
+      return (
+        doesWork(callee.body, isLocal) ||
+        (node.arguments ?? []).some(arg => doesWork(arg, isLocal))
+      );
+    }
+    const name = calledName(callee);
+    if (!LOAD_TIME_CALLS.has(name)) return true;
+    // `withSubComponents` attaches statics by mutating its base, which is
+    // only safe while the base belongs to this module: a base imported from
+    // another would gain its statics only in apps that import this one too.
+    if (name === 'withSubComponents' && !isLocal(node.arguments[0])) {
+      return true;
+    }
+  }
+  if (ts.isTaggedTemplateExpression(node)) return true;
+  if (
+    ts.isBinaryExpression(node) &&
+    node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment &&
+    node.operatorToken.kind <= ts.SyntaxKind.LastAssignment
+  ) {
+    return true;
+  }
+  if (
+    (ts.isPrefixUnaryExpression(node) || ts.isPostfixUnaryExpression(node)) &&
+    (node.operator === ts.SyntaxKind.PlusPlusToken ||
+      node.operator === ts.SyntaxKind.MinusMinusToken)
+  ) {
+    return true;
+  }
+  if (ts.isDeleteExpression(node)) return true;
+  return Boolean(ts.forEachChild(node, child => doesWork(child, isLocal)));
+};
 
 describe('bulma-ui tree shaking', () => {
   let consumer;
@@ -186,21 +257,14 @@ describe('bulma-ui tree shaking', () => {
           continue;
         }
         if (ts.isVariableStatement(statement)) {
-          // `withSubComponents` attaches statics by mutating its base, which
-          // is only safe while the base belongs to this module: a base
-          // imported from another would gain its statics only in apps that
-          // happen to import this one too.
-          for (const declaration of statement.declarationList.declarations) {
-            const init = declaration.initializer;
-            if (
-              init &&
-              ts.isCallExpression(init) &&
-              init.expression.getText() === 'withSubComponents' &&
-              !isLocal(init.arguments[0])
-            ) {
-              problems.push(at(statement));
-            }
-          }
+          // A declaration runs its initializer on import, so it can do work
+          // as easily as a bare statement can.
+          const work = statement.declarationList.declarations.some(
+            declaration =>
+              declaration.initializer &&
+              doesWork(declaration.initializer, isLocal)
+          );
+          if (work) problems.push(at(statement));
           continue;
         }
         // A component's own displayName is the one assignment allowed: it
@@ -228,7 +292,9 @@ describe('bulma-ui tree shaking', () => {
       'these modules do something when imported. package.json declares the ' +
         "library's JavaScript free of side effects, so a bundler skips a " +
         'module whose exports an app does not use, and anything it did on ' +
-        'import would not happen. Move the work into the code that needs it.'
+        'import would not happen. Move the work into the code that needs it. ' +
+        'A call that only builds the value it is assigned to belongs in ' +
+        'LOAD_TIME_CALLS instead.'
     );
   });
 });

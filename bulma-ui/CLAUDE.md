@@ -137,9 +137,10 @@ These keep it working, and each of them failed once:
 - A module must not do anything on import that another module relies on. The ESM build is
   one file per module (`dist/esm/`, behind `dist/index.esm.js`), and `"sideEffects"` lets an
   app's bundler skip every module it never imports, so import-time work in a skipped module
-  silently never runs (#937). Declaring things and setting a component's own `displayName`
-  are fine. `scripts/tree-shaking.test.mjs` checks the built modules for this, and holds a
-  single-component import to a small slice of the library.
+  silently never runs (#937). Building components, contexts and constant tables, and setting
+  a component's own `displayName`, are fine. `scripts/tree-shaking.test.mjs` fails on any
+  other call or write a built module makes as it loads, and holds a single-component import
+  to a small slice of the library.
 
 ## Releases
 

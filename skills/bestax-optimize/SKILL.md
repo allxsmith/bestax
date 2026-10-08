@@ -114,9 +114,9 @@ partial inventory, and a worked example are in `references/modular-build.md`.
 
 ## Lever 3 — import & icon-asset hygiene (minor)
 
-- **Named imports.** `import * as Bestax from '@allxsmith/bestax-bulma'` defeats tree
-  shaking. Convert to named imports (`import { Button, Card } from …`) — a JS-side saving
-  (whole library ≈ 65 KB min+gzip), so report it honestly as minor.
+- **Named imports.** Convert `import * as Bestax from '@allxsmith/bestax-bulma'` to named
+  imports (`import { Button, Card } from …`). Any saving is on the JS side, so report it
+  honestly as minor.
 - **Unused icon libraries.** Scaffolded apps may carry an icon library the app never uses:
   icon-font packages in `package.json` (`@fortawesome/fontawesome-free`, `@mdi/font`,
   `material-icons`, `material-symbols`) with their CSS imports in `src/main.*`, or Ionicons
