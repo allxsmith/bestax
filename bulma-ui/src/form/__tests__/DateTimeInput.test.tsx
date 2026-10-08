@@ -1091,15 +1091,21 @@ describe('DateTimeInputBase remaining branches', () => {
   });
 
   it('Enter on the seconds wheel commits and closes the popover too', () => {
+    const handler = jest.fn();
     const { getByRole, getAllByRole, queryByRole } = render(
-      <DateTimeInput defaultValue={dt()} enableSeconds />
+      <DateTimeInput defaultValue={dt()} enableSeconds onChange={handler} />
     );
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     const wheels = getAllByRole('spinbutton');
     expect(wheels[2]).toHaveAttribute('aria-label', 'seconds');
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     fireEvent.keyDown(wheels[2], { key: 'Enter' });
     expect(queryByRole('dialog')).toBeNull();
+    // The turned second stands after the close: nothing reverts it.
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenLastCalledWith(new Date(2024, 5, 7, 13, 45, 1));
+    expect(getByRole('combobox')).toHaveValue('2024-06-07 13:45:01');
   });
 
   it('haptics opt-in still routes wheel changes through onChange', () => {

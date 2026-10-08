@@ -843,15 +843,22 @@ describe('TimeWheels keyboard and value mapping', () => {
   });
 
   it('Enter on the seconds wheel commits and closes the popover, as on the others', () => {
-    const { wheels, queryByRole } = openPicker(
+    const handler = jest.fn();
+    const { wheels, queryByRole, getByRole } = openPicker(
       <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
         mobileNative={false}
+        onChange={handler}
       />
     );
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     fireEvent.keyDown(wheels[2], { key: 'Enter' });
     expect(queryByRole('dialog')).toBeNull();
+    // The turned second stands after the close: nothing reverts it.
+    expect(lastDate(handler).getSeconds()).toBe(31);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(getByRole('combobox')).toHaveValue('10:00:31');
   });
 
   it('hour and minute changes preserve the seconds part; ArrowDown steps seconds back', () => {
