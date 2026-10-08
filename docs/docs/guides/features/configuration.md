@@ -146,6 +146,8 @@ pnpm add bulma sass
 
 </PackageManagerTabs>
 
+If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
+
 ### 2. Create Custom Sass File
 
 ```scss title="src/styles/mycompany-bulma.scss"

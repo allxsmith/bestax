@@ -37,13 +37,13 @@ export const GLYPHS: string[][] = [
 /**
  * A `.icon` holding a bare `<i>` with the `glyph` classes, planned on its
  * own as the transform plans it before the element around it. It carries
- * an `aria-label` unless `attributes` says otherwise, since `Icon` writes
- * one.
+ * `aria-hidden` unless `attributes` says otherwise, since `Icon` writes it
+ * on an icon with no name.
  */
 export function iconChild(
   glyph: string[],
   tokens: string[] = [],
-  attributes: Attributes = { 'aria-label': 'x' }
+  attributes: Attributes = { 'aria-hidden': 'true' }
 ): ChildFacts {
   const inner: ChildFacts = {
     tag: 'i',
@@ -86,8 +86,7 @@ export function textChild(text = 'x'): ChildFacts {
 
 /**
  * One built icon's props, as the transform writes them: its props, what
- * stays of its classes, then its `.icon`'s attributes, with `aria-label`
- * as `ariaLabel`.
+ * stays of its classes, then its `.icon`'s attributes.
  */
 export function iconProps(
   built: BuiltIcon,
@@ -103,10 +102,7 @@ export function iconProps(
     ...Object.fromEntries(
       [...child.attributes]
         .filter(([name]) => !built.drop.includes(name))
-        .map(([name, value]) => [
-          name === 'aria-label' ? 'ariaLabel' : name,
-          number(name, value),
-        ])
+        .map(([name, value]) => [name, number(name, value)])
     ),
   };
 }

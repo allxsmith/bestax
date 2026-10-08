@@ -89,16 +89,18 @@ to `iconLeftName`/`iconRightName` if one is given, otherwise leaving the icon co
 
 ## Accessibility
 
-Every `Icon` renders `aria-label` (default `"icon"`), set via its camelCase `ariaLabel` prop.
-Only a few components declare that prop (`Icon`, `Delete`, `Slider`, `Carousel`) — everything
-else takes the standard `aria-label` attribute, e.g. `<Navbar.Burger aria-label="menu" />`.
+An `Icon` is decorative unless it is named: with no `ariaLabel` it renders `aria-hidden="true"`
+and no name. Name it with its camelCase `ariaLabel` prop, and it renders `role="img"` with that
+`aria-label`. Only a few components declare that prop (`Icon`, `Delete`, `Slider`, `Carousel`):
+everything else takes the standard `aria-label` attribute, e.g.
+`<Navbar.Burger aria-label="menu" />`.
 
 - **Meaningful icon** (stands alone, conveys information): pass a descriptive
   `ariaLabel="Delete item"`.
 - **Decorative icon** (next to visible text that says the same thing, e.g. inside `IconText`
-  or a labeled `Button`): hide it from screen readers with `aria-hidden`:
-  `<Icon name="check" aria-hidden="true" />` — otherwise "icon" (or a duplicate label) is
-  announced alongside the text.
+  or a labeled `Button`): leave `ariaLabel` off, and the icon stays out of the accessible
+  name. An explicit `aria-hidden="true"`, as in the examples here, says the same thing.
+- **Icon-only control:** name the control (`<Button aria-label="Delete item">`), not the icon.
 
 ## References
 

@@ -20,7 +20,7 @@
         { "id": "patterns", "file": "references/patterns.md", "bytes": 4601 }
       ],
       "examples": [
-        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3739 }
+        { "id": "stat-card", "file": "examples/stat-card.tsx", "bytes": 3734 }
       ]
     },
     {
@@ -43,11 +43,11 @@
         {
           "id": "icon-libraries",
           "file": "references/icon-libraries.md",
-          "bytes": 6663
+          "bytes": 6229
         }
       ],
       "examples": [
-        { "id": "icon-usage", "file": "examples/icon-usage.tsx", "bytes": 2693 }
+        { "id": "icon-usage", "file": "examples/icon-usage.tsx", "bytes": 2774 }
       ]
     },
     {
@@ -103,7 +103,7 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 23900
+          "bytes": 24004
         },
         {
           "id": "bulma-classes-prop-map",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 23196
+          "bytes": 23489
         },
         {
           "id": "css-migration",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 9583
+          "bytes": 9431
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 29152
+          "bytes": 29396
         },
         {
           "id": "themeable-components",

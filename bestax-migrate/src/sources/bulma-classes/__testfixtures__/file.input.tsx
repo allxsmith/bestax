@@ -27,7 +27,7 @@ export function Uploads({ onPick }: { onPick: () => void }) {
             <span className="file-cta">
               <span className="file-label">Upload a photo</span>
               <span className="file-icon">
-                <span className="icon" aria-label="Upload">
+                <span className="icon" aria-hidden="true">
                   <i className="fas fa-cloud-upload-alt"></i>
                 </span>
               </span>
