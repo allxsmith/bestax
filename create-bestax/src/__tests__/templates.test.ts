@@ -25,21 +25,82 @@ const {
   NO_HELPERS_STARTER_CLASSES,
 } = await import('../constants.js');
 
-const templatesDir = path.resolve(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '../../templates'
-);
+const testDir = path.dirname(fileURLToPath(import.meta.url));
+const templatesDir = path.resolve(testDir, '../../templates');
 const TEMPLATES = ['vite', 'vite-ts'] as const;
 const appFile = (template: string) =>
   template === 'vite-ts' ? 'App.tsx' : 'App.jsx';
 const mainFile = (template: string) =>
   template === 'vite-ts' ? 'main.tsx' : 'main.jsx';
 
-// The helper props, as the bestax-optimize skill lists them for its
-// no-helpers gate. `color` is left out: on Button and Notification it is the
-// component's own modifier, which every flavor styles.
-const HELPER_PROP =
-  /\s(?:m|mt|mr|mb|ml|mx|my|p|pt|pr|pb|pl|px|py|gap|columnGap|rowGap|gapless|backgroundColor|textColor|bgColor|textSize|textAlign|textTransform|textWeight|fontFamily|display|visibility|flexDirection|flexWrap|justifyContent|alignContent|alignItems|alignSelf|flexGrow|flexShrink|float|overflow|overlay|interaction|cursor|radius|shadow|skeleton|clearfix|pos|relative|fullHeight|aspectRatio)=/;
+// The helper props are the ones useBulmaClasses takes out of a component's
+// props and turns into classes, viewport variants such as `displayTablet`
+// included. They are read from its source rather than listed here, so a
+// helper added to the library is one this gate already knows.
+function helperPropsOfUseBulmaClasses(): string[] {
+  const file = path.resolve(
+    testDir,
+    '../../../bulma-ui/src/helpers/useBulmaClasses.tsx'
+  );
+  const source = ts.createSourceFile(
+    file,
+    fs.readFileSync(file, 'utf8'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const names: string[] = [];
+  const visit = (node: ts.Node) => {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isObjectBindingPattern(node.name) &&
+      node.initializer &&
+      ts.isIdentifier(node.initializer) &&
+      node.initializer.text === 'props'
+    ) {
+      for (const element of node.name.elements) {
+        if (element.dotDotDotToken) continue;
+        names.push((element.propertyName ?? element.name).getText(source));
+      }
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return names;
+}
+
+// `color` is left out: on Button and Notification it is the component's own
+// modifier, which every flavor styles. `textColor` and `bgColor` are the
+// names some components give the helper's `color` and `backgroundColor`.
+const HELPER_PROPS = [
+  ...helperPropsOfUseBulmaClasses().filter(name => name !== 'color'),
+  'textColor',
+  'bgColor',
+];
+const HELPER_PROP = new RegExp(`\\s(?:${HELPER_PROPS.join('|')})=`);
+
+describe('the no-helpers gate', () => {
+  // If the hook stopped destructuring its props in one place, the read above
+  // would come back short and the gate would pass on helpers it can't see.
+  it('reads every helper prop from useBulmaClasses, viewport variants included', () => {
+    expect(HELPER_PROPS).toEqual(
+      expect.arrayContaining([
+        'mt',
+        'textAlign',
+        'display',
+        'displayTablet',
+        'displayTabletOnly',
+        'textAlignMobile',
+        'visibilityDesktopOnly',
+        'overflowX',
+        'overflowY',
+        'flexGrow',
+      ])
+    );
+    expect(' displayTablet="flex"').toMatch(HELPER_PROP);
+    expect(' color="info"').not.toMatch(HELPER_PROP);
+  });
+});
 
 let workDir: string;
 let projectCreator: InstanceType<typeof ProjectCreator>;
@@ -170,7 +231,8 @@ describe.each(TEMPLATES)(
         'utf8'
       );
       expect(app).toMatch(HELPER_PROP);
-      for (const { className } of NO_HELPERS_STARTER_CLASSES) {
+      for (const { prop, className } of NO_HELPERS_STARTER_CLASSES) {
+        expect(app).toContain(prop);
         expect(app).not.toContain(`className="${className}"`);
       }
     });

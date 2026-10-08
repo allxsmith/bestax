@@ -41,6 +41,21 @@
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],
       "outputs": ["dist/**", "templates/skills/**"]
     },
+    "create-bestax#test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/bulma-ui/package.json",
+        "$TURBO_ROOT$/bulma-ui/src/helpers/useBulmaClasses.tsx"
+      ]
+    },
+    "create-bestax#test:coverage": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/bulma-ui/package.json",
+        "$TURBO_ROOT$/bulma-ui/src/helpers/useBulmaClasses.tsx"
+      ],
+      "outputs": ["coverage/**"]
+    },
     "bestax-migrate#test": {
       "dependsOn": ["@allxsmith/bestax-bulma#build"],
       "inputs": [
