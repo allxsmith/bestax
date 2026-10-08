@@ -119,6 +119,9 @@ function asModule(body, libraryNames) {
   const last = code.findLast(i => i >= 0);
   if (first !== undefined) {
     lines[first] = `export default (${lines[first]}`;
+    // The paren closes on the last code line because react-live's wrapper
+    // closes it there too. A fence that ends in a `//` comment swallows it in
+    // both, so the preview fails on the page and this reports the comment line.
     lines[last] = `${lines[last].replace(/;\s*$/, '')});`;
   }
   return {
@@ -287,6 +290,10 @@ const FIXTURES = [
       '}',
     ].join('\n')
   ),
+  page(
+    'fixture/trailing-comment.md',
+    ['<Button color="primary">', '  Go', '</Button>', '// a note'].join('\n')
+  ),
   page('fixture/scope-only.md', '<ProfileCard name="Ada" />;'),
   page(
     'fixture/marked-and-wrong.md',
@@ -334,6 +341,12 @@ describe('the docs live examples type-check', () => {
       about('fixture/out-of-scope.md').join('\n'),
       /:5: TS2304 Cannot find name 'useRef'/
     );
+  });
+
+  it('reports a fence whose last line is a comment, as its preview fails', () => {
+    assert.deepEqual(about('fixture/trailing-comment.md'), [
+      "fixture/trailing-comment.md:7: TS1005 ')' expected.",
+    ]);
   });
 
   it('drops value imports as the site does and keeps import type', () => {
