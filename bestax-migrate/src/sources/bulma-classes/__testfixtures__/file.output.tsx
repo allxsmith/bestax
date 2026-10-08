@@ -2,7 +2,7 @@ import { Field, File, Icon } from "@allxsmith/bestax-bulma";
 export function Uploads({ onPick }: { onPick: () => void }) {
   // TODO(bestax-migrate): bestax `File` renders a `.field` of its own around the `.file` unless it sits inside a `Field`, and nothing around this element is one or becomes one here; keep it as markup, or convert the `.field` around it, then re-run
   // TODO(bestax-migrate): bestax `File` renders the whole `.file` tree itself, so this converts only when its tree is the one it renders: one bare `.file-label` <label> holding a `.file-input` <input type="file">, a bare `.file-cta` <span> with a bare `.file-label` <span> of static content and at most one bare `.file-icon` <span> of static content on each side of it, and, with `has-name`, at most one bare `.file-name` <span> of static text; keep it as markup, or convert it by hand
-  // TODO(bestax-migrate): bestax `File` renders Bulma's `is-empty` on a `has-name` `.file` with no `.file-name`; add `is-empty` here if that is what you want, then re-run
+  // TODO(bestax-migrate): bestax `File` renders Bulma's `is-empty` on a `has-name` `.file` with no `.file-name`; add `is-empty` here if that is what you want, then re-run, and it converts with `fileName=""`, so a file the user picks shows no name, as this markup shows none
   // TODO(bestax-migrate): bestax `File` puts the attributes it's given on its <input>, so this element's `id` would move there; move it onto the <input> if that's what you want, then re-run
   return (
     <form>

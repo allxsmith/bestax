@@ -775,7 +775,7 @@ export function plan(facts: ElementFacts): Plan {
         return refuse(
           'defaults',
           target,
-          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`; add \`${EMPTY_NAME}\` here if that is what you want, then re-run`
+          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`; add \`${EMPTY_NAME}\` here if that is what you want, then re-run, and it converts with \`fileName=""\`, so a file the user picks shows no name, as this markup shows none`
         );
       }
       converted.add(EMPTY_NAME);

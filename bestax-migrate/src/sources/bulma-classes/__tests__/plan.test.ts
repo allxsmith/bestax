@@ -1111,6 +1111,8 @@ describe('plan', () => {
       const bare = file(tree(), 'file has-name');
       expect(rules(bare)).toEqual(['defaults:File']);
       expect(bare.todos[0].message).toMatch(/`is-empty`/);
+      // And says what that conversion pins, so a pick never shows a name.
+      expect(bare.todos[0].message).toContain('converts with `fileName=""`');
       expect(
         rules(
           file(tree(), 'file has-name', {}, { conditional: [['is-empty']] })
