@@ -1197,11 +1197,18 @@ describe('plan', () => {
       expect(bare.todos[0].message).toMatch(/`is-empty`/);
       // And says what that conversion pins, so a pick never shows a name.
       expect(bare.todos[0].message).toContain('converts with `fileName=""`');
-      expect(
-        rules(
-          file(tree(), 'file has-name', {}, { conditional: [['is-empty']] })
-        )
-      ).toEqual(['defaults:File']);
+      // A conditional `is-empty` refuses too, and the TODO says so, or an
+      // author who has one reads it as already met.
+      const conditional = file(
+        tree(),
+        'file has-name',
+        {},
+        { conditional: [['is-empty']] }
+      );
+      expect(rules(conditional)).toEqual(['defaults:File']);
+      expect(conditional.todos[0].message).toContain(
+        "a condition on `is-empty` can't stand in for it; write `is-empty` here as a static class"
+      );
       // Beside a name `File` renders none, so one written there stays a class.
       const named = file(
         tree({ name: span('file-name', { text: 'cv.pdf' }) }),
