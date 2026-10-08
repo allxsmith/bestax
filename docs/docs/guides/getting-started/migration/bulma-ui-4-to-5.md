@@ -90,6 +90,8 @@ The pre-built bundle is gone, but the prefix itself isn't reserved — you can r
 
 Import that file instead of the removed CSS (you'll need `bulma` and `sass` installed — `pnpm add bulma sass`), keep `classPrefix="bulma-"`, and nothing else changes.
 
+If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
+
 **Why this changed:** maintaining two parallel prefixed bundles doubled the prefixed build and test surface without adding capability — anything the `bulma-` bundle could do, the `bestax-` bundle (or a custom Sass build) does equally well. 5.x standardizes on the single `bestax-` scheme.
 
 ## No other breaking changes

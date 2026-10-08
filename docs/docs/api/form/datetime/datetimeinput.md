@@ -792,7 +792,7 @@ In free-form entry there is no segment to step, so a plain `↓` opens the popov
 
 Clicking the month and year in the calendar's header opens the year list to jump to another year. There `←` / `→` move focus by a year, `↑` / `↓` by a row, `Home` / `End` go to the list's ends, and `Enter` / `Space` jump to the focused year. The calendar stays on its month until a year is picked, and `Escape` goes back to it without jumping (a second `Escape` closes the popover).
 
-Activate the footer **time** button (`Enter` / `Space`) to float the wheels over the calendar, with focus on the hours wheel. On a time wheel: `↑` / `↓` raise / lower the value, `PageUp` / `PageDown` by 5, `Home` / `End` jump to the lowest / highest, `←` / `→` move between the hours / minutes / (seconds) columns, and `Enter` commits and closes. While the wheels are open, `Escape` collapses them (a second `Escape` closes the popover), and clicking anywhere outside the wheel card dismisses them. The calendar under the wheels is out of reach while they are open, so `Tab` walks the wheels and the footer. Closing them puts focus back on the time button, unless you had moved it on to Reset or ✓, where it stays.
+Activate the footer **time** button (`Enter` / `Space`) to float the wheels over the calendar, with focus on the hours wheel. On a time wheel: `↑` / `↓` raise / lower the value, `PageUp` / `PageDown` by 5, `Home` / `End` jump to the lowest / highest, `←` / `→` move between the hours / minutes / (seconds) columns, and `Enter` commits and closes, collapsing the wheels on an `inline` picker, which has no popover. While the wheels are open, `Escape` collapses them (a second `Escape` closes the popover), `Alt+↑` closes the whole popover at once, as it does from the input, and clicking anywhere outside the wheel card dismisses them. The calendar under the wheels is out of reach while they are open, so `Tab` walks the wheels and the footer. Closing them puts focus back on the time button, unless you had moved it on to Reset or ✓, where it stays.
 
 ---
 
@@ -836,7 +836,7 @@ function DateTimeInputFormDemo() {
 - Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.
 - Calendar uses `role="grid"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"`.
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
-- Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.
+- Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.
 - Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.
 

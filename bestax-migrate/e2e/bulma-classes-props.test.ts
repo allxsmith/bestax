@@ -377,7 +377,7 @@ describe('every bulma-classes conversion typechecks', () => {
           ),
           ...COMMON.map(attribute =>
             iconChild(['fas', 'fa-home'], [], {
-              'aria-label': 'x',
+              'aria-hidden': 'true',
               ...Object.fromEntries([attribute]),
             })
           ),

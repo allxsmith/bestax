@@ -75,13 +75,16 @@ interface IconBaseProps
   /** Size modifier for the icon container. */
   size?: 'small' | 'medium' | 'large';
   /**
-   * ARIA label for accessibility. Applied unconditionally to the container span, so an
-   * icon that never sets it still renders `aria-label="icon"`. For an icon-only control,
-   * put the real `aria-label` on the control (e.g. `Button`) and set `aria-hidden` here
-   * instead — otherwise the control's accessible name is announced as just "icon". For a
-   * decorative icon beside visible text, set `aria-hidden` here rather than leaving the
-   * default, so it doesn't add "icon" to the text's accessible name.
-   * @defaultValue 'icon'
+   * Accessible name for an icon that means something on its own. Set it and the container
+   * span gets `role="img"` with this `aria-label`, so the name is exactly this text: a
+   * Material ligature such as `rocket_launch` inside stays out of it. Leave it unset (or
+   * empty) and the icon is decorative: the span renders `aria-hidden="true"` and no name,
+   * so it adds nothing to the accessible name of a `Button` or text around it. For an
+   * icon-only control, put the name on the control (e.g. `Button`'s `aria-label`) and leave
+   * this unset. A non-empty native `aria-label` or `aria-labelledby` passed instead also
+   * counts as a name, and an explicit `role` or `aria-hidden` wins over both defaults. An
+   * unnamed icon given a `role` or a `tabIndex` of its own isn't hidden, since hiding
+   * something focusable is a failure of its own.
    */
   ariaLabel?: string;
   /** Inline style object. */
@@ -274,7 +277,7 @@ export const Icon: React.FC<IconProps> = ({
   features,
   libraryFeatures, // Deprecated but maintained for backward compatibility
   size,
-  ariaLabel = 'icon',
+  ariaLabel,
   style,
   icon, // Capture and exclude the deprecated 'icon' prop from DOM
   color: _color, // Exclude 'color' prop if passed directly
@@ -315,13 +318,27 @@ export const Icon: React.FC<IconProps> = ({
     className
   );
 
+  // A named icon is an image, whose name is its label alone, so a ligature inside
+  // never leaks into it. An unnamed one is decorative and hidden outright. Spread
+  // before `rest`, so a caller's own `role` or `aria-hidden` still wins.
+  const named =
+    !!ariaLabel || !!restProps['aria-label'] || !!restProps['aria-labelledby'];
+  // A caller's own `role` or `tabIndex` on an unnamed icon means it isn't decoration (an
+  // icon made a button, say), so it isn't hidden either: `aria-hidden` on something
+  // focusable is a failure of its own.
+  const a11yProps = named
+    ? { role: 'img', 'aria-label': ariaLabel || undefined }
+    : restProps.role !== undefined || restProps.tabIndex !== undefined
+      ? {}
+      : { 'aria-hidden': true };
+
   if (children !== undefined) {
     // `IconChildrenProps`: render the caller's node (an inline SVG, a `react-icons`
     // component, …) in place of a class-based glyph. Library/variant/features don't apply.
     return (
       <span
         className={iconContainerClasses}
-        aria-label={ariaLabel}
+        {...a11yProps}
         style={style}
         {...rest}
       >
@@ -366,7 +383,7 @@ export const Icon: React.FC<IconProps> = ({
     return (
       <span
         className={iconContainerClasses}
-        aria-label={ariaLabel}
+        {...a11yProps}
         style={style}
         {...rest}
       />
@@ -444,7 +461,7 @@ export const Icon: React.FC<IconProps> = ({
     return (
       <span
         className={iconContainerClasses}
-        aria-label={ariaLabel}
+        {...a11yProps}
         style={style}
         {...rest}
       >
@@ -469,7 +486,7 @@ export const Icon: React.FC<IconProps> = ({
     return (
       <span
         className={iconContainerClasses}
-        aria-label={ariaLabel}
+        {...a11yProps}
         style={style}
         {...rest}
       >
@@ -481,7 +498,7 @@ export const Icon: React.FC<IconProps> = ({
   return (
     <span
       className={iconContainerClasses}
-      aria-label={ariaLabel}
+      {...a11yProps}
       style={style}
       {...rest}
     >

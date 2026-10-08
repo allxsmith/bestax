@@ -191,7 +191,7 @@
           "name": "iconLeft",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Left icon element. It renders inside the `<label>` that names the file input, beside `buttonLabel`, so pass an `Icon` with `aria-hidden` (`<Icon name=\"upload\" aria-hidden=\"true\" />`); otherwise its default `aria-label=\"icon\"` becomes part of the input's accessible name.",
+          "description": "Left icon element. It renders inside the `<label>` that names the file input, beside `buttonLabel`, so leave an `Icon` here unnamed (`<Icon name=\"upload\" />`): it is then `aria-hidden`, while an `ariaLabel` would join the input's accessible name.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -200,7 +200,7 @@
           "name": "iconRight",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Right icon element. Sits inside the same `<label>` as `iconLeft`, so the same applies: give an `Icon` here `aria-hidden`, or \"icon\" joins the input's accessible name.",
+          "description": "Right icon element. Sits inside the same `<label>` as `iconLeft`, so the same applies: an `Icon` here with an `ariaLabel` joins the input's accessible name.",
           "required": false,
           "inherited": false,
           "deprecated": false

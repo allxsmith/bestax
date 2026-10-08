@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import type { BulmaClassTable } from './bulma-classes.js';
 
 /** Bumped by the generator when the shape changes incompatibly. */
-export const SUPPORTED_SCHEMA_VERSION = 1;
+export const SUPPORTED_SCHEMA_VERSION = 2;
 
 export interface PropRow {
   name: string;
@@ -107,7 +107,12 @@ export interface Catalog {
   docsBase: string;
   categories: { id: string; label: string; components: string[] }[];
   components: CatalogEntry[];
-  cssVarIndex: Record<string, string>;
+  /**
+   * Every component that declares a variable. The one the variable is named after
+   * comes first when there is one (`--bulma-dateinput-*` is DateInput's, though
+   * DateTimeInput declares it too), and the rest follow in code-point order.
+   */
+  cssVarIndex: Record<string, string[]>;
 }
 
 export interface SkillFile {
