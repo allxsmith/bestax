@@ -59,8 +59,23 @@ Add to your MCP config (`.cursor/mcp.json`, `claude_desktop_config.json`, …):
 }
 ```
 
-Run it from your project directory so it can find your installed
-`@allxsmith/bestax-bulma` and check it against the indexed version.
+The server checks your installed `@allxsmith/bestax-bulma` against the version it documents,
+looking for it from the directory it starts in. If your client starts servers somewhere other than
+your project, point it at the project with `BESTAX_MCP_PROJECT_DIR` in the config's `env`:
+
+```json
+{
+  "mcpServers": {
+    "bestax": {
+      "command": "npx",
+      "args": ["-y", "bestax-mcp@1"],
+      "env": { "BESTAX_MCP_PROJECT_DIR": "/path/to/your/project" }
+    }
+  }
+}
+```
+
+If it finds no installed copy, its first answer says so.
 
 The `@1` pins the major version. Without it, `npx` resolves whatever is newest on every
 launch — so a breaking change, or a compromised release, reaches your agent the next time it
@@ -74,7 +89,7 @@ Start with `list_components` — its output names the tool to call next. Reach f
 
 | Tool                   | What it gives you                                                                                        |
 | ---------------------- | -------------------------------------------------------------------------------------------------------- |
-| `list_components`      | All 87 components with a one-line purpose, by category                                                   |
+| `list_components`      | Every component with a one-line purpose, by category                                                     |
 | `search_bestax`        | Components, props, examples, CSS variables and skills in one ranked list                                 |
 | `get_component`        | Import, summary and props; optionally examples, CSS variables, accessibility, related                    |
 | `get_props`            | One prop table, including compound sub-paths (`Navbar.Brand`)                                            |
@@ -98,9 +113,10 @@ One per skill, so a task can start from the library's own guidance:
 
 ## Environment
 
-| Variable                      | Effect                                                  |
-| ----------------------------- | ------------------------------------------------------- |
-| `BESTAX_MCP_NO_VERSION_CHECK` | Set to `1` to skip the installed-version check entirely |
+| Variable                      | Effect                                                                                                 |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `BESTAX_MCP_NO_VERSION_CHECK` | Set to `1` to skip the installed-version check entirely                                                |
+| `BESTAX_MCP_PROJECT_DIR`      | Your project's path, for a client that starts the server outside it; defaults to the working directory |
 
 ## Links
 

@@ -7,7 +7,6 @@
 //      e.g. mt="4" (1rem) instead of style={{ marginTop: '1rem' }},
 //           textAlign="centered" instead of style={{ textAlign: 'center' }},
 //           textColor="grey" instead of style={{ color: '#…' }}.
-import React from 'react';
 import {
   ConfigProvider,
   Hero,

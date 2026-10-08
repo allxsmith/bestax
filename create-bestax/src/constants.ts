@@ -14,6 +14,14 @@ export const TEMPLATES: Template[] = [
 export const DEFAULT_PROJECT_NAME = 'my-bestax-app';
 export const MAX_PROJECT_NAME_LENGTH = 214;
 export const PROJECT_NAME_REGEX = /^[a-zA-Z0-9-._]+$/;
+// How many of a non-empty directory's entries a message names before it
+// switches to "and N more".
+export const MAX_LISTED_ENTRIES = 5;
+
+const listEntries = (entries: string[]): string =>
+  entries.length > MAX_LISTED_ENTRIES
+    ? `${entries.slice(0, MAX_LISTED_ENTRIES).join(', ')} and ${entries.length - MAX_LISTED_ENTRIES} more`
+    : entries.join(', ');
 
 export const MESSAGES = {
   PROJECT_NAME_REQUIRED: 'Project name is required',
@@ -22,14 +30,26 @@ export const MESSAGES = {
     'Project name can only contain letters, numbers, dots, dashes and underscores',
   PROJECT_NAME_DOT:
     'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
+  PROJECT_NAME_NO_PACKAGE_NAME:
+    'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")',
+  PACKAGE_NAME_NORMALIZED: (name: string) =>
+    `  package.json name: ${name} (npm package names are lower-case and cannot start with "_")`,
   OPERATION_CANCELLED: '✖ Operation cancelled',
   NO_TTY:
     'No interactive terminal detected — cannot prompt for input.\n' +
     'Re-run non-interactively with a project name and flags, e.g.:\n' +
     '  npm create bestax@latest my-app -- -t vite-ts -b complete -i none -y\n' +
     'Run with --help to see all options.',
-  DIRECTORY_NOT_EMPTY: (dir: string) =>
-    `Directory ${chalk.yellow(dir)} is not empty. Remove existing files and continue?`,
+  DIRECTORY_NOT_EMPTY: (dir: string, entries: string[]) =>
+    `Directory ${chalk.yellow(dir)} is not empty (${listEntries(entries)}). Remove existing files and continue?`,
+  NOT_A_DIRECTORY: (dir: string) =>
+    `${dir} already exists and is not a directory, so nothing was written. Choose another project name.`,
+  // Shown instead of the question above when it cannot be asked: under -y, or
+  // without a terminal. -y never answers it (#945), so this must not suggest -y.
+  DIRECTORY_NOT_EMPTY_REFUSED: (dir: string, entries: string[]) =>
+    `Directory ${dir} is not empty (${listEntries(entries)}), so nothing was written.\n` +
+    '  Re-run with --overwrite to delete its contents first, or choose a new or empty directory.\n' +
+    '  -y alone never deletes files.',
   EMPTYING_DIRECTORY: (dir: string) => `\n  Emptying ${dir}...`,
   CREATING_PROJECT: (path: string) =>
     `✔ Creating project in ${chalk.bold(path)}`,
@@ -39,6 +59,9 @@ export const MESSAGES = {
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
+  ICON_CSS_NOT_ADDED: (file: string, importStatement: string) =>
+    `  Warning: ${file} has no bestax stylesheet import to follow, so ${importStatement} ` +
+    'was not added. Add it by hand or the icons will not render.',
   TELEMETRY_NOTICE:
     'Help improve bestax — share anonymous usage stats?\n' +
     'Sends only the options you chose (template, Bulma flavor, icon library,\n' +

@@ -1,5 +1,9 @@
 import { describe, it, expect } from '@jest/globals';
-import { validateProjectName, isValidProjectName } from '../validators.js';
+import {
+  validateProjectName,
+  isValidProjectName,
+  toValidPackageName,
+} from '../validators.js';
 
 describe('validators', () => {
   describe('validateProjectName', () => {
@@ -84,6 +88,15 @@ describe('validators', () => {
       expect(validateProjectName('__private__')).toBe(true);
     });
 
+    it('should reject a name that would leave no npm package name', () => {
+      const message =
+        'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")';
+      expect(validateProjectName('_')).toBe(message);
+      expect(validateProjectName('___')).toBe(message);
+      expect(validateProjectName('_._')).toBe(message);
+      expect(validateProjectName('_-')).toBe(true);
+    });
+
     it('should accept project names with dashes', () => {
       expect(validateProjectName('my-project')).toBe(true);
       expect(validateProjectName('my-awesome-project')).toBe(true);
@@ -102,6 +115,25 @@ describe('validators', () => {
 
       const tooLongName = 'a'.repeat(215);
       expect(validateProjectName(tooLongName)).toBe('Project name too long');
+    });
+  });
+
+  describe('toValidPackageName (#950)', () => {
+    it('lower-cases the name, as npm init does', () => {
+      expect(toValidPackageName('MyApp')).toBe('myapp');
+      expect(toValidPackageName('MyProject_v1.0-beta')).toBe(
+        'myproject_v1.0-beta'
+      );
+    });
+
+    it('drops the leading underscores npm rejects', () => {
+      expect(toValidPackageName('_under')).toBe('under');
+      expect(toValidPackageName('__private__')).toBe('private__');
+    });
+
+    it('leaves a name npm already accepts alone', () => {
+      expect(toValidPackageName('my-app')).toBe('my-app');
+      expect(toValidPackageName('my_app.v2')).toBe('my_app.v2');
     });
   });
 

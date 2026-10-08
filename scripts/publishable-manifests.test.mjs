@@ -39,7 +39,7 @@ import {
   npmOptions,
   releaseBranches,
 } from './lib/release-config.mjs';
-import { basename } from 'node:path';
+import { basename, extname } from 'node:path';
 import { tokenize } from './lib/shell-words.mjs';
 
 const repoFile = rel =>
@@ -1806,6 +1806,17 @@ test('every entry point the manifest advertises is emitted in that format', asyn
   for (const entry of rollup) {
     for (const output of [].concat(entry.output ?? [])) {
       if (!output.entryFileNames) continue;
+      // A function names every chunk, and the ESM output emits one per module
+      // (#937), so ask it for the name it gives the entry, the way rollup
+      // does: a chunk named after the input file, with `isEntry` set.
+      const entryName =
+        typeof output.entryFileNames === 'function'
+          ? output.entryFileNames({
+              isEntry: true,
+              name: basename(entry.input, extname(entry.input)),
+              type: 'chunk',
+            })
+          : output.entryFileNames;
       // Rollup's format aliases, both directions: `es`/`esm`/`module` are one
       // format and `cjs`/`commonjs` are another, so comparing the literal would
       // fail a correct build that spelled either the other way. An omitted
@@ -1817,7 +1828,7 @@ test('every entry point the manifest advertises is emitted in that format', asyn
         : spelled === 'commonjs'
           ? 'cjs'
           : spelled;
-      emitted.set(output.entryFileNames, format);
+      emitted.set(entryName, format);
     }
   }
   assert.ok(emitted.size > 0, 'rollup.config.js emits no named entry points');

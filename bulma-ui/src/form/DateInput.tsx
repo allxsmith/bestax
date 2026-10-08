@@ -147,13 +147,14 @@ export const DateInput = forwardRef<HTMLInputElement, DateInputProps>(
     // icon-left container has nothing to anchor to, and it renders no
     // Control inside one or out. The left icon is checked as the caller
     // passed it: the default glyph is this component's own choice, not a
-    // prop the caller set.
+    // prop the caller set, so it goes in only for the advice.
     const ownControl = rendersOwnControl('DateInput', {
       insideControl,
       inline: baseProps.inline,
       isLoading,
       iconLeft,
       iconLeftName: props.iconLeftName,
+      defaultIconLeftName: iconLeftName,
       iconLeftSize,
       iconRight,
       iconRightName,

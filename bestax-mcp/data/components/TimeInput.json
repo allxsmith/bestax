@@ -135,7 +135,7 @@
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <TimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"hourglass\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"No launcher (press ↓ to open)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <TimeInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <TimeInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"hourglass\"\n    openOnFocus={false}\n  />\n  <TimeInput\n    label=\"No launcher (press Alt+↓ to open)\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <TimeInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "Launcher Icon",
@@ -519,7 +519,7 @@
           "name": "openOnFocus",
           "type": "boolean",
           "default": "true",
-          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.",
+          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.",
           "required": false,
           "inherited": true,
           "deprecated": false
