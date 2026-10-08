@@ -378,6 +378,25 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
     await expect(toggleButton).toBeFocused();
   });
 
+  test('keeps focus on the counter when Reset disables itself', async ({
+    page,
+  }) => {
+    await page.goto('/');
+    const counterButton = page.locator('button').filter({ hasText: 'Count:' });
+    const resetButton = page.locator('button').filter({ hasText: 'Reset' });
+    await counterButton.click();
+    await expect(resetButton).toBeEnabled();
+
+    // From the keyboard: Reset turns disabled at zero, and a disabled button
+    // gives up focus, so focus has to move somewhere the next Tab continues
+    // from.
+    await resetButton.focus();
+    await page.keyboard.press('Enter');
+    await expect(counterButton).toContainText('Count: 0');
+    await expect(resetButton).toBeDisabled();
+    await expect(counterButton).toBeFocused();
+  });
+
   test('has one main landmark, no banners, and no skipped heading levels', async ({
     page,
   }) => {

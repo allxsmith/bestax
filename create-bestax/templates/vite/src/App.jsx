@@ -18,9 +18,11 @@ import './App.css';
 function App() {
   const [showNotification, setShowNotification] = useState(false);
   const [count, setCount] = useState(0);
-  // Where focus goes back to when the notification closes, so a keyboard
-  // user is not dropped at the top of the page.
+  // Where focus goes when the button holding it goes away (the notification's
+  // close button) or disables itself (Reset, at zero), so a keyboard user is
+  // not dropped at the top of the page.
   const toggleRef = useRef(null);
+  const countRef = useRef(null);
 
   return (
     <main>
@@ -107,13 +109,20 @@ function App() {
                     Toggle Notification
                   </Button>
 
-                  <Button color="info" onClick={() => setCount(count + 1)}>
+                  <Button
+                    ref={countRef}
+                    color="info"
+                    onClick={() => setCount(count + 1)}
+                  >
                     Count: {count}
                   </Button>
 
                   <Button
                     color="warning"
-                    onClick={() => setCount(0)}
+                    onClick={() => {
+                      setCount(0);
+                      countRef.current?.focus();
+                    }}
                     disabled={count === 0}
                   >
                     Reset
