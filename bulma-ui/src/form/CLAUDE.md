@@ -29,9 +29,10 @@ Conventions:
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
   as escape hatches, so they are public API too.
-- Basic inputs (Input, Select, TextArea, File, …) ship no CSS, but more of this folder has SCSS
-  than you'd guess: even Checkbox and Radio have themed partials, and every extended input
-  (Autocomplete, DateInput, Numberinput, Rate, Slider, Switch, Taginput, …) does too. Check
-  `../scss/form/_index.scss` for the authoritative list before changing visuals.
+- Basic inputs (Input, Select, TextArea, …) ship no CSS, but more of this folder has SCSS
+  than you'd guess: even Checkbox and Radio have themed partials, File has one for its keyboard
+  focus ring, and every extended input (Autocomplete, DateInput, Numberinput, Rate, Slider,
+  Switch, Taginput, …) does too. Check `../scss/form/_index.scss` for the authoritative list
+  before changing visuals.
 
 Follow the anatomy rule in `bulma-ui/CLAUDE.md` (test + story + docs page + export + catalog).

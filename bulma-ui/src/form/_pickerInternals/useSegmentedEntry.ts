@@ -79,15 +79,15 @@ export interface UseSegmentedEntryParams {
   readOnly?: boolean;
   /** Allow segmented typing. When false, segment mode never engages. */
   editable?: boolean;
-  /** Whether a popover exists; gates open-on-focus / click / ArrowDown. */
+  /** Whether a popover exists; gates open-on-focus / click / Alt+ArrowDown. */
   popover?: boolean;
   openOnFocus?: boolean;
   closeOnSelect?: boolean;
   isOpen: boolean;
   /**
    * The host's open-state setter. The hook asks it to open on focus, click
-   * or ArrowDown, but not on the focus the popover's focus trap hands back
-   * to the input as it closes, which is not the user arriving.
+   * or Alt+ArrowDown, but not on the focus the popover's focus trap hands
+   * back to the input as it closes, which is not the user arriving.
    */
   setOpen: (next: boolean) => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
@@ -386,7 +386,7 @@ export function useSegmentedEntry(
       // Clicking the field opens the popover only when `openOnFocus` is on —
       // a click is just a focus. With `openOnFocus={false}` (manual-entry
       // mode) the click positions the caret for typing and the popover is
-      // opened explicitly via the right launcher button (or ArrowDown).
+      // opened explicitly via the right launcher button (or Alt+ArrowDown).
       if (openOnFocus && popover && !disabled && !readOnly) setOpen(true);
       if (segmentEditable && segmentMap && inputRef.current) {
         const caret = inputRef.current.selectionStart ?? 0;
@@ -427,14 +427,28 @@ export function useSegmentedEntry(
         const isPm = base.getHours() >= 12;
         switch (e.key) {
           case 'ArrowUp':
-            e.preventDefault();
-            typedDigitsRef.current = '';
-            applyDateFromSegment(incrementSegmentValue(seg, base, 1, isPm));
-            return;
           case 'ArrowDown':
             e.preventDefault();
+            // The plain arrows step the segment, so the popover opens on
+            // Alt+ArrowDown and closes on Alt+ArrowUp, as a combobox's does,
+            // and neither steps it.
+            if (e.altKey) {
+              if (e.key === 'ArrowUp') {
+                if (isOpen) setOpen(false);
+              } else if (!isOpen && popover) {
+                setOpen(true);
+              }
+              return;
+            }
             typedDigitsRef.current = '';
-            applyDateFromSegment(incrementSegmentValue(seg, base, -1, isPm));
+            applyDateFromSegment(
+              incrementSegmentValue(
+                seg,
+                base,
+                e.key === 'ArrowUp' ? 1 : -1,
+                isPm
+              )
+            );
             return;
           case 'ArrowRight':
             e.preventDefault();
@@ -514,9 +528,23 @@ export function useSegmentedEntry(
         }
       }
       // ----- free-form / popover key handling -----
-      if (e.key === 'ArrowDown' && !isOpen && popover) {
+      // With no segment to step, ArrowDown opens the popover with or without
+      // Alt, unless the field is read-only or disabled, as focus and the
+      // launcher don't open it then either. Alt+ArrowUp closes it.
+      if (
+        e.key === 'ArrowDown' &&
+        !isOpen &&
+        popover &&
+        !disabled &&
+        !readOnly
+      ) {
         e.preventDefault();
         setOpen(true);
+        return;
+      }
+      if (e.key === 'ArrowUp' && e.altKey && isOpen) {
+        e.preventDefault();
+        setOpen(false);
         return;
       }
       if (e.key === 'Escape' && isOpen) {
@@ -552,6 +580,8 @@ export function useSegmentedEntry(
       setOpen,
       closeOnSelect,
       popover,
+      disabled,
+      readOnly,
       isUntouched,
       tryParse,
       text,
