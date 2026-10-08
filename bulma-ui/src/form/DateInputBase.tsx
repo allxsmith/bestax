@@ -32,6 +32,7 @@ import {
   floorMin,
   isSameDay,
   isPeriodUnselectable,
+  startOfDay,
   startOfPeriod,
   endOfPeriod,
 } from './_pickerInternals/dateUtils';
@@ -84,7 +85,10 @@ export interface DateInputBaseProps
   value?: Date | null;
   /** Initial date for uncontrolled usage. */
   defaultValue?: Date | null;
-  /** Fired when the value changes. */
+  /**
+   * Fired when the value changes. A day picked in the calendar, by click or
+   * by key, arrives at local midnight.
+   */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
   onOpen?: () => void;
@@ -160,7 +164,7 @@ export interface DateInputBaseProps
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
    * an empty field stays empty, and leaving afterwards commits only what was
-   * typed since.
+   * typed since. With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
@@ -376,8 +380,12 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       [max, isDayGranularity, granularity]
     );
 
+    // A pick is the day at midnight, as a click on its cell gives. Enter hands
+    // over the focused date, which can carry a time of day from the clock, a
+    // value or a bound, so its time is dropped here.
     const handleSelect = useCallback(
-      (d: Date) => {
+      (picked: Date) => {
+        const d = startOfDay(picked);
         if (!isWithin(d, periodMin, periodMax)) return;
         commitValue(d);
         setFocusedDate(d);

@@ -122,7 +122,7 @@ function Weekdays() {
 
 ### Typing the Dates
 
-Each input has the segmented entry `DateInput` has. With `openOnFocus={false}` the inputs are for typing, `Tab` moves from the start input to the end input, and the launcher or `↓` opens the calendar. An empty end starts from the start date, so you only type what differs.
+Each input has the segmented entry `DateInput` has. With `openOnFocus={false}` the inputs are for typing, `Tab` moves from the start input to the end input, and the launcher or `Alt+↓` opens the calendar; `Alt+↑` closes it. An empty end starts from the start date, so you only type what differs.
 
 ```tsx live
 <DateRangeInput
@@ -200,7 +200,7 @@ Inside a `Control`, `DateRangeInput` renders no `Control` of its own, so the pro
 
 ### On the inputs
 
-Each input takes the keys of [`DateInput`'s segmented entry](./dateinput.md#on-the-input-segmented-entry). Moving between the inputs leaves the popover as it is; arriving in the field opens it under `openOnFocus`, and so does a click on either input.
+Each input takes the keys of [`DateInput`'s segmented entry](./dateinput.md#on-the-input-segmented-entry), so `Alt+↓` opens the popover and `Alt+↑` closes it. Moving between the inputs leaves the popover as it is; arriving in the field opens it under `openOnFocus`, and so does a click on either input.
 
 ### On the calendar
 
@@ -210,6 +210,7 @@ Movement is the same as on `DateInput`'s calendar. Picking takes two steps.
 | --------------------- | ---------------------------------------------------------------------------- |
 | `Enter` / `Space`     | Set the start, then the end. A day that can't end the range starts a new one |
 | `Escape`              | Take back a start picked in the calendar; with none, close the popover       |
+| `Alt+↑`               | Close the popover                                                            |
 | `←` / `→`             | Move focus by ±1 day, moving the preview with it                             |
 | `↑` / `↓`             | Move focus by ±1 week                                                        |
 | `PageUp` / `PageDown` | Move focus by ±1 month                                                       |
@@ -323,7 +324,7 @@ function RangeFormDemo() {
 | `mobileNative`         | `boolean` \| `'auto'`                                                            | `'auto'`         | Use two native `<input type="date">`s on coarse-pointer, small-viewport devices (`'auto'`), always (`true`) or never (`false`). The end input's `min` follows the start, and a change goes through the same rules as typing.                                                                                                                                                                                                    |
 | `editable`             | `boolean`                                                                        | `true`           | Allow segmented keyboard typing in both inputs. `false` makes the field picker-only.                                                                                                                                                                                                                                                                                                                                            |
 | `popover`              | `boolean`                                                                        | `true`           | Whether the calendar popover exists. `false` makes the field input-only.                                                                                                                                                                                                                                                                                                                                                        |
-| `openOnFocus`          | `boolean`                                                                        | `true`           | Open the popover when focus arrives in the field. Moving focus between the two inputs, or back from the launcher, leaves it closed, and so does the focus a closing popover hands back. A click on either input opens it.                                                                                                                                                                                                       |
+| `openOnFocus`          | `boolean`                                                                        | `true`           | Open the popover when focus arrives in the field. Moving focus between the two inputs, or back from the launcher, leaves it closed, and so does the focus a closing popover hands back. A click on either input opens it. With it off, the launcher or Alt+ArrowDown opens it.                                                                                                                                                  |
 | `closeOnSelect`        | `boolean`                                                                        | `true`           | Close the popover once the range is picked. The first pick, which only marks the start, never closes it.                                                                                                                                                                                                                                                                                                                        |
 | `position`             | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the field.                                                                                                                                                                                                                                                                                                                                                                                  |
 | `appendToBody`         | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal.                                                                                                                                                                                                                                                                                                                                                                             |
