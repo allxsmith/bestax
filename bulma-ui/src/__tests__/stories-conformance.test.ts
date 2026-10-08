@@ -14,7 +14,6 @@ const SRC = join(__dirname, '..');
 
 const LEGACY_EXEMPT = new Set<string>([
   'components/Breadcrumb.stories.tsx',
-  'components/Tabs.stories.tsx',
   'elements/Buttons.stories.tsx',
   'elements/Delete.stories.tsx',
   'elements/Icon.stories.tsx',

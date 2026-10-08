@@ -240,14 +240,26 @@ export function addSeconds(d: Date, n: number): Date {
   return r;
 }
 
+/**
+ * A copy of `d` with the given parts of its time of day set and the rest
+ * left as they are. A time started from the clock rather than from a value
+ * should pass the seconds its picker does not show, and the milliseconds,
+ * as `0`, or it keeps the ones the clock had.
+ */
 export function setTimeOfDay(
   d: Date,
-  parts: { hours?: number; minutes?: number; seconds?: number }
+  parts: {
+    hours?: number;
+    minutes?: number;
+    seconds?: number;
+    milliseconds?: number;
+  }
 ): Date {
   const r = new Date(d);
   if (parts.hours !== undefined) r.setHours(parts.hours);
   if (parts.minutes !== undefined) r.setMinutes(parts.minutes);
   if (parts.seconds !== undefined) r.setSeconds(parts.seconds);
+  if (parts.milliseconds !== undefined) r.setMilliseconds(parts.milliseconds);
   return r;
 }
 

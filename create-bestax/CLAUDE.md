@@ -4,6 +4,11 @@ CLI that scaffolds a Vite app wired for `@allxsmith/bestax-bulma`. Agents and CI
 first-class consumers: **every prompt must have a flag equivalent**, and the non-interactive
 path (`-y` + flags, no TTY) must never hang or regress (#192).
 
+The one question `-y` does not answer is whether to delete a non-empty target directory: only
+`--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
+Every flag is validated before anything on disk changes, and the directory is emptied only after
+the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
+
 ## Architecture
 
 - `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program
@@ -24,8 +29,14 @@ nothing in `src/` imports the library, the templates pin the published package t
 `--ignore-workspace`. It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
 current at pack time (bulma-ui releases first in the same job), and the sibling rule in
 `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS` declares this exact pair.
-What a consumer sees: `npm create bestax` installs the library, `bulma`, and — npm's automatic
-peer install — `react`/`react-dom` alongside the CLI.
+What a consumer sees: `npm create bestax` installs the library, `bulma`, and `react`/`react-dom`
+alongside the CLI.
+
+`react` and `react-dom` are declared dependencies too, with the library's peer ranges, though
+nothing imports them either. npm installs a dependency's peers by itself, but Yarn 1 does not,
+and without them `yarn create bestax` warned that the library's peers were unmet (#950). npm
+installs the same packages either way. `src/__tests__/package-manifest.test.ts` holds this
+manifest to every required peer of the installed library, so a new or changed peer fails there.
 
 ## Sync rules (this package re-ships other parts of the repo)
 

@@ -14,7 +14,7 @@ export function validateProjectName(value: string): boolean | string {
   }
 
   // The regex below allows dots, so "." and ".." would pass and resolve to
-  // the current/parent directory — which --yes would then empty. Rejecting
+  // the current/parent directory — which --overwrite would then empty. Rejecting
   // every leading-dot name closes that hole ("/" and "\" are already blocked).
   if (value.startsWith('.')) {
     return MESSAGES.PROJECT_NAME_DOT;
@@ -24,9 +24,23 @@ export function validateProjectName(value: string): boolean | string {
     return MESSAGES.PROJECT_NAME_INVALID_CHARS;
   }
 
+  if (toValidPackageName(value) === '') {
+    return MESSAGES.PROJECT_NAME_NO_PACKAGE_NAME;
+  }
+
   return true;
 }
 
 export function isValidProjectName(name: string): boolean {
   return validateProjectName(name) === true;
+}
+
+/**
+ * The package.json name for a project directory. npm rejects capitals and a
+ * leading "_" or ".", so the name is lower-cased the way `npm init` does and
+ * those leading characters are dropped, as create-vite does (#950). The
+ * directory itself keeps the name as typed.
+ */
+export function toValidPackageName(projectName: string): string {
+  return projectName.toLowerCase().replace(/^[._]+/, '');
 }

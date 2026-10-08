@@ -36,21 +36,27 @@ export async function promptProjectName(): Promise<string | null> {
   return response.projectName || null;
 }
 
+/** Asks to remove `entries` from targetDir, naming them, since a yes deletes them. */
 export async function promptOverwriteDirectory(
-  targetDir: string
+  targetDir: string,
+  entries: string[]
 ): Promise<boolean> {
   ensureInteractive();
   const response = await prompts({
     type: 'confirm',
     name: 'overwrite',
-    message: MESSAGES.DIRECTORY_NOT_EMPTY(targetDir),
+    message: MESSAGES.DIRECTORY_NOT_EMPTY(targetDir, entries),
     initial: false,
   });
 
   return response.overwrite === true;
 }
 
-export async function promptInstallSkills(): Promise<boolean> {
+/**
+ * Returns null when the user cancels (Ctrl+C), like every other scaffold
+ * question, so the caller stops instead of reading the cancel as "no" (#950).
+ */
+export async function promptInstallSkills(): Promise<boolean | null> {
   ensureInteractive();
   const response = await prompts({
     type: 'confirm',
@@ -59,7 +65,7 @@ export async function promptInstallSkills(): Promise<boolean> {
     initial: true,
   });
 
-  return response.skills === true;
+  return typeof response.skills === 'boolean' ? response.skills : null;
 }
 
 export async function promptTemplate(): Promise<string | null> {
