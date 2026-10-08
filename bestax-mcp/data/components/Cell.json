@@ -33,14 +33,14 @@
   "accessibility": null,
   "related": [],
   "storybook": null,
-  "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.",
+  "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](https://bestax.io/docs/api/grid) component.",
   "import": "import { Cell } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/grid/Cell.tsx",
   "rootClass": "cell",
   "parts": [
     {
       "path": "Cell",
-      "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.",
+      "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](https://bestax.io/docs/api/grid) component.",
       "component": null,
       "props": [
         {

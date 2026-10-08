@@ -190,27 +190,59 @@ test('a capitalised prose-page title that names no export says what to change', 
   );
 });
 
-test('markdown the index ships carries no link that only resolves on its page', () => {
-  // A hook's API block, a prose page and an Accessibility section are served on
-  // their own, where `./valid-values.md` names a file in the reader's workspace
-  // and `#scheme-backgrounds` a section the answer does not carry.
+test('a capitalised prose-page title with no props to read stops the build', () => {
+  // A title naming an export that is not a component, such as a props type,
+  // resolves and reads as empty. Falling back to prose then would have get_props
+  // call it "not a component", the #933 sentence.
+  const empty = { tables: [], sourceFile: join(REPO, 'bulma-ui/src/x/Y.tsx') };
+  assert.throws(
+    () => proseComponentInfo('YProps', 'helpers/y.md', () => empty),
+    /\[gen-mcp-index\] helpers\/y\.md: the title "YProps" names bulma-ui\/src\/x\/Y\.tsx but finds no props there/
+  );
+  assert.throws(
+    () => proseComponentInfo('ConfigProviderProps', 'helpers/x.md'),
+    /the title "ConfigProviderProps" names bulma-ui\/src\/helpers\/Config\.tsx/
+  );
+  // Props that are all inherited still make a component: the catch-all row.
+  const inherited = {
+    tables: [
+      { rows: [], extraProps: [], catchAll: { text: 'div attributes' } },
+    ],
+    sourceFile: empty.sourceFile,
+  };
+  assert.equal(
+    proseComponentInfo('Y', 'helpers/y.md', () => inherited),
+    inherited
+  );
+});
+
+test('nothing the index ships carries a link that only resolves on its page', () => {
+  // Every string the server can serve is read away from its page: a hook's API
+  // block, a prose page, an Accessibility section, and the summaries and
+  // purposes that come from TSDoc and frontmatter. There `./valid-values.md`
+  // names a file in the reader's workspace and `#scheme-backgrounds` a section
+  // the answer does not carry. Examples are code, and are left as written.
   const outsideCode = md =>
     md
-      .split(/^(?:```|~~~)[^\n]*$/m)
+      .split(/^[ \t]{0,3}(?:```|~~~)[^\n]*$/m)
       .filter((_, i) => i % 2 === 0)
       .join('\n');
   const dangling = [];
-  for (const [name, record] of components) {
-    for (const field of ['api', 'doc', 'accessibility']) {
-      const md = record[field];
-      if (!md) continue;
-      for (const [, target] of outsideCode(md).matchAll(/\]\(([^)\s]+)\)/g)) {
-        if (!/^https?:\/\//.test(target)) {
-          dangling.push(`${name}.${field}: ${target}`);
-        }
+  const walk = (value, at) => {
+    if (typeof value === 'string') {
+      for (const [, target] of outsideCode(value).matchAll(LINK_TARGET)) {
+        if (!/^<?https?:\/\//.test(target)) dangling.push(`${at}: ${target}`);
+      }
+    } else if (Array.isArray(value)) {
+      value.forEach((v, i) => walk(v, `${at}[${i}]`));
+    } else if (value && typeof value === 'object') {
+      for (const [key, v] of Object.entries(value)) {
+        if (key !== 'examples') walk(v, `${at}.${key}`);
       }
     }
-  }
+  };
+  for (const [name, record] of components) walk(record, name);
+  walk(catalog, 'catalog');
   assert.deepEqual(dangling, []);
   // The block the finding was about, followed to where its links now go.
   const api = components.get('useBulmaClasses').api;
@@ -221,21 +253,31 @@ test('markdown the index ships carries no link that only resolves on its page', 
   assert.ok(!/table below/.test(api), 'the API block still says "below"');
 });
 
+/** A markdown link's target, bare, in angle brackets, or before a title. */
+const LINK_TARGET = /\]\(\s*(<[^>]*>|[^)\s]+)/g;
+
 test('relative links resolve to the URL the docs site serves', () => {
   const md = [
     'See [values](./valid-values.md), [card](../components/card.md#usage),',
     '[grid](../grid/grid.md), [guide](../../guides/helpers/color.md),',
     '[here](#scheme-backgrounds), [site](/docs/skills/intro) and',
     '[out](https://bulma.io/documentation/).',
+    '[titled](./portal.md "Portal") and [bracketed](<./theme.md>).',
     '```tsx',
     "<a href='#keep'>[not a link](./code.md)</a>",
     '```',
+    '',
+    '1. In a list item, a fence sits indented:',
+    '',
+    '   ```tsx',
+    '   // see [docs](./indented.md)',
+    '   ```',
   ].join('\n');
   const out = absoluteLinks(md, 'helpers/usebulmaclasses.md');
   // Every link target, in order. The last is inside the fence: code is code,
   // links and all.
   assert.deepEqual(
-    [...out.matchAll(/\]\(([^)\s]+)\)/g)].map(m => m[1]),
+    [...out.matchAll(LINK_TARGET)].map(m => m[1]),
     [
       'https://bestax.io/docs/api/helpers/valid-values',
       'https://bestax.io/docs/api/components/card#usage',
@@ -244,8 +286,16 @@ test('relative links resolve to the URL the docs site serves', () => {
       'https://bestax.io/docs/api/helpers/usebulmaclasses#scheme-backgrounds',
       'https://bestax.io/docs/skills/intro',
       'https://bulma.io/documentation/',
+      'https://bestax.io/docs/api/helpers/portal',
+      '<https://bestax.io/docs/api/helpers/theme>',
       './code.md',
+      './indented.md',
     ]
+  );
+  // A title survives the rewrite.
+  assert.match(
+    out,
+    /\]\(https:\/\/bestax\.io\/docs\/api\/helpers\/portal "Portal"\)/
   );
   assert.match(out, /<a href='#keep'>/);
 });

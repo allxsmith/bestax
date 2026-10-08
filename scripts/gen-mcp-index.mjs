@@ -319,8 +319,9 @@ async function cssVarsFor(info) {
  * title. `extract` is a test seam.
  */
 export function proseComponentInfo(name, relPath, extract = extractComponent) {
+  let info;
   try {
-    return extract(name, { markdown: false });
+    info = extract(name, { markdown: false });
   } catch (err) {
     if (err?.code !== 'BESTAX_NOT_EXPORTED') throw err;
     throw new Error(
@@ -331,6 +332,21 @@ export function proseComponentInfo(name, relPath, extract = extractComponent) {
       { cause: err }
     );
   }
+  // An export that is no component (a props type) resolves, and reads as empty.
+  // Shipped as prose, get_props would call it "not a component". A component
+  // whose props are all inherited still has its catch-all row.
+  const hasProps = info.tables.some(
+    t => t.rows?.length || t.extraProps?.length || t.catchAll
+  );
+  if (!hasProps) {
+    throw new Error(
+      `[gen-mcp-index] ${relPath}: the title "${name}" names ` +
+        `${relative(REPO, info.sourceFile).split('\\').join('/')} but finds no ` +
+        `props there, so the page would ship as prose and get_props would call ` +
+        `it "not a component". Title the page after the component it documents.`
+    );
+  }
+  return info;
 }
 
 /**
@@ -357,14 +373,41 @@ export function absoluteLinks(markdown, relPath) {
     if (!/\.mdx?$/.test(path)) return target;
     return `${urlOf(posix.join(posix.dirname(page), path))}${fragment}`;
   };
+  // A fence may sit indented up to three spaces, as one in a list item does. A
+  // target may sit in angle brackets, and may be followed by a title.
   return markdown
-    .split(/^((?:```|~~~)[^\n]*\n[\s\S]*?^(?:```|~~~)[ \t]*)$/m)
+    .split(/^([ \t]{0,3}(?:```|~~~)[^\n]*\n[\s\S]*?^[ \t]*(?:```|~~~)[ \t]*)$/m)
     .map((part, i) =>
       i % 2
         ? part
-        : part.replace(/\]\(([^)\s]+)\)/g, (_, t) => `](${resolve(t)})`)
+        : part.replace(/\]\(\s*(<[^>]*>|[^)\s]+)/g, (_, t) =>
+            t.startsWith('<')
+              ? `](<${resolve(t.slice(1, -1))}>`
+              : `](${resolve(t)}`
+          )
     )
     .join('');
+}
+
+/**
+ * A record with `absoluteLinks` applied to every string it carries but its
+ * examples, which are code. Summaries come from TSDoc and purposes from
+ * frontmatter, and both were written for the page too (`[Column](./column.md)`).
+ */
+function withAbsoluteLinks(value, relPath, key = '') {
+  if (key === 'examples') return value;
+  if (typeof value === 'string') return absoluteLinks(value, relPath);
+  if (Array.isArray(value))
+    return value.map(v => withAbsoluteLinks(v, relPath));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [
+        k,
+        withAbsoluteLinks(v, relPath, k),
+      ])
+    );
+  }
+  return value;
 }
 
 /** Strip the frontmatter block, leaving the page body. */
@@ -609,7 +652,7 @@ export async function build() {
 
       const { lines, sections } = sectionSpans(src);
       const find = re => sections.find(s => re.test(s.heading));
-      const purpose = purposeOf(fm, sections, lines);
+      const purpose = absoluteLinks(purposeOf(fm, sections, lines), relPath);
       // `slug` stays the file-path identity; the URL takes the route
       // Docusaurus actually serves, which collapses `grid/grid` (#597).
       const docsUrl = `${DOCS_BASE}/api/${docsRoute(slug)}`;
@@ -632,8 +675,8 @@ export async function build() {
         : COMPONENT_NAME.test(name)
           ? proseComponentInfo(name, relPath)
           : null;
-      const isHelper =
-        proseOnly && !info?.tables.some(t => (t.rows ?? []).length);
+      // A capitalised title that read no props has already stopped the build.
+      const isHelper = proseOnly && !info;
 
       const common = {
         name,
@@ -644,7 +687,7 @@ export async function build() {
         examples: usageExamples(lines, find(/^Usage$/i)),
         accessibility: (() => {
           const s = find(/^Accessibility$/i);
-          return s ? absoluteLinks(sectionBody(lines, s), relPath) : null;
+          return s ? sectionBody(lines, s) : null;
         })(),
         related: relatedComponents(
           lines,
@@ -657,9 +700,7 @@ export async function build() {
 
       // The whole page. These are reference prose, not tables, and an agent
       // asking "how do I do spacing without inline styles" needs all of it.
-      const doc = proseOnly
-        ? absoluteLinks(withoutFrontmatter(src).trimEnd(), relPath)
-        : null;
+      const doc = proseOnly ? withoutFrontmatter(src).trimEnd() : null;
 
       let record;
       if (isHelper) {
@@ -670,7 +711,7 @@ export async function build() {
           import: helperImport(name, lines, find(/^Import$/i), relPath),
           // The signature block alone: what a hook takes and returns, at a
           // fraction of the page. It is the hook's answer to a props table.
-          api: api ? absoluteLinks(sectionBody(lines, api), relPath) : null,
+          api: api ? sectionBody(lines, api) : null,
           doc,
           parts: [],
           cssVars: [],
@@ -714,6 +755,7 @@ export async function build() {
         };
       }
 
+      record = withAbsoluteLinks(record, relPath);
       components.set(name, record);
       members.push(name);
       catalogEntries.push({
