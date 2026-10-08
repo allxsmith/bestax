@@ -44,7 +44,8 @@ npm create bestax@latest
 
 You'll be asked to:
 
-1. Enter a project name
+1. Enter a project name (and, if that directory already holds files, confirm removing them;
+   nothing is removed until you have answered the last question)
 2. Select a framework (Vite or Vite + TypeScript)
 3. Choose a Bulma CSS flavor (Complete or Minimal)
 4. Select an icon library (Font Awesome, Material Icons, etc.)
@@ -60,7 +61,8 @@ npm create bestax@latest [project-directory] [options]
 
 **Arguments:**
 
-- `[project-directory]` - Optional project directory name
+- `[project-directory]` - Optional project directory name. It also becomes the `package.json`
+  name, lower-cased the way `npm init` does and without a leading `_`, since npm rejects both.
 
 **Options:**
 
@@ -90,6 +92,13 @@ npm create bestax@latest [project-directory] [options]
   - Bulma flavor: `complete`
   - Icon library: `none`
   - AI skills: installed (pass `--no-skills` to opt out)
+
+  `-y` never deletes files. If the target directory is not empty, the run stops, lists what is
+  there, and changes nothing; add `--overwrite` to empty it first. Earlier versions emptied the
+  directory under `-y` alone, so a script that relied on that now needs `--overwrite`.
+
+- `--overwrite` - Remove existing files if the target directory is not empty, without asking.
+  Every other flag is checked first, so a typo stops the run before anything is deleted.
 
 **Example:**
 

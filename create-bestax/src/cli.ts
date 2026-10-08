@@ -4,7 +4,11 @@ import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { ProjectCreator, type CLIOptions } from './project-creator.js';
+import {
+  ProjectCreator,
+  type CLIOptions,
+  type ExistingDirectoryPlan,
+} from './project-creator.js';
 import { copyDirectory } from './file-system.js';
 
 // Re-export for backward compatibility with tests
@@ -41,7 +45,7 @@ export async function getProjectName(
 export async function checkExistingDirectory(
   targetPath: string,
   targetDir: string
-): Promise<boolean> {
+): Promise<ExistingDirectoryPlan> {
   const projectCreator = new ProjectCreator();
   return projectCreator.checkExistingDirectory(targetPath, targetDir);
 }
@@ -104,7 +108,14 @@ export function createCLI(): Command {
       'enable anonymous usage telemetry (https://bestax.io/docs/guides/telemetry)'
     )
     .option('--no-telemetry', 'disable anonymous usage telemetry')
-    .option('-y, --yes', 'skip prompts and use defaults or provided options')
+    .option(
+      '-y, --yes',
+      'skip prompts and use defaults or provided options (never removes files: see --overwrite)'
+    )
+    .option(
+      '--overwrite',
+      'remove existing files if the target directory is not empty'
+    )
     .action(async (projectDir?: string, options?: unknown) => {
       await projectCreator.create(projectDir, options as CLIOptions);
     });

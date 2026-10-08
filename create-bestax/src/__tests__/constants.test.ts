@@ -399,9 +399,14 @@ describe('constants', () => {
     });
 
     it('should have functions that return strings', () => {
-      expect(typeof MESSAGES.DIRECTORY_NOT_EMPTY('test')).toBe('string');
-      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir')).toContain('mydir');
-      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir')).toContain('not empty');
+      expect(typeof MESSAGES.DIRECTORY_NOT_EMPTY('test', ['a'])).toBe('string');
+      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir', ['a'])).toContain('mydir');
+      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir', ['a'])).toContain(
+        'not empty (a)'
+      );
+      expect(MESSAGES.NOT_A_DIRECTORY('notes.txt')).toContain(
+        'notes.txt already exists and is not a directory'
+      );
 
       expect(typeof MESSAGES.EMPTYING_DIRECTORY('test')).toBe('string');
       expect(MESSAGES.EMPTYING_DIRECTORY('mydir')).toContain('mydir');

@@ -1435,6 +1435,11 @@ const ROOT_CLASS_OVERRIDES = {
 export const EXTRA_VAR_ROOTS = {
   DateInput: ['dateinput', 'picker-popover'],
   DateInputBase: ['dateinput', 'picker-popover'],
+  // The range picker's own `daterangeinput` root is found by name. Its
+  // calendar is DateInput's, its root borrows `dateinput-container`, and its
+  // field is a Bulma `.input` holding the two inputs.
+  DateRangeInput: ['dateinput', 'picker-popover', 'input'],
+  DateRangeInputBase: ['dateinput', 'picker-popover', 'input'],
   TimeInput: ['timeinput', 'picker-popover'],
   TimeInputBase: ['timeinput', 'picker-popover'],
   // DateTimeInputBase renders both the calendar grid AND the time wheels
