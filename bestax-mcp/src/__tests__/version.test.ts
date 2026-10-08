@@ -14,6 +14,8 @@ import { join } from 'node:path';
 
 import {
   findInstalledVersion,
+  missingInstallNote,
+  projectDir,
   resolveVersions,
   sanitizeVersion,
   versionNote,
@@ -61,6 +63,7 @@ async function projectWith(version: string | null, depth = 0) {
 
 afterEach(async () => {
   delete process.env.BESTAX_MCP_NO_VERSION_CHECK;
+  delete process.env.BESTAX_MCP_PROJECT_DIR;
   await Promise.all(
     temps.splice(0).map(d => rm(d, { recursive: true, force: true }))
   );
@@ -197,11 +200,55 @@ describe('resolveVersions', () => {
   });
 });
 
+// A client starts a stdio server wherever it likes, and not every client's config can
+// say where. Every one can set an environment variable (#935).
+describe('projectDir', () => {
+  it('looks where BESTAX_MCP_PROJECT_DIR points', async () => {
+    process.env.BESTAX_MCP_PROJECT_DIR = await projectWith('5.8.3');
+    expect(await findInstalledVersion()).toBe('5.8.3');
+    expect(await resolveVersions('5.8.3')).toMatchObject({
+      installed: '5.8.3',
+      checked: true,
+    });
+  });
+
+  it('falls back to the working directory when it is unset or blank', () => {
+    expect(projectDir()).toBe(process.cwd());
+    process.env.BESTAX_MCP_PROJECT_DIR = '   ';
+    expect(projectDir()).toBe(process.cwd());
+  });
+});
+
+describe('missingInstallNote', () => {
+  const info = (over: Partial<VersionInfo>): VersionInfo => ({
+    indexed: '5.8.3',
+    installed: null,
+    drift: 'none',
+    checked: true,
+    ...over,
+  });
+
+  it('says nothing was checked, and how to point the server at the project', () => {
+    const note = missingInstallNote(info({}));
+    expect(note).toContain('5.8.3');
+    expect(note).toContain('BESTAX_MCP_PROJECT_DIR');
+    // A probe that timed out, or a project with no node_modules, finds none from
+    // the right directory too, so the note names no cause it cannot know.
+    expect(note).not.toMatch(/wrong directory/);
+  });
+
+  it('stays quiet when a version was found, or the check is off', () => {
+    expect(missingInstallNote(info({ installed: '5.8.3' }))).toBeNull();
+    expect(missingInstallNote(info({ checked: false }))).toBeNull();
+  });
+});
+
 describe('versionNote', () => {
   const info = (over: Partial<VersionInfo>): VersionInfo => ({
     indexed: '5.8.3',
     installed: '5.8.3',
     drift: 'none',
+    checked: true,
     ...over,
   });
 

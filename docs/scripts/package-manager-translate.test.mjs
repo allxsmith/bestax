@@ -55,10 +55,13 @@ const TABLE = [
     'bun remove node-sass',
   ],
   [
+    // Yarn Classic reads `bestax@latest` as a binary name and fails, so yarn
+    // gets the bare starter name, which Classic and Berry both run at its
+    // latest version.
     'create bestax@latest my-app',
     'pnpm create bestax@latest my-app',
     'npm create bestax@latest my-app',
-    'yarn create bestax@latest my-app',
+    'yarn create bestax my-app',
     'bun create bestax@latest my-app',
   ],
   [
@@ -67,8 +70,26 @@ const TABLE = [
     'create vite@latest my-app -- --template react',
     'pnpm create vite@latest my-app -- --template react',
     'npm create vite@latest my-app -- --template react',
-    'yarn create vite@latest my-app --template react',
+    'yarn create vite my-app --template react',
     'bun create vite@latest my-app --template react',
+  ],
+  [
+    // Only `@latest` goes: a pinned version is a real request, and a scoped
+    // starter keeps its scope.
+    'create @scope/starter@latest my-app',
+    'pnpm create @scope/starter@latest my-app',
+    'npm create @scope/starter@latest my-app',
+    'yarn create @scope/starter my-app',
+    'bun create @scope/starter@latest my-app',
+  ],
+  [
+    // Kept as written, which makes the yarn line Berry-only: Yarn Classic looks
+    // for a binary named `create-vite@5`, the same failure `@latest` caused.
+    'create vite@5 my-app',
+    'pnpm create vite@5 my-app',
+    'npm create vite@5 my-app',
+    'yarn create vite@5 my-app',
+    'bun create vite@5 my-app',
   ],
   ['run dev', 'pnpm run dev', 'npm run dev', 'yarn dev', 'bun run dev'],
   [
@@ -136,7 +157,7 @@ test('splitSegments trims, collapses whitespace and drops empties', () => {
 test('renderCommand joins segments one per line', () => {
   assert.equal(
     renderCommand('create bestax@latest my-app; cd my-app; install', 'yarn'),
-    ['yarn create bestax@latest my-app', 'cd my-app', 'yarn'].join('\n')
+    ['yarn create bestax my-app', 'cd my-app', 'yarn'].join('\n')
   );
 });
 
