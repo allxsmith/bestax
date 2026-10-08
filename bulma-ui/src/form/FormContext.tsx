@@ -228,6 +228,21 @@ export const useFieldLabelElementId = () =>
 /** Provider for the Field label's own id, used internally by Field. */
 export const FieldLabelElementIdProvider = FieldLabelElementIdContext.Provider;
 
+const FieldLabelForContext = createContext<string | undefined>(undefined);
+
+/**
+ * What the nearest labeled Field's `<label>` points `htmlFor` at: the id it
+ * generated, or the caller's own `labelProps.htmlFor`. An unlabeled Field
+ * passes it through, so a control in the inner Field of a horizontal layout
+ * can tell the outer label names it. Only ever compared with a control's own
+ * id, never adopted, so it hands out no id. Internal; not part of the public
+ * API.
+ */
+export const useFieldLabelFor = () => useContext(FieldLabelForContext);
+
+/** Provider for the Field label's `htmlFor` target, used internally by Field. */
+export const FieldLabelForProvider = FieldLabelForContext.Provider;
+
 /**
  * Shape of the Radios group context. The group provides:
  * - `name`: shared form field name (Stage 1)

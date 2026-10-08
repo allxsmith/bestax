@@ -1,6 +1,10 @@
 import React, { useId } from 'react';
 import type { FieldProps } from './Field';
-import { useFieldLabelElementId, useFieldLabelId } from './FormContext';
+import {
+  useFieldLabelElementId,
+  useFieldLabelFor,
+  useFieldLabelId,
+} from './FormContext';
 
 interface UseAutoLabelIdOptions {
   /** The convenience `label` prop as passed by the caller. */
@@ -42,7 +46,7 @@ export function useAutoLabelId({
 }: UseAutoLabelIdOptions): {
   controlId: string | undefined;
   fieldLabelProps: FieldProps['labelProps'] | undefined;
-  /** Whether a label this render outputs points at `controlId`. */
+  /** Whether a rendered label, its own or a surrounding Field's, points at `controlId`. */
   labelled: boolean;
 } {
   // Called unconditionally per the rules of hooks; SSR-safe on React 18 and 19.
@@ -50,6 +54,8 @@ export function useAutoLabelId({
   // Read outside the control's own Field, so it is set only when an outer
   // Field holds the control, which then renders no label of its own.
   const fieldLabelId = useFieldLabelId();
+  // What an outer Field's label points at, even when wired by hand.
+  const fieldLabelFor = useFieldLabelFor();
   // Truthiness mirrors Field's own `if (label)` render gate.
   const active = !!label && rendersLabel;
   // Presence, not truthiness: `htmlFor: undefined` is an explicit opt-out and
@@ -67,7 +73,7 @@ export function useAutoLabelId({
     : label
       ? { htmlFor: undefined, ...labelProps }
       : labelProps;
-  const labelTarget = active ? ownLabelProps.htmlFor : adopted;
+  const labelTarget = active ? ownLabelProps.htmlFor : fieldLabelFor;
   return {
     controlId,
     fieldLabelProps,

@@ -10,6 +10,8 @@ import {
   FieldProvider,
   FieldLabelIdProvider,
   FieldLabelElementIdProvider,
+  FieldLabelForProvider,
+  useFieldLabelFor,
 } from './FormContext';
 import { Control } from './Control';
 
@@ -241,6 +243,15 @@ const FieldComponent: React.FC<FieldProps> = ({
   // whenever the association is on, unless the caller gave it one.
   const labelId =
     labelProps?.id ?? (targetId ? `${targetId}-label` : undefined);
+  // What the rendered label's `for` points at, generated or the caller's, so
+  // a control can tell when a label wired by hand names it. An unlabeled
+  // Field passes on its parent's.
+  const inheritedLabelFor = useFieldLabelFor();
+  const labelFor = label
+    ? userWiredLabel
+      ? labelProps.htmlFor
+      : targetId
+    : inheritedLabelFor;
 
   let renderedLabel = null;
   if (label) {
@@ -301,10 +312,12 @@ const FieldComponent: React.FC<FieldProps> = ({
     <FieldProvider value={true}>
       <FieldLabelIdProvider value={targetId}>
         <FieldLabelElementIdProvider value={targetId ? labelId : undefined}>
-          <div className={fieldClass} {...rest}>
-            {renderedLabel}
-            {content}
-          </div>
+          <FieldLabelForProvider value={labelFor}>
+            <div className={fieldClass} {...rest}>
+              {renderedLabel}
+              {content}
+            </div>
+          </FieldLabelForProvider>
         </FieldLabelElementIdProvider>
       </FieldLabelIdProvider>
     </FieldProvider>

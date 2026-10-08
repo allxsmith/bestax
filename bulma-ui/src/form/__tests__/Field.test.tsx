@@ -605,16 +605,51 @@ describe('label names the convenience controls (#939)', () => {
     expect(labelEl(container).getAttribute('for')).not.toBe('mine');
   });
 
-  it('keeps the "Add tag" fallback on a Taginput the label does not target', () => {
+  it.each([
+    ['a generated target', {}],
+    ['a hand-wired target elsewhere', { labelProps: { htmlFor: 'other' } }],
+  ])(
+    'keeps the "Add tag" fallback on a Taginput the label does not target (%s)',
+    (_, fieldProps) => {
+      render(
+        <Field label="Pick" {...fieldProps}>
+          <Taginput id="mine" />
+        </Field>
+      );
+      expect(screen.getByRole('textbox')).toHaveAttribute(
+        'aria-label',
+        'Add tag'
+      );
+    }
+  );
+
+  it('drops the "Add tag" fallback when the label is wired to the Taginput by hand', () => {
     render(
-      <Field label="Pick">
-        <Taginput id="mine" />
+      <Field label="Tags" labelProps={{ htmlFor: 'tags-field' }}>
+        <Taginput id="tags-field" />
       </Field>
     );
-    expect(screen.getByRole('textbox')).toHaveAttribute(
-      'aria-label',
-      'Add tag'
+    const input = screen.getByRole('textbox', { name: 'Tags' });
+    expect(input).not.toHaveAttribute('aria-label');
+  });
+
+  it('drops it across the inner Field of a hand-wired horizontal layout', () => {
+    render(
+      <Field horizontal label="Tags" labelProps={{ htmlFor: 'tags-field' }}>
+        <Field.Body>
+          <Field>
+            <Taginput id="tags-field" />
+          </Field>
+          <Field>
+            <Taginput id="other-tags" />
+          </Field>
+        </Field.Body>
+      </Field>
     );
+    const [wired, other] = screen.getAllByRole('textbox');
+    expect(wired).not.toHaveAttribute('aria-label');
+    expect(screen.getByRole('textbox', { name: 'Tags' })).toBe(wired);
+    expect(other).toHaveAttribute('aria-label', 'Add tag');
   });
 
   it.each([
