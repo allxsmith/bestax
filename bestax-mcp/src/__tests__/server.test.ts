@@ -16,7 +16,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { loadComponent } from '../data.js';
+import { loadCatalog, loadComponent } from '../data.js';
 import { createServer } from '../server.js';
 
 type TextResult = {
@@ -585,6 +585,33 @@ describe('get_css_variables', () => {
   it('asks for one of the two arguments when given neither', async () => {
     const res = await call('get_css_variables', {});
     expect(failed(res)).toBe(true);
+  });
+
+  // The index named whichever declarer the generator read last, so DateInput's
+  // calendar variables were "declared by DateTimeInput" (#964).
+  it('names every declarer, the one a variable is named after first', async () => {
+    // The list comes from the index, since who else declares the calendar's
+    // variables grows with the pickers; what is pinned is DateInput leading it.
+    const declarers = (await loadCatalog()).cssVarIndex[
+      '--bulma-dateinput-cell-color'
+    ];
+    expect(declarers[0]).toBe('DateInput');
+    expect(declarers).toContain('DateTimeInput');
+    const named = declarers.join(', ');
+
+    const out = text(
+      await call('get_css_variables', { query: 'dateinput-cell-color' })
+    );
+    expect(out).toContain(`| \`--bulma-dateinput-cell-color\` | ${named} |`);
+
+    const search = text(
+      await call('search_bestax', {
+        query: '--bulma-dateinput-cell-color',
+        kind: 'css-var',
+      })
+    );
+    expect(search).toContain(`declared by ${named}`);
+    expect(search).toContain('get_css_variables({ component: "DateInput" })');
   });
 });
 

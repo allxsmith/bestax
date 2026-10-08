@@ -11,7 +11,9 @@ the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 
 ## Architecture
 
-- `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program
+- `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program.
+  Every run goes through `runCLI`, which drops the `--` that pnpm and bun forward verbatim, so
+  `<pm> create bestax my-app -- -t vite-ts` works under every package manager (#950)
 - `src/prompts.ts` — interactive questions (each maps to a flag)
 - `src/project-creator.ts` — writes the project: copies a template, injects options,
   installs skills, writes `CLAUDE.md`

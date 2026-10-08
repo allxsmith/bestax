@@ -53,8 +53,12 @@ Every prompt has a flag equivalent, so the whole flow is scriptable and CI-frien
 ### Command Line Options
 
 ```bash
-npm create bestax@latest [project-directory] [options]
+npm create bestax@latest [project-directory] -- [options]
 ```
+
+Put the options after `--`. npm needs it to pass them on at all, and so does bun, whose
+`bun create` rejects short flags such as `-t` and `-y` itself. pnpm and Yarn 1 accept the options
+with or without it.
 
 **Arguments:**
 
@@ -101,10 +105,13 @@ npm create bestax@latest [project-directory] [options]
 
 ```bash
 # Create a TypeScript project with Font Awesome icons
-npm create bestax@latest my-app -t vite-ts -i fontawesome -b complete
+npm create bestax@latest my-app -- -t vite-ts -i fontawesome -b complete
 
 # Use all defaults (skip prompts)
-npm create bestax@latest my-app -y
+npm create bestax@latest my-app -- -y
+
+# The same with bun
+bun create bestax@latest my-app -- -y
 ```
 
 ## Templates

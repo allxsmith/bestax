@@ -145,7 +145,8 @@ A `.tabs` converts around its `<ul>`, and the `<li>`s and `<a>`s inside stay as 
 renders its own `<a>` with tab roles and puts its label in a `<span>`, so converting the tabs
 themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
 `Span display="flex" alignItems="center"` around it and the label). A `.icon` converts around the
-`<i>` inside it when it carries an `aria-label`, which `Icon` writes otherwise.
+`<i>` inside it when it carries the attribute `Icon` writes otherwise: `aria-hidden` with no name,
+no `role` and no `tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`.
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest
@@ -264,20 +265,20 @@ as `items`.
 
 ```jsx
 <span className="icon-text">
-  <span className="icon" aria-label="Home">
+  <span className="icon" aria-hidden="true">
     <i className="fas fa-home"></i>
   </span>
   <span>Home</span>
 </span>
 // becomes
-<IconText iconProps={{ library: "fa", name: "home", ariaLabel: "Home" }}>Home</IconText>
+<IconText iconProps={{ library: "fa", name: "home", "aria-hidden": "true" }}>Home</IconText>
 ```
 
 The glyph is read from the `<i>`: its Font Awesome style class (`fas`, `far`, `fa-solid`, ...) or
 `mdi`, the one class that names the glyph (`fa-home` as `name: "home"`), and the rest as
 `features`. `library` is always written, so a `ConfigProvider` with another `iconLibrary` doesn't
 change what renders. The `.icon`'s own classes and attributes join the glyph's props as they
-would on `Icon`, with `aria-label` as `ariaLabel`.
+would on `Icon`, under their own names.
 
 It converts only when every `.icon` inside converts to `Icon` on its own and holds a bare, empty
 `<i>` naming a Font Awesome or Material Design Icons glyph, and the only other children are those

@@ -730,8 +730,9 @@ const WheelInner = <T,>(
           <button
             key={vIdx}
             type="button"
-            role="option"
-            aria-selected={selected}
+            // A spinbutton owns no options: it states its value through
+            // aria-valuetext, so the items are pointer targets only.
+            aria-hidden="true"
             tabIndex={-1}
             className={itemClass(selected)}
             style={{
@@ -742,6 +743,9 @@ const WheelInner = <T,>(
               top: `${top}px`,
             }}
             disabled={itemDisabled}
+            // Keep a press from focusing the item, which assistive technology
+            // can't see; the click below hands focus to the wheel instead.
+            onMouseDown={e => e.preventDefault()}
             onClick={() => {
               moveBy(vIdx - virtualIdx);
               // Click focuses the <button> child by default; pull focus back
@@ -1062,6 +1066,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
               size={size}
               color={color}
               wrap
+              onCommit={onCommit}
               onFocusPrev={focusPrevOf(secondsRef)}
               onFocusNext={focusNextOf(secondsRef)}
               disabledFor={secondDisabledFor}

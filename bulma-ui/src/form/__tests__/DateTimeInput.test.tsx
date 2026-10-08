@@ -1090,6 +1090,24 @@ describe('DateTimeInputBase remaining branches', () => {
     expect(queryByRole('dialog')).toBeNull();
   });
 
+  it('Enter on the seconds wheel commits and closes the popover too', () => {
+    const handler = jest.fn();
+    const { getByRole, getAllByRole, queryByRole } = render(
+      <DateTimeInput defaultValue={dt()} enableSeconds onChange={handler} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    const wheels = getAllByRole('spinbutton');
+    expect(wheels[2]).toHaveAttribute('aria-label', 'seconds');
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
+    fireEvent.keyDown(wheels[2], { key: 'Enter' });
+    expect(queryByRole('dialog')).toBeNull();
+    // The turned second stands after the close: nothing reverts it.
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(handler).toHaveBeenLastCalledWith(new Date(2024, 5, 7, 13, 45, 1));
+    expect(getByRole('combobox')).toHaveValue('2024-06-07 13:45:01');
+  });
+
   it('haptics opt-in still routes wheel changes through onChange', () => {
     const handler = jest.fn();
     const { getByRole, getAllByRole } = render(
@@ -1301,8 +1319,8 @@ describe('DateTimeInput small viewport', () => {
     fireEvent.click(getByRole('combobox'));
     fireEvent.click(getByRole('button', { name: /Time/ }));
     expect(getAllByRole('spinbutton').length).toBeGreaterThanOrEqual(2);
-    const option = getAllByRole('option')[0] as HTMLElement;
-    expect(option.style.height).toBe('40px');
+    const item = getAllByRole('spinbutton')[0].querySelector('button')!;
+    expect(item.style.height).toBe('40px');
   });
 });
 
@@ -1387,6 +1405,25 @@ describe('DateTimeInput focus and the time wheels', () => {
       fireEvent.click(button);
     });
   };
+
+  it('ties the Time button to the wheels it opens with aria-controls', () => {
+    for (const inline of [false, true]) {
+      const { getByRole, getAllByRole, unmount } = render(
+        <DateTimeInput defaultValue={v} inline={inline} />
+      );
+      if (!inline) openPopover(getByRole('combobox'));
+      const timeButton = getByRole('button', { name: /Time/ });
+      // Collapsed, the wheels aren't rendered, so there is nothing to name.
+      expect(timeButton).not.toHaveAttribute('aria-controls');
+      pressTimeButton(timeButton);
+      const controlled = document.getElementById(
+        timeButton.getAttribute('aria-controls') ?? ''
+      );
+      expect(controlled).not.toBeNull();
+      expect(controlled).toContainElement(getAllByRole('spinbutton')[0]);
+      unmount();
+    }
+  });
 
   it('moves focus to the hours wheel as the Time button opens the wheels', () => {
     const { getByRole, getAllByRole } = render(
@@ -1523,6 +1560,37 @@ describe('DateTimeInput focus and the time wheels', () => {
     });
     expect((handler.mock.lastCall![0] as Date).getHours()).toBe(12);
     expect(hours).toHaveFocus();
+  });
+
+  it('collapses the wheels on Enter inline, where there is no popover to close', () => {
+    for (const wheel of [0, 2]) {
+      const handler = jest.fn();
+      const { getByRole, getAllByRole, queryAllByRole, unmount } = render(
+        <DateTimeInput
+          defaultValue={v}
+          enableSeconds
+          inline
+          onChange={handler}
+        />
+      );
+      const timeButton = getByRole('button', { name: /Time/ });
+      pressTimeButton(timeButton);
+      const spin = getAllByRole('spinbutton')[wheel];
+      act(() => {
+        fireEvent.keyDown(spin, { key: 'ArrowUp' });
+      });
+      act(() => {
+        fireEvent.keyDown(spin, { key: 'Enter' });
+      });
+      expect(queryAllByRole('spinbutton')).toHaveLength(0);
+      expect(timeButton).toHaveFocus();
+      expect(handler).toHaveBeenLastCalledWith(
+        wheel === 0
+          ? new Date(2024, 5, 7, 11, 0, 0)
+          : new Date(2024, 5, 7, 10, 0, 1)
+      );
+      unmount();
+    }
   });
 
   it('does the same inline', () => {

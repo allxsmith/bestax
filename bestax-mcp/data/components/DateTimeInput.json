@@ -170,7 +170,7 @@
       "code": "<DateTimeInput label=\"Input only\" popover={false} defaultValue={new Date()} />"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"`.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date.\n- Closing the popover with `Escape`, the ✓ button or `Enter` on a time wheel returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Closing it commits nothing by itself: an empty field stays empty, and leaving afterwards commits only what you typed, so seconds the display leaves out are kept.\n- Calendar uses `role=\"grid\"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"`.\n- Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- Each time wheel uses `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.\n- Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.",
   "related": ["DateInput", "Input", "TimeInput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-datetimeinput",
   "summary": "The `DateTimeInput` combines a calendar and a time **wheel spinner** in a single popover — an iOS-style layout.",
@@ -547,7 +547,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the calendar and the time wheels, where it colors the selected date and the selection band. Today's date and the calendar's keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable; that makes `'primary'` a shade off the unset calendar, which uses plain `primary` for them. A focused wheel's ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, they use their `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which follow `primary` by default. The footer's time pill and Done button stay `primary` either way.",
+          "description": "Bulma color modifier for the input, also carried by the calendar and the time wheels, where it colors the selected date and the selection band. Today's date and the calendar's keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. A focused wheel's ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, they use their `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which follow `primary` by default. The footer's time pill and Done button do not follow `color`.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -821,13 +821,13 @@
     {
       "css": "--bulma-dateinput-cell-today-color",
       "sass": "$dateinput-cell-today-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
       "css": "--bulma-dateinput-focus-ring-color",
       "sass": "$dateinput-focus-ring-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
@@ -839,7 +839,7 @@
     {
       "css": "--bulma-dateinput-cell-other-month-color",
       "sass": "$dateinput-cell-other-month-color",
-      "default": "var(--bulma-text-weak)",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
       "scope": "element"
     },
     {
