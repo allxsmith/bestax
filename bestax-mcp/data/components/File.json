@@ -173,7 +173,7 @@
           "name": "hasName",
           "type": "boolean",
           "default": "false",
-          "description": "Show a file name area. Without `fileName` it shows what the user picked: the file's name, or a count when `multiple` lets them pick several (see `pickedFilesLabel`). Before a pick there is no name area, and the root takes Bulma's `is-empty`, which keeps the CTA's corners rounded. A reset of the input's form clears the name, but clearing the input from code fires no change event and leaves it showing, so pass `fileName` to control the text then.",
+          "description": "Show a file name area. Without `fileName` it shows what the user picked: the file's name, or a count when `multiple` lets them pick several (see `pickedFilesLabel`). Before a pick there is no name area, and the root takes Bulma's `is-empty`. A reset of the input's form clears the name, but clearing the input from code fires no change event and leaves it showing, so pass `fileName` to control the text then.",
           "required": false,
           "inherited": false,
           "deprecated": false

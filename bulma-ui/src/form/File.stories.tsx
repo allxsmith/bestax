@@ -40,8 +40,8 @@ export const PickedFileName: Story = {
 };
 
 /**
- * Before a pick, a `hasName` File carries Bulma's `is-empty`, so its button
- * keeps all four corners rounded in each layout until a name sits beside it.
+ * Before a pick, a `hasName` File carries Bulma's `is-empty`, in each layout,
+ * until a name sits beside its button.
  */
 export const NoNameYet: Story = {
   render: () => (

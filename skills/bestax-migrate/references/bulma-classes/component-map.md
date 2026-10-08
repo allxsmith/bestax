@@ -321,9 +321,8 @@ beside `isRight`. Anything else keeps it as markup with a `children:File`, `cont
 `attr` TODO.
 
 A `has-name` `.file` with no `.file-name` converts only with Bulma's `is-empty` written on it,
-since `File` renders `is-empty` there itself to keep the button's corners rounded, and the class
-then goes with the rest of the tree. Without it the `.file` stays markup with a `defaults:File`
-TODO that names the class to add.
+since `File` renders `is-empty` there itself, and the class then goes with the rest of the tree.
+Without it the `.file` stays markup with a `defaults:File` TODO that names the class to add.
 
 ## Families this source leaves as markup
 

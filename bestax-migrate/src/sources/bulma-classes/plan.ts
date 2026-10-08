@@ -769,7 +769,7 @@ export function plan(facts: ElementFacts): Plan {
         return refuse(
           'defaults',
           target,
-          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`, where it keeps the button's corners rounded; add \`${EMPTY_NAME}\` here if that is what you want, then re-run`
+          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`; add \`${EMPTY_NAME}\` here if that is what you want, then re-run`
         );
       }
       converted.add(EMPTY_NAME);
