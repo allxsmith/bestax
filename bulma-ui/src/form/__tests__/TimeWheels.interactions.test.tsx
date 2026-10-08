@@ -803,7 +803,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[0].querySelectorAll('button[role="option"]')
+      wheels[0].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const threes = buttons.filter(b => b.textContent?.trim() === '03');
     expect(threes.length).toBeGreaterThan(0);
@@ -823,7 +823,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[0].querySelectorAll('button[role="option"]')
+      wheels[0].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const threes = buttons.filter(b => b.textContent?.trim() === '03');
     expect(threes.length).toBeGreaterThan(0);
@@ -842,16 +842,23 @@ describe('TimeWheels keyboard and value mapping', () => {
     expect(document.activeElement).toBe(wheels[0]);
   });
 
-  it('Enter on the seconds wheel does not close the popover (no commit wired)', () => {
-    const { wheels, getByRole } = openPicker(
+  it('Enter on the seconds wheel commits and closes the popover, as on the others', () => {
+    const handler = jest.fn();
+    const { wheels, queryByRole, getByRole } = openPicker(
       <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
         mobileNative={false}
+        onChange={handler}
       />
     );
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     fireEvent.keyDown(wheels[2], { key: 'Enter' });
-    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(queryByRole('dialog')).toBeNull();
+    // The turned second stands after the close: nothing reverts it.
+    expect(lastDate(handler).getSeconds()).toBe(31);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(getByRole('combobox')).toHaveValue('10:00:31');
   });
 
   it('hour and minute changes preserve the seconds part; ArrowDown steps seconds back', () => {
@@ -927,7 +934,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[2].querySelectorAll('button[role="option"]')
+      wheels[2].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const blocked = buttons.filter(b => b.textContent?.trim() === '33');
     expect(blocked.length).toBeGreaterThan(0);

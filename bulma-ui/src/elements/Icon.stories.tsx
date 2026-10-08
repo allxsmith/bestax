@@ -1,5 +1,7 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import { Icon } from './Icon';
+import { Button } from './Button';
+import { Buttons } from './Buttons';
 import {
   validColors,
   validSizes,
@@ -235,6 +237,32 @@ export const CustomNode: Story = {
       description: {
         story:
           'Passing `children` instead of `name` renders any custom node — an inline SVG, a `react-icons` component, `<FontAwesomeIcon />`, … — in place of a class-based glyph, keeping the `.icon` container, sizing, and color helpers. `name` and `children` are mutually exclusive.',
+      },
+    },
+  },
+};
+
+export const DecorativeAndNamed: Story = {
+  render: () => (
+    <Buttons>
+      <Button>
+        <Icon name="floppy-disk" />
+        <span>Save</span>
+      </Button>
+      <Button aria-label="Delete item" color="danger">
+        <Icon name="trash" />
+      </Button>
+      <Button>
+        <Icon name="triangle-exclamation" ariaLabel="Warning" />
+        <span>Unsaved changes</span>
+      </Button>
+    </Buttons>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'An `Icon` with no `ariaLabel` is decorative: it renders `aria-hidden="true"` and adds nothing to the name of the button around it, so these read as "Save" and "Delete item". Give it an `ariaLabel` and it becomes an image with that name, so the last reads as "Warning Unsaved changes".',
       },
     },
   },

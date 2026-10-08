@@ -560,7 +560,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the calendar, where it colors the selected date. Today's date and the keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable; that makes `'primary'` a shade off the unset calendar, which uses plain `primary` for both. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` by default.",
+          "description": "Bulma color modifier for the input, also carried by the calendar, where it colors the selected date. Today's date and the keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` the same way by default.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -762,13 +762,13 @@
     {
       "css": "--bulma-dateinput-cell-today-color",
       "sass": "$dateinput-cell-today-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
       "css": "--bulma-dateinput-focus-ring-color",
       "sass": "$dateinput-focus-ring-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
@@ -780,7 +780,7 @@
     {
       "css": "--bulma-dateinput-cell-other-month-color",
       "sass": "$dateinput-cell-other-month-color",
-      "default": "var(--bulma-text-weak)",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
       "scope": "element"
     },
     {
