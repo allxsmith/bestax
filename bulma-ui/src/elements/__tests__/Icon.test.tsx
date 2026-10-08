@@ -676,6 +676,19 @@ describe('Icon', () => {
       expect(screen.getByRole('img')).toHaveAccessibleName('Close');
     });
 
+    it('leaves an unnamed icon with a role of its own visible', () => {
+      render(<Icon name="trash" role="button" tabIndex={0} />);
+      const span = iconSpan();
+      expect(span).toHaveAttribute('role', 'button');
+      expect(span).not.toHaveAttribute('aria-hidden');
+    });
+
+    it('still hides an unnamed icon whose role is spread as undefined', () => {
+      const spread: { role?: string } = { role: undefined };
+      render(<Icon name="star" {...spread} />);
+      expect(iconSpan()).toHaveAttribute('aria-hidden', 'true');
+    });
+
     it('lets an explicit aria-hidden or role win over the defaults', () => {
       render(
         <>

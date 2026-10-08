@@ -82,7 +82,8 @@ interface IconBaseProps
    * so it adds nothing to the accessible name of a `Button` or text around it. For an
    * icon-only control, put the name on the control (e.g. `Button`'s `aria-label`) and leave
    * this unset. A non-empty native `aria-label` or `aria-labelledby` passed instead also
-   * counts as a name, and an explicit `role` or `aria-hidden` wins over both defaults.
+   * counts as a name, and an explicit `role` or `aria-hidden` wins over both defaults, so
+   * an unnamed icon given a `role` of its own isn't hidden.
    */
   ariaLabel?: string;
   /** Inline style object. */
@@ -321,9 +322,13 @@ export const Icon: React.FC<IconProps> = ({
   // before `rest`, so a caller's own `role` or `aria-hidden` still wins.
   const named =
     !!ariaLabel || !!restProps['aria-label'] || !!restProps['aria-labelledby'];
+  // A caller's own `role` on an unnamed icon means it isn't decoration (an icon made a
+  // button, say), so it isn't hidden either.
   const a11yProps = named
     ? { role: 'img', 'aria-label': ariaLabel || undefined }
-    : { 'aria-hidden': true };
+    : restProps.role !== undefined
+      ? {}
+      : { 'aria-hidden': true };
 
   if (children !== undefined) {
     // `IconChildrenProps`: render the caller's node (an inline SVG, a `react-icons`
