@@ -325,7 +325,7 @@ The tsconfig a Vite `react-ts` app starts with already works with bestax-bulma. 
 }
 ```
 
-- `"moduleResolution": "bundler"` reads the package's `exports` map, which is where bestax-bulma declares its types.
+- `"moduleResolution": "bundler"` reads the package's `exports` map.
 - `"types": ["vite/client"]` declares CSS imports such as `import '@allxsmith/bestax-bulma/bestax.css'`. With another bundler, use its client types, or add a `.d.ts` file containing `declare module '*.css';`.
 - `"allowImportingTsExtensions"` lets `main.tsx` import `./App.tsx`, as Vite's template does. It needs `"noEmit"`, which suits an app whose bundler does the compiling.
 
