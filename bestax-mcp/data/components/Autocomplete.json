@@ -7,15 +7,15 @@
   "examples": [
     {
       "title": "Basic Autocomplete",
-      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const fruits = [\n    'Apple',\n    'Banana',\n    'Cherry',\n    'Date',\n    'Elderberry',\n    'Fig',\n    'Grape',\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        data={fruits}\n        placeholder=\"Search fruit...\"\n        onSelect={setSelected}\n      />\n      {selected && <Paragraph mt=\"2\">Selected: {selected}</Paragraph>}\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [selected, setSelected] = useState<string | null>(null);\n  const fruits = [\n    'Apple',\n    'Banana',\n    'Cherry',\n    'Date',\n    'Elderberry',\n    'Fig',\n    'Grape',\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        data={fruits}\n        placeholder=\"Search fruit...\"\n        onSelect={item => setSelected(typeof item === 'string' ? item : null)}\n      />\n      {selected && <Paragraph mt=\"2\">Selected: {selected}</Paragraph>}\n    </Block>\n  );\n}"
     },
     {
       "title": "Open on Focus",
-      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const countries = [\n    'United States',\n    'United Kingdom',\n    'Canada',\n    'Australia',\n    'Germany',\n    'France',\n  ];\n\n  return (\n    <Autocomplete\n      data={countries}\n      placeholder=\"Select a country...\"\n      openOnFocus\n      onSelect={setSelected}\n    />\n  );\n}"
+      "code": "function example() {\n  const countries = [\n    'United States',\n    'United Kingdom',\n    'Canada',\n    'Australia',\n    'Germany',\n    'France',\n  ];\n\n  return (\n    <Autocomplete\n      data={countries}\n      placeholder=\"Select a country...\"\n      openOnFocus\n    />\n  );\n}"
     },
     {
       "title": "With Clear Button",
-      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];\n\n  return (\n    <Autocomplete\n      data={options}\n      placeholder=\"Search options...\"\n      clearable\n      onSelect={setSelected}\n    />\n  );\n}"
+      "code": "function example() {\n  const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];\n\n  return (\n    <Autocomplete data={options} placeholder=\"Search options...\" clearable />\n  );\n}"
     },
     {
       "title": "Color and Size Variants",
@@ -23,11 +23,11 @@
     },
     {
       "title": "With Object Data",
-      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const users = [\n    { value: '1', label: 'John Doe', email: 'john@example.com' },\n    { value: '2', label: 'Jane Smith', email: 'jane@example.com' },\n    { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },\n  ];\n\n  return (\n    <Block>\n      <Autocomplete\n        data={users}\n        field=\"label\"\n        placeholder=\"Search users...\"\n        openOnFocus\n        onSelect={setSelected}\n      />\n      {selected && (\n        <Paragraph mt=\"2\">\n          Selected: {selected.label} ({selected.email})\n        </Paragraph>\n      )}\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const users = [\n    { value: '1', label: 'John Doe', email: 'john@example.com' },\n    { value: '2', label: 'Jane Smith', email: 'jane@example.com' },\n    { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },\n  ];\n  const [selected, setSelected] = useState<(typeof users)[number] | null>(null);\n\n  return (\n    <Block>\n      <Autocomplete\n        data={users}\n        field=\"label\"\n        placeholder=\"Search users...\"\n        openOnFocus\n        onSelect={item =>\n          setSelected(\n            users.find(\n              u => u.value === (typeof item === 'string' ? item : item?.value)\n            ) ?? null\n          )\n        }\n      />\n      {selected && (\n        <Paragraph mt=\"2\">\n          Selected: {selected.label} ({selected.email})\n        </Paragraph>\n      )}\n    </Block>\n  );\n}"
     },
     {
       "title": "Custom Item Template",
-      "code": "function example() {\n  const [selected, setSelected] = useState(null);\n  const users = [\n    { value: '1', label: 'John Doe', role: 'Admin' },\n    { value: '2', label: 'Jane Smith', role: 'Editor' },\n    { value: '3', label: 'Bob Johnson', role: 'Viewer' },\n  ];\n\n  return (\n    <Autocomplete\n      data={users}\n      field=\"label\"\n      placeholder=\"Search users...\"\n      openOnFocus\n      onSelect={setSelected}\n      itemTemplate={item => (\n        <Block display=\"flex\" justifyContent=\"space-between\">\n          <Span>{item.label}</Span>\n          <Tag color=\"info\" light>\n            {item.role}\n          </Tag>\n        </Block>\n      )}\n    />\n  );\n}"
+      "code": "function example() {\n  const users = [\n    { value: '1', label: 'John Doe', role: 'Admin' },\n    { value: '2', label: 'Jane Smith', role: 'Editor' },\n    { value: '3', label: 'Bob Johnson', role: 'Viewer' },\n  ];\n\n  return (\n    <Autocomplete\n      data={users}\n      field=\"label\"\n      placeholder=\"Search users...\"\n      openOnFocus\n      itemTemplate={item => {\n        const user = users.find(\n          u => u.value === (typeof item === 'string' ? item : item.value)\n        );\n        return (\n          <Block display=\"flex\" justifyContent=\"space-between\">\n            <Span>{user?.label}</Span>\n            <Tag color=\"info\" isLight>\n              {user?.role}\n            </Tag>\n          </Block>\n        );\n      }}\n    />\n  );\n}"
     },
     {
       "title": "With Empty State",
@@ -54,7 +54,7 @@
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Fruit\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"search\">\n            <Autocomplete\n              data={['Apple', 'Banana', 'Cherry']}\n              placeholder=\"Search fruit...\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- Uses `role=\"combobox\"` with `aria-expanded`\n- Has `aria-haspopup=\"listbox\"` and `aria-autocomplete=\"list\"`\n- Dropdown items use `role=\"option\"` with `aria-selected`\n- Disabled items have `aria-disabled`\n- The `clearable` clear button is a native button named \"Clear\": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it\n- Full keyboard navigation support",
+  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- Uses `role=\"combobox\"` with `aria-expanded`, which is true only while the list is on screen\n- Has `aria-haspopup=\"listbox\"` and `aria-autocomplete=\"list\"`, and, while the list is on screen, `aria-controls` pointing at it\n- Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it\n- The list is a `role=\"listbox\"` named by the `label` prop's label. Inside an outer `Field`, or with no `label`, it falls back to `aria-label=\"Suggestions\"`\n- Dropdown items use `role=\"option\"` with `aria-selected`\n- Disabled items have `aria-disabled`\n- The `clearable` clear button is a native button named \"Clear\": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it\n- Full keyboard navigation support",
   "related": ["Input", "Select", "Taginput"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-autocomplete",
   "summary": "The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.",

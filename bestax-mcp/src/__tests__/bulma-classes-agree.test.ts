@@ -178,7 +178,7 @@ function planned(tag: string, tokens: string[]): Outcome {
         hasSpread: false,
         isEmpty: true,
       };
-      const iconAttributes = new Map([['aria-label', 'x']]);
+      const iconAttributes = new Map([['aria-hidden', 'true']]);
       const becomes = plan({
         tag: 'span',
         tokens: ['icon'],

@@ -253,8 +253,8 @@
         {
           "name": "ariaLabel",
           "type": "string",
-          "default": "'icon'",
-          "description": "ARIA label for accessibility. Applied unconditionally to the container span, so an icon that never sets it still renders `aria-label=\"icon\"`. For an icon-only control, put the real `aria-label` on the control (e.g. `Button`) and set `aria-hidden` here instead — otherwise the control's accessible name is announced as just \"icon\". For a decorative icon beside visible text, set `aria-hidden` here rather than leaving the default, so it doesn't add \"icon\" to the text's accessible name.",
+          "default": null,
+          "description": "Accessible name for an icon that means something on its own. Set it and the container span gets `role=\"img\"` with this `aria-label`, so the name is exactly this text: a Material ligature such as `rocket_launch` inside stays out of it. Leave it unset (or empty) and the icon is decorative: the span renders `aria-hidden=\"true\"` and no name, so it adds nothing to the accessible name of a `Button` or text around it. For an icon-only control, put the name on the control (e.g. `Button`'s `aria-label`) and leave this unset. A non-empty native `aria-label` or `aria-labelledby` passed instead also counts as a name, and an explicit `role` or `aria-hidden` wins over both defaults. An unnamed icon given a `role` or a `tabIndex` of its own isn't hidden, since hiding something focusable is a failure of its own.",
           "required": false,
           "inherited": true,
           "deprecated": false

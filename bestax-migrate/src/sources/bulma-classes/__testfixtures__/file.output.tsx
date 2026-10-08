@@ -19,7 +19,7 @@ export function Uploads({ onPick }: { onPick: () => void }) {
           accept="image/*"
           onChange={onPick}
           buttonLabel="Upload a photo"
-          iconRight={<Icon aria-label="Upload">
+          iconRight={<Icon aria-hidden="true">
             <i className="fas fa-cloud-upload-alt"></i>
           </Icon>}
           fileName="portrait.png" />

@@ -99,7 +99,7 @@ Quickly render all subtitle sizes from `1` to `6` using a map function. This is 
 
 ```tsx live
 <>
-  {['1', '2', '3', '4', '5', '6'].map(size => (
+  {(['1', '2', '3', '4', '5', '6'] as const).map(size => (
     <SubTitle key={size} size={size}>
       SubTitle Size {size}
     </SubTitle>

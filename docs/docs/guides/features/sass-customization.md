@@ -40,6 +40,16 @@ pnpm add bulma
 
 </PackageManagerTabs>
 
+### When pnpm blocks a build script
+
+pnpm can stop right after installing Sass with `ERR_PNPM_IGNORED_BUILDS`, naming `@parcel/watcher`, one of Sass's dependencies. pnpm asks before it runs any dependency's install script, and until it has an answer, later commands such as `pnpm run dev` stop on the same error. Sass compiles without that script, so deny it:
+
+```bash
+pnpm approve-builds '!@parcel/watcher'
+```
+
+pnpm records the answer under `allowBuilds` in `pnpm-workspace.yaml` and doesn't ask again.
+
 ## Build Configuration
 
 ### Vite

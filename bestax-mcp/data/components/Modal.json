@@ -35,7 +35,7 @@
     },
     {
       "title": "Forwarded ref",
-      "code": "function example() {\n  const [open, setOpen] = React.useState(false);\n  const [width, setWidth] = React.useState(null);\n  const modalRef = React.useRef(null);\n\n  return (\n    <>\n      <Button color=\"info\" onClick={() => setOpen(true)}>\n        Open and measure\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        ref={modalRef}\n        modalCardTitle=\"Measured through the ref\"\n      >\n        <Button\n          onClick={() =>\n            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)\n          }\n        >\n          Measure\n        </Button>\n        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>\n      </Modal>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [open, setOpen] = React.useState(false);\n  const [width, setWidth] = React.useState<number | null>(null);\n  const modalRef = React.useRef<HTMLDivElement>(null);\n\n  return (\n    <>\n      <Button color=\"info\" onClick={() => setOpen(true)}>\n        Open and measure\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        ref={modalRef}\n        modalCardTitle=\"Measured through the ref\"\n      >\n        <Button\n          onClick={() =>\n            setWidth(modalRef.current?.getBoundingClientRect().width ?? null)\n          }\n        >\n          Measure\n        </Button>\n        <p>Width: {width === null ? '—' : `${Math.round(width)}px`}</p>\n      </Modal>\n    </>\n  );\n}"
     },
     {
       "title": "Compound (dot-notation) usage",

@@ -28,7 +28,6 @@ import '@allxsmith/bestax-bulma/bestax.css';
 **Usage:**
 
 ```tsx live
-import React from 'react';
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
 import '@allxsmith/bestax-bulma/bestax.css';
 
@@ -58,7 +57,6 @@ import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 **Usage:**
 
 ```tsx live
-import React from 'react';
 import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
 import '@allxsmith/bestax-bulma/versions/bestax-prefixed.css';
 
@@ -85,8 +83,9 @@ This renders HTML with prefixed classes:
 
 ```html title="HTML markup from example above"
 <div class="bestax-box">
-  <h1 class="bestax-title">Bestax-Prefixed Components</h1>
-  <button class="bestax-button bestax-is-primary">
+  <h2 class="bestax-title bestax-is-2">Bestax-Prefixed Components</h2>
+  <p>All components inside this ConfigProvider …</p>
+  <button class="bestax-button bestax-is-primary bestax-mt-3">
     Bestax-Prefixed Button
   </button>
 </div>
@@ -108,7 +107,6 @@ import '@allxsmith/bestax-bulma/versions/bestax-no-helpers.css';
 **Usage:**
 
 ```tsx
-import React from 'react';
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
 import '@allxsmith/bestax-bulma/versions/bestax-no-helpers.css';
 
@@ -143,7 +141,6 @@ import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';
 **Usage:**
 
 ```tsx
-import React from 'react';
 import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
 import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';
 
@@ -175,7 +172,6 @@ import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';
 **Usage:**
 
 ```tsx
-import React from 'react';
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
 import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';
 
@@ -213,6 +209,8 @@ For teams that want a custom class prefix matching their brand or organization. 
 
    </PackageManagerTabs>
 
+   If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
+
 2. **Create a custom SCSS file:**
 
    ```scss title="src/styles/mycompany-bestax.scss"
@@ -233,7 +231,6 @@ For teams that want a custom class prefix matching their brand or organization. 
 **Usage:**
 
 ```tsx
-import React from 'react';
 import { ConfigProvider, Button, Box, Title } from '@allxsmith/bestax-bulma';
 import './styles/mycompany-bestax.scss';
 

@@ -843,7 +843,7 @@ export function renderLookup(lookup: Lookup): string {
             ? ` It builds its icons from props: write each \`.icon\` inside as ` +
               `one icon's props, its <i>'s classes read as \`library\` and ` +
               `\`name\` (\`fas fa-home\` as \`library: 'fa', name: 'home'\`) ` +
-              `and its \`aria-label\` as \`ariaLabel\`, with the bare <span> of ` +
+              `and its attributes under their own names, with the bare <span> of ` +
               `text after it as its text. One icon goes in \`iconProps\`, with ` +
               `its text as the children, and more than one in \`items\`.`
             : '') +

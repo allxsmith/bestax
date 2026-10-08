@@ -282,16 +282,16 @@ Every answer has a flag:
 
 ```bash
 # All defaults, zero questions
-npm create bestax@latest my-app -y
+npm create bestax@latest my-app -- -y
 
 # TypeScript + Font Awesome
-npm create bestax@latest my-app -t vite-ts -i fontawesome
+npm create bestax@latest my-app -- -t vite-ts -i fontawesome
 
 # Prefixed Bulma (running alongside another framework) + Material Design Icons
-npm create bestax@latest my-app -b prefixed -i mdi
+npm create bestax@latest my-app -- -b prefixed -i mdi
 
 # Everything specified
-npm create bestax@latest my-app -t vite-ts -b complete -i fontawesome
+npm create bestax@latest my-app -- -t vite-ts -b complete -i fontawesome
 ```
 
 | Flag             | Values                                                                         |

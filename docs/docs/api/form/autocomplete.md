@@ -34,11 +34,11 @@ import { Autocomplete } from '@allxsmith/bestax-bulma';
 
 ### Basic Autocomplete
 
-Simple autocomplete with string array.
+Simple autocomplete with string array. `onSelect` is typed for either kind of `data`, as `string | AutocompleteItem | null`, so narrow the item to the kind you passed before storing it.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const fruits = [
     'Apple',
     'Banana',
@@ -54,7 +54,7 @@ function example() {
       <Autocomplete
         data={fruits}
         placeholder="Search fruit..."
-        onSelect={setSelected}
+        onSelect={item => setSelected(typeof item === 'string' ? item : null)}
       />
       {selected && <Paragraph mt="2">Selected: {selected}</Paragraph>}
     </Block>
@@ -70,7 +70,6 @@ Dropdown opens immediately when input is focused.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const countries = [
     'United States',
     'United Kingdom',
@@ -85,7 +84,6 @@ function example() {
       data={countries}
       placeholder="Select a country..."
       openOnFocus
-      onSelect={setSelected}
     />
   );
 }
@@ -99,16 +97,10 @@ Autocomplete with clearable input. The clear button shows while the input holds 
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
 
   return (
-    <Autocomplete
-      data={options}
-      placeholder="Search options..."
-      clearable
-      onSelect={setSelected}
-    />
+    <Autocomplete data={options} placeholder="Search options..." clearable />
   );
 }
 ```
@@ -151,16 +143,16 @@ Autocomplete with different colors and sizes.
 
 ### With Object Data
 
-Autocomplete with object items.
+Autocomplete with object items. `onSelect` passes back the item you picked, so looking it up in your own array by its `value` gives it back with your fields typed.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const users = [
     { value: '1', label: 'John Doe', email: 'john@example.com' },
     { value: '2', label: 'Jane Smith', email: 'jane@example.com' },
     { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },
   ];
+  const [selected, setSelected] = useState<(typeof users)[number] | null>(null);
 
   return (
     <Block>
@@ -169,7 +161,13 @@ function example() {
         field="label"
         placeholder="Search users..."
         openOnFocus
-        onSelect={setSelected}
+        onSelect={item =>
+          setSelected(
+            users.find(
+              u => u.value === (typeof item === 'string' ? item : item?.value)
+            ) ?? null
+          )
+        }
       />
       {selected && (
         <Paragraph mt="2">
@@ -185,11 +183,10 @@ function example() {
 
 ### Custom Item Template
 
-Autocomplete with custom item rendering.
+Autocomplete with custom item rendering. `itemTemplate` receives each item the same way, so the template looks it up by `value` too.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const users = [
     { value: '1', label: 'John Doe', role: 'Admin' },
     { value: '2', label: 'Jane Smith', role: 'Editor' },
@@ -202,15 +199,19 @@ function example() {
       field="label"
       placeholder="Search users..."
       openOnFocus
-      onSelect={setSelected}
-      itemTemplate={item => (
-        <Block display="flex" justifyContent="space-between">
-          <Span>{item.label}</Span>
-          <Tag color="info" light>
-            {item.role}
-          </Tag>
-        </Block>
-      )}
+      itemTemplate={item => {
+        const user = users.find(
+          u => u.value === (typeof item === 'string' ? item : item.value)
+        );
+        return (
+          <Block display="flex" justifyContent="space-between">
+            <Span>{user?.label}</Span>
+            <Tag color="info" isLight>
+              {user?.role}
+            </Tag>
+          </Block>
+        );
+      }}
     />
   );
 }
@@ -401,8 +402,10 @@ function AutocompleteFormDemo() {
 
 - The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.
 - A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.
-- Uses `role="combobox"` with `aria-expanded`
-- Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`
+- Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen
+- Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`, and, while the list is on screen, `aria-controls` pointing at it
+- Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it
+- The list is a `role="listbox"` named by the `label` prop's label. Inside an outer `Field`, or with no `label`, it falls back to `aria-label="Suggestions"`
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it

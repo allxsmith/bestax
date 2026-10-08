@@ -667,7 +667,7 @@ describe('plan', () => {
       ).toBe('Tabs');
     });
 
-    it('converts .icon only around element children, with its own aria-label', () => {
+    it('converts .icon only around element children, hidden as Icon hides it', () => {
       const i = {
         tag: 'i',
         attributes: new Map(),
@@ -675,18 +675,95 @@ describe('plan', () => {
         isEmpty: true,
       };
       expect(
-        plan(facts('span', 'icon', { 'aria-label': 'Home' }, { soleChild: i }))
+        plan(facts('span', 'icon', { 'aria-hidden': 'true' }, { soleChild: i }))
           .conversion?.target
       ).toBe('Icon');
-      expect(
-        plan(facts('span', 'icon', {}, { soleChild: i })).todos.map(t => t.rule)
-      ).toEqual(['defaults:Icon']);
+      const bare = plan(facts('span', 'icon', {}, { soleChild: i }));
+      expect(bare.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
+      expect(bare.todos[0].message).toMatch(
+        /renders `aria-hidden="true"` when the element does not set it/
+      );
       // `{show && <i />}`: Icon would switch to its `name` path when empty.
       expect(
-        plan(facts('span', 'icon', { 'aria-label': 'Home' })).todos.map(
+        plan(facts('span', 'icon', { 'aria-hidden': 'true' })).todos.map(
           t => t.rule
         )
       ).toEqual(['children:Icon']);
+    });
+
+    describe('.icon with a name', () => {
+      const i = {
+        tag: 'i',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const icon = (attributes: Record<string, string | true | null>) =>
+        plan(facts('span', 'icon', attributes, { soleChild: i }));
+
+      it.each(['aria-label', 'aria-labelledby'])(
+        'converts one named by %s only as the image Icon makes it',
+        name => {
+          expect(icon({ [name]: 'home', role: 'img' }).conversion?.target).toBe(
+            'Icon'
+          );
+          // It needs no aria-hidden then: Icon renders none on a named icon.
+          const unset = icon({ [name]: 'home', 'aria-hidden': 'true' });
+          expect(unset.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
+          expect(unset.todos[0].message).toMatch(
+            /renders `role="img"` when the element does not set it/
+          );
+        }
+      );
+
+      it('reads a bare attribute as a name, and an empty one as none', () => {
+        expect(icon({ 'aria-label': true }).todos[0].message).toMatch(
+          /`role="img"`/
+        );
+        expect(
+          icon({ 'aria-label': '', 'aria-hidden': 'true' }).conversion?.target
+        ).toBe('Icon');
+        expect(icon({ 'aria-label': '' }).todos[0].message).toMatch(
+          /`aria-hidden="true"`/
+        );
+      });
+
+      it('needs no aria-hidden on an unnamed icon with a role of its own', () => {
+        // Icon leaves an unnamed icon with a role visible, an icon made a
+        // button, say.
+        expect(icon({ role: 'button' }).conversion?.target).toBe('Icon');
+        // A role given as an expression may render as none, and then Icon
+        // hides the icon, so it still needs aria-hidden written out.
+        expect(icon({ role: null }).todos.map(t => t.rule)).toEqual([
+          'defaults:Icon',
+        ]);
+      });
+
+      it('needs no aria-hidden on an unnamed icon with a tabIndex of its own', () => {
+        // Icon leaves an unnamed icon that can take focus visible.
+        expect(icon({ tabIndex: '0' }).conversion?.target).toBe('Icon');
+        expect(icon({ tabIndex: null }).todos.map(t => t.rule)).toEqual([
+          'defaults:Icon',
+        ]);
+      });
+
+      it('needs a role when the name is an expression', () => {
+        // Named or not, an icon with a role of its own keeps it and isn't
+        // hidden, so a role written out makes either outcome render as given.
+        expect(
+          icon({ 'aria-label': null, role: 'img' }).conversion?.target
+        ).toBe('Icon');
+        const half = icon({ 'aria-label': null, 'aria-hidden': 'false' });
+        expect(half.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
+        expect(half.todos[0].message).toBe(
+          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want, then re-run'
+        );
+        // A name written out settles it, whatever the other one is.
+        expect(
+          icon({ 'aria-label': null, 'aria-labelledby': 'x', role: 'img' })
+            .conversion?.target
+        ).toBe('Icon');
+      });
     });
   });
 
@@ -803,7 +880,9 @@ describe('plan', () => {
     /** A `.icon` as the transform hands it over: planned on its own first. */
     const icon = (
       glyph = ['fas', 'fa-home'],
-      attributes: Record<string, string | true | null> = { 'aria-label': 'x' },
+      attributes: Record<string, string | true | null> = {
+        'aria-hidden': 'true',
+      },
       tokens: string[] = []
     ): ChildFacts => {
       const own = facts('span', ['icon', ...tokens].join(' '), attributes, {
@@ -863,11 +942,11 @@ describe('plan', () => {
       const conversion = iconText(
         [
           icon(['far', 'fa-bell', 'fa-lg', 'fa-fw'], {
-            'aria-label': 'x',
+            'aria-hidden': 'true',
             tabIndex: '0',
           }),
           text('a'),
-          icon(['mdi', 'mdi-home'], { 'aria-label': 'x' }, [
+          icon(['mdi', 'mdi-home'], { 'aria-hidden': 'true' }, [
             'is-small',
             'my-icon',
           ]),
@@ -938,15 +1017,20 @@ describe('plan', () => {
         ['a glyph Icon reads no name from', [icon(['bi', 'bi-house'])]],
         [
           'an icon with a key',
-          [icon(['fas', 'fa-home'], { 'aria-label': 'x', key: 'k' })],
+          [icon(['fas', 'fa-home'], { 'aria-hidden': 'true', key: 'k' })],
         ],
         [
           'an icon with a ref',
-          [icon(['fas', 'fa-home'], { 'aria-label': 'x', ref: null })],
+          [icon(['fas', 'fa-home'], { 'aria-hidden': 'true', ref: null })],
         ],
         [
           'an icon with a data attribute',
-          [icon(['fas', 'fa-home'], { 'aria-label': 'x', 'data-test': 'x' })],
+          [
+            icon(['fas', 'fa-home'], {
+              'aria-hidden': 'true',
+              'data-test': 'x',
+            }),
+          ],
         ],
       ];
       for (const [label, children] of shaped) {
@@ -961,7 +1045,7 @@ describe('plan', () => {
       expect(
         iconText([
           icon(['fas', 'fa-home'], {
-            'aria-label': 'x',
+            'aria-hidden': 'true',
             'aria-describedby': 'y',
           }),
         ]).conversion
@@ -969,7 +1053,7 @@ describe('plan', () => {
     });
 
     it('waits for each icon to convert on its own, unless another child does', () => {
-      // No aria-label, which Icon writes: the icon stays, and says so.
+      // No aria-hidden, which Icon writes: the icon stays, and says so.
       const bare = icon(['fas', 'fa-home'], {});
       expect(bare.becomes).toBeUndefined();
       const waits = iconText([bare, text()]);

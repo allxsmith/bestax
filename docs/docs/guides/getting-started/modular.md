@@ -85,15 +85,18 @@ import '@allxsmith/bestax-bulma/extras.css';
 Hand-rolling modular SCSS is worthwhile only when you have a demonstrated CSS-size budget. You take on the maintenance burden of keeping imports in sync with the components you actually use. If in doubt, use Option A.
 :::
 
-Install Sass as a dev dependency (Bulma is already installed as a transitive dependency):
+Install Bulma, whose partials you `@use` below, and Sass as a dev dependency. bestax-bulma depends on Bulma, but under pnpm's default layout your Sass can only load the packages your app lists:
 
 <PackageManagerTabs>
 
 ```bash
+pnpm add bulma
 pnpm add -D sass
 ```
 
 </PackageManagerTabs>
+
+If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
 
 #### Required base styles
 

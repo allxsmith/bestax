@@ -240,8 +240,8 @@ It's SSR-safe: a portal has no server-rendered counterpart, so the modal renders
 ```tsx live
 function example() {
   const [open, setOpen] = React.useState(false);
-  const [width, setWidth] = React.useState(null);
-  const modalRef = React.useRef(null);
+  const [width, setWidth] = React.useState<number | null>(null);
+  const modalRef = React.useRef<HTMLDivElement>(null);
 
   return (
     <>

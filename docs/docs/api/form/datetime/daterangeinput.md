@@ -49,8 +49,10 @@ function example() {
 The value is a `[start, end]` pair, and either end can be `null`. The calendar reports a range once it has both ends. Typing reports each end as it changes, so a range typed halfway arrives as `[start, null]`.
 
 ```tsx live
+import type { DateRangeValue } from '@allxsmith/bestax-bulma';
+
 function ControlledRange() {
-  const [range, setRange] = React.useState([null, null]);
+  const [range, setRange] = React.useState<DateRangeValue>([null, null]);
   const [start, end] = range;
   return (
     <Block>
@@ -104,7 +106,7 @@ function NextMonth() {
 
 ```tsx live
 function Weekdays() {
-  const weekend = d => d.getDay() === 0 || d.getDay() === 6;
+  const weekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
   return (
     <Block>
       <DateRangeInput label="Weekdays only" shouldDisableDate={weekend} />
@@ -370,10 +372,10 @@ function RangeFormDemo() {
 | `--bulma-dateinput-cell-hover-bg` ‡           | `$dateinput-cell-hover-bg`           | `hsla(0, 0%, 50%, 0.13)`                                                                                                 |
 | `--bulma-dateinput-cell-selected-bg` ‡        | `$dateinput-cell-selected-bg`        | `var(--bulma-primary)`                                                                                                   |
 | `--bulma-dateinput-cell-selected-color` ‡     | `$dateinput-cell-selected-color`     | `var(--bulma-primary-invert)`                                                                                            |
-| `--bulma-dateinput-cell-today-color` ‡        | `$dateinput-cell-today-color`        | `var(--bulma-primary)`                                                                                                   |
-| `--bulma-dateinput-focus-ring-color` ‡        | `$dateinput-focus-ring-color`        | `var(--bulma-primary)`                                                                                                   |
+| `--bulma-dateinput-cell-today-color` ‡        | `$dateinput-cell-today-color`        | `var(--bulma-primary-on-scheme)`                                                                                         |
+| `--bulma-dateinput-focus-ring-color` ‡        | `$dateinput-focus-ring-color`        | `var(--bulma-primary-on-scheme)`                                                                                         |
 | `--bulma-dateinput-cell-disabled-color` ‡     | `$dateinput-cell-disabled-color`     | `var(--bulma-text-weak)`                                                                                                 |
-| `--bulma-dateinput-cell-other-month-color` ‡  | `$dateinput-cell-other-month-color`  | `var(--bulma-text-weak)`                                                                                                 |
+| `--bulma-dateinput-cell-other-month-color` ‡  | `$dateinput-cell-other-month-color`  | `color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))`                                                          |
 | `--bulma-dateinput-header-padding` ‡          | `$dateinput-header-padding`          | `0.5rem 0`                                                                                                               |
 | `--bulma-dateinput-day-name-color` ‡          | `$dateinput-day-name-color`          | `var(--bulma-text-weak)`                                                                                                 |
 | `--bulma-dateinput-day-name-size` ‡           | `$dateinput-day-name-size`           | `var(--bulma-size-7)`                                                                                                    |

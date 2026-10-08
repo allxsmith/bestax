@@ -174,9 +174,9 @@ describe('TimeInput', () => {
     const hoursWheel = getAllByRole('spinbutton')[0];
     // Wheel renders a buffered window around the current value. Hour 12
     // (offset +2 from 10) is within the buffer.
-    const target = Array.from(
-      hoursWheel.querySelectorAll('button[role="option"]')
-    ).find(b => b.textContent?.trim() === '12');
+    const target = Array.from(hoursWheel.querySelectorAll('button')).find(
+      b => b.textContent?.trim() === '12'
+    );
     fireEvent.click(target!);
     expect(handler).toHaveBeenCalled();
     const arg: Date = handler.mock.calls[0][0];
@@ -189,9 +189,9 @@ describe('TimeInput', () => {
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
-    const labels = Array.from(
-      hoursWheel.querySelectorAll('button[role="option"]')
-    ).map(b => b.textContent?.trim());
+    const labels = Array.from(hoursWheel.querySelectorAll('button')).map(b =>
+      b.textContent?.trim()
+    );
     // 23 is centred; the wrap should render 00, 01, 02, … below it.
     expect(labels).toContain('23');
     expect(labels).toContain('00');
@@ -204,9 +204,9 @@ describe('TimeInput', () => {
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
-    const labels = Array.from(
-      hoursWheel.querySelectorAll('button[role="option"]')
-    ).map(b => b.textContent?.trim());
+    const labels = Array.from(hoursWheel.querySelectorAll('button')).map(b =>
+      b.textContent?.trim()
+    );
     expect(labels).toContain('00');
     expect(labels).toContain('23');
     expect(labels).toContain('22');
@@ -220,9 +220,9 @@ describe('TimeInput', () => {
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
-    const labels = Array.from(
-      hoursWheel.querySelectorAll('button[role="option"]')
-    ).map(b => b.textContent?.trim());
+    const labels = Array.from(hoursWheel.querySelectorAll('button')).map(b =>
+      b.textContent?.trim()
+    );
     expect(labels).toContain('12');
     expect(labels).toContain('11');
     expect(labels).toContain('01');
@@ -479,10 +479,44 @@ describe('TimeInput', () => {
     );
     fireEvent.click(getByRole('combobox'));
     const hoursWheel = getAllByRole('spinbutton')[0];
-    const selected = hoursWheel.querySelector('[aria-selected="true"]');
+    const selected = hoursWheel.querySelector('.is-selected');
     expect(selected).not.toBeNull();
     fireEvent.click(selected!);
     expect(document.activeElement).toBe(hoursWheel);
+  });
+
+  it('keeps a press on a wheel item from focusing the hidden item', () => {
+    const { getByRole, getAllByRole } = render(
+      <TimeInput defaultValue={at(10, 0)} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    const hoursWheel = getAllByRole('spinbutton')[0];
+    const item = hoursWheel.querySelector('button:not(.is-selected)')!;
+    // fireEvent returns false once a handler prevents the default, which is
+    // what stops the browser focusing the item on mousedown.
+    expect(fireEvent.mouseDown(item)).toBe(false);
+  });
+
+  it('keeps the wheel items out of the spinbutton, which owns no options', () => {
+    const { getByRole, getAllByRole, queryAllByRole } = render(
+      <TimeInput defaultValue={at(10, 0)} />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect(queryAllByRole('option')).toHaveLength(0);
+    getAllByRole('spinbutton').forEach(wheel => {
+      const items = Array.from(wheel.querySelectorAll('button'));
+      expect(items.length).toBeGreaterThan(0);
+      items.forEach(item => {
+        expect(item).toHaveAttribute('aria-hidden', 'true');
+        expect(item).not.toHaveAttribute('role');
+        expect(item).not.toHaveAttribute('aria-selected');
+      });
+    });
+    // The value travels on the spinbutton itself.
+    expect(getAllByRole('spinbutton')[0]).toHaveAttribute(
+      'aria-valuetext',
+      '10'
+    );
   });
 
   it('Enter on a wheel closes the popover (commits the live value)', () => {
@@ -1356,6 +1390,37 @@ describe('TimeInputBase remaining branches', () => {
     const { getByRole } = render(<TimeInputBase id="shift-start" />);
     fireEvent.click(getByRole('combobox'));
     expect(getByRole('combobox').getAttribute('aria-controls')).toBe(
+      'shift-start-popover'
+    );
+  });
+
+  it('gives the wheels inside the popover an id of their own', () => {
+    for (const id of ['shift-start', undefined]) {
+      const { getByRole, container, unmount } = render(
+        <TimeInputBase id={id} />
+      );
+      fireEvent.click(getByRole('combobox'));
+      const popoverId = getByRole('combobox').getAttribute('aria-controls')!;
+      const ids = Array.from(
+        document.querySelectorAll('[id]'),
+        el => el.id
+      ).filter(found => found.startsWith(popoverId));
+      expect(ids).toEqual([popoverId, `${popoverId}-time`]);
+      expect(getByRole('dialog').id).toBe(popoverId);
+      expect(container.querySelector('.timeinput')?.getAttribute('id')).toBe(
+        `${popoverId}-time`
+      );
+      unmount();
+    }
+  });
+
+  it('keeps the inline wheels on the id they had, with no popover to share it', () => {
+    const { container } = render(<TimeInputBase id="shift-start" inline />);
+    expect(
+      container.querySelectorAll('[id="shift-start-popover"]')
+    ).toHaveLength(1);
+    expect(container.querySelector('.timeinput')).toHaveAttribute(
+      'id',
       'shift-start-popover'
     );
   });

@@ -11,7 +11,7 @@
     },
     {
       "title": "Custom Link Component",
-      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = props => <a>{props.children}</a>;\n  return (\n    <Menu>\n      <Menu.Label>App</Menu.Label>\n      <Menu.List>\n        <Menu.Item as={Link} to=\"/dashboard\">\n          Dashboard\n        </Menu.Item>\n        <Menu.Item as={Link} to=\"/settings\">\n          Settings\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  );\n}"
+      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = (props: { to: string; children?: React.ReactNode }) => (\n    <a>{props.children}</a>\n  );\n  return (\n    <Menu>\n      <Menu.Label>App</Menu.Label>\n      <Menu.List>\n        <Menu.Item as={Link} to=\"/dashboard\">\n          Dashboard\n        </Menu.Item>\n        <Menu.Item as={Link} to=\"/settings\">\n          Settings\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  );\n}"
     },
     {
       "title": "Active Menu Item",
@@ -23,7 +23,7 @@
     },
     {
       "title": "Forwarded ref",
-      "code": "function example() {\n  const itemRef = React.useRef(null);\n\n  return (\n    <>\n      <Button mb=\"3\" onClick={() => itemRef.current?.focus()}>\n        Focus Customers\n      </Button>\n      <Menu>\n        <Menu.Label>General</Menu.Label>\n        <Menu.List>\n          <Menu.Item href=\"#dashboard\">Dashboard</Menu.Item>\n          <Menu.Item href=\"#customers\" ref={itemRef}>\n            Customers\n          </Menu.Item>\n        </Menu.List>\n      </Menu>\n    </>\n  );\n}"
+      "code": "function example() {\n  const itemRef = React.useRef<HTMLAnchorElement>(null);\n\n  return (\n    <>\n      <Button mb=\"3\" onClick={() => itemRef.current?.focus()}>\n        Focus Customers\n      </Button>\n      <Menu>\n        <Menu.Label>General</Menu.Label>\n        <Menu.List>\n          <Menu.Item href=\"#dashboard\">Dashboard</Menu.Item>\n          <Menu.Item href=\"#customers\" ref={itemRef}>\n            Customers\n          </Menu.Item>\n        </Menu.List>\n      </Menu>\n    </>\n  );\n}"
     },
     {
       "title": "Compound (dot-notation) usage",

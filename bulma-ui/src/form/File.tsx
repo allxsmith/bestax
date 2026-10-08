@@ -74,13 +74,13 @@ export interface FileProps
   buttonLabel?: React.ReactNode;
   /**
    * Left icon element. It renders inside the `<label>` that names the file input, beside
-   * `buttonLabel`, so pass an `Icon` with `aria-hidden` (`<Icon name="upload" aria-hidden="true" />`);
-   * otherwise its default `aria-label="icon"` becomes part of the input's accessible name.
+   * `buttonLabel`, so leave an `Icon` here unnamed (`<Icon name="upload" />`): it is then
+   * `aria-hidden`, while an `ariaLabel` would join the input's accessible name.
    */
   iconLeft?: React.ReactNode;
   /**
    * Right icon element. Sits inside the same `<label>` as `iconLeft`, so the same applies:
-   * give an `Icon` here `aria-hidden`, or "icon" joins the input's accessible name.
+   * an `Icon` here with an `ariaLabel` joins the input's accessible name.
    */
   iconRight?: React.ReactNode;
   /** Additional CSS classes to apply. */

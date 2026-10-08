@@ -11,7 +11,7 @@
     },
     {
       "title": "Controlled",
-      "code": "function ControlledRange() {\n  const [range, setRange] = React.useState([null, null]);\n  const [start, end] = range;\n  return (\n    <Block>\n      <DateRangeInput label=\"Report period\" value={range} onChange={setRange} />\n      <Paragraph>\n        {start ? start.toDateString() : 'No start'} to{' '}\n        {end ? end.toDateString() : 'no end'}\n      </Paragraph>\n      <Button size=\"small\" onClick={() => setRange([null, null])}>\n        Clear\n      </Button>\n    </Block>\n  );\n}"
+      "code": "import type { DateRangeValue } from '@allxsmith/bestax-bulma';\n\nfunction ControlledRange() {\n  const [range, setRange] = React.useState<DateRangeValue>([null, null]);\n  const [start, end] = range;\n  return (\n    <Block>\n      <DateRangeInput label=\"Report period\" value={range} onChange={setRange} />\n      <Paragraph>\n        {start ? start.toDateString() : 'No start'} to{' '}\n        {end ? end.toDateString() : 'no end'}\n      </Paragraph>\n      <Button size=\"small\" onClick={() => setRange([null, null])}>\n        Clear\n      </Button>\n    </Block>\n  );\n}"
     },
     {
       "title": "Inline",
@@ -23,7 +23,7 @@
     },
     {
       "title": "Disabled Dates",
-      "code": "function Weekdays() {\n  const weekend = d => d.getDay() === 0 || d.getDay() === 6;\n  return (\n    <Block>\n      <DateRangeInput label=\"Weekdays only\" shouldDisableDate={weekend} />\n      <DateRangeInput\n        label=\"Over weekends\"\n        shouldDisableDate={weekend}\n        allowDisabledInRange\n      />\n    </Block>\n  );\n}"
+      "code": "function Weekdays() {\n  const weekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;\n  return (\n    <Block>\n      <DateRangeInput label=\"Weekdays only\" shouldDisableDate={weekend} />\n      <DateRangeInput\n        label=\"Over weekends\"\n        shouldDisableDate={weekend}\n        allowDisabledInRange\n      />\n    </Block>\n  );\n}"
     },
     {
       "title": "Typing the Dates",
@@ -661,13 +661,13 @@
     {
       "css": "--bulma-dateinput-cell-today-color",
       "sass": "$dateinput-cell-today-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
       "css": "--bulma-dateinput-focus-ring-color",
       "sass": "$dateinput-focus-ring-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
@@ -679,7 +679,7 @@
     {
       "css": "--bulma-dateinput-cell-other-month-color",
       "sass": "$dateinput-cell-other-month-color",
-      "default": "var(--bulma-text-weak)",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
       "scope": "element"
     },
     {

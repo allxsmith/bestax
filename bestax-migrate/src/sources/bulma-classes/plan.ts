@@ -548,20 +548,34 @@ export function plan(facts: ElementFacts): Plan {
   const written = Object.entries(entry.writesAttr ?? {})
     .filter(([, rule]) => rule.on.includes(tag))
     .map(([name, rule]): [string, string] => [name, rule.fallback]);
-  const missing = [...Object.entries(entry.defaults ?? {}), ...written].filter(
+  const naming = namingOf(entry, attributes);
+  // An attribute written out that stops the target's defaults, such as
+  // `Icon`'s own `role` or `tabIndex`, leaves an unnamed element nothing to
+  // add.
+  const stopped = entry.defaultsUnless?.some(
+    name => attributes.has(name) && attributes.get(name) !== null
+  );
+  const unnamed = stopped ? {} : (entry.defaults ?? {});
+  const defaults: Readonly<Record<string, string>> =
+    naming === 'named'
+      ? entry.namedDefaults!.defaults
+      : naming === 'unsure'
+        ? { ...unnamed, ...entry.namedDefaults!.defaults }
+        : unnamed;
+  const missing = [...Object.entries(defaults), ...written].filter(
     ([name]) => !attributes.has(name)
   );
   const drop: string[] = [];
   for (const name of entry.untypedAttrs ?? []) {
     if (!attributes.has(name)) continue;
-    if (entry.defaults?.[name] === attributes.get(name)) {
+    if (defaults[name] === attributes.get(name)) {
       drop.push(name);
       continue;
     }
     return refuse(
       'attr',
       name,
-      `bestax \`${target}\`'s props take no \`${name}\`${entry.defaults?.[name] ? `, and it renders \`${name}="${entry.defaults[name]}"\` when none is given` : ''}; keep this element as markup`
+      `bestax \`${target}\`'s props take no \`${name}\`${defaults[name] ? `, and it renders \`${name}="${defaults[name]}"\` when none is given` : ''}; keep this element as markup`
     );
   }
   const numbers: string[] = [];
@@ -684,6 +698,19 @@ export function plan(facts: ElementFacts): Plan {
       'children',
       target,
       `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
+    );
+  }
+  if (missing.length > 0 && naming === 'unsure') {
+    const list = (set: Readonly<Record<string, string>> = {}) =>
+      Object.entries(set)
+        .map(([name, value]) => `\`${name}="${value}"\``)
+        .join(' and ');
+    const by = entry.namedDefaults!.by.find(name => attributes.has(name));
+    const add = missing.map(([name]) => `\`${name}\``).join(' and ');
+    return refuse(
+      'defaults',
+      target,
+      `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has a name and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want, then re-run`
     );
   }
   if (missing.length > 0) {
@@ -944,6 +971,25 @@ function buildFile(
     },
     numbers,
   };
+}
+
+/**
+ * Whether the element names itself through one of `entry.namedDefaults.by`,
+ * which picks the defaults its target renders: a string written out names
+ * it unless empty, as a bare attribute does, and an expression may or may
+ * not. An entry with no `namedDefaults` is never named.
+ */
+function namingOf(
+  entry: RootEntry,
+  attributes: ReadonlyMap<string, unknown>
+): 'named' | 'unnamed' | 'unsure' {
+  const given = (entry.namedDefaults?.by ?? [])
+    .filter(name => attributes.has(name))
+    .map(name => attributes.get(name));
+  if (given.some(value => value === true || (value !== '' && value !== null))) {
+    return 'named';
+  }
+  return given.includes(null) ? 'unsure' : 'unnamed';
 }
 
 /**

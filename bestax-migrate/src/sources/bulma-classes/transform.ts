@@ -823,7 +823,8 @@ function propValue(
 /**
  * The props one built icon is given, as an object: its glyph's and its
  * classes' first, then its `.icon`'s attributes, as `Icon` would have been
- * given them, with `aria-label` under the name `Icon` declares for it.
+ * given them. `aria-label` keeps its own name: `Icon` reads an empty
+ * `ariaLabel` as no name and renders no `aria-label` for it at all.
  */
 function iconObject(j: any, icon: any, built: BuiltIcon): any {
   const properties = built.props.map(([name, value]) =>
@@ -850,12 +851,7 @@ function iconObject(j: any, icon: any, built: BuiltIcon): any {
         : given.type === 'JSXExpressionContainer'
           ? given.expression
           : propValue(j, given.value, built.numbers.includes(name));
-    properties.push(
-      j.objectProperty(
-        propKey(j, name === 'aria-label' ? 'ariaLabel' : name),
-        value
-      )
-    );
+    properties.push(j.objectProperty(propKey(j, name), value));
   }
   return j.objectExpression(properties);
 }

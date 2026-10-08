@@ -41,6 +41,7 @@ import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
+import { inertProps } from '../helpers/inertProps';
 
 // The year is padded to four digits, as `datetime-local` requires. HTML has
 // no such shape for a year before 1, so a date then is empty, as that input
@@ -161,13 +162,12 @@ export interface DateTimeInputBaseProps
    * time wheels, where it colors the selected date and the selection band.
    * Today's date and the calendar's keyboard focus ring take the color's
    * `-on-scheme` variant, which Bulma adjusts to contrast with the background,
-   * so pale colors stay readable; that makes `'primary'` a shade off the unset
-   * calendar, which uses plain `primary` for them. A focused wheel's ring is
+   * so pale colors stay readable. A focused wheel's ring is
    * drawn inside the band in the color's `-invert`, like the selected value,
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which
-   * follow `primary` by default. The footer's time pill and Done button stay
-   * `primary` either way.
+   * follow `primary` by default. The footer's time pill and Done button do not
+   * follow `color`.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */
@@ -349,6 +349,7 @@ export const DateTimeInputBase = forwardRef<
   const valueAtOpenRef = useRef<Date | null>(null);
   const reactId = useId();
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
+  const timeWheelsId = `${popoverId}-time`;
 
   const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
 
@@ -424,17 +425,14 @@ export const DateTimeInputBase = forwardRef<
   // The footer's Time button opens the wheels, and the hours wheel takes
   // focus so the keys turn it straight away. The calendar they cover is
   // inert meanwhile, so no tab stop, pointer or screen reader reaches a day
-  // behind them; the attribute is set on the element, as React 18 has no
-  // `inert` prop. Closing the wheels hands focus back to the button: focus
+  // behind them. Closing the wheels hands focus back to the button: focus
   // in them would fall to the page as they unmount, and a pointer press
   // outside them has already dropped it on the panel or the page. Focus the
   // keys moved on to the footer, such as Reset, stays there.
   const panelRef = useRef<HTMLDivElement>(null);
-  const calendarRef = useRef<HTMLDivElement>(null);
   const timeButtonRef = useRef<HTMLButtonElement>(null);
   const timeOverlayRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    calendarRef.current?.toggleAttribute('inert', timeOpen);
     if (!timeOpen) return;
     timeOverlayRef.current
       ?.querySelector<HTMLElement>('[role="spinbutton"]')
@@ -622,7 +620,7 @@ export const DateTimeInputBase = forwardRef<
       }}
     >
       <div className={calendarWrapClass}>
-        <div ref={calendarRef}>
+        <div {...inertProps(timeOpen)}>
           <Calendar
             value={value}
             focusedDate={focusedDate}
@@ -668,11 +666,14 @@ export const DateTimeInputBase = forwardRef<
                 color={color}
                 size={size}
                 disabled={disabled}
-                id={`${popoverId}-time`}
+                id={timeWheelsId}
                 labels={labels}
                 itemHeight={wheelItemHeight}
                 audioTick={effectiveAudioTick}
-                onCommit={() => setOpen(false)}
+                // Enter on a wheel commits the time, which the wheels already
+                // did live, and closes: the popover, or inline, where there
+                // is no popover, the wheels, as Escape does.
+                onCommit={() => (inline ? closeTime() : setOpen(false))}
               />
             </div>
           </div>
@@ -685,6 +686,9 @@ export const DateTimeInputBase = forwardRef<
           className={footerTimeClass}
           onClick={() => (timeOpen ? closeTime() : setTimeOpen(true))}
           aria-expanded={timeOpen}
+          // The wheels exist only while open, so only then is there an
+          // element for the button to name.
+          aria-controls={timeOpen ? timeWheelsId : undefined}
           disabled={disabled}
         >
           <span>{t.time}</span>

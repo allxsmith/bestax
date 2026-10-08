@@ -15,11 +15,11 @@
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [v, setV] = useState(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput label=\"Departure\" value={v} onChange={setV} />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput label=\"Departure\" value={v} onChange={setV} />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [v, setV] = useState(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Departure\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Departure\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "12-hour Format",
@@ -59,7 +59,7 @@
     },
     {
       "title": "Min and Max",
-      "code": "function example() {\n  const at = (h, m) => {\n    const d = new Date();\n    d.setHours(h, m, 0, 0);\n    return d;\n  };\n  return (\n    <TimeInput\n      label=\"Typed entry clamped to 09:00 – 17:00\"\n      min={at(9, 0)}\n      max={at(17, 0)}\n      defaultValue={at(12, 0)}\n      openOnFocus={false}\n    />\n  );\n}"
+      "code": "function example() {\n  const at = (h: number, m: number) => {\n    const d = new Date();\n    d.setHours(h, m, 0, 0);\n    return d;\n  };\n  return (\n    <TimeInput\n      label=\"Typed entry clamped to 09:00 – 17:00\"\n      min={at(9, 0)}\n      max={at(17, 0)}\n      defaultValue={at(12, 0)}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
       "title": "Unselectable Times",
@@ -79,7 +79,7 @@
     },
     {
       "title": "Manual Keyboard Entry",
-      "code": "function example() {\n  const [v, setV] = useState(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => {\n    const d = new Date();\n    d.setHours(13, 45, 0, 0);\n    return d;\n  });\n  return (\n    <Block>\n      <TimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toLocaleTimeString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Manual Keyboard Entry",
@@ -159,7 +159,7 @@
     },
     {
       "title": "Colors",
-      "code": "function example() {\n  const v = new Date();\n  v.setHours(8, 30, 0, 0);\n  return (\n    <Block display=\"flex\" flexWrap=\"wrap\">\n      {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(c => (\n        <Block key={c} mr=\"4\">\n          <TimeInput label={c} color={c} inline defaultValue={v} />\n        </Block>\n      ))}\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const v = new Date();\n  v.setHours(8, 30, 0, 0);\n  return (\n    <Block display=\"flex\" flexWrap=\"wrap\">\n      {(\n        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const\n      ).map(c => (\n        <Block key={c} mr=\"4\">\n          <TimeInput label={c} color={c} inline defaultValue={v} />\n        </Block>\n      ))}\n    </Block>\n  );\n}"
     },
     {
       "title": "States",
@@ -178,7 +178,7 @@
       "code": "function example() {\n  return (\n    <Field horizontal label=\"Time\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"clock\">\n            <TimeInput placeholder=\"HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.\n- AM/PM toggle exposes `aria-pressed`.\n- Honors `prefers-reduced-motion`.",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- AM/PM toggle exposes `aria-pressed`.\n- Honors `prefers-reduced-motion`.",
   "related": ["DateInput", "DateTimeInput", "Input"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-timeinput",
   "summary": "The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.",
