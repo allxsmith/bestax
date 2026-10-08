@@ -58,6 +58,8 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 3. **Update your main.jsx file:**
 
+   Vite's template styles its own demo page in `src/index.css` and `src/App.css`, and those rules would apply to your bestax page too. Delete both files; this `main.jsx` and the `App.jsx` below no longer import them.
+
    ```jsx title="src/main.jsx"
    import { StrictMode } from 'react';
    import { createRoot } from 'react-dom/client';
@@ -67,7 +69,6 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    import '@allxsmith/bestax-bulma/bestax.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
-   import './index.css';
 
    createRoot(document.getElementById('root')).render(
      <StrictMode>
@@ -92,7 +93,6 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
      Container,
      Section,
    } from '@allxsmith/bestax-bulma';
-   import './App.css';
 
    function App() {
      const [showNotification, setShowNotification] = useState(false);
@@ -105,7 +105,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
                🚀 Vite + React + bestax-bulma
              </Title>
 
-             <SubTitle size="4" textAlign="centered" color="grey">
+             <SubTitle size="4" textAlign="centered" textColor="grey">
                Modern React development with Bulma components
              </SubTitle>
 
@@ -192,6 +192,8 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
 
 3. **Update your main.tsx file:**
 
+   Vite's template styles its own demo page in `src/index.css` and `src/App.css`, and those rules would apply to your bestax page too. Delete both files; this `main.tsx` and the `App.tsx` below no longer import them.
+
    ```tsx title="src/main.tsx"
    import { StrictMode } from 'react';
    import { createRoot } from 'react-dom/client';
@@ -201,7 +203,6 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
    import '@allxsmith/bestax-bulma/bestax.css';
    // Import Font Awesome
    import '@fortawesome/fontawesome-free/css/all.min.css';
-   import './index.css';
 
    createRoot(document.getElementById('root')!).render(
      <StrictMode>
@@ -226,7 +227,6 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
      Container,
      Section,
    } from '@allxsmith/bestax-bulma';
-   import './App.css';
 
    function App() {
      const [showNotification, setShowNotification] = useState<boolean>(false);
@@ -239,7 +239,7 @@ Vite is a modern, fast build tool that's become the go-to choice for React appli
                🚀 Vite + React + bestax-bulma
              </Title>
 
-             <SubTitle size="4" textAlign="centered" color="grey">
+             <SubTitle size="4" textAlign="centered" textColor="grey">
                Modern TypeScript React development with Bulma components
              </SubTitle>
 
@@ -384,7 +384,7 @@ Next.js is a popular React framework that provides server-side rendering, static
                🚀 Next.js + React + bestax-bulma
              </Title>
 
-             <SubTitle size="4" textAlign="centered" color="grey">
+             <SubTitle size="4" textAlign="centered" textColor="grey">
                Server-side rendering with Bulma components
              </SubTitle>
 
@@ -526,7 +526,7 @@ Next.js is a popular React framework that provides server-side rendering, static
                🚀 Next.js + React + bestax-bulma
              </Title>
 
-             <SubTitle size="4" textAlign="centered" color="grey">
+             <SubTitle size="4" textAlign="centered" textColor="grey">
                Server-side rendering with TypeScript and Bulma components
              </SubTitle>
 
@@ -660,7 +660,7 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
                🚀 Create React App + bestax-bulma
              </Title>
 
-             <SubTitle size="4" textAlign="centered" color="grey">
+             <SubTitle size="4" textAlign="centered" textColor="grey">
                Client-side rendering with JavaScript and Bulma components
              </SubTitle>
 
@@ -788,7 +788,7 @@ For Create React App and other legacy bundlers like Webpack 4, the setup process
                🚀 Create React App + bestax-bulma
              </Title>
 
-             <SubTitle size="4" textAlign="centered" color="grey">
+             <SubTitle size="4" textAlign="centered" textColor="grey">
                Client-side rendering with TypeScript and Bulma components
              </SubTitle>
 

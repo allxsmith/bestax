@@ -118,18 +118,20 @@ Render a set of tags with different `color` values to display a palette of avail
 
 ```tsx live
 <Tags>
-  {[
-    'primary',
-    'link',
-    'info',
-    'success',
-    'warning',
-    'danger',
-    'black',
-    'dark',
-    'light',
-    'white',
-  ].map(color => (
+  {(
+    [
+      'primary',
+      'link',
+      'info',
+      'success',
+      'warning',
+      'danger',
+      'black',
+      'dark',
+      'light',
+      'white',
+    ] as const
+  ).map(color => (
     <Tag key={color} color={color} isHoverable>
       {color.charAt(0).toUpperCase() + color.slice(1)}
     </Tag>
@@ -143,7 +145,7 @@ You can combine `color`, `size`, and `isHoverable` props to show all size varian
 
 ```tsx live
 <Block>
-  {['primary', 'success', 'danger'].map(color => (
+  {(['primary', 'success', 'danger'] as const).map(color => (
     <Tags key={color}>
       <Tag color={color} size="normal" isHoverable>
         {color.charAt(0).toUpperCase() + color.slice(1)} Normal

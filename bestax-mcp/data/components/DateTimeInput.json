@@ -15,11 +15,11 @@
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [v, setV] = useState(new Date());\n  return (\n    <Block>\n      <DateTimeInput label=\"Meeting\" value={v} onChange={setV} />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(new Date());\n  return (\n    <Block>\n      <DateTimeInput label=\"Meeting\" value={v} onChange={setV} />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [v, setV] = useState(new Date());\n  return (\n    <Block>\n      <DateTimeInput\n        label=\"Meeting\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(new Date());\n  return (\n    <Block>\n      <DateTimeInput\n        label=\"Meeting\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "12-hour Format",
@@ -155,7 +155,7 @@
     },
     {
       "title": "Manual Keyboard Entry",
-      "code": "function example() {\n  const [v, setV] = useState(() => new Date(2024, 5, 7, 13, 45));\n  return (\n    <Block>\n      <DateTimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => new Date(2024, 5, 7, 13, 45));\n  return (\n    <Block>\n      <DateTimeInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Manual Keyboard Entry",

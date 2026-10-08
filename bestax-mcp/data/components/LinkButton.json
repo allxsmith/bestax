@@ -27,7 +27,7 @@
     },
     {
       "title": "All Colors",
-      "code": "<Buttons>\n  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (\n    <LinkButton key={color} color={color}>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </LinkButton>\n  ))}\n</Buttons>"
+      "code": "<Buttons>\n  {(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const).map(\n    color => (\n      <LinkButton key={color} color={color}>\n        {color.charAt(0).toUpperCase() + color.slice(1)}\n      </LinkButton>\n    )\n  )}\n</Buttons>"
     },
     {
       "title": "Disabled",
@@ -35,7 +35,7 @@
     },
     {
       "title": "All Sizes",
-      "code": "<Buttons>\n  {['small', 'normal', 'medium', 'large'].map(size => (\n    <LinkButton key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </LinkButton>\n  ))}\n</Buttons>"
+      "code": "<Buttons>\n  {(['small', 'normal', 'medium', 'large'] as const).map(size => (\n    <LinkButton key={size} size={size}>\n      {size.charAt(0).toUpperCase() + size.slice(1)}\n    </LinkButton>\n  ))}\n</Buttons>"
     },
     {
       "title": "Polymorphic `as` (Router Links)",
@@ -43,7 +43,7 @@
     },
     {
       "title": "Forwarded ref",
-      "code": "function example() {\n  const defaultRef = React.useRef(null);\n  const anchorRef = React.useRef(null);\n  const [tags, setTags] = React.useState(null);\n\n  return (\n    <>\n      <LinkButton ref={defaultRef}>Default</LinkButton>\n      <LinkButton as=\"a\" href=\"#forwarded-ref\" ml=\"2\" ref={anchorRef}>\n        As an anchor\n      </LinkButton>\n      <Button\n        ml=\"2\"\n        onClick={() =>\n          setTags(\n            `${defaultRef.current?.tagName} / ${anchorRef.current?.tagName}`\n          )\n        }\n      >\n        Read both from their refs\n      </Button>\n      <p>Rendered elements: {tags ?? '—'}</p>\n    </>\n  );\n}"
+      "code": "function example() {\n  const defaultRef = React.useRef<HTMLButtonElement>(null);\n  const anchorRef = React.useRef<HTMLAnchorElement>(null);\n  const [tags, setTags] = React.useState<string>();\n\n  return (\n    <>\n      <LinkButton ref={defaultRef}>Default</LinkButton>\n      <LinkButton as=\"a\" href=\"#forwarded-ref\" ml=\"2\" ref={anchorRef}>\n        As an anchor\n      </LinkButton>\n      <Button\n        ml=\"2\"\n        onClick={() =>\n          setTags(\n            `${defaultRef.current?.tagName} / ${anchorRef.current?.tagName}`\n          )\n        }\n      >\n        Read both from their refs\n      </Button>\n      <p>Rendered elements: {tags ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
   "accessibility": "- **Semantic HTML:** Renders a native `<button>` element, providing correct keyboard navigation, focus management, and screen reader announcements.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** Fully keyboard accessible with Enter and Space activation.\n- **Replaces anti-patterns:** Use this instead of `<div onClick>` or `<span onClick>` for interactive elements that should not navigate.\n\n:::note\nIf your LinkButton has only an icon, use `aria-label` to provide accessible text.\n:::",

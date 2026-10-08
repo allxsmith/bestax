@@ -50,7 +50,7 @@ import { TimeInput } from '@allxsmith/bestax-bulma';
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => {
+  const [v, setV] = useState<Date | null>(() => {
     const d = new Date();
     d.setHours(13, 45, 0, 0);
     return d;
@@ -68,7 +68,7 @@ function example() {
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => {
+  const [v, setV] = useState<Date | null>(() => {
     const d = new Date();
     d.setHours(13, 45, 0, 0);
     return d;
@@ -294,7 +294,7 @@ On iOS Safari the picker UI lets the user spin to any time; `min`/`max` only fir
 
 ```tsx live
 function example() {
-  const at = (h, m) => {
+  const at = (h: number, m: number) => {
     const d = new Date();
     d.setHours(h, m, 0, 0);
     return d;
@@ -412,7 +412,7 @@ The value updates on every increment, digit, or AM/PM toggle — exactly like th
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => {
+  const [v, setV] = useState<Date | null>(() => {
     const d = new Date();
     d.setHours(13, 45, 0, 0);
     return d;
@@ -825,7 +825,9 @@ function example() {
   v.setHours(8, 30, 0, 0);
   return (
     <Block display="flex" flexWrap="wrap">
-      {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(c => (
+      {(
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
+      ).map(c => (
         <Block key={c} mr="4">
           <TimeInput label={c} color={c} inline defaultValue={v} />
         </Block>

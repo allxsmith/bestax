@@ -99,7 +99,15 @@ import 'bulma/css/bulma.min.css';
 import '@allxsmith/bestax-bulma/extras.css';
 ```
 
-Bulma is already installed as a dependency of bestax-bulma — no extra install needed.
+These lines import from `bulma` itself, so add it to your app's own dependencies. bestax-bulma depends on Bulma, but under pnpm's default layout your code can only import the packages your app lists:
+
+<PackageManagerTabs>
+
+```bash
+pnpm add bulma
+```
+
+</PackageManagerTabs>
 
 ### Method 3: CDN
 
@@ -127,14 +135,15 @@ Or if you only need Bulma itself:
 
 ### Method 4: Custom SCSS Build
 
-**Pros**: Smallest bundle size, full customization
-**Cons**: More complex setup
+**Pros**: Full control of Bulma's Sass variables
+**Cons**: More complex setup. It compiles all of Bulma plus the extras, so the output is about the size of `bestax.css`; to ship less, see [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css).
 
-1. Install Sass as a dev dependency (Bulma is already installed):
+1. Add Bulma (Method 2 says why) and Sass as a dev dependency:
 
 <PackageManagerTabs>
 
 ```bash
+pnpm add bulma
 pnpm add -D sass
 ```
 
@@ -293,27 +302,34 @@ pnpm add -D typescript @types/react @types/react-dom
 
 ### TypeScript Configuration
 
-Recommended `tsconfig.json` settings:
+The tsconfig a Vite `react-ts` app starts with already works with bestax-bulma. If you write your own for a Vite app, these settings work on TypeScript 5 and 6:
 
-```json
+```json title="tsconfig.json"
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
+    "skipLibCheck": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "include": ["src"]
 }
 ```
+
+- `"moduleResolution": "bundler"` reads the package's `exports` map.
+- `"types": ["vite/client"]` declares CSS imports such as `import '@allxsmith/bestax-bulma/bestax.css'`. With another bundler, use its client types, or add a `.d.ts` file containing `declare module '*.css';`.
+- `"allowImportingTsExtensions"` lets `main.tsx` import `./App.tsx`, as Vite's template does. It needs `"noEmit"`, which suits an app whose bundler does the compiling.
+- `"isolatedModules"` makes `tsc` reject code that Vite's file-by-file compile can't handle, such as re-exporting a type without `export type`.
 
 ---
 
@@ -413,7 +429,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 Components should have Bulma styling applied. If components appear unstyled:
 
 - Verify bestax CSS is imported
-- Check browser console for 404 errors {/* bestax:count-ok: an HTTP status, not a tally */}
+- Check the browser console for a stylesheet that failed to load
 - Ensure CSS import order is correct
 
 ### 4. Check Icons (if using)
@@ -452,7 +468,6 @@ Icons should render correctly. If you see placeholder text instead of icons:
 ### Getting Help
 
 - Check our [Toolchains guide](/docs/guides/getting-started/react-setups) for toolchain-specific issues
-- View [example projects](https://github.com/allxsmith/bestax/tree/main/examples)
 - Open an [issue on GitHub](https://github.com/allxsmith/bestax/issues)
 
 ---

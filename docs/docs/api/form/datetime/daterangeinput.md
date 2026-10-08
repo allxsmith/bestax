@@ -49,8 +49,10 @@ function example() {
 The value is a `[start, end]` pair, and either end can be `null`. The calendar reports a range once it has both ends. Typing reports each end as it changes, so a range typed halfway arrives as `[start, null]`.
 
 ```tsx live
+import type { DateRangeValue } from '@allxsmith/bestax-bulma';
+
 function ControlledRange() {
-  const [range, setRange] = React.useState([null, null]);
+  const [range, setRange] = React.useState<DateRangeValue>([null, null]);
   const [start, end] = range;
   return (
     <Block>
@@ -104,7 +106,7 @@ function NextMonth() {
 
 ```tsx live
 function Weekdays() {
-  const weekend = d => d.getDay() === 0 || d.getDay() === 6;
+  const weekend = (d: Date) => d.getDay() === 0 || d.getDay() === 6;
   return (
     <Block>
       <DateRangeInput label="Weekdays only" shouldDisableDate={weekend} />

@@ -236,7 +236,7 @@ The same `name` propagation works through any wrapper — useful for layouts lik
 ```tsx live
 function RadiosWrappedFormDemo() {
   const [submitted, setSubmitted] = React.useState('');
-  const RadioCard = ({ value, label }) => (
+  const RadioCard = ({ value, label }: { value: string; label: string }) => (
     <div
       style={{
         padding: '0.5rem',

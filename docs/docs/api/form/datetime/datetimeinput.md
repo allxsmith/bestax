@@ -56,7 +56,7 @@ The popover opens to the calendar with an iOS-style footer — the selected time
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(new Date());
+  const [v, setV] = useState<Date | null>(new Date());
   return (
     <Block>
       <DateTimeInput label="Meeting" value={v} onChange={setV} />
@@ -70,7 +70,7 @@ function example() {
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(new Date());
+  const [v, setV] = useState<Date | null>(new Date());
   return (
     <Block>
       <DateTimeInput
@@ -696,7 +696,7 @@ function example() {
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => new Date(2024, 5, 7, 13, 45));
+  const [v, setV] = useState<Date | null>(() => new Date(2024, 5, 7, 13, 45));
   return (
     <Block>
       <DateTimeInput

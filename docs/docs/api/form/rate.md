@@ -165,7 +165,7 @@ Rating with custom heart icons.
 function example() {
   const [rating, setRating] = useState(3);
 
-  const HeartIcon = ({ isActive }) => (
+  const HeartIcon = ({ isActive }: { isActive: boolean }) => (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 24 24"
@@ -241,7 +241,7 @@ function example() {
     >
       <Field.Body>
         <Field>
-          <Control iconLeftName="star">
+          <Control>
             <Rate aria-labelledby="rating-label-control" defaultValue={3} />
           </Control>
         </Field>

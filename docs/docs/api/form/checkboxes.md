@@ -177,7 +177,7 @@ function ControlledCheckboxes() {
 
 ```tsx live
 function UncontrolledCheckboxes() {
-  const [latest, setLatest] = React.useState([]);
+  const [latest, setLatest] = React.useState<string[]>([]);
   return (
     <div>
       <Checkboxes
