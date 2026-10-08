@@ -318,10 +318,10 @@ async function cssVarsFor(info) {
  *
  * A variable belongs to the declarer it is named after: the one whose name,
  * lower-cased with or without hyphens between its words, the variable continues
- * after `--bulma-`. The longest such name wins, so `--bulma-icon-text-*` would
- * go to IconText over Icon. The rest follow in code-point order. A variable
- * named after none of its declarers (`--bulma-picker-popover-*`, which the three
- * pickers share) has no owner, and its declarers are all in code-point order.
+ * after `--bulma-`. The longest such name wins, so `--bulma-icon-text-*` goes
+ * to IconText over Icon. The rest follow in code-point order. A variable named
+ * after none of its declarers (`--bulma-picker-popover-*`, which the pickers
+ * share) has no owner, and its declarers are all in code-point order.
  *
  * Every declarer stays in the list, since an override reaches each of them.
  */

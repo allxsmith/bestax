@@ -203,6 +203,7 @@ test('every CSS variable lists every declarer, the one it is named after first (
     }
   }
   const byCode = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  const OWNERLESS = ['--bulma-picker-popover-'];
   // How much of the variable a component's name accounts for: its lower-cased
   // name, with or without hyphens between words, followed by `-` or the end.
   const namedLength = (css, name) => {
@@ -230,6 +231,13 @@ test('every CSS variable lists every declarer, the one it is named after first (
     if (listed.length > 1) shared++;
     const best = Math.max(...listed.map(n => namedLength(css, n)));
     const [first, ...others] = listed;
+    // A variable several components declare is named after one of them, except
+    // the popover the pickers share. Without this an owner the rule failed to
+    // find would fall to code-point order, #964's own failure, and pass. A new
+    // exception is one to add here on purpose.
+    if (listed.length > 1 && !OWNERLESS.some(p => css.startsWith(p))) {
+      assert.ok(best > 0, `${css} has no owner among ${listed}`);
+    }
     if (best > 0) {
       assert.equal(namedLength(css, first), best, `${css} lists ${listed}`);
     }
@@ -249,6 +257,8 @@ test('every CSS variable lists every declarer, the one it is named after first (
     ['--bulma-subtitle-color', 'SubTitle'],
     ['--bulma-title-color', 'Title'],
     ['--bulma-input-border-color', 'Input'],
+    // Decided by the hyphenated form of the name, `icon-text`, over `icon`.
+    ['--bulma-icon-text-spacing', 'IconText'],
   ]) {
     const listed = catalog.cssVarIndex[css];
     assert.equal(listed?.[0], owner, `${css} lists ${listed}`);
