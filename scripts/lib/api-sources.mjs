@@ -113,6 +113,18 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
+  DateRangeInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_daterangeinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
+  DateRangeInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_daterangeinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
   DateTimeInput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_datetimeinput.scss' },
