@@ -728,15 +728,27 @@ describe('plan', () => {
         );
       });
 
-      it('needs both defaults when the name is an expression', () => {
+      it('needs no aria-hidden on an unnamed icon with a role of its own', () => {
+        // Icon leaves an unnamed icon with a role visible, an icon made a
+        // button, say.
+        expect(icon({ role: 'button' }).conversion?.target).toBe('Icon');
+        // A role given as an expression may render as none, and then Icon
+        // hides the icon, so it still needs aria-hidden written out.
+        expect(icon({ role: null }).todos.map(t => t.rule)).toEqual([
+          'defaults:Icon',
+        ]);
+      });
+
+      it('needs a role when the name is an expression', () => {
+        // Named or not, an icon with a role of its own keeps it and isn't
+        // hidden, so a role written out makes either outcome render as given.
         expect(
-          icon({ 'aria-label': null, role: 'img', 'aria-hidden': 'false' })
-            .conversion?.target
+          icon({ 'aria-label': null, role: 'img' }).conversion?.target
         ).toBe('Icon');
-        const half = icon({ 'aria-label': null, role: 'img' });
+        const half = icon({ 'aria-label': null, 'aria-hidden': 'false' });
         expect(half.todos.map(t => t.rule)).toEqual(['defaults:Icon']);
         expect(half.todos[0].message).toBe(
-          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `aria-hidden` here to what you want, then re-run'
+          'bestax `Icon` renders `role="img"` when it has a name and `aria-hidden="true"` when it has none, and this element\'s `aria-label` is an expression that may render as either; set `role` here to what you want, then re-run'
         );
         // A name written out settles it, whatever the other one is.
         expect(
