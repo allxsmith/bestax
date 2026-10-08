@@ -327,7 +327,8 @@ green and every AI review thread is resolved.
   spends model usage gates on `== 'on'`).
 
 **Kill switches and variables.** Remove `ai-loop` (per PR) or set repo variable
-`AI_LOOP_ENABLED=false` (whole system). Every repository variable that steers this
+`AI_LOOP_ENABLED=false` (whole system; the deep review and `@claude` read
+`AI_CLAUDE_ENABLED` instead, so they stay on while the loop is off). Every repository variable that steers this
 automation is tabulated in the ai-development docs guide, including which ones require an
 exact value. Everything that spends model usage is explicit opt-in —
 `AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`), `AI_LOOP_COPILOT=true` — so unset,

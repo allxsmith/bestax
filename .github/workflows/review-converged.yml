@@ -6,8 +6,8 @@ name: Review Converged Label
 # and every decision, lives in scripts/review-converged.mjs behind a node
 # --test sibling (rule 9 in .github/CLAUDE.md). This file only triggers it.
 #
-# PRs labeled `ai-loop` are skipped: claude-pr-loop.yml hands those off with
-# `needs-human-review`.
+# The bot's own loop PRs are in scope too: the bot asks for its verify passes
+# by cycling `deep-review` and hands off when this label arrives.
 #
 # No pull_request or pull_request_target trigger, and no checkout of PR code.
 # workflow_run and schedule run the default branch's copy of this file, and

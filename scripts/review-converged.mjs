@@ -5,12 +5,13 @@
  * A triage+ user applies `deep-review` to a same-repo PR to get the Claude
  * deep review on it, and then has to work out by hand when that review has
  * settled. This answers it from live data and labels the PR, so a PR that is
- * ready for human review shows up in the PR list. PRs labeled `ai-loop` are
- * out of scope: claude-pr-loop.yml hands those off with `needs-human-review`.
+ * ready for human review shows up in the PR list. The bot's own PRs are judged
+ * by the same rule: the bot asks for its verify passes by cycling `deep-review`
+ * and hands off when this label arrives.
  *
  * A PR is in scope when it is open, its head branch is in this repository, its
- * base is the default branch, it carries `deep-review`, and it does not carry
- * `ai-loop`. The base matters because CI runs only on pull requests to main
+ * base is the default branch, and it carries `deep-review`. The base matters
+ * because CI runs only on pull requests to main
  * (ci.yml): a PR stacked on another branch gets no CI, and the skipped check
  * runs it does get would read as passing. An in-scope PR has converged when
  * all of these hold:
@@ -95,7 +96,6 @@ import { pathToFileURL } from 'node:url';
 
 export const LABEL = 'review-converged';
 export const SCOPE_LABEL = 'deep-review';
-export const LOOP_LABEL = 'ai-loop';
 export const FLAG_LABEL = 'needs-security-review';
 export const MARKER = '<!-- claude-deep-review -->';
 
@@ -344,8 +344,6 @@ export function scopeOf(pr, repo, defaultBranch) {
   if (pr?.base?.ref !== defaultBranch)
     return `based on ${forLog(pr?.base?.ref)}, not ${forLog(defaultBranch)}`;
   if (!labels.includes(SCOPE_LABEL)) return `no ${SCOPE_LABEL} label`;
-  if (labels.includes(LOOP_LABEL))
-    return `${LOOP_LABEL} PR, which claude-pr-loop.yml hands off`;
   return null;
 }
 

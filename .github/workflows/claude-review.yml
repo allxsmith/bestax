@@ -1,11 +1,12 @@
 name: Claude Deep Review
 
-# One full adversarial Claude review per AI-loop PR, at open. Uses a stronger
-# model (opus) than the sonnet implementer to decorrelate blind spots. Its
-# inline threads are work items for the fixer in claude-pr-loop.yml; the
-# fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
-# claude-pr-loop.yml's verify mode and resolves only what is genuinely fixed
-# (mirroring CodeRabbit's "✅ Addressed" verification).
+# One full adversarial Claude review per bot PR, started when the bot applies
+# `ai-loop` to a head whose CI is green. Uses a different model from the
+# bot's author session to decorrelate blind spots. Its inline threads are
+# work items for that author session; the author may NOT resolve them — the
+# reviewer re-verifies each claimed fix in a verify pass, which the bot asks
+# for by cycling `deep-review` on its own PR, and resolves only what is
+# genuinely fixed (mirroring CodeRabbit's "✅ Addressed" verification).
 #
 # Second trigger path: a triage+ collaborator applies the `deep-review`
 # label to ANY same-repo PR (any branch) to run the same one-shot review —
@@ -50,10 +51,13 @@ jobs:
     # branches, or (b) any PR a triage+ user opts in via the `deep-review`
     # label (role re-verified live in the perm step below). For `labeled`
     # events, only the matching label itself may fire the review.
+    # AI_CLAUDE_ENABLED is the switch for the public Claude workflows (this
+    # one and claude.yml); the bot that opens loop PRs has its own switch in
+    # its own repository, so turning the loop off never turns the review off.
     if: |
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.state == 'open' &&
-      vars.AI_LOOP_ENABLED == 'true' &&
+      vars.AI_CLAUDE_ENABLED == 'true' &&
       (
         (
           contains(github.event.pull_request.labels.*.name, 'ai-loop') &&
@@ -169,19 +173,39 @@ jobs:
       # claude-implement.yml) so an automated/template label can never spend
       # Claude usage. Every other event shape is the unchanged ai-loop trust
       # model and passes through as allowed.
+      #
+      # One non-human labeler is admitted: the bot asks for its verify pass
+      # by cycling `deep-review` on a PR it owns. An App's bot user is not a
+      # collaborator, so the role lookup would read `none` for it. It is
+      # matched by login (usernames cannot contain brackets, so no user can
+      # spell `bestaxbot[bot]`) and only on its own loop PRs, which the
+      # `opened` path already trusts.
       - name: Check labeler permission
         id: perm
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           SENDER: ${{ github.event.sender.login }}
+          SENDER_TYPE: ${{ github.event.sender.type }}
           ACTION: ${{ github.event.action }}
           LABEL: ${{ github.event.label.name }}
+          HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          HAS_LOOP: ${{ contains(github.event.pull_request.labels.*.name, 'ai-loop') }}
         run: |
           set -euo pipefail
           if [ "$ACTION" != "labeled" ] || [ "$LABEL" != "deep-review" ]; then
             echo "allowed=true" >> "$GITHUB_OUTPUT"
             echo "not a deep-review labeling event — no extra check needed"
+            exit 0
+          fi
+          if [ "$SENDER_TYPE" = "Bot" ] && [ "$SENDER" = "bestaxbot[bot]" ]; then
+            if [ "$HAS_LOOP" = "true" ] && [ "${HEAD_REF#claude/}" != "$HEAD_REF" ]; then
+              echo "allowed=true" >> "$GITHUB_OUTPUT"
+              echo "the bot asked for a verify pass on its own loop PR — running"
+            else
+              echo "allowed=false" >> "$GITHUB_OUTPUT"
+              echo "the bot may only toggle deep-review on its own loop PRs — not running"
+            fi
             exit 0
           fi
           ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
@@ -419,9 +443,10 @@ jobs:
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # On loop PRs the opener/labeler is claude[bot] (the implementer)
-          # by design.
-          allowed_bots: 'claude'
+          # On loop PRs the opener and the verify-pass labeler is the bot
+          # App (its slug, without the [bot] suffix). `claude` stays for the
+          # review runs this app's own identity triggers.
+          allowed_bots: 'claude,bestaxbot'
           # Full session output ONLY on debug re-runs (the "Enable debug
           # logging" checkbox). Unlike ai-triage (GET-only public surface),
           # this session runs pnpm against untrusted PR-head code, whose

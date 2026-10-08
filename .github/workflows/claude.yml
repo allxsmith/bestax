@@ -9,6 +9,10 @@ name: Claude
 # the triggering user is the repo OWNER, an org MEMBER, or an invited
 # COLLABORATOR. See CLAUDE.md and .github (Settings > Actions) for the other
 # layers (outside-contributor approval, per-run turn cap, account limits).
+#
+# KILL SWITCH: the AI_CLAUDE_ENABLED repository variable must be exactly
+# `true`; unset, empty or anything else means off (rule 3 in
+# .github/CLAUDE.md). It is shared with the deep review in claude-review.yml.
 
 on:
   issue_comment:
@@ -44,6 +48,7 @@ jobs:
     #     as injection/social-engineering. (When issue/pull_request is absent the
     #     label filter yields null and contains() is false, so the term is inert.)
     if: |
+      vars.AI_CLAUDE_ENABLED == 'true' &&
       github.event.sender.type == 'User' &&
       github.event.sender.login != 'bestaxbot' &&
       !contains(github.event.issue.labels.*.name, 'needs-security-review') &&

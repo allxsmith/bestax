@@ -310,10 +310,8 @@ test('scopeOf keeps open same-repo deep-review PRs on main outside the loop', ()
     'head branch is not in this repo'
   );
   assert.equal(scope(pr({ labels: [] })), 'no deep-review label');
-  assert.match(
-    scope(pr({ labels: ['deep-review', 'ai-loop'] })),
-    /^ai-loop PR/
-  );
+  // The bot's own PRs are judged like any other once they carry deep-review.
+  assert.equal(scope(pr({ labels: ['deep-review', 'ai-loop'] })), null);
 });
 
 test('a PR stacked on another branch is out of scope', () => {
@@ -1548,6 +1546,7 @@ function sweepRoutes() {
     ]),
     ...prRoutes(1, CLEAN),
     ...prRoutes(2, { ...CLEAN, threads: [{ isResolved: false }] }),
+    ...prRoutes(3, CLEAN),
     ...prRoutes(5, CLEAN),
     // The re-read before each write.
     [`GET /repos/${REPO}/pulls/1`]: response(200, ready),
@@ -1587,7 +1586,8 @@ test('a sweep adds, removes and leaves alone as the decision says', async () => 
     /#2 not converged: 1 unresolved review thread\(s\), remove label: written/
   );
   assert.match(text, /^::notice title=review-converged::#2 unlabeled$/m);
-  assert.match(text, /#3 skipped \(ai-loop PR/);
+  // A bot loop PR is judged like any other and here has nothing to change.
+  assert.match(text, /#3 converged, label unchanged/);
   assert.match(text, /#5 converged, label unchanged/);
   // A stacked PR keeps its label: it is out of scope, not unconverged.
   assert.match(text, /#6 skipped \(based on "feat\/base", not "main"\)/);
@@ -1625,7 +1625,7 @@ test('a dry run decides the same and writes nothing', async () => {
 test('a PR that moved or changed while it was checked is not labeled', async () => {
   for (const [now, outcome] of [
     [pr({ number: 1, head: { sha: OLD, repo: { full_name: REPO } } }), 'stale'],
-    [pr({ number: 1, labels: ['deep-review', 'ai-loop'] }), 'stale'],
+    [pr({ number: 1, labels: ['ai-loop'] }), 'stale'],
     [pr({ number: 1, state: 'closed' }), 'stale'],
     [pr({ number: 1, base: { ref: 'feat/base' } }), 'stale'],
     [pr({ number: 1, labels: ['deep-review', LABEL] }), 'already set'],
@@ -1689,7 +1689,6 @@ test('a PR that left scope or moved while it was checked keeps its label', async
   const labels = ['deep-review', LABEL];
   for (const [now, outcome] of [
     [pr({ number: 2, labels: [LABEL] }), 'stale'],
-    [pr({ number: 2, labels: [...labels, 'ai-loop'] }), 'stale'],
     [pr({ number: 2, labels, base: { ref: 'feat/base' } }), 'stale'],
     [pr({ number: 2, labels, state: 'closed' }), 'stale'],
     [
