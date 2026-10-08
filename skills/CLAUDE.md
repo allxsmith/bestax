@@ -70,7 +70,7 @@ listings that `docs/docs/guides/distribution.md` names under "What goes stale".
   migration "before" that imports from its own library needs no marker, because the rules
   follow the import rather than the tag name. An example that is not code at all belongs in a
   `text` fence.
-- The `.tsx` files in `examples/` are also type-checked with the compiler options of
+- Every `.ts` and `.tsx` file under `skills/` is also type-checked with the compiler options of
   create-bestax's vite-ts template, in `pnpm test` (`scripts/skill-examples-typecheck.test.mjs`),
   because agents copy them into that scaffold and its build runs `tsc` first. Under its
   automatic JSX runtime and `noUnusedLocals`, a default `import React` that nothing reads
