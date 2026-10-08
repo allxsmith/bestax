@@ -171,6 +171,21 @@ export function renderHelperApi(record: ComponentRecord): string {
   return out.join('\n\n');
 }
 
+/**
+ * Where the rest of a component documented in prose is. Theme's page describes
+ * far more than its table, and nothing else on a default answer led to it once
+ * Theme stopped being answered as a helper (#933).
+ */
+export function referencePointer(record: ComponentRecord): string {
+  return (
+    `\`${record.name}\`'s documentation page has more than this table: ` +
+    `\`get_component({ name: "${record.name}", include: ["reference"] })\` ` +
+    `returns all of it (${(record.doc ?? '').length.toLocaleString(
+      'en-US'
+    )} characters).`
+  );
+}
+
 export function renderComponent(
   record: ComponentRecord,
   include: string[]
@@ -198,6 +213,7 @@ export function renderComponent(
     }
     // A component documented in prose (Theme) keeps its page alongside the table.
     if (reference) out.push('## Reference', reference);
+    else if (record.doc) out.push(referencePointer(record));
   }
 
   if (include.includes('examples') && record.examples.length) {

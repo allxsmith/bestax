@@ -71,7 +71,7 @@
           "name": "children",
           "type": "ReactNode",
           "default": null,
-          "description": "",
+          "description": "The content the theme applies to.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -107,7 +107,7 @@
           "name": "bulmaVars",
           "type": "BulmaVars",
           "default": "{}",
-          "description": "",
+          "description": "Bulma CSS variables to set, by name, such as `{ '--bulma-primary-h': '210' }`. Only Bulma's own variables, the keys the `BulmaVars` type allows, are applied, and an empty value is skipped. Where a variable prop, such as `primaryH`, sets the same variable, the prop wins.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -134,7 +134,7 @@
           "name": "schemeH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Base hue for the color scheme, 0 to 360. Sets `--bulma-scheme-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -143,7 +143,7 @@
           "name": "schemeS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Base saturation for the color scheme, as a percentage. Sets `--bulma-scheme-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -152,7 +152,7 @@
           "name": "lightL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness for light backgrounds. Sets `--bulma-light-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -161,7 +161,7 @@
           "name": "lightInvertL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Inverted lightness for light backgrounds. Sets `--bulma-light-invert-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -170,7 +170,7 @@
           "name": "darkL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness for dark backgrounds. Sets `--bulma-dark-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -179,7 +179,7 @@
           "name": "darkInvertL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Inverted lightness for dark backgrounds. Sets `--bulma-dark-invert-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -188,7 +188,7 @@
           "name": "softL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness for soft colors. Sets `--bulma-soft-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -197,7 +197,7 @@
           "name": "boldL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness for bold colors. Sets `--bulma-bold-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -206,7 +206,7 @@
           "name": "softInvertL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Inverted lightness for soft colors. Sets `--bulma-soft-invert-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -215,7 +215,7 @@
           "name": "boldInvertL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Inverted lightness for bold colors. Sets `--bulma-bold-invert-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -224,7 +224,7 @@
           "name": "hoverBackgroundLDelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness change of a background on hover. Sets `--bulma-hover-background-l-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -233,7 +233,7 @@
           "name": "activeBackgroundLDelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness change of a background when active. Sets `--bulma-active-background-l-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -242,7 +242,7 @@
           "name": "hoverBorderLDelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness change of a border on hover. Sets `--bulma-hover-border-l-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -251,7 +251,7 @@
           "name": "activeBorderLDelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness change of a border when active. Sets `--bulma-active-border-l-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -260,7 +260,7 @@
           "name": "hoverColorLDelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness change of text color on hover. Sets `--bulma-hover-color-l-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -269,7 +269,7 @@
           "name": "activeColorLDelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Lightness change of text color when active. Sets `--bulma-active-color-l-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -278,7 +278,7 @@
           "name": "hoverShadowADelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Alpha change of a shadow on hover. Sets `--bulma-hover-shadow-a-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -287,7 +287,7 @@
           "name": "activeShadowADelta",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Alpha change of a shadow when active. Sets `--bulma-active-shadow-a-delta`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -296,7 +296,7 @@
           "name": "primaryH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Primary color hue, 0 to 360. Sets `--bulma-primary-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -305,7 +305,7 @@
           "name": "primaryS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Primary color saturation, as a percentage. Sets `--bulma-primary-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -314,7 +314,7 @@
           "name": "primaryL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Primary color lightness, as a percentage. Sets `--bulma-primary-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -323,7 +323,7 @@
           "name": "linkH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Link color hue, 0 to 360. Sets `--bulma-link-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -332,7 +332,7 @@
           "name": "linkS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Link color saturation, as a percentage. Sets `--bulma-link-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -341,7 +341,7 @@
           "name": "linkL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Link color lightness, as a percentage. Sets `--bulma-link-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -350,7 +350,7 @@
           "name": "infoH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Info color hue, 0 to 360. Sets `--bulma-info-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -359,7 +359,7 @@
           "name": "infoS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Info color saturation, as a percentage. Sets `--bulma-info-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -368,7 +368,7 @@
           "name": "infoL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Info color lightness, as a percentage. Sets `--bulma-info-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -377,7 +377,7 @@
           "name": "successH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Success color hue, 0 to 360. Sets `--bulma-success-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -386,7 +386,7 @@
           "name": "successS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Success color saturation, as a percentage. Sets `--bulma-success-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -395,7 +395,7 @@
           "name": "successL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Success color lightness, as a percentage. Sets `--bulma-success-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -404,7 +404,7 @@
           "name": "warningH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Warning color hue, 0 to 360. Sets `--bulma-warning-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -413,7 +413,7 @@
           "name": "warningS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Warning color saturation, as a percentage. Sets `--bulma-warning-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -422,7 +422,7 @@
           "name": "warningL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Warning color lightness, as a percentage. Sets `--bulma-warning-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -431,7 +431,7 @@
           "name": "dangerH",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Danger color hue, 0 to 360. Sets `--bulma-danger-h`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -440,7 +440,7 @@
           "name": "dangerS",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Danger color saturation, as a percentage. Sets `--bulma-danger-s`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -449,7 +449,7 @@
           "name": "dangerL",
           "type": "string",
           "default": null,
-          "description": "",
+          "description": "Danger color lightness, as a percentage. Sets `--bulma-danger-l`.",
           "required": false,
           "inherited": false,
           "deprecated": false

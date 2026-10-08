@@ -279,6 +279,34 @@ async function cssVarsFor(info) {
   return rows;
 }
 
+/**
+ * The props of a component documented on a prose page (`helpers/`), read when
+ * the page's title is capitalised like a component's. A lower-case title (a
+ * hook) or one that is not an identifier (`Valid value constants`) is never
+ * read.
+ *
+ * A capitalised title that names no export stops the build, rather than
+ * shipping the page as prose. A typo in a real component's title would
+ * otherwise take its prop table out of the index without a word, which is
+ * what #933 was. The message names the page and the rule, since the
+ * extractor's own points at the barrel, and a prose page's fix is usually its
+ * title. `extract` is a test seam.
+ */
+export function proseComponentInfo(name, relPath, extract = extractComponent) {
+  try {
+    return extract(name, { markdown: false });
+  } catch (err) {
+    if (err?.code !== 'BESTAX_NOT_EXPORTED') throw err;
+    throw new Error(
+      `[gen-mcp-index] ${relPath}: the title "${name}" is capitalised like a ` +
+        `component, so the MCP index reads its props, and bulma-ui/src/index.ts ` +
+        `exports no such name. Title the page after the export it documents, ` +
+        `or give it a title that is not a component's.`,
+      { cause: err }
+    );
+  }
+}
+
 /** Strip the frontmatter block, leaving the page body. */
 function withoutFrontmatter(src) {
   return src.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trimStart();
@@ -539,9 +567,10 @@ export async function build() {
       // table does not, such as the hooks a provider pairs with.
       const proseOnly =
         GENERATED_EXEMPT.has(dir) || GENERATED_EXEMPT.has(relPath);
-      const info =
-        !proseOnly || COMPONENT_NAME.test(name)
-          ? extractComponent(name, { markdown: false })
+      const info = !proseOnly
+        ? extractComponent(name, { markdown: false })
+        : COMPONENT_NAME.test(name)
+          ? proseComponentInfo(name, relPath)
           : null;
       const isHelper =
         proseOnly && !info?.tables.some(t => (t.rows ?? []).length);

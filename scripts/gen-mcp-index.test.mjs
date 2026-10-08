@@ -22,7 +22,12 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { build, readSkills, reportFailure } from './gen-mcp-index.mjs';
+import {
+  build,
+  proseComponentInfo,
+  readSkills,
+  reportFailure,
+} from './gen-mcp-index.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -134,9 +139,52 @@ test('components documented on helpers pages get a props table (#933)', () => {
     const entry = catalog.components.find(c => c.name === name);
     assert.equal(entry.kind, 'component');
     assert.ok(entry.propCount > 0, `${name} counts no props`);
+    // A row with no description is a blank Notes cell, and search scores it on
+    // its name alone, so Theme.darkL outranked Theme.colorMode for "dark".
+    const blank = record.parts[0].props.filter(p => !p.description);
+    assert.deepEqual(
+      blank.map(p => p.name),
+      [],
+      `${name} props with no description`
+    );
   }
   // Nothing outside helpers/ carries a page it does not need.
   assert.equal(components.get('Button').doc, undefined);
+});
+
+test('a capitalised prose-page title that names no export says what to change', () => {
+  const notExported = Object.assign(new Error('not exported'), {
+    code: 'BESTAX_NOT_EXPORTED',
+  });
+  assert.throws(
+    () =>
+      proseComponentInfo('Theming', 'helpers/theming.md', () => {
+        throw notExported;
+      }),
+    err =>
+      /^\[gen-mcp-index\] helpers\/theming\.md: the title "Theming" is capitalised like a component/.test(
+        err.message
+      ) &&
+      /Title the page after the export it documents/.test(err.message) &&
+      err.cause === notExported
+  );
+  // Any other failure is the extractor's own, and passes through as it is.
+  const other = new Error('cannot determine a props type');
+  assert.throws(
+    () =>
+      proseComponentInfo('Theme', 'helpers/theme.md', () => {
+        throw other;
+      }),
+    err => err === other
+  );
+  // And the real extractor tags the case it is about.
+  assert.throws(
+    () => proseComponentInfo('NotAnExport', 'helpers/x.md'),
+    /helpers\/x\.md: the title "NotAnExport"/
+  );
+  assert.ok(
+    proseComponentInfo('Portal', 'helpers/portal.md').tables[0].rows.length
+  );
 });
 
 test('usage examples are harvested with their headings', () => {

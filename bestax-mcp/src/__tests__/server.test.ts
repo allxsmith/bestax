@@ -687,6 +687,16 @@ describe('components documented on helpers pages', () => {
     expect(out).toContain(TABLE);
     expect(out).toContain('`colorMode`');
     expect(out.length).toBeLessThan(10_000);
+    // The page has far more than the table, and the default answer says where.
+    const pointer = 'get_component({ name: "Theme", include: ["reference"] })';
+    expect(out).toContain(pointer);
+    expect(text(await call('get_props', { component: 'Theme' }))).toContain(
+      pointer
+    );
+    // A component with no prose page has nothing to point at.
+    expect(text(await call('get_component', { name: 'Button' }))).not.toContain(
+      '"reference"'
+    );
 
     const full = text(
       await call('get_component', { name: 'Theme', include: ['reference'] })

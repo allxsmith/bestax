@@ -1595,9 +1595,13 @@ export function extractComponent(
   const entry =
     mods.get(name) ?? starExportedModule(ts, program, checker, name);
   if (!entry) {
-    throw new Error(
-      `${name} is not exported from bulma-ui/src/index.ts — the API page's ` +
-        `frontmatter title: must match an exported name.`
+    // The code lets a caller that reads a title by choice say what to change.
+    throw Object.assign(
+      new Error(
+        `${name} is not exported from bulma-ui/src/index.ts — the API page's ` +
+          `frontmatter title: must match an exported name.`
+      ),
+      { code: 'BESTAX_NOT_EXPORTED' }
     );
   }
   const sf = sourceFileFor(program, entry.cat, entry.mod);

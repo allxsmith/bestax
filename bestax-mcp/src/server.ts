@@ -45,6 +45,7 @@ import {
   renderHelperApi,
   renderPart,
   renderSkills,
+  referencePointer,
   table,
   textResult,
 } from './format.js';
@@ -437,6 +438,7 @@ export async function createServer(
             `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}.`
           );
         }
+        if (record.doc) body.push(referencePointer(record));
         return textResult(`# ${record.name}\n\n${body.join('\n\n')}`, note());
       }
 
