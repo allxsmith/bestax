@@ -106,7 +106,10 @@ describe('prompts', () => {
   describe('non-interactive guard (#192)', () => {
     const promptFns: Array<[string, () => Promise<unknown>]> = [
       ['promptProjectName', () => promptProjectName()],
-      ['promptOverwriteDirectory', () => promptOverwriteDirectory('project')],
+      [
+        'promptOverwriteDirectory',
+        () => promptOverwriteDirectory('project', ['notes.txt']),
+      ],
       ['promptInstallSkills', () => promptInstallSkills()],
       ['promptTemplate', () => promptTemplate()],
       ['promptIconLibrary', () => promptIconLibrary()],
@@ -170,14 +173,18 @@ describe('prompts', () => {
         overwrite: true,
       });
 
-      const result = await promptOverwriteDirectory('project');
+      const result = await promptOverwriteDirectory('project', [
+        '.git',
+        'notes.txt',
+      ]);
 
       expect(result).toBe(true);
+      // The question that deletes files names them (#945).
       expect(prompts).toHaveBeenCalledWith({
         type: 'confirm',
         name: 'overwrite',
         message:
-          'Directory project is not empty. Remove existing files and continue?',
+          'Directory project is not empty (.git, notes.txt). Remove existing files and continue?',
         initial: false,
       });
     });
@@ -187,7 +194,7 @@ describe('prompts', () => {
         overwrite: false,
       });
 
-      const result = await promptOverwriteDirectory('project');
+      const result = await promptOverwriteDirectory('project', ['notes.txt']);
 
       expect(result).toBe(false);
     });
@@ -195,7 +202,7 @@ describe('prompts', () => {
     it('should return false when user cancels prompt', async () => {
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
 
-      const result = await promptOverwriteDirectory('project');
+      const result = await promptOverwriteDirectory('project', ['notes.txt']);
 
       expect(result).toBe(false);
     });
@@ -229,12 +236,12 @@ describe('prompts', () => {
       expect(result).toBe(false);
     });
 
-    it('should return false when user cancels prompt', async () => {
+    it('should return null, not "no", when the user cancels (#950)', async () => {
       (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({});
 
       const result = await promptInstallSkills();
 
-      expect(result).toBe(false);
+      expect(result).toBeNull();
     });
   });
 

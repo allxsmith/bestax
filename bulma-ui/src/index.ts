@@ -107,6 +107,13 @@ export { DateTimeInputBase } from './form/DateTimeInputBase';
 export type { DateTimeInputBaseProps } from './form/DateTimeInputBase';
 export { DateTimeInput } from './form/DateTimeInput';
 export type { DateTimeInputProps } from './form/DateTimeInput';
+export { DateRangeInputBase } from './form/DateRangeInputBase';
+export type {
+  DateRangeInputBaseProps,
+  DateRangeValue,
+} from './form/DateRangeInputBase';
+export { DateRangeInput } from './form/DateRangeInput';
+export type { DateRangeInputProps } from './form/DateRangeInput';
 
 // Form contexts and shared types
 export { useInsideField, useInsideControl } from './form/FormContext';
