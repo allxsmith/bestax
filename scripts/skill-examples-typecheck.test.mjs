@@ -18,6 +18,7 @@
 import assert from 'node:assert/strict';
 import {
   existsSync,
+  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -73,6 +74,17 @@ function parseConfig(configPath) {
     }
   );
   assert.ok(parsed, `could not parse ${configPath}`);
+  // Anything short of unreadable lands here and leaves the option it is
+  // about out of `parsed.options`, which would weaken the gate silently.
+  assert.equal(
+    ts.formatDiagnostics(parsed.errors, {
+      getCanonicalFileName: file => file,
+      getCurrentDirectory: () => REPO,
+      getNewLine: () => '\n',
+    }),
+    '',
+    `${configPath} did not parse cleanly, so these are not the template's options`
+  );
   return parsed;
 }
 
@@ -82,19 +94,25 @@ function parseConfig(configPath) {
  * project references, so it holds whether the template keeps them in its root
  * tsconfig.json or in a referenced one.
  */
-function appCompilerOptions() {
-  const src = join(TEMPLATE, 'src') + sep;
-  const queue = [join(TEMPLATE, 'tsconfig.json')];
+function appCompilerOptions(template = TEMPLATE) {
+  const src = join(template, 'src') + sep;
+  const queue = [join(template, 'tsconfig.json')];
+  // Each config once: a reference cycle would otherwise grow the queue forever.
+  const seen = new Set(queue);
   while (queue.length > 0) {
     const parsed = parseConfig(queue.shift());
     if (parsed.fileNames.some(file => file.startsWith(src))) {
       return parsed.options;
     }
     for (const ref of parsed.projectReferences ?? []) {
-      queue.push(ts.resolveProjectReferencePath(ref));
+      const path = ts.resolveProjectReferencePath(ref);
+      if (!seen.has(path)) {
+        seen.add(path);
+        queue.push(path);
+      }
     }
   }
-  assert.fail(`no project under ${relative(REPO, TEMPLATE)} compiles src/`);
+  assert.fail(`no project under ${relative(REPO, template)} compiles src/`);
 }
 
 /**
@@ -215,4 +233,59 @@ describe('skill examples compile in a vite-ts scaffold', () => {
       assert.equal(ts.formatDiagnostics(own, host), '');
     });
   }
+});
+
+// The gate is only as strict as the options it reads, so reading them has to
+// fail on a template it cannot follow, never quietly settle for less.
+describe('reading the template TypeScript config', () => {
+  /** Run `check` against a throwaway template holding `files`. */
+  function withTemplate(files, check) {
+    const dir = mkdtempSync(join(tmpdir(), 'skill-examples-template-'));
+    try {
+      for (const [name, body] of Object.entries(files)) {
+        mkdirSync(dirname(join(dir, name)), { recursive: true });
+        writeFileSync(
+          join(dir, name),
+          typeof body === 'string' ? body : JSON.stringify(body)
+        );
+      }
+      check(dir);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  // An option TypeScript does not recognise is left out of the parsed
+  // options, so a misspelled `noUnusedLocals` would let #951 back in.
+  it('fails on an option it does not recognise rather than dropping it', () => {
+    withTemplate(
+      {
+        'tsconfig.json': {
+          compilerOptions: { noUnusedLocal: true },
+          include: ['src'],
+        },
+        'src/main.ts': 'export {};\n',
+      },
+      dir =>
+        assert.throws(
+          () => appCompilerOptions(dir),
+          /did not parse cleanly[\s\S]*noUnusedLocal/
+        )
+    );
+  });
+
+  it('fails on a reference cycle rather than following it forever', () => {
+    withTemplate(
+      {
+        'tsconfig.json': { files: [], references: [{ path: './a.json' }] },
+        'a.json': { files: [], references: [{ path: './b.json' }] },
+        'b.json': { files: [], references: [{ path: './a.json' }] },
+      },
+      dir =>
+        assert.throws(
+          () => appCompilerOptions(dir),
+          /no project under .* compiles src\//
+        )
+    );
+  });
 });
