@@ -161,8 +161,7 @@ export interface DateTimeInputBaseProps
    * time wheels, where it colors the selected date and the selection band.
    * Today's date and the calendar's keyboard focus ring take the color's
    * `-on-scheme` variant, which Bulma adjusts to contrast with the background,
-   * so pale colors stay readable; that makes `'primary'` a shade off the unset
-   * calendar, which uses plain `primary` for them. A focused wheel's ring is
+   * so pale colors stay readable. A focused wheel's ring is
    * drawn inside the band in the color's `-invert`, like the selected value,
    * so it shows on the fill. Unset, they use their
    * `--bulma-dateinput-*` and `--bulma-timeinput-wheel-*` variables, which

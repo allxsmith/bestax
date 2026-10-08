@@ -177,10 +177,9 @@ export interface DateInputBaseProps
    * Bulma color modifier for the input, also carried by the calendar, where it
    * colors the selected date. Today's date and the keyboard focus ring take
    * the color's `-on-scheme` variant, which Bulma adjusts to contrast with the
-   * background, so pale colors stay readable; that makes `'primary'` a shade
-   * off the unset calendar, which uses plain `primary` for both. Unset, the
-   * calendar uses its `--bulma-dateinput-*` variables, which follow `primary`
-   * by default.
+   * background, so pale colors stay readable. Unset, the calendar uses its
+   * `--bulma-dateinput-*` variables, which follow `primary` the same way by
+   * default.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */

@@ -5,9 +5,10 @@
 import * as sass from 'sass';
 import path from 'path';
 import type { ReactElement } from 'react';
-import { render } from '@testing-library/react';
+import { fireEvent, render } from '@testing-library/react';
 import { DateInput } from '../DateInput';
 import { DateTimeInput } from '../DateTimeInput';
+import { DateRangeInput } from '../DateRangeInput';
 import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
@@ -45,12 +46,11 @@ const accents = (color: string) => ({
   '--bulma-dateinput-focus-ring-color': `var(--bulma-${color}-on-scheme)`,
 });
 
-/** What an uncoloured calendar reads: plain `primary` for today and the ring. */
-const defaults = {
-  ...accents('primary'),
-  '--bulma-dateinput-cell-today-color': 'var(--bulma-primary)',
-  '--bulma-dateinput-focus-ring-color': 'var(--bulma-primary)',
-};
+/**
+ * What an uncoloured calendar reads: what `primary` gives it. Plain `primary`
+ * for today and the ring read about 3:1 on a dark panel (#983).
+ */
+const defaults = accents('primary');
 
 /** The accent variables as the calendar root computes them. */
 function computedAccents(root: HTMLElement) {
@@ -100,6 +100,7 @@ const pickers: [string, (color?: Color) => ReactElement][] = [
     color => <DateInput inline granularity="year" color={color} />,
   ],
   ['DateTimeInput', color => <DateTimeInput inline color={color} />],
+  ['DateRangeInput', color => <DateRangeInput inline color={color} />],
 ];
 
 describe.each(pickers)('%s calendar colour styles', (_name, picker) => {
@@ -234,5 +235,113 @@ describe('calendar variables', () => {
       .map(line => line.trim())
       .filter(line => !line.startsWith('--') && direct.test(line));
     expect(offenders).toEqual([]);
+  });
+});
+
+/**
+ * A day's text over the calendar's backgrounds (#983). axe measured a nearby
+ * month's day under 4.5:1 on the hover fill, and the range band, its hover
+ * overlay and the selection fill take it lower still, so these pin what each
+ * day reads in each place.
+ */
+describe('day text on the calendar backgrounds', () => {
+  // Today is October 17th 2026 throughout, and every render reads it again.
+  beforeEach(() => {
+    jest.useFakeTimers({ now: new Date(2026, 9, 17, 12) });
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  // October on show, with a range from the 12th to November 2nd, whose last
+  // days sit at the end of October's grid.
+  const range = () =>
+    render(
+      <DateRangeInput
+        inline
+        defaultValue={[new Date(2026, 9, 12), new Date(2026, 10, 2)]}
+      />
+    );
+  /** The day on show with this number, from October or from November. */
+  const day = (container: HTMLElement, n: number, nearby = false) => {
+    const found = Array.from(
+      container.querySelectorAll<HTMLElement>('.dateinput-cell')
+    ).find(
+      cell =>
+        cell.textContent === String(n) &&
+        cell.classList.contains('is-other-month') === nearby
+    );
+    if (!found) throw new Error(`no day ${n} on show`);
+    return found;
+  };
+  const color = (cell: HTMLElement) => getComputedStyle(cell).color;
+
+  it('reads a nearby month halfway between text-weak and text', () => {
+    const { container } = render(<DateInput inline />);
+    expect(
+      getComputedStyle(calendarRoot(container))
+        .getPropertyValue('--bulma-dateinput-cell-other-month-color')
+        .trim()
+    ).toBe('color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))');
+  });
+
+  it("gives a selected day from a nearby month the selected value's colour", () => {
+    const { container } = range();
+    const end = day(container, 2, true);
+    expect(end).toHaveClass('is-selected');
+    expect(color(end)).toBe('var(--bulma-dateinput-cell-selected-color)');
+  });
+
+  it("reads a nearby month's day in the band like any day of the range", () => {
+    const { container } = range();
+    const first = day(container, 1, true);
+    expect(first).toHaveClass('is-in-range');
+    expect(color(first)).toBe('var(--bulma-dateinput-cell-color)');
+    // Outside the band it keeps its own tint.
+    expect(color(day(container, 30, true))).toBe(
+      'var(--bulma-dateinput-cell-other-month-color)'
+    );
+  });
+
+  it('leans today in the band toward text-strong, and leaves it alone outside', () => {
+    const { container } = range();
+    const today = day(container, 17);
+    expect(today).toHaveClass('is-today', 'is-in-range');
+    expect(color(today)).toBe(
+      'color-mix(in srgb, var(--bulma-dateinput-cell-today-color) 80%, var(--bulma-text-strong))'
+    );
+
+    const { container: single } = render(<DateInput inline />);
+    expect(color(day(single, 17))).toBe(
+      'var(--bulma-dateinput-cell-today-color)'
+    );
+  });
+
+  it("does the same on a preview running to a nearby month's day", () => {
+    const { container } = range();
+    fireEvent.click(day(container, 5));
+    fireEvent.mouseOver(day(container, 2, true));
+    const end = day(container, 2, true);
+    expect(end).toHaveClass('is-range-end', 'is-preview');
+    expect(color(end)).toBe('var(--bulma-dateinput-cell-color)');
+    const today = day(container, 17);
+    expect(today).toHaveClass('is-in-range', 'is-preview');
+    expect(color(today)).toBe(
+      'color-mix(in srgb, var(--bulma-dateinput-cell-today-color) 80%, var(--bulma-text-strong))'
+    );
+  });
+
+  it('keeps a disabled day in the band on the disabled colour', () => {
+    const { container } = render(
+      <DateRangeInput
+        inline
+        allowDisabledInRange
+        unselectableDates={[new Date(2026, 10, 1)]}
+        defaultValue={[new Date(2026, 9, 12), new Date(2026, 10, 2)]}
+      />
+    );
+    const first = day(container, 1, true);
+    expect(first).toHaveClass('is-in-range', 'is-disabled');
+    expect(color(first)).toBe('var(--bulma-dateinput-cell-disabled-color)');
   });
 });

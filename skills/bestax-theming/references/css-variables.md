@@ -246,7 +246,9 @@ list it, so set it in your CSS or through a `style` prop.)
 The two `range` variables paint a range calendar (`DateRangeInput`): the band between a range's
 ends, and the fainter band shown while the end is still being picked. Both are mixed from
 `--bulma-dateinput-cell-selected-bg`, so `color` and an override of the selected fill re-tint
-them too.
+them too. Inside a band, a nearby month's day reads `--bulma-dateinput-cell-color` rather than
+`--bulma-dateinput-cell-other-month-color`, and today's tint leans a fifth of the way toward
+`--bulma-text-strong`, so both stay readable on the band's color.
 
 ### DateRangeInput
 

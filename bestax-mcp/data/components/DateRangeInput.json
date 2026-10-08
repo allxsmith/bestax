@@ -661,13 +661,13 @@
     {
       "css": "--bulma-dateinput-cell-today-color",
       "sass": "$dateinput-cell-today-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
       "css": "--bulma-dateinput-focus-ring-color",
       "sass": "$dateinput-focus-ring-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
@@ -679,7 +679,7 @@
     {
       "css": "--bulma-dateinput-cell-other-month-color",
       "sass": "$dateinput-cell-other-month-color",
-      "default": "var(--bulma-text-weak)",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
       "scope": "element"
     },
     {
