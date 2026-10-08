@@ -494,7 +494,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 - An `id` you set on the control wins too: it keeps that id, and the label then names it only if you point `labelProps={{ htmlFor }}` at it. Pass `labelProps={{ htmlFor: undefined }}` to opt out of the association entirely.
 - Association is skipped for `grouped`/`hasAddons` fields (they hold several controls), and a `Field` nested inside a labeled one starts its own scope. A horizontal Field wraps its children in a `Field.Body` of its own and keeps the association, but the pattern with an inner `Field` in that body needs it wired by hand.
 - Two controls in one plain labeled Field would both adopt its id. Give each an `id` of its own and label it individually.
-- A labeled Field whose content takes no association (a `Checkbox` or `Switch`, which its own text names, or an `inline` picker, which has no input) renders its `for` unmatched, functionally the same as an unassociated label.
+- A labeled Field whose content takes no `for` renders its `for` unmatched.
 - Grouped/horizontal layouts use Bulma’s grid for layout.
 - Always use the `label` prop or a custom label for clarity.
 
