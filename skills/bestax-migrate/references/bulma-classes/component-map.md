@@ -320,6 +320,11 @@ renders `has-text-<color>` too, and so does `is-centered`, which `isCentered` re
 beside `isRight`. Anything else keeps it as markup with a `children:File`, `context:File` or
 `attr` TODO.
 
+A `has-name` `.file` with no `.file-name` converts only with Bulma's `is-empty` written on it,
+since `File` renders `is-empty` there itself to keep the button's corners rounded, and the class
+then goes with the rest of the tree. Without it the `.file` stays markup with a `defaults:File`
+TODO that names the class to add.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or

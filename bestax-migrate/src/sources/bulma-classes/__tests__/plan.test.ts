@@ -1094,6 +1094,30 @@ describe('plan', () => {
       });
     });
 
+    it('takes is-empty on a name slot with no name, which File renders there itself', () => {
+      // Bulma's modifier for a `has-name` `.file` with nothing to name (#978).
+      const empty = file(tree(), 'file has-name is-empty').conversion!;
+      expect(empty.props).toEqual([['hasName', true]]);
+      expect(empty.className).toBeNull();
+      // Without it `File` adds a class the markup doesn't have, and a
+      // condition can't promise one `File` renders whatever it says.
+      const bare = file(tree(), 'file has-name');
+      expect(rules(bare)).toEqual(['defaults:File']);
+      expect(bare.todos[0].message).toMatch(/`is-empty`/);
+      expect(
+        rules(
+          file(tree(), 'file has-name', {}, { conditional: [['is-empty']] })
+        )
+      ).toEqual(['defaults:File']);
+      // Beside a name `File` renders none, so one written there stays a class.
+      const named = file(
+        tree({ name: span('file-name', { text: 'cv.pdf' }) }),
+        'file has-name is-empty'
+      ).conversion!;
+      expect(named.className).toBe('is-empty');
+      expect(named.file?.fileName).toBe('cv.pdf');
+    });
+
     it('converts only inside a Field, already there or becoming one', () => {
       expect(rules(file(tree(), 'file', {}, { classesAround: [] }))).toEqual([
         'context:File',

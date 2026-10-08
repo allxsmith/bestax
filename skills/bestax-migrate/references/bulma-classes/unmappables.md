@@ -84,6 +84,9 @@ element the attribute it's missing.
 sets none, and `Card.Header.Icon` renders `aria-label="more options"` too. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
+`File` renders a class rather than an attribute: Bulma's `is-empty`, on a `has-name` `.file` with
+no `.file-name`, where it keeps the button's corners rounded. Add `is-empty` to the `.file`, then
+re-run.
 
 ### `drops:<Target>`
 

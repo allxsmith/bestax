@@ -127,7 +127,9 @@ function planned(tag: string, tokens: string[]): Outcome {
       counted = counts.prop;
     }
     // One that renders the whole `.file` tree holds it, inside a `.field`,
-    // which the lookup states as a condition.
+    // which the lookup states as a condition, with a name in it beside
+    // `has-name`: with none, `File` renders Bulma's `is-empty` too, which the
+    // lookup states as well.
     if (entry?.status === 'mapped' && entry.buildsFile && !childElements) {
       const bare = (tag: string, token: string, extra = {}) => ({
         tag,
@@ -152,6 +154,14 @@ function planned(tag: string, tokens: string[]): Outcome {
                 }),
               ],
             }),
+            ...(tokens.includes('has-name')
+              ? [
+                  bare('span', 'file-name', {
+                    staticContent: true,
+                    text: 'cv.pdf',
+                  }),
+                ]
+              : []),
           ],
         }),
       ];

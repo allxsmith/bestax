@@ -2,6 +2,7 @@ import { Field, File, Icon } from "@allxsmith/bestax-bulma";
 export function Uploads({ onPick }: { onPick: () => void }) {
   // TODO(bestax-migrate): bestax `File` renders a `.field` of its own around the `.file` unless it sits inside a `Field`, and nothing around this element is one or becomes one here; keep it as markup, or convert the `.field` around it, then re-run
   // TODO(bestax-migrate): bestax `File` renders the whole `.file` tree itself, so this converts only when its tree is the one it renders: one bare `.file-label` <label> holding a `.file-input` <input type="file">, a bare `.file-cta` <span> with a bare `.file-label` <span> of static content and at most one bare `.file-icon` <span> of static content on each side of it, and, with `has-name`, at most one bare `.file-name` <span> of static text; keep it as markup, or convert it by hand
+  // TODO(bestax-migrate): bestax `File` renders Bulma's `is-empty` on a `has-name` `.file` with no `.file-name`, where it keeps the button's corners rounded; add `is-empty` here if that is what you want, then re-run
   // TODO(bestax-migrate): bestax `File` puts the attributes it's given on its <input>, so this element's `id` would move there; move it onto the <input> if that's what you want, then re-run
   return (
     <form>
@@ -40,6 +41,21 @@ export function Uploads({ onPick }: { onPick: () => void }) {
             <span className="file-cta">
               <span className="file-label">Upload</span>
               <small>PDF only</small>
+            </span>
+          </label>
+        </div>
+      </Field>
+      {/* A name slot with nothing in it yet, which Bulma marks is-empty. */}
+      <Field>
+        <File hasName name="letter" buttonLabel="Upload" />
+      </Field>
+      {/* The same slot without is-empty, which File would add. */}
+      <Field>
+        <div className="file has-name">
+          <label className="file-label">
+            <input className="file-input" type="file" name="note" />
+            <span className="file-cta">
+              <span className="file-label">Upload</span>
             </span>
           </label>
         </div>

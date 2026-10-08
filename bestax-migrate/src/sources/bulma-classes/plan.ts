@@ -248,6 +248,9 @@ export interface BuiltFile {
 /** The button text `File` renders when it's given none. */
 const DEFAULT_FILE_LABEL = 'Choose a file\u2026';
 
+/** The class `File` renders beside `has-name` while it has no name to show. */
+const EMPTY_NAME = 'is-empty';
+
 /**
  * Why a target that `buildsFile` stays markup outside a `Field`, for the
  * planner here and for the transform, which can see whether the `.field`
@@ -753,10 +756,24 @@ export function plan(facts: ElementFacts): Plan {
   }
   let file: BuiltFile | undefined;
   if (entry.buildsFile) {
-    const built = buildFile(facts.childElements, entry, writes.has('hasName'));
+    const hasName = writes.has('hasName');
+    const built = buildFile(facts.childElements, entry, hasName);
     if ('why' in built) return refuse(built.kind, built.token, built.why);
     file = built.file;
     numbers.push(...built.numbers);
+    // With `has-name` and no `.file-name`, the target renders Bulma's
+    // `is-empty` too, whatever a condition says, so the markup has to carry
+    // it written out; it then goes with the rest of what the target renders.
+    if (hasName && file.fileName === undefined) {
+      if (!tokens.includes(EMPTY_NAME)) {
+        return refuse(
+          'defaults',
+          target,
+          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`, where it keeps the button's corners rounded; add \`${EMPTY_NAME}\` here if that is what you want, then re-run`
+        );
+      }
+      converted.add(EMPTY_NAME);
+    }
   }
 
   const props: Array<[string, string | true]> = [];
