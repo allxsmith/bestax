@@ -690,11 +690,29 @@ describe('Autocomplete', () => {
       name: string,
       labelProps?: { id: string }
     ) => React.ReactElement;
+    // A Field label wired by hand to the input `${name}-input`, the way the
+    // docs' horizontal examples wire one, with the `id` the list needs.
+    const wiredByHand = (name: string, labelProps?: { id: string }) => ({
+      htmlFor: `${name}-input`,
+      id: `${name}-label`,
+      ...labelProps,
+    });
     const labelSources: Array<[string, LabelledUi]> = [
       [
         'its own label prop',
         (name, labelProps) => (
           <Autocomplete data={fruits} label={name} labelProps={labelProps} />
+        ),
+      ],
+      [
+        'its own label prop in a horizontal layout',
+        (name, labelProps) => (
+          <Autocomplete
+            data={fruits}
+            label={name}
+            labelProps={labelProps}
+            horizontal
+          />
         ),
       ],
       [
@@ -731,6 +749,58 @@ describe('Autocomplete', () => {
             <Control>
               <Autocomplete data={fruits} />
             </Control>
+          </Field>
+        ),
+      ],
+      [
+        "a horizontal Field's label through its Field.Body",
+        (name, labelProps) => (
+          <Field horizontal label={name} labelProps={labelProps}>
+            <Field.Body>
+              <Autocomplete data={fruits} />
+            </Field.Body>
+          </Field>
+        ),
+      ],
+      [
+        "a Field's label wired by hand, with an id",
+        (name, labelProps) => (
+          <Field label={name} labelProps={wiredByHand(name, labelProps)}>
+            <Autocomplete id={`${name}-input`} data={fruits} />
+          </Field>
+        ),
+      ],
+      [
+        "a horizontal Field's label wired by hand into an inner Field",
+        (name, labelProps) => (
+          <Field
+            horizontal
+            label={name}
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Field.Body>
+              <Field>
+                <Autocomplete id={`${name}-input`} data={fruits} />
+              </Field>
+            </Field.Body>
+          </Field>
+        ),
+      ],
+      [
+        "a horizontal Field's label wired by hand into an inner Field's Control",
+        (name, labelProps) => (
+          <Field
+            horizontal
+            label={name}
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Field.Body>
+              <Field>
+                <Control iconLeftName="search">
+                  <Autocomplete id={`${name}-input`} data={fruits} />
+                </Control>
+              </Field>
+            </Field.Body>
           </Field>
         ),
       ],
@@ -862,19 +932,41 @@ describe('Autocomplete', () => {
       }
     );
 
-    it('keeps the fallback name under a Field label wired by hand, which has no id to point at', () => {
-      const { container } = render(
-        <Field label="Fruit" labelProps={{ htmlFor: 'fruit' }}>
+    it.each([
+      [
+        'a Field label',
+        <Field key="plain" label="Fruit" labelProps={{ htmlFor: 'fruit' }}>
           <Autocomplete id="fruit" data={fruits} />
-        </Field>
-      );
-      const combobox = screen.getByRole('combobox', { name: 'Fruit' });
-      expect(container.querySelector('label')).not.toHaveAttribute('id');
-      openList(combobox);
-      const listbox = screen.getByRole('listbox');
-      expect(listbox).toHaveAccessibleName('Suggestions');
-      expect(listbox).not.toHaveAttribute('aria-labelledby');
-    });
+        </Field>,
+      ],
+      [
+        "a horizontal Field's label wired into an inner Field",
+        <Field
+          key="horizontal"
+          horizontal
+          label="Fruit"
+          labelProps={{ htmlFor: 'fruit' }}
+        >
+          <Field.Body>
+            <Field>
+              <Autocomplete id="fruit" data={fruits} />
+            </Field>
+          </Field.Body>
+        </Field>,
+      ],
+    ])(
+      'keeps the fallback name under %s wired by hand with no id to point at',
+      (_name, ui) => {
+        const { container } = render(ui);
+        const combobox = screen.getByRole('combobox', { name: 'Fruit' });
+        expect(container.querySelector('label')).not.toHaveAttribute('id');
+        openList(combobox);
+        const listbox = screen.getByRole('listbox');
+        expect(listbox).toHaveAccessibleName('Suggestions');
+        expect(listbox).not.toHaveAttribute('aria-labelledby');
+        expect(danglingIdRefs(container)).toEqual([]);
+      }
+    );
 
     it('gives each Autocomplete its own listbox id', () => {
       render(
