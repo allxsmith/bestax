@@ -16,7 +16,7 @@ import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { loadCatalog, loadComponent } from '../data.js';
+import { DATA_DIR, loadCatalog, loadComponent } from '../data.js';
 import { createServer } from '../server.js';
 
 type TextResult = {
@@ -536,6 +536,13 @@ describe('the bestax.io links inside answers', () => {
   });
 
   it('serves a skill as written, untagged links included', async () => {
+    // The bundled markdown, read here rather than through the server's loader.
+    const body = await readFile(
+      join(DATA_DIR, 'skills', 'bestax-optimize', 'SKILL.md'),
+      'utf8'
+    );
+    const untagged = siteLinks(body).filter(link => !TAGGED.test(link));
+    expect(untagged.length).toBeGreaterThan(0);
     const skill = text(await call('get_skill', { name: 'bestax-optimize' }));
     const prompt = (
       (await client.getPrompt({ name: 'optimize' })).messages[0].content as {
@@ -546,9 +553,11 @@ describe('the bestax.io links inside answers', () => {
       (await client.readResource({ uri: 'bestax://skills/bestax-optimize' }))
         .contents[0].text
     );
+    // Each opens with the body as written. What may follow it is the server's own:
+    // the prompt's instructions, and on get_skill the version note, whose link is
+    // tagged like the footer's.
     for (const out of [skill, prompt, resource]) {
-      expect(siteLinks(out).length).toBeGreaterThan(0);
-      expect(out).not.toContain(TAG);
+      expect(out.slice(0, body.length)).toBe(body);
     }
   });
 });
