@@ -1,3 +1,25 @@
+## [1.14.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.14.1...bestax-mcp@1.14.2) (2026-10-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** document Theme's variable props, point at the prose page, name the title rule ([e72aee0](https://github.com/allxsmith/bestax/commit/e72aee0879349c54075627b4225e5d6f9d579202))
+* **bestax-mcp:** give Theme, ConfigProvider, Portal and ClientOnly prop tables ([fddfd65](https://github.com/allxsmith/bestax/commit/fddfd6576aba54c324086a1263fc8995f35602a7))
+* **bestax-mcp:** make the links in markdown the index ships absolute ([fd134fa](https://github.com/allxsmith/bestax/commit/fd134facfc6a21a0bd18130c4290b48c5e06d9b7))
+* **bestax-mcp:** match bestax.io links with an anchored pattern, not a substring ([f210570](https://github.com/allxsmith/bestax/commit/f210570ea457eb76ef9cd77af4558b8753e8ccd8))
+* **bestax-mcp:** point at a component's page only under a table it can mean ([e45b4b8](https://github.com/allxsmith/bestax/commit/e45b4b8d3a868175f634b071261a5119f7aab831))
+* **bestax-mcp:** read an overloaded component's implementation, not its first signature ([67f1552](https://github.com/allxsmith/bestax/commit/67f15523f8f164629d8068a0e0680ed6b5750704))
+* **bestax-mcp:** resolve links in every string the index ships, and refuse an empty prose title ([e620347](https://github.com/allxsmith/bestax/commit/e620347a49e1fcf1a47d6d39db4e5a732857846d))
+* **bestax-mcp:** tag the bestax.io links inside index answers, like the footer's ([d6d4c57](https://github.com/allxsmith/bestax/commit/d6d4c5726e3210d8771825ccb67a2c85833bcc5f))
+* **bulma-ui:** drop Taginput's fallback name when a label is wired by hand ([2cb9366](https://github.com/allxsmith/bestax/commit/2cb9366479e57b1f4f2264387077b5f315afaf80))
+* **bulma-ui:** keep Input, Select and TextArea labelled through an undefined id ([1658ec1](https://github.com/allxsmith/bestax/commit/1658ec17d6c696664b1276116b283c01e7ef5974))
+* **bulma-ui:** keep the label's id and name through an undefined caller prop ([8fd3457](https://github.com/allxsmith/bestax/commit/8fd3457839a32e4e426f53e6375d097c8518f7da))
+* **bulma-ui:** let a caller's aria name win over a group's own label ([c68fb50](https://github.com/allxsmith/bestax/commit/c68fb50a5e7081453905bb9334ce1052f2f151dc))
+* **bulma-ui:** name custom form controls from a Field label ([91c9b42](https://github.com/allxsmith/bestax/commit/91c9b42957501abf44a30eff7847f73b519d0798)), closes [#939](https://github.com/allxsmith/bestax/issues/939)
+* **bulma-ui:** name DateRangeInput's default icon in its Control-level warning ([914b92a](https://github.com/allxsmith/bestax/commit/914b92adc895b6c06d4e84f00ed86cab34a7449a)), closes [#952](https://github.com/allxsmith/bestax/issues/952)
+* **bulma-ui:** name DateRangeInput's default icon in its Control-level warning ([30c6933](https://github.com/allxsmith/bestax/commit/30c69332b4a388a55b88f30372676d1c8471b381)), closes [#952](https://github.com/allxsmith/bestax/issues/952)
+* **bulma-ui:** take no Field id for a Taginput at its tag limit ([04b3575](https://github.com/allxsmith/bestax/commit/04b35755ffa40727ef8f3139536e36d4a82b2fb5)), closes [#968](https://github.com/allxsmith/bestax/issues/968)
+
 ## [1.14.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.14.0...bestax-mcp@1.14.1) (2026-10-09)
 
 
