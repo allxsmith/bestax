@@ -397,33 +397,71 @@ test.describe('Scaffolded App - Layout and Accessibility', () => {
     await expect(counterButton).toBeFocused();
   });
 
-  test('announces both notifications through a status region', async ({
+  test('announces each notification through a status region of its own', async ({
     page,
   }) => {
     await page.goto('/');
     // A live region added along with its content may not be read out, so the
-    // region is on the page, empty, before either notification is.
-    const status = page.getByRole('status');
-    await expect(status).toHaveCount(1);
-    await expect(status).toBeEmpty();
-    const region = await status.elementHandle();
+    // regions are on the page, empty, before either notification is.
+    const regions = page.getByRole('status');
+    await expect(regions).toHaveCount(2);
+    const success = regions.nth(0);
+    const milestone = regions.nth(1);
+    await expect(success).toBeEmpty();
+    await expect(milestone).toBeEmpty();
+    const before = await regions.elementHandles();
 
     await page
       .locator('button')
       .filter({ hasText: 'Toggle Notification' })
       .click();
-    await expect(status).toContainText('Success!');
+    await expect(success).toContainText('Success!');
+    await expect(milestone).toBeEmpty();
 
+    // A status region reads out all it holds whenever any of it changes, so
+    // the count's notification is alone in its region, and a click does not
+    // read the success notification out again.
+    const counterButton = page.locator('button').filter({ hasText: 'Count:' });
+    for (let i = 0; i < 12; i++) {
+      await counterButton.click();
+    }
+    await expect(milestone).toHaveText("You've clicked the button 12 times!");
+    await expect(success).not.toContainText('clicked');
+
+    // Still the nodes that were there before anything appeared in them.
+    const after = await regions.elementHandles();
+    for (const [i, region] of before.entries()) {
+      expect(await after[i].evaluate((el, b) => el === b, region)).toBe(true);
+    }
+  });
+
+  // Bulma spaces a notification from what follows it in the same parent, and
+  // each one is alone in its region, so App.css puts that space between the
+  // regions. No screenshot shows both notifications at once. The space is
+  // Bulma's block spacing, which is also what it leaves under the first box.
+  test('spaces two notifications showing at once', async ({ page }) => {
+    await page.goto('/');
+    await page
+      .locator('button')
+      .filter({ hasText: 'Toggle Notification' })
+      .click();
     const counterButton = page.locator('button').filter({ hasText: 'Count:' });
     for (let i = 0; i < 11; i++) {
       await counterButton.click();
     }
-    await expect(status).toContainText("You've clicked the button 11 times!");
 
-    // Still the node that was there before anything appeared in it.
-    expect(await status.evaluate((el, before) => el === before, region)).toBe(
-      true
+    const success = page.locator(
+      '[class*="notification"][class*="is-success"]'
     );
+    const milestone = page.locator('[class*="notification"][class*="is-info"]');
+    const top = (await success.boundingBox())!;
+    const bottom = (await milestone.boundingBox())!;
+    const blockSpacing = await page
+      .locator('.box, .bulma-box, .bestax-box')
+      .first()
+      .evaluate(box => parseFloat(getComputedStyle(box).marginBottom));
+    expect(blockSpacing).toBeGreaterThan(0);
+    expect(bottom.y - (top.y + top.height)).toBeCloseTo(blockSpacing);
   });
 
   test('has one main landmark, no banners, and no skipped heading levels', async ({

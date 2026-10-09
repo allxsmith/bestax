@@ -130,31 +130,37 @@ function App() {
                 </Buttons>
               </Column>
 
-              {/* A status region reads out what appears in it, so a screen
-                  reader hears both notifications. It stays mounted while its
+              {/* A status region reads out all it holds whenever any of it
+                  changes, so each notification has a region of its own: a
+                  screen reader hears the one that appeared or changed, and
+                  not the other with it. The regions stay mounted while their
                   content changes: one added along with its content may not
                   be announced. */}
-              <Column size="half" role="status">
-                {showNotification && (
-                  <Notification
-                    color="success"
-                    isLight
-                    hasDelete
-                    onDelete={() => {
-                      setShowNotification(false);
-                      toggleRef.current?.focus();
-                    }}
-                  >
-                    <strong>Success!</strong> Your Vite + Bestax setup is
-                    working perfectly!
-                  </Notification>
-                )}
+              <Column size="half">
+                <div role="status" className="status-region">
+                  {showNotification && (
+                    <Notification
+                      color="success"
+                      isLight
+                      hasDelete
+                      onDelete={() => {
+                        setShowNotification(false);
+                        toggleRef.current?.focus();
+                      }}
+                    >
+                      <strong>Success!</strong> Your Vite + Bestax setup is
+                      working perfectly!
+                    </Notification>
+                  )}
+                </div>
 
-                {count > 10 && (
-                  <Notification color="info" isLight>
-                    You've clicked the button {count} times!
-                  </Notification>
-                )}
+                <div role="status" className="status-region">
+                  {count > 10 && (
+                    <Notification color="info" isLight>
+                      You've clicked the button {count} times!
+                    </Notification>
+                  )}
+                </div>
               </Column>
             </Columns>
           </Box>

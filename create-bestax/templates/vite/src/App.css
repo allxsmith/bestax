@@ -5,3 +5,10 @@
 .text-link {
   text-decoration: underline;
 }
+
+/* Bulma spaces a notification from whatever follows it in the same parent,
+   and each notification here is alone in its status region, so the space
+   between two showing at once goes between their regions instead. */
+.status-region:not(:empty) + .status-region:not(:empty) {
+  margin-top: var(--bulma-block-spacing);
+}
