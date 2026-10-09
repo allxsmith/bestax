@@ -77,7 +77,29 @@ const HELPER_PROPS = [
   'textColor',
   'bgColor',
 ];
-const HELPER_PROP = new RegExp(`\\s(?:${HELPER_PROPS.join('|')})=`);
+
+// The helper props a JSX file writes. It parses the file rather than matching
+// text, so a boolean prop written bare (`<Box relative>`) counts as much as one
+// with a value, and the same word in a sentence or a comment does not.
+function helperPropsIn(code: string): string[] {
+  const source = ts.createSourceFile(
+    'App.tsx',
+    code,
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const found: string[] = [];
+  const visit = (node: ts.Node) => {
+    if (ts.isJsxAttribute(node)) {
+      const name = node.name.getText(source);
+      if (HELPER_PROPS.includes(name)) found.push(name);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(source);
+  return found;
+}
 
 describe('the no-helpers gate', () => {
   // If the hook stopped destructuring its props in one place, the read above
@@ -97,8 +119,20 @@ describe('the no-helpers gate', () => {
         'flexGrow',
       ])
     );
-    expect(' displayTablet="flex"').toMatch(HELPER_PROP);
-    expect(' color="info"').not.toMatch(HELPER_PROP);
+  });
+
+  it('finds a helper prop written bare, and nothing outside an attribute', () => {
+    expect(helperPropsIn('<Box displayTablet="flex" />')).toEqual([
+      'displayTablet',
+    ]);
+    expect(helperPropsIn('<Box relative>x</Box>')).toEqual(['relative']);
+    expect(helperPropsIn('<Box\n  clearfix\n/>')).toEqual(['clearfix']);
+    expect(helperPropsIn('<Box mt={size} />')).toEqual(['mt']);
+    expect(
+      helperPropsIn(
+        '<Button color="info">\n  {/* a gap or display */} relative gap display\n</Button>'
+      )
+    ).toEqual([]);
   });
 });
 
@@ -191,7 +225,7 @@ describe.each(TEMPLATES)(
           'utf8'
         );
 
-        expect(app).not.toMatch(HELPER_PROP);
+        expect(helperPropsIn(app)).toEqual([]);
         for (const { className, declaration } of NO_HELPERS_STARTER_CLASSES) {
           expect(app).toContain(`className="${className}"`);
           expect(css).toContain(`.${className} {\n  ${declaration}\n}`);
@@ -218,7 +252,7 @@ describe.each(TEMPLATES)(
           path.join(target, 'src', appFile(template)),
           'utf8'
         );
-        expect(app).not.toMatch(HELPER_PROP);
+        expect(helperPropsIn(app)).toEqual([]);
       }
     );
 
@@ -230,7 +264,7 @@ describe.each(TEMPLATES)(
         path.join(target, 'src', appFile(template)),
         'utf8'
       );
-      expect(app).toMatch(HELPER_PROP);
+      expect(helperPropsIn(app)).not.toEqual([]);
       for (const { prop, className } of NO_HELPERS_STARTER_CLASSES) {
         expect(app).toContain(prop);
         expect(app).not.toContain(`className="${className}"`);
