@@ -7,7 +7,7 @@
   "examples": [
     {
       "title": "Basic Slider",
-      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState(50);\n  return (\n    <Block>\n      <Slider label=\"Volume\" value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">Value: {value}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "With Output Display",
@@ -43,14 +43,14 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Volume\">\n      <Field.Body>\n        <Field>\n          <Slider defaultValue={50} color=\"primary\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Volume\" labelProps={{ htmlFor: 'volume-field' }}>\n      <Field.Body>\n        <Field>\n          <Slider id=\"volume-field\" defaultValue={50} color=\"primary\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Volume\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"volume-up\">\n            <Slider defaultValue={50} color=\"primary\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Volume\"\n      labelProps={{ htmlFor: 'volume-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"volume-up\">\n            <Slider\n              id=\"volume-field-control\"\n              defaultValue={50}\n              color=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses native `<input type=\"range\">` element\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- Fully keyboard accessible with arrow keys\n- Focus states clearly visible",
+  "accessibility": "- Uses native `<input type=\"range\">` element\n- The `label` prop, or the label of a `Field` the slider sits in, names its input. In range mode the label targets the low thumb, but each thumb keeps its own `aria-label` (`ariaLabel`, or \"Minimum value\" and \"Maximum value\"), which wins.\n- Has `aria-valuenow`, `aria-valuemin`, and `aria-valuemax` attributes\n- Fully keyboard accessible with arrow keys\n- Focus states clearly visible",
   "related": ["Numberinput", "Progress"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-slider",
   "summary": "The `Slider` component provides a range slider input for selecting values within a range.",
@@ -139,7 +139,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. Dropped inside an outer `Field` (label that `Field` yourself).",
+          "description": "Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
           "required": false,
           "inherited": true,
           "deprecated": false

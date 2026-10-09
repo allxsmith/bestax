@@ -23,9 +23,11 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
+  absoluteLinks,
   build,
   helperImport,
   orderDeclarers,
+  proseComponentInfo,
   readSkills,
   reportFailure,
 } from './gen-mcp-index.mjs';
@@ -112,6 +114,191 @@ test('helper pages ship as prose, not as an empty props table', () => {
   assert.deepEqual(hook.parts, []);
   assert.ok(hook.doc.length > 1000, 'helper doc body is missing');
   assert.ok(!hook.doc.startsWith('---'), 'frontmatter must be stripped');
+  // A hook's signature block ships on its own, a small answer where the
+  // whole page is not.
+  const trap = components.get('useFocusTrap');
+  assert.match(trap.api, /function useFocusTrap\(/);
+  assert.ok(trap.api.length < trap.doc.length / 4, 'api is the whole page');
+});
+
+test('components documented on helpers pages get a props table (#933)', () => {
+  // Theme, ConfigProvider, Portal and ClientOnly have props interfaces, and
+  // shipping them as prose left get_props with no table to give.
+  for (const [name, prop] of [
+    ['Theme', 'colorMode'],
+    ['ConfigProvider', 'iconLibrary'],
+    ['Portal', 'container'],
+    ['ClientOnly', 'fallback'],
+  ]) {
+    const record = components.get(name);
+    assert.equal(record.kind, 'component', `${name} is not a component`);
+    assert.equal(record.category, 'helpers');
+    assert.ok(
+      record.parts[0]?.props.some(p => p.name === prop),
+      `${name} has no ${prop} row`
+    );
+    // The page still ships, for include: ["reference"].
+    assert.ok(record.doc.length > 1000, `${name} lost its page`);
+    assert.ok(record.summary, `${name} has no summary`);
+    const entry = catalog.components.find(c => c.name === name);
+    assert.equal(entry.kind, 'component');
+    assert.ok(entry.propCount > 0, `${name} counts no props`);
+    // A row with no description is a blank Notes cell, and search scores it on
+    // its name alone, so Theme.darkL outranked Theme.colorMode for "dark".
+    const blank = record.parts[0].props.filter(p => !p.description);
+    assert.deepEqual(
+      blank.map(p => p.name),
+      [],
+      `${name} props with no description`
+    );
+  }
+  // Nothing outside helpers/ carries a page it does not need.
+  assert.equal(components.get('Button').doc, undefined);
+});
+
+test('a capitalised prose-page title that names no export says what to change', () => {
+  const notExported = Object.assign(new Error('not exported'), {
+    code: 'BESTAX_NOT_EXPORTED',
+  });
+  assert.throws(
+    () =>
+      proseComponentInfo('Theming', 'helpers/theming.md', () => {
+        throw notExported;
+      }),
+    err =>
+      /^\[gen-mcp-index\] helpers\/theming\.md: the title "Theming" is capitalised like a component/.test(
+        err.message
+      ) &&
+      /Title the page after the export it documents/.test(err.message) &&
+      err.cause === notExported
+  );
+  // Any other failure is the extractor's own, and passes through as it is.
+  const other = new Error('cannot determine a props type');
+  assert.throws(
+    () =>
+      proseComponentInfo('Theme', 'helpers/theme.md', () => {
+        throw other;
+      }),
+    err => err === other
+  );
+  // And the real extractor tags the case it is about.
+  assert.throws(
+    () => proseComponentInfo('NotAnExport', 'helpers/x.md'),
+    /helpers\/x\.md: the title "NotAnExport"/
+  );
+  assert.ok(
+    proseComponentInfo('Portal', 'helpers/portal.md').tables[0].rows.length
+  );
+});
+
+test('a capitalised prose-page title with no props to read stops the build', () => {
+  // A title naming an export that is not a component, such as a props type,
+  // resolves and reads as empty. Falling back to prose then would have get_props
+  // call it "not a component", the #933 sentence.
+  const empty = { tables: [], sourceFile: join(REPO, 'bulma-ui/src/x/Y.tsx') };
+  assert.throws(
+    () => proseComponentInfo('YProps', 'helpers/y.md', () => empty),
+    /\[gen-mcp-index\] helpers\/y\.md: the title "YProps" names bulma-ui\/src\/x\/Y\.tsx but finds no props there/
+  );
+  assert.throws(
+    () => proseComponentInfo('ConfigProviderProps', 'helpers/x.md'),
+    /the title "ConfigProviderProps" names bulma-ui\/src\/helpers\/Config\.tsx/
+  );
+  // Props that are all inherited still make a component: the catch-all row.
+  const inherited = {
+    tables: [
+      { rows: [], extraProps: [], catchAll: { text: 'div attributes' } },
+    ],
+    sourceFile: empty.sourceFile,
+  };
+  assert.equal(
+    proseComponentInfo('Y', 'helpers/y.md', () => inherited),
+    inherited
+  );
+});
+
+test('nothing the index ships carries a link that only resolves on its page', () => {
+  // Every string the server can serve is read away from its page: a hook's API
+  // block, a prose page, an Accessibility section, and the summaries and
+  // purposes that come from TSDoc and frontmatter. There `./valid-values.md`
+  // names a file in the reader's workspace and `#scheme-backgrounds` a section
+  // the answer does not carry. Examples are code, and are left as written.
+  const outsideCode = md =>
+    md
+      .split(/^[ \t]{0,3}(?:```|~~~)[^\n]*$/m)
+      .filter((_, i) => i % 2 === 0)
+      .join('\n');
+  const dangling = [];
+  const walk = (value, at) => {
+    if (typeof value === 'string') {
+      for (const [, target] of outsideCode(value).matchAll(LINK_TARGET)) {
+        if (!/^<?https?:\/\//.test(target)) dangling.push(`${at}: ${target}`);
+      }
+    } else if (Array.isArray(value)) {
+      value.forEach((v, i) => walk(v, `${at}[${i}]`));
+    } else if (value && typeof value === 'object') {
+      for (const [key, v] of Object.entries(value)) {
+        if (key !== 'examples') walk(v, `${at}.${key}`);
+      }
+    }
+  };
+  for (const [name, record] of components) walk(record, name);
+  walk(catalog, 'catalog');
+  assert.deepEqual(dangling, []);
+  // The block the finding was about, followed to where its links now go.
+  const api = components.get('useBulmaClasses').api;
+  assert.match(
+    api,
+    /\]\(https:\/\/bestax\.io\/docs\/api\/helpers\/valid-values[#)]/
+  );
+  assert.ok(!/table below/.test(api), 'the API block still says "below"');
+});
+
+/** A markdown link's target, bare, in angle brackets, or before a title. */
+const LINK_TARGET = /\]\(\s*(<[^>]*>|[^)\s]+)/g;
+
+test('relative links resolve to the URL the docs site serves', () => {
+  const md = [
+    'See [values](./valid-values.md), [card](../components/card.md#usage),',
+    '[grid](../grid/grid.md), [guide](../../guides/helpers/color.md),',
+    '[here](#scheme-backgrounds), [site](/docs/skills/intro) and',
+    '[out](https://bulma.io/documentation/).',
+    '[titled](./portal.md "Portal") and [bracketed](<./theme.md>).',
+    '```tsx',
+    "<a href='#keep'>[not a link](./code.md)</a>",
+    '```',
+    '',
+    '1. In a list item, a fence sits indented:',
+    '',
+    '   ```tsx',
+    '   // see [docs](./indented.md)',
+    '   ```',
+  ].join('\n');
+  const out = absoluteLinks(md, 'helpers/usebulmaclasses.md');
+  // Every link target, in order. The last is inside the fence: code is code,
+  // links and all.
+  assert.deepEqual(
+    [...out.matchAll(LINK_TARGET)].map(m => m[1]),
+    [
+      'https://bestax.io/docs/api/helpers/valid-values',
+      'https://bestax.io/docs/api/components/card#usage',
+      'https://bestax.io/docs/api/grid',
+      'https://bestax.io/docs/guides/helpers/color',
+      'https://bestax.io/docs/api/helpers/usebulmaclasses#scheme-backgrounds',
+      'https://bestax.io/docs/skills/intro',
+      'https://bulma.io/documentation/',
+      'https://bestax.io/docs/api/helpers/portal',
+      '<https://bestax.io/docs/api/helpers/theme>',
+      './code.md',
+      './indented.md',
+    ]
+  );
+  // A title survives the rewrite.
+  assert.match(
+    out,
+    /\]\(https:\/\/bestax\.io\/docs\/api\/helpers\/portal "Portal"\)/
+  );
+  assert.match(out, /<a href='#keep'>/);
 });
 
 test('every import the index shows is an import statement', () => {

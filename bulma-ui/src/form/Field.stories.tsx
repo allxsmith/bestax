@@ -3,6 +3,12 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { Input } from './Input';
 import { Select } from './Select';
+import { Numberinput } from './Numberinput';
+import { Slider } from './Slider';
+import { DateInput } from './DateInput';
+import { Radios } from './Radios';
+import { Radio } from './Radio';
+import { Rate } from './Rate';
 import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Field> = {
@@ -92,6 +98,35 @@ export const WithHelpText: Story = {
       </Control>
       <p className="help">Must be 4–20 characters long</p>
     </Field>
+  ),
+};
+
+/**
+ * The label names the control the Field holds: a custom input through the id
+ * it adopts, a group through `aria-labelledby` on the label's own id.
+ */
+export const LabelsCustomControls: Story = {
+  render: () => (
+    <>
+      <Field label="Quantity">
+        <Numberinput bare={false} defaultValue={1} min={1} max={10} />
+      </Field>
+      <Field label="Volume">
+        <Slider defaultValue={50} />
+      </Field>
+      <Field label="Delivery date">
+        <DateInput />
+      </Field>
+      <Field label="Contact by">
+        <Radios name="contact" defaultValue="email">
+          <Radio value="email">Email</Radio>
+          <Radio value="phone">Phone</Radio>
+        </Radios>
+      </Field>
+      <Field label="Quality">
+        <Rate defaultValue={3} />
+      </Field>
+    </>
   ),
 };
 

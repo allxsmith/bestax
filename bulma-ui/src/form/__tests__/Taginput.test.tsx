@@ -1180,16 +1180,14 @@ describe('Taginput label association (#493)', () => {
     );
   });
 
-  it('keeps the "Add tag" fallback name inside an outer Field', () => {
+  it("takes the outer Field's label in place of the fallback (#939)", () => {
     render(
       <Field label="Outer">
         <Taginput label="Dropped" />
       </Field>
     );
-    expect(screen.getByRole('textbox')).toHaveAttribute(
-      'aria-label',
-      'Add tag'
-    );
+    const input = screen.getByRole('textbox', { name: 'Outer' });
+    expect(input).not.toHaveAttribute('aria-label');
   });
 
   it('injects no id without a label', () => {

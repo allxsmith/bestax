@@ -223,7 +223,7 @@
     },
     {
       "path": "Grid.Cell",
-      "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](./grid.md) component.",
+      "summary": "The `Cell` component provides a single Bulma grid cell for use inside the [`Grid`](https://bestax.io/docs/api/grid) component.",
       "component": "Cell",
       "props": [
         {

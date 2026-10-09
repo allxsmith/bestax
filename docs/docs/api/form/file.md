@@ -376,13 +376,20 @@ The simplest usage — `label` adds a Field label above the widget.
 
 For manual layout control (e.g., horizontal forms), wrap in `Field`. The component detects it's inside a Field and skips rendering its own.
 
+A labeled `Field` that holds the File directly names its input with no extra wiring. In a horizontal form the label sits on the outer `Field` and the File in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Document">
+    <Field
+      horizontal
+      label="Document"
+      labelProps={{ htmlFor: 'document-field' }}
+    >
       <Field.Body>
         <Field>
           <File
+            id="document-field"
             buttonLabel="Choose a file…"
             iconLeft={<Icon name="upload" aria-hidden="true" />}
           />
@@ -402,11 +409,16 @@ For full manual composition, wrap in both `Field` and `Control`. The outer Field
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Document">
+    <Field
+      horizontal
+      label="Document"
+      labelProps={{ htmlFor: 'document-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="paperclip">
             <File
+              id="document-field-control"
               buttonLabel="Choose a file…"
               iconLeft={<Icon name="upload" aria-hidden="true" />}
             />
@@ -427,7 +439,7 @@ Inside a `Control` with no `Field` around it, `File` renders no `Field` of its o
 - The root is a `<div class="file">` with a nested `<label>` and `<input type="file">`.
 - The label is always clickable.
 - The focus ring shows for keyboard focus only, drawn inside the CTA in Bulma's focus color, width and style (`--bulma-focus-h`, `--bulma-focus-s`, `--bulma-focus-l`, `--bulma-focus-width`, `--bulma-focus-style`). On a colored `File` it takes the CTA's text color instead, so it shows against the fill. It comes from the bestax extras (`extras.css`, or `bestax.css`, which includes them); with Bulma's CSS alone the input shows no focus ring.
-- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated.
+- When `File` renders its own `Field` (that is, outside an existing one), the Field-level `label` prop is automatically associated with the file input via `htmlFor`, so the input then has two labels (the Field label plus the wrapping CTA label); assistive technology reads both. An explicit `labelProps.htmlFor` overrides the association and no id is generated. Inside a labeled `Field`, that `Field`'s label is associated with the file input the same way, so the input again has two labels.
 - The name area sits inside the CTA's label, so with `hasName` its text joins the input's accessible name ("Choose a file… resume.pdf"). Browsers can also expose a picked file on the input itself, so a screen reader may read the name twice. It stays in the label because text you pass in `fileName`, such as a file uploaded earlier, reaches assistive technology only from there.
 - Add `aria-label` to the `<input>` for accessibility if your label is not plain text.
 

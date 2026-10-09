@@ -51,14 +51,14 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\">\n      <Field.Body>\n        <Field>\n          <Taginput\n            defaultValue={['React', 'TypeScript']}\n            placeholder=\"Add a tag...\"\n            tagColor=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\" labelProps={{ htmlFor: 'tags-field' }}>\n      <Field.Body>\n        <Field>\n          <Taginput\n            id=\"tags-field\"\n            defaultValue={['React', 'TypeScript']}\n            placeholder=\"Add a tag...\"\n            tagColor=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Taginput\n              icon=\"tags\"\n              defaultValue={['React', 'TypeScript']}\n              placeholder=\"Add a tag...\"\n              tagColor=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Tags\"\n      labelProps={{ htmlFor: 'tags-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Taginput\n              id=\"tags-field-control\"\n              icon=\"tags\"\n              defaultValue={['React', 'TypeScript']}\n              placeholder=\"Add a tag...\"\n              tagColor=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label=\"Add tag\"`.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.\n- Tags are keyboard navigable\n- Delete buttons have proper `aria-label`\n- Autocomplete dropdown follows ARIA listbox pattern",
+  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label=\"Add tag\"`. Inside a labeled `Field`, that `Field`'s label names the input the same way and replaces the fallback.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.\n- Tags are keyboard navigable\n- Delete buttons have proper `aria-label`\n- Autocomplete dropdown follows ARIA listbox pattern",
   "related": ["Autocomplete", "Input", "Tag"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-taginput",
   "summary": "The `Taginput` component provides a tag/chip input field for managing multiple tags.",
@@ -75,7 +75,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered) and dropped inside an outer `Field`.",
+          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`); it then replaces the `aria-label=\"Add tag\"` fallback too.",
           "required": false,
           "inherited": false,
           "deprecated": false

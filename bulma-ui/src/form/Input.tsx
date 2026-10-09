@@ -166,7 +166,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    let content = <InputBase ref={ref} id={controlId} {...inputProps} />;
+    let content = <InputBase ref={ref} {...inputProps} id={controlId} />;
 
     if (ownControl) {
       content = (

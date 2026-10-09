@@ -132,12 +132,19 @@ generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wi
 happens when the component renders its own `Field` (nested inside one, the `label` prop is
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
 `maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`,
-`DateRangeInput`) associate their `label` too, but group-style: the wrapper gets `role="group"`/`"radiogroup"`
-and `aria-labelledby` pointing at the label. Composing `Field` + bases yourself also
-associates: `Field`'s own `label` wires to a single composed `InputBase`/`SelectBase`/
-`TextAreaBase` (skipped for `grouped`/`hasAddons`). Pass `labelProps={{ htmlFor }}` plus a
-matching `id` only when you want a stable id, or `labelProps={{ htmlFor: undefined }}` to
-opt out — e.g. when the labeled `Field` wraps something that is not one of those bases.
+`DateRangeInput`) associate their `label` too, but group-style: the wrapper gets
+`role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
+also associates: a labeled `Field` names the one control it holds, whether a composed
+`InputBase`/`SelectBase`/`TextAreaBase` or any input above (through the id), or a group
+(through `aria-labelledby`). Either way, an `aria-label` or `aria-labelledby` you give a
+group wins over the label. A `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
+each is named by its own children, so put the text there. The association is skipped for
+`grouped`/`hasAddons`, and a nested `Field` starts its own scope, so a
+horizontal `Field` whose body holds an inner `Field` needs `labelProps={{ htmlFor }}` plus the
+control's `id` (for a group, `labelProps={{ id, htmlFor: undefined }}` plus its
+`aria-labelledby`, since nothing takes the label's `for` there). Pass
+`labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
+`labelProps={{ htmlFor: undefined }}` to opt out.
 
 ## Convenience vs composed
 
