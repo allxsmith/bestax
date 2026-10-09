@@ -19,7 +19,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  createProgram,
   extractComponent,
+  topLevelInitializers,
   transparentPropWrapper,
   unsupportedPropWrapper,
   unnameablePropsError,
@@ -315,6 +317,65 @@ test('the OwnProps split does not reclassify own props as inherited', () => {
   assert.ok(
     table('LinkButton', 'LinkButton').rows.some(r => r.inherited),
     'LinkButton no longer reports the props it inherits from Button'
+  );
+});
+
+test('a component declared as a function still resolves its props and summary', () => {
+  // `export function Portal({ … }: PortalProps)`. Read as constants only, both
+  // came back with no table and no summary, and nothing said so (#933).
+  for (const [name, prop] of [
+    ['Portal', 'container'],
+    ['ClientOnly', 'fallback'],
+  ]) {
+    const info = extractComponent(name, { markdown: false });
+    const rows = info.tables[0]?.rows ?? [];
+    assert.ok(
+      rows.some(r => r.name === prop),
+      `${name} has no ${prop} row, got ${rows.map(r => r.name)}`
+    );
+    assert.match(info.tsdoc, /^Renders its children/, `${name} has no summary`);
+  }
+  assert.equal(row('Portal', 'disabled', { markdown: false }).default, 'false');
+});
+
+test('an overloaded component resolves to its implementation, not a signature', () => {
+  // TypeScript gives each overload signature a declaration of its own, ahead of
+  // the implementation. A signature cannot carry parameter initializers, so
+  // reading one resolved the props type and lost every default without an error.
+  const { ts } = createProgram();
+  const sf = ts.createSourceFile(
+    'widget.tsx',
+    [
+      'export function Widget(props: { a: string }): null;',
+      'export function Widget(props: { a: number }): null;',
+      "export function Widget({ size = 'normal' }: WidgetProps) { return null; }",
+      'const Gadget = (props: GadgetProps) => null;',
+      'function Gadget() { return null; }',
+    ].join('\n'),
+    ts.ScriptTarget.Latest,
+    true,
+    ts.ScriptKind.TSX
+  );
+  const inits = topLevelInitializers(ts, sf);
+  const widget = inits.get('Widget');
+  assert.ok(widget.body, 'Widget resolved to an overload signature');
+  assert.match(widget.parameters[0].getText(), /size = 'normal'/);
+  // A constant of the same name still wins over a function.
+  assert.ok(ts.isArrowFunction(inits.get('Gadget')));
+});
+
+test('a component the barrel re-exports with `export *` from another module resolves', () => {
+  // `export * from './helpers/Config'` keys the module, `Config`, and the
+  // component is `ConfigProvider` (#933).
+  const info = extractComponent('ConfigProvider', { markdown: false });
+  assert.match(info.sourceFile, /\/helpers\/Config\.tsx$/);
+  assert.deepEqual(
+    info.tables[0].rows.map(r => r.name),
+    ['children', 'classPrefix', 'iconLibrary']
+  );
+  assert.throws(
+    () => extractComponent('NotAnExport'),
+    /NotAnExport is not exported from bulma-ui\/src\/index\.ts/
   );
 });
 

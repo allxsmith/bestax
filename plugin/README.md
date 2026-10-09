@@ -95,7 +95,9 @@ or `grok plugin update bestax`.
   `node_modules/@allxsmith/bestax-bulma/package.json` in your working folder
   and the folders above it. It reads nothing else from your project.
 - Some links the server prints carry `utm_source=bestax-mcp`, so a visit to
-  bestax.io through one of them shows up in the site's traffic analytics.
+  bestax.io through one of them shows up in the site's traffic analytics. The
+  links inside its component answers are tagged too. Skill bodies are served
+  as written, so their links stay untagged.
 - The plugin has no hooks, commands, agents or scripts of its own.
 
 Your agent starts the server with this command, the same one in
