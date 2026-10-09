@@ -538,11 +538,17 @@ Use `<Field grouped>` to lay multiple controls out on a single row with consiste
 Place a `color="danger"` Input and a danger help message inside the horizontal field body.
 
 ```tsx live
-<Field horizontal label="Email">
+<Field horizontal label="Email" labelProps={{ htmlFor: 'invalid-email' }}>
   <Field.Body>
     <Field>
       <Control iconLeftName="envelope" iconRightName="exclamation-triangle">
-        <Input type="email" color="danger" value="hello@" onChange={() => {}} />
+        <Input
+          id="invalid-email"
+          type="email"
+          color="danger"
+          value="hello@"
+          onChange={() => {}}
+        />
       </Control>
       <p className="help is-danger">This email is invalid</p>
     </Field>
@@ -557,14 +563,14 @@ Place a `color="danger"` Input and a danger help message inside the horizontal f
 Combine `Field horizontal` with a nested `Field hasAddons` inside the body to mix layouts.
 
 ```tsx live
-<Field horizontal label="Phone">
+<Field horizontal label="Phone" labelProps={{ htmlFor: 'phone-number' }}>
   <Field.Body>
     <Field hasAddons>
       <Control>
         <Button isStatic>+44</Button>
       </Control>
       <Control isExpanded>
-        <Input type="tel" placeholder="Your phone number" />
+        <Input id="phone-number" type="tel" placeholder="Your phone number" />
       </Control>
     </Field>
   </Field.Body>
@@ -579,11 +585,11 @@ Use an empty `Field.Label` to align the submit button under the inputs above it.
 
 ```tsx live
 <>
-  <Field horizontal label="Name">
+  <Field horizontal label="Name" labelProps={{ htmlFor: 'submit-row-name' }}>
     <Field.Body>
       <Field>
         <Control>
-          <Input placeholder="Your name" />
+          <Input id="submit-row-name" placeholder="Your name" />
         </Control>
       </Field>
     </Field.Body>

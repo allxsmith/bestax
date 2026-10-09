@@ -323,11 +323,15 @@ Use `isFullwidth` on the Select with `isExpanded` on its Control to make the dro
 In horizontal forms, mark the inner `<Field narrow>` so it doesn't stretch the full row, and use `isFullwidth` on the Select to fill the narrow field.
 
 ```tsx live
-<Field horizontal label="Department">
+<Field
+  horizontal
+  label="Department"
+  labelProps={{ htmlFor: 'department-field' }}
+>
   <Field.Body>
     <Field narrow>
       <Control>
-        <Select isFullwidth>
+        <Select id="department-field" isFullwidth>
           <option>Business development</option>
           <option>Marketing</option>
           <option>Sales</option>
