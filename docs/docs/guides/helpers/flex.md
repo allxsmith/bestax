@@ -339,7 +339,7 @@ function AlignContentExamples() {
               style={{ height: '150px' }}
             >
               {items.map((item, index) => (
-                <Tag key={index} color="info" mr="1" mb="1" size="small">
+                <Tag key={index} color="info" mr="1" mb="1">
                   {item}
                 </Tag>
               ))}

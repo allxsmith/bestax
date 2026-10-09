@@ -984,6 +984,21 @@ describe('lookup_bulma_classes', () => {
     expect(out).toContain('bulma-classes-unmappables');
   });
 
+  it('says File renders is-empty itself beside has-name with no name', async () => {
+    // And that the name is pinned empty there, as the codemod writes it, so
+    // a pick shows no name where the markup shows none.
+    expect(await lookup('file has-name')).toContain(
+      'With `hasName` and no `.file-name`, write `fileName=""`, so a file the user picks shows no name where the markup shows none. ' +
+        "It renders Bulma's `is-empty` there itself, so that class isn't needed."
+    );
+    // The class's own row says the same, rather than keeping it as a class.
+    const out = await lookup('file has-name is-empty');
+    expect(out).toContain(
+      '| `is-empty` | rendered by `File` | with no `.file-name` in the tree; beside one it stays in `className` |'
+    );
+    expect(out).not.toMatch(/\| `is-empty` \| stays in `className` \|/);
+  });
+
   it('writes a prop typed as a number as a number', async () => {
     const out = await lookup('cell is-col-span-2', 'div');
     expect(out).toContain('**Component:** `Cell`.');

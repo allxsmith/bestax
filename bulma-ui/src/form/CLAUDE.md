@@ -41,8 +41,8 @@ Conventions:
   where it renders no input.
 - Basic inputs (Input, Select, TextArea, …) ship no CSS, but more of this folder has SCSS
   than you'd guess: even Checkbox and Radio have themed partials, File has one for its keyboard
-  focus ring, and every extended input (Autocomplete, DateInput, Numberinput, Rate, Slider,
-  Switch, Taginput, …) does too. Check `../scss/form/_index.scss` for the authoritative list
-  before changing visuals.
+  focus ring and a boxed CTA's corners, and every extended input (Autocomplete, DateInput,
+  Numberinput, Rate, Slider, Switch, Taginput, …) does too. Check `../scss/form/_index.scss` for
+  the authoritative list before changing visuals.
 
 Follow the anatomy rule in `bulma-ui/CLAUDE.md` (test + story + docs page + export + catalog).
