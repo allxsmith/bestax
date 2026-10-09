@@ -1410,32 +1410,105 @@ describe('range Slider thumb names (#981)', () => {
     expect(screen.getByRole('slider', { name: 'Ceiling' })).toBeInTheDocument();
   });
 
-  it("lets the caller's aria-labelledby win on the low thumb it lands on", () => {
+  it.each([
+    [
+      'its own label',
+      () => <Slider range label="Price" aria-labelledby="budget" />,
+    ],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range aria-labelledby="budget" />
+        </Field>
+      ),
+    ],
+  ])(
+    "puts the caller's aria-labelledby in both thumb names, in place of %s",
+    (_, element) => {
+      const { container } = render(
+        <>
+          <span id="budget">Budget</span>
+          {element()}
+        </>
+      );
+      const { low, high } = thumbs(container);
+      expect(screen.getByRole('slider', { name: 'Budget Minimum value' })).toBe(
+        low
+      );
+      expect(screen.getByRole('slider', { name: 'Budget Maximum value' })).toBe(
+        high
+      );
+      expect(low.getAttribute('aria-labelledby')).toMatch(/^budget /);
+      expect(high.getAttribute('aria-labelledby')).toMatch(/^budget /);
+      expect(low).not.toHaveAttribute('aria-label');
+      expect(high).not.toHaveAttribute('aria-label');
+    }
+  );
+
+  it.each([
+    ['no label', () => <Slider range aria-label="Budget" />],
+    ['its own label', () => <Slider range label="Price" aria-label="Budget" />],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range aria-label="Budget" />
+        </Field>
+      ),
+    ],
+  ])(
+    "puts the caller's aria-label in both thumb names, with %s",
+    (_, element) => {
+      const { container } = render(element());
+      const { low, high } = thumbs(container);
+      expect(low).toHaveAttribute('aria-label', 'Budget Minimum value');
+      expect(high).toHaveAttribute('aria-label', 'Budget Maximum value');
+      expect(low).not.toHaveAttribute('aria-labelledby');
+      expect(high).not.toHaveAttribute('aria-labelledby');
+      expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+    }
+  );
+
+  it("lets the caller's aria-labelledby win over its aria-label, as in the browser", () => {
     const { container } = render(
       <>
         <span id="budget">Budget</span>
-        <Slider range label="Price" aria-labelledby="budget" />
+        <Slider range aria-label="Spend" aria-labelledby="budget" />
       </>
     );
     const { low, high } = thumbs(container);
-    expect(low).toHaveAttribute('aria-labelledby', 'budget');
-    expect(screen.getByRole('slider', { name: 'Budget' })).toBe(low);
-    expect(screen.getByRole('slider', { name: 'Price Maximum value' })).toBe(
+    expect(screen.getByRole('slider', { name: 'Budget Minimum value' })).toBe(
+      low
+    );
+    expect(screen.getByRole('slider', { name: 'Budget Maximum value' })).toBe(
       high
     );
+    expect(low).not.toHaveAttribute('aria-label');
   });
 
-  it("lets the caller's aria-label win on the low thumb it lands on", () => {
-    const { container } = render(
-      <Field label="Price">
-        <Slider range aria-label="Budget floor" />
-      </Field>
+  it("lets an ariaLabel entry win over the caller's name for its thumb", () => {
+    render(
+      <>
+        <span id="budget">Budget</span>
+        <Slider
+          range
+          label="Price"
+          aria-labelledby="budget"
+          ariaLabel={['', 'Ceiling']}
+        />
+        <Slider range aria-label="Spend" ariaLabel={['Floor', '']} />
+      </>
     );
-    const { low } = thumbs(container);
-    expect(low).not.toHaveAttribute('aria-labelledby');
-    expect(screen.getByRole('slider', { name: 'Budget floor' })).toBe(low);
     expect(
-      screen.getByRole('slider', { name: 'Price Maximum value' })
+      screen.getByRole('slider', { name: 'Budget Minimum value' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Ceiling' })).not.toHaveAttribute(
+      'aria-labelledby'
+    );
+    expect(screen.getByRole('slider', { name: 'Floor' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('slider', { name: 'Spend Maximum value' })
     ).toBeInTheDocument();
   });
 

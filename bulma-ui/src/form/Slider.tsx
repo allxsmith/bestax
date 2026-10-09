@@ -59,7 +59,7 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the `htmlFor` targets the low (minimum) thumb, and the label also starts each thumb's name through `aria-labelledby`, as in "Price Minimum value" and "Price Maximum value". Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), naming a range Slider's thumbs the same way. */
+  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the `htmlFor` targets the low (minimum) thumb, and the label also starts each thumb's name through `aria-labelledby`, as in "Price Minimum value" and "Price Maximum value", unless an `aria-label` or `aria-labelledby` on the Slider takes its place there. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), naming a range Slider's thumbs the same way. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). In range mode an `id` here is the one the thumbs' `aria-labelledby` points at, in place of a generated one. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -120,7 +120,7 @@ export interface SliderSingleProps extends SliderBaseProps {
    * @defaultValue 0
    */
   minDistance?: never;
-  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after the label when a label names the Slider. */
+  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in "Budget Minimum value" and "Budget Maximum value". An `aria-labelledby` set to `undefined` keeps every label out of both names. */
   ariaLabel?: string;
 }
 
@@ -147,7 +147,7 @@ export interface SliderRangeProps extends SliderBaseProps {
    * @defaultValue 0
    */
   minDistance?: number;
-  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after the label when a label names the Slider. */
+  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after whatever names the Slider: a label, or in its place an `aria-label` or `aria-labelledby` given to the Slider, as in "Budget Minimum value" and "Budget Maximum value". An `aria-labelledby` set to `undefined` keeps every label out of both names. */
   ariaLabel?: [string, string];
   /** Form field name for the low thumb. Use this in range mode so each thumb submits with its own name. */
   nameLow?: string;
@@ -335,42 +335,51 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     // label's `for`, so a label naming the Slider reaches each thumb through
     // `aria-labelledby` instead: the label, then a hidden span holding the
     // thumb's own text, as in "Price Minimum value" (#981). An `ariaLabel`
-    // entry is that thumb's whole name and wins, and so does an `aria-label`
-    // or `aria-labelledby` the caller spreads onto the low thumb.
+    // entry is that thumb's whole name and wins.
     const thumbTextId = useId();
     const thumbLabels = range
       ? (ariaLabel as [string, string] | undefined)
       : undefined;
-    const callerAria = rest as React.AriaAttributes;
-    const callerNamedLow =
-      !!callerAria['aria-label'] || 'aria-labelledby' in callerAria;
+    // A caller's `aria-label` or `aria-labelledby` names the Slider in the
+    // label's place, so both thumbs read it before their own text. They are
+    // routed here rather than spread, since the spread reaches only the low
+    // thumb and would leave the pair with two unrelated names. Presence for
+    // aria-labelledby, as on a group (#974): the caller's key takes the naming
+    // over whatever its value, so an undefined one keeps every label out and
+    // leaves both thumbs their bare text. A non-empty one wins over an
+    // aria-label, as it does in the browser's name computation.
+    const {
+      'aria-label': callerLabel,
+      'aria-labelledby': callerLabelledBy,
+      ...thumbRest
+    } = rest;
+    const callerNamed = !!callerLabel || 'aria-labelledby' in rest;
+    const stemRef = callerLabelledBy || (callerNamed ? undefined : labelId);
+    const stemText = stemRef ? undefined : callerLabel;
     const nameThumb = (
       own: string | undefined,
       text: string,
-      textId: string,
-      callerNamed: boolean
+      textId: string
     ) => {
-      const wired = !!labelId && !own && !callerNamed;
+      const wired = !!stemRef && !own;
       return {
         text,
         textId,
         wired,
         aria: wired
-          ? { 'aria-labelledby': `${labelId} ${textId}` }
-          : { 'aria-label': own || text },
+          ? { 'aria-labelledby': `${stemRef} ${textId}` }
+          : { 'aria-label': own || (stemText ? `${stemText} ${text}` : text) },
       };
     };
     const lowThumb = nameThumb(
       thumbLabels?.[0],
       'Minimum value',
-      `${thumbTextId}-min`,
-      callerNamedLow
+      `${thumbTextId}-min`
     );
     const highThumb = nameThumb(
       thumbLabels?.[1],
       'Maximum value',
-      `${thumbTextId}-max`,
-      false
+      `${thumbTextId}-max`
     );
 
     // Resolve tooltip mode: explicit tooltip prop takes precedence, else showOutput maps to 'auto'
@@ -821,7 +830,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-orientation={isVertical ? 'vertical' : undefined}
           {...lowThumb.aria}
           {...getAriaProps(currentRange[0])}
-          {...rest}
+          {...thumbRest}
           id={controlId}
           {...(nameLow !== undefined ? { name: nameLow } : {})}
         />
