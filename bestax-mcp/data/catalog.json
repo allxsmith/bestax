@@ -917,7 +917,7 @@
       "import": "import { Slider } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 30,
-      "exampleCount": 11
+      "exampleCount": 13
     },
     {
       "name": "Span",
