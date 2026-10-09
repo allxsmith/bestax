@@ -348,9 +348,13 @@ function factsFor(
       childElements: [iconChild(['fas', 'fa-home']), textChild()],
     }),
     // One that renders the whole `.file` tree holds that tree, inside a
-    // `.field`.
+    // `.field`, with a name in it beside `has-name`: with none, `File` renders
+    // Bulma's `is-empty` too, which the tree shapes below cover.
     ...(entries.some(entry => entry?.buildsFile) && {
-      childElements: fileChildren({ iconLeft: ['fas', 'fa-upload'] }),
+      childElements: fileChildren({
+        iconLeft: ['fas', 'fa-upload'],
+        ...(tokens.includes('has-name') && { name: 'cv.pdf' }),
+      }),
       classesAround: ['field'],
     }),
     // One that needs element children holds one (`Icon` around an <i>).
@@ -1202,7 +1206,11 @@ describe.each(mapped.filter(([, entry]) => entry.buildsFile))(
         input: { tabIndex: '0' },
       });
       same('with a name', { name: 'cv.pdf' }, ['has-name']);
-      same('with a name slot and no name', {}, ['has-name']);
+      same('with a name slot Bulma marks empty', {}, ['has-name', 'is-empty']);
+      same('with a name, and is-empty beside it', { name: 'cv.pdf' }, [
+        'has-name',
+        'is-empty',
+      ]);
       same('with its modifiers together', { iconLeft: ['fas', 'fa-upload'] }, [
         'is-boxed',
         'is-fullwidth',
@@ -1210,6 +1218,16 @@ describe.each(mapped.filter(([, entry]) => entry.buildsFile))(
         'is-small',
         'mt-2',
       ]);
+    });
+
+    it('leaves a name slot with no name and no is-empty as markup', () => {
+      // `File` would add the `is-empty` the markup doesn't have.
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root, 'has-name']),
+        childElements: fileChildren({}),
+        classesAround: ['field'],
+      };
+      expect(plan(facts).conversion).toBeNull();
     });
   }
 );

@@ -14,7 +14,12 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { orphanPartialViolations } from './check-conformance.mjs';
+import {
+  bulmaKeys,
+  onceAsync,
+  orphanPartialViolations,
+  unregisteredVarViolations,
+} from './check-conformance.mjs';
 
 const REL = 'bulma-ui/src/scss/elements/_zzz.scss';
 const KEYS = ['zzz-gap', 'zzz-color'];
@@ -103,4 +108,127 @@ test('an exempted orphan is quiet while the gap it names persists', () => {
     ),
     []
   );
+});
+
+// ---- Rule 4: a partial's own variables are registered somewhere (#978) -----
+
+const FILE = 'bulma-ui/src/scss/form/_zzz.scss';
+const consuming = key => [
+  '.#{iv.$class-prefix}zzz {',
+  `  gap: cv.getVar("${key}");`,
+  '}',
+];
+
+test('an own variable nobody registers is a violation naming its line', () => {
+  const v = unregisteredVarViolations(
+    FILE,
+    'zzz',
+    consuming('zzz-gap'),
+    new Set(),
+    new Set()
+  );
+  assert.equal(v.length, 1);
+  assert.match(v[0], /_zzz\.scss:2 /);
+  assert.match(v[0], /zzz-gap/);
+  assert.match(v[0], /register-vars/);
+});
+
+test('an own variable the partial registers is nobody’s business', () => {
+  assert.deepEqual(
+    unregisteredVarViolations(
+      FILE,
+      'zzz',
+      consuming('zzz-gap'),
+      new Set(['zzz-gap']),
+      new Set()
+    ),
+    []
+  );
+});
+
+test('a variable Bulma registers is nobody’s business in a partial sharing its namespace', () => {
+  // A partial extending a stock component, as _file.scss reads Bulma's
+  // file-radius: the variable is themable, through Bulma's registration.
+  assert.deepEqual(
+    unregisteredVarViolations(
+      FILE,
+      'zzz',
+      consuming('zzz-radius'),
+      new Set(),
+      new Set(['zzz-radius'])
+    ),
+    []
+  );
+});
+
+test('a variable outside the namespace, or in a comment, is nobody’s business', () => {
+  assert.deepEqual(
+    unregisteredVarViolations(
+      FILE,
+      'zzz',
+      [...consuming('focus-width'), '// gap: cv.getVar("zzz-gap");'],
+      new Set(),
+      new Set()
+    ),
+    []
+  );
+});
+
+test('the Bulma keys rule 4 exempts are the ones Bulma registers, and no wider', async () => {
+  // The cases above pass the set by hand, so they say nothing about the one
+  // the rule reads, and a wider read fails open: rule 4 just gets quieter.
+  const keys = await bulmaKeys();
+  // The key the exemption exists for: _file.scss reads Bulma's file-radius.
+  assert.ok(keys.has('file-radius'));
+  // bestax's own _tabs.scss registers this one, in the tabs namespace it
+  // shares with Bulma, where only this set stands between rule 4 and an
+  // unregistered variable.
+  assert.ok(!keys.has('tabs-vertical-min-width'));
+  // Read once: a later caller gets the same set, not a second walk.
+  assert.equal(await bulmaKeys(), keys);
+});
+
+test('a caller that arrives mid-read waits for the whole set', async () => {
+  // bulmaKeys awaits between files, so a cache published before the walk
+  // ends hands a second caller whatever had been read so far.
+  let release;
+  const gate = new Promise(resolve => (release = resolve));
+  let builds = 0;
+  const keys = onceAsync(async () => {
+    builds++;
+    const set = new Set(['a']);
+    await gate;
+    set.add('b');
+    return set;
+  });
+  const first = keys();
+  let secondSettled = false;
+  const second = keys().then(set => {
+    secondSettled = true;
+    return set;
+  });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(secondSettled, false);
+  release();
+  const [a, b] = await Promise.all([first, second]);
+  assert.equal(builds, 1);
+  assert.equal(a, b);
+  assert.deepEqual([...b], ['a', 'b']);
+});
+
+test('a read that throws part way caches nothing, so the next call reads it all', async () => {
+  let builds = 0;
+  const keys = onceAsync(async () => {
+    builds++;
+    const set = new Set();
+    for (const key of ['a', 'b', 'c']) {
+      await null;
+      if (key === 'b' && builds === 1) throw new Error('unreadable partial');
+      set.add(key);
+    }
+    return set;
+  });
+  await assert.rejects(keys(), /unreadable partial/);
+  assert.deepEqual([...(await keys())], ['a', 'b', 'c']);
+  assert.equal(builds, 2);
 });

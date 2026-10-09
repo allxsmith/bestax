@@ -241,12 +241,18 @@ export interface BuiltFile {
   /** Which of them holds the icon before that text, and after it. */
   iconLeft?: number;
   iconRight?: number;
-  /** The `.file-name`'s text. */
+  /**
+   * The `.file-name`'s text, or an empty string for a `has-name` `.file`
+   * with none, so the target shows no file a user picks.
+   */
   fileName?: string;
 }
 
 /** The button text `File` renders when it's given none. */
 const DEFAULT_FILE_LABEL = 'Choose a file\u2026';
+
+/** The class `File` renders beside `has-name` while it has no name to show. */
+const EMPTY_NAME = 'is-empty';
 
 /**
  * Why a target that `buildsFile` stays markup outside a `Field`, for the
@@ -780,10 +786,28 @@ export function plan(facts: ElementFacts): Plan {
   }
   let file: BuiltFile | undefined;
   if (entry.buildsFile) {
-    const built = buildFile(facts.childElements, entry, writes.has('hasName'));
+    const hasName = writes.has('hasName');
+    const built = buildFile(facts.childElements, entry, hasName);
     if ('why' in built) return refuse(built.kind, built.token, built.why);
     file = built.file;
     numbers.push(...built.numbers);
+    // With `has-name` and no `.file-name`, the target renders Bulma's
+    // `is-empty` too, whatever a condition says, so the markup has to carry
+    // it written out; it then goes with the rest of what the target renders.
+    // Its name is pinned empty, as a `.file-name` pins it to that text:
+    // unpinned, the target shows the file a user picks, and the markup never
+    // does.
+    if (hasName && file.fileName === undefined) {
+      if (!tokens.includes(EMPTY_NAME)) {
+        return refuse(
+          'defaults',
+          target,
+          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`, whatever a condition says, so a condition on \`${EMPTY_NAME}\` can't stand in for it; write \`${EMPTY_NAME}\` here as a static class if that is what you want, then re-run, and it converts with \`fileName=""\`, so a file the user picks shows no name, as this markup shows none`
+        );
+      }
+      converted.add(EMPTY_NAME);
+      file = { ...file, fileName: '' };
+    }
   }
 
   const props: Array<[string, string | true]> = [];

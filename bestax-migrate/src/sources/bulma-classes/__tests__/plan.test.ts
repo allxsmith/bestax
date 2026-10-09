@@ -1178,6 +1178,46 @@ describe('plan', () => {
       });
     });
 
+    it('takes is-empty on a name slot with no name, which File renders there itself', () => {
+      // Bulma's modifier for a `has-name` `.file` with nothing to name (#978).
+      const empty = file(tree(), 'file has-name is-empty').conversion!;
+      expect(empty.props).toEqual([['hasName', true]]);
+      expect(empty.className).toBeNull();
+      // Its name is pinned empty: unpinned, `File` would show the file a
+      // user picks, and drop `is-empty` with it, where the markup never does.
+      expect(empty.file).toEqual({
+        inputClassName: null,
+        buttonLabel: 0,
+        fileName: '',
+      });
+      // Without it `File` adds a class the markup doesn't have, and a
+      // condition can't promise one `File` renders whatever it says.
+      const bare = file(tree(), 'file has-name');
+      expect(rules(bare)).toEqual(['defaults:File']);
+      expect(bare.todos[0].message).toMatch(/`is-empty`/);
+      // And says what that conversion pins, so a pick never shows a name.
+      expect(bare.todos[0].message).toContain('converts with `fileName=""`');
+      // A conditional `is-empty` refuses too, and the TODO says so, or an
+      // author who has one reads it as already met.
+      const conditional = file(
+        tree(),
+        'file has-name',
+        {},
+        { conditional: [['is-empty']] }
+      );
+      expect(rules(conditional)).toEqual(['defaults:File']);
+      expect(conditional.todos[0].message).toContain(
+        "a condition on `is-empty` can't stand in for it; write `is-empty` here as a static class"
+      );
+      // Beside a name `File` renders none, so one written there stays a class.
+      const named = file(
+        tree({ name: span('file-name', { text: 'cv.pdf' }) }),
+        'file has-name is-empty'
+      ).conversion!;
+      expect(named.className).toBe('is-empty');
+      expect(named.file?.fileName).toBe('cv.pdf');
+    });
+
     it('converts only inside a Field, already there or becoming one', () => {
       expect(rules(file(tree(), 'file', {}, { classesAround: [] }))).toEqual([
         'context:File',
