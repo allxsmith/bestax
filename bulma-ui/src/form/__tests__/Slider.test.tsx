@@ -1512,6 +1512,46 @@ describe('range Slider thumb names (#981)', () => {
     ).toBeInTheDocument();
   });
 
+  it.each([
+    [
+      'its own label',
+      () => <Slider range label="Price" aria-labelledby={undefined} />,
+    ],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range aria-labelledby={undefined} />
+        </Field>
+      ),
+    ],
+  ])(
+    "treats a caller's undefined aria-labelledby as keeping %s out of both thumb names",
+    (_, element) => {
+      const { container } = render(element());
+      const { low, high } = thumbs(container);
+      expect(screen.getByRole('slider', { name: 'Minimum value' })).toBe(low);
+      expect(screen.getByRole('slider', { name: 'Maximum value' })).toBe(high);
+      expect(low).not.toHaveAttribute('aria-labelledby');
+      expect(high).not.toHaveAttribute('aria-labelledby');
+      expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+      // The label's `for` still lands on the low thumb.
+      expect(labelEl(container)).toHaveAttribute('for', low.id);
+    }
+  );
+
+  it("counts a caller's empty aria-label as unset, leaving the label in both names", () => {
+    const { container } = render(<Slider range label="Price" aria-label="" />);
+    const { low, high } = thumbs(container);
+    expect(screen.getByRole('slider', { name: 'Price Minimum value' })).toBe(
+      low
+    );
+    expect(screen.getByRole('slider', { name: 'Price Maximum value' })).toBe(
+      high
+    );
+    expect(low).not.toHaveAttribute('aria-label');
+  });
+
   it('keeps the default names when the label names something else', () => {
     const { container } = render(
       <Field label="Price">
