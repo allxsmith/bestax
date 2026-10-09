@@ -5,6 +5,7 @@ import React, {
   useRef,
   useMemo,
   useLayoutEffect,
+  useId,
 } from 'react';
 import {
   classNames,
@@ -58,9 +59,9 @@ interface SliderBaseProps
     >,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the label targets the low (minimum) thumb. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
+  /** Field label. Automatically associated with the slider input via `htmlFor` — uses your `id` when provided, otherwise a generated one. In range mode the `htmlFor` targets the low (minimum) thumb, and the label also starts each thumb's name through `aria-labelledby`, as in "Price Minimum value" and "Price Maximum value". Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), naming a range Slider's thumbs the same way. */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). In range mode an `id` here is the one the thumbs' `aria-labelledby` points at, in place of a generated one. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
@@ -119,7 +120,7 @@ export interface SliderSingleProps extends SliderBaseProps {
    * @defaultValue 0
    */
   minDistance?: never;
-  /** ARIA label(s) for the slider thumb(s). */
+  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after the label when a label names the Slider. */
   ariaLabel?: string;
 }
 
@@ -146,7 +147,7 @@ export interface SliderRangeProps extends SliderBaseProps {
    * @defaultValue 0
    */
   minDistance?: number;
-  /** ARIA label(s) for the slider thumb(s). */
+  /** ARIA label(s) for the slider thumb(s), which win over a label, the Slider's own or a surrounding `Field`'s. In range mode each entry is that thumb's whole name, and a thumb without one is named "Minimum value" or "Maximum value", after the label when a label names the Slider. */
   ariaLabel?: [string, string];
   /** Form field name for the low thumb. Use this in range mode so each thumb submits with its own name. */
   nameLow?: string;
@@ -321,13 +322,56 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(restProps);
     // In range mode the low thumb carries `rest` (and any user id), so the
-    // label targets it; each thumb keeps its own aria-label for AT.
-    const { controlId, fieldLabelProps } = useAutoLabelId({
+    // label's `for` targets it.
+    const { controlId, fieldLabelProps, labelId } = useAutoLabelId({
       label,
       id: restProps.id,
       labelProps,
       rendersLabel: ownField,
+      needsLabelId: !!range,
     });
+
+    // A range thumb's default name is an `aria-label`, which outranks the
+    // label's `for`, so a label naming the Slider reaches each thumb through
+    // `aria-labelledby` instead: the label, then a hidden span holding the
+    // thumb's own text, as in "Price Minimum value" (#981). An `ariaLabel`
+    // entry is that thumb's whole name and wins, and so does an `aria-label`
+    // or `aria-labelledby` the caller spreads onto the low thumb.
+    const thumbTextId = useId();
+    const thumbLabels = range
+      ? (ariaLabel as [string, string] | undefined)
+      : undefined;
+    const callerAria = rest as React.AriaAttributes;
+    const callerNamedLow =
+      !!callerAria['aria-label'] || 'aria-labelledby' in callerAria;
+    const nameThumb = (
+      own: string | undefined,
+      text: string,
+      textId: string,
+      callerNamed: boolean
+    ) => {
+      const wired = !!labelId && !own && !callerNamed;
+      return {
+        text,
+        textId,
+        wired,
+        aria: wired
+          ? { 'aria-labelledby': `${labelId} ${textId}` }
+          : { 'aria-label': own || text },
+      };
+    };
+    const lowThumb = nameThumb(
+      thumbLabels?.[0],
+      'Minimum value',
+      `${thumbTextId}-min`,
+      callerNamedLow
+    );
+    const highThumb = nameThumb(
+      thumbLabels?.[1],
+      'Maximum value',
+      `${thumbTextId}-max`,
+      false
+    );
 
     // Resolve tooltip mode: explicit tooltip prop takes precedence, else showOutput maps to 'auto'
     const tooltipMode: SliderTooltip =
@@ -775,9 +819,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-valuemin={min}
           aria-valuemax={max}
           aria-orientation={isVertical ? 'vertical' : undefined}
-          aria-label={
-            (ariaLabel as [string, string] | undefined)?.[0] ?? 'Minimum value'
-          }
+          {...lowThumb.aria}
           {...getAriaProps(currentRange[0])}
           {...rest}
           id={controlId}
@@ -806,12 +848,20 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
           aria-valuemin={min}
           aria-valuemax={max}
           aria-orientation={isVertical ? 'vertical' : undefined}
-          aria-label={
-            (ariaLabel as [string, string] | undefined)?.[1] ?? 'Maximum value'
-          }
+          {...highThumb.aria}
           {...getAriaProps(currentRange[1])}
           name={nameHigh}
         />
+        {/* Each wired thumb's own text, read after the label. A hidden element
+            still names whatever points aria-labelledby at it. */}
+        {[lowThumb, highThumb].map(
+          thumb =>
+            thumb.wired && (
+              <span key={thumb.textId} id={thumb.textId} hidden>
+                {thumb.text}
+              </span>
+            )
+        )}
         {/* Low tooltip */}
         {tooltipMode !== 'hidden' && (
           <output

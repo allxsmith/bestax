@@ -600,6 +600,20 @@ describe('label names the convenience controls (#939)', () => {
     expect(high).not.toHaveAttribute('id');
   });
 
+  it("starts each range Slider thumb's name with the label, at its labelProps id (#981)", () => {
+    render(
+      <Field label="Pick" labelProps={{ id: 'pick-label' }}>
+        <Slider range />
+      </Field>
+    );
+    for (const name of ['Pick Minimum value', 'Pick Maximum value']) {
+      expect(screen.getByRole('slider', { name })).toHaveAttribute(
+        'aria-labelledby',
+        expect.stringMatching(/^pick-label /)
+      );
+    }
+  });
+
   it('keeps an id the caller set on the control', () => {
     const { container } = render(
       <Field label="Pick">
