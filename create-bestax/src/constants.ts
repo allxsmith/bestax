@@ -157,8 +157,8 @@ cases. Before writing \`style\`, translate each declaration with this table:
   \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.`;
 
 const NO_HELPERS_HOUSE_STYLE = `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
-this app's flavor has no helper classes, so \`mt="4"\`, \`textAlign="centered"\`, \`flexGrow="1"\` and the
-rest render nothing. Write a named class in \`src/App.css\`, which loads after Bulma's CSS, and pass it via \`className\`.
+this app's flavor leaves out Bulma's helper classes, so \`mt="4"\`, \`textAlign="centered"\` and \`flexGrow="1"\`
+render nothing. Write a named class in \`src/App.css\`, which loads after Bulma's CSS, and pass it via \`className\`.
 `;
 
 export const CLAUDE_MD = (
@@ -180,10 +180,11 @@ export const CLAUDE_MD = (
   }
   if (flavor?.noHelpers) {
     setupLines.push(
-      `- This flavor leaves out Bulma's helper classes, so **helper props render nothing**: ` +
-        `\`mt\`, \`gap\`, \`textAlign\`, \`textColor\`, \`display\`, \`flexGrow\` and the rest still add ` +
-        `class names, but no rule matches them. The starter page lays itself out with named ` +
-        `classes in \`src/App.css\` instead.`
+      `- This flavor leaves out Bulma's helper classes, so **helper props that add those classes render nothing**: ` +
+        `\`mt\`, \`gap\`, \`textAlign\`, \`textColor\`, \`display\` and \`flexGrow\` still add ` +
+        `class names, but no rule matches them. \`skeleton\` still works, because the flavor keeps ` +
+        `Bulma's skeleton styles. The starter page lays itself out with named classes in ` +
+        `\`src/App.css\` instead.`
     );
   }
   const providerIconValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
@@ -377,8 +378,8 @@ export interface BulmaFlavor {
   color: typeof chalk.yellow;
   importStatement: string;
   needsPrefix?: boolean;
-  // The flavor's CSS leaves out Bulma's helper classes, so every helper prop
-  // (`mt`, `textAlign`, `flexGrow`, …) renders a class nothing styles.
+  // The flavor's CSS leaves out Bulma's helper classes, so a helper prop that
+  // adds one (`mt`, `textAlign`, `flexGrow`, …) renders a class nothing styles.
   noHelpers?: boolean;
 }
 

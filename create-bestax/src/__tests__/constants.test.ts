@@ -1,4 +1,7 @@
 import { describe, it, expect, jest } from '@jest/globals';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Mock chalk
 jest.unstable_mockModule('chalk', () => ({
@@ -354,9 +357,37 @@ describe('constants', () => {
     bulmaFlavor => {
       const md = CLAUDE_MD('my-app', { bulmaFlavor, iconLibrary: 'none' });
 
-      it('says helper props render nothing in this app', () => {
-        expect(md).toContain('**helper props render nothing**');
-        expect(md).toContain("this app's flavor has no helper classes");
+      it('says the helper props for the left-out classes render nothing', () => {
+        expect(md).toContain(
+          '**helper props that add those classes render nothing**'
+        );
+        expect(md).toContain(
+          "this app's flavor leaves out Bulma's helper classes"
+        );
+      });
+
+      // The flavor keeps Bulma's skeleton styles, so `skeleton` is a helper
+      // prop that still works, and a sentence saying every helper prop
+      // renders nothing would send an agent to hand-roll a loading state.
+      it('names skeleton as a helper prop that still works', () => {
+        expect(md).toContain('`skeleton` still works');
+        expect(md).not.toContain('and the rest');
+      });
+
+      // What the text says the flavor leaves out and keeps is what its
+      // stylesheet forwards.
+      it("matches what the flavor's stylesheet forwards", () => {
+        const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor)!;
+        const css = /versions\/([\w-]+)\.css/.exec(flavor.importStatement)![1];
+        const scss = fs.readFileSync(
+          path.resolve(
+            path.dirname(fileURLToPath(import.meta.url)),
+            `../../../bulma-ui/src/scss/versions/${css}.scss`
+          ),
+          'utf8'
+        );
+        expect(scss).toContain('@forward "bulma/sass/base/skeleton"');
+        expect(scss).not.toContain('bulma/sass/helpers');
       });
 
       it('sends inline styles to a named class instead of a helper prop', () => {
@@ -395,7 +426,7 @@ describe('constants', () => {
         iconLibrary: 'none',
       });
       expect(md).toContain('Helper props instead');
-      expect(md).not.toContain('helper props render nothing');
+      expect(md).not.toContain("leaves out Bulma's helper classes");
     }
   });
 
