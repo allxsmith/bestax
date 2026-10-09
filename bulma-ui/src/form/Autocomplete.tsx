@@ -13,7 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useInsideField } from './FormContext';
+import { useFieldLabelElementId, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -42,9 +42,9 @@ export interface AutocompleteProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. While it names the input it also names the open suggestion list, through `aria-labelledby`. Dropped inside an outer `Field`, whose own label associates and names the list instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). When no label names the input, or the label naming it is an outer `Field`'s wired by hand, the list is named "Suggestions". */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (the input then gets no generated id). While the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
@@ -188,12 +188,16 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     ref
   ) => {
     const insideField = useInsideField();
-    const { controlId, fieldLabelProps } = useAutoLabelId({
+    const { controlId, fieldLabelProps, labelled } = useAutoLabelId({
       label,
       id,
       labelProps,
       rendersLabel: !insideField,
     });
+    // The id of a surrounding Field's own label, set only while that Field
+    // wires its label itself, which is when the label renders with this id.
+    // Undefined under a label wired by hand, which carries no id of ours.
+    const fieldLabelElementId = useFieldLabelElementId();
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -455,13 +459,16 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       clearable && !!inputValue && !disabled && !loading && !controlLoading;
 
     // The combobox controls its listbox and points at the highlighted option.
-    // The listbox takes its name from the label this renders, or a fallback
-    // when it renders none.
+    // The listbox takes its name from the label that names the combobox, the
+    // one this renders or a surrounding Field's, so the two say the same
+    // thing. When no label names the combobox, or the one that does has no
+    // id to point at, the list keeps a fallback name.
     const listOpen = isActive && (filteredData.length > 0 || !!empty);
-    const listLabelId =
-      !insideField && label
-        ? ((fieldLabelProps?.id as string | undefined) ?? `${listboxId}-label`)
-        : undefined;
+    const listLabelId = !labelled
+      ? undefined
+      : insideField
+        ? fieldLabelElementId
+        : ((fieldLabelProps?.id as string | undefined) ?? `${listboxId}-label`);
     const activeOptionId =
       listOpen &&
       highlightedIndex >= 0 &&
