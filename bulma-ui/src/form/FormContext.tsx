@@ -241,8 +241,10 @@ const FieldLabelElementIdContext = createContext<string | undefined>(undefined);
 /**
  * The id of a labeled Field's own `<label>`, for a group control (Radios,
  * Checkboxes, Rate, DateRangeInput) to point `aria-labelledby` at, since a group cannot take
- * the label's `htmlFor` (#939). Set under the same conditions as
- * {@link useFieldLabelId}. Consumed through `useAutoLabelledBy`.
+ * the label's `htmlFor` (#939), and for a range Slider's thumbs, which each
+ * need the label in a name of their own (#981). Set under the same conditions
+ * as {@link useFieldLabelId}. Consumed through `useAutoLabelledBy` and
+ * `useAutoLabelId`.
  * Internal; not part of the public API.
  */
 export const useFieldLabelElementId = () =>

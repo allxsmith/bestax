@@ -131,7 +131,10 @@ The `label` prop on the single-control convenience inputs (`Input`, `Select`, `T
 generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
 happens when the component renders its own `Field` (nested inside one, the `label` prop is
 dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
-`maxTags` (no visible input to label). The group inputs (`Checkboxes`, `Radios`, `Rate`,
+`maxTags` (no visible input to label). A `range` `Slider` points the `for` at its low thumb
+and also puts the label at the start of both thumbs' names through `aria-labelledby`
+("Price range Minimum value"). Its `ariaLabel={[low, high]}` replaces those names outright, so
+leave it off when a label already names the Slider. The group inputs (`Checkboxes`, `Radios`, `Rate`,
 `DateRangeInput`) associate their `label` too, but group-style: the wrapper gets
 `role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
 also associates: a labeled `Field` names the one control it holds, whether a composed
