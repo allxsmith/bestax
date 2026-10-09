@@ -77,12 +77,16 @@ The simplest usage — the component automatically renders its own Field and Con
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
-A labeled `Field` that holds the Radios directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Radios in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id }}` on that `Field` and a matching `aria-labelledby` on the Radios.
+A labeled `Field` that holds the Radios directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Radios in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Radios. The `htmlFor: undefined` keeps the label from pointing a `for` at a control, since a group takes none.
 
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="RSVP" labelProps={{ id: 'rsvp-label' }}>
+    <Field
+      horizontal
+      label="RSVP"
+      labelProps={{ id: 'rsvp-label', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Radios aria-labelledby="rsvp-label">
@@ -106,7 +110,11 @@ For full manual control, wrap in both Field and Control. The component detects b
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="RSVP" labelProps={{ id: 'rsvp-label-control' }}>
+    <Field
+      horizontal
+      label="RSVP"
+      labelProps={{ id: 'rsvp-label-control', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Control>

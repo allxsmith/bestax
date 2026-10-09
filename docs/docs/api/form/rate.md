@@ -209,12 +209,16 @@ The simplest usage — the component automatically renders its own Field wrapper
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
-A labeled `Field` that holds the Rate directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Rate in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id }}` on that `Field` and a matching `aria-labelledby` on the Rate.
+A labeled `Field` that holds the Rate directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Rate in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Rate. The `htmlFor: undefined` keeps the label from pointing a `for` at a control, since a group takes none.
 
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Rating" labelProps={{ id: 'rating-label' }}>
+    <Field
+      horizontal
+      label="Rating"
+      labelProps={{ id: 'rating-label', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Rate aria-labelledby="rating-label" defaultValue={3} />
@@ -237,7 +241,7 @@ function example() {
     <Field
       horizontal
       label="Rating"
-      labelProps={{ id: 'rating-label-control' }}
+      labelProps={{ id: 'rating-label-control', htmlFor: undefined }}
     >
       <Field.Body>
         <Field>

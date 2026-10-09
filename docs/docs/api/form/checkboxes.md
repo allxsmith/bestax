@@ -75,12 +75,16 @@ The simplest usage — the component automatically renders its own Field and Con
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
-A labeled `Field` that holds the Checkboxes directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Checkboxes in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id }}` on that `Field` and a matching `aria-labelledby` on the Checkboxes.
+A labeled `Field` that holds the Checkboxes directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Checkboxes in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Checkboxes. The `htmlFor: undefined` keeps the label from pointing a `for` at a control, since a group takes none.
 
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Chores" labelProps={{ id: 'chores-label' }}>
+    <Field
+      horizontal
+      label="Chores"
+      labelProps={{ id: 'chores-label', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Checkboxes aria-labelledby="chores-label">
@@ -107,7 +111,7 @@ function example() {
     <Field
       horizontal
       label="Chores"
-      labelProps={{ id: 'chores-label-control' }}
+      labelProps={{ id: 'chores-label-control', htmlFor: undefined }}
     >
       <Field.Body>
         <Field>
