@@ -303,12 +303,16 @@ The simplest usage — the component automatically renders its own Field wrapper
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
-A labeled `Field` that holds the Autocomplete directly names its input and its open list with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Autocomplete in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`. That names the input, while the list keeps its fallback name, "Suggestions".
+A labeled `Field` that holds the Autocomplete directly names its input and its open list with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Autocomplete in an inner one, which starts its own scope, so these examples wire the label by hand. An `htmlFor` in `labelProps` and a matching `id` on the Autocomplete name the input, and an `id` in `labelProps` gives the open list the label to take its name from. Without that `id` the list keeps its fallback name, "Suggestions".
 
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Fruit" labelProps={{ htmlFor: 'fruit-field' }}>
+    <Field
+      horizontal
+      label="Fruit"
+      labelProps={{ htmlFor: 'fruit-field', id: 'fruit-field-label' }}
+    >
       <Field.Body>
         <Field>
           <Autocomplete
@@ -335,7 +339,10 @@ function example() {
     <Field
       horizontal
       label="Fruit"
-      labelProps={{ htmlFor: 'fruit-field-control' }}
+      labelProps={{
+        htmlFor: 'fruit-field-control',
+        id: 'fruit-field-control-label',
+      }}
     >
       <Field.Body>
         <Field>
@@ -408,12 +415,12 @@ function AutocompleteFormDemo() {
 
 ## Accessibility
 
-- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it. Inside a labeled `Field`, that `Field`'s label names the input the same way.
+- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it. Inside a labeled `Field`, that `Field`'s label names the input instead when it points at it: a `Field` that is not `grouped` or `hasAddons` points it there on its own when the Autocomplete has no `id` and no inner `Field` sits between them, and a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`.
 - A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.
 - Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen
 - Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`, and, while the list is on screen, `aria-controls` pointing at it
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it
-- The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input: the `label` prop's label or, inside a labeled `Field` that wires its label itself, that `Field`'s label. It falls back to `aria-label="Suggestions"` when no label names the input, and when the one that does is an outer `Field`'s label wired by hand with `labelProps.htmlFor`, which is how a horizontal form names an Autocomplete in an inner `Field`
+- The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input, when that label has an id: the `label` prop's label always has one, and so does a `Field`'s label that the `Field` wires itself. A `Field` label you wire by hand with `labelProps.htmlFor`, which is how a horizontal form names an Autocomplete in an inner `Field`, needs an `id` in its `labelProps` as well. Otherwise the list falls back to `aria-label="Suggestions"`
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
