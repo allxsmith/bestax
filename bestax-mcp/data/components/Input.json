@@ -99,15 +99,15 @@
     },
     {
       "title": "Horizontal — Validation Error",
-      "code": "<Field horizontal label=\"Email\">\n  <Field.Body>\n    <Field>\n      <Control iconLeftName=\"envelope\" iconRightName=\"exclamation-triangle\">\n        <Input type=\"email\" color=\"danger\" value=\"hello@\" onChange={() => {}} />\n      </Control>\n      <p className=\"help is-danger\">This email is invalid</p>\n    </Field>\n  </Field.Body>\n</Field>"
+      "code": "<Field horizontal label=\"Email\" labelProps={{ htmlFor: 'invalid-email' }}>\n  <Field.Body>\n    <Field>\n      <Control iconLeftName=\"envelope\" iconRightName=\"exclamation-triangle\">\n        <Input\n          id=\"invalid-email\"\n          type=\"email\"\n          color=\"danger\"\n          value=\"hello@\"\n          onChange={() => {}}\n        />\n      </Control>\n      <p className=\"help is-danger\">This email is invalid</p>\n    </Field>\n  </Field.Body>\n</Field>"
     },
     {
       "title": "Horizontal — Addons (Phone with Country Code)",
-      "code": "<Field horizontal label=\"Phone\">\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button isStatic>+44</Button>\n      </Control>\n      <Control isExpanded>\n        <Input type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
+      "code": "<Field horizontal label=\"Phone\" labelProps={{ htmlFor: 'phone-number' }}>\n  <Field.Body>\n    <Field hasAddons>\n      <Control>\n        <Button isStatic>+44</Button>\n      </Control>\n      <Control isExpanded>\n        <Input id=\"phone-number\" type=\"tel\" placeholder=\"Your phone number\" />\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
     },
     {
       "title": "Horizontal — Submit Row",
-      "code": "<>\n  <Field horizontal label=\"Name\">\n    <Field.Body>\n      <Field>\n        <Control>\n          <Input placeholder=\"Your name\" />\n        </Control>\n      </Field>\n    </Field.Body>\n  </Field>\n  <Field horizontal>\n    <Field.Label />\n    <Field.Body>\n      <Field>\n        <Control>\n          <Button color=\"primary\">Submit</Button>\n        </Control>\n      </Field>\n    </Field.Body>\n  </Field>\n</>"
+      "code": "<>\n  <Field horizontal label=\"Name\" labelProps={{ htmlFor: 'submit-row-name' }}>\n    <Field.Body>\n      <Field>\n        <Control>\n          <Input id=\"submit-row-name\" placeholder=\"Your name\" />\n        </Control>\n      </Field>\n    </Field.Body>\n  </Field>\n  <Field horizontal>\n    <Field.Label />\n    <Field.Body>\n      <Field>\n        <Control>\n          <Button color=\"primary\">Submit</Button>\n        </Control>\n      </Field>\n    </Field.Body>\n  </Field>\n</>"
     },
     {
       "title": "Disabled Fieldset",

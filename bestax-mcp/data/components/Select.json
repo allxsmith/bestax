@@ -55,7 +55,7 @@
     },
     {
       "title": "Horizontal — Select in Narrow Field",
-      "code": "<Field horizontal label=\"Department\">\n  <Field.Body>\n    <Field narrow>\n      <Control>\n        <Select isFullwidth>\n          <option>Business development</option>\n          <option>Marketing</option>\n          <option>Sales</option>\n        </Select>\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
+      "code": "<Field\n  horizontal\n  label=\"Department\"\n  labelProps={{ htmlFor: 'department-field' }}\n>\n  <Field.Body>\n    <Field narrow>\n      <Control>\n        <Select id=\"department-field\" isFullwidth>\n          <option>Business development</option>\n          <option>Marketing</option>\n          <option>Sales</option>\n        </Select>\n      </Control>\n    </Field>\n  </Field.Body>\n</Field>"
     },
     {
       "title": "Context-Aware Rendering",
