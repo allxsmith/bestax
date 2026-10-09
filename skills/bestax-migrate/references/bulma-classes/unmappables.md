@@ -88,6 +88,11 @@ element the attribute it's missing.
 sets none, and `Card.Header.Icon` renders `aria-label="more options"` too. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
+`File` renders a class rather than an attribute: Bulma's `is-empty`, on a `has-name` `.file` with
+no `.file-name`, whatever a condition says. Write `is-empty` on the `.file` as a static class, then
+re-run: a condition on `is-empty` can't stand in, so one already there still gets this TODO. The
+`File` it becomes gets `fileName=""`, so a file the user picks leaves it as the markup was: no name
+area, and `is-empty` still on.
 
 ### `drops:<Target>`
 

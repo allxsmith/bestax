@@ -239,9 +239,7 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
           padding: '2rem',
         }}
       >
-        <Title subtitle textColor="white">
-          Galaxy Horizon
-        </Title>
+        <SubTitle textColor="white">Galaxy Horizon</SubTitle>
       </div>
     </div>
   </CarouselItem>
@@ -267,9 +265,7 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
           padding: '2rem',
         }}
       >
-        <Title subtitle textColor="white">
-          Night Sky Vista
-        </Title>
+        <SubTitle textColor="white">Night Sky Vista</SubTitle>
       </div>
     </div>
   </CarouselItem>
@@ -295,9 +291,7 @@ Image/content slider with navigation arrows and indicators. Supports auto-play, 
           padding: '2rem',
         }}
       >
-        <Title subtitle textColor="white">
-          Starry Night
-        </Title>
+        <SubTitle textColor="white">Starry Night</SubTitle>
       </div>
     </div>
   </CarouselItem>
