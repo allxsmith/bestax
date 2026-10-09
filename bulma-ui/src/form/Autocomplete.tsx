@@ -13,7 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelElementId, useInsideField } from './FormContext';
+import { useFieldLabelFor, useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -42,7 +42,7 @@ export interface AutocompleteProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onSelect' | 'onInput'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. While it names the input it also names the open suggestion list, through `aria-labelledby`. Dropped inside an outer `Field`, whose own label associates and names the list instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). When no label names the input, or the label naming it is an outer `Field`'s wired by hand, the list is named "Suggestions". */
+  /** Field label, associated with the text input via `htmlFor`: through your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose label names the input instead when it points at it. The `Field` points its label there itself when the Autocomplete has no `id` and no inner `Field` sits between them (and the `Field` is not `grouped` or `hasAddons`); a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`. The label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (the input then gets no generated id). While the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -194,10 +194,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       labelProps,
       rendersLabel: !insideField,
     });
-    // The id of a surrounding Field's own label, set only while that Field
-    // wires its label itself, which is when the label renders with this id.
-    // Undefined under a label wired by hand, which carries no id of ours.
-    const fieldLabelElementId = useFieldLabelElementId();
+    // The id a surrounding Field's label renders with: one the Field generates
+    // while it wires the label itself, or the caller's `labelProps.id`, which
+    // is the only id a label wired by hand carries. Read only while that
+    // label names the input, so it is the label `labelled` checked.
+    const fieldLabelElementId = useFieldLabelFor().id;
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);

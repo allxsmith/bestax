@@ -250,19 +250,29 @@ export const useFieldLabelElementId = () =>
 /** Provider for the Field label's own id, used internally by Field. */
 export const FieldLabelElementIdProvider = FieldLabelElementIdContext.Provider;
 
-const FieldLabelForContext = createContext<string | undefined>(undefined);
+/** The nearest labeled Field's `<label>`, as {@link useFieldLabelFor} reads it. */
+export interface FieldLabelFor {
+  /** What the label's `htmlFor` points at, generated or the caller's. */
+  htmlFor?: string;
+  /** The id the label renders with, the caller's or a generated one, if any. */
+  id?: string;
+}
+
+const FieldLabelForContext = createContext<FieldLabelFor>({});
 
 /**
- * What the nearest labeled Field's `<label>` points `htmlFor` at: the id it
- * generated, or the caller's own `labelProps.htmlFor`. An unlabeled Field
- * passes it through, so a control in the inner Field of a horizontal layout
- * can tell the outer label names it. Only ever compared with a control's own
- * id, never adopted, so it hands out no id. Internal; not part of the public
- * API.
+ * The nearest labeled Field's `<label>`: what it points `htmlFor` at, the id
+ * it generated or the caller's own `labelProps.htmlFor`, and the id the label
+ * renders with, if it has one. An unlabeled Field passes both through
+ * together, so a control in the inner Field of a horizontal layout can tell
+ * the outer label names it, and point at that label by its id. The `htmlFor`
+ * is only ever compared with a control's own id, never adopted, so it hands
+ * out no id for a control. The `id` is set only while that label renders
+ * with it. Internal; not part of the public API.
  */
 export const useFieldLabelFor = () => useContext(FieldLabelForContext);
 
-/** Provider for the Field label's `htmlFor` target, used internally by Field. */
+/** Provider for the Field label's `htmlFor` target and id, used internally by Field. */
 export const FieldLabelForProvider = FieldLabelForContext.Provider;
 
 /**

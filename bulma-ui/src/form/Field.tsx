@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useId, useMemo } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
@@ -244,15 +244,17 @@ const FieldComponent: React.FC<FieldProps> = ({
   // gave it one.
   const labelId =
     labelProps?.id ?? (targetId ? `${targetId}-label` : undefined);
-  // What the rendered label's `for` points at, generated or the caller's, so
-  // a control can tell when a label wired by hand names it. An unlabeled
-  // Field passes on its parent's.
+  // What the rendered label's `for` points at, generated or the caller's, and
+  // the id it renders with, so a control can tell when a label wired by hand
+  // names it and point at that label. An unlabeled Field passes on its
+  // parent's.
   const inheritedLabelFor = useFieldLabelFor();
-  const labelFor = label
-    ? userWiredLabel
-      ? labelProps.htmlFor
-      : targetId
-    : inheritedLabelFor;
+  const labelForTarget = userWiredLabel ? labelProps.htmlFor : targetId;
+  const ownLabelFor = useMemo(
+    () => ({ htmlFor: labelForTarget, id: labelId }),
+    [labelForTarget, labelId]
+  );
+  const labelFor = label ? ownLabelFor : inheritedLabelFor;
 
   let renderedLabel = null;
   if (label) {

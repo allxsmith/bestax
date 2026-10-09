@@ -55,7 +55,7 @@ export function useAutoLabelId({
   // Field holds the control, which then renders no label of its own.
   const fieldLabelId = useFieldLabelId();
   // What an outer Field's label points at, even when wired by hand.
-  const fieldLabelFor = useFieldLabelFor();
+  const fieldLabelFor = useFieldLabelFor().htmlFor;
   // Truthiness mirrors Field's own `if (label)` render gate.
   const active = !!label && rendersLabel;
   // Presence, not truthiness: `htmlFor: undefined` is an explicit opt-out and
