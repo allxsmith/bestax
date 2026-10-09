@@ -1,3 +1,19 @@
+## [5.27.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.3...@allxsmith/bestax-bulma@5.27.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let a caller's aria-label or aria-labelledby name both range Slider thumbs ([047ff7c](https://github.com/allxsmith/bestax/commit/047ff7ca5f2988ad044e8112c6bf872beb0a5f1d)), closes [#974](https://github.com/allxsmith/bestax/issues/974)
+* **bulma-ui:** name each range Slider thumb from its label ([6b962e3](https://github.com/allxsmith/bestax/commit/6b962e3490bbc103c1b73bb432c79b7819139dd7)), closes [#981](https://github.com/allxsmith/bestax/issues/981)
+* **create-bestax:** announce the starter's notifications through a status region ([91dbfd5](https://github.com/allxsmith/bestax/commit/91dbfd5a806078b1cabee705712b3d9a95ec501b))
+* **create-bestax:** give each starter notification a status region of its own ([f1ef4df](https://github.com/allxsmith/bestax/commit/f1ef4df0798f9baaf2998e051196bf5b5efd5fb0))
+* **create-bestax:** keep focus on the counter when Reset disables itself ([733e505](https://github.com/allxsmith/bestax/commit/733e5058ef7ca29f093996720fcba0545a58481b))
+* **create-bestax:** keep the reason for the stylesheet order in every scaffolded entry file ([f4591e0](https://github.com/allxsmith/bestax/commit/f4591e0bd43ad472462fbf18422f74de2b0f64c5))
+* **create-bestax:** return focus when the starter's notification closes, and tighten guards ([67e3678](https://github.com/allxsmith/bestax/commit/67e36782d3d81dbc2e29f6cb0543ed9c116c15cf))
+* **create-bestax:** say which helper props render nothing under the no-helpers flavors ([b29985b](https://github.com/allxsmith/bestax/commit/b29985b59f8e43a4751ab79a196c22712d02f1d1))
+* **create-bestax:** stop the no-helpers CLAUDE.md offering helper props as the way out ([a96c203](https://github.com/allxsmith/bestax/commit/a96c2032ac02620c764e9626712f479e6b7b64a8))
+* **create-bestax:** stop the vite-ts build shadowing its config, and fix the starter page ([1dd964d](https://github.com/allxsmith/bestax/commit/1dd964d2527a6c2c27d89a9ac0b4f7b5b814bf7d))
+
 ## [5.27.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.2...@allxsmith/bestax-bulma@5.27.3) (2026-10-09)
 
 
