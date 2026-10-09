@@ -831,6 +831,60 @@ describe('label names the convenience controls (#939)', () => {
     expect(other).toHaveAttribute('aria-label', 'Add tag');
   });
 
+  // The horizontal recipe in the Context-Aware Rendering examples on the
+  // Input, Select and TextArea pages, with and without the inner Control.
+  const horizontalRecipes: Array<
+    [string, (id: string) => React.ReactElement, string]
+  > = [
+    ['Input', id => <Input id={id} placeholder="Enter" />, 'textbox'],
+    [
+      'Select',
+      id => (
+        <Select id={id}>
+          <option value="">Please select</option>
+        </Select>
+      ),
+      'combobox',
+    ],
+    ['TextArea', id => <TextArea id={id} placeholder="Enter" />, 'textbox'],
+  ];
+
+  it.each(horizontalRecipes)(
+    'names %s across the inner Field of a hand-wired horizontal layout',
+    (_, element, role) => {
+      render(
+        <Field horizontal label="Pick" labelProps={{ htmlFor: 'pick-field' }}>
+          <Field.Body>
+            <Field>{element('pick-field')}</Field>
+          </Field.Body>
+        </Field>
+      );
+      expect(screen.getByRole(role, { name: 'Pick' })).toHaveAttribute(
+        'id',
+        'pick-field'
+      );
+    }
+  );
+
+  it.each(horizontalRecipes)(
+    'names %s across the inner Field and Control of a hand-wired horizontal layout',
+    (_, element, role) => {
+      render(
+        <Field horizontal label="Pick" labelProps={{ htmlFor: 'pick-field' }}>
+          <Field.Body>
+            <Field>
+              <Control iconLeftName="user">{element('pick-field')}</Control>
+            </Field>
+          </Field.Body>
+        </Field>
+      );
+      expect(screen.getByRole(role, { name: 'Pick' })).toHaveAttribute(
+        'id',
+        'pick-field'
+      );
+    }
+  );
+
   it.each([
     ['an inline DateInput', () => <DateInput inline />],
     ['an inline TimeInput', () => <TimeInput inline />],
