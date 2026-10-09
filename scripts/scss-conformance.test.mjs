@@ -16,6 +16,7 @@ import assert from 'node:assert/strict';
 
 import {
   bulmaKeys,
+  onceAsync,
   orphanPartialViolations,
   unregisteredVarViolations,
 } from './check-conformance.mjs';
@@ -183,4 +184,51 @@ test('the Bulma keys rule 4 exempts are the ones Bulma registers, and no wider',
   // shares with Bulma, where only this set stands between rule 4 and an
   // unregistered variable.
   assert.ok(!keys.has('tabs-vertical-min-width'));
+  // Read once: a later caller gets the same set, not a second walk.
+  assert.equal(await bulmaKeys(), keys);
+});
+
+test('a caller that arrives mid-read waits for the whole set', async () => {
+  // bulmaKeys awaits between files, so a cache published before the walk
+  // ends hands a second caller whatever had been read so far.
+  let release;
+  const gate = new Promise(resolve => (release = resolve));
+  let builds = 0;
+  const keys = onceAsync(async () => {
+    builds++;
+    const set = new Set(['a']);
+    await gate;
+    set.add('b');
+    return set;
+  });
+  const first = keys();
+  let secondSettled = false;
+  const second = keys().then(set => {
+    secondSettled = true;
+    return set;
+  });
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(secondSettled, false);
+  release();
+  const [a, b] = await Promise.all([first, second]);
+  assert.equal(builds, 1);
+  assert.equal(a, b);
+  assert.deepEqual([...b], ['a', 'b']);
+});
+
+test('a read that throws part way caches nothing, so the next call reads it all', async () => {
+  let builds = 0;
+  const keys = onceAsync(async () => {
+    builds++;
+    const set = new Set();
+    for (const key of ['a', 'b', 'c']) {
+      await null;
+      if (key === 'b' && builds === 1) throw new Error('unreadable partial');
+      set.add(key);
+    }
+    return set;
+  });
+  await assert.rejects(keys(), /unreadable partial/);
+  assert.deepEqual([...(await keys())], ['a', 'b', 'c']);
+  assert.equal(builds, 2);
 });

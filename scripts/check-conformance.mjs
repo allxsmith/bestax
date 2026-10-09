@@ -623,26 +623,38 @@ export function unregisteredVarViolations(
 }
 
 /**
+ * Runs an async build once and hands every caller its result. The promise is
+ * what gets cached, so a caller that arrives mid-build waits for the finished
+ * value instead of seeing a half-filled one, and a build that throws is
+ * forgotten, so the next call builds again rather than replaying the failure.
+ */
+export function onceAsync(build) {
+  let pending;
+  return () =>
+    (pending ??= build().catch(err => {
+      pending = undefined;
+      throw err;
+    }));
+}
+
+/**
  * Every variable key Bulma's own partials register, read once. Rule 4 exempts
  * whatever this returns, so a wider read quietly exempts more; the scss
  * conformance test holds it to the real Bulma tree.
  */
-let bulmaKeySet;
-export async function bulmaKeys() {
-  if (!bulmaKeySet) {
-    const sassDir = join(
-      dirname(createRequire(import.meta.url).resolve('bulma/package.json')),
-      'sass'
-    );
-    bulmaKeySet = new Set();
-    for (const file of await readdir(sassDir, { recursive: true })) {
-      if (!file.endsWith('.scss')) continue;
-      const src = await readFile(join(sassDir, file), 'utf8');
-      for (const { key } of registerVarsEntries(src)) bulmaKeySet.add(key);
-    }
+export const bulmaKeys = onceAsync(async () => {
+  const sassDir = join(
+    dirname(createRequire(import.meta.url).resolve('bulma/package.json')),
+    'sass'
+  );
+  const keys = new Set();
+  for (const file of await readdir(sassDir, { recursive: true })) {
+    if (!file.endsWith('.scss')) continue;
+    const src = await readFile(join(sassDir, file), 'utf8');
+    for (const { key } of registerVarsEntries(src)) keys.add(key);
   }
-  return bulmaKeySet;
-}
+  return keys;
+});
 
 async function checkScssConformance() {
   const violations = [];
