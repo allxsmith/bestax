@@ -203,7 +203,15 @@ const [volume, setVolume] = useState(50);
 <Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;
 
 const [range, setRange] = useState<[number, number]>([20, 80]);
-<Slider range value={range} onChange={setRange} min={0} max={100} />;
+// The label names both thumbs: "Price range Minimum value" / "... Maximum value".
+<Slider
+  range
+  label="Price range"
+  value={range}
+  onChange={setRange}
+  min={0}
+  max={100}
+/>;
 
 // Numberinput
 const [qty, setQty] = useState(1);
