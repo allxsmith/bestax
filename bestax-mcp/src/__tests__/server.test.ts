@@ -420,7 +420,17 @@ describe('the bestax.io links inside answers', () => {
   const SITE_ORIGIN = /https:\/\/bestax\.io(?![\w.-])/;
   /** Every markdown link target into bestax.io in a piece of text. */
   const siteLinks = (out: string) =>
-    [...out.matchAll(/\]\(<?(https:\/\/bestax\.io[^)\s>]*)/g)].map(m => m[1]);
+    [...out.matchAll(/\]\(<?(https:\/\/bestax\.io(?![\w.-])[^)\s>]*)/g)].map(
+      m => m[1]
+    );
+  /** The tag where it counts: in the query, ahead of any fragment. */
+  const TAGGED = new RegExp(`[?&]${TAG}(?:[&#]|$)`);
+  /** Markdown outside its fences, as the generator's guard reads it. */
+  const outsideFences = (md: string) =>
+    md
+      .split(/^[ \t]*(?:```|~~~)[^\n]*$/m)
+      .filter((_, i) => i % 2 === 0)
+      .join('\n');
 
   it('tags the link in an accessibility note, keeping its fragment', async () => {
     const out = text(
@@ -464,6 +474,66 @@ describe('the bestax.io links inside answers', () => {
       }
     }
   );
+
+  // The cases above, made exhaustive the way the generator's guard over relative links
+  // is: every record through each tool that renders it, and every catalog entry. A
+  // render path that serves a field without tagging it fails here, whichever field.
+  it('tags every site link in every record and catalog entry it serves', async () => {
+    const catalog = await loadCatalog();
+    const getComponent = (await client.listTools()).tools.find(
+      t => t.name === 'get_component'
+    );
+    // Every section get_component offers, as it advertises them.
+    const include = (
+      getComponent?.inputSchema.properties?.include as {
+        items: { enum: string[] };
+      }
+    ).items.enum;
+    const answers: { at: string; out: string }[] = [];
+    const refused: string[] = [];
+    const ask = async (tool: string, args: Record<string, unknown>) => {
+      const at = `${tool} ${JSON.stringify(args)}`;
+      const result = await call(tool, args);
+      if (failed(result)) refused.push(at);
+      answers.push({ at, out: text(result) });
+      return text(result);
+    };
+
+    // By category, since the unfiltered listing adds a section from a skill, and
+    // skills are served as written.
+    for (const { id } of catalog.categories) {
+      await ask('list_components', { category: id });
+    }
+    for (const { name } of catalog.components) {
+      const record = await loadComponent(name);
+      await ask('get_component', { name });
+      await ask('get_component', { name, include });
+      await ask('search_bestax', { query: name, kind: 'component' });
+      for (const { path } of record.parts.slice(1)) {
+        await ask('get_component', { name: path });
+        await ask('get_props', { component: name, path });
+      }
+      // Code is served as written, a link in it included.
+      for (const e of record.examples.filter(e => SITE_ORIGIN.test(e.code))) {
+        const out = await ask('get_examples', {
+          component: name,
+          query: e.title,
+        });
+        expect(out).toContain('```tsx\n' + e.code + '\n```');
+      }
+    }
+
+    expect(refused).toEqual([]);
+    const links = answers.flatMap(({ at, out }) =>
+      siteLinks(outsideFences(out)).map(link => ({ at, link }))
+    );
+    expect(links.length).toBeGreaterThan(0);
+    expect(
+      links
+        .filter(({ link }) => !TAGGED.test(link))
+        .map(({ at, link }) => `${at}: ${link}`)
+    ).toEqual([]);
+  });
 
   it('serves a skill as written, untagged links included', async () => {
     const skill = text(await call('get_skill', { name: 'bestax-optimize' }));
