@@ -70,6 +70,14 @@ export function attributed(url: string): string {
 const MASK = '\0';
 
 /**
+ * The site's origin, as a pattern rather than a substring test: the host, then
+ * nothing that would make it part of a longer one. It is only the fast path out
+ * of text with no site link in it, and `SITE_TARGET` decides what a target is,
+ * so this may admit more after the host than that does, never less.
+ */
+const SITE_ORIGIN = /https:\/\/bestax\.io(?![\w.-])/;
+
+/**
  * A link destination into bestax.io, read in a block's shadow: `](` then the
  * URL, bare or in angle brackets, and what may close a link after it (a title,
  * then `)`). A bare URL in prose has no `](` before it, and `bestax.io.other`
@@ -129,7 +137,7 @@ function closesLinkText(shadow: string, close: number): boolean {
 
 /** One block of prose, with no fence or blank line in it, its site links tagged. */
 function attributedBlock(block: string): string {
-  if (!block.includes('https://bestax.io')) return block;
+  if (!SITE_ORIGIN.test(block)) return block;
   const shadow = shadowOf(block);
   let out = '';
   let last = 0;
@@ -159,7 +167,7 @@ function attributedBlock(block: string): string {
  * `attributed` for what must not go through here.
  */
 export function attributedLinks(markdown: string): string {
-  if (!markdown.includes('https://bestax.io')) return markdown;
+  if (!SITE_ORIGIN.test(markdown)) return markdown;
   const out: string[] = [];
   let block: string[] = [];
   let fence: { char: string; length: number } | null = null;

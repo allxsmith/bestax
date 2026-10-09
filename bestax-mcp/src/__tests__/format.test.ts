@@ -120,6 +120,34 @@ describe('attributedLinks', () => {
     );
   });
 
+  // A target that ends at the host, closed by each thing that may follow it there,
+  // so the check that skips text with no site link in it skips none of these.
+  it.each([
+    ['[x](https://bestax.io)', '[x](https://bestax.io?utm_source=bestax-mcp)'],
+    [
+      '[x](https://bestax.io/)',
+      '[x](https://bestax.io/?utm_source=bestax-mcp)',
+    ],
+    [
+      '[x](https://bestax.io?a=1)',
+      '[x](https://bestax.io?a=1&utm_source=bestax-mcp)',
+    ],
+    [
+      '[x](https://bestax.io#top)',
+      '[x](https://bestax.io?utm_source=bestax-mcp#top)',
+    ],
+    [
+      '[x](https://bestax.io "Home")',
+      '[x](https://bestax.io?utm_source=bestax-mcp "Home")',
+    ],
+    [
+      '[x](<https://bestax.io>)',
+      '[x](<https://bestax.io?utm_source=bestax-mcp>)',
+    ],
+  ])('tags %s, a target that ends at the host', (markdown, tagged) => {
+    expect(attributedLinks(markdown)).toBe(tagged);
+  });
+
   it('tags a link whose text is a code span', () => {
     expect(attributedLinks(`[\`Avatar\`](${DOCS})`)).toBe(
       `[\`Avatar\`](${TAGGED})`

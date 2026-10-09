@@ -416,6 +416,8 @@ describe('get_component', () => {
 // Code, skill bodies and skill references are served as written.
 describe('the bestax.io links inside answers', () => {
   const TAG = 'utm_source=bestax-mcp';
+  /** The site's origin, with nothing after it that makes a longer host. */
+  const SITE_ORIGIN = /https:\/\/bestax\.io(?![\w.-])/;
   /** Every markdown link target into bestax.io in a piece of text. */
   const siteLinks = (out: string) =>
     [...out.matchAll(/\]\(<?(https:\/\/bestax\.io[^)\s>]*)/g)].map(m => m[1]);
@@ -452,9 +454,7 @@ describe('the bestax.io links inside answers', () => {
     "serves %s's example code as written",
     async component => {
       const record = await loadComponent(component);
-      const examples = record.examples.filter(e =>
-        e.code.includes('https://bestax.io')
-      );
+      const examples = record.examples.filter(e => SITE_ORIGIN.test(e.code));
       expect(examples.length).toBeGreaterThan(0);
       for (const e of examples) {
         const out = text(
