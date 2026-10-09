@@ -32,7 +32,7 @@ export interface FileProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -193,9 +193,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       rendersLabel: ownField,
     });
     const { classPrefix } = useConfig();
+    // The input takes `controlId`, so `id` stays out of the spread, where an
+    // undefined `id` key would wipe the id the label points at.
+    const { id: _id, ...inputProps } = props;
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
-      ...props,
+      ...inputProps,
     });
 
     // Mutually exclusive alignment

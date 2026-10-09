@@ -204,7 +204,7 @@ describe('DateRangeInput', () => {
       expect(screen.getByRole('group', { name: 'Stay' })).toBeTruthy();
     });
 
-    it('drops its label inside an outer Field', () => {
+    it("takes the outer Field's label in place of its own, which it drops (#939)", () => {
       const { container } = render(
         <Field label="Outer">
           <Control>
@@ -214,7 +214,11 @@ describe('DateRangeInput', () => {
       );
       expect(container.querySelectorAll('.field')).toHaveLength(1);
       expect(screen.queryByText('Dropped')).toBeNull();
-      expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
+      expect(screen.getByRole('group', { name: 'Outer' })).toHaveAttribute(
+        'aria-labelledby',
+        screen.getByText('Outer').id
+      );
+      expect(startInput()).toHaveAccessibleName('Start date');
     });
 
     it('renders a message, colored', () => {

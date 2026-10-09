@@ -272,7 +272,7 @@ describe('Radios group label association (#494)', () => {
     );
   });
 
-  it('injects nothing inside an outer Field, which drops the label', () => {
+  it("takes the outer Field's label in place of its own, which it drops (#939)", () => {
     const { container } = render(
       <Field label="Outer">
         <Radios label="Dropped" name="color">
@@ -280,10 +280,11 @@ describe('Radios group label association (#494)', () => {
         </Radios>
       </Field>
     );
-    expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
-      'aria-labelledby'
-    );
     const fieldLabel = container.querySelector('label.label') as HTMLElement;
-    expect(fieldLabel).not.toHaveAttribute('id');
+    expect(fieldLabel).toHaveTextContent('Outer');
+    expect(screen.getByRole('radiogroup', { name: 'Outer' })).toHaveAttribute(
+      'aria-labelledby',
+      fieldLabel.id
+    );
   });
 });

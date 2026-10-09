@@ -1253,13 +1253,13 @@ describe('Autocomplete label association (#493)', () => {
     expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
   });
 
-  it('injects no id inside an outer Field, which drops the label', () => {
+  it("takes the outer Field's label in place of its own, which it drops (#939)", () => {
     const { container } = render(
       <Field label="Outer">
         <Autocomplete label="Dropped" data={['Apple']} />
       </Field>
     );
     expect(container.querySelectorAll('label').length).toBe(1);
-    expect(screen.getByRole('combobox')).not.toHaveAttribute('id');
+    expect(screen.getByRole('combobox', { name: 'Outer' })).toBeInTheDocument();
   });
 });

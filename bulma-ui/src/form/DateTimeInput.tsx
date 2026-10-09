@@ -29,7 +29,7 @@ import { useAutoLabelId } from './useAutoLabelId';
  * @extraProp {boolean} [required=false] - Marks the field as required for native HTML form validation.
  */
 export interface DateTimeInputProps extends DateTimeInputBaseProps {
-  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`. */
+  /** Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];
@@ -169,6 +169,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
       labelProps,
       // Inline mode renders a bare picker with no input to label.
       rendersLabel: ownField && !baseProps.inline,
+      hasInput: !baseProps.inline,
     });
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
@@ -177,7 +178,7 @@ export const DateTimeInput = forwardRef<HTMLInputElement, DateTimeInputProps>(
     // The base hides its launcher while the Control it sits in is loading,
     // whether that is the one rendered below or an enclosing one.
     let content: React.ReactNode = (
-      <DateTimeInputBase ref={ref} id={controlId} {...baseProps} />
+      <DateTimeInputBase ref={ref} {...baseProps} id={controlId} />
     );
 
     if (ownControl) {

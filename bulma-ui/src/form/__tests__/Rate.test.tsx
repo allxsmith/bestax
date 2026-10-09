@@ -1058,14 +1058,14 @@ describe('Rate group label association (#494)', () => {
     );
   });
 
-  it('keeps the fallback inside an outer Field, which drops the label', () => {
-    render(
+  it("takes the outer Field's label in place of its own and the fallback (#939)", () => {
+    const { container } = render(
       <Field label="Outer">
         <Rate label="Dropped" />
       </Field>
     );
-    const group = screen.getByRole('radiogroup');
-    expect(group).toHaveAttribute('aria-label', 'Rating');
-    expect(group).not.toHaveAttribute('aria-labelledby');
+    expect(container.querySelectorAll('label').length).toBe(1);
+    const group = screen.getByRole('radiogroup', { name: 'Outer' });
+    expect(group).not.toHaveAttribute('aria-label');
   });
 });
