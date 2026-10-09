@@ -303,7 +303,7 @@ The simplest usage — the component automatically renders its own Field wrapper
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
-A labeled `Field` that holds the Autocomplete directly names its input with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Autocomplete in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+A labeled `Field` that holds the Autocomplete directly names its input and its open list with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Autocomplete in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`. That names the input, while the list keeps its fallback name, "Suggestions".
 
 ```tsx live
 function example() {
@@ -413,7 +413,7 @@ function AutocompleteFormDemo() {
 - Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen
 - Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`, and, while the list is on screen, `aria-controls` pointing at it
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it
-- The list is a `role="listbox"` named by the `label` prop's label. Inside an outer `Field`, or with no `label`, it falls back to `aria-label="Suggestions"`
+- The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input: the `label` prop's label or, inside a labeled `Field` that wires its label itself, that `Field`'s label. It falls back to `aria-label="Suggestions"` when no label names the input, and when the one that does is an outer `Field`'s label wired by hand with `labelProps.htmlFor`, which is how a horizontal form names an Autocomplete in an inner `Field`
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
