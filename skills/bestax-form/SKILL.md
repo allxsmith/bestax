@@ -135,7 +135,8 @@ dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it
 `DateRangeInput`) associate their `label` too, but group-style: the wrapper gets
 `role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
 also associates: a labeled `Field` names the one control it holds, whether a composed
-`InputBase`/`SelectBase`/`TextAreaBase` or any input above (through the id), or a group
+`InputBase`/`SelectBase`/`TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/
+`DateTimeInputBase` that is not `inline`, or any input above (through the id), or a group
 (through `aria-labelledby`). Either way, an `aria-label` or `aria-labelledby` you give a
 group wins over the label. A `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
 each is named by its own children, so put the text there. The association is skipped for

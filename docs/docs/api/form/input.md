@@ -634,13 +634,19 @@ The simplest usage — the component automatically renders its own Field and Con
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
+A labeled `Field` that holds the Input directly names it with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Input in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Username">
+    <Field
+      horizontal
+      label="Username"
+      labelProps={{ htmlFor: 'username-field' }}
+    >
       <Field.Body>
         <Field>
-          <Input placeholder="Enter username" />
+          <Input id="username-field" placeholder="Enter username" />
         </Field>
       </Field.Body>
     </Field>
@@ -657,11 +663,15 @@ For full manual control (e.g., adding icons via Control), wrap in both Field and
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Username">
+    <Field
+      horizontal
+      label="Username"
+      labelProps={{ htmlFor: 'username-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="user">
-            <Input placeholder="Enter username" />
+            <Input id="username-field-control" placeholder="Enter username" />
           </Control>
         </Field>
       </Field.Body>
