@@ -18,6 +18,7 @@ import { Radios } from '../Radios';
 import { Radio } from '../Radio';
 import { Checkboxes } from '../Checkboxes';
 import { Checkbox } from '../Checkbox';
+import { Switch } from '../Switch';
 import { Rate } from '../Rate';
 import { Input } from '../Input';
 import { Select } from '../Select';
@@ -769,9 +770,29 @@ describe('label names the convenience controls (#939)', () => {
     expect(container.querySelector(`[id^="${target}"]:not(label)`)).toBeNull();
   });
 
-  // Each group control, built with whatever ARIA props the test passes.
+  // The Field's TSDoc names these as taking nothing from it: each wraps its
+  // input in a label of its own, so its children name it.
+  it.each([
+    ['Checkbox', () => <Checkbox>Mine</Checkbox>, 'checkbox'],
+    ['Radio', () => <Radio name="pick">Mine</Radio>, 'radio'],
+    ['Switch', () => <Switch>Mine</Switch>, 'checkbox'],
+  ])('leaves a %s named by its own children', (_, element, role) => {
+    const { container } = render(<Field label="Pick">{element()}</Field>);
+    const target = labelEl(container).getAttribute('for') as string;
+    expect(container.querySelector(`[id="${target}"]`)).toBeNull();
+    expect(screen.getByRole(role, { name: 'Mine' })).toBeInTheDocument();
+  });
+
+  // Each group control, built with whatever ARIA props, and own `label`, the
+  // test passes.
   const groups: Array<
-    [string, (aria?: React.AriaAttributes) => React.ReactElement, string]
+    [
+      string,
+      (
+        aria?: React.AriaAttributes & { label?: React.ReactNode }
+      ) => React.ReactElement,
+      string,
+    ]
   > = [
     [
       'Radios',
@@ -843,16 +864,53 @@ describe('label names the convenience controls (#939)', () => {
     }
   );
 
-  it('leaves a Rate its fallback name when the caller forwards an undefined aria-labelledby', () => {
-    render(
-      <Field label="Pick">
+  // The same two props on a group that carries its own `label`: the caller's
+  // name wins there too, so moving the label onto a Field changes nothing.
+  it.each(groups)(
+    'lets an aria-label the caller set on %s win over its own label',
+    (_, element, role) => {
+      const { container } = render(
+        element({ label: 'Pick', 'aria-label': 'Mine' })
+      );
+      expect(labelEl(container)).toHaveTextContent('Pick');
+      const group = screen.getByRole(role, { name: 'Mine' });
+      expect(group).not.toHaveAttribute('aria-labelledby');
+    }
+  );
+
+  it.each(groups)(
+    'lets an aria-labelledby the caller set on %s win over its own label',
+    (_, element, role) => {
+      render(
+        <>
+          <span id="other">Other</span>
+          {element({ label: 'Pick', 'aria-labelledby': 'other' })}
+        </>
+      );
+      expect(screen.getByRole(role, { name: 'Other' })).toBeInTheDocument();
+    }
+  );
+
+  it.each([
+    [
+      'inside a labeled Field',
+      <Field key="field" label="Pick">
         <Rate aria-labelledby={undefined} />
-      </Field>
-    );
-    expect(
-      screen.getByRole('radiogroup', { name: 'Rating' })
-    ).toBeInTheDocument();
-  });
+      </Field>,
+    ],
+    [
+      'with a label of its own',
+      <Rate key="own" label="Pick" aria-labelledby={undefined} />,
+    ],
+  ])(
+    'leaves a Rate its fallback name when the caller forwards an undefined aria-labelledby %s',
+    (_, markup) => {
+      render(markup);
+      expect(
+        screen.getByRole('radiogroup', { name: 'Rating' })
+      ).toBeInTheDocument();
+    }
+  );
 
   it.each(groups)(
     'still names the %s group when the caller forwards an undefined aria-label',
@@ -915,5 +973,29 @@ describe('label names the convenience controls (#939)', () => {
     expect(screen.getByRole('radiogroup')).not.toHaveAttribute(
       'aria-labelledby'
     );
+  });
+
+  it('keeps a hand-wired label id and drops its for across a nested Field', () => {
+    // The horizontal recipe on the group docs pages.
+    const { container } = render(
+      <Field
+        horizontal
+        label="Pick"
+        labelProps={{ id: 'pick-label', htmlFor: undefined }}
+      >
+        <Field.Body>
+          <Field>
+            <Radios name="pick" aria-labelledby="pick-label">
+              <Radio value="a">A</Radio>
+            </Radios>
+          </Field>
+        </Field.Body>
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute('id', 'pick-label');
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(
+      screen.getByRole('radiogroup', { name: 'Pick' })
+    ).toBeInTheDocument();
   });
 });

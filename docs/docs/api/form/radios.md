@@ -278,7 +278,8 @@ function RadiosWrappedFormDemo() {
 
 - The group is rendered as a `<div class="radios" role="radiogroup">` containing labeled radio buttons.
 - The `label` prop names the whole group: the rendered `<label>` gets an id (yours via `labelProps.id`, or a generated one) and the group points at it with `aria-labelledby`.
-- Inside a labeled `Field`, that `Field`'s label names the group the same way, unless you give the group an `aria-label` or `aria-labelledby` of your own.
+- Inside a labeled `Field`, that `Field`'s label names the group the same way.
+- An `aria-label` or `aria-labelledby` you give the group wins over either label, whether that label sits on the Radios or on a `Field` around them.
 - Each child should be a `Radio` for proper labeling and accessibility.
 - Use the same `name` for all radios in a group to ensure mutual exclusivity.
 

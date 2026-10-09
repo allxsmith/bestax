@@ -31,7 +31,7 @@ import { useAutoLabelledBy } from './useAutoLabelId';
  * @extraProp {React.Ref<HTMLInputElement>} [ref] - Forwarded to the start `<input>`.
  */
 export interface DateRangeInputProps extends DateRangeInputBaseProps {
-  /** Field label naming the whole range. Associated through `aria-labelledby` on the `role="group"` root, since it names two inputs rather than one; uses your `labelProps.id` when provided, otherwise a generated one. Each input keeps its own name, "Start date" or "End date" (`labels.rangeStart` / `labels.rangeEnd`). Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `aria-label` or `aria-labelledby` on the group. */
+  /** Field label naming the whole range. Associated through `aria-labelledby` on the `role="group"` root, since it names two inputs rather than one; uses your `labelProps.id` when provided, otherwise a generated one. Each input keeps its own name, "Start date" or "End date" (`labels.rangeStart` / `labels.rangeEnd`). Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: FieldProps['labelSize'];

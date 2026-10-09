@@ -490,11 +490,11 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 ## Accessibility
 
 - The `label` prop names the one control the Field holds. A composed `InputBase`, `SelectBase`, or `TextAreaBase`, or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id the label's `for` points at, so clicking the label focuses the control and assistive technology announces it.
-- A group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) can't take a `for`, so the label gets an id (yours from `labelProps.id`, otherwise a generated one) and the group points `aria-labelledby` at it. An `aria-label` or `aria-labelledby` you set on the group wins over the Field's label.
+- A group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) can't take a `for`, so the label gets an id (yours from `labelProps.id`, otherwise a generated one) and the group points `aria-labelledby` at it. An `aria-label` or `aria-labelledby` you set on the group wins over the Field's label, as it does over a group's own `label`.
 - An `id` you set on the control wins too: it keeps that id, and the label then names it only if you point `labelProps={{ htmlFor }}` at it. Pass `labelProps={{ htmlFor: undefined }}` to opt out of the association entirely.
 - Association is skipped for `grouped`/`hasAddons` fields (they hold several controls), and a `Field` nested inside a labeled one starts its own scope. A horizontal Field wraps its children in a `Field.Body` of its own and keeps the association, but the pattern with an inner `Field` in that body needs it wired by hand.
 - Two controls in one plain labeled Field would both adopt its id. Give each an `id` of its own and label it individually.
-- A labeled Field whose content takes no `for` renders its `for` unmatched.
+- A labeled Field whose content takes no `for`, a group included, renders its `for` unmatched. `Checkbox`, `Radio` and `Switch` take nothing from the label at all: each is named by its own children, so put the text there rather than in the Field's `label`. Where you point content at the label by hand, as with a group in an inner `Field`, pass `labelProps={{ id, htmlFor: undefined }}` so the label keeps its id and drops the `for`.
 - Grouped/horizontal layouts use Bulma’s grid for layout.
 - Always use the `label` prop or a custom label for clarity.
 

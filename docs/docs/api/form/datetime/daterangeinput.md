@@ -260,7 +260,7 @@ function RangeFormDemo() {
 
 ## Accessibility
 
-- The root is a `role="group"` named by `label` through `aria-labelledby`, since the label names two inputs rather than one. Inside a labeled `Field`, that `Field`'s label names the group the same way, unless you give it an `aria-label` or `aria-labelledby` of your own.
+- The root is a `role="group"` named by `label` through `aria-labelledby`, since the label names two inputs rather than one. Inside a labeled `Field`, that `Field`'s label names the group the same way. An `aria-label` or `aria-labelledby` you give the group wins over either label.
 - Each input is a `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded` and `aria-controls`, and its own name: "Start date" or "End date", from the `labels` keys `rangeStart` and `rangeEnd`. The separator between them is hidden from assistive technology.
 - The popover is a `role="dialog"` named "Choose date range" (`labels.chooseDateRange`). Opening it puts focus on the calendar's focused day, and closing it returns focus to the input you were last in, or to the start input.
 - The day grid is `aria-multiselectable`, and its days sit in a `role="row"` per week. Every day of the range is `aria-selected`, both ends included. While the end is still being picked, only the start is: the preview is not a selection.

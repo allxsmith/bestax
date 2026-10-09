@@ -321,7 +321,7 @@ function RateFormDemo() {
 ## Accessibility
 
 - Uses `role="radiogroup"` for the container
-- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label="Rating"`. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback, unless you set `aria-label` or `aria-labelledby` on the Rate yourself
+- The `label` prop names the group via `aria-labelledby` (the rendered `<label>` gets an id — yours via `labelProps.id`, or a generated one); without a label the container falls back to `aria-label="Rating"`. Inside a labeled `Field`, that `Field`'s label names the group the same way and replaces the fallback. An `aria-label` or `aria-labelledby` you set on the Rate yourself wins over either label
 - Each star has `role="radio"` with `aria-checked`, and the star the value falls in is the checked one, so the value travels with it. A fractional value names that star by the value itself ("3.5 stars")
 - Focus stays on the group, which points `aria-activedescendant` at the checked star, so a screen reader announces it as the arrow keys change the value
 - Full keyboard navigation with arrow keys

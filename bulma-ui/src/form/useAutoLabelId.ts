@@ -91,8 +91,8 @@ interface UseAutoLabelledByOptions {
   /**
    * The caller's remaining props. A non-empty `aria-label` among them names
    * the group, and so does any `aria-labelledby` key, even an undefined one,
-   * since the group spreads them after its own attribute. Either keeps a
-   * surrounding Field's label off the group.
+   * since the group spreads them after its own attribute. Either keeps every
+   * label off the group, its own and a surrounding Field's alike.
    */
   callerProps: object;
 }
@@ -106,7 +106,9 @@ interface UseAutoLabelledByOptions {
  * names the group, never a single control — so the merged labelProps always
  * carry an explicit `htmlFor: undefined`. When the group renders no label of
  * its own, it points at the label of a labeled Field around it instead
- * (#939), unless the caller named it with `aria-label` or `aria-labelledby`.
+ * (#939). A caller who named the group with `aria-label` or
+ * `aria-labelledby` gets no `aria-labelledby` from either label, so their
+ * name wins wherever the label sits.
  * Internal; not part of the public API.
  */
 export function useAutoLabelledBy({
@@ -129,13 +131,15 @@ export function useAutoLabelledBy({
     : labelProps;
   const aria = callerProps as React.AriaAttributes;
   // Presence for aria-labelledby: the caller's key replaces the attribute
-  // through the spread whatever its value, and pointing it at the Field's
-  // label would only take a Rate's fallback name away.
+  // through the spread whatever its value, and pointing it at a label would
+  // only take a Rate's fallback name away. Checked before either label, so
+  // the caller's name wins over the group's own `label` as it does over a
+  // Field's, the way an aria-label beats a `<label for>` on a single input.
   const callerNamed = !!aria['aria-label'] || 'aria-labelledby' in aria;
-  const ariaLabelledBy = active
-    ? labelId
-    : callerNamed
-      ? undefined
+  const ariaLabelledBy = callerNamed
+    ? undefined
+    : active
+      ? labelId
       : fieldLabelElementId;
   return { ariaLabelledBy, fieldLabelProps };
 }
