@@ -35,7 +35,10 @@ Conventions:
   `ariaLabelledBy` on its group element.
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
-  as escape hatches, so they are public API too.
+  as escape hatches, so they are public API too. A base with a single input of its own reads
+  `useFieldLabelId` itself and takes that id when the caller set none, as `InputBase` does, so
+  a labeled `Field` names it when composed by hand (#968). A picker base skips it `inline`,
+  where it renders no input.
 - Basic inputs (Input, Select, TextArea, …) ship no CSS, but more of this folder has SCSS
   than you'd guess: even Checkbox and Radio have themed partials, File has one for its keyboard
   focus ring, and every extended input (Autocomplete, DateInput, Numberinput, Rate, Slider,

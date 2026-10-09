@@ -6,6 +6,9 @@ import { Select } from './Select';
 import { Numberinput } from './Numberinput';
 import { Slider } from './Slider';
 import { DateInput } from './DateInput';
+import { DateInputBase } from './DateInputBase';
+import { TimeInputBase } from './TimeInputBase';
+import { DateTimeInputBase } from './DateTimeInputBase';
 import { Radios } from './Radios';
 import { Radio } from './Radio';
 import { Rate } from './Rate';
@@ -125,6 +128,32 @@ export const LabelsCustomControls: Story = {
       </Field>
       <Field label="Quality">
         <Rate defaultValue={3} />
+      </Field>
+    </>
+  ),
+};
+
+/**
+ * Composed by hand, a picker base takes the id the label points at, as
+ * `InputBase` does, so the label names it with no wiring.
+ */
+export const LabelsComposedPickers: Story = {
+  render: () => (
+    <>
+      <Field label="Delivery date">
+        <Control iconLeftName="calendar">
+          <DateInputBase placeholder="YYYY-MM-DD" />
+        </Control>
+      </Field>
+      <Field label="Delivery time">
+        <Control iconLeftName="clock">
+          <TimeInputBase placeholder="HH:MM" />
+        </Control>
+      </Field>
+      <Field label="Appointment">
+        <Control iconLeftName="calendar-alt">
+          <DateTimeInputBase placeholder="YYYY-MM-DD HH:MM" />
+        </Control>
       </Field>
     </>
   ),

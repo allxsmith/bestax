@@ -5,6 +5,9 @@ import { Control } from '../Control';
 import InputBase from '../InputBase';
 import SelectBase from '../SelectBase';
 import TextAreaBase from '../TextAreaBase';
+import { DateInputBase } from '../DateInputBase';
+import { TimeInputBase } from '../TimeInputBase';
+import { DateTimeInputBase } from '../DateTimeInputBase';
 import { Numberinput } from '../Numberinput';
 import { Slider } from '../Slider';
 import { DateInput } from '../DateInput';
@@ -430,6 +433,79 @@ describe('label auto-association (#495)', () => {
     expect(textarea.tagName).toBe('TEXTAREA');
     expect(labelEl(container)).toHaveAttribute('for', textarea.id);
   });
+
+  // The picker bases, with the type their native touch input takes.
+  const pickerBases: Array<
+    [
+      string,
+      (props: {
+        inline?: boolean;
+        mobileNative?: boolean;
+        id?: string;
+      }) => React.ReactElement,
+      string,
+    ]
+  > = [
+    ['DateInputBase', props => <DateInputBase {...props} />, 'date'],
+    ['TimeInputBase', props => <TimeInputBase {...props} />, 'time'],
+    [
+      'DateTimeInputBase',
+      props => <DateTimeInputBase {...props} />,
+      'datetime-local',
+    ],
+  ];
+
+  it.each(pickerBases)('associates a composed %s', (_, element) => {
+    const { container } = render(
+      <Field label="When">
+        <Control>{element({})}</Control>
+      </Field>
+    );
+    const input = screen.getByRole('combobox', { name: 'When' });
+    expect(input.id).toBeTruthy();
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+    // The popover's ids build on the adopted id, as they do on a caller's.
+    expect(input).toHaveAttribute('aria-controls', `${input.id}-popover`);
+  });
+
+  it.each(pickerBases)(
+    'associates the native input of a composed %s',
+    (_, element, type) => {
+      render(
+        <Field label="When">
+          <Control>{element({ mobileNative: true })}</Control>
+        </Field>
+      );
+      expect(screen.getByLabelText('When')).toHaveAttribute('type', type);
+    }
+  );
+
+  it.each(pickerBases)(
+    'leaves an inline %s alone: it has no input to name',
+    (_, element) => {
+      const { container } = render(
+        <Field label="When">{element({ inline: true })}</Field>
+      );
+      // Nothing but the label itself takes or derives an id from the target.
+      const target = labelEl(container).getAttribute('for') as string;
+      expect(
+        container.querySelector(`[id^="${target}"]:not(label)`)
+      ).toBeNull();
+    }
+  );
+
+  it.each(pickerBases)(
+    'keeps a user id on a composed %s, as on InputBase',
+    (_, element) => {
+      const { container } = render(
+        <Field label="When">
+          <Control>{element({ id: 'mine' })}</Control>
+        </Field>
+      );
+      expect(screen.getByRole('combobox')).toHaveAttribute('id', 'mine');
+      expect(labelEl(container).getAttribute('for')).not.toBe('mine');
+    }
+  );
 
   it('keeps a user id on the base; the label still points at its own target', () => {
     const { container } = render(
