@@ -62,7 +62,7 @@ Input with dropdown suggestions. Filters options based on user input with keyboa
 
 ```tsx live
 function AutocompleteExample() {
-  const [selected, setSelected] = React.useState(null);
+  const [selected, setSelected] = React.useState<string | null>(null);
   const fruits = [
     'Apple',
     'Banana',
@@ -77,7 +77,7 @@ function AutocompleteExample() {
       <Autocomplete
         data={fruits}
         placeholder="Search fruit..."
-        onSelect={setSelected}
+        onSelect={item => setSelected(typeof item === 'string' ? item : null)}
         openOnFocus
         clearable
       />
@@ -285,7 +285,7 @@ A date input that opens a popover calendar, with segmented keyboard entry direct
 
 ```tsx live
 function DateInputExample() {
-  const [date, setDate] = React.useState(null);
+  const [date, setDate] = React.useState<Date | null>(null);
   return (
     <div>
       <DateInput
@@ -309,8 +309,10 @@ function DateInputExample() {
 A start and end date in one field: two segmented inputs and one popover calendar that picks the start and then the end, previewing the range on the way. `min`, `max` and the disabled-date props apply to both ends, and the range submits with a form as two dates.
 
 ```tsx live
+import type { DateRangeValue } from '@allxsmith/bestax-bulma';
+
 function DateRangeInputExample() {
-  const [range, setRange] = React.useState([null, null]);
+  const [range, setRange] = React.useState<DateRangeValue>([null, null]);
   const [start, end] = range;
   return (
     <div>
@@ -339,7 +341,7 @@ A time-of-day input that opens a popover wheel spinner, with segmented keyboard 
 
 ```tsx live
 function TimeInputExample() {
-  const [time, setTime] = React.useState(null);
+  const [time, setTime] = React.useState<Date | null>(null);
   return (
     <div>
       <TimeInput
@@ -378,8 +380,13 @@ Combines the calendar and time wheels in a single popover with an iOS-style foot
 Tag/chip input field for managing multiple tags. Supports autocomplete suggestions and custom styling.
 
 ```tsx live
+import type { TaginputTag } from '@allxsmith/bestax-bulma';
+
 function TaginputExample() {
-  const [tags, setTags] = React.useState(['React', 'TypeScript']);
+  const [tags, setTags] = React.useState<TaginputTag[]>([
+    'React',
+    'TypeScript',
+  ]);
   const suggestions = [
     'React',
     'Vue',

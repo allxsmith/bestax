@@ -35,3 +35,12 @@
     @extend %file-focus-ring-on-fill;
   }
 }
+
+// A File with hasName and no name to show takes Bulma's is-empty, which gives
+// the CTA back the corners has-name squares to meet the name. Bulma's is-boxed
+// rules come after it and square the bottom ones again, so a boxed File gets
+// them back here, with a selector that outranks them in either order.
+.#{iv.$class-prefix}file.#{iv.$class-prefix}has-name.#{iv.$class-prefix}is-boxed.#{iv.$class-prefix}is-empty
+  .#{iv.$class-prefix}file-cta {
+  border-radius: cv.getVar("file-radius");
+}
