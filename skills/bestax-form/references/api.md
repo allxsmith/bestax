@@ -16,8 +16,10 @@ Container and layout. Compound parts: `Field.Label`, `Field.Body`.
 | `narrow`                | `boolean`                                         | Constrain to content width (inside horizontal bodies).                                                                                                                                             |
 | `label`                 | `ReactNode`                                       | Names the one control it holds: a composed base or convenience input through its id, a group through `aria-labelledby` (skipped for `grouped`/`hasAddons`; a nested `Field` starts its own scope). |
 | `labelSize`             | `'small' \| 'normal' \| 'medium' \| 'large'`      | Label size.                                                                                                                                                                                        |
-| `labelProps`            | label attributes                                  | Props for the `<label>`. An explicit `htmlFor` (even `undefined`) takes over the association; otherwise it is set automatically. An `id` here is what a group's `aria-labelledby` points at.       |
+| `labelProps`            | label attributes                                  | Props for the `<label>`. An explicit `htmlFor` (even `undefined`) takes over the association; otherwise it is set automatically. For its `id`, see below.                                          |
 | `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                                                                                                                                                       |
+
+An `id` in `labelProps` is what a group's, a range `Slider`'s and an `Autocomplete` suggestion list's `aria-labelledby` points at. A label wired by hand with `htmlFor` gets no generated id, so give it one, `labelProps={{ htmlFor, id }}`, for a range `Slider` or an `Autocomplete`. No group points at a label wired by hand.
 
 ## Control — `form/Control.tsx`
 

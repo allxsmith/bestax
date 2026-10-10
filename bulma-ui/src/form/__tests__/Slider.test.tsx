@@ -1570,9 +1570,96 @@ describe('range Slider thumb names (#981)', () => {
     expect(labelEl(container)).not.toHaveAttribute('id');
   });
 
-  it('keeps the default names under a Field label wired by hand, which hands out no label id', () => {
+  it.each([
+    [
+      'a plain Field',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field label="Price" labelProps={labelProps}>
+          <Slider range id="price" />
+        </Field>
+      ),
+    ],
+    [
+      'the outer Field of a horizontal layout',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field horizontal label="Price" labelProps={labelProps}>
+          <Field.Body>
+            <Field>
+              <Slider range id="price" />
+            </Field>
+          </Field.Body>
+        </Field>
+      ),
+    ],
+    [
+      'the outer Field of a horizontal layout, through a Control',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field horizontal label="Price" labelProps={labelProps}>
+          <Field.Body>
+            <Field>
+              <Control>
+                <Slider range id="price" />
+              </Control>
+            </Field>
+          </Field.Body>
+        </Field>
+      ),
+    ],
+    // A grouped or addons Field generates no target id for its several
+    // controls, but a label wired by hand has picked one with its `for`.
+    [
+      'a grouped Field, which generates no target id',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field label="Price" grouped labelProps={labelProps}>
+          <Control>
+            <Slider range id="price" />
+          </Control>
+          <Control>
+            <button type="button">Apply</button>
+          </Control>
+        </Field>
+      ),
+    ],
+    [
+      'a Field with addons, which generates no target id',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field label="Price" hasAddons labelProps={labelProps}>
+          <Control>
+            <Slider range id="price" />
+          </Control>
+          <Control>
+            <button type="button">Apply</button>
+          </Control>
+        </Field>
+      ),
+    ],
+  ])('names the thumbs from a label wired by hand on %s', (_, element) => {
+    // With an id in its labelProps the label has something to point
+    // aria-labelledby at.
+    const { container, unmount } = render(
+      element({ htmlFor: 'price', id: 'price-label' })
+    );
+    const { low, high } = thumbs(container);
+    expect(screen.getByRole('slider', { name: 'Price Minimum value' })).toBe(
+      low
+    );
+    expect(screen.getByRole('slider', { name: 'Price Maximum value' })).toBe(
+      high
+    );
+    expect(low.getAttribute('aria-labelledby')).toMatch(/^price-label /);
+    expect(low).toHaveAttribute('id', 'price');
+    unmount();
+
+    // Without one the Field generates none for a label wired by hand, so the
+    // thumbs keep their default names.
+    const { container: bare } = render(element({ htmlFor: 'price' }));
+    expectDefaultNames();
+    expect(bare.querySelector('span[hidden]')).not.toBeInTheDocument();
+  });
+
+  it('keeps the default names under a Field label wired by hand to something else', () => {
     render(
-      <Field label="Price" labelProps={{ htmlFor: 'price' }}>
+      <Field label="Price" labelProps={{ htmlFor: 'other', id: 'price-label' }}>
         <Slider range id="price" />
       </Field>
     );

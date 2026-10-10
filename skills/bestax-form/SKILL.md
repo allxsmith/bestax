@@ -144,9 +144,17 @@ also associates: a labeled `Field` names the one control it holds, whether a com
 group wins over the label. A `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
 each is named by its own children, so put the text there. The association is skipped for
 `grouped`/`hasAddons`, and a nested `Field` starts its own scope, so a
-horizontal `Field` whose body holds an inner `Field` needs `labelProps={{ htmlFor }}` plus the
-control's `id` (for a group, `labelProps={{ id, htmlFor: undefined }}` plus its
-`aria-labelledby`, since nothing takes the label's `for` there). Pass
+horizontal `Field` whose body holds an inner `Field` needs `labelProps={{ htmlFor, id }}` plus
+the control's `id`. The `for` names the control, and the label's `id` is what a range `Slider`'s
+thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at, so without it they
+keep their fallback names ("Minimum value"/"Maximum value", "Suggestions"). The same goes for
+a label wired by hand on a `grouped`/`hasAddons` row. A `<label htmlFor>` you put in
+`Field.Label` yourself (the explicit label/body pattern in `references/patterns.md`) names its
+control through the `for` alone, and the thumbs and list never point at it, so label a row
+holding a range `Slider` or an `Autocomplete` with the `Field`'s `label` prop, wired by hand as
+above when an inner `Field` holds the control. For a group, use
+`labelProps={{ id, htmlFor: undefined }}` plus its `aria-labelledby`, since nothing takes the
+label's `for` there. Pass
 `labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
 `labelProps={{ htmlFor: undefined }}` to opt out.
 

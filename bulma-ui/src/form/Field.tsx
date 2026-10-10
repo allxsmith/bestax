@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useId, useMemo } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
@@ -30,11 +30,11 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so with a group or any other content it matches nothing. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
+  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete` also names its open suggestion list after the label through `aria-labelledby`. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so with a group or any other content it matches nothing. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
-  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. An `id` here is the one a group control's, or a range `Slider`'s, `aria-labelledby` points at; otherwise the label gets a generated one while the association is on. To point a group in an inner `Field` at this label by hand, pass that `id` with `htmlFor: undefined`, or the label keeps a generated `htmlFor` that nothing takes. */
+  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. While the association is on, the label renders with the `id` given here, or a generated one, and a group control, a range `Slider`'s thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at it. A label you take over gets no generated id, and no group points at it on its own. With an `id` here, though, a range `Slider` or an `Autocomplete` whose `id` your `htmlFor` names still points its thumbs or its suggestion list at it, in a `grouped` or `hasAddons` Field too. To point a group in an inner `Field` at this label by hand, pass that `id` with `htmlFor: undefined`, or the label keeps a generated `htmlFor` that nothing takes. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
@@ -96,7 +96,12 @@ export interface FieldBodyProps
  * not a `<label>`, so text placed straight in it names nothing. Put a `<label>`
  * with the `label` class inside it and point its `htmlFor` at the control's
  * `id`, or give the horizontal `Field` a `label` prop, which renders this
- * column and its `<label>` for you.
+ * column and its `<label>` for you. A `<label>` you put here names the
+ * control through its `htmlFor` alone: a range `Slider`'s thumbs and an
+ * `Autocomplete`'s suggestion list point `aria-labelledby` at a `Field`'s
+ * label only when its `label` prop renders it and it names the control.
+ * Where it would not name the control on its own, as in an inner `Field`,
+ * pass `labelProps={{ htmlFor, id }}` with a matching `id` on the control.
  *
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
@@ -251,15 +256,22 @@ const FieldComponent: React.FC<FieldProps> = ({
   // gave it one.
   const labelId =
     labelProps?.id ?? (targetId ? `${targetId}-label` : undefined);
-  // What the rendered label's `for` points at, generated or the caller's, so
-  // a control can tell when a label wired by hand names it. An unlabeled
-  // Field passes on its parent's.
+  // What the rendered label's `for` points at, generated or the caller's, and
+  // the id it renders with, so a control can tell when a label wired by hand
+  // names it and point at that label. An unlabeled Field passes on its
+  // parent's. Unlike `targetId`, a label wired by hand passes on its own in
+  // `grouped`/`hasAddons` Fields too, on purpose: those only stop the Field
+  // picking one control out of several, and the caller's `for` has picked
+  // one, so a range Slider or Autocomplete it names points at that label in
+  // a row as well. A group reads the label element id below instead, which
+  // stays off for a label wired by hand, since no group takes its `for`.
   const inheritedLabelFor = useFieldLabelFor();
-  const labelFor = label
-    ? userWiredLabel
-      ? labelProps.htmlFor
-      : targetId
-    : inheritedLabelFor;
+  const labelForTarget = userWiredLabel ? labelProps.htmlFor : targetId;
+  const ownLabelFor = useMemo(
+    () => ({ htmlFor: labelForTarget, id: labelId }),
+    [labelForTarget, labelId]
+  );
+  const labelFor = label ? ownLabelFor : inheritedLabelFor;
 
   let renderedLabel = null;
   if (label) {
