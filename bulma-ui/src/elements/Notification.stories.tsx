@@ -7,6 +7,8 @@ import {
   notification,
 } from './Notification';
 import { Button } from './Button';
+import { Columns } from '../columns/Columns';
+import { Column } from '../columns/Column';
 
 // Separate component for dismissible notification to comply with react-hooks/rules-of-hooks
 const DismissibleNotification: React.FC<NotificationProps> = props => {
@@ -164,6 +166,25 @@ export const WithDelete: Story = {
   args: {
     color: 'info',
     children: 'Click the delete button to dismiss this notification.',
+  },
+};
+
+/**
+ * On a narrow column the text wraps before the close button rather than
+ * running under it.
+ */
+export const WithDeleteInANarrowColumn: Story = {
+  render: (args: NotificationProps) => (
+    <Columns>
+      <Column size="one-third">
+        <DismissibleNotification {...args} />
+      </Column>
+    </Columns>
+  ),
+  args: {
+    color: 'info',
+    children:
+      'Your changes were saved, and everyone on the project can see them now.',
   },
 };
 
