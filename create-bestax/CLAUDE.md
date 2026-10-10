@@ -37,8 +37,12 @@ alongside the CLI.
 `react` and `react-dom` are declared dependencies too, with the library's peer ranges, though
 nothing imports them either. npm installs a dependency's peers by itself, but Yarn 1 does not,
 and without them `yarn create bestax` warned that the library's peers were unmet (#950). npm
-installs the same packages either way. `src/__tests__/package-manifest.test.ts` holds this
-manifest to every required peer of the installed library, so a new or changed peer fails there.
+installs the same packages either way. `src/__tests__/package-manifest.test.ts` fails when this
+manifest leaves out a required peer of the installed library or gives one a range outside it, and
+`check:conformance --only=peer-ranges` fails when a peer it declares carries anything but the
+library's whole peer range, written the same way. Dependabot narrows these ranges when it bumps
+react (#1012), so restore them on its PR; when the peer range itself moves, change them in a
+`fix(create-bestax)` commit so the CLI releases with it.
 
 ## Sync rules (this package re-ships other parts of the repo)
 
