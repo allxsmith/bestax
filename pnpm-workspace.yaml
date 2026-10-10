@@ -115,10 +115,13 @@ overrides:
   # values the pins stay exact, and the family members nothing asks for by
   # range follow them. Each selector matches only the 30.x releases before
   # 30.5, so a request for ^30.5.0, such as the Storybook release that fixes
-  # the issue above, is left alone, and so is a move to 31. Dependabot gets
-  # no jest ignore on purpose: a manifest it bumps to ^30.5 installs 30.5, and
-  # test-storybook:ci fails on that PR, which is the signal this hold wants.
-  # The entries hold one version line between them, so drop them together.
+  # the issue above, is left alone, and so is a move to 31. A workspace
+  # manifest bumped to ^30.5 would be left alone too, and would mix 30.5 into
+  # a tree whose test runner stays on 30.4, so .github/dependabot.yml ignores
+  # 30.5 for the jest packages the manifests name, which keeps the Dependabot
+  # group from proposing it while this hold stands. The entries hold one
+  # version line between them, so drop them together, and that ignore with
+  # them.
   'jest@>=30.0.0 <30.5': '30.4.2'
   # bestax:review 2026-11-13 - jest 30.4 hold; bulma-ui's test environment
   'jest-environment-jsdom@>=30.0.0 <30.5': '30.4.1'
