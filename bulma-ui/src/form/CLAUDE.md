@@ -35,9 +35,10 @@ Conventions:
   `ariaLabelledBy` on its group element. Once the Field's content has mounted, its label keeps
   the generated `for` only while some content has reported holding the Field's id, so
   `useAutoLabelId` reports when the control took it (#1004). Anything new that puts that id
-  on an element reports it the same way, through `useFieldLabelTarget` or
-  `useReportFieldLabelFor`, or the label drops the `for` that names it. Content that takes no
-  id, a group included, has nothing to report.
+  on an element takes it through `useFieldLabelTarget` or `useAutoLabelId`, which report it,
+  and never reads `useFieldLabelId` itself, or the label drops the `for` that names it.
+  `__tests__/field-label-readers.test.ts` fails on a module outside its `READERS` list that
+  reads it. Content that takes no id, a group included, has nothing to report.
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
   as escape hatches, so they are public API too. A base with a single input of its own takes

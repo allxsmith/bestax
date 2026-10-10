@@ -230,8 +230,11 @@ const FieldLabelIdContext = createContext<string | undefined>(undefined);
  * Consumed through `useFieldLabelTarget` by the single-control bases
  * (InputBase, SelectBase, TextAreaBase, and the date and time picker bases
  * unless inline, #968) and, through `useAutoLabelId`, by the convenience
- * inputs that render an input of their own (#939). Internal; not part of the
- * public API.
+ * inputs that render an input of their own (#939). Read it only through
+ * those, which report what they take: a control that read it directly would
+ * report nothing and lose its label (#1004), and
+ * `__tests__/field-label-readers.test.ts` fails on one. Internal; not part of
+ * the public API.
  */
 export const useFieldLabelId = () => useContext(FieldLabelIdContext);
 
