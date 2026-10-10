@@ -1,3 +1,13 @@
+## [4.2.16](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.15...create-bestax@4.2.16) (2026-10-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** accept material-symbols 0.47 in the peer range ([539cca2](https://github.com/allxsmith/bestax/commit/539cca22c92e3b9a3c766d37d7cd9605d6bd3547))
+* **bulma-ui:** name the date and time picker bases from a Field label ([e7ae797](https://github.com/allxsmith/bestax/commit/e7ae79766191a6e37e5f3893ee603b16d8ac3e44))
+* **bulma-ui:** say FieldLabel renders the label column, not a label ([2a6ab10](https://github.com/allxsmith/bestax/commit/2a6ab105d9b5f4fedcbe0a2bf626d9691f9db1fe))
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([ff4f820](https://github.com/allxsmith/bestax/commit/ff4f820f373b65eda5336d1652192f296c71f4ae))
+
 ## [4.2.15](https://github.com/allxsmith/bestax/compare/create-bestax@4.2.14...create-bestax@4.2.15) (2026-10-09)
 
 
