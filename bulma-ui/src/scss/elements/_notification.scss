@@ -9,10 +9,26 @@
 // in from the end, 1.25rem square, so the button reaches further in than the
 // padding does and on a narrow column the end of the first line runs under
 // it. A notification with a close button pads its end enough to clear it:
-// Bulma's inset and size for the button, plus the 0.75rem gap Bulma 0.9 left
-// between the text and the button. The button is sized in rem, so the
+// Bulma's inset for the button, plus its size, plus the 0.75rem gap Bulma 0.9
+// left between the text and the button. The button is sized in rem, so the
 // padding is too.
-$notification-delete-padding-inline-end: 3rem !default;
+//
+// Bulma writes the inset as a literal and declares the size on the button
+// itself, through --bulma-delete-dimensions. Custom properties only inherit
+// downward, so the notification can't read the button's size, and the
+// default restates Bulma's numbers. Notification.styles.test.tsx holds them
+// to Bulma's CSS.
+$notification-delete-padding-inline-end: calc(1rem + 1.25rem + 0.75rem) !default;
+
+// Bulma's sizes for the close button: the one above, and the ones its size
+// modifiers set. A notification whose close button has a modifier pads by
+// the difference, so the gap stays the same.
+$-delete-dimensions: 1.25rem;
+$-delete-sizes: (
+  "small": 1rem,
+  "medium": 1.5rem,
+  "large": 2rem,
+);
 
 .#{iv.$class-prefix}notification {
   @include cv.register-vars(
@@ -36,4 +52,18 @@ $notification-delete-padding-inline-end: 3rem !default;
 
 .#{iv.$class-prefix}notification:has(> .#{iv.$class-prefix}delete) {
   padding-inline-end: cv.getVar("notification-delete-padding-inline-end");
+}
+
+// A close button with a size modifier, which only a Delete passed in can
+// have, so these need :has() too. Each outranks the two rules above, and
+// builds on the variable, so overriding it moves these as well.
+@each $size, $dimensions in $-delete-sizes {
+  .#{iv.$class-prefix}notification:has(
+      > .#{iv.$class-prefix}delete.#{iv.$class-prefix}is-#{$size}
+    ) {
+    padding-inline-end: calc(
+      cv.getVar("notification-delete-padding-inline-end") +
+        ($dimensions - $-delete-dimensions)
+    );
+  }
 }

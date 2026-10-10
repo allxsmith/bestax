@@ -214,6 +214,27 @@ function endPadding(
 const DELETE_PADDING = 'var(--bulma-notification-delete-padding-inline-end)';
 const BULMA_PADDING = 'var(--bulma-notification-padding)';
 
+/** The one declaration of `property` on the rule whose selector is `selector`. */
+const declared = (css: string, selector: string, property: string) => {
+  const found = rulesOf(css)
+    .rules.filter(rule => rule.selectorText.split(/,\s*/).includes(selector))
+    .map(rule => rule.style.getPropertyValue(property).trim())
+    .filter(Boolean);
+  expect(found).toHaveLength(1);
+  return found[0];
+};
+
+/**
+ * The end padding the partial gives a notification whose close button has
+ * Bulma's `is-<size>` modifier.
+ */
+const sizedPadding = (size: string, prefix = '') =>
+  declared(
+    compile(prefix),
+    `.${prefix}notification:has(> .${prefix}delete.${prefix}is-${size})`,
+    'padding-inline-end'
+  );
+
 const notificationIn = (container: HTMLElement, prefix = '') =>
   container.querySelector(`.${prefix}notification`) as HTMLElement;
 
@@ -268,6 +289,13 @@ describe('the end padding of a Notification', () => {
       expect(endPadding(el, css())).toBe(DELETE_PADDING);
     });
 
+    // Bulma sizes the button on the button itself, where the notification
+    // can't read it, so the partial reads the modifier instead.
+    it('makes room for the size of a Delete passed in', () => {
+      const el = notificationOf({ children: <Delete size="large" /> });
+      expect(endPadding(el, css())).toBe(sizedPadding('large'));
+    });
+
     // Bulma moves only a close button that is a direct child to the corner.
     it("keeps Bulma's padding for a Delete further in", () => {
       const el = notificationOf({
@@ -310,6 +338,11 @@ describe('the end padding of a Notification', () => {
       expect(endPadding(el, css())).toBe(DELETE_PADDING);
     });
 
+    it('makes room for the size of a Delete passed in', () => {
+      const el = prefixed({ children: <Delete size="large" /> });
+      expect(endPadding(el, css())).toBe(sizedPadding('large', 'bulma-'));
+    });
+
     it("keeps Bulma's padding without a close button", () => {
       const el = prefixed({ children: 'Saved' });
       expect(endPadding(el, css())).toBe(BULMA_PADDING);
@@ -318,16 +351,6 @@ describe('the end padding of a Notification', () => {
 });
 
 describe('the default end padding', () => {
-  /** The one declaration of `property` on the rule whose selector is `selector`. */
-  const declared = (css: string, selector: string, property: string) => {
-    const found = rulesOf(css)
-      .rules.filter(rule => rule.selectorText.split(/,\s*/).includes(selector))
-      .map(rule => rule.style.getPropertyValue(property).trim())
-      .filter(Boolean);
-    expect(found).toHaveLength(1);
-    return found[0];
-  };
-
   /** A length in rem, refusing any other unit. */
   const rem = (value: string) => {
     const m = /^([\d.]+)rem$/.exec(value);
@@ -340,21 +363,67 @@ describe('the default end padding', () => {
     return Number(m[1]);
   };
 
+  /**
+   * A sized rule's padding in rem, given the default: the variable plus or
+   * minus a length in rem, refusing any other form.
+   */
+  const plus = (padding: number, value: string) => {
+    const m =
+      /^calc\(var\(--bulma-notification-delete-padding-inline-end\) ([+-]) ([\d.]+)rem\)$/.exec(
+        value
+      );
+    if (!m) {
+      throw new Error(
+        `${value} is not the default padding plus a length in rem, which ` +
+          'this test does not compare. Extend `plus` before trusting a result.'
+      );
+    }
+    return padding + (m[1] === '-' ? -1 : 1) * Number(m[2]);
+  };
+
   // Bulma's numbers are read from its own CSS, so an upgrade that moves or
   // grows the button fails here rather than putting it back over the text.
-  it("leaves a gap past the close button's inset and size", () => {
-    const bulma = bulmaCss();
-    const inset = rem(
-      declared(bulma, '.notification > .delete', 'inset-inline-end')
-    );
-    const size = rem(declared(bulma, '.delete', '--bulma-delete-dimensions'));
-    const padding = rem(
+  const bulma = () => bulmaCss();
+  const inset = () =>
+    rem(declared(bulma(), '.notification > .delete', 'inset-inline-end'));
+  const dimensions = (selector: string) =>
+    rem(declared(bulma(), selector, '--bulma-delete-dimensions'));
+  const padding = () =>
+    rem(
       declared(
         compile(),
         '.notification',
         '--bulma-notification-delete-padding-inline-end'
       )
     );
-    expect(padding).toBeGreaterThan(inset + size);
+
+  it("leaves a gap past the close button's inset and size", () => {
+    expect(padding()).toBeGreaterThan(inset() + dimensions('.delete'));
+  });
+
+  // Every size modifier Bulma's CSS has, so one an upgrade adds fails here
+  // until the partial pads for it too.
+  it('leaves the same gap past a close button of any size', () => {
+    const sizes = rulesOf(bulma())
+      .rules.filter(rule =>
+        rule.style.getPropertyValue('--bulma-delete-dimensions')
+      )
+      .flatMap(rule => rule.selectorText.split(/,\s*/))
+      .map(selector => /^\.delete\.is-([\w-]+)$/.exec(selector)?.[1])
+      .filter((size): size is string => size !== undefined);
+    expect(sizes).toContain('large');
+
+    const gap = padding() - inset() - dimensions('.delete');
+    const gaps = Object.fromEntries(
+      sizes.map(size => [
+        size,
+        plus(padding(), sizedPadding(size)) -
+          inset() -
+          dimensions(`.delete.is-${size}`),
+      ])
+    );
+    expect(gaps).toEqual(
+      Object.fromEntries(sizes.map(size => [size, expect.closeTo(gap)]))
+    );
   });
 });
