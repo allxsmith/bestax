@@ -27,9 +27,11 @@
  * build/ cannot be read, when an entry under build/ is neither a regular file
  * nor a directory, such as a link, which it reports without following, and
  * when build/docs holds no twin, a `.md` that is not a copy of one in
- * static/. It reports every problem it finds before it fails, walking past a
- * directory it cannot read. Whether the LLM output is complete is not this
- * check's job.
+ * static/. llms.txt and llms-full.txt are taken from the same walk, so a
+ * link there is reported as one and nothing else. It reports every problem
+ * it finds before it fails, walking past a directory it cannot read, and
+ * says nothing of a missing file or twin where that walk already reported a
+ * problem. Whether the LLM output is complete is not this check's job.
  *
  * Why a build STEP and not a Docusaurus plugin: `postBuild` hooks run under
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
@@ -49,12 +51,12 @@ const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
 const KEYWORD = 'bestax:generated';
 
 /**
- * The files under `dir` whose names match `pattern`. A directory that cannot
- * be read, and an entry that is neither a regular file nor a directory, such
- * as a link, go to `report` with why, and the walk carries on past them. A
- * link is not followed, so the walk can never loop.
+ * The regular files under `dir`. A directory that cannot be read, and an
+ * entry that is neither a regular file nor a directory, such as a link, go
+ * to `report` with why, and the walk carries on past them. A link is not
+ * followed, so the walk can never loop.
  */
-function filesUnder(dir, pattern, report) {
+function filesUnder(dir, report) {
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
@@ -64,8 +66,8 @@ function filesUnder(dir, pattern, report) {
   }
   return entries.flatMap(entry => {
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) return filesUnder(path, pattern, report);
-    if (entry.isFile()) return pattern.test(entry.name) ? [path] : [];
+    if (entry.isDirectory()) return filesUnder(path, report);
+    if (entry.isFile()) return [path];
     report(path, 'is not a regular file or directory, so it was not checked.');
     return [];
   });
@@ -83,25 +85,35 @@ export async function checkBuild(docs = DOCS, io = console) {
   }
 
   const problems = [];
-  const report = (path, why) => problems.push(`${relative(docs, path)} ${why}`);
-  const pages = filesUnder(outDir, /\.md$/, report);
+  const reported = [];
+  const report = (path, why) => {
+    reported.push(path);
+    problems.push(`${relative(docs, path)} ${why}`);
+  };
+  const found = filesUnder(outDir, report);
+  // Whether the walk reported a problem at `path`, under it or above it, in
+  // which case nothing can be said about what the plugin wrote there.
+  const blocked = path =>
+    reported.some(
+      p => p === path || p.startsWith(path + sep) || path.startsWith(p + sep)
+    );
+
+  const pages = found.filter(file => file.endsWith('.md'));
+  const docsDir = join(outDir, 'docs');
   // Docusaurus copies static/ into build/ as is, so a .md there is no twin.
   const isTwin = file =>
-    file.startsWith(join(outDir, 'docs', sep)) &&
+    file.startsWith(docsDir + sep) &&
     !existsSync(join(docs, 'static', relative(outDir, file)));
-  if (!pages.some(isTwin)) {
+  if (!pages.some(isTwin) && !blocked(docsDir)) {
     problems.push(
       'build/docs holds no twin, a .md that is not a copy of one in ' +
         'static/, so docusaurus-plugin-llms wrote none, or this step ran ' +
         'before it.'
     );
   }
-  const present = [];
-  for (const name of ['llms.txt', 'llms-full.txt']) {
-    const file = join(outDir, name);
-    if (existsSync(file)) {
-      present.push(file);
-    } else {
+  const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
+  for (const file of joined) {
+    if (!found.includes(file) && !blocked(file)) {
       problems.push(
         `${relative(docs, file)} is missing, so docusaurus-plugin-llms did ` +
           `not write it, or this step ran before it.`
@@ -110,7 +122,7 @@ export async function checkBuild(docs = DOCS, io = console) {
   }
 
   // One file at a time, so a growing site never holds them all open.
-  const files = [...pages, ...present];
+  const files = [...pages, ...joined.filter(file => found.includes(file))];
   for (const file of files) {
     const rel = relative(docs, file);
     let text;

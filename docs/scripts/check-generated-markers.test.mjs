@@ -73,6 +73,10 @@ const missing = file =>
   `check-generated-markers: ${file} is missing, so docusaurus-plugin-llms ` +
   `did not write it, or this step ran before it.`;
 
+const notChecked = file =>
+  `check-generated-markers: ${file} is not a regular file or directory, so ` +
+  `it was not checked.`;
+
 const NO_TWINS =
   'check-generated-markers: build/docs holds no twin, a .md that is not a ' +
   'copy of one in static/, so docusaurus-plugin-llms wrote none, or this ' +
@@ -199,17 +203,35 @@ test(
   }
 );
 
-test('a build/ that is a file is reported with the rest', async () => {
+test(
+  'an unreadable build/docs is reported, with no claim about twins',
+  {
+    skip: process.getuid?.() === 0 && 'root reads any directory',
+  },
+  async () => {
+    const root = site();
+    const locked = join(root, 'build/docs');
+    chmodSync(locked, 0o000);
+    try {
+      const { code, error } = await run(root);
+      assert.equal(code, 1);
+      assert.deepEqual(error, [
+        'check-generated-markers: build/docs could not be read: EACCES.',
+      ]);
+    } finally {
+      chmodSync(locked, 0o755);
+    }
+  }
+);
+
+test('a build/ that is a file is reported, and nothing it hides', async () => {
   const root = mkdtempSync(join(tmpdir(), 'check-markers-'));
   temps.push(root);
   writeFileSync(join(root, 'build'), 'not a directory\n');
   const { code, error } = await run(root);
   assert.equal(code, 1);
-  assert.deepEqual(error.sort(), [
+  assert.deepEqual(error, [
     'check-generated-markers: build could not be read: ENOTDIR.',
-    NO_TWINS,
-    missing('build/llms-full.txt'),
-    missing('build/llms.txt'),
   ]);
 });
 
@@ -223,9 +245,6 @@ test('a link under build/ is reported, not followed', async () => {
   });
   symlinkSync(join(root, 'elsewhere/page.md'), join(root, 'build/docs/a.md'));
   symlinkSync(join(root, 'elsewhere/dir'), join(root, 'build/docs/dir'));
-  const notChecked = file =>
-    `check-generated-markers: ${file} is not a regular file or directory, ` +
-    `so it was not checked.`;
   const { code, error } = await run(root);
   assert.equal(code, 1);
   assert.deepEqual(error.sort(), [
@@ -233,6 +252,34 @@ test('a link under build/ is reported, not followed', async () => {
     notChecked('build/docs/dir'),
     missing('build/llms.txt'),
   ]);
+});
+
+test('a link that may be the only twin leaves out the no-twin claim', async () => {
+  const root = site({
+    'build/docs/api/card.md': null,
+    'elsewhere/page.md': BARE,
+  });
+  mkdirSync(join(root, 'build/docs'));
+  symlinkSync(join(root, 'elsewhere/page.md'), join(root, 'build/docs/a.md'));
+  const { code, error } = await run(root);
+  assert.equal(code, 1);
+  assert.deepEqual(error, [notChecked('build/docs/a.md')]);
+});
+
+test('a linked llms-full.txt is reported as a link and nothing else', async () => {
+  // Its target names the keyword, which a followed link would report, and
+  // a link is not a missing file either.
+  const root = site({
+    'build/llms-full.txt': null,
+    'elsewhere/llms-full.txt': lines(BARE, '---', PAGE),
+  });
+  symlinkSync(
+    join(root, 'elsewhere/llms-full.txt'),
+    join(root, 'build/llms-full.txt')
+  );
+  const { code, error } = await run(root);
+  assert.equal(code, 1);
+  assert.deepEqual(error, [notChecked('build/llms-full.txt')]);
 });
 
 test('an empty or whitespace-only file fails the build', async () => {
