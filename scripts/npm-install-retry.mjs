@@ -52,6 +52,9 @@ import { forLog } from './consumer-sbom-meta.mjs';
 // exist for the tests and for running the script by hand, not because
 // anything configures them: the step hardcodes --spec and --dir, and
 // workflow_dispatch on this workflow declares no inputs at all.
+//
+// verify-attestation.mjs borrows both for its wait on a release's attestation
+// (RELEASE_ATTESTATION_RETRY), so changing either moves that wait too.
 export const DEFAULT_BUDGET_SECONDS = 900;
 export const DEFAULT_SLEEP_SECONDS = 20;
 

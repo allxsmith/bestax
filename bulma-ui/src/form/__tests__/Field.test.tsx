@@ -14,6 +14,7 @@ import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateRangeInput } from '../DateRangeInput';
+import { DateRangeInputBase } from '../DateRangeInputBase';
 import { Autocomplete } from '../Autocomplete';
 import { Taginput } from '../Taginput';
 import { File } from '../File';
@@ -959,8 +960,18 @@ describe('label names the convenience controls (#939)', () => {
     ['Rate', aria => <Rate {...aria} />, 'radiogroup'],
     ['DateRangeInput', aria => <DateRangeInput {...aria} />, 'group'],
   ];
+  // The same, plus a group base composed by hand, which has no `label` of
+  // its own and takes its name from the Field alone (#1005).
+  const fieldGroups: typeof groups = [
+    ...groups,
+    [
+      'DateRangeInputBase',
+      ({ label: _label, ...aria } = {}) => <DateRangeInputBase {...aria} />,
+      'group',
+    ],
+  ];
 
-  it.each(groups)(
+  it.each(fieldGroups)(
     'names the %s group through aria-labelledby',
     (_, element, role) => {
       const { container } = render(<Field label="Pick">{element()}</Field>);
@@ -974,7 +985,7 @@ describe('label names the convenience controls (#939)', () => {
     }
   );
 
-  it.each(groups)(
+  it.each(fieldGroups)(
     'names the %s group inside a Control too',
     (_, element, role) => {
       render(
@@ -986,7 +997,7 @@ describe('label names the convenience controls (#939)', () => {
     }
   );
 
-  it.each(groups)(
+  it.each(fieldGroups)(
     'lets an aria-label the caller set on %s win',
     (_, element, role) => {
       render(<Field label="Pick">{element({ 'aria-label': 'Mine' })}</Field>);
@@ -995,7 +1006,7 @@ describe('label names the convenience controls (#939)', () => {
     }
   );
 
-  it.each(groups)(
+  it.each(fieldGroups)(
     'lets an aria-labelledby the caller set on %s win',
     (_, element, role) => {
       render(
@@ -1056,7 +1067,7 @@ describe('label names the convenience controls (#939)', () => {
     }
   );
 
-  it.each(groups)(
+  it.each(fieldGroups)(
     'still names the %s group when the caller forwards an undefined aria-label',
     (_, element, role) => {
       render(

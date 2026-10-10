@@ -1027,7 +1027,26 @@ jobs:
       # This list is the single source of truth for what gets verified: the
       # assertion step below reads the roster back out of this tree rather than
       # repeating it.
+      #
+      # On a release, the package it names is then reinstalled at the tagged
+      # version (#719). The bare install resolves `latest`, which can still be
+      # the previous version for minutes after a publish, and that version's
+      # attestation verifies fine, so the job went green without opening the
+      # release's own. verify-attestation.mjs decides the spec from the event
+      # and its tag: a release event with no usable tag fails here rather than
+      # skipping the pin, and a tag naming a package this roster does not
+      # install is refused. The install goes through npm-install-retry.mjs
+      # because an exact version can be unresolvable while the registry
+      # propagates (#716). `--await-attestation` then waits for the release's
+      # attestation, which the registry serves on a route of its own, so the
+      # audit and the assertion below ask for one the registry has already
+      # served; its budget is RELEASE_ATTESTATION_RETRY in that script, and
+      # only a release run waits on it. The assertion step then fails if the
+      # tree is not that release.
       - name: Install published packages into a scratch tree
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           mkdir -p "$RUNNER_TEMP/verify"
           cd "$RUNNER_TEMP/verify"
@@ -1035,6 +1054,17 @@ jobs:
           npm install --ignore-scripts \
             @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp \
             @allxsmith/eslint-plugin-bestax
+
+          SPEC=$(node "$GITHUB_WORKSPACE/scripts/verify-attestation.mjs" \
+            --dir "$RUNNER_TEMP/verify" --event "$EVENT" \
+            --release "$RELEASE_TAG" --print-spec)
+          if [ -n "$SPEC" ]; then
+            node "$GITHUB_WORKSPACE/scripts/npm-install-retry.mjs" \
+              --spec "$SPEC" --dir "$RUNNER_TEMP/verify"
+            node "$GITHUB_WORKSPACE/scripts/verify-attestation.mjs" \
+              --dir "$RUNNER_TEMP/verify" --event "$EVENT" \
+              --release "$RELEASE_TAG" --await-attestation
+          fi
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -1063,5 +1093,16 @@ jobs:
       # hand-maintained invariant with nothing enforcing it — add a newly
       # published package to one and not the other and it ships unverified,
       # silently, green.
+      #
+      # `--event` decides whether a release is held, as it does for the pin.
+      # A scheduled or dispatched run holds none, since `latest` is the right
+      # question there; a release event must carry its tag or the step fails;
+      # and an event the script does not classify fails too, so a trigger
+      # added later cannot pass with no release held.
       - name: Assert the attestations say this repository built these tarballs
-        run: node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify"
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify" \
+            --event "$EVENT" --release "$RELEASE_TAG"

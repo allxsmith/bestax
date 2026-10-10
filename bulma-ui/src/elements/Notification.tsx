@@ -44,6 +44,11 @@ export interface NotificationProps
   /**
    * Shows a close (delete) button in the notification. It renders
    * `type="button"`, so it does not submit a form around it.
+   *
+   * The notification also takes `has-delete`, which pads its end by
+   * `--bulma-notification-delete-padding-inline-end` so the text clears the
+   * button. That rule ships in bestax's stylesheets, not Bulma's, so an app
+   * styled by Bulma's CSS alone keeps Bulma's padding.
    */
   hasDelete?: boolean;
   /** Callback fired when the delete button is clicked. */
@@ -83,6 +88,7 @@ export const Notification: React.FC<NotificationProps> = ({
   const bulmaClasses = usePrefixedClassNames('notification', {
     [`is-${color}`]: color && validColors.includes(color),
     'is-light': isLight,
+    'has-delete': hasDelete,
   });
 
   const deleteClasses = usePrefixedClassNames('delete');
