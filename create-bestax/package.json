@@ -64,14 +64,14 @@
     "react-dom": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
-    "@jest/globals": "^30.5.2",
+    "@jest/globals": "^30.0.0",
     "@playwright/test": "^1.63.0",
     "@types/fs-extra": "^11.0.4",
     "@types/jest": "^30.0.0",
     "@types/node": "^26.6.4",
     "@types/prompts": "^2.4.9",
     "@types/wait-on": "^5.3.4",
-    "jest": "^30.5.2",
+    "jest": "^30.2.0",
     "semver": "^7.8.5",
     "ts-jest": "^29.4.14",
     "typescript": "^6.0.3",
