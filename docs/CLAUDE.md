@@ -42,18 +42,14 @@ bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is whi
 
 The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
 markers, a source-control device no reader of the site needs. `build` then chains
-`scripts/check-generated-markers.mjs`, which checks the LLM surface (every `.md` under
-`build/docs`, plus `llms.txt` and `llms-full.txt`) and changes nothing: none of those files may
-hold a marker comment outside code, with its `<` written as is or as an HTML entity. Prose that
-names `bestax:generated` is fine. Code is an inline code span or a fenced block, and a fence opens
-at any indent, after any blockquote `>` prefixes, and closes on a line read the same way. An HTML
-`<code>` element is not code. A file that ends inside a fence it never closed fails too, naming
-the line it opened on. Every page's fences are checked on its own twin, so a page that leaves one
-open fails there, since in `llms-full.txt` a later page's fence can close it. The step also fails
-when there is nothing to check: no `llms.txt` or `llms-full.txt`, or no `.md` under `build/docs`
-while the source pages carry markers. Other built markdown, such as the dev.to copies of blog
-posts, is left alone. It is a build step rather than a Docusaurus plugin because `postBuild`
-hooks run under `Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it.
+`scripts/check-generated-markers.mjs`, which checks that it did without parsing any markdown:
+every `.md` under `build/docs`, `llms.txt` and `llms-full.txt` must contain the keyword
+`bestax:generated` zero times, which catches a marker however its `<` or line ending is written.
+A page that wants to show marker syntax would fail this check, so it shows the syntax without the
+keyword, or changes the check in the same PR. The step also fails when there is nothing to check
+(no `llms.txt`, `llms-full.txt` or `.md` under `build/docs`). It is a build step rather than a
+Docusaurus plugin because `postBuild` hooks run under `Promise.all`, so a plugin declared after
+`docusaurus-plugin-llms` still races it.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs

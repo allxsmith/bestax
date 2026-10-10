@@ -1,18 +1,16 @@
 /**
- * Guards on generated-markers-lib.mjs, the marker count and strip behind the
- * docs build's check-generated-markers.mjs and the README that
- * scripts/gen-skills-repo.mjs publishes.
+ * Guards on generated-markers-lib.mjs, the marker strip behind the README
+ * that scripts/gen-skills-repo.mjs publishes.
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readdirSync, readFileSync } from 'node:fs';
+import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { filesUnder } from './check-generated-markers.mjs';
 import {
   MARKER_LINE,
-  countGeneratedMarkers,
   stripGeneratedMarkers,
-  stripMarkers,
 } from './generated-markers-lib.mjs';
 
 const open = id => `<!-- bestax:generated ${id} -->`;
@@ -81,10 +79,8 @@ test('inside a fence, markers and blank lines are content', () => {
     stripGeneratedMarkers(src),
     lines('Intro.', '', fenced, '', 'Body.', '')
   );
-  assert.equal(countGeneratedMarkers(src), 2);
   const tilde = lines('~~~', open('x'), '~~~', '');
   assert.equal(stripGeneratedMarkers(tilde), tilde);
-  assert.equal(countGeneratedMarkers(tilde), 0);
 });
 
 test('CRLF lines are stripped and collapsed the way LF lines are', () => {
@@ -114,24 +110,17 @@ test('only a whole line is a marker', () => {
 
 test('every marker on the real docs pages goes, and nothing else changes', () => {
   const docs = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
-  const walk = dir =>
-    readdirSync(dir, { withFileTypes: true }).flatMap(e =>
-      e.isDirectory()
-        ? walk(join(dir, e.name))
-        : /\.mdx?$/.test(e.name)
-          ? [join(dir, e.name)]
-          : []
-    );
+  const isMarker = line => MARKER_LINE.test(line);
   let pages = 0;
-  for (const file of walk(docs)) {
+  for (const file of filesUnder(docs, /\.mdx?$/)) {
     const src = readFileSync(file, 'utf8');
-    const markers = countGeneratedMarkers(src);
+    const markers = src.split('\n').filter(isMarker).length;
     if (!markers) continue;
     pages++;
     const out = stripGeneratedMarkers(src);
-    assert.equal(countGeneratedMarkers(out), 0, file);
+    assert.ok(!out.split('\n').some(isMarker), `${file} keeps a marker`);
     assert.equal(stripGeneratedMarkers(out), out, `${file} strips once`);
-    const kept = src.split('\n').filter(l => !MARKER_LINE.test(l));
+    const kept = src.split('\n').filter(line => !isMarker(line));
     const removedBlanks = kept.length - out.split('\n').length;
     assert.ok(
       removedBlanks >= 0 && removedBlanks <= markers,
@@ -139,24 +128,4 @@ test('every marker on the real docs pages goes, and nothing else changes', () =>
     );
   }
   assert.ok(pages > 0, 'the docs carry generated regions');
-});
-
-test('stripMarkers strips in one pass and counts what it removed', () => {
-  const src = lines(
-    'Intro.',
-    '',
-    '```md',
-    open('shown'),
-    '```',
-    '',
-    open('a'),
-    'Body.',
-    close('a'),
-    ''
-  );
-  assert.deepEqual(stripMarkers(src), {
-    out: stripGeneratedMarkers(src),
-    stripped: 2,
-  });
-  assert.deepEqual(stripMarkers(''), { out: '', stripped: 0 });
 });
