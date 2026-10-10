@@ -842,15 +842,24 @@ export const WithFieldWrapper: Story = {
 
 /**
  * Full manual composition — Field+Control provided externally,
- * Slider renders just its raw element.
+ * Slider renders just its raw element. The inner Field starts its own scope,
+ * so the outer label is wired by hand with `labelProps={{ htmlFor, id }}` and a
+ * matching `id` on the Slider.
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Volume">
+    <Field
+      horizontal
+      label="Volume"
+      labelProps={{
+        htmlFor: 'volume-field-control',
+        id: 'volume-field-control-label',
+      }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Slider />
+            <Slider id="volume-field-control" />
           </Control>
         </Field>
       </Field.Body>

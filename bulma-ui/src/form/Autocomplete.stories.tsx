@@ -597,15 +597,28 @@ export const WithFieldWrapper: Story = {
 /**
  * Full manual composition — Field+Control provided externally.
  * Autocomplete manages its own control internally, so the outer Control
- * simply provides context signaling.
+ * simply provides context signaling. The inner Field starts its own scope, so
+ * the outer label is wired by hand: its `htmlFor` names the input and its `id`
+ * names the open suggestion list.
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Fruit">
+    <Field
+      horizontal
+      label="Fruit"
+      labelProps={{
+        htmlFor: 'fruit-field-control',
+        id: 'fruit-field-control-label',
+      }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Autocomplete data={fruits} placeholder="Search..." />
+            <Autocomplete
+              id="fruit-field-control"
+              data={fruits}
+              placeholder="Search..."
+            />
           </Control>
         </Field>
       </Field.Body>
