@@ -284,7 +284,7 @@ function example() {
 
 ---
 
-## Related
+## Related Components
 
 - [Icon](../elements/icon.md) - Icon component
 - [Button](../elements/button.md) - Button component
