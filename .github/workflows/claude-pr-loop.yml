@@ -24,7 +24,9 @@ name: Claude PR Loop
 #               ai-loop → ai-loop-paused, owner intervention required.
 #
 # KILL SWITCHES: remove the ai-loop label (per PR); set repo variable
-# AI_LOOP_ENABLED=false (whole system); cancel the run in the Actions UI.
+# AI_LOOP_ENABLED=false (this loop and the other workflows that read it, not
+# the deep review, which reads AI_CLAUDE_ENABLED); cancel the run in the
+# Actions UI.
 
 on:
   pull_request_review:
@@ -157,6 +159,16 @@ jobs:
           [ "$(jq -r .state <<<"$PR_JSON")" = "OPEN" ] || skip "PR not open"
           jq -e '[.labels[].name] | index("ai-loop")' <<<"$PR_JSON" >/dev/null \
             || skip "no ai-loop label (converged, paused, or human PR)"
+          # The bestaxbot App drives the PRs it opens from its own
+          # repository, on the same `ai-loop` label and `claude/` branches,
+          # so this loop leaves them alone rather than run a second loop on
+          # them. Here rather than in the job `if:`, because this step is
+          # where every event shape has resolved its PR. REST, not
+          # `gh pr view`, which spells an App author `app/<slug>`; the login
+          # alone, since an exclusion that matches more is the safe side.
+          AUTHOR=$(gh api "repos/$REPO/pulls/$PR" --jq '.user.login')
+          [ "$AUTHOR" != "bestaxbot[bot]" ] \
+            || skip "opened by the bestaxbot App, which drives its own PRs"
           HEAD_REF=$(jq -r .headRefName <<<"$PR_JSON")
           HEAD_SHA=$(jq -r .headRefOid <<<"$PR_JSON")
           out pr "$PR"; out head_ref "$HEAD_REF"; out head_sha "$HEAD_SHA"
