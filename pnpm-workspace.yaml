@@ -99,7 +99,7 @@ minimumReleaseAgeExclude:
 overrides:
   # bestax:permanent — a deliberate single-version pin for formatting
   # determinism, not an advisory patch waiting on the ecosystem.
-  prettier: 3.9.6
+  prettier: 3.9.9
   # The entries below force patched versions of transitive dependencies. Each
   # stops being load-bearing once its parents widen their own ranges, so prune
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
