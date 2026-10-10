@@ -130,18 +130,21 @@ regardless of how convenient it is.
   reviewing code is the job. What holds them is a different, weaker set: the tool allowlist, the
   protected-path deny rules, the trusted-labeler gates, and — as of #578, for all five of them —
   an enforced egress policy on a measured allowlist. Read that last leg for exactly what rule 10
-  says it delivers: it narrows **where** a session can send data, and `api.github.com` is
-  necessarily on every one of those allowlists, so it does not bound what the session can do
-  through a tool. Saying I1 covers those jobs would be the exact overstatement the checklist at
-  the bottom of this file ends on. It covers the pipeline that was designed around it.
+  says it delivers: it narrows **where** a session that does not escalate can send data, and
+  `api.github.com` is necessarily on every one of those allowlists, so it does not bound what the
+  session can do through a tool. Nor does it hold an injected session that runs code: that code
+  can get root, and from root it reaches past the list ("What the agent allows beyond the list"
+  under rule 10; hardening is tracked in #1014). Saying I1 covers those jobs would be the exact
+  overstatement the checklist at the bottom of this file ends on. It covers the pipeline that was
+  designed around it.
 
   harden-runner's egress block enforces again as of #487 — `block` used to degrade silently to
   `audit`, and now enforces and is asserted (rule 10). **Do not promote it to a third leg of
   I1**, which an earlier draft of this file did while `claude-repro.yml` said the opposite: on
   the exfil path I1 exists to close — `Write` plus a later publishing job — the drafting job's
   egress policy bounds nothing, because the publishing job has no policy of its own. Be exact
-  about what it does add: it narrows **where** a session can send data, not **what** it can do
-  with the hosts it is allowed. `api.github.com` is
+  about what it does add: it narrows **where** a session that does not escalate can send data,
+  not **what** it can do with the hosts it is allowed. `api.github.com` is
   necessarily allow-listed in every one of these jobs, so egress-block cannot stop a write
   issued through a tool. Never trade away a tool restriction on the grounds that "egress is
   blocked anyway" — the two controls cover different things, which is the whole reason both
@@ -244,10 +247,10 @@ Read the third column for **which** credential — since #455 and #457 neither s
 reach repository write any more, and "the session can't write to the repo" is not the same
 claim as "the allowlist stopped mattering":
 
-| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired.     |
-| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. Egress-block IS enforced here as of #487 (rule 10), and the two are complementary rather than redundant: it narrows **where** data can go, while `api.github.com` is necessarily allow-listed, so it cannot stop a write issued through a tool. Narrow, not retired. |
+| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired.                                                                                                                                                                                         |
+| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. Egress-block IS enforced here as of #487 (rule 10), and the two are complementary rather than redundant: while the allowlist holds, it narrows **where** data can go, though `api.github.com` is necessarily allow-listed, so it cannot stop a write issued through a tool. It is no backstop once the allowlist is defeated: a shell on the runner can get root and reach past the list ("What the agent allows beyond the list"). Narrow, not retired. |
 
 Concrete rules:
 
@@ -602,11 +605,11 @@ quietly misses a model-token job, or implies coverage a workflow only partly has
 no table, for the same reason a comment that overstates its mechanism is.
 
 Citing egress-block as a control is now legitimate **for the first group only**, and only for
-what it actually does: it narrows where data can go without bounding it ("What the agent allows
-beyond the list" says what reaches past a job's list), and it does nothing about what a session
-does with an allow-listed host (see I1). Widening an allowlist remains a security change under
-rule 2, and `sign-sbom`'s list is still assembled by reading the actions rather than from a
-measured run.
+what it actually does: it narrows where a step that does not escalate can send data, without
+bounding it ("What the agent allows beyond the list" says what reaches past a job's list, root
+included), and it does nothing about what a session does with an allow-listed host (see I1).
+Widening an allowlist remains a security change under rule 2, and `sign-sbom`'s list is still
+assembled by reading the actions rather than from a measured run.
 So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists and
 `skills-publish`'s `relay`, `generate` and `publish` lists, which no run had exercised when they
 were written.
@@ -629,14 +632,22 @@ The agent adds these to every block job's list, each on port 443 (`addImplicitEn
 - **The meta list.** GitHub's `actions` domains as StepSecurity's `/github/meta` serves them at
   startup, minus any ending in `githubusercontent.com`, which is why a job that needs
   `objects.githubusercontent.com` still lists it. It has included `github.com`, `*.github.com`
-  (which covers `api.github.com`), `ghcr.io` and `*.githubapp.com`. It is StepSecurity's list,
-  not ours, and can change with no diff here: a run's `Post Harden runner` log shows what that
-  run fetched (`fetched GitHub meta domains`), and
+  (which covers `api.github.com`), `ghcr.io`, `*.githubapp.com`, and the exact entries
+  `productionresultssa0.blob.core.windows.net` up to `productionresultssa<N>.blob.core.windows.net`,
+  N being wherever the list stops at the time. The agent resolves each of those at startup, as it
+  does any exact entry (below), and admits the address it gets on 443 when the firewall goes up,
+  before the job looks anything up. They are shared storage front-end addresses, so other storage
+  accounts served from them get through too ("Addresses, not names", below). And each one is a
+  further entry that reverts the firewall if it fails to resolve at startup. The list is
+  StepSecurity's, not ours, and can change with no diff here: a run's `Post Harden runner` log
+  shows what that run fetched (`fetched GitHub meta domains`), and
   `curl -s https://agent.api.stepsecurity.io/v1/github/meta` what it would fetch now.
 - **The built-in entries,** present even when that fetch fails: `codeload.github.com`,
   `*.actions.githubusercontent.com`, `actions-results-receiver-production.githubapp.com` and
-  `productionresultssa*.blob.core.windows.net`. They carry the Actions cache and the runner's
-  control plane ("Measuring an allowlist").
+  `productionresultssa*.blob.core.windows.net`. They carry the Actions cache and the runner
+  control-plane hosts "Measuring an allowlist" names, except `hosted-compute-*.githubapp.com`,
+  which no built-in entry matches: the meta list's `*.githubapp.com` admits it when the fetch
+  succeeds.
 - **StepSecurity's telemetry hosts,** `agent.api.stepsecurity.io` and
   `prod.app-api.stepsecurity.io`, unless the job sets `disable-telemetry: true`
   (`grep -rn disable-telemetry .github/workflows/` lists any that do).
@@ -716,9 +727,10 @@ Two things about reading its output, both learned assembling the #578 lists:
   others is not free, though: the agent resolves every exact entry at startup, and one that does
   not resolve then reverts the firewall (rule 10), so an entry the job never needed can still
   turn its policy off. Removing the ones lists already carry is tracked in #1014.
-  Run 33221210633 is one run's evidence for omitting them: `auto-close-duplicates` at `block`
-  with its list observed only `api.github.com` and `github.com`, and completed every one of its
-  API calls under the firewall.
+  Run 33221210633's log shows `auto-close-duplicates` at `block` connecting to `api.github.com`
+  and `github.com` and nothing else. That shows the job did not use these hosts, not that
+  leaving them off works for a job that does. Run 33286967625, below, is the evidence for
+  leaving them out.
 
   **What leaving them out costs was read from a run, not assumed.** Run 33286967625 ran
   `claude-review` at `block` on harden-runner v2.21.0, whose agent had the built-in entries and

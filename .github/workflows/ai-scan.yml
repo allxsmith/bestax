@@ -40,10 +40,11 @@ name: AI Security Scan
 # degrading in silence.
 #
 # Be precise about what that adds: it narrows where the OAuth token can be sent
-# if the tool allowlist is ever defeated. It does not replace the allowlist —
-# `gh` reaches api.github.com, which is allow-listed, so egress-block would not
-# stop a write issued through a tool. Two controls, each covering what the
-# other does not.
+# while the tool allowlist holds. It is no backstop once the allowlist is
+# defeated: a shell on the runner can get root and reach past the list
+# (.github/CLAUDE.md, "What the agent allows beyond the list"). Nor does it
+# replace the allowlist: `gh` reaches api.github.com, which is allow-listed, so
+# egress-block would not stop a write issued through a tool.
 #
 # THREE JOBS, one credential boundary each (#455 — the claude-repro.yml
 # author/publish pattern, and test-deploy.yml since #442). The write steps
@@ -354,8 +355,9 @@ jobs:
   # than "the allowlist no longer matters": this job still carries
   # CLAUDE_CODE_OAUTH_TOKEN alongside Bash, so by I1 the allowlist remains the
   # only control against reading that credential out of the environment. Egress
-  # is enforced as of #487, but it narrows WHERE data can go, not what a tool can
-  # do with an allow-listed host — api.github.com is on the list. Keep the
+  # is enforced as of #487, but it narrows WHERE data can go only while the
+  # allowlist holds (past it, a shell can get root), and never what a tool can
+  # do with an allow-listed host, as api.github.com is on the list. Keep the
   # allowlist narrow (rule 2); the two controls cover different things.
   #
   # The read grants are explicit rather than implied by
@@ -387,8 +389,8 @@ jobs:
       # Defense-in-depth: the session's Bash allowlist is `gh issue view`,
       # `gh pr view` and `gh pr diff`, read-only against GitHub's API. Each one
       # also takes a full URL or `-R HOST/OWNER/REPO`, and sends its request to
-      # that host instead. Block narrows where those requests, and the OAuth
-      # token, can go ("What the agent allows beyond the list" in
+      # that host instead. Block narrows where those requests, and an OAuth
+      # token carried in one, can go ("What the agent allows beyond the list" in
       # .github/CLAUDE.md), and as of #487 it is ENFORCED and asserted below.
       # The list is additive to harden-runner's GitHub Actions baseline and is
       # the set measured on a real run (#487), not a guess.
