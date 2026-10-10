@@ -84,6 +84,8 @@ You can use the `color` prop with values like `success`, `warning`, `danger`, `i
 
 To make notifications dismissible, set the `hasDelete` prop to show a close button. Combine with the `onDelete` callback to control visibility, such as hiding the notification when the button is clicked. This pattern is useful for temporary alerts or feedback that users can clear from the interface.
 
+Bulma puts the close button in the notification's top end corner, further in than its padding reaches, so on a narrow column the first line could run under it. With `hasDelete`, the notification pads its end by `--bulma-notification-delete-padding-inline-end` instead, room for the button and a gap, so the text wraps before it. A [`Delete`](./delete.md) you pass as a direct child gets the same room in browsers that support `:has()`.
+
 ```tsx live
 function example() {
   const [visible, setVisible] = React.useState(true);
