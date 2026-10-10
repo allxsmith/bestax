@@ -1,6 +1,6 @@
 /**
- * Guards on generated-markers-lib.mjs, the marker strip behind the docs
- * build's strip-generated-markers.mjs and the README that
+ * Guards on generated-markers-lib.mjs, the marker strip and checks behind the
+ * docs build's strip-generated-markers.mjs and the README that
  * scripts/gen-skills-repo.mjs publishes.
  */
 import { test } from 'node:test';
@@ -11,10 +11,10 @@ import { fileURLToPath } from 'node:url';
 import {
   MARKER_LINE,
   countGeneratedMarkers,
-  leakedMarkers,
-  markerCounts,
+  markersOutsideCode,
   stripGeneratedMarkers,
   stripMarkers,
+  unclosedFence,
 } from './generated-markers-lib.mjs';
 
 const open = id => `<!-- bestax:generated ${id} -->`;
@@ -114,7 +114,8 @@ test('only a whole line is a marker', () => {
   assert.equal(stripGeneratedMarkers(open('a')), '');
 });
 
-test('every marker on the real docs pages goes, and nothing else changes', () => {
+/** The real docs pages, as paths. */
+function realPages() {
   const docs = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
   const walk = dir =>
     readdirSync(dir, { withFileTypes: true }).flatMap(e =>
@@ -124,8 +125,12 @@ test('every marker on the real docs pages goes, and nothing else changes', () =>
           ? [join(dir, e.name)]
           : []
     );
+  return walk(docs);
+}
+
+test('every marker on the real docs pages goes, and nothing else changes', () => {
   let pages = 0;
-  for (const file of walk(docs)) {
+  for (const file of realPages()) {
     const src = readFileSync(file, 'utf8');
     const markers = countGeneratedMarkers(src);
     if (!markers) continue;
@@ -143,7 +148,7 @@ test('every marker on the real docs pages goes, and nothing else changes', () =>
   assert.ok(pages > 0, 'the docs carry generated regions');
 });
 
-test('stripMarkers strips in one pass and counts what it removed and kept', () => {
+test('stripMarkers strips in one pass and counts what it removed', () => {
   const src = lines(
     'Intro.',
     '',
@@ -156,17 +161,49 @@ test('stripMarkers strips in one pass and counts what it removed and kept', () =
     close('a'),
     ''
   );
-  const result = stripMarkers(src);
-  assert.equal(result.out, stripGeneratedMarkers(src));
-  assert.equal(result.stripped, 2);
-  assert.equal(result.kept, 1);
-  assert.deepEqual(markerCounts(src), { unfenced: 2, fenced: 1 });
-  assert.deepEqual(stripMarkers(''), { out: '', stripped: 0, kept: 0 });
+  assert.deepEqual(stripMarkers(src), {
+    out: stripGeneratedMarkers(src),
+    stripped: 2,
+  });
+  assert.deepEqual(stripMarkers(''), { out: '', stripped: 0 });
 });
 
-test('an open fence in a joined file hides later markers, and leakedMarkers says so', () => {
-  // The review's reproduction: one page in llms-full.txt leaves a fence
-  // open, so the next page's markers read as fenced and stay.
+test('markersOutsideCode finds a marker comment in prose, as written or escaped', () => {
+  const src = lines(
+    `See ${open('a')} here.`,
+    `${close('a')} too.`,
+    '&lt;!-- bestax:generated a --&gt;',
+    '&lt;!--/bestax:generated a--&gt;',
+    // Not a marker: prose naming it, and a longer name.
+    'A bestax:generated region.',
+    '<!-- bestax:generatedx -->',
+    // A backtick with no partner opens no code span.
+    `It\`s ${open('a')}`,
+    ''
+  );
+  assert.deepEqual(markersOutsideCode(src), [1, 2, 3, 4, 7]);
+});
+
+test('markersOutsideCode passes over fences and inline code spans', () => {
+  const src = lines(
+    '```md',
+    open('a'),
+    '&lt;!-- /bestax:generated a --&gt;',
+    '```',
+    '~~~',
+    `See ${open('a')} here.`,
+    '~~~',
+    `Opens with \`${open('a')}\`, closes with \`\`${close('a')}\`\`.`,
+    // A span runs to a closing run as long as its opening, and no further.
+    `A span: \`a \`\` ${open('a')}\` and after it ${close('a')}.`,
+    ''
+  );
+  assert.deepEqual(markersOutsideCode(src), [9]);
+});
+
+test('unclosedFence names a fence left open, which hides the markers after it', () => {
+  // One page in llms-full.txt leaves a fence open, so the next page's
+  // markers read as code, and only the open fence gives them away.
   const joined = lines(
     '# A',
     '```jsx',
@@ -180,38 +217,22 @@ test('an open fence in a joined file hides later markers, and leakedMarkers says
     close('props'),
     ''
   );
-  const { out, stripped, kept } = stripMarkers(joined);
-  assert.equal(stripped, 0);
-  assert.equal(kept, 2);
-  assert.ok(out.includes(open('props')), 'the markers are still there');
-  assert.match(
-    leakedMarkers('llms-full.txt', kept, 0),
-    /^llms-full\.txt: 2 marker line\(s\) are left inside code fences, and the fences in the source pages hold 0\./
-  );
-  assert.match(
-    leakedMarkers('page.md', 1, 0, 'docs/page.md'),
-    /^page\.md: 1 marker line\(s\) .*, and the fences in docs\/page\.md hold 0\./
-  );
-  // Markers the sources show inside fences are accounted for.
-  assert.equal(leakedMarkers('page.md', 1, 1), null);
-  assert.equal(leakedMarkers('page.md', 0, 0), null);
+  assert.equal(stripMarkers(joined).stripped, 0);
+  assert.deepEqual(markersOutsideCode(joined), []);
+  assert.equal(unclosedFence(joined), 2);
+  assert.equal(unclosedFence(lines('Text.', '```')), 2);
+  assert.equal(unclosedFence(lines('````md', '```', 'x', '```', '')), 1);
+  // Closed on the last line, with or without a final newline, is closed.
+  assert.equal(unclosedFence(lines('```', 'x', '```')), 0);
+  assert.equal(unclosedFence(lines('```', 'x', '```', '')), 0);
+  assert.equal(unclosedFence(''), 0);
 });
 
-test('the real docs pages show no marker inside a fence, and joined they leak none', () => {
-  const docs = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
-  const walk = dir =>
-    readdirSync(dir, { withFileTypes: true }).flatMap(e =>
-      e.isDirectory()
-        ? walk(join(dir, e.name))
-        : /\.mdx?$/.test(e.name)
-          ? [join(dir, e.name)]
-          : []
-    );
-  const pages = walk(docs).map(file => readFileSync(file, 'utf8'));
-  const fenced = pages.reduce((sum, src) => sum + markerCounts(src).fenced, 0);
+test('the real docs pages, joined, leave no marker outside code', () => {
+  const pages = realPages().map(file => readFileSync(file, 'utf8'));
   // Joined the way docusaurus-plugin-llms joins llms-full.txt.
   const joined = stripMarkers(pages.join('\n\n---\n\n'));
-  assert.equal(leakedMarkers('joined', joined.kept, fenced), null);
   assert.ok(joined.stripped > 0);
-  assert.equal(countGeneratedMarkers(joined.out), 0);
+  assert.deepEqual(markersOutsideCode(joined.out), []);
+  assert.equal(unclosedFence(joined.out), 0);
 });

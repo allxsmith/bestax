@@ -1,21 +1,24 @@
 /**
- * The `<!-- bestax:generated <id> -->` marker lines and the function that
- * strips them, with no side effects, so both strip-generated-markers.mjs and
- * scripts/gen-skills-repo.mjs can import it.
+ * The `<!-- bestax:generated <id> -->` marker lines, the function that strips
+ * them, and the checks for any marker left, with no side effects, so both
+ * strip-generated-markers.mjs and scripts/gen-skills-repo.mjs can import it.
  *
  * Fence-aware, through the fence rules scripts/lib/api-page.mjs writes and
  * reads the regions with: a marker shown inside a fenced code block is
- * content, and so is every blank line there.
- *
- * That has one failure mode, and leakedMarkers is its guard. In a file that
- * joins many pages, such as llms-full.txt, one page that leaves a fence open
- * makes every marker after it look fenced, so they would all be kept.
+ * content, and so is every blank line there. A fence left open hides every
+ * marker after it, which is what unclosedFence is for.
  */
-import { fenceMask } from '../../scripts/lib/api-page.mjs';
+import { fenceMask, fenceSpans } from '../../scripts/lib/api-page.mjs';
 
 /** One whole line that is a marker, opening or closing, with no line ending. */
 export const MARKER_LINE =
   /^[ \t]*<!--[ \t]*\/?bestax:generated[ \t][^>]*-->[ \t]*$/;
+
+/** A marker comment anywhere in a line, as written or HTML-escaped. */
+const MARKER = /(?:<|&lt;)!--[ \t]*\/?bestax:generated\b/;
+
+/** An inline code span: a run of backticks, text, and a run as long. */
+const CODE_SPAN = /(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)/g;
 
 /**
  * `src` split after each newline, so each line keeps its own ending (LF or
@@ -30,36 +33,23 @@ function scan(src) {
   return { lines, bare, fenced, marker };
 }
 
-/** The marker lines in `src`, as many outside a fence and as many inside. */
-export function markerCounts(src) {
-  const { fenced, marker } = scan(src);
-  let unfenced = 0;
-  let inFence = 0;
-  marker.forEach((is, i) => {
-    if (is && fenced[i]) inFence++;
-    else if (is) unfenced++;
-  });
-  return { unfenced, fenced: inFence };
-}
-
 /** How many marker lines stripGeneratedMarkers would remove from `src`. */
 export function countGeneratedMarkers(src) {
-  return markerCounts(src).unfenced;
+  const { fenced, marker } = scan(src);
+  return marker.filter((is, i) => is && !fenced[i]).length;
 }
 
 /**
  * `src` with every marker line outside a fence removed, each with its own
- * line ending, in one pass: `out` is the result, `stripped` the marker lines
- * removed, and `kept` the marker lines left because a fence holds them. A
- * marker that sat between two blank lines would leave both, opening a double
- * gap, so the blank line after it goes too. No other line changes, inside a
- * fence or out.
+ * line ending, in one pass: `out` is the result and `stripped` the marker
+ * lines removed. A marker that sat between two blank lines would leave both,
+ * opening a double gap, so the blank line after it goes too. No other line
+ * changes, inside a fence or out.
  */
 export function stripMarkers(src) {
   const { lines, bare, fenced, marker } = scan(src);
   const out = [];
   let stripped = 0;
-  let kept = 0;
   let lastBlank = false;
   let gap = false;
   for (let i = 0; i < lines.length; i++) {
@@ -68,7 +58,6 @@ export function stripMarkers(src) {
       gap ||= lastBlank;
       continue;
     }
-    if (marker[i]) kept++;
     const blank = bare[i] === '';
     if (gap && blank) {
       gap = false;
@@ -78,7 +67,7 @@ export function stripMarkers(src) {
     lastBlank = blank;
     out.push(lines[i]);
   }
-  return { out: out.join(''), stripped, kept };
+  return { out: out.join(''), stripped };
 }
 
 /** stripMarkers' text alone. */
@@ -87,17 +76,31 @@ export function stripGeneratedMarkers(src) {
 }
 
 /**
- * Why a stripped file cannot ship, or null. `kept` is stripMarkers' count
- * for the file, and `shown` the marker lines that `sources`, the pages the
- * file was built from, show inside fences, which the file cannot hold more
- * of. More than that means a fence left open earlier in the file hid real
- * markers.
+ * The lines of `src`, numbered from 1, that hold a marker comment, as written
+ * or HTML-escaped, outside code: outside a fenced block and outside an inline
+ * code span. Prose that names `bestax:generated` without the comment syntax
+ * is not a marker.
  */
-export function leakedMarkers(file, kept, shown, sources = 'the source pages') {
-  if (kept <= shown) return null;
-  return (
-    `${file}: ${kept} marker line(s) are left inside code fences, and the ` +
-    `fences in ${sources} hold ${shown}. A code fence left open earlier in ` +
-    `the file hides the rest, so they would ship.`
-  );
+export function markersOutsideCode(src) {
+  const { bare, fenced } = scan(src);
+  const found = [];
+  bare.forEach((line, i) => {
+    if (!fenced[i] && MARKER.test(line.replace(CODE_SPAN, ''))) {
+      found.push(i + 1);
+    }
+  });
+  return found;
+}
+
+/**
+ * The line, numbered from 1, of a fence that `src` opens and never closes, or
+ * 0. Everything after such a fence reads as code, so markersOutsideCode
+ * passes over it.
+ */
+export function unclosedFence(src) {
+  const { bare } = scan(src);
+  // No fence closes on an empty line, so one still open at the end of `src`
+  // is the only span that reaches the line added here.
+  const last = fenceSpans([...bare, '']).at(-1);
+  return last?.close === bare.length ? last.open + 1 : 0;
 }
