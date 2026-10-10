@@ -100,8 +100,9 @@ overrides:
   # bestax:permanent — a deliberate single-version pin for formatting
   # determinism, not an advisory patch waiting on the ecosystem.
   prettier: 3.9.9
-  # bestax:review 2026-11-13 - drop once Storybook's test runner works with
-  # jest 30.5 (storybookjs/storybook#36116).
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores
+  # once Storybook's test runner works with jest 30.5
+  # (storybookjs/storybook#36116). This date is those ignores' review too.
   # Hold the jest family on 30.4. jest 30.5 makes module.register() throw
   # inside the test sandbox, and Storybook's importModule calls it the first
   # time it loads a file, so test-storybook:ci fails before it runs a story.
@@ -120,30 +121,40 @@ overrides:
   # a tree whose test runner stays on 30.4, so .github/dependabot.yml ignores
   # 30.5 for the jest packages the manifests name, which keeps the Dependabot
   # group from proposing it while this hold stands. The entries hold one
-  # version line between them, so drop them together, and that ignore with
-  # them.
+  # version line between them, so drop them together.
   'jest@>=30.0.0 <30.5': '30.4.2'
-  # bestax:review 2026-11-13 - jest 30.4 hold; bulma-ui's test environment
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, bulma-ui's test environment
   'jest-environment-jsdom@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; the packages' test globals
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, the packages' test globals
   '@jest/globals@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, @storybook/test-runner's copy
   'jest-circus@>=30.0.0 <30.5': '30.4.2'
-  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, @storybook/test-runner's copy
   'jest-runner@>=30.0.0 <30.5': '30.4.2'
-  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, @storybook/test-runner's copy
   'jest-environment-node@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, @storybook/test-runner's copy
   '@jest/types@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; via jest-watch-typeahead
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, via jest-watch-typeahead
   'jest-watcher@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; via jest-watch-typeahead
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, via jest-watch-typeahead
   'jest-regex-util@>=30.0.0 <30.5': '30.4.0'
-  # bestax:review 2026-11-13 - jest 30.4 hold; via @swc/jest
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, via @swc/jest
   '@jest/create-cache-key-function@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; via @types/jest
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, via @types/jest
   'expect@>=30.0.0 <30.5': '30.4.1'
-  # bestax:review 2026-11-13 - jest 30.4 hold; via @types/jest
+  # bestax:review 2026-11-13 - drop with .github/dependabot.yml's jest ignores;
+  # jest 30.4 hold, via @types/jest
   'pretty-format@>=30.0.0 <30.5': '30.4.1'
   # The entries below force patched versions of transitive dependencies. Each
   # stops being load-bearing once its parents widen their own ranges, so prune

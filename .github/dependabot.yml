@@ -27,14 +27,14 @@ updates:
       # rejects `declare module M {}` — all of which this codemod must keep accepting.
       - dependency-name: "@babel/parser"
         update-types: ["version-update:semver-major"]
-      # Review by 2026-11-13, with the jest overrides in pnpm-workspace.yaml:
-      # drop the jest ignores below and those overrides together, once
-      # Storybook's test runner works with jest 30.5
+      # Drop the jest ignores below together with the jest overrides in
+      # pnpm-workspace.yaml, whose bestax:review date is the enforced one,
+      # once Storybook's test runner works with jest 30.5
       # (storybookjs/storybook#36116). The overrides hold the test runner's
-      # own jest on 30.4, so a bump of these manifests to 30.5 would pass
-      # test-storybook and leave a tree mixing 30.4 and 30.5. Scoped to the
-      # 30.5+ releases of the jest packages the manifests name, all dev-only
-      # test tooling, so 31 is still proposed.
+      # own jest on 30.4, so a bump of the workspace manifests to 30.5 would
+      # pass test-storybook and leave a tree mixing 30.4 and 30.5. Scoped to
+      # the 30.5+ releases of the jest packages the manifests name, all
+      # dev-only test tooling, so 31 is still proposed.
       - dependency-name: "jest"
         versions: [">=30.5.0 <31"]
       - dependency-name: "jest-environment-jsdom"
