@@ -248,8 +248,21 @@ function bulmaSassPath(rel) {
   return full;
 }
 
-/** A row's scope as the server's `CssVar.scope` union spells it. */
-const mcpScope = scope => (scope === 'mixin' ? 'root' : scope);
+/**
+ * A row's scope as the server's `CssVar.scope` union spells it, which has no
+ * `mixin`. A mixin lands on the component's own element (`.delete`), so the
+ * server's `root` advice (set it there or via className, an ancestor loses)
+ * is true for most of those rows. Not where a modifier declares the variable
+ * again: `.delete.is-small` out-ranks the lone class `root` advises, so a
+ * sized Delete keeps Bulma's value. Those rows get `compound`, whose advice
+ * (inline style, or a selector that out-ranks it) is the one that works.
+ */
+const mcpScope = row =>
+  row.scope !== 'mixin'
+    ? row.scope
+    : row.modifiers?.length
+      ? 'compound'
+      : 'root';
 
 /**
  * CSS variable triples for a component. Deliberately the same walk and the same
@@ -304,11 +317,10 @@ async function cssVarsFor(info) {
           // that silently loses at 0-2-0 — the exact #464 failure, on the
           // MCP surface, while the docs page said the opposite (#544 review).
           // The one exception is 'mixin', which the server has no advice
-          // for: Bulma's mixin lands on the component's own element
-          // (`.delete`), so the server's 'root' advice (set it there or via
-          // className, an ancestor loses) is the true one, where the 'global'
-          // the parser used to report sent agents to `:root` (#1021).
-          scope: isExtra ? 'element' : mcpScope(row.scope),
+          // for; `mcpScope` says which of its scopes tells the truth about
+          // one. The 'global' the parser used to report sent agents to
+          // `:root`, which never reaches these (#1021).
+          scope: isExtra ? 'element' : mcpScope(row),
         });
       }
     }

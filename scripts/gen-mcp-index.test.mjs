@@ -396,7 +396,15 @@ test("Delete's variables are scoped to its element, not :root (#1021)", () => {
   // one thing that never works for them.
   const vars = components.get('Delete').cssVars;
   assert.ok(vars.length > 0);
-  assert.ok(vars.every(v => v.scope === 'root'));
+  assert.ok(!vars.some(v => v.scope === 'global'));
+  // Most are declared on `.delete` alone, so `root` and its className
+  // advice are right for them.
+  const scopeOf = css => vars.find(v => v.css === css)?.scope;
+  assert.equal(scopeOf('--bulma-delete-color'), 'root');
+  // The size modifiers declare `delete-dimensions` again, and
+  // `.delete.is-small` out-ranks a lone className class, so that one gets
+  // `compound`, whose advice (inline style) works on a sized Delete too.
+  assert.equal(scopeOf('--bulma-delete-dimensions'), 'compound');
 });
 
 test('every CSS variable lists every declarer, the one it is named after first (#964)', () => {
