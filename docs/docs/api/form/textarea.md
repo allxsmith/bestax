@@ -245,7 +245,7 @@ Inside a `Control` with no `Field` around it, `TextArea` renders no `Field` of i
 ## Accessibility
 
 - Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).
-- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.
+- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` and has no `id` of its own. A nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. With an `id` of your own, or across a nested `Field`, the label names the textarea only when you pass that `id` as `labelProps={{ htmlFor }}`.
 - Use the `rows` prop to set an appropriate height for your content.
 
 ---
