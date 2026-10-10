@@ -68,6 +68,8 @@ document.documentElement.style.setProperty('--bulma-scheme-h', '210deg');
 - **Named props for the scheme and color variables** — `schemeH`, `primaryH`, `linkS`, `dangerL`, and the rest of the HSL set. TypeScript autocompletes them and catches typos at build time.
 - **`bulmaVars` for everything else** — typography (`--bulma-family-primary`), radius (`--bulma-radius`), spacing, and the rest, keyed by their full `--bulma-*` name. The keys are typed too: written as an object literal, they autocomplete and a misspelled one is a type error.
 
+A `Theme` changes a variable only where the component inherits it. Bulma declares the scheme, color, typography, radius and spacing tokens on `:root`, so a `Theme` reaches every component under it. Component variables such as `--bulma-card-radius` or `--bulma-delete-dimensions` are a different case: Bulma declares them on the component's own element, and a value set on any ancestor, a `Theme` included, never beats that. `bulmaVars` still accepts those keys, and warns in development when given one, but they belong on the component itself; see [Component-Specific Variables](#component-specific-variables).
+
 Radius and shadow have no CSS-variable props because both names are already helper props: `radius` is the border radius helper and `shadow` is the `shadowless` helper. Set `--bulma-radius` and `--bulma-shadow` through `bulmaVars`.
 
 Themes nest naturally: outer `<Theme>` sets app-wide defaults, inner ones scope overrides to a subtree. Use `isRoot` to inject variables at `:root` for true app-wide reach.
@@ -196,9 +198,17 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 | `--bulma-radius`         | Default border radius | `4px`         |
 | `--bulma-radius-rounded` | Rounded border radius | `9999px`      |
 | `--bulma-column-gap`     | Column spacing        | `0.75rem`     |
-| `--bulma-grid-gap`       | Grid spacing          | `1rem`        |
 
 ### Component-Specific Variables
+
+Bulma declares these on the component's own class, so neither a `Theme` nor `:root` can change them: a value set on an ancestor loses to the component's own declaration. Set them in your own stylesheet on that class, loaded after the library styles (mind the class prefix under a `classPrefix`), on a class you add through `className`, or with the `style` prop. Each component's API page lists all of its variables under **CSS & Sass Variables** and says where Bulma declares them.
+
+```css
+/* Rounder cards everywhere */
+.card {
+  --bulma-card-radius: 1.5rem;
+}
+```
 
 #### Button Variables
 

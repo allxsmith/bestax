@@ -814,6 +814,117 @@ describe('Theme', () => {
     expect(themeDiv.style.getPropertyValue('--not-a-bulma-var')).toBe('');
   });
 
+  // Bulma declares variables like `--bulma-delete-dimensions` on the component
+  // itself, and an element's own declaration beats anything it inherits, so a
+  // Theme setting one changes nothing on the page. The keys stay accepted (a
+  // breaking change otherwise), and say so in development instead.
+  describe('variables Bulma declares on the component (#1021)', () => {
+    let warnSpy: jest.SpyInstance;
+
+    beforeEach(() => {
+      resetDevWarnings();
+      warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+      warnSpy.mockRestore();
+    });
+
+    it('still writes the variable, and warns naming it and where to set it', () => {
+      const { container } = render(
+        <Theme bulmaVars={{ '--bulma-delete-dimensions': '2.5rem' }}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      const themeDiv = container.firstChild as HTMLElement;
+      expect(themeDiv.style.getPropertyValue('--bulma-delete-dimensions')).toBe(
+        '2.5rem'
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('--bulma-delete-dimensions');
+      expect(message).toContain('on the component itself');
+      expect(message).toContain('never reaches it.');
+      expect(message).toContain('Set it on that component instead');
+      expect(message).toContain('className or style');
+    });
+
+    it('names every such variable at once, sorted, under isRoot too', () => {
+      render(
+        <Theme
+          isRoot
+          bulmaVars={{
+            '--bulma-radius': '6px',
+            '--bulma-tag-radius': '0',
+            '--bulma-card-radius': '0',
+          }}
+        >
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      const message = warnSpy.mock.calls[0][0] as string;
+      expect(message).toContain('--bulma-card-radius, --bulma-tag-radius on');
+      expect(message).toContain('never reaches them.');
+      // `--bulma-radius` is declared on `:root`, so Theme does reach it.
+      expect(message).not.toContain('--bulma-radius,');
+    });
+
+    it('warns for a variable prop that sets one too', () => {
+      render(
+        <Theme {...({ cardRadius: '0' } as unknown as ThemeProps)}>
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+      expect(warnSpy.mock.calls[0][0]).toContain('--bulma-card-radius');
+    });
+
+    it('warns once per set of variables, however often it renders', () => {
+      const vars = { '--bulma-box-radius': '0' } as const;
+      const { rerender } = render(
+        <Theme bulmaVars={vars}>
+          <div>Test</div>
+        </Theme>
+      );
+      rerender(
+        <Theme bulmaVars={{ ...vars }}>
+          <div>Again</div>
+        </Theme>
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+
+      // A different set is a different mistake, so it is reported too.
+      rerender(
+        <Theme bulmaVars={{ ...vars, '--bulma-box-padding': '0' }}>
+          <div>More</div>
+        </Theme>
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('stays quiet for global variables and for empty values', () => {
+      render(
+        <Theme
+          primaryH="200"
+          bulmaVars={{
+            '--bulma-radius': '6px',
+            '--bulma-skeleton-radius': '0',
+            '--bulma-grid-cell-column-start': '2',
+            '--bulma-delete-dimensions': '',
+          }}
+        >
+          <div>Test</div>
+        </Theme>
+      );
+
+      expect(warnSpy).not.toHaveBeenCalled();
+    });
+  });
+
   // A root Theme renders no wrapper, so className and the helper props have
   // nowhere to go. Silence would read as the props working, so it warns.
   describe('isRoot with props meant for the wrapper', () => {

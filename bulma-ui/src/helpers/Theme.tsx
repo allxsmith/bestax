@@ -11,8 +11,16 @@ import { validGaps, validRadii, type BulmaGapStep } from './bulmaClassHelpers';
 import { warnOnce } from './devWarnings';
 import { useClassPrefix } from './Config';
 
-// --- FULL Bulma v1 CSS variable keys (auto-generated from CSSVAR_KEYS) ---
-const bulmaCssVars = [
+// --- Bulma v1 CSS variables Theme sets (originally generated from
+// CSSVAR_KEYS), in two lists by where Bulma declares them ---
+
+/**
+ * Variables a value set on an ancestor reaches. Bulma declares them on
+ * `:root` (or a theme scope), or on no component in its plain state, so the
+ * value Theme writes on its wrapper or at `:root` is the one the components
+ * under it use.
+ */
+const bulmaGlobalVars = [
   // scheme
   '--bulma-scheme-h',
   '--bulma-scheme-s',
@@ -129,6 +137,37 @@ const bulmaCssVars = [
   '--bulma-skeleton-block-min-height',
   '--bulma-skeleton-lines-gap',
   '--bulma-skeleton-line-height',
+  // control
+  '--bulma-control-radius',
+  '--bulma-control-radius-small',
+  '--bulma-control-border-width',
+  '--bulma-control-height',
+  '--bulma-control-line-height',
+  '--bulma-control-padding-vertical',
+  '--bulma-control-padding-horizontal',
+  '--bulma-control-size',
+  '--bulma-control-focus-shadow-l',
+  // columns
+  '--bulma-column-gap',
+  // grid
+  '--bulma-grid-cell-column-start',
+] as const;
+
+/**
+ * Variables Bulma declares on the component's own element, such as
+ * `--bulma-card-radius` on `.card`. An element that declares a variable uses
+ * its own value whatever its ancestors set, so a value Theme writes for one
+ * of these, on its wrapper or at `:root`, never reaches the component.
+ *
+ * They stay in `BulmaVars`, and so stay valid `bulmaVars` keys and variable
+ * props, because taking a key out would be a breaking change. Setting one
+ * warns in development instead; see `warnComponentVars`.
+ *
+ * `scripts/css-var-scopes.test.mjs` holds this split to Bulma's compiled
+ * stylesheet in both directions, so a Bulma upgrade that moves a variable
+ * fails there.
+ */
+const bulmaComponentVars = [
   // breadcrumb
   '--bulma-breadcrumb-item-color',
   '--bulma-breadcrumb-item-hover-color',
@@ -478,16 +517,6 @@ const bulmaCssVars = [
   '--bulma-subtitle-line-height',
   '--bulma-subtitle-strong-color',
   '--bulma-subtitle-strong-weight',
-  // control
-  '--bulma-control-radius',
-  '--bulma-control-radius-small',
-  '--bulma-control-border-width',
-  '--bulma-control-height',
-  '--bulma-control-line-height',
-  '--bulma-control-padding-vertical',
-  '--bulma-control-padding-horizontal',
-  '--bulma-control-size',
-  '--bulma-control-focus-shadow-l',
   // file
   '--bulma-file-radius',
   '--bulma-file-name-border-color',
@@ -538,14 +567,11 @@ const bulmaCssVars = [
   '--bulma-input-icon-hover-color',
   '--bulma-input-icon-focus-color',
   '--bulma-input-radius',
-  // columns
-  '--bulma-column-gap',
   // grid
   '--bulma-grid-gap',
   '--bulma-grid-column-count',
   '--bulma-grid-column-min',
   '--bulma-grid-cell-column-span',
-  '--bulma-grid-cell-column-start',
   // footer
   '--bulma-footer-background-color',
   '--bulma-footer-color',
@@ -571,6 +597,9 @@ const bulmaCssVars = [
   '--bulma-section-padding-medium',
   '--bulma-section-padding-large',
 ] as const;
+
+/** Every Bulma CSS variable Theme accepts: the two lists above. */
+const bulmaCssVars = [...bulmaGlobalVars, ...bulmaComponentVars] as const;
 
 /** A single Bulma CSS variable key from the `bulmaCssVars` tuple. */
 type BulmaVarKey = (typeof bulmaCssVars)[number];
@@ -714,6 +743,38 @@ const themeColumnGapVar = (columnGap: unknown): string | undefined => {
   return columnGap;
 };
 
+/**
+ * Warn in development when a Theme is given variables Bulma declares on the
+ * component itself (`bulmaComponentVars`), whether through `bulmaVars` or a
+ * variable prop such as `cardRadius`. Theme writes them where they can never
+ * win, so nothing changes on the page, and saying so is the only way to find
+ * out short of reading Bulma's stylesheet.
+ *
+ * Keyed by the set of variables, so a Theme that keeps passing the same ones
+ * warns once, and a different set warns again. An empty value writes nothing,
+ * so it is not reported.
+ */
+const warnComponentVars = (vars: BulmaVars): void => {
+  const inert = Object.entries(vars)
+    .filter(
+      ([key, value]) =>
+        value && (bulmaComponentVars as readonly string[]).includes(key)
+    )
+    .map(([key]) => key)
+    .sort();
+  if (inert.length === 0) {
+    return;
+  }
+  const one = inert.length === 1;
+  warnOnce(
+    `Theme:component-vars:${inert.join(',')}`,
+    `[bestax-bulma] <Theme>: Bulma declares ${inert.join(', ')} on the ` +
+      `component itself, so a value set on Theme never reaches ` +
+      `${one ? 'it' : 'them'}. Set ${one ? 'it' : 'them'} on that ` +
+      'component instead, with className or style, or through Sass.'
+  );
+};
+
 /** The one `<style>` element every `isRoot` Theme writes into. */
 const ROOT_STYLE_ID = 'bestax-bulma-theme-vars';
 
@@ -828,6 +889,15 @@ export interface ThemeProps extends Omit<
    * the `BulmaVars` type allows, are applied, and an empty value is skipped.
    * Where a variable prop, such as `primaryH`, sets the same variable, the
    * prop wins.
+   *
+   * Theme writes them on its wrapper, or at `:root` under `isRoot`, so only a
+   * variable that inherits from there changes anything. Bulma declares many
+   * component variables, such as `--bulma-card-radius` or
+   * `--bulma-delete-dimensions`, on the component's own element, and that
+   * declaration beats any value set further up. Those keys are accepted but
+   * do nothing here, and warn in development. Set them on the component
+   * itself, with `className` or `style`, or through Sass. Each component's
+   * API page says where Bulma declares its variables.
    */
   bulmaVars?: BulmaVars;
   /**
@@ -1074,6 +1144,8 @@ export const Theme: React.FC<ThemeProps> = ({
     }
     return vars;
   }, [bulmaVars, bulmaVarProps, radiusVar, columnGapVar]);
+
+  warnComponentVars(mergedVars);
 
   // This Theme's place among root Themes; see `rootThemeRules`.
   const [rootOrder] = useState(() => nextRootOrder++);

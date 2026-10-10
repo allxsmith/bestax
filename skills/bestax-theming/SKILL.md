@@ -20,7 +20,10 @@ Choose an override path:
 - **`Theme` component (runtime, preferred).** Exported from the package. Pass named HSL props
   (`primaryH`, `primaryS`, `primaryL`, …) and/or `bulmaVars={{ '--bulma-*': '…' }}` for everything
   else. Add `isRoot` to inject the variables globally at `:root` (once, at the app root); omit it to
-  scope the variables to the wrapped subtree.
+  scope the variables to the wrapped subtree. A `Theme` only reaches variables the component
+  inherits: Bulma declares component variables such as `--bulma-card-radius` on the component's
+  own element, so a `Theme` value for one never applies (it warns in development). Set those on
+  the component with `className` or `style` instead (see `references/css-variables.md`).
 - **Plain CSS.** Set `:root { --bulma-primary-h: …; }` (or any selector) directly.
 - **Build-time Sass.** `@use 'bulma/sass' with ($primary: #1e6b99)` when compiling Bulma's Sass.
 
