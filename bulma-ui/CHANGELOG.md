@@ -1,3 +1,15 @@
+## [5.27.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.5...@allxsmith/bestax-bulma@5.27.6) (2026-10-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** name a range Slider's thumbs from a hand-wired Field label's id ([355065b](https://github.com/allxsmith/bestax/commit/355065b5296b110bcb56829bb174fae4eaa8697f))
+* **bulma-ui:** name Autocomplete's list from a hand-wired Field label's id ([ad46c06](https://github.com/allxsmith/bestax/commit/ad46c0642f508a466dbac1a393e1aad85c1cc611))
+* **bulma-ui:** name Autocomplete's suggestion list from a surrounding Field's label ([190183f](https://github.com/allxsmith/bestax/commit/190183f38298ff823a6e5c1d4871dd2a8bb39674)), closes [#998](https://github.com/allxsmith/bestax/issues/998)
+* **bulma-ui:** say a label placed in Field.Label reaches no thumbs or list ([07c2a99](https://github.com/allxsmith/bestax/commit/07c2a993157bf0136f11b175ae56c0ecf4c004a9))
+* **bulma-ui:** say the label prop needs wiring to reach thumbs or list in an inner Field ([9b33d8d](https://github.com/allxsmith/bestax/commit/9b33d8d921b58716d769152d8f8404de505fcc56))
+* **bulma-ui:** say which controls a hand-wired Field label's id reaches ([514127f](https://github.com/allxsmith/bestax/commit/514127fb66ed0333dbc6125d6341d445d7484935))
+
 ## [5.27.5](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.4...@allxsmith/bestax-bulma@5.27.5) (2026-10-10)
 
 
