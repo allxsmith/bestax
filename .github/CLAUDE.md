@@ -616,26 +616,47 @@ prints the effective `EgressPolicy:`.
 
 #### What the agent allows beyond the list
 
-A block job can reach more than its `allowed-endpoints`. Since harden-runner v2.21.1 (agent
-v0.16.3), the agent fetches GitHub's `actions` domains from StepSecurity's API (`/github/meta`)
-at startup and allows each of them on port 443 in every block job, beside the job's own list. It
-skips the entries under `githubusercontent.com`, so a job that needs
-`objects.githubusercontent.com` or `release-assets.githubusercontent.com` still lists them. The
-rest has included `github.com`, `*.github.com` (which covers `api.github.com`), `*.githubapp.com`
-and `ghcr.io`. The code is `getGithubMetaDomains` in step-security/agent, at the version the pin
-installs.
+A block job can reach more than its `allowed-endpoints`. The agent harden-runner installs adds
+the entries below to every block job's list, each on port 443 (`addImplicitEndpoints` in
+step-security/agent, at the version the pin installs). A wildcard entry admits a host when the
+job looks it up. Every other entry, the job's own included, is resolved at startup, and one that
+does not resolve reverts the firewall (rule 10).
 
-- **The list is StepSecurity's, not ours.** It can change with no diff here and no pin change.
-  A run's `Post Harden runner` log shows what it allowed, on the `fetched GitHub meta domains`
-  line, and `gh api meta --jq .domains.actions` shows the list GitHub publishes. A non-wildcard
-  entry in it that does not resolve reverts the firewall just as one of ours would, so it is the
-  other place to look when every block job fails its assertion at once.
+- **The meta list, from StepSecurity's API.** Since harden-runner v2.21.1 (agent v0.16.3), the
+  agent fetches GitHub's `actions` domains from StepSecurity's `/github/meta` at startup
+  (`getGithubMetaDomains`) and adds each one that does not end in `githubusercontent.com`. That
+  has been `github.com`, `*.github.com` (which covers `api.github.com`), `*.githubapp.com`,
+  `ghcr.io`, and the productionresultssa hosts under `blob.core.windows.net`, each by its own
+  name. The skip is why a job that needs `objects.githubusercontent.com` or
+  `release-assets.githubusercontent.com` still lists it.
+- **The built-in entries, present even when that fetch fails.** `codeload.github.com`,
+  `*.actions.githubusercontent.com`, `actions-results-receiver-production.githubapp.com` and
+  `productionresultssa*.blob.core.windows.net`. They predate the meta list, and they cover the
+  Actions cache and the runner's control-plane hosts under `actions.githubusercontent.com`
+  ("Measuring an allowlist"). Through `codeload.github.com`, a job that leaves `github.com` off
+  its list can still download a repository archive.
+- **StepSecurity's telemetry hosts,** `agent.api.stepsecurity.io` and
+  `prod.app-api.stepsecurity.io`, unless the job sets `disable-telemetry: true`
+  (`grep -rn disable-telemetry .github/workflows/` lists any that do).
+
+Two things outside that function reach past the list as well. harden-runner's pre-step appends
+the Actions cache's storage host to the job's list when it can look the host up
+(`Adding cacheHost` in its log). The agent's firewall accepts the Azure platform addresses `168.63.129.16` and
+`169.254.169.254` and the private address ranges with no lookup at all (`addBlockRules` in its
+`firewall.go`).
+
+- **The meta list is StepSecurity's, not ours.** It can change with no diff here and no pin
+  change. A run's `Post Harden runner` log shows what the agent fetched, on the
+  `fetched GitHub meta domains` line. `curl -s https://agent.api.stepsecurity.io/v1/github/meta`
+  shows what it would fetch now, and `gh api meta --jq .domains.actions` the list GitHub
+  publishes. Its non-wildcard entries are resolved at startup like ours, so it is the other place
+  to look when every block job fails its assertion at once.
 - **A failed fetch narrows rather than opens.** The agent logs it and carries on with the job's
-  list and its own built-in entries. So a job keeps a GitHub host it needs on its list even
-  though the agent usually adds it, and the list stays what a reviewer reads.
+  list, the built-in entries and the telemetry hosts. So a job keeps a GitHub host it needs on
+  its list even though the meta list usually adds it, and the list stays what a reviewer reads.
 - **For a GitHub host, say "not listed", never "cannot reach".** A comment may give the reason a
-  job leaves `github.com` or `api.github.com` off its list. It may not say the job cannot reach
-  it.
+  job leaves `github.com` or `api.github.com` off its list, and point here. It may not say the
+  job cannot reach the host, and it does not restate what the agent adds.
 
 #### Measuring an allowlist
 
@@ -656,15 +677,19 @@ Two things about reading its output, both learned assembling the #578 lists:
   `results-receiver.actions.githubusercontent.com`,
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
-  are the runner talking to its own control plane. The blob host cannot be pinned even in
-  principle — its name rotates per run (`productionresultssa<N>`, and N varies between runs).
+  are the runner talking to its own control plane, and the agent admits them without a listing:
+  its built-in entries cover the first three, and the meta list's `*.githubapp.com` the last
+  ("What the agent allows beyond the list"). The blob host has no one name a job's list could
+  carry, since N varies between runs. The built-in `productionresultssa*` wildcard admits
+  whichever one a run gets, and the meta list names the ones GitHub publishes, each resolved at
+  startup.
   Run
   33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
   with its list observed only `api.github.com` and `github.com`, and completed every one of
   its API calls under the firewall.
 
-  **Leaving them out costs nothing, and that is measured rather than assumed.** harden-runner
-  does not gate the runner's own control-plane traffic, so the Actions cache keeps working:
+  **Leaving them out costs nothing, and that is measured rather than assumed.** The agent's
+  built-in entries admit the blob hosts and `results-receiver`, so the Actions cache keeps working:
   run 33286967625 ran `claude-review` at `block` with neither the blob host nor
   `results-receiver` allow-listed, and its `setup-node` step restored the pnpm cache
   successfully before `pnpm install --frozen-lockfile` completed. Worth stating plainly

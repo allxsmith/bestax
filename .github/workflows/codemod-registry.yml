@@ -108,11 +108,9 @@ jobs:
       # Codemod's telemetry hosts, denied at the source by DISABLE_ANALYTICS;
       # nodejs.org, with no setup-node.
       #
-      # Not listed: api.github.com, as nothing calls the API. The job can
-      # still reach it: at startup the agent allows GitHub's actions domains
-      # in every block job, as StepSecurity's API lists them, and that list
-      # can change with no diff here (.github/CLAUDE.md, "What the agent
-      # allows beyond the list").
+      # Not listed: api.github.com, as nothing calls the API. The agent's
+      # meta list usually admits it anyway; see "What the agent allows
+      # beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -248,8 +246,7 @@ jobs:
       #     read its report before widening anything.
       #   Telemetry hosts, nodejs.org: as in `validate`.
       #
-      # Not listed, and still reachable through the agent's GitHub domains:
-      # api.github.com, as in `validate`.
+      # Not listed: api.github.com, as in `validate`.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:

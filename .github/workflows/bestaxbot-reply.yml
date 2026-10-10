@@ -101,9 +101,10 @@ jobs:
       # Two observed hosts are deliberately absent. telemetry.vercel.com is turbo's
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
-      # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa<N>, a different N per run). It does not need
-      # to be. harden-runner does not gate the runner own control-plane traffic, and
+      # host. The Actions cache blob host has no one name to list: it is
+      # productionresultssa<N>, a different N per run. It does not need to be
+      # listed. The agent's built-in entries admit it and results-receiver
+      # (.github/CLAUDE.md, "What the agent allows beyond the list"), and
       # run 33286967625 is the proof rather than the assumption: claude-review at
       # block, with neither that host nor results-receiver.actions.githubusercontent.com
       # allow-listed, restored its pnpm cache and completed pnpm install

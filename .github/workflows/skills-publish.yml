@@ -137,11 +137,9 @@ jobs:
       #
       #   api.github.com: `gh workflow run` is one REST call.
       #
-      # Not listed: github.com, as there is no checkout. The job can still
-      # reach it: at startup the agent allows GitHub's actions domains in
-      # every block job, as StepSecurity's API lists them, and that list can
-      # change with no diff here (.github/CLAUDE.md, "What the agent allows
-      # beyond the list").
+      # Not listed: github.com, as there is no checkout. The agent's meta
+      # list usually admits it anyway; see "What the agent allows beyond the
+      # list" in .github/CLAUDE.md.
       - name: Harden runner
         timeout-minutes: 2
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -219,17 +217,18 @@ jobs:
       #     the exact bestax-mcp version the plugin pins, with GET requests
       #     and no install. The npx the plugin runs installs from this host.
       #
-      # Not listed: api.github.com, as nothing here calls the API, though the
-      # agent's GitHub domains still let the job reach it (see `relay`), and
+      # Not listed: api.github.com, as nothing here calls the API (the
+      # agent's meta list usually admits it anyway, as in `relay`), and
       # nodejs.org, as the generator imports node: builtins and local modules
       # only and runs on the runner's Node with no install. Also not listed:
       # the hosts upload-artifact reaches,
       # results-receiver.actions.githubusercontent.com and a per-run
       # productionresultssa<N>.blob.core.windows.net. They are the runner's
       # control plane, which .github/CLAUDE.md ("Measuring an allowlist")
-      # says never to allow-list, as harden-runner does not gate it and the
-      # blob host's name changes from run to run. claude-implement's
-      # `implement` job uploads its log at block with neither listed.
+      # says never to allow-list: the agent's built-in entries admit them
+      # without a listing, and the blob host's name changes from run to run.
+      # claude-implement's `implement` job uploads its log at block with
+      # neither listed.
       - name: Harden runner
         timeout-minutes: 2
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
@@ -353,9 +352,9 @@ jobs:
       #     only.
       #
       # Not listed: github.com:443, as nothing here checks out this
-      # repository, and api.github.com, as nothing calls the API. The job can
-      # still reach both on port 443 through the agent's GitHub domains (see
-      # `relay`). download-artifact reaches the same control-plane hosts as
+      # repository, and api.github.com, as nothing calls the API. The agent's
+      # meta list usually admits both on port 443 anyway, as in `relay`.
+      # download-artifact reaches the same control-plane hosts as
       # upload-artifact in `generate`, left out for the reason given there.
       # No block job here downloads an artifact with them unlisted yet, so
       # that part rests on the upload and on the Actions cache, which uses
