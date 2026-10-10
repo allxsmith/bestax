@@ -123,8 +123,9 @@ A panel anchored to the button that opens it is `Popover`, which already portals
 first client render matches; `disabled` renders in place instead. Use it rather than calling
 `createPortal` yourself, which React's server renderer can't render.
 
-Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so move
-focus into it when it opens and back to its trigger when it closes. To trap portaled content,
+Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so an
+overlay you build that takes focus moves it in when it opens and back to its trigger when it
+closes. A preview like `HoverCard` moves no focus, by design. To trap portaled content,
 put the trap's ref on the element inside the `Portal`, as below with
 `useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
 what a `Portal` inside it renders, so render nested overlays inside the trapped element.
