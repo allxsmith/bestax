@@ -38,7 +38,7 @@ jobs:
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -54,7 +54,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
           format: spdx-json
@@ -68,7 +68,7 @@ jobs:
       # Both formats on purpose: SPDX is the ISO standard procurement asks for,
       # CycloneDX is what most scanning tools ingest natively.
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
           format: cyclonedx-json
@@ -160,11 +160,16 @@ jobs:
       # The list below is measured, not guessed: raw.githubusercontent
       # .com is here because sbom-action fetches syft's install script from it,
       # which no amount of reading the action would have made obvious. The cache
-      # host (productionresultssa12.blob.core.windows.net) is absent on purpose
-      # — harden-runner's probe discovers and adds it itself, as the sign-sbom
-      # comment already claimed and this run confirms.
+      # host (productionresultssa12.blob.core.windows.net) is absent on purpose,
+      # as runner infrastructure, which needs no listing (.github/CLAUDE.md,
+      # "Measuring an allowlist"). The list's
+      # results-receiver.actions.githubusercontent.com entry is runner
+      # infrastructure too and needs no listing either. It is not free: the
+      # agent resolves it at startup, and an entry that does not resolve
+      # reverts the firewall (that section). It stays for now; removing it is
+      # tracked in #1014.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -259,7 +264,7 @@ jobs:
       # — narrower, but the same kind. Both facts are here so the next reader
       # does not have to rediscover them.
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 
@@ -568,7 +573,7 @@ jobs:
       # downstream expand to nothing, and `attach-sbom` emits its ::warning::
       # while the repository SBOMs still ship.
       - name: Generate SPDX consumer SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: ${{ runner.temp }}/scan
           format: spdx-json
@@ -579,7 +584,7 @@ jobs:
           upload-release-assets: false
 
       - name: Generate CycloneDX consumer SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: ${{ runner.temp }}/scan
           format: cyclonedx-json
@@ -650,7 +655,7 @@ jobs:
       # No `if:`, deliberately. This step is reached only when every step above
       # it succeeded, which is exactly the gate described above.
       - name: Upload the consumer SBOMs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.install.outputs.basename }}
           path: |
@@ -727,20 +732,21 @@ jobs:
       # flow, and this job uses the ambient GitHub Actions credential instead.
       #
       # `*.blob.core.windows.net` is deliberately absent, and this note exists
-      # because review passes keep proposing to add it. The
-      # artifact actions do reach Azure blob storage, but #487 measured a real
-      # run and found those hosts (`results-receiver.actions.githubusercontent
-      # .com`, `productionresultssa9.blob.core.windows.net`) already covered by
-      # harden-runner's built-in Actions baseline, so allow-listing them is
-      # unnecessary. In block mode harden-runner also runs a probe whose whole
-      # purpose is to discover the per-run blob backend host and add it itself —
-      # since v2.21.0 that probe is allowed to come up empty without changing the
-      # policy, because the agent admits the cache endpoints implicitly and the
-      # probe is defense-in-depth on top of that.
-      # The wildcard is the specific thing to avoid: every Azure storage account
-      # in existence lives under that suffix, so it would turn the tightest
-      # egress policy in this repository into something close to open egress. If
-      # a real run ever shows a blocked blob endpoint, add that exact host.
+      # because review passes keep proposing to add it. The artifact actions do
+      # reach Azure blob storage, through runner infrastructure, which needs no
+      # listing (.github/CLAUDE.md, "Measuring an allowlist"). The wildcard
+      # would admit every Azure storage account, a wider form of a path out
+      # that the agent already opens ("What the agent allows beyond the list").
+      # Listing one exact blob host would not help either, as the name changes
+      # from run to run: if a real run ever shows a blob endpoint blocked,
+      # start from "Measuring an allowlist", not from this list.
+      #
+      # The two *.actions.githubusercontent.com entries below, token and
+      # results-receiver, need no listing either ("What the agent allows
+      # beyond the list"). They are not free: the agent resolves each at
+      # startup, and an entry that does not resolve reverts the firewall
+      # ("Measuring an allowlist"). They stay for now; removing them is
+      # tracked in #1014.
       #
       # Of this file's other jobs, `sbom`, `attach-sbom` and
       # `verify-provenance` predate rule 10 and are grandfathered by its
@@ -748,7 +754,7 @@ jobs:
       # enforces, same as this job — do not read the grandfather clause as
       # covering it.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -816,7 +822,7 @@ jobs:
       # the two), so the narrower pattern would silently sign only half of what
       # gets attached.
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: bestax-*sbom*
           merge-multiple: true
@@ -867,7 +873,7 @@ jobs:
       # and attach-sbom's nullglob branch emits its ::warning:: as before.
       - name: Upload signature bundles
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bestax-sbom.signatures
           path: |
@@ -901,7 +907,7 @@ jobs:
 
     steps:
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: bestax-*sbom*
           merge-multiple: true
@@ -1002,7 +1008,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 

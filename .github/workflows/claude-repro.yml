@@ -168,7 +168,7 @@ jobs:
       # dependency, and the session below sets
       # CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing attempts it.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -242,9 +242,9 @@ jobs:
 
       - name: Run Claude (draft repro; no execution)
         id: claude
-        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
-        # stays off every allowlist in this repo AND the CLI is told not to emit
-        # it (#487). It also covers feature-flag evaluation, which is why
+        # Telemetry is turned off, never allow-listed: the CLI's Datadog intake
+        # host stays off every allowlist in this repo AND the CLI is told not to
+        # emit it (#487). It also covers feature-flag evaluation, which is why
         # statsig.anthropic.com is gone.
         #
         # A step `env:` rather than the action's `settings:` input. `settings:` is
@@ -265,9 +265,9 @@ jobs:
           # exchange. No PAT anywhere in this workflow.
           github_token: ${{ secrets.GITHUB_TOKEN }}
           show_full_output: true
-          # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
-          # host stays off the egress allowlist above AND the CLI is told not to
-          # emit it, so the block policy has nothing to refuse (#487). This also
+          # Telemetry is turned off rather than allow-listed: the CLI's Datadog
+          # intake host stays off the egress allowlist above AND the CLI is told
+          # not to emit it, so the CLI does not try to reach it (#487). This also
           # covers feature-flag evaluation, which is why statsig.anthropic.com
           # is no longer needed in the allowlist above.
           # I1: no Bash / Task / web tools, so the session cannot execute code,
@@ -345,9 +345,9 @@ jobs:
             exit 1
           fi
 
-      # Hand the drafted file to `publish` via a job output (no artifact, so no
-      # blob host in the allowlist). A random heredoc delimiter defends against a
-      # drafted line colliding with the terminator.
+      # Hand the drafted file to `publish` via a job output (no artifact). A
+      # random heredoc delimiter defends against a drafted line colliding with
+      # the terminator.
       - name: Collect draft
         id: draft
         if: steps.claude.outcome == 'success'
@@ -432,7 +432,7 @@ jobs:
 
       # No pnpm, no cache: the sanitizer below is dependency-free
       # (node: builtins only), so plain Node 24 is all it needs.
-      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 

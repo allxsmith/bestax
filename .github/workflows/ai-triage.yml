@@ -224,7 +224,7 @@ jobs:
       # the job that quietly loses egress monitoring when the old single job
       # was split. ENFORCED as of #487, and asserted below.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -457,9 +457,10 @@ jobs:
       # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
       # deliberately ABSENT rather than allow-listed: not a functional
       # dependency, and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
-      # so nothing attempts it. Denying and silencing beat allow-listing.
+      # so nothing attempts it. Leaving it unlisted and silencing it beat
+      # allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -530,9 +531,9 @@ jobs:
 
       - name: Run Claude (triage)
         id: claude
-        # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
-        # host stays off the allowlist above AND the CLI is told not to emit it,
-        # so the block policy has nothing to refuse (#487). This also covers
+        # Telemetry is turned off rather than allow-listed: the CLI's Datadog
+        # intake host stays off the allowlist above AND the CLI is told not to
+        # emit it, so the CLI does not try to reach it (#487). This also covers
         # feature-flag evaluation, which is why statsig.anthropic.com is gone.
         #
         # A step `env:` rather than the action's `settings:` input: `settings:`
@@ -840,12 +841,11 @@ jobs:
             --out-dir="$RUNNER_TEMP/triage"
 
       # Hand the rendered bodies to `publish` via job outputs (no artifact, so
-      # no blob host in the allowlist — and, on a public repo, nothing
-      # publicly downloadable). A random heredoc delimiter defends against a
-      # body line colliding with the terminator. A command that rendered
-      # nothing writes no file and so emits no output, which is how `publish`
-      # knows to stay silent. The renderer caps every body well under the job
-      # output size limit.
+      # on a public repo nothing publicly downloadable). A random heredoc
+      # delimiter defends against a body line colliding with the terminator. A
+      # command that rendered nothing writes no file and so emits no output,
+      # which is how `publish` knows to stay silent. The renderer caps every
+      # body well under the job output size limit.
       - name: Collect rendered bodies
         id: bodies
         run: |
@@ -884,7 +884,7 @@ jobs:
       # through the PAT. What holds that is the publisher re-asserting each
       # body's invariants below, and the marker-scoped upsert.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -1021,7 +1021,7 @@ jobs:
       # not unwedge it at all was never an acceptable trade.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >

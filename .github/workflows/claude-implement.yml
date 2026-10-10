@@ -68,14 +68,8 @@ jobs:
       # Some observed hosts are deliberately absent. telemetry.vercel.com is
       # turbo's telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
-      # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa<N>, a different N per run). It does not need
-      # to be. harden-runner does not gate the runner own control-plane traffic, and
-      # run 33286967625 is the proof rather than the assumption: claude-review at
-      # block, with neither that host nor results-receiver.actions.githubusercontent.com
-      # allow-listed, restored its pnpm cache and completed pnpm install
-      # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
-      # here; it was wrong, and measuring it is what showed that.
+      # host. The Actions cache blob host is runner infrastructure, which needs no
+      # listing (.github/CLAUDE.md, "Measuring an allowlist").
       #
       # The third is specific to this job, the only one that touched it:
       # private-user-images.githubusercontent.com, the session fetching an image
@@ -89,7 +83,7 @@ jobs:
       # the agent reverts the firewall while the pre-step still exits 0, which is
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -182,7 +176,7 @@ jobs:
 
       - name: Setup Node.js
         if: steps.perm.outputs.allowed == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -193,17 +187,18 @@ jobs:
 
       - name: Run Claude (implement issue)
         if: steps.perm.outputs.allowed == 'true'
-        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
-        # stays off every allowlist in this repo AND the CLI is told not to emit
-        # it (#487). It also covers feature-flag evaluation, which is why
+        # Telemetry is turned off, never allow-listed: the CLI's Datadog intake
+        # host stays off every allowlist in this repo AND the CLI is told not to
+        # emit it (#487). It also covers feature-flag evaluation, which is why
         # statsig.anthropic.com is gone.
         #
-        # This job now enforces `block` (#578), so the denial is doing two jobs at
-        # once and both matter. The allowlist above refuses the Datadog host, and
-        # this setting stops the CLI trying to reach it, which keeps a denied call
-        # out of the run rather than merely blocked. Leaving telemetry on and
-        # relying on the allowlist alone would fill the logs with refused traffic
-        # and invite the next reader to "fix" it by allow-listing the host.
+        # This job now enforces `block` (#578), and both halves matter. The
+        # allowlist above does not list the Datadog host, and this setting stops
+        # the CLI trying to reach it, which keeps the call out of the run rather
+        # than leaving it to the allowlist. With telemetry left on and the host
+        # merely unlisted, the CLI would keep trying it, and each failed attempt in
+        # the logs would invite the next reader to "fix" it by allow-listing the
+        # host.
         #
         # It also earned the allowlist: this was set during the audit phase
         # precisely so the endpoint list the flip was built from reflected the
@@ -245,9 +240,11 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
           use_commit_signing: true
-          # Stream tool calls + denials into the job log (the execution-output
-          # artifact's blob host is blocked by the proxy) so a blocked commit
-          # or a thrash is diagnosable.
+          # Stream tool calls + denials into the job log too, so a blocked
+          # commit or a thrash can be read there without downloading the
+          # execution-log artifact uploaded below. That upload's blob host is
+          # runner infrastructure, which needs no listing (.github/CLAUDE.md,
+          # "Measuring an allowlist").
           show_full_output: true
           # The prompt's protected-path exclusions are enforced here, not just
           # stated: --disallowedTools deny rules take precedence over the
@@ -387,12 +384,12 @@ jobs:
 
       # Observability: the action writes a full turn-by-turn stream (every
       # tool call, and every permission denial) to this file. Upload it so a
-      # failed/thrashing run is diagnosable after the fact — the Actions log
-      # itself only carries the init + final result. `always()` so it is kept
+      # failed/thrashing run is diagnosable after the fact, as a file beside
+      # the copy show_full_output puts in the job log. `always()` so it is kept
       # even when the Claude step fails (exactly when it is needed).
       - name: Upload Claude execution log
         if: always() && steps.perm.outputs.allowed == 'true'
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: claude-implement-log-${{ github.event.issue.number }}
           path: ${{ runner.temp }}/claude-execution-output.json
