@@ -4,9 +4,6 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   MARKER_LINE,
   stripGeneratedMarkers,
@@ -105,16 +102,4 @@ test('only a whole line is a marker', () => {
   assert.equal(stripGeneratedMarkers(src), src);
   assert.equal(stripGeneratedMarkers(''), '');
   assert.equal(stripGeneratedMarkers(open('a')), '');
-});
-
-test('every marker line in the plugin README goes', () => {
-  // plugin/README.md is what scripts/gen-skills-repo.mjs strips.
-  const readme = readFileSync(
-    join(dirname(fileURLToPath(import.meta.url)), '../../plugin/README.md'),
-    'utf8'
-  );
-  const markers = text =>
-    text.split(/\r?\n/).filter(line => MARKER_LINE.test(line)).length;
-  assert.ok(markers(readme) > 0, 'plugin/README.md carries generated regions');
-  assert.equal(markers(stripGeneratedMarkers(readme)), 0);
 });

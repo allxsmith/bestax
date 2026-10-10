@@ -1,7 +1,7 @@
 /**
  * Guards on check-generated-markers.mjs, the docs build step that checks the
- * built markdown and LLM files for the marker keyword, run on temporary
- * trees.
+ * built markdown, llms.txt and llms-full.txt for the marker keyword, run on
+ * temporary trees.
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
@@ -53,15 +53,22 @@ async function run(root) {
   return { code, ...said };
 }
 
-/** Asserts that `text` at `file` fails the build, naming that file. */
-async function fails(file, text) {
-  const { code, error } = await run(site({ [file]: text }));
-  assert.equal(code, 1, text);
-  assert.deepEqual(error, [
-    `check-generated-markers: ${file} contains bestax:generated. A marker ` +
-      `reached the LLM output, or a page shows marker syntax with the ` +
-      `keyword in it.`,
-  ]);
+const leaked = file =>
+  `check-generated-markers: ${file} contains bestax:generated, so the ` +
+  `keyword reached built output: a marker got through, or a page shows ` +
+  `marker syntax with the keyword in it.`;
+
+const empty = file =>
+  `check-generated-markers: ${file} is empty, so there is nothing in it to ` +
+  `check.`;
+
+/** Asserts that `tree` fails the build with exactly `errors`, in any order. */
+async function fails(tree, errors) {
+  const { code, error } = await run(site(tree));
+  error.sort();
+  errors.sort();
+  assert.equal(code, 1, JSON.stringify(tree));
+  assert.deepEqual(error, errors);
 }
 
 test('a clean build passes, naming how many files it checked', async () => {
@@ -71,44 +78,59 @@ test('a clean build passes, naming how many files it checked', async () => {
 });
 
 test('a marker in a twin fails the build', async () => {
-  await fails('build/docs/api/card.md', PAGE);
+  const file = 'build/docs/api/card.md';
+  await fails({ [file]: PAGE }, [leaked(file)]);
 });
 
-test('a marker in built markdown outside build/docs fails the build', async () => {
-  await fails('build/.devto-publish/post.md', PAGE);
+test('a marker in a blog syndication copy fails the build', async () => {
+  const file = 'build/.devto-publish/post.md';
+  await fails({ [file]: PAGE }, [leaked(file)]);
 });
 
 test('an HTML-escaped marker fails the build', async () => {
-  await fails('build/docs/api/card.md', '&lt;!-- bestax:generated a --&gt;\n');
-  await fails('build/docs/api/card.md', '&#x3c;!-- /bestax:generated a -->\n');
+  const file = 'build/docs/api/card.md';
+  await fails({ [file]: '&lt;!-- bestax:generated a --&gt;\n' }, [
+    leaked(file),
+  ]);
+  await fails({ [file]: '&#x3c;!-- /bestax:generated a -->\n' }, [
+    leaked(file),
+  ]);
 });
 
 test('a marker in a twin with CRLF line endings fails the build', async () => {
-  await fails('build/docs/api/card.md', PAGE.replace(/\n/g, '\r\n'));
+  const file = 'build/docs/api/card.md';
+  await fails({ [file]: PAGE.replace(/\n/g, '\r\n') }, [leaked(file)]);
 });
 
 test('the keyword in llms.txt or llms-full.txt fails the build', async () => {
-  await fails('build/llms.txt', '- [Card](/card.md): bestax:generated\n');
-  await fails('build/llms-full.txt', lines(BARE, '---', PAGE));
+  await fails({ 'build/llms.txt': '- [Card](/card.md): bestax:generated\n' }, [
+    leaked('build/llms.txt'),
+  ]);
+  await fails({ 'build/llms-full.txt': lines(BARE, '---', PAGE) }, [
+    leaked('build/llms-full.txt'),
+  ]);
 });
 
 test('a build missing llms.txt, llms-full.txt or every twin fails', async () => {
-  for (const [file, what] of [
-    ['build/llms-full.txt', 'llms-full.txt'],
-    ['build/llms.txt', 'llms.txt'],
-    ['build/docs/api/card.md', '.md under build/docs'],
+  for (const [file, error] of [
+    [
+      'build/llms-full.txt',
+      'check-generated-markers: build/llms-full.txt is missing, so ' +
+        'docusaurus-plugin-llms did not write it, or this step ran before it.',
+    ],
+    [
+      'build/llms.txt',
+      'check-generated-markers: build/llms.txt is missing, so ' +
+        'docusaurus-plugin-llms did not write it, or this step ran before it.',
+    ],
+    [
+      'build/docs/api/card.md',
+      'check-generated-markers: build/docs holds no .md, so ' +
+        'docusaurus-plugin-llms wrote no twins, or this step ran before it.',
+    ],
   ]) {
     // Markdown elsewhere in build/ is no sign the twins were written.
-    const root = site({ [file]: null, 'build/blog/post.md': BARE });
-    const { code, error } = await run(root);
-    assert.equal(code, 1, file);
-    assert.equal(error.length, 1);
-    assert.ok(
-      error[0].startsWith(
-        `check-generated-markers: the build has no ${what}. `
-      ),
-      error[0]
-    );
+    await fails({ [file]: null, 'build/blog/post.md': BARE }, [error]);
   }
 
   const root = mkdtempSync(join(tmpdir(), 'check-markers-'));
@@ -118,20 +140,32 @@ test('a build missing llms.txt, llms-full.txt or every twin fails', async () => 
   assert.match(none.error[0], /build does not exist/);
 });
 
-test('an empty LLM file or page fails the build', async () => {
+test('an empty or whitespace-only file fails the build', async () => {
   for (const file of [
     'build/llms.txt',
     'build/llms-full.txt',
     'build/docs/api/card.md',
     'build/img/LICENSE.md',
   ]) {
-    const { code, error } = await run(site({ [file]: '' }));
-    assert.equal(code, 1, file);
-    assert.deepEqual(error, [
-      `check-generated-markers: ${file} is empty, so there is nothing in ` +
-        `it to check. Refusing to pass silently.`,
-    ]);
+    await fails({ [file]: '' }, [empty(file)]);
+    await fails({ [file]: ' \n\t\r\n' }, [empty(file)]);
   }
+});
+
+test('every problem is reported before the build fails', async () => {
+  await fails(
+    {
+      'build/llms.txt': null,
+      'build/img/LICENSE.md': '',
+      'build/docs/api/card.md': PAGE,
+    },
+    [
+      'check-generated-markers: build/llms.txt is missing, so ' +
+        'docusaurus-plugin-llms did not write it, or this step ran before it.',
+      leaked('build/docs/api/card.md'),
+      empty('build/img/LICENSE.md'),
+    ]
+  );
 });
 
 test('a directory named like a page is not read', async () => {

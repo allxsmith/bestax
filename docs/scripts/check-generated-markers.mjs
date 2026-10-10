@@ -1,25 +1,27 @@
 #!/usr/bin/env node
 /**
  * Check that no `<!-- bestax:generated <id> -->` marker reaches the BUILT
- * site's LLM files.
+ * site's markdown.
  *
  * The markers are a source-control mechanism: they tell `scripts/gen-api-docs.mjs`
  * which regions it owns, and they tell a human editor which lines a `pnpm gen`
  * will overwrite. Neither audience reads the built output, and this site's
  * LLM surface is first-class (see docs/CLAUDE.md). docusaurus-plugin-llms
  * drops HTML comments outside code, the markers with them, and this step
- * checks that it did, without reading the markdown: every `.md` under build/,
- * llms.txt and llms-full.txt must contain the keyword `bestax:generated` zero
- * times. Every marker carries it however its `<` or its line ending is
- * written. It changes no file.
+ * checks that none got through, without reading the markdown: every built
+ * `.md` under build/, the dev.to syndication copies of blog posts included,
+ * plus llms.txt and llms-full.txt, must contain the keyword
+ * `bestax:generated` zero times. Every marker carries it however its `<` or
+ * its line ending is written. It changes no file.
  *
- * A page that wants to show marker syntax would fail this check, so it shows
- * the syntax without the keyword, or changes this check in the same PR.
+ * A docs page or blog post that wants to show marker syntax would fail this
+ * check, so it shows the syntax without the keyword, or changes this check in
+ * the same PR.
  *
- * The step also fails when llms.txt or llms-full.txt is missing or empty,
- * when a `.md` it checks is empty, and when build/docs holds no `.md`, the
- * sign that the plugin wrote no twins. Whether the LLM output is complete is
- * not this check's job.
+ * The step also fails when llms.txt or llms-full.txt is missing, when a file
+ * it checks is empty or only whitespace, and when build/docs holds no `.md`,
+ * the sign that the plugin wrote no twins. It reports every problem it finds
+ * before it fails. Whether the LLM output is complete is not this check's job.
  *
  * Why a build STEP and not a Docusaurus plugin: `postBuild` hooks run under
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
@@ -42,12 +44,12 @@ const KEYWORD = 'bestax:generated';
 function filesUnder(dir, pattern) {
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter(entry => entry.isFile() && pattern.test(entry.name))
-    .map(entry => join(entry.parentPath ?? entry.path, entry.name));
+    .map(entry => join(entry.parentPath, entry.name));
 }
 
 /**
- * Checks the LLM files in `docs`'s build/ and returns the exit code. `docs`
- * and `io` are for tests.
+ * Checks the built markdown in `docs`'s build/, with llms.txt and
+ * llms-full.txt, and returns the exit code. `docs` and `io` are for tests.
  */
 export async function checkBuild(docs = DOCS, io = console) {
   const outDir = join(docs, 'build');
@@ -56,45 +58,39 @@ export async function checkBuild(docs = DOCS, io = console) {
     return 1;
   }
 
+  const problems = [];
   const pages = filesUnder(outDir, /\.md$/);
-  const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
-  const missing = joined
-    .filter(file => !existsSync(file))
-    .map(file => relative(outDir, file));
-  const twins = join(outDir, 'docs', sep);
-  if (!pages.some(file => file.startsWith(twins))) {
-    missing.push('.md under build/docs');
-  }
-  if (missing.length) {
-    io.error(
-      `check-generated-markers: the build has no ${missing.join(' and no ')}. ` +
-        `The built markdown moved, or this step ran before ` +
-        `docusaurus-plugin-llms, so nothing here checked the LLM surface. ` +
-        `Refusing to pass silently.`
+  if (!pages.some(file => file.startsWith(join(outDir, 'docs', sep)))) {
+    problems.push(
+      'build/docs holds no .md, so docusaurus-plugin-llms wrote no twins, ' +
+        'or this step ran before it.'
     );
-    return 1;
+  }
+  const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
+  for (const file of joined.filter(file => !existsSync(file))) {
+    problems.push(
+      `${relative(docs, file)} is missing, so docusaurus-plugin-llms did ` +
+        `not write it, or this step ran before it.`
+    );
   }
 
-  const files = [...pages, ...joined];
+  const files = [...pages, ...joined.filter(file => existsSync(file))];
   const texts = await Promise.all(files.map(file => readFile(file, 'utf8')));
-  const empty = files.filter((_, i) => !texts[i]);
-  if (empty.length) {
-    for (const file of empty) {
-      io.error(
-        `check-generated-markers: ${relative(docs, file)} is empty, so ` +
-          `there is nothing in it to check. Refusing to pass silently.`
+  files.forEach((file, i) => {
+    const rel = relative(docs, file);
+    if (!texts[i].trim()) {
+      problems.push(`${rel} is empty, so there is nothing in it to check.`);
+    } else if (texts[i].includes(KEYWORD)) {
+      problems.push(
+        `${rel} contains ${KEYWORD}, so the keyword reached built output: ` +
+          `a marker got through, or a page shows marker syntax with the ` +
+          `keyword in it.`
       );
     }
-    return 1;
-  }
-  const leaks = files.filter((_, i) => texts[i].includes(KEYWORD));
-  if (leaks.length) {
-    for (const file of leaks) {
-      io.error(
-        `check-generated-markers: ${relative(docs, file)} contains ` +
-          `${KEYWORD}. A marker reached the LLM output, or a page shows ` +
-          `marker syntax with the keyword in it.`
-      );
+  });
+  if (problems.length) {
+    for (const problem of problems) {
+      io.error(`check-generated-markers: ${problem}`);
     }
     return 1;
   }
