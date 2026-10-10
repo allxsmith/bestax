@@ -1,3 +1,11 @@
+## [5.27.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.6...@allxsmith/bestax-bulma@5.27.7) (2026-10-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep a Notification's text clear of its close button ([#1017](https://github.com/allxsmith/bestax/issues/1017)) ([91ebb63](https://github.com/allxsmith/bestax/commit/91ebb63b61b44495f0c472a7f3a00460eacffce7))
+* **bulma-ui:** name a composed DateRangeInputBase's group from a Field label ([75aa6cb](https://github.com/allxsmith/bestax/commit/75aa6cb20281f3aae46af17f487f54f2592bdb59))
+
 ## [5.27.6](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.5...@allxsmith/bestax-bulma@5.27.6) (2026-10-10)
 
 
