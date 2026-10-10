@@ -91,14 +91,21 @@ export interface FieldBodyProps
 }
 
 /**
- * FieldLabel component for rendering a Bulma field label.
+ * FieldLabel component for rendering a Bulma field label. It renders the
+ * label column of a horizontal `Field` (a `div` with the `field-label` class),
+ * not a `<label>`, so text placed straight in it names nothing. Put a `<label>`
+ * with the `label` class inside it and point its `htmlFor` at the control's
+ * `id`, or give the horizontal `Field` a `label` prop, which renders this
+ * column and its `<label>` for you.
  *
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
  * @returns {JSX.Element} The rendered field label.
  *
  * @example
- * <FieldLabel size="normal">Name</FieldLabel>
+ * <FieldLabel size="normal">
+ *   <label className="label" htmlFor="name">Name</label>
+ * </FieldLabel>
  */
 export const FieldLabel: React.FC<FieldLabelProps> = ({
   size,
