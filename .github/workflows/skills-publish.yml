@@ -137,10 +137,11 @@ jobs:
       #
       #   api.github.com: `gh workflow run` is one REST call.
       #
-      # Deliberately absent: github.com, as there is no checkout.
+      # Not listed: github.com, as there is no checkout; see "What the agent
+      # allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -215,19 +216,18 @@ jobs:
       #     the exact bestax-mcp version the plugin pins, with GET requests
       #     and no install. The npx the plugin runs installs from this host.
       #
-      # Deliberately absent: api.github.com, as nothing here calls the API,
-      # and nodejs.org, as the generator imports node: builtins and local
-      # modules only and runs on the runner's Node with no install. Also
-      # absent: the hosts upload-artifact reaches,
-      # results-receiver.actions.githubusercontent.com and a per-run
-      # productionresultssa<N>.blob.core.windows.net. They are the runner's
-      # control plane, which .github/CLAUDE.md ("Measuring an allowlist")
-      # says never to allow-list, as harden-runner does not gate it and the
-      # blob host's name changes from run to run. claude-implement's
-      # `implement` job uploads its log at block with neither listed.
+      # Not listed: api.github.com, as nothing here calls the API; see "What
+      # the agent allows beyond the list" in .github/CLAUDE.md. Nor
+      # nodejs.org, as the generator imports node: builtins and local modules
+      # only and runs on the runner's Node with no install. Nor the hosts
+      # upload-artifact reaches, results-receiver.actions.githubusercontent.com
+      # and a per-run productionresultssa<N>.blob.core.windows.net, as runner
+      # infrastructure, which needs no listing ("Measuring an allowlist" in
+      # .github/CLAUDE.md). claude-implement's `implement` job uploads its
+      # log at block with neither listed.
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -320,7 +320,7 @@ jobs:
       # "Re-runs" in the header).
       - name: Upload the tree
         timeout-minutes: 5
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: bestax-skills-tree-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bestax-skills-tree.tar
@@ -347,8 +347,9 @@ jobs:
       #     ls-remote, the clone and the push. The deploy key works over SSH
       #     only.
       #
-      # Deliberately absent: github.com:443, as nothing here checks out this
-      # repository, and api.github.com, as nothing calls the API.
+      # Not listed: github.com:443, as nothing here checks out this
+      # repository, and api.github.com, as nothing calls the API; see "What
+      # the agent allows beyond the list" in .github/CLAUDE.md.
       # download-artifact reaches the same control-plane hosts as
       # upload-artifact in `generate`, left out for the reason given there.
       # No block job here downloads an artifact with them unlisted yet, so
@@ -357,7 +358,7 @@ jobs:
       # (.github/CLAUDE.md, "Measuring an allowlist").
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -395,7 +396,7 @@ jobs:
 
       - name: Download the tree
         timeout-minutes: 5
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
         with:
           name: bestax-skills-tree-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bestax-skills-artifact

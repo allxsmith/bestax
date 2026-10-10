@@ -106,9 +106,12 @@ jobs:
       # Deliberately absent: app.codemod.com, since `codemod workflow
       # validate` reads local files (its validate.rs imports no HTTP client);
       # Codemod's telemetry hosts, denied at the source by DISABLE_ANALYTICS;
-      # api.github.com and nodejs.org, with no API call and no setup-node.
+      # nodejs.org, with no setup-node.
+      #
+      # Not listed: api.github.com, as nothing calls the API; see "What the
+      # agent allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -235,14 +238,16 @@ jobs:
       #
       #   token.actions.githubusercontent.com: the script asks for the OIDC
       #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host,
-      #     which "Measuring an allowlist" lists as runner infrastructure never
-      #     to allow-list. The issuer is where the REGISTRY fetches GitHub's
-      #     keys, on its side. The OIDC path first runs on the publish after
-      #     the API key is deleted; if that run reports a refused connection,
-      #     read its report before widening anything.
-      #   Telemetry hosts, api.github.com, nodejs.org: as in `validate`.
+      #     which needs no listing ("Measuring an allowlist" in
+      #     .github/CLAUDE.md). The issuer is where the REGISTRY fetches
+      #     GitHub's keys, on its side. The OIDC path first runs on the
+      #     publish after the API key is deleted; if that run reports a
+      #     refused connection, read its report before widening anything.
+      #   Telemetry hosts, nodejs.org: as in `validate`.
+      #
+      # Not listed: api.github.com, as in `validate`.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >

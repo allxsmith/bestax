@@ -37,10 +37,11 @@ jobs:
       # checkout (github.com trio), the pnpm/node toolchain (npm registry,
       # nodejs.org + release assets for a toolcache miss), and the upload
       # itself (api.cloudflare.com). Wrangler's own metrics beacon is disabled
-      # below instead of allow-listing its host. No actions-cache endpoints on
-      # purpose: setup-node runs cache-less here to keep this list short.
+      # below instead of allow-listing its host. setup-node runs without a
+      # cache here; with one, the cache's hosts would still need no listing
+      # (.github/CLAUDE.md, "Measuring an allowlist").
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -103,7 +104,7 @@ jobs:
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
 

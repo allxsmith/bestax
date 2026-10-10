@@ -39,7 +39,7 @@ name: AI Security Scan
 # asserts the EFFECTIVE policy, so a regression fails the job instead of
 # degrading in silence.
 #
-# Be precise about what that adds: it bounds where the OAuth token can be sent
+# Be precise about what that adds: it narrows where the OAuth token can be sent
 # if the tool allowlist is ever defeated. It does not replace the allowlist —
 # `gh` reaches api.github.com, which is allow-listed, so egress-block would not
 # stop a write issued through a tool. Two controls, each covering what the
@@ -198,7 +198,7 @@ jobs:
       # SHA on GitHub's own CDN.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -294,9 +294,10 @@ jobs:
       #
       # Gated like the charge below: on the bot-author and budget-spent paths
       # the gate sets run=false, this job makes no write and nothing downstream
-      # runs, so there is nothing for egress to bound. A check that fails
-      # routinely on runs with no security content is one people learn to
-      # ignore. `label` requires run=true too, so the paths stay consistent.
+      # runs, so there is nothing for egress enforcement to protect. A check
+      # that fails routinely on runs with no security content is one people
+      # learn to ignore. `label` requires run=true too, so the paths stay
+      # consistent.
       - name: Assert egress policy is enforced
         id: enforcement
         if: steps.gate.outputs.run == 'true'
@@ -353,7 +354,7 @@ jobs:
   # than "the allowlist no longer matters": this job still carries
   # CLAUDE_CODE_OAUTH_TOKEN alongside Bash, so by I1 the allowlist remains the
   # only control against reading that credential out of the environment. Egress
-  # is enforced as of #487, but it bounds WHERE data can go, not what a tool can
+  # is enforced as of #487, but it narrows WHERE data can go, not what a tool can
   # do with an allow-listed host — api.github.com is on the list. Keep the
   # allowlist narrow (rule 2); the two controls cover different things.
   #
@@ -383,11 +384,14 @@ jobs:
     outputs:
       verdict: ${{ steps.verdict.outputs.verdict }}
     steps:
-      # Defense-in-depth: the session's only tools are read-only gh (which reaches
-      # only GitHub), so it cannot open arbitrary sockets. Block bounds the
-      # OAuth-token surface regardless, and as of #487 it is ENFORCED and asserted
-      # below. The list is additive to harden-runner's GitHub Actions baseline and
-      # is the set measured on a real run (#487), not a guess.
+      # Defense-in-depth: the session's Bash allowlist is `gh issue view`,
+      # `gh pr view` and `gh pr diff`, read-only against GitHub's API. Each one
+      # also takes a full URL or `-R HOST/OWNER/REPO`, and sends its request to
+      # that host instead. Block narrows where those requests, and the OAuth
+      # token, can go ("What the agent allows beyond the list" in
+      # .github/CLAUDE.md), and as of #487 it is ENFORCED and asserted below.
+      # The list is additive to harden-runner's GitHub Actions baseline and is
+      # the set measured on a real run (#487), not a guess.
       #
       # release-assets.githubusercontent.com is where GitHub redirects release-asset
       # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,
@@ -412,9 +416,10 @@ jobs:
       # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
       # deliberately ABSENT rather than allow-listed: not a functional dependency,
       # and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing
-      # attempts it. Denying and silencing are a tighter pair than allow-listing.
+      # attempts it. Leaving it unlisted and silencing it is a tighter pair than
+      # allow-listing.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -472,9 +477,9 @@ jobs:
 
       - name: Run Claude (security scan)
         id: claude
-        # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
-        # host stays off the allowlist above AND the CLI is told not to emit it,
-        # so the block policy has nothing to refuse (#487). This also covers
+        # Telemetry is turned off rather than allow-listed: the CLI's Datadog
+        # intake host stays off the allowlist above AND the CLI is told not to
+        # emit it, so the CLI does not try to reach it (#487). This also covers
         # feature-flag evaluation, which is why statsig.anthropic.com is gone.
         #
         # Set as a step `env:` rather than through the action's `settings:` input.
@@ -656,7 +661,7 @@ jobs:
       # rule 4 permits.
       - name: Harden runner
         continue-on-error: true
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >

@@ -101,20 +101,14 @@ jobs:
       # Two observed hosts are deliberately absent. telemetry.vercel.com is turbo's
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
-      # host. The Actions cache blob host cannot be pinned at all: its name rotates
-      # per run (productionresultssa<N>, a different N per run). It does not need
-      # to be. harden-runner does not gate the runner own control-plane traffic, and
-      # run 33286967625 is the proof rather than the assumption: claude-review at
-      # block, with neither that host nor results-receiver.actions.githubusercontent.com
-      # allow-listed, restored its pnpm cache and completed pnpm install
-      # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
-      # here; it was wrong, and measuring it is what showed that.
+      # host. The Actions cache blob host is runner infrastructure, which needs no
+      # listing (.github/CLAUDE.md, "Measuring an allowlist").
       #
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -241,7 +235,7 @@ jobs:
 
       - name: Setup Node.js
         if: steps.perm.outputs.allowed == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -252,17 +246,18 @@ jobs:
 
       - name: Run Claude (respond as bestaxbot)
         if: steps.perm.outputs.allowed == 'true'
-        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
-        # stays off every allowlist in this repo AND the CLI is told not to emit
-        # it (#487). It also covers feature-flag evaluation, which is why
+        # Telemetry is turned off, never allow-listed: the CLI's Datadog intake
+        # host stays off every allowlist in this repo AND the CLI is told not to
+        # emit it (#487). It also covers feature-flag evaluation, which is why
         # statsig.anthropic.com is gone.
         #
-        # This job now enforces `block` (#578), so the denial is doing two jobs at
-        # once and both matter. The allowlist above refuses the Datadog host, and
-        # this setting stops the CLI trying to reach it, which keeps a denied call
-        # out of the run rather than merely blocked. Leaving telemetry on and
-        # relying on the allowlist alone would fill the logs with refused traffic
-        # and invite the next reader to "fix" it by allow-listing the host.
+        # This job now enforces `block` (#578), and both halves matter. The
+        # allowlist above does not list the Datadog host, and this setting stops
+        # the CLI trying to reach it, which keeps the call out of the run rather
+        # than leaving it to the allowlist. With telemetry left on and the host
+        # merely unlisted, the CLI would keep trying it, and each failed attempt in
+        # the logs would invite the next reader to "fix" it by allow-listing the
+        # host.
         #
         # It also earned the allowlist: this was set during the audit phase
         # precisely so the endpoint list the flip was built from reflected the
@@ -300,8 +295,9 @@ jobs:
           bot_id: '300268469'
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_commit_signing: true
-          # Per-turn tool calls + denials in the log (the artifact blob host is
-          # proxy-blocked) so a blocked reply/commit is diagnosable.
+          # Per-turn tool calls + denials in the job log, so a blocked
+          # reply/commit is diagnosable. This job uploads no execution-log
+          # artifact, so the log is where that stream survives the job.
           show_full_output: true
           # The prompt's protected-path exclusions are enforced here, not just
           # stated: --disallowedTools deny rules take precedence over the
