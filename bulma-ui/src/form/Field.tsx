@@ -96,7 +96,10 @@ export interface FieldBodyProps
  * not a `<label>`, so text placed straight in it names nothing. Put a `<label>`
  * with the `label` class inside it and point its `htmlFor` at the control's
  * `id`, or give the horizontal `Field` a `label` prop, which renders this
- * column and its `<label>` for you.
+ * column and its `<label>` for you. A `<label>` you put here names the
+ * control through its `htmlFor` alone: a range `Slider`'s thumbs and an
+ * `Autocomplete`'s suggestion list point `aria-labelledby` at a `Field`'s
+ * label only when its `label` prop renders it, so use the prop for those.
  *
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
