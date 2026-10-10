@@ -31,6 +31,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { describe, it } from 'node:test';
 
+import { themeVars } from './lib/theme-vars.mjs';
+
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const THEME = join(REPO, 'bulma-ui', 'src', 'helpers', 'Theme.tsx');
 const PLUGIN_VALUES = join(REPO, 'eslint-plugin', 'dist', 'lib', 'values.js');
@@ -47,25 +49,13 @@ const cssVarToProp = varName =>
 
 /**
  * What Theme's source says about its props, read the way `bulmaVarPropMap`
- * is built: the `bulmaCssVars` tuple mapped through `cssVarToProp`, minus the
- * `helperPropNames` that map filters out. Both halves are asserted rather
- * than assumed, and so is the filter that joins them.
+ * is built: the `bulmaCssVars` variables mapped through `cssVarToProp`, minus
+ * the `helperPropNames` that map filters out. Both halves are asserted rather
+ * than assumed, and so is the filter that joins them. The variables come from
+ * `themeVars`, which throws rather than read an empty or partial list.
  */
 function readTheme(source) {
-  const list = source.match(/const bulmaCssVars = \[([\s\S]*?)\n\] as const;/);
-  assert.ok(
-    list,
-    'could not find the `bulmaCssVars` tuple in Theme.tsx. It is what decides ' +
-      'which prop names Theme intercepts as CSS variables, so this guard ' +
-      'cannot run without it. Re-derive the collision by hand and fix this ' +
-      'pattern in the same change.'
-  );
-  const vars = [...list[1].matchAll(/'([^']+)'/g)].map(m => m[1]);
-  assert.ok(
-    vars.length > 0,
-    'the `bulmaCssVars` tuple read as empty, which would make every ' +
-      'assertion here vacuously true'
-  );
+  const vars = themeVars(source).all;
 
   const names = source.match(
     /const helperPropNames: readonly string\[\] = \[([^\]]*)\];/

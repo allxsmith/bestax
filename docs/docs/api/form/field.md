@@ -582,9 +582,11 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 `Field` registers these variables on its own `.field` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                  | Sass Variable          | Default                            |
-| ----------------------------- | ---------------------- | ---------------------------------- |
-| `--bulma-field-block-spacing` | `$field-block-spacing` | `0.75rem`                          |
-| `--bulma-block-spacing`       | —                      | `var(--bulma-field-block-spacing)` |
+| CSS Variable                    | Sass Variable          | Default                            |
+| ------------------------------- | ---------------------- | ---------------------------------- |
+| `--bulma-field-block-spacing` § | `$field-block-spacing` | `0.75rem`                          |
+| `--bulma-block-spacing`         | —                      | `var(--bulma-field-block-spacing)` |
+
+§ declared globally, on `:root`, rather than on the element: set it on the element itself (via `className`/`style`) or on any ancestor, up to `:root` to retheme every instance.
 
 <!-- /bestax:generated cssvars -->

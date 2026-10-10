@@ -379,6 +379,34 @@ test('CSS variables are indexed back to their component', () => {
   }
 });
 
+test('every CSS variable scope is one the server has advice for', () => {
+  for (const [name, record] of components) {
+    for (const v of record.cssVars) {
+      assert.ok(
+        ['root', 'compound', 'element', 'global'].includes(v.scope),
+        `${name}: ${v.css} has scope ${v.scope}`
+      );
+    }
+  }
+});
+
+test("Delete's variables are scoped to its element, not :root (#1021)", () => {
+  // Bulma declares them in `@mixin delete`, which lands on `.delete` itself,
+  // so the server's `global` advice (set it on :root or with Theme) was the
+  // one thing that never works for them.
+  const vars = components.get('Delete').cssVars;
+  assert.ok(vars.length > 0);
+  assert.ok(!vars.some(v => v.scope === 'global'));
+  // Most are declared on `.delete` alone, so `root` and its className
+  // advice are right for them.
+  const scopeOf = css => vars.find(v => v.css === css)?.scope;
+  assert.equal(scopeOf('--bulma-delete-color'), 'root');
+  // The size modifiers declare `delete-dimensions` again, and
+  // `.delete.is-small` out-ranks a lone className class, so that one gets
+  // `compound`, whose advice (inline style) works on a sized Delete too.
+  assert.equal(scopeOf('--bulma-delete-dimensions'), 'compound');
+});
+
 test('every CSS variable lists every declarer, the one it is named after first (#964)', () => {
   // The index kept one name per variable, whichever declarer the generator read
   // last, so DateInput's calendar variables were "declared by DateTimeInput".

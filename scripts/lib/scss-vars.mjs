@@ -377,12 +377,14 @@ export function renderValue(raw) {
  * Does a depth-1 registration belong to this component?
  *
  * Normally that means the selector IS the component's root class. But nine
- * Bulma partials register at `$variables-host` (`:root`) instead — `Skeleton`,
- * `Code`, `Pre`, `Strong` and `Delete` declare every one of their variables
- * that way, so a selector-only rule showed those components no table at all
- * while `Box` and `Card`, which register on their own class, got one. Whether
- * Bulma writes `.skeleton-lines { … }` or `:root { … }` is an implementation
- * detail of the stylesheet; it says nothing about whose variable it is.
+ * Bulma partials register at `$variables-host` (`:root`) instead. `Skeleton`,
+ * `Code`, `Pre` and `Strong` declare every one of their variables that way,
+ * and `Delete` declares its own in a mixin body, so a selector-only rule
+ * showed those components no table at all while `Box` and `Card`, which
+ * register on their own class, got one. Whether Bulma writes
+ * `.skeleton-lines { … }` or `:root { … }` says nothing about whose variable
+ * it is. It does decide where a reader can set it, which is what the row's
+ * `scope` carries.
  *
  * A host registration is claimed by KEY PREFIX, which is what keeps it honest:
  * `base/generic.scss` hosts `body-*`, `hr-*`, `small-*`, `code-*`, `strong-*`
@@ -443,10 +445,69 @@ function ownsRegistration(selector, root, prefix, key) {
   // A `@mixin delete { … }` body is the other off-selector home: Bulma declares
   // every `--bulma-delete-*` there and applies the mixin to `.delete`.
   const offSelector =
-    isVariablesHost(selector) ||
-    new RegExp(`^@mixin\\s+${prefix}\\b`).test(selector.trim());
+    isVariablesHost(selector) || isMixinHome(selector, prefix);
   if (!offSelector) return false;
   return key === prefix || key.startsWith(`${prefix}-`);
+}
+
+/**
+ * Is this the body of the component's own mixin (`@mixin delete { … }`)?
+ *
+ * A mixin is not a place in the stylesheet. Its registrations land on
+ * whatever rule includes it, which for `delete` is `.delete` itself (and
+ * `.modal-close`), so they are declared on the element and NOT on `:root`.
+ * Reading this home as global told Delete's page that a value set on any
+ * ancestor would reach the button, which the element's own declaration
+ * always beats (#1021).
+ *
+ * The name has to be the prefix exactly, with or without a parameter list.
+ * A word boundary would also match at a hyphen, so `@mixin control-small`
+ * would pass for Control. Those are size mixins, included on modifier
+ * selectors, so reading one as the component's own would say a variable
+ * lives on the plain element when it only lands on a modifier.
+ */
+function isMixinHome(selector, prefix) {
+  return (
+    Boolean(prefix) &&
+    new RegExp(`^@mixin\\s+${prefix}\\s*(?:\\(|$)`).test(selector.trim())
+  );
+}
+
+/**
+ * Where a home declares its registrations, for the page's lead sentence:
+ * `selectorRootKind`'s answer for a selector, 'mixin' for the component's own
+ * mixin body, and 'global' only for what is left, which `ownsRegistration`
+ * admits solely for the variables host.
+ */
+function homeScope(selector, root, prefix) {
+  return (
+    selectorRootKind(selector, root) ??
+    (isMixinHome(selector, prefix) ? 'mixin' : 'global')
+  );
+}
+
+/**
+ * Modifier rules inside the component's mixin that declare `key` again:
+ * `&.#{iv.$class-prefix}is-small` under `@mixin delete`, rendered as the
+ * selector it compiles to on the root class (`.delete.is-small`).
+ *
+ * Only `&.`-modifiers count. A state (`&:hover`) re-declares a value for a
+ * moment rather than for an element the reader chose, and the override
+ * advice is about the second: with a size class on, the modifier's
+ * two-class selector beats a lone class added through `className`.
+ */
+function mixinModifiers(entries, mixin, key, root) {
+  const out = [];
+  for (const entry of entries) {
+    if (entry.key !== key || entry.chain.length !== 2) continue;
+    if (entry.chain[0] !== mixin || !entry.chain[1].startsWith('&.')) continue;
+    out.push(
+      entry.chain[1]
+        .replace(/^&/, `.${root}`)
+        .replace(/#\{\s*iv\.\$class-prefix\s*\}/g, '')
+    );
+  }
+  return out;
 }
 
 /**
@@ -468,8 +529,9 @@ export function componentVars(src, root, prefix = root) {
   const defaults = defaultDeclarations(src);
   const rows = [];
   const byKey = new Map();
+  const entries = registerVarsEntries(src);
 
-  for (const { key, rawValue, chain } of registerVarsEntries(src)) {
+  for (const { key, rawValue, chain } of entries) {
     // Depth-1 registrations on the component's own root selector only. Anything
     // deeper is a state re-declaration (`&:hover`) or another component's
     // variables nested inside this one (hero.scss's navbar/tabs/title blocks).
@@ -482,7 +544,7 @@ export function componentVars(src, root, prefix = root) {
       // $var both times; only the override advice differs, and the root-class
       // home is the actionable one (it IS the element className/style reach),
       // so a root registration upgrades the scope wherever it appears.
-      if ((selectorRootKind(chain[0], root) ?? 'global') === 'root') {
+      if (homeScope(chain[0], root, prefix) === 'root') {
         byKey.get(key).scope = 'root';
       }
       continue;
@@ -496,6 +558,7 @@ export function componentVars(src, root, prefix = root) {
     const varRef = inner.match(/^\$([a-zA-Z0-9_-]+)$/);
     const sassVar = varRef && defaults.has(varRef[1]) ? `$${varRef[1]}` : null;
 
+    const scope = homeScope(chain[0], root, prefix);
     const row = {
       cssVar: `--${CSSVARS_PREFIX}${key}`,
       sassVar,
@@ -503,9 +566,14 @@ export function componentVars(src, root, prefix = root) {
       // Where the DEFAULT is declared, which the page's lead sentence needs
       // to state correctly: 'root' is the component's own simple selector,
       // 'compound' a compound carrying it (higher specificity, different
-      // override advice), 'global' a `:root` or mixin body.
-      scope: selectorRootKind(chain[0], root) ?? 'global',
+      // override advice), 'element' a constituent element, 'mixin' the
+      // component's own mixin (so the element that includes it), and
+      // 'global' the variables host (`:root`).
+      scope,
     };
+    if (scope === 'mixin') {
+      row.modifiers = mixinModifiers(entries, chain[0], key, root ?? prefix);
+    }
     byKey.set(key, row);
     rows.push(row);
   }
