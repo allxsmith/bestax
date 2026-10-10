@@ -97,6 +97,11 @@ default: it is one line, works offline, and any name renders. Offer a smaller fo
 the user cares about download size (a size budget, a Lighthouse flag, slow networks), and
 present it as an optimisation with the trade-offs below:
 
+- **One stylesheet per style rendered.** If the app has the bare `import 'material-symbols';`,
+  replace it with `outlined.css`, adding `rounded.css` or `sharp.css` only where a `variant`
+  uses them. The bare import ships every style's font in the build (a browser fetches each one
+  only when a page renders it). This is where the scaffold already stands, and the style left
+  is still the whole variable font, which the options below shrink.
 - **Google Fonts subset.** Replace the import with a stylesheet link in `index.html`:
   `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=home,palette,settings&display=block" />`.
   `icon_names` takes the ligature names comma-separated and sorted alphabetically, and keep

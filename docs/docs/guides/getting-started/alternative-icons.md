@@ -516,7 +516,9 @@ For a complete list of available symbols and detailed usage instructions, visit 
 
 ### Making the font smaller
 
-Material Symbols is a variable font, and `material-symbols/outlined.css` loads all of it: every symbol, at every fill, weight, grade and optical size. That's several megabytes, and an app that shows a few icons downloads the lot. `create-bestax` sets it up that way on purpose, because it's one import, it works offline, and any name you give `Icon` just renders. For most apps that's the right trade. If the download matters to yours, you have other ways to load it.
+Material Symbols is a variable font, and each style's stylesheet loads all of it: every symbol, at every fill, weight, grade and optical size. That's several megabytes per style, and an app that shows a few icons downloads the lot. `create-bestax` imports the outlined style on its own and stops there on purpose, because it's one import, it works offline, and any name you give `Icon` just renders. For most apps that's the right trade. If the download matters to yours, you have other ways to load it.
+
+**Import only the styles you render.** The bare `import 'material-symbols'` in the Import step above declares the rounded and sharp fonts next to the outlined one, so your build ships all of them. A browser fetches a font when a page first renders text in it, so until something uses those variants the extras weigh on your deploy rather than on each visit, but there's no reason to carry them. `Icon` renders the outlined style unless you pass `variant`, so `import 'material-symbols/outlined.css'` on its own is usually enough, with no new dependency and no list of names to keep. That's where `create-bestax` already stands. The style you keep is still the whole variable font, though, so it's still several megabytes, and the rest of this section is about shrinking that.
 
 **Ask Google Fonts for only the icons you use.** Google Fonts' CSS2 API takes an `icon_names` parameter and serves a font holding just those glyphs. Drop the `material-symbols` import and link the stylesheet from `index.html` instead:
 
