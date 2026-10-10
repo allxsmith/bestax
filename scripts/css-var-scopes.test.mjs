@@ -54,7 +54,9 @@ import { mdFiles } from './lib/api-catalog.mjs';
 import { frontmatterTitle, readRegions } from './lib/api-page.mjs';
 import { extractComponent } from './lib/props-extract.mjs';
 import {
+  CSS_VAR_SCOPE_ORDER,
   cssVarRows,
+  cssVarScopeGaps,
   cssVarScopeText,
   renderCssVarRows,
 } from './gen-api-docs.mjs';
@@ -238,16 +240,41 @@ describe('API pages say where each Bulma variable can be set', () => {
 // --- the renderer -----------------------------------------------------------
 
 describe('a CSS variable table', () => {
-  const SCOPES = ['root', 'global', 'mixin', 'element', 'compound'];
   const info = { name: 'Thing', rootClass: 'thing' };
+  const text = cssVarScopeText(info, [], 'theme.md');
+  // Every scope the generator has a lead for, so a scope added there is
+  // covered here without anyone remembering to list it.
+  const SCOPES = Object.keys(text.leads);
   const row = (scope, n) => ({
     scope,
     cssVar: `--bulma-thing-${n}`,
     sassVar: null,
     value: '1px',
   });
+  const cell = (out, n) =>
+    out.split('\n').find(l => l.includes(`\`--bulma-thing-${n}\``)) ?? '';
 
-  const MARKERS = Object.values(cssVarScopeText(info, [], 'x').markers);
+  it('gives every scope a lead, a marker, a note and a place in the order', () => {
+    assert.deepEqual(cssVarScopeGaps(text, SCOPES), []);
+    assert.deepEqual(cssVarScopeGaps(text, CSS_VAR_SCOPE_ORDER), []);
+    assert.deepEqual([...CSS_VAR_SCOPE_ORDER].sort(), [...SCOPES].sort());
+    const markers = Object.values(text.markers);
+    assert.equal(new Set(markers).size, markers.length, 'a marker is shared');
+  });
+
+  it('reports a scope that has only a lead', () => {
+    const leadOnly = {
+      ...text,
+      leads: { ...text.leads, extra: 'Extra lead.' },
+    };
+    assert.deepEqual(cssVarScopeGaps(leadOnly, ['extra', 'root']), [
+      'extra (no marker, no note, no place in the order)',
+    ]);
+    // Inherited names are not wording.
+    assert.deepEqual(cssVarScopeGaps(text, ['constructor']), [
+      'constructor (no lead, no marker, no note, no place in the order)',
+    ]);
+  });
 
   it('marks every row whose scope differs from the lead', () => {
     for (const a of SCOPES) {
@@ -258,16 +285,58 @@ describe('a CSS variable table', () => {
           [row(a, 'a'), row(b, 'b')],
           'theme.md'
         );
-        const lines = out.split('\n');
-        const cell = n =>
-          lines.find(l => l.includes(`\`--bulma-thing-${n}\``)) ?? '';
-        // Exactly one of the two rows is the lead's; the other is marked.
-        const marked = [cell('a'), cell('b')].filter(l =>
-          MARKERS.some(m => l.includes(`\` ${m}`))
+        const lead = CSS_VAR_SCOPE_ORDER.find(s => s === a || s === b);
+        const other = lead === a ? b : a;
+        const [leadRow, otherRow] = lead === a ? ['a', 'b'] : ['b', 'a'];
+        assert.ok(out.includes(text.leads[lead]), `${a}+${b}: lead`);
+        assert.ok(
+          cell(out, otherRow).includes(`\` ${text.markers[other]}`),
+          `${a}+${b}: the ${other} row is unmarked:\n${out}`
         );
-        assert.equal(marked.length, 1, `${a} with ${b}:\n${out}`);
+        assert.ok(
+          !Object.values(text.markers).some(m =>
+            cell(out, leadRow).includes(`\` ${m}`)
+          ),
+          `${a}+${b}: the ${lead} row is marked:\n${out}`
+        );
+        assert.ok(out.includes(text.notes[other]), `${a}+${b}: note`);
+        assert.doesNotMatch(out, /undefined/);
       }
     }
+  });
+
+  it('renders every row with its wording whichever scope leads', () => {
+    // The order only picks the lead. Each rotation puts a different scope
+    // first, and every other row must still carry its own marker and note,
+    // which is what failed silently for `root` before it had any.
+    const rows = SCOPES.map(s => row(s, s));
+    for (let i = 0; i < CSS_VAR_SCOPE_ORDER.length; i++) {
+      const order = [
+        ...CSS_VAR_SCOPE_ORDER.slice(i),
+        ...CSS_VAR_SCOPE_ORDER.slice(0, i),
+      ];
+      const out = renderCssVarRows(info, rows, 'theme.md', { order });
+      assert.ok(out.includes(text.leads[order[0]]), order.join(','));
+      for (const s of order.slice(1)) {
+        assert.ok(cell(out, s).includes(`\` ${text.markers[s]}`), s);
+        assert.ok(out.includes(text.notes[s]), s);
+      }
+      assert.doesNotMatch(out, /undefined/);
+    }
+  });
+
+  it('refuses a scope it cannot word, or an order that leaves one out', () => {
+    assert.throws(
+      () => renderCssVarRows(info, [row('somewhere', 'a')], 'theme.md'),
+      /incomplete wording for CSS-variable scope\(s\): somewhere \(no lead, no marker, no note, no place in the order\)/
+    );
+    assert.throws(
+      () =>
+        renderCssVarRows(info, [row('root', 'a'), row('mixin', 'b')], 'x', {
+          order: ['root', 'global'],
+        }),
+      /mixin \(no place in the order\)/
+    );
   });
 
   it('tells a reader to set mixin-declared variables on the element', () => {
@@ -297,13 +366,6 @@ describe('a CSS variable table', () => {
     assert.match(
       none,
       /on the `Thing` element itself, through a mixin its rule includes\. /
-    );
-  });
-
-  it('refuses a scope it has no wording for', () => {
-    assert.throws(
-      () => renderCssVarRows(info, [row('somewhere', 'a')], 'theme.md'),
-      /no wording for CSS-variable scope\(s\) somewhere/
     );
   });
 

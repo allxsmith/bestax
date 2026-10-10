@@ -333,10 +333,12 @@ export async function cssVarRows(info) {
  * documented override would silently do nothing. Review on #544 caught the
  * generated page giving exactly that advice.
  *
- * Every scope has a marker, so a row whose scope differs from the page's
- * lead is always marked. `global` had none until #1021, and Control's page
- * told readers that the `--bulma-control-*` variables Bulma declares on
- * `:root` lose to a declaration on `.control` that does not exist.
+ * Every scope has a lead, a marker and a note, `root` included, so whichever
+ * scope leads a page, every row whose scope differs is marked and explained.
+ * `global` had no marker until #1021, and Control's page told readers that
+ * the `--bulma-control-*` variables Bulma declares on `:root` lose to a
+ * declaration on `.control` that does not exist. `root` had none either,
+ * which was safe only while it sorted first in the order below.
  */
 export function cssVarScopeText(info, rows, themeLink) {
   const target = info.rootClass ? `\`.${info.rootClass}\`` : 'its own';
@@ -395,12 +397,17 @@ export function cssVarScopeText(info, rows, themeLink) {
       `every instance. See [Theme](${themeLink}).`,
   };
   const markers = {
+    root: '∗',
     compound: '†',
     element: '‡',
     global: '§',
     mixin: '¶',
   };
   const notes = {
+    root:
+      `∗ declared on the component's own element: override it there (or via ` +
+      `\`className\`); a value set on an ancestor is only inherited and loses ` +
+      `to that declaration.`,
     compound:
       `† declared on a compound selector (higher specificity than a single ` +
       `class): a lone \`className\` class loses — override with inline ` +
@@ -424,28 +431,74 @@ export function cssVarScopeText(info, rows, themeLink) {
 }
 
 /**
+ * Which scope's lead a page uses when its rows differ: the first of these the
+ * page has. Every other scope on it is marked. The order only chooses the
+ * lead. Each scope has its own marker and note, and the renderer refuses a
+ * scope missing any of its wording, so no order renders a row without it.
+ */
+export const CSS_VAR_SCOPE_ORDER = [
+  'root',
+  'global',
+  'mixin',
+  'element',
+  'compound',
+];
+
+/**
+ * The scopes among `scopes` that `text` (from `cssVarScopeText`) cannot
+ * render in full, each with what it lacks: a lead, a marker, a note, or a
+ * place in `order`. Empty when every one of them can lead a page or be
+ * marked on one.
+ */
+export function cssVarScopeGaps(
+  { leads, markers, notes },
+  scopes,
+  order = CSS_VAR_SCOPE_ORDER
+) {
+  const gaps = [];
+  for (const scope of scopes) {
+    const missing = [
+      !Object.hasOwn(leads, scope) && 'lead',
+      !Object.hasOwn(markers, scope) && 'marker',
+      !Object.hasOwn(notes, scope) && 'note',
+      !order.includes(scope) && 'place in the order',
+    ].filter(Boolean);
+    if (missing.length) gaps.push(`${scope} (no ${missing.join(', no ')})`);
+  }
+  return gaps;
+}
+
+/**
  * The CSS & Sass Variables region for a component's rows. One scope, one
  * lead: the page-wide sentence may only claim what holds for EVERY row. On a
  * mixed page the baseline scope's lead applies and the minority rows carry a
  * marker with their own note below the table, so one compound- or
  * element-scoped row does not rewrite the advice for every
  * className-overridable row on the page, and vice versa (#544 review).
+ *
+ * `order` is there so a test can render under a different one and show that
+ * no order loses a row's wording. The generator always uses the default.
  */
-export function renderCssVarRows(info, rows, themeLink) {
+export function renderCssVarRows(
+  info,
+  rows,
+  themeLink,
+  { order = CSS_VAR_SCOPE_ORDER } = {}
+) {
   if (!rows.length) return null;
-  const { leads, markers, notes } = cssVarScopeText(info, rows, themeLink);
+  const text = cssVarScopeText(info, rows, themeLink);
+  const { leads, markers, notes } = text;
   const scopes = new Set(rows.map(r => r.scope));
-  const unknown = [...scopes].filter(s => !(s in leads));
-  if (unknown.length) {
+  const gaps = cssVarScopeGaps(text, scopes, order);
+  if (gaps.length) {
     throw new Error(
-      `${info.name}: no wording for CSS-variable scope(s) ` +
-        `${unknown.join(', ')}. Add a lead, a marker and a note for each in ` +
-        `cssVarScopeText (scripts/gen-api-docs.mjs).`
+      `${info.name}: incomplete wording for CSS-variable scope(s): ` +
+        `${gaps.join('; ')}. Give each scope a lead, a marker and a note in ` +
+        `cssVarScopeText, and a place in CSS_VAR_SCOPE_ORDER ` +
+        `(scripts/gen-api-docs.mjs).`
     );
   }
-  const baseline = ['root', 'global', 'mixin', 'element', 'compound'].find(s =>
-    scopes.has(s)
-  );
+  const baseline = order.find(s => scopes.has(s));
   const marked = [...scopes].filter(s => s !== baseline);
 
   const cells = rows.map(r => {
