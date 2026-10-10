@@ -200,7 +200,10 @@ export const ClearInLoadingControl: Story = {
     const [value, setValue] = useState('Apple');
     return (
       <ResponsiveWrapper>
-        <Field label="Fruit" labelProps={{ htmlFor: 'fruit-loading' }}>
+        <Field
+          label="Fruit"
+          labelProps={{ htmlFor: 'fruit-loading', id: 'fruit-loading-label' }}
+        >
           <Control isLoading>
             <Autocomplete
               id="fruit-loading"
@@ -604,6 +607,60 @@ export const WithFieldControlWrapper: Story = {
           <Control>
             <Autocomplete data={fruits} placeholder="Search..." />
           </Control>
+        </Field>
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
+ * Suggestion lists named by their labels. Each open list takes its name from
+ * the label that names its input, its own `label` or a surrounding Field's, so
+ * a screen reader announces these two as "Country" and "City" rather than both
+ * as "Suggestions".
+ */
+export const NamedSuggestionLists: Story = {
+  render: () => (
+    <>
+      <Field label="Country">
+        <Autocomplete
+          data={['Canada', 'France', 'Japan', 'Mexico', 'Spain']}
+          placeholder="Search countries..."
+          openOnFocus
+        />
+      </Field>
+      <Autocomplete
+        label="City"
+        data={['Lyon', 'Madrid', 'Osaka', 'Toronto', 'Valencia']}
+        placeholder="Search cities..."
+        openOnFocus
+      />
+    </>
+  ),
+};
+
+/**
+ * Horizontal label wired by hand. The label sits on the outer Field and the
+ * Autocomplete in an inner one, which starts its own scope, so the label is
+ * wired with `labelProps={{ htmlFor, id }}`: the `htmlFor` names the input and
+ * the `id` names the open suggestion list. Without that `id` the list keeps its
+ * fallback name, "Suggestions".
+ */
+export const HandWiredHorizontalLabel: Story = {
+  render: () => (
+    <Field
+      horizontal
+      label="Fruit"
+      labelProps={{ htmlFor: 'fruit-hand-wired', id: 'fruit-hand-wired-label' }}
+    >
+      <Field.Body>
+        <Field>
+          <Autocomplete
+            id="fruit-hand-wired"
+            data={fruits}
+            placeholder="Search..."
+            openOnFocus
+          />
         </Field>
       </Field.Body>
     </Field>

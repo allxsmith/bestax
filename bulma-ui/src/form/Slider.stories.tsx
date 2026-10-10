@@ -803,6 +803,30 @@ export const RangeInLabeledField: Story = {
 };
 
 /**
+ * Range under a horizontal label wired by hand. The label sits on the outer
+ * Field and the Slider in an inner one, which starts its own scope, so the
+ * label is wired with `labelProps={{ htmlFor, id }}`. The `htmlFor` lands on
+ * the low thumb, and the `id` starts both thumbs' names, "Price range Minimum
+ * value" and "Price range Maximum value". Without that `id` they keep their
+ * default names.
+ */
+export const RangeInHandWiredField: Story = {
+  render: () => (
+    <Field
+      horizontal
+      label="Price range"
+      labelProps={{ htmlFor: 'price-range', id: 'price-range-label' }}
+    >
+      <Field.Body>
+        <Field>
+          <Slider range id="price-range" defaultValue={[20, 80]} />
+        </Field>
+      </Field.Body>
+    </Field>
+  ),
+};
+
+/**
  * Inside Field — the outer Field turns off Slider's auto Field rendering via context.
  * Demonstrates horizontal layout composition.
  */
