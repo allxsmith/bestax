@@ -38,7 +38,9 @@ Conventions:
   as escape hatches, so they are public API too. A base with a single input of its own reads
   `useFieldLabelId` itself and takes that id when the caller set none, as `InputBase` does, so
   a labeled `Field` names it when composed by hand (#968). A picker base skips it `inline`,
-  where it renders no input.
+  where it renders no input. A base that is a group, as `DateRangeInputBase` is, calls
+  `useAutoLabelledBy` with no label of its own and puts `ariaLabelledBy` on its group in
+  every mode, `inline` too, so a labeled `Field` names it as it names the wrapper (#1005).
 - Basic inputs (Input, Select, TextArea, …) ship no CSS, but more of this folder has SCSS
   than you'd guess: even Checkbox and Radio have themed partials, File has one for its keyboard
   focus ring and a boxed CTA's corners, and every extended input (Autocomplete, DateInput,
