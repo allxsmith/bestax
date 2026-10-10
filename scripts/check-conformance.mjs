@@ -73,7 +73,9 @@
  *                        the docs site installs sits in the newest arm of
  *                        that peer range, so a release Dependabot brings in
  *                        fails here instead of reaching users as ERESOLVE
- *                        (#997)
+ *                        (#997), and each peer create-bestax depends on
+ *                        carries that whole peer range, so a Dependabot bump
+ *                        cannot narrow it (#1012)
  *   fragile-prose        no hand-maintained counts or line references in
  *                        workflow comments, CLAUDE.md files, or guides, and no
  *                        run ids in a guide (a workflow comment may cite the
@@ -4230,7 +4232,8 @@ async function checkTurboTasks() {
 
 // ---------------------------------------------------------------------------
 // Peer ranges: bestax-bulma's published peer ranges, held to the copies of
-// those packages the repo itself runs the library against.
+// those packages the repo itself runs the library against, and to the
+// published packages that hand those peers on with the library's whole range.
 // ---------------------------------------------------------------------------
 
 /**
@@ -4239,11 +4242,24 @@ async function checkTurboTasks() {
  * examples). Declared rather than read off the workspace, because other
  * packages name the same packages for other reasons. create-bestax depends on
  * react with the library's whole peer range on purpose (#950), which says
- * nothing about which arm anything here runs.
+ * nothing about which arm anything here runs, so WHOLE_RANGE_DEPENDENTS holds
+ * it instead.
  */
 export const PEER_COPIES = [
   { file: 'bulma-ui/package.json', sections: ['devDependencies'] },
   { file: 'docs/package.json', sections: ['dependencies', 'devDependencies'] },
+];
+
+/**
+ * Where a published package depends at runtime on bestax-bulma's peers so that
+ * installers which leave peers out still install them: create-bestax, for
+ * Yarn 1 (#950). Each peer such a manifest declares carries the library's
+ * whole peer range, written the same way, so the package admits exactly the
+ * releases the library does. Declared like PEER_COPIES, and for the same
+ * reason.
+ */
+export const WHOLE_RANGE_DEPENDENTS = [
+  { file: 'create-bestax/package.json', sections: ['dependencies'] },
 ];
 
 const PEER_SOURCE = 'bulma-ui/package.json';
@@ -4357,6 +4373,59 @@ export function peerRangeViolations(peers, copies) {
   return violations;
 }
 
+/**
+ * Hold each peer a WHOLE_RANGE_DEPENDENTS manifest declares to bestax-bulma's
+ * peer range, character for character.
+ *
+ * Dependabot narrows this range when it bumps the package, from the whole
+ * range to a caret on the new release (#1012). Neither the rule above nor
+ * create-bestax's own manifest test can see that: the caret sits inside the
+ * newest arm, which is all the rule above asks of a copy, and the test accepts
+ * any range inside the peer range on purpose. The manifest is left narrower
+ * the same way when the peer range gains an arm and it does not, and wider,
+ * admitting releases the library refuses, when the peer range drops one.
+ *
+ * Compared as text rather than as semver, so the fix is always the one value
+ * the message names. A manifest that declares none of the peers is reported,
+ * since its entry would otherwise pass while holding nothing.
+ *
+ * `peers` is bulma-ui's `peerDependencies`. `dependents` holds one
+ * `{ file, deps }` per manifest in WHOLE_RANGE_DEPENDENTS, with `deps` its
+ * sections merged.
+ */
+export function wholeRangeViolations(peers, dependents) {
+  const violations = [];
+  const names = Object.keys(peers ?? {}).sort();
+  for (const { file, deps } of dependents) {
+    const pkg = file.split('/')[0];
+    const declared = names.filter(name => Object.hasOwn(deps ?? {}, name));
+    if (!declared.length) {
+      violations.push(
+        `${file} declares none of bestax-bulma's peers in the sections ` +
+          `WHOLE_RANGE_DEPENDENTS reads, so its entry there holds nothing. ` +
+          `Drop the entry if that is deliberate.`
+      );
+      continue;
+    }
+    for (const name of declared) {
+      const range = String(peers[name]);
+      const spec = String(deps[name]);
+      if (spec === range) continue;
+      violations.push(
+        `${file} depends on ${name} "${spec}", not bestax-bulma's peer ` +
+          `range "${range}". ${pkg} declares each peer with the library's ` +
+          `whole range because it installs them for installers that leave ` +
+          `peers out (Yarn 1, #950): a narrower range drops ${name} releases ` +
+          `the library supports, and a wider one admits releases it refuses. ` +
+          `Restore "${name}": "${range}". Dependabot narrows it when it bumps ` +
+          `${name} (#1012); if the peer range is what moved, land the change ` +
+          `as fix(${pkg}) so ${pkg} releases with it.`
+      );
+    }
+  }
+  return violations;
+}
+
 export async function checkPeerRanges(root = REPO) {
   const violations = [];
   const read = async file => {
@@ -4381,16 +4450,25 @@ export async function checkPeerRanges(root = REPO) {
         `check has nothing to hold. Drop the check if that is deliberate.`,
     ];
   }
-  const copies = [];
-  for (const { file, sections } of PEER_COPIES) {
-    const pkg = file === PEER_SOURCE ? lib : await read(file);
-    if (!pkg) continue;
-    copies.push({
-      file,
-      deps: Object.assign({}, ...sections.map(section => pkg[section])),
-    });
-  }
-  return [...violations, ...peerRangeViolations(lib.peerDependencies, copies)];
+  const gather = async list => {
+    const found = [];
+    for (const { file, sections } of list) {
+      const pkg = file === PEER_SOURCE ? lib : await read(file);
+      if (!pkg) continue;
+      found.push({
+        file,
+        deps: Object.assign({}, ...sections.map(section => pkg[section])),
+      });
+    }
+    return found;
+  };
+  const copies = await gather(PEER_COPIES);
+  const dependents = await gather(WHOLE_RANGE_DEPENDENTS);
+  return [
+    ...violations,
+    ...peerRangeViolations(lib.peerDependencies, copies),
+    ...wholeRangeViolations(lib.peerDependencies, dependents),
+  ];
 }
 
 /**
