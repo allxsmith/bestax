@@ -330,8 +330,6 @@ export const DateRangeInputBase = forwardRef<
   // points `aria-labelledby` at that Field's label, as `DateRangeInput`
   // does, in every mode. A name the caller gave the group wins, and so does
   // the `aria-labelledby` that wrapper always passes, so it decides there.
-  // The hook also tells that Field the range takes no `for`, so its label
-  // drops the generated one unless other content takes it (#1004).
   const { ariaLabelledBy } = useAutoLabelledBy({
     label: undefined,
     rendersLabel: false,

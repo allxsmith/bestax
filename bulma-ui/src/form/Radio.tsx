@@ -5,7 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useRadiosGroup, useReportFieldLabelFor } from './FormContext';
+import { useRadiosGroup } from './FormContext';
 
 /**
  * The values the Radio `color` prop accepts, as a readonly tuple.
@@ -114,9 +114,6 @@ export const Radio = forwardRef<HTMLInputElement, RadioProps>(
       color: textColor,
       ...props,
     });
-    // Named by its own children, so it takes no generated `for` from a
-    // labeled Field, which then drops it unless other content takes it (#1004).
-    useReportFieldLabelFor(false);
 
     // Inherit name + selection state from a surrounding <Radios> group.
     // Local props always win over the group (explicit > implicit).

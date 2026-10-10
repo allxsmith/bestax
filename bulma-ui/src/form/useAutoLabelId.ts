@@ -43,9 +43,9 @@ interface UseAutoLabelIdOptions {
  * generation entirely: the user has taken over the association (#495 presence
  * semantics). When the control renders no label of its own, it adopts the id
  * a labeled Field around it offers, the way the bases do, so that Field's
- * label names it (#939); a user `id` still wins there. Either way it tells
- * that Field whether the control took its id, so the Field's label drops a
- * `for` nothing takes (#1004). With `needsLabelId` it also returns the id of
+ * label names it (#939); a user `id` still wins there. It tells that Field
+ * when the control took its id, since the Field's label drops a `for`
+ * nothing took (#1004). With `needsLabelId` it also returns the id of
  * whichever label names the control (#981).
  * Internal; not part of the public API.
  */
@@ -86,8 +86,8 @@ export function useAutoLabelId({
   const userWired = !!labelProps && 'htmlFor' in labelProps;
   const adopted = !active && hasInput ? fieldLabelId : undefined;
   const controlId = id ?? (active && !userWired ? generatedId : adopted);
-  // Tells a labeled Field around the control whether its label's `for`
-  // names the control, so it drops a `for` nothing takes (#1004).
+  // Tells a labeled Field around the control when its label's `for` names
+  // the control, since it drops a `for` nothing took (#1004).
   useReportFieldLabelFor(
     fieldLabelId !== undefined && controlId === fieldLabelId
   );
@@ -147,9 +147,7 @@ interface UseAutoLabelledByOptions {
  * its own, it points at the label of a labeled Field around it instead
  * (#939). A caller who named the group with `aria-label` or
  * `aria-labelledby` gets no `aria-labelledby` from either label, so their
- * name wins wherever the label sits. Since a group takes no `for`, it tells
- * that Field so, and the Field's label drops its generated one unless other
- * content takes it (#1004).
+ * name wins wherever the label sits.
  * Internal; not part of the public API.
  */
 export function useAutoLabelledBy({
@@ -165,9 +163,6 @@ export function useAutoLabelledBy({
   const generatedId = useId();
   // Set only when an outer Field holds the group (see useAutoLabelId).
   const fieldLabelElementId = useFieldLabelElementId();
-  // A group takes no `for`, so a labeled Field around it drops its label's
-  // generated one unless other content takes it (#1004).
-  useReportFieldLabelFor(false);
   const active = !!label && rendersLabel;
   const labelId = labelProps?.id ?? (active ? generatedId : undefined);
   const fieldLabelProps = active

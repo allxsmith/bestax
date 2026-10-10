@@ -592,9 +592,9 @@ describe('label auto-association (#495)', () => {
     expect(container.querySelector('input')).not.toHaveAttribute('id');
   });
 
-  it('a labeled Field with no adopting control renders the for anyway', () => {
+  it('a labeled Field with no adopting control drops its for (#1004)', () => {
     const { container } = render(<Field label="Only text">plain</Field>);
-    expect(labelEl(container).getAttribute('for')).toBeTruthy();
+    expect(labelEl(container)).not.toHaveAttribute('for');
   });
 });
 
@@ -1192,8 +1192,9 @@ describe('a label over content that takes no for (#1004)', () => {
   const labelEl = (container: HTMLElement) =>
     container.querySelector('label.label') as HTMLElement;
 
-  // Content that tells its labeled Field it takes none of the label's `for`.
-  const takesNone: Array<[string, () => React.ReactElement]> = [
+  // Content that takes none of the label's `for`, whether it is a bestax
+  // control that renders no input for it or anything else at all.
+  const takesNone: Array<[string, () => React.ReactNode]> = [
     [
       'a Radios group',
       () => (
@@ -1236,6 +1237,9 @@ describe('a label over content that takes no for (#1004)', () => {
         </Field>
       ),
     ],
+    ['a native input', () => <input className="input" />],
+    ['help text only', () => <p className="help">Optional</p>],
+    ['nothing at all', () => null],
   ];
 
   it.each(takesNone)('drops the for over %s', (_, element) => {
@@ -1323,18 +1327,11 @@ describe('a label over content that takes no for (#1004)', () => {
     );
   });
 
-  it('keeps the for over content that tells the Field nothing', () => {
-    const { container } = render(
-      <Field label="Pick">
-        <input className="input" />
-      </Field>
-    );
-    expect(labelEl(container).getAttribute('for')).toBeTruthy();
-  });
-
   it.each([
     ['a Checkboxes group', () => <Checkboxes />],
     ['a Checkbox', () => <Checkbox id="agree">I agree</Checkbox>],
+    ['a native input', () => <input id="agree" className="input" />],
+    ['nothing at all', () => null],
   ])('leaves a label wired by hand alone over %s', (_, element) => {
     const { container } = render(
       <Field label="Pick" labelProps={{ htmlFor: 'agree' }}>
@@ -1418,15 +1415,26 @@ describe('a label over content that takes no for (#1004)', () => {
     expect(labelEl(container)).not.toHaveAttribute('for');
   });
 
-  it('puts the for back when the content that takes none unmounts', () => {
-    // With nothing left to report, the label keeps the markup it always had.
-    const ui = (withCheckbox: boolean) => (
-      <Field label="Pick">{withCheckbox && <Checkbox>Mine</Checkbox>}</Field>
+  it('puts the for back when an input mounts in an empty Field later, and drops it when it goes', () => {
+    // Content that mounts after the Field has settled reports when it does.
+    const ui = (withInput: boolean) => (
+      <Field label="Pick">
+        {withInput && (
+          <Control>
+            <InputBase />
+          </Control>
+        )}
+      </Field>
     );
-    const { container, rerender } = render(ui(true));
+    const { container, rerender } = render(ui(false));
     expect(labelEl(container)).not.toHaveAttribute('for');
+    rerender(ui(true));
+    expect(labelEl(container)).toHaveAttribute(
+      'for',
+      screen.getByRole('textbox').id
+    );
     rerender(ui(false));
-    expect(labelEl(container).getAttribute('for')).toBeTruthy();
+    expect(labelEl(container)).not.toHaveAttribute('for');
   });
 
   it('follows an input that takes or gives up an id of its own', () => {

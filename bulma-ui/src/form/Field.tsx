@@ -13,8 +13,8 @@ import {
   FieldLabelForProvider,
   FieldLabelForReportProvider,
   useFieldLabelFor,
-  useReportFieldLabelFor,
 } from './FormContext';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { Control } from './Control';
 
 /**
@@ -32,7 +32,7 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`, or a composed `DateRangeInputBase`, `inline` or not) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete` also names its open suggestion list after the label through `aria-labelledby`. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so the label drops it when nothing the Field holds takes it: a group, a `Checkbox`, `Radio` or `Switch`, an `inline` picker, an inner `Field`, or an input with an `id` of its own. The content tells the Field after it mounts, so a server render, and the first render while hydrating, still write the `htmlFor`, which keeps hydration matching, and content the Field can't account for, such as your own markup, keeps it. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
+  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`, or a composed `DateRangeInputBase`, `inline` or not) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete` also names its open suggestion list after the label through `aria-labelledby`. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so once the Field's content has mounted the label keeps it only while one of them holds the id, and drops it over anything else: a group, a `Checkbox`, `Radio` or `Switch`, an `inline` picker, an inner `Field`, an input with an `id` of its own, markup of your own, or nothing at all. A server render, and the first render while hydrating, still write the `htmlFor`, which keeps hydration matching, and an input that mounts later puts it back. Pass `labelProps={{ htmlFor }}` to wire your own `id`, a `for` the label always keeps, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
@@ -276,31 +276,34 @@ const FieldComponent: React.FC<FieldProps> = ({
   );
   const labelFor = label ? ownLabelFor : inheritedLabelFor;
 
-  // A Field inside a labeled one starts its own scope (see the providers
-  // below), so nothing in it takes the outer label's generated `for`.
-  useReportFieldLabelFor(false);
-  // Whether the generated `for` names nothing (#1004). Content tells the
-  // Field whether it takes the `for` from a layout effect, after this render,
-  // so the first render, on the server and while hydrating, writes the `for`
-  // as it always has. The label drops it once some content has said it takes
-  // none and nothing has said it takes it, and gets it back when that stops
-  // being true. Counted in a ref, so a report that leaves the answer as it
-  // was renders nothing again.
-  const reportsRef = useRef({ takesFor: 0, takesNone: 0 });
-  const [forUnmatched, setForUnmatched] = useState(false);
-  const reportLabelFor = useCallback((takesFor: boolean) => {
-    const counts = reportsRef.current;
-    const key = takesFor ? 'takesFor' : 'takesNone';
-    const settle = () =>
-      setForUnmatched(counts.takesNone > 0 && counts.takesFor === 0);
-    counts[key] += 1;
+  // Whether the label keeps its generated `for` (#1004). Content that takes
+  // the Field's id says so from a layout effect, and this Field's own layout
+  // effect runs after its content's in the same commit, so by then every
+  // report has landed. Until it runs, on the server and in the first render
+  // while hydrating, the label writes the `for` as it always has. From then
+  // on it keeps the `for` only while some content holds the id, and content
+  // that mounts or changes later reports when it does. Counted in a ref, and
+  // state is set only once settled, so content that takes the id renders
+  // the Field just once.
+  const takersRef = useRef(0);
+  const settledRef = useRef(false);
+  const [forTaken, setForTaken] = useState(true);
+  const settle = useCallback(() => {
+    if (settledRef.current) setForTaken(takersRef.current > 0);
+  }, []);
+  const reportLabelFor = useCallback(() => {
+    takersRef.current += 1;
     settle();
     return () => {
-      counts[key] -= 1;
+      takersRef.current -= 1;
       settle();
     };
-  }, []);
-  const renderedTargetId = forUnmatched ? undefined : targetId;
+  }, [settle]);
+  useClientLayoutEffect(() => {
+    settledRef.current = true;
+    if (targetId) settle();
+  }, [targetId, settle]);
+  const renderedTargetId = forTaken ? targetId : undefined;
 
   let renderedLabel = null;
   if (label) {

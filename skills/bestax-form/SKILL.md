@@ -156,9 +156,9 @@ holding a range `Slider` or an `Autocomplete` with the `Field`'s `label` prop, w
 above when an inner `Field` holds the control. For a group, use `labelProps={{ id }}` plus its
 `aria-labelledby`: nothing there takes the label's `for`, so the label drops it after mounting,
 and `labelProps={{ id, htmlFor: undefined }}` keeps it out of server-rendered HTML too. A
-labeled `Field` over content that takes no `for` (a group, a `Checkbox`, `Radio` or `Switch`,
-an inner `Field`) drops it the same way, so there's nothing to add there. Pass
-`labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
+labeled `Field` over anything that doesn't take its id (a group, a `Checkbox`, `Radio` or
+`Switch`, an inner `Field`, your own markup) drops it the same way, so there's nothing to add
+there. Pass `labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
 `labelProps={{ htmlFor: undefined }}` to opt out.
 
 ## Convenience vs composed
