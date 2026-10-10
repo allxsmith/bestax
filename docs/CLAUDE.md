@@ -42,15 +42,17 @@ bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is whi
 
 The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
 markers, a source-control device no reader of the site needs. `build` then chains
-`scripts/strip-generated-markers.mjs`, which checks the built `.md`/`.txt` for any marker that
-got through and strips it. It is a build step rather than a Docusaurus plugin because
-`postBuild` hooks run under `Promise.all`, so a plugin declared after `docusaurus-plugin-llms`
-still races it. It fails the build when the source pages carry markers but the build lacks
-`llms-full.txt` or a `.md` file per such page, since a check over files that are not there
-passes quietly. The strip leaves a marker shown inside a code fence, so the step also fails when
-a built file keeps more such markers than the source pages show, or names the marker in a form
-the strip does not recognize. A code fence left open in one page of `llms-full.txt` would
-otherwise hide every later page's markers.
+`scripts/strip-generated-markers.mjs`, which checks the LLM surface (`llms.txt`, `llms-full.txt`
+and each doc page's `.md` twin) for any marker that got through and strips it. Other built
+markdown, such as the dev.to copies of blog posts, is left alone. It is a build step rather
+than a Docusaurus plugin because `postBuild` hooks run under `Promise.all`, so a plugin declared
+after `docusaurus-plugin-llms` still races it. It fails the build when a source page carries
+markers but the build lacks `llms-full.txt` or that page's own `.md` twin, since a check over
+files that are not there passes quietly. The strip leaves a marker shown inside a code fence, so
+the step also fails when a twin keeps more such markers than its own source page shows, or
+`llms.txt` or `llms-full.txt` more than all the source pages together, and the same way for a
+line that names the marker in a form the strip does not recognize. A code fence left open in
+one page of `llms-full.txt` would otherwise hide every later page's markers.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs

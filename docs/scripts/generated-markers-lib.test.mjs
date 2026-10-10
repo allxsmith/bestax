@@ -186,7 +186,11 @@ test('an open fence in a joined file hides later markers, and leakedMarkers says
   assert.ok(out.includes(open('props')), 'the markers are still there');
   assert.match(
     leakedMarkers('llms-full.txt', kept, 0),
-    /^llms-full\.txt: 2 marker line\(s\) are left inside code fences, and the source pages show 0 there\./
+    /^llms-full\.txt: 2 marker line\(s\) are left inside code fences, and the fences in the source pages hold 0\./
+  );
+  assert.match(
+    leakedMarkers('page.md', 1, 0, 'docs/page.md'),
+    /^page\.md: 1 marker line\(s\) .*, and the fences in docs\/page\.md hold 0\./
   );
   // Markers the sources show inside fences are accounted for.
   assert.equal(leakedMarkers('page.md', 1, 1), null);

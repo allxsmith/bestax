@@ -88,15 +88,16 @@ export function stripGeneratedMarkers(src) {
 
 /**
  * Why a stripped file cannot ship, or null. `kept` is stripMarkers' count
- * for the file, and `fencedInSources` the marker lines the source pages show
- * inside fences, which no single built file can hold more of. More than that
- * means a fence left open earlier in the file hid real markers.
+ * for the file, and `shown` the marker lines that `sources`, the pages the
+ * file was built from, show inside fences, which the file cannot hold more
+ * of. More than that means a fence left open earlier in the file hid real
+ * markers.
  */
-export function leakedMarkers(file, kept, fencedInSources) {
-  if (kept <= fencedInSources) return null;
+export function leakedMarkers(file, kept, shown, sources = 'the source pages') {
+  if (kept <= shown) return null;
   return (
     `${file}: ${kept} marker line(s) are left inside code fences, and the ` +
-    `source pages show ${fencedInSources} there. A code fence left open ` +
-    `earlier in the file hides the rest, so they would ship.`
+    `fences in ${sources} hold ${shown}. A code fence left open earlier in ` +
+    `the file hides the rest, so they would ship.`
   );
 }
