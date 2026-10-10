@@ -100,6 +100,12 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Popover.Footer>,
     ],
   },
+  HoverCard: {
+    trigger: <a href="#ada">Ada Lovelace</a>,
+    defaultOpen: true,
+    position: 'top-right',
+    children: 'Analytical Engine team',
+  },
   Sidebar: { isOpen: true, children: 'Sidebar content' },
   Pagination: { current: 1, total: 5 },
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
