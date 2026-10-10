@@ -748,6 +748,7 @@ test('threadFacts reads a thread node, and a missing field matches nothing', () 
   const opener = {
     at: Date.parse('2026-10-03T11:00:30Z'),
     author: { login: 'claude', type: 'Bot' },
+    association: undefined,
     openedOn: OLD,
     postedOn: OLD,
   };
@@ -787,6 +788,7 @@ test('the threads query asks for every field threadFacts reads', () => {
     'latest: comments(last:',
     'createdAt',
     'author { login __typename }',
+    'authorAssociation',
     'originalCommit { oid }',
     'pullRequestReview { commit { oid } }',
   ])

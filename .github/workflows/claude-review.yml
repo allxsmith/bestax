@@ -19,16 +19,17 @@ name: Claude Deep Review
 # Security posture: same-repo PRs only (never forks), and the labeler is
 # re-verified in the perm step (a live triage+ role, or the bot on its own
 # loop PR), so a label applied by automation on behalf of an outsider is a
-# silent no-op. The dedupe marker caps the `opened` and `ai-loop` paths at
+# silent no-op. The dedupe step caps the `opened` and `ai-loop` paths at
 # one review per PR. It does not stop a `deep-review` label application,
-# which comes from a triage+ user or from the bot on its own loop PR.
-# Nothing in this workflow caps the bot's; the bot caps the reviews it asks
-# for, in its own repository.
+# which comes from a triage+ user or from the bot on its own loop PR. Each
+# triage+ application is one run. The bot's are capped per PR per day by the
+# mode step, on top of the caps the bot keeps in its own repository.
 # A triage+ user's re-run settles the open threads of the review already on
 # the PR; it does not review the commits pushed since. A triage+ steer
 # comment starting "deep-review: fresh" is what asks for a full review of
 # the current code (see the dedupe step's EXCEPTION below). The bot's re-run
-# takes its mode from the threads instead (see the mode step).
+# takes its mode from the threads instead, and may be skipped (see the mode
+# step).
 #
 # Deliberately does NOT trigger on `synchronize`: one review per PR, so
 # Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
@@ -182,10 +183,10 @@ jobs:
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
 
-      # The trust and mode decisions live in scripts/deep-review-gate.mjs
+      # The trust, dedupe and mode decisions live in scripts/deep-review-gate.mjs
       # behind a node --test sibling (rule 9 in .github/CLAUDE.md), and run
       # from the default branch, never the PR's: a PR must not be able to
-      # rewrite who may start its review. Both calls come before the PR head
+      # rewrite who may start its review. Every call comes before the PR head
       # checkout. A PR that adds or moves the script meets rule 9's bootstrap
       # gap: its runs fail at the perm step, starting no review, until the
       # script is on the default branch.
@@ -214,9 +215,10 @@ jobs:
 
       # `opened` and `labeled` both fire when a PR is created with the label
       # already attached — review exactly once. The concurrency group
-      # serializes the double-fire; the marker probe catches the second run.
-      # (The marker, not just any claude[bot] activity: the fix agent posts
-      # claude[bot] thread replies too, which must not count as "reviewed".)
+      # serializes the double-fire; the dedupe probe catches the second run.
+      # (A deep-review summary, not just any claude[bot] activity: the fix
+      # agent posts claude[bot] thread replies too, which must not count as
+      # "reviewed".) scripts/deep-review-gate.mjs holds the probe.
       #
       # EXCEPTION — a deep-review `labeled` event runs whatever the probe
       # finds: a triage+ human re-applying the label, or the bot cycling it
@@ -226,43 +228,17 @@ jobs:
       # step decides (see MODE in the prompt); with no review yet it is
       # fresh.
       # Usage is metered per label application: one opus session each time a
-      # triage+ user applies the label, or the bot does under the caps the
-      # header names. The ai-loop path and label-at-creation double-fires
+      # triage+ user applies the label, or the bot does within the cap the
+      # mode step applies. The ai-loop path and label-at-creation double-fires
       # keep the one-review invariant.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          PR: ${{ github.event.pull_request.number }}
-          ACTION: ${{ github.event.action }}
-          LABEL: ${{ github.event.label.name }}
-          SENDER: ${{ github.event.sender.login }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          # Whether a deep review already exists on this PR. Deliberately a
-          # yes/no and not the reviewed commit: a verify pass posts a marker
-          # review too, so the newest marker's commit_id stops naming a
-          # commit anything code-reviewed after the first verify pass, and a
-          # boundary that drifts is worse than no boundary. A verify pass
-          # settles threads and reads the code they point at, so it needs
-          # only the yes.
-          REVIEWED=$(gh api --paginate "repos/$REPO/pulls/$PR/reviews?per_page=100" \
-            | jq -rs 'any(.[][]; (.user.login | test("^claude(\\[bot\\])?$"))
-                              and (.body | contains("<!-- claude-deep-review -->")))')
-          echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
-          if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by $SENDER, admitted by the perm step, running (the mode step picks verify or fresh)"
-            exit 0
-          fi
-          if [ "$REVIEWED" = true ]; then
-            echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "deep review already posted on PR #$PR — skipping"
-          else
-            echo "skip=false" >> "$GITHUB_OUTPUT"
-          fi
+          node default-branch/scripts/deep-review-gate.mjs dedupe >> "$GITHUB_OUTPUT"
 
       # Optional focus steer: a triage+ maintainer may pre-post a PR comment
       # starting with "deep-review:" (focus areas / suspected weak spots)
@@ -372,13 +348,16 @@ jobs:
           } >> "$GITHUB_OUTPUT"
 
       # FRESH reviews the head; VERIFY settles the threads an earlier review
-      # left and reviews no commits. scripts/deep-review-gate.mjs decides,
+      # left and reviews no commits; SKIP runs nothing, and is the one mode
+      # whose `run` output is false. scripts/deep-review-gate.mjs decides,
       # and its header has the rule: a triage+ user's re-run verifies unless
-      # the steer says fresh, and the bot's re-run verifies only while a
-      # deep-review thread awaits a verify pass.
+      # the steer says fresh. The bot's re-run verifies while a deep-review
+      # thread awaits a verify pass, is fresh when no deep-review thread is
+      # open, and is skipped when one is open with none awaiting, or past
+      # the bot's daily cap of runs on the PR.
       #
-      # So the bot gets a fresh review by cycling the label with nothing
-      # awaiting a verify pass, and it must do that whenever its head has
+      # So the bot gets a fresh review by cycling the label with no
+      # deep-review thread open, and it must do that whenever its head has
       # moved past the newest deep-review summary that way (a CI fix, a merge
       # of the default branch): no verify pass covers those commits, and
       # review-converged.mjs's condition 2 holds the PR back until a fresh
@@ -389,7 +368,6 @@ jobs:
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REVIEWED: ${{ steps.dedupe.outputs.reviewed }}
           BY_BOT: ${{ steps.perm.outputs.by_bot }}
           FRESH_STEER: ${{ steps.focus.outputs.fresh }}
         run: |
@@ -400,7 +378,7 @@ jobs:
       # landing mid-run would otherwise have the session review a tree newer
       # than the commit the marker records.
       - name: Checkout PR head
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false' && steps.mode.outputs.run == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           ref: ${{ github.event.pull_request.head.sha }}
@@ -408,11 +386,11 @@ jobs:
           persist-credentials: false
 
       - name: Setup pnpm
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false' && steps.mode.outputs.run == 'true'
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Setup Node.js
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false' && steps.mode.outputs.run == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
@@ -427,12 +405,12 @@ jobs:
       # build runs either way, the only root hook is husky, which a runner
       # does not need, and this repo ships no pnpmfile.
       - name: Install dependencies
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false' && steps.mode.outputs.run == 'true'
         run: pnpm install --frozen-lockfile --ignore-scripts --ignore-pnpmfile
 
       - name: Run Claude (deep review)
         id: claude
-        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false' && steps.mode.outputs.run == 'true'
         # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
         # stays off every allowlist in this repo AND the CLI is told not to emit
         # it (#487). It also covers feature-flag evaluation, which is why
@@ -508,9 +486,9 @@ jobs:
             This pass settles the findings it left open, and nothing else.
             Do NOT
             re-review the PR, and raise NO new findings — a reader who wants
-            the current code reviewed asks for a fresh one, which is what a
-            steer starting "deep-review: fresh" gives them. Skip steps 1
-            through 3 and do exactly this:
+            the current code reviewed asks for a fresh one, which a steer
+            starting "deep-review: fresh" gives a triage+ user's re-run.
+            Skip steps 1 through 3 and do exactly this:
             a. List your own unresolved inline threads (GraphQL
                reviewThreads on the PR, first comment by claude), with
                every comment's author and body, in one query. Settle every

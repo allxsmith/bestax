@@ -356,9 +356,10 @@ tests together. Then #457's triage renderer/publisher
 is the largest and the one to read first: it validates a model-authored payload, renders the
 comment from renderer-owned constants, and upserts it by marker. Its test sibling runs the
 real `auto-close-duplicates.mjs` consumer over rendered output, so the two cannot drift.
-`scripts/deep-review-gate.mjs` holds who may start a deep review and in which mode. Its job
-checks out PR code later, so `claude-review.yml` runs it from a checkout of the default branch
-taken before that, never from the PR's copy.
+`scripts/deep-review-gate.mjs` holds who may start a deep review, whether a run repeats one,
+in which mode it runs, and the cap on the bestaxbot App's runs. Its job checks out PR code
+later, so `claude-review.yml` runs it from a checkout of the default branch taken before that,
+never from the PR's copy.
 Smaller instances of the same shape remain inline (the exec-file sentinel
 checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
 one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported

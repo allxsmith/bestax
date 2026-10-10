@@ -233,12 +233,14 @@ export function isDeepReviewResolver(user) {
  * latest comments, when each was posted, by whom, on which commit the thread
  * was opened, and which commit the PR head was on when the comment was posted
  * (the commit of the review GitHub files each comment under). A missing field
- * reads as a value that matches nothing.
+ * reads as a value that matches nothing. `association`, the author's
+ * association with the repository, is read by deep-review-gate.mjs only.
  */
 export function threadFacts(node) {
   const comment = c => ({
     at: Date.parse(c?.createdAt ?? ''),
     author: { login: c?.author?.login, type: c?.author?.__typename },
+    association: c?.authorAssociation,
     openedOn: c?.originalCommit?.oid,
     postedOn: c?.pullRequestReview?.commit?.oid,
   });
@@ -803,6 +805,7 @@ export const THREADS_QUERY = `query($owner: String!, $name: String!, $number: In
 fragment facts on PullRequestReviewComment {
   createdAt
   author { login __typename }
+  authorAssociation
   originalCommit { oid }
   pullRequestReview { commit { oid } }
 }`;

@@ -1,6 +1,6 @@
 /**
- * Guards on who may start a Claude deep review and in which mode it runs
- * (deep-review-gate.mjs).
+ * Guards on who may start a Claude deep review, whether a run repeats a
+ * review already posted, and in which mode it runs (deep-review-gate.mjs).
  *
  * The decisions are pure functions over the event payload and fetched data,
  * so most of this file hands them fixtures. The end drives the command line
@@ -15,15 +15,28 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {
+  APP_RUNS_PER_DAY,
+  appRunsToday,
   awaitingVerify,
+  dedupeDecision,
+  isAppAuthor,
   isAppLoopPr,
+  isReviewed,
   labelerCheck,
   liveRole,
+  newestVerifyAt,
+  openThreads,
   pickMode,
+  replyLogins,
   roleDecision,
   run,
 } from './deep-review-gate.mjs';
-import { APP_LOGIN, UsageError, createClient } from './review-converged.mjs';
+import {
+  APP_LOGIN,
+  MARKER,
+  UsageError,
+  createClient,
+} from './review-converged.mjs';
 import { yamlGet } from './check-conformance.mjs';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +45,14 @@ const SCRIPT = join(HERE, 'deep-review-gate.mjs');
 const REPO = 'allxsmith/bestax';
 const APP = { login: APP_LOGIN, type: 'Bot' };
 const HUMAN = { login: 'octocat', type: 'User' };
+const MACHINE_USER = { login: 'bestaxbot', type: 'User' };
+
+/** A fixed clock for the cap, and a time `minutes` past the hour it reads. */
+const NOW = Date.parse('2026-10-09T13:00:00Z');
+const at = minutes =>
+  new Date(Date.parse('2026-10-09T12:00:00Z') + minutes * 60_000)
+    .toISOString()
+    .replace('.000Z', 'Z');
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -58,11 +79,12 @@ function labeled(overrides = {}) {
   };
 }
 
-/** A GraphQL comment node, `minute` minutes past a fixed hour. */
-function comment(minute, author) {
+/** A GraphQL comment node, `minute` minutes past the hour. */
+function comment(minute, author, association = 'NONE') {
   return {
-    createdAt: `2026-10-09T12:${String(minute).padStart(2, '0')}:00Z`,
+    createdAt: at(minute),
     author,
+    authorAssociation: association,
     originalCommit: { oid: 'a'.repeat(40) },
     pullRequestReview: { commit: { oid: 'a'.repeat(40) } },
   };
@@ -71,9 +93,20 @@ function comment(minute, author) {
 const REVIEWER = { login: 'claude', __typename: 'Bot' };
 const BOT_REPLY = { login: 'bestaxbot', __typename: 'Bot' };
 const MAINTAINER = { login: 'allxsmith', __typename: 'User' };
+const OUTSIDER = { login: 'octocat', __typename: 'User' };
+const MACHINE_REPLY = { login: 'bestaxbot', __typename: 'User' };
 const CODERABBIT = { login: 'coderabbitai', __typename: 'Bot' };
 
-/** A thread node opened by `by`, with the later comments' authors in order. */
+/** GitHub's association for each fixture author's comments. */
+const ASSOCIATION = new Map([
+  [MAINTAINER, 'OWNER'],
+  [MACHINE_REPLY, 'COLLABORATOR'],
+]);
+
+/**
+ * A thread node opened by `by`, with the later comments' authors in order, a
+ * minute apart. An entry may be [author, minute] to place it.
+ */
 function thread(by, later = [], resolved = false) {
   const first = comment(0, by);
   return {
@@ -81,8 +114,35 @@ function thread(by, later = [], resolved = false) {
     resolvedBy: resolved ? { login: 'claude[bot]' } : null,
     opener: { nodes: [first] },
     latest: {
-      nodes: [first, ...later.map((author, i) => comment(i + 1, author))],
+      nodes: [
+        first,
+        ...later.map((entry, i) => {
+          const [author, minute] = Array.isArray(entry)
+            ? entry
+            : [entry, i + 1];
+          return comment(minute, author, ASSOCIATION.get(author));
+        }),
+      ],
     },
+  };
+}
+
+/** A review as the REST API lists it. */
+function review(body, minute, user = { login: 'claude[bot]', type: 'Bot' }) {
+  return { id: minute, user, body, submitted_at: at(minute) };
+}
+const FRESH = minute =>
+  review(`${MARKER}\n## Deep review — 1 blocking · 0 advisory`, minute);
+const VERIFY = minute =>
+  review(`${MARKER}\n## Deep review (verify) — 0 resolved · 1 open`, minute);
+
+/** An issue event putting `label` on, by `actor`, `minute` past the hour. */
+function labeling(minute, actor = APP, label = 'deep-review') {
+  return {
+    event: 'labeled',
+    label: { name: label },
+    actor,
+    created_at: at(minute),
   };
 }
 
@@ -94,10 +154,7 @@ test('an App loop PR is the App’s, carries ai-loop and is on a claude/ branch'
   assert.equal(isAppLoopPr(loopPr()), true);
   assert.equal(isAppLoopPr(loopPr({ labels: ['ai-loop'] })), true);
   assert.equal(isAppLoopPr(loopPr({ user: HUMAN })), false);
-  assert.equal(
-    isAppLoopPr(loopPr({ user: { login: 'bestaxbot', type: 'User' } })),
-    false
-  );
+  assert.equal(isAppLoopPr(loopPr({ user: MACHINE_USER })), false);
   assert.equal(isAppLoopPr(loopPr({ labels: ['deep-review'] })), false);
   // A label that only starts with the loop label's name is not it.
   assert.equal(isAppLoopPr(loopPr({ labels: ['ai-loop-paused'] })), false);
@@ -107,6 +164,18 @@ test('an App loop PR is the App’s, carries ai-loop and is on a claude/ branch'
   );
   assert.equal(isAppLoopPr(loopPr({ head: undefined })), false);
   assert.equal(isAppLoopPr(undefined), false);
+});
+
+test('a thread comment is the App’s by type and either spelling of its login', () => {
+  // GraphQL spells it bare, REST with the suffix.
+  assert.equal(isAppAuthor({ login: 'bestaxbot', type: 'Bot' }), true);
+  assert.equal(isAppAuthor({ login: APP_LOGIN, type: 'Bot' }), true);
+  // The machine User, the deep reviewer, and another app are not it.
+  assert.equal(isAppAuthor({ login: 'bestaxbot', type: 'User' }), false);
+  assert.equal(isAppAuthor({ login: 'claude', type: 'Bot' }), false);
+  assert.equal(isAppAuthor({ login: 'bestaxbot-x', type: 'Bot' }), false);
+  assert.equal(isAppAuthor({ type: 'Bot' }), false);
+  assert.equal(isAppAuthor(undefined), false);
 });
 
 // ---------------------------------------------------------------------------
@@ -153,10 +222,9 @@ test('every other labeler goes to the live role lookup', () => {
   assert.deepEqual(labelerCheck(labeled({ sender: HUMAN })), {
     lookup: 'octocat',
   });
-  assert.deepEqual(
-    labelerCheck(labeled({ sender: { login: 'bestaxbot', type: 'User' } })),
-    { lookup: 'bestaxbot' }
-  );
+  assert.deepEqual(labelerCheck(labeled({ sender: MACHINE_USER })), {
+    lookup: 'bestaxbot',
+  });
   assert.deepEqual(
     labelerCheck(
       labeled({ sender: { login: 'github-actions[bot]', type: 'Bot' } })
@@ -229,6 +297,11 @@ const roleRoute = (login, role) => ({
     response(200, { role_name: role }),
 });
 
+const REVIEWS = `GET /repos/${REPO}/pulls/912/reviews?per_page=100`;
+const EVENTS = `GET /repos/${REPO}/issues/912/events?per_page=100`;
+const reviewsRoute = reviews => ({ [REVIEWS]: response(200, reviews) });
+const eventsRoute = events => ({ [EVENTS]: response(200, events) });
+
 function threadsRoute(nodes) {
   return {
     'POST /graphql': response(200, {
@@ -300,19 +373,101 @@ test('a login is encoded into the role lookup path', async () => {
 });
 
 // ---------------------------------------------------------------------------
-// mode
+// dedupe
 // ---------------------------------------------------------------------------
 
-test('a thread awaits a verify pass when someone answered the reviewer', () => {
-  // The App's Fixed in or refutation, a maintainer's reply, and anyone
-  // else's last word all leave the reviewer a thread to settle.
+test('a PR is reviewed when the deep reviewer posted a summary', () => {
+  assert.equal(isReviewed([FRESH(1)]), true);
+  assert.equal(isReviewed([VERIFY(1)]), true);
+  // A User named claude, a review without the marker, a pending review, and
+  // no reviews at all.
+  assert.equal(
+    isReviewed([review(FRESH(1).body, 1, { login: 'claude', type: 'User' })]),
+    false
+  );
+  assert.equal(isReviewed([review('looks good', 1)]), false);
+  assert.equal(isReviewed([{ ...FRESH(1), submitted_at: null }]), false);
+  assert.equal(isReviewed([]), false);
+  assert.equal(isReviewed(undefined), false);
+});
+
+test('a deep-review labeling runs, and anything else runs once', () => {
+  for (const reviewed of [true, false]) {
+    const rerun = dedupeDecision(labeled({ sender: HUMAN }), reviewed);
+    assert.equal(rerun.skip, false);
+    assert.match(rerun.why, /^deep-review put on by "octocat", admitted/);
+  }
+  const opened = { action: 'opened', pull_request: loopPr() };
+  assert.equal(dedupeDecision(opened, true).skip, true);
+  assert.equal(dedupeDecision(opened, false).skip, false);
+  const loop = labeled({ label: { name: 'ai-loop' } });
+  assert.equal(dedupeDecision(loop, true).skip, true);
+  assert.match(dedupeDecision(loop, true).why, /already on this PR/);
+});
+
+// ---------------------------------------------------------------------------
+// mode: threads
+// ---------------------------------------------------------------------------
+
+const ALLXSMITH = new Set(['allxsmith']);
+
+test('a thread awaits a verify pass when the App or a trusted person answered', () => {
+  // The App's Fixed in or refutation, and a triage+ maintainer's reply.
   assert.equal(awaitingVerify([thread(REVIEWER, [BOT_REPLY])]), 1);
-  assert.equal(awaitingVerify([thread(REVIEWER, [MAINTAINER])]), 1);
+  assert.equal(
+    awaitingVerify([thread(REVIEWER, [MAINTAINER])], { trusted: ALLXSMITH }),
+    1
+  );
+  // A reply after the reviewer's rebuttal.
   assert.equal(
     awaitingVerify([thread(REVIEWER, [BOT_REPLY, REVIEWER, BOT_REPLY])]),
     1
   );
-  assert.equal(awaitingVerify([thread(REVIEWER, [CODERABBIT])]), 1);
+  // Anyone else's later comment is context, and the reply before it counts.
+  assert.equal(
+    awaitingVerify([thread(REVIEWER, [BOT_REPLY, OUTSIDER, CODERABBIT])]),
+    1
+  );
+  // The machine User counts only with a triage+ role.
+  assert.equal(
+    awaitingVerify([thread(REVIEWER, [MACHINE_REPLY])], {
+      trusted: new Set(['bestaxbot']),
+    }),
+    1
+  );
+});
+
+test('a reply from anyone else does not ask for a verify pass', () => {
+  for (const later of [
+    [OUTSIDER],
+    [CODERABBIT],
+    [MACHINE_REPLY],
+    // A maintainer whose role was not confirmed.
+    [MAINTAINER],
+    // The reviewer's own words come after the App's.
+    [BOT_REPLY, REVIEWER],
+    [BOT_REPLY, REVIEWER, OUTSIDER],
+  ])
+    assert.equal(
+      awaitingVerify([thread(REVIEWER, later)], { trusted: new Set() }),
+      0,
+      later.map(a => `${a.login}:${a.__typename}`).join(',')
+    );
+});
+
+test('a reply a verify pass has already ruled on awaits nothing', () => {
+  // The App replied at minute 1, and the verify summary came at minute 2:
+  // the reviewer left the thread open for a person.
+  const answered = thread(REVIEWER, [[BOT_REPLY, 1]]);
+  assert.equal(awaitingVerify([answered], { ruledAt: Date.parse(at(2)) }), 0);
+  // A summary posted in the same second reads as having seen it.
+  assert.equal(awaitingVerify([answered], { ruledAt: Date.parse(at(1)) }), 0);
+  // A reply after the newest verify pass is still waiting for one.
+  assert.equal(awaitingVerify([answered], { ruledAt: Date.parse(at(0)) }), 1);
+  // A reply whose time does not parse cannot be shown to be newer.
+  const undated = thread(REVIEWER, [BOT_REPLY]);
+  undated.latest.nodes[1].createdAt = 'soon';
+  assert.equal(awaitingVerify([undated]), 0);
 });
 
 test('a thread does not await a verify pass in any other state', () => {
@@ -342,49 +497,146 @@ test('with only an opener and no latest list, the opener is the newest', () => {
   const node = thread(REVIEWER);
   delete node.latest;
   assert.equal(awaitingVerify([node]), 0);
+  assert.equal(openThreads([node]), 1);
 });
+
+test('a deep-review thread is open until it is resolved', () => {
+  assert.equal(
+    openThreads([
+      thread(REVIEWER),
+      thread(REVIEWER, [BOT_REPLY]),
+      thread(REVIEWER, [BOT_REPLY], true),
+      thread(CODERABBIT),
+      thread(MAINTAINER),
+      { isResolved: false, opener: { nodes: [] }, latest: { nodes: [] } },
+      null,
+    ]),
+    2
+  );
+  assert.equal(openThreads(undefined), 0);
+});
+
+test('only people GitHub associates with the repo get their role looked up', () => {
+  const nameless = { __typename: 'User' };
+  ASSOCIATION.set(nameless, 'MEMBER');
+  assert.deepEqual(
+    replyLogins([
+      // Since the reviewer last spoke: the owner, an outsider, the App, a
+      // collaborator, and a member the API gave no login.
+      thread(REVIEWER, [MAINTAINER, OUTSIDER, BOT_REPLY, MACHINE_REPLY]),
+      thread(REVIEWER, [nameless]),
+      // Before the reviewer's newest comment, settled, or not its thread.
+      thread(REVIEWER, [{ login: 'early', __typename: 'User' }, REVIEWER]),
+      thread(REVIEWER, [MAINTAINER], true),
+      thread(CODERABBIT, [MAINTAINER]),
+      // The owner again, looked up once.
+      thread(REVIEWER, [MAINTAINER]),
+    ]),
+    ['allxsmith', 'bestaxbot']
+  );
+  ASSOCIATION.delete(nameless);
+  assert.deepEqual(replyLogins(undefined), []);
+});
+
+test('newestVerifyAt finds the newest verify summary', () => {
+  assert.equal(
+    newestVerifyAt([FRESH(1), VERIFY(2), FRESH(3), VERIFY(4), FRESH(5)]),
+    Date.parse(at(4))
+  );
+  // A fresh review, a summary that does not parse, and no summaries.
+  assert.equal(newestVerifyAt([FRESH(1)]), -Infinity);
+  assert.equal(
+    newestVerifyAt([review(`${MARKER}\nsomething else`, 1)]),
+    -Infinity
+  );
+  assert.equal(newestVerifyAt(undefined), -Infinity);
+});
+
+// ---------------------------------------------------------------------------
+// mode: the cap
+// ---------------------------------------------------------------------------
+
+test('the cap counts the App’s deep-review labelings in the past day', () => {
+  assert.equal(
+    appRunsToday(
+      [
+        labeling(0),
+        labeling(59),
+        // An undated labeling counts.
+        { ...labeling(1), created_at: undefined },
+        // A day old or older, another label, a removal, and other actors.
+        { ...labeling(0), created_at: '2026-10-08T13:00:00Z' },
+        { ...labeling(0), created_at: '2026-10-08T12:00:00Z' },
+        labeling(1, APP, 'ai-loop'),
+        { ...labeling(1), event: 'unlabeled' },
+        labeling(1, HUMAN),
+        labeling(1, MACHINE_USER),
+        labeling(1, { login: 'bestaxbot', type: 'Bot' }),
+        null,
+      ],
+      NOW
+    ),
+    3
+  );
+  assert.equal(appRunsToday(undefined, NOW), 0);
+});
+
+// ---------------------------------------------------------------------------
+// mode: the decision
+// ---------------------------------------------------------------------------
 
 test('a PR with no deep review gets a fresh one, whoever asked', () => {
   for (const byBot of [true, false])
     for (const freshSteer of [true, false])
       assert.equal(
-        pickMode({ reviewed: false, byBot, freshSteer, awaiting: 3 }).mode,
+        pickMode({ reviewed: false, byBot, freshSteer, awaiting: 3, open: 3 })
+          .mode,
         'FRESH'
       );
 });
 
 test('a person’s re-run verifies unless the steer asks for fresh', () => {
-  assert.equal(
-    pickMode({ reviewed: true, byBot: false, freshSteer: false, awaiting: 0 })
-      .mode,
-    'VERIFY'
-  );
-  assert.equal(
-    pickMode({ reviewed: true, byBot: false, freshSteer: true, awaiting: 3 })
-      .mode,
-    'FRESH'
-  );
+  // The App's facts do not reach a person's run.
+  const facts = { reviewed: true, byBot: false, open: 2, appRuns: 99 };
+  assert.equal(pickMode({ ...facts, freshSteer: false }).mode, 'VERIFY');
+  assert.equal(pickMode({ ...facts, freshSteer: true }).mode, 'FRESH');
 });
 
-test('the App’s run verifies while threads await it, and is fresh otherwise', () => {
-  // A fresh steer changes neither answer.
+test('the App’s run verifies while threads await it, and is fresh with none open', () => {
+  // A fresh steer changes none of the answers.
   for (const freshSteer of [true, false]) {
-    const verify = pickMode({
-      reviewed: true,
-      byBot: true,
-      freshSteer,
-      awaiting: 2,
-    });
+    const facts = { reviewed: true, byBot: true, freshSteer };
+    const verify = pickMode({ ...facts, awaiting: 2, open: 3 });
     assert.equal(verify.mode, 'VERIFY');
     assert.match(verify.why, /^2 deep-review thread\(s\) await/);
-    const fresh = pickMode({
-      reviewed: true,
-      byBot: true,
-      freshSteer,
-      awaiting: 0,
-    });
+    const fresh = pickMode({ ...facts, awaiting: 0, open: 0 });
     assert.equal(fresh.mode, 'FRESH');
-    assert.match(fresh.why, /no deep-review thread awaits/);
+    assert.match(fresh.why, /no deep-review thread is open/);
+    assert.equal(pickMode(facts).mode, 'FRESH');
+  }
+});
+
+test('the App’s run is skipped while a thread is open and none awaits a pass', () => {
+  // A verify pass would settle nothing, and a fresh review would repeat it.
+  const skip = pickMode({ reviewed: true, byBot: true, awaiting: 0, open: 1 });
+  assert.equal(skip.mode, 'SKIP');
+  assert.match(skip.why, /^1 deep-review thread\(s\) are open and none awaits/);
+});
+
+test('the App’s runs stop at the cap, whatever else holds', () => {
+  for (const reviewed of [true, false]) {
+    const over = pickMode({
+      reviewed,
+      byBot: true,
+      awaiting: 1,
+      appRuns: APP_RUNS_PER_DAY + 1,
+    });
+    assert.equal(over.mode, 'SKIP');
+    assert.match(over.why, /times in the past day, over the cap of \d+$/);
+    assert.notEqual(
+      pickMode({ reviewed, byBot: true, appRuns: APP_RUNS_PER_DAY }).mode,
+      'SKIP'
+    );
   }
 });
 
@@ -409,8 +661,14 @@ async function runWith(argv, env, routes = {}) {
     env,
     fetchImpl,
     log: line => lines.push(line),
+    now: () => NOW,
   });
-  return { outputs, log: lines.join('\n'), calls };
+  return {
+    outputs,
+    log: lines.join('\n'),
+    calls,
+    paths: calls.map(c => `${c.method} ${c.path}`),
+  };
 }
 
 test('labeler prints both outputs for the App without an API call', async t => {
@@ -455,71 +713,225 @@ test('labeler refuses to look a role up without a token or a repo', async t => {
   );
 });
 
-test('mode reads the threads only for the App’s run on a reviewed PR', async t => {
+test('dedupe runs a deep-review labeling without reading the reviews', async t => {
   const env = withEvent(t, labeled(), { GITHUB_TOKEN: 't' });
-  const routes = threadsRoute([thread(REVIEWER, [BOT_REPLY])]);
-  const app = await runWith(
-    ['mode'],
-    { ...env, REVIEWED: 'true', BY_BOT: 'true', FRESH_STEER: 'true' },
-    routes
+  const { outputs, log, calls } = await runWith(['dedupe'], env);
+  assert.deepEqual(outputs, ['skip=false']);
+  assert.match(
+    log,
+    /^deep-review-gate: deep-review put on by "bestaxbot\[bot\]"/
   );
-  assert.deepEqual(app.outputs, ['mode=VERIFY']);
-  assert.equal(app.calls.length, 1);
-  assert.equal(app.calls[0].body.variables.number, 912);
-  assert.match(app.log, /^deep-review-gate: VERIFY: 1 deep-review thread/);
-
-  const settled = await runWith(
-    ['mode'],
-    { ...env, REVIEWED: 'true', BY_BOT: 'true' },
-    threadsRoute([thread(REVIEWER, [BOT_REPLY], true)])
-  );
-  assert.deepEqual(settled.outputs, ['mode=FRESH']);
-
-  // A person's run and an unreviewed PR need no API, and no token.
-  const person = await runWith(['mode'], { REVIEWED: 'true', BY_BOT: 'false' });
-  assert.deepEqual(person.outputs, ['mode=VERIFY']);
-  assert.equal(person.calls.length, 0);
-  const steered = await runWith(['mode'], {
-    REVIEWED: 'true',
-    FRESH_STEER: 'true',
-  });
-  assert.deepEqual(steered.outputs, ['mode=FRESH']);
-  const first = await runWith(['mode'], { REVIEWED: 'false', BY_BOT: 'true' });
-  assert.deepEqual(first.outputs, ['mode=FRESH']);
-  assert.equal(first.calls.length, 0);
+  assert.equal(calls.length, 0);
 });
 
-test('mode fails rather than guess when the threads cannot be read', async t => {
+test('dedupe skips any other event once the PR has a deep review', async t => {
+  const env = withEvent(
+    t,
+    { action: 'opened', pull_request: loopPr() },
+    { GITHUB_TOKEN: 't' }
+  );
+  const reviewed = await runWith(['dedupe'], env, reviewsRoute([FRESH(1)]));
+  assert.deepEqual(reviewed.outputs, ['skip=true']);
+  assert.deepEqual(reviewed.paths, [REVIEWS]);
+  const first = await runWith(['dedupe'], env, reviewsRoute([]));
+  assert.deepEqual(first.outputs, ['skip=false']);
+  // A review it cannot read fails the run rather than run a second review.
+  await assert.rejects(runWith(['dedupe'], env), /HTTP 404/);
+  await assert.rejects(
+    runWith(
+      ['dedupe'],
+      withEvent(t, { action: 'opened' }, { GITHUB_TOKEN: 't' })
+    ),
+    /the event names no pull request/
+  );
+  await assert.rejects(
+    runWith(['dedupe'], {
+      ...env,
+      GITHUB_TOKEN: '',
+    }),
+    /GITHUB_TOKEN is not set/
+  );
+});
+
+test('a person’s mode reads only the reviews', async t => {
+  const env = withEvent(t, labeled({ sender: HUMAN }), { GITHUB_TOKEN: 't' });
+  const rerun = await runWith(
+    ['mode'],
+    { ...env, BY_BOT: 'false' },
+    reviewsRoute([FRESH(1)])
+  );
+  assert.deepEqual(rerun.outputs, ['mode=VERIFY', 'run=true']);
+  assert.deepEqual(rerun.paths, [REVIEWS]);
+  const steered = await runWith(
+    ['mode'],
+    { ...env, FRESH_STEER: 'true' },
+    reviewsRoute([FRESH(1)])
+  );
+  assert.deepEqual(steered.outputs, ['mode=FRESH', 'run=true']);
+  const first = await runWith(['mode'], env, reviewsRoute([]));
+  assert.deepEqual(first.outputs, ['mode=FRESH', 'run=true']);
+});
+
+/** The App's mode run over `threads`, with `reviews` and `events` on the PR. */
+async function appMode(
+  t,
+  { threads, reviews = [FRESH(0)], events = [], roles = {} }
+) {
+  const env = withEvent(t, labeled(), {
+    GITHUB_TOKEN: 't',
+    BY_BOT: 'true',
+    FRESH_STEER: 'true',
+  });
+  return runWith(['mode'], env, {
+    ...eventsRoute(events),
+    ...reviewsRoute(reviews),
+    ...threadsRoute(threads),
+    ...Object.assign(
+      {},
+      ...Object.entries(roles).map(([l, r]) => roleRoute(l, r))
+    ),
+  });
+}
+
+test('the App’s mode reads the events, the reviews and the threads', async t => {
+  const result = await appMode(t, {
+    threads: [thread(REVIEWER, [BOT_REPLY])],
+    events: [labeling(0)],
+  });
+  assert.deepEqual(result.outputs, ['mode=VERIFY', 'run=true']);
+  assert.deepEqual(result.paths, [EVENTS, REVIEWS, 'POST /graphql']);
+  assert.equal(result.calls[2].body.variables.number, 912);
+  assert.match(result.log, /^deep-review-gate: VERIFY: 1 deep-review thread/);
+});
+
+test('the App gets a fresh review with no deep-review thread open', async t => {
+  const settled = await appMode(t, {
+    threads: [thread(REVIEWER, [BOT_REPLY], true), thread(CODERABBIT)],
+  });
+  assert.deepEqual(settled.outputs, ['mode=FRESH', 'run=true']);
+  // With no deep review yet, the threads are not read.
+  const first = await appMode(t, { threads: [], reviews: [] });
+  assert.deepEqual(first.outputs, ['mode=FRESH', 'run=true']);
+  assert.deepEqual(first.paths, [EVENTS, REVIEWS]);
+});
+
+test('the App’s run is skipped on a thread a verify pass already ruled on', async t => {
+  // The App's second refutation at minute 3, a verify pass at minute 4 that
+  // left it open with no reply, and a later CI fix that moved the head.
+  const ruled = thread(REVIEWER, [
+    [BOT_REPLY, 1],
+    [REVIEWER, 2],
+    [BOT_REPLY, 3],
+  ]);
+  const result = await appMode(t, {
+    threads: [ruled],
+    reviews: [FRESH(0), VERIFY(2), VERIFY(4)],
+  });
+  assert.deepEqual(result.outputs, ['mode=SKIP', 'run=false']);
+  assert.match(
+    result.log,
+    /^deep-review-gate: SKIP: 1 deep-review thread\(s\) are open/
+  );
+  // A maintainer's reply after that pass asks for another.
+  const replied = thread(REVIEWER, [
+    [BOT_REPLY, 1],
+    [REVIEWER, 2],
+    [BOT_REPLY, 3],
+    [MAINTAINER, 5],
+  ]);
+  const reopened = await appMode(t, {
+    threads: [replied],
+    reviews: [FRESH(0), VERIFY(2), VERIFY(4)],
+    roles: { allxsmith: 'admin' },
+  });
+  assert.deepEqual(reopened.outputs, ['mode=VERIFY', 'run=true']);
+  assert.deepEqual(reopened.paths, [
+    EVENTS,
+    REVIEWS,
+    'POST /graphql',
+    `GET /repos/${REPO}/collaborators/allxsmith/permission`,
+  ]);
+});
+
+test('a reply counts only from a person whose live role is triage or higher', async t => {
+  const threads = [thread(REVIEWER, [MAINTAINER, OUTSIDER])];
+  const read = await appMode(t, { threads, roles: { allxsmith: 'read' } });
+  assert.deepEqual(read.outputs, ['mode=SKIP', 'run=false']);
+  // A role the API cannot read does not count either.
+  const unknown = await appMode(t, { threads });
+  assert.deepEqual(unknown.outputs, ['mode=SKIP', 'run=false']);
+  // The outsider is never looked up.
+  assert.ok(!unknown.paths.some(p => p.includes('/octocat/')));
+});
+
+test('the App’s run past the cap is skipped before the threads are read', async t => {
+  const events = Array.from({ length: APP_RUNS_PER_DAY + 1 }, (_, i) =>
+    labeling(i)
+  );
+  const result = await appMode(t, {
+    threads: [thread(REVIEWER, [BOT_REPLY])],
+    events,
+  });
+  assert.deepEqual(result.outputs, ['mode=SKIP', 'run=false']);
+  assert.deepEqual(result.paths, [EVENTS, REVIEWS]);
+  assert.match(result.log, /over the cap of \d+$/);
+  // At the cap, it still runs.
+  const at = await appMode(t, {
+    threads: [thread(REVIEWER, [BOT_REPLY])],
+    events: events.slice(1),
+  });
+  assert.deepEqual(at.outputs, ['mode=VERIFY', 'run=true']);
+});
+
+test('the App’s mode reads the real clock when none is given', async t => {
+  const { fetchImpl } = fakeFetch({
+    ...eventsRoute([labeling(0)]),
+    ...reviewsRoute([]),
+  });
+  const outputs = await run({
+    argv: ['mode'],
+    env: withEvent(t, labeled(), { GITHUB_TOKEN: 't', BY_BOT: 'true' }),
+    fetchImpl,
+    log: () => {},
+  });
+  assert.deepEqual(outputs, ['mode=FRESH', 'run=true']);
+});
+
+test('mode fails rather than guess when it cannot read what it needs', async t => {
   const env = {
     ...withEvent(t, labeled(), { GITHUB_TOKEN: 't' }),
-    REVIEWED: 'true',
     BY_BOT: 'true',
   };
+  // The events, the reviews, and the threads.
   await assert.rejects(runWith(['mode'], env, {}), /HTTP 404/);
+  await assert.rejects(runWith(['mode'], env, eventsRoute([])), /HTTP 404/);
   await assert.rejects(
     runWith(['mode'], env, {
+      ...eventsRoute([]),
+      ...reviewsRoute([FRESH(0)]),
       'POST /graphql': response(200, { errors: [{ message: 'nope' }] }),
     }),
     /GraphQL query failed/
   );
   // An event with no pull request is a usage error, not a guess.
-  const noPr = {
-    ...withEvent(t, { action: 'labeled' }, { GITHUB_TOKEN: 't' }),
-    REVIEWED: 'true',
-    BY_BOT: 'true',
-  };
-  await assert.rejects(runWith(['mode'], noPr), UsageError);
   await assert.rejects(
     runWith(['mode'], {
-      GITHUB_REPOSITORY: REPO,
-      REVIEWED: 'true',
+      ...withEvent(t, { action: 'labeled' }, { GITHUB_TOKEN: 't' }),
       BY_BOT: 'true',
     }),
+    UsageError
+  );
+  await assert.rejects(
+    runWith(['mode'], { GITHUB_REPOSITORY: REPO, BY_BOT: 'true' }),
     /GITHUB_EVENT_PATH is not set/
   );
   await assert.rejects(
-    runWith(['mode'], { REVIEWED: 'true', BY_BOT: 'true' }),
+    runWith(['mode'], { BY_BOT: 'true' }),
     /GITHUB_REPOSITORY must be owner\/name/
+  );
+  await assert.rejects(
+    runWith(['mode'], { ...env, GITHUB_TOKEN: '' }),
+    /GITHUB_TOKEN is not set/
   );
 });
 
@@ -565,7 +977,6 @@ test('the command line exits 2 on bad usage and 1 on an API error', t => {
     ['mode'],
     {
       ...withEvent(t, labeled(), { GITHUB_TOKEN: 't' }),
-      REVIEWED: 'true',
       BY_BOT: 'true',
     },
     'globalThis.fetch = async () => { throw new Error("offline"); };'
@@ -589,7 +1000,7 @@ function reviewSteps() {
   return steps.lines.join('\n');
 }
 
-test('claude-review.yml runs both commands from its default-branch checkout', () => {
+test('claude-review.yml runs every command from its default-branch checkout', () => {
   const text = reviewSteps();
   const checkout =
     /- name: Check out the default branch for the gate script\n(?:\s+#.*\n)*\s+uses: actions\/checkout@[0-9a-f]{40} # v7\n\s+with:\n\s+ref: \$\{\{ github\.event\.repository\.default_branch \}\}\n\s+path: (\S+)\n/.exec(
@@ -597,16 +1008,22 @@ test('claude-review.yml runs both commands from its default-branch checkout', ()
     );
   assert.ok(checkout, 'no default-branch checkout step');
   const path = checkout[1];
-  for (const command of ['labeler', 'mode'])
+  for (const command of ['labeler', 'dedupe', 'mode'])
     assert.ok(
       text.includes(
         `node ${path}/scripts/deep-review-gate.mjs ${command} >> "$GITHUB_OUTPUT"`
       ),
       `no step runs ${command} from ${path}`
     );
-  // The checkout precedes both calls and the PR head checkout follows them.
+  // The checkout precedes every call and the PR head checkout follows them.
   const at = needle => text.indexOf(needle);
   assert.ok(at(checkout[0]) < at('deep-review-gate.mjs labeler'));
+  assert.ok(
+    at('deep-review-gate.mjs labeler') < at('deep-review-gate.mjs dedupe')
+  );
+  assert.ok(
+    at('deep-review-gate.mjs dedupe') < at('deep-review-gate.mjs mode')
+  );
   assert.ok(at('deep-review-gate.mjs mode') < at('- name: Checkout PR head'));
 });
 
@@ -615,7 +1032,30 @@ test('claude-review.yml reads the outputs the script prints', () => {
   for (const output of [
     'steps.perm.outputs.allowed',
     'steps.perm.outputs.by_bot',
+    'steps.dedupe.outputs.skip',
     'steps.mode.outputs.mode',
+    'steps.mode.outputs.run',
   ])
     assert.ok(text.includes(output), output);
+});
+
+test('claude-review.yml runs nothing of the PR’s when the mode is SKIP', () => {
+  const text = reviewSteps();
+  for (const name of [
+    'Checkout PR head',
+    'Setup pnpm',
+    'Setup Node.js',
+    'Install dependencies',
+    'Run Claude (deep review)',
+  ]) {
+    const start = text.indexOf(`- name: ${name}\n`);
+    assert.ok(start !== -1, name);
+    const end = text.indexOf('\n      - name: ', start + 1);
+    const step = text.slice(start, end === -1 ? undefined : end);
+    const condition = /\n\s+if: (.*)\n/.exec(step)?.[1] ?? '';
+    assert.ok(
+      condition.includes("steps.mode.outputs.run == 'true'"),
+      `${name} runs whatever the mode is: ${condition}`
+    );
+  }
 });
