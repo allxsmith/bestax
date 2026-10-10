@@ -13,7 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useConfig } from '../helpers/Config';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelFor, useInsideField } from './FormContext';
+import { useInsideField } from './FormContext';
 import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
@@ -188,17 +188,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     ref
   ) => {
     const insideField = useInsideField();
-    const { controlId, fieldLabelProps, labelled } = useAutoLabelId({
+    // The suggestion list points `aria-labelledby` at the label that names
+    // the input, so it needs that label's id.
+    const {
+      controlId,
+      fieldLabelProps,
+      labelId: listLabelId,
+    } = useAutoLabelId({
       label,
       id,
       labelProps,
       rendersLabel: !insideField,
+      needsLabelId: true,
     });
-    // The id a surrounding Field's label renders with: one the Field generates
-    // while it wires the label itself, or the caller's `labelProps.id`, which
-    // is the only id a label wired by hand carries. Read only while that
-    // label names the input, so it is the label `labelled` checked.
-    const fieldLabelElementId = useFieldLabelFor().id;
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const { classPrefix } = useConfig();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -465,11 +467,6 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // thing. When no label names the combobox, or the one that does has no
     // id to point at, the list keeps a fallback name.
     const listOpen = isActive && (filteredData.length > 0 || !!empty);
-    const listLabelId = !labelled
-      ? undefined
-      : insideField
-        ? fieldLabelElementId
-        : ((fieldLabelProps?.id as string | undefined) ?? `${listboxId}-label`);
     const activeOptionId =
       listOpen &&
       highlightedIndex >= 0 &&
@@ -595,11 +592,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
         <Field
           label={label}
           labelSize={labelSize}
-          labelProps={
-            listLabelId
-              ? { ...fieldLabelProps, id: listLabelId }
-              : fieldLabelProps
-          }
+          labelProps={fieldLabelProps}
           horizontal={horizontal}
           className={fieldClassName}
         >

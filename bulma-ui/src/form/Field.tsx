@@ -34,7 +34,7 @@ export interface FieldProps
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
-  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. An `id` here is the one a group control's, or a range `Slider`'s, `aria-labelledby` points at; otherwise the label gets a generated one while the association is on. To point a group in an inner `Field` at this label by hand, pass that `id` with `htmlFor: undefined`, or the label keeps a generated `htmlFor` that nothing takes. */
+  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. An `id` here is the one a group control's, a range `Slider`'s or an `Autocomplete` suggestion list's `aria-labelledby` points at; otherwise the label gets a generated one while the association is on. To point a group in an inner `Field` at this label by hand, pass that `id` with `htmlFor: undefined`, or the label keeps a generated `htmlFor` that nothing takes. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
