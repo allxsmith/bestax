@@ -33,7 +33,14 @@ import {
   checkRelease,
   SLSA_PREDICATE,
   EXPECTED,
+  ATTESTATION_BACKOFF_MS,
+  RELEASE_ATTESTATION_RETRY,
 } from './verify-attestation.mjs';
+import {
+  DEFAULT_BUDGET_SECONDS,
+  DEFAULT_SLEEP_SECONDS,
+} from './npm-install-retry.mjs';
+import { DEFAULT_ATTEMPTS } from './lib/fetch-retry.mjs';
 
 const NO_WAIT = { backoffMs: [0, 0] };
 
@@ -160,31 +167,66 @@ function captureConsole(t) {
 
 // --- argument parsing -------------------------------------------------------
 
-test('parseArgs takes --dir and --release in both spellings plus the package list', () => {
+test('parseArgs takes --dir, --event and --release in both spellings plus the package list', () => {
   assert.deepEqual(
-    parseArgs(['--dir', '/t', '--release', 'a@1.0.0', 'a', 'b']),
+    parseArgs([
+      '--dir',
+      '/t',
+      '--event',
+      'release',
+      '--release',
+      'a@1.0.0',
+      'a',
+      'b',
+    ]),
     {
       dir: '/t',
       packages: ['a', 'b'],
+      event: 'release',
       release: 'a@1.0.0',
       printSpec: false,
+      awaitAttestation: false,
     }
   );
-  assert.deepEqual(parseArgs(['--dir=/t', '--release=', '--print-spec', 'a']), {
-    dir: '/t',
-    packages: ['a'],
-    release: '',
-    printSpec: true,
-  });
+  assert.deepEqual(
+    parseArgs([
+      '--dir=/t',
+      '--event=schedule',
+      '--release=',
+      '--print-spec',
+      'a',
+    ]),
+    {
+      dir: '/t',
+      packages: ['a'],
+      event: 'schedule',
+      release: '',
+      printSpec: true,
+      awaitAttestation: false,
+    }
+  );
+  assert.equal(
+    parseArgs([
+      '--dir=/t',
+      '--event=release',
+      '--release=a@1.0.0',
+      '--await-attestation',
+    ]).awaitAttestation,
+    true
+  );
 });
 
 test('parseArgs requires --dir and rejects unknown options', () => {
-  assert.throws(() => parseArgs(['--release', '', 'a', 'b']), /--dir/);
+  assert.throws(
+    () => parseArgs(['--event', 'schedule', '--release', '', 'a', 'b']),
+    /--dir/
+  );
   // A typo must be a usage error, not a package named "--dirs" that then
   // fails verification for a package that never existed.
   assert.throws(() => parseArgs(['--dirs', '/t', 'a']), /unknown option/);
   assert.throws(
-    () => parseArgs(['--dir=/t', '--release=', '--verbose', 'a']),
+    () =>
+      parseArgs(['--dir=/t', '--event=schedule', '--release=', '--verbose']),
     /unknown option/
   );
 });
@@ -193,23 +235,62 @@ test('parseArgs requires --release, and an empty one is not a missing one', () =
   // Absent, the release check would be off with nothing reporting it, so the
   // flag is required; a run no release asked for passes it empty.
   assert.throws(
-    () => parseArgs(['--dir', '/t']),
+    () => parseArgs(['--dir', '/t', '--event', 'release']),
     /--release <tag> is required/
   );
   assert.throws(
-    () => parseArgs(['--dir', '/t', '--release']),
+    () => parseArgs(['--dir', '/t', '--event', 'release', '--release']),
     /--release <tag> is required/
   );
-  assert.equal(parseArgs(['--dir', '/t', '--release', '']).release, '');
+  assert.equal(
+    parseArgs(['--dir', '/t', '--event', 'schedule', '--release', '']).release,
+    ''
+  );
+});
+
+test('parseArgs requires a non-empty --event, since the event decides', () => {
+  // The event is what turns the release check on, so an absent or empty one
+  // would switch it off as silently as an empty tag once could.
+  assert.throws(
+    () => parseArgs(['--dir', '/t', '--release', 'a@1.0.0']),
+    /--event <name> is required/
+  );
+  assert.throws(
+    () => parseArgs(['--dir', '/t', '--event', '', '--release', 'a@1.0.0']),
+    /--event <name> is required/
+  );
+  assert.throws(
+    () => parseArgs(['--dir=/t', '--event=', '--release=a@1.0.0']),
+    /--event <name> is required/
+  );
+});
+
+test('parseArgs refuses --print-spec and --await-attestation together', () => {
+  assert.throws(
+    () =>
+      parseArgs([
+        '--dir=/t',
+        '--event=release',
+        '--release=a@1.0.0',
+        '--print-spec',
+        '--await-attestation',
+      ]),
+    /pass one/
+  );
 });
 
 test('an omitted package list is allowed — the roster comes from the tree', () => {
-  assert.deepEqual(parseArgs(['--dir', '/t', '--release', '']), {
-    dir: '/t',
-    packages: [],
-    release: '',
-    printSpec: false,
-  });
+  assert.deepEqual(
+    parseArgs(['--dir', '/t', '--event', 'schedule', '--release', '']),
+    {
+      dir: '/t',
+      packages: [],
+      event: 'schedule',
+      release: '',
+      printSpec: false,
+      awaitAttestation: false,
+    }
+  );
 });
 
 // --- reading the installed tree ---------------------------------------------
@@ -484,9 +565,12 @@ test('main exits 0 when every package checks out', async () => {
   const dir = await fixtureTree();
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
-    const code = await main(['--dir', dir, '--release', '', 'bestax-migrate'], {
-      retryOptions: NO_WAIT,
-    });
+    const code = await main(
+      ['--dir', dir, '--event', 'schedule', '--release', '', 'bestax-migrate'],
+      {
+        retryOptions: NO_WAIT,
+      }
+    );
     assert.equal(code, 0);
   } finally {
     s.restore();
@@ -501,9 +585,12 @@ test('main exits 1 when a package was built somewhere else', async t => {
     'https://github.com/someone-else/evil';
   const s = stubFetch(() => ({ body: registryResponse(bad) }));
   try {
-    const code = await main(['--dir', dir, '--release', '', 'bestax-migrate'], {
-      retryOptions: NO_WAIT,
-    });
+    const code = await main(
+      ['--dir', dir, '--event', 'schedule', '--release', '', 'bestax-migrate'],
+      {
+        retryOptions: NO_WAIT,
+      }
+    );
     assert.equal(code, 1);
   } finally {
     s.restore();
@@ -551,7 +638,9 @@ test('main derives the roster when no packages are named', async () => {
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
     assert.equal(
-      await main(['--dir', dir, '--release', ''], { retryOptions: NO_WAIT }),
+      await main(['--dir', dir, '--event', 'schedule', '--release', ''], {
+        retryOptions: NO_WAIT,
+      }),
       0
     );
     assert.equal(s.calls.length, 1);
@@ -638,29 +727,61 @@ test('a corrupted integrity is reported as a lockfile problem, not a mismatch', 
 
 // --- which release (#719) ----------------------------------------------------
 
-test('an empty release tag means no release asked for this run', () => {
-  assert.equal(releaseUnderTest(''), null);
-  assert.equal(releaseUnderTest('  '), null);
-  assert.equal(releaseUnderTest(undefined), null);
+/** What a release event carrying `tag` holds the tree to. */
+const onRelease = tag =>
+  releaseUnderTest({ eventName: 'release', tagName: tag });
+
+test('a scheduled or dispatched run holds no release, and its tag is not read', () => {
+  for (const eventName of ['schedule', 'workflow_dispatch']) {
+    assert.equal(releaseUnderTest({ eventName, tagName: '' }), null);
+    assert.equal(releaseUnderTest({ eventName, tagName: undefined }), null);
+    // Not read at all, as installSpec does not read it: the event decided.
+    assert.equal(releaseUnderTest({ eventName, tagName: 'v-not-a-tag' }), null);
+  }
+});
+
+test('a release event with an empty tag fails rather than reading as no release', () => {
+  // The off-switch review found on #719: when the tag alone decided, an empty
+  // one passed the run with no release held and nothing saying so.
+  for (const tagName of ['', '  ', undefined]) {
+    assert.throws(
+      () => releaseUnderTest({ eventName: 'release', tagName }),
+      /a release event arrived with an empty release tag/
+    );
+  }
+});
+
+test('an event nobody classified fails, so a new trigger cannot pass unheld', () => {
+  for (const eventName of ['push', 'workflow_run', '', undefined]) {
+    assert.throws(
+      () => releaseUnderTest({ eventName, tagName: '' }),
+      /is neither a release nor one of schedule, workflow_dispatch/
+    );
+  }
+  // The event name reaches the message, so it goes through forLog like a tag.
+  assert.throws(
+    () => releaseUnderTest({ eventName: 'push\n::error::forged', tagName: '' }),
+    err => !err.message.includes('\n')
+  );
 });
 
 test('a release tag is split on its last @, so a scoped package survives', () => {
-  assert.deepEqual(releaseUnderTest('@allxsmith/bestax-bulma@5.16.6'), {
+  assert.deepEqual(onRelease('@allxsmith/bestax-bulma@5.16.6'), {
     package: '@allxsmith/bestax-bulma',
     version: '5.16.6',
   });
 });
 
 test('a release tag that names nothing fails rather than checking the tree as-is', () => {
-  assert.throws(() => releaseUnderTest('v5.16.6'), /does not name/);
-  assert.throws(() => releaseUnderTest('bestax-migrate@'), /does not name/);
+  assert.throws(() => onRelease('v5.16.6'), /does not name/);
+  assert.throws(() => onRelease('bestax-migrate@'), /does not name/);
   assert.throws(
-    () => releaseUnderTest('bestax-migrate@2.0.1.4'),
+    () => onRelease('bestax-migrate@2.0.1.4'),
     /not a semver version/
   );
   // The complaint about a crafted tag must not itself be a workflow command.
   assert.throws(
-    () => releaseUnderTest('bestax-migrate@2.0.1\n::error::forged'),
+    () => onRelease('bestax-migrate@2.0.1\n::error::forged'),
     err => !err.message.includes('\n')
   );
 });
@@ -701,8 +822,8 @@ test('checkRelease reports a rostered package missing from the tree', async () =
 });
 
 test('main fails a release run whose tree holds the previous version, the #719 pass', async t => {
-  // The shape run 35682756557 logged: `latest` still resolved the previous
-  // version, whose attestation is valid, and the run went green on it.
+  // The shape #719 recorded: `latest` still resolved the previous version,
+  // whose attestation is valid, and the verification passed on it.
   const lines = captureConsole(t);
   const dir = await fixtureTree({ version: '2.0.0' });
   const s = stubFetch(() => ({
@@ -710,7 +831,15 @@ test('main fails a release run whose tree holds the previous version, the #719 p
   }));
   try {
     const code = await main(
-      ['--dir', dir, '--release', 'bestax-migrate@2.0.1', 'bestax-migrate'],
+      [
+        '--dir',
+        dir,
+        '--event',
+        'release',
+        '--release',
+        'bestax-migrate@2.0.1',
+        'bestax-migrate',
+      ],
       { retryOptions: NO_WAIT }
     );
     assert.equal(code, 1);
@@ -740,7 +869,15 @@ test('main passes a release run whose tree is that release, and says so', async 
   }));
   try {
     const code = await main(
-      ['--dir', dir, '--release', 'bestax-migrate@2.0.1', 'bestax-migrate'],
+      [
+        '--dir',
+        dir,
+        '--event',
+        'release',
+        '--release',
+        'bestax-migrate@2.0.1',
+        'bestax-migrate',
+      ],
       { retryOptions: NO_WAIT }
     );
     assert.equal(code, 0);
@@ -761,7 +898,15 @@ test('main reports a bad attestation and a wrong release together', async t => {
   const s = stubFetch(() => ({ body: registryResponse(bad) }));
   try {
     const code = await main(
-      ['--dir', dir, '--release', 'bestax-migrate@2.0.1', 'bestax-migrate'],
+      [
+        '--dir',
+        dir,
+        '--event',
+        'release',
+        '--release',
+        'bestax-migrate@2.0.1',
+        'bestax-migrate',
+      ],
       { retryOptions: NO_WAIT }
     );
     assert.equal(code, 1);
@@ -786,7 +931,15 @@ test('main refuses an unparsable release tag before fetching anything', async t 
   const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
   try {
     const code = await main(
-      ['--dir', dir, '--release', 'v2.0.1', 'bestax-migrate'],
+      [
+        '--dir',
+        dir,
+        '--event',
+        'release',
+        '--release',
+        'v2.0.1',
+        'bestax-migrate',
+      ],
       { retryOptions: NO_WAIT }
     );
     assert.equal(code, 1);
@@ -807,6 +960,8 @@ test('--print-spec prints the release spec alone, and fetches nothing', async t 
     const code = await main([
       '--dir',
       dir,
+      '--event',
+      'release',
       '--release',
       'bestax-migrate@2.0.1',
       '--print-spec',
@@ -828,6 +983,8 @@ test('--print-spec prints nothing when no release asked', async t => {
   const code = await main([
     '--dir',
     dir,
+    '--event',
+    'schedule',
     '--release',
     '',
     '--print-spec',
@@ -835,6 +992,59 @@ test('--print-spec prints nothing when no release asked', async t => {
   ]);
   assert.equal(code, 0);
   assert.deepEqual(lines, []);
+});
+
+test('--print-spec fails a release event whose tag is empty, so the install step goes red', async t => {
+  // Printing nothing here would skip the pin and leave the tree on `latest`,
+  // the #719 shape, with the later assertion the only thing left to notice.
+  const lines = captureConsole(t);
+  const dir = await fixtureTree();
+  const code = await main([
+    '--dir',
+    dir,
+    '--event',
+    'release',
+    '--release',
+    '',
+    '--print-spec',
+    'bestax-migrate',
+  ]);
+  assert.equal(code, 1);
+  assert.deepEqual(lines, [
+    '::error::verify-attestation: a release event arrived with an empty release tag, so there is no release to hold the tree to',
+  ]);
+});
+
+test('main fails a release event whose tag is empty before fetching anything', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree();
+  const s = stubFetch(() => ({ body: registryResponse(goodStatement()) }));
+  try {
+    const code = await main(
+      ['--dir', dir, '--event', 'release', '--release', '', 'bestax-migrate'],
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(code, 1);
+    assert.equal(s.calls.length, 0);
+  } finally {
+    s.restore();
+  }
+  assert.match(lines.join('\n'), /empty release tag/);
+  assert.ok(!lines.some(l => /check out/.test(l)), lines.join('\n'));
+});
+
+test('main fails a run whose event nobody classified', async t => {
+  const lines = captureConsole(t);
+  const dir = await fixtureTree();
+  const code = await main(
+    ['--dir', dir, '--event', 'push', '--release', '', 'bestax-migrate'],
+    { retryOptions: NO_WAIT }
+  );
+  assert.equal(code, 1);
+  assert.match(
+    lines[0],
+    /^::error::verify-attestation: event "push" is neither/
+  );
 });
 
 test('--print-spec refuses a release for a package the roster does not install', async t => {
@@ -848,6 +1058,8 @@ test('--print-spec refuses a release for a package the roster does not install',
   const code = await main([
     '--dir',
     dir,
+    '--event',
+    'release',
     '--release',
     'left-pad@1.3.0',
     '--print-spec',
@@ -856,4 +1068,153 @@ test('--print-spec refuses a release for a package the roster does not install',
   assert.deepEqual(lines, [
     '::error::verify-attestation: the release names "left-pad", which is not among the packages verified (bestax-migrate)',
   ]);
+});
+
+// --- waiting for the release's own attestation (#719) ------------------------
+
+test('the release wait borrows the packument propagation budget, at its interval', () => {
+  // Imported rather than restated, so this pins the relation: the sleeps
+  // between attempts add up to npm-install-retry's budget, at its interval.
+  const { attempts, backoffMs } = RELEASE_ATTESTATION_RETRY;
+  assert.deepEqual(backoffMs, [DEFAULT_SLEEP_SECONDS * 1000]);
+  assert.equal(
+    (attempts - 1) * backoffMs[0],
+    DEFAULT_BUDGET_SECONDS * 1000,
+    'the waits between attempts should add up to the budget'
+  );
+  // And it is the long one: the assertion's own lookups stay short.
+  assert.ok(attempts > DEFAULT_ATTEMPTS);
+  assert.ok(backoffMs[0] > ATTESTATION_BACKOFF_MS.at(-1));
+});
+
+/** Run --await-attestation for `tag` against a tree that already carries it. */
+async function awaitRun(tag, opts = {}) {
+  const dir = await fixtureTree({ version: '2.0.1' });
+  await writeFile(
+    join(dir, 'package.json'),
+    JSON.stringify({ dependencies: { 'bestax-migrate': '^2' } })
+  );
+  return main(
+    [
+      '--dir',
+      dir,
+      '--event',
+      opts.event ?? 'release',
+      '--release',
+      tag,
+      '--await-attestation',
+    ],
+    { retryOptions: NO_WAIT, ...opts.deps }
+  );
+}
+
+test('--await-attestation waits out a lagging attestations route and says how long', async t => {
+  const lines = captureConsole(t);
+  let call = 0;
+  const s = stubFetch(() => {
+    call += 1;
+    return call < 4
+      ? { status: 404, statusText: 'Not Found' }
+      : { body: registryResponse(goodStatement({ version: '2.0.1' })) };
+  });
+  let clock = 1_000_000;
+  try {
+    const code = await awaitRun('bestax-migrate@2.0.1', {
+      // Every reading moves the clock on by a minute, so the figure printed
+      // is the one the injected clock produced, not the wall clock's.
+      deps: { now: () => (clock += 60_000) },
+    });
+    assert.equal(code, 0);
+    // Only the release's own attestation, and only until it was served.
+    assert.deepEqual(
+      s.calls.map(c => c.url),
+      Array(4).fill(attestationUrl('bestax-migrate', '2.0.1'))
+    );
+  } finally {
+    s.restore();
+  }
+  assert.deepEqual(lines, [
+    'verify-attestation: the registry serves the attestation for bestax-migrate@2.0.1, after 60s and 4 attempt(s)',
+  ]);
+});
+
+test('--await-attestation spends the release budget, not the assertion one, before failing', async t => {
+  const lines = captureConsole(t);
+  const s = stubFetch(() => ({ status: 404, statusText: 'Not Found' }));
+  try {
+    assert.equal(await awaitRun('bestax-migrate@2.0.1'), 1);
+    // Every attempt the release budget buys, which is what a release whose
+    // attestation is merely slow is owed. Three would be the short budget.
+    assert.equal(s.calls.length, RELEASE_ATTESTATION_RETRY.attempts);
+  } finally {
+    s.restore();
+  }
+  assert.equal(lines.length, 1);
+  assert.match(
+    lines[0],
+    /^::error::verify-attestation: could not fetch the attestation for bestax-migrate@2\.0\.1 \(404 Not Found\) after \d+s and \d+ attempt\(s\)\./
+  );
+});
+
+test('--await-attestation does nothing on a run no release asked about', async t => {
+  const lines = captureConsole(t);
+  const s = stubFetch(() => ({ status: 404 }));
+  try {
+    assert.equal(await awaitRun('', { event: 'schedule' }), 0);
+    assert.equal(s.calls.length, 0);
+  } finally {
+    s.restore();
+  }
+  assert.deepEqual(lines, []);
+});
+
+test('--await-attestation is held to the roster, like the pin', async t => {
+  const lines = captureConsole(t);
+  const s = stubFetch(() => ({ status: 404 }));
+  try {
+    assert.equal(await awaitRun('left-pad@1.3.0'), 1);
+    assert.equal(s.calls.length, 0);
+  } finally {
+    s.restore();
+  }
+  assert.match(lines[0], /the release names "left-pad"/);
+});
+
+test('--await-attestation fails a release event whose tag is empty', async t => {
+  const lines = captureConsole(t);
+  const s = stubFetch(() => ({ status: 404 }));
+  try {
+    assert.equal(await awaitRun(''), 1);
+    assert.equal(s.calls.length, 0);
+  } finally {
+    s.restore();
+  }
+  assert.match(lines[0], /empty release tag/);
+});
+
+test('the assertion keeps its short budget on a release run', async t => {
+  // The long wait belongs to the install step. Here the release has already
+  // been waited for, so a route that stops answering fails at the short
+  // budget rather than stalling the step a second time.
+  captureConsole(t);
+  const dir = await fixtureTree({ version: '2.0.1' });
+  const s = stubFetch(() => ({ status: 404, statusText: 'Not Found' }));
+  try {
+    const code = await main(
+      [
+        '--dir',
+        dir,
+        '--event',
+        'release',
+        '--release',
+        'bestax-migrate@2.0.1',
+        'bestax-migrate',
+      ],
+      { retryOptions: NO_WAIT }
+    );
+    assert.equal(code, 1);
+    assert.equal(s.calls.length, DEFAULT_ATTEMPTS);
+  } finally {
+    s.restore();
+  }
 });
