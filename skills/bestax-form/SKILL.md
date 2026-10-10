@@ -33,7 +33,7 @@ Bulma forms are a three-tier structure. bestax models it directly:
 
 ```
 Field            // container + layout (horizontal / grouped / hasAddons)
-├── label        // rendered from Field's `label` prop, or <Field.Label> when horizontal
+├── label        // rendered from Field's `label` prop, or a <label> you put in <Field.Label>
 └── Control       // wraps ONE input; adds icons + loading
     ├── InputBase / SelectBase / TextAreaBase   // the raw styled element
     └── <p class="help">…</p>                    // help / validation message
