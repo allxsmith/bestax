@@ -107,11 +107,16 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 
 A custom property set on an ancestor only reaches an element that declares no value of its own.
 Bulma declares the scheme, color, typography, radius and spacing tokens on `:root`, so `Theme`
-(scoped or `isRoot`) and plain `:root` CSS both work for them. Bulma's per-component variables
-(`--bulma-card-radius`, `--bulma-tag-h`, `--bulma-delete-dimensions`, …) are declared on the
-component's own element instead (`.card`, `.tag`, `.delete`), so a value set on any ancestor,
-including `Theme`'s `bulmaVars`, always loses and nothing changes. `bulmaVars` still accepts
-those keys, and `Theme` logs a development warning naming them.
+(scoped or `isRoot`) and plain `:root` CSS both work for them. Some of those Bulma also declares
+again on one component, which keeps its own value while everything else takes yours; that
+component's API page lists the variable as declared on it, and `Theme` doesn't warn about these.
+To change that one component too, set the variable on it as described below.
+
+Bulma's per-component variables (`--bulma-card-radius`, `--bulma-tag-h`,
+`--bulma-delete-dimensions`, …) are declared on the component's own element instead (`.card`,
+`.tag`, `.delete`), so a value set on any ancestor, including `Theme`'s `bulmaVars`, always loses
+and nothing changes. `bulmaVars` still accepts those keys, and `Theme` logs a development warning
+naming them.
 
 Set a component variable on the component itself: in your CSS on its own class, loaded after
 the library styles (mind the class prefix), e.g. `.card { --bulma-card-radius: 1.5rem; }`, on a
