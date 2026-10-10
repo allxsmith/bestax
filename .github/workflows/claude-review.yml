@@ -1,7 +1,7 @@
 name: Claude Deep Review
 
-# One full adversarial Claude review per bot PR, started when the bot applies
-# `ai-loop` to a head whose CI is green. Uses a different model from the
+# A full adversarial Claude review of each bot PR, first started when the bot
+# applies `ai-loop` to a head whose CI is green. Uses a different model from the
 # bot's author session to decorrelate blind spots. Its inline threads are
 # work items for that author session; the author may NOT resolve them — the
 # reviewer re-verifies each claimed fix in a verify pass, which the bot asks
@@ -22,12 +22,13 @@ name: Claude Deep Review
 # silent no-op. The dedupe marker caps the `opened` and `ai-loop` paths at
 # one review per PR. It does not stop a `deep-review` label application,
 # which comes from a triage+ user or from the bot on its own loop PR.
-# Nothing in this workflow caps the bot's; the bot caps the verify passes
-# and review retries it asks for, in its own repository.
-# A re-run settles the open threads of the review already on the PR; it
-# does not review the commits pushed since. A triage+ steer comment
-# starting "deep-review: fresh" is what asks for a full review of the
-# current code (see the dedupe step's EXCEPTION below).
+# Nothing in this workflow caps the bot's; the bot caps the reviews it asks
+# for, in its own repository.
+# A triage+ user's re-run settles the open threads of the review already on
+# the PR; it does not review the commits pushed since. A triage+ steer
+# comment starting "deep-review: fresh" is what asks for a full review of
+# the current code (see the dedupe step's EXCEPTION below). The bot's re-run
+# takes its mode from the threads instead (see the mode step).
 #
 # Deliberately does NOT trigger on `synchronize`: one review per PR, so
 # Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
@@ -39,10 +40,6 @@ on:
 
 permissions: {}
 
-concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
-
 jobs:
   review:
     permissions:
@@ -50,13 +47,28 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+    # One review of a PR at a time, so the dedupe probe below and the
+    # timestamps review-converged.mjs reads never see two runs interleave.
+    #
+    # Declared on the job, not the workflow, and that placement is
+    # load-bearing (review-converged.yml relies on the same thing). GitHub
+    # evaluates the job's `if:` before the job joins its group, so an event
+    # this job skips, such as any other label going on, never enters it. At
+    # workflow level every `labeled` event would join the group, and a group
+    # holds one pending run, so a later unrelated label would replace the
+    # bot's queued review and then skip at the `if:`. A run that does pass
+    # the `if:` still replaces one waiting behind a running review.
+    concurrency:
+      group: claude-review-${{ github.event.pull_request.number }}
+      cancel-in-progress: false
     # Two ways in, both same-repo PRs only: (a) AI-loop PRs from claude/*
     # branches, or (b) any PR opted in via the `deep-review` label (the
     # labeler re-verified in the perm step below). For `labeled`
     # events, only the matching label itself may fire the review.
     # AI_CLAUDE_ENABLED is the switch for the public Claude workflows (this
-    # one and claude.yml); the bot that opens loop PRs has its own switch in
-    # its own repository, so turning the loop off never turns the review off.
+    # one and claude.yml). AI_LOOP_ENABLED does not reach this job, and the
+    # bot that opens loop PRs reads BOT_ENABLED in its own repository, so
+    # turning either loop off never turns the review off.
     if: |
       github.event.pull_request.head.repo.full_name == github.repository &&
       github.event.pull_request.state == 'open' &&
@@ -170,61 +182,35 @@ jobs:
           echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
           exit 1
 
+      # The trust and mode decisions live in scripts/deep-review-gate.mjs
+      # behind a node --test sibling (rule 9 in .github/CLAUDE.md), and run
+      # from the default branch, never the PR's: a PR must not be able to
+      # rewrite who may start its review. Both calls come before the PR head
+      # checkout. A PR that adds or moves the script meets rule 9's bootstrap
+      # gap: its runs fail at the perm step, starting no review, until the
+      # script is on the default branch.
+      - name: Check out the default branch for the gate script
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          path: default-branch
+          sparse-checkout: scripts
+          persist-credentials: false
+
       # For the opt-in `deep-review` label only: GitHub already restricts
       # labeling to triage+, but re-verify the labeler's live role
       # defensively (same belt-and-braces pattern as on-slop.yml and
-      # claude-implement.yml). Every other event shape is the unchanged
-      # ai-loop trust model and passes through as allowed.
-      #
-      # One non-human labeler is admitted: the bot asks for its verify pass
-      # by cycling `deep-review` on a PR it owns. An App's bot user is not a
-      # collaborator, so the role lookup would read `none` for it. It is
-      # matched by login (usernames cannot contain brackets, so no user can
-      # spell `bestaxbot[bot]`) and only on its own loop PRs: a PR it opened,
-      # carrying `ai-loop`, from a `claude/` branch. The `opened` path already
-      # trusts that shape. `by_bot` tells the later steps the bot started
-      # this run.
+      # claude-implement.yml), and admit the bot App on its own loop PRs.
+      # The script's header says how each is matched. Every other event
+      # shape is the unchanged ai-loop trust model and passes through as
+      # allowed. `by_bot` tells the later steps the bot started this run.
       - name: Check labeler permission
         id: perm
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          REPO: ${{ github.repository }}
-          SENDER: ${{ github.event.sender.login }}
-          SENDER_TYPE: ${{ github.event.sender.type }}
-          ACTION: ${{ github.event.action }}
-          LABEL: ${{ github.event.label.name }}
-          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
-          HEAD_REF: ${{ github.event.pull_request.head.ref }}
-          HAS_LOOP: ${{ contains(github.event.pull_request.labels.*.name, 'ai-loop') }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          if [ "$ACTION" != "labeled" ] || [ "$LABEL" != "deep-review" ]; then
-            echo "allowed=true" >> "$GITHUB_OUTPUT"
-            echo "not a deep-review labeling event — no extra check needed"
-            exit 0
-          fi
-          if [ "$SENDER_TYPE" = "Bot" ] && [ "$SENDER" = "bestaxbot[bot]" ]; then
-            if [ "$PR_AUTHOR" = "bestaxbot[bot]" ] && [ "$HAS_LOOP" = "true" ] \
-                && [ "${HEAD_REF#claude/}" != "$HEAD_REF" ]; then
-              echo "allowed=true" >> "$GITHUB_OUTPUT"
-              echo "by_bot=true" >> "$GITHUB_OUTPUT"
-              echo "the bot cycled deep-review on its own loop PR, running"
-            else
-              echo "allowed=false" >> "$GITHUB_OUTPUT"
-              echo "the bot may only toggle deep-review on its own loop PRs — not running"
-            fi
-            exit 0
-          fi
-          ROLE=$(gh api "repos/$REPO/collaborators/$SENDER/permission" \
-            --jq '.role_name' || echo none)
-          case "$ROLE" in
-            admin|maintain|write|triage)
-              echo "allowed=true" >> "$GITHUB_OUTPUT"
-              echo "$SENDER has $ROLE access — running the deep review" ;;
-            *)
-              echo "allowed=false" >> "$GITHUB_OUTPUT"
-              echo "$SENDER lacks triage access ($ROLE) — not running" ;;
-          esac
+          node default-branch/scripts/deep-review-gate.mjs labeler >> "$GITHUB_OUTPUT"
 
       # `opened` and `labeled` both fire when a PR is created with the label
       # already attached — review exactly once. The concurrency group
@@ -235,11 +221,10 @@ jobs:
       # EXCEPTION — a deep-review `labeled` event runs whatever the probe
       # finds: a triage+ human re-applying the label, or the bot cycling it
       # on its own loop PR (both verified by the perm step above), is a
-      # deliberate re-run: a verify pass that settles its own open threads
-      # when a marker review already exists (see MODE in the prompt), or a
-      # fresh review when none does or, on a human's re-run, the steer
-      # comment starts "deep-review: fresh" (the focus step says why the
-      # bot's re-run ignores that).
+      # deliberate re-run. On a PR that already has a review it is a verify
+      # pass that settles the open threads or a fresh review, as the mode
+      # step decides (see MODE in the prompt); with no review yet it is
+      # fresh.
       # Usage is metered per label application: one opus session each time a
       # triage+ user applies the label, or the bot does under the caps the
       # header names. The ai-loop path and label-at-creation double-fires
@@ -254,7 +239,6 @@ jobs:
           ACTION: ${{ github.event.action }}
           LABEL: ${{ github.event.label.name }}
           SENDER: ${{ github.event.sender.login }}
-          BY_BOT: ${{ steps.perm.outputs.by_bot }}
         run: |
           set -euo pipefail
           # Whether a deep review already exists on this PR. Deliberately a
@@ -270,11 +254,7 @@ jobs:
           echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            if [ "$BY_BOT" = "true" ]; then
-              echo "deep-review label cycled by $SENDER on its own loop PR, running ($([ "$REVIEWED" = true ] && echo verify || echo fresh))"
-            else
-              echo "deep-review label applied by $SENDER, a verified triage+ user, running ($([ "$REVIEWED" = true ] && echo verify || echo fresh))"
-            fi
+            echo "deep-review label applied by $SENDER, admitted by the perm step, running (the mode step picks verify or fresh)"
             exit 0
           fi
           if [ "$REVIEWED" = true ]; then
@@ -302,12 +282,9 @@ jobs:
       # run log names the steer author). On ai-loop `opened` events no
       # comments can exist yet, so this is a cheap no-op there.
       #
-      # A `fresh` steer applies to a human's re-run only. When the bot cycles
-      # the label on a PR that already has a review, it is asking for the
-      # verify pass that settles the threads its fixes answered, so a fresh
-      # steer a maintainer left on its PR must not turn that into a fresh
-      # review, which raises new findings instead of settling the old ones.
-      # The bot still gets a fresh review when no review exists yet.
+      # A `fresh` steer applies to a triage+ user's re-run only: the mode
+      # step leaves it out of the bot's, and scripts/deep-review-gate.mjs
+      # says why.
       - name: Extract focus steer
         id: focus
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
@@ -315,7 +292,6 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR: ${{ github.event.pull_request.number }}
-          BY_BOT: ${{ steps.perm.outputs.by_bot }}
         run: |
           set -euo pipefail
           echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
@@ -375,13 +351,9 @@ jobs:
           # token is stripped through any leading newlines.
           FIRST=$(printf '%s' "$TEXT" | tr -s '[:space:]' ' ' | sed -E 's/^ //' | cut -d' ' -f1 | tr '[:upper:]' '[:lower:]')
           if [ "$FIRST" = "fresh" ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
             TEXT=$(printf '%s' "$TEXT" | sed -z -E 's/^[[:space:]]*[Ff][Rr][Ee][Ss][Hh]//')
-            if [ "$BY_BOT" = "true" ]; then
-              echo "steer starts with 'fresh', which the bot's cycle does not apply"
-            else
-              echo "fresh=true" >> "$GITHUB_OUTPUT"
-              echo "steer starts with 'fresh' — full review requested"
-            fi
+            echo "steer starts with 'fresh' — full review requested on a triage+ user's re-run"
           fi
           TEXT="${TEXT:0:2000}"
           [ -n "$(printf '%s' "$TEXT" | tr -d '[:space:]')" ] \
@@ -398,6 +370,31 @@ jobs:
             echo "$TEXT"
             echo "$DELIM"
           } >> "$GITHUB_OUTPUT"
+
+      # FRESH reviews the head; VERIFY settles the threads an earlier review
+      # left and reviews no commits. scripts/deep-review-gate.mjs decides,
+      # and its header has the rule: a triage+ user's re-run verifies unless
+      # the steer says fresh, and the bot's re-run verifies only while a
+      # deep-review thread awaits a verify pass.
+      #
+      # So the bot gets a fresh review by cycling the label with nothing
+      # awaiting a verify pass, and it must do that whenever its head has
+      # moved past the newest deep-review summary that way (a CI fix, a merge
+      # of the default branch): no verify pass covers those commits, and
+      # review-converged.mjs's condition 2 holds the PR back until a fresh
+      # review does. When to cycle is the bot's rule, in its own repository
+      # (its decide step), not this workflow's.
+      - name: Pick the review mode
+        id: mode
+        if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REVIEWED: ${{ steps.dedupe.outputs.reviewed }}
+          BY_BOT: ${{ steps.perm.outputs.by_bot }}
+          FRESH_STEER: ${{ steps.focus.outputs.fresh }}
+        run: |
+          set -euo pipefail
+          node default-branch/scripts/deep-review-gate.mjs mode >> "$GITHUB_OUTPUT"
 
       # The event's head SHA, not its head ref: the ref is mutable, so a push
       # landing mid-run would otherwise have the session review a tree newer
@@ -471,9 +468,9 @@ jobs:
         uses: anthropics/claude-code-action@51c47629174b5dbca955cf93690fd39c8a41dadf # v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          # On loop PRs the opener and the verify-pass labeler is the bot
-          # App (its slug, without the [bot] suffix). `claude` stays for the
-          # review runs this app's own identity triggers.
+          # On loop PRs the opener and the labeler is the bot App (its
+          # slug, without the [bot] suffix). `claude` stays for the review
+          # runs this app's own identity triggers.
           allowed_bots: 'claude,bestaxbot'
           # Full session output ONLY on debug re-runs (the "Enable debug
           # logging" checkbox). Unlike ai-triage (GET-only public surface),
@@ -490,14 +487,14 @@ jobs:
           # off before its summary leaves its resolutions out of every verify
           # count, which holds review-converged back until a fresh review.
           claude_args: |
-            --max-turns ${{ steps.dedupe.outputs.reviewed == 'true' && steps.focus.outputs.fresh != 'true' && '100' || '120' }}
+            --max-turns ${{ steps.mode.outputs.mode == 'VERIFY' && '100' || '120' }}
             --model claude-opus-5
             --allowedTools "mcp__github_inline_comment__create_inline_comment,Bash(gh pr view:*),Bash(gh pr diff:*),Bash(gh api:*),Bash(pnpm run:*),Bash(pnpm test:*),Bash(pnpm exec:*),Bash(pnpm --filter:*)"
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number }}
             HEAD SHA: ${{ github.event.pull_request.head.sha }}
-            MODE: ${{ steps.dedupe.outputs.reviewed == 'true' && steps.focus.outputs.fresh != 'true' && 'VERIFY' || 'FRESH' }}
+            MODE: ${{ steps.mode.outputs.mode == 'VERIFY' && 'VERIFY' || 'FRESH' }}
 
             ${{ steps.focus.outputs.block }}
 

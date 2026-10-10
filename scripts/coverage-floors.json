@@ -7,6 +7,7 @@
   "scripts/codemod-registry.mjs": { "lines": 99, "branches": 94, "functions": 100 },
   "scripts/consumer-sbom-meta.mjs": { "lines": 98, "branches": 89, "functions": 100 },
   "scripts/coverage-floors.mjs": { "lines": 99, "branches": 100, "functions": 93 },
+  "scripts/deep-review-gate.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/gen-api-docs.mjs": { "lines": 17, "branches": 1, "functions": 0 },
   "scripts/gen-api-sources.mjs": { "lines": 30, "branches": 56, "functions": 28 },
   "scripts/gen-component-catalog.mjs": { "lines": 91, "branches": 77, "functions": 75 },
