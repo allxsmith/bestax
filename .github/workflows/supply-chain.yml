@@ -160,9 +160,9 @@ jobs:
       # The list below is measured, not guessed: raw.githubusercontent
       # .com is here because sbom-action fetches syft's install script from it,
       # which no amount of reading the action would have made obvious. The cache
-      # host (productionresultssa12.blob.core.windows.net) is absent on purpose
-      # — harden-runner's probe discovers and adds it itself, as the sign-sbom
-      # comment already claimed and this run confirms.
+      # host (productionresultssa12.blob.core.windows.net) is absent on purpose,
+      # as runner infrastructure, which needs no listing (.github/CLAUDE.md,
+      # "Measuring an allowlist").
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -727,20 +727,12 @@ jobs:
       # flow, and this job uses the ambient GitHub Actions credential instead.
       #
       # `*.blob.core.windows.net` is deliberately absent, and this note exists
-      # because review passes keep proposing to add it. The
-      # artifact actions do reach Azure blob storage, but #487 measured a real
-      # run and found those hosts (`results-receiver.actions.githubusercontent
-      # .com`, `productionresultssa9.blob.core.windows.net`) already covered by
-      # harden-runner's built-in Actions baseline, so allow-listing them is
-      # unnecessary. In block mode harden-runner also runs a probe whose whole
-      # purpose is to discover the per-run blob backend host and add it itself —
-      # since v2.21.0 that probe is allowed to come up empty without changing the
-      # policy, because the agent admits the cache endpoints implicitly and the
-      # probe is defense-in-depth on top of that.
-      # The wildcard is the specific thing to avoid: every Azure storage account
-      # in existence lives under that suffix, so it would turn the tightest
-      # egress policy in this repository into something close to open egress. If
-      # a real run ever shows a blocked blob endpoint, add that exact host.
+      # because review passes keep proposing to add it. The artifact actions do
+      # reach Azure blob storage, through runner infrastructure, which needs no
+      # listing (.github/CLAUDE.md, "Measuring an allowlist"). The wildcard
+      # would admit every Azure storage account, a wider form of a path out
+      # that the agent already opens ("What the agent allows beyond the list").
+      # If a real run ever shows a blocked blob endpoint, add that exact host.
       #
       # Of this file's other jobs, `sbom`, `attach-sbom` and
       # `verify-provenance` predate rule 10 and are grandfathered by its

@@ -108,9 +108,8 @@ jobs:
       # Codemod's telemetry hosts, denied at the source by DISABLE_ANALYTICS;
       # nodejs.org, with no setup-node.
       #
-      # Not listed: api.github.com, as nothing calls the API. The agent's
-      # meta list usually admits it anyway; see "What the agent allows
-      # beyond the list" in .github/CLAUDE.md.
+      # Not listed: api.github.com, as nothing calls the API; see "What the
+      # agent allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -239,11 +238,11 @@ jobs:
       #
       #   token.actions.githubusercontent.com: the script asks for the OIDC
       #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host,
-      #     which "Measuring an allowlist" lists as runner infrastructure never
-      #     to allow-list. The issuer is where the REGISTRY fetches GitHub's
-      #     keys, on its side. The OIDC path first runs on the publish after
-      #     the API key is deleted; if that run reports a refused connection,
-      #     read its report before widening anything.
+      #     which needs no listing ("Measuring an allowlist" in
+      #     .github/CLAUDE.md). The issuer is where the REGISTRY fetches
+      #     GitHub's keys, on its side. The OIDC path first runs on the
+      #     publish after the API key is deleted; if that run reports a
+      #     refused connection, read its report before widening anything.
       #   Telemetry hosts, nodejs.org: as in `validate`.
       #
       # Not listed: api.github.com, as in `validate`.

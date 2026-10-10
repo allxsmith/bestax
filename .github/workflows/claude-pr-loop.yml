@@ -357,15 +357,9 @@ jobs:
       # allow-listed — the same call this repo already makes for the CLI's Datadog
       # host. That one matters most here: this job's session runs `pnpm test` and
       # `pnpm run` on nearly every iteration, so turbo is invoked constantly, and
-      # turbo samples its telemetry. The Actions cache blob host has no one name
-      # to list: it is productionresultssa<N>, a different N per run. It does not
-      # need to be listed. The agent's built-in entries admit it and
-      # results-receiver (.github/CLAUDE.md, "What the agent allows beyond the
-      # list"), and run 33286967625 showed
-      # claude-review at block restoring its pnpm cache and completing
-      # pnpm install --frozen-lockfile with neither that host nor
-      # results-receiver.actions.githubusercontent.com allow-listed. This job
-      # runs the same checkout/setup/install sequence.
+      # turbo samples its telemetry. The Actions cache blob host is runner
+      # infrastructure, which needs no listing (.github/CLAUDE.md, "Measuring an
+      # allowlist").
       #
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is

@@ -87,11 +87,10 @@ Measures active in this repository and its release pipeline:
   runs is installed with `npm ci` from a committed lockfile, so every
   package in its tree is fixed to one version and integrity hash, with
   lifecycle scripts off, then checked with `npm audit signatures`, and each
-  job's egress is limited to its own allowlist, plus the hosts
-  harden-runner's agent allows in every blocked job (see
-  `.github/CLAUDE.md`). Publishing authenticates with
-  an API key only until a Trusted Publisher replaces it with short-lived
-  GitHub OIDC tokens.
+  job runs under harden-runner's egress block, which admits the job's own
+  allowlist and more besides (see `.github/CLAUDE.md`). Publishing
+  authenticates with an API key only until a Trusted Publisher replaces it
+  with short-lived GitHub OIDC tokens.
 - **The bestax plugin repository.** The `bestax` coding-agent plugin installs
   from [allxsmith/bestax-skills](https://github.com/allxsmith/bestax-skills),
   which `.github/workflows/skills-publish.yml` generates from this

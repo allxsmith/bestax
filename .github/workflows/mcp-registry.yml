@@ -29,9 +29,9 @@ name: MCP Registry
 # here: the binary is pinned to one release and one SHA-256, the code driving
 # it comes from `main` (see the checkout step), the job's only other
 # credential is a read-only GITHUB_TOKEN for a public repository, and its
-# egress is limited to the hosts listed below plus the hosts harden-runner's
-# agent allows in every blocked job (.github/CLAUDE.md, "What the agent
-# allows beyond the list"). Those raise the cost; none of them is a proof.
+# egress runs under harden-runner's block mode, which admits the hosts listed
+# below and more besides (.github/CLAUDE.md, "What the agent allows beyond
+# the list"). Those raise the cost; none of them is a proof.
 #
 # Triggers. `release: published` fires for every package's release, and the
 # job's `if` keeps only bestax-mcp@ tags. It fires at all because
@@ -120,9 +120,9 @@ jobs:
       #
       #   token.actions.githubusercontent.com: the publisher asks for its OIDC
       #     token at ACTIONS_ID_TOKEN_REQUEST_URL, a runner control-plane host
-      #     (run-actions-*.actions.githubusercontent.com) that harden-runner
-      #     admits without a listing. On that same supply-chain run,
-      #     sign-sbom's cosign got every token from a
+      #     (run-actions-*.actions.githubusercontent.com), which needs no
+      #     listing ("Measuring an allowlist" in .github/CLAUDE.md). On that
+      #     same supply-chain run, sign-sbom's cosign got every token from a
       #     run-actions-*.actions.githubusercontent.com host, which its list
       #     does not name, and never contacted
       #     token.actions.githubusercontent.com, which it does. The issuer is
@@ -134,9 +134,8 @@ jobs:
       #     redirect no longer goes there.
       #   nodejs.org: no setup-node.
       #
-      # Not listed: api.github.com, as nothing calls the API. The agent's
-      # meta list usually admits it anyway; see "What the agent allows
-      # beyond the list" in .github/CLAUDE.md.
+      # Not listed: api.github.com, as nothing calls the API; see "What the
+      # agent allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
         timeout-minutes: 2
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1

@@ -39,7 +39,7 @@ name: AI Security Scan
 # asserts the EFFECTIVE policy, so a regression fails the job instead of
 # degrading in silence.
 #
-# Be precise about what that adds: it bounds where the OAuth token can be sent
+# Be precise about what that adds: it narrows where the OAuth token can be sent
 # if the tool allowlist is ever defeated. It does not replace the allowlist —
 # `gh` reaches api.github.com, which is allow-listed, so egress-block would not
 # stop a write issued through a tool. Two controls, each covering what the
@@ -353,7 +353,7 @@ jobs:
   # than "the allowlist no longer matters": this job still carries
   # CLAUDE_CODE_OAUTH_TOKEN alongside Bash, so by I1 the allowlist remains the
   # only control against reading that credential out of the environment. Egress
-  # is enforced as of #487, but it bounds WHERE data can go, not what a tool can
+  # is enforced as of #487, but it narrows WHERE data can go, not what a tool can
   # do with an allow-listed host — api.github.com is on the list. Keep the
   # allowlist narrow (rule 2); the two controls cover different things.
   #

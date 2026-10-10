@@ -130,7 +130,7 @@ regardless of how convenient it is.
   reviewing code is the job. What holds them is a different, weaker set: the tool allowlist, the
   protected-path deny rules, the trusted-labeler gates, and — as of #578, for all five of them —
   an enforced egress policy on a measured allowlist. Read that last leg for exactly what rule 10
-  says it delivers: it bounds **where** a session can send data, and `api.github.com` is
+  says it delivers: it narrows **where** a session can send data, and `api.github.com` is
   necessarily on every one of those allowlists, so it does not bound what the session can do
   through a tool. Saying I1 covers those jobs would be the exact overstatement the checklist at
   the bottom of this file ends on. It covers the pipeline that was designed around it.
@@ -140,7 +140,7 @@ regardless of how convenient it is.
   I1**, which an earlier draft of this file did while `claude-repro.yml` said the opposite: on
   the exfil path I1 exists to close — `Write` plus a later publishing job — the drafting job's
   egress policy bounds nothing, because the publishing job has no policy of its own. Be exact
-  about what it does add: it bounds **where** a session can send data, not **what** it can do
+  about what it does add: it narrows **where** a session can send data, not **what** it can do
   with the hosts it is allowed. `api.github.com` is
   necessarily allow-listed in every one of these jobs, so egress-block cannot stop a write
   issued through a tool. Never trade away a tool restriction on the grounds that "egress is
@@ -244,10 +244,10 @@ Read the third column for **which** credential — since #455 and #457 neither s
 reach repository write any more, and "the session can't write to the repo" is not the same
 claim as "the allowlist stopped mattering":
 
-| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired.    |
-| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. Egress-block IS enforced here as of #487 (rule 10), and the two are complementary rather than redundant: it bounds **where** data can go, while `api.github.com` is necessarily allow-listed, so it cannot stop a write issued through a tool. Narrow, not retired. |
+| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired.     |
+| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. Egress-block IS enforced here as of #487 (rule 10), and the two are complementary rather than redundant: it narrows **where** data can go, while `api.github.com` is necessarily allow-listed, so it cannot stop a write issued through a tool. Narrow, not retired. |
 
 Concrete rules:
 
@@ -602,10 +602,11 @@ quietly misses a model-token job, or implies coverage a workflow only partly has
 no table, for the same reason a comment that overstates its mechanism is.
 
 Citing egress-block as a control is now legitimate **for the first group only**, and only for
-what it actually does: it bounds where data can go, to the job's list plus what the agent adds
-to it ("What the agent allows beyond the list"), not what a session can do with an
-allow-listed host (see I1). Widening an allowlist remains a security change under rule 2, and
-`sign-sbom`'s list is still assembled by reading the actions rather than from a measured run.
+what it actually does: it narrows where data can go without bounding it ("What the agent allows
+beyond the list" says what reaches past a job's list), and it does nothing about what a session
+does with an allow-listed host (see I1). Widening an allowlist remains a security change under
+rule 2, and `sign-sbom`'s list is still assembled by reading the actions rather than from a
+measured run.
 So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists and
 `skills-publish`'s `relay`, `generate` and `publish` lists, which no run had exercised when they
 were written.
@@ -616,47 +617,63 @@ prints the effective `EgressPolicy:`.
 
 #### What the agent allows beyond the list
 
-A block job can reach more than its `allowed-endpoints`. The agent harden-runner installs adds
-the entries below to every block job's list, each on port 443 (`addImplicitEndpoints` in
-step-security/agent, at the version the pin installs). A wildcard entry admits a host when the
-job looks it up. Every other entry, the job's own included, is resolved at startup, and one that
-does not resolve reverts the firewall (rule 10).
+A block job's `allowed-endpoints` bounds the named hosts that job adds to the firewall, and
+nothing more. It is not a bound on the job's egress. Everything in this section is about the
+open-source agent, step-security/agent at the version the pin installs, read from its source.
+When the pre-step selects the closed-source `agent-ebpf` instead (rule 1), none of it can be
+checked from here.
 
-- **The meta list, from StepSecurity's API.** Since harden-runner v2.21.1 (agent v0.16.3), the
-  agent fetches GitHub's `actions` domains from StepSecurity's `/github/meta` at startup
-  (`getGithubMetaDomains`) and adds each one that does not end in `githubusercontent.com`. That
-  has been `github.com`, `*.github.com` (which covers `api.github.com`), `*.githubapp.com`,
-  `ghcr.io`, and the productionresultssa hosts under `blob.core.windows.net`, each by its own
-  name. The skip is why a job that needs `objects.githubusercontent.com` or
-  `release-assets.githubusercontent.com` still lists it.
-- **The built-in entries, present even when that fetch fails.** `codeload.github.com`,
+The agent adds these to every block job's list, each on port 443 (`addImplicitEndpoints`):
+
+- **The meta list.** GitHub's `actions` domains as StepSecurity's `/github/meta` serves them at
+  startup, minus any ending in `githubusercontent.com`, which is why a job that needs
+  `objects.githubusercontent.com` still lists it. It has included `github.com` and
+  `*.github.com`, which covers `api.github.com`. It is StepSecurity's list, not ours, and can
+  change with no diff here: a run's `Post Harden runner` log shows what that run fetched
+  (`fetched GitHub meta domains`), and `curl -s https://agent.api.stepsecurity.io/v1/github/meta`
+  what it would fetch now.
+- **The built-in entries,** present even when that fetch fails: `codeload.github.com`,
   `*.actions.githubusercontent.com`, `actions-results-receiver-production.githubapp.com` and
-  `productionresultssa*.blob.core.windows.net`. They predate the meta list, and they cover the
-  Actions cache and the runner's control-plane hosts under `actions.githubusercontent.com`
-  ("Measuring an allowlist"). Through `codeload.github.com`, a job that leaves `github.com` off
-  its list can still download a repository archive.
+  `productionresultssa*.blob.core.windows.net`. They carry the Actions cache and the runner's
+  control plane ("Measuring an allowlist").
 - **StepSecurity's telemetry hosts,** `agent.api.stepsecurity.io` and
   `prod.app-api.stepsecurity.io`, unless the job sets `disable-telemetry: true`
   (`grep -rn disable-telemetry .github/workflows/` lists any that do).
 
-Two things outside that function reach past the list as well. harden-runner's pre-step appends
-the Actions cache's storage host to the job's list when it can look the host up
-(`Adding cacheHost` in its log). The agent's firewall accepts the Azure platform addresses `168.63.129.16` and
-`169.254.169.254` and the private address ranges with no lookup at all (`addBlockRules` in its
-`firewall.go`).
+A wildcard entry admits a host when the job looks it up. Every other entry, the job's own
+included, is resolved at startup, and one that does not resolve reverts the firewall (rule 10),
+so the meta list is the other place to look when every block job fails its assertion at once. A
+failed meta fetch narrows the policy rather than opening it, which is why a job still lists a
+GitHub host it needs. StepSecurity's global blocklist is applied to every entry, the job's own
+included, so it can drop a host a job lists, also with no diff here
+(`removing globally blocklisted` in the agent log).
 
-- **The meta list is StepSecurity's, not ours.** It can change with no diff here and no pin
-  change. A run's `Post Harden runner` log shows what the agent fetched, on the
-  `fetched GitHub meta domains` line. `curl -s https://agent.api.stepsecurity.io/v1/github/meta`
-  shows what it would fetch now, and `gh api meta --jq .domains.actions` the list GitHub
-  publishes. Its non-wildcard entries are resolved at startup like ours, so it is the other place
-  to look when every block job fails its assertion at once.
-- **A failed fetch narrows rather than opens.** The agent logs it and carries on with the job's
-  list, the built-in entries and the telemetry hosts. So a job keeps a GitHub host it needs on
-  its list even though the meta list usually adds it, and the list stays what a reviewer reads.
-- **For a GitHub host, say "not listed", never "cannot reach".** A comment may give the reason a
-  job leaves `github.com` or `api.github.com` off its list, and point here. It may not say the
-  job cannot reach the host, and it does not restate what the agent adds.
+These are the known paths past a job's list. They are what reading the source has turned up so
+far, not a complete account, so add to them rather than treating them as one:
+
+- **Any storage account whose name starts `productionresultssa`.** The built-in wildcard
+  matches on prefix and suffix alone (`matchWildcardDomain`), and Azure account names run to 24
+  characters, so an account anyone can create matches it and takes uploads. That is a way out of
+  every block job here, and it is older than the meta list.
+- **Root.** Unless a job sets `disable-sudo` or `disable-sudo-and-containers`
+  (`grep -rn disable-sudo .github/workflows/` lists any that do), any step can `sudo`, and root
+  can change the firewall rules themselves.
+- **Public DNS over HTTPS.** The firewall (`addBlockRules` in the agent's `firewall.go`) accepts
+  TCP 443 to `8.8.8.8`, `8.8.4.4` and `1.1.1.1` from the agent's own user, which is root, so a
+  step that can `sudo` can carry data out in DNS queries and leave the rules as they are.
+- **Addresses, not names.** The rules admit IP addresses, so a host served from the same address
+  as an admitted one, such as another storage account behind the same front end, is reachable
+  too.
+- **Connections already open.** `ESTABLISHED,RELATED` traffic is accepted, so a connection open
+  before the firewall went up stays usable.
+- **Azure platform and private addresses.** `168.63.129.16`, `169.254.169.254` and the private
+  ranges are accepted with no lookup (`addBlockRules`).
+- **The Actions cache host.** harden-runner's pre-step appends the cache's storage host to the
+  job's list when it can look the host up (`Adding cacheHost` in its log).
+
+For a GitHub host, say "not listed", never "cannot reach". A comment may give the reason a job
+leaves a host off its list and point here. It does not say the job cannot reach the host, and it
+does not restate what the agent adds.
 
 #### Measuring an allowlist
 
@@ -673,29 +690,29 @@ gh run view <run-id> --log \
 
 Two things about reading its output, both learned assembling the #578 lists:
 
-- **Runner infrastructure appears in that log and must never be allow-listed.**
+- **Runner infrastructure appears in that log and need not be allow-listed.**
   `results-receiver.actions.githubusercontent.com`,
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
   are the runner talking to its own control plane, and the agent admits them without a listing:
   its built-in entries cover the first three, and the meta list's `*.githubapp.com` the last
-  ("What the agent allows beyond the list"). The blob host has no one name a job's list could
-  carry, since N varies between runs. The built-in `productionresultssa*` wildcard admits
-  whichever one a run gets, and the meta list names the ones GitHub publishes, each resolved at
-  startup.
-  Run
-  33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at `block`
-  with its list observed only `api.github.com` and `github.com`, and completed every one of
-  its API calls under the firewall.
+  ("What the agent allows beyond the list"). Leave them off a new list. The blob host has no one
+  name a list could carry, since N varies between runs, and listing the others adds nothing, so
+  a list that already names one is redundant rather than wrong.
+  Run 33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at
+  `block` with its list observed only `api.github.com` and `github.com`, and completed every one
+  of its API calls under the firewall.
 
-  **Leaving them out costs nothing, and that is measured rather than assumed.** The agent's
-  built-in entries admit the blob hosts and `results-receiver`, so the Actions cache keeps working:
-  run 33286967625 ran `claude-review` at `block` with neither the blob host nor
-  `results-receiver` allow-listed, and its `setup-node` step restored the pnpm cache
-  successfully before `pnpm install --frozen-lockfile` completed. Worth stating plainly
-  because the first revision of this bullet predicted a cache miss and called it an accepted
-  cost. That was a guess, it was wrong, and the run is what showed it. If you catch yourself
-  writing down what a policy will cost, go and read a run instead.
+  **Leaving them out costs nothing, and that is measured rather than assumed.** Run 33286967625
+  ran `claude-review` at `block` on harden-runner v2.21.0, whose agent had the built-in entries
+  and no meta list. Its `setup-node` step restored the pnpm cache through `results-receiver` and
+  `productionresultssa6` before `pnpm install --frozen-lockfile` completed. Neither was on the
+  job's list, and the pre-step had added a different blob host. So the built-in entries carry the
+  cache on their own. After a pin bump, check they are still in `addImplicitEndpoints` before
+  leaning on that run. Worth stating plainly because the first revision of this bullet predicted
+  a cache miss and called it an accepted cost. That was a guess, it was wrong, and the run is
+  what showed it. If you catch yourself writing down what a policy will cost, go and read a run
+  instead.
 
 - **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from a
   run and present in the next — `telemetry.vercel.com` (turbo) showed up exactly once across

@@ -90,15 +90,8 @@ jobs:
       # Two observed hosts are deliberately absent. telemetry.vercel.com is turbo's
       # telemetry, denied via TURBO_TELEMETRY_DISABLED below rather than
       # allow-listed — the same call this repo already makes for the CLI's Datadog
-      # host. The Actions cache blob host has no one name to list: it is
-      # productionresultssa<N>, a different N per run. It does not need to be
-      # listed. The agent's built-in entries admit it and results-receiver
-      # (.github/CLAUDE.md, "What the agent allows beyond the list"), and
-      # run 33286967625 is the proof rather than the assumption: claude-review at
-      # block, with neither that host nor results-receiver.actions.githubusercontent.com
-      # allow-listed, restored its pnpm cache and completed pnpm install
-      # --frozen-lockfile. An earlier revision of this comment predicted a cache miss
-      # here; it was wrong, and measuring it is what showed that.
+      # host. The Actions cache blob host is runner infrastructure, which needs no
+      # listing (.github/CLAUDE.md, "Measuring an allowlist").
       #
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is
