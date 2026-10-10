@@ -340,15 +340,21 @@ test('scopeOf keeps open same-repo deep-review PRs, and the App’s ai-loop PRs,
   const app = labels => pr({ labels, user: APP_USER });
   assert.equal(scope(app(['ai-loop'])), null);
   assert.equal(scope(app(['deep-review', 'ai-loop'])), null);
-  // ai-loop alone does not bring in anyone else's PR: claude-pr-loop.yml's
-  // PRs, opened by the machine User, carry it too, and that loop hands off
-  // by taking it off. deep-review still brings any PR in.
-  for (const user of [MACHINE_USER, { login: 'octocat', type: 'User' }]) {
+  // ai-loop keeps anyone else's PR out, deep-review or not: claude-pr-loop.yml
+  // drives the PRs the machine User opened and hands them off itself.
+  for (const user of [
+    MACHINE_USER,
+    { login: 'octocat', type: 'User' },
+    undefined,
+  ]) {
     assert.equal(
       scope(pr({ labels: ['ai-loop'], user })),
       'no deep-review label, and not an ai-loop PR the App opened'
     );
-    assert.equal(scope(pr({ labels: ['deep-review', 'ai-loop'], user })), null);
+    assert.equal(
+      scope(pr({ labels: ['deep-review', 'ai-loop'], user })),
+      'ai-loop PR the App did not open, which claude-pr-loop.yml hands off'
+    );
   }
   // The App's handoff and park take ai-loop and deep-review off, and the PR
   // leaves scope, keeping whatever label it has. A label that only starts
@@ -1591,7 +1597,6 @@ function sweepRoutes() {
     ]),
     ...prRoutes(1, CLEAN),
     ...prRoutes(2, { ...CLEAN, threads: [{ isResolved: false }] }),
-    ...prRoutes(3, CLEAN),
     ...prRoutes(5, CLEAN),
     // The re-read before each write.
     [`GET /repos/${REPO}/pulls/1`]: response(200, ready),
@@ -1631,8 +1636,11 @@ test('a sweep adds, removes and leaves alone as the decision says', async () => 
     /#2 not converged: 1 unresolved review thread\(s\), remove label: written/
   );
   assert.match(text, /^::notice title=review-converged::#2 unlabeled$/m);
-  // A bot loop PR is judged like any other and here has nothing to change.
-  assert.match(text, /#3 converged, label unchanged/);
+  // The old loop's PR keeps its label: claude-pr-loop.yml hands it off.
+  assert.match(
+    text,
+    /#3 skipped \(ai-loop PR the App did not open, which claude-pr-loop\.yml hands off\)/
+  );
   assert.match(text, /#5 converged, label unchanged/);
   // A stacked PR keeps its label: it is out of scope, not unconverged.
   assert.match(text, /#6 skipped \(based on "feat\/base", not "main"\)/);
@@ -1671,6 +1679,7 @@ test('a PR that moved or changed while it was checked is not labeled', async () 
   for (const [now, outcome] of [
     [pr({ number: 1, head: { sha: OLD, repo: { full_name: REPO } } }), 'stale'],
     [pr({ number: 1, labels: [] }), 'stale'],
+    [pr({ number: 1, labels: ['deep-review', 'ai-loop'] }), 'stale'],
     [pr({ number: 1, state: 'closed' }), 'stale'],
     [pr({ number: 1, base: { ref: 'feat/base' } }), 'stale'],
     [pr({ number: 1, labels: ['deep-review', LABEL] }), 'already set'],
@@ -1734,6 +1743,7 @@ test('a PR that left scope or moved while it was checked keeps its label', async
   const labels = ['deep-review', LABEL];
   for (const [now, outcome] of [
     [pr({ number: 2, labels: [LABEL] }), 'stale'],
+    [pr({ number: 2, labels: [...labels, 'ai-loop'] }), 'stale'],
     [pr({ number: 2, labels, base: { ref: 'feat/base' } }), 'stale'],
     [pr({ number: 2, labels, state: 'closed' }), 'stale'],
     [
@@ -1842,19 +1852,35 @@ test('either scope label is enough to remove the label on an App PR', async () =
   );
 });
 
-test('ai-loop alone leaves a PR the App did not open alone', async () => {
-  // claude-pr-loop.yml's PRs, opened by the machine User, carry ai-loop and
-  // lose it at that loop's handoff, which would strand a label put on here.
-  // deep-review still brings one in, and keeps it in through that handoff.
+test('ai-loop leaves a PR the App did not open alone, deep-review or not', async () => {
+  // claude-pr-loop.yml drives the machine User's PRs and hands them off with
+  // needs-human-review, so this label stays off them while it does.
   for (const data of [CLEAN, { ...CLEAN, threads: [{ isResolved: false }] }]) {
-    for (const labels of [['ai-loop'], ['ai-loop', LABEL]]) {
+    for (const labels of [
+      ['ai-loop'],
+      ['ai-loop', LABEL],
+      ['ai-loop', 'deep-review'],
+      ['ai-loop', 'deep-review', LABEL],
+    ]) {
       const result = await sweepOne(labels, labels, data, MACHINE_USER);
       assert.equal(result.code, 0);
       assert.deepEqual(result.writes, [], labels.join(','));
     }
   }
-  const result = await sweepOne(
+  const named = await sweepOne(
     ['ai-loop', 'deep-review'],
+    ['ai-loop', 'deep-review'],
+    CLEAN,
+    MACHINE_USER
+  );
+  assert.match(
+    named.text,
+    /#9 skipped \(ai-loop PR the App did not open, which claude-pr-loop\.yml hands off\)/
+  );
+  // That loop's handoff takes ai-loop off, and deep-review alone then brings
+  // the PR in like any other.
+  const result = await sweepOne(
+    ['deep-review'],
     ['deep-review'],
     CLEAN,
     MACHINE_USER

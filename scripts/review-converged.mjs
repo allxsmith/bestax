@@ -9,17 +9,16 @@
  * are judged by the same rule, and `ai-loop` alone puts them in scope: the bot
  * applies it to start the fresh review and cycles `deep-review` only to ask
  * for a later one, so a fresh review with no findings leaves its PR without
- * `deep-review`. The bot hands off when this label arrives. `ai-loop` counts
- * on the App's PRs only. claude-pr-loop.yml's PRs carry it too, and that loop
- * hands off by taking it off, which would take a PR this label was put on out
- * of scope and leave the label to go stale there.
+ * `deep-review`. The bot hands off when this label arrives. Any other PR
+ * carrying `ai-loop` is out of scope, `deep-review` or not: claude-pr-loop.yml
+ * drives those and hands them off with `needs-human-review`.
  *
  * A PR is in scope when it is open, its head branch is in this repository, its
- * base is the default branch, and it carries `deep-review`, or `ai-loop` on a
- * PR the App opened (isAppPr). The base matters because CI runs only on pull
- * requests to main (ci.yml): a PR stacked on another branch gets no CI, and
- * the skipped check runs it does get would read as passing. An in-scope PR
- * has converged when all of these hold:
+ * base is the default branch, and it carries `deep-review` without `ai-loop`,
+ * or either of them on a PR the App opened (isAppPr). The base matters
+ * because CI runs only on pull requests to main (ci.yml): a PR stacked on
+ * another branch gets no CI, and the skipped check runs it does get would
+ * read as passing. An in-scope PR has converged when all of these hold:
  *
  * 1. Its newest deep-review summary (a review by the claude[bot] app that
  *    starts with the marker) is pinned to the current head commit and leaves
@@ -100,9 +99,9 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const LABEL = 'review-converged';
-/** A PR carrying this is in scope (scopeOf). */
+/** In scope with this, unless on an `ai-loop` PR the App did not open. */
 export const SCOPE_LABEL = 'deep-review';
-/** A PR the App opened is in scope with this alone (scopeOf). */
+/** A PR the App opened is in scope with this alone, and any other is out. */
 export const LOOP_LABEL = 'ai-loop';
 export const FLAG_LABEL = 'needs-security-review';
 
@@ -371,12 +370,15 @@ export function scopeOf(pr, repo, defaultBranch) {
     return `based on ${forLog(pr?.base?.ref)}, not ${forLog(defaultBranch)}`;
   if (!hasScopeLabel(pr))
     return `no ${SCOPE_LABEL} label, and not an ${LOOP_LABEL} PR the App opened`;
+  if (labelNames(pr).includes(LOOP_LABEL) && !isAppPr(pr))
+    return `${LOOP_LABEL} PR the App did not open, which claude-pr-loop.yml hands off`;
   return null;
 }
 
 /**
  * True when `pr` carries SCOPE_LABEL, or LOOP_LABEL on a PR the App opened.
- * scopeOf adds the rest of the scope.
+ * scopeOf adds the rest of the scope, and the run log names an out-of-scope
+ * PR that passes this.
  */
 function hasScopeLabel(pr) {
   const labels = labelNames(pr);
@@ -862,13 +864,13 @@ export async function evaluate(client, repo, pr, defaultBranch) {
 /**
  * Apply a decision. The PR is read again before either write, dry run
  * included. The write is dropped as stale when the state it was decided on is
- * gone: scopeOf no longer accepts the PR (closed, a new base, or no label
- * left that puts it in scope), or its head moved. So a PR that
- * left scope while it was evaluated keeps its label, as every out-of-scope PR
- * does, and a later run judges a moved head. An add is also dropped when the
- * PR now carries `needs-security-review`, read by the same flagProblems the
- * evaluation used. A removal goes ahead then, since the flag only stops
- * convergence.
+ * gone: scopeOf no longer accepts the PR (closed, a new base, no label left
+ * that puts it in scope, or `ai-loop` on a PR the App did not open), or its
+ * head moved. So a PR that left scope while it was evaluated keeps its label,
+ * as every out-of-scope PR does, and a later run judges a moved head. An add
+ * is also dropped when the PR now carries `needs-security-review`, read by the
+ * same flagProblems the evaluation used. A removal goes ahead then, since the
+ * flag only stops convergence.
  */
 async function apply(client, repo, defaultBranch, pr, decision, dryRun) {
   const now = await client.json(`/repos/${repo}/pulls/${pr.number}`);
