@@ -172,6 +172,46 @@ test(
   }
 );
 
+test(
+  'an unreadable directory is reported, and the walk carries on past it',
+  {
+    skip: process.getuid?.() === 0 && 'root reads any directory',
+  },
+  async () => {
+    const root = site({
+      'build/llms.txt': null,
+      'build/docs/guides/intro.md': PAGE,
+    });
+    const locked = join(root, 'build/docs/api');
+    chmodSync(locked, 0o000);
+    try {
+      const { code, error } = await run(root);
+      assert.equal(code, 1);
+      assert.deepEqual(error.sort(), [
+        'check-generated-markers: build/docs/api could not be read: EACCES.',
+        leaked('build/docs/guides/intro.md'),
+        missing('build/llms.txt'),
+      ]);
+    } finally {
+      chmodSync(locked, 0o755);
+    }
+  }
+);
+
+test('a build/ that is a file is reported with the rest', async () => {
+  const root = mkdtempSync(join(tmpdir(), 'check-markers-'));
+  temps.push(root);
+  writeFileSync(join(root, 'build'), 'not a directory\n');
+  const { code, error } = await run(root);
+  assert.equal(code, 1);
+  assert.deepEqual(error.sort(), [
+    'check-generated-markers: build could not be read: ENOTDIR.',
+    NO_TWINS,
+    missing('build/llms-full.txt'),
+    missing('build/llms.txt'),
+  ]);
+});
+
 test('an empty or whitespace-only file fails the build', async () => {
   for (const file of [
     'build/llms.txt',
