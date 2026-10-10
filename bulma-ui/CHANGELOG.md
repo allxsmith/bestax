@@ -1,3 +1,19 @@
+## [5.27.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.7...@allxsmith/bestax-bulma@5.27.8) (2026-10-10)
+
+
+### Bug Fixes
+
+* **bulma-ui:** drop a Field label's for when nothing it holds takes it ([#1020](https://github.com/allxsmith/bestax/issues/1020)) ([3604c14](https://github.com/allxsmith/bestax/commit/3604c14a13b1a4d6674c6e57e0cd6d00df880e7d))
+* **bulma-ui:** keep Theme's component-variable check out of production ([537d90d](https://github.com/allxsmith/bestax/commit/537d90d104c95ae3dbbbc5a93b78bd57f882c174))
+* **bulma-ui:** warn when Theme is given a variable Bulma sets on the component ([bb8f9b8](https://github.com/allxsmith/bestax/commit/bb8f9b86c78a5e4ca681155393000d0f8bcc5320)), closes [#1021](https://github.com/allxsmith/bestax/issues/1021)
+* **docs:** give the mixin note the modifier caveat its lead carries ([1427f08](https://github.com/allxsmith/bestax/commit/1427f0824432200ebf30d2ce4e46d90306da4b0d))
+* **docs:** keep the modifier caveat for mixin variables in the MCP index ([e227663](https://github.com/allxsmith/bestax/commit/e2276639e81c6d979f4888357b4e2b8f5ab5c0db))
+* **docs:** name the one edge of the rule for which variables Theme reaches ([b33ebfa](https://github.com/allxsmith/bestax/commit/b33ebfa21012c79749afd2a3a25729a1e8ea5ac4))
+* **docs:** qualify the guide and the theming skill on what Theme reaches ([9c2347b](https://github.com/allxsmith/bestax/commit/9c2347ba6a53bebd2adb07a22d1a33c2228d7c36))
+* **docs:** read only a component's own mixin as its home ([f40cd2c](https://github.com/allxsmith/bestax/commit/f40cd2c7611f702c250f4f3b924cc587ca53de49))
+* **docs:** refuse a CSS-variable scope the page cannot fully word ([c815602](https://github.com/allxsmith/bestax/commit/c815602fb85c46077686c383965c717660fca26c))
+* **docs:** say where component-scoped Bulma variables have to be set ([771d5bd](https://github.com/allxsmith/bestax/commit/771d5bd980ffd4c8d3068b881bf2ca4b24c7ddfa)), closes [#1021](https://github.com/allxsmith/bestax/issues/1021)
+
 ## [5.27.7](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.6...@allxsmith/bestax-bulma@5.27.7) (2026-10-10)
 
 
