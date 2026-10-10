@@ -239,9 +239,11 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           track_progress: true
           use_commit_signing: true
-          # Stream tool calls + denials into the job log (the execution-output
-          # artifact's blob host is blocked by the proxy) so a blocked commit
-          # or a thrash is diagnosable.
+          # Stream tool calls + denials into the job log too, so a blocked
+          # commit or a thrash can be read there without downloading the
+          # execution-log artifact uploaded below. That upload's blob host is
+          # runner infrastructure, which needs no listing (.github/CLAUDE.md,
+          # "Measuring an allowlist").
           show_full_output: true
           # The prompt's protected-path exclusions are enforced here, not just
           # stated: --disallowedTools deny rules take precedence over the
@@ -381,8 +383,8 @@ jobs:
 
       # Observability: the action writes a full turn-by-turn stream (every
       # tool call, and every permission denial) to this file. Upload it so a
-      # failed/thrashing run is diagnosable after the fact — the Actions log
-      # itself only carries the init + final result. `always()` so it is kept
+      # failed/thrashing run is diagnosable after the fact, as a file beside
+      # the copy show_full_output puts in the job log. `always()` so it is kept
       # even when the Claude step fails (exactly when it is needed).
       - name: Upload Claude execution log
         if: always() && steps.perm.outputs.allowed == 'true'

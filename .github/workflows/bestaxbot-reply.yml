@@ -294,8 +294,9 @@ jobs:
           bot_id: '300268469'
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           use_commit_signing: true
-          # Per-turn tool calls + denials in the log (the artifact blob host is
-          # proxy-blocked) so a blocked reply/commit is diagnosable.
+          # Per-turn tool calls + denials in the job log, so a blocked
+          # reply/commit is diagnosable. This job uploads no execution-log
+          # artifact, so the log is where that stream survives the job.
           show_full_output: true
           # The prompt's protected-path exclusions are enforced here, not just
           # stated: --disallowedTools deny rules take precedence over the

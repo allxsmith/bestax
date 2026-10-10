@@ -516,8 +516,10 @@ jobs:
           allowed_bots: 'coderabbitai,claude,github-actions,copilot'
           use_commit_signing: true
           # Stream the full turn-by-turn (tool calls + permission denials) into
-          # the job log. The proxy blocks the execution-output artifact's blob
-          # host, so this is the only way to see WHICH tool a denial hit.
+          # the job log too, so WHICH tool a denial hit can be read there
+          # without downloading the execution-log artifact uploaded below. That
+          # upload's blob host is runner infrastructure, which needs no listing
+          # (.github/CLAUDE.md, "Measuring an allowlist").
           show_full_output: true
           additional_permissions: |
             actions: read
@@ -679,9 +681,9 @@ jobs:
 
       # Observability: the action writes a full turn-by-turn stream (every
       # tool call, and every permission denial) to this file. Upload it so a
-      # failed/thrashing fix pass is diagnosable after the fact — the Actions
-      # log itself only carries the init + final result. `always()` so it is
-      # kept even when the fix step fails (exactly when it is needed).
+      # failed/thrashing fix pass is diagnosable after the fact, as a file
+      # beside the copy show_full_output puts in the job log. `always()` so it
+      # is kept even when the fix step fails (exactly when it is needed).
       - name: Upload Claude execution log
         if: always() && steps.claude.conclusion != 'skipped'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
@@ -905,8 +907,9 @@ jobs:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           # Same list as fix; the rationale is on fix's entry.
           allowed_bots: 'coderabbitai,claude,github-actions,copilot'
-          # Stream tool calls + denials to the log (blob-hosted artifact is
-          # blocked by the proxy) so a rebuttal pass is diagnosable.
+          # Stream tool calls + denials to the job log so a rebuttal pass is
+          # diagnosable. This job uploads no execution-log artifact, so the log
+          # is where that stream survives the job.
           show_full_output: true
           claude_args: |
             --max-turns 25
