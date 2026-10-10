@@ -354,6 +354,72 @@ jobs:
           git log -1 --show-signature
           pnpm exec semantic-release
 
+      # A bulma-ui release bumps bulma-ui/package.json, and gen-mcp-index.mjs
+      # stamps that version into the COMMITTED bestax-mcp/data/catalog.json
+      # (`generatedFrom.version`). Nothing above regenerates it, so main was
+      # left carrying an index stamped with the previous version — and because
+      # the release commit skips CI, no run on main ever evaluated
+      # `gen:mcp:check` to notice. The damage landed on everyone else: every
+      # branch cut from main afterwards regenerates, sees the drift, and fails
+      # a check on a file it never touched (#518, #520).
+      #
+      # After Semantic Release (bulma-ui) and before Semantic Release
+      # (bestax-mcp), and both halves of that are load-bearing (#932).
+      # bestax-mcp's publish packs data/ from this working tree, so
+      # regenerating here is what puts the bulma-ui version this run released
+      # into the bestax-mcp tarball. When this ran after every release, a run
+      # that released both shipped bestax-mcp with an index stamped one
+      # release behind. bestax-mcp's release commit leaves the change alone,
+      # because its git assets name nothing under data/, so its tag keeps the
+      # previous stamp while its tarball carries this one. "Commit and push
+      # the MCP index restamp" at the end of the job commits it to main.
+      #
+      # Why a separate step rather than @semantic-release/exec plus a git
+      # asset, which is the obvious shape: @semantic-release/git selects assets
+      # by running `git ls-files -m -o` and micromatching the result, and each
+      # release above runs with `working-directory` set to its own package. Run
+      # from bulma-ui/, `git ls-files` lists only files under bulma-ui/, so
+      # bestax-mcp/data/catalog.json can never appear in that list no matter
+      # how the asset path is written. It would silently commit nothing, which
+      # is the worst outcome available: a fix that looks applied and is not.
+      # (Same reason the `pnpm-lock.yaml` asset in bulma-ui/release.config.js
+      # has never matched — the root lockfile is outside that cwd too.)
+      #
+      # A failure here stops the job before bestax-mcp and eslint-plugin
+      # release, and skips the restamp push at the end of the job. In a run
+      # that released bulma-ui, main is then stale as described above, so
+      # build-and-test fails gen:mcp:check on the pushes to main that follow
+      # and publish, which needs it, is skipped. Neither package releases
+      # until someone runs `pnpm gen:mcp` on main and merges the result.
+      # build-and-test has already run this generator over this commit in
+      # gen:mcp:check, so the released version is the only new input here.
+      #
+      # No-ops when nothing released: with no version change the generator's
+      # output is byte-identical and the guard exits early.
+      # Split across two steps for the same reason the App token is minted after
+      # install and build rather than before: a bypass-capable credential must
+      # not be in the environment while repo-owned code executes. `pnpm gen:mcp`
+      # runs scripts/gen-mcp-index.mjs and whatever it imports, so it gets no
+      # token. Only the commit-and-push step, which runs nothing from this
+      # repository, sees one.
+      - name: Regenerate the MCP index
+        id: restamp
+        run: |
+          pnpm gen:mcp
+          # --intent-to-add mirrors gen:mcp:check exactly. The output is a
+          # directory, and `git diff` cannot see a newly added file that git
+          # has never been told about, so without this a release that somehow
+          # added a file under data/ would read as "no change" here and still
+          # fail the gate on every branch. Today only the version field moves,
+          # but a guard should match the check it exists to satisfy.
+          git add --intent-to-add --all bestax-mcp/data
+          if git diff --quiet -- bestax-mcp/data; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "MCP index already matches the released version; nothing to do."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Semantic Release (bestax-mcp)
         working-directory: bestax-mcp
         env:
@@ -387,58 +453,24 @@ jobs:
           git log -1 --show-signature
           pnpm exec semantic-release
 
-      # A bulma-ui release bumps bulma-ui/package.json, and gen-mcp-index.mjs
-      # stamps that version into the COMMITTED bestax-mcp/data/catalog.json
-      # (`generatedFrom.version`). Nothing above regenerates it, so main was
-      # left carrying an index stamped with the previous version — and because
-      # the release commit skips CI, no run on main ever evaluated
-      # `gen:mcp:check` to notice. The damage landed on everyone else: every
-      # branch cut from main afterwards regenerates, sees the drift, and fails
-      # a check on a file it never touched (#518, #520).
-      #
-      # Why a separate step rather than @semantic-release/exec plus a git
-      # asset, which is the obvious shape: @semantic-release/git selects assets
-      # by running `git ls-files -m -o` and micromatching the result, and each
-      # release above runs with `working-directory` set to its own package. Run
-      # from bulma-ui/, `git ls-files` lists only files under bulma-ui/, so
-      # bestax-mcp/data/catalog.json can never appear in that list no matter
-      # how the asset path is written. It would silently commit nothing, which
-      # is the worst outcome available: a fix that looks applied and is not.
-      # (Same reason the `pnpm-lock.yaml` asset in bulma-ui/release.config.js
-      # has never matched — the root lockfile is outside that cwd too.)
-      #
       # Runs last on purpose: after every publish has already succeeded, so a
       # failure here can never cost a release. If the push fails the job goes
       # red with the packages already published, which is the correct signal —
       # main needs a manual restamp — rather than a silent revert to the old
       # broken behaviour.
       #
-      # No-ops when nothing released: with no version change the generator's
-      # output is byte-identical and the guard exits early.
-      # Split across two steps for the same reason the App token is minted after
-      # install and build rather than before: a bypass-capable credential must
-      # not be in the environment while repo-owned code executes. `pnpm gen:mcp`
-      # runs scripts/gen-mcp-index.mjs and whatever it imports, so it gets no
-      # token. Only the commit-and-push step, which runs nothing from this
-      # repository, sees one.
-      - name: Regenerate the MCP index
-        id: restamp
-        run: |
-          pnpm gen:mcp
-          # --intent-to-add mirrors gen:mcp:check exactly. The output is a
-          # directory, and `git diff` cannot see a newly added file that git
-          # has never been told about, so without this a release that somehow
-          # added a file under data/ would read as "no change" here and still
-          # fail the gate on every branch. Today only the version field moves,
-          # but a guard should match the check it exists to satisfy.
-          git add --intent-to-add --all bestax-mcp/data
-          if git diff --quiet -- bestax-mcp/data; then
-            echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "MCP index already matches the released version; nothing to do."
-          else
-            echo "changed=true" >> "$GITHUB_OUTPUT"
-          fi
-
+      # main keeps taking merges while the release runs, and a push that lost
+      # the race to one used to fail outright (#993). A failed push is now
+      # retried after a short, growing wait, a bounded number of times, with
+      # the restamp commit replayed onto main's fetched tip first. That
+      # replay is what the generator would write there: a release changes
+      # nothing in the index but the stamp, a commit that changes the
+      # generator's output brings its own regenerated data (gen:mcp:check
+      # gates every PR), and the loop refuses a tip whose bulma-ui version is
+      # not the one stamped here. Regenerating instead would run repository
+      # code in this step, beside the token, which the split described at
+      # "Regenerate the MCP index" exists to prevent. A replay that conflicts
+      # fails the job, and so does the last attempt.
       - name: Commit and push the MCP index restamp
         if: steps.restamp.outputs.changed == 'true'
         env:
@@ -453,14 +485,7 @@ jobs:
           # hardening guidance tells you to avoid; `env:` keeps the value out of
           # the rendered script body.
           RESTAMP_TOKEN: ${{ steps.app-token.outputs.token }}
-        run: |
-          git add bestax-mcp/data
-          # Signed and attributed by the GPG config imported above, matching the
-          # release commits. Skips CI for the same reason they do: this commit
-          # is correct by construction, and letting it trigger the publish job
-          # again would re-run the whole release pipeline to do nothing.
-          #
-          # `pnpm install` above put husky's hooks in .git/hooks, and those are
+          # `pnpm install` above pointed git at husky's hooks, and those are
           # repo-owned code. Running one here would execute it in the single
           # step holding the bypass token, which is the thing this split exists
           # to prevent.
@@ -471,10 +496,46 @@ jobs:
           # post-rewrite hook. Pointing hooksPath at a non-directory makes git
           # find no hook of any name, which is the property actually wanted
           # here — "no repo code runs in this step", not "these two hooks are
-          # skipped". Only commit-msg exists today; the point is that this
-          # keeps holding when that changes.
-          git -c core.hooksPath=/dev/null commit -S -m "chore(bestax-mcp): restamp index after release [skip ci]"
-          if ! git push "https://x-access-token:${RESTAMP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main; then
-            echo "::error::Packages published, but pushing the MCP index restamp to main failed. Run 'pnpm gen:mcp' on main and commit, or every new branch will fail gen:mcp:check."
-            exit 1
-          fi
+          # skipped". GIT_CONFIG_COUNT is git's environment form of `-c`, so
+          # the setting reaches every git command below and not just the
+          # commit: the push, fetch, reset and cherry-pick can run hooks too,
+          # which a `-c` on the commit alone left in place.
+          GIT_CONFIG_COUNT: '1'
+          GIT_CONFIG_KEY_0: core.hooksPath
+          GIT_CONFIG_VALUE_0: /dev/null
+        run: |
+          git add bestax-mcp/data
+          # Signed and attributed by the GPG config imported above, matching the
+          # release commits. Skips CI for the same reason they do: this commit
+          # is correct by construction, and letting it trigger the publish job
+          # again would re-run the whole release pipeline to do nothing.
+          git commit -S -m "chore(bestax-mcp): restamp index after release [skip ci]"
+          restamp=$(git rev-parse HEAD)
+          stamped=$(git show HEAD:bulma-ui/package.json | jq -r .version)
+          remote="https://x-access-token:${RESTAMP_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          attempts=5
+          for attempt in $(seq "$attempts"); do
+            if git push "$remote" HEAD:main; then
+              exit 0
+            fi
+            [ "$attempt" -lt "$attempts" ] || break
+            sleep $((attempt * 5))
+            git fetch --quiet "$remote" main || continue
+            tip=$(git rev-parse FETCH_HEAD)
+            now=$(git show "$tip:bulma-ui/package.json" | jq -r .version)
+            if [ "$now" != "$stamped" ]; then
+              echo "::error::Packages published, but bulma-ui on main moved to ${now} during the release, so the restamp for ${stamped} was not pushed. If gen:mcp:check fails on main, run 'pnpm gen:mcp' there and commit."
+              exit 1
+            fi
+            echo "Replaying the restamp onto main at ${tip}."
+            git reset --quiet --hard "$tip"
+            # --empty=drop: main may already carry this exact change, from a
+            # commit that landed or from a push of ours that went through
+            # while reporting failure, and then there is nothing left to push.
+            if ! git cherry-pick -S --empty=drop "$restamp"; then
+              echo "::error::Packages published, but the MCP index restamp conflicts with a commit that landed on main during the release, so it was not pushed. Run 'pnpm gen:mcp' on main and commit, or every new branch will fail gen:mcp:check."
+              exit 1
+            fi
+          done
+          echo "::error::Packages published, but pushing the MCP index restamp to main failed. Run 'pnpm gen:mcp' on main and commit, or every new branch will fail gen:mcp:check."
+          exit 1
