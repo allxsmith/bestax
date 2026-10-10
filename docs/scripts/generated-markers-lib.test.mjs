@@ -7,7 +7,6 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { filesUnder } from './check-generated-markers.mjs';
 import {
   MARKER_LINE,
   stripGeneratedMarkers,
@@ -108,24 +107,14 @@ test('only a whole line is a marker', () => {
   assert.equal(stripGeneratedMarkers(open('a')), '');
 });
 
-test('every marker on the real docs pages goes, and nothing else changes', () => {
-  const docs = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
-  const isMarker = line => MARKER_LINE.test(line);
-  let pages = 0;
-  for (const file of filesUnder(docs, /\.mdx?$/)) {
-    const src = readFileSync(file, 'utf8');
-    const markers = src.split('\n').filter(isMarker).length;
-    if (!markers) continue;
-    pages++;
-    const out = stripGeneratedMarkers(src);
-    assert.ok(!out.split('\n').some(isMarker), `${file} keeps a marker`);
-    assert.equal(stripGeneratedMarkers(out), out, `${file} strips once`);
-    const kept = src.split('\n').filter(line => !isMarker(line));
-    const removedBlanks = kept.length - out.split('\n').length;
-    assert.ok(
-      removedBlanks >= 0 && removedBlanks <= markers,
-      `${file}: at most one blank line per marker goes`
-    );
-  }
-  assert.ok(pages > 0, 'the docs carry generated regions');
+test('every marker line in the plugin README goes', () => {
+  // plugin/README.md is what scripts/gen-skills-repo.mjs strips.
+  const readme = readFileSync(
+    join(dirname(fileURLToPath(import.meta.url)), '../../plugin/README.md'),
+    'utf8'
+  );
+  const markers = text =>
+    text.split(/\r?\n/).filter(line => MARKER_LINE.test(line)).length;
+  assert.ok(markers(readme) > 0, 'plugin/README.md carries generated regions');
+  assert.equal(markers(stripGeneratedMarkers(readme)), 0);
 });

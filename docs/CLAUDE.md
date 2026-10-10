@@ -43,13 +43,14 @@ bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is whi
 The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
 markers, a source-control device no reader of the site needs. `build` then chains
 `scripts/check-generated-markers.mjs`, which checks that it did without parsing any markdown:
-every `.md` under `build/docs`, `llms.txt` and `llms-full.txt` must contain the keyword
+every `.md` under `build/`, `llms.txt` and `llms-full.txt` must contain the keyword
 `bestax:generated` zero times, which catches a marker however its `<` or line ending is written.
 A page that wants to show marker syntax would fail this check, so it shows the syntax without the
-keyword, or changes the check in the same PR. The step also fails when there is nothing to check
-(no `llms.txt`, `llms-full.txt` or `.md` under `build/docs`). It is a build step rather than a
-Docusaurus plugin because `postBuild` hooks run under `Promise.all`, so a plugin declared after
-`docusaurus-plugin-llms` still races it.
+keyword, or changes the check in the same PR. The step also fails when `llms.txt` or
+`llms-full.txt` is missing or empty, when a `.md` it checks is empty, and when `build/docs` holds
+no `.md` (no twins at all). Whether the LLM output is complete is not this check's job. It is a
+build step rather than a Docusaurus plugin because `postBuild` hooks run under `Promise.all`, so
+a plugin declared after `docusaurus-plugin-llms` still races it.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs

@@ -8,16 +8,18 @@
  * will overwrite. Neither audience reads the built output, and this site's
  * LLM surface is first-class (see docs/CLAUDE.md). docusaurus-plugin-llms
  * drops HTML comments outside code, the markers with them, and this step
- * checks that it did, without reading the markdown: every `.md` under
- * build/docs, llms.txt and llms-full.txt must contain the keyword
- * `bestax:generated` zero times. Every marker carries it however its `<` or
- * its line ending is written. It changes no file.
+ * checks that it did, without reading the markdown: every `.md` under build/,
+ * llms.txt and llms-full.txt must contain the keyword `bestax:generated` zero
+ * times. Every marker carries it however its `<` or its line ending is
+ * written. It changes no file.
  *
  * A page that wants to show marker syntax would fail this check, so it shows
  * the syntax without the keyword, or changes this check in the same PR.
  *
- * The step also fails when it would check nothing: a build without llms.txt,
- * llms-full.txt or any `.md` under build/docs.
+ * The step also fails when llms.txt or llms-full.txt is missing or empty,
+ * when a `.md` it checks is empty, and when build/docs holds no `.md`, the
+ * sign that the plugin wrote no twins. Whether the LLM output is complete is
+ * not this check's job.
  *
  * Why a build STEP and not a Docusaurus plugin: `postBuild` hooks run under
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
@@ -27,7 +29,7 @@
  */
 import { readdirSync, existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
-import { join, dirname, relative } from 'node:path';
+import { join, dirname, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { isMainModule } from '../../scripts/lib/main-module.mjs';
 
@@ -36,9 +38,8 @@ const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
 /** What every marker carries, however it is escaped. */
 const KEYWORD = 'bestax:generated';
 
-/** The files under `dir` whose names match `pattern`, none if it is absent. */
-export function filesUnder(dir, pattern) {
-  if (!existsSync(dir)) return [];
+/** The files under `dir` whose names match `pattern`. */
+function filesUnder(dir, pattern) {
   return readdirSync(dir, { recursive: true, withFileTypes: true })
     .filter(entry => entry.isFile() && pattern.test(entry.name))
     .map(entry => join(entry.parentPath ?? entry.path, entry.name));
@@ -55,12 +56,15 @@ export async function checkBuild(docs = DOCS, io = console) {
     return 1;
   }
 
-  const twins = filesUnder(join(outDir, 'docs'), /\.md$/);
+  const pages = filesUnder(outDir, /\.md$/);
   const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
   const missing = joined
     .filter(file => !existsSync(file))
     .map(file => relative(outDir, file));
-  if (!twins.length) missing.push('.md under build/docs');
+  const twins = join(outDir, 'docs', sep);
+  if (!pages.some(file => file.startsWith(twins))) {
+    missing.push('.md under build/docs');
+  }
   if (missing.length) {
     io.error(
       `check-generated-markers: the build has no ${missing.join(' and no ')}. ` +
@@ -71,8 +75,18 @@ export async function checkBuild(docs = DOCS, io = console) {
     return 1;
   }
 
-  const files = [...twins, ...joined];
+  const files = [...pages, ...joined];
   const texts = await Promise.all(files.map(file => readFile(file, 'utf8')));
+  const empty = files.filter((_, i) => !texts[i]);
+  if (empty.length) {
+    for (const file of empty) {
+      io.error(
+        `check-generated-markers: ${relative(docs, file)} is empty, so ` +
+          `there is nothing in it to check. Refusing to pass silently.`
+      );
+    }
+    return 1;
+  }
   const leaks = files.filter((_, i) => texts[i].includes(KEYWORD));
   if (leaks.length) {
     for (const file of leaks) {

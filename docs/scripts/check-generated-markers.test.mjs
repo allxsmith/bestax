@@ -1,13 +1,14 @@
 /**
  * Guards on check-generated-markers.mjs, the docs build step that checks the
- * built LLM files for the marker keyword, run on temporary trees.
+ * built markdown and LLM files for the marker keyword, run on temporary
+ * trees.
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
-import { checkBuild, filesUnder } from './check-generated-markers.mjs';
+import { checkBuild } from './check-generated-markers.mjs';
 
 const temps = [];
 after(() => {
@@ -73,6 +74,10 @@ test('a marker in a twin fails the build', async () => {
   await fails('build/docs/api/card.md', PAGE);
 });
 
+test('a marker in built markdown outside build/docs fails the build', async () => {
+  await fails('build/.devto-publish/post.md', PAGE);
+});
+
 test('an HTML-escaped marker fails the build', async () => {
   await fails('build/docs/api/card.md', '&lt;!-- bestax:generated a --&gt;\n');
   await fails('build/docs/api/card.md', '&#x3c;!-- /bestax:generated a -->\n');
@@ -93,7 +98,9 @@ test('a build missing llms.txt, llms-full.txt or every twin fails', async () => 
     ['build/llms.txt', 'llms.txt'],
     ['build/docs/api/card.md', '.md under build/docs'],
   ]) {
-    const { code, error } = await run(site({ [file]: null }));
+    // Markdown elsewhere in build/ is no sign the twins were written.
+    const root = site({ [file]: null, 'build/blog/post.md': BARE });
+    const { code, error } = await run(root);
     assert.equal(code, 1, file);
     assert.equal(error.length, 1);
     assert.ok(
@@ -111,17 +118,24 @@ test('a build missing llms.txt, llms-full.txt or every twin fails', async () => 
   assert.match(none.error[0], /build does not exist/);
 });
 
-test('only files are read, and only under build/docs', async () => {
-  // A directory named like a twin, and a dev.to copy of a blog post that
-  // shows a marker: neither is part of the LLM surface.
-  const root = site({
-    'build/docs/x.md/index.html': '<!doctype html>\n',
-    'build/.devto-publish/post.md': PAGE,
-    'build/img/LICENSE.md': PAGE,
-  });
-  assert.deepEqual(filesUnder(join(root, 'build/docs'), /\.md$/), [
-    join(root, 'build/docs/api/card.md'),
-  ]);
+test('an empty LLM file or page fails the build', async () => {
+  for (const file of [
+    'build/llms.txt',
+    'build/llms-full.txt',
+    'build/docs/api/card.md',
+    'build/img/LICENSE.md',
+  ]) {
+    const { code, error } = await run(site({ [file]: '' }));
+    assert.equal(code, 1, file);
+    assert.deepEqual(error, [
+      `check-generated-markers: ${file} is empty, so there is nothing in ` +
+        `it to check. Refusing to pass silently.`,
+    ]);
+  }
+});
+
+test('a directory named like a page is not read', async () => {
+  const root = site({ 'build/docs/x.md/index.html': '<!doctype html>\n' });
   const { code, log, error } = await run(root);
   assert.equal(code, 0, error.join('\n'));
   assert.deepEqual(log, ['check-generated-markers: checked 3 file(s)']);
