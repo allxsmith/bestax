@@ -129,7 +129,7 @@
       "css": "--bulma-delete-dimensions",
       "sass": null,
       "default": "1.25rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-delete-background-l",
