@@ -152,9 +152,11 @@ a label wired by hand on a `grouped`/`hasAddons` row. A `<label htmlFor>` you pu
 `Field.Label` yourself (the explicit label/body pattern in `references/patterns.md`) names its
 control through the `for` alone, and the thumbs and list never point at it, so label a row
 holding a range `Slider` or an `Autocomplete` with the `Field`'s `label` prop, wired by hand as
-above when an inner `Field` holds the control. For a group, use
-`labelProps={{ id, htmlFor: undefined }}` plus its `aria-labelledby`, since nothing takes the
-label's `for` there. Pass
+above when an inner `Field` holds the control. For a group, use `labelProps={{ id }}` plus its
+`aria-labelledby`: nothing there takes the label's `for`, so the label drops it after mounting,
+and `labelProps={{ id, htmlFor: undefined }}` keeps it out of server-rendered HTML too. A
+labeled `Field` over content that takes no `for` (a group, a `Checkbox`, `Radio` or `Switch`,
+an inner `Field`) drops it the same way, so there's nothing to add there. Pass
 `labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
 `labelProps={{ htmlFor: undefined }}` to opt out.
 
