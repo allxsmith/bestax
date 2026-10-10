@@ -164,14 +164,14 @@ and `scripts/require-pnpm-publish.mjs`.
 2. Add/update tests (bulma-ui holds 99% coverage; every other jest package 95%, 78% branches) and Storybook stories for UI changes.
 3. Run `pnpm all`, then open a PR targeting `main`.
 
-Commits follow [Conventional Commits](https://www.conventionalcommits.org/) — the type and scope
-drive [semantic-release](https://semantic-release.gitbook.io/). Releasing types (`feat`, `fix`,
-`perf`, `refactor`, `style`, `revert`) must carry one of the scopes in `RELEASE_SCOPES`
-(`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, `eslint-plugin`); `docs`, `chore`, `ci`,
-`build`, and `test` don't publish — note `docs` is both a valid scope and a non-releasing
-type, so `docs(bulma-ui):` and `docs:` alike publish nothing. A scoped `revert(scope):`
-commit releases **nothing** — the only revert rule is commit-analyzer's default, and its
-`revertPattern` matches a `Revert "…"` or bare `revert: …` header (never the parenthesized
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/), and the type and scope
+drive [semantic-release](https://semantic-release.gitbook.io/). Every bestax-bulma release also
+patches bestax-mcp, so its index ships with the library
+([`VERSIONING.md`](https://github.com/allxsmith/bestax/blob/main/VERSIONING.md) has the rules).
+Releasing types (`feat`, `fix`, `perf`, `refactor`, `style`, `revert`) must carry one of the
+scopes in `RELEASE_SCOPES` (`bulma-ui`, `docs`, `create-bestax`, `bestax-migrate`, `bestax-mcp`,
+`eslint-plugin`). A scoped `revert(scope):` commit releases **nothing** — the only revert rule
+is commit-analyzer's default, and its `revertPattern` matches a `Revert "…"` or bare `revert: …` header (never the parenthesized
 `revert(scope):` form) followed by a `This reverts commit <sha>` body; ship a rollback with a
 follow-up `fix(scope):` commit. An unscoped `revert: …` is stopped by commitlint's scope rule,
 but git's own `Revert "…"` form is the real hazard: commitlint's default ignore rules let it

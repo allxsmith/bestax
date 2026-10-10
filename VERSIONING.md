@@ -20,17 +20,16 @@ follows every bestax-bulma release ([below](#bestax-mcp-releases-with-bestax-bul
 examples follow, and the same `feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules
 apply to every package through its own scope:
 
-| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp | eslint-plugin |
-| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- | ------------- |
-| `feat(bulma-ui): …`                                               | minor        | —             | —              | patch      | —             |
-| `fix(bulma-ui): …`                                                | patch        | —             | —              | patch      | —             |
-| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | patch      | —             |
-| `feat(create-bestax): …`                                          | —            | minor         | —              | —          | —             |
-| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          | —             |
-| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      | —             |
-| `feat(eslint-plugin): …`                                          | —            | —             | —              | —          | minor         |
-| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | patch      | —             |
-| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          | —             |
+| Commit                                          | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp | eslint-plugin |
+| ----------------------------------------------- | ------------ | ------------- | -------------- | ---------- | ------------- |
+| `feat(bulma-ui): …`                             | minor        | —             | —              | patch      | —             |
+| `fix(bulma-ui): …`                              | patch        | —             | —              | patch      | —             |
+| `perf/refactor/style(bulma-ui): …`              | patch        | —             | —              | patch      | —             |
+| `feat(create-bestax): …`                        | —            | minor         | —              | —          | —             |
+| `fix(bestax-migrate): …`                        | —            | —             | patch          | —          | —             |
+| `feat(bestax-mcp): …`                           | —            | —             | —              | minor      | —             |
+| `feat(eslint-plugin): …`                        | —            | —             | —              | —          | minor         |
+| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer | major        | —             | —              | patch      | —             |
 
 Notes:
 

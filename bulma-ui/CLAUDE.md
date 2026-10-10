@@ -153,7 +153,9 @@ These keep it working, and each of them failed once:
 ## Releases
 
 Independent semantic-release keyed off the `bulma-ui` commit scope
-(`release.config.js`, tag `@allxsmith/bestax-bulma@x.y.z`). It publishes with
+(`release.config.js`, tag `@allxsmith/bestax-bulma@x.y.z`). Each release also patches
+bestax-mcp, so its index ships with the library (VERSIONING.md, "bestax-mcp releases with
+bestax-bulma"). It publishes with
 `pnpm publish`, like every package here (#532) — the command, its flags, and the
 ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
