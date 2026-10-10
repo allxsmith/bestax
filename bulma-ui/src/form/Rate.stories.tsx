@@ -62,11 +62,15 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Rating">
+    <Field
+      horizontal
+      label="Rating"
+      labelProps={{ id: 'rating-label-control', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Rate />
+            <Rate aria-labelledby="rating-label-control" />
           </Control>
         </Field>
       </Field.Body>

@@ -234,10 +234,10 @@ export const LabelSizes: Story = {
  */
 export const Horizontal: Story = {
   render: () => (
-    <Field horizontal label="Name">
+    <Field horizontal label="Name" labelProps={{ htmlFor: 'horizontal-name' }}>
       <Field>
         <Control>
-          <Input placeholder="Your name" />
+          <Input id="horizontal-name" placeholder="Your name" />
         </Control>
       </Field>
     </Field>
@@ -252,16 +252,16 @@ export const Horizontal: Story = {
 export const HorizontalExplicitBody: Story = {
   render: () => (
     <>
-      <Field horizontal label="From">
+      <Field horizontal label="From" labelProps={{ htmlFor: 'from-name' }}>
         <Field.Body>
           <Field>
             <Control isExpanded iconLeftName="user">
-              <Input placeholder="Name" />
+              <Input id="from-name" placeholder="Name" />
             </Control>
           </Field>
           <Field>
             <Control isExpanded iconLeftName="envelope">
-              <Input type="email" placeholder="Email" />
+              <Input type="email" placeholder="Email" aria-label="Email" />
             </Control>
           </Field>
         </Field.Body>
@@ -286,11 +286,15 @@ export const HorizontalExplicitBody: Story = {
  */
 export const HorizontalNarrow: Story = {
   render: () => (
-    <Field horizontal label="Department">
+    <Field
+      horizontal
+      label="Department"
+      labelProps={{ htmlFor: 'narrow-department' }}
+    >
       <Field.Body>
         <Field narrow>
           <Control>
-            <Select isFullwidth>
+            <Select id="narrow-department" isFullwidth>
               <option>Business development</option>
               <option>Marketing</option>
               <option>Sales</option>

@@ -30,6 +30,9 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
   glyph scaling via `features` (`'fa-2x'`, `'fa-spin'`).
 - **Accessibility** — a descriptive `ariaLabel` for meaningful standalone icons;
   `aria-hidden` for decorative icons that sit next to visible text.
+- **The Material Symbols font's size.** It keeps the default one-style import, and offers a
+  smaller font (a Google Fonts `icon_names` subset, a self-hosted subset, or a single-weight
+  package) only when the app's download size matters.
 
 ## Meaningful vs decorative
 
@@ -62,7 +65,7 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-icons
 
 - [`references/icon-libraries.md`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-icons/references/icon-libraries.md)
   — per-library setup (npm package / CDN script), full name-format and variant tables, and
-  the blank-icon troubleshooting checklist.
+  the blank-icon troubleshooting checklist, plus how to make the Material Symbols font smaller.
 - [`examples/icon-usage.tsx`](https://github.com/allxsmith/bestax/blob/main/skills/bestax-icons/examples/icon-usage.tsx)
   — the canonical runnable example.
 

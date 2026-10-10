@@ -118,12 +118,14 @@ semantic-release. Two repo-specific rules:
   reject an unscoped revert in that form — keep reverts conventional and scoped by hand, and
   know that a scoped revert releases nothing: ship a rollback as `fix(<scope>)` (see
   VERSIONING.md for why).
-- **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
-  `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
-  `releaseRules` in each package's `release.config.js` are the source of truth.
+- **Packages release independently, keyed off the scope**: `fix(create-bestax)` bumps only
+  `create-bestax`. The exception is bestax-mcp, which also cuts a patch with every
+  `@allxsmith/bestax-bulma` release because its index documents the library (VERSIONING.md,
+  "bestax-mcp releases with bestax-bulma"). The `releaseRules` in each package's
+  `release.config.js` are the source of truth.
 
 ```
-feat(bulma-ui): add Collapse component   → minor release of bulma-ui only
+feat(bulma-ui): add Collapse component   → minor release of bulma-ui, patch of bestax-mcp
 fix(create-bestax): handle missing TTY   → patch release of create-bestax only
 docs: fix typo in contributing guide     → no release; scope optional
 ```

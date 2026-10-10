@@ -109,8 +109,9 @@ test that stubs it proves nothing about what ships.
 
 ## Releases
 
-Independent semantic-release keyed off the `bestax-mcp` commit scope
-(`release.config.js`, tag `bestax-mcp@x.y.z`). It publishes with
+Released by semantic-release, keyed off the `bestax-mcp` commit scope (`release.config.js`, tag
+`bestax-mcp@x.y.z`), and patched with every bulma-ui release so the index ships with the
+library (VERSIONING.md, "bestax-mcp releases with bestax-bulma"). It publishes with
 `pnpm publish`, like every package here (#532) — the command, its flags, and the
 ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.

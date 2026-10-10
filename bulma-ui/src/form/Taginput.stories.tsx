@@ -781,11 +781,15 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Tags">
+    <Field
+      horizontal
+      label="Tags"
+      labelProps={{ htmlFor: 'tags-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Taginput />
+            <Taginput id="tags-field-control" />
           </Control>
         </Field>
       </Field.Body>

@@ -380,7 +380,7 @@ The short version for contributors:
 We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of every package to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma), plus [`create-bestax`](https://www.npmjs.com/package/create-bestax), [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate), [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) and `eslint-plugin` as [`@allxsmith/eslint-plugin-bestax`](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax).
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases — see [Commit Message Guidelines](#commit-message-guidelines).
-- **Packages version and release independently, keyed off the commit scope** — `feat(bulma-ui)` releases only bestax-bulma. See [`VERSIONING.md`](./VERSIONING.md).
+- **Packages version and release independently, keyed off the commit scope**: `fix(create-bestax)` releases only create-bestax, and the one exception is the bestax-mcp patch that follows every bestax-bulma release. See [`VERSIONING.md`](./VERSIONING.md).
 - Only the `main` branch is published.
 
 ### npm authentication (OIDC trusted publishing)
