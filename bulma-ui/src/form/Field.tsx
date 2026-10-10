@@ -30,7 +30,7 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase` or `TextAreaBase`, or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so with a group or any other content it matches nothing. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
+  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so with a group or any other content it matches nothing. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
@@ -91,14 +91,21 @@ export interface FieldBodyProps
 }
 
 /**
- * FieldLabel component for rendering a Bulma field label.
+ * FieldLabel component for rendering a Bulma field label. It renders the
+ * label column of a horizontal `Field` (a `div` with the `field-label` class),
+ * not a `<label>`, so text placed straight in it names nothing. Put a `<label>`
+ * with the `label` class inside it and point its `htmlFor` at the control's
+ * `id`, or give the horizontal `Field` a `label` prop, which renders this
+ * column and its `<label>` for you.
  *
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.
  * @returns {JSX.Element} The rendered field label.
  *
  * @example
- * <FieldLabel size="normal">Name</FieldLabel>
+ * <FieldLabel size="normal">
+ *   <label className="label" htmlFor="name">Name</label>
+ * </FieldLabel>
  */
 export const FieldLabel: React.FC<FieldLabelProps> = ({
   size,
@@ -227,8 +234,8 @@ const FieldComponent: React.FC<FieldProps> = ({
   const labelClass = usePrefixedClassNames('label');
 
   // Auto-associate the label with a single composed base control (#495): the
-  // label points at a generated id shared via context, which InputBase/
-  // SelectBase/TextAreaBase adopt when the user supplied no id of their own.
+  // label points at a generated id shared via context, which a composed base
+  // adopts when the user supplied no id of their own.
   // Presence semantics on htmlFor — even an explicit `htmlFor: undefined`
   // means the caller owns the association. Grouped/addons fields hold several
   // controls, so no single association is generated for them.

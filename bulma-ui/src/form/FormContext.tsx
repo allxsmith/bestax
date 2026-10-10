@@ -226,9 +226,10 @@ const FieldLabelIdContext = createContext<string | undefined>(undefined);
  * The id a labeled Field wants its single composed control to adopt (#495).
  * `undefined` outside a Field, in unlabeled/grouped/addons Fields, or when the
  * user took over the association with an explicit `labelProps.htmlFor`.
- * Consumed by the single-control bases (InputBase, SelectBase, TextAreaBase)
- * and, through `useAutoLabelId`, by the convenience inputs that render an
- * input of their own (#939). Internal; not part of the public API.
+ * Consumed by the single-control bases (InputBase, SelectBase, TextAreaBase,
+ * and the date and time picker bases unless inline, #968) and, through
+ * `useAutoLabelId`, by the convenience inputs that render an input of their
+ * own (#939). Internal; not part of the public API.
  */
 export const useFieldLabelId = () => useContext(FieldLabelIdContext);
 
