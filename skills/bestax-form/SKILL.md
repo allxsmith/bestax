@@ -33,7 +33,7 @@ Bulma forms are a three-tier structure. bestax models it directly:
 
 ```
 Field            // container + layout (horizontal / grouped / hasAddons)
-├── label        // rendered from Field's `label` prop, or <Field.Label> when horizontal
+├── label        // rendered from Field's `label` prop, or a <label> you put in <Field.Label>
 └── Control       // wraps ONE input; adds icons + loading
     ├── InputBase / SelectBase / TextAreaBase   // the raw styled element
     └── <p class="help">…</p>                    // help / validation message
@@ -138,7 +138,8 @@ leave it off when a label already names the Slider. The group inputs (`Checkboxe
 `DateRangeInput`) associate their `label` too, but group-style: the wrapper gets
 `role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
 also associates: a labeled `Field` names the one control it holds, whether a composed
-`InputBase`/`SelectBase`/`TextAreaBase` or any input above (through the id), or a group
+`InputBase`/`SelectBase`/`TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/
+`DateTimeInputBase` that is not `inline`, or any input above (through the id), or a group
 (through `aria-labelledby`). Either way, an `aria-label` or `aria-labelledby` you give a
 group wins over the label. A `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
 each is named by its own children, so put the text there. The association is skipped for

@@ -47,11 +47,11 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Message\">\n      <Field.Body>\n        <Field>\n          <TextArea placeholder=\"Enter your message\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Message\" labelProps={{ htmlFor: 'message-field' }}>\n      <Field.Body>\n        <Field>\n          <TextArea id=\"message-field\" placeholder=\"Enter your message\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Message\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"comment\">\n            <TextArea placeholder=\"Enter your message\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Message\"\n      labelProps={{ htmlFor: 'message-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"comment\">\n            <TextArea\n              id=\"message-field-control\"\n              placeholder=\"Enter your message\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
   "accessibility": "- Always provide a label. TextArea's `label` prop is automatically associated with the `<textarea>` (`htmlFor` plus a generated `id`, or your own `id` if you pass one).\n- When composing with `Field` instead, the `Field`'s own `label` associates with the textarea automatically when the textarea sits directly in that labeled `Field` — a nested unlabeled `Field` (as in horizontal multi-field layouts) starts its own scope. Pass `labelProps={{ htmlFor }}` and a matching `id` for a stable id or to label across a nested `Field`.\n- Use the `rows` prop to set an appropriate height for your content.",

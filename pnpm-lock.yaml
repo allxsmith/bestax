@@ -291,8 +291,8 @@ importers:
         specifier: ^1.13.14
         version: 1.13.14
       material-symbols:
-        specifier: ^0.46.0
-        version: 0.46.0
+        specifier: ^0.47.6
+        version: 0.47.6
       playwright:
         specifier: ^1.62.1
         version: 1.62.1
@@ -433,8 +433,8 @@ importers:
         specifier: ^1.13.14
         version: 1.13.14
       material-symbols:
-        specifier: ^0.46.0
-        version: 0.46.0
+        specifier: ^0.47.6
+        version: 0.47.6
       prism-react-renderer:
         specifier: ^2.3.0
         version: 2.4.1(react@19.2.8)
@@ -7524,8 +7524,8 @@ packages:
   material-icons@1.13.14:
     resolution: {integrity: sha512-kZOfc7xCC0rAT8Q3DQixYAeT+tBqZnxkseQtp2bxBxz7q5pMAC+wmit7vJn1g/l7wRU+HEPq23gER4iPjGs5Cg==}
 
-  material-symbols@0.46.0:
-    resolution: {integrity: sha512-YxmTXwOhLOI6EupAwFfxFERbaDe61dG/tveOSy2HecndGKqvJ74WqXrrXLNWpIGDkk6TDpieuQPDS+hA7+z3Ig==}
+  material-symbols@0.47.6:
+    resolution: {integrity: sha512-+W09H5h13mk/+xyVAQoZPWCubIQU20QRzNlyc1Bt9gaFqWnO+P6NnexfNH2D2EXvB4kAn8A7BMhEJ8qBCNvRkQ==}
 
   math-intrinsics@1.1.0:
     resolution: {integrity: sha512-/IXtbwEk5HTPyEwyKX6hGkYXxM9nbj64B+ilVJnC/R6B0pH5G4V3b0pVbL7DBj4tkhBAppbQUlf6F6Xl9LHu1g==}
@@ -19530,7 +19530,7 @@ snapshots:
 
   material-icons@1.13.14: {}
 
-  material-symbols@0.46.0: {}
+  material-symbols@0.47.6: {}
 
   math-intrinsics@1.1.0: {}
 

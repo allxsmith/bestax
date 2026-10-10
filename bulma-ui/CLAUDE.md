@@ -134,6 +134,14 @@ These keep it working, and each of them failed once:
 - Must build and pass tests on **React 18 and 19** (CI matrix) — avoid single-major APIs.
 - Bundle size is marketing-visible (the READMEs link the live bundlephobia badge) — check `pnpm bundle:stats`
   (writes `dist/stats.html`) when adding anything with real runtime weight.
+- A peer range names what somebody checked: one caret arm per major, or per minor for a 0.x
+  package like `material-symbols`, whose minors drop glyph names. A new release gets checked
+  against what the library uses from it and then its own arm, in a `fix(bulma-ui)` commit,
+  rather than a range like `<1` that admits releases nobody has looked at. The repo's own
+  copies (the devDependency here and the docs site's) must sit in the newest arm, which
+  `check:conformance --only=peer-ranges` enforces, so the Dependabot PR that brings a release
+  the range refuses is the one that fails (#997). create-bestax pins its icon packages to that
+  arm as well.
 - A module must not do anything on import that another module relies on. The ESM build is
   one file per module (`dist/esm/`, behind `dist/index.esm.js`), and `"sideEffects"` lets an
   app's bundler skip every module it never imports, so import-time work in a skipped module

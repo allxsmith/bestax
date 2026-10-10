@@ -34,6 +34,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
+import { useFieldLabelId } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -231,7 +232,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       name,
       form,
       required,
-      id,
+      id: idProp,
       onFocus,
       onClick,
       onKeyDown,
@@ -244,6 +245,12 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       haptics = false,
       ...rest
     } = props;
+    // Inside a labeled Field the input takes the id the label points at
+    // when the caller set none, as InputBase does, and the popover's ids
+    // follow it. Inline there is no input to name, so nothing takes the
+    // Field's id or builds on it.
+    const fieldLabelId = useFieldLabelId();
+    const id = idProp ?? (inline ? undefined : fieldLabelId);
     // The launcher gives way to the loading spinner of a Control this sits in.
     const controlLoading = useControlLoading();
     const triggerIcon = triggerIconProp ?? !controlLoading;
