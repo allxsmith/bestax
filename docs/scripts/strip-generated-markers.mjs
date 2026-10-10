@@ -22,25 +22,33 @@
  * first attempt it ran first and found nothing to strip. Chaining after
  * `docusaurus build` is the only ordering guarantee available.
  *
- * The step fails when a source page carries markers but the build lacks
- * llms-full.txt or that page's own twin, since a check over files that are
- * not there passes quietly.
+ * Which pages to check, and where their twins are, comes from Docusaurus
+ * itself: the metadata it writes for every doc page gives the page's source
+ * and permalink, so a draft, an excluded file, a number prefix and an `id` or
+ * `slug` in front matter all come out as Docusaurus routed them. A twin is
+ * named from the permalink as the plugin names it (twinPath). The step fails
+ * when it finds no rendered page to check, when two pages would get the same
+ * twin, and when a page carries markers but the build lacks llms-full.txt or
+ * that page's own twin, since a check over files that are not there passes
+ * quietly.
  *
  * The strip is fence-aware (generated-markers-lib.mjs), so a marker a page
  * shows inside a code block stays. After stripping, a twin may keep no more
- * marker lines than its own source page shows inside fences, and llms.txt and
- * llms-full.txt no more than all the source pages together. More means a
- * fence left open earlier in that file hid real markers, which matters most in
- * llms-full.txt, where one page's open fence reaches every page after it. The
- * step fails then, naming the file. It fails the same way when a file names
- * `bestax:generated` on more lines than its source pages do outside their
- * marker lines, which is a marker that reached it in a form the strip does not
- * recognize.
+ * marker lines than its own source page shows inside fences, and may name
+ * `bestax:generated` on no more lines than the page does outside its marker
+ * lines. The plugin builds llms.txt and llms-full.txt from the same pages as
+ * the twins, so each of them may keep and name no more than the twins in the
+ * build do between them. More fenced markers mean a fence left open earlier in
+ * that file hid real ones, which matters most in llms-full.txt, where one
+ * page's open fence reaches every page after it. More named lines mean a
+ * marker reached the file in a form the strip does not recognize. Either way
+ * the step fails, naming the file.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, dirname, relative, sep, posix } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { join, dirname, relative, sep } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { stripNumberPrefix } from 'docusaurus-plugin-llms/lib/numberPrefix.js';
 import { isMainModule } from '../../scripts/lib/main-module.mjs';
 import {
   leakedMarkers,
@@ -50,8 +58,14 @@ import {
 
 const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
 
-/** The joined files, each holding every source page. */
+/** The joined files, built from the same pages as the twins. */
 const JOINED = ['llms.txt', 'llms-full.txt'];
+
+/** Where Docusaurus writes each doc page's metadata, relative to the site. */
+const PAGE_DATA = '.docusaurus/docusaurus-plugin-content-docs/default';
+
+/** The site config as Docusaurus built with it, relative to the site. */
+const SITE_CONFIG = '.docusaurus/docusaurus.config.mjs';
 
 /** The lines of `src` that name the marker at all, in any form. */
 const mentions = src =>
@@ -60,46 +74,70 @@ const mentions = src =>
 /** `path` with `/` between its segments, whatever the platform's separator. */
 const slashed = path => path.split(sep).join('/');
 
-async function filesUnder(dir, pattern) {
-  const out = [];
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const full = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...(await filesUnder(full, pattern)));
-    else if (pattern.test(entry.name)) out.push(full);
-  }
-  return out;
-}
-
-/** A page's frontmatter `slug`, or null. */
-function frontMatterSlug(text) {
-  const front = text.match(/^---\r?\n([\s\S]*?)\r?\n---[ \t]*(?:\r?\n|$)/);
-  const slug = front?.[1].match(/^slug:[ \t]*(['"]?)([^'"\r\n]*?)\1[ \t]*$/m);
-  return slug?.[2] || null;
+/** `route` relative to `baseUrl`, with no slash at either end. */
+function underBase(route, baseUrl) {
+  const base = baseUrl.replace(/\/+$/, '');
+  const path = route.replace(/\/+$/, '') || '/';
+  if (base && path === base) return '';
+  const rest =
+    base && path.startsWith(`${base}/`) ? path.slice(base.length) : path;
+  return rest.replace(/^\/+/, '');
 }
 
 /**
- * Where docusaurus-plugin-llms writes the `.md` twin of the source page at
- * `rel` (relative to docs/docs, `/`-separated), relative to build/. The plugin
- * names a twin after its page's route, so this follows Docusaurus's routing
- * for the cases this site uses: a frontmatter `slug`, absolute or relative to
- * the page's folder, and a category index (`index`, `README`, or a file named
- * after its folder) taking its folder's route. A page these rules route wrongly
- * gets a path with no twin at it, which fails the build when the page carries
- * markers rather than passing it.
+ * Where docusaurus-plugin-llms writes the `.md` twin of the page at
+ * `permalink`, relative to build/. The plugin names a twin after its page's
+ * route below the baseUrl, with each segment's number prefix stripped (by the
+ * plugin's own parser), an `.md` or `.mdx` ending dropped and `.md` added, and
+ * the site root as `index.md`. Two pages it would name alike get numbered
+ * files instead, which stripBuild refuses rather than follows.
  */
-export function twinPath(rel, text) {
-  const dir = posix.dirname(rel) === '.' ? '' : posix.dirname(rel);
-  const slug = frontMatterSlug(text);
-  let route;
-  if (slug) {
-    route = posix.join('/', slug.startsWith('/') ? '' : dir, slug);
-  } else {
-    const name = posix.basename(rel).replace(/\.mdx?$/, '');
-    const indexNames = ['index', 'readme', posix.basename(dir).toLowerCase()];
-    const isIndex = indexNames.includes(name.toLowerCase());
-    route = posix.join('/', dir, isIndex ? '' : name);
+export function twinPath(permalink, baseUrl = '/') {
+  const route = underBase(permalink, baseUrl);
+  if (!route) return 'index.md';
+  const name = route.split('/').map(stripNumberPrefix).join('/');
+  return `${name.replace(/\.mdx?$/i, '')}.md`
+    .split('/')
+    .filter(segment => segment && segment !== '.' && segment !== '..')
+    .join('/');
+}
+
+/**
+ * Whether build/ holds the HTML Docusaurus renders for `route` (relative to
+ * the baseUrl), in either layout its trailingSlash setting picks.
+ */
+function rendered(outDir, route) {
+  if (!route) return existsSync(join(outDir, 'index.html'));
+  return (
+    existsSync(join(outDir, `${route}.html`)) ||
+    existsSync(join(outDir, route, 'index.html'))
+  );
+}
+
+/**
+ * The doc pages this build rendered, each with its source relative to `docs`
+ * and its twin relative to build/, or null when Docusaurus left no metadata to
+ * read. `.docusaurus` keeps the metadata of a page deleted or made a draft
+ * since it was last cleared, so a page counts only while its source is there
+ * and its HTML is in build/, which Docusaurus empties before every build.
+ */
+async function builtPages(docs, outDir) {
+  const dir = join(docs, PAGE_DATA);
+  const config = join(docs, SITE_CONFIG);
+  if (!existsSync(dir) || !existsSync(config)) return null;
+  const { baseUrl = '/' } = (await import(pathToFileURL(config).href)).default;
+  const pages = [];
+  for (const name of (await readdir(dir)).sort()) {
+    if (!name.endsWith('.json')) continue;
+    const page = JSON.parse(await readFile(join(dir, name), 'utf8'));
+    if (typeof page.source !== 'string') continue;
+    if (typeof page.permalink !== 'string') continue;
+    const source = page.source.replace(/^@site\//, '');
+    if (!existsSync(join(docs, source))) continue;
+    if (!rendered(outDir, underBase(page.permalink, baseUrl))) continue;
+    pages.push({ source, twin: twinPath(page.permalink, baseUrl) });
   }
-  return `${posix.join('docs', route).replace(/\/+$/, '')}.md`;
+  return pages;
 }
 
 /**
@@ -108,45 +146,66 @@ export function twinPath(rel, text) {
  */
 export async function stripBuild(docs = DOCS, io = console) {
   const outDir = join(docs, 'build');
-  const srcDir = join(docs, 'docs');
   if (!existsSync(outDir)) {
     io.error(`${outDir} does not exist — run \`docusaurus build\` first.`);
     return 1;
   }
 
-  // Each source page with its twin: how many markers it carries, how many it
-  // shows inside a fence, which is all its twin may keep, and how many other
-  // lines name the marker, fenced or in prose, which its twin may keep too.
-  // The joined files hold every page, so they are held to the totals.
-  const pages = [];
-  const all = { fenced: 0, named: 0 };
-  let inSource = 0;
-  const sources = existsSync(srcDir) ? await filesUnder(srcDir, /\.mdx?$/) : [];
-  for (const file of sources) {
-    const text = await readFile(file, 'utf8');
-    const counts = markerCounts(text);
-    const page = {
-      source: slashed(relative(docs, file)),
-      twin: twinPath(slashed(relative(srcDir, file)), text),
-      markers: counts.unfenced,
-      fenced: counts.fenced,
-      named: mentions(text) - counts.unfenced,
-    };
-    pages.push(page);
-    inSource += page.markers;
-    all.fenced += page.fenced;
-    all.named += page.named;
-  }
-
   // Stripping nothing is the normal case, since the plugin drops the markers
   // itself. Checking nothing is not. This step exists BECAUSE a postBuild
   // plugin silently ran too early and found no markers (see the header), and
-  // a pass over files that are not there, or are not where the plugin writes
-  // them, would let markers ship into llms-full.txt and the `.md` twins with
-  // a green build. So when the source pages carry markers, the build must hold
-  // the files they feed: llms-full.txt, and the twin of every page that
-  // carries them. Comparing against the SOURCE pages is what tells "no managed
-  // pages yet" from "this step stopped working".
+  // a pass over pages it could not find would let markers ship with a green
+  // build. So no rendered page at all is a failure, not an empty pass.
+  const pages = await builtPages(docs, outDir);
+  if (!pages?.length) {
+    io.error(
+      `strip-generated-markers: found no doc page this build rendered in ` +
+        `${PAGE_DATA}. Docusaurus moved the metadata it writes there, or ` +
+        `this step ran before \`docusaurus build\`, so nothing here could ` +
+        `check the LLM surface. Refusing to pass silently.`
+    );
+    return 1;
+  }
+
+  // Each page: how many markers it carries, how many it shows inside a
+  // fence, which is all its twin may keep, and how many other lines name the
+  // marker, fenced or in prose, which its twin may keep too.
+  let inSource = 0;
+  for (const page of pages) {
+    const text = await readFile(join(docs, page.source), 'utf8');
+    const counts = markerCounts(text);
+    page.markers = counts.unfenced;
+    page.fenced = counts.fenced;
+    page.named = mentions(text) - counts.unfenced;
+    inSource += page.markers;
+  }
+
+  // Two pages the plugin would name alike get numbered twins in the order it
+  // reads the files, so which twin is whose cannot be worked out here, and
+  // either could be held to the other page's counts.
+  const byTwin = new Map();
+  for (const page of pages) {
+    const key = page.twin.toLowerCase();
+    byTwin.set(key, [...(byTwin.get(key) ?? []), page]);
+  }
+  const clashes = [...byTwin.values()].filter(group => group.length > 1);
+  if (clashes.length) {
+    for (const group of clashes) {
+      io.error(
+        `strip-generated-markers: ${group.map(page => page.source).join(', ')} ` +
+          `would all have the twin build/${group[0].twin}. ` +
+          `docusaurus-plugin-llms numbers all but one of them in the order it ` +
+          `reads the files, so this step cannot tell which twin is whose. ` +
+          `Give each page a route of its own.`
+      );
+    }
+    return 1;
+  }
+
+  // When the pages carry markers, the build must hold the files they feed:
+  // llms-full.txt, and the twin of every page that carries them. Counting the
+  // markers in the pages is what tells "no managed pages yet" from "this step
+  // stopped working".
   const missing = [];
   if (!existsSync(join(outDir, 'llms-full.txt'))) {
     missing.push('no llms-full.txt');
@@ -176,45 +235,50 @@ export async function stripBuild(docs = DOCS, io = console) {
     return 1;
   }
 
-  // A twin is held to its own page, and a joined file to every page. A page
-  // without markers whose twin is not at the path twinPath gives has nothing
-  // for that twin to leak, so it is skipped rather than failed.
-  const targets = [];
-  for (const page of pages) {
-    const file = join(outDir, page.twin);
-    if (existsSync(file)) {
-      targets.push({ file, ...page, from: page.source });
-    }
-  }
-  for (const name of JOINED) {
-    const file = join(outDir, name);
-    if (existsSync(file)) {
-      targets.push({ file, ...all, from: 'the source pages' });
-    }
-  }
-
   let stripped = 0;
   let touched = 0;
+  let checked = 0;
   const leaks = [];
-  for (const target of targets) {
-    const result = stripMarkers(await readFile(target.file, 'utf8'));
+  /** Strips `file`, holds what is left to `allowed`, and returns that. */
+  async function check(file, allowed, from) {
+    const result = stripMarkers(await readFile(file, 'utf8'));
     if (result.stripped) {
-      await writeFile(target.file, result.out);
+      await writeFile(file, result.out);
       stripped += result.stripped;
       touched++;
     }
-    const rel = slashed(relative(docs, target.file));
-    const leak = leakedMarkers(rel, result.kept, target.fenced, target.from);
+    checked++;
+    const rel = slashed(relative(docs, file));
+    const leak = leakedMarkers(rel, result.kept, allowed.fenced, from);
     const named = mentions(result.out);
     if (leak) leaks.push(leak);
-    else if (named > target.named) {
+    else if (named > allowed.named) {
       leaks.push(
         `${rel}: ${named} line(s) still name bestax:generated, against ` +
-          `${target.named} such line(s) outside the marker lines in ` +
-          `${target.from}. A marker reached this file in a form the strip ` +
+          `${allowed.named} such line(s) outside the marker lines in ` +
+          `${from}. A marker reached this file in a form the strip ` +
           `does not recognize, so it would ship.`
       );
     }
+    return { fenced: result.kept, named };
+  }
+
+  // A twin is held to its own page. A page without markers whose twin is not
+  // at the path twinPath gives has nothing for that twin to leak, so it is
+  // skipped rather than failed. The joined files are built from the same
+  // pages as the twins, so each is held to what the twins in the build hold
+  // between them.
+  const twins = { fenced: 0, named: 0 };
+  for (const page of pages) {
+    const file = join(outDir, page.twin);
+    if (!existsSync(file)) continue;
+    const left = await check(file, page, page.source);
+    twins.fenced += left.fenced;
+    twins.named += left.named;
+  }
+  for (const name of JOINED) {
+    const file = join(outDir, name);
+    if (existsSync(file)) await check(file, twins, 'the twins it joins');
   }
 
   if (leaks.length) {
@@ -224,7 +288,7 @@ export async function stripBuild(docs = DOCS, io = console) {
 
   io.log(
     `strip-generated-markers: removed ${stripped} marker(s) from ${touched} ` +
-      `file(s), of ${targets.length} checked`
+      `file(s), of ${checked} checked`
   );
   return 0;
 }

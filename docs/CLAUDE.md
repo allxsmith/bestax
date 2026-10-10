@@ -46,12 +46,17 @@ markers, a source-control device no reader of the site needs. `build` then chain
 and each doc page's `.md` twin) for any marker that got through and strips it. Other built
 markdown, such as the dev.to copies of blog posts, is left alone. It is a build step rather
 than a Docusaurus plugin because `postBuild` hooks run under `Promise.all`, so a plugin declared
-after `docusaurus-plugin-llms` still races it. It fails the build when a source page carries
-markers but the build lacks `llms-full.txt` or that page's own `.md` twin, since a check over
-files that are not there passes quietly. The strip leaves a marker shown inside a code fence, so
-the step also fails when a twin keeps more such markers than its own source page shows, or
-`llms.txt` or `llms-full.txt` more than all the source pages together, and the same way for a
-line that names the marker in a form the strip does not recognize. A code fence left open in
+after `docusaurus-plugin-llms` still races it. The pages it checks are the ones the build
+rendered, read from the metadata Docusaurus writes under `.docusaurus/`, so a draft or an
+excluded file is never checked, and each page's twin is named from its permalink the way the
+plugin names it. It fails the build when it finds no rendered page, when two pages would get the
+same twin (the plugin numbers all but one, in an order the step cannot follow), or when a page
+carries markers but the build lacks `llms-full.txt` or that page's own `.md` twin, since a check
+over files that are not there passes quietly. The strip leaves a marker shown inside a code
+fence, so the step also fails when a twin keeps more such markers than its own source page
+shows, and the same way for a line that names the marker in a form the strip does not
+recognize. The plugin builds `llms.txt` and `llms-full.txt` from the same pages as the twins, so
+each of them is held to what the twins in the build hold between them. A code fence left open in
 one page of `llms-full.txt` would otherwise hide every later page's markers.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
