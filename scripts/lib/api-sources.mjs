@@ -175,7 +175,10 @@ export const SCSS_SOURCES = {
   Message: [{ pkg: 'bulma', path: 'sass/components/message.scss' }],
   Modal: [{ pkg: 'bulma', path: 'sass/components/modal.scss' }],
   Navbar: [{ pkg: 'bulma', path: 'sass/components/navbar.scss' }],
-  Notification: [{ pkg: 'bulma', path: 'sass/elements/notification.scss' }],
+  Notification: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_notification.scss' },
+    { pkg: 'bulma', path: 'sass/elements/notification.scss' },
+  ],
   Numberinput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_numberinput.scss' },
   ],

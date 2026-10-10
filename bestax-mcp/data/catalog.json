@@ -2007,6 +2007,7 @@
     "--bulma-notification-background-l": ["Notification"],
     "--bulma-notification-code-background-color": ["Notification"],
     "--bulma-notification-color-l": ["Notification"],
+    "--bulma-notification-delete-padding-inline-end": ["Notification"],
     "--bulma-notification-h": ["Notification"],
     "--bulma-notification-padding": ["Notification"],
     "--bulma-notification-radius": ["Notification"],

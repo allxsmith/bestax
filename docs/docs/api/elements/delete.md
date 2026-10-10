@@ -109,7 +109,7 @@ The `Delete` component is often used inside a `Tag` for removable labels. This e
 
 ### In a Notification
 
-Use the `Delete` component inside a `Notification` to provide a dismiss action for alerts or messages.
+Use the `Delete` component inside a `Notification` to provide a dismiss action for alerts or messages. The notification pads its end so the text clears a `Delete` placed directly inside it, at any `size`, in browsers that support `:has()`. `Notification`'s own `hasDelete` prop renders the button and leaves that room without depending on `:has()`.
 
 ```tsx live
 <Notification color="primary">
