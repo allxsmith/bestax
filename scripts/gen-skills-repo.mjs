@@ -33,8 +33,8 @@
  *   `gen:mcp:check` holds fresh. Each summary is cut with api-page.mjs's
  *   `firstSentence`, the rule both catalogs use. The README regions use the
  *   `<!-- bestax:generated <id> -->` helpers in scripts/lib/api-page.mjs, and
- *   the published README loses its markers through the same function that
- *   strips them from the built docs (docs/scripts/generated-markers-lib.mjs).
+ *   the published README loses its markers through stripGeneratedMarkers in
+ *   docs/scripts/generated-markers-lib.mjs.
  * - Versions are checked with consumer-sbom-meta.mjs's `assertVersion`,
  *   `parseReleaseTag` and `SEMVER`, and file-derived values in messages go
  *   through its `forLog`, so a file name cannot forge a workflow command on

@@ -1,6 +1,6 @@
 /**
- * Guards on generated-markers-lib.mjs, the marker strip and checks behind the
- * docs build's strip-generated-markers.mjs and the README that
+ * Guards on generated-markers-lib.mjs, the marker count and strip behind the
+ * docs build's check-generated-markers.mjs and the README that
  * scripts/gen-skills-repo.mjs publishes.
  */
 import { test } from 'node:test';
@@ -11,10 +11,8 @@ import { fileURLToPath } from 'node:url';
 import {
   MARKER_LINE,
   countGeneratedMarkers,
-  markersOutsideCode,
   stripGeneratedMarkers,
   stripMarkers,
-  unclosedFence,
 } from './generated-markers-lib.mjs';
 
 const open = id => `<!-- bestax:generated ${id} -->`;
@@ -114,8 +112,7 @@ test('only a whole line is a marker', () => {
   assert.equal(stripGeneratedMarkers(open('a')), '');
 });
 
-/** The real docs pages, as paths. */
-function realPages() {
+test('every marker on the real docs pages goes, and nothing else changes', () => {
   const docs = join(dirname(fileURLToPath(import.meta.url)), '..', 'docs');
   const walk = dir =>
     readdirSync(dir, { withFileTypes: true }).flatMap(e =>
@@ -125,12 +122,8 @@ function realPages() {
           ? [join(dir, e.name)]
           : []
     );
-  return walk(docs);
-}
-
-test('every marker on the real docs pages goes, and nothing else changes', () => {
   let pages = 0;
-  for (const file of realPages()) {
+  for (const file of walk(docs)) {
     const src = readFileSync(file, 'utf8');
     const markers = countGeneratedMarkers(src);
     if (!markers) continue;
@@ -166,73 +159,4 @@ test('stripMarkers strips in one pass and counts what it removed', () => {
     stripped: 2,
   });
   assert.deepEqual(stripMarkers(''), { out: '', stripped: 0 });
-});
-
-test('markersOutsideCode finds a marker comment in prose, as written or escaped', () => {
-  const src = lines(
-    `See ${open('a')} here.`,
-    `${close('a')} too.`,
-    '&lt;!-- bestax:generated a --&gt;',
-    '&lt;!--/bestax:generated a--&gt;',
-    // Not a marker: prose naming it, and a longer name.
-    'A bestax:generated region.',
-    '<!-- bestax:generatedx -->',
-    // A backtick with no partner opens no code span.
-    `It\`s ${open('a')}`,
-    ''
-  );
-  assert.deepEqual(markersOutsideCode(src), [1, 2, 3, 4, 7]);
-});
-
-test('markersOutsideCode passes over fences and inline code spans', () => {
-  const src = lines(
-    '```md',
-    open('a'),
-    '&lt;!-- /bestax:generated a --&gt;',
-    '```',
-    '~~~',
-    `See ${open('a')} here.`,
-    '~~~',
-    `Opens with \`${open('a')}\`, closes with \`\`${close('a')}\`\`.`,
-    // A span runs to a closing run as long as its opening, and no further.
-    `A span: \`a \`\` ${open('a')}\` and after it ${close('a')}.`,
-    ''
-  );
-  assert.deepEqual(markersOutsideCode(src), [9]);
-});
-
-test('unclosedFence names a fence left open, which hides the markers after it', () => {
-  // One page in llms-full.txt leaves a fence open, so the next page's
-  // markers read as code, and only the open fence gives them away.
-  const joined = lines(
-    '# A',
-    '```jsx',
-    '<Tabs>',
-    '',
-    '---',
-    '',
-    '# B',
-    open('props'),
-    '| Prop | Type |',
-    close('props'),
-    ''
-  );
-  assert.equal(stripMarkers(joined).stripped, 0);
-  assert.deepEqual(markersOutsideCode(joined), []);
-  assert.equal(unclosedFence(joined), 2);
-  assert.equal(unclosedFence(lines('Text.', '```')), 2);
-  assert.equal(unclosedFence(lines('````md', '```', 'x', '```', '')), 1);
-  // Closed on the last line, with or without a final newline, is closed.
-  assert.equal(unclosedFence(lines('```', 'x', '```')), 0);
-  assert.equal(unclosedFence(lines('```', 'x', '```', '')), 0);
-  assert.equal(unclosedFence(''), 0);
-});
-
-test('the real docs pages, joined, leave no marker outside code', () => {
-  const pages = realPages().map(file => readFileSync(file, 'utf8'));
-  // Joined the way docusaurus-plugin-llms joins llms-full.txt.
-  const joined = stripMarkers(pages.join('\n\n---\n\n'));
-  assert.ok(joined.stripped > 0);
-  assert.deepEqual(markersOutsideCode(joined.out), []);
-  assert.equal(unclosedFence(joined.out), 0);
 });

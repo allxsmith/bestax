@@ -1,24 +1,18 @@
 /**
- * The `<!-- bestax:generated <id> -->` marker lines, the function that strips
- * them, and the checks for any marker left, with no side effects, so both
- * strip-generated-markers.mjs and scripts/gen-skills-repo.mjs can import it.
+ * The `<!-- bestax:generated <id> -->` marker lines and the functions that
+ * count and strip them, with no side effects, so scripts/gen-skills-repo.mjs
+ * can strip them from the README it publishes and check-generated-markers.mjs
+ * can count them in the source pages.
  *
  * Fence-aware, through the fence rules scripts/lib/api-page.mjs writes and
  * reads the regions with: a marker shown inside a fenced code block is
- * content, and so is every blank line there. A fence left open hides every
- * marker after it, which is what unclosedFence is for.
+ * content, and so is every blank line there.
  */
-import { fenceMask, fenceSpans } from '../../scripts/lib/api-page.mjs';
+import { fenceMask } from '../../scripts/lib/api-page.mjs';
 
 /** One whole line that is a marker, opening or closing, with no line ending. */
 export const MARKER_LINE =
   /^[ \t]*<!--[ \t]*\/?bestax:generated[ \t][^>]*-->[ \t]*$/;
-
-/** A marker comment anywhere in a line, as written or HTML-escaped. */
-const MARKER = /(?:<|&lt;)!--[ \t]*\/?bestax:generated\b/;
-
-/** An inline code span: a run of backticks, text, and a run as long. */
-const CODE_SPAN = /(?<!`)(`+)(?!`).+?(?<!`)\1(?!`)/g;
 
 /**
  * `src` split after each newline, so each line keeps its own ending (LF or
@@ -73,34 +67,4 @@ export function stripMarkers(src) {
 /** stripMarkers' text alone. */
 export function stripGeneratedMarkers(src) {
   return stripMarkers(src).out;
-}
-
-/**
- * The lines of `src`, numbered from 1, that hold a marker comment, as written
- * or HTML-escaped, outside code: outside a fenced block and outside an inline
- * code span. Prose that names `bestax:generated` without the comment syntax
- * is not a marker.
- */
-export function markersOutsideCode(src) {
-  const { bare, fenced } = scan(src);
-  const found = [];
-  bare.forEach((line, i) => {
-    if (!fenced[i] && MARKER.test(line.replace(CODE_SPAN, ''))) {
-      found.push(i + 1);
-    }
-  });
-  return found;
-}
-
-/**
- * The line, numbered from 1, of a fence that `src` opens and never closes, or
- * 0. Everything after such a fence reads as code, so markersOutsideCode
- * passes over it.
- */
-export function unclosedFence(src) {
-  const { bare } = scan(src);
-  // No fence closes on an empty line, so one still open at the end of `src`
-  // is the only span that reaches the line added here.
-  const last = fenceSpans([...bare, '']).at(-1);
-  return last?.close === bare.length ? last.open + 1 : 0;
 }

@@ -6,7 +6,7 @@
     "docusaurus": "docusaurus",
     "docs": "docusaurus start",
     "start": "docusaurus start",
-    "build": "docusaurus build && node scripts/strip-generated-markers.mjs",
+    "build": "docusaurus build && node scripts/check-generated-markers.mjs",
     "test": "node --test \"scripts/*.test.mjs\"",
     "rasterize:cover": "node scripts/rasterize-cover.mjs",
     "snapshot:comparison": "node scripts/snapshot-comparison.mjs",
