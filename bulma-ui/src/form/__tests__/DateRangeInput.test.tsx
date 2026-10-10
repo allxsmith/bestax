@@ -221,6 +221,111 @@ describe('DateRangeInput', () => {
       expect(startInput()).toHaveAccessibleName('Start date');
     });
 
+    describe('composed by hand (#1005)', () => {
+      it.each([
+        ['with the popover', {}],
+        ['with native inputs', { mobileNative: true }],
+        ['inline', { inline: true }],
+      ])(
+        "takes a surrounding Field's label as the wrapper does, %s",
+        (_, props) => {
+          render(
+            <Field label="Stay">
+              <Control>
+                <DateRangeInputBase {...props} />
+              </Control>
+            </Field>
+          );
+          expect(screen.getByRole('group', { name: 'Stay' })).toHaveAttribute(
+            'aria-labelledby',
+            screen.getByText('Stay').id
+          );
+        }
+      );
+
+      it.each([
+        ['with the popover', {}],
+        ['with native inputs', { mobileNative: true }],
+      ])('keeps each input its own name, %s', (_, props) => {
+        render(
+          <Field label="Stay">
+            <Control>
+              <DateRangeInputBase {...props} />
+            </Control>
+          </Field>
+        );
+        expect(screen.getByLabelText('Start date')).toHaveAccessibleName(
+          'Start date'
+        );
+        expect(screen.getByLabelText('End date')).toHaveAccessibleName(
+          'End date'
+        );
+      });
+
+      it.each([
+        ['aria-label', { 'aria-label': 'Trip' }],
+        ['aria-labelledby', { 'aria-labelledby': 'trip' }],
+      ])('lets a name the caller gives it with %s win', (_, aria) => {
+        render(
+          <Field label="Stay">
+            <span id="trip">Trip</span>
+            <Control>
+              <DateRangeInputBase {...aria} />
+            </Control>
+          </Field>
+        );
+        expect(screen.getByRole('group', { name: 'Trip' })).toBeTruthy();
+        expect(screen.queryByRole('group', { name: 'Stay' })).toBeNull();
+      });
+
+      it('leaves the group to an aria-labelledby key, even an undefined one, as the wrapper passes', () => {
+        render(
+          <Field label="Stay">
+            <Control>
+              <DateRangeInputBase aria-labelledby={undefined} />
+            </Control>
+          </Field>
+        );
+        expect(screen.getByRole('group')).not.toHaveAttribute(
+          'aria-labelledby'
+        );
+      });
+
+      it('takes no name outside a labeled Field', () => {
+        render(
+          <Field>
+            <Control>
+              <DateRangeInputBase />
+            </Control>
+          </Field>
+        );
+        expect(screen.getByRole('group')).not.toHaveAttribute(
+          'aria-labelledby'
+        );
+      });
+
+      it('leaves the wrapper naming its group from one label', () => {
+        render(
+          <>
+            <Field label="Outer">
+              <Control>
+                <DateRangeInput />
+              </Control>
+            </Field>
+            <DateRangeInput label="Own" />
+          </>
+        );
+        expect(screen.getByRole('group', { name: 'Outer' })).toHaveAttribute(
+          'aria-labelledby',
+          screen.getByText('Outer').id
+        );
+        expect(screen.getByRole('group', { name: 'Own' })).toHaveAttribute(
+          'aria-labelledby',
+          screen.getByText('Own').id
+        );
+      });
+    });
+
     it('renders a message, colored', () => {
       render(<DateRangeInput message="Pick your nights" messageColor="info" />);
       expect(screen.getByText('Pick your nights')).toHaveClass(

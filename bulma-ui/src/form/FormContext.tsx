@@ -240,8 +240,9 @@ const FieldLabelElementIdContext = createContext<string | undefined>(undefined);
 
 /**
  * The id of a labeled Field's own `<label>`, for a group control (Radios,
- * Checkboxes, Rate, DateRangeInput) to point `aria-labelledby` at, since a group cannot take
- * the label's `htmlFor` (#939). Set under the same conditions as
+ * Checkboxes, Rate, DateRangeInput and DateRangeInputBase) to point
+ * `aria-labelledby` at, since a group cannot take the label's `htmlFor`
+ * (#939, #1005). Set under the same conditions as
  * {@link useFieldLabelId}. Consumed through `useAutoLabelledBy`.
  * Internal; not part of the public API.
  */
