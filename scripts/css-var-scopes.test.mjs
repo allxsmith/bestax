@@ -273,6 +273,47 @@ describe('API pages say where each Bulma variable can be set', () => {
       '.delete.is-large',
     ]);
   });
+
+  it("carry Delete's modifier caveat whether its rows lead or are marked", () => {
+    // A lone className class loses to `.delete.is-small` on a sized Delete,
+    // so both the lead and the note have to say the class must out-rank the
+    // modifier. Today the mixin rows lead the page. One Delete variable
+    // declared anywhere that sorts ahead of `mixin` would put them on the
+    // note instead, which is the case the extra row below stands in for.
+    const { rootClass, rows } = pages.find(p => p.page.endsWith('/delete.md'));
+    const info = { name: 'Delete', rootClass };
+    const caveat = [
+      /again on `\.delete\.is-small`, `\.delete\.is-medium` and `\.delete\.is-large`/,
+      /with one of those modifiers on, out-ranks the modifier's rule\./,
+    ];
+
+    const led = renderCssVarRows(info, rows, 'theme.md');
+    const [lead] = led.trim().split('\n');
+    for (const pattern of caveat) assert.match(lead, pattern);
+    assert.doesNotMatch(led, /¶/);
+
+    const extra = {
+      scope: 'root',
+      cssVar: '--bulma-delete-extra',
+      sassVar: null,
+      value: '1px',
+    };
+    for (const order of [
+      CSS_VAR_SCOPE_ORDER,
+      ['global', 'root', 'element', 'compound', 'mixin'],
+    ]) {
+      const marked = renderCssVarRows(info, [...rows, extra], 'theme.md', {
+        order,
+      });
+      const note = marked.split('\n').find(l => l.startsWith('¶'));
+      assert.ok(note, `no mixin note:\n${marked}`);
+      for (const pattern of caveat) assert.match(note, pattern);
+      assert.ok(
+        rows.every(r => marked.includes(`\`${r.cssVar}\` ¶`)),
+        'a mixin row is unmarked'
+      );
+    }
+  });
 });
 
 // --- the renderer -----------------------------------------------------------

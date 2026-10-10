@@ -354,6 +354,20 @@ export function cssVarScopeText(info, rows, themeLink) {
     modifiers.length > 1
       ? `${modifiers.slice(0, -1).join(', ')} and ${modifiers.at(-1)}`
       : modifiers.join('');
+  // A modifier that declares a mixin variable again is a compound selector,
+  // so a lone `className` class loses to it on a sized component. The lead
+  // and the note share these clauses, so whichever a page shows carries the
+  // caveat: `root` and `global` sort ahead of `mixin`, so one such row on
+  // the page puts the mixin rows on the note.
+  const declaredAgain = modifierList
+    ? `, and declares some of them again on ${modifierList}`
+    : '';
+  const mixinClassName =
+    `with a class via \`className\` whose rule loads after the library ` +
+    `styles` +
+    (modifierList
+      ? ` and, with one of those modifiers on, out-ranks the modifier's rule`
+      : '');
   const leads = {
     compound:
       `\`${info.name}\` registers these variables on a compound selector ` +
@@ -376,19 +390,10 @@ export function cssVarScopeText(info, rows, themeLink) {
       `component-level declaration. See [Theme](${themeLink}).`,
     mixin:
       `Bulma declares these variables on the ${element} itself, through a ` +
-      `mixin its rule includes` +
-      (modifierList
-        ? `, and declares some of them again on ${modifierList}`
-        : '') +
-      `. A value set on an ancestor, on \`:root\` or through ` +
-      `[Theme](${themeLink}) never reaches them, because the element's own ` +
-      `declaration wins. Set them on the element: with the \`style\` prop, ` +
-      `or with a class via \`className\` whose rule loads after the library ` +
-      `styles` +
-      (modifierList
-        ? ' and, with one of those modifiers on, out-ranks it'
-        : '') +
-      `.`,
+      `mixin its rule includes${declaredAgain}. A value set on an ancestor, ` +
+      `on \`:root\` or through [Theme](${themeLink}) never reaches them, ` +
+      `because the element's own declaration wins. Set them on the element: ` +
+      `with the \`style\` prop, or ${mixinClassName}.`,
     global:
       `Bulma declares these variables globally rather than on ` +
       `\`${info.name}\`'s own element, so the defaults come from the theme. ` +
@@ -422,10 +427,10 @@ export function cssVarScopeText(info, rows, themeLink) {
       `on the element itself (via \`className\`/\`style\`) or on any ` +
       `ancestor, up to \`:root\` to retheme every instance.`,
     mixin:
-      `¶ declared on the element itself, through a Bulma mixin its rule ` +
-      `includes: a value set on an ancestor, on \`:root\` or through Theme ` +
-      `never reaches it, so set it on the element with the \`style\` prop ` +
-      `or a \`className\` class.`,
+      `¶ Bulma declares these on the element itself, through a mixin its ` +
+      `rule includes${declaredAgain}. A value set on an ancestor, on ` +
+      `\`:root\` or through Theme never reaches them, so set them on the ` +
+      `element: with the \`style\` prop, or ${mixinClassName}.`,
   };
   return { leads, markers, notes };
 }
