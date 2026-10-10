@@ -114,8 +114,8 @@ hard-coding values.
 ## Floating content: `Portal`
 
 A panel anchored to the button that opens it is `Popover`, which already portals
-(`appendToBody`), traps focus and dismisses itself. `Portal` is for the overlays it doesn't
-cover.
+(`appendToBody`), traps focus and dismisses itself, and a preview that opens on hover is
+`HoverCard`, which portals the same way. `Portal` is for the overlays they don't cover.
 
 `<Portal container?>` (`helpers/portal.tsx`) renders its children into `document.body`, or into
 `container` (an element or a selector), so floating content escapes an ancestor's `overflow`,

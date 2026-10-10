@@ -43,6 +43,12 @@ const ADDONS = [
     desc: 'Confirmation and alert dialogs with customizable actions.',
   },
   {
+    name: 'HoverCard',
+    icon: 'hovercard',
+    link: '/docs/api/components/hovercard',
+    desc: 'Previews on links and buttons that open on hover or keyboard focus, and that the pointer can reach.',
+  },
+  {
     name: 'Loading',
     icon: 'loading',
     link: '/docs/api/components/loading',

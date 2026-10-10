@@ -245,6 +245,7 @@ for a non-modal dialog:
 ## Related Components
 
 - [`Tooltip`](./tooltip.md): A hover and focus hint for content nobody needs to interact with.
+- [`HoverCard`](./hovercard.md): A preview on a link or a button that opens on hover or keyboard focus, without taking focus.
 - [`Dropdown`](./dropdown.md): A menu of actions, with menu roles and arrow-key navigation.
 - [`Modal`](./modal.md): A modal overlay that blocks the page behind it.
 - [`Portal`](../helpers/portal.md): What `appendToBody` renders through.

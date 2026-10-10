@@ -63,6 +63,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   element, not a node: Popover clones it to add the click and ARIA, so never wrap it in a
   clickable of your own; build the panel from `Popover.Header`/`Body`/`Footer`/`Close`, and a
   panel without a `Popover.Header` needs `ariaLabel`),
+  `HoverCard trigger={<Link href="…">…</Link>}` for a preview on hover or keyboard focus
+  (`trigger` is one link or button, cloned the same way; the card's content goes straight in as
+  children with no sub-components; a trigger inside a `Paragraph` needs `appendToBody`; hover
+  and focus only, so anything that must work on touch or holds a form is a `Popover`),
   `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
   `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
   put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.

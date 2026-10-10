@@ -47,7 +47,7 @@
     }
   ],
   "accessibility": "- Tooltip content has `role=\"tooltip\"` for screen reader announcement\n- Has `aria-hidden` that toggles based on visibility\n- Tooltip shows on both hover and focus for keyboard users\n- The `dashed` style provides a visual cue that more information is available",
-  "related": [],
+  "related": ["Button", "HoverCard", "Icon", "Popover"],
   "storybook": null,
   "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
   "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",

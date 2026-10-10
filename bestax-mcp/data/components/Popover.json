@@ -41,6 +41,7 @@
   "accessibility": "`Popover` follows the [WAI-ARIA dialog pattern](https://www.w3.org/WAI/ARIA/apg/patterns/dialog-modal/)\nfor a non-modal dialog:\n\n- The panel is a `role=\"dialog\"` without `aria-modal`. It is named by its `Popover.Header` through\n  `aria-labelledby`, or by `ariaLabel`, which takes precedence. A development build warns when an\n  open panel has neither.\n- The trigger gets `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls` pointing at the\n  panel while it is open.\n- Opening moves focus to the first control in the panel, or to the panel itself when it has none.\n  Closing hands focus back to the trigger, as long as focus is still in the panel then, so a click\n  that put it somewhere else keeps it there.\n- Tab and Shift+Tab wrap inside the open panel, which the pattern asks of non-modal dialogs too.\n  Pointer focus, the screen reader's reading cursor and the rest of the page stay free: nothing\n  outside is hidden or made inert, and the page still scrolls. `trapFocus={false}` lets Tab leave.\n- <kbd>Escape</kbd> closes the popover while focus is in the panel or on the trigger. A dialog\n  nested inside the panel, such as a date picker's calendar or another popover, takes its own\n  Escape first.\n- <kbd>Enter</kbd> and <kbd>Space</kbd> toggle a trigger the browser doesn't click on its own.\n- The open animation is turned off under `prefers-reduced-motion: reduce`.",
   "related": [
     "Dropdown",
+    "HoverCard",
     "Modal",
     "Portal",
     "Tooltip",

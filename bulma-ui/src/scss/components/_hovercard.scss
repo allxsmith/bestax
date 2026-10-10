@@ -1,0 +1,118 @@
+// HoverCard Component Styles
+// A card that opens on hover or keyboard focus, anchored to its trigger
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+
+// HoverCard-specific SCSS variables
+$hover-card-z-index: $extras-z-index-tooltip !default;
+$hover-card-background: cv.getVar('scheme-main') !default;
+$hover-card-color: cv.getVar('text') !default;
+$hover-card-border-color: cv.getVar('border-weak') !default;
+$hover-card-radius: cv.getVar('radius-large') !default;
+$hover-card-shadow: cv.getVar('shadow') !default;
+$hover-card-padding: 1rem !default;
+$hover-card-min-width: 12rem !default;
+$hover-card-max-width: min(20rem, calc(100vw - 2rem)) !default;
+$hover-card-offset: 0.25rem !default;
+$hover-card-animation-duration: 0.15s !default;
+
+// Registered on the card rather than the wrapper: a card rendered with
+// `appendToBody` sits at the end of <body>, outside the wrapper, and would
+// inherit nothing from it.
+.#{iv.$class-prefix}hover-card-content {
+  @include cv.register-vars(
+    (
+      'hover-card-z-index': #{$hover-card-z-index},
+      'hover-card-background': #{$hover-card-background},
+      'hover-card-color': #{$hover-card-color},
+      'hover-card-border-color': #{$hover-card-border-color},
+      'hover-card-radius': #{$hover-card-radius},
+      'hover-card-shadow': #{$hover-card-shadow},
+      'hover-card-padding': #{$hover-card-padding},
+      'hover-card-min-width': #{$hover-card-min-width},
+      'hover-card-max-width': #{$hover-card-max-width},
+      'hover-card-offset': #{$hover-card-offset},
+      'hover-card-animation-duration': #{$hover-card-animation-duration},
+    )
+  );
+}
+
+// The wrapper around the trigger, which an inline card is placed against.
+// Inline-block, so it sits on the line of text around it and still holds a
+// trigger taller than the text, such as a button.
+.#{iv.$class-prefix}hover-card {
+  position: relative;
+  display: inline-block;
+}
+
+.#{iv.$class-prefix}hover-card-content {
+  position: absolute;
+  z-index: cv.getVar('hover-card-z-index');
+  // As wide as the content wants, within the bounds. An inline card would
+  // otherwise shrink to the trigger's width, and a portaled one wouldn't.
+  width: max-content;
+  min-width: cv.getVar('hover-card-min-width');
+  max-width: cv.getVar('hover-card-max-width');
+  padding: cv.getVar('hover-card-padding');
+  background-color: cv.getVar('hover-card-background');
+  color: cv.getVar('hover-card-color');
+  border: 1px solid cv.getVar('hover-card-border-color');
+  border-radius: cv.getVar('hover-card-radius');
+  box-shadow: cv.getVar('hover-card-shadow');
+  text-align: start;
+  // A trigger in a line that doesn't wrap mustn't stop the card wrapping.
+  white-space: normal;
+  animation: hover-card-fade-in cv.getVar('hover-card-animation-duration') ease;
+
+  &.#{iv.$class-prefix}is-bottom-left,
+  &.#{iv.$class-prefix}is-bottom-right {
+    top: 100%;
+    margin-top: cv.getVar('hover-card-offset');
+  }
+  &.#{iv.$class-prefix}is-top-left,
+  &.#{iv.$class-prefix}is-top-right {
+    bottom: 100%;
+    margin-bottom: cv.getVar('hover-card-offset');
+  }
+  &.#{iv.$class-prefix}is-bottom-left,
+  &.#{iv.$class-prefix}is-top-left {
+    left: 0;
+  }
+  &.#{iv.$class-prefix}is-bottom-right,
+  &.#{iv.$class-prefix}is-top-right {
+    right: 0;
+  }
+
+  // Portaled: fixed to the viewport at the trigger's edge, which the
+  // component sets inline, so only the gap comes from here.
+  &.#{iv.$class-prefix}is-portal {
+    position: fixed;
+    right: auto;
+    bottom: auto;
+
+    &.#{iv.$class-prefix}is-top-left,
+    &.#{iv.$class-prefix}is-top-right {
+      margin-top: calc(-1 * #{cv.getVar('hover-card-offset')});
+      margin-bottom: 0;
+    }
+  }
+}
+
+@keyframes hover-card-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}hover-card-content {
+    animation: none;
+  }
+}

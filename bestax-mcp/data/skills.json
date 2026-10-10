@@ -6,11 +6,11 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 10851 },
+        { "id": "api", "file": "references/api.md", "bytes": 10929 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 18753
+          "bytes": 18961
         },
         {
           "id": "library-contributor",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 10113
+          "bytes": 10126
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 31590
+          "bytes": 32153
         },
         {
           "id": "themeable-components",
