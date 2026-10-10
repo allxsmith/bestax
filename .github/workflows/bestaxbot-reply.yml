@@ -114,7 +114,7 @@ jobs:
       # the agent reverts the firewall while the pre-step still exits 0, which is
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
           allowed-endpoints: >
@@ -241,7 +241,7 @@ jobs:
 
       - name: Setup Node.js
         if: steps.perm.outputs.allowed == 'true'
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: '24'
           cache: 'pnpm'
