@@ -100,6 +100,42 @@ overrides:
   # bestax:permanent — a deliberate single-version pin for formatting
   # determinism, not an advisory patch waiting on the ecosystem.
   prettier: 3.9.9
+  # bestax:review 2026-11-13 - drop once Storybook's test runner works with
+  # jest 30.5 (storybookjs/storybook#36116).
+  # Hold the jest family on 30.4. jest 30.5 makes module.register() throw
+  # inside the test sandbox, and Storybook's importModule calls it the first
+  # time it loads a file, so test-storybook:ci fails before it runs a story.
+  # The manifests' ^30 ranges admit 30.5, so a hold kept only in the lockfile
+  # lasts until the next Dependabot group re-locks it. Each entry caps one jest
+  # package that something in the tree asks for by range, and the rest of the
+  # family follows through jest's own exact pins. A jest package that still
+  # resolves to 30.5 without the lockfile needs an entry of its own. Scoped to
+  # the 30.x major, so a deliberate move to 31 is not pulled back onto this
+  # line. The entries hold one version line between them, so drop them
+  # together.
+  'jest@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; bulma-ui's test environment
+  'jest-environment-jsdom@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; the packages' test globals
+  '@jest/globals@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  'jest-circus@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  'jest-runner@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  'jest-environment-node@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; @storybook/test-runner's copy
+  '@jest/types@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; via jest-watch-typeahead
+  'jest-watcher@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; via jest-watch-typeahead
+  'jest-regex-util@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; via @swc/jest
+  '@jest/create-cache-key-function@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; via @types/jest
+  'expect@30': '>=30.4.0 <30.5'
+  # bestax:review 2026-11-13 - jest 30.4 hold; via @types/jest
+  'pretty-format@30': '>=30.4.0 <30.5'
   # The entries below force patched versions of transitive dependencies. Each
   # stops being load-bearing once its parents widen their own ranges, so prune
   # periodically: drop an entry, re-resolve, and leave it out if the resolved
