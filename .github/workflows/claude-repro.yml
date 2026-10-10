@@ -432,7 +432,7 @@ jobs:
 
       # No pnpm, no cache: the sanitizer below is dependency-free
       # (node: builtins only), so plain Node 24 is all it needs.
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 
