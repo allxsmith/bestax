@@ -99,7 +99,9 @@ export interface FieldBodyProps
  * column and its `<label>` for you. A `<label>` you put here names the
  * control through its `htmlFor` alone: a range `Slider`'s thumbs and an
  * `Autocomplete`'s suggestion list point `aria-labelledby` at a `Field`'s
- * label only when its `label` prop renders it, so use the prop for those.
+ * label only when its `label` prop renders it and it names the control.
+ * Where it would not name the control on its own, as in an inner `Field`,
+ * pass `labelProps={{ htmlFor, id }}` with a matching `id` on the control.
  *
  * @function
  * @param {FieldLabelProps} props - Props for the FieldLabel component.

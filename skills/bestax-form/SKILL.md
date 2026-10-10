@@ -151,7 +151,8 @@ keep their fallback names ("Minimum value"/"Maximum value", "Suggestions"). The 
 a label wired by hand on a `grouped`/`hasAddons` row. A `<label htmlFor>` you put in
 `Field.Label` yourself (the explicit label/body pattern in `references/patterns.md`) names its
 control through the `for` alone, and the thumbs and list never point at it, so label a row
-holding a range `Slider` or an `Autocomplete` with the `Field`'s `label` prop. For a group, use
+holding a range `Slider` or an `Autocomplete` with the `Field`'s `label` prop, wired by hand as
+above when an inner `Field` holds the control. For a group, use
 `labelProps={{ id, htmlFor: undefined }}` plus its `aria-labelledby`, since nothing takes the
 label's `for` there. Pass
 `labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or

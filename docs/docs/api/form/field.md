@@ -474,7 +474,7 @@ This example demonstrates using the `Field` component to create a group of contr
 
 Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now also available as `Field.Control`, so a field can be composed from the single `Field` import.
 
-`Field.Label` is the label column, not a `<label>` element, and a `Field` with no `label` prop names nothing, so put a `label` inside it and point its `htmlFor` at a matching `id` on the control.
+`Field.Label` is the label column, not a `<label>` element, and a `Field` with no `label` prop names nothing, so put a `label` inside it and point its `htmlFor` at a matching `id` on the control. A label placed this way names the control through its `for` alone, and a range `Slider`'s thumbs and an `Autocomplete`'s suggestion list don't point at it. For those, use the `Field`'s `label` prop, adding `labelProps={{ htmlFor, id }}` and a matching `id` on the control when an inner `Field` holds it.
 
 ```tsx live
 <Field horizontal>
@@ -545,7 +545,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 **Subcomponents:**
 
-- `Field.Label`: FieldLabel component for rendering a Bulma field label. It renders the label column of a horizontal `Field` (a `div` with the `field-label` class), not a `<label>`, so text placed straight in it names nothing. Put a `<label>` with the `label` class inside it and point its `htmlFor` at the control's `id`, or give the horizontal `Field` a `label` prop, which renders this column and its `<label>` for you. A `<label>` you put here names the control through its `htmlFor` alone: a range `Slider`'s thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at a `Field`'s label only when its `label` prop renders it, so use the prop for those.
+- `Field.Label`: FieldLabel component for rendering a Bulma field label. It renders the label column of a horizontal `Field` (a `div` with the `field-label` class), not a `<label>`, so text placed straight in it names nothing. Put a `<label>` with the `label` class inside it and point its `htmlFor` at the control's `id`, or give the horizontal `Field` a `label` prop, which renders this column and its `<label>` for you. A `<label>` you put here names the control through its `htmlFor` alone: a range `Slider`'s thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at a `Field`'s label only when its `label` prop renders it and it names the control. Where it would not name the control on its own, as in an inner `Field`, pass `labelProps={{ htmlFor, id }}` with a matching `id` on the control.
 - `Field.Body`: FieldBody component for rendering Bulma field body.
 - [`Field.Control`](control.md): The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.
 
