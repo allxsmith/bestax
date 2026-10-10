@@ -30,6 +30,36 @@ import { Input } from '../Input';
 import { Select } from '../Select';
 import { TextArea } from '../TextArea';
 import { ConfigProvider } from '../../helpers/Config';
+import { useFieldLabelId } from '../FormContext';
+
+/**
+ * Renders `content` in a Field labeled `label`, and reads the id that Field
+ * offers its content from the context the controls themselves read, so a
+ * test of what takes it never rebuilds it from the label's own id.
+ */
+const renderInLabeledField = (label: string, content: React.ReactNode) => {
+  let target: string | undefined;
+  const ReadTarget = () => {
+    target = useFieldLabelId();
+    return null;
+  };
+  const result = render(
+    <Field label={label}>
+      <ReadTarget />
+      {content}
+    </Field>
+  );
+  const labelElement = result.container.querySelector(
+    'label.label'
+  ) as HTMLElement;
+  // Every element but the label that carries the Field's id or builds an id
+  // of its own on it.
+  const takers = () =>
+    Array.from(result.container.querySelectorAll('[id]')).filter(
+      el => el !== labelElement && el.id.includes(target as string)
+    );
+  return { ...result, labelElement, target, takers };
+};
 
 describe('Field', () => {
   it('renders children', () => {
@@ -486,17 +516,15 @@ describe('label auto-association (#495)', () => {
   it.each(pickerBases)(
     'leaves an inline %s alone: it has no input to name',
     (_, element) => {
-      const { container } = render(
-        <Field label="When">{element({ inline: true })}</Field>
+      const { labelElement, target, takers } = renderInLabeledField(
+        'When',
+        element({ inline: true })
       );
-      // Nothing but the label itself takes or derives an id from the target,
-      // so the label drops its `for` (#1004).
-      const label = labelEl(container);
-      expect(label).not.toHaveAttribute('for');
-      const target = label.id.replace(/-label$/, '');
-      expect(
-        container.querySelector(`[id^="${target}"]:not(label)`)
-      ).toBeNull();
+      // Nothing takes or derives an id from the target, so the label drops
+      // its `for` (#1004).
+      expect(target).toEqual(expect.any(String));
+      expect(takers()).toEqual([]);
+      expect(labelElement).not.toHaveAttribute('for');
     }
   );
 
@@ -912,13 +940,15 @@ describe('label names the convenience controls (#939)', () => {
       () => <Taginput defaultValue={['React']} maxTags={1} />,
     ],
   ])('leaves %s alone: it has no input to name', (_, element) => {
-    const { container } = render(<Field label="Pick">{element()}</Field>);
-    // Nothing but the label itself takes or derives an id from the target,
-    // so the label drops its `for` (#1004).
-    const label = labelEl(container);
-    expect(label).not.toHaveAttribute('for');
-    const target = label.id.replace(/-label$/, '');
-    expect(container.querySelector(`[id^="${target}"]:not(label)`)).toBeNull();
+    const { labelElement, target, takers } = renderInLabeledField(
+      'Pick',
+      element()
+    );
+    // Nothing takes or derives an id from the target, so the label drops
+    // its `for` (#1004).
+    expect(target).toEqual(expect.any(String));
+    expect(takers()).toEqual([]);
+    expect(labelElement).not.toHaveAttribute('for');
   });
 
   // The Field's TSDoc names these as taking nothing from it: each wraps its
@@ -928,11 +958,14 @@ describe('label names the convenience controls (#939)', () => {
     ['Radio', () => <Radio name="pick">Mine</Radio>, 'radio'],
     ['Switch', () => <Switch>Mine</Switch>, 'checkbox'],
   ])('leaves a %s named by its own children', (_, element, role) => {
-    const { container } = render(<Field label="Pick">{element()}</Field>);
-    const target = labelEl(container).id.replace(/-label$/, '');
-    expect(container.querySelector(`[id="${target}"]`)).toBeNull();
+    const { labelElement, target, takers } = renderInLabeledField(
+      'Pick',
+      element()
+    );
+    expect(target).toEqual(expect.any(String));
+    expect(takers()).toEqual([]);
     // It takes nothing, so the label drops its `for` (#1004).
-    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(labelElement).not.toHaveAttribute('for');
     expect(screen.getByRole(role, { name: 'Mine' })).toBeInTheDocument();
   });
 
