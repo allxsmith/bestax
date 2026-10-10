@@ -617,9 +617,10 @@ prints the effective `EgressPolicy:`.
 
 #### What the agent allows beyond the list
 
-A block job's `allowed-endpoints` bounds the named hosts that job adds to the firewall, and
-nothing more. It is not a bound on the job's egress. Everything in this section is about the
-open-source agent, step-security/agent at the version the pin installs, read from its source.
+A block job's `allowed-endpoints` names hosts the job adds to the firewall. Others are added
+beside them: the agent's, below, and the Actions cache host, which the pre-step may append. The
+list is not a bound on the job's egress. Everything in this section is about the open-source
+agent, step-security/agent at the version the pin installs, read from its source.
 When the pre-step selects the closed-source `agent-ebpf` instead (rule 1), none of it can be
 checked from here.
 
@@ -707,27 +708,30 @@ Two things about reading its output, both learned assembling the #578 lists:
   `productionresultssa<N>.blob.core.windows.net`,
   `run-actions-<N>-azure-*.actions.githubusercontent.com` and `hosted-compute-*.githubapp.com`
   are the runner talking to its own control plane. The agent's built-in entries admit the first
-  three without a listing ("What the agent allows beyond the list"). The runner does not need the
-  last admitted at all, as the run below shows, and the meta list's `*.githubapp.com` admits it
-  when the meta fetch succeeds. Leave them off a new list. The blob host has no one name a list
-  could carry, since N varies between runs, and listing the others adds nothing, so a list that
-  already names one is redundant rather than wrong.
-  Run 33221210633 is the evidence that omitting them is right: `auto-close-duplicates` at
-  `block` with its list observed only `api.github.com` and `github.com`, and completed every one
-  of its API calls under the firewall.
+  three without a listing ("What the agent allows beyond the list"). The meta list's
+  `*.githubapp.com` admits the last when the meta fetch succeeds, and one run passed with it not
+  admitted at all (run 33286967625, below), which suggests the runner can do without it but
+  does not prove it ("One run is not a measurement"). Leave them off a new list. The blob host
+  has no one name a list could carry, since N varies between runs. An exact entry for one of the
+  others is not free, though: the agent resolves every exact entry at startup, and one that does
+  not resolve then reverts the firewall (rule 10), so an entry the job never needed can still
+  turn its policy off. Removing the ones lists already carry is tracked in #1014.
+  Run 33221210633 is one run's evidence for omitting them: `auto-close-duplicates` at `block`
+  with its list observed only `api.github.com` and `github.com`, and completed every one of its
+  API calls under the firewall.
 
-  **Leaving them out costs nothing, and that is measured rather than assumed.** Run 33286967625
-  ran `claude-review` at `block` on harden-runner v2.21.0, whose agent had the built-in entries
-  and no meta list. Its `setup-node` step restored the pnpm cache through `results-receiver` and
+  **What leaving them out costs was read from a run, not assumed.** Run 33286967625 ran
+  `claude-review` at `block` on harden-runner v2.21.0, whose agent had the built-in entries and
+  no meta list. Its `setup-node` step restored the pnpm cache through `results-receiver` and
   `productionresultssa6` before `pnpm install --frozen-lockfile` completed. Neither was on the
   job's list, and the pre-step had added a different blob host. So the built-in entries carry the
   cache on their own. The same run's agent log reads `domain not allowed` for a
-  `hosted-compute-*.githubapp.com` host, and the job passed, so the runner does without that
-  host. After a pin bump, check the built-in entries are still in `addImplicitEndpoints` before
-  leaning on that run. Worth stating plainly because the first revision of this bullet predicted
-  a cache miss and called it an accepted cost. That was a guess, it was wrong, and the run is
-  what showed it. If you catch yourself writing down what a policy will cost, go and read a run
-  instead.
+  `hosted-compute-*.githubapp.com` host, and the job passed, which suggests the runner can do
+  without that host and does not prove it. After a pin bump, check the built-in entries are still
+  in `addImplicitEndpoints` before leaning on that run. Worth stating plainly because the first
+  revision of this bullet predicted a cache miss and called it an accepted cost. That was a
+  guess, it was wrong, and the run is what showed it. If you catch yourself writing down what a
+  policy will cost, go and read a run instead.
 
 - **One run is not a measurement.** Vendor telemetry samples, so a host can be absent from a
   run and present in the next — `telemetry.vercel.com` (turbo) showed up exactly once across

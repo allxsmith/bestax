@@ -242,9 +242,9 @@ jobs:
 
       - name: Run Claude (draft repro; no execution)
         id: claude
-        # Telemetry is denied, never allow-listed: the CLI's Datadog intake host
-        # stays off every allowlist in this repo AND the CLI is told not to emit
-        # it (#487). It also covers feature-flag evaluation, which is why
+        # Telemetry is turned off, never allow-listed: the CLI's Datadog intake
+        # host stays off every allowlist in this repo AND the CLI is told not to
+        # emit it (#487). It also covers feature-flag evaluation, which is why
         # statsig.anthropic.com is gone.
         #
         # A step `env:` rather than the action's `settings:` input. `settings:` is
@@ -265,9 +265,9 @@ jobs:
           # exchange. No PAT anywhere in this workflow.
           github_token: ${{ secrets.GITHUB_TOKEN }}
           show_full_output: true
-          # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
-          # host stays off the egress allowlist above AND the CLI is told not to
-          # emit it, so the block policy has nothing to refuse (#487). This also
+          # Telemetry is turned off rather than allow-listed: the CLI's Datadog
+          # intake host stays off the egress allowlist above AND the CLI is told
+          # not to emit it, so the CLI does not try to reach it (#487). This also
           # covers feature-flag evaluation, which is why statsig.anthropic.com
           # is no longer needed in the allowlist above.
           # I1: no Bash / Task / web tools, so the session cannot execute code,

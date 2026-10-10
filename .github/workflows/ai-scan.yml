@@ -384,11 +384,14 @@ jobs:
     outputs:
       verdict: ${{ steps.verdict.outputs.verdict }}
     steps:
-      # Defense-in-depth: the session's only tools are read-only gh subcommands,
-      # none of them a general-purpose network client. Block narrows where the
-      # OAuth token could be sent regardless, and as of #487 it is ENFORCED and
-      # asserted below. The list is additive to harden-runner's GitHub Actions
-      # baseline and is the set measured on a real run (#487), not a guess.
+      # Defense-in-depth: the session's Bash allowlist is `gh issue view`,
+      # `gh pr view` and `gh pr diff`, read-only against GitHub's API. Each one
+      # also takes a full URL or `-R HOST/OWNER/REPO`, and sends its request to
+      # that host instead. Block narrows where those requests, and the OAuth
+      # token, can go ("What the agent allows beyond the list" in
+      # .github/CLAUDE.md), and as of #487 it is ENFORCED and asserted below.
+      # The list is additive to harden-runner's GitHub Actions baseline and is
+      # the set measured on a real run (#487), not a guess.
       #
       # release-assets.githubusercontent.com is where GitHub redirects release-asset
       # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,
@@ -413,7 +416,8 @@ jobs:
       # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
       # deliberately ABSENT rather than allow-listed: not a functional dependency,
       # and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC so nothing
-      # attempts it. Denying and silencing are a tighter pair than allow-listing.
+      # attempts it. Leaving it unlisted and silencing it is a tighter pair than
+      # allow-listing.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -473,9 +477,9 @@ jobs:
 
       - name: Run Claude (security scan)
         id: claude
-        # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
-        # host stays off the allowlist above AND the CLI is told not to emit it,
-        # so the block policy has nothing to refuse (#487). This also covers
+        # Telemetry is turned off rather than allow-listed: the CLI's Datadog
+        # intake host stays off the allowlist above AND the CLI is told not to
+        # emit it, so the CLI does not try to reach it (#487). This also covers
         # feature-flag evaluation, which is why statsig.anthropic.com is gone.
         #
         # Set as a step `env:` rather than through the action's `settings:` input.

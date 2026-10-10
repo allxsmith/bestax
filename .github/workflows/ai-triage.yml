@@ -457,7 +457,8 @@ jobs:
       # The CLI's telemetry intake (http-intake.logs.us5.datadoghq.com) is
       # deliberately ABSENT rather than allow-listed: not a functional
       # dependency, and the session sets CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC
-      # so nothing attempts it. Denying and silencing beat allow-listing.
+      # so nothing attempts it. Leaving it unlisted and silencing it beat
+      # allow-listing.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -530,9 +531,9 @@ jobs:
 
       - name: Run Claude (triage)
         id: claude
-        # Telemetry is denied rather than allow-listed: the CLI's Datadog intake
-        # host stays off the allowlist above AND the CLI is told not to emit it,
-        # so the block policy has nothing to refuse (#487). This also covers
+        # Telemetry is turned off rather than allow-listed: the CLI's Datadog
+        # intake host stays off the allowlist above AND the CLI is told not to
+        # emit it, so the CLI does not try to reach it (#487). This also covers
         # feature-flag evaluation, which is why statsig.anthropic.com is gone.
         #
         # A step `env:` rather than the action's `settings:` input: `settings:`

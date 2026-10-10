@@ -164,8 +164,10 @@ jobs:
       # as runner infrastructure, which needs no listing (.github/CLAUDE.md,
       # "Measuring an allowlist"). The list's
       # results-receiver.actions.githubusercontent.com entry is runner
-      # infrastructure too, so it is redundant rather than wrong, as that
-      # section says of such entries.
+      # infrastructure too and needs no listing either. It is not free: the
+      # agent resolves it at startup, and an entry that does not resolve
+      # reverts the firewall (that section). It stays for now; removing it is
+      # tracked in #1014.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -741,7 +743,10 @@ jobs:
       #
       # The two *.actions.githubusercontent.com entries below, token and
       # results-receiver, need no listing either ("What the agent allows
-      # beyond the list"), so each is redundant rather than wrong.
+      # beyond the list"). They are not free: the agent resolves each at
+      # startup, and an entry that does not resolve reverts the firewall
+      # ("Measuring an allowlist"). They stay for now; removing them is
+      # tracked in #1014.
       #
       # Of this file's other jobs, `sbom`, `attach-sbom` and
       # `verify-provenance` predate rule 10 and are grandfathered by its
