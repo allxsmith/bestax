@@ -125,44 +125,40 @@ Full-width is `isFullwidth` on every component that supports it (`Button`, `Link
 spellings compile only where they historically existed: `isFullWidth` everywhere except
 `Sidebar`, `fullwidth` on `Tabs` only, `fullWidth` on `Sidebar` only.
 
-The `label` prop on the single-control convenience inputs (`Input`, `Select`, `TextArea`,
-`File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`,
-`Taginput`) wires `htmlFor`/`id` automatically — your `id` is used when provided, a
-generated one otherwise, and an explicit `labelProps={{ htmlFor }}` wins. The wiring only
-happens when the component renders its own `Field` (nested inside one, the `label` prop is
-dropped); the date/time pickers skip it in `inline` mode and `Taginput` skips it at
-`maxTags` (no visible input to label). A `range` `Slider` points the `for` at its low thumb
-and also puts the label at the start of both thumbs' names through `aria-labelledby`
-("Price range Minimum value"). Its `ariaLabel={[low, high]}` replaces those names outright, so
-leave it off when a label already names the Slider. The group inputs (`Checkboxes`, `Radios`, `Rate`,
-`DateRangeInput`) associate their `label` too, but group-style: the wrapper gets
-`role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
-also associates: a labeled `Field` names the one control it holds, whether a composed
-`InputBase`/`SelectBase`/`TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/
-`DateTimeInputBase` that is not `inline`, or any input above (through the id), or a group,
-a composed `DateRangeInputBase` included, `inline` or not (through `aria-labelledby`).
-Either way, an `aria-label` or `aria-labelledby` you give a group wins over the label. A
-`Checkbox`, `Radio` or `Switch` takes nothing from a `Field`: each is named by its own
-children, so put the text there. The association is skipped for
-`grouped`/`hasAddons`, and a nested `Field` starts its own scope, so a
-horizontal `Field` whose body holds an inner `Field` needs `labelProps={{ htmlFor, id }}` plus
-the control's `id`. The `for` names the control, and the label's `id` is what a range `Slider`'s
-thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at, so without it they
-keep their fallback names ("Minimum value"/"Maximum value", "Suggestions"). The same goes for
-a label wired by hand on a `grouped`/`hasAddons` row. A `<label htmlFor>` you put in
-`Field.Label` yourself (the explicit label/body pattern in `references/patterns.md`) names its
-control through the `for` alone, and the thumbs and list never point at it, so label a row
-holding a range `Slider` or an `Autocomplete` with the `Field`'s `label` prop, wired by hand as
-above when an inner `Field` holds the control. For a group in an inner `Field`, use
-`labelProps={{ id, htmlFor: undefined }}` on the outer `Field` plus an `aria-labelledby` on the
-group pointing at that `id`, as the docs' horizontal group examples do. The
-`htmlFor: undefined` keeps the label's `for` out of server-rendered HTML as well as the
-browser's. Leave it off and the label still drops the `for` after mounting, but the server's
-HTML carries one that matches nothing. A labeled `Field` over anything else that doesn't take
-its id (a group held directly, a `Checkbox`, `Radio` or `Switch`, your own markup) drops its
-`for` the same way once mounted, with the same `for` left in server-rendered HTML. Pass
-`labelProps={{ htmlFor }}` plus a matching `id` only when you want a stable id, or
-`labelProps={{ htmlFor: undefined }}` to opt out.
+**Labels.** Default to the convenience `label` prop, with `horizontal` for a side-by-side row.
+`Input`, `Select`, `TextArea`, `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`,
+`DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
+`htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`);
+an explicit `labelProps={{ htmlFor }}` wins. The group inputs (`Checkboxes`, `Radios`, `Rate`,
+`DateRangeInput`) name their `role="group"`/`"radiogroup"` wrapper through `aria-labelledby`
+instead. Inside a `Field` a convenience input drops its `label`, and an `inline` date/time picker
+or a `Taginput` at `maxTags` has no visible input to wire.
+
+Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
+`TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
+`inline`, or any input above takes its generated id, and a group (a composed `DateRangeInputBase`
+too, `inline` or not) points `aria-labelledby` at it. **A control with an `id` of its own never
+takes that id**, so `<Field label="Email"><Input id="email" /></Field>` renders a label that
+names nothing: leave the `id` off, or pass the same value as `labelProps={{ htmlFor: 'email' }}`.
+Wire it that way too where the association is skipped, in a `grouped`/`hasAddons` row and in a
+horizontal `Field` whose body holds an inner `Field` (a nested `Field` starts its own scope). For
+a group there, put `labelProps={{ id, htmlFor: undefined }}` on the outer `Field` and a matching
+`aria-labelledby` on the group; the `htmlFor: undefined` keeps an unmatched `for` out of
+server-rendered HTML.
+
+A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
+("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so
+leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s
+suggestion list point `aria-labelledby` at the label's `id`, which a label wired by hand has only
+when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their fallback names
+("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in `Field.Label`
+yourself (`references/patterns.md`) names its control through the `for` alone, so label a row
+holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby` you give a
+group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
+its children name it. A labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio`
+or `Switch`, an input with an `id` of its own, your own markup) drops it once mounted, though
+server-rendered HTML keeps it. `labelProps={{ htmlFor: undefined }}` opts out of the association
+entirely.
 
 ## Convenience vs composed
 
@@ -279,11 +275,12 @@ for the expected classes/states, and say plainly that the visual pass is still o
 ## Checklist
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
-- [ ] Every label is programmatically associated — the convenience `label` prop, the group
-      inputs, and `Field` + single-base composition all do this automatically; pass
-      `labelProps={{ htmlFor }}` plus a matching `id` only for a stable id, and label a
-      multi-control `Field`'s controls individually (`aria-label`, `aria-labelledby`, or
-      a `<label htmlFor>` matching each control's `id`).
+- [ ] Every label is programmatically associated: the convenience `label` prop, the group
+      inputs, and `Field` + single-control composition do it on their own. A control with an
+      `id` of its own, or in an inner `Field`, is named only when the `Field`'s
+      `labelProps={{ htmlFor }}` matches its `id`, and a multi-control `Field`'s controls are
+      labeled individually (`aria-label`, `aria-labelledby`, or a `<label htmlFor>` matching
+      each control's `id`).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
 - [ ] Error state shows via `color="danger"` + `message` + `messageColor="danger"`.
 - [ ] Grouped/addon layouts use explicit `Field` + `Control` composition.

@@ -445,9 +445,14 @@ export const HorizontalForm: Story = {
           <option value="cst">Central (CST)</option>
           <option value="pst">Pacific (PST)</option>
         </Select>
-        <Field horizontal label="Dark mode">
+        <Field
+          horizontal
+          label="Dark mode"
+          labelProps={{ htmlFor: 'dark-mode' }}
+        >
           <Field>
             <Switch
+              id="dark-mode"
               color="info"
               isThin
               checked={form.darkMode}
@@ -459,9 +464,14 @@ export const HorizontalForm: Story = {
             </Switch>
           </Field>
         </Field>
-        <Field horizontal label="Auto-save">
+        <Field
+          horizontal
+          label="Auto-save"
+          labelProps={{ htmlFor: 'auto-save' }}
+        >
           <Field>
             <Switch
+              id="auto-save"
               color="success"
               passiveType="danger"
               isRounded

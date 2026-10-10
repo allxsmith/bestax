@@ -245,10 +245,10 @@ export const WithLabel: Story = {
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Message">
+    <Field horizontal label="Message" labelProps={{ htmlFor: 'message-field' }}>
       <Field.Body>
         <Field>
-          <TextArea placeholder="Enter your message" />
+          <TextArea id="message-field" placeholder="Enter your message" />
         </Field>
       </Field.Body>
     </Field>
@@ -260,11 +260,18 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Message">
+    <Field
+      horizontal
+      label="Message"
+      labelProps={{ htmlFor: 'message-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="comment">
-            <TextArea placeholder="Enter your message" />
+            <TextArea
+              id="message-field-control"
+              placeholder="Enter your message"
+            />
           </Control>
         </Field>
       </Field.Body>

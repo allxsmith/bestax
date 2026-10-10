@@ -370,11 +370,15 @@ export const AddonsFullwidth: Story = {
  */
 export const HorizontalNarrow: Story = {
   render: () => (
-    <Field horizontal label="Department">
+    <Field
+      horizontal
+      label="Department"
+      labelProps={{ htmlFor: 'department-field' }}
+    >
       <Field.Body>
         <Field narrow>
           <Control>
-            <Select isFullwidth>
+            <Select id="department-field" isFullwidth>
               <option>Business development</option>
               <option>Marketing</option>
               <option>Sales</option>
@@ -409,10 +413,10 @@ export const WithLabel: Story = {
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Country">
+    <Field horizontal label="Country" labelProps={{ htmlFor: 'country-field' }}>
       <Field.Body>
         <Field>
-          <Select>
+          <Select id="country-field">
             <option value="">Please select</option>
             <option value="us">United States</option>
             <option value="uk">United Kingdom</option>
@@ -429,11 +433,15 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Country">
+    <Field
+      horizontal
+      label="Country"
+      labelProps={{ htmlFor: 'country-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="globe">
-            <Select>
+            <Select id="country-field-control">
               <option value="">Please select</option>
               <option value="us">United States</option>
               <option value="uk">United Kingdom</option>
