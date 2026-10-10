@@ -183,7 +183,7 @@ For custom close actions, use the `onClick` prop.
 
 <!-- bestax:generated cssvars -->
 
-Bulma declares these variables on the `.delete` element itself, through a mixin its rule includes, and declares some of them again on `.delete.is-small`, `.delete.is-medium` and `.delete.is-large`. A value set on an ancestor, on `:root` or through [Theme](../helpers/theme.md) never reaches them, because the element's own declaration wins. Set them on the element: with the `style` prop, or with a class via `className` whose rule loads after the library styles and, with one of those modifiers on, out-ranks it.
+Bulma declares these variables on the `.delete` element itself, through a mixin its rule includes, and declares some of them again on `.delete.is-small`, `.delete.is-medium` and `.delete.is-large`. A value set on an ancestor, on `:root` or through [Theme](../helpers/theme.md) never reaches them, because the element's own declaration wins. Set them on the element: with the `style` prop, or with a class via `className` whose rule loads after the library styles and, with one of those modifiers on, out-ranks the modifier's rule.
 
 | CSS Variable                      | Sass Variable | Default              |
 | --------------------------------- | ------------- | -------------------- |
