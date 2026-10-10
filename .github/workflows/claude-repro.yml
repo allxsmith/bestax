@@ -345,9 +345,9 @@ jobs:
             exit 1
           fi
 
-      # Hand the drafted file to `publish` via a job output (no artifact, so no
-      # blob host in the allowlist). A random heredoc delimiter defends against a
-      # drafted line colliding with the terminator.
+      # Hand the drafted file to `publish` via a job output (no artifact). A
+      # random heredoc delimiter defends against a drafted line colliding with
+      # the terminator.
       - name: Collect draft
         id: draft
         if: steps.claude.outcome == 'success'

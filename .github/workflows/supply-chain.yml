@@ -162,7 +162,10 @@ jobs:
       # which no amount of reading the action would have made obvious. The cache
       # host (productionresultssa12.blob.core.windows.net) is absent on purpose,
       # as runner infrastructure, which needs no listing (.github/CLAUDE.md,
-      # "Measuring an allowlist").
+      # "Measuring an allowlist"). The list's
+      # results-receiver.actions.githubusercontent.com entry is runner
+      # infrastructure too, so it is redundant rather than wrong, as that
+      # section says of such entries.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -732,7 +735,13 @@ jobs:
       # listing (.github/CLAUDE.md, "Measuring an allowlist"). The wildcard
       # would admit every Azure storage account, a wider form of a path out
       # that the agent already opens ("What the agent allows beyond the list").
-      # If a real run ever shows a blocked blob endpoint, add that exact host.
+      # Listing one exact blob host would not help either, as the name changes
+      # from run to run: if a real run ever shows a blob endpoint blocked,
+      # start from "Measuring an allowlist", not from this list.
+      #
+      # The two *.actions.githubusercontent.com entries below, token and
+      # results-receiver, need no listing either ("What the agent allows
+      # beyond the list"), so each is redundant rather than wrong.
       #
       # Of this file's other jobs, `sbom`, `attach-sbom` and
       # `verify-provenance` predate rule 10 and are grandfathered by its

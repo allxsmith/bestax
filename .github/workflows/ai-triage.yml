@@ -840,12 +840,11 @@ jobs:
             --out-dir="$RUNNER_TEMP/triage"
 
       # Hand the rendered bodies to `publish` via job outputs (no artifact, so
-      # no blob host in the allowlist — and, on a public repo, nothing
-      # publicly downloadable). A random heredoc delimiter defends against a
-      # body line colliding with the terminator. A command that rendered
-      # nothing writes no file and so emits no output, which is how `publish`
-      # knows to stay silent. The renderer caps every body well under the job
-      # output size limit.
+      # on a public repo nothing publicly downloadable). A random heredoc
+      # delimiter defends against a body line colliding with the terminator. A
+      # command that rendered nothing writes no file and so emits no output,
+      # which is how `publish` knows to stay silent. The renderer caps every
+      # body well under the job output size limit.
       - name: Collect rendered bodies
         id: bodies
         run: |

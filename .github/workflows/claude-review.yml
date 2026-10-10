@@ -384,11 +384,11 @@ jobs:
         # statsig.anthropic.com is gone.
         #
         # This job now enforces `block` (#578), so the denial is doing two jobs at
-        # once and both matter. The allowlist above refuses the Datadog host, and
-        # this setting stops the CLI trying to reach it, which keeps a denied call
-        # out of the run rather than merely blocked. Leaving telemetry on and
-        # relying on the allowlist alone would fill the logs with refused traffic
-        # and invite the next reader to "fix" it by allow-listing the host.
+        # once and both matter. The allowlist above does not list the Datadog
+        # host, and this setting stops the CLI trying to reach it, which keeps a
+        # denied call out of the run rather than merely blocked. Leaving telemetry
+        # on and relying on the allowlist alone would fill the logs with refused
+        # traffic and invite the next reader to "fix" it by allow-listing the host.
         #
         # It also earned the allowlist: this was set during the audit phase
         # precisely so the endpoint list the flip was built from reflected the

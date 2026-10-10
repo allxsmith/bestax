@@ -294,9 +294,10 @@ jobs:
       #
       # Gated like the charge below: on the bot-author and budget-spent paths
       # the gate sets run=false, this job makes no write and nothing downstream
-      # runs, so there is nothing for egress to bound. A check that fails
-      # routinely on runs with no security content is one people learn to
-      # ignore. `label` requires run=true too, so the paths stay consistent.
+      # runs, so there is nothing for egress enforcement to protect. A check
+      # that fails routinely on runs with no security content is one people
+      # learn to ignore. `label` requires run=true too, so the paths stay
+      # consistent.
       - name: Assert egress policy is enforced
         id: enforcement
         if: steps.gate.outputs.run == 'true'
@@ -383,11 +384,11 @@ jobs:
     outputs:
       verdict: ${{ steps.verdict.outputs.verdict }}
     steps:
-      # Defense-in-depth: the session's only tools are read-only gh (which reaches
-      # only GitHub), so it cannot open arbitrary sockets. Block bounds the
-      # OAuth-token surface regardless, and as of #487 it is ENFORCED and asserted
-      # below. The list is additive to harden-runner's GitHub Actions baseline and
-      # is the set measured on a real run (#487), not a guess.
+      # Defense-in-depth: the session's only tools are read-only gh subcommands,
+      # none of them a general-purpose network client. Block narrows where the
+      # OAuth token could be sent regardless, and as of #487 it is ENFORCED and
+      # asserted below. The list is additive to harden-runner's GitHub Actions
+      # baseline and is the set measured on a real run (#487), not a guess.
       #
       # release-assets.githubusercontent.com is where GitHub redirects release-asset
       # downloads, and claude-code-action's first composite step is oven-sh/setup-bun,

@@ -88,7 +88,8 @@ Measures active in this repository and its release pipeline:
   package in its tree is fixed to one version and integrity hash, with
   lifecycle scripts off, then checked with `npm audit signatures`, and each
   job runs under harden-runner's egress block, which admits the job's own
-  allowlist and more besides (see `.github/CLAUDE.md`). Publishing
+  allowlist and more besides (see
+  [`.github/CLAUDE.md`](./.github/CLAUDE.md#what-the-agent-allows-beyond-the-list)). Publishing
   authenticates with an API key only until a Trusted Publisher replaces it
   with short-lived GitHub OIDC tokens.
 - **The bestax plugin repository.** The `bestax` coding-agent plugin installs
