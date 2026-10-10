@@ -459,11 +459,17 @@ function ownsRegistration(selector, root, prefix, key) {
  * Reading this home as global told Delete's page that a value set on any
  * ancestor would reach the button, which the element's own declaration
  * always beats (#1021).
+ *
+ * The name has to be the prefix exactly, with or without a parameter list.
+ * A word boundary would also match at a hyphen, so `@mixin control-small`
+ * would pass for Control. Those are size mixins, included on modifier
+ * selectors, so reading one as the component's own would say a variable
+ * lives on the plain element when it only lands on a modifier.
  */
 function isMixinHome(selector, prefix) {
   return (
     Boolean(prefix) &&
-    new RegExp(`^@mixin\\s+${prefix}\\b`).test(selector.trim())
+    new RegExp(`^@mixin\\s+${prefix}\\s*(?:\\(|$)`).test(selector.trim())
   );
 }
 

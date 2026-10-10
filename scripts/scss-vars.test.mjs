@@ -284,3 +284,28 @@ test('a variables-host registration is still global', () => {
     ['global']
   );
 });
+
+test("a prefix-sharing sibling mixin is not the component's own", () => {
+  // `@mixin control-small` is a size mixin, included on modifier selectors.
+  // Read as Control's own, its variables would be said to live on `.control`
+  // when they only land on a modifier, where an ancestor's value does reach
+  // the plain element. The component's own mixin is still read, with a
+  // parameter list or without one.
+  const src = `@mixin control-small {
+  @include cv.register-vars(("control-radius": 2px));
+}
+@mixin control($size) {
+  @include cv.register-vars(("control-height": 2em));
+}
+@mixin control {
+  @include cv.register-vars(("control-size": 1rem));
+}
+`;
+  assert.deepEqual(
+    componentVars(src, 'control').map(r => [r.cssVar, r.scope]),
+    [
+      ['--bulma-control-height', 'mixin'],
+      ['--bulma-control-size', 'mixin'],
+    ]
+  );
+});

@@ -167,7 +167,11 @@ async function pageRows() {
     const info = extractComponent(title, {
       depth: rel.split('/').length - 1,
     });
-    out.push({ page: `docs/docs/api/${rel}`, rows: await cssVarRows(info) });
+    out.push({
+      page: `docs/docs/api/${rel}`,
+      rootClass: info.rootClass,
+      rows: await cssVarRows(info),
+    });
   }
   return out;
 }
@@ -221,6 +225,40 @@ describe('API pages say where each Bulma variable can be set', () => {
       }
     }
     assert.ok(checked > 0, 'no page has a component-scoped Bulma row');
+    assert.deepEqual(wrong, []);
+  });
+
+  it("say root and mixin variables are on the component's own class", () => {
+    // Stricter than the check above, which accepts any plain declaration:
+    // a `root` or `mixin` row tells the reader the component's own element
+    // declares it, so the compiled CSS has to declare it on that class,
+    // unconditionally. A mixin claimed by name alone (a size mixin, which
+    // only lands on modifiers) would fail here.
+    const ownClass = new Map();
+    for (const { name, selectors, conditional } of customPropertyDeclarations(
+      bulmaCss()
+    )) {
+      if (conditional) continue;
+      if (!ownClass.has(name)) ownClass.set(name, new Set());
+      for (const selector of selectors) ownClass.get(name).add(selector);
+    }
+    let checked = 0;
+    const wrong = [];
+    for (const { page, rootClass, rows } of pages) {
+      for (const row of rows) {
+        if (row.pkg !== 'bulma') continue;
+        if (row.scope !== 'root' && row.scope !== 'mixin') continue;
+        checked++;
+        if (!ownClass.get(row.cssVar)?.has(`.${rootClass}`)) {
+          wrong.push(
+            `${page}: ${row.cssVar} is presented as declared on ` +
+              `\`.${rootClass}\` (${row.scope}), but Bulma's compiled CSS ` +
+              'never declares it on that class by itself.'
+          );
+        }
+      }
+    }
+    assert.ok(checked > 0, 'no page has a root or mixin Bulma row');
     assert.deepEqual(wrong, []);
   });
 
