@@ -59,7 +59,35 @@ test('a clean build loses every marker and passes', async () => {
   for (const file of ['build/api/card.md', 'build/llms-full.txt']) {
     assert.ok(!readFileSync(join(root, file), 'utf8').includes('bestax:'));
   }
-  assert.match(said.log[0], /removed 6 marker\(s\) from 2 file\(s\)/);
+  assert.match(said.log[0], /removed 6 marker\(s\) from 2 file\(s\), of 2/);
+});
+
+test('a build the plugin already stripped passes, having checked it', async () => {
+  const bare = lines('# Card', '', '| Prop |', '');
+  const root = docsTree({
+    'docs/api/card.md': PAGE,
+    'build/api/card.md': bare,
+    'build/llms-full.txt': bare,
+  });
+  const { said, io } = capture();
+  assert.equal(await stripBuild(root, io), 0, said.error.join('\n'));
+  assert.match(said.log[0], /removed 0 marker\(s\) from 0 file\(s\), of 2/);
+});
+
+test('a marker in a form the strip does not recognize fails the build', async () => {
+  const escaped = '&lt;!-- bestax:generated props --&gt;';
+  const root = docsTree({
+    'docs/api/card.md': PAGE,
+    'build/api/card.md': lines('# Card', '', escaped, '| Prop |', ''),
+    'build/llms-full.txt': lines('# Card', '', '| Prop |', ''),
+  });
+  const { said, io } = capture();
+  assert.equal(await stripBuild(root, io), 1);
+  assert.equal(said.error.length, 1);
+  assert.match(
+    said.error[0],
+    /^strip-generated-markers: api\/card\.md: 1 line\(s\) still name bestax:generated/
+  );
 });
 
 test('a fence left open in llms-full.txt fails the build, naming the file', async () => {
@@ -94,14 +122,28 @@ test('a marker a page shows inside a fence is accounted for', async () => {
   );
 });
 
-test('stripping nothing while the sources carry markers fails, as does no build', async () => {
+test('checking nothing while the sources carry markers fails, as does no build', async () => {
   const stale = docsTree({
     'docs/api/card.md': PAGE,
     'build/api/card.md': '# Card\n',
   });
   const one = capture();
   assert.equal(await stripBuild(stale, one.io), 1);
-  assert.match(one.said.error[0], /stripped nothing, but the source pages/);
+  assert.match(
+    one.said.error[0],
+    /carry 2 marker\(s\), but the build has no llms-full\.txt\. /
+  );
+
+  const noTwins = docsTree({
+    'docs/api/card.md': PAGE,
+    'build/llms-full.txt': '# Card\n',
+  });
+  const two = capture();
+  assert.equal(await stripBuild(noTwins, two.io), 1);
+  assert.match(
+    two.said.error[0],
+    /but the build has 0 \.md file\(s\) for 1 page\(s\) carrying them\./
+  );
 
   const none = capture();
   assert.equal(await stripBuild(docsTree({}), none.io), 1);

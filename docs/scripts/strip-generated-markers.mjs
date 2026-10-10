@@ -7,11 +7,12 @@
  * will overwrite. Neither audience reads the built output.
  *
  * They matter here because this site's LLM surface is first-class (see
- * docs/CLAUDE.md): `docusaurus-plugin-llms` copies markdown straight from disk
- * and does not strip HTML comments, so without this pass the markers appear
- * ~600 times in llms-full.txt and in all 81 per-page `.md` twins — the exact
- * files agents ingest. Nothing is lost: the content between a marker pair is
- * ordinary markdown and is left untouched.
+ * docs/CLAUDE.md): llms-full.txt and the per-page `.md` twins are the exact
+ * files agents ingest. docusaurus-plugin-llms drops HTML comments outside code
+ * itself, the markers included, so this pass usually strips nothing. It stays
+ * as the check that none got through, and strips any that did. Nothing is
+ * lost: the content between a marker pair is ordinary markdown and is left
+ * untouched.
  *
  * Why a build STEP and not a Docusaurus plugin: `postBuild` hooks run under
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
@@ -24,7 +25,10 @@
  * more marker lines than the source pages show inside fences. More means a
  * fence left open earlier in that file hid real markers, which matters most
  * in llms.txt and llms-full.txt, where one page's open fence reaches every
- * page after it. The step fails then, naming the file.
+ * page after it. The step fails then, naming the file. It fails the same way
+ * when a built file names `bestax:generated` on more lines than the source
+ * pages do outside their marker lines, which is a marker that reached it in a
+ * form the strip does not recognize.
  */
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
@@ -38,6 +42,10 @@ import {
 } from './generated-markers-lib.mjs';
 
 const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
+
+/** The lines of `src` that name the marker at all, in any form. */
+const mentions = src =>
+  src.split('\n').filter(line => line.includes('bestax:generated')).length;
 
 async function filesUnder(dir, pattern) {
   const out = [];
@@ -61,21 +69,56 @@ export async function stripBuild(docs = DOCS, io = console) {
     return 1;
   }
 
-  // The source pages: how many markers they carry, and how many of those a
-  // fence holds, which is all a built file may keep.
+  // The source pages: how many markers they carry, on how many pages, and how
+  // many of them a fence holds, which is all a built file may keep. Every
+  // other line that names the marker, fenced or in prose, may stay too.
   let inSource = 0;
+  let pagesWithMarkers = 0;
   let fencedInSources = 0;
+  let namedInSources = 0;
   const sources = existsSync(srcDir) ? await filesUnder(srcDir, /\.mdx?$/) : [];
   for (const file of sources) {
-    const counts = markerCounts(await readFile(file, 'utf8'));
+    const text = await readFile(file, 'utf8');
+    const counts = markerCounts(text);
     inSource += counts.unfenced;
+    if (counts.unfenced) pagesWithMarkers++;
     fencedInSources += counts.fenced;
+    namedInSources += mentions(text) - counts.unfenced;
   }
 
-  const targets = await filesUnder(outDir, /\.md$/);
+  const twins = await filesUnder(outDir, /\.md$/);
+  const targets = [...twins];
   for (const name of ['llms.txt', 'llms-full.txt']) {
     const full = join(outDir, name);
     if (existsSync(full)) targets.push(full);
+  }
+
+  // Stripping nothing is the normal case, since the plugin drops the markers
+  // itself. Checking nothing is not. This step exists BECAUSE a postBuild
+  // plugin silently ran too early and found no markers (see the header), and
+  // a pass over files that are not there, or are not where the plugin writes
+  // them, would let markers ship into llms-full.txt and the `.md` twins with
+  // a green build. So when the source pages carry markers, the build must hold
+  // the files they feed: llms-full.txt, and at least a `.md` file per page.
+  // Comparing against the SOURCE pages is what tells "no managed pages yet"
+  // from "this step stopped working".
+  const missing = [];
+  if (!existsSync(join(outDir, 'llms-full.txt'))) {
+    missing.push('no llms-full.txt');
+  }
+  if (twins.length < pagesWithMarkers) {
+    missing.push(
+      `${twins.length} .md file(s) for ${pagesWithMarkers} page(s) carrying them`
+    );
+  }
+  if (inSource > 0 && missing.length) {
+    io.error(
+      `strip-generated-markers: the source pages carry ${inSource} ` +
+        `marker(s), but the build has ${missing.join(' and ')}. The built ` +
+        `markdown moved, or this step ran before docusaurus-plugin-llms, so ` +
+        `nothing here checked the LLM surface. Refusing to pass silently.`
+    );
+    return 1;
   }
 
   let stripped = 0;
@@ -88,36 +131,28 @@ export async function stripBuild(docs = DOCS, io = console) {
       stripped += result.stripped;
       touched++;
     }
-    const leak = leakedMarkers(
-      relative(outDir, file),
-      result.kept,
-      fencedInSources
-    );
+    const rel = relative(outDir, file);
+    const leak = leakedMarkers(rel, result.kept, fencedInSources);
+    const named = mentions(result.out);
     if (leak) leaks.push(leak);
+    else if (named > namedInSources) {
+      leaks.push(
+        `${rel}: ${named} line(s) still name bestax:generated, ` +
+          `and the source pages show ${namedInSources} outside their marker ` +
+          `lines. A marker reached this file in a form the strip does not ` +
+          `recognize, so it would ship.`
+      );
+    }
   }
 
-  // Stripping nothing is only correct when there was nothing to strip. This
-  // step exists BECAUSE a postBuild plugin silently ran too early and found no
-  // markers (see the header), so a quiet no-op is precisely the failure to
-  // guard against: the markers would ship into llms-full.txt and every `.md`
-  // twin with a green build. Compare against the SOURCE pages, which is the
-  // only way to tell "no managed pages yet" from "this step stopped working".
-  if (stripped === 0 && inSource > 0) {
-    io.error(
-      `strip-generated-markers: stripped nothing, but the source pages carry ` +
-        `${inSource} marker(s). The built markdown moved, the marker format ` +
-        `changed, or this step ran before docusaurus-plugin-llms — the ` +
-        `markers would ship to the LLM surface. Refusing to pass silently.`
-    );
-    return 1;
-  }
   if (leaks.length) {
     for (const leak of leaks) io.error(`strip-generated-markers: ${leak}`);
     return 1;
   }
 
   io.log(
-    `strip-generated-markers: removed ${stripped} marker(s) from ${touched} file(s)`
+    `strip-generated-markers: removed ${stripped} marker(s) from ${touched} ` +
+      `file(s), of ${targets.length} checked`
   );
   return 0;
 }
