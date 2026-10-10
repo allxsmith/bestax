@@ -8,7 +8,7 @@ import React, {
 import classNames from './classNames';
 import { useBulmaClasses, BulmaClassesProps } from './useBulmaClasses';
 import { validGaps, validRadii, type BulmaGapStep } from './bulmaClassHelpers';
-import { warnOnce } from './devWarnings';
+import { isDev, warnOnce } from './devWarnings';
 import { useClassPrefix } from './Config';
 
 // --- Bulma v1 CSS variables Theme sets (originally generated from
@@ -744,6 +744,12 @@ const themeColumnGapVar = (columnGap: unknown): string | undefined => {
 };
 
 /**
+ * `bulmaComponentVars` as a lookup, built by `warnComponentVars` the first
+ * time it is needed.
+ */
+let componentVarKeys: ReadonlySet<string> | undefined;
+
+/**
  * Warn in development when a Theme is given variables Bulma declares on the
  * component itself (`bulmaComponentVars`), whether through `bulmaVars` or a
  * variable prop such as `cardRadius`. Theme writes them where they can never
@@ -753,13 +759,18 @@ const themeColumnGapVar = (columnGap: unknown): string | undefined => {
  * Keyed by the set of variables, so a Theme that keeps passing the same ones
  * warns once, and a different set warns again. An empty value writes nothing,
  * so it is not reported.
+ *
+ * All of this is development-only, so it returns before doing anything in
+ * production, and it builds its lookup on the first development call rather
+ * than when the module loads.
  */
 const warnComponentVars = (vars: BulmaVars): void => {
+  if (!isDev()) {
+    return;
+  }
+  const keys = (componentVarKeys ??= new Set<string>(bulmaComponentVars));
   const inert = Object.entries(vars)
-    .filter(
-      ([key, value]) =>
-        value && (bulmaComponentVars as readonly string[]).includes(key)
-    )
+    .filter(([key, value]) => value && keys.has(key))
     .map(([key]) => key)
     .sort();
   if (inert.length === 0) {
@@ -1145,7 +1156,12 @@ export const Theme: React.FC<ThemeProps> = ({
     return vars;
   }, [bulmaVars, bulmaVarProps, radiusVar, columnGapVar]);
 
-  warnComponentVars(mergedVars);
+  // From an effect rather than the render body, so rendering does none of
+  // this work, and a server render none at all. In production it returns
+  // at its development check before looking at the variables.
+  useEffect(() => {
+    warnComponentVars(mergedVars);
+  }, [mergedVars]);
 
   // This Theme's place among root Themes; see `rootThemeRules`.
   const [rootOrder] = useState(() => nextRootOrder++);

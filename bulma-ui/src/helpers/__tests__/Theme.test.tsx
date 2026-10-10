@@ -923,6 +923,29 @@ describe('Theme', () => {
 
       expect(warnSpy).not.toHaveBeenCalled();
     });
+
+    it('does nothing in production, and does not spend the warning', () => {
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      let rerender: ReturnType<typeof render>['rerender'];
+      try {
+        ({ rerender } = render(
+          <Theme bulmaVars={{ '--bulma-tag-radius': '0' }}>
+            <div>Test</div>
+          </Theme>
+        ));
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+      expect(warnSpy).not.toHaveBeenCalled();
+
+      rerender(
+        <Theme bulmaVars={{ '--bulma-tag-radius': '0' }}>
+          <div>Again</div>
+        </Theme>
+      );
+      expect(warnSpy).toHaveBeenCalledTimes(1);
+    });
   });
 
   // A root Theme renders no wrapper, so className and the helper props have
