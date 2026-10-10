@@ -96,6 +96,12 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   the rest of the page is still checked, and it fails once nothing in the fence is reported,
   so it goes when the mistake does. A fence the test cannot parse fails too, marked or not,
   since no rule can read it. An example that is not code at all belongs in a `text` fence.
+  A `jsx live` or `tsx live` fence is also type-checked against the library's build, in
+  `pnpm test` (`scripts/docs-fence-types.test.mjs`, whose header says how a live fence is
+  read), so a prop the component does not take fails even though the page renders. One that
+  is wrong on purpose takes `notypecheck` in its info string (` ```tsx live notypecheck `),
+  which also changes nothing on the page. It holds only while the fence still has a type
+  error, so it goes when the mistake does, the way `nolint` does.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 

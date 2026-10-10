@@ -23,28 +23,37 @@ import {
   McpServer,
   ResourceTemplate,
 } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { ErrorCode, McpError } from '@modelcontextprotocol/sdk/types.js';
 import { z } from 'zod';
 
 import { classTokens, lookupClasses, renderLookup } from './bulma-classes.js';
 import {
+  dotPath,
   loadBulmaClasses,
   loadCatalog,
   loadComponent,
+  loadServerVersion,
   loadSkills,
   loadSkillFile,
   resolveName,
   type ComponentRecord,
+  type Skill,
 } from './data.js';
 import {
   errorResult,
+  HELPER_PROPS_PAGE,
   renderCatalog,
   renderComponent,
   renderCssVars,
   renderExamples,
+  renderHelperApi,
   renderPart,
   renderSkills,
+  referenceOf,
+  referencePointer,
   table,
   textResult,
+  type PartFocus,
 } from './format.js';
 import {
   GROUP_NAMES,
@@ -53,7 +62,12 @@ import {
   resolveGroup,
 } from './helper-props.js';
 import { searchAll, suggest, type HitKind } from './search.js';
-import { resolveVersions, versionNote, type VersionInfo } from './version.js';
+import {
+  missingInstallNote,
+  resolveVersions,
+  versionNote,
+  type VersionInfo,
+} from './version.js';
 
 const ALL_KINDS: HitKind[] = [
   'component',
@@ -101,8 +115,10 @@ const INCLUDES = [
   'cssVars',
   'accessibility',
   'related',
-  // Helpers only: the full reference prose. Opt-in because useBulmaClasses' is 51,054
-  // characters and it used to arrive on the default call whether asked for or not.
+  // The whole page, for one written as prose (helpers/: hooks, and the components
+  // documented there, such as Theme). Opt-in because useBulmaClasses' runs to tens of
+  // thousands of characters and it used to arrive on the default call whether asked for
+  // or not.
   'reference',
 ] as const;
 
@@ -112,6 +128,33 @@ const INCLUDES = [
  * useBulmaClasses that one member is the difference between ~2.5 KB and 53 KB.
  */
 const RESOURCE_INCLUDES = INCLUDES.filter(i => i !== 'reference');
+
+/**
+ * The component Theme exists to set Bulma's global variables, so it declares none of
+ * its own, and "registers no CSS variables" read as if it had nothing to do with them.
+ */
+const THEME = 'Theme';
+
+/**
+ * A lookup that found nothing, as the protocol error a client can tell apart from a
+ * crash. A plain throw from a resource callback reached the client as -32603, an
+ * internal error, for what was only a name that does not exist (#935). InvalidParams
+ * is what the SDK itself answers for a URI no template matches, so the two misses look
+ * the same to a client.
+ */
+const notFoundError = (message: string) =>
+  new McpError(ErrorCode.InvalidParams, message);
+
+/** What a dot-path names in a record: the part, or null when it names none. */
+function partFocus(record: ComponentRecord, input: string): PartFocus | null {
+  const wanted = dotPath(input);
+  if (!wanted) return null;
+  const part =
+    record.parts.find(p => p.path === wanted) ??
+    record.parts.find(p => p.path.toLowerCase() === wanted.toLowerCase()) ??
+    null;
+  return { wanted, part };
+}
 
 /** Load every component record. Only `search_bestax` needs this much. */
 async function allComponents(): Promise<ComponentRecord[]> {
@@ -133,10 +176,44 @@ export async function createServer(
     catalog.generatedFrom.version,
     options.cwd
   );
-  const note = () => versionNote(versions);
+  // The drift warning rides on every answer while it applies; the note that nothing
+  // was found to check against is said once.
+  let missingSaid = false;
+  const note = () => {
+    const drift = versionNote(versions);
+    if (drift || missingSaid) return drift;
+    const missing = missingInstallNote(versions);
+    missingSaid = missing !== null;
+    return missing;
+  };
+
+  // Skill names as get_skill takes them: the directory name, or the short prompt name.
+  const findSkill = (name: string): Skill | undefined => {
+    const lower = name.toLowerCase();
+    const key = lower.replace(/^bestax-/, '');
+    return skills.find(
+      s => s.promptName.toLowerCase() === key || s.name.toLowerCase() === lower
+    );
+  };
+  // A reference or an example: get_skill reads both under `reference`, and lists both.
+  const skillDocs = (skill: Skill) => [...skill.references, ...skill.examples];
+  // Completion for a skill name, by either name, filtered by what has been typed.
+  const completeSkill = (value: string) => {
+    const typed = value.toLowerCase();
+    return skills
+      .filter(
+        s =>
+          s.name.toLowerCase().startsWith(typed) ||
+          s.promptName.toLowerCase().startsWith(typed)
+      )
+      .map(s => s.name);
+  };
 
   const server = new McpServer(
-    { name: 'bestax', version: catalog.generatedFrom.version },
+    // The server's own version, as the protocol defines serverInfo. It used to be the
+    // library version the index documents, which left a client no way to tell which
+    // server it was talking to (#935); that version is in the instructions below.
+    { name: 'bestax', version: await loadServerVersion() },
     {
       // "Start with list_components" is measured, not assumed. Across twenty eval runs
       // (eval/agent-loop/runs-v2/aggregate.md) list_components was called by 10/10 builders
@@ -293,6 +370,12 @@ export async function createServer(
       },
     },
     async ({ query, kind, limit }) => {
+      if (!query.trim()) {
+        return errorResult(
+          'Pass something to search for, e.g. "date picker" or "spacing". ' +
+            'Call list_components for the full catalog.'
+        );
+      }
       const kinds = !kind || kind === 'all' ? ALL_KINDS : [kind as HitKind];
       // Prop and example hits need every component record; the other kinds are
       // answerable from the catalog alone, so don't pay for them.
@@ -368,12 +451,14 @@ export async function createServer(
       description:
         'Import statement, summary and prop table for one component. Add ' +
         '`include` for examples, CSS variables, accessibility notes or related ' +
-        'components.',
+        'components. A dot-path like "Navbar.Brand" answers with that part.',
       inputSchema: {
         name: z
           .string()
           .max(MAX_NAME)
-          .describe('Component name, e.g. "Button" or "Navbar"'),
+          .describe(
+            'Component name or dot-path, e.g. "Button" or "Navbar.Brand"'
+          ),
         include: z
           .array(z.enum(INCLUDES))
           .optional()
@@ -384,7 +469,14 @@ export async function createServer(
       const resolved = await resolveName(name);
       if (!resolved) return notFound(name);
       const record = await loadComponent(resolved);
-      return textResult(renderComponent(record, include ?? ['props']), note());
+      return textResult(
+        renderComponent(
+          record,
+          include ?? ['props'],
+          partFocus(record, name) ?? undefined
+        ),
+        note()
+      );
     }
   );
 
@@ -415,13 +507,10 @@ export async function createServer(
       const record = await loadComponent(resolved);
 
       if (record.kind === 'helper') {
+        // The signature itself rather than a pointer at a tool that has it, so the
+        // question is answered on this call.
         return textResult(
-          // Points at get_helper_props, not get_component. get_component on a helper is
-          // itself now a pointer here, so sending a builder there made this a three-hop
-          // chain for one question.
-          `\`${record.name}\` is a hook/utility, not a component — it has no ` +
-            `prop table. Call get_helper_props() for every helper prop with its ` +
-            `accepted values, or get_helper_props({ group }) for one area.`,
+          `# ${record.name}\n\n${renderHelperApi(record)}`,
           note()
         );
       }
@@ -436,6 +525,7 @@ export async function createServer(
             `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}.`
           );
         }
+        if (record.doc) body.push(referencePointer(record));
         return textResult(`# ${record.name}\n\n${body.join('\n\n')}`, note());
       }
 
@@ -443,10 +533,27 @@ export async function createServer(
         record.parts.find(p => p.path === wanted) ??
         record.parts.find(p => p.path.toLowerCase() === wanted.toLowerCase());
       if (!part) {
+        // `path` reads like it could take a prop ("Button.isLoading"), and the old
+        // answer listed the parts without saying a prop is the wrong thing to pass.
+        const subs = record.parts.slice(1).map(p => p.path);
+        const [nearPart] = suggest(wanted, subs, 1);
+        const tail = wanted.split('.').pop() ?? wanted;
+        const [prop] = suggest(
+          tail,
+          [...new Set(record.parts.flatMap(p => p.props.map(r => r.name)))],
+          1
+        );
         return errorResult(
-          `"${wanted}" is not a part of ${record.name}. Available: ${record.parts
-            .map(p => p.path)
-            .join(', ')}.`
+          `"${wanted}" is not a part of ${record.name}. ` +
+            (nearPart ? `Did you mean "${nearPart}"? ` : '') +
+            `\`path\` names a subcomponent, such as "Navbar.Brand", not a prop. ` +
+            (subs.length
+              ? `${record.name}'s are ${subs.map(p => `"${p}"`).join(', ')}. `
+              : `${record.name} has none. `) +
+            (prop
+              ? `If you meant the prop \`${prop}\`, it is in ` +
+                `get_props({ component: "${record.name}" }).`
+              : `Its props are in get_props({ component: "${record.name}" }).`)
         );
       }
       return textResult(renderPart(part), note());
@@ -534,6 +641,27 @@ export async function createServer(
               v.css.toLowerCase().includes(query.toLowerCase())
             )
           : record.cssVars;
+        // With a query too: Theme declares none of its own, so filtering them finds
+        // nothing whatever is asked, and the plain "matching" sentence is the one
+        // that misleads.
+        if (!vars.length && record.name === THEME) {
+          const theming = skills.find(s =>
+            s.references.some(r => r.id === 'css-variables')
+          );
+          return textResult(
+            `${THEME} declares no CSS variables of its own: its job is to set ` +
+              `Bulma's global \`--bulma-*\` ones, through its props and ` +
+              `\`bulmaVars\`, at \`:root\` with \`isRoot\` and on its wrapper ` +
+              `otherwise.` +
+              (theming
+                ? ` The variables it can set are listed in ` +
+                  `\`get_skill({ name: "${theming.name}", reference: "css-variables" })\`.`
+                : '') +
+              ` A component's own variables are in get_css_variables with that ` +
+              `component.`,
+            note()
+          );
+        }
         if (!vars.length) {
           return textResult(
             `${record.name} registers no CSS variables${
@@ -558,7 +686,7 @@ export async function createServer(
       const rows = Object.entries(catalog.cssVarIndex)
         .filter(([css]) => css.toLowerCase().includes(q))
         .slice(0, 60)
-        .map(([css, owner]) => [`\`${css}\``, owner]);
+        .map(([css, declarers]) => [`\`${css}\``, declarers.join(', ')]);
       if (!rows.length) {
         return textResult(`No CSS variable matches "${query}".`, note());
       }
@@ -586,20 +714,20 @@ export async function createServer(
     async ({ group }) => {
       // The helper reference lives on the hook's own docs page, which is prose
       // with signature blocks rather than a props table.
-      const record = await loadComponent('useBulmaClasses');
-      const doc = record.doc ?? '';
+      const record = await loadComponent(HELPER_PROPS_PAGE);
+      const doc = referenceOf(record);
       const rule = await inlineStyleRule();
       if (!group) return textResult(rule + renderHelperDefault(doc), note());
 
       const resolved = resolveGroup(group);
       if (!resolved) {
         // No rule preamble here: this answered nothing, and 3,832 characters of
-        // prohibition on top of a 124-character "try again" was 97% overhead.
-        return textResult(
+        // prohibition on top of a 124-character "try again" was 97% overhead. An error,
+        // as list_components marks an unknown category.
+        return errorResult(
           `No helper-prop group matches "${group}". Groups: ` +
             `${GROUP_NAMES.join(', ')}. Call get_helper_props with no argument ` +
-            `for every prop at once.`,
-          note()
+            `for every prop at once.`
         );
       }
       return textResult(rule + renderHelperGroup(doc, resolved), note());
@@ -679,12 +807,7 @@ export async function createServer(
       },
     },
     async ({ name, reference }) => {
-      const key = name.toLowerCase().replace(/^bestax-/, '');
-      const skill = skills.find(
-        s =>
-          s.promptName.toLowerCase() === key ||
-          s.name.toLowerCase() === name.toLowerCase()
-      );
+      const skill = findSkill(name);
       if (!skill) {
         return errorResult(
           `No skill named "${name}". Available: ${skills
@@ -695,15 +818,12 @@ export async function createServer(
       if (!reference) {
         return textResult(await loadSkillFile(skill.dir), note());
       }
-      const ref =
-        skill.references.find(r => r.id === reference) ??
-        skill.examples.find(r => r.id === reference);
+      const ref = skillDocs(skill).find(r => r.id === reference);
       if (!ref) {
         return errorResult(
-          `${skill.name} has no reference "${reference}". Available: ${[
-            ...skill.references,
-            ...skill.examples,
-          ]
+          `${skill.name} has no reference "${reference}". Available: ${skillDocs(
+            skill
+          )
             .map(r => r.id)
             .join(', ')}.`
         );
@@ -752,14 +872,29 @@ export async function createServer(
     },
     async (uri, { name }) => {
       const resolved = await resolveName(String(name));
-      if (!resolved) throw new Error(`No component named "${String(name)}"`);
+      if (!resolved) {
+        const near = suggest(
+          String(name),
+          catalog.components.map(c => c.name)
+        );
+        throw notFoundError(
+          `No component named "${String(name)}".` +
+            (near.length
+              ? ` Did you mean ${near.map(n => `"${n}"`).join(', ')}?`
+              : '')
+        );
+      }
       const record = await loadComponent(resolved);
       return {
         contents: [
           {
             uri: uri.href,
             mimeType: 'text/markdown',
-            text: renderComponent(record, RESOURCE_INCLUDES),
+            text: renderComponent(
+              record,
+              RESOURCE_INCLUDES,
+              partFocus(record, String(name)) ?? undefined
+            ),
           },
         ],
       };
@@ -770,7 +905,7 @@ export async function createServer(
     'skill',
     new ResourceTemplate('bestax://skills/{name}', {
       list: undefined,
-      complete: { name: () => skills.map(s => s.name) },
+      complete: { name: completeSkill },
     }),
     {
       title: 'Agent skill',
@@ -778,8 +913,15 @@ export async function createServer(
       mimeType: 'text/markdown',
     },
     async (uri, { name }) => {
-      const skill = skills.find(s => s.name === String(name));
-      if (!skill) throw new Error(`No skill named "${String(name)}"`);
+      // The names get_skill takes, the short one included (#935).
+      const skill = findSkill(String(name));
+      if (!skill) {
+        throw notFoundError(
+          `No skill named "${String(name)}". Available: ${skills
+            .map(s => s.name)
+            .join(', ')}.`
+        );
+      }
       return {
         contents: [
           {
@@ -796,7 +938,19 @@ export async function createServer(
     'skill-reference',
     new ResourceTemplate('bestax://skills/{name}/references/{ref}', {
       list: undefined,
-      complete: { name: () => skills.map(s => s.name) },
+      complete: {
+        name: completeSkill,
+        // The ids of the skill already named, or of every skill when none is yet.
+        ref: (value, context) => {
+          const named = context?.arguments?.name;
+          const skill = named ? findSkill(named) : undefined;
+          const ids = (skill ? [skill] : skills).flatMap(s =>
+            skillDocs(s).map(r => r.id)
+          );
+          const typed = value.toLowerCase();
+          return [...new Set(ids)].filter(id => id.startsWith(typed));
+        },
+      },
     }),
     {
       title: 'Agent skill reference',
@@ -804,11 +958,25 @@ export async function createServer(
       mimeType: 'text/markdown',
     },
     async (uri, { name, ref }) => {
-      const skill = skills.find(s => s.name === String(name));
-      if (!skill) throw new Error(`No skill named "${String(name)}"`);
-      const doc = skill.references.find(r => r.id === String(ref));
+      const skill = findSkill(String(name));
+      if (!skill) {
+        throw notFoundError(
+          `No skill named "${String(name)}". Available: ${skills
+            .map(s => s.name)
+            .join(', ')}.`
+        );
+      }
+      // Examples too: get_skill serves both under `reference` and lists both, so the
+      // ids it offered (`dark-mode`) failed here (#935).
+      const doc = skillDocs(skill).find(r => r.id === String(ref));
       if (!doc) {
-        throw new Error(`${skill.name} has no reference "${String(ref)}"`);
+        throw notFoundError(
+          `${skill.name} has no reference "${String(ref)}". Available: ${skillDocs(
+            skill
+          )
+            .map(r => r.id)
+            .join(', ')}.`
+        );
       }
       return {
         contents: [

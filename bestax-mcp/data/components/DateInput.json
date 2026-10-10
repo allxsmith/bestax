@@ -15,11 +15,11 @@
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [value, setValue] = useState(new Date());\n  return (\n    <Block>\n      <DateInput label=\"Date\" value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState<Date | null>(new Date());\n  return (\n    <Block>\n      <DateInput label=\"Date\" value={value} onChange={setValue} />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Controlled",
-      "code": "function example() {\n  const [value, setValue] = useState(new Date());\n  return (\n    <Block>\n      <DateInput\n        label=\"Date\"\n        value={value}\n        onChange={setValue}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [value, setValue] = useState<Date | null>(new Date());\n  return (\n    <Block>\n      <DateInput\n        label=\"Date\"\n        value={value}\n        onChange={setValue}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">\n        Selected: {value ? value.toDateString() : '—'}\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Inline",
@@ -67,11 +67,11 @@
     },
     {
       "title": "Formats",
-      "code": "function example() {\n  const parse = s => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n    />\n  );\n}"
+      "code": "function example() {\n  const parse = (s: string) => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n    />\n  );\n}"
     },
     {
       "title": "Formats",
-      "code": "function example() {\n  const parse = s => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse — typing-first\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
+      "code": "function example() {\n  const parse = (s: string) => {\n    const t = Date.parse(s);\n    return isNaN(t) ? null : new Date(t);\n  };\n  return (\n    <DateInput\n      label=\"Intl long + custom parse — typing-first\"\n      format={{ year: 'numeric', month: 'long', day: 'numeric' }}\n      parse={parse}\n      defaultValue={new Date(2026, 4, 30)}\n      mobileNative={false}\n      openOnFocus={false}\n    />\n  );\n}"
     },
     {
       "title": "Launcher Icon",
@@ -79,7 +79,7 @@
     },
     {
       "title": "Launcher Icon",
-      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <DateInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-day\"\n    openOnFocus={false}\n  />\n  <DateInput\n    label=\"No launcher — popover via ↓ only\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
+      "code": "<Block display=\"flex\" flexDirection=\"column\">\n  <DateInput label=\"Default (left icon + right launcher)\" openOnFocus={false} />\n  <DateInput\n    label=\"Custom launcher glyph\"\n    triggerIconName=\"calendar-day\"\n    openOnFocus={false}\n  />\n  <DateInput\n    label=\"No launcher — popover via Alt+↓ only\"\n    triggerIcon={false}\n    openOnFocus={false}\n  />\n  <DateInput label=\"Left icon hidden\" iconLeftName=\"\" openOnFocus={false} />\n</Block>"
     },
     {
       "title": "Launcher Icon",
@@ -95,7 +95,7 @@
     },
     {
       "title": "Manual Keyboard Entry",
-      "code": "function example() {\n  const [v, setV] = useState(() => new Date(2024, 5, 7));\n  return (\n    <Block>\n      <DateInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toDateString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
+      "code": "function example() {\n  const [v, setV] = useState<Date | null>(() => new Date(2024, 5, 7));\n  return (\n    <Block>\n      <DateInput\n        label=\"Arrow or type — value updates live\"\n        value={v}\n        onChange={setV}\n        openOnFocus={false}\n      />\n      <Paragraph mt=\"2\">Selected: {v ? v.toDateString() : '—'}</Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Manual Keyboard Entry",
@@ -167,11 +167,11 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Date\">\n      <Field.Body>\n        <Field>\n          <DateInput placeholder=\"YYYY-MM-DD\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Date\" labelProps={{ htmlFor: 'date-field' }}>\n      <Field.Body>\n        <Field>\n          <DateInput id=\"date-field\" placeholder=\"YYYY-MM-DD\" />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Date\">\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateInput placeholder=\"YYYY-MM-DD\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Date\"\n      labelProps={{ htmlFor: 'date-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"calendar-alt\">\n            <DateInput id=\"date-field-control\" placeholder=\"YYYY-MM-DD\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
   "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name. Opening it puts focus on the focused date, month or year.\n- Closing the popover with `Escape` or a pick returns focus to the input, whether the input or the launcher opened it. Under `openOnFocus` that returning focus leaves the popover closed; focusing or clicking the input again opens it. Dismissing without a pick commits nothing: an empty field stays empty, and leaving afterwards commits only what you typed.\n- Calendar uses `role=\"grid\"` with cells as `role=\"gridcell\"`.\n- Cells expose `aria-selected`, `aria-disabled`, and `aria-current=\"date\"` for today.\n- Roving `tabindex` keeps a single grid cell focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.\n- The month grid is a `role=\"grid\"` of `role=\"row\"`s, labelled by the year in its header. Each month cell carries the full month name as its accessible name, `aria-current=\"date\"` for this month and `aria-disabled` for a month with no selectable day.\n- The year list is a `role=\"listbox\"` named by the `chooseYear` label. As the selection surface its options take `aria-selected` from the value's year rather than from focus, which roves through the list. When the focused year is disabled, the nearest enabled year takes the tab stop, so `Tab` still reaches the list.\n- The launcher and popover are named \"Choose month\" or \"Choose year\" to match the granularity; override them, and the month grid's \"Previous year\" / \"Next year\" buttons, through `labels` (`chooseMonth`, `chooseYear`, `prevYear`, `nextYear`).\n- Honors `prefers-reduced-motion` (skip popover fade-in).",
@@ -191,7 +191,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`.",
+          "description": "Field label (component auto-wraps in a `Field` if not already inside). Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -380,7 +380,7 @@
           "name": "onChange",
           "type": "(d: Date | null) => void",
           "default": null,
-          "description": "Fired when the value changes.",
+          "description": "Fired when the value changes. A day picked in the calendar, by click or by key, arrives at local midnight.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -524,7 +524,7 @@
           "name": "openOnFocus",
           "type": "boolean",
           "default": "true",
-          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.",
+          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -560,7 +560,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the input, also carried by the calendar, where it colors the selected date. Today's date and the keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable; that makes `'primary'` a shade off the unset calendar, which uses plain `primary` for both. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` by default.",
+          "description": "Bulma color modifier for the input, also carried by the calendar, where it colors the selected date. Today's date and the keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` the same way by default.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -762,13 +762,13 @@
     {
       "css": "--bulma-dateinput-cell-today-color",
       "sass": "$dateinput-cell-today-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
       "css": "--bulma-dateinput-focus-ring-color",
       "sass": "$dateinput-focus-ring-color",
-      "default": "var(--bulma-primary)",
+      "default": "var(--bulma-primary-on-scheme)",
       "scope": "element"
     },
     {
@@ -780,7 +780,7 @@
     {
       "css": "--bulma-dateinput-cell-other-month-color",
       "sass": "$dateinput-cell-other-month-color",
-      "default": "var(--bulma-text-weak)",
+      "default": "color-mix(in srgb, var(--bulma-text-weak), var(--bulma-text))",
       "scope": "element"
     },
     {
@@ -805,6 +805,18 @@
       "css": "--bulma-dateinput-nav-button-size",
       "sass": "$dateinput-nav-button-size",
       "default": "1.75rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-range-bg",
+      "sass": "$dateinput-cell-range-bg",
+      "default": "color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 18%, transparent)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-dateinput-cell-range-preview-bg",
+      "sass": "$dateinput-cell-range-preview-bg",
+      "default": "color-mix(in srgb, var(--bulma-dateinput-cell-selected-bg) 9%, transparent)",
       "scope": "element"
     },
     {

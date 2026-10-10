@@ -34,6 +34,7 @@ interface HarnessProps {
   min?: Date;
   max?: Date;
   isBlocked?: (d: Date) => boolean;
+  isUnfinishedBlocked?: (d: Date) => boolean;
   skipKinds?: readonly SegmentKind[];
 }
 
@@ -57,6 +58,7 @@ const Harness: React.FC<HarnessProps> = ({
   min,
   max,
   isBlocked,
+  isUnfinishedBlocked,
   skipKinds,
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -103,6 +105,7 @@ const Harness: React.FC<HarnessProps> = ({
     min,
     max,
     isBlocked,
+    isUnfinishedBlocked,
     disabled,
     readOnly,
     editable,
@@ -429,6 +432,27 @@ describe('useSegmentedEntry', () => {
     expect(input.value).toBe('13:45');
   });
 
+  it('holds a digit isUnfinishedBlocked rejects until the segment is finished', () => {
+    const handler = jest.fn();
+    const { getByTestId } = render(
+      <Harness
+        initial={at(13, 45)}
+        isUnfinishedBlocked={d => d.getHours() < 10}
+        onChange={handler}
+      />
+    );
+    const input = getByTestId('seg') as HTMLInputElement;
+    focusSeg(input);
+    // `0` leaves the hour unfinished at 00, which the predicate rejects, so
+    // it waits; `9` finishes it at 09, which only isBlocked could refuse.
+    fireEvent.keyDown(input, { key: '0' });
+    expect(handler).not.toHaveBeenCalled();
+    expect(input.value).toBe('13:45');
+    fireEvent.keyDown(input, { key: '9' });
+    expect(handler).toHaveBeenCalledWith(at(9, 45));
+    expect(input.value).toBe('09:45');
+  });
+
   it('still commits unblocked values when an isBlocked predicate is present', () => {
     const handler = jest.fn();
     const { getByTestId } = render(
@@ -611,6 +635,73 @@ describe('useSegmentedEntry', () => {
     expect(input.dataset.open).toBe('false');
     fireEvent.keyDown(input, { key: 'ArrowDown' });
     expect(input.dataset.open).toBe('true');
+  });
+
+  it('opens nothing on ArrowDown when read-only or disabled', () => {
+    for (const props of [{ readOnly: true }, { disabled: true }]) {
+      const { getByTestId, unmount } = render(
+        <Harness initial={at(13, 45)} openOnFocus={false} {...props} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      expect(input.dataset.open).toBe('false');
+      unmount();
+    }
+  });
+
+  describe('Alt+ArrowDown and Alt+ArrowUp', () => {
+    it('open and close the popover in segment mode without stepping the segment', () => {
+      const onChange = jest.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} openOnFocus={false} onChange={onChange} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      expect(input.dataset.inseg).toBe('true');
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      expect(input.dataset.open).toBe('true');
+      // A second Alt+ArrowDown leaves the open popover alone.
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      expect(input.dataset.open).toBe('true');
+      fireEvent.keyDown(input, { key: 'ArrowUp', altKey: true });
+      expect(input.dataset.open).toBe('false');
+      // And Alt+ArrowUp leaves the closed one alone.
+      fireEvent.keyDown(input, { key: 'ArrowUp', altKey: true });
+      expect(input.dataset.open).toBe('false');
+      expect(input.value).toBe('13:45');
+      expect(input.dataset.inseg).toBe('true');
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('step nothing when there is no popover', () => {
+      const onChange = jest.fn();
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} popover={false} onChange={onChange} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      focusSeg(input);
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      fireEvent.keyDown(input, { key: 'ArrowUp', altKey: true });
+      expect(input.dataset.open).toBe('false');
+      expect(input.value).toBe('13:45');
+      expect(onChange).not.toHaveBeenCalled();
+    });
+
+    it('open and close the popover in free-form mode', () => {
+      const { getByTestId } = render(
+        <Harness initial={at(13, 45)} editable={false} openOnFocus={false} />
+      );
+      const input = getByTestId('seg') as HTMLInputElement;
+      fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+      expect(input.dataset.open).toBe('true');
+      // Plain ArrowUp keeps it open; Alt+ArrowUp closes it.
+      fireEvent.keyDown(input, { key: 'ArrowUp' });
+      expect(input.dataset.open).toBe('true');
+      fireEvent.keyDown(input, { key: 'ArrowUp', altKey: true });
+      expect(input.dataset.open).toBe('false');
+    });
   });
 
   describe('skipKinds', () => {

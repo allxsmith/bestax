@@ -1074,15 +1074,15 @@ describe('Numberinput label association (#368)', () => {
     );
   });
 
-  it('injects no id inside an outer Field, which drops the label', () => {
+  it("takes the outer Field's label in place of its own, which it drops (#939)", () => {
     const { container } = render(
       <Field label="Outer">
         <Numberinput label="Dropped" />
       </Field>
     );
     expect(container.querySelectorAll('label').length).toBe(1);
-    expect(container.querySelector('input[type="number"]')).not.toHaveAttribute(
-      'id'
+    expect(screen.getByRole('spinbutton', { name: 'Outer' })).toBe(
+      container.querySelector('input[type="number"]')
     );
   });
 });

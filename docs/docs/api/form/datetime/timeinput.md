@@ -38,7 +38,7 @@ import { TimeInput } from '@allxsmith/bestax-bulma';
 <TimeInput label="Time" placeholder="HH:MM" />
 ```
 
-**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: focusing or clicking the field lets you type; open the popover with the launcher icon (or press `Alt+↓`).
 
 ```tsx live
 <TimeInput label="Time" placeholder="HH:MM" openOnFocus={false} />
@@ -50,7 +50,7 @@ import { TimeInput } from '@allxsmith/bestax-bulma';
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => {
+  const [v, setV] = useState<Date | null>(() => {
     const d = new Date();
     d.setHours(13, 45, 0, 0);
     return d;
@@ -64,11 +64,11 @@ function example() {
 }
 ```
 
-**Typing-first** — the same controlled example with `openOnFocus={false}`: focus and type freely; the launcher icon on the right (or `↓`) opens the popover.
+**Typing-first** — the same controlled example with `openOnFocus={false}`: focus and type freely; the launcher icon on the right (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => {
+  const [v, setV] = useState<Date | null>(() => {
     const d = new Date();
     d.setHours(13, 45, 0, 0);
     return d;
@@ -112,7 +112,7 @@ function example() {
 The OS-native pickers use the device's clock setting (12h/24h), so `hourFormat` is ignored there. This example forces `mobileNative={false}` so the 12-hour format shows on touch devices too.
 :::
 
-**Typing-first** — identical, but with `openOnFocus={false}` so focusing lets you type (press `a` / `p` on the AM/PM segment); the launcher icon (or `↓`) opens the popover.
+**Typing-first** — identical, but with `openOnFocus={false}` so focusing lets you type (press `a` / `p` on the AM/PM segment); the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -155,7 +155,7 @@ function example() {
 Same as above — the OS-native pickers follow the device clock setting. This example forces `mobileNative={false}` to show 24-hour on touch devices.
 :::
 
-**Typing-first** — the same 24-hour example with `openOnFocus={false}`: click in and type the time; the launcher icon (or `↓`) brings up the popover.
+**Typing-first** — the same 24-hour example with `openOnFocus={false}`: click in and type the time; the launcher icon (or `Alt+↓`) brings up the popover.
 
 ```tsx live
 function example() {
@@ -199,7 +199,7 @@ This example forces `mobileNative={false}` so the seconds wheel shows on every d
 **Android Chrome** renders a seconds spinner in its native time picker when `step < 60` (which our component sets when `enableSeconds` is true). **iOS Safari** has no seconds wheel under any circumstances — Apple's native picker UI is hard-locked to hour/minute spinners regardless of `step`. The input value can carry seconds entered programmatically, but iOS users can't pick them in the wheel. If you need a seconds wheel on iOS, pass `mobileNative={false}` to force the custom wheel popover. See [Mobile Native](#mobile-native) below for the full iOS-vs-Android picker support matrix.
 :::
 
-**Typing-first** — the same example plus `openOnFocus={false}`: type across the hours / minutes / seconds segments, and open the popover with the launcher icon (or `↓`).
+**Typing-first** — the same example plus `openOnFocus={false}`: type across the hours / minutes / seconds segments, and open the popover with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -242,7 +242,7 @@ function example() {
 iOS Safari shows every minute regardless of `step`. This example forces `mobileNative={false}` so the 15-minute stepping is enforced on every device.
 :::
 
-**Typing-first** — the same example with `openOnFocus={false}`: increments only step the wheels, not typing — typed values are free-grained — so open the stepped wheels with the launcher icon (or `↓`).
+**Typing-first** — the same example with `openOnFocus={false}`: increments only step the wheels, not typing — typed values are free-grained — so open the stepped wheels with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
@@ -290,11 +290,11 @@ function example() {
 On iOS Safari the picker UI lets the user spin to any time; `min`/`max` only fire at form-submission validation ([WebKit bug #225639](https://bugs.webkit.org/show_bug.cgi?id=225639), still open). Pass `mobileNative={false}` for iOS-side enforcement. Android Chrome's native picker does honor them.
 :::
 
-**Typing-first** — the same bounds with `openOnFocus={false}`: typed entry is clamped to the window just like the wheels; open the popover with the launcher icon (or `↓`).
+**Typing-first** — the same bounds with `openOnFocus={false}`: typed entry is clamped to the window just like the wheels; open the popover with the launcher icon (or `Alt+↓`).
 
 ```tsx live
 function example() {
-  const at = (h, m) => {
+  const at = (h: number, m: number) => {
     const d = new Date();
     d.setHours(h, m, 0, 0);
     return d;
@@ -336,7 +336,7 @@ function example() {
 HTML has no predicate equivalent, so the OS-native pickers can't block any times. This example forces `mobileNative={false}` so the rule works on touch devices; in your app keep `mobileNative="auto"` and also validate in `onChange`.
 :::
 
-**Typing-first** — the same predicate with `openOnFocus={false}`: typing or arrowing into a blocked time is rejected just like in the wheels, and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same predicate with `openOnFocus={false}`: typing or arrowing into a blocked time is rejected just like in the wheels, and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -363,7 +363,7 @@ Focus the input — the **hours** segment highlights automatically and the keybo
 These examples use `openOnFocus={false}` so the popover doesn't cover the input — set `openOnFocus={true}` (the default) and both UIs coexist. To turn segment typing off entirely, pass `editable={false}` (picker-only); to drop the popover and keep only the field, pass `popover={false}` (input-only).
 
 :::tip Opening the picker vs. typing
-With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
+With `openOnFocus={false}` (used here), **clicking the field just lets you type** — the popover does not appear on focus or click. Open the picker by clicking the **launcher icon on the right** (or pressing `Alt+↓`). With the default `openOnFocus={true}`, focusing or clicking the field opens the popover immediately (you can still type while it's open).
 :::
 
 #### Basic
@@ -412,7 +412,7 @@ The value updates on every increment, digit, or AM/PM toggle — exactly like th
 
 ```tsx live
 function example() {
-  const [v, setV] = useState(() => {
+  const [v, setV] = useState<Date | null>(() => {
     const d = new Date();
     d.setHours(13, 45, 0, 0);
     return d;
@@ -499,7 +499,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same example with `openOnFocus={false}`: typing stays silent — the audio thunk and band pulse fire once you open the wheels via the launcher icon (or `↓`) and scroll them.
+**Typing-first** — the same example with `openOnFocus={false}`: typing stays silent — the audio thunk and band pulse fire once you open the wheels via the launcher icon (or `Alt+↓`) and scroll them.
 
 ```tsx live
 function example() {
@@ -534,7 +534,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same auto-routed feedback with `openOnFocus={false}`: the vibrate/thunk fires when you open the wheels with the launcher icon (or `↓`) and scroll them, not while typing.
+**Typing-first** — the same auto-routed feedback with `openOnFocus={false}`: the vibrate/thunk fires when you open the wheels with the launcher icon (or `Alt+↓`) and scroll them, not while typing.
 
 ```tsx live
 function example() {
@@ -643,7 +643,7 @@ function example() {
 }
 ```
 
-**Typing-first** — the same token formats with `openOnFocus={false}` on every instance: type into the segments each format defines; the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same token formats with `openOnFocus={false}` on every instance: type into the segments each format defines; the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 function example() {
@@ -723,7 +723,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
 </Block>
 ```
 
-**Typing-first** — the same set with `openOnFocus={false}` on each instance: the field is type-first, which makes the right launcher icon (or `↓`) the way into the popover.
+**Typing-first** — the same set with `openOnFocus={false}` on each instance: the field is type-first, which makes the right launcher icon (or `Alt+↓`) the way into the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -734,7 +734,7 @@ A clickable launcher sits on the **right** and toggles the popover — handy for
     openOnFocus={false}
   />
   <TimeInput
-    label="No launcher (press ↓ to open)"
+    label="No launcher (press Alt+↓ to open)"
     triggerIcon={false}
     openOnFocus={false}
   />
@@ -765,7 +765,7 @@ The launcher gives way to a loading spinner at the same right edge, whether the 
 </Block>
 ```
 
-**Typing-first** — the same sizes with `openOnFocus={false}` on every instance: focusing lets you type, and the launcher icon (or `↓`) opens the popover.
+**Typing-first** — the same sizes with `openOnFocus={false}` on every instance: focusing lets you type, and the launcher icon (or `Alt+↓`) opens the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -805,7 +805,7 @@ The launcher gives way to a loading spinner at the same right edge, whether the 
 </Block>
 ```
 
-**Typing-first** — the same colors with `openOnFocus={false}` everywhere: click in to type, and use the launcher icon (or `↓`) to open the popover.
+**Typing-first** — the same colors with `openOnFocus={false}` everywhere: click in to type, and use the launcher icon (or `Alt+↓`) to open the popover.
 
 ```tsx live
 <Block display="flex" flexDirection="column">
@@ -825,7 +825,9 @@ function example() {
   v.setHours(8, 30, 0, 0);
   return (
     <Block display="flex" flexWrap="wrap">
-      {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(c => (
+      {(
+        ['primary', 'link', 'info', 'success', 'warning', 'danger'] as const
+      ).map(c => (
         <Block key={c} mr="4">
           <TimeInput label={c} color={c} inline defaultValue={v} />
         </Block>
@@ -863,13 +865,15 @@ The `TimeInput` component is context-aware: it detects whether it is already ins
 
 #### With Field Wrapper
 
+A labeled `Field` that holds the TimeInput directly names its input with no extra wiring. In a horizontal form the label sits on the outer `Field` and the TimeInput in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Time">
+    <Field horizontal label="Time" labelProps={{ htmlFor: 'time-field' }}>
       <Field.Body>
         <Field>
-          <TimeInput placeholder="HH:MM" />
+          <TimeInput id="time-field" placeholder="HH:MM" />
         </Field>
       </Field.Body>
     </Field>
@@ -884,11 +888,15 @@ function example() {
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Time">
+    <Field
+      horizontal
+      label="Time"
+      labelProps={{ htmlFor: 'time-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="clock">
-            <TimeInput placeholder="HH:MM" />
+            <TimeInput id="time-field-control" placeholder="HH:MM" />
           </Control>
         </Field>
       </Field.Body>
@@ -912,6 +920,7 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | Key                   | Action                                                                         |
 | --------------------- | ------------------------------------------------------------------------------ |
 | `↑` / `↓`             | Increment / decrement the active segment (wraps at boundaries)                 |
+| `Alt+↓` / `Alt+↑`     | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`             | Move to previous / next segment (hour ↔ minute ↔ second ↔ AM/PM)               |
 | `0`–`9`               | Overwrite the active segment; auto-advances when no further digit is valid     |
 | `a` / `A` / `p` / `P` | Toggle AM/PM on the meridiem segment                                           |
@@ -920,14 +929,21 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | `Escape`              | Close popover                                                                  |
 | `Enter`               | Close popover when `closeOnSelect={true}` (value is already committed live)    |
 
+In free-form entry there is no segment to step, so a plain `↓` opens the popover as well.
+
 ### On a wheel column (when the popover is open)
 
-| Key                   | Action                               |
-| --------------------- | ------------------------------------ |
-| `↑` / `↓`             | Increment / decrement focused column |
-| `PageUp` / `PageDown` | Increment / decrement by 5×          |
-| `Tab`                 | Move focus to next column            |
-| `Enter`               | Commit live value, close popover     |
+| Key                   | Action                                   |
+| --------------------- | ---------------------------------------- |
+| `↑` / `↓`             | Increment / decrement focused column     |
+| `PageUp` / `PageDown` | Increment / decrement by 5×              |
+| `Home` / `End`        | Jump to the column's lowest / highest    |
+| `←` / `→`             | Move focus to the previous / next column |
+| `Tab`                 | Move focus to next column                |
+| `Enter`               | Commit live value, close popover         |
+| `Escape` / `Alt+↑`    | Close popover                            |
+
+The values run down each wheel, so `↑` brings the value below the band into it, the way dragging the wheel up or scrolling down over it does.
 
 ---
 
@@ -970,7 +986,7 @@ function TimeInputFormDemo() {
 
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
-- Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`.
+- Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
 - AM/PM toggle exposes `aria-pressed`.
 - Honors `prefers-reduced-motion`.
 
@@ -998,68 +1014,68 @@ Combine `incrementMinutes={5}` (or `15`/`30`) with `min` and `max` to build a ti
 
 <!-- bestax:generated props -->
 
-| Prop                | Type                                                                             | Default          | Description                                                                                                                                                                                                                                                                                                                                   |
-| ------------------- | -------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`             | `React.ReactNode`                                                                | —                | Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`.                                                                                                                     |
-| `labelSize`         | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                               | —                | Size for the label.                                                                                                                                                                                                                                                                                                                           |
-| `labelProps`        | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —                | Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).                                                                                                                                                                                                                        |
-| `horizontal`        | `boolean`                                                                        | `false`          | Render the field with horizontal layout.                                                                                                                                                                                                                                                                                                      |
-| `iconLeft`          | `IconProps` \| `React.ReactNode`                                                 | —                | Icon props for the left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                            |
-| `iconRight`         | `IconProps` \| `React.ReactNode`                                                 | —                | Icon props for the right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                           |
-| `iconRightName`     | `string`                                                                         | —                | Shortcut for the right icon name.                                                                                                                                                                                                                                                                                                             |
-| `iconLeftSize`      | `'small'` \| `'medium'` \| `'large'`                                             | —                | Shortcut for left icon size.                                                                                                                                                                                                                                                                                                                  |
-| `iconRightSize`     | `'small'` \| `'medium'` \| `'large'`                                             | —                | Shortcut for right icon size.                                                                                                                                                                                                                                                                                                                 |
-| `hasIconsLeft`      | `boolean`                                                                        | `false`          | Force the left icon container.                                                                                                                                                                                                                                                                                                                |
-| `hasIconsRight`     | `boolean`                                                                        | `false`          | Force the right icon container.                                                                                                                                                                                                                                                                                                               |
-| `isLoading`         | `boolean`                                                                        | `false`          | Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Inside your own `Control` it renders none, so this draws nothing and warns in development; set `isLoading` on that `Control`. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded). |
-| `triggerIcon`       | `boolean`                                                                        | `true`           | Show a clickable launcher button on the right that toggles the popover. Hidden by default while a spinner shows at the same right edge: this component's `isLoading` when it renders its own `Control`, or the enclosing `Control`'s `isLoading` inside one.                                                                                  |
-| `isExpanded`        | `boolean`                                                                        | `false`          | Expand the control to fill its container.                                                                                                                                                                                                                                                                                                     |
-| `controlSize`       | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size of the wrapping Control.                                                                                                                                                                                                                                                                                                                 |
-| `message`           | `React.ReactNode`                                                                | —                | Help/validation text below the input.                                                                                                                                                                                                                                                                                                         |
-| `messageColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Color modifier for the help message.                                                                                                                                                                                                                                                                                                          |
-| `fieldClassName`    | `string`                                                                         | —                | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                                                 |
-| `controlClassName`  | `string`                                                                         | —                | Additional CSS classes for the Control wrapper.                                                                                                                                                                                                                                                                                               |
-| `value`             | `Date` \| `null`                                                                 | —                | Controlled selected time (date portion is preserved).                                                                                                                                                                                                                                                                                         |
-| `defaultValue`      | `Date` \| `null`                                                                 | —                | Initial value for uncontrolled usage.                                                                                                                                                                                                                                                                                                         |
-| `onChange`          | `(d: Date \| null) => void`                                                      | —                | Fired when the value changes.                                                                                                                                                                                                                                                                                                                 |
-| `onOpen`            | `() => void`                                                                     | —                | Fired when the popover opens.                                                                                                                                                                                                                                                                                                                 |
-| `onClose`           | `() => void`                                                                     | —                | Fired when the popover closes.                                                                                                                                                                                                                                                                                                                |
-| `min`               | `Date`                                                                           | —                | Earliest selectable time. A `min` before year 1 is raised to midnight on 1 January of year 1, and a `value` dated before then is out of range, so the wheels and typing change nothing on it, as in the date pickers.                                                                                                                         |
-| `max`               | `Date`                                                                           | —                | Latest selectable time.                                                                                                                                                                                                                                                                                                                       |
-| `disabled`          | `boolean`                                                                        | `false`          | Disable the input.                                                                                                                                                                                                                                                                                                                            |
-| `readOnly`          | `boolean`                                                                        | `false`          | Make the input read-only.                                                                                                                                                                                                                                                                                                                     |
-| `placeholder`       | `string`                                                                         | —                | Placeholder text for the input.                                                                                                                                                                                                                                                                                                               |
-| `format`            | `Intl.DateTimeFormatOptions` \| `string`                                         | `(see below)`    | Token format string or `Intl.DateTimeFormat` options.                                                                                                                                                                                                                                                                                         |
-| `parse`             | `(s: string) => Date \| null`                                                    | —                | Custom parser. Enter and leaving the field call it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as seconds and the date.                                                                                                                                  |
-| `locale`            | `string`                                                                         | —                | BCP-47 locale tag for Intl formatting.                                                                                                                                                                                                                                                                                                        |
-| `inline`            | `boolean`                                                                        | `false`          | Render the spinner inline (no popover).                                                                                                                                                                                                                                                                                                       |
-| `mobileNative`      | `boolean` \| `'auto'`                                                            | `'auto'`         | Use `<input type="time">` on coarse-pointer + small-viewport devices.                                                                                                                                                                                                                                                                         |
-| `editable`          | `boolean`                                                                        | `true`           | Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only.                                                                                                                                                                                                   |
-| `popover`           | `boolean`                                                                        | `true`           | Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover).                                                                                                                                                                                                                                        |
-| `openOnFocus`       | `boolean`                                                                        | `true`           | Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since.                                                                                                       |
-| `closeOnSelect`     | `boolean`                                                                        | `false`          | Close the popover after a time is selected (off by default).                                                                                                                                                                                                                                                                                  |
-| `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the input.                                                                                                                                                                                                                                                                                                |
-| `appendToBody`      | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.                                                                                                                                                             |
-| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.      |
-| `size`              | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size variant.                                                                                                                                                                                                                                                                                                                                 |
-| `isRounded`         | `boolean`                                                                        | `false`          | Render the input with rounded corners.                                                                                                                                                                                                                                                                                                        |
-| `hourFormat`        | `'12'` \| `'24'`                                                                 | `'24'`           | Hour format. `'12'` shows an AM/PM toggle.                                                                                                                                                                                                                                                                                                    |
-| `enableSeconds`     | `boolean`                                                                        | `false`          | Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS.                                                                                                                                                                                         |
-| `incrementHours`    | `number`                                                                         | `1`              | Hour step for the spinner.                                                                                                                                                                                                                                                                                                                    |
-| `incrementMinutes`  | `number`                                                                         | `1`              | Minute step. Combine with `min`/`max` for slot-style pickers.                                                                                                                                                                                                                                                                                 |
-| `incrementSeconds`  | `number`                                                                         | `1`              | Second step. Default `1`.                                                                                                                                                                                                                                                                                                                     |
-| `unselectableTimes` | `(d: Date) => boolean`                                                           | —                | Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing.                                                                                                                                                                                                                            |
-| `iconLeftName`      | `string`                                                                         | `'clock'`        | Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.                                                                                                                                                                                                                                                   |
-| `triggerIconName`   | `string`                                                                         | `'chevron-down'` | Glyph for the right launcher button.                                                                                                                                                                                                                                                                                                          |
-| `labels`            | `PickerLabels`                                                                   | —                | Optional translatable string overrides.                                                                                                                                                                                                                                                                                                       |
-| `audioTick`         | `boolean`                                                                        | `false`          | Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless.                                                                                                                         |
-| `haptics`           | `boolean`                                                                        | `false`          | Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins.                                                                                                            |
-| `name`              | `string`                                                                         | —                | Form field name.                                                                                                                                                                                                                                                                                                                              |
-| `form`              | `string`                                                                         | —                | Form id the input belongs to.                                                                                                                                                                                                                                                                                                                 |
-| `required`          | `boolean`                                                                        | `false`          | Marks the input as required.                                                                                                                                                                                                                                                                                                                  |
-| `className`         | `string`                                                                         | —                | Additional CSS classes for the input.                                                                                                                                                                                                                                                                                                         |
-| `ref`               | `React.Ref<HTMLInputElement>`                                                    | —                | Forwarded to the underlying `<input>`.                                                                                                                                                                                                                                                                                                        |
-| `...`               | All standard `<input>` attributes and Bulma helper props                         | —                | See [Helper Props](../../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                          |
+| Prop                | Type                                                                             | Default          | Description                                                                                                                                                                                                                                                                                                                                                      |
+| ------------------- | -------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`             | `React.ReactNode`                                                                | —                | Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). |
+| `labelSize`         | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                               | —                | Size for the label.                                                                                                                                                                                                                                                                                                                                              |
+| `labelProps`        | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —                | Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).                                                                                                                                                                                                                                           |
+| `horizontal`        | `boolean`                                                                        | `false`          | Render the field with horizontal layout.                                                                                                                                                                                                                                                                                                                         |
+| `iconLeft`          | `IconProps` \| `React.ReactNode`                                                 | —                | Icon props for the left icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                                               |
+| `iconRight`         | `IconProps` \| `React.ReactNode`                                                 | —                | Icon props for the right icon. Bulma gives control icons `pointer-events: none`, so a clickable node here never receives a click. Put a button beside the input in its own addon `Control` instead.                                                                                                                                                              |
+| `iconRightName`     | `string`                                                                         | —                | Shortcut for the right icon name.                                                                                                                                                                                                                                                                                                                                |
+| `iconLeftSize`      | `'small'` \| `'medium'` \| `'large'`                                             | —                | Shortcut for left icon size.                                                                                                                                                                                                                                                                                                                                     |
+| `iconRightSize`     | `'small'` \| `'medium'` \| `'large'`                                             | —                | Shortcut for right icon size.                                                                                                                                                                                                                                                                                                                                    |
+| `hasIconsLeft`      | `boolean`                                                                        | `false`          | Force the left icon container.                                                                                                                                                                                                                                                                                                                                   |
+| `hasIconsRight`     | `boolean`                                                                        | `false`          | Force the right icon container.                                                                                                                                                                                                                                                                                                                                  |
+| `isLoading`         | `boolean`                                                                        | `false`          | Shows a loading spinner on the `Control` it renders, and hides the launcher (`triggerIcon`) while it does. Inside your own `Control` it renders none, so this draws nothing and warns in development; set `isLoading` on that `Control`. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).                    |
+| `triggerIcon`       | `boolean`                                                                        | `true`           | Show a clickable launcher button on the right that toggles the popover. Hidden by default while a spinner shows at the same right edge: this component's `isLoading` when it renders its own `Control`, or the enclosing `Control`'s `isLoading` inside one.                                                                                                     |
+| `isExpanded`        | `boolean`                                                                        | `false`          | Expand the control to fill its container.                                                                                                                                                                                                                                                                                                                        |
+| `controlSize`       | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size of the wrapping Control.                                                                                                                                                                                                                                                                                                                                    |
+| `message`           | `React.ReactNode`                                                                | —                | Help/validation text below the input.                                                                                                                                                                                                                                                                                                                            |
+| `messageColor`      | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Color modifier for the help message.                                                                                                                                                                                                                                                                                                                             |
+| `fieldClassName`    | `string`                                                                         | —                | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                                                                    |
+| `controlClassName`  | `string`                                                                         | —                | Additional CSS classes for the Control wrapper.                                                                                                                                                                                                                                                                                                                  |
+| `value`             | `Date` \| `null`                                                                 | —                | Controlled selected time (date portion is preserved).                                                                                                                                                                                                                                                                                                            |
+| `defaultValue`      | `Date` \| `null`                                                                 | —                | Initial value for uncontrolled usage.                                                                                                                                                                                                                                                                                                                            |
+| `onChange`          | `(d: Date \| null) => void`                                                      | —                | Fired when the value changes.                                                                                                                                                                                                                                                                                                                                    |
+| `onOpen`            | `() => void`                                                                     | —                | Fired when the popover opens.                                                                                                                                                                                                                                                                                                                                    |
+| `onClose`           | `() => void`                                                                     | —                | Fired when the popover closes.                                                                                                                                                                                                                                                                                                                                   |
+| `min`               | `Date`                                                                           | —                | Earliest selectable time. A `min` before year 1 is raised to midnight on 1 January of year 1, and a `value` dated before then is out of range, so the wheels and typing change nothing on it, as in the date pickers.                                                                                                                                            |
+| `max`               | `Date`                                                                           | —                | Latest selectable time.                                                                                                                                                                                                                                                                                                                                          |
+| `disabled`          | `boolean`                                                                        | `false`          | Disable the input.                                                                                                                                                                                                                                                                                                                                               |
+| `readOnly`          | `boolean`                                                                        | `false`          | Make the input read-only.                                                                                                                                                                                                                                                                                                                                        |
+| `placeholder`       | `string`                                                                         | —                | Placeholder text for the input.                                                                                                                                                                                                                                                                                                                                  |
+| `format`            | `Intl.DateTimeFormatOptions` \| `string`                                         | `(see below)`    | Token format string or `Intl.DateTimeFormat` options.                                                                                                                                                                                                                                                                                                            |
+| `parse`             | `(s: string) => Date \| null`                                                    | —                | Custom parser. Enter and leaving the field call it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as seconds and the date.                                                                                                                                                     |
+| `locale`            | `string`                                                                         | —                | BCP-47 locale tag for Intl formatting.                                                                                                                                                                                                                                                                                                                           |
+| `inline`            | `boolean`                                                                        | `false`          | Render the spinner inline (no popover).                                                                                                                                                                                                                                                                                                                          |
+| `mobileNative`      | `boolean` \| `'auto'`                                                            | `'auto'`         | Use `<input type="time">` on coarse-pointer + small-viewport devices.                                                                                                                                                                                                                                                                                            |
+| `editable`          | `boolean`                                                                        | `true`           | Allow segmented keyboard typing in the input (type the time directly, auto-advancing across segments). `false` makes the field picker-only.                                                                                                                                                                                                                      |
+| `popover`           | `boolean`                                                                        | `true`           | Whether the spinner popover exists. `false` makes the field input-only (segmented typing, no popover).                                                                                                                                                                                                                                                           |
+| `openOnFocus`       | `boolean`                                                                        | `true`           | Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.                                                                     |
+| `closeOnSelect`     | `boolean`                                                                        | `false`          | Close the popover after a time is selected (off by default).                                                                                                                                                                                                                                                                                                     |
+| `position`          | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'`  | Popover anchor position relative to the input.                                                                                                                                                                                                                                                                                                                   |
+| `appendToBody`      | `boolean`                                                                        | `false`          | Render the popover into `document.body` via portal. On a narrow screen an in-place popover spans the bottom of the viewport, while a portaled one stays on its `position` corner.                                                                                                                                                                                |
+| `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.                         |
+| `size`              | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size variant.                                                                                                                                                                                                                                                                                                                                                    |
+| `isRounded`         | `boolean`                                                                        | `false`          | Render the input with rounded corners.                                                                                                                                                                                                                                                                                                                           |
+| `hourFormat`        | `'12'` \| `'24'`                                                                 | `'24'`           | Hour format. `'12'` shows an AM/PM toggle.                                                                                                                                                                                                                                                                                                                       |
+| `enableSeconds`     | `boolean`                                                                        | `false`          | Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS.                                                                                                                                                                                                            |
+| `incrementHours`    | `number`                                                                         | `1`              | Hour step for the spinner.                                                                                                                                                                                                                                                                                                                                       |
+| `incrementMinutes`  | `number`                                                                         | `1`              | Minute step. Combine with `min`/`max` for slot-style pickers.                                                                                                                                                                                                                                                                                                    |
+| `incrementSeconds`  | `number`                                                                         | `1`              | Second step. Default `1`.                                                                                                                                                                                                                                                                                                                                        |
+| `unselectableTimes` | `(d: Date) => boolean`                                                           | —                | Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing.                                                                                                                                                                                                                                               |
+| `iconLeftName`      | `string`                                                                         | `'clock'`        | Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.                                                                                                                                                                                                                                                                      |
+| `triggerIconName`   | `string`                                                                         | `'chevron-down'` | Glyph for the right launcher button.                                                                                                                                                                                                                                                                                                                             |
+| `labels`            | `PickerLabels`                                                                   | —                | Optional translatable string overrides.                                                                                                                                                                                                                                                                                                                          |
+| `audioTick`         | `boolean`                                                                        | `false`          | Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless.                                                                                                                                            |
+| `haptics`           | `boolean`                                                                        | `false`          | Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins.                                                                                                                               |
+| `name`              | `string`                                                                         | —                | Form field name.                                                                                                                                                                                                                                                                                                                                                 |
+| `form`              | `string`                                                                         | —                | Form id the input belongs to.                                                                                                                                                                                                                                                                                                                                    |
+| `required`          | `boolean`                                                                        | `false`          | Marks the input as required.                                                                                                                                                                                                                                                                                                                                     |
+| `className`         | `string`                                                                         | —                | Additional CSS classes for the input.                                                                                                                                                                                                                                                                                                                            |
+| `ref`               | `React.Ref<HTMLInputElement>`                                                    | —                | Forwarded to the underlying `<input>`.                                                                                                                                                                                                                                                                                                                           |
+| `...`               | All standard `<input>` attributes and Bulma helper props                         | —                | See [Helper Props](../../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                             |
 
 <!-- /bestax:generated props -->
 

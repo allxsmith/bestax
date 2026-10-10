@@ -69,7 +69,9 @@ function example() {
 
 ```tsx live
 function example() {
-  const [toastType, setToastType] = useState(null);
+  const [toastType, setToastType] = useState<
+    'success' | 'danger' | 'warning' | 'info' | null
+  >(null);
   return (
     <Block>
       <Buttons>
@@ -107,9 +109,11 @@ function example() {
 Toast can appear in any of six positions. (The `transform` on the wrapper is a docs-only trick that scopes the toast's `position: fixed` to the example box; in your app, omit the wrapper.)
 
 ```tsx live
+import type { ToastPosition } from '@allxsmith/bestax-bulma';
+
 function example() {
-  const [position, setPosition] = useState(null);
-  const [box, setBox] = useState(null);
+  const [position, setPosition] = useState<ToastPosition | null>(null);
+  const [box, setBox] = useState<HTMLDivElement | null>(null);
   return (
     <div
       ref={setBox}

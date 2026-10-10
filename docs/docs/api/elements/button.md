@@ -54,11 +54,13 @@ By setting the `color` prop, you can style your button with any of Bulma's butto
 
 ```tsx live
 <Buttons>
-  {['primary', 'link', 'info', 'success', 'warning', 'danger'].map(color => (
-    <Button key={color} color={color}>
-      {color.charAt(0).toUpperCase() + color.slice(1)}
-    </Button>
-  ))}
+  {(['primary', 'link', 'info', 'success', 'warning', 'danger'] as const).map(
+    color => (
+      <Button key={color} color={color}>
+        {color.charAt(0).toUpperCase() + color.slice(1)}
+      </Button>
+    )
+  )}
 </Buttons>
 ```
 
@@ -68,7 +70,7 @@ The `size` prop lets you adjust the button’s scale for various contexts. Suppo
 
 ```tsx live
 <Buttons>
-  {['small', 'normal', 'medium', 'large'].map(size => (
+  {(['small', 'normal', 'medium', 'large'] as const).map(size => (
     <Button key={size} size={size}>
       {size.charAt(0).toUpperCase() + size.slice(1)}
     </Button>
@@ -291,8 +293,8 @@ The props follow `as`, so the type checker already limits what you can pass to w
 
 ```tsx live
 function example() {
-  const buttonRef = React.useRef(null);
-  const [tag, setTag] = React.useState(null);
+  const buttonRef = React.useRef<HTMLButtonElement>(null);
+  const [tag, setTag] = React.useState<string>();
 
   return (
     <>

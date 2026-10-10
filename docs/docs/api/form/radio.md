@@ -158,7 +158,7 @@ function example() {
 ## Additional Resources
 
 - [Bulma Radio Documentation](https://bulma.io/documentation/form/radio/)
-- [Storybook: Radio Stories](https://bestax.io/storybook/?path=/story/form-radio--mutuallyexclusive)
+- [Storybook: Radio Stories](https://bestax.io/storybook/?path=/story/form-radio--mutually-exclusive)
 
 ---
 

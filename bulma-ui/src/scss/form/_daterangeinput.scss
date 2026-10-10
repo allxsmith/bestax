@@ -1,0 +1,63 @@
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+
+// DateRangeInput's field: two inputs and a separator inside one Bulma
+// `.input`. The calendar's range styles live with the rest of the calendar's,
+// in `_dateinput.scss`, so a calendar portaled out of the field keeps them.
+$daterangeinput-gap: 0.5em !default;
+$daterangeinput-separator-color: cv.getVar('text-weak') !default;
+
+.#{iv.$class-prefix}daterangeinput {
+  @include cv.register-vars(
+    (
+      'daterangeinput-gap': #{$daterangeinput-gap},
+      'daterangeinput-separator-color': #{$daterangeinput-separator-color},
+    )
+  );
+}
+
+// Bulma's `.input` already lays its content out in a row and draws its focus
+// ring for `:focus-within`, so the field shows focus wherever it is inside.
+.#{iv.$class-prefix}daterangeinput-field {
+  gap: cv.getVar('daterangeinput-gap');
+  cursor: text;
+}
+
+// The inputs are bare: the field around them is the input the user sees.
+.#{iv.$class-prefix}daterangeinput-input {
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  outline: none;
+
+  &::placeholder {
+    color: cv.getVar('input-placeholder-color');
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.#{iv.$class-prefix}daterangeinput-separator {
+  flex: none;
+  color: cv.getVar('daterangeinput-separator-color');
+}
+
+// A div takes no `disabled`, so the field is marked by class and given
+// Bulma's disabled input look from Bulma's own variables.
+.#{iv.$class-prefix}daterangeinput-field.#{iv.$class-prefix}is-disabled {
+  background-color: cv.getVar('input-disabled-background-color');
+  border-color: cv.getVar('input-disabled-border-color');
+  box-shadow: none;
+  color: cv.getVar('input-disabled-color');
+  cursor: not-allowed;
+
+  .#{iv.$class-prefix}daterangeinput-input::placeholder {
+    color: cv.getVar('input-disabled-placeholder-color');
+  }
+}

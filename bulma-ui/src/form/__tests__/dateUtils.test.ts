@@ -170,10 +170,19 @@ describe('dateUtils', () => {
     });
 
     it('setTimeOfDay leaves omitted parts unchanged', () => {
-      const d = setTimeOfDay(new Date(2024, 0, 1, 5, 5, 5), { hours: 9 });
+      const d = setTimeOfDay(new Date(2024, 0, 1, 5, 5, 5, 5), { hours: 9 });
       expect(d.getHours()).toBe(9);
       expect(d.getMinutes()).toBe(5);
       expect(d.getSeconds()).toBe(5);
+      expect(d.getMilliseconds()).toBe(5);
+    });
+
+    it('setTimeOfDay sets the milliseconds too', () => {
+      const d = setTimeOfDay(new Date(2024, 0, 1, 5, 5, 5, 507), {
+        seconds: 0,
+        milliseconds: 0,
+      });
+      expect(d).toEqual(new Date(2024, 0, 1, 5, 5, 0, 0));
     });
 
     it('setTimeOfDay leaves hours unchanged when only minutes are given', () => {

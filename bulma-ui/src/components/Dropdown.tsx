@@ -183,7 +183,9 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         // Closing hides the item that has focus, and the browser drops focus
         // to the page when that happens. Hand it back to the trigger, as
         // Escape does. An item that moved focus somewhere else keeps it there.
-        if (e.currentTarget.contains(getActiveElementInTree(e.currentTarget))) {
+        // The menu around this content is what a click between items focuses.
+        const menu = e.currentTarget.parentElement as HTMLElement;
+        if (menu.contains(getActiveElementInTree(e.currentTarget))) {
           triggerRef.current?.focus();
         }
       }
@@ -399,11 +401,13 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
           role="menu"
           data-testid="dropdown-menu"
           onKeyDown={handleMenuKeyDown}
+          // The menu, not its content, takes focus from a click between items,
+          // so the menu owns nothing focusable but its items.
+          tabIndex={-1}
         >
           <div
             className={usePrefixedClassNames('dropdown-content')}
             onClick={handleMenuClick}
-            tabIndex={-1}
           >
             {children}
           </div>

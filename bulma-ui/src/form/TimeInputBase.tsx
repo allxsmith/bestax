@@ -34,6 +34,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
+import { useFieldLabelId } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -130,7 +131,7 @@ export interface TimeInputBaseProps
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
    * an empty field stays empty, and leaving afterwards commits only what was
-   * typed since.
+   * typed since. With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /** Close the popover after a time is selected (off by default). */
@@ -231,7 +232,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       name,
       form,
       required,
-      id,
+      id: idProp,
       onFocus,
       onClick,
       onKeyDown,
@@ -244,6 +245,12 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       haptics = false,
       ...rest
     } = props;
+    // Inside a labeled Field the input takes the id the label points at
+    // when the caller set none, as InputBase does, and the popover's ids
+    // follow it. Inline there is no input to name, so nothing takes the
+    // Field's id or builds on it.
+    const fieldLabelId = useFieldLabelId();
+    const id = idProp ?? (inline ? undefined : fieldLabelId);
     // The launcher gives way to the loading spinner of a Control this sits in.
     const controlLoading = useControlLoading();
     const triggerIcon = triggerIconProp ?? !controlLoading;
@@ -362,10 +369,17 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
       [isControlled, onChange]
     );
 
+    // An empty field starts from today, at the whole minute or second the
+    // wheels show.
     const handleSpinnerChange = useCallback(
       (parts: { hours: number; minutes: number; seconds?: number }) => {
-        const base = value ?? new Date();
-        const next = setTimeOfDay(base, parts);
+        const next = value
+          ? setTimeOfDay(value, parts)
+          : setTimeOfDay(new Date(), {
+              ...parts,
+              seconds: parts.seconds ?? 0,
+              milliseconds: 0,
+            });
         if (!isWithin(next, lowerBound, max)) return;
         commitValue(next);
       },
@@ -491,7 +505,10 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
           color={color}
           size={size}
           disabled={disabled}
-          id={popoverId}
+          // The popover panel takes `popoverId`, so the wheels inside it take
+          // one of their own. Inline there is no panel, and the wheels keep
+          // the id they released with.
+          id={inline ? popoverId : `${popoverId}-time`}
           labels={labels}
           itemHeight={wheelItemHeight}
           audioTick={effectiveAudioTick}

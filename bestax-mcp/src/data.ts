@@ -15,7 +15,7 @@ import { fileURLToPath } from 'node:url';
 import type { BulmaClassTable } from './bulma-classes.js';
 
 /** Bumped by the generator when the shape changes incompatibly. */
-export const SUPPORTED_SCHEMA_VERSION = 1;
+export const SUPPORTED_SCHEMA_VERSION = 2;
 
 export interface PropRow {
   name: string;
@@ -85,8 +85,13 @@ export interface ComponentRecord {
   cssVars: CssVar[];
   sourceFile?: string;
   rootClass?: string | null;
-  /** Helper pages ship as prose — they have no props interface. */
+  /**
+   * The whole page, for a page written as prose (`helpers/`). A hook's page is
+   * all it has; a component documented there (Theme) has its props table too.
+   */
   doc?: string;
+  /** A hook's `## API` signature block, its answer to a props table. */
+  api?: string | null;
 }
 
 export interface CatalogEntry {
@@ -107,7 +112,12 @@ export interface Catalog {
   docsBase: string;
   categories: { id: string; label: string; components: string[] }[];
   components: CatalogEntry[];
-  cssVarIndex: Record<string, string>;
+  /**
+   * Every component that declares a variable. The one the variable is named after
+   * comes first when there is one (`--bulma-dateinput-*` is DateInput's, though
+   * DateTimeInput declares it too), and the rest follow in code-point order.
+   */
+  cssVarIndex: Record<string, string[]>;
 }
 
 export interface SkillFile {
@@ -160,6 +170,19 @@ export function loadCatalog(): Promise<Catalog> {
 const componentCache = new Map<string, Promise<ComponentRecord>>();
 
 /**
+ * A name as a model writes it, without the JSX around it: `<Button>`,
+ * `<Button />` and ` Button ` are all `Button`. Trimmed again after the tag is
+ * stripped, since the self-closing form leaves the space before `/>` behind,
+ * and that space made `<Button />` an unknown component.
+ */
+function cleanName(input: string): string {
+  return input
+    .trim()
+    .replace(/^<|\/?>$/g, '')
+    .trim();
+}
+
+/**
  * Resolve a user-supplied name to a real component.
  *
  * Tolerant on purpose — a model asks for `navbar`, `<Button>` or
@@ -168,13 +191,34 @@ const componentCache = new Map<string, Promise<ComponentRecord>>();
  */
 export async function resolveName(input: string): Promise<string | null> {
   const catalog = await loadCatalog();
-  const cleaned = input.trim().replace(/^<|\/?>$/g, '');
-  const root = cleaned.split('.')[0];
+  const root = cleanName(input).split('.')[0];
   const exact = catalog.components.find(c => c.name === root);
   if (exact) return exact.name;
   const lower = root.toLowerCase();
   const ci = catalog.components.find(c => c.name.toLowerCase() === lower);
   return ci ? ci.name : null;
+}
+
+/**
+ * The part a dot-path names (`Navbar.Brand`), or null for a plain name. Cleaned
+ * the way `resolveName` cleans, so `<Navbar.Brand>` names it too.
+ */
+export function dotPath(input: string): string | null {
+  const cleaned = cleanName(input);
+  return cleaned.includes('.') ? cleaned : null;
+}
+
+/**
+ * This server's own version, from the manifest that ships beside `dist/`. It is
+ * what `serverInfo.version` reports: the version of the implementation, as the
+ * protocol defines it, while the library version the index documents is in the
+ * instructions and in every drift warning.
+ */
+export async function loadServerVersion(): Promise<string> {
+  const pkg = await readJson<{ version: string }>(
+    join(HERE, '..', 'package.json')
+  );
+  return pkg.version;
 }
 
 export function loadComponent(name: string): Promise<ComponentRecord> {

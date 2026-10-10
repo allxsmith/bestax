@@ -29,9 +29,6 @@ npm create bestax@latest my-app
 
 # Using npx
 npx create-bestax@latest my-app
-
-# Alternative naming
-npm create bestax-bulma@latest my-app
 ```
 
 ### Interactive Mode
@@ -44,9 +41,10 @@ npm create bestax@latest
 
 You'll be asked to:
 
-1. Enter a project name
+1. Enter a project name (and, if that directory already holds files, confirm removing them;
+   nothing is removed until you have answered the last question)
 2. Select a framework (Vite or Vite + TypeScript)
-3. Choose a Bulma CSS flavor (Complete or Minimal)
+3. Choose a Bulma CSS flavor (the `--bulma` options below)
 4. Select an icon library (Font Awesome, Material Icons, etc.)
 5. Choose whether to install the bestax AI skills into `.claude/skills/`
 
@@ -55,12 +53,17 @@ Every prompt has a flag equivalent, so the whole flow is scriptable and CI-frien
 ### Command Line Options
 
 ```bash
-npm create bestax@latest [project-directory] [options]
+npm create bestax@latest [project-directory] -- [options]
 ```
+
+Put the options after `--`. npm needs it to pass them on at all, and so does bun, whose
+`bun create` rejects short flags such as `-t` and `-y` itself. pnpm and Yarn 1 accept the options
+with or without it.
 
 **Arguments:**
 
-- `[project-directory]` - Optional project directory name
+- `[project-directory]` - Optional project directory name. It also becomes the `package.json`
+  name, lower-cased the way `npm init` does and without a leading `_`, since npm rejects both.
 
 **Options:**
 
@@ -91,14 +94,24 @@ npm create bestax@latest [project-directory] [options]
   - Icon library: `none`
   - AI skills: installed (pass `--no-skills` to opt out)
 
+  `-y` never deletes files. If the target directory is not empty, the run stops, lists what is
+  there, and changes nothing; add `--overwrite` to empty it first. Earlier versions emptied the
+  directory under `-y` alone, so a script that relied on that now needs `--overwrite`.
+
+- `--overwrite` - Remove existing files if the target directory is not empty, without asking.
+  Every other flag is checked first, so a typo stops the run before anything is deleted.
+
 **Example:**
 
 ```bash
 # Create a TypeScript project with Font Awesome icons
-npm create bestax@latest my-app -t vite-ts -i fontawesome -b complete
+npm create bestax@latest my-app -- -t vite-ts -i fontawesome -b complete
 
 # Use all defaults (skip prompts)
-npm create bestax@latest my-app -y
+npm create bestax@latest my-app -- -y
+
+# The same with bun
+bun create bestax@latest my-app -- -y
 ```
 
 ## Templates

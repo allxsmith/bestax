@@ -69,6 +69,11 @@
  *   turbo-tasks          every task the root `all` chain runs through turbo is
  *                        implemented by at least one package, so a renamed
  *                        script cannot leave the gate green and empty (#663)
+ *   peer-ranges          every copy of a bestax-bulma peer that bulma-ui or
+ *                        the docs site installs sits in the newest arm of
+ *                        that peer range, so a release Dependabot brings in
+ *                        fails here instead of reaching users as ERESOLVE
+ *                        (#997)
  *   fragile-prose        no hand-maintained counts or line references in
  *                        workflow comments, CLAUDE.md files, or guides, and no
  *                        run ids in a guide (a workflow comment may cite the
@@ -78,6 +83,7 @@
 import { readFile, readdir, writeFile, access } from 'node:fs/promises';
 import { join, relative, dirname, isAbsolute, extname, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
 
 // The registration parser lives in lib/ so the API-docs generator shares it —
 // it additionally exposes values and selector nesting, which the CSS variable
@@ -127,7 +133,10 @@ import {
   findExpired,
 } from './lib/bypass-annotations.mjs';
 import { scanFragileProse, describeHit } from './lib/fragile-prose.mjs';
-import { versionRegressionProblems } from './lib/version-regression.mjs';
+import {
+  compareVersions,
+  versionRegressionProblems,
+} from './lib/version-regression.mjs';
 import { execFileSync } from 'node:child_process';
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -575,6 +584,86 @@ export function orphanPartialViolations(rel, keys, claimed, documentedKeys) {
   ];
 }
 
+/**
+ * Rule 4 of the partial walk: a variable in a partial's own namespace (its
+ * file name, `_collapse.scss` owning `collapse-*`) that it consumes through
+ * `cv.getVar` must be registered there, or nothing makes it themable. A key
+ * Bulma registers itself is themable already: a partial that extends a stock
+ * component shares that component's namespace without owning its variables,
+ * as `_file.scss` reads Bulma's `file-radius`.
+ *
+ * Pure and fixture-driven, like orphanPartialViolations, so both halves of
+ * the rule are held by a test and not only by today's partials.
+ *
+ * @param rel         repo-relative partial path, for each violation's location
+ * @param partialName the partial's name, which is its namespace
+ * @param lines       the partial's source lines
+ * @param registered  Set of keys the partial registers
+ * @param bulmaKeys   Set of keys Bulma's own partials register
+ */
+export function unregisteredVarViolations(
+  rel,
+  partialName,
+  lines,
+  registered,
+  bulmaKeys
+) {
+  const violations = [];
+  lines.forEach((line, i) => {
+    const code = line.replace(/\/\/.*$/, '');
+    for (const m of code.matchAll(/cv\.getVar\(\s*['"]([a-z0-9-]+)['"]/g)) {
+      const key = m[1];
+      if (
+        key.startsWith(`${partialName}-`) &&
+        !registered.has(key) &&
+        !bulmaKeys.has(key)
+      ) {
+        violations.push(
+          `${rel}:${i + 1} consumes cv.getVar('${key}') but never registers ` +
+            `it, and Bulma does not either. Add it to the ` +
+            `cv.register-vars((...)) block, since every themable value (colors, ` +
+            `radii, durations, offsets) must be registered.`
+        );
+      }
+    }
+  });
+  return violations;
+}
+
+/**
+ * Runs an async build once and hands every caller its result. The promise is
+ * what gets cached, so a caller that arrives mid-build waits for the finished
+ * value instead of seeing a half-filled one, and a build that throws is
+ * forgotten, so the next call builds again rather than replaying the failure.
+ */
+export function onceAsync(build) {
+  let pending;
+  return () =>
+    (pending ??= build().catch(err => {
+      pending = undefined;
+      throw err;
+    }));
+}
+
+/**
+ * Every variable key Bulma's own partials register, read once. Rule 4 exempts
+ * whatever this returns, so a wider read quietly exempts more; the scss
+ * conformance test holds it to the real Bulma tree.
+ */
+export const bulmaKeys = onceAsync(async () => {
+  const sassDir = join(
+    dirname(createRequire(import.meta.url).resolve('bulma/package.json')),
+    'sass'
+  );
+  const keys = new Set();
+  for (const file of await readdir(sassDir, { recursive: true })) {
+    if (!file.endsWith('.scss')) continue;
+    const src = await readFile(join(sassDir, file), 'utf8');
+    for (const { key } of registerVarsEntries(src)) keys.add(key);
+  }
+  return keys;
+});
+
 async function checkScssConformance() {
   const violations = [];
   const scssRoot = join(REPO, 'bulma-ui', 'src', 'scss');
@@ -708,19 +797,19 @@ async function checkScssConformance() {
               `registered via register-vars.`
           );
         }
-
-        // 4. Component-namespaced vars consumed via cv.getVar must be
-        //    registered (register-vars) in this partial.
-        for (const m of code.matchAll(/cv\.getVar\(\s*['"]([a-z0-9-]+)['"]/g)) {
-          if (m[1].startsWith(`${partialName}-`) && !registered.has(m[1])) {
-            violations.push(
-              `${loc} consumes cv.getVar('${m[1]}') but never registers it. ` +
-                `Add it to the cv.register-vars((...)) block — every themable ` +
-                `value (colors, radii, durations, offsets) must be registered.`
-            );
-          }
-        }
       });
+
+      // 4. Component-namespaced vars consumed via cv.getVar must be
+      //    registered (register-vars) in this partial, unless Bulma does.
+      violations.push(
+        ...unregisteredVarViolations(
+          rel,
+          partialName,
+          lines,
+          registered,
+          await bulmaKeys()
+        )
+      );
     }
   }
   // The lifecycle sweep the exemption docstring promises: an ORPHAN_EXEMPT
@@ -4139,6 +4228,171 @@ async function checkTurboTasks() {
   return violations;
 }
 
+// ---------------------------------------------------------------------------
+// Peer ranges: bestax-bulma's published peer ranges, held to the copies of
+// those packages the repo itself runs the library against.
+// ---------------------------------------------------------------------------
+
+/**
+ * Where the repo installs its own copy of a bestax-bulma peer: bulma-ui's
+ * devDependencies (its tests and Storybook) and the docs site (the live
+ * examples). Declared rather than read off the workspace, because other
+ * packages name the same packages for other reasons. create-bestax depends on
+ * react with the library's whole peer range on purpose (#950), which says
+ * nothing about which arm anything here runs.
+ */
+export const PEER_COPIES = [
+  { file: 'bulma-ui/package.json', sections: ['devDependencies'] },
+  { file: 'docs/package.json', sections: ['dependencies', 'devDependencies'] },
+];
+
+const PEER_SOURCE = 'bulma-ui/package.json';
+
+/** One peer-range arm: a caret on a plain release version. */
+const CARET_ARM = /^\^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+
+/** One copy: a caret or an exact plain release version. */
+const CARET_OR_EXACT = /^\^?(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+
+/**
+ * The arm a version belongs to: a caret holds every part up to the first one
+ * that is not zero, so `^7.4.47` keeps the major and `^0.47.6` the minor, and
+ * two versions sit in the same arm exactly when this gives both the same
+ * answer. Spelled as the arm a peer range would add for the version.
+ */
+const caretArmOf = ([major, minor, patch]) =>
+  major !== '0'
+    ? `^${major}.0.0`
+    : minor !== '0'
+      ? `^0.${minor}.0`
+      : `^0.0.${patch}`;
+
+/**
+ * Hold bestax-bulma's peer ranges to the copies the repo runs it against.
+ *
+ * Each peer range is a list of caret arms naming the majors, or for a 0.x
+ * package the minors, that somebody checked the library against, so the
+ * newest arm is the newest release the library claims to work with.
+ * Dependabot's bumps move the repo's own copy when the registry ships
+ * something newer and leave the peer range where it was, so the two drift, and
+ * each direction is a defect:
+ *
+ * - a copy past the newest arm is a release the published range refuses, so
+ *   a project already on it gets ERESOLVE the moment it adds the library
+ *   (#997);
+ * - a copy behind the newest arm leaves that arm, the one create-bestax pins
+ *   an icon package to (#986), run by nothing here.
+ *
+ * Comparing with the copies rather than the registry keeps the check offline,
+ * and makes the Dependabot PR that brings a new release the one that fails.
+ * It reads caret arms, and caret or exact copies, which is every shape these
+ * manifests use. Anything else is reported rather than skipped, as is a peer
+ * no copy installs, since a skipped one would pass without a look.
+ *
+ * `peers` is bulma-ui's `peerDependencies`. `copies` holds one `{ file, deps }`
+ * per manifest in PEER_COPIES, with `deps` its sections merged.
+ */
+export function peerRangeViolations(peers, copies) {
+  const violations = [];
+  for (const name of Object.keys(peers ?? {}).sort()) {
+    const range = peers[name];
+    const arms = String(range)
+      .split('||')
+      .map(arm => arm.trim());
+    const unreadable = arms.find(arm => !CARET_ARM.test(arm));
+    if (unreadable !== undefined) {
+      violations.push(
+        `${PEER_SOURCE}: the ${name} peer range "${range}" has an arm this ` +
+          `check cannot read ("${unreadable}"). Spell each arm as a caret, ` +
+          `^X.Y.Z, one per checked major (one per minor for a 0.x package), ` +
+          `or teach peerRangeViolations in scripts/check-conformance.mjs the ` +
+          `new shape.`
+      );
+      continue;
+    }
+    const newest = arms
+      .map(arm => CARET_ARM.exec(arm).slice(1))
+      .sort((a, b) => compareVersions(a.join('.'), b.join('.')))
+      .pop();
+    const newestArm = `^${newest.join('.')}`;
+
+    const held = copies.filter(({ deps }) => deps?.[name] !== undefined);
+    if (!held.length) {
+      violations.push(
+        `No manifest in PEER_COPIES installs ${name}, so nothing here runs ` +
+          `bestax-bulma against any arm of its peer range "${range}". Add it ` +
+          `to bulma-ui's devDependencies, so its tests and Storybook do.`
+      );
+      continue;
+    }
+    for (const { file, deps } of held) {
+      const spec = String(deps[name]);
+      const match = CARET_OR_EXACT.exec(spec.trim());
+      if (!match) {
+        violations.push(
+          `${file}: ${name} is "${spec}", which this check cannot hold to ` +
+            `bestax-bulma's peer range. Give it a caret or an exact version.`
+        );
+        continue;
+      }
+      const floor = match.slice(1);
+      const order = compareVersions(floor.join('.'), newest.join('.'));
+      if (order >= 0 && caretArmOf(floor) === caretArmOf(newest)) continue;
+      violations.push(
+        order > 0
+          ? `${file} installs ${name} ${spec}, which bestax-bulma's peer ` +
+              `range "${range}" does not admit, so a project already on that ` +
+              `release gets ERESOLVE when it adds the library (#997). Check ` +
+              `the release against what the library uses from ${name}, then ` +
+              `add "${caretArmOf(floor)}" to the range in ${PEER_SOURCE} in a ` +
+              `fix(bulma-ui) commit, and move create-bestax's pin with it if ` +
+              `the starter installs ${name}.`
+          : `${file} installs ${name} ${spec}, behind ${newestArm}, the ` +
+              `newest arm of bestax-bulma's peer range "${range}", so nothing ` +
+              `here runs the newest release the library claims. Move the ` +
+              `copy up into ${newestArm}.`
+      );
+    }
+  }
+  return violations;
+}
+
+export async function checkPeerRanges(root = REPO) {
+  const violations = [];
+  const read = async file => {
+    try {
+      const pkg = JSON.parse(await readFile(join(root, file), 'utf8'));
+      if (pkg && typeof pkg === 'object' && !Array.isArray(pkg)) return pkg;
+    } catch {
+      // Reported below, the same as a manifest that parses to a non-object.
+    }
+    violations.push(
+      `${file} could not be read as a package manifest, so bestax-bulma's ` +
+        `peer ranges cannot be held to it.`
+    );
+    return null;
+  };
+
+  const lib = await read(PEER_SOURCE);
+  if (!lib) return violations;
+  if (!lib.peerDependencies || typeof lib.peerDependencies !== 'object') {
+    return [
+      `${PEER_SOURCE} declares no peerDependencies, so the peer-ranges ` +
+        `check has nothing to hold. Drop the check if that is deliberate.`,
+    ];
+  }
+  const copies = [];
+  for (const { file, sections } of PEER_COPIES) {
+    const pkg = file === PEER_SOURCE ? lib : await read(file);
+    if (!pkg) continue;
+    copies.push({
+      file,
+      deps: Object.assign({}, ...sections.map(section => pkg[section])),
+    });
+  }
+  return [...violations, ...peerRangeViolations(lib.peerDependencies, copies)];
+}
+
 /**
  * Hold every publishable manifest to the highest release tag REACHABLE FROM
  * HEAD, and its changelog to a section for each of those tags.
@@ -4604,6 +4858,7 @@ const CHECKS = {
   'docs-api-urls': checkDocsApiUrls,
   'fragile-prose': checkFragileProse,
   'turbo-tasks': checkTurboTasks,
+  'peer-ranges': checkPeerRanges,
   'version-regression': null, // handled below (takes the flag)
   'inline-style': null, // handled below (takes the flag)
 };

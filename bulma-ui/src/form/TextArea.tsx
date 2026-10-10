@@ -118,7 +118,7 @@ export const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    let content = <TextAreaBase ref={ref} id={controlId} {...textAreaProps} />;
+    let content = <TextAreaBase ref={ref} {...textAreaProps} id={controlId} />;
 
     if (ownControl) {
       content = (

@@ -1,4 +1,4 @@
-import React, { forwardRef } from 'react';
+import React, { forwardRef, useEffect, useState } from 'react';
 import {
   classNames,
   usePrefixedClassNames,
@@ -32,7 +32,7 @@ export interface FileProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -62,27 +62,41 @@ export interface FileProps
   isRight?: boolean;
   /** Center the file input within its container. */
   isCentered?: boolean;
-  /** Show a file name indicator. */
+  /**
+   * Show a file name area. Without `fileName` it shows what the user picked: the file's name, or
+   * a count when `multiple` lets them pick several (see `pickedFilesLabel`). Before a pick there is
+   * no name area, and the root takes Bulma's `is-empty`. A reset of the input's form clears the
+   * name, but clearing the input from code fires no change event and leaves it showing, so pass
+   * `fileName` to control the text then.
+   */
   hasName?: boolean;
   /** Text on the file CTA button (defaults to "Choose a file…"). */
   buttonLabel?: React.ReactNode;
   /**
    * Left icon element. It renders inside the `<label>` that names the file input, beside
-   * `buttonLabel`, so pass an `Icon` with `aria-hidden` (`<Icon name="upload" aria-hidden="true" />`);
-   * otherwise its default `aria-label="icon"` becomes part of the input's accessible name.
+   * `buttonLabel`, so leave an `Icon` here unnamed (`<Icon name="upload" />`): it is then
+   * `aria-hidden`, while an `ariaLabel` would join the input's accessible name.
    */
   iconLeft?: React.ReactNode;
   /**
    * Right icon element. Sits inside the same `<label>` as `iconLeft`, so the same applies:
-   * give an `Icon` here `aria-hidden`, or "icon" joins the input's accessible name.
+   * an `Icon` here with an `ariaLabel` joins the input's accessible name.
    */
   iconRight?: React.ReactNode;
   /** Additional CSS classes to apply. */
   className?: string;
   /** Additional CSS classes for the `<input>`. */
   inputClassName?: string;
-  /** File name to display. */
+  /**
+   * Text for the file name area (with `hasName`), for a file chosen earlier or your own wording.
+   * Setting it takes over from the picked file's name; an empty string shows no name area.
+   */
   fileName?: string;
+  /**
+   * Builds the text `hasName` shows when several files are picked, from their count, for
+   * localization. Default: `` `${count} files` ``. A single pick shows its file's name.
+   */
+  pickedFilesLabel?: (count: number) => string;
 }
 
 /**
@@ -118,10 +132,51 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       className,
       inputClassName,
       fileName,
+      pickedFilesLabel,
+      onChange,
       ...props
     },
     ref
   ) => {
+    // What the user last picked, and the form a reset of which clears it.
+    const [picked, setPicked] = useState<{
+      count: number;
+      firstName: string;
+      form: HTMLFormElement | null;
+    }>();
+    const pickedForm = picked?.form;
+    useEffect(() => {
+      if (!pickedForm) return;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      // The reset event fires before the form resets, and a listener after this one can still
+      // cancel it, so the name is cleared a task later, and only if the reset went ahead.
+      const onReset = (event: Event) => {
+        timer = setTimeout(() => {
+          if (!event.defaultPrevented) setPicked(undefined);
+        });
+      };
+      pickedForm.addEventListener('reset', onReset);
+      return () => {
+        pickedForm.removeEventListener('reset', onReset);
+        clearTimeout(timer);
+      };
+    }, [pickedForm]);
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const { files, form } = event.target;
+      setPicked(
+        files?.length
+          ? { count: files.length, firstName: files[0].name, form }
+          : undefined
+      );
+      onChange?.(event);
+    };
+    const pickedText =
+      picked &&
+      (picked.count === 1
+        ? picked.firstName
+        : (pickedFilesLabel?.(picked.count) ?? `${picked.count} files`));
+    const shownName = fileName ?? pickedText;
+
     const insideField = useInsideField();
     const insideControl = useInsideControl();
     const ownField = rendersOwnField('File', {
@@ -139,9 +194,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       rendersLabel: ownField,
     });
     const { classPrefix } = useConfig();
+    // The input takes `controlId`, so `id` stays out of the spread, where an
+    // undefined `id` key would wipe the id the label points at.
+    const { id: _id, ...inputProps } = props;
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
-      ...props,
+      ...inputProps,
     });
 
     // Mutually exclusive alignment
@@ -161,6 +219,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       'is-boxed': isBoxed,
       'is-fullwidth': isFullwidth ?? isFullWidth,
       'has-name': hasName,
+      'is-empty': hasName && !shownName,
     });
     const fileClass = classNames(
       mainClass,
@@ -185,6 +244,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
             )}
             type="file"
             id={controlId}
+            onChange={handleChange}
             {...rest}
           />
           <span className={usePrefixedClassNames('file-cta')}>
@@ -202,9 +262,9 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
               </span>
             )}
           </span>
-          {hasName && fileName && (
+          {hasName && shownName && (
             <span className={prefixedClassNames(classPrefix, 'file-name')}>
-              {fileName}
+              {shownName}
             </span>
           )}
         </label>

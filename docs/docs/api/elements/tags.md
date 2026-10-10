@@ -107,7 +107,7 @@ Combine props such as `size`, `isRounded`, and `isDelete` to create flexible, in
 
 ```tsx live
 function example() {
-  const [show, setShow] = useState();
+  const [show, setShow] = useState(true);
 
   return (
     <Tags>

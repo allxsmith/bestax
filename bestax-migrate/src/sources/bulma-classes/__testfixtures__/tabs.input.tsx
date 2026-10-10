@@ -15,7 +15,7 @@ export function Sections() {
         <ul>
           <li>
             <a>
-              <span className="icon is-small" aria-label="Pictures">
+              <span className="icon is-small" aria-hidden="true">
                 <i className="fas fa-image" aria-hidden="true"></i>
               </span>
               <span>Pictures</span>
@@ -23,7 +23,7 @@ export function Sections() {
           </li>
         </ul>
       </div>
-      <span className="icon has-text-info" aria-label="Info">
+      <span className="icon has-text-info" role="img" aria-label="Info">
         <i className="fas fa-info-circle"></i>
       </span>
       <span className="icon">

@@ -1,0 +1,46 @@
+// File Component Styles
+// Bulma already styles the file input; this adds its keyboard focus ring
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Keyboard focus ring for File. The focusable element is the <input>, which
+// Bulma lays transparent over the whole widget, so the ring goes on the CTA
+// you see instead. The .file-label around them hides its overflow, which
+// clips a ring drawn outside the CTA, so the ring is drawn inside it, with
+// Bulma's focus colour, style and width. :focus-visible keeps it to the
+// keyboard: a click shows none.
+.#{iv.$class-prefix}file-input:focus-visible + .#{iv.$class-prefix}file-cta {
+  outline-color: hsl(cv.getVar("focus-h"), cv.getVar("focus-s"), cv.getVar("focus-l"));
+  outline-style: cv.getVar("focus-style");
+  outline-width: cv.getVar("focus-width");
+  outline-offset: calc(-1 * #{cv.getVar("focus-width")});
+}
+
+// A coloured File fills its CTA with that colour, which can be the focus
+// colour itself (it is the link colour by default), so its ring takes the
+// CTA's text colour (currentColor, which Bulma sets to read on the fill) and
+// sits one ring width further in, keeping a band of the fill outside it to
+// set it off from the page around the CTA. The colours are the ones File's
+// `color` prop takes, and the placeholder joins them into one rule.
+%file-focus-ring-on-fill {
+  outline-color: currentColor;
+  outline-offset: calc(-2 * #{cv.getVar("focus-width")});
+}
+
+@each $name in "primary", "link", "info", "success", "warning", "danger", "black", "dark", "light", "white" {
+  .#{iv.$class-prefix}file.#{iv.$class-prefix}is-#{$name}
+    .#{iv.$class-prefix}file-input:focus-visible
+    + .#{iv.$class-prefix}file-cta {
+    @extend %file-focus-ring-on-fill;
+  }
+}
+
+// A File with hasName and no name to show takes Bulma's is-empty, which gives
+// the CTA back the corners has-name squares to meet the name. Bulma's is-boxed
+// rules come after it and square the bottom ones again, so a boxed File gets
+// them back here, with a selector that outranks them in either order.
+.#{iv.$class-prefix}file.#{iv.$class-prefix}has-name.#{iv.$class-prefix}is-boxed.#{iv.$class-prefix}is-empty
+  .#{iv.$class-prefix}file-cta {
+  border-radius: cv.getVar("file-radius");
+}

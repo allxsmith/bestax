@@ -4,9 +4,16 @@ CLI that scaffolds a Vite app wired for `@allxsmith/bestax-bulma`. Agents and CI
 first-class consumers: **every prompt must have a flag equivalent**, and the non-interactive
 path (`-y` + flags, no TTY) must never hang or regress (#192).
 
+The one question `-y` does not answer is whether to delete a non-empty target directory: only
+`--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
+Every flag is validated before anything on disk changes, and the directory is emptied only after
+the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
+
 ## Architecture
 
-- `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program
+- `src/index.ts` — bin entry (Node version check); `src/cli.ts` — the commander program.
+  Every run goes through `runCLI`, which drops the `--` that pnpm and bun forward verbatim, so
+  `<pm> create bestax my-app -- -t vite-ts` works under every package manager (#950)
 - `src/prompts.ts` — interactive questions (each maps to a flag)
 - `src/project-creator.ts` — writes the project: copies a template, injects options,
   installs skills, writes `CLAUDE.md`
@@ -24,8 +31,14 @@ nothing in `src/` imports the library, the templates pin the published package t
 `--ignore-workspace`. It is spelled `workspace:^`, which `pnpm publish` rewrites to the release
 current at pack time (bulma-ui releases first in the same job), and the sibling rule in
 `check:conformance` allows it only because `SIBLING_RUNTIME_DEPS` declares this exact pair.
-What a consumer sees: `npm create bestax` installs the library, `bulma`, and — npm's automatic
-peer install — `react`/`react-dom` alongside the CLI.
+What a consumer sees: `npm create bestax` installs the library, `bulma`, and `react`/`react-dom`
+alongside the CLI.
+
+`react` and `react-dom` are declared dependencies too, with the library's peer ranges, though
+nothing imports them either. npm installs a dependency's peers by itself, but Yarn 1 does not,
+and without them `yarn create bestax` warned that the library's peers were unmet (#950). npm
+installs the same packages either way. `src/__tests__/package-manifest.test.ts` holds this
+manifest to every required peer of the installed library, so a new or changed peer fails there.
 
 ## Sync rules (this package re-ships other parts of the repo)
 
@@ -62,6 +75,15 @@ peer install — `react`/`react-dom` alongside the CLI.
   silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
+- The scaffolder edits the starter `App` with string patterns, so `src/__tests__/templates.test.ts`
+  runs every edit against the real templates. Under a `noHelpers` flavor each helper prop in
+  the starter becomes a named class from `NO_HELPERS_STARTER_CLASSES` in `src/constants.ts`;
+  a helper prop added to the starter needs a row there, and that test fails until it has one.
+  The icon step runs after that swap and writes into the same `App`, so what it inserts can
+  use no helper prop at all; the test scans the `App` both steps leave behind.
+- An icon library's `packageVersion` follows the newest arm of bestax-bulma's peer range for
+  it, not the newest release: on a 0.x package the caret holds the minor, so a pin past the
+  peer range makes npm refuse the scaffold's install. The same test holds the two together.
 
 ## Testing
 

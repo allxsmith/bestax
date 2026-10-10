@@ -6,8 +6,7 @@ import {
   DEFAULT_PACKAGE_MANAGER,
   TAB_GROUP_ID,
   renderCommand,
-  unrenderPnpm,
-  lintCommand,
+  commandFromFence,
 } from './translate.mjs';
 import styles from './styles.module.css';
 
@@ -41,7 +40,7 @@ import styles from './styles.module.css';
  *
  * That is also why the pnpm tab is written out rather than derived: what an agent
  * reads in llms.txt is literally the text authored here, so the default tab a
- * reader sees and the artifact an agent copies cannot drift. The assertion below
+ * reader sees and the artifact an agent copies cannot drift. `commandFromFence`
  * enforces the other half — that the derived pnpm rendering matches the fence.
  *
  * The shared `TAB_GROUP_ID` is the point of using @theme/Tabs rather than
@@ -90,7 +89,7 @@ export default function PackageManagerTabs({ children }) {
 
   // A fence delimiter reaching us as *text* means MDX didn't parse the block —
   // almost always the missing blank lines around it. Worth its own check because
-  // the round trip below cannot catch it: ```bash is not a known verb, so it
+  // the round trip in `commandFromFence` cannot catch it: ```bash is not a known verb, so it
   // passes through untouched on every tab and the equality still holds. The tabs
   // would then render the fence markers inside the code block, silently.
   if (/^\s*(?:```|~~~)/m.test(authored)) {
@@ -102,27 +101,10 @@ export default function PackageManagerTabs({ children }) {
   }
 
   // Recover the authoring vocabulary translate.mjs expects (`add foo`) from the
-  // rendered pnpm form (`pnpm add foo`).
-  const command = unrenderPnpm(authored);
-
-  // The round trip has to be exact, or the other three tabs are derived from
-  // something the reader never saw. This fires on a fence that isn't canonical
-  // pnpm — `npm install foo`, odd spacing, a stray blank line — naming the page.
-  const roundTrip = renderCommand(command, DEFAULT_PACKAGE_MANAGER);
-  if (roundTrip !== authored) {
-    throw new Error(
-      `PackageManagerTabs: the fence is not a canonical pnpm command.\n` +
-        `  authored:   ${JSON.stringify(authored)}\n` +
-        `  round trip: ${JSON.stringify(roundTrip)}\n` +
-        'Write the pnpm form exactly, one command per line.'
-    );
-  }
-
-  if (process.env.NODE_ENV === 'development') {
-    for (const warning of lintCommand(command)) {
-      console.warn(`PackageManagerTabs: ${warning}`);
-    }
-  }
+  // rendered pnpm form (`pnpm add foo`). It throws on a fence that isn't
+  // canonical pnpm or that names a package manager itself, either of which
+  // would leave the other tabs derived from something the reader never saw.
+  const command = commandFromFence(authored);
 
   return (
     <div className={styles.tabs}>

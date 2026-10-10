@@ -7,15 +7,15 @@
   "examples": [
     {
       "title": "Basic Taginput",
-      "code": "function example() {\n  const [tags, setTags] = useState(['React', 'TypeScript']);\n\n  return (\n    <Block>\n      <Taginput value={tags} onChange={setTags} placeholder=\"Add a tag...\" />\n      <Paragraph mt=\"2\" textColor=\"grey\">\n        Tags: {tags.join(', ')}\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['React', 'TypeScript']);\n\n  return (\n    <Block>\n      <Taginput value={tags} onChange={setTags} placeholder=\"Add a tag...\" />\n      <Paragraph mt=\"2\" textColor=\"grey\">\n        Tags: {tags.join(', ')}\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "With Autocomplete",
-      "code": "function example() {\n  const [tags, setTags] = useState(['React']);\n  const suggestions = [\n    'React',\n    'Vue',\n    'Angular',\n    'Svelte',\n    'TypeScript',\n    'JavaScript',\n    'Python',\n    'Go',\n  ];\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      data={suggestions}\n      placeholder=\"Add frameworks...\"\n      openOnFocus\n    />\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['React']);\n  const suggestions = [\n    'React',\n    'Vue',\n    'Angular',\n    'Svelte',\n    'TypeScript',\n    'JavaScript',\n    'Python',\n    'Go',\n  ];\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      data={suggestions}\n      placeholder=\"Add frameworks...\"\n      openOnFocus\n    />\n  );\n}"
     },
     {
       "title": "Restrict to Suggestions",
-      "code": "function example() {\n  const [tags, setTags] = useState([]);\n  const categories = [\n    'Bug',\n    'Feature',\n    'Documentation',\n    'Enhancement',\n    'Question',\n  ];\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        data={categories}\n        allowNew={false}\n        placeholder=\"Select categories...\"\n        openOnFocus\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Only predefined categories can be selected\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>([]);\n  const categories = [\n    'Bug',\n    'Feature',\n    'Documentation',\n    'Enhancement',\n    'Question',\n  ];\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        data={categories}\n        allowNew={false}\n        placeholder=\"Select categories...\"\n        openOnFocus\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Only predefined categories can be selected\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Tag Colors",
@@ -27,15 +27,15 @@
     },
     {
       "title": "Maximum Tags",
-      "code": "function example() {\n  const [tags, setTags] = useState(['One', 'Two']);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        maxTags={3}\n        tagColor=\"info\"\n        placeholder=\"Max 3 tags...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        {3 - tags.length} tags remaining\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['One', 'Two']);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        maxTags={3}\n        tagColor=\"info\"\n        placeholder=\"Max 3 tags...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        {3 - tags.length} tags remaining\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Allow Duplicates",
-      "code": "function example() {\n  const [tags, setTags] = useState(['Tag']);\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      allowDuplicates\n      tagColor=\"warning\"\n      placeholder=\"Duplicates allowed...\"\n    />\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>(['Tag']);\n\n  return (\n    <Taginput\n      value={tags}\n      onChange={setTags}\n      allowDuplicates\n      tagColor=\"warning\"\n      placeholder=\"Duplicates allowed...\"\n    />\n  );\n}"
     },
     {
       "title": "Custom Confirm Keys",
-      "code": "function example() {\n  const [tags, setTags] = useState([]);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        confirmKeys={['Enter', 'Tab', ' ']}\n        tagColor=\"success\"\n        placeholder=\"Press Enter, Tab, or Space...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Space also creates a new tag\n      </Paragraph>\n    </Block>\n  );\n}"
+      "code": "import type { TaginputTag } from '@allxsmith/bestax-bulma';\n\nfunction example() {\n  const [tags, setTags] = useState<TaginputTag[]>([]);\n\n  return (\n    <Block>\n      <Taginput\n        value={tags}\n        onChange={setTags}\n        confirmKeys={['Enter', 'Tab', ' ']}\n        tagColor=\"success\"\n        placeholder=\"Press Enter, Tab, or Space...\"\n      />\n      <Paragraph mt=\"2\" textColor=\"grey\" textSize=\"7\">\n        Space also creates a new tag\n      </Paragraph>\n    </Block>\n  );\n}"
     },
     {
       "title": "Read-only and Disabled",
@@ -51,14 +51,14 @@
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\">\n      <Field.Body>\n        <Field>\n          <Taginput\n            defaultValue={['React', 'TypeScript']}\n            placeholder=\"Add a tag...\"\n            tagColor=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\" labelProps={{ htmlFor: 'tags-field' }}>\n      <Field.Body>\n        <Field>\n          <Taginput\n            id=\"tags-field\"\n            defaultValue={['React', 'TypeScript']}\n            placeholder=\"Add a tag...\"\n            tagColor=\"primary\"\n          />\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     },
     {
       "title": "Context-Aware Rendering",
-      "code": "function example() {\n  return (\n    <Field horizontal label=\"Tags\">\n      <Field.Body>\n        <Field>\n          <Control>\n            <Taginput\n              icon=\"tags\"\n              defaultValue={['React', 'TypeScript']}\n              placeholder=\"Add a tag...\"\n              tagColor=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
+      "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Tags\"\n      labelProps={{ htmlFor: 'tags-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control>\n            <Taginput\n              id=\"tags-field-control\"\n              icon=\"tags\"\n              defaultValue={['React', 'TypeScript']}\n              placeholder=\"Add a tag...\"\n              tagColor=\"primary\"\n            />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label=\"Add tag\"`.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.\n- Tags are keyboard navigable\n- Delete buttons have proper `aria-label`\n- Autocomplete dropdown follows ARIA listbox pattern",
+  "accessibility": "- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label=\"Add tag\"`. Inside a labeled `Field`, that `Field`'s label names the input the same way and replaces the fallback.\n- A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.\n- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.\n- Tags are keyboard navigable\n- Delete buttons have proper `aria-label`\n- Autocomplete dropdown follows ARIA listbox pattern",
   "related": ["Autocomplete", "Input", "Tag"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-taginput",
   "summary": "The `Taginput` component provides a tag/chip input field for managing multiple tags.",
@@ -75,7 +75,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered) and dropped inside an outer `Field`.",
+          "description": "Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`); it then replaces the `aria-label=\"Add tag\"` fallback too.",
           "required": false,
           "inherited": false,
           "deprecated": false

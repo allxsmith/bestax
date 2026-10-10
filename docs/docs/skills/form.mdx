@@ -53,7 +53,7 @@ function example() {
       : undefined,
     country: !country ? 'Pick a country.' : undefined,
   };
-  const show = k => (submitted ? errors[k] : undefined);
+  const show = (k: keyof typeof errors) => (submitted ? errors[k] : undefined);
 
   return (
     <form
@@ -296,9 +296,9 @@ pickers — following the bestax form skill.
 
 ```tsx live
 function example() {
-  const [date, setDate] = useState(null);
-  const [time, setTime] = useState(null);
-  const [appt, setAppt] = useState(null);
+  const [date, setDate] = useState<Date | null>(null);
+  const [time, setTime] = useState<Date | null>(null);
+  const [appt, setAppt] = useState<Date | null>(null);
 
   return (
     <div style={{ maxWidth: '28rem' }}>

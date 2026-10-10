@@ -3,6 +3,15 @@ import { Field } from './Field';
 import { Control } from './Control';
 import { Input } from './Input';
 import { Select } from './Select';
+import { Numberinput } from './Numberinput';
+import { Slider } from './Slider';
+import { DateInput } from './DateInput';
+import { DateInputBase } from './DateInputBase';
+import { TimeInputBase } from './TimeInputBase';
+import { DateTimeInputBase } from './DateTimeInputBase';
+import { Radios } from './Radios';
+import { Radio } from './Radio';
+import { Rate } from './Rate';
 import { Button } from '../elements/Button';
 
 const meta: Meta<typeof Field> = {
@@ -92,6 +101,61 @@ export const WithHelpText: Story = {
       </Control>
       <p className="help">Must be 4–20 characters long</p>
     </Field>
+  ),
+};
+
+/**
+ * The label names the control the Field holds: a custom input through the id
+ * it adopts, a group through `aria-labelledby` on the label's own id.
+ */
+export const LabelsCustomControls: Story = {
+  render: () => (
+    <>
+      <Field label="Quantity">
+        <Numberinput bare={false} defaultValue={1} min={1} max={10} />
+      </Field>
+      <Field label="Volume">
+        <Slider defaultValue={50} />
+      </Field>
+      <Field label="Delivery date">
+        <DateInput />
+      </Field>
+      <Field label="Contact by">
+        <Radios name="contact" defaultValue="email">
+          <Radio value="email">Email</Radio>
+          <Radio value="phone">Phone</Radio>
+        </Radios>
+      </Field>
+      <Field label="Quality">
+        <Rate defaultValue={3} />
+      </Field>
+    </>
+  ),
+};
+
+/**
+ * Composed by hand, a picker base takes the id the label points at, as
+ * `InputBase` does, so the label names it with no wiring.
+ */
+export const LabelsComposedPickers: Story = {
+  render: () => (
+    <>
+      <Field label="Delivery date">
+        <Control iconLeftName="calendar">
+          <DateInputBase placeholder="YYYY-MM-DD" />
+        </Control>
+      </Field>
+      <Field label="Delivery time">
+        <Control iconLeftName="clock">
+          <TimeInputBase placeholder="HH:MM" />
+        </Control>
+      </Field>
+      <Field label="Appointment">
+        <Control iconLeftName="calendar-alt">
+          <DateTimeInputBase placeholder="YYYY-MM-DD HH:MM" />
+        </Control>
+      </Field>
+    </>
   ),
 };
 
@@ -412,10 +476,14 @@ export const AddonsRight: Story = {
 export const CompoundUsage: Story = {
   render: () => (
     <Field horizontal>
-      <Field.Label>Name</Field.Label>
+      <Field.Label size="normal">
+        <label className="label" htmlFor="compound-name">
+          Name
+        </label>
+      </Field.Label>
       <Field.Body>
         <Field.Control>
-          <Input placeholder="Jane Doe" />
+          <Input id="compound-name" placeholder="Jane Doe" />
         </Field.Control>
       </Field.Body>
     </Field>

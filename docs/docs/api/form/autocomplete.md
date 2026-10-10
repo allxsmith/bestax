@@ -34,11 +34,11 @@ import { Autocomplete } from '@allxsmith/bestax-bulma';
 
 ### Basic Autocomplete
 
-Simple autocomplete with string array.
+Simple autocomplete with string array. `onSelect` is typed for either kind of `data`, as `string | AutocompleteItem | null`, so narrow the item to the kind you passed before storing it.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
+  const [selected, setSelected] = useState<string | null>(null);
   const fruits = [
     'Apple',
     'Banana',
@@ -54,7 +54,7 @@ function example() {
       <Autocomplete
         data={fruits}
         placeholder="Search fruit..."
-        onSelect={setSelected}
+        onSelect={item => setSelected(typeof item === 'string' ? item : null)}
       />
       {selected && <Paragraph mt="2">Selected: {selected}</Paragraph>}
     </Block>
@@ -70,7 +70,6 @@ Dropdown opens immediately when input is focused.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const countries = [
     'United States',
     'United Kingdom',
@@ -85,7 +84,6 @@ function example() {
       data={countries}
       placeholder="Select a country..."
       openOnFocus
-      onSelect={setSelected}
     />
   );
 }
@@ -99,16 +97,10 @@ Autocomplete with clearable input. The clear button shows while the input holds 
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const options = ['Option 1', 'Option 2', 'Option 3', 'Option 4'];
 
   return (
-    <Autocomplete
-      data={options}
-      placeholder="Search options..."
-      clearable
-      onSelect={setSelected}
-    />
+    <Autocomplete data={options} placeholder="Search options..." clearable />
   );
 }
 ```
@@ -151,16 +143,16 @@ Autocomplete with different colors and sizes.
 
 ### With Object Data
 
-Autocomplete with object items.
+Autocomplete with object items. `onSelect` passes back the item you picked, so looking it up in your own array by its `value` gives it back with your fields typed.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const users = [
     { value: '1', label: 'John Doe', email: 'john@example.com' },
     { value: '2', label: 'Jane Smith', email: 'jane@example.com' },
     { value: '3', label: 'Bob Johnson', email: 'bob@example.com' },
   ];
+  const [selected, setSelected] = useState<(typeof users)[number] | null>(null);
 
   return (
     <Block>
@@ -169,7 +161,13 @@ function example() {
         field="label"
         placeholder="Search users..."
         openOnFocus
-        onSelect={setSelected}
+        onSelect={item =>
+          setSelected(
+            users.find(
+              u => u.value === (typeof item === 'string' ? item : item?.value)
+            ) ?? null
+          )
+        }
       />
       {selected && (
         <Paragraph mt="2">
@@ -185,11 +183,10 @@ function example() {
 
 ### Custom Item Template
 
-Autocomplete with custom item rendering.
+Autocomplete with custom item rendering. `itemTemplate` receives each item the same way, so the template looks it up by `value` too.
 
 ```tsx live
 function example() {
-  const [selected, setSelected] = useState(null);
   const users = [
     { value: '1', label: 'John Doe', role: 'Admin' },
     { value: '2', label: 'Jane Smith', role: 'Editor' },
@@ -202,15 +199,19 @@ function example() {
       field="label"
       placeholder="Search users..."
       openOnFocus
-      onSelect={setSelected}
-      itemTemplate={item => (
-        <Block display="flex" justifyContent="space-between">
-          <Span>{item.label}</Span>
-          <Tag color="info" light>
-            {item.role}
-          </Tag>
-        </Block>
-      )}
+      itemTemplate={item => {
+        const user = users.find(
+          u => u.value === (typeof item === 'string' ? item : item.value)
+        );
+        return (
+          <Block display="flex" justifyContent="space-between">
+            <Span>{user?.label}</Span>
+            <Tag color="info" isLight>
+              {user?.role}
+            </Tag>
+          </Block>
+        );
+      }}
     />
   );
 }
@@ -302,13 +303,16 @@ The simplest usage — the component automatically renders its own Field wrapper
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
+A labeled `Field` that holds the Autocomplete directly names its input with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Autocomplete in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Fruit">
+    <Field horizontal label="Fruit" labelProps={{ htmlFor: 'fruit-field' }}>
       <Field.Body>
         <Field>
           <Autocomplete
+            id="fruit-field"
             data={['Apple', 'Banana', 'Cherry']}
             placeholder="Search fruit..."
           />
@@ -328,11 +332,16 @@ For full manual composition with icons, wrap in both Field and Control. Autocomp
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Fruit">
+    <Field
+      horizontal
+      label="Fruit"
+      labelProps={{ htmlFor: 'fruit-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="search">
             <Autocomplete
+              id="fruit-field-control"
               data={['Apple', 'Banana', 'Cherry']}
               placeholder="Search fruit..."
             />
@@ -399,10 +408,12 @@ function AutocompleteFormDemo() {
 
 ## Accessibility
 
-- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it.
+- The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it. Inside a labeled `Field`, that `Field`'s label names the input the same way.
 - A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.
-- Uses `role="combobox"` with `aria-expanded`
-- Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`
+- Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen
+- Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`, and, while the list is on screen, `aria-controls` pointing at it
+- Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it
+- The list is a `role="listbox"` named by the `label` prop's label. Inside an outer `Field`, or with no `label`, it falls back to `aria-label="Suggestions"`
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
@@ -432,48 +443,48 @@ Use `keepFirst` combined with `Enter` to quickly select the first matching resul
 
 <!-- bestax:generated props -->
 
-| Prop                     | Type                                                                            | Default   | Description                                                                                                                                                                                                                                              |
-| ------------------------ | ------------------------------------------------------------------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`                  | `React.ReactNode`                                                               | —         | Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself).                                                        |
-| `labelProps`             | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —         | Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).                                                                                                                                   |
-| `id`                     | `string`                                                                        | —         | Applied to the inner text input (the labellable control), not the wrapper div.                                                                                                                                                                           |
-| `data`                   | `AutocompleteItem[]` \| `string[]`                                              | `[]`      | The options data to display (required).                                                                                                                                                                                                                  |
-| `value`                  | `string`                                                                        | —         | The current input value (controlled).                                                                                                                                                                                                                    |
-| `selected`               | `AutocompleteItem` \| `string` \| `null`                                        | —         | The selected item (controlled).                                                                                                                                                                                                                          |
-| `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                                                                                                                                                                                                          |
-| `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                                                                                                                                                                                                             |
-| `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button while the input holds a value. It hides while the input is disabled, and gives way to a loading spinner at the same right edge: the one `loading` draws, or that of a `Control` with `isLoading` around the Autocomplete. |
-| `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                                                                                                                                                                                                                     |
-| `keepFirst`              | `boolean`                                                                       | `false`   | Keep first option highlighted.                                                                                                                                                                                                                           |
-| `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                                                                                                                                                                                                                      |
-| `selectOnClickOutside`   | `boolean`                                                                       | `false`   | Select highlighted item on click outside.                                                                                                                                                                                                                |
-| `maxHeight`              | `number`                                                                        | `200`     | Maximum dropdown height in pixels.                                                                                                                                                                                                                       |
-| `dropdown`               | `boolean`                                                                       | `false`   | Render as dropdown style.                                                                                                                                                                                                                                |
-| `loading`                | `boolean`                                                                       | `false`   | Show a loading spinner in the input. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).                                                                                                                |
-| `disabled`               | `boolean`                                                                       | `false`   | Whether the input is disabled.                                                                                                                                                                                                                           |
-| `checkInfiniteScroll`    | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown.                                                                                                                                                                                                       |
-| `infiniteScrollDistance` | `number`                                                                        | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`.                                                                                                                                                                                        |
-| `color`                  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Input color variant.                                                                                                                                                                                                                                     |
-| `size`                   | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size variant.                                                                                                                                                                                                                                            |
-| `name`                   | `string`                                                                        | —         | Form field name. Forwarded to the inner `<input>`.                                                                                                                                                                                                       |
-| `form`                   | `string`                                                                        | —         | Optional id of the form the input belongs to.                                                                                                                                                                                                            |
-| `required`               | `boolean`                                                                       | `false`   | Marks the field as required for native HTML form validation.                                                                                                                                                                                             |
-| `onInput`                | `(value: string) => void`                                                       | —         | Callback when input value changes.                                                                                                                                                                                                                       |
-| `onSelect`               | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                                                                                                                                                                                                                          |
-| `onActiveChange`         | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.                                                                                                                                                                                                             |
-| `onInfiniteScroll`       | `() => void`                                                                    | —         | Callback when scrolled to bottom (infinite scroll).                                                                                                                                                                                                      |
-| `itemTemplate`           | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                                                                                                                                                                                                                                 |
-| `header`                 | `React.ReactNode`                                                               | —         | Custom header in dropdown.                                                                                                                                                                                                                               |
-| `footer`                 | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                                                                                                                                                                                                                               |
-| `empty`                  | `React.ReactNode`                                                               | —         | Content to show when no results.                                                                                                                                                                                                                         |
-| `labelSize`              | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —         | Size for the label (used in horizontal layouts).                                                                                                                                                                                                         |
-| `horizontal`             | `boolean`                                                                       | `false`   | Horizontal field layout.                                                                                                                                                                                                                                 |
-| `message`                | `React.ReactNode`                                                               | —         | Help/validation message below the input.                                                                                                                                                                                                                 |
-| `messageColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color for the message.                                                                                                                                                                                                                             |
-| `fieldClassName`         | `string`                                                                        | —         | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                            |
-| `className`              | `string`                                                                        | —         | Additional CSS classes.                                                                                                                                                                                                                                  |
-| `ref`                    | `React.Ref<HTMLInputElement>`                                                   | —         | Ref forwarded to the input element.                                                                                                                                                                                                                      |
-| `...`                    | All standard `<div>` attributes and Bulma helper props                          | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                        |
+| Prop                     | Type                                                                            | Default   | Description                                                                                                                                                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`                  | `React.ReactNode`                                                               | —         | Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). |
+| `labelProps`             | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`     | —         | Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).                                                                                                                                                                                        |
+| `id`                     | `string`                                                                        | —         | Applied to the inner text input (the labellable control), not the wrapper div.                                                                                                                                                                                                                                |
+| `data`                   | `AutocompleteItem[]` \| `string[]`                                              | `[]`      | The options data to display (required).                                                                                                                                                                                                                                                                       |
+| `value`                  | `string`                                                                        | —         | The current input value (controlled).                                                                                                                                                                                                                                                                         |
+| `selected`               | `AutocompleteItem` \| `string` \| `null`                                        | —         | The selected item (controlled).                                                                                                                                                                                                                                                                               |
+| `placeholder`            | `string`                                                                        | —         | Placeholder text for the input.                                                                                                                                                                                                                                                                               |
+| `field`                  | `string`                                                                        | `'label'` | Object property to use as the display field.                                                                                                                                                                                                                                                                  |
+| `clearable`              | `boolean`                                                                       | `false`   | Whether to show a clear button while the input holds a value. It hides while the input is disabled, and gives way to a loading spinner at the same right edge: the one `loading` draws, or that of a `Control` with `isLoading` around the Autocomplete.                                                      |
+| `openOnFocus`            | `boolean`                                                                       | `false`   | Open dropdown when input is focused.                                                                                                                                                                                                                                                                          |
+| `keepFirst`              | `boolean`                                                                       | `false`   | Keep first option highlighted.                                                                                                                                                                                                                                                                                |
+| `keepOpen`               | `boolean`                                                                       | `false`   | Keep dropdown open after selection.                                                                                                                                                                                                                                                                           |
+| `selectOnClickOutside`   | `boolean`                                                                       | `false`   | Select highlighted item on click outside.                                                                                                                                                                                                                                                                     |
+| `maxHeight`              | `number`                                                                        | `200`     | Maximum dropdown height in pixels.                                                                                                                                                                                                                                                                            |
+| `dropdown`               | `boolean`                                                                       | `false`   | Render as dropdown style.                                                                                                                                                                                                                                                                                     |
+| `loading`                | `boolean`                                                                       | `false`   | Show a loading spinner in the input. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).                                                                                                                                                                     |
+| `disabled`               | `boolean`                                                                       | `false`   | Whether the input is disabled.                                                                                                                                                                                                                                                                                |
+| `checkInfiniteScroll`    | `boolean`                                                                       | `false`   | Enables infinite scroll detection in the dropdown.                                                                                                                                                                                                                                                            |
+| `infiniteScrollDistance` | `number`                                                                        | `50`      | Distance in pixels from the bottom to trigger `onInfiniteScroll`.                                                                                                                                                                                                                                             |
+| `color`                  | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Input color variant.                                                                                                                                                                                                                                                                                          |
+| `size`                   | `'small'` \| `'medium'` \| `'large'`                                            | —         | Size variant.                                                                                                                                                                                                                                                                                                 |
+| `name`                   | `string`                                                                        | —         | Form field name. Forwarded to the inner `<input>`.                                                                                                                                                                                                                                                            |
+| `form`                   | `string`                                                                        | —         | Optional id of the form the input belongs to.                                                                                                                                                                                                                                                                 |
+| `required`               | `boolean`                                                                       | `false`   | Marks the field as required for native HTML form validation.                                                                                                                                                                                                                                                  |
+| `onInput`                | `(value: string) => void`                                                       | —         | Callback when input value changes.                                                                                                                                                                                                                                                                            |
+| `onSelect`               | `(item: AutocompleteItem \| string \| null) => void`                            | —         | Callback when item is selected.                                                                                                                                                                                                                                                                               |
+| `onActiveChange`         | `(active: boolean) => void`                                                     | —         | Callback when dropdown active state changes.                                                                                                                                                                                                                                                                  |
+| `onInfiniteScroll`       | `() => void`                                                                    | —         | Callback when scrolled to bottom (infinite scroll).                                                                                                                                                                                                                                                           |
+| `itemTemplate`           | `(item: AutocompleteItem \| string) => React.ReactNode`                         | —         | Custom render for items.                                                                                                                                                                                                                                                                                      |
+| `header`                 | `React.ReactNode`                                                               | —         | Custom header in dropdown.                                                                                                                                                                                                                                                                                    |
+| `footer`                 | `React.ReactNode`                                                               | —         | Custom footer in dropdown.                                                                                                                                                                                                                                                                                    |
+| `empty`                  | `React.ReactNode`                                                               | —         | Content to show when no results.                                                                                                                                                                                                                                                                              |
+| `labelSize`              | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | —         | Size for the label (used in horizontal layouts).                                                                                                                                                                                                                                                              |
+| `horizontal`             | `boolean`                                                                       | `false`   | Horizontal field layout.                                                                                                                                                                                                                                                                                      |
+| `message`                | `React.ReactNode`                                                               | —         | Help/validation message below the input.                                                                                                                                                                                                                                                                      |
+| `messageColor`           | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —         | Bulma color for the message.                                                                                                                                                                                                                                                                                  |
+| `fieldClassName`         | `string`                                                                        | —         | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                 |
+| `className`              | `string`                                                                        | —         | Additional CSS classes.                                                                                                                                                                                                                                                                                       |
+| `ref`                    | `React.Ref<HTMLInputElement>`                                                   | —         | Ref forwarded to the input element.                                                                                                                                                                                                                                                                           |
+| `...`                    | All standard `<div>` attributes and Bulma helper props                          | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                             |
 
 <!-- /bestax:generated props -->
 

@@ -27,7 +27,7 @@ export function Uploads({ onPick }: { onPick: () => void }) {
             <span className="file-cta">
               <span className="file-label">Upload a photo</span>
               <span className="file-icon">
-                <span className="icon" aria-label="Upload">
+                <span className="icon" aria-hidden="true">
                   <i className="fas fa-cloud-upload-alt"></i>
                 </span>
               </span>
@@ -53,6 +53,28 @@ export function Uploads({ onPick }: { onPick: () => void }) {
             <span className="file-cta">
               <span className="file-label">Upload</span>
               <small>PDF only</small>
+            </span>
+          </label>
+        </div>
+      </div>
+      {/* A name slot with nothing in it yet, which Bulma marks is-empty. */}
+      <div className="field">
+        <div className="file has-name is-empty">
+          <label className="file-label">
+            <input className="file-input" type="file" name="letter" />
+            <span className="file-cta">
+              <span className="file-label">Upload</span>
+            </span>
+          </label>
+        </div>
+      </div>
+      {/* The same slot without is-empty, which File would add. */}
+      <div className="field">
+        <div className="file has-name">
+          <label className="file-label">
+            <input className="file-input" type="file" name="note" />
+            <span className="file-cta">
+              <span className="file-label">Upload</span>
             </span>
           </label>
         </div>

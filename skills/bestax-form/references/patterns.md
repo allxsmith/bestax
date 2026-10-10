@@ -170,12 +170,23 @@ Recipes built on addons, each written out in full in the docs:
 
 ## Horizontal field with explicit label/body
 
+`Field.Label` is the label column, not a `<label>`, so text placed straight in it names nothing:
+put a `<label className="label">` inside it with `htmlFor` pointing at the input's `id`.
+
 ```tsx
 <Field horizontal>
-  <Field.Label size="normal">Email</Field.Label>
+  <Field.Label size="normal">
+    <label className="label" htmlFor="horizontal-email">
+      Email
+    </label>
+  </Field.Label>
   <Field.Body>
     <Control iconLeftName="envelope" hasIconsLeft>
-      <InputBase type="email" placeholder="you@example.com" />
+      <InputBase
+        id="horizontal-email"
+        type="email"
+        placeholder="you@example.com"
+      />
     </Control>
   </Field.Body>
 </Field>
@@ -203,7 +214,15 @@ const [volume, setVolume] = useState(50);
 <Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;
 
 const [range, setRange] = useState<[number, number]>([20, 80]);
-<Slider range value={range} onChange={setRange} min={0} max={100} />;
+// The label names both thumbs: "Price range Minimum value" / "... Maximum value".
+<Slider
+  range
+  label="Price range"
+  value={range}
+  onChange={setRange}
+  min={0}
+  max={100}
+/>;
 
 // Numberinput
 const [qty, setQty] = useState(1);

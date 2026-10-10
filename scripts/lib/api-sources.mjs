@@ -47,6 +47,11 @@ export const MANAGED_CATEGORIES = new Set([
  * carry hand-written prose sub-APIs under `## Props` that do not fit the
  * generated table model. They still get the canonical section order, so a
  * reader moving between reference pages sees one layout.
+ *
+ * Not generated is not unread: the MCP index reads the props of a page here
+ * whose title is capitalised like a component (Theme, Portal), so such a title
+ * must name a barrel export. `proseComponentInfo` in gen-mcp-index.mjs has the
+ * rule.
  */
 export const GENERATED_EXEMPT = new Set(['helpers']);
 
@@ -110,6 +115,18 @@ export const SCSS_SOURCES = {
   ],
   DateInputBase: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
+  DateRangeInput: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_daterangeinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
+    { pkg: 'bulma', path: 'sass/form/shared.scss' },
+  ],
+  DateRangeInputBase: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_dateinput.scss' },
+    { pkg: 'repo', path: 'bulma-ui/src/scss/form/_daterangeinput.scss' },
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_picker-popover.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],

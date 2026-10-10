@@ -241,12 +241,18 @@ export interface BuiltFile {
   /** Which of them holds the icon before that text, and after it. */
   iconLeft?: number;
   iconRight?: number;
-  /** The `.file-name`'s text. */
+  /**
+   * The `.file-name`'s text, or an empty string for a `has-name` `.file`
+   * with none, so the target shows no file a user picks.
+   */
   fileName?: string;
 }
 
 /** The button text `File` renders when it's given none. */
 const DEFAULT_FILE_LABEL = 'Choose a file\u2026';
+
+/** The class `File` renders beside `has-name` while it has no name to show. */
+const EMPTY_NAME = 'is-empty';
 
 /**
  * Why a target that `buildsFile` stays markup outside a `Field`, for the
@@ -542,20 +548,34 @@ export function plan(facts: ElementFacts): Plan {
   const written = Object.entries(entry.writesAttr ?? {})
     .filter(([, rule]) => rule.on.includes(tag))
     .map(([name, rule]): [string, string] => [name, rule.fallback]);
-  const missing = [...Object.entries(entry.defaults ?? {}), ...written].filter(
+  const naming = namingOf(entry, attributes);
+  // An attribute written out that stops the target's defaults, such as
+  // `Icon`'s own `role` or `tabIndex`, leaves an unnamed element nothing to
+  // add.
+  const stopped = entry.defaultsUnless?.some(
+    name => attributes.has(name) && attributes.get(name) !== null
+  );
+  const unnamed = stopped ? {} : (entry.defaults ?? {});
+  const defaults: Readonly<Record<string, string>> =
+    naming === 'named'
+      ? entry.namedDefaults!.defaults
+      : naming === 'unsure'
+        ? { ...unnamed, ...entry.namedDefaults!.defaults }
+        : unnamed;
+  const missing = [...Object.entries(defaults), ...written].filter(
     ([name]) => !attributes.has(name)
   );
   const drop: string[] = [];
   for (const name of entry.untypedAttrs ?? []) {
     if (!attributes.has(name)) continue;
-    if (entry.defaults?.[name] === attributes.get(name)) {
+    if (defaults[name] === attributes.get(name)) {
       drop.push(name);
       continue;
     }
     return refuse(
       'attr',
       name,
-      `bestax \`${target}\`'s props take no \`${name}\`${entry.defaults?.[name] ? `, and it renders \`${name}="${entry.defaults[name]}"\` when none is given` : ''}; keep this element as markup`
+      `bestax \`${target}\`'s props take no \`${name}\`${defaults[name] ? `, and it renders \`${name}="${defaults[name]}"\` when none is given` : ''}; keep this element as markup`
     );
   }
   const numbers: string[] = [];
@@ -680,6 +700,19 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
     );
   }
+  if (missing.length > 0 && naming === 'unsure') {
+    const list = (set: Readonly<Record<string, string>> = {}) =>
+      Object.entries(set)
+        .map(([name, value]) => `\`${name}="${value}"\``)
+        .join(' and ');
+    const by = entry.namedDefaults!.by.find(name => attributes.has(name));
+    const add = missing.map(([name]) => `\`${name}\``).join(' and ');
+    return refuse(
+      'defaults',
+      target,
+      `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has a name and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want, then re-run`
+    );
+  }
   if (missing.length > 0) {
     const list = missing.map(([name, value]) => `\`${name}="${value}"\``);
     return refuse(
@@ -753,10 +786,28 @@ export function plan(facts: ElementFacts): Plan {
   }
   let file: BuiltFile | undefined;
   if (entry.buildsFile) {
-    const built = buildFile(facts.childElements, entry, writes.has('hasName'));
+    const hasName = writes.has('hasName');
+    const built = buildFile(facts.childElements, entry, hasName);
     if ('why' in built) return refuse(built.kind, built.token, built.why);
     file = built.file;
     numbers.push(...built.numbers);
+    // With `has-name` and no `.file-name`, the target renders Bulma's
+    // `is-empty` too, whatever a condition says, so the markup has to carry
+    // it written out; it then goes with the rest of what the target renders.
+    // Its name is pinned empty, as a `.file-name` pins it to that text:
+    // unpinned, the target shows the file a user picks, and the markup never
+    // does.
+    if (hasName && file.fileName === undefined) {
+      if (!tokens.includes(EMPTY_NAME)) {
+        return refuse(
+          'defaults',
+          target,
+          `bestax \`${target}\` renders Bulma's \`${EMPTY_NAME}\` on a \`has-name\` \`.file\` with no \`.file-name\`, whatever a condition says, so a condition on \`${EMPTY_NAME}\` can't stand in for it; write \`${EMPTY_NAME}\` here as a static class if that is what you want, then re-run, and it converts with \`fileName=""\`, so a file the user picks shows no name, as this markup shows none`
+        );
+      }
+      converted.add(EMPTY_NAME);
+      file = { ...file, fileName: '' };
+    }
   }
 
   const props: Array<[string, string | true]> = [];
@@ -920,6 +971,25 @@ function buildFile(
     },
     numbers,
   };
+}
+
+/**
+ * Whether the element names itself through one of `entry.namedDefaults.by`,
+ * which picks the defaults its target renders: a string written out names
+ * it unless empty, as a bare attribute does, and an expression may or may
+ * not. An entry with no `namedDefaults` is never named.
+ */
+function namingOf(
+  entry: RootEntry,
+  attributes: ReadonlyMap<string, unknown>
+): 'named' | 'unnamed' | 'unsure' {
+  const given = (entry.namedDefaults?.by ?? [])
+    .filter(name => attributes.has(name))
+    .map(name => attributes.get(name));
+  if (given.some(value => value === true || (value !== '' && value !== null))) {
+    return 'named';
+  }
+  return given.includes(null) ? 'unsure' : 'unnamed';
 }
 
 /**

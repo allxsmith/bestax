@@ -21,7 +21,12 @@ import {
   usePrefixedClassNames,
 } from '../../helpers/classNames';
 import { useConfig } from '../../helpers/Config';
-import { HourFormat, PickerLabels, mergeLabels } from './pickerTypes';
+import {
+  HourFormat,
+  PickerLabels,
+  isPopoverToggleKey,
+  mergeLabels,
+} from './pickerTypes';
 import { setTimeOfDay } from './dateUtils';
 import { tickHaptic as fireTickHaptic } from './haptics';
 import { playAudioTick, unlockAudioTick } from './audioTick';
@@ -394,24 +399,28 @@ const WheelInner = <T,>(
     [disabled, cancelRaf, commitPosition]
   );
 
+  // The keys are a spinbutton's: up raises the value and down lowers it. The
+  // values run down the wheel, so up brings the one below the band into it,
+  // the way a drag or a scroll that moves the items up does.
   const onKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
+      if (isPopoverToggleKey(e)) return;
       switch (e.key) {
         case 'ArrowUp':
           e.preventDefault();
-          moveBy(-1);
+          moveBy(1);
           break;
         case 'ArrowDown':
           e.preventDefault();
-          moveBy(1);
+          moveBy(-1);
           break;
         case 'PageUp':
           e.preventDefault();
-          moveBy(-5);
+          moveBy(5);
           break;
         case 'PageDown':
           e.preventDefault();
-          moveBy(5);
+          moveBy(-5);
           break;
         case 'Home':
           e.preventDefault();
@@ -721,8 +730,9 @@ const WheelInner = <T,>(
           <button
             key={vIdx}
             type="button"
-            role="option"
-            aria-selected={selected}
+            // A spinbutton owns no options: it states its value through
+            // aria-valuetext, so the items are pointer targets only.
+            aria-hidden="true"
             tabIndex={-1}
             className={itemClass(selected)}
             style={{
@@ -733,6 +743,9 @@ const WheelInner = <T,>(
               top: `${top}px`,
             }}
             disabled={itemDisabled}
+            // Keep a press from focusing the item, which assistive technology
+            // can't see; the click below hands focus to the wheel instead.
+            onMouseDown={e => e.preventDefault()}
             onClick={() => {
               moveBy(vIdx - virtualIdx);
               // Click focuses the <button> child by default; pull focus back
@@ -799,6 +812,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
         hours: h,
         minutes: m,
         seconds: s,
+        milliseconds: 0,
       });
       return !unselectableTimes(probe);
     },
@@ -1052,6 +1066,7 @@ export const TimeWheels: React.FC<TimeWheelsProps> = ({
               size={size}
               color={color}
               wrap
+              onCommit={onCommit}
               onFocusPrev={focusPrevOf(secondsRef)}
               onFocusNext={focusNextOf(secondsRef)}
               disabledFor={secondDisabledFor}
