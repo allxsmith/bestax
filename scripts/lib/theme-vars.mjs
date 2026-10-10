@@ -11,8 +11,9 @@
  * Read as text because neither tuple is exported, and widening the library's
  * public API to make a guard convenient is the wrong trade. A brittle read is
  * acceptable BECAUSE it is asserted: when a pattern stops matching, this
- * throws and says what moved, rather than returning an empty list that would
- * make every check built on it pass.
+ * throws and says what moved, rather than returning an empty or partial list
+ * that would make every check built on it pass, or pass over the keys it
+ * missed.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -38,9 +39,30 @@ function tuple(source, name) {
         'Fix this pattern in the same change that moved it.'
     );
   }
-  const keys = [...block[1].matchAll(/^\s*'(--bulma-[a-z0-9-]+)',$/gm)].map(
-    m => m[1]
-  );
+  // The body is read as a whole: comments dropped, split on commas, and
+  // every entry required to be one quoted key. A per-line pattern skipped
+  // any line it could not read, so a key with a trailing comment, or the
+  // last one without a comma, fell out of every check built on this read
+  // with no error, which is as quiet as an empty read and harder to spot.
+  const body = block[1]
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .replace(/\/\/[^\n]*/g, '');
+  const keys = body
+    .split(',')
+    .map(entry => entry.trim())
+    .filter(Boolean)
+    .map(entry => {
+      const key = entry.match(/^(['"])(--bulma-[a-z0-9-]+)\1$/);
+      if (!key) {
+        throw new Error(
+          `could not read \`${entry}\` in the \`${name}\` tuple in ` +
+            'Theme.tsx. Every entry has to be one quoted `--bulma-` key, or ' +
+            'it drops out of every check built on this read. Fix the entry, ' +
+            'or this reader, in the same change.'
+        );
+      }
+      return key[2];
+    });
   if (keys.length === 0) {
     throw new Error(`the \`${name}\` tuple in Theme.tsx read as empty`);
   }

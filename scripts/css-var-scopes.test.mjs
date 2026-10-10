@@ -453,4 +453,36 @@ describe("Theme's two variable lists", () => {
     const whole = `${tuples}\nconst bulmaCssVars = [...bulmaGlobalVars, ...bulmaComponentVars] as const;`;
     assert.deepEqual(themeVars(whole).all, ['--bulma-a', '--bulma-b']);
   });
+
+  it('reads every key, however a line is written, or fails', () => {
+    const spread =
+      'const bulmaCssVars = [...bulmaGlobalVars, ...bulmaComponentVars] as const;';
+    const source = (global, component = "  '--bulma-z',") =>
+      `\nconst bulmaGlobalVars = [\n${global}\n] as const;` +
+      `\nconst bulmaComponentVars = [\n${component}\n] as const;\n${spread}`;
+    // A trailing comment, a block comment, a double-quoted key and a last
+    // key with no comma all still count. A per-line read dropped the first
+    // and the last without a word.
+    assert.deepEqual(
+      themeVars(
+        source(
+          [
+            "  '--bulma-a', // only used by the wrapper",
+            '  /* a section */ "--bulma-b",',
+            "  '--bulma-c'",
+          ].join('\n')
+        )
+      ).global,
+      ['--bulma-a', '--bulma-b', '--bulma-c']
+    );
+    // An entry that is not one quoted key is refused rather than skipped.
+    assert.throws(
+      () => themeVars(source("  '--bulma-a',\n  ...others,")),
+      /could not read `\.\.\.others` in the `bulmaGlobalVars` tuple/
+    );
+    assert.throws(
+      () => themeVars(source("  '--bulma-a', '--bulma-b' as string,")),
+      /could not read `'--bulma-b' as string`/
+    );
+  });
 });
