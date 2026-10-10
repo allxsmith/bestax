@@ -26,9 +26,10 @@ interface UseAutoLabelIdOptions {
   hasInput?: boolean;
   /**
    * True when the control also points `aria-labelledby` at the label, as a
-   * range Slider's thumbs do (#981), so it needs the label's own id. Its own
-   * label then gets one (`labelProps.id` when given, otherwise a generated
-   * one), and the hook returns it, or a surrounding Field's, as `labelId`.
+   * range Slider's thumbs (#981) and Autocomplete's suggestion list (#998)
+   * do, so it needs the label's own id. Its own label then gets one
+   * (`labelProps.id` when given, otherwise a generated one), and the hook
+   * returns it, or a surrounding Field's, as `labelId`.
    */
   needsLabelId?: boolean;
 }
@@ -59,8 +60,9 @@ export function useAutoLabelId({
   labelled: boolean;
   /**
    * With `needsLabelId`, the id of the label that names `controlId`, its own
-   * or a surrounding Field's. Undefined when no label names it, or when the
-   * Field's label was wired by hand, since that Field hands out no label id.
+   * or a surrounding Field's. Undefined when no label names it, or when a
+   * Field's label wired by hand names it without an `id` in its labelProps,
+   * since the Field generates none for a label wired by hand.
    */
   labelId: string | undefined;
 } {
@@ -69,10 +71,11 @@ export function useAutoLabelId({
   // Read outside the control's own Field, so it is set only when an outer
   // Field holds the control, which then renders no label of its own.
   const fieldLabelId = useFieldLabelId();
-  // What an outer Field's label points at, even when wired by hand.
+  // What an outer Field's label points at, even when wired by hand, and the
+  // id that label renders with, read together so the id is that label's.
+  // Set in `grouped`/`hasAddons` Fields too when the label is wired by hand,
+  // since its `for` names this one control whatever the layout (see Field).
   const fieldLabelFor = useFieldLabelFor();
-  // That Field's label element, set under the same conditions.
-  const fieldLabelElementId = useFieldLabelElementId();
   // Truthiness mirrors Field's own `if (label)` render gate.
   const active = !!label && rendersLabel;
   // Presence, not truthiness: `htmlFor: undefined` is an explicit opt-out and
@@ -81,7 +84,7 @@ export function useAutoLabelId({
   const adopted = !active && hasInput ? fieldLabelId : undefined;
   const controlId = id ?? (active && !userWired ? generatedId : adopted);
   const ownLabelProps = { htmlFor: controlId, ...labelProps };
-  const labelTarget = active ? ownLabelProps.htmlFor : fieldLabelFor;
+  const labelTarget = active ? ownLabelProps.htmlFor : fieldLabelFor.htmlFor;
   const labelled = !!controlId && labelTarget === controlId;
   // Only a label that names the control gets an id to point at, with the
   // suffix Field gives its own, from an id that is already unique.
@@ -104,7 +107,7 @@ export function useAutoLabelId({
     needsLabelId && labelled
       ? active
         ? ownLabelId
-        : fieldLabelElementId
+        : fieldLabelFor.id
       : undefined;
   return { controlId, fieldLabelProps, labelled, labelId };
 }
