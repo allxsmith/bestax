@@ -24,10 +24,12 @@
  *
  * The step also fails when llms.txt or llms-full.txt is missing, when a file
  * it checks is empty or only whitespace, when a file or directory under
- * build/ cannot be read, and when build/docs holds no twin, a `.md` that is
- * not a copy of one in static/. It reports every problem it finds before it
- * fails, walking past a directory it cannot read. Whether the LLM output is
- * complete is not this check's job.
+ * build/ cannot be read, when an entry under build/ is neither a regular file
+ * nor a directory, such as a link, which it reports without following, and
+ * when build/docs holds no twin, a `.md` that is not a copy of one in
+ * static/. It reports every problem it finds before it fails, walking past a
+ * directory it cannot read. Whether the LLM output is complete is not this
+ * check's job.
  *
  * Why a build STEP and not a Docusaurus plugin: `postBuild` hooks run under
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
@@ -48,20 +50,24 @@ const KEYWORD = 'bestax:generated';
 
 /**
  * The files under `dir` whose names match `pattern`. A directory that cannot
- * be read goes to `unreadable`, and the walk carries on past it.
+ * be read, and an entry that is neither a regular file nor a directory, such
+ * as a link, go to `report` with why, and the walk carries on past them. A
+ * link is not followed, so the walk can never loop.
  */
-function filesUnder(dir, pattern, unreadable) {
+function filesUnder(dir, pattern, report) {
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
   } catch (err) {
-    unreadable(dir, err);
+    report(dir, `could not be read: ${err.code ?? err.message}.`);
     return [];
   }
   return entries.flatMap(entry => {
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) return filesUnder(path, pattern, unreadable);
-    return entry.isFile() && pattern.test(entry.name) ? [path] : [];
+    if (entry.isDirectory()) return filesUnder(path, pattern, report);
+    if (entry.isFile()) return pattern.test(entry.name) ? [path] : [];
+    report(path, 'is not a regular file or directory, so it was not checked.');
+    return [];
   });
 }
 
@@ -77,11 +83,8 @@ export async function checkBuild(docs = DOCS, io = console) {
   }
 
   const problems = [];
-  const unreadable = (path, err) =>
-    problems.push(
-      `${relative(docs, path)} could not be read: ${err.code ?? err.message}.`
-    );
-  const pages = filesUnder(outDir, /\.md$/, unreadable);
+  const report = (path, why) => problems.push(`${relative(docs, path)} ${why}`);
+  const pages = filesUnder(outDir, /\.md$/, report);
   // Docusaurus copies static/ into build/ as is, so a .md there is no twin.
   const isTwin = file =>
     file.startsWith(join(outDir, 'docs', sep)) &&
@@ -114,7 +117,7 @@ export async function checkBuild(docs = DOCS, io = console) {
     try {
       text = await readFile(file, 'utf8');
     } catch (err) {
-      unreadable(file, err);
+      report(file, `could not be read: ${err.code ?? err.message}.`);
       continue;
     }
     if (!text.trim()) {

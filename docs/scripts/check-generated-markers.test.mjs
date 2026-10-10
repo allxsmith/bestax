@@ -10,6 +10,7 @@ import {
   mkdirSync,
   mkdtempSync,
   rmSync,
+  symlinkSync,
   writeFileSync,
 } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -208,6 +209,28 @@ test('a build/ that is a file is reported with the rest', async () => {
     'check-generated-markers: build could not be read: ENOTDIR.',
     NO_TWINS,
     missing('build/llms-full.txt'),
+    missing('build/llms.txt'),
+  ]);
+});
+
+test('a link under build/ is reported, not followed', async () => {
+  // Both links point at markers outside build/, which a followed link
+  // would report as leaks.
+  const root = site({
+    'build/llms.txt': null,
+    'elsewhere/page.md': PAGE,
+    'elsewhere/dir/page.md': PAGE,
+  });
+  symlinkSync(join(root, 'elsewhere/page.md'), join(root, 'build/docs/a.md'));
+  symlinkSync(join(root, 'elsewhere/dir'), join(root, 'build/docs/dir'));
+  const notChecked = file =>
+    `check-generated-markers: ${file} is not a regular file or directory, ` +
+    `so it was not checked.`;
+  const { code, error } = await run(root);
+  assert.equal(code, 1);
+  assert.deepEqual(error.sort(), [
+    notChecked('build/docs/a.md'),
+    notChecked('build/docs/dir'),
     missing('build/llms.txt'),
   ]);
 });

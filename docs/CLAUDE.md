@@ -52,8 +52,10 @@ outside code on a docs page is the plugin's to drop, and a post that is not synd
 `build/` as markdown at all. A page or post that wants to show marker syntax shows it without the
 keyword, or changes the check in the same PR. The step also fails when `llms.txt` or
 `llms-full.txt` is missing, when a file it checks is empty or only whitespace, when a file or
-directory under `build/` cannot be read, and when `build/docs` holds no twin (a `.md` that is not
-a copy of one in `static/`), and it reports every such problem before failing. Whether the LLM output is complete is not this check's job. It
+directory under `build/` cannot be read, when an entry under `build/` is neither a regular file
+nor a directory (a link, which it reports without following), and when `build/docs` holds no twin
+(a `.md` that is not a copy of one in `static/`), and it reports every such problem before
+failing. Whether the LLM output is complete is not this check's job. It
 is a build step rather than a Docusaurus plugin because `postBuild` hooks run under `Promise.all`,
 so a plugin declared after `docusaurus-plugin-llms` still races it.
 
