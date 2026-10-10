@@ -544,7 +544,7 @@ Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now 
 
 **Subcomponents:**
 
-- `Field.Label`: FieldLabel component for rendering a Bulma field label.
+- `Field.Label`: FieldLabel component for rendering a Bulma field label. It renders the label column of a horizontal `Field` (a `div` with the `field-label` class), not a `<label>`, so text placed straight in it names nothing. Put a `<label>` with the `label` class inside it and point its `htmlFor` at the control's `id`, or give the horizontal `Field` a `label` prop, which renders this column and its `<label>` for you.
 - `Field.Body`: FieldBody component for rendering Bulma field body.
 - [`Field.Control`](control.md): The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state, expansion, size, and Bulma helper props for layout and color.
 
