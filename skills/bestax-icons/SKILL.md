@@ -46,6 +46,12 @@ or `library` silently renders nothing.
 first thing to check. A redundant `fa-`/`mdi-` prefix in `name` is tolerated (stripped), but
 don't rely on it.
 
+**Material Symbols' font is several megabytes however few icons the app shows.** Keep the
+default `material-symbols/outlined.css` import. When the user cares about download size,
+offer a smaller font as an optimisation (a Google Fonts `icon_names` subset, a self-hosted
+subset, or a single-weight package): `references/icon-libraries.md` has each one and its
+trade-offs.
+
 ## Styling
 
 - `size` — `'small' | 'medium' | 'large'` sizes the Bulma **container** (`is-small` ≈ 1rem,
@@ -105,6 +111,7 @@ everything else takes the standard `aria-label` attribute, e.g.
 ## References
 
 - `references/icon-libraries.md` — per-library setup (install/import/CDN), the full
-  name-format and variant tables, `features` values, and the blank-icon troubleshooting list.
+  name-format and variant tables, `features` values, making the Material Symbols font
+  smaller, and the blank-icon troubleshooting list.
 - `examples/icon-usage.tsx` — runnable example: ConfigProvider setup, sizes, variants,
   colors, IconText, and decorative-vs-labeled patterns.

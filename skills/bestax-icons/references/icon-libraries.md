@@ -89,6 +89,34 @@ Set it once on `ConfigProvider` and omit `library` everywhere else.
   Material Icons' `round`.
 - **Features:** Bulma classes like `'is-size-1'`.
 
+### Making the font smaller
+
+`outlined.css` loads the whole variable font (every symbol at every fill, weight, grade and
+optical size), several megabytes however few icons the app shows. Keep that import as the
+default: it is one line, works offline, and any name renders. Offer a smaller font only when
+the user cares about download size (a size budget, a Lighthouse flag, slow networks), and
+present it as an optimisation with the trade-offs below:
+
+- **Google Fonts subset.** Replace the import with a stylesheet link in `index.html`:
+  `<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=home,palette,settings&display=block" />`.
+  `icon_names` takes the ligature names comma-separated and sorted alphabetically, and keep
+  `&display=block` (it stops the names flashing as text). The returned CSS defines the same
+  `material-symbols-outlined` class, so components don't change. Costs: the browser fetches
+  the icons from Google (privacy, no offline use), and the list must hold every name the app
+  renders, since a missing one shows as plain text. `variant="rounded"`/`"sharp"` need
+  `Material+Symbols+Rounded`/`Material+Symbols+Sharp` requested too, and an app that sets
+  `font-variation-settings` must request those axes in the URL.
+- **Self-hosted subset.** Cut a subset from the package's `.woff2` with a font subsetting tool
+  (fontTools' subsetter, for one), keeping the glyphs for the names the app renders, and load
+  it with the app's own `@font-face` plus the `.material-symbols-outlined` rules. No request to
+  Google, same list upkeep.
+- **Fewer variations.** `@material-symbols/font-400`, from the same project, keeps every
+  symbol with weight, grade and optical size fixed, at a fraction of the size. Import
+  `@material-symbols/font-400/outlined.css` in place of `material-symbols/outlined.css`; it
+  defines the same class, and there is no list to maintain.
+
+Docs: https://bestax.io/docs/guides/getting-started/alternative-icons#making-the-font-smaller
+
 ## One glyph, five names
 
 | Glyph    | fa                 | mdi             | ion        | material-icons / material-symbols |

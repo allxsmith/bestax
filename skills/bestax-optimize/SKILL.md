@@ -126,6 +126,8 @@ partial inventory, and a worked example are in `references/modular-build.md`.
   `material-icons`, `material-symbols`) with their CSS imports in `src/main.*`, or Ionicons
   CDN `<script>` tags in `index.html`. Icon fonts often outweigh Bulma itself — if no
   `<Icon>` uses that library, delete the dependency/import/script. Pure win, no tooling.
+  When the app does render Material Symbols, its font can be made smaller instead of
+  removed: see [Making the font smaller](https://bestax.io/docs/guides/getting-started/alternative-icons#making-the-font-smaller).
 
 ## References
 
