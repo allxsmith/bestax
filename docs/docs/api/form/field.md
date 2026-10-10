@@ -474,12 +474,18 @@ This example demonstrates using the `Field` component to create a group of contr
 
 Alongside the existing `Field.Label` and `Field.Body` statics, `Control` is now also available as `Field.Control`, so a field can be composed from the single `Field` import.
 
+`Field.Label` is the label column, not a `<label>` element, and a `Field` with no `label` prop names nothing, so put a `label` inside it and point its `htmlFor` at a matching `id` on the control.
+
 ```tsx live
 <Field horizontal>
-  <Field.Label>Name</Field.Label>
+  <Field.Label size="normal">
+    <label className="label" htmlFor="compound-name">
+      Name
+    </label>
+  </Field.Label>
   <Field.Body>
     <Field.Control>
-      <Input placeholder="Jane Doe" />
+      <Input id="compound-name" placeholder="Jane Doe" />
     </Field.Control>
   </Field.Body>
 </Field>

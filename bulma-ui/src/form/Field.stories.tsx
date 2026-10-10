@@ -476,10 +476,14 @@ export const AddonsRight: Story = {
 export const CompoundUsage: Story = {
   render: () => (
     <Field horizontal>
-      <Field.Label>Name</Field.Label>
+      <Field.Label size="normal">
+        <label className="label" htmlFor="compound-name">
+          Name
+        </label>
+      </Field.Label>
       <Field.Body>
         <Field.Control>
-          <Input placeholder="Jane Doe" />
+          <Input id="compound-name" placeholder="Jane Doe" />
         </Field.Control>
       </Field.Body>
     </Field>
