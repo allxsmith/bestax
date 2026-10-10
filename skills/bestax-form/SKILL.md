@@ -139,10 +139,11 @@ leave it off when a label already names the Slider. The group inputs (`Checkboxe
 `role="group"`/`"radiogroup"` and `aria-labelledby` pointing at the label. Composing yourself
 also associates: a labeled `Field` names the one control it holds, whether a composed
 `InputBase`/`SelectBase`/`TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/
-`DateTimeInputBase` that is not `inline`, or any input above (through the id), or a group
-(through `aria-labelledby`). Either way, an `aria-label` or `aria-labelledby` you give a
-group wins over the label. A `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
-each is named by its own children, so put the text there. The association is skipped for
+`DateTimeInputBase` that is not `inline`, or any input above (through the id), or a group,
+a composed `DateRangeInputBase` included, `inline` or not (through `aria-labelledby`).
+Either way, an `aria-label` or `aria-labelledby` you give a group wins over the label. A
+`Checkbox`, `Radio` or `Switch` takes nothing from a `Field`: each is named by its own
+children, so put the text there. The association is skipped for
 `grouped`/`hasAddons`, and a nested `Field` starts its own scope, so a
 horizontal `Field` whose body holds an inner `Field` needs `labelProps={{ htmlFor, id }}` plus
 the control's `id`. The `for` names the control, and the label's `id` is what a range `Slider`'s
