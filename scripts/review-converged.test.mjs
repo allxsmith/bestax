@@ -292,7 +292,7 @@ test('parseSummary fails closed on anything it cannot read', () => {
 // Scope
 // ---------------------------------------------------------------------------
 
-test('scopeOf keeps open same-repo deep-review PRs on main outside the loop', () => {
+test('scopeOf keeps open same-repo ai-loop and deep-review PRs on main', () => {
   const scope = (p, branch = 'main') => scopeOf(p, REPO, branch);
   assert.equal(scope(pr()), null);
   assert.equal(
@@ -309,9 +309,19 @@ test('scopeOf keeps open same-repo deep-review PRs on main outside the loop', ()
     scope(pr({ head: { sha: HEAD, repo: null } })),
     'head branch is not in this repo'
   );
-  assert.equal(scope(pr({ labels: [] })), 'no deep-review label');
-  // The bot's own PRs are judged like any other once they carry deep-review.
+  assert.equal(scope(pr({ labels: [] })), 'no ai-loop or deep-review label');
+  // The bot's own PRs are judged like any other. Its fresh review starts on
+  // ai-loop, and deep-review arrives only with a verify pass, so a fresh
+  // review with no findings leaves the PR with ai-loop alone.
+  assert.equal(scope(pr({ labels: ['ai-loop'] })), null);
   assert.equal(scope(pr({ labels: ['deep-review', 'ai-loop'] })), null);
+  // The bot's handoff and park take ai-loop and deep-review off, and the PR
+  // leaves scope, keeping whatever label it has. A label that only starts
+  // with a scope label's name is not one.
+  assert.equal(
+    scope(pr({ labels: ['ai-loop-paused', 'needs-human-review', LABEL] })),
+    'no ai-loop or deep-review label'
+  );
 });
 
 test('a PR stacked on another branch is out of scope', () => {
@@ -1625,7 +1635,7 @@ test('a dry run decides the same and writes nothing', async () => {
 test('a PR that moved or changed while it was checked is not labeled', async () => {
   for (const [now, outcome] of [
     [pr({ number: 1, head: { sha: OLD, repo: { full_name: REPO } } }), 'stale'],
-    [pr({ number: 1, labels: ['ai-loop'] }), 'stale'],
+    [pr({ number: 1, labels: [] }), 'stale'],
     [pr({ number: 1, state: 'closed' }), 'stale'],
     [pr({ number: 1, base: { ref: 'feat/base' } }), 'stale'],
     [pr({ number: 1, labels: ['deep-review', LABEL] }), 'already set'],
@@ -1719,6 +1729,81 @@ test('a PR that left scope or moved while it was checked keeps its label', async
   }
 });
 
+/**
+ * A sweep over one PR, #9, that the list shows with `seen` labels and the
+ * re-read before a write shows with `now`.
+ */
+async function sweepOne(seen, now, data) {
+  const { fetchImpl, calls } = fakeFetch(
+    withThreads({
+      ...REPO_ROUTE,
+      [`GET /repos/${REPO}/pulls?state=open&per_page=100`]: response(200, [
+        pr({ number: 9, labels: seen }),
+      ]),
+      ...prRoutes(9, data),
+      [`GET /repos/${REPO}/pulls/9`]: response(
+        200,
+        pr({ number: 9, labels: now })
+      ),
+      [`POST /repos/${REPO}/issues/9/labels`]: response(200, []),
+      [`DELETE /repos/${REPO}/issues/9/labels/${LABEL}`]: response(200, []),
+    })
+  );
+  const lines = [];
+  const code = await run({
+    argv: [`--repo=${REPO}`],
+    env: { GITHUB_TOKEN: 't' },
+    fetchImpl,
+    log: line => lines.push(line),
+  });
+  return {
+    code,
+    text: lines.join('\n'),
+    writes: writes(calls).map(c => `${c.method} ${c.path}`),
+  };
+}
+
+test('either scope label is enough to add the label', async () => {
+  // ai-loop alone is the bot PR whose fresh review found nothing. The second
+  // case is a re-read between the halves of the bot's deep-review cycle,
+  // with the label taken off and not yet put back.
+  for (const [seen, now] of [
+    [['ai-loop'], ['ai-loop']],
+    [['ai-loop', 'deep-review'], ['ai-loop']],
+    [['deep-review'], ['deep-review']],
+  ]) {
+    const result = await sweepOne(seen, now, CLEAN);
+    assert.equal(result.code, 0);
+    assert.deepEqual(
+      result.writes,
+      [`POST /repos/${REPO}/issues/9/labels`],
+      seen.join(',')
+    );
+    assert.match(result.text, /#9 converged, add label: written/);
+  }
+});
+
+test('either scope label is enough to remove the label', async () => {
+  for (const scope of ['ai-loop', 'deep-review']) {
+    const labels = [scope, LABEL];
+    const result = await sweepOne(labels, labels, {
+      ...CLEAN,
+      threads: [{ isResolved: false }],
+    });
+    assert.equal(result.code, 0);
+    assert.deepEqual(
+      result.writes,
+      [`DELETE /repos/${REPO}/issues/9/labels/${LABEL}`],
+      scope
+    );
+    assert.match(result.text, /#9 not converged: .*, remove label: written/);
+  }
+  // With neither left, as after the bot's handoff, the label stays.
+  const result = await sweepOne([LABEL], [LABEL], CLEAN);
+  assert.deepEqual(result.writes, []);
+  assert.match(result.text, /#9 skipped \(no ai-loop or deep-review label\)/);
+});
+
 test('a targeted run names an out-of-scope PR', async () => {
   const routes = sweepRoutes();
   routes[`GET /repos/${REPO}/pulls/4`] = response(
@@ -1736,7 +1821,7 @@ test('a targeted run names an out-of-scope PR', async () => {
   assert.equal(code, 0);
   assert.deepEqual(lines, [
     'review-converged: repo=allxsmith/bestax pr=4',
-    'review-converged: #4 skipped (no deep-review label)',
+    'review-converged: #4 skipped (no ai-loop or deep-review label)',
   ]);
   assert.equal(repoReads(calls), 1);
 });

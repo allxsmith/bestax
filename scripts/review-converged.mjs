@@ -6,12 +6,14 @@
  * deep review on it, and then has to work out by hand when that review has
  * settled. This answers it from live data and labels the PR, so a PR that is
  * ready for human review shows up in the PR list. The bot's own PRs are judged
- * by the same rule: the bot asks for its verify passes by cycling `deep-review`
- * and hands off when this label arrives.
+ * by the same rule, and `ai-loop` alone puts them in scope: the bot applies it
+ * to start the fresh review and cycles `deep-review` only to ask for a verify
+ * pass, so a fresh review with no findings leaves its PR without
+ * `deep-review`. The bot hands off when this label arrives.
  *
  * A PR is in scope when it is open, its head branch is in this repository, its
- * base is the default branch, and it carries `deep-review`. The base matters
- * because CI runs only on pull requests to main
+ * base is the default branch, and it carries `ai-loop` or `deep-review`. The
+ * base matters because CI runs only on pull requests to main
  * (ci.yml): a PR stacked on another branch gets no CI, and the skipped check
  * runs it does get would read as passing. An in-scope PR has converged when
  * all of these hold:
@@ -95,7 +97,8 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const LABEL = 'review-converged';
-export const SCOPE_LABEL = 'deep-review';
+/** A PR carrying any of these is in scope (scopeOf). */
+export const SCOPE_LABELS = ['ai-loop', 'deep-review'];
 export const FLAG_LABEL = 'needs-security-review';
 export const MARKER = '<!-- claude-deep-review -->';
 
@@ -343,8 +346,13 @@ export function scopeOf(pr, repo, defaultBranch) {
     return 'the default branch is unknown';
   if (pr?.base?.ref !== defaultBranch)
     return `based on ${forLog(pr?.base?.ref)}, not ${forLog(defaultBranch)}`;
-  if (!labels.includes(SCOPE_LABEL)) return `no ${SCOPE_LABEL} label`;
+  if (!hasScopeLabel(labels)) return `no ${SCOPE_LABELS.join(' or ')} label`;
   return null;
+}
+
+/** True when `labels`, a list of names, holds one of SCOPE_LABELS. */
+function hasScopeLabel(labels) {
+  return SCOPE_LABELS.some(name => labels.includes(name));
 }
 
 /**
@@ -824,11 +832,11 @@ export async function evaluate(client, repo, pr, defaultBranch) {
 /**
  * Apply a decision. The PR is read again before either write, dry run
  * included. The write is dropped as stale when the state it was decided on is
- * gone: scopeOf no longer accepts the PR (closed, a new base, `deep-review`
- * removed or `ai-loop` added), or its head moved. So a PR that left scope
- * while it was evaluated keeps its label, as every out-of-scope PR does, and a
- * later run judges a moved head. An add is also dropped when the PR now
- * carries `needs-security-review`, read by the same flagProblems the
+ * gone: scopeOf no longer accepts the PR (closed, a new base, or neither
+ * `ai-loop` nor `deep-review` left on it), or its head moved. So a PR that
+ * left scope while it was evaluated keeps its label, as every out-of-scope PR
+ * does, and a later run judges a moved head. An add is also dropped when the
+ * PR now carries `needs-security-review`, read by the same flagProblems the
  * evaluation used. A removal goes ahead then, since the flag only stops
  * convergence.
  */
@@ -889,7 +897,7 @@ export async function run({
       if (decision.skip) {
         // A sweep passes every open PR, so only name the ones that have
         // something to do with this label.
-        if (only || labels.includes(SCOPE_LABEL) || labels.includes(LABEL))
+        if (only || hasScopeLabel(labels) || labels.includes(LABEL))
           log(`${TAG} #${number} skipped (${decision.skip})`);
         continue;
       }
