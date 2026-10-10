@@ -7,7 +7,9 @@ name: Claude Implement
 #
 # KILL SWITCHES (documented in CLAUDE.md):
 #   1. Remove the `ai-loop` label from a PR  → stops the loop for that PR.
-#   2. `gh variable set AI_LOOP_ENABLED --body false` → disables the system.
+#   2. `gh variable set AI_LOOP_ENABLED --body false` → stops this workflow,
+#      claude-pr-loop.yml and the other workflows that read it. The deep
+#      review reads AI_CLAUDE_ENABLED instead.
 #   3. Cancel the in-flight run in the Actions UI.
 
 on:
