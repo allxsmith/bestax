@@ -359,7 +359,7 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     // 0.x, so the caret holds the minor: this follows the newest minor
     // bestax-bulma's material-symbols peer range admits, not the newest
     // published one, or npm refuses the install as a peer conflict.
-    packageVersion: '^0.46.0',
+    packageVersion: '^0.47.0',
     // The package's bare import puts the outlined, rounded and sharp fonts
     // into the build. Outlined is the style Icon renders by default, so it is
     // the only one imported.
