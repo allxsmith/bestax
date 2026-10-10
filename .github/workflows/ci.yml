@@ -386,7 +386,11 @@ jobs:
       # has never matched — the root lockfile is outside that cwd too.)
       #
       # A failure here stops the job before bestax-mcp and eslint-plugin
-      # release, and both release from the next push to main instead.
+      # release, and skips the restamp push at the end of the job. In a run
+      # that released bulma-ui, main is then stale as described above, so
+      # build-and-test fails gen:mcp:check on the pushes to main that follow
+      # and publish, which needs it, is skipped. Neither package releases
+      # until someone runs `pnpm gen:mcp` on main and merges the result.
       # build-and-test has already run this generator over this commit in
       # gen:mcp:check, so the released version is the only new input here.
       #
