@@ -330,7 +330,8 @@ green and every AI review thread is resolved.
 `AI_CLAUDE_ENABLED` instead, so they stay on while the loop is off). Every repository variable that steers this
 automation is tabulated in the ai-development docs guide, including which ones require an
 exact value. Everything that spends model usage is explicit opt-in —
-`AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`), `AI_LOOP_COPILOT=true` — so unset,
+`AI_LOOP_ENABLED=true`, `AI_CLAUDE_ENABLED=true` (the deep review and `@claude`),
+`AI_SCAN_MODE=on` (or `y`), `AI_LOOP_COPILOT=true` — so unset,
 empty, `off` or a typo all mean off, and deleting a variable never enables anything.
 `AI_TRIAGE_MODE` is the exception: its label path is `!= 'off'`, so unset still allows
 label-triggered triage.

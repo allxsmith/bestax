@@ -199,8 +199,9 @@ machine.
 - **Maintainer-only entry**: only collaborators with triage access or higher can start the loop
   (the workflow re-verifies the labeler's permission live), and only by labeling an issue after
   reading it.
-- **Kill switches**: removing the `ai-loop` label stops one PR; a repository variable turns
-  the whole system off.
+- **Kill switches**: removing the `ai-loop` label stops one PR. `AI_LOOP_ENABLED` turns the loop
+  off and `AI_CLAUDE_ENABLED` the deep review and `@claude` (see
+  [Repository variables](#repository-variables)).
 
 ### Repository variables
 

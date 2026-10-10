@@ -36,8 +36,9 @@ load-bearing**, not the file the change lives in:
   renaming one of those disables a control **with no workflow diff at all**, which is the exact
   hazard this section exists to name. A new `documentation` label is inert; a label a workflow
   reads is middle row. `review-converged` is written by `review-converged.yml` for the owner
-  to read. That workflow reads it back only to decide whether to add or remove it, and no
-  automation gates on it.
+  to read. That workflow reads it back only to decide whether to add or remove it. bestaxbot
+  reads it too, handing off a loop PR when it arrives, so it is middle row although no
+  workflow here gates on it.
 - **Schedules are not uniformly inert.** A `schedule:` on `ai-scan` or the stale sweep decides
   when a security control runs. A docs-build cadence does not.
 - **`dependabot.yml` ignores are not uniformly inert.** A `semver-major` ignore only declines a
