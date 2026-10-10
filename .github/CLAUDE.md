@@ -602,7 +602,8 @@ quietly misses a model-token job, or implies coverage a workflow only partly has
 no table, for the same reason a comment that overstates its mechanism is.
 
 Citing egress-block as a control is now legitimate **for the first group only**, and only for
-what it actually does: it bounds where data can go, not what a session can do with an
+what it actually does: it bounds where data can go, to the job's list plus what the agent adds
+to it ("What the agent allows beyond the list"), not what a session can do with an
 allow-listed host (see I1). Widening an allowlist remains a security change under rule 2, and
 `sign-sbom`'s list is still assembled by reading the actions rather than from a measured run.
 So are `mcp-registry`'s `publish` list, `codemod-registry`'s `validate` and `publish` lists and
@@ -612,6 +613,29 @@ The codemod-registry and skills-publish comments give the reason for each host.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
+
+#### What the agent allows beyond the list
+
+A block job can reach more than its `allowed-endpoints`. Since harden-runner v2.21.1 (agent
+v0.16.3), the agent fetches GitHub's `actions` domains from StepSecurity's API (`/github/meta`)
+at startup and allows each of them on port 443 in every block job, beside the job's own list. It
+skips the entries under `githubusercontent.com`, so a job that needs
+`objects.githubusercontent.com` or `release-assets.githubusercontent.com` still lists them. The
+rest has included `github.com`, `*.github.com` (which covers `api.github.com`), `*.githubapp.com`
+and `ghcr.io`. The code is `getGithubMetaDomains` in step-security/agent, at the version the pin
+installs.
+
+- **The list is StepSecurity's, not ours.** It can change with no diff here and no pin change.
+  A run's `Post Harden runner` log shows what it allowed, on the `fetched GitHub meta domains`
+  line, and `gh api meta --jq .domains.actions` shows the list GitHub publishes. A non-wildcard
+  entry in it that does not resolve reverts the firewall just as one of ours would, so it is the
+  other place to look when every block job fails its assertion at once.
+- **A failed fetch narrows rather than opens.** The agent logs it and carries on with the job's
+  list and its own built-in entries. So a job keeps a GitHub host it needs on its list even
+  though the agent usually adds it, and the list stays what a reviewer reads.
+- **For a GitHub host, say "not listed", never "cannot reach".** A comment may give the reason a
+  job leaves `github.com` or `api.github.com` off its list. It may not say the job cannot reach
+  it.
 
 #### Measuring an allowlist
 

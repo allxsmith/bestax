@@ -29,8 +29,10 @@ name: MCP Registry
 # here: the binary is pinned to one release and one SHA-256, the code driving
 # it comes from `main` (see the checkout step), the job's only other
 # credential is a read-only GITHUB_TOKEN for a public repository, and its
-# egress is limited to the hosts listed below. Those raise the cost; none of
-# them is a proof.
+# egress is limited to the hosts listed below plus the GitHub domains the
+# harden-runner agent adds to every block job (.github/CLAUDE.md, "What the
+# agent allows beyond the list"). Those raise the cost; none of them is a
+# proof.
 #
 # Triggers. `release: published` fires for every package's release, and the
 # job's `if` keeps only bestax-mcp@ tags. It fires at all because
@@ -131,7 +133,13 @@ jobs:
       #     the separation the header describes.
       #   objects.githubusercontent.com: the older release-asset host; the
       #     redirect no longer goes there.
-      #   api.github.com, nodejs.org: no API call and no setup-node.
+      #   nodejs.org: no setup-node.
+      #
+      # Not listed: api.github.com, as nothing calls the API. The job can
+      # still reach it: at startup the agent allows GitHub's actions domains
+      # in every block job, as StepSecurity's API lists them, and that list
+      # can change with no diff here (.github/CLAUDE.md, "What the agent
+      # allows beyond the list").
       - name: Harden runner
         timeout-minutes: 2
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
