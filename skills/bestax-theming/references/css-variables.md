@@ -299,8 +299,9 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 
 `--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close
 button, which keeps the text clear of the button. It applies with `hasDelete`, and to a `Delete`
-passed as a direct child in browsers that support `:has()`. Bulma's own `--bulma-notification-*`
-variables set the rest.
+passed as a direct child in browsers that support `:has()`. It is the padding for a default-size
+button: a `Delete` passed in with a `size` gets it plus or minus the difference between the two
+sizes. Bulma's own `--bulma-notification-*` variables set the rest.
 
 ### Numberinput
 
