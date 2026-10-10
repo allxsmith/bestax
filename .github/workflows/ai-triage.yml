@@ -126,8 +126,9 @@ name: AI Triage
 # the same contract itself rather than trusting this step's ordering.
 #
 # KILL SWITCHES (per-surface):
-#   - AI_LOOP_ENABLED=false → stops ALL Claude spend repo-wide (this workflow,
-#     the implement/PR loop, the reproduction workflow, and the security scanner).
+#   - AI_LOOP_ENABLED=false → stops this workflow, the implement/PR loop, the
+#     reproduction workflow, and the security scanner. The deep review and
+#     @claude read AI_CLAUDE_ENABLED instead.
 #   - AI_TRIAGE_MODE=off → stops THIS triage workflow only (label included).
 #   - The security scanner is a SEPARATE workflow (ai-scan.yml) with its own
 #     switches: it runs only when AI_SCAN_MODE=on (or y), AI_SCAN_DAILY_LIMIT caps its daily

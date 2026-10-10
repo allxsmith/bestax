@@ -5,15 +5,20 @@
  * A triage+ user applies `deep-review` to a same-repo PR to get the Claude
  * deep review on it, and then has to work out by hand when that review has
  * settled. This answers it from live data and labels the PR, so a PR that is
- * ready for human review shows up in the PR list. PRs labeled `ai-loop` are
- * out of scope: claude-pr-loop.yml hands those off with `needs-human-review`.
+ * ready for human review shows up in the PR list. The bestaxbot App's own PRs
+ * are judged by the same rule, and `ai-loop` alone puts them in scope: the bot
+ * applies it to start the fresh review and cycles `deep-review` only to ask
+ * for a later one, so a fresh review with no findings leaves its PR without
+ * `deep-review`. The bot hands off when this label arrives. Any other PR
+ * carrying `ai-loop` is out of scope, `deep-review` or not: claude-pr-loop.yml
+ * drives those and hands them off with `needs-human-review`.
  *
  * A PR is in scope when it is open, its head branch is in this repository, its
- * base is the default branch, it carries `deep-review`, and it does not carry
- * `ai-loop`. The base matters because CI runs only on pull requests to main
- * (ci.yml): a PR stacked on another branch gets no CI, and the skipped check
- * runs it does get would read as passing. An in-scope PR has converged when
- * all of these hold:
+ * base is the default branch, and it carries `deep-review` without `ai-loop`,
+ * or either of them on a PR the App opened (isAppPr). The base matters
+ * because CI runs only on pull requests to main (ci.yml): a PR stacked on
+ * another branch gets no CI, and the skipped check runs it does get would
+ * read as passing. An in-scope PR has converged when all of these hold:
  *
  * 1. Its newest deep-review summary (a review by the claude[bot] app that
  *    starts with the marker) is pinned to the current head commit and leaves
@@ -94,9 +99,14 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const LABEL = 'review-converged';
+/** In scope with this, unless on an `ai-loop` PR the App did not open. */
 export const SCOPE_LABEL = 'deep-review';
+/** A PR the App opened is in scope with this alone, and any other is out. */
 export const LOOP_LABEL = 'ai-loop';
 export const FLAG_LABEL = 'needs-security-review';
+
+/** The bestaxbot App's bot user, as REST and event payloads spell it. */
+export const APP_LOGIN = 'bestaxbot[bot]';
 export const MARKER = '<!-- claude-deep-review -->';
 
 /**
@@ -192,6 +202,22 @@ export function isDeepReviewAuthor(user) {
 }
 
 /**
+ * True for the bestaxbot App's bot user. Pinned by type and login for the
+ * reason isDeepReviewAuthor gives: GitHub usernames cannot contain brackets,
+ * so no account but the App can have this login, and a User claiming it is
+ * not the App. The bare `bestaxbot` is the machine User the older workflows
+ * post as, which this does not match.
+ */
+export function isBestaxbotApp(user) {
+  return user?.type === 'Bot' && user?.login === APP_LOGIN;
+}
+
+/** True when the App opened `pr`, a REST or event-payload pull request. */
+export function isAppPr(pr) {
+  return isBestaxbotApp(pr?.user);
+}
+
+/**
  * True when the app resolved a review thread. GraphQL types `resolvedBy` as a
  * User, so the app reads as the User `claude[bot]` there and the account type
  * cannot tie it to the app. The login can: GitHub usernames cannot contain
@@ -207,12 +233,14 @@ export function isDeepReviewResolver(user) {
  * latest comments, when each was posted, by whom, on which commit the thread
  * was opened, and which commit the PR head was on when the comment was posted
  * (the commit of the review GitHub files each comment under). A missing field
- * reads as a value that matches nothing.
+ * reads as a value that matches nothing. `association`, the author's
+ * association with the repository, is read by deep-review-gate.mjs only.
  */
 export function threadFacts(node) {
   const comment = c => ({
     at: Date.parse(c?.createdAt ?? ''),
     author: { login: c?.author?.login, type: c?.author?.__typename },
+    association: c?.authorAssociation,
     openedOn: c?.originalCommit?.oid,
     postedOn: c?.pullRequestReview?.commit?.oid,
   });
@@ -334,7 +362,6 @@ export function labelNames(pr) {
  * as it was instead of guessing either way.
  */
 export function scopeOf(pr, repo, defaultBranch) {
-  const labels = labelNames(pr);
   if (pr?.state !== 'open') return 'not open';
   // A fork whose repository was deleted has a null head repo, and lands here.
   const head = String(pr?.head?.repo?.full_name ?? '').toLowerCase();
@@ -343,10 +370,23 @@ export function scopeOf(pr, repo, defaultBranch) {
     return 'the default branch is unknown';
   if (pr?.base?.ref !== defaultBranch)
     return `based on ${forLog(pr?.base?.ref)}, not ${forLog(defaultBranch)}`;
-  if (!labels.includes(SCOPE_LABEL)) return `no ${SCOPE_LABEL} label`;
-  if (labels.includes(LOOP_LABEL))
-    return `${LOOP_LABEL} PR, which claude-pr-loop.yml hands off`;
+  if (!hasScopeLabel(pr))
+    return `no ${SCOPE_LABEL} label, and not an ${LOOP_LABEL} PR the App opened`;
+  if (labelNames(pr).includes(LOOP_LABEL) && !isAppPr(pr))
+    return `${LOOP_LABEL} PR the App did not open, which claude-pr-loop.yml hands off`;
   return null;
+}
+
+/**
+ * True when `pr` carries SCOPE_LABEL, or LOOP_LABEL on a PR the App opened.
+ * scopeOf adds the rest of the scope, and the run log names an out-of-scope
+ * PR that passes this.
+ */
+function hasScopeLabel(pr) {
+  const labels = labelNames(pr);
+  return (
+    labels.includes(SCOPE_LABEL) || (labels.includes(LOOP_LABEL) && isAppPr(pr))
+  );
 }
 
 /**
@@ -765,6 +805,7 @@ export const THREADS_QUERY = `query($owner: String!, $name: String!, $number: In
 fragment facts on PullRequestReviewComment {
   createdAt
   author { login __typename }
+  authorAssociation
   originalCommit { oid }
   pullRequestReview { commit { oid } }
 }`;
@@ -826,13 +867,13 @@ export async function evaluate(client, repo, pr, defaultBranch) {
 /**
  * Apply a decision. The PR is read again before either write, dry run
  * included. The write is dropped as stale when the state it was decided on is
- * gone: scopeOf no longer accepts the PR (closed, a new base, `deep-review`
- * removed or `ai-loop` added), or its head moved. So a PR that left scope
- * while it was evaluated keeps its label, as every out-of-scope PR does, and a
- * later run judges a moved head. An add is also dropped when the PR now
- * carries `needs-security-review`, read by the same flagProblems the
- * evaluation used. A removal goes ahead then, since the flag only stops
- * convergence.
+ * gone: scopeOf no longer accepts the PR (closed, a new base, no label left
+ * that puts it in scope, or `ai-loop` on a PR the App did not open), or its
+ * head moved. So a PR that left scope while it was evaluated keeps its label,
+ * as every out-of-scope PR does, and a later run judges a moved head. An add
+ * is also dropped when the PR now carries `needs-security-review`, read by the
+ * same flagProblems the evaluation used. A removal goes ahead then, since the
+ * flag only stops convergence.
  */
 async function apply(client, repo, defaultBranch, pr, decision, dryRun) {
   const now = await client.json(`/repos/${repo}/pulls/${pr.number}`);
@@ -891,7 +932,7 @@ export async function run({
       if (decision.skip) {
         // A sweep passes every open PR, so only name the ones that have
         // something to do with this label.
-        if (only || labels.includes(SCOPE_LABEL) || labels.includes(LABEL))
+        if (only || hasScopeLabel(pr) || labels.includes(LABEL))
           log(`${TAG} #${number} skipped (${decision.skip})`);
         continue;
       }

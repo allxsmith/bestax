@@ -36,8 +36,9 @@ load-bearing**, not the file the change lives in:
   renaming one of those disables a control **with no workflow diff at all**, which is the exact
   hazard this section exists to name. A new `documentation` label is inert; a label a workflow
   reads is middle row. `review-converged` is written by `review-converged.yml` for the owner
-  to read. That workflow reads it back only to decide whether to add or remove it, and no
-  automation gates on it.
+  to read. That workflow reads it back only to decide whether to add or remove it. bestaxbot
+  reads it too, handing off a loop PR when it arrives, so it is middle row although no
+  workflow here gates on it.
 - **Schedules are not uniformly inert.** A `schedule:` on `ai-scan` or the stale sweep decides
   when a security control runs. A docs-build cadence does not.
 - **`dependabot.yml` ignores are not uniformly inert.** A `semver-major` ignore only declines a
@@ -320,10 +321,17 @@ yours. It could overwrite a historical `<!-- ai-triage:dedupe -->` marker that
 the marker your workflow owns.
 
 More generally: when probing for a machine comment, match on **marker + (bestaxbot OR a
-Bot-type author)**. Never probe one specific login. bestaxbot is a machine _User_ account, not a
-Bot-type app, so a `type == 'Bot'` test alone misses it and a login test alone breaks the next
-time the identity changes. A probe that grants trust rather than finding a comment pins the
-identity instead, and `isDeepReviewAuthor` in `scripts/review-converged.mjs` says why.
+Bot-type author)**. Never probe one specific login. bestaxbot is two identities. The workflows
+here that hold `AI_LOOP_PAT` act as `bestaxbot`, a machine _User_ account, so a `type == 'Bot'`
+test alone misses it. The bestaxbot GitHub App, which opens the bot's own PRs and applies labels
+on them, acts as `bestaxbot[bot]`, a Bot-type author, so a test for the login `bestaxbot` alone
+misses that one. A login test alone also breaks the next time an identity changes. A probe that
+grants trust rather than finding a comment pins the identity instead: `isDeepReviewAuthor` in
+`scripts/review-converged.mjs` says why, and `isBestaxbotApp` beside it pins the App the same way
+for `scripts/deep-review-gate.mjs`. `auto-label-claude-prs.yml` is a deliberate exception for
+now, by a maintainer's decision: it tests the login `bestaxbot` alone, so it does not label the
+App's PRs. The App labels its own PRs `claude-assisted` when it opens them, and the daily
+backfill in `close-stale-bestaxbot-prs.yml` labels any it missed.
 
 ### 7. Fork PRs never run with secrets
 
@@ -334,14 +342,15 @@ Use plain `pull_request`, never `pull_request_target`, plus an explicit head-rep
 `contains()` matches a raw substring, so an `@mention` reproduced anywhere in a body — including
 inside a quoted block or a code fence — is enough to re-trigger a write-capable session. Require
 `sender.type == 'User'` **and** `sender.login != 'bestaxbot'`, and forbid the session from
-writing the trigger string at all.
+writing the trigger string at all. Each test keeps out one of bestaxbot's two identities (rule 6):
+the type test the App, `bestaxbot[bot]`, and the login test the machine User.
 
 ### 9. Logic worth testing does not belong in YAML
 
 Shell embedded in a workflow step cannot be unit-tested without extracting it first. Put
 non-trivial parsing in `scripts/*.mjs` with a `node --test` sibling — root `pnpm test` runs
 `node --test "scripts/*.test.mjs"` (the glob is quoted so Node expands it, not the shell).
-Three extractions exist. The two from #454: the scan-verdict parser
+Among the extractions are the two from #454: the scan-verdict parser
 (`scripts/parse-scan-verdict.mjs`, called by `ai-scan.yml`) and the publish sanitizer
 (`scripts/sanitize-repro-draft.mjs`, called by `claude-repro.yml`) — their test siblings pin
 the fail-closed matrix and the byte behavior of the shell they replaced, so edit script and
@@ -350,6 +359,10 @@ tests together. Then #457's triage renderer/publisher
 is the largest and the one to read first: it validates a model-authored payload, renders the
 comment from renderer-owned constants, and upserts it by marker. Its test sibling runs the
 real `auto-close-duplicates.mjs` consumer over rendered output, so the two cannot drift.
+`scripts/deep-review-gate.mjs` holds who may start a deep review, whether a run repeats one,
+in which mode it runs, and the cap on the bestaxbot App's runs. Its job checks out PR code
+later, so `claude-review.yml` runs it from a checkout of the default branch taken before that,
+never from the PR's copy.
 Smaller instances of the same shape remain inline (the exec-file sentinel
 checks in `ai-triage.yml`, `claude-review.yml`, and `claude-repro.yml`'s author job); when
 one of those next needs an edit, extract it and reuse `parse-scan-verdict.mjs`'s exported

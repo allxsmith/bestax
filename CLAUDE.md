@@ -249,22 +249,21 @@ green and every AI review thread is resolved.
 - **Labels:** `ai-loop` (in the loop), `needs-human-review` (converged or contested — owner
   reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
-  an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
-  marks a `deep-review` PR based on the default branch whose newest deep-review summary is
-  pinned to the head commit with nothing left open, with every review thread resolved and
-  every check green. Every deep-review finding, advisory included, is a review thread. A
+  an auto-applied `claude-assisted` provenance label. `review-converged` marks a `deep-review`
+  PR without `ai-loop`, or a PR the bestaxbot App opened with either label, based on the
+  default branch whose newest deep-review summary is pinned to the head commit with nothing
+  left open, with every review thread resolved and every check green. Every deep-review finding, advisory included, is a review thread. A
   verify pass reviews no commits, so the PR also needs a fresh deep review of the head commit
   with no findings, or a fresh review whose findings later verify passes resolved, as fixed or
   as a refutation the reviewer accepted, with the pass that resolved the last of them pinned
   to the head commit. A stacked PR gets no CI run, so it is out of scope.
-  `review-converged.yml` adds it and removes it while the PR keeps `deep-review`, not
-  `ai-loop`, and the default branch as its base. `scripts/review-converged.mjs` holds the
-  full definition, and an `ai-loop` PR never gets it.
+  `review-converged.yml` adds it and removes it while the PR stays in that scope with the
+  default branch as its base. `scripts/review-converged.mjs` holds the full definition.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
   head repository to be this one, so labelling a fork PR is a no-op: the job
-  reports skipped and no review appears. That gate also requires the loop switch to be on,
-  so a label does nothing while it is off either — see the kill switches below. `claude-review.yml` fires on
+  reports skipped and no review appears. That gate also requires `AI_CLAUDE_ENABLED` to be on,
+  so a label does nothing while it is off either (see the kill switches below). `claude-review.yml` fires on
   `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
   reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
   comment. Re-applying a label that is **already
@@ -276,13 +275,17 @@ green and every AI review thread is resolved.
   is what asks for a full review of the current code. That comment selects the MODE of a run
   the label toggle starts; it does not start one — and it **stays** selected: the run reads
   the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
-  steer exists, later toggles stay fresh for as long as it is still the newest triage+ steer
-  the run can see — which a newer steer from any triage+ author displaces, not only one from
+  steer exists, later toggles by a triage+ user stay fresh for as long as it is still the
+  newest triage+ steer the run can see — which a newer steer from any triage+ author displaces, not only one from
   the same person. A steer the run cannot read leaves it
   unfocused and in verify rather than failing, so an unexpected verify pass can mean a
   lookup that did not resolve rather than a steer that was never posted.
   Getting a verify pass back means changing the steer — editing, deleting or superseding
-  it — never a label action.
+  it — never a label action. The bestaxbot App also cycles the label on its own `ai-loop`
+  PRs, and a steer's `fresh` does not apply to its runs: its run is a verify pass while a
+  deep-review thread awaits one and a fresh review when none is open, and it does not run
+  while one is open with none awaiting, or past a daily cap on the App's runs per PR
+  (`scripts/deep-review-gate.mjs`).
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
@@ -326,11 +329,14 @@ green and every AI review thread is resolved.
   boundary and never widen casually; action SHAs stay on the repo-wide pin; anything that
   spends model usage gates on `== 'on'`).
 
-**Kill switches and variables.** Remove `ai-loop` (per PR) or set repo variable
-`AI_LOOP_ENABLED=false` (whole system). Every repository variable that steers this
-automation is tabulated in the ai-development docs guide, including which ones require an
-exact value. Everything that spends model usage is explicit opt-in —
-`AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`), `AI_LOOP_COPILOT=true` — so unset,
+**Kill switches and variables.** Remove `ai-loop` (per PR). Repo variable
+`AI_LOOP_ENABLED=false` stops the loop and every other Claude workflow here that reads it
+(triage, the scan, repro, `@bestaxbot`); `AI_CLAUDE_ENABLED=false` stops the deep review and
+`@claude`. The bestaxbot App reads neither: its switch is `BOT_ENABLED`, a variable in the
+bot's own repository. Every repository variable that steers this automation is tabulated in
+the ai-development docs guide, including which ones require an exact value. Everything that
+spends model usage is explicit opt-in — `AI_LOOP_ENABLED=true`, `AI_CLAUDE_ENABLED=true` (the
+deep review and `@claude`), `AI_SCAN_MODE=on` (or `y`), `AI_LOOP_COPILOT=true` — so unset,
 empty, `off` or a typo all mean off, and deleting a variable never enables anything.
 `AI_TRIAGE_MODE` is the exception: its label path is `!= 'off'`, so unset still allows
 label-triggered triage.

@@ -4,7 +4,8 @@ name: Bestaxbot Reply
 #   - a review SUBMITTED on a bestaxbot-authored PR (no mention needed),
 #   - a plain top-level comment on a bestaxbot-authored PR (no mention needed —
 #     a reviewer just talking on the bot's own PR is talking to the bot), or
-#   - an "@bestaxbot" mention in a comment or a review (anywhere else).
+#   - an "@bestaxbot" mention in a comment or a review (anywhere else, except
+#     on a PR the bestaxbot App opened; the job `if:` says why).
 # It can answer a question, refute a finding with reasoning, or push a small
 # in-scope code fix — all as the bestaxbot machine account.
 #
@@ -48,6 +49,12 @@ jobs:
     # the PR author is bestaxbot), or an "@bestaxbot" mention — all from someone
     # already associated as OWNER/MEMBER/COLLABORATOR. Anyone else is a silent
     # no-op that spends no usage.
+    # The mention paths skip a PR or issue the bestaxbot App opened
+    # (`bestaxbot[bot]`, rule 6 in .github/CLAUDE.md). The App drives its own
+    # PRs from its repository, and this session holds the machine User's PAT,
+    # which can push to their branches. The other two paths already require
+    # the machine User as the PR's author. The login alone, since an
+    # exclusion that matches more is the safe side.
     if: |
       github.event.sender.type == 'User' &&
       github.event.sender.login != 'bestaxbot' &&
@@ -61,12 +68,14 @@ jobs:
         (github.event_name == 'issue_comment' &&
           contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association) &&
           (
-            contains(github.event.comment.body, '@bestaxbot') ||
+            (contains(github.event.comment.body, '@bestaxbot') &&
+              github.event.issue.user.login != 'bestaxbot[bot]') ||
             (github.event.issue.pull_request != null &&
               github.event.issue.user.login == 'bestaxbot')
           )) ||
         (github.event_name == 'pull_request_review_comment' &&
           contains(github.event.comment.body, '@bestaxbot') &&
+          github.event.pull_request.user.login != 'bestaxbot[bot]' &&
           contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association))
       )
     runs-on: ubuntu-latest
