@@ -224,4 +224,118 @@ describe('useHoverOpen', () => {
     advance(1000);
     expect(onOpenChange).not.toHaveBeenCalled();
   });
+
+  describe('document listeners', () => {
+    /**
+     * Counts the capture-phase listeners of each type on `document` that are
+     * still on: those added since the spy started, less those taken off.
+     */
+    const watchDocument = () => {
+      const add = jest.spyOn(document, 'addEventListener');
+      const remove = jest.spyOn(document, 'removeEventListener');
+      const live = (type: string) =>
+        add.mock.calls.filter(([t, , capture]) => t === type && capture)
+          .length -
+        remove.mock.calls.filter(([t, , capture]) => t === type && capture)
+          .length;
+      return {
+        keydown: () => live('keydown'),
+        pointerdown: () => live('pointerdown'),
+        restore: () => {
+          add.mockRestore();
+          remove.mockRestore();
+        },
+      };
+    };
+
+    it('shares one pair for telling a key from a press across every hook, and takes it off with the last', () => {
+      const listeners = watchDocument();
+      try {
+        const first = render(<Harness />);
+        const second = render(<Harness />);
+        const third = render(<Harness />);
+        expect(listeners.keydown()).toBe(1);
+        expect(listeners.pointerdown()).toBe(1);
+
+        first.unmount();
+        second.unmount();
+        expect(listeners.keydown()).toBe(1);
+        third.unmount();
+        expect(listeners.keydown()).toBe(0);
+        expect(listeners.pointerdown()).toBe(0);
+      } finally {
+        listeners.restore();
+      }
+    });
+
+    it('listens for Escape only while open or about to open', () => {
+      const listeners = watchDocument();
+      try {
+        render(<Stateful />);
+        const idle = listeners.keydown();
+
+        pointer(trigger(), 'pointerover');
+        expect(listeners.keydown()).toBe(idle + 1);
+        pointer(trigger(), 'pointerout', document.body);
+        expect(listeners.keydown()).toBe(idle);
+
+        pointer(trigger(), 'pointerover');
+        advance(100);
+        expect(floating()).toBeInTheDocument();
+        expect(listeners.keydown()).toBe(idle + 1);
+
+        pointer(trigger(), 'pointerout', document.body);
+        advance(50);
+        expect(floating()).toBeNull();
+        expect(listeners.keydown()).toBe(idle);
+      } finally {
+        listeners.restore();
+      }
+    });
+
+    it('stops listening for Escape once it cancels an opening', () => {
+      const listeners = watchDocument();
+      try {
+        const onOpenChange = jest.fn();
+        render(<Harness onOpenChange={onOpenChange} />);
+        const idle = listeners.keydown();
+        pointer(trigger(), 'pointerover');
+        fireEvent.keyDown(trigger(), { key: 'Escape' });
+        expect(listeners.keydown()).toBe(idle);
+        advance(1000);
+        expect(onOpenChange).not.toHaveBeenCalled();
+      } finally {
+        listeners.restore();
+      }
+    });
+
+    it('stops listening when an opening its caller turns down runs out', () => {
+      const listeners = watchDocument();
+      try {
+        const onOpenChange = jest.fn();
+        render(<Harness onOpenChange={onOpenChange} />);
+        const idle = listeners.keydown();
+        pointer(trigger(), 'pointerover');
+        advance(100);
+        // A controlled caller that keeps it closed.
+        expect(onOpenChange).toHaveBeenCalledWith(true);
+        expect(floating()).toBeNull();
+        expect(listeners.keydown()).toBe(idle);
+      } finally {
+        listeners.restore();
+      }
+    });
+
+    it('takes the Escape listener off when it unmounts open', () => {
+      const listeners = watchDocument();
+      try {
+        const { unmount } = render(<Harness open />);
+        expect(listeners.keydown()).toBe(2);
+        unmount();
+        expect(listeners.keydown()).toBe(0);
+      } finally {
+        listeners.restore();
+      }
+    });
+  });
 });

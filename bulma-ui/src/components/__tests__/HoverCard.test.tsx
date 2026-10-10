@@ -8,6 +8,7 @@ import { Popover } from '../Popover';
 import { Modal } from '../Modal';
 import { Button } from '../../elements/Button';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 type PointerType = 'mouse' | 'pen' | 'touch';
 
@@ -339,6 +340,35 @@ describe('HoverCard', () => {
       expect(card()).toBeNull();
     });
 
+    it('does not hold the card open for focus a press puts on the trigger', () => {
+      render(<Profile trigger={<Button>Ada Lovelace</Button>} />);
+      const trigger = screen.getByRole('button', { name: 'Ada Lovelace' });
+      hover(trigger);
+      advance(600);
+      press(trigger);
+      trigger.focus();
+      unhover(trigger);
+      advance(300);
+      expect(card()).toBeNull();
+      expect(trigger).toHaveFocus();
+    });
+
+    it('stops holding the card when a press moves focus from it to the trigger', () => {
+      render(<Profile />);
+      key();
+      triggerLink().focus();
+      advance(600);
+      key();
+      profileLink().focus();
+      press(triggerLink());
+      triggerLink().focus();
+      advance(299);
+      expect(card()).toBeInTheDocument();
+      advance(1);
+      expect(card()).toBeNull();
+      expect(triggerLink()).toHaveFocus();
+    });
+
     it('keeps a card opened by keyboard open when a press moves focus into it', () => {
       render(<Profile />);
       key();
@@ -433,21 +463,39 @@ describe('HoverCard', () => {
       expect(card()).toBeInTheDocument();
     });
 
-    it('does not count handing focus back as keyboard focus arriving', () => {
+    it('hands back focus a press put in the card without opening it again, and a fresh hover opens it', () => {
       render(<Profile />);
       hover(triggerLink());
       advance(600);
       unhover(triggerLink(), card()!);
       press(profileLink());
       profileLink().focus();
-      // The pointer has left and the card is closing when Escape comes.
+      // The pointer has gone and focus alone holds the card when Escape comes.
       unhover(card()!);
-      advance(100);
+      advance(1000);
       fireEvent.keyDown(profileLink(), { key: 'Escape' });
       expect(card()).toBeNull();
       expect(triggerLink()).toHaveFocus();
       advance(5000);
       expect(card()).toBeNull();
+
+      hover(triggerLink());
+      advance(600);
+      expect(card()).toBeInTheDocument();
+    });
+
+    it('opens on a fresh hover after Escape, though keyboard focus is still on the trigger', () => {
+      render(<Profile />);
+      key();
+      triggerLink().focus();
+      advance(600);
+      fireEvent.keyDown(triggerLink(), { key: 'Escape' });
+      expect(card()).toBeNull();
+      expect(triggerLink()).toHaveFocus();
+
+      hover(triggerLink());
+      advance(600);
+      expect(card()).toBeInTheDocument();
     });
 
     it('cancels an opening that has not happened yet, and lets the key through', () => {
@@ -608,8 +656,39 @@ describe('HoverCard', () => {
       expect(card()).toBeNull();
       expect(screen.getByRole('textbox', { name: 'Note' })).toHaveFocus();
     });
+  });
 
-    it('hands back focus a press put in the card when the pointer leaves, without opening again', () => {
+  describe('focus in the card', () => {
+    it('stays open while a control a press focused in it has focus, after the pointer leaves', () => {
+      render(
+        <>
+          <Profile />
+          <button>Elsewhere</button>
+        </>
+      );
+      hover(triggerLink());
+      advance(600);
+      unhover(triggerLink(), card()!);
+      press(profileLink());
+      profileLink().focus();
+      unhover(card()!);
+      advance(60_000);
+      expect(card()).toBeInTheDocument();
+      expect(profileLink()).toHaveFocus();
+
+      // Focus leaving the card is what closes it, and it leaves focus where
+      // it went.
+      const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+      press(elsewhere);
+      elsewhere.focus();
+      advance(299);
+      expect(card()).toBeInTheDocument();
+      advance(1);
+      expect(card()).toBeNull();
+      expect(elsewhere).toHaveFocus();
+    });
+
+    it('closes once a press moves focus out of the card onto nothing that takes it', () => {
       render(<Profile />);
       hover(triggerLink());
       advance(600);
@@ -617,11 +696,25 @@ describe('HoverCard', () => {
       press(profileLink());
       profileLink().focus();
       unhover(card()!);
+      advance(1000);
+      press(document.body);
+      profileLink().blur();
       advance(300);
       expect(card()).toBeNull();
-      expect(triggerLink()).toHaveFocus();
-      advance(5000);
-      expect(card()).toBeNull();
+      expect(document.body).toHaveFocus();
+    });
+
+    it('holds a portaled card open for focus a press put in it', () => {
+      render(<Profile appendToBody />);
+      hover(triggerLink());
+      advance(600);
+      unhover(triggerLink());
+      hover(card()!);
+      press(profileLink());
+      profileLink().focus();
+      unhover(card()!);
+      advance(60_000);
+      expect(card()).toBeInTheDocument();
     });
   });
 
@@ -864,6 +957,7 @@ describe('HoverCard', () => {
     });
 
     it('works with a trigger that renders nothing, with nothing to hand focus back to', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const Nothing = () => null;
       render(
         <HoverCard trigger={<Nothing />} defaultOpen>
@@ -875,6 +969,87 @@ describe('HoverCard', () => {
       fireEvent.keyDown(profileLink(), { key: 'Escape' });
       expect(card()).toBeNull();
       expect(document.body).toHaveFocus();
+      // There's no trigger to judge, so there's nothing to warn about.
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('a trigger Tab cannot reach', () => {
+    afterEach(() => {
+      resetDevWarnings();
+    });
+
+    it('warns once in development, and leaves the trigger as it is', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Profile trigger={<span>Ada Lovelace</span>} />
+          <Profile trigger={<span>Grace Hopper</span>} />
+        </>
+      );
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("trigger that Tab can't reach")
+      );
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Use a link or a button')
+      );
+      const trigger = screen.getByText('Ada Lovelace');
+      expect(trigger).not.toHaveAttribute('tabindex');
+      expect(trigger).not.toHaveAttribute('role');
+    });
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a link', () => <a href="#ada">Ada Lovelace</a>],
+      ['a button', () => <Button>Ada Lovelace</Button>],
+      [
+        'an element given tabIndex={0}',
+        () => <span tabIndex={0}>Ada Lovelace</span>,
+      ],
+      [
+        'an element with a link inside',
+        () => (
+          <span>
+            <a href="#ada">Ada Lovelace</a>
+          </span>
+        ),
+      ],
+    ])('does not warn for %s', (_, trigger) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<Profile trigger={trigger()} />);
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['an element given tabIndex={-1}', () => <span tabIndex={-1}>Ada</span>],
+      ['a disabled button', () => <button disabled>Ada</button>],
+      ['a link with no href', () => <a>Ada</a>],
+    ])('warns for %s', (_, trigger) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<Profile trigger={trigger()} />);
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not count the links in an open inline card, and warns once it closes', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<Profile defaultOpen trigger={<span>Ada Lovelace</span>} />);
+      expect(warn).not.toHaveBeenCalled();
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(card()).toBeNull();
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays quiet in production', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(<Profile trigger={<span>Ada Lovelace</span>} />);
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+      expect(warn).not.toHaveBeenCalled();
     });
   });
 

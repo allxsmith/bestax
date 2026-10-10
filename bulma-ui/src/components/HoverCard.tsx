@@ -1,6 +1,7 @@
 import React, {
   cloneElement,
   useCallback,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -12,6 +13,8 @@ import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { useHoverOpen } from '../helpers/useHoverOpen';
+import { firstTabStop } from '../helpers/useFocusTrap';
+import { isDev, warnOnce } from '../helpers/devWarnings';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 
 /**
@@ -33,9 +36,12 @@ export interface HoverCardProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'children'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /**
-   * The element the card previews, such as a link or a `Button`. It has to
-   * take focus, so keyboard users can open the card too: HoverCard gives it
-   * no role and no tab stop. HoverCard adds `aria-expanded`, and
+   * The element the card previews, such as a link or a `Button`. Tab has to
+   * reach it, so keyboard users can open the card too. HoverCard gives it no
+   * role and no tab stop, since it can't know what the element is, and a
+   * development build warns when Tab can't reach it or anything inside it:
+   * use a link or a button, or give the element `tabIndex={0}`. A disabled
+   * button can't take focus either. HoverCard adds `aria-expanded`, and
    * `aria-controls` naming the card while the card is on the page, so it has
    * to be a single element that passes those to its DOM node. Its own click
    * and keys stay its own; the card doesn't toggle on them.
@@ -203,6 +209,21 @@ export const HoverCard: React.FC<HoverCardProps> = ({
     triggerRef,
     floatingRef: cardRef,
   });
+
+  // A trigger Tab can't reach leaves keyboard users no way to open the card.
+  // The links in an open inline card would pass for the trigger's, so it is
+  // checked again each time the card closes. Only in development, since
+  // finding a tab stop reads styles.
+  useEffect(() => {
+    if (!isDev() || !triggerRef.current) return;
+    if (firstTabStop(rootRef.current as HTMLSpanElement)) return;
+    warnOnce(
+      'HoverCard:unreachable-trigger',
+      "[bestax-bulma] <HoverCard> has a trigger that Tab can't reach, so " +
+        "keyboard users can't open the card. Use a link or a button as the " +
+        'trigger, or give it tabIndex={0}.'
+    );
+  }, [cardMounted, triggerRef]);
 
   const clonedTrigger = cloneElement(
     trigger as React.ReactElement<Record<string, unknown>>,
