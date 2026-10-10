@@ -250,9 +250,9 @@ green and every AI review thread is resolved.
   reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
   an auto-applied `claude-assisted` provenance label. `review-converged` marks a `deep-review`
-  PR, or an `ai-loop` PR the bestaxbot App opened, based on the default branch whose newest
-  deep-review summary is pinned to the head commit with nothing left open, with every review
-  thread resolved and every check green. Every deep-review finding, advisory included, is a review thread. A
+  PR without `ai-loop`, or a PR the bestaxbot App opened with either label, based on the
+  default branch whose newest deep-review summary is pinned to the head commit with nothing
+  left open, with every review thread resolved and every check green. Every deep-review finding, advisory included, is a review thread. A
   verify pass reviews no commits, so the PR also needs a fresh deep review of the head commit
   with no findings, or a fresh review whose findings later verify passes resolved, as fixed or
   as a refutation the reviewer accepted, with the pass that resolved the last of them pinned
@@ -283,7 +283,9 @@ green and every AI review thread is resolved.
   Getting a verify pass back means changing the steer — editing, deleting or superseding
   it — never a label action. The bestaxbot App also cycles the label on its own `ai-loop`
   PRs, and a steer's `fresh` does not apply to its runs: its run is a verify pass while a
-  deep-review thread awaits one, and a fresh review otherwise (`scripts/deep-review-gate.mjs`).
+  deep-review thread awaits one and a fresh review when none is open, and it does not run
+  while one is open with none awaiting, or past a daily cap on the App's runs per PR
+  (`scripts/deep-review-gate.mjs`).
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
