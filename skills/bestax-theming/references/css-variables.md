@@ -170,7 +170,8 @@ lone class or the `style` prop cannot outrank:
   styles with a selector that matches or exceeds the compound:
   `.button.link-button { --bulma-link-button-ghost-color: … }`.
 - **Constituent elements** — Tooltip's variables (all but `--bulma-tooltip-dashed-color`)
-  are declared on `.tooltip-content`, Popover's on its panel, `.popover-content`, and Sidebar's
+  are declared on `.tooltip-content`, Popover's on its panel, `.popover-content`, HoverCard's
+  on its card, `.hover-card-content`, and Sidebar's
   `--bulma-sidebar-overlay-background` on `.sidebar-background`. Values set via `className` or
   `style` land on the component root and are only inherited by the constituent, so they lose to
   its own declaration — target the declaring element in your CSS:
@@ -296,6 +297,16 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-dialog-icon-margin`, `--bulma-dialog-icon-size`, `--bulma-dialog-max-width`,
 `--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
+
+### HoverCard
+
+All are declared on the card, `.hover-card-content`, so a card rendered with `appendToBody` keeps
+them. See the constituent-element exception above.
+
+`--bulma-hover-card-animation-duration`, `--bulma-hover-card-background`,
+`--bulma-hover-card-border-color`, `--bulma-hover-card-color`, `--bulma-hover-card-max-width`,
+`--bulma-hover-card-min-width`, `--bulma-hover-card-offset`, `--bulma-hover-card-padding`,
+`--bulma-hover-card-radius`, `--bulma-hover-card-shadow`, `--bulma-hover-card-z-index`
 
 ### LinkButton
 

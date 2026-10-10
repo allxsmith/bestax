@@ -480,6 +480,31 @@ A click-to-open panel of interactive content anchored to its trigger, such as a 
 
 ---
 
+### HoverCard
+
+A card that previews what's behind a link or a button while the pointer rests on it or keyboard focus is on it, such as a person's avatar and team on a username. The pointer can move onto the card, Escape closes it, and touch never opens it. [View full documentation.](../../api/components/hovercard.md)
+
+```tsx live
+<HoverCard trigger={<Link href="#ada">Ada Lovelace</Link>}>
+  <Media>
+    <Media.Left>
+      <Avatar name="Ada Lovelace" size="48x48" />
+    </Media.Left>
+    <Media.Content>
+      <Title as="p" size="6">
+        Ada Lovelace
+      </Title>
+      <SubTitle as="p" size="6">
+        Analytical Engine team
+      </SubTitle>
+      <Link href="#profile">View profile</Link>
+    </Media.Content>
+  </Media>
+</HoverCard>
+```
+
+---
+
 ### Sidebar
 
 Slide-out navigation panel from left or right. Supports overlay, custom width, and keyboard navigation. [View full documentation.](../../api/components/sidebar.md)

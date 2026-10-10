@@ -73,8 +73,8 @@ Every extras partial that exists (from the library's `src/scss/**/_index.scss` â
 is **more complete** than the docs page's Option C example, which omits several):
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
-`loading`, `collapse`, `tooltip`, `popover`, `steps`, `sidebar`, `toast`, `dialog`, `carousel`,
-`tabs`, `reveal`, `avatar`, `avatars`, `badge`
+`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `steps`, `sidebar`, `toast`, `dialog`,
+`carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,

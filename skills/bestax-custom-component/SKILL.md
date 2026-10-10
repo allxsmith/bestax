@@ -67,6 +67,12 @@ A panel opened from a button (a filter form, share options, an inline edit) is `
 it rather than building one. It anchors the panel, moves focus in and back, and closes on
 Escape and outside presses.
 
+A preview that shows up on hover (a profile card on a username, a summary on a link) is
+`HoverCard`: use it rather than wiring pointer events to a `Popover`. It opens on hover and
+keyboard focus after a delay, lets the pointer move onto the card, closes on Escape, and ignores
+touch. Its `trigger` has to be a link or a button, and a trigger in running text takes
+`appendToBody`. A form never goes in one; that's `Popover`.
+
 Building something else that floats (a command palette)? Render it through the library's
 `Portal` rather than `createPortal`: it renders nothing on the server and during hydration, so
 the server and client markup match. `references/api.md` has the details.
