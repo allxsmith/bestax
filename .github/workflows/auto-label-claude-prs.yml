@@ -1,8 +1,11 @@
 name: Auto-label Claude PRs
 
 # Applies the `claude-assisted` provenance label to PRs that are AI-assisted:
-# authored by the bot account, or carrying the Claude Code attribution footer
-# in the PR body. Mirrors oven-sh/bun's auto-label-claude-prs.yml. This never
+# authored by either bestaxbot identity (the machine User `bestaxbot` or the
+# App `bestaxbot[bot]`, rule 6 in .github/CLAUDE.md), or carrying the Claude
+# Code attribution footer in the PR body. Each is matched by its exact login,
+# not by account type, which would label every app's PRs.
+# Mirrors oven-sh/bun's auto-label-claude-prs.yml. This never
 # checks out or executes PR code — it is a single labeling API call — so
 # `pull_request_target` is safe here (same rationale as on-slop.yml).
 #
@@ -29,6 +32,7 @@ jobs:
   label:
     if: |
       github.event.pull_request.user.login == 'bestaxbot' ||
+      github.event.pull_request.user.login == 'bestaxbot[bot]' ||
       contains(github.event.pull_request.body, '🤖 Generated with')
     runs-on: ubuntu-latest
     timeout-minutes: 5

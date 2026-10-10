@@ -77,8 +77,12 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+          # The bestaxbot App's PRs are left out, since the gate would only
+          # skip them (see its author check). gh spells an App author
+          # `app/<slug>` here.
           gh pr list --repo "$REPO" --state open --label ai-loop \
-            --json headRefName --jq '.[].headRefName' \
+            --json headRefName,author \
+            --jq '.[] | select(.author.login != "app/bestaxbot") | .headRefName' \
           | while read -r BRANCH; do
               case "$BRANCH" in
                 claude/*) echo "sweep: dispatching $BRANCH"

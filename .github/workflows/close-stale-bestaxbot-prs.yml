@@ -8,13 +8,15 @@ name: Close Stale Claude-Assisted PRs
 # This is the ONLY closer for these PRs: stale.yml exempts the
 # `claude-assisted` label from its generic 30/14-day sweep, so AI-assisted
 # PRs get the longer leash (they routinely sit waiting on human review).
-# The sweep is the union of author:bestaxbot and label:claude-assisted —
+# The sweep is the union of the bestaxbot authors and label:claude-assisted —
 # the label (auto-applied by auto-label-claude-prs.yml) also covers
-# human-authored PRs with Claude attribution, and the author query covers
-# bot PRs opened before the labeler existed. A first step backfills the
-# claude-assisted label onto any unlabeled bestaxbot PR so the generic
-# sweep can't close pre-labeler bot PRs at day 44: this job's 03:41 cron
-# fires before stale.yml's 04:17 sweep.
+# human-authored PRs with Claude attribution, and the author queries cover
+# bot PRs opened before the labeler existed. bestaxbot is two authors (rule 6
+# in .github/CLAUDE.md): the machine User `bestaxbot`, and the App
+# `bestaxbot[bot]`, which gh's --author spells `app/bestaxbot`. A first step
+# backfills the claude-assisted label onto any unlabeled bestaxbot PR so the
+# generic sweep can't close pre-labeler bot PRs at day 44: this job's 03:41
+# cron fires before stale.yml's 04:17 sweep.
 #
 # PRs labeled `neverstale` are exempt from this closer too — the label means
 # "exempt from stale automation", and that covers the 90-day sweep as well
@@ -61,9 +63,14 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          gh pr list --repo "$REPO" --author bestaxbot --state open \
-            --limit 1000 --json number,labels \
-          | jq -r '.[] | select(([.labels[].name] | index("claude-assisted")) | not) | .number' \
+          # Both bestaxbot authors (see the header), merged by jq -s.
+          {
+            gh pr list --repo "$REPO" --author bestaxbot --state open \
+              --limit 1000 --json number,labels
+            gh pr list --repo "$REPO" --author app/bestaxbot --state open \
+              --limit 1000 --json number,labels
+          } \
+          | jq -rs 'add | unique_by(.number) | .[] | select(([.labels[].name] | index("claude-assisted")) | not) | .number' \
           | while read -r PR; do
               echo "Labeling PR #$PR claude-assisted"
               gh api -X POST "repos/$REPO/issues/$PR/labels" \
@@ -79,11 +86,13 @@ jobs:
           CUTOFF=$(date -u -d '90 days ago' +%Y-%m-%dT%H:%M:%SZ)
           echo "Closing Claude-assisted PRs not updated since $CUTOFF"
 
-          # Union of the two selectors, deduped by PR number. A label with
+          # Union of the selectors, deduped by PR number. A label with
           # no matches (or that doesn't exist yet) yields an empty list from
           # `gh pr list`, not an error. <= makes the 90-day cutoff inclusive.
           {
             gh pr list --repo "$REPO" --author bestaxbot --state open \
+              --limit 1000 --json number,updatedAt,labels
+            gh pr list --repo "$REPO" --author app/bestaxbot --state open \
               --limit 1000 --json number,updatedAt,labels
             gh pr list --repo "$REPO" --label claude-assisted --state open \
               --limit 1000 --json number,updatedAt,labels
