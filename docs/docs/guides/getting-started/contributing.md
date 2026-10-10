@@ -182,9 +182,10 @@ for the full details.
 
 ## AI-assisted development & review
 
-Every PR gets an automatic **CodeRabbit** review (address or refute its comments; it re-reviews
-on each push), and a **Claude deep review** posts as `claude[bot]` on bestaxbot's PRs once CI is
-green and on any same-repo PR a maintainer labels `deep-review`. Maintainers can invoke the
+A PR targeting `main` gets an automatic **CodeRabbit** review once it is out of draft (address
+or refute its comments; it re-reviews on each push), and a **Claude deep review** posts as
+`claude[bot]` on bestaxbot's PRs once CI is green and on any same-repo PR a maintainer labels
+`deep-review`. Maintainers can invoke the
 **`@claude`** assistant (maintainer-only, since it spends the maintainer's Claude usage). Issues
 labeled `claude-fix` are implemented by **bestaxbot**, a GitHub App maintained outside this
 repository: it opens a PR from a `claude/` branch, answers every review thread on it, and hands

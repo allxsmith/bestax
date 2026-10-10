@@ -242,9 +242,9 @@ them by hand. Third-party entries copy facts from this repo, and no check here c
 
 ## AI review and bestaxbot
 
-Every PR gets a CodeRabbit review. A Claude deep review, run by this repository's own
-`claude-review.yml` and posting as `claude[bot]`, runs on bestaxbot's PRs once CI is green
-and on any same-repo PR a triage+ user labels `deep-review`, never on a fork. `@claude`
+A Claude deep review, run by this repository's own `claude-review.yml` and posting as
+`claude[bot]`, runs on bestaxbot's PRs once CI is green and on any same-repo PR a triage+
+user labels `deep-review`, never on a fork. `@claude`
 mentions (`claude.yml`) are maintainer-only. Both read the `AI_CLAUDE_ENABLED` repository
 variable: exactly `true` turns them on; anything else, unset included, is off. Copilot may
 review too. `.github/CLAUDE.md` is the security contract for those workflows.
@@ -307,6 +307,8 @@ conclusion, and merge `main` into the branch after any edit to that file.
 branches and its App holds no permission to change workflows, so a PR touching `.github/**`
 or the jest, commitlint, release or pnpm-workspace configs is a human's to write. After a
 bounded number of rounds the bot parks a PR rather than thrashing. Remove `ai-loop` to stop
-one PR; the maintainers can stop the bot entirely. The bot's code being private is defence
-in depth, not a control: every gate is enforced by GitHub against the App's identity and
-holds with the code public or not.
+one PR; the maintainers can stop the bot entirely. This repository still carries its own
+copies of the workflows the bot took over, each behind a repository variable, and the
+ai-development guide's Repository Variables table lists them with their unset defaults. The
+bot's code being private is defence in depth, not a control: every gate is enforced by GitHub
+against the App's identity and holds with the code public or not.

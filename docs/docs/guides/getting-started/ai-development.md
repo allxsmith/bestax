@@ -6,8 +6,8 @@ sidebar_position: 11
 
 # AI-Assisted Development
 
-bestax uses AI in two ways. Every pull request gets **AI review**: CodeRabbit, plus a deep
-review that this repository's own workflow runs and that posts as `claude[bot]`. And a
+bestax uses AI in two ways. Pull requests get **AI review**: CodeRabbit, plus a deep review
+that this repository's own workflow runs and that posts as `claude[bot]`. And a
 maintainer-steered bot, **bestaxbot**, implements approved issues. bestaxbot is a GitHub App
 maintained outside this repository. Everything it does here is labelled, a human reviews and
 merges everything, and the bot never merges.
@@ -151,11 +151,30 @@ silent handoff always means there was nothing to show, never that the screenshot
 - **It parks rather than thrashes.** After a bounded number of fix rounds on a PR it stops,
   labels the PR `ai-loop-paused`, and says why.
 - **Kill switches.** Remove `ai-loop` to stop the bot on one PR. The maintainers can stop the
-  bot entirely.
-- **One public switch.** The deep review and `@claude` run from this repository's own
-  workflows and read the `AI_CLAUDE_ENABLED` repository variable: exactly `true` turns them
-  on, and anything else, unset included, is off. Nothing else about the automation is a
-  setting in this repository.
+  bot entirely, and the repository variables below switch off the AI workflows that run in this
+  repository.
+
+### Repository Variables
+
+The deep review and `@claude` run from this repository's own workflows. This repository also
+still carries its own copies of the workflows for the security screen, triage, implementing
+`claude-fix` issues and working their reviews, repro drafts, and the `@bestaxbot` reply, from
+before the bot took that work over. Each reads a repository variable (Settings, then Secrets
+and variables, then Actions, then Variables), so an operator can stop any of them, or turn a
+copy back on, without touching the bot. Anything that spends model usage needs an exact value
+to run, so unset, empty, `off`, and a typo all mean off. `AI_TRIAGE_MODE` is the exception, as
+its row says.
+
+| Variable                | Unset means     | Values                    | Controls                                                                                                                                                                                                        |
+| ----------------------- | --------------- | ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AI_CLAUDE_ENABLED`     | off             | exactly `true`            | The Claude deep review (`claude-review.yml`) and `@claude` (`claude.yml`)                                                                                                                                       |
+| `AI_LOOP_ENABLED`       | off             | exactly `true`            | This repository's copies of the screen, triage, `claude-fix`, repro, and `@bestaxbot` workflows. The screen and triage each also need their own variable below                                                  |
+| `AI_SCAN_MODE`          | off             | `on` or `y`               | This repository's copy of the security screen (`ai-scan.yml`)                                                                                                                                                   |
+| `AI_SCAN_DAILY_LIMIT`   | `20`            | an integer                | Automatic scans per UTC day                                                                                                                                                                                     |
+| `AI_TRIAGE_MODE`        | label runs only | `auto`, `label`, or `off` | This repository's copy of triage (`ai-triage.yml`). `label` runs it only on the `ai-triage` label, `auto` also on new issues and PRs as they open, and `off` not at all                                         |
+| `AI_TRIAGE_DAILY_LIMIT` | `10`            | an integer                | Automatic triage runs per UTC day. Label runs and items from triage+ authors are exempt                                                                                                                         |
+| `AI_TRIAGE_AUTOCLOSE`   | off             | `on` or `dry-run`         | Closing a flagged duplicate once its objection window passes (`auto-close-duplicates.yml`); `dry-run` logs what it would close and closes nothing. That workflow runs no model, so it reads this variable alone |
+| `AI_LOOP_COPILOT`       | off             | exactly `true`            | Whether this repository's copy of the `claude-fix` workflow asks Copilot to review the PRs it opens                                                                                                             |
 
 ## Where the Bot Lives, and Reporting It
 

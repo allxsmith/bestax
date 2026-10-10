@@ -138,7 +138,8 @@ Measures active in this repository and its release pipeline:
   `contents`, `issues` and `pull-requests` write, scoped to this repository
   alone. The token expires after an hour and is minted only after the install
   and build steps have run, so repo-owned build code can never reach it.
-- **Layered automated review.** Every PR is reviewed by CodeRabbit and by an
+- **Layered automated review.** Pull requests are reviewed by CodeRabbit, and
+  the bot's pull requests and any a maintainer labels `deep-review` also by an
   independent Claude deep review that this repository's own workflow runs and
   that posts as `claude[bot]`; `main` then requires green CI, an approving
   review, and a human merge. The bot that writes AI-authored changes cannot
@@ -154,6 +155,14 @@ Measures active in this repository and its release pipeline:
   published, only the label, so a flag cannot be used as an oracle for tuning
   an evasion. A clean result covers the text as it stood when the item opened,
   not edits made afterwards, and third-party reviewers are not gated by it.
+  The label gates from the moment it lands, not from the moment the item
+  opens: `@claude` in the body of a new issue can be decided before the label
+  exists, and only an owner, member, or collaborator can start it that way,
+  which bounds that window. This repository keeps its own copy of the screen,
+  `.github/workflows/ai-scan.yml`, behind the `AI_SCAN_MODE` repository
+  variable. Switched on, it does the same job in a read-only session that
+  holds no write tools, no PAT, and no write-scoped token, and it applies the
+  label from a separate job the session never runs in.
 - **The bot.** bestaxbot is a GitHub App maintained outside this repository.
   Here it writes only `claude/` branches, comments, and labels. Its App holds
   no permission to change workflows, a repository ruleset confines its branches
