@@ -558,8 +558,10 @@ declaration always beats an inherited one.
 
 - **Global variables reach everything under the Theme.** Bulma declares the scheme, color and
   shadow variables above, and the typography, radius, spacing and timing tokens (such as
-  `--bulma-family-primary`, `--bulma-radius` and `--bulma-block-spacing`), on `:root`. Set them
-  on a `Theme`, or on any ancestor.
+  `--bulma-family-primary` and `--bulma-radius`), on `:root`. Set them on a `Theme`, or on any
+  ancestor. Some of them Bulma also declares again on one component, which keeps its own value
+  while everything else takes the Theme's. That component's API page lists the variable as
+  declared on it.
 - **Component variables have to be set on the component.** Where Bulma declares a variable on
   the component's own element, as it does `--bulma-card-radius`, `--bulma-tag-h` and
   `--bulma-delete-dimensions`, a value a `Theme` sets never reaches it. Those keys are still

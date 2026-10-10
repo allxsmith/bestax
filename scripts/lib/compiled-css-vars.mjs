@@ -163,8 +163,14 @@ export function variableHomes(css) {
  * and an unmodified element inherits whatever its ancestors set. No when the
  * plain component declares its own value, which beats anything inherited.
  *
- * A host declaration wins the tie: `--bulma-block-spacing` is on `:root` and
- * on `.field`, and setting it above reaches every block except a field.
+ * A host declaration wins the tie, and that is the known edge of this rule.
+ * Bulma declares some variables on `:root` and again on one plain component,
+ * so a value set above reaches every other element while that component
+ * keeps its own. Counting them as reaching is the smaller error: calling
+ * them component-scoped would make `Theme` warn that a value which works
+ * almost everywhere does nothing. The component that keeps its own value
+ * lists the variable on its API page as declared there, which is where a
+ * reader looking at that component will find it.
  */
 export function reachesFromAncestor(home) {
   return !home || home.onHost || !home.onPlain;

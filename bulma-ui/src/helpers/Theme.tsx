@@ -909,6 +909,10 @@ export interface ThemeProps extends Omit<
    * do nothing here, and warn in development. Set them on the component
    * itself, with `className` or `style`, or through Sass. Each component's
    * API page says where Bulma declares its variables.
+   *
+   * Some global variables Bulma also declares again on one component, which
+   * keeps its own value while everything else takes the Theme's. Those do not
+   * warn, because the value still reaches the rest of the page.
    */
   bulmaVars?: BulmaVars;
   /**
