@@ -42,16 +42,20 @@ bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is whi
 
 The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
 markers, a source-control device no reader of the site needs. `build` then chains
-`scripts/check-generated-markers.mjs`, which checks that none got through without parsing any
-markdown: every built `.md` under `build/`, the dev.to syndication copies of blog posts included,
-plus `llms.txt` and `llms-full.txt`, must contain the keyword `bestax:generated` zero times, which
-catches a marker however its `<` or line ending is written. A docs page or blog post that wants to
-show marker syntax would fail this check, so it shows the syntax without the keyword, or changes
-the check in the same PR. The step also fails when `llms.txt` or `llms-full.txt` is missing, when
-a file it checks is empty or only whitespace, and when `build/docs` holds no `.md` (no twins at
-all), and it reports every such problem before failing. Whether the LLM output is complete is not
-this check's job. It is a build step rather than a Docusaurus plugin because `postBuild` hooks
-run under `Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it.
+`scripts/check-generated-markers.mjs`, which checks that none got through without parsing it:
+every built `.md` under `build/`, the dev.to syndication copies of blog posts included, plus
+`llms.txt` and `llms-full.txt`, must contain the keyword `bestax:generated` zero times, which
+catches a marker however its `<` or line ending is written. So a docs page fails if it names the
+keyword in code or in prose, which the plugin keeps as written, and a post syndicated to dev.to
+fails if it names it anywhere, since that copy keeps the post's comments too. A marker comment
+outside code on a docs page is the plugin's to drop, and a post that is not syndicated is not in
+`build/` as markdown at all. A page or post that wants to show marker syntax shows it without the
+keyword, or changes the check in the same PR. The step also fails when `llms.txt` or
+`llms-full.txt` is missing, when a file it checks is empty, only whitespace or unreadable, and
+when `build/docs` holds no twin (a `.md` that is not a copy of one in `static/`), and it reports
+every such problem before failing. Whether the LLM output is complete is not this check's job. It
+is a build step rather than a Docusaurus plugin because `postBuild` hooks run under `Promise.all`,
+so a plugin declared after `docusaurus-plugin-llms` still races it.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs

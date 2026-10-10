@@ -8,20 +8,25 @@
  * will overwrite. Neither audience reads the built output, and this site's
  * LLM surface is first-class (see docs/CLAUDE.md). docusaurus-plugin-llms
  * drops HTML comments outside code, the markers with them, and this step
- * checks that none got through, without reading the markdown: every built
- * `.md` under build/, the dev.to syndication copies of blog posts included,
- * plus llms.txt and llms-full.txt, must contain the keyword
- * `bestax:generated` zero times. Every marker carries it however its `<` or
- * its line ending is written. It changes no file.
+ * checks that none got through, without parsing it: every built `.md` under
+ * build/, the dev.to syndication copies of blog posts included, plus
+ * llms.txt and llms-full.txt, must contain the keyword `bestax:generated`
+ * zero times. Every marker carries it however its `<` or its line ending is
+ * written. It changes no file.
  *
- * A docs page or blog post that wants to show marker syntax would fail this
- * check, so it shows the syntax without the keyword, or changes this check in
- * the same PR.
+ * So a docs page fails if it names the keyword in code or in prose, which the
+ * plugin keeps as written, and a post syndicated to dev.to fails if it names
+ * it anywhere, since that copy keeps the post's comments too. A marker
+ * comment outside code on a docs page is the plugin's to drop, and a post
+ * that is not syndicated is not in build/ as markdown at all. A page or post
+ * that wants to show marker syntax shows it without the keyword, or changes
+ * this check in the same PR.
  *
  * The step also fails when llms.txt or llms-full.txt is missing, when a file
- * it checks is empty or only whitespace, and when build/docs holds no `.md`,
- * the sign that the plugin wrote no twins. It reports every problem it finds
- * before it fails. Whether the LLM output is complete is not this check's job.
+ * it checks is empty, only whitespace or unreadable, and when build/docs
+ * holds no twin, a `.md` that is not a copy of one in static/. It reports
+ * every problem it finds before it fails. Whether the LLM output is complete
+ * is not this check's job.
  *
  * Why a build STEP and not a Docusaurus plugin: `postBuild` hooks run under
  * `Promise.all` (docusaurus/core buildLocale.js), so declaring a plugin after
@@ -60,34 +65,51 @@ export async function checkBuild(docs = DOCS, io = console) {
 
   const problems = [];
   const pages = filesUnder(outDir, /\.md$/);
-  if (!pages.some(file => file.startsWith(join(outDir, 'docs', sep)))) {
+  // Docusaurus copies static/ into build/ as is, so a .md there is no twin.
+  const isTwin = file =>
+    file.startsWith(join(outDir, 'docs', sep)) &&
+    !existsSync(join(docs, 'static', relative(outDir, file)));
+  if (!pages.some(isTwin)) {
     problems.push(
-      'build/docs holds no .md, so docusaurus-plugin-llms wrote no twins, ' +
-        'or this step ran before it.'
+      'build/docs holds no twin, a .md that is not a copy of one in ' +
+        'static/, so docusaurus-plugin-llms wrote none, or this step ran ' +
+        'before it.'
     );
   }
-  const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
-  for (const file of joined.filter(file => !existsSync(file))) {
-    problems.push(
-      `${relative(docs, file)} is missing, so docusaurus-plugin-llms did ` +
-        `not write it, or this step ran before it.`
-    );
+  const present = [];
+  for (const name of ['llms.txt', 'llms-full.txt']) {
+    const file = join(outDir, name);
+    if (existsSync(file)) {
+      present.push(file);
+    } else {
+      problems.push(
+        `${relative(docs, file)} is missing, so docusaurus-plugin-llms did ` +
+          `not write it, or this step ran before it.`
+      );
+    }
   }
 
-  const files = [...pages, ...joined.filter(file => existsSync(file))];
-  const texts = await Promise.all(files.map(file => readFile(file, 'utf8')));
-  files.forEach((file, i) => {
+  // One file at a time, so a growing site never holds them all open.
+  const files = [...pages, ...present];
+  for (const file of files) {
     const rel = relative(docs, file);
-    if (!texts[i].trim()) {
+    let text;
+    try {
+      text = await readFile(file, 'utf8');
+    } catch (err) {
+      problems.push(`${rel} could not be read: ${err.code ?? err.message}.`);
+      continue;
+    }
+    if (!text.trim()) {
       problems.push(`${rel} is empty, so there is nothing in it to check.`);
-    } else if (texts[i].includes(KEYWORD)) {
+    } else if (text.includes(KEYWORD)) {
       problems.push(
         `${rel} contains ${KEYWORD}, so the keyword reached built output: ` +
           `a marker got through, or a page shows marker syntax with the ` +
           `keyword in it.`
       );
     }
-  });
+  }
   if (problems.length) {
     for (const problem of problems) {
       io.error(`check-generated-markers: ${problem}`);

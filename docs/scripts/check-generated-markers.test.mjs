@@ -5,7 +5,13 @@
  */
 import { after, test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import {
+  chmodSync,
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { checkBuild } from './check-generated-markers.mjs';
@@ -62,6 +68,15 @@ const empty = file =>
   `check-generated-markers: ${file} is empty, so there is nothing in it to ` +
   `check.`;
 
+const missing = file =>
+  `check-generated-markers: ${file} is missing, so docusaurus-plugin-llms ` +
+  `did not write it, or this step ran before it.`;
+
+const NO_TWINS =
+  'check-generated-markers: build/docs holds no twin, a .md that is not a ' +
+  'copy of one in static/, so docusaurus-plugin-llms wrote none, or this ' +
+  'step ran before it.';
+
 /** Asserts that `tree` fails the build with exactly `errors`, in any order. */
 async function fails(tree, errors) {
   const { code, error } = await run(site(tree));
@@ -113,21 +128,9 @@ test('the keyword in llms.txt or llms-full.txt fails the build', async () => {
 
 test('a build missing llms.txt, llms-full.txt or every twin fails', async () => {
   for (const [file, error] of [
-    [
-      'build/llms-full.txt',
-      'check-generated-markers: build/llms-full.txt is missing, so ' +
-        'docusaurus-plugin-llms did not write it, or this step ran before it.',
-    ],
-    [
-      'build/llms.txt',
-      'check-generated-markers: build/llms.txt is missing, so ' +
-        'docusaurus-plugin-llms did not write it, or this step ran before it.',
-    ],
-    [
-      'build/docs/api/card.md',
-      'check-generated-markers: build/docs holds no .md, so ' +
-        'docusaurus-plugin-llms wrote no twins, or this step ran before it.',
-    ],
+    ['build/llms-full.txt', missing('build/llms-full.txt')],
+    ['build/llms.txt', missing('build/llms.txt')],
+    ['build/docs/api/card.md', NO_TWINS],
   ]) {
     // Markdown elsewhere in build/ is no sign the twins were written.
     await fails({ [file]: null, 'build/blog/post.md': BARE }, [error]);
@@ -139,6 +142,35 @@ test('a build missing llms.txt, llms-full.txt or every twin fails', async () => 
   assert.equal(none.code, 1);
   assert.match(none.error[0], /build does not exist/);
 });
+
+test('a copy of static/ under build/docs is no twin', async () => {
+  // Docusaurus copies static/docs/notes.md to build/docs/notes.md as is.
+  await fails(
+    {
+      'build/docs/api/card.md': null,
+      'static/docs/notes.md': BARE,
+      'build/docs/notes.md': BARE,
+    },
+    [NO_TWINS]
+  );
+});
+
+test(
+  'an unreadable file is reported with the rest',
+  {
+    skip: process.getuid?.() === 0 && 'root reads any file',
+  },
+  async () => {
+    const root = site({ 'build/llms.txt': null });
+    chmodSync(join(root, 'build/llms-full.txt'), 0o000);
+    const { code, error } = await run(root);
+    assert.equal(code, 1);
+    assert.deepEqual(error.sort(), [
+      'check-generated-markers: build/llms-full.txt could not be read: EACCES.',
+      missing('build/llms.txt'),
+    ]);
+  }
+);
 
 test('an empty or whitespace-only file fails the build', async () => {
   for (const file of [
@@ -160,8 +192,7 @@ test('every problem is reported before the build fails', async () => {
       'build/docs/api/card.md': PAGE,
     },
     [
-      'check-generated-markers: build/llms.txt is missing, so ' +
-        'docusaurus-plugin-llms did not write it, or this step ran before it.',
+      missing('build/llms.txt'),
       leaked('build/docs/api/card.md'),
       empty('build/img/LICENSE.md'),
     ]
