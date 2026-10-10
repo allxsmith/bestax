@@ -53,7 +53,7 @@ name: Claude Repro
 # cannot be steered into a second issue where a payload is staged (which the security
 # scanner never inspected). References to other issue numbers are inert text.
 #
-# KILL SWITCHES: AI_LOOP_ENABLED=false (repo-wide) or remove the `claude-repro`
+# KILL SWITCHES: AI_LOOP_ENABLED=false or remove the `claude-repro`
 # label. The label is always removed at the end so the button never wedges.
 
 on:

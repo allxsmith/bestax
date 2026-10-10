@@ -123,7 +123,7 @@ name: AI Security Scan
 #
 # (GitHub Actions `==` on strings is case-insensitive, so `ON`/`Y` work too.)
 #
-# KILL SWITCHES: AI_LOOP_ENABLED=false (repo-wide) or AI_SCAN_MODE=off — or unset,
+# KILL SWITCHES: AI_LOOP_ENABLED=false or AI_SCAN_MODE=off — or unset,
 # or anything that is not on/y (this
 # scanner only). BUDGET: AI_SCAN_DAILY_LIMIT (unset ⇒ 20) auto scans per UTC day,
 # tracked by one github-actions[bot] marker comment on issue #290. Unlike the
