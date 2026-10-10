@@ -107,6 +107,10 @@ Each scaffolded app is tested with:
 8. **Tablet View** - Responsive layout at 768×1024
 9. **Mobile View** - Responsive layout at 375×667
 10. **Full Page** - Complete page screenshot
+11. **Layout and Accessibility** - Assertions with no screenshot: no sideways scroll at phone
+    width, a centered title and even card heights in every flavor, icons spaced from their
+    text, the notification's close button, landmarks and heading order, and an underlined
+    link in running text
 
 ## Visual Regression Testing
 

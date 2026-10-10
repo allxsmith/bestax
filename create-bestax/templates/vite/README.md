@@ -6,15 +6,15 @@ This template provides a minimal setup to get React working in Vite with HMR and
 
 ```bash
 pnpm install
-pnpm dev
+pnpm run dev
 ```
 
 ## Available Scripts
 
-- `pnpm dev` - Start development server
-- `pnpm build` - Build for production
-- `pnpm preview` - Preview production build
-- `pnpm lint` - Run ESLint
+- `pnpm run dev` - Start development server
+- `pnpm run build` - Build for production
+- `pnpm run preview` - Preview production build
+- `pnpm run lint` - Run ESLint
 
 ## Features
 
@@ -22,7 +22,6 @@ pnpm dev
 - 🎨 Bulma CSS framework
 - 📦 bestax-bulma component library
 - 🔧 ESLint pre-configured
-- 🎯 Font Awesome icons included
 
 ## Learn More
 

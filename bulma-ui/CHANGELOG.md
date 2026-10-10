@@ -1,3 +1,34 @@
+## [5.27.4](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.3...@allxsmith/bestax-bulma@5.27.4) (2026-10-09)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let a caller's aria-label or aria-labelledby name both range Slider thumbs ([047ff7c](https://github.com/allxsmith/bestax/commit/047ff7ca5f2988ad044e8112c6bf872beb0a5f1d)), closes [#974](https://github.com/allxsmith/bestax/issues/974)
+* **bulma-ui:** name each range Slider thumb from its label ([6b962e3](https://github.com/allxsmith/bestax/commit/6b962e3490bbc103c1b73bb432c79b7819139dd7)), closes [#981](https://github.com/allxsmith/bestax/issues/981)
+* **create-bestax:** announce the starter's notifications through a status region ([91dbfd5](https://github.com/allxsmith/bestax/commit/91dbfd5a806078b1cabee705712b3d9a95ec501b))
+* **create-bestax:** give each starter notification a status region of its own ([f1ef4df](https://github.com/allxsmith/bestax/commit/f1ef4df0798f9baaf2998e051196bf5b5efd5fb0))
+* **create-bestax:** keep focus on the counter when Reset disables itself ([733e505](https://github.com/allxsmith/bestax/commit/733e5058ef7ca29f093996720fcba0545a58481b))
+* **create-bestax:** keep the reason for the stylesheet order in every scaffolded entry file ([f4591e0](https://github.com/allxsmith/bestax/commit/f4591e0bd43ad472462fbf18422f74de2b0f64c5))
+* **create-bestax:** return focus when the starter's notification closes, and tighten guards ([67e3678](https://github.com/allxsmith/bestax/commit/67e36782d3d81dbc2e29f6cb0543ed9c116c15cf))
+* **create-bestax:** say which helper props render nothing under the no-helpers flavors ([b29985b](https://github.com/allxsmith/bestax/commit/b29985b59f8e43a4751ab79a196c22712d02f1d1))
+* **create-bestax:** stop the no-helpers CLAUDE.md offering helper props as the way out ([a96c203](https://github.com/allxsmith/bestax/commit/a96c2032ac02620c764e9626712f479e6b7b64a8))
+* **create-bestax:** stop the vite-ts build shadowing its config, and fix the starter page ([1dd964d](https://github.com/allxsmith/bestax/commit/1dd964d2527a6c2c27d89a9ac0b4f7b5b814bf7d))
+
+## [5.27.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.2...@allxsmith/bestax-bulma@5.27.3) (2026-10-09)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** mark is-empty rendered by File in its lookup row, not kept as a class ([e53ee6c](https://github.com/allxsmith/bestax/commit/e53ee6cf3a311118d5e9cfe3f82291a050f31bb8))
+* **bestax-mcp:** say that File renders is-empty beside has-name with no name ([590288c](https://github.com/allxsmith/bestax/commit/590288cbcba8829e95eb8654d6655353231f20a3))
+* **bestax-mcp:** tell the File lookup to pin an empty name with fileName="" ([188feb0](https://github.com/allxsmith/bestax/commit/188feb06659ab970b33b9f5b07b90b61a611afc4))
+* **bestax-migrate:** convert a has-name .file with no name only with is-empty ([58a73dd](https://github.com/allxsmith/bestax/commit/58a73ddfe1e4bc8b8a4e93e6d7beeb819d016246))
+* **bestax-migrate:** pin an empty File name so a pick leaves the converted markup as it was ([8bf99d5](https://github.com/allxsmith/bestax/commit/8bf99d50ff2cc98358bc28a6c02c7d20ac902ee8))
+* **bestax-migrate:** say in the File is-empty TODO that the conversion pins fileName="" ([b837d62](https://github.com/allxsmith/bestax/commit/b837d622e3b20b811aed36157f97ca15b26c8350))
+* **bestax-migrate:** say the File is-empty TODO wants the class written, not a condition ([5330608](https://github.com/allxsmith/bestax/commit/533060878042d482aba61e3a185e9d95a6770882))
+* **bulma-ui:** keep a hasName File's CTA corners rounded while there is no name ([d152cd4](https://github.com/allxsmith/bestax/commit/d152cd48dcbe7a5b4f4b7a7c14addf61e7dbb9b4))
+* **bulma-ui:** stop crediting Bulma's is-empty with a boxed File's round corners ([ebb252b](https://github.com/allxsmith/bestax/commit/ebb252b4041c01e48cb0b955f7f98b5e668c2b66))
+
 ## [5.27.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.1...@allxsmith/bestax-bulma@5.27.2) (2026-10-09)
 
 

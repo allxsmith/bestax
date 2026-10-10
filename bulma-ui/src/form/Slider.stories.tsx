@@ -783,6 +783,26 @@ export const WithLabel: Story = {
 };
 
 /**
+ * Range with label — the label starts each thumb's accessible name, so the
+ * thumbs read "Price range Minimum value" and "Price range Maximum value".
+ */
+export const RangeWithLabel: Story = {
+  render: () => <Slider range label="Price range" defaultValue={[20, 80]} />,
+};
+
+/**
+ * Range inside a labeled Field — the Field's label names both thumbs the same
+ * way the Slider's own label does.
+ */
+export const RangeInLabeledField: Story = {
+  render: () => (
+    <Field label="Price range">
+      <Slider range defaultValue={[20, 80]} />
+    </Field>
+  ),
+};
+
+/**
  * Inside Field — the outer Field turns off Slider's auto Field rendering via context.
  * Demonstrates horizontal layout composition.
  */

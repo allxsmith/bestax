@@ -1293,3 +1293,304 @@ describe('Slider label association (#368)', () => {
     expect(container.querySelector('input')).not.toHaveAttribute('id');
   });
 });
+
+describe('range Slider thumb names (#981)', () => {
+  const thumbs = (container: HTMLElement) => ({
+    low: container.querySelector('.slider-input-low') as HTMLElement,
+    high: container.querySelector('.slider-input-high') as HTMLElement,
+  });
+  const labelEl = (container: HTMLElement) =>
+    container.querySelector('label.label') as HTMLElement;
+  const expectDefaultNames = () => {
+    expect(
+      screen.getByRole('slider', { name: 'Minimum value' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('slider', { name: 'Maximum value' })
+    ).toBeInTheDocument();
+  };
+
+  it.each([
+    ['its own label', () => <Slider range label="Price range" />],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price range">
+          <Slider range />
+        </Field>
+      ),
+    ],
+    [
+      'a surrounding Field label through a Control',
+      () => (
+        <Field label="Price range">
+          <Control>
+            <Slider range />
+          </Control>
+        </Field>
+      ),
+    ],
+  ])('puts %s in each thumb name', (_, element) => {
+    const { container } = render(element());
+    const { low, high } = thumbs(container);
+    expect(
+      screen.getByRole('slider', { name: 'Price range Minimum value' })
+    ).toBe(low);
+    expect(
+      screen.getByRole('slider', { name: 'Price range Maximum value' })
+    ).toBe(high);
+    expect(low).not.toHaveAttribute('aria-label');
+    expect(high).not.toHaveAttribute('aria-label');
+    // The label's `for` still lands on the low thumb, so a click on the
+    // label focuses it.
+    expect(labelEl(container)).toHaveAttribute('for', low.id);
+    expect(low.getAttribute('aria-labelledby')).toMatch(
+      new RegExp(`^${labelEl(container).id} `)
+    );
+  });
+
+  it("points the thumbs at the label's labelProps id", () => {
+    const { container } = render(
+      <Slider range label="Price" labelProps={{ id: 'price-label' }} />
+    );
+    expect(labelEl(container)).toHaveAttribute('id', 'price-label');
+    expect(thumbs(container).high.getAttribute('aria-labelledby')).toMatch(
+      /^price-label /
+    );
+    expect(
+      screen.getByRole('slider', { name: 'Price Maximum value' })
+    ).toBeInTheDocument();
+  });
+
+  it('names the thumbs from a label wired by hand to the low thumb', () => {
+    render(
+      <Slider
+        range
+        id="price"
+        label="Price"
+        labelProps={{ htmlFor: 'price' }}
+      />
+    );
+    expect(
+      screen.getByRole('slider', { name: 'Price Minimum value' })
+    ).toHaveAttribute('id', 'price');
+    expect(
+      screen.getByRole('slider', { name: 'Price Maximum value' })
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      'its own label',
+      () => <Slider range label="Price" ariaLabel={['Lo', 'Hi']} />,
+    ],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range ariaLabel={['Lo', 'Hi']} />
+        </Field>
+      ),
+    ],
+  ])('lets ariaLabel win over %s', (_, element) => {
+    const { container } = render(element());
+    const { low, high } = thumbs(container);
+    expect(screen.getByRole('slider', { name: 'Lo' })).toBe(low);
+    expect(screen.getByRole('slider', { name: 'Hi' })).toBe(high);
+    expect(low).not.toHaveAttribute('aria-labelledby');
+    expect(high).not.toHaveAttribute('aria-labelledby');
+    expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+  });
+
+  it('reads each ariaLabel entry on its own, an empty one as unset', () => {
+    render(<Slider range label="Price" ariaLabel={['', 'Ceiling']} />);
+    expect(
+      screen.getByRole('slider', { name: 'Price Minimum value' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Ceiling' })).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      'its own label',
+      () => <Slider range label="Price" aria-labelledby="budget" />,
+    ],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range aria-labelledby="budget" />
+        </Field>
+      ),
+    ],
+  ])(
+    "puts the caller's aria-labelledby in both thumb names, in place of %s",
+    (_, element) => {
+      const { container } = render(
+        <>
+          <span id="budget">Budget</span>
+          {element()}
+        </>
+      );
+      const { low, high } = thumbs(container);
+      expect(screen.getByRole('slider', { name: 'Budget Minimum value' })).toBe(
+        low
+      );
+      expect(screen.getByRole('slider', { name: 'Budget Maximum value' })).toBe(
+        high
+      );
+      expect(low.getAttribute('aria-labelledby')).toMatch(/^budget /);
+      expect(high.getAttribute('aria-labelledby')).toMatch(/^budget /);
+      expect(low).not.toHaveAttribute('aria-label');
+      expect(high).not.toHaveAttribute('aria-label');
+    }
+  );
+
+  it.each([
+    ['no label', () => <Slider range aria-label="Budget" />],
+    ['its own label', () => <Slider range label="Price" aria-label="Budget" />],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range aria-label="Budget" />
+        </Field>
+      ),
+    ],
+  ])(
+    "puts the caller's aria-label in both thumb names, with %s",
+    (_, element) => {
+      const { container } = render(element());
+      const { low, high } = thumbs(container);
+      expect(low).toHaveAttribute('aria-label', 'Budget Minimum value');
+      expect(high).toHaveAttribute('aria-label', 'Budget Maximum value');
+      expect(low).not.toHaveAttribute('aria-labelledby');
+      expect(high).not.toHaveAttribute('aria-labelledby');
+      expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+    }
+  );
+
+  it("lets the caller's aria-labelledby win over its aria-label, as in the browser", () => {
+    const { container } = render(
+      <>
+        <span id="budget">Budget</span>
+        <Slider range aria-label="Spend" aria-labelledby="budget" />
+      </>
+    );
+    const { low, high } = thumbs(container);
+    expect(screen.getByRole('slider', { name: 'Budget Minimum value' })).toBe(
+      low
+    );
+    expect(screen.getByRole('slider', { name: 'Budget Maximum value' })).toBe(
+      high
+    );
+    expect(low).not.toHaveAttribute('aria-label');
+  });
+
+  it("lets an ariaLabel entry win over the caller's name for its thumb", () => {
+    render(
+      <>
+        <span id="budget">Budget</span>
+        <Slider
+          range
+          label="Price"
+          aria-labelledby="budget"
+          ariaLabel={['', 'Ceiling']}
+        />
+        <Slider range aria-label="Spend" ariaLabel={['Floor', '']} />
+      </>
+    );
+    expect(
+      screen.getByRole('slider', { name: 'Budget Minimum value' })
+    ).toBeInTheDocument();
+    expect(screen.getByRole('slider', { name: 'Ceiling' })).not.toHaveAttribute(
+      'aria-labelledby'
+    );
+    expect(screen.getByRole('slider', { name: 'Floor' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('slider', { name: 'Spend Maximum value' })
+    ).toBeInTheDocument();
+  });
+
+  it.each([
+    [
+      'its own label',
+      () => <Slider range label="Price" aria-labelledby={undefined} />,
+    ],
+    [
+      'a surrounding Field label',
+      () => (
+        <Field label="Price">
+          <Slider range aria-labelledby={undefined} />
+        </Field>
+      ),
+    ],
+  ])(
+    "treats a caller's undefined aria-labelledby as keeping %s out of both thumb names",
+    (_, element) => {
+      const { container } = render(element());
+      const { low, high } = thumbs(container);
+      expect(screen.getByRole('slider', { name: 'Minimum value' })).toBe(low);
+      expect(screen.getByRole('slider', { name: 'Maximum value' })).toBe(high);
+      expect(low).not.toHaveAttribute('aria-labelledby');
+      expect(high).not.toHaveAttribute('aria-labelledby');
+      expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+      // The label's `for` still lands on the low thumb.
+      expect(labelEl(container)).toHaveAttribute('for', low.id);
+    }
+  );
+
+  it("counts a caller's empty aria-label as unset, leaving the label in both names", () => {
+    const { container } = render(<Slider range label="Price" aria-label="" />);
+    const { low, high } = thumbs(container);
+    expect(screen.getByRole('slider', { name: 'Price Minimum value' })).toBe(
+      low
+    );
+    expect(screen.getByRole('slider', { name: 'Price Maximum value' })).toBe(
+      high
+    );
+    expect(low).not.toHaveAttribute('aria-label');
+  });
+
+  it('keeps the default names when the label names something else', () => {
+    const { container } = render(
+      <Field label="Price">
+        <Slider range id="mine" />
+      </Field>
+    );
+    expectDefaultNames();
+    expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+  });
+
+  it('keeps the default names when its own label is opted out', () => {
+    const { container } = render(
+      <Slider range label="Price" labelProps={{ htmlFor: undefined }} />
+    );
+    expectDefaultNames();
+    expect(labelEl(container)).not.toHaveAttribute('id');
+  });
+
+  it('keeps the default names under a Field label wired by hand, which hands out no label id', () => {
+    render(
+      <Field label="Price" labelProps={{ htmlFor: 'price' }}>
+        <Slider range id="price" />
+      </Field>
+    );
+    expectDefaultNames();
+  });
+
+  it('leaves a single-thumb Slider named by its label alone', () => {
+    const { container } = render(<Slider label="Volume" />);
+    const input = screen.getByRole('slider', { name: 'Volume' });
+    expect(input).not.toHaveAttribute('aria-labelledby');
+    expect(labelEl(container)).not.toHaveAttribute('id');
+    expect(container.querySelector('span[hidden]')).not.toBeInTheDocument();
+  });
+
+  it("still lets a single-thumb Slider's ariaLabel win over its label", () => {
+    render(<Slider label="Volume" ariaLabel="Loudness" />);
+    expect(
+      screen.getByRole('slider', { name: 'Loudness' })
+    ).not.toHaveAttribute('aria-labelledby');
+  });
+});

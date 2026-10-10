@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.27.2"
+    "version": "5.27.4"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -917,7 +917,7 @@
       "import": "import { Slider } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 30,
-      "exampleCount": 11
+      "exampleCount": 13
     },
     {
       "name": "Span",

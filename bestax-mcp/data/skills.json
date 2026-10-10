@@ -30,7 +30,7 @@
       "dir": "bestax-form",
       "references": [
         { "id": "api", "file": "references/api.md", "bytes": 12364 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 6943 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 7058 }
       ],
       "examples": []
     },
@@ -43,7 +43,7 @@
         {
           "id": "icon-libraries",
           "file": "references/icon-libraries.md",
-          "bytes": 6229
+          "bytes": 6691
         }
       ],
       "examples": [
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 9431
+          "bytes": 9583
         }
       ],
       "examples": []
