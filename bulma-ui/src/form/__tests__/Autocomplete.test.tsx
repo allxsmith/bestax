@@ -804,6 +804,42 @@ describe('Autocomplete', () => {
           </Field>
         ),
       ],
+      // A grouped or addons Field generates no target id for its several
+      // controls, but a label wired by hand has picked one with its `for`.
+      [
+        "a grouped Field's label wired by hand, with an id",
+        (name, labelProps) => (
+          <Field
+            label={name}
+            grouped
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Control>
+              <Autocomplete id={`${name}-input`} data={fruits} />
+            </Control>
+            <Control>
+              <button type="button">Go</button>
+            </Control>
+          </Field>
+        ),
+      ],
+      [
+        "an addons Field's label wired by hand, with an id",
+        (name, labelProps) => (
+          <Field
+            label={name}
+            hasAddons
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Control isExpanded>
+              <Autocomplete id={`${name}-input`} data={fruits} />
+            </Control>
+            <Control>
+              <button type="button">Go</button>
+            </Control>
+          </Field>
+        ),
+      ],
     ];
 
     const openList = (combobox: HTMLElement) =>
@@ -952,6 +988,32 @@ describe('Autocomplete', () => {
               <Autocomplete id="fruit" data={fruits} />
             </Field>
           </Field.Body>
+        </Field>,
+      ],
+      [
+        "a grouped Field's label",
+        <Field
+          key="grouped"
+          label="Fruit"
+          grouped
+          labelProps={{ htmlFor: 'fruit' }}
+        >
+          <Control>
+            <Autocomplete id="fruit" data={fruits} />
+          </Control>
+        </Field>,
+      ],
+      [
+        "an addons Field's label",
+        <Field
+          key="addons"
+          label="Fruit"
+          hasAddons
+          labelProps={{ htmlFor: 'fruit' }}
+        >
+          <Control>
+            <Autocomplete id="fruit" data={fruits} />
+          </Control>
         </Field>,
       ],
     ])(

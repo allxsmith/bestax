@@ -247,7 +247,12 @@ const FieldComponent: React.FC<FieldProps> = ({
   // What the rendered label's `for` points at, generated or the caller's, and
   // the id it renders with, so a control can tell when a label wired by hand
   // names it and point at that label. An unlabeled Field passes on its
-  // parent's.
+  // parent's. Unlike `targetId`, a label wired by hand passes on its own in
+  // `grouped`/`hasAddons` Fields too, on purpose: those only stop the Field
+  // picking one control out of several, and the caller's `for` has picked
+  // one, so a range Slider or Autocomplete it names points at that label in
+  // a row as well. A group reads the label element id below instead, which
+  // stays off for a label wired by hand, since no group takes its `for`.
   const inheritedLabelFor = useFieldLabelFor();
   const labelForTarget = userWiredLabel ? labelProps.htmlFor : targetId;
   const ownLabelFor = useMemo(

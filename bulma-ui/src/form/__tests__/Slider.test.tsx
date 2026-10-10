@@ -1605,6 +1605,34 @@ describe('range Slider thumb names (#981)', () => {
         </Field>
       ),
     ],
+    // A grouped or addons Field generates no target id for its several
+    // controls, but a label wired by hand has picked one with its `for`.
+    [
+      'a grouped Field, which generates no target id',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field label="Price" grouped labelProps={labelProps}>
+          <Control>
+            <Slider range id="price" />
+          </Control>
+          <Control>
+            <button type="button">Apply</button>
+          </Control>
+        </Field>
+      ),
+    ],
+    [
+      'a Field with addons, which generates no target id',
+      (labelProps: { htmlFor: string; id?: string }) => (
+        <Field label="Price" hasAddons labelProps={labelProps}>
+          <Control>
+            <Slider range id="price" />
+          </Control>
+          <Control>
+            <button type="button">Apply</button>
+          </Control>
+        </Field>
+      ),
+    ],
   ])('names the thumbs from a label wired by hand on %s', (_, element) => {
     // With an id in its labelProps the label has something to point
     // aria-labelledby at.

@@ -73,6 +73,8 @@ export function useAutoLabelId({
   const fieldLabelId = useFieldLabelId();
   // What an outer Field's label points at, even when wired by hand, and the
   // id that label renders with, read together so the id is that label's.
+  // Set in `grouped`/`hasAddons` Fields too when the label is wired by hand,
+  // since its `for` names this one control whatever the layout (see Field).
   const fieldLabelFor = useFieldLabelFor();
   // Truthiness mirrors Field's own `if (label)` render gate.
   const active = !!label && rendersLabel;

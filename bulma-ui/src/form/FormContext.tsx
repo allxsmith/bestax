@@ -269,8 +269,10 @@ const FieldLabelForContext = createContext<FieldLabelFor>({});
  * Slider's thumbs (#981) and Autocomplete's suggestion list (#998) do. The
  * `htmlFor` is only ever compared with a control's own id, never adopted, so
  * it hands out no id for a control. The `id` is set only while that label
- * renders with it. Consumed through `useAutoLabelId`. Internal; not part of
- * the public API.
+ * renders with it. Unlike {@link useFieldLabelId}, it is set in a `grouped`
+ * or `hasAddons` Field too, so a label wired by hand names the control its
+ * `for` picks in those rows as well. Consumed through `useAutoLabelId`.
+ * Internal; not part of the public API.
  */
 export const useFieldLabelFor = () => useContext(FieldLabelForContext);
 

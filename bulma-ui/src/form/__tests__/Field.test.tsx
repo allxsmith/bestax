@@ -974,6 +974,31 @@ describe('label names the convenience controls (#939)', () => {
     expect(group).toHaveAttribute('aria-label', 'Rating');
   });
 
+  it.each([
+    ['plain', {}],
+    ['grouped', { grouped: true }],
+    ['hasAddons', { hasAddons: true }],
+  ])(
+    'names no group from a label wired by hand in a %s Field, even one with an id',
+    (_, fieldProps) => {
+      // The id a range Slider or Autocomplete would point at, which a group
+      // does not take on its own, since it takes no `for`.
+      const { container } = render(
+        <Field
+          label="Pick"
+          labelProps={{ htmlFor: 'pick', id: 'pick-label' }}
+          {...fieldProps}
+        >
+          <Rate />
+        </Field>
+      );
+      expect(labelEl(container)).toHaveAttribute('id', 'pick-label');
+      const group = screen.getByRole('radiogroup');
+      expect(group).not.toHaveAttribute('aria-labelledby');
+      expect(group).toHaveAttribute('aria-label', 'Rating');
+    }
+  );
+
   it('a nested unlabeled Field shadows the outer label for groups too', () => {
     render(
       <Field label="Outer">
