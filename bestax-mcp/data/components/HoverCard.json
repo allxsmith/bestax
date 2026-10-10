@@ -1,0 +1,216 @@
+{
+  "name": "HoverCard",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/hovercard",
+  "docsUrl": "https://bestax.io/docs/api/components/hovercard",
+  "examples": [
+    {
+      "title": "Basic HoverCard",
+      "code": "<HoverCard trigger={<Link href=\"#ada\">Ada Lovelace</Link>}>\n  <Media>\n    <Media.Left>\n      <Avatar name=\"Ada Lovelace\" size=\"48x48\" />\n    </Media.Left>\n    <Media.Content>\n      <Title as=\"p\" size=\"6\">\n        Ada Lovelace\n      </Title>\n      <SubTitle as=\"p\" size=\"6\">\n        Analytical Engine team\n      </SubTitle>\n      <Link href=\"#profile\">View profile</Link>\n    </Media.Content>\n  </Media>\n</HoverCard>"
+    },
+    {
+      "title": "In Running Text",
+      "code": "<Paragraph>\n  Reviewed by{' '}\n  <HoverCard appendToBody trigger={<Link href=\"#ada\">Ada Lovelace</Link>}>\n    <Title as=\"p\" size=\"6\">\n      Ada Lovelace\n    </Title>\n    <SubTitle as=\"p\" size=\"6\">\n      Analytical Engine team\n    </SubTitle>\n    <Link href=\"#profile\">View profile</Link>\n  </HoverCard>{' '}\n  and merged the same day.\n</Paragraph>"
+    },
+    {
+      "title": "Placement",
+      "code": "<Buttons>\n  <HoverCard position=\"bottom-left\" trigger={<Button>bottom-left</Button>}>\n    <Paragraph>Opens below, on the left edge.</Paragraph>\n  </HoverCard>\n  <HoverCard position=\"bottom-right\" trigger={<Button>bottom-right</Button>}>\n    <Paragraph>Opens below, on the right edge.</Paragraph>\n  </HoverCard>\n  <HoverCard position=\"auto\" trigger={<Button color=\"info\">auto</Button>}>\n    <Paragraph>Opens wherever it fits.</Paragraph>\n  </HoverCard>\n</Buttons>"
+    },
+    {
+      "title": "Delays",
+      "code": "<Buttons>\n  <HoverCard openDelay={0} trigger={<Button>Opens at once</Button>}>\n    <Paragraph>No wait before this one.</Paragraph>\n  </HoverCard>\n  <HoverCard\n    openDelay={1000}\n    closeDelay={600}\n    trigger={<Button>Takes its time</Button>}\n  >\n    <Paragraph>A slower card, with longer to reach it.</Paragraph>\n  </HoverCard>\n</Buttons>"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n  const [following, setFollowing] = useState(false);\n\n  return (\n    <>\n      <Paragraph mb=\"3\">\n        The card is {open ? 'open' : 'closed'}\n        {following ? ', and you follow Ada' : ''}.\n      </Paragraph>\n      <HoverCard\n        open={open}\n        onOpenChange={setOpen}\n        trigger={<Link href=\"#ada\">Ada Lovelace</Link>}\n      >\n        <Paragraph mb=\"3\">Analytical Engine team</Paragraph>\n        <Button\n          size=\"small\"\n          color=\"primary\"\n          onClick={() => {\n            setFollowing(true);\n            setOpen(false);\n          }}\n        >\n          Follow\n        </Button>\n      </HoverCard>\n    </>\n  );\n}"
+    }
+  ],
+  "accessibility": "`HoverCard` is built to\n[WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)\ncriterion, condition by condition:\n\n- **Dismissible:** <kbd>Escape</kbd> closes the card wherever focus is, without moving the pointer\n  or focus. A `Popover` or `Modal` around it stays open, because the card takes that keypress.\n  Focus that was in the card goes back to the trigger, and the card stays closed until the pointer\n  or focus leaves and comes back.\n- **Hoverable:** the pointer can move from the trigger onto the card. `closeDelay` covers the gap\n  between them, and the card takes pointer events, unlike a tooltip.\n- **Persistent:** no timer closes a card that's hovered or focused.\n\nAnd around it:\n\n- Keyboard focus on the trigger opens the card, as hover does. Focus that a press brings doesn't,\n  and neither does a touch pointer, so tapping the trigger on a phone just does what the trigger\n  does. Clicking the trigger never toggles the card.\n- The trigger gets `aria-expanded`, and `aria-controls` naming the card while the card is on the\n  page. It gets no role, no tab stop and no `aria-haspopup`, so use a trigger that takes focus on\n  its own, such as a link or a button.\n- The card is a plain element with an `id` and no role. It isn't a dialog, since focus doesn't move\n  into it, and it isn't a tooltip, since it can hold links. In place, a screen reader meets it\n  right after the trigger, Tab goes from the trigger into its links and buttons, and tabbing past\n  them closes it.\n- With `appendToBody` the card renders at the end of the page, outside the Tab order. Keyboard\n  users can open it, read it and close it, but they can't Tab into it, so whatever it links to\n  should be reachable from the page as well.\n- Opening the card moves no focus, and nothing traps it. Links and buttons belong in a card; a form\n  belongs in a `Popover`, which opens on purpose and holds focus.\n- The fade-in is turned off under `prefers-reduced-motion: reduce`.",
+  "related": ["Media", "Popover", "Portal", "Tooltip", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-hovercard--default",
+  "summary": "The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it. Nothing moves focus when the card opens, and nothing traps it. In place, the card comes right after the trigger, so Tab goes from the trigger into its links and tabbing past them closes it. The pointer can move onto the card, Escape closes it from anywhere, and touch doesn't open it, so tapping the trigger just does what the trigger does. For hints with nothing to click use `Tooltip`, and for content opened on purpose, such as a form, use `Popover`.",
+  "import": "import { HoverCard } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/HoverCard.tsx",
+  "rootClass": "hover-card",
+  "parts": [
+    {
+      "path": "HoverCard",
+      "summary": "The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it. Nothing moves focus when the card opens, and nothing traps it. In place, the card comes right after the trigger, so Tab goes from the trigger into its links and tabbing past them closes it. The pointer can move onto the card, Escape closes it from anywhere, and touch doesn't open it, so tapping the trigger just does what the trigger does. For hints with nothing to click use `Tooltip`, and for content opened on purpose, such as a form, use `Popover`.",
+      "component": null,
+      "props": [
+        {
+          "name": "trigger",
+          "type": "React.ReactElement",
+          "default": null,
+          "description": "The element the card previews, such as a link or a `Button`. It has to take focus, so keyboard users can open the card too: HoverCard gives it no role and no tab stop. HoverCard adds `aria-expanded`, and `aria-controls` naming the card while the card is on the page, so it has to be a single element that passes those to its DOM node. Its own click and keys stay its own; the card doesn't toggle on them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The card's content: a preview whose links and buttons are fine, but not a form, which belongs in a `Popover`. The card pads itself, so content goes straight in.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "open",
+          "type": "boolean",
+          "default": null,
+          "description": "Controlled open state. When set, hover, focus and Escape only report through `onOpenChange`, so an action inside the card can close it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultOpen",
+          "type": "boolean",
+          "default": "false",
+          "description": "Initial open state when uncontrolled. A card that starts open stays open until the pointer or focus has been and gone, or Escape closes it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with the state asked for: when `openDelay` or `closeDelay` runs out, and right away on Escape. Fires in both controlled and uncontrolled use.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openDelay",
+          "type": "number",
+          "default": "600",
+          "description": "How long the pointer or keyboard focus waits on the trigger before the card opens, in milliseconds.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeDelay",
+          "type": "number",
+          "default": "300",
+          "description": "How long the card stays after the pointer and focus have left the trigger and the card, in milliseconds. It is the time the pointer has to cross the gap between the trigger and the card: with `0` the card closes as the pointer leaves the trigger, before the pointer can reach it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Where the card opens against the trigger.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the card at the end of `document.body` through `Portal`, fixed to the viewport, so an ancestor's `overflow`, `transform` or stacking context can't clip it. A trigger in running text needs it too, since the card's block content can't sit inside a `<p>`. The card then shows from the commit after hydration, never in server markup, and it is out of the Tab order: keyboard users can open it, read it and close it with Escape, but can't Tab into it, so whatever it links to has to be reachable from the page as well. It is measured against the trigger when it opens and on resize and scroll, so it doesn't follow content that changes size while it is open. Theming variables set on an ancestor of the trigger don't reach it there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "contentClassName",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the card (`.hover-card-content`).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the `span` around the trigger. The card takes `contentClassName`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <span> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-hover-card-z-index",
+      "sass": "$hover-card-z-index",
+      "default": "$extras-z-index-tooltip",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-background",
+      "sass": "$hover-card-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-color",
+      "sass": "$hover-card-color",
+      "default": "var(--bulma-text)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-border-color",
+      "sass": "$hover-card-border-color",
+      "default": "var(--bulma-border-weak)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-radius",
+      "sass": "$hover-card-radius",
+      "default": "var(--bulma-radius-large)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-shadow",
+      "sass": "$hover-card-shadow",
+      "default": "var(--bulma-shadow)",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-padding",
+      "sass": "$hover-card-padding",
+      "default": "1rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-min-width",
+      "sass": "$hover-card-min-width",
+      "default": "12rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-max-width",
+      "sass": "$hover-card-max-width",
+      "default": "min(20rem, calc(100vw - 2rem))",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-offset",
+      "sass": "$hover-card-offset",
+      "default": "0.25rem",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-hover-card-animation-duration",
+      "sass": "$hover-card-animation-duration",
+      "default": "0.15s",
+      "scope": "element"
+    }
+  ]
+}

@@ -155,6 +155,9 @@ export const SCSS_SOURCES = {
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
   Grid: [{ pkg: 'bulma', path: 'sass/grid/grid.scss' }],
   Hero: [{ pkg: 'bulma', path: 'sass/layout/hero.scss' }],
+  HoverCard: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_hovercard.scss' },
+  ],
   Icon: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
   IconText: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
   Image: [],
