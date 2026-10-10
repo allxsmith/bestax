@@ -42,9 +42,10 @@ bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is whi
 
 The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
 markers, a source-control device no reader of the site needs. The rule: the keyword
-`bestax:generated` must never reach built output, so a docs page or blog post that wants to show
-marker syntax shows it without the keyword. `build` chains `scripts/check-generated-markers.mjs`
-to hold it, and that script's header says exactly what the step checks and fails on.
+`bestax:generated` must never reach the built markdown or the llms files, so a docs page or blog
+post that wants to show marker syntax shows it without the keyword. `build` chains
+`scripts/check-generated-markers.mjs` to check that, and that script's header says exactly what
+the step checks and fails on.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs

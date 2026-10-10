@@ -51,12 +51,12 @@ const DOCS = join(dirname(fileURLToPath(import.meta.url)), '..');
 const KEYWORD = 'bestax:generated';
 
 /**
- * The regular files under `dir`. A directory that cannot be read, and an
- * entry that is neither a regular file nor a directory, such as a link, go
- * to `report` with why, and the walk carries on past them. A link is not
- * followed, so the walk can never loop.
+ * The regular files under `dir` that `keep` accepts. A directory that cannot
+ * be read, and an entry that is neither a regular file nor a directory, such
+ * as a link, go to `report` with why, and the walk carries on past them. A
+ * link is not followed, so the walk can never loop.
  */
-function filesUnder(dir, report) {
+function filesUnder(dir, keep, report) {
   let entries;
   try {
     entries = readdirSync(dir, { withFileTypes: true });
@@ -66,8 +66,8 @@ function filesUnder(dir, report) {
   }
   return entries.flatMap(entry => {
     const path = join(dir, entry.name);
-    if (entry.isDirectory()) return filesUnder(path, report);
-    if (entry.isFile()) return [path];
+    if (entry.isDirectory()) return filesUnder(path, keep, report);
+    if (entry.isFile()) return keep(path) ? [path] : [];
     report(path, 'is not a regular file or directory, so it was not checked.');
     return [];
   });
@@ -90,7 +90,15 @@ export async function checkBuild(docs = DOCS, io = console) {
     reported.push(path);
     problems.push(`${relative(docs, path)} ${why}`);
   };
-  const found = filesUnder(outDir, report);
+  const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
+  const isJoined = new Set(joined);
+  const found = new Set(
+    filesUnder(
+      outDir,
+      file => file.endsWith('.md') || isJoined.has(file),
+      report
+    )
+  );
   // Whether the walk reported a problem at `path`, under it or above it, in
   // which case nothing can be said about what the plugin wrote there.
   const blocked = path =>
@@ -98,7 +106,7 @@ export async function checkBuild(docs = DOCS, io = console) {
       p => p === path || p.startsWith(path + sep) || path.startsWith(p + sep)
     );
 
-  const pages = found.filter(file => file.endsWith('.md'));
+  const pages = [...found].filter(file => !isJoined.has(file));
   const docsDir = join(outDir, 'docs');
   // Docusaurus copies static/ into build/ as is, so a .md there is no twin.
   const isTwin = file =>
@@ -111,9 +119,8 @@ export async function checkBuild(docs = DOCS, io = console) {
         'before it.'
     );
   }
-  const joined = ['llms.txt', 'llms-full.txt'].map(name => join(outDir, name));
   for (const file of joined) {
-    if (!found.includes(file) && !blocked(file)) {
+    if (!found.has(file) && !blocked(file)) {
       problems.push(
         `${relative(docs, file)} is missing, so docusaurus-plugin-llms did ` +
           `not write it, or this step ran before it.`
@@ -122,7 +129,7 @@ export async function checkBuild(docs = DOCS, io = console) {
   }
 
   // One file at a time, so a growing site never holds them all open.
-  const files = [...pages, ...joined.filter(file => found.includes(file))];
+  const files = [...pages, ...joined.filter(file => found.has(file))];
   for (const file of files) {
     const rel = relative(docs, file);
     let text;
