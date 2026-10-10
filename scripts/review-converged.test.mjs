@@ -20,6 +20,7 @@ import { test } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import {
+  APP_LOGIN,
   FLAG_LABEL,
   LABEL,
   MARKER,
@@ -33,6 +34,8 @@ import {
   decide,
   fetchThreads,
   forLog,
+  isAppPr,
+  isBestaxbotApp,
   isDeepReviewAuthor,
   isDeepReviewResolver,
   labelNames,
@@ -57,6 +60,9 @@ const HEAD = 'a'.repeat(40);
 const OLD = 'b'.repeat(40);
 const MID = 'c'.repeat(40);
 const BOT = { login: 'claude[bot]', type: 'Bot' };
+/** The bestaxbot App, and the machine User the older workflows post as. */
+const APP_USER = { login: APP_LOGIN, type: 'Bot' };
+const MACHINE_USER = { login: 'bestaxbot', type: 'User' };
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -292,7 +298,22 @@ test('parseSummary fails closed on anything it cannot read', () => {
 // Scope
 // ---------------------------------------------------------------------------
 
-test('scopeOf keeps open same-repo ai-loop and deep-review PRs on main', () => {
+test('only the Bot-type bestaxbot[bot] is the App', () => {
+  assert.equal(isBestaxbotApp(APP_USER), true);
+  // The machine User and a person cannot pass for it, and neither can the
+  // bare login GraphQL uses or a Bot with another name.
+  assert.equal(isBestaxbotApp(MACHINE_USER), false);
+  assert.equal(isBestaxbotApp({ login: APP_LOGIN, type: 'User' }), false);
+  assert.equal(isBestaxbotApp({ login: 'bestaxbot', type: 'Bot' }), false);
+  assert.equal(isBestaxbotApp(BOT), false);
+  assert.equal(isBestaxbotApp(undefined), false);
+  assert.equal(isAppPr(pr({ user: APP_USER })), true);
+  assert.equal(isAppPr(pr({ user: MACHINE_USER })), false);
+  assert.equal(isAppPr(pr()), false);
+  assert.equal(isAppPr(undefined), false);
+});
+
+test('scopeOf keeps open same-repo deep-review PRs, and the App’s ai-loop PRs, on main', () => {
   const scope = (p, branch = 'main') => scopeOf(p, REPO, branch);
   assert.equal(scope(pr()), null);
   assert.equal(
@@ -309,18 +330,32 @@ test('scopeOf keeps open same-repo ai-loop and deep-review PRs on main', () => {
     scope(pr({ head: { sha: HEAD, repo: null } })),
     'head branch is not in this repo'
   );
-  assert.equal(scope(pr({ labels: [] })), 'no ai-loop or deep-review label');
-  // The bot's own PRs are judged like any other. Its fresh review starts on
-  // ai-loop, and deep-review arrives only with a verify pass, so a fresh
+  assert.equal(
+    scope(pr({ labels: [] })),
+    'no deep-review label, and not an ai-loop PR the App opened'
+  );
+  // The App's own PRs are judged like any other. Its fresh review starts on
+  // ai-loop, and deep-review arrives only with a later cycle, so a fresh
   // review with no findings leaves the PR with ai-loop alone.
-  assert.equal(scope(pr({ labels: ['ai-loop'] })), null);
-  assert.equal(scope(pr({ labels: ['deep-review', 'ai-loop'] })), null);
-  // The bot's handoff and park take ai-loop and deep-review off, and the PR
+  const app = labels => pr({ labels, user: APP_USER });
+  assert.equal(scope(app(['ai-loop'])), null);
+  assert.equal(scope(app(['deep-review', 'ai-loop'])), null);
+  // ai-loop alone does not bring in anyone else's PR: claude-pr-loop.yml's
+  // PRs, opened by the machine User, carry it too, and that loop hands off
+  // by taking it off. deep-review still brings any PR in.
+  for (const user of [MACHINE_USER, { login: 'octocat', type: 'User' }]) {
+    assert.equal(
+      scope(pr({ labels: ['ai-loop'], user })),
+      'no deep-review label, and not an ai-loop PR the App opened'
+    );
+    assert.equal(scope(pr({ labels: ['deep-review', 'ai-loop'], user })), null);
+  }
+  // The App's handoff and park take ai-loop and deep-review off, and the PR
   // leaves scope, keeping whatever label it has. A label that only starts
   // with a scope label's name is not one.
   assert.equal(
-    scope(pr({ labels: ['ai-loop-paused', 'needs-human-review', LABEL] })),
-    'no ai-loop or deep-review label'
+    scope(app(['ai-loop-paused', 'needs-human-review', LABEL])),
+    'no deep-review label, and not an ai-loop PR the App opened'
   );
 });
 
@@ -1730,20 +1765,20 @@ test('a PR that left scope or moved while it was checked keeps its label', async
 });
 
 /**
- * A sweep over one PR, #9, that the list shows with `seen` labels and the
- * re-read before a write shows with `now`.
+ * A sweep over one PR, #9, opened by `user`, that the list shows with `seen`
+ * labels and the re-read before a write shows with `now`.
  */
-async function sweepOne(seen, now, data) {
+async function sweepOne(seen, now, data, user = APP_USER) {
   const { fetchImpl, calls } = fakeFetch(
     withThreads({
       ...REPO_ROUTE,
       [`GET /repos/${REPO}/pulls?state=open&per_page=100`]: response(200, [
-        pr({ number: 9, labels: seen }),
+        pr({ number: 9, labels: seen, user }),
       ]),
       ...prRoutes(9, data),
       [`GET /repos/${REPO}/pulls/9`]: response(
         200,
-        pr({ number: 9, labels: now })
+        pr({ number: 9, labels: now, user })
       ),
       [`POST /repos/${REPO}/issues/9/labels`]: response(200, []),
       [`DELETE /repos/${REPO}/issues/9/labels/${LABEL}`]: response(200, []),
@@ -1763,9 +1798,9 @@ async function sweepOne(seen, now, data) {
   };
 }
 
-test('either scope label is enough to add the label', async () => {
-  // ai-loop alone is the bot PR whose fresh review found nothing. The second
-  // case is a re-read between the halves of the bot's deep-review cycle,
+test('either scope label is enough to add the label on an App PR', async () => {
+  // ai-loop alone is the App PR whose fresh review found nothing. The second
+  // case is a re-read between the halves of the App's deep-review cycle,
   // with the label taken off and not yet put back.
   for (const [seen, now] of [
     [['ai-loop'], ['ai-loop']],
@@ -1783,7 +1818,7 @@ test('either scope label is enough to add the label', async () => {
   }
 });
 
-test('either scope label is enough to remove the label', async () => {
+test('either scope label is enough to remove the label on an App PR', async () => {
   for (const scope of ['ai-loop', 'deep-review']) {
     const labels = [scope, LABEL];
     const result = await sweepOne(labels, labels, {
@@ -1798,10 +1833,33 @@ test('either scope label is enough to remove the label', async () => {
     );
     assert.match(result.text, /#9 not converged: .*, remove label: written/);
   }
-  // With neither left, as after the bot's handoff, the label stays.
+  // With neither left, as after the App's handoff, the label stays.
   const result = await sweepOne([LABEL], [LABEL], CLEAN);
   assert.deepEqual(result.writes, []);
-  assert.match(result.text, /#9 skipped \(no ai-loop or deep-review label\)/);
+  assert.match(
+    result.text,
+    /#9 skipped \(no deep-review label, and not an ai-loop PR the App opened\)/
+  );
+});
+
+test('ai-loop alone leaves a PR the App did not open alone', async () => {
+  // claude-pr-loop.yml's PRs, opened by the machine User, carry ai-loop and
+  // lose it at that loop's handoff, which would strand a label put on here.
+  // deep-review still brings one in, and keeps it in through that handoff.
+  for (const data of [CLEAN, { ...CLEAN, threads: [{ isResolved: false }] }]) {
+    for (const labels of [['ai-loop'], ['ai-loop', LABEL]]) {
+      const result = await sweepOne(labels, labels, data, MACHINE_USER);
+      assert.equal(result.code, 0);
+      assert.deepEqual(result.writes, [], labels.join(','));
+    }
+  }
+  const result = await sweepOne(
+    ['ai-loop', 'deep-review'],
+    ['deep-review'],
+    CLEAN,
+    MACHINE_USER
+  );
+  assert.deepEqual(result.writes, [`POST /repos/${REPO}/issues/9/labels`]);
 });
 
 test('a targeted run names an out-of-scope PR', async () => {
@@ -1821,7 +1879,7 @@ test('a targeted run names an out-of-scope PR', async () => {
   assert.equal(code, 0);
   assert.deepEqual(lines, [
     'review-converged: repo=allxsmith/bestax pr=4',
-    'review-converged: #4 skipped (no ai-loop or deep-review label)',
+    'review-converged: #4 skipped (no deep-review label, and not an ai-loop PR the App opened)',
   ]);
   assert.equal(repoReads(calls), 1);
 });

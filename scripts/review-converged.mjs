@@ -5,18 +5,21 @@
  * A triage+ user applies `deep-review` to a same-repo PR to get the Claude
  * deep review on it, and then has to work out by hand when that review has
  * settled. This answers it from live data and labels the PR, so a PR that is
- * ready for human review shows up in the PR list. The bot's own PRs are judged
- * by the same rule, and `ai-loop` alone puts them in scope: the bot applies it
- * to start the fresh review and cycles `deep-review` only to ask for a verify
- * pass, so a fresh review with no findings leaves its PR without
- * `deep-review`. The bot hands off when this label arrives.
+ * ready for human review shows up in the PR list. The bestaxbot App's own PRs
+ * are judged by the same rule, and `ai-loop` alone puts them in scope: the bot
+ * applies it to start the fresh review and cycles `deep-review` only to ask
+ * for a later one, so a fresh review with no findings leaves its PR without
+ * `deep-review`. The bot hands off when this label arrives. `ai-loop` counts
+ * on the App's PRs only. claude-pr-loop.yml's PRs carry it too, and that loop
+ * hands off by taking it off, which would take a PR this label was put on out
+ * of scope and leave the label to go stale there.
  *
  * A PR is in scope when it is open, its head branch is in this repository, its
- * base is the default branch, and it carries `ai-loop` or `deep-review`. The
- * base matters because CI runs only on pull requests to main
- * (ci.yml): a PR stacked on another branch gets no CI, and the skipped check
- * runs it does get would read as passing. An in-scope PR has converged when
- * all of these hold:
+ * base is the default branch, and it carries `deep-review`, or `ai-loop` on a
+ * PR the App opened (isAppPr). The base matters because CI runs only on pull
+ * requests to main (ci.yml): a PR stacked on another branch gets no CI, and
+ * the skipped check runs it does get would read as passing. An in-scope PR
+ * has converged when all of these hold:
  *
  * 1. Its newest deep-review summary (a review by the claude[bot] app that
  *    starts with the marker) is pinned to the current head commit and leaves
@@ -97,9 +100,14 @@ import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
 export const LABEL = 'review-converged';
-/** A PR carrying any of these is in scope (scopeOf). */
-export const SCOPE_LABELS = ['ai-loop', 'deep-review'];
+/** A PR carrying this is in scope (scopeOf). */
+export const SCOPE_LABEL = 'deep-review';
+/** A PR the App opened is in scope with this alone (scopeOf). */
+export const LOOP_LABEL = 'ai-loop';
 export const FLAG_LABEL = 'needs-security-review';
+
+/** The bestaxbot App's bot user, as REST and event payloads spell it. */
+export const APP_LOGIN = 'bestaxbot[bot]';
 export const MARKER = '<!-- claude-deep-review -->';
 
 /**
@@ -192,6 +200,22 @@ export function parseArgs(argv) {
  */
 export function isDeepReviewAuthor(user) {
   return user?.type === 'Bot' && /^claude(\[bot\])?$/.test(user.login ?? '');
+}
+
+/**
+ * True for the bestaxbot App's bot user. Pinned by type and login for the
+ * reason isDeepReviewAuthor gives: GitHub usernames cannot contain brackets,
+ * so no account but the App can have this login, and a User claiming it is
+ * not the App. The bare `bestaxbot` is the machine User the older workflows
+ * post as, which this does not match.
+ */
+export function isBestaxbotApp(user) {
+  return user?.type === 'Bot' && user?.login === APP_LOGIN;
+}
+
+/** True when the App opened `pr`, a REST or event-payload pull request. */
+export function isAppPr(pr) {
+  return isBestaxbotApp(pr?.user);
 }
 
 /**
@@ -337,7 +361,6 @@ export function labelNames(pr) {
  * as it was instead of guessing either way.
  */
 export function scopeOf(pr, repo, defaultBranch) {
-  const labels = labelNames(pr);
   if (pr?.state !== 'open') return 'not open';
   // A fork whose repository was deleted has a null head repo, and lands here.
   const head = String(pr?.head?.repo?.full_name ?? '').toLowerCase();
@@ -346,13 +369,20 @@ export function scopeOf(pr, repo, defaultBranch) {
     return 'the default branch is unknown';
   if (pr?.base?.ref !== defaultBranch)
     return `based on ${forLog(pr?.base?.ref)}, not ${forLog(defaultBranch)}`;
-  if (!hasScopeLabel(labels)) return `no ${SCOPE_LABELS.join(' or ')} label`;
+  if (!hasScopeLabel(pr))
+    return `no ${SCOPE_LABEL} label, and not an ${LOOP_LABEL} PR the App opened`;
   return null;
 }
 
-/** True when `labels`, a list of names, holds one of SCOPE_LABELS. */
-function hasScopeLabel(labels) {
-  return SCOPE_LABELS.some(name => labels.includes(name));
+/**
+ * True when `pr` carries SCOPE_LABEL, or LOOP_LABEL on a PR the App opened.
+ * scopeOf adds the rest of the scope.
+ */
+function hasScopeLabel(pr) {
+  const labels = labelNames(pr);
+  return (
+    labels.includes(SCOPE_LABEL) || (labels.includes(LOOP_LABEL) && isAppPr(pr))
+  );
 }
 
 /**
@@ -832,8 +862,8 @@ export async function evaluate(client, repo, pr, defaultBranch) {
 /**
  * Apply a decision. The PR is read again before either write, dry run
  * included. The write is dropped as stale when the state it was decided on is
- * gone: scopeOf no longer accepts the PR (closed, a new base, or neither
- * `ai-loop` nor `deep-review` left on it), or its head moved. So a PR that
+ * gone: scopeOf no longer accepts the PR (closed, a new base, or no label
+ * left that puts it in scope), or its head moved. So a PR that
  * left scope while it was evaluated keeps its label, as every out-of-scope PR
  * does, and a later run judges a moved head. An add is also dropped when the
  * PR now carries `needs-security-review`, read by the same flagProblems the
@@ -897,7 +927,7 @@ export async function run({
       if (decision.skip) {
         // A sweep passes every open PR, so only name the ones that have
         // something to do with this label.
-        if (only || hasScopeLabel(labels) || labels.includes(LABEL))
+        if (only || hasScopeLabel(pr) || labels.includes(LABEL))
           log(`${TAG} #${number} skipped (${decision.skip})`);
         continue;
       }
