@@ -5,7 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
-import { useCheckboxesGroup } from './FormContext';
+import { useCheckboxesGroup, useReportFieldLabelFor } from './FormContext';
 
 /**
  * The values the Checkbox `color` prop accepts, as a readonly tuple.
@@ -112,6 +112,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       color: textColor,
       ...props,
     });
+    // Named by its own children, so it takes no generated `for` from a
+    // labeled Field, which then drops it unless other content takes it (#1004).
+    useReportFieldLabelFor(false);
 
     // Inherit name + selection state from a surrounding <Checkboxes> group.
     // Local props always win over the group (explicit > implicit).

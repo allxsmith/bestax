@@ -1,5 +1,7 @@
-import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import React, { Profiler } from 'react';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import Field, { FieldLabel, FieldBody } from '../Field';
 import { Control } from '../Control';
 import InputBase from '../InputBase';
@@ -14,6 +16,7 @@ import { DateInput } from '../DateInput';
 import { TimeInput } from '../TimeInput';
 import { DateTimeInput } from '../DateTimeInput';
 import { DateRangeInput } from '../DateRangeInput';
+import { DateRangeInputBase } from '../DateRangeInputBase';
 import { Autocomplete } from '../Autocomplete';
 import { Taginput } from '../Taginput';
 import { File } from '../File';
@@ -486,8 +489,11 @@ describe('label auto-association (#495)', () => {
       const { container } = render(
         <Field label="When">{element({ inline: true })}</Field>
       );
-      // Nothing but the label itself takes or derives an id from the target.
-      const target = labelEl(container).getAttribute('for') as string;
+      // Nothing but the label itself takes or derives an id from the target,
+      // so the label drops its `for` (#1004).
+      const label = labelEl(container);
+      expect(label).not.toHaveAttribute('for');
+      const target = label.id.replace(/-label$/, '');
       expect(
         container.querySelector(`[id^="${target}"]:not(label)`)
       ).toBeNull();
@@ -507,7 +513,7 @@ describe('label auto-association (#495)', () => {
     }
   );
 
-  it('keeps a user id on the base; the label still points at its own target', () => {
+  it('keeps a user id on the base; the label drops the for nothing takes (#1004)', () => {
     const { container } = render(
       <Field label="Email">
         <Control>
@@ -517,9 +523,7 @@ describe('label auto-association (#495)', () => {
     );
     const input = container.querySelector('input') as HTMLElement;
     expect(input).toHaveAttribute('id', 'mine');
-    const forValue = labelEl(container).getAttribute('for');
-    expect(forValue).toBeTruthy();
-    expect(forValue).not.toBe('mine');
+    expect(labelEl(container)).not.toHaveAttribute('for');
   });
 
   it('an explicit labelProps.htmlFor takes over the association', () => {
@@ -909,8 +913,11 @@ describe('label names the convenience controls (#939)', () => {
     ],
   ])('leaves %s alone: it has no input to name', (_, element) => {
     const { container } = render(<Field label="Pick">{element()}</Field>);
-    // Nothing but the label itself takes or derives an id from the target.
-    const target = labelEl(container).getAttribute('for') as string;
+    // Nothing but the label itself takes or derives an id from the target,
+    // so the label drops its `for` (#1004).
+    const label = labelEl(container);
+    expect(label).not.toHaveAttribute('for');
+    const target = label.id.replace(/-label$/, '');
     expect(container.querySelector(`[id^="${target}"]:not(label)`)).toBeNull();
   });
 
@@ -922,8 +929,10 @@ describe('label names the convenience controls (#939)', () => {
     ['Switch', () => <Switch>Mine</Switch>, 'checkbox'],
   ])('leaves a %s named by its own children', (_, element, role) => {
     const { container } = render(<Field label="Pick">{element()}</Field>);
-    const target = labelEl(container).getAttribute('for') as string;
+    const target = labelEl(container).id.replace(/-label$/, '');
     expect(container.querySelector(`[id="${target}"]`)).toBeNull();
+    // It takes nothing, so the label drops its `for` (#1004).
+    expect(labelEl(container)).not.toHaveAttribute('for');
     expect(screen.getByRole(role, { name: 'Mine' })).toBeInTheDocument();
   });
 
@@ -1166,5 +1175,395 @@ describe('label names the convenience controls (#939)', () => {
     expect(
       screen.getByRole('radiogroup', { name: 'Pick' })
     ).toBeInTheDocument();
+  });
+});
+
+describe('a label over content that takes no for (#1004)', () => {
+  const labelEl = (container: HTMLElement) =>
+    container.querySelector('label.label') as HTMLElement;
+
+  // Content that tells its labeled Field it takes none of the label's `for`.
+  const takesNone: Array<[string, () => React.ReactElement]> = [
+    [
+      'a Radios group',
+      () => (
+        <Radios name="pick">
+          <Radio value="a">A</Radio>
+        </Radios>
+      ),
+    ],
+    [
+      'a Checkboxes group',
+      () => (
+        <Checkboxes>
+          <Checkbox value="a">A</Checkbox>
+        </Checkboxes>
+      ),
+    ],
+    ['a Rate', () => <Rate />],
+    ['a DateRangeInput', () => <DateRangeInput />],
+    ['a DateRangeInputBase', () => <DateRangeInputBase />],
+    ['a Checkbox', () => <Checkbox>Mine</Checkbox>],
+    ['a Radio', () => <Radio name="pick">Mine</Radio>],
+    ['a Switch', () => <Switch>Mine</Switch>],
+    [
+      'an InputBase with an id of its own',
+      () => (
+        <Control>
+          <InputBase id="mine" />
+        </Control>
+      ),
+    ],
+    ['an Input with an id of its own', () => <Input id="mine" />],
+    ['an inline DateInputBase', () => <DateInputBase inline />],
+    [
+      'an inner Field',
+      () => (
+        <Field>
+          <Control>
+            <Input />
+          </Control>
+        </Field>
+      ),
+    ],
+  ];
+
+  it.each(takesNone)('drops the for over %s', (_, element) => {
+    const { container } = render(<Field label="Pick">{element()}</Field>);
+    const label = labelEl(container);
+    expect(label).not.toHaveAttribute('for');
+    // The label keeps the id a group points aria-labelledby at.
+    expect(label.id).toBeTruthy();
+  });
+
+  it.each(takesNone)(
+    'drops the for over %s in a horizontal Field too',
+    (_, element) => {
+      const { container } = render(
+        <Field horizontal label="Pick">
+          {element()}
+        </Field>
+      );
+      expect(labelEl(container)).not.toHaveAttribute('for');
+    }
+  );
+
+  it('still names a group held directly through aria-labelledby', () => {
+    const { container } = render(
+      <Field label="Chores">
+        <Checkboxes>
+          <Checkbox value="dishes">Dishes</Checkbox>
+        </Checkboxes>
+      </Field>
+    );
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(screen.getByRole('group', { name: 'Chores' })).toHaveAttribute(
+      'aria-labelledby',
+      labelEl(container).id
+    );
+  });
+
+  it('keeps the for on an input that adopts the id', () => {
+    const { container } = render(
+      <Field label="Email">
+        <Control>
+          <InputBase />
+        </Control>
+      </Field>
+    );
+    const input = screen.getByLabelText('Email');
+    expect(input.id).toBeTruthy();
+    expect(labelEl(container)).toHaveAttribute('for', input.id);
+  });
+
+  it.each([
+    ['before', true],
+    ['after', false],
+  ])(
+    'keeps the for when an input that adopts the id sits %s content that takes none',
+    (_, inputFirst) => {
+      const input = (
+        <Control key="input">
+          <InputBase />
+        </Control>
+      );
+      const checkbox = <Checkbox key="checkbox">Mine</Checkbox>;
+      const { container } = render(
+        <Field label="Pick">
+          {inputFirst ? [input, checkbox] : [checkbox, input]}
+        </Field>
+      );
+      const textbox = screen.getByRole('textbox', { name: 'Pick' });
+      expect(labelEl(container)).toHaveAttribute('for', textbox.id);
+    }
+  );
+
+  it('keeps the for beside a group when a convenience input adopts the id', () => {
+    const { container } = render(
+      <Field label="Pick">
+        <Radios name="pick">
+          <Radio value="a">A</Radio>
+        </Radios>
+        <Input />
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute(
+      'for',
+      screen.getByRole('textbox').id
+    );
+  });
+
+  it('keeps the for over content that tells the Field nothing', () => {
+    const { container } = render(
+      <Field label="Pick">
+        <input className="input" />
+      </Field>
+    );
+    expect(labelEl(container).getAttribute('for')).toBeTruthy();
+  });
+
+  it.each([
+    ['a Checkboxes group', () => <Checkboxes />],
+    ['a Checkbox', () => <Checkbox id="agree">I agree</Checkbox>],
+  ])('leaves a label wired by hand alone over %s', (_, element) => {
+    const { container } = render(
+      <Field label="Pick" labelProps={{ htmlFor: 'agree' }}>
+        {element()}
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute('for', 'agree');
+  });
+
+  it('keeps the group recipe valid: an id with htmlFor undefined', () => {
+    const { container } = render(
+      <Field label="Pick" labelProps={{ id: 'pick-label', htmlFor: undefined }}>
+        <Field>
+          <Radios name="pick" aria-labelledby="pick-label">
+            <Radio value="a">A</Radio>
+          </Radios>
+        </Field>
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute('id', 'pick-label');
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(
+      screen.getByRole('radiogroup', { name: 'Pick' })
+    ).toBeInTheDocument();
+  });
+
+  it('drops the for across an inner Field with only a labelProps id', () => {
+    // The horizontal group recipe without `htmlFor: undefined`.
+    const { container } = render(
+      <Field horizontal label="Pick" labelProps={{ id: 'pick-label' }}>
+        <Field.Body>
+          <Field>
+            <Radios name="pick" aria-labelledby="pick-label">
+              <Radio value="a">A</Radio>
+            </Radios>
+          </Field>
+        </Field.Body>
+      </Field>
+    );
+    expect(labelEl(container)).toHaveAttribute('id', 'pick-label');
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    expect(
+      screen.getByRole('radiogroup', { name: 'Pick' })
+    ).toBeInTheDocument();
+  });
+
+  it('puts the for back when an input that adopts the id mounts, and drops it when it goes', () => {
+    const ui = (withInput: boolean) => (
+      <Field label="Pick">
+        <Checkbox>Mine</Checkbox>
+        {withInput && (
+          <Control>
+            <InputBase />
+          </Control>
+        )}
+      </Field>
+    );
+    const { container, rerender } = render(ui(false));
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    rerender(ui(true));
+    expect(labelEl(container)).toHaveAttribute(
+      'for',
+      screen.getByRole('textbox').id
+    );
+    rerender(ui(false));
+    expect(labelEl(container)).not.toHaveAttribute('for');
+  });
+
+  it('follows content swapped between a group and an input', () => {
+    const ui = (group: boolean) => (
+      <Field label="Pick">{group ? <Rate /> : <Input />}</Field>
+    );
+    const { container, rerender } = render(ui(true));
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    rerender(ui(false));
+    expect(labelEl(container)).toHaveAttribute(
+      'for',
+      screen.getByRole('textbox').id
+    );
+    rerender(ui(true));
+    expect(labelEl(container)).not.toHaveAttribute('for');
+  });
+
+  it('puts the for back when the content that takes none unmounts', () => {
+    // With nothing left to report, the label keeps the markup it always had.
+    const ui = (withCheckbox: boolean) => (
+      <Field label="Pick">{withCheckbox && <Checkbox>Mine</Checkbox>}</Field>
+    );
+    const { container, rerender } = render(ui(true));
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    rerender(ui(false));
+    expect(labelEl(container).getAttribute('for')).toBeTruthy();
+  });
+
+  it('follows an input that takes or gives up an id of its own', () => {
+    const ui = (id?: string) => (
+      <Field label="Email">
+        <Control>
+          <InputBase id={id} />
+        </Control>
+      </Field>
+    );
+    const { container, rerender } = render(ui());
+    const adopted = screen.getByRole('textbox').id;
+    expect(labelEl(container)).toHaveAttribute('for', adopted);
+    rerender(ui('mine'));
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    rerender(ui());
+    expect(labelEl(container)).toHaveAttribute('for', adopted);
+  });
+
+  it('follows the label between generated and wired by hand', () => {
+    const ui = (labelProps?: { htmlFor: string }) => (
+      <Field label="Pick" labelProps={labelProps}>
+        <Checkbox id="agree">Mine</Checkbox>
+      </Field>
+    );
+    const { container, rerender } = render(ui());
+    expect(labelEl(container)).not.toHaveAttribute('for');
+    rerender(ui({ htmlFor: 'agree' }));
+    expect(labelEl(container)).toHaveAttribute('for', 'agree');
+    rerender(ui());
+    expect(labelEl(container)).not.toHaveAttribute('for');
+  });
+
+  it('counts the same under StrictMode', () => {
+    const { container } = render(
+      <React.StrictMode>
+        <Field label="Pick">
+          <Checkbox>Mine</Checkbox>
+        </Field>
+        <Field label="Email">
+          <Checkbox>Mine</Checkbox>
+          <Control>
+            <InputBase />
+          </Control>
+        </Field>
+      </React.StrictMode>
+    );
+    const [first, second] = Array.from(
+      container.querySelectorAll('label.label')
+    );
+    expect(first).not.toHaveAttribute('for');
+    expect(second).toHaveAttribute(
+      'for',
+      screen.getByRole('textbox', { name: 'Email' }).id
+    );
+  });
+
+  it('renders a Field whose content takes the id only once', () => {
+    const onRender = jest.fn();
+    render(
+      <Profiler id="field" onRender={onRender}>
+        <Field label="Email">
+          <Input />
+        </Field>
+      </Profiler>
+    );
+    expect(onRender).toHaveBeenCalledTimes(1);
+  });
+
+  describe('server rendering and hydration', () => {
+    const hydrate = async (ui: React.ReactElement) => {
+      const container = document.createElement('div');
+      // React 18 warns about each layout effect a server render meets, and
+      // under jsdom the reports use the client's layout effect, so that one
+      // warning is expected here. A real server picks the plain effect.
+      const serverSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      container.innerHTML = renderToString(ui);
+      const serverErrors = serverSpy.mock.calls.filter(
+        ([message]) =>
+          !String(message).includes(
+            'useLayoutEffect does nothing on the server'
+          )
+      );
+      serverSpy.mockRestore();
+      expect(serverErrors).toEqual([]);
+      document.body.appendChild(container);
+      const serverHtml = container.innerHTML;
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      const onRecoverableError = jest.fn();
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      await act(async () => {
+        root = hydrateRoot(container, ui, { onRecoverableError });
+      });
+      return {
+        container,
+        serverHtml,
+        errorSpy,
+        onRecoverableError,
+        cleanup: async () => {
+          await act(async () => root!.unmount());
+          container.remove();
+          errorSpy.mockRestore();
+        },
+      };
+    };
+
+    it.each(takesNone)(
+      'server-renders the for over %s and drops it after hydrating without a mismatch',
+      async (_, element) => {
+        const ui = <Field label="Pick">{element()}</Field>;
+        const { container, serverHtml, errorSpy, onRecoverableError, cleanup } =
+          await hydrate(ui);
+        try {
+          // The first render matches what the server always wrote.
+          expect(serverHtml).toMatch(/<label[^>]* for="[^"]+"/);
+          expect(errorSpy).not.toHaveBeenCalled();
+          expect(onRecoverableError).not.toHaveBeenCalled();
+          expect(labelEl(container)).not.toHaveAttribute('for');
+        } finally {
+          await cleanup();
+        }
+      }
+    );
+
+    it('keeps the for on an input that adopts the id, server and client', async () => {
+      const ui = (
+        <Field label="Email">
+          <Control>
+            <InputBase />
+          </Control>
+        </Field>
+      );
+      const { container, serverHtml, errorSpy, onRecoverableError, cleanup } =
+        await hydrate(ui);
+      try {
+        const input = container.querySelector('input') as HTMLElement;
+        expect(serverHtml).toContain(`for="${input.id}"`);
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(onRecoverableError).not.toHaveBeenCalled();
+        expect(labelEl(container)).toHaveAttribute('for', input.id);
+      } finally {
+        await cleanup();
+      }
+    });
   });
 });

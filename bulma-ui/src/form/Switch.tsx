@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useReportFieldLabelFor } from './FormContext';
 
 /**
  * The values the Switch `color` and `passiveType` props accept, as a readonly
@@ -131,6 +132,9 @@ export const Switch = forwardRef<HTMLInputElement, SwitchProps>(
       color: textColor,
       ...props,
     });
+    // Named by its own children, so it takes no generated `for` from a
+    // labeled Field, which then drops it unless other content takes it (#1004).
+    useReportFieldLabelFor(false);
 
     // Generate Bulma classes with prefix
     const switchClasses = usePrefixedClassNames('switch', {

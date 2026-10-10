@@ -39,7 +39,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelId } from './FormContext';
+import { useFieldLabelTarget } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { inertProps } from '../helpers/inertProps';
@@ -291,8 +291,7 @@ export const DateTimeInputBase = forwardRef<
   // when the caller set none, as InputBase does, and the popover's ids
   // follow it. Inline there is no input to name, so nothing takes the
   // Field's id or builds on it.
-  const fieldLabelId = useFieldLabelId();
-  const id = idProp ?? (inline ? undefined : fieldLabelId);
+  const id = useFieldLabelTarget(idProp, !inline);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
   const triggerIcon = triggerIconProp ?? !controlLoading;

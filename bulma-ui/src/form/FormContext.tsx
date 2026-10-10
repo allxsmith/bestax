@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from 'react';
 import { warnOnce } from '../helpers/devWarnings';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import type { ControlBaseProps } from './Control';
 
 const FieldContext = createContext(false);
@@ -226,10 +227,11 @@ const FieldLabelIdContext = createContext<string | undefined>(undefined);
  * The id a labeled Field wants its single composed control to adopt (#495).
  * `undefined` outside a Field, in unlabeled/grouped/addons Fields, or when the
  * user took over the association with an explicit `labelProps.htmlFor`.
- * Consumed by the single-control bases (InputBase, SelectBase, TextAreaBase,
- * and the date and time picker bases unless inline, #968) and, through
- * `useAutoLabelId`, by the convenience inputs that render an input of their
- * own (#939). Internal; not part of the public API.
+ * Consumed through `useFieldLabelTarget` by the single-control bases
+ * (InputBase, SelectBase, TextAreaBase, and the date and time picker bases
+ * unless inline, #968) and, through `useAutoLabelId`, by the convenience
+ * inputs that render an input of their own (#939). Internal; not part of the
+ * public API.
  */
 export const useFieldLabelId = () => useContext(FieldLabelIdContext);
 
@@ -269,16 +271,69 @@ const FieldLabelForContext = createContext<FieldLabelFor>({});
  * the outer label names it, and point at that label by its id, as a range
  * Slider's thumbs (#981) and Autocomplete's suggestion list (#998) do. The
  * `htmlFor` is only ever compared with a control's own id, never adopted, so
- * it hands out no id for a control. The `id` is set only while that label
- * renders with it. Unlike {@link useFieldLabelId}, it is set in a `grouped`
- * or `hasAddons` Field too, so a label wired by hand names the control its
- * `for` picks in those rows as well. Consumed through `useAutoLabelId`.
+ * it hands out no id for a control. It keeps the generated id after the
+ * label drops a `for` nothing takes (#1004), which no control's id matches
+ * then, so the value does not change under the content that reported it.
+ * The `id` is set only while that label renders with it. Unlike
+ * {@link useFieldLabelId}, it is set in a `grouped` or `hasAddons` Field
+ * too, so a label wired by hand names the control its `for` picks in those
+ * rows as well. Consumed through `useAutoLabelId`.
  * Internal; not part of the public API.
  */
 export const useFieldLabelFor = () => useContext(FieldLabelForContext);
 
 /** Provider for the Field label's `htmlFor` target and id, used internally by Field. */
 export const FieldLabelForProvider = FieldLabelForContext.Provider;
+
+/**
+ * Records whether one piece of a labeled Field's content takes the label's
+ * generated `for` (true) or takes none (false), and returns the function
+ * that forgets it.
+ */
+type FieldLabelForReport = (takesFor: boolean) => () => void;
+
+const FieldLabelForReportContext = createContext<
+  FieldLabelForReport | undefined
+>(undefined);
+
+/**
+ * Tells the nearest labeled Field whether this content takes its label's
+ * generated `for` (#1004). The Field drops the `for` once some content has
+ * said it takes none and nothing has said it takes it, so the label renders
+ * none over a group, a `Checkbox`, `Radio` or `Switch`, an inner `Field`, or
+ * an input with an `id` of its own. Content that says nothing changes
+ * nothing, so the label keeps its `for` there. Set under the
+ * same conditions as {@link useFieldLabelId}, so a label wired by hand and a
+ * `grouped` or `hasAddons` Field hear nothing. It reports from a layout
+ * effect, which a server never runs and a hydrating client runs only after
+ * its first render, so that render writes the `for` the way the server did.
+ * Internal; not part of the public API.
+ */
+export const useReportFieldLabelFor = (takesFor: boolean): void => {
+  const report = useContext(FieldLabelForReportContext);
+  useClientLayoutEffect(() => report?.(takesFor), [report, takesFor]);
+};
+
+/** Provider for the labeled Field's report function, used internally by Field. */
+export const FieldLabelForReportProvider = FieldLabelForReportContext.Provider;
+
+/**
+ * The id a control with one input of its own renders with: the caller's
+ * `id` when one arrived, otherwise the one a labeled Field offers (#495),
+ * unless it has no input to put it on (`hasInput: false`, as in an `inline`
+ * picker). It also tells that Field whether its label's `for` names the
+ * control (#1004), through {@link useReportFieldLabelFor}. Used by the
+ * single-control bases. Internal; not part of the public API.
+ */
+export const useFieldLabelTarget = (
+  id: string | undefined,
+  hasInput = true
+): string | undefined => {
+  const fieldLabelId = useFieldLabelId();
+  const target = id ?? (hasInput ? fieldLabelId : undefined);
+  useReportFieldLabelFor(fieldLabelId !== undefined && target === fieldLabelId);
+  return target;
+};
 
 /**
  * Shape of the Radios group context. The group provides:

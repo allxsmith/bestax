@@ -37,6 +37,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
+import { useReportFieldLabelFor } from './FormContext';
 import { Icon } from '../elements/Icon';
 
 export type { DateRangeValue };
@@ -272,6 +273,9 @@ export const DateRangeInputBase = forwardRef<
     onFocusCapture,
     ...rest
   } = props;
+  // A range has two inputs, so it takes no generated `for` from a labeled
+  // Field, which then drops it unless other content takes it (#1004).
+  useReportFieldLabelFor(false);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
   const triggerIcon = triggerIconProp ?? !controlLoading;

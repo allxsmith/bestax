@@ -1,4 +1,4 @@
-import React, { useId, useMemo } from 'react';
+import React, { useCallback, useId, useMemo, useRef, useState } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import {
@@ -11,7 +11,9 @@ import {
   FieldLabelIdProvider,
   FieldLabelElementIdProvider,
   FieldLabelForProvider,
+  FieldLabelForReportProvider,
   useFieldLabelFor,
+  useReportFieldLabelFor,
 } from './FormContext';
 import { Control } from './Control';
 
@@ -30,11 +32,11 @@ export interface FieldProps
   hasAddons?: boolean | 'centered' | 'right';
   /** Constrains the field to its content's width (used inside horizontal field bodies). */
   narrow?: boolean;
-  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete` also names its open suggestion list after the label through `aria-labelledby`. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so with a group or any other content it matches nothing. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
+  /** Field label, rendered above the widget. Automatically names the one control the Field holds: a composed `InputBase`, `SelectBase`, `TextAreaBase`, `DateInputBase`, `TimeInputBase` or `DateTimeInputBase` (an `inline` picker has no input, so it takes nothing), or a bestax input that renders a single input of its own (`Input`, `Select`, `TextArea`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`, `DateTimeInput`, `Autocomplete`, `Taginput`, `File`), adopts a generated id that the label's `htmlFor` points at, and a group (`Radios`, `Checkboxes`, `Rate`, `DateRangeInput`) points `aria-labelledby` at the label's own id unless you gave the group an `aria-label` or `aria-labelledby`. A range `Slider` takes the id on its low thumb and also starts each thumb's name with the label through `aria-labelledby`, unless its `ariaLabel` names that thumb or its own `aria-label` or `aria-labelledby` takes the label's place. An `Autocomplete` also names its open suggestion list after the label through `aria-labelledby`. Nothing else takes the label: `Checkbox`, `Radio` and `Switch` are named by their own children. Only the single inputs take the `htmlFor`, so the label drops it when nothing the Field holds takes it: a group, a `Checkbox`, `Radio` or `Switch`, a `DateRangeInputBase`, an `inline` picker, an inner `Field`, or an input with an `id` of its own. The content tells the Field after it mounts, so a server render, and the first render while hydrating, still write the `htmlFor`, which keeps hydration matching, and content the Field can't account for, such as your own markup, keeps it. Pass `labelProps={{ htmlFor }}` to wire your own `id`, or `labelProps={{ htmlFor: undefined }}` to opt out. Skipped for `grouped`/`hasAddons` fields (multiple controls), and a nested `Field` starts its own scope, so a horizontal Field whose body holds an inner `Field` names the control there only when you wire it. Two controls in one plain labeled Field would both adopt the id, so give each an `id` of its own. */
   label?: React.ReactNode;
   /** Size for the label. */
   labelSize?: 'small' | 'normal' | 'medium' | 'large';
-  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. While the association is on, the label renders with the `id` given here, or a generated one, and a group control, a range `Slider`'s thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at it. A label you take over gets no generated id, and no group points at it on its own. With an `id` here, though, a range `Slider` or an `Autocomplete` whose `id` your `htmlFor` names still points its thumbs or its suggestion list at it, in a `grouped` or `hasAddons` Field too. To point a group in an inner `Field` at this label by hand, pass that `id` with `htmlFor: undefined`, or the label keeps a generated `htmlFor` that nothing takes. */
+  /** Props for the label element. An explicit `htmlFor` key — even set to `undefined` — takes over the association. While the association is on, the label renders with the `id` given here, or a generated one, and a group control, a range `Slider`'s thumbs and an `Autocomplete`'s suggestion list point `aria-labelledby` at it. A label you take over gets no generated id, and no group points at it on its own. With an `id` here, though, a range `Slider` or an `Autocomplete` whose `id` your `htmlFor` names still points its thumbs or its suggestion list at it, in a `grouped` or `hasAddons` Field too. To point a group in an inner `Field` at this label by hand, pass that `id`. Nothing in the inner `Field` takes the generated `htmlFor`, so the label drops it after mounting, and adding `htmlFor: undefined` keeps it out of server-rendered markup too. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
@@ -273,13 +275,39 @@ const FieldComponent: React.FC<FieldProps> = ({
   );
   const labelFor = label ? ownLabelFor : inheritedLabelFor;
 
+  // A Field inside a labeled one starts its own scope (see the providers
+  // below), so nothing in it takes the outer label's generated `for`.
+  useReportFieldLabelFor(false);
+  // Whether the generated `for` names nothing (#1004). Content tells the
+  // Field whether it takes the `for` from a layout effect, after this render,
+  // so the first render, on the server and while hydrating, writes the `for`
+  // as it always has. The label drops it once some content has said it takes
+  // none and nothing has said it takes it, and gets it back when that stops
+  // being true. Counted in a ref, so a report that leaves the answer as it
+  // was renders nothing again.
+  const reportsRef = useRef({ takesFor: 0, takesNone: 0 });
+  const [forUnmatched, setForUnmatched] = useState(false);
+  const reportLabelFor = useCallback((takesFor: boolean) => {
+    const counts = reportsRef.current;
+    const key = takesFor ? 'takesFor' : 'takesNone';
+    const settle = () =>
+      setForUnmatched(counts.takesNone > 0 && counts.takesFor === 0);
+    counts[key] += 1;
+    settle();
+    return () => {
+      counts[key] -= 1;
+      settle();
+    };
+  }, []);
+  const renderedTargetId = forUnmatched ? undefined : targetId;
+
   let renderedLabel = null;
   if (label) {
     if (horizontal) {
       renderedLabel = (
         <FieldLabel size={effectiveLabelSize}>
           <label
-            htmlFor={targetId}
+            htmlFor={renderedTargetId}
             {...labelProps}
             id={labelId}
             className={classNames(labelClass, labelProps?.className)}
@@ -292,7 +320,7 @@ const FieldComponent: React.FC<FieldProps> = ({
     } else {
       renderedLabel = (
         <label
-          htmlFor={targetId}
+          htmlFor={renderedTargetId}
           {...labelProps}
           id={labelId}
           className={classNames(labelClass, labelProps?.className)}
@@ -333,10 +361,14 @@ const FieldComponent: React.FC<FieldProps> = ({
       <FieldLabelIdProvider value={targetId}>
         <FieldLabelElementIdProvider value={targetId ? labelId : undefined}>
           <FieldLabelForProvider value={labelFor}>
-            <div className={fieldClass} {...rest}>
-              {renderedLabel}
-              {content}
-            </div>
+            <FieldLabelForReportProvider
+              value={targetId ? reportLabelFor : undefined}
+            >
+              <div className={fieldClass} {...rest}>
+                {renderedLabel}
+                {content}
+              </div>
+            </FieldLabelForReportProvider>
           </FieldLabelForProvider>
         </FieldLabelElementIdProvider>
       </FieldLabelIdProvider>

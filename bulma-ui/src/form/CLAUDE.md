@@ -32,13 +32,18 @@ Conventions:
   input after any props spread, where an undefined `id` key would wipe it, passing
   `hasInput: false` in a mode that renders none, so nothing derives ids from the Field's. A group calls `useAutoLabelledBy` with its remaining props as `callerProps`,
   so an `aria-label` or `aria-labelledby` the caller set still wins, and puts
-  `ariaLabelledBy` on its group element.
+  `ariaLabelledBy` on its group element. Both hooks also tell the Field whether the content
+  took its id, and the label drops a `for` nothing takes (#1004). Content that takes the label
+  neither way, as `Checkbox`, `Radio` and `Switch` do, calls `useReportFieldLabelFor(false)`
+  itself, or the label keeps a `for` that matches nothing. Report `true` only for content that
+  carries the Field's id, since one `true` keeps the `for` for the whole Field.
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
-  as escape hatches, so they are public API too. A base with a single input of its own reads
-  `useFieldLabelId` itself and takes that id when the caller set none, as `InputBase` does, so
-  a labeled `Field` names it when composed by hand (#968). A picker base skips it `inline`,
-  where it renders no input.
+  as escape hatches, so they are public API too. A base with a single input of its own takes
+  its id from `useFieldLabelTarget`, which hands it the Field's id when the caller set none and
+  tells the Field whether it did, as `InputBase` does, so a labeled `Field` names it when
+  composed by hand (#968). A picker base passes `!inline` as its `hasInput`, since inline it
+  renders no input.
 - Basic inputs (Input, Select, TextArea, …) ship no CSS, but more of this folder has SCSS
   than you'd guess: even Checkbox and Radio have themed partials, File has one for its keyboard
   focus ring and a boxed CTA's corners, and every extended input (Autocomplete, DateInput,
