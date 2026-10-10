@@ -328,7 +328,10 @@ on them, acts as `bestaxbot[bot]`, a Bot-type author, so a test for the login `b
 misses that one. A login test alone also breaks the next time an identity changes. A probe that
 grants trust rather than finding a comment pins the identity instead: `isDeepReviewAuthor` in
 `scripts/review-converged.mjs` says why, and `isBestaxbotApp` beside it pins the App the same way
-for `scripts/deep-review-gate.mjs`.
+for `scripts/deep-review-gate.mjs`. `auto-label-claude-prs.yml` is a deliberate exception for
+now, by a maintainer's decision: it tests the login `bestaxbot` alone, so it does not label the
+App's PRs. The App labels its own PRs `claude-assisted` when it opens them, and the daily
+backfill in `close-stale-bestaxbot-prs.yml` labels any it missed.
 
 ### 7. Fork PRs never run with secrets
 

@@ -11,12 +11,13 @@ name: Close Stale Claude-Assisted PRs
 # The sweep is the union of the bestaxbot authors and label:claude-assisted —
 # the label (auto-applied by auto-label-claude-prs.yml) also covers
 # human-authored PRs with Claude attribution, and the author queries cover
-# bot PRs opened before the labeler existed. bestaxbot is two authors (rule 6
-# in .github/CLAUDE.md): the machine User `bestaxbot`, and the App
-# `bestaxbot[bot]`, which gh's --author spells `app/bestaxbot`. A first step
-# backfills the claude-assisted label onto any unlabeled bestaxbot PR so the
-# generic sweep can't close pre-labeler bot PRs at day 44: this job's 03:41
-# cron fires before stale.yml's 04:17 sweep.
+# bot PRs the labeler did not label. bestaxbot is two authors (rule 6 in
+# .github/CLAUDE.md): the machine User `bestaxbot`, and the App
+# `bestaxbot[bot]`, which gh's --author spells `app/bestaxbot`. The labeler
+# matches the machine User only and leaves the App to label its own PRs. A
+# first step backfills the claude-assisted label onto any unlabeled
+# bestaxbot PR so the generic sweep can't close one at day 44: this job's
+# 03:41 cron fires before stale.yml's 04:17 sweep.
 #
 # PRs labeled `neverstale` are exempt from this closer too — the label means
 # "exempt from stale automation", and that covers the 90-day sweep as well
@@ -53,7 +54,8 @@ jobs:
       issues: write # issue-comment API for the PR conversation
     steps:
       # Self-heal: bestaxbot PRs opened before auto-label-claude-prs.yml
-      # existed (or where it misfired) lack the claude-assisted label, so
+      # existed (or where it misfired), and App PRs the App did not label
+      # (the labeler skips the App), lack the claude-assisted label, so
       # stale.yml's generic 30/14-day sweep would close them at day 44 before
       # this 90-day closer ever saw them. Label them here; the REST call
       # auto-creates the label on first use, same as the labeler.
