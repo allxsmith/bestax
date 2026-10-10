@@ -137,14 +137,14 @@ or a `Taginput` at `maxTags` has no visible input to wire.
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
 `inline`, or any input above takes its generated id, and a group (a composed `DateRangeInputBase`
-too, `inline` or not) points `aria-labelledby` at it. **A control with an `id` of its own never
-takes that id**, so `<Field label="Email"><Input id="email" /></Field>` renders a label that
-names nothing: leave the `id` off, or pass the same value as `labelProps={{ htmlFor: 'email' }}`.
-Wire it that way too where the association is skipped, in a `grouped`/`hasAddons` row and in a
-horizontal `Field` whose body holds an inner `Field` (a nested `Field` starts its own scope). For
-a group there, put `labelProps={{ id, htmlFor: undefined }}` on the outer `Field` and a matching
-`aria-labelledby` on the group; the `htmlFor: undefined` keeps an unmatched `for` out of
-server-rendered HTML.
+too, `inline` or not) points `aria-labelledby` at the label's own id. **A control with an `id` of
+its own never takes that id**, so `<Field label="Email"><Input id="email" /></Field>` renders a
+label that names nothing: leave the `id` off, or pass the same value as
+`labelProps={{ htmlFor: 'email' }}`. Wire it that way too where the association is skipped, in a
+`grouped`/`hasAddons` row and in a horizontal `Field` whose body holds an inner `Field` (a nested
+`Field` starts its own scope). For a group there, put `labelProps={{ id, htmlFor: undefined }}` on
+the outer `Field` and a matching `aria-labelledby` on the group; the `htmlFor: undefined` keeps an
+unmatched `for` out of server-rendered HTML.
 
 A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
 ("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so
@@ -154,11 +154,12 @@ when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their fa
 ("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in `Field.Label`
 yourself (`references/patterns.md`) names its control through the `for` alone, so label a row
 holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby` you give a
-group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a `Field`:
-its children name it. A labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio`
-or `Switch`, an input with an `id` of its own, your own markup) drops it once mounted, though
-server-rendered HTML keeps it. `labelProps={{ htmlFor: undefined }}` opts out of the association
-entirely.
+group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a `Field` on
+its own: its children name it, and a `Field`'s label names one only when you wire it as you would
+any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. A
+labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio` or `Switch`, an input
+with an `id` of its own, your own markup) drops it once mounted, though server-rendered HTML keeps
+it. `labelProps={{ htmlFor: undefined }}` opts out of the association entirely.
 
 ## Convenience vs composed
 
@@ -276,9 +277,9 @@ for the expected classes/states, and say plainly that the visual pass is still o
 
 - [ ] Built from the shipped form components (no hand-rolled inputs / reinvented controls).
 - [ ] Every label is programmatically associated: the convenience `label` prop, the group
-      inputs, and `Field` + single-control composition do it on their own. A control with an
-      `id` of its own, or in an inner `Field`, is named only when the `Field`'s
-      `labelProps={{ htmlFor }}` matches its `id`, and a multi-control `Field`'s controls are
+      inputs, and `Field` + single-control composition do it on their own. A composed labeled
+      `Field` names a control with an `id` of its own, or one in an inner `Field`, only when its
+      `labelProps={{ htmlFor }}` matches that `id`, and a multi-control `Field`'s controls are
       labeled individually (`aria-label`, `aria-labelledby`, or a `<label htmlFor>` matching
       each control's `id`).
 - [ ] Controlled inputs have both `value` and `onChange` (or use `defaultValue` uncontrolled).
