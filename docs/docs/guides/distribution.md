@@ -151,7 +151,7 @@ against that list.
 
 ## Planned
 
-Not live yet. Each needs a submission or a sign-in first.
+Not live yet.
 
 | Where                                                                                                                                                                           | Carries                     | Updates   | Notes                                                                                                                                                                                                                           |
 | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -176,14 +176,11 @@ Not live yet. Each needs a submission or a sign-in first.
 
 ## GitHub topics
 
-Topic pages are the one listing GitHub keeps itself. `allxsmith/bestax` carries `agent-skills`,
-`bulma`, `bulma-css`, `component-library`, `design-system`, `llms-txt`, `mcp-server`, `react`,
-`react-bulma`, `react-component-library`, `react-components`, `typescript`, `ui-components` and
-`ui-library`. `allxsmith/bestax-skills` carries `agent-skills`, `bulma`, `claude-code`,
-`claude-code-plugin`, `claude-plugin`, `claude-skills`, `cursor-plugin`, `gemini-cli-extension`,
-`mcp`, `mcp-server`, `react` and `skills`; the Gemini CLI gallery reads `gemini-cli-extension`, so
-that one stays. Topics are repository settings, so `skills-publish.yml` regenerating bestax-skills
-does not touch them. Add a topic when a package gains a new surface.
+Topic pages are the one listing GitHub keeps itself. Each repository's About panel shows the
+topics it carries. The Gemini CLI gallery reads `gemini-cli-extension` on
+`allxsmith/bestax-skills`, so that topic stays. Topics are repository settings, so
+`skills-publish.yml` regenerating bestax-skills does not touch them. Add a topic when a package
+gains a new surface.
 
 ## What goes stale
 
@@ -196,9 +193,10 @@ Say in the pull request which listings need an update, then open those updates o
   `bestax-layout-scaffold`), skillsindex.dev, agenticskills.io, cursor.directory, ClawHub, Build
   with Claude (which also gives a count), awesome-ai-plugins, karanb192/awesome-claude-skills,
   heilcheng/awesome-agent-skills (one line per skill), awesome-openclaw-skills and
-  awesome-frontend-skills (both name `bestax-layout-scaffold`), and the Tessl Registry and Skills
-  Directory, which hold one entry per skill. Chat2AnyLLM's config scans the `skills/` folder on
-  its own.
+  awesome-frontend-skills (both name `bestax-layout-scaffold`), awesome-claude-code-toolkit and
+  awesome-codex-skills (both name `bestax-form`), ccplugins, awesome-llm-skills, Chat2AnyLLM's
+  `plugin_repos.json`, and the Tessl Registry and Skills Directory, which hold one entry per
+  skill. Chat2AnyLLM's `skill_repos.json` scans the `skills/` folder on its own.
 - **Editing a skill.** cursor.directory and ClawHub hold copies of each skill's text, so they keep
   the old wording until someone pastes or uploads the new one. The Tessl Registry and Skills
   Directory publish a score and a security grade from a scan of each skill, and show the old one
@@ -207,9 +205,10 @@ Say in the pull request which listings need an update, then open those updates o
   variables and Agent Skills, offline, with no API key. awesome-AI-driven-development also gives
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
   `BESTAX_MCP_NO_VERSION_CHECK` variable, and the mcpm.sh registry lists each tool by name. The
-  goose extensions directory, AIAnytime, YuzeHao2023, ccplugins, official-mcp-servers,
-  best-of-mcp-servers, Chat2AnyLLM's `mcp_server_repos.json`, the Cline issue and mcp.directory
-  carry the same description.
+  goose extensions directory, AIAnytime, YuzeHao2023, ccplugins, best-of-mcp-servers,
+  Chat2AnyLLM's `mcp_server_repos.json`, the Cline issue and mcp.directory carry the same
+  description. official-mcp-servers, the new awesome-bulma section and
+  awesome-gemini-cli-extensions give a shorter one.
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock, cursor.directory, the mcpm.sh
   registry, the Kilo marketplace, the goose extensions directory, AIAnytime, ccplugins,
   Chat2AnyLLM, the Cline issue and mcp.directory give `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
@@ -227,27 +226,28 @@ Say in the pull request which listings need an update, then open those updates o
   `.claude-plugin/icon.png` only the first time the plugin is saved or submitted, so a new
   `plugin/icon.png` does not reach that listing on its own. Cursor Marketplace has its own logo,
   `assets/logo.png` in bestax-skills, from `plugin/logo.png`.
-- **Raising the Node version `bestax-mcp` needs.** The mcpm.sh registry and the Kilo marketplace
-  repeat the `engines` floor from `bestax-mcp/package.json` as a requirement.
+- **Raising the Node version `bestax-mcp` needs.** The mcpm.sh registry, the Kilo marketplace and
+  the Cline issue repeat the `engines` floor from `bestax-mcp/package.json` as a requirement.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change.
 - **A bestax-migrate release.** The Codemod Registry wrapper keeps running the version it pins
   until it is bumped and republished. CONTRIBUTING.md has the steps under "Codemod Registry".
 - **Changing an install command.** awesome-claude-code-and-skills, claude-code-skills-zh,
-  BehiSecc, gmh5225, awesome-cursor-skills, awesome-claude-code-toolkit, awesome-frontend-skills
-  and awesome-llm-skills give `npx skills add https://github.com/allxsmith/bestax --skill <name>`.
-  awesome-codex-skills gives the Codex skill-installer form, `--repo allxsmith/bestax --path
-skills/<name>`. ccplugins and awesome-claude-code-toolkit give `/plugin marketplace add
-allxsmith/bestax-skills` and `/plugin install bestax@bestax`.
+  awesome-claude-code-toolkit and awesome-frontend-skills give
+  `npx skills add https://github.com/allxsmith/bestax --skill <name>`. awesome-codex-skills gives
+  the Codex skill-installer form, `--repo allxsmith/bestax --path skills/<name>`. ccplugins gives
+  `/plugin marketplace add allxsmith/bestax-skills` and `/plugin install bestax@bestax`.
 - **Moving or renaming a package folder.** Entries link to `tree/main/bestax-mcp`,
   `tree/main/skills`, `tree/main/skills/bestax-layout-scaffold` (and every other skill folder, in
   heilcheng/awesome-agent-skills), `tree/main/create-bestax`, `tree/main/eslint-plugin` and
   `tree/main/bestax-migrate`. Chat2AnyLLM pins `skillsPath: skills` and `subPath: bestax-mcp`, and
-  aitmpl.com pins the bestax-skills repo with `https://bestax.io`. Plugin listings point at
-  allxsmith/bestax-skills instead.
+  aitmpl.com pins the bestax-skills repo with `https://bestax.io`. The Cline issue links the logo
+  in `bulma-ui/images/`. Plugin listings point at allxsmith/bestax-skills instead.
 - **Renaming a package or moving a page on bestax.io.** Entries use the package names,
-  `https://bestax.io`, `/llms.txt` and `/llms-full.txt`.
+  `https://bestax.io`, `/llms.txt` and `/llms-full.txt`. awesome-storybook links `/storybook/`.
+  aitmpl.com links `/docs/guides/llms`, and AIAnytime and the Cline issue link its `#mcp-server`
+  anchor, so renaming that heading breaks them.
 - **A new Bulma major.** Nearly every entry says "Bulma v1".
 
 Bestax is called bestax-bulma on React component-library lists and Bestax everywhere else.
