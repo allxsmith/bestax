@@ -417,8 +417,8 @@ Here's a comprehensive example showing typography in an article layout:
 function ArticleExample() {
   return (
     <Section py="6">
-      <Container>
-        <Box maxWidth="800px" mx="auto">
+      <Container breakpoint="tablet" isMax>
+        <Box>
           {/* Article Header */}
           <Title textSize="1" textWeight="bold" textAlign="centered" mb="3">
             The Future of Web Typography

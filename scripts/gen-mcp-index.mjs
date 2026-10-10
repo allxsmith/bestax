@@ -39,7 +39,7 @@
  */
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
-import { join, relative, dirname, extname } from 'node:path';
+import { join, relative, dirname, extname, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 
@@ -91,6 +91,8 @@ const CLASS_MAP = join(
 );
 
 const PACKAGE = '@allxsmith/bestax-bulma';
+/** A name a page can document as a component: an exported identifier, capitalised. */
+const COMPONENT_NAME = /^[A-Z][A-Za-z0-9]*$/;
 const DOCS_BASE = 'https://bestax.io/docs';
 
 /**
@@ -347,6 +349,111 @@ export function orderDeclarers(cssVar, names) {
   return owner ? [owner, ...sorted.filter(n => n !== owner)] : sorted;
 }
 
+/**
+ * The props of a component documented on a prose page (`helpers/`), read when
+ * the page's title is capitalised like a component's. A lower-case title (a
+ * hook) or one that is not an identifier (`Valid value constants`) is never
+ * read.
+ *
+ * A capitalised title that names no export stops the build, rather than
+ * shipping the page as prose. A typo in a real component's title would
+ * otherwise take its prop table out of the index without a word, which is
+ * what #933 was. The message names the page and the rule, since the
+ * extractor's own points at the barrel, and a prose page's fix is usually its
+ * title. `extract` is a test seam.
+ */
+export function proseComponentInfo(name, relPath, extract = extractComponent) {
+  let info;
+  try {
+    info = extract(name, { markdown: false });
+  } catch (err) {
+    if (err?.code !== 'BESTAX_NOT_EXPORTED') throw err;
+    throw new Error(
+      `[gen-mcp-index] ${relPath}: the title "${name}" is capitalised like a ` +
+        `component, so the MCP index reads its props, and bulma-ui/src/index.ts ` +
+        `exports no such name. Title the page after the export it documents, ` +
+        `or give it a title that is not a component's.`,
+      { cause: err }
+    );
+  }
+  // An export that is no component (a props type) resolves, and reads as empty.
+  // Shipped as prose, get_props would call it "not a component". A component
+  // whose props are all inherited still has its catch-all row.
+  const hasProps = info.tables.some(
+    t => t.rows?.length || t.extraProps?.length || t.catchAll
+  );
+  if (!hasProps) {
+    throw new Error(
+      `[gen-mcp-index] ${relPath}: the title "${name}" names ` +
+        `${relative(REPO, info.sourceFile).split('\\').join('/')} but finds no ` +
+        `props there, so the page would ship as prose and get_props would call ` +
+        `it "not a component". Title the page after the component it documents.`
+    );
+  }
+  return info;
+}
+
+/**
+ * A page's markdown with every link made absolute, for markdown the index ships
+ * on its own: a hook's API block, a prose page, an Accessibility section. On the
+ * site `./valid-values.md` and `#scheme-backgrounds` resolve. Served away from
+ * the page, the first names a file in the reader's own workspace and the second
+ * a section the answer does not carry.
+ *
+ * A link to another page goes to the route Docusaurus serves for it, a link
+ * within the page to the page's own URL, and a site-absolute one to bestax.io.
+ * Fenced code is left as it is.
+ */
+export function absoluteLinks(markdown, relPath) {
+  const page = posix.join('api', relPath);
+  const origin = new URL(DOCS_BASE).origin;
+  const urlOf = path =>
+    `${DOCS_BASE}/${docsRoute(path.replace(/\.mdx?$/, ''))}`;
+  const resolve = target => {
+    if (target.startsWith('#')) return `${urlOf(page)}${target}`;
+    if (target.startsWith('/')) return `${origin}${target}`;
+    if (/^[a-z][a-z0-9+.-]*:/i.test(target)) return target;
+    const [path, fragment = ''] = target.split(/(?=#)/);
+    if (!/\.mdx?$/.test(path)) return target;
+    return `${urlOf(posix.join(posix.dirname(page), path))}${fragment}`;
+  };
+  // A fence may sit indented up to three spaces, as one in a list item does. A
+  // target may sit in angle brackets, and may be followed by a title.
+  return markdown
+    .split(/^([ \t]{0,3}(?:```|~~~)[^\n]*\n[\s\S]*?^[ \t]*(?:```|~~~)[ \t]*)$/m)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part.replace(/\]\(\s*(<[^>]*>|[^)\s]+)/g, (_, t) =>
+            t.startsWith('<')
+              ? `](<${resolve(t.slice(1, -1))}>`
+              : `](${resolve(t)}`
+          )
+    )
+    .join('');
+}
+
+/**
+ * A record with `absoluteLinks` applied to every string it carries but its
+ * examples, which are code. Summaries come from TSDoc and purposes from
+ * frontmatter, and both were written for the page too (`[Column](./column.md)`).
+ */
+function withAbsoluteLinks(value, relPath, key = '') {
+  if (key === 'examples') return value;
+  if (typeof value === 'string') return absoluteLinks(value, relPath);
+  if (Array.isArray(value))
+    return value.map(v => withAbsoluteLinks(v, relPath));
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [
+        k,
+        withAbsoluteLinks(v, relPath, k),
+      ])
+    );
+  }
+  return value;
+}
+
 /** Strip the frontmatter block, leaving the page body. */
 function withoutFrontmatter(src) {
   return src.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trimStart();
@@ -589,17 +696,31 @@ export async function build() {
 
       const { lines, sections } = sectionSpans(src);
       const find = re => sections.find(s => re.test(s.heading));
-      const purpose = purposeOf(fm, sections, lines);
+      const purpose = absoluteLinks(purposeOf(fm, sections, lines), relPath);
       // `slug` stays the file-path identity; the URL takes the route
       // Docusaurus actually serves, which collapses `grid/grid` (#597).
       const docsUrl = `${DOCS_BASE}/api/${docsRoute(slug)}`;
 
-      // `helpers/` documents hooks and utilities: four of its six pages use
-      // `## API` with a signature block and have no props interface at all.
-      // Running the props extractor over them yields nothing, so they ship as
-      // prose instead — which is what `get_helper_props` wants anyway.
-      const isHelper =
+      // `helpers/` pages are prose rather than generated tables, and most of
+      // them document hooks and utilities with an `## API` signature block and
+      // no props at all. Those ship as prose, with the signature on its own.
+      //
+      // The rest document components (Theme, ConfigProvider, Portal,
+      // ClientOnly), and those get the props table every other component
+      // gets, from their props interface (#933). Shipping them as prose too
+      // left get_props with no table to give and pointed a builder at
+      // get_helper_props, which describes none of them. Their page still
+      // ships, for `include: ["reference"]`, since it carries prose the
+      // table does not, such as the hooks a provider pairs with.
+      const proseOnly =
         GENERATED_EXEMPT.has(dir) || GENERATED_EXEMPT.has(relPath);
+      const info = !proseOnly
+        ? extractComponent(name, { markdown: false })
+        : COMPONENT_NAME.test(name)
+          ? proseComponentInfo(name, relPath)
+          : null;
+      // A capitalised title that read no props has already stopped the build.
+      const isHelper = proseOnly && !info;
 
       const common = {
         name,
@@ -621,28 +742,38 @@ export async function build() {
         storybook: storybookLink(lines, find(/^Additional Resources$/i)),
       };
 
+      // The whole page. These are reference prose, not tables, and an agent
+      // asking "how do I do spacing without inline styles" needs all of it.
+      const doc = proseOnly ? withoutFrontmatter(src).trimEnd() : null;
+
       let record;
       if (isHelper) {
+        const api = find(/^API$/i);
         record = {
           ...common,
           summary: purpose,
           import: helperImport(name, lines, find(/^Import$/i), relPath),
-          // The whole page. These are reference prose, not tables, and an agent
-          // asking "how do I do spacing without inline styles" needs all of it.
-          doc: withoutFrontmatter(src).trimEnd(),
+          // The signature block alone: what a hook takes and returns, at a
+          // fraction of the page. It is the hook's answer to a props table.
+          api: api ? sectionBody(lines, api) : null,
+          doc,
           parts: [],
           cssVars: [],
         };
       } else {
-        const info = extractComponent(name, { markdown: false });
         const cssVars = await cssVarsFor(info);
         for (const v of cssVars) (cssVarIndex[v.css] ??= []).push(name);
         record = {
           ...common,
           summary: collapse(info.tsdoc),
-          import: `import { ${(IMPORT_COMPANIONS[name] ?? [name]).join(
-            ', '
-          )} } from '${PACKAGE}';`,
+          // A prose page's own Import block, as for a hook: IMPORT_COMPANIONS
+          // is generated from the generated pages only, so it would drop the
+          // hook a provider pairs with (`ConfigProvider, useConfig`).
+          import: proseOnly
+            ? helperImport(name, lines, find(/^Import$/i), relPath)
+            : `import { ${(IMPORT_COMPANIONS[name] ?? [name]).join(
+                ', '
+              )} } from '${PACKAGE}';`,
           sourceFile: relative(REPO, info.sourceFile).split('\\').join('/'),
           rootClass: info.rootClass ?? null,
           parts: info.tables.map(t => ({
@@ -664,9 +795,11 @@ export async function build() {
             })),
           })),
           cssVars,
+          ...(doc ? { doc } : {}),
         };
       }
 
+      record = withAbsoluteLinks(record, relPath);
       components.set(name, record);
       members.push(name);
       catalogEntries.push({

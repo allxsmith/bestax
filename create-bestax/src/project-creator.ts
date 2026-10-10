@@ -36,8 +36,12 @@ import {
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
+  NO_HELPERS_STARTER_CLASSES,
+  NO_HELPERS_APP_CSS,
+  CSS_ORDER_COMMENT,
   type ClaudeMdOptions,
 } from './constants.js';
+import { detectPackageManager } from './package-manager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -184,6 +188,30 @@ export class ProjectCreator {
     }
   }
 
+  /**
+   * The template README is written with pnpm commands and lists no icon
+   * library. Rewrite the commands for the package manager that ran the CLI
+   * (the one the success message names too) and list the icon library the
+   * user picked, if any.
+   */
+  async updateReadme(targetPath: string, iconLibrary: string): Promise<void> {
+    const readmePath = path.join(targetPath, 'README.md');
+    if (!fs.existsSync(readmePath)) return;
+
+    const pm = detectPackageManager();
+    let readme = await fs.readFile(readmePath, 'utf8');
+    readme = readme.replace(/\bpnpm (install|run)\b/g, `${pm} $1`);
+
+    const library = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
+    if (library && iconLibrary !== 'none') {
+      readme = readme.replace(
+        /^(- .*bestax-bulma component library)$/m,
+        `$1\n- 🎯 ${library.display} icons`
+      );
+    }
+    await fs.writeFile(readmePath, readme);
+  }
+
   async setupSkills(
     targetPath: string,
     projectName: string,
@@ -229,15 +257,17 @@ export class ProjectCreator {
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
 
-      // Replace the default bestax CSS import with the selected flavor
+      // Replace the default bestax CSS import, and the comment block directly
+      // above it, with the selected flavor's import under the comment that
+      // says why the stylesheets load before the app's own CSS.
       const bestaxImportRegex =
-        /\/\/.*\n\s*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
+        /(?:[ \t]*\/\/[^\n]*\n)+[ \t]*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
       const bestaxImportSimpleRegex =
         /import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
       if (bestaxImportRegex.test(content)) {
         content = content.replace(
           bestaxImportRegex,
-          '// Import CSS\n' + flavor.importStatement
+          CSS_ORDER_COMMENT + '\n' + flavor.importStatement
         );
       } else if (bestaxImportSimpleRegex.test(content)) {
         content = content.replace(
@@ -262,6 +292,38 @@ export class ProjectCreator {
 
       await fs.writeFile(mainFilePath, content);
     }
+
+    if (flavor.noHelpers) {
+      await this.replaceStarterHelperProps(targetPath, template);
+    }
+  }
+
+  /**
+   * A flavor without Bulma's helper classes leaves the starter's helper props
+   * rendering nothing, so its title loses its centering and its cards their
+   * equal heights. Swap each prop for the named class in
+   * NO_HELPERS_STARTER_CLASSES and append the classes' rules to src/App.css.
+   */
+  async replaceStarterHelperProps(
+    targetPath: string,
+    template: string
+  ): Promise<void> {
+    const appFileName = template.includes('-ts') ? 'App.tsx' : 'App.jsx';
+    const appFilePath = path.join(targetPath, 'src', appFileName);
+    const appCssPath = path.join(targetPath, 'src', 'App.css');
+    if (!fs.existsSync(appFilePath) || !fs.existsSync(appCssPath)) return;
+
+    let appContent = await fs.readFile(appFilePath, 'utf8');
+    for (const { prop, className } of NO_HELPERS_STARTER_CLASSES) {
+      appContent = appContent.split(prop).join(`className="${className}"`);
+    }
+    await fs.writeFile(appFilePath, appContent);
+
+    const css = await fs.readFile(appCssPath, 'utf8');
+    await fs.writeFile(
+      appCssPath,
+      css.replace(/\n*$/, '\n') + NO_HELPERS_APP_CSS
+    );
   }
 
   private getIconName(
@@ -291,16 +353,23 @@ export class ProjectCreator {
     return iconMappings[iconLibrary]?.[iconType] || '';
   }
 
+  /**
+   * The `iconProps` entries for a starter card icon. Decorative, since the
+   * card title beside it says the same thing, so it is hidden from screen
+   * readers rather than announced as "icon".
+   */
   private getIconProps(
     iconLibrary: string,
     iconType: 'rocket' | 'book' | 'code'
-  ): string {
+  ): string[] {
     const iconName = this.getIconName(iconLibrary, iconType);
-    if (!iconName) return '';
+    if (!iconName) return [];
 
-    return iconLibrary === 'fontawesome'
-      ? `name="${iconName}" variant="solid"`
-      : `name="${iconName}"`;
+    return [
+      `name: '${iconName}'`,
+      ...(iconLibrary === 'fontawesome' ? [`variant: 'solid'`] : []),
+      `'aria-hidden': 'true'`,
+    ];
   }
 
   async setupIconLibrary(
@@ -394,7 +463,10 @@ export class ProjectCreator {
       }
     }
 
-    // Now add Icon components to App.jsx/App.tsx (for all icon libraries)
+    // Now add an icon to each card title in App.jsx/App.tsx (for all icon
+    // libraries). IconText spaces the icon from its text with Bulma's own
+    // .icon-text rule rather than a margin helper, so the gap holds in the
+    // no-helpers flavors too.
     const isTypeScript = template.includes('-ts');
     const appFileName = isTypeScript ? 'App.tsx' : 'App.jsx';
     const appFilePath = path.join(targetPath, 'src', appFileName);
@@ -402,61 +474,52 @@ export class ProjectCreator {
     if (fs.existsSync(appFilePath)) {
       let appContent = await fs.readFile(appFilePath, 'utf8');
 
-      // Add Icon import to the bestax-bulma imports
+      // Add IconText to the bestax-bulma imports
       const bulmaImportRegex =
         /(import\s+\{[\s\S]*?)(}\s+from\s+['"]@allxsmith\/bestax-bulma['"])/;
-      if (bulmaImportRegex.test(appContent) && !appContent.includes('Icon')) {
-        // Check if the import ends with a comma or not
+      if (
+        bulmaImportRegex.test(appContent) &&
+        !/\bIconText\b/.test(appContent)
+      ) {
         const importMatch = appContent.match(bulmaImportRegex);
         if (importMatch) {
           const beforeClosingBrace = importMatch[1];
-          // Remove any trailing comma and whitespace, then add Icon properly
+          // Remove any trailing comma and whitespace, then add IconText properly
           const cleanedImport = beforeClosingBrace.replace(/,?\s*$/, '');
           appContent = appContent.replace(
             bulmaImportRegex,
-            cleanedImport + ',\n  Icon$2'
+            cleanedImport + ',\n  IconText,\n$2'
           );
         }
       }
 
-      // Add icon examples in the Cards section
-      // Find the Quick Start Card and add an icon
-      const quickStartRegex =
-        /(Card\.Header\.Title>\s*Quick Start\s*<\/Card\.Header\.Title>)/;
-      if (quickStartRegex.test(appContent)) {
-        const iconProps = this.getIconProps(iconLibrary, 'rocket');
-        if (iconProps) {
-          appContent = appContent.replace(
-            quickStartRegex,
-            `Card.Header.Title>\n                          <Icon ${iconProps} size="small" mr="2" />\n                          Quick Start\n                        </Card.Header.Title>`
-          );
-        }
-      }
-
-      // Add icon to Documentation Card
-      const docsRegex =
-        /(Card\.Header\.Title>\s*Documentation\s*<\/Card\.Header\.Title>)/;
-      if (docsRegex.test(appContent)) {
-        const iconProps = this.getIconProps(iconLibrary, 'book');
-        if (iconProps) {
-          appContent = appContent.replace(
-            docsRegex,
-            `Card.Header.Title>\n                          <Icon ${iconProps} size="small" mr="2" />\n                          Documentation\n                        </Card.Header.Title>`
-          );
-        }
-      }
-
-      // Add icon to Examples Card
-      const examplesRegex =
-        /(Card\.Header\.Title>\s*Examples\s*<\/Card\.Header\.Title>)/;
-      if (examplesRegex.test(appContent)) {
-        const iconProps = this.getIconProps(iconLibrary, 'code');
-        if (iconProps) {
-          appContent = appContent.replace(
-            examplesRegex,
-            `Card.Header.Title>\n                          <Icon ${iconProps} size="small" mr="2" />\n                          Examples\n                        </Card.Header.Title>`
-          );
-        }
+      const cardIcons: Array<['rocket' | 'book' | 'code', string]> = [
+        ['rocket', 'Quick Start'],
+        ['book', 'Documentation'],
+        ['code', 'Examples'],
+      ];
+      for (const [iconType, title] of cardIcons) {
+        const iconProps = this.getIconProps(iconLibrary, iconType);
+        if (iconProps.length === 0) continue;
+        const titleRegex = new RegExp(
+          `^([ \\t]*)(<Card\\.Header\\.Title[^>]*>)\\s*${title}\\s*(</Card\\.Header\\.Title>)`,
+          'm'
+        );
+        appContent = appContent.replace(
+          titleRegex,
+          (_match, indent: string, open: string, close: string) =>
+            [
+              `${indent}${open}`,
+              `${indent}  <IconText`,
+              `${indent}    iconProps={{`,
+              ...iconProps.map(entry => `${indent}      ${entry},`),
+              `${indent}    }}`,
+              `${indent}  >`,
+              `${indent}    ${title}`,
+              `${indent}  </IconText>`,
+              `${indent}${close}`,
+            ].join('\n')
+        );
       }
 
       await fs.writeFile(appFilePath, appContent);
@@ -639,6 +702,7 @@ export class ProjectCreator {
       await this.copyTemplate(template, targetPath);
       await updatePackageJson(targetPath, packageName);
       await this.updateIndexHtmlTitle(targetPath, projectName);
+      await this.updateReadme(targetPath, iconLibrary);
       await this.setupBulmaFlavor(targetPath, bulmaFlavor, template);
       await this.setupIconLibrary(targetPath, iconLibrary, template);
       await this.setupConfigProvider(

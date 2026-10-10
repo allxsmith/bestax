@@ -283,7 +283,7 @@ The column system is highly responsive with size controls per breakpoint:
   <Column
     size="half"
     offset="one-quarter" // Offset on all sizes
-    offsetTablet="0" // No offset on tablet+
+    offsetTablet={0} // No offset on tablet+
   >
     <Notification color="warning">Responsive offset column</Notification>
   </Column>

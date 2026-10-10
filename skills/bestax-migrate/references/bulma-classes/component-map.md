@@ -321,6 +321,14 @@ renders `has-text-<color>` too, and so does `is-centered`, which `isCentered` re
 beside `isRight`. Anything else keeps it as markup with a `children:File`, `context:File` or
 `attr` TODO.
 
+A `has-name` `.file` with no `.file-name` converts only with Bulma's `is-empty` written on it as a
+static class, since `File` renders `is-empty` there itself whatever a condition says, so a
+condition on it can't stand in. The class then goes with the rest of the tree. The `File` gets
+`fileName=""`, which pins its name empty the way a `.file-name`'s text pins it to that text. With
+no `fileName`, `File` would show the name of the file a user picks and drop `is-empty`, which the
+markup never does. Without a static `is-empty` the `.file` stays markup with a `defaults:File` TODO
+that names the class to write.
+
 ## Families this source leaves as markup
 
 Their markup doesn't map element by element (the bestax component renders parts of its own, or

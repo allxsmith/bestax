@@ -193,13 +193,15 @@ The `TextArea` component is context-aware: it detects whether it is already insi
 
 #### With Field Wrapper
 
+A labeled `Field` that holds the TextArea directly names it with no extra wiring. In a horizontal form the label sits on the outer `Field` and the TextArea in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Message">
+    <Field horizontal label="Message" labelProps={{ htmlFor: 'message-field' }}>
       <Field.Body>
         <Field>
-          <TextArea placeholder="Enter your message" />
+          <TextArea id="message-field" placeholder="Enter your message" />
         </Field>
       </Field.Body>
     </Field>
@@ -214,11 +216,18 @@ function example() {
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Message">
+    <Field
+      horizontal
+      label="Message"
+      labelProps={{ htmlFor: 'message-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="comment">
-            <TextArea placeholder="Enter your message" />
+            <TextArea
+              id="message-field-control"
+              placeholder="Enter your message"
+            />
           </Control>
         </Field>
       </Field.Body>

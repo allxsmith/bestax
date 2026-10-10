@@ -40,6 +40,34 @@ export const PickedFileName: Story = {
 };
 
 /**
+ * Before a pick, a `hasName` File carries Bulma's `is-empty`, in each layout,
+ * until a name sits beside its button.
+ */
+export const NoNameYet: Story = {
+  render: () => (
+    <>
+      <File
+        hasName
+        buttonLabel="Choose a file…"
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
+      />
+      <File
+        hasName
+        isRight
+        buttonLabel="Choose a file…"
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
+      />
+      <File
+        hasName
+        isBoxed
+        buttonLabel="Choose a file…"
+        iconLeft={<Icon name="upload" aria-hidden="true" />}
+      />
+    </>
+  ),
+};
+
+/**
  * With `multiple`, `hasName` shows the file's name when you pick one, and how
  * many you picked ("3 files") when you pick several. `pickedFilesLabel` words
  * that count for another language.

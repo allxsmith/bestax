@@ -617,13 +617,15 @@ The OS-native pickers always use the device's system locale, so these examples s
 
 #### With Field Wrapper
 
+A labeled `Field` that holds the DateTimeInput directly names its input with no extra wiring. In a horizontal form the label sits on the outer `Field` and the DateTimeInput in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="When">
+    <Field horizontal label="When" labelProps={{ htmlFor: 'when-field' }}>
       <Field.Body>
         <Field>
-          <DateTimeInput placeholder="YYYY-MM-DD HH:MM" />
+          <DateTimeInput id="when-field" placeholder="YYYY-MM-DD HH:MM" />
         </Field>
       </Field.Body>
     </Field>
@@ -638,11 +640,18 @@ function example() {
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="When">
+    <Field
+      horizontal
+      label="When"
+      labelProps={{ htmlFor: 'when-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="calendar-alt">
-            <DateTimeInput placeholder="YYYY-MM-DD HH:MM" />
+            <DateTimeInput
+              id="when-field-control"
+              placeholder="YYYY-MM-DD HH:MM"
+            />
           </Control>
         </Field>
       </Field.Body>
@@ -859,7 +868,7 @@ The DateTimeInput prop set is the union of [DateInput](./dateinput.md) and [Time
 
 | Prop                | Type                                                                             | Default              | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
 | ------------------- | -------------------------------------------------------------------------------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`             | `React.ReactNode`                                                                | —                    | Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label) and dropped inside an outer `Field`.                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `label`             | `React.ReactNode`                                                                | —                    | Field label. Automatically associated with the input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired in `inline` mode (no visible input to label). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`).                                                                                                                                                                                                                                                                                  |
 | `labelSize`         | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                               | —                    | Size for the label.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
 | `labelProps`        | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —                    | Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | `horizontal`        | `boolean`                                                                        | `false`              | Render the field with horizontal layout.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |

@@ -226,13 +226,47 @@ const FieldLabelIdContext = createContext<string | undefined>(undefined);
  * The id a labeled Field wants its single composed control to adopt (#495).
  * `undefined` outside a Field, in unlabeled/grouped/addons Fields, or when the
  * user took over the association with an explicit `labelProps.htmlFor`.
- * Consumed only by the single-control bases (InputBase, SelectBase,
- * TextAreaBase). Internal; not part of the public API.
+ * Consumed by the single-control bases (InputBase, SelectBase, TextAreaBase,
+ * and the date and time picker bases unless inline, #968) and, through
+ * `useAutoLabelId`, by the convenience inputs that render an input of their
+ * own (#939). Internal; not part of the public API.
  */
 export const useFieldLabelId = () => useContext(FieldLabelIdContext);
 
 /** Provider for the Field label-target id — used internally by Field. */
 export const FieldLabelIdProvider = FieldLabelIdContext.Provider;
+
+const FieldLabelElementIdContext = createContext<string | undefined>(undefined);
+
+/**
+ * The id of a labeled Field's own `<label>`, for a group control (Radios,
+ * Checkboxes, Rate, DateRangeInput) to point `aria-labelledby` at, since a group cannot take
+ * the label's `htmlFor` (#939), and for a range Slider's thumbs, which each
+ * need the label in a name of their own (#981). Set under the same conditions
+ * as {@link useFieldLabelId}. Consumed through `useAutoLabelledBy` and
+ * `useAutoLabelId`.
+ * Internal; not part of the public API.
+ */
+export const useFieldLabelElementId = () =>
+  useContext(FieldLabelElementIdContext);
+
+/** Provider for the Field label's own id, used internally by Field. */
+export const FieldLabelElementIdProvider = FieldLabelElementIdContext.Provider;
+
+const FieldLabelForContext = createContext<string | undefined>(undefined);
+
+/**
+ * What the nearest labeled Field's `<label>` points `htmlFor` at: the id it
+ * generated, or the caller's own `labelProps.htmlFor`. An unlabeled Field
+ * passes it through, so a control in the inner Field of a horizontal layout
+ * can tell the outer label names it. Only ever compared with a control's own
+ * id, never adopted, so it hands out no id. Internal; not part of the public
+ * API.
+ */
+export const useFieldLabelFor = () => useContext(FieldLabelForContext);
+
+/** Provider for the Field label's `htmlFor` target, used internally by Field. */
+export const FieldLabelForProvider = FieldLabelForContext.Provider;
 
 /**
  * Shape of the Radios group context. The group provides:

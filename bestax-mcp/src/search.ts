@@ -10,6 +10,7 @@
  * what it just found.
  */
 import type { Catalog, ComponentRecord, Skill } from './data.js';
+import { attributedLinks } from './format.js';
 
 export type HitKind = 'component' | 'prop' | 'example' | 'css-var' | 'skill';
 
@@ -317,14 +318,12 @@ export function searchAll(
         hits.push({
           kind: 'component',
           name: c.name,
-          detail: c.purpose,
-          // A helper has no prop table, and `get_component` on one is itself only a
-          // pointer at `get_helper_props` — so naming it here would make a search hit a
-          // three-hop trip to the answer.
-          next:
-            c.kind === 'helper'
-              ? 'get_helper_props()'
-              : `get_component({ name: "${c.name}" })`,
+          // Tagged here, not in the haystack above: the tag is nothing to match on.
+          detail: attributedLinks(c.purpose),
+          // A hook's get_component answer is its signature and where the rest is, so
+          // it is the next call for a helper too. It used to be get_helper_props(),
+          // which describes the helper props and none of the hooks (#933).
+          next: `get_component({ name: "${c.name}" })`,
           score: s,
         });
       }
@@ -340,7 +339,9 @@ export function searchAll(
             hits.push({
               kind: 'prop',
               name: `${part.path}.${p.name}`,
-              detail: `${p.type}${p.description ? ` — ${p.description}` : ''}`,
+              detail: `${p.type}${
+                p.description ? ` — ${attributedLinks(p.description)}` : ''
+              }`,
               next: `get_props({ component: "${record.name}", path: "${part.path}" })`,
               score: s,
             });

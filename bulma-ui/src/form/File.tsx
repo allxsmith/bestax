@@ -32,7 +32,7 @@ export interface FileProps
     >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label. Automatically associated with the file input via `htmlFor` — uses your `id` when provided, otherwise a generated one. The input then has two labels (this one plus the wrapping `file-label`); assistive tech reads both. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -65,8 +65,9 @@ export interface FileProps
   /**
    * Show a file name area. Without `fileName` it shows what the user picked: the file's name, or
    * a count when `multiple` lets them pick several (see `pickedFilesLabel`). Before a pick there is
-   * no name area. A reset of the input's form clears the name, but clearing the input from code
-   * fires no change event and leaves it showing, so pass `fileName` to control the text then.
+   * no name area, and the root takes Bulma's `is-empty`. A reset of the input's form clears the
+   * name, but clearing the input from code fires no change event and leaves it showing, so pass
+   * `fileName` to control the text then.
    */
   hasName?: boolean;
   /** Text on the file CTA button (defaults to "Choose a file…"). */
@@ -193,9 +194,12 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       rendersLabel: ownField,
     });
     const { classPrefix } = useConfig();
+    // The input takes `controlId`, so `id` stays out of the spread, where an
+    // undefined `id` key would wipe the id the label points at.
+    const { id: _id, ...inputProps } = props;
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color,
-      ...props,
+      ...inputProps,
     });
 
     // Mutually exclusive alignment
@@ -215,6 +219,7 @@ export const File = forwardRef<HTMLInputElement, FileProps>(
       'is-boxed': isBoxed,
       'is-fullwidth': isFullwidth ?? isFullWidth,
       'has-name': hasName,
+      'is-empty': hasName && !shownName,
     });
     const fileClass = classNames(
       mainClass,

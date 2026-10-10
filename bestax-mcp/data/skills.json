@@ -29,8 +29,8 @@
       "promptName": "form",
       "dir": "bestax-form",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 11764 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 6943 }
+        { "id": "api", "file": "references/api.md", "bytes": 12364 },
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 7377 }
       ],
       "examples": []
     },
@@ -43,7 +43,7 @@
         {
           "id": "icon-libraries",
           "file": "references/icon-libraries.md",
-          "bytes": 6229
+          "bytes": 6691
         }
       ],
       "examples": [
@@ -103,7 +103,7 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 24004
+          "bytes": 24617
         },
         {
           "id": "bulma-classes-prop-map",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 23489
+          "bytes": 23915
         },
         {
           "id": "css-migration",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 9431
+          "bytes": 9583
         }
       ],
       "examples": []

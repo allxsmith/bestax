@@ -153,11 +153,13 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 ## Worked example — the create-bestax starter app
 
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
-`Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` — all stock Bulma,
-no bestax extras. Its helper props are `display`/`justifyContent` (visibility + flexbox),
-`textAlign` (typography), and `textColor` (color); it uses no spacing props. That inventory
-compiles to the following — verified pixel-equivalent to the prebuilt `complete` flavor in
-headless Chromium (light and dark), at 453 KB raw / 40 KB gzip vs 813 KB / 83 KB:
+`Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
+button: all stock Bulma, no bestax extras. Its helper props are `display` (visibility),
+`flexGrow` (flexbox), and `textAlign` (typography); it uses no spacing or color props. That
+inventory compiles to the following, verified pixel-equivalent to the prebuilt `complete`
+flavor in headless Chromium (light and dark, phone and desktop width, notification open), at
+274 KB raw / 30 KB gzip vs 819 KB / 84 KB. Scaffolded with an icon library, the starter also
+needs `bulma/sass/elements/icon` for its `IconText` card titles:
 
 ```scss
 // src/styles.scss
@@ -170,6 +172,7 @@ headless Chromium (light and dark), at 453 KB raw / 40 KB gzip vs 813 KB / 83 KB
 
 @use 'bulma/sass/elements/box';
 @use 'bulma/sass/elements/button'; // Button + Buttons
+@use 'bulma/sass/elements/delete'; // Notification's close button
 @use 'bulma/sass/elements/image';
 @use 'bulma/sass/elements/notification';
 @use 'bulma/sass/elements/title'; // Title + SubTitle
@@ -179,9 +182,8 @@ headless Chromium (light and dark), at 453 KB raw / 40 KB gzip vs 813 KB / 83 KB
 @use 'bulma/sass/layout/section';
 
 @use 'bulma/sass/helpers/visibility'; // display="flex"
-@use 'bulma/sass/helpers/flexbox'; // justifyContent/flexGrow/flexShrink
+@use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
-@use 'bulma/sass/helpers/color'; // textColor
 ```
 
 ```tsx

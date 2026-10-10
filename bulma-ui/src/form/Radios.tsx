@@ -28,7 +28,7 @@ import { Radio } from './Radio';
  */
 export interface RadiosProps
   extends Omit<BulmaClassesProps, 'color'>, FormFieldProps {
-  /** Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label naming the whole group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` wrapper — uses your `labelProps.id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`). An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -102,6 +102,7 @@ const RadiosComponent: React.FC<RadiosProps> = ({
     label,
     labelProps,
     rendersLabel: ownField,
+    callerProps: props,
   });
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     ...props,

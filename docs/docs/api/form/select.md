@@ -323,11 +323,15 @@ Use `isFullwidth` on the Select with `isExpanded` on its Control to make the dro
 In horizontal forms, mark the inner `<Field narrow>` so it doesn't stretch the full row, and use `isFullwidth` on the Select to fill the narrow field.
 
 ```tsx live
-<Field horizontal label="Department">
+<Field
+  horizontal
+  label="Department"
+  labelProps={{ htmlFor: 'department-field' }}
+>
   <Field.Body>
     <Field narrow>
       <Control>
-        <Select isFullwidth>
+        <Select id="department-field" isFullwidth>
           <option>Business development</option>
           <option>Marketing</option>
           <option>Sales</option>
@@ -359,13 +363,15 @@ The `Select` component is context-aware: it detects whether it is already inside
 
 #### With Field Wrapper
 
+A labeled `Field` that holds the Select directly names it with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Select in an inner one, which starts its own scope, so these examples wire the label by hand with `labelProps={{ htmlFor }}` and a matching `id`.
+
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Country">
+    <Field horizontal label="Country" labelProps={{ htmlFor: 'country-field' }}>
       <Field.Body>
         <Field>
-          <Select>
+          <Select id="country-field">
             <option value="">Please select</option>
             <option value="us">United States</option>
             <option value="uk">United Kingdom</option>
@@ -385,11 +391,15 @@ function example() {
 ```tsx live
 function example() {
   return (
-    <Field horizontal label="Country">
+    <Field
+      horizontal
+      label="Country"
+      labelProps={{ htmlFor: 'country-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="globe">
-            <Select>
+            <Select id="country-field-control">
               <option value="">Please select</option>
               <option value="us">United States</option>
               <option value="uk">United Kingdom</option>

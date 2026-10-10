@@ -503,16 +503,16 @@ function HideExamples() {
 
           {/* Desktop navigation - hidden on mobile */}
           <Box displayMobile="none" displayTablet="flex" mb="3">
-            <Button variant="text" mr="3">
+            <Button color="text" mr="3">
               Home
             </Button>
-            <Button variant="text" mr="3">
+            <Button color="text" mr="3">
               About
             </Button>
-            <Button variant="text" mr="3">
+            <Button color="text" mr="3">
               Services
             </Button>
-            <Button variant="text">Contact</Button>
+            <Button color="text">Contact</Button>
           </Box>
 
           {/* Mobile menu button - hidden on tablet+ */}
@@ -639,8 +639,6 @@ Each visibility value (`'hidden'`, `'sr-only'`, `'invisible'`) can be scoped to 
 ### Other Visibility Examples
 
 ```tsx live
-import { Box, Button, Content, Icon, Title } from '@allxsmith/bestax-bulma';
-
 function OtherVisibilityExamples() {
   return (
     <Box p="4">
@@ -680,9 +678,9 @@ function OtherVisibilityExamples() {
 
       <Box>
         <Icon name="star" ariaLabel="Star rating" />
-        <span visibility="sr-only">This product has a 5-star rating</span>
+        <Span visibility="sr-only">This product has a 5-star rating</Span>
         <Icon name="star" ariaLabel="Star rating" />
-        <span visibility="sr-only">out of 5 stars</span>
+        <Span visibility="sr-only">out of 5 stars</Span>
         <Icon name="star" ariaLabel="Star rating" />
       </Box>
 
@@ -711,9 +709,6 @@ When hiding content, consider the accessibility implications:
 ### Accessible Hide/Show Example
 
 ```tsx live
-import { Box, Button, Card, Content, Title } from '@allxsmith/bestax-bulma';
-import { useState } from 'react';
-
 function AccessibleToggleExample() {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -742,11 +737,11 @@ function AccessibleToggleExample() {
           </Content>
 
           {/* Screen reader announcement */}
-          <span visibility="sr-only">
+          <Span visibility="sr-only">
             {isExpanded
               ? 'Additional details are now visible'
               : 'Additional details are hidden'}
-          </span>
+          </Span>
 
           {/* Expandable content */}
           <Box
@@ -834,7 +829,7 @@ function MobileFirstExample() {
               <Button color="warning" mr="2">
                 Share
               </Button>
-              <Button variant="outlined">Cancel</Button>
+              <Button isOutlined>Cancel</Button>
             </Box>
           </Box>
 

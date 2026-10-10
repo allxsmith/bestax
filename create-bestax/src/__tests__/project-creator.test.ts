@@ -515,6 +515,49 @@ describe('ProjectCreator', () => {
       );
     });
 
+    it('swaps the starter helper props for named classes under a no-helpers flavor', async () => {
+      const targetPath = '/test/project';
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(true);
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockImplementation((async (file: string) =>
+        file.endsWith('App.tsx')
+          ? '<Title size="1" textAlign="centered">x</Title>'
+          : file.endsWith('App.css')
+            ? '/* app */\n\n\n'
+            : "import '@allxsmith/bestax-bulma/bestax.css';") as never);
+
+      await projectCreator.setupBulmaFlavor(
+        targetPath,
+        'no-helpers',
+        'vite-ts'
+      );
+
+      expect(fs.default.writeFile).toHaveBeenCalledWith(
+        '/test/project/src/App.tsx',
+        '<Title size="1" className="page-title">x</Title>'
+      );
+      expect(fs.default.writeFile).toHaveBeenCalledWith(
+        '/test/project/src/App.css',
+        expect.stringMatching(
+          /^\/\* app \*\/\n\n\/\* This flavor[\s\S]*\.page-title \{\n {2}text-align: center;\n\}/
+        )
+      );
+    });
+
+    it('leaves the starter alone when a no-helpers scaffold has no App files', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.replaceStarterHelperProps('/test/project', 'vite');
+
+      expect(fs.default.readFile).not.toHaveBeenCalled();
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
+    });
+
     it('should handle unknown Bulma flavor gracefully', async () => {
       const targetPath = '/test/project';
 
@@ -561,12 +604,17 @@ describe('ProjectCreator', () => {
       expect(writeCall[0]).toBe(appFilePath);
       const writtenContent = writeCall[1] as string;
 
-      // Check Icon was added to import
-      expect(writtenContent).toContain('Icon');
-      // Check icons were added to cards
-      expect(writtenContent).toContain('Icon name="rocket"');
-      expect(writtenContent).toContain('Icon name="book"');
-      expect(writtenContent).toContain('Icon name="code"');
+      // Check IconText was added to the import
+      expect(writtenContent).toMatch(/Card,\n\s+IconText,\n\} from/);
+      // Check each card title wraps its text in IconText
+      expect(writtenContent).toContain("name: 'rocket'");
+      expect(writtenContent).toContain("name: 'book'");
+      expect(writtenContent).toContain("name: 'code'");
+      expect(writtenContent).toMatch(
+        /<Card\.Header\.Title>\n\s+<IconText\n[\s\S]*?Quick Start\n\s+<\/IconText>\n\s+<\/Card\.Header\.Title>/
+      );
+      // A margin helper would render nothing in the no-helpers flavors
+      expect(writtenContent).not.toContain('mr=');
     });
 
     it('should handle App.jsx with Icon already in import', async () => {
@@ -636,6 +684,19 @@ describe('ProjectCreator', () => {
       expect(writtenContent).toContain('rocket');
       expect(writtenContent).toContain('book');
       expect(writtenContent).toContain('code-slash');
+    });
+  });
+
+  describe('updateReadme', () => {
+    it('does nothing when the template has no README', async () => {
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockReturnValue(false);
+
+      await projectCreator.updateReadme('/test/project', 'fontawesome');
+
+      expect(fs.default.readFile).not.toHaveBeenCalled();
+      expect(fs.default.writeFile).not.toHaveBeenCalled();
     });
   });
 
@@ -1059,27 +1120,28 @@ describe('ProjectCreator', () => {
 
     it('should return correct icon props for FontAwesome', () => {
       const pc = projectCreator as unknown;
-      expect(pc.getIconProps('fontawesome', 'rocket')).toBe(
-        'name="rocket" variant="solid"'
-      );
-      expect(pc.getIconProps('fontawesome', 'book')).toBe(
-        'name="book" variant="solid"'
-      );
-      expect(pc.getIconProps('fontawesome', 'code')).toBe(
-        'name="code" variant="solid"'
-      );
+      expect(pc.getIconProps('fontawesome', 'rocket')).toEqual([
+        "name: 'rocket'",
+        "variant: 'solid'",
+        "'aria-hidden': 'true'",
+      ]);
+      expect(pc.getIconProps('fontawesome', 'book')[0]).toBe("name: 'book'");
+      expect(pc.getIconProps('fontawesome', 'code')[0]).toBe("name: 'code'");
     });
 
     it('should return correct icon props for other libraries', () => {
       const pc = projectCreator as unknown;
-      expect(pc.getIconProps('mdi', 'rocket')).toBe('name="rocket-launch"');
-      expect(pc.getIconProps('ionicons', 'book')).toBe('name="book"');
-      expect(pc.getIconProps('material-icons', 'code')).toBe('name="code"');
+      expect(pc.getIconProps('mdi', 'rocket')).toEqual([
+        "name: 'rocket-launch'",
+        "'aria-hidden': 'true'",
+      ]);
+      expect(pc.getIconProps('ionicons', 'book')[0]).toBe("name: 'book'");
+      expect(pc.getIconProps('material-icons', 'code')[0]).toBe("name: 'code'");
     });
 
-    it('should return empty string when no icon name found', () => {
+    it('should return no props when no icon name found', () => {
       const pc = projectCreator as unknown;
-      expect(pc.getIconProps('unknown', 'rocket')).toBe('');
+      expect(pc.getIconProps('unknown', 'rocket')).toEqual([]);
     });
   });
 
