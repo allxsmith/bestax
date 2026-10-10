@@ -249,22 +249,21 @@ green and every AI review thread is resolved.
 - **Labels:** `ai-loop` (in the loop), `needs-human-review` (converged or contested — owner
   reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
   hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
-  an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
-  marks a `deep-review` PR based on the default branch whose newest deep-review summary is
+  an auto-applied `claude-assisted` provenance label. `review-converged` marks an `ai-loop`
+  or `deep-review` PR based on the default branch whose newest deep-review summary is
   pinned to the head commit with nothing left open, with every review thread resolved and
   every check green. Every deep-review finding, advisory included, is a review thread. A
   verify pass reviews no commits, so the PR also needs a fresh deep review of the head commit
   with no findings, or a fresh review whose findings later verify passes resolved, as fixed or
   as a refutation the reviewer accepted, with the pass that resolved the last of them pinned
   to the head commit. A stacked PR gets no CI run, so it is out of scope.
-  `review-converged.yml` adds it and removes it while the PR keeps `deep-review`, not
-  `ai-loop`, and the default branch as its base. `scripts/review-converged.mjs` holds the
-  full definition, and an `ai-loop` PR never gets it.
+  `review-converged.yml` adds it and removes it while the PR keeps one of those labels and
+  the default branch as its base. `scripts/review-converged.mjs` holds the full definition.
 - **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
   same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
   head repository to be this one, so labelling a fork PR is a no-op: the job
-  reports skipped and no review appears. That gate also requires the loop switch to be on,
-  so a label does nothing while it is off either — see the kill switches below. `claude-review.yml` fires on
+  reports skipped and no review appears. That gate also requires `AI_CLAUDE_ENABLED` to be on,
+  so a label does nothing while it is off either (see the kill switches below). `claude-review.yml` fires on
   `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
   reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
   comment. Re-applying a label that is **already
@@ -276,8 +275,8 @@ green and every AI review thread is resolved.
   is what asks for a full review of the current code. That comment selects the MODE of a run
   the label toggle starts; it does not start one — and it **stays** selected: the run reads
   the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
-  steer exists, later toggles stay fresh for as long as it is still the newest triage+ steer
-  the run can see — which a newer steer from any triage+ author displaces, not only one from
+  steer exists, later toggles by a triage+ user stay fresh for as long as it is still the
+  newest triage+ steer the run can see — which a newer steer from any triage+ author displaces, not only one from
   the same person. A steer the run cannot read leaves it
   unfocused and in verify rather than failing, so an unexpected verify pass can mean a
   lookup that did not resolve rather than a steer that was never posted.
