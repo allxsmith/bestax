@@ -232,9 +232,21 @@ function renderProps(info, { pages, relPath }) {
   return `\n${blocks.join('\n\n')}\n`;
 }
 
-async function renderCssVars(info, { relPath }) {
+/**
+ * The CSS-variable rows for one component, each with where Bulma (or this
+ * repo) declares its default: the `scope` the page's lead sentence and
+ * markers turn into advice on where a reader can set it. Empty when the
+ * component has no SCSS sources.
+ *
+ * Exported so `css-var-scopes.test.mjs` can hold every scope a page states to
+ * the compiled stylesheet, from the same rows the page is rendered from.
+ *
+ * @returns {Promise<{scope: string, pkg: string, cssVar: string,
+ *   sassVar: string|null, value: string, modifiers?: string[]}[]>}
+ */
+export async function cssVarRows(info) {
   const sources = SCSS_SOURCES[info.name];
-  if (!sources || !sources.length) return null;
+  if (!sources || !sources.length) return [];
 
   // No per-entry override: gen-api-sources emits only { pkg, path }, and a
   // hand-added field inside the generated markers is erased on the next
@@ -268,7 +280,6 @@ async function renderCssVars(info, { relPath }) {
   // variable name, first match wins — the same rule componentVars() applies
   // within a file.
   const seen = new Set();
-  const scopes = new Set();
   for (const source of sources) {
     const file =
       source.pkg === 'bulma'
@@ -291,41 +302,57 @@ async function renderCssVars(info, { relPath }) {
       for (const row of componentVars(src, root, prefix)) {
         if (seen.has(row.cssVar)) continue;
         seen.add(row.cssVar);
-        const scope = isExtra ? 'element' : row.scope;
-        scopes.add(scope);
         rows.push({
-          scope,
-          cells: [
-            `\`${row.cssVar}\``,
-            row.sassVar ? `\`${row.sassVar}\`` : '—',
-            `\`${row.value}\``,
-          ],
+          ...row,
+          scope: isExtra ? 'element' : row.scope,
+          pkg: source.pkg,
         });
       }
     }
   }
-  if (!rows.length) return null;
+  return rows;
+}
 
-  const depth = relPath.split('/').length - 1;
-  const themeLink = `${'../'.repeat(depth)}helpers/theme.md`;
-  // Where Bulma declares the defaults decides how to phrase this. Most
-  // components register on their own selector; the semantic wrappers and
-  // `Skeleton` get theirs from `:root` (or a mixin), and claiming otherwise
-  // would send a reader looking for a declaration that is not there. Either way
-  // the override advice is the same, because custom properties inherit.
+/**
+ * What each scope tells a reader, as the page's lead sentence when every row
+ * shares it, and as a marker plus a note below the table when only some do.
+ *
+ * Where Bulma declares a default decides where a value can be set from,
+ * because a custom property inherits only as a fallback: an element that
+ * declares a variable itself uses its own value whatever its ancestors say.
+ * So `:root` is the one home a value set further up can override. A
+ * component's own selector, a constituent element and the element a Bulma
+ * mixin is included on all carry their own declaration, and an ancestor's
+ * value (`Theme` included) never reaches them. Delete's page said otherwise
+ * for its mixin-declared variables until #1021.
+ *
+ * The compound wording exists because the className advice is
+ * specificity-dependent, not universal: LinkButton's defaults sit on
+ * `.button.link-button` (0-2-0), and a single custom class added via
+ * className is 0-1-0 — it loses regardless of stylesheet order, so the
+ * documented override would silently do nothing. Review on #544 caught the
+ * generated page giving exactly that advice.
+ *
+ * Every scope has a marker, so a row whose scope differs from the page's
+ * lead is always marked. `global` had none until #1021, and Control's page
+ * told readers that the `--bulma-control-*` variables Bulma declares on
+ * `:root` lose to a declaration on `.control` that does not exist.
+ */
+export function cssVarScopeText(info, rows, themeLink) {
   const target = info.rootClass ? `\`.${info.rootClass}\`` : 'its own';
-  // The compound wording exists because the className advice below it is
-  // specificity-dependent, not universal: LinkButton's defaults sit on
-  // `.button.link-button` (0-2-0), and a single custom class added via
-  // className is 0-1-0 — it loses regardless of stylesheet order, so the
-  // documented override would silently do nothing. Review on #544 caught the
-  // generated page giving exactly that advice.
-  // One scope, one lead — the page-wide sentence may only claim what holds
-  // for EVERY row. On a mixed page the baseline scope's lead applies and the
-  // minority rows carry a marker with their own note below the table: one
-  // compound- or element-scoped row must not rewrite the advice for every
-  // className-overridable row on the page, and vice versa (#544 review).
-  const LEADS = {
+  const element = info.rootClass
+    ? `\`.${info.rootClass}\` element`
+    : `\`${info.name}\` element`;
+  const modifiers = [
+    ...new Set(
+      rows.filter(r => r.scope === 'mixin').flatMap(r => r.modifiers ?? [])
+    ),
+  ].map(m => `\`${m}\``);
+  const modifierList =
+    modifiers.length > 1
+      ? `${modifiers.slice(0, -1).join(', ')} and ${modifiers.at(-1)}`
+      : modifiers.join('');
+  const leads = {
     compound:
       `\`${info.name}\` registers these variables on a compound selector ` +
       `(higher specificity than a single class). Override them with inline ` +
@@ -345,6 +372,21 @@ async function renderCssVars(info, { relPath }) {
       `${target} element. Override them there (or via \`className\`) — ` +
       `a value set on an ancestor is only inherited, and loses to the ` +
       `component-level declaration. See [Theme](${themeLink}).`,
+    mixin:
+      `Bulma declares these variables on the ${element} itself, through a ` +
+      `mixin its rule includes` +
+      (modifierList
+        ? `, and declares some of them again on ${modifierList}`
+        : '') +
+      `. A value set on an ancestor, on \`:root\` or through ` +
+      `[Theme](${themeLink}) never reaches them, because the element's own ` +
+      `declaration wins. Set them on the element: with the \`style\` prop, ` +
+      `or with a class via \`className\` whose rule loads after the library ` +
+      `styles` +
+      (modifierList
+        ? ' and, with one of those modifiers on, out-ranks it'
+        : '') +
+      `.`,
     global:
       `Bulma declares these variables globally rather than on ` +
       `\`${info.name}\`'s own element, so the defaults come from the theme. ` +
@@ -352,8 +394,13 @@ async function renderCssVars(info, { relPath }) {
       `(via \`className\`/\`style\`) for a one-off, or on \`:root\` to retheme ` +
       `every instance. See [Theme](${themeLink}).`,
   };
-  const MARKERS = { compound: '†', element: '‡' };
-  const NOTES = {
+  const markers = {
+    compound: '†',
+    element: '‡',
+    global: '§',
+    mixin: '¶',
+  };
+  const notes = {
     compound:
       `† declared on a compound selector (higher specificity than a single ` +
       `class): a lone \`className\` class loses — override with inline ` +
@@ -363,26 +410,68 @@ async function renderCssVars(info, { relPath }) {
       `‡ declared on a constituent element: values set via \`className\`, ` +
       `the \`style\` prop, or an ancestor are only inherited and lose — ` +
       `target the declaring element in your CSS.`,
+    global:
+      `§ declared globally, on \`:root\`, rather than on the element: set it ` +
+      `on the element itself (via \`className\`/\`style\`) or on any ` +
+      `ancestor, up to \`:root\` to retheme every instance.`,
+    mixin:
+      `¶ declared on the element itself, through a Bulma mixin its rule ` +
+      `includes: a value set on an ancestor, on \`:root\` or through Theme ` +
+      `never reaches it, so set it on the element with the \`style\` prop ` +
+      `or a \`className\` class.`,
   };
-  const baseline = ['root', 'global', 'element', 'compound'].find(s =>
+  return { leads, markers, notes };
+}
+
+/**
+ * The CSS & Sass Variables region for a component's rows. One scope, one
+ * lead: the page-wide sentence may only claim what holds for EVERY row. On a
+ * mixed page the baseline scope's lead applies and the minority rows carry a
+ * marker with their own note below the table, so one compound- or
+ * element-scoped row does not rewrite the advice for every
+ * className-overridable row on the page, and vice versa (#544 review).
+ */
+export function renderCssVarRows(info, rows, themeLink) {
+  if (!rows.length) return null;
+  const { leads, markers, notes } = cssVarScopeText(info, rows, themeLink);
+  const scopes = new Set(rows.map(r => r.scope));
+  const unknown = [...scopes].filter(s => !(s in leads));
+  if (unknown.length) {
+    throw new Error(
+      `${info.name}: no wording for CSS-variable scope(s) ` +
+        `${unknown.join(', ')}. Add a lead, a marker and a note for each in ` +
+        `cssVarScopeText (scripts/gen-api-docs.mjs).`
+    );
+  }
+  const baseline = ['root', 'global', 'mixin', 'element', 'compound'].find(s =>
     scopes.has(s)
   );
-  const lead = LEADS[baseline];
-  const marked = [...scopes].filter(s => s !== baseline && MARKERS[s]);
-  const notes = marked.map(s => NOTES[s]);
+  const marked = [...scopes].filter(s => s !== baseline);
 
   const cells = rows.map(r => {
-    const marker = r.scope !== baseline && MARKERS[r.scope];
-    return marker
-      ? [`${r.cells[0]} ${marker}`, r.cells[1], r.cells[2]]
-      : r.cells;
+    const cells = [
+      `\`${r.cssVar}\``,
+      r.sassVar ? `\`${r.sassVar}\`` : '—',
+      `\`${r.value}\``,
+    ];
+    return r.scope === baseline
+      ? cells
+      : [`${cells[0]} ${markers[r.scope]}`, cells[1], cells[2]];
   });
   const table = renderTable(
     ['CSS Variable', 'Sass Variable', 'Default'],
     cells
   );
-  const tail = notes.length ? `\n\n${notes.join('\n\n')}` : '';
-  return `\n${lead}\n\n${table}${tail}\n`;
+  const tail = marked.length
+    ? `\n\n${marked.map(s => notes[s]).join('\n\n')}`
+    : '';
+  return `\n${leads[baseline]}\n\n${table}${tail}\n`;
+}
+
+async function renderCssVars(info, { relPath }) {
+  const rows = await cssVarRows(info);
+  const depth = relPath.split('/').length - 1;
+  return renderCssVarRows(info, rows, `${'../'.repeat(depth)}helpers/theme.md`);
 }
 
 // ---------------------------------------------------------------------------

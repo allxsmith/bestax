@@ -248,9 +248,12 @@ function bulmaSassPath(rel) {
   return full;
 }
 
+/** A row's scope as the server's `CssVar.scope` union spells it. */
+const mcpScope = scope => (scope === 'mixin' ? 'root' : scope);
+
 /**
  * CSS variable triples for a component. Deliberately the same walk and the same
- * first-source-wins dedupe as `renderCssVars` in gen-api-docs.mjs — a component
+ * first-source-wins dedupe as `cssVarRows` in gen-api-docs.mjs — a component
  * can legitimately draw variables from more than one partial.
  */
 async function cssVarsFor(info) {
@@ -263,7 +266,7 @@ async function cssVarsFor(info) {
   // old line also conflated a root CLASS with the var PREFIX, which
   // diverge exactly where VAR_PREFIX_OVERRIDES applies). Trying every
   // candidate from `varRootCandidates` (not just the primary root/prefix)
-  // keeps this in step with gen-api-docs.mjs's renderCssVars for a
+  // keeps this in step with gen-api-docs.mjs's cssVarRows for a
   // component that owns more than one of its own repo partials (#543).
   const candidates = varRootCandidates(
     info.name,
@@ -287,7 +290,7 @@ async function cssVarsFor(info) {
       // componentVars scores them 'root' inside their own partial, but 'root'
       // advice names `.input`/`className` and loses (separate, portalable
       // element). Force 'element' so the MCP scope agrees with the docs page
-      // (gen-api-docs.mjs renderCssVars), which does the same (#543).
+      // (gen-api-docs.mjs cssVarRows), which does the same (#543).
       const isExtra = root !== info.rootClass;
       for (const row of componentVars(src, root, prefix)) {
         if (seen.has(row.cssVar)) continue;
@@ -300,7 +303,12 @@ async function cssVarsFor(info) {
           // 'component' made the server give the className override advice
           // that silently loses at 0-2-0 — the exact #464 failure, on the
           // MCP surface, while the docs page said the opposite (#544 review).
-          scope: isExtra ? 'element' : row.scope,
+          // The one exception is 'mixin', which the server has no advice
+          // for: Bulma's mixin lands on the component's own element
+          // (`.delete`), so the server's 'root' advice (set it there or via
+          // className, an ancestor loses) is the true one, where the 'global'
+          // the parser used to report sent agents to `:root` (#1021).
+          scope: isExtra ? 'element' : mcpScope(row.scope),
         });
       }
     }

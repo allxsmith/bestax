@@ -222,3 +222,65 @@ test('the singular register-var form counts as registering (orphan rule input)',
 `;
   assert.equal(registerVarsEntries(src).length, 1);
 });
+
+// --- a component's own mixin (#1021) ----------------------------------------
+
+/**
+ * Bulma's shape for Delete: the variables live in `@mixin delete`, which
+ * `.delete` includes, and the sizes declare `delete-dimensions` again. A mixin
+ * is not a place in the stylesheet, so these are declared on the element that
+ * includes it, and reading them as global sent readers to `:root`.
+ */
+const mixinPartial = `@mixin delete {
+  @include cv.register-vars(("delete-dimensions": 1.25rem, "delete-color": red));
+  &:hover { @include cv.register-var("delete-color", blue); }
+  &.#{iv.$class-prefix}is-small { @include cv.register-var("delete-dimensions", 1rem); }
+}
+`;
+
+test('a mixin registration is scoped to the element, with its modifiers', () => {
+  // `&:hover` is a state, not a modifier a reader chooses, so it is not one.
+  assert.deepEqual(
+    componentVars(mixinPartial, 'delete').map(r => [
+      r.cssVar,
+      r.scope,
+      r.modifiers,
+    ]),
+    [
+      ['--bulma-delete-dimensions', 'mixin', ['.delete.is-small']],
+      ['--bulma-delete-color', 'mixin', []],
+    ]
+  );
+});
+
+test('a mixin names its modifiers on the prefix when there is no root class', () => {
+  const rows = componentVars(mixinPartial, null, 'delete');
+  assert.deepEqual(rows[0].modifiers, ['.delete.is-small']);
+});
+
+test('a mixin belongs to nobody without a prefix to match it', () => {
+  assert.deepEqual(componentVars(mixinPartial, null, null), []);
+});
+
+test("the real delete mixin yields Delete's variables, none of them global", () => {
+  const rows = componentVars(
+    repoFile('node_modules/bulma/sass/utilities/mixins.scss'),
+    'delete'
+  );
+  assert.ok(rows.length > 0);
+  assert.ok(
+    rows.every(r => r.scope === 'mixin'),
+    JSON.stringify(rows)
+  );
+});
+
+test('a variables-host registration is still global', () => {
+  const src = `#{iv.$variables-host} {
+  @include cv.register-vars(("skeleton-radius": 4px));
+}
+`;
+  assert.deepEqual(
+    componentVars(src, 'skeleton').map(r => r.scope),
+    ['global']
+  );
+});
