@@ -362,7 +362,7 @@ function CombinedSpacingExample() {
           <Button mr="3" px="4" py="2">
             Read More
           </Button>
-          <Button variant="outlined" px="4" py="2" color="dark">
+          <Button isOutlined px="4" py="2" color="dark">
             Share
           </Button>
         </Card.Content>

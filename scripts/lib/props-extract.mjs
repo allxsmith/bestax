@@ -161,6 +161,32 @@ export function exportedModules() {
   return out;
 }
 
+/**
+ * The module a name reaches the barrel through when `exportedModules` has no
+ * entry for it, which is a name an `export *` re-exports from a module named
+ * something else: `export * from './helpers/Config'` keys `Config`, while the
+ * component is `ConfigProvider`. The checker knows every name the barrel
+ * exports and where each is declared, so ask it rather than parse the module.
+ * Null when the barrel does not export the name.
+ */
+function starExportedModule(ts, program, checker, name) {
+  const index = join(REPO, 'bulma-ui', 'src', 'index.ts').replace(/\\/g, '/');
+  const sf = program.getSourceFiles().find(f => f.fileName === index);
+  const barrel = sf && checker.getSymbolAtLocation(sf);
+  if (!barrel) return null;
+  const symbol = checker
+    .getExportsOfModule(barrel)
+    .find(s => s.escapedName === name);
+  if (!symbol) return null;
+  const target =
+    symbol.flags & ts.SymbolFlags.Alias
+      ? checker.getAliasedSymbol(symbol)
+      : symbol;
+  const file = target.declarations?.[0]?.getSourceFile().fileName ?? '';
+  const m = file.match(/\/bulma-ui\/src\/([^/]+)\/([^/]+)\.tsx?$/);
+  return m ? { cat: m[1], mod: m[2] } : null;
+}
+
 function sourceFileFor(program, cat, mod) {
   const want = join(REPO, 'bulma-ui', 'src', cat, `${mod}.tsx`).replace(
     /\\/g,
@@ -195,8 +221,21 @@ function unwrapExpression(ts, node) {
   return node;
 }
 
-/** Top-level `const <name> = <init>` initializers in a file. */
-function topLevelInitializers(ts, sf) {
+/**
+ * Top-level `const <name> = <init>` initializers in a file, plus each
+ * `function <name>(…)` declaration, which stands in as its own initializer.
+ *
+ * The declarations are what `ClientOnly` and `Portal` are
+ * (`export function Portal(props: PortalProps)`). Read as constants only, they
+ * resolved no props type and no summary, and their tables came back empty
+ * without an error. A constant of the same name wins, as it always has.
+ *
+ * Only an implementation counts, never an overload signature. TypeScript gives
+ * each signature a declaration of its own, ahead of the implementation, and a
+ * signature cannot carry parameter initializers, so reading one would resolve
+ * the props type and drop every default. Exported for its tests.
+ */
+export function topLevelInitializers(ts, sf) {
   const out = new Map();
   for (const stmt of sf.statements) {
     if (!ts.isVariableStatement(stmt)) continue;
@@ -206,7 +245,26 @@ function topLevelInitializers(ts, sf) {
       }
     }
   }
+  for (const stmt of sf.statements) {
+    if (
+      ts.isFunctionDeclaration(stmt) &&
+      stmt.name &&
+      stmt.body &&
+      !out.has(stmt.name.text)
+    ) {
+      out.set(stmt.name.text, stmt);
+    }
+  }
   return out;
+}
+
+/**
+ * The node an initializer's TSDoc sits on: the variable declaration for a
+ * constant, and the declaration itself for a function.
+ */
+function declarationOf(ts, init) {
+  if (!init) return null;
+  return ts.isFunctionDeclaration(init) ? init : init.parent;
 }
 
 function isWithSubComponents(ts, node) {
@@ -355,7 +413,13 @@ function componentFunction(ts, init) {
       );
     return found ?? null;
   }
-  if (ts.isArrowFunction(init) || ts.isFunctionExpression(init)) return init;
+  if (
+    ts.isArrowFunction(init) ||
+    ts.isFunctionExpression(init) ||
+    ts.isFunctionDeclaration(init)
+  ) {
+    return init;
+  }
   if (ts.isCallExpression(init)) {
     const first = init.arguments[0];
     if (
@@ -1435,6 +1499,11 @@ const ROOT_CLASS_OVERRIDES = {
 export const EXTRA_VAR_ROOTS = {
   DateInput: ['dateinput', 'picker-popover'],
   DateInputBase: ['dateinput', 'picker-popover'],
+  // The range picker's own `daterangeinput` root is found by name. Its
+  // calendar is DateInput's, its root borrows `dateinput-container`, and its
+  // field is a Bulma `.input` holding the two inputs.
+  DateRangeInput: ['dateinput', 'picker-popover', 'input'],
+  DateRangeInputBase: ['dateinput', 'picker-popover', 'input'],
   TimeInput: ['timeinput', 'picker-popover'],
   TimeInputBase: ['timeinput', 'picker-popover'],
   // DateTimeInputBase renders both the calendar grid AND the time wheels
@@ -1534,11 +1603,16 @@ export function extractComponent(
 ) {
   const { ts, program, checker } = createProgram();
   const mods = exportedModules();
-  const entry = mods.get(name);
+  const entry =
+    mods.get(name) ?? starExportedModule(ts, program, checker, name);
   if (!entry) {
-    throw new Error(
-      `${name} is not exported from bulma-ui/src/index.ts — the API page's ` +
-        `frontmatter title: must match an exported name.`
+    // The code lets a caller that reads a title by choice say what to change.
+    throw Object.assign(
+      new Error(
+        `${name} is not exported from bulma-ui/src/index.ts — the API page's ` +
+          `frontmatter title: must match an exported name.`
+      ),
+      { code: 'BESTAX_NOT_EXPORTED' }
     );
   }
   const sf = sourceFileFor(program, entry.cat, entry.mod);
@@ -1887,7 +1961,7 @@ export function extractComponent(
       // there ("Top bar for navigation or branding"), so dropping to a bare
       // name list would lose a sentence per sub-component.
       summary:
-        jsdocText(ts, implInit?.parent) ||
+        jsdocText(ts, declarationOf(ts, implInit)) ||
         jsdocText(ts, componentFunction(ts, implInit)),
       rows,
       extraProps,
@@ -1904,7 +1978,7 @@ export function extractComponent(
   // silently. Fall back to whatever `componentFunction` resolved to.
   const rootImpl = paths[0]?.impl ?? name;
   const rootInitNode = inits.get(rootImpl);
-  const rootDecl = rootInitNode?.parent;
+  const rootDecl = declarationOf(ts, rootInitNode);
   const tsdoc =
     (rootDecl ? jsdocText(ts, rootDecl) : '') ||
     jsdocText(ts, componentFunction(ts, rootInitNode)) ||

@@ -14,6 +14,14 @@ export const TEMPLATES: Template[] = [
 export const DEFAULT_PROJECT_NAME = 'my-bestax-app';
 export const MAX_PROJECT_NAME_LENGTH = 214;
 export const PROJECT_NAME_REGEX = /^[a-zA-Z0-9-._]+$/;
+// How many of a non-empty directory's entries a message names before it
+// switches to "and N more".
+export const MAX_LISTED_ENTRIES = 5;
+
+const listEntries = (entries: string[]): string =>
+  entries.length > MAX_LISTED_ENTRIES
+    ? `${entries.slice(0, MAX_LISTED_ENTRIES).join(', ')} and ${entries.length - MAX_LISTED_ENTRIES} more`
+    : entries.join(', ');
 
 export const MESSAGES = {
   PROJECT_NAME_REQUIRED: 'Project name is required',
@@ -22,14 +30,26 @@ export const MESSAGES = {
     'Project name can only contain letters, numbers, dots, dashes and underscores',
   PROJECT_NAME_DOT:
     'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
+  PROJECT_NAME_NO_PACKAGE_NAME:
+    'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")',
+  PACKAGE_NAME_NORMALIZED: (name: string) =>
+    `  package.json name: ${name} (npm package names are lower-case and cannot start with "_")`,
   OPERATION_CANCELLED: '✖ Operation cancelled',
   NO_TTY:
     'No interactive terminal detected — cannot prompt for input.\n' +
     'Re-run non-interactively with a project name and flags, e.g.:\n' +
     '  npm create bestax@latest my-app -- -t vite-ts -b complete -i none -y\n' +
     'Run with --help to see all options.',
-  DIRECTORY_NOT_EMPTY: (dir: string) =>
-    `Directory ${chalk.yellow(dir)} is not empty. Remove existing files and continue?`,
+  DIRECTORY_NOT_EMPTY: (dir: string, entries: string[]) =>
+    `Directory ${chalk.yellow(dir)} is not empty (${listEntries(entries)}). Remove existing files and continue?`,
+  NOT_A_DIRECTORY: (dir: string) =>
+    `${dir} already exists and is not a directory, so nothing was written. Choose another project name.`,
+  // Shown instead of the question above when it cannot be asked: under -y, or
+  // without a terminal. -y never answers it (#945), so this must not suggest -y.
+  DIRECTORY_NOT_EMPTY_REFUSED: (dir: string, entries: string[]) =>
+    `Directory ${dir} is not empty (${listEntries(entries)}), so nothing was written.\n` +
+    '  Re-run with --overwrite to delete its contents first, or choose a new or empty directory.\n' +
+    '  -y alone never deletes files.',
   EMPTYING_DIRECTORY: (dir: string) => `\n  Emptying ${dir}...`,
   CREATING_PROJECT: (path: string) =>
     `✔ Creating project in ${chalk.bold(path)}`,
@@ -39,6 +59,9 @@ export const MESSAGES = {
   HAPPY_CODING: 'Happy coding! 🎉',
   SKILLS_ADDED:
     '✔ Installed bestax AI skills into .claude/skills/ (+ CLAUDE.md, .claude/launch.json)',
+  ICON_CSS_NOT_ADDED: (file: string, importStatement: string) =>
+    `  Warning: ${file} has no bestax stylesheet import to follow, so ${importStatement} ` +
+    'was not added. Add it by hand or the icons will not render.',
   TELEMETRY_NOTICE:
     'Help improve bestax — share anonymous usage stats?\n' +
     'Sends only the options you chose (template, Bulma flavor, icon library,\n' +
@@ -106,46 +129,9 @@ export interface ClaudeMdOptions {
   iconLibrary: string;
 }
 
-export const CLAUDE_MD = (
-  projectName: string,
-  { bulmaFlavor, iconLibrary }: ClaudeMdOptions
-): string => {
-  const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
-  const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
-  const setupLines = [
-    `- Bulma flavor: **${bulmaFlavor}** — the app imports **prebuilt** CSS` +
-      (flavor ? ` (\`${flavor.importStatement.trim()}\`)` : '') +
-      `; there is no Sass pipeline unless you add \`sass\`.`,
-  ];
-  if (flavor?.needsPrefix) {
-    setupLines.push(
-      `- Every Bulma class carries the \`bestax-\` prefix and the app is wrapped in ` +
-        `\`<ConfigProvider classPrefix="bestax-">\` — custom CSS selectors must match the prefix.`
-    );
-  }
-  const providerIconValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
-  setupLines.push(
-    iconLibrary === 'none'
-      ? `- No icon library is installed — add one before using \`<Icon>\` ` +
-          `(https://bestax.io/docs/api/elements/icon).`
-      : `- Icon library: **${icon?.display ?? iconLibrary}** — use \`<Icon name="..." />\`.` +
-          (providerIconValue
-            ? ` The app is already wrapped in \`<ConfigProvider iconLibrary="${providerIconValue}">\` ` +
-              `— extend that provider rather than adding a second one.`
-            : '')
-  );
-  return `# ${projectName}
-
-This app is built with [\`@allxsmith/bestax-bulma\`](https://bestax.io) — React components for
-Bulma 1.x.
-
-## This app's setup
-
-${setupLines.join('\n')}
-
-## House style
-
-**Never inline \`style={{}}\`** — the components accept helper props that cover the common
+// The house style opens with the inline-style table for a flavor that has the
+// helper classes, and with the named-class rule for one that does not.
+const HELPER_HOUSE_STYLE = `**Never inline \`style={{}}\`** — the components accept helper props that cover the common
 cases. Before writing \`style\`, translate each declaration with this table:
 
 | Inline style you're about to write         | Helper props instead                                                                                                                       |
@@ -168,13 +154,77 @@ cases. Before writing \`style\`, translate each declaration with this table:
   \`Notification\` is the mixed case: it takes \`textColor\`, but its background comes from
   the semantic \`color\` prop, not \`bgColor\`.
 - No helper matches (e.g. \`maxWidth\`, a one-off gradient)? Add a named class to
-  \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.
-- Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
-  take the same helper props: \`Span\`, \`Paragraph\`, \`Strong\`, not \`<span className="has-text-…">\`.
+  \`src/App.css\` and pass it via \`className\` — still never inline \`style\`.`;
+
+const NO_HELPERS_HOUSE_STYLE = `**Never inline \`style={{}}\`**, and don't reach for helper props in its place either:
+this app's flavor leaves out Bulma's helper classes, so \`mt="4"\`, \`textAlign="centered"\` and \`flexGrow="1"\`
+render nothing. Write a named class in \`src/App.css\`, which loads after Bulma's CSS, and pass it via \`className\`.
+`;
+
+export const CLAUDE_MD = (
+  projectName: string,
+  { bulmaFlavor, iconLibrary }: ClaudeMdOptions
+): string => {
+  const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor);
+  const icon = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
+  const setupLines = [
+    `- Bulma flavor: **${bulmaFlavor}** — the app imports **prebuilt** CSS` +
+      (flavor ? ` (\`${flavor.importStatement.trim()}\`)` : '') +
+      `; there is no Sass pipeline unless you add \`sass\`.`,
+  ];
+  if (flavor?.needsPrefix) {
+    setupLines.push(
+      `- Every Bulma class carries the \`bestax-\` prefix and the app is wrapped in ` +
+        `\`<ConfigProvider classPrefix="bestax-">\` — custom CSS selectors must match the prefix.`
+    );
+  }
+  if (flavor?.noHelpers) {
+    setupLines.push(
+      `- This flavor leaves out Bulma's helper classes, so **helper props that add those classes render nothing**: ` +
+        `\`mt\`, \`gap\`, \`textAlign\`, \`textColor\`, \`display\` and \`flexGrow\` still add ` +
+        `class names, but no rule matches them. \`skeleton\` still works, because the flavor keeps ` +
+        `Bulma's skeleton styles. The starter page lays itself out with named classes in ` +
+        `\`src/App.css\` instead.`
+    );
+  }
+  const providerIconValue = CONFIG_PROVIDER_ICON_VALUES[iconLibrary];
+  setupLines.push(
+    iconLibrary === 'none'
+      ? `- No icon library is installed — add one before using \`<Icon>\` ` +
+          `(https://bestax.io/docs/api/elements/icon).`
+      : `- Icon library: **${icon?.display ?? iconLibrary}** — use \`<Icon name="..." />\`.` +
+          (providerIconValue
+            ? ` The app is already wrapped in \`<ConfigProvider iconLibrary="${providerIconValue}">\` ` +
+              `— extend that provider rather than adding a second one.`
+            : '') +
+          (icon?.setupInstructions ? ` ${icon.setupInstructions}` : '')
+  );
+  const houseStyleOpening = flavor?.noHelpers
+    ? NO_HELPERS_HOUSE_STYLE
+    : HELPER_HOUSE_STYLE;
+  // The wrapper elements are only a way out where their helper props render.
+  const utilityClassRule = flavor?.noHelpers
+    ? `- Don't hand-write Bulma utility classes either: this flavor doesn't ship them, so a
+  \`has-text-…\` class renders nothing, and the named class above is what works.`
+    : `- Don't hand-write Bulma utility classes either — bare text/markup has wrapper elements that
+  take the same helper props: \`Span\`, \`Paragraph\`, \`Strong\`, not \`<span className="has-text-…">\`.`;
+  return `# ${projectName}
+
+This app is built with [\`@allxsmith/bestax-bulma\`](https://bestax.io) — React components for
+Bulma 1.x.
+
+## This app's setup
+
+${setupLines.join('\n')}
+
+## House style
+
+${houseStyleOpening}
+${utilityClassRule}
   The one exception: companion classes Bulma requires on \`<html>\`/\`<body>\` (e.g.
   \`has-navbar-fixed-top\` with \`Navbar fixed="top"\`) are hand-added in \`index.html\` — no
   component renders those elements.
-- Compound sub-parts (\`Card.*\`, \`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
+- Compound sub-parts (\`Modal.*\`, \`Tabs.*\`, \`Message.*\`) take \`className\` + HTML
   attributes and their own few props — no Bulma helper props, no \`as\`/\`href\`: nest a
   \`Link\`/\`Span\` inside instead. \`Tabs.Tab\` and \`Tabs.Content.Item\` each require \`index={i}\`,
   and \`Tabs.Tab\` has built-in \`icon\`/\`disabled\` props — no nested \`Icon\` needed.
@@ -252,6 +302,8 @@ export interface IconLibrary {
   // would make scaffolded installs non-reproducible.
   packageVersion?: string;
   importStatement?: string;
+  // Anything about the library's setup an agent needs beyond its name and
+  // provider value, appended to the icon line of the generated CLAUDE.md.
   setupInstructions?: string;
 }
 
@@ -290,15 +342,32 @@ export const ICON_LIBRARIES: IconLibrary[] = [
     color: chalk.yellow,
     packageName: 'material-icons',
     packageVersion: '^1.13.14',
-    importStatement: "import 'material-icons';",
+    // The package's bare import puts the filled, outlined, round, sharp and
+    // two-tone fonts into the build. Filled is the style Icon renders by
+    // default, so it is the only one imported.
+    importStatement: "import 'material-icons/iconfont/filled.css';",
+    setupInstructions:
+      'Only the filled style is loaded (`material-icons/iconfont/filled.css`, the variant `<Icon>` ' +
+      'uses by default). Import `outlined.css`, `round.css`, `sharp.css` or `two-tone.css` from ' +
+      '`material-icons/iconfont/` in `src/main.*` before using those variants.',
   },
   {
     name: 'material-symbols',
     display: 'Material Symbols',
     color: chalk.magenta,
     packageName: 'material-symbols',
-    packageVersion: '^0.45.2',
-    importStatement: "import 'material-symbols';",
+    // 0.x, so the caret holds the minor: this follows the newest minor
+    // bestax-bulma's material-symbols peer range admits, not the newest
+    // published one, or npm refuses the install as a peer conflict.
+    packageVersion: '^0.47.0',
+    // The package's bare import puts the outlined, rounded and sharp fonts
+    // into the build. Outlined is the style Icon renders by default, so it is
+    // the only one imported.
+    importStatement: "import 'material-symbols/outlined.css';",
+    setupInstructions:
+      'Only the outlined style is loaded (`material-symbols/outlined.css`, the variant `<Icon>` ' +
+      'uses by default). Import `material-symbols/rounded.css` or `sharp.css` in `src/main.*` ' +
+      'before using `variant="rounded"` or `"sharp"`.',
   },
 ];
 
@@ -309,6 +378,9 @@ export interface BulmaFlavor {
   color: typeof chalk.yellow;
   importStatement: string;
   needsPrefix?: boolean;
+  // The flavor's CSS leaves out Bulma's helper classes, so a helper prop that
+  // adds one (`mt`, `textAlign`, `flexGrow`, …) renders a class nothing styles.
+  noHelpers?: boolean;
 }
 
 export const BULMA_FLAVORS: BulmaFlavor[] = [
@@ -337,6 +409,7 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
     color: chalk.yellow,
     importStatement:
       "import '@allxsmith/bestax-bulma/versions/bestax-no-helpers.css';",
+    noHelpers: true,
   },
   {
     name: 'no-helpers-prefixed',
@@ -346,6 +419,7 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
     importStatement:
       "import '@allxsmith/bestax-bulma/versions/bestax-no-helpers-prefixed.css';",
     needsPrefix: true,
+    noHelpers: true,
   },
   {
     name: 'no-dark-mode',
@@ -356,3 +430,50 @@ export const BULMA_FLAVORS: BulmaFlavor[] = [
       "import '@allxsmith/bestax-bulma/versions/bestax-no-dark-mode.css';",
   },
 ];
+
+// Sits above the stylesheet import in the templates' entry files, and the
+// scaffolder writes it back when it swaps in a flavor's stylesheet, so the
+// reason for the import order survives. The no-helpers classes depend on it.
+export const CSS_ORDER_COMMENT =
+  "// Bestax's stylesheet loads before the app's own CSS, so a named class in\n" +
+  '// src/App.css wins over a Bulma rule of the same weight.';
+
+export interface StarterClass {
+  // The helper prop exactly as the starter App writes it.
+  prop: string;
+  // The named class that replaces it.
+  className: string;
+  // That class's rule body in src/App.css.
+  declaration: string;
+}
+
+// Every helper prop the starter App uses, with the named class that stands in
+// for it under a `noHelpers` flavor, where the prop would render nothing. The
+// scaffolder swaps each prop for its class and writes the rules into
+// src/App.css, so the starter keeps its layout and shows that flavor's way of
+// styling. A helper prop added to the starter needs a row here.
+export const NO_HELPERS_STARTER_CLASSES: StarterClass[] = [
+  {
+    prop: 'textAlign="centered"',
+    className: 'page-title',
+    declaration: 'text-align: center;',
+  },
+  {
+    prop: 'display="flex"',
+    className: 'card-column',
+    declaration: 'display: flex;',
+  },
+  {
+    prop: 'flexGrow="1"',
+    className: 'card-fill',
+    declaration: 'flex-grow: 1;',
+  },
+];
+
+export const NO_HELPERS_APP_CSS =
+  '\n/* This flavor of Bulma leaves out the helper classes, so helper props such\n' +
+  '   as textAlign and flexGrow render nothing here. Named classes like these do\n' +
+  '   the job instead: write one, then pass it with className. */\n' +
+  NO_HELPERS_STARTER_CLASSES.map(
+    ({ className, declaration }) => `.${className} {\n  ${declaration}\n}\n`
+  ).join('\n');

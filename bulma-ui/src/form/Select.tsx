@@ -140,7 +140,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
       [`is-${messageColor}`]: !!messageColor,
     });
 
-    let content = <SelectBase ref={ref} id={controlId} {...selectProps} />;
+    let content = <SelectBase ref={ref} {...selectProps} id={controlId} />;
 
     if (ownControl) {
       content = (

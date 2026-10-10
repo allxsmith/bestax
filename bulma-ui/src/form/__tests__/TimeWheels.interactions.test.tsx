@@ -681,7 +681,28 @@ describe('TimeWheels trackpad wheel accumulation', () => {
 });
 
 describe('TimeWheels keyboard and value mapping', () => {
-  it('PageUp moves the hours wheel back by 5', () => {
+  it('steps like a spinbutton: ArrowUp and PageUp raise the value, ArrowDown and PageDown lower it', () => {
+    const fn = jest.fn();
+    const { getAllByRole } = render(
+      <TimeWheels value={{ hours: 10, minutes: 0 }} onChange={fn} />
+    );
+    const hours = getAllByRole('spinbutton')[0];
+    const press = (key: string) => {
+      fireEvent.keyDown(hours, { key });
+      return hours.getAttribute('aria-valuenow');
+    };
+    expect(press('ArrowUp')).toBe('11');
+    expect(fn).toHaveBeenLastCalledWith({ hours: 11, minutes: 0 });
+    expect(press('ArrowDown')).toBe('10');
+    expect(press('ArrowDown')).toBe('9');
+    expect(press('PageUp')).toBe('14');
+    expect(press('PageDown')).toBe('9');
+    // Home and End go to the lowest and highest value, as on a spinbutton.
+    expect(press('Home')).toBe('0');
+    expect(press('End')).toBe('23');
+  });
+
+  it('PageDown moves the hours wheel back by 5', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
       <TimeInput
@@ -690,7 +711,7 @@ describe('TimeWheels keyboard and value mapping', () => {
         onChange={handler}
       />
     );
-    fireEvent.keyDown(wheels[0], { key: 'PageUp' });
+    fireEvent.keyDown(wheels[0], { key: 'PageDown' });
     expect(lastDate(handler).getHours()).toBe(5);
   });
 
@@ -704,7 +725,7 @@ describe('TimeWheels keyboard and value mapping', () => {
         onChange={handler}
       />
     );
-    fireEvent.keyDown(wheels[0], { key: 'ArrowUp' }); // display 12 → 11 (PM)
+    fireEvent.keyDown(wheels[0], { key: 'ArrowDown' }); // display 12 → 11 (PM)
     expect(lastDate(handler).getHours()).toBe(23);
   });
 
@@ -718,12 +739,12 @@ describe('TimeWheels keyboard and value mapping', () => {
         onChange={handler}
       />
     );
-    fireEvent.keyDown(wheels[0], { key: 'ArrowDown' }); // display 12 → 1 (AM)
+    fireEvent.keyDown(wheels[0], { key: 'ArrowUp' }); // display 12 → 1 (AM)
     expect(lastDate(handler).getHours()).toBe(1);
     expect(lastDate(handler).getMinutes()).toBe(30);
   });
 
-  it('ArrowDown on the seconds wheel advances the seconds', () => {
+  it('ArrowUp on the seconds wheel advances the seconds', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
       <TimeInput
@@ -733,7 +754,7 @@ describe('TimeWheels keyboard and value mapping', () => {
         onChange={handler}
       />
     );
-    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     expect(lastDate(handler).getSeconds()).toBe(31);
   });
 
@@ -747,12 +768,12 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const ampm = getAllByRole('spinbutton')[2];
-    fireEvent.keyDown(ampm, { key: 'ArrowDown' });
+    fireEvent.keyDown(ampm, { key: 'ArrowUp' });
     expect(fn).toHaveBeenCalledTimes(1);
     expect(fn.mock.calls[0][0]).toMatchObject({ hours: 21, minutes: 0 });
     // The value prop is uncontrolled here (still 9 AM = index 0), so moving
     // back fires onChange(0) — equal to the current ampmIndex → no commit.
-    fireEvent.keyDown(ampm, { key: 'ArrowUp' });
+    fireEvent.keyDown(ampm, { key: 'ArrowDown' });
     expect(fn).toHaveBeenCalledTimes(1);
   });
 
@@ -782,7 +803,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[0].querySelectorAll('button[role="option"]')
+      wheels[0].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const threes = buttons.filter(b => b.textContent?.trim() === '03');
     expect(threes.length).toBeGreaterThan(0);
@@ -802,7 +823,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[0].querySelectorAll('button[role="option"]')
+      wheels[0].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const threes = buttons.filter(b => b.textContent?.trim() === '03');
     expect(threes.length).toBeGreaterThan(0);
@@ -821,19 +842,26 @@ describe('TimeWheels keyboard and value mapping', () => {
     expect(document.activeElement).toBe(wheels[0]);
   });
 
-  it('Enter on the seconds wheel does not close the popover (no commit wired)', () => {
-    const { wheels, getByRole } = openPicker(
+  it('Enter on the seconds wheel commits and closes the popover, as on the others', () => {
+    const handler = jest.fn();
+    const { wheels, queryByRole, getByRole } = openPicker(
       <TimeInput
         defaultValue={at(10, 0, 30)}
         enableSeconds
         mobileNative={false}
+        onChange={handler}
       />
     );
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     fireEvent.keyDown(wheels[2], { key: 'Enter' });
-    expect(getByRole('dialog')).toBeInTheDocument();
+    expect(queryByRole('dialog')).toBeNull();
+    // The turned second stands after the close: nothing reverts it.
+    expect(lastDate(handler).getSeconds()).toBe(31);
+    expect(handler).toHaveBeenCalledTimes(1);
+    expect(getByRole('combobox')).toHaveValue('10:00:31');
   });
 
-  it('hour and minute changes preserve the seconds part; ArrowUp steps seconds back', () => {
+  it('hour and minute changes preserve the seconds part; ArrowDown steps seconds back', () => {
     const handler = jest.fn();
     const { wheels } = openPicker(
       <TimeInput
@@ -843,14 +871,41 @@ describe('TimeWheels keyboard and value mapping', () => {
         onChange={handler}
       />
     );
-    fireEvent.keyDown(wheels[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[0], { key: 'ArrowUp' });
     expect(lastDate(handler).getHours()).toBe(11);
     expect(lastDate(handler).getSeconds()).toBe(30);
-    fireEvent.keyDown(wheels[1], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[1], { key: 'ArrowUp' });
     expect(lastDate(handler).getMinutes()).toBe(31);
     expect(lastDate(handler).getSeconds()).toBe(30);
-    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
+    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
     expect(lastDate(handler).getSeconds()).toBe(29);
+  });
+
+  it('asks unselectableTimes about whole seconds, without the milliseconds of the clock', () => {
+    jest.useFakeTimers({
+      doNotFake: [
+        'performance',
+        'requestAnimationFrame',
+        'cancelAnimationFrame',
+      ],
+    });
+    jest.setSystemTime(new Date(2026, 9, 7, 14, 23, 10, 507));
+    try {
+      const predicate = jest.fn((d: Date) => d.getMilliseconds() !== 0);
+      const fn = jest.fn();
+      const { getAllByRole } = render(
+        <TimeWheels
+          value={{ hours: 10, minutes: 0 }}
+          onChange={fn}
+          unselectableTimes={predicate}
+        />
+      );
+      expect(predicate).toHaveBeenCalled();
+      fireEvent.keyDown(getAllByRole('spinbutton')[0], { key: 'ArrowUp' });
+      expect(fn).toHaveBeenLastCalledWith({ hours: 11, minutes: 0 });
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('defaults a missing seconds part to 0 when enableSeconds is on', () => {
@@ -863,9 +918,9 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const wheels = getAllByRole('spinbutton');
-    fireEvent.keyDown(wheels[0], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[0], { key: 'ArrowUp' });
     expect(fn).toHaveBeenLastCalledWith({ hours: 11, minutes: 0, seconds: 0 });
-    fireEvent.keyDown(wheels[2], { key: 'ArrowDown' });
+    fireEvent.keyDown(wheels[2], { key: 'ArrowUp' });
     expect(fn).toHaveBeenLastCalledWith({ hours: 10, minutes: 0, seconds: 1 });
   });
 
@@ -879,7 +934,7 @@ describe('TimeWheels keyboard and value mapping', () => {
       />
     );
     const buttons = Array.from(
-      wheels[2].querySelectorAll('button[role="option"]')
+      wheels[2].querySelectorAll('button')
     ) as HTMLButtonElement[];
     const blocked = buttons.filter(b => b.textContent?.trim() === '33');
     expect(blocked.length).toBeGreaterThan(0);

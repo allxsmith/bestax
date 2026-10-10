@@ -139,6 +139,23 @@ export interface RootEntry {
   /** Attributes the target renders when the element does not set them. */
   readonly defaults?: Readonly<Record<string, string>>;
   /**
+   * What the target renders in place of `defaults` once the element names
+   * itself through one of `by`, set to anything but an empty string (`Icon`
+   * makes a named icon an image and hides any other). A name given as an
+   * expression may render as none, so the element then sets both.
+   */
+  readonly namedDefaults?: {
+    readonly by: readonly string[];
+    readonly defaults: Readonly<Record<string, string>>;
+  };
+  /**
+   * Attributes that stop the target rendering `defaults` when the element sets
+   * one to a value written out (`Icon` hides an unnamed icon only when it has
+   * no `role` or `tabIndex` of its own). An expression may render as nothing,
+   * so it stops nothing.
+   */
+  readonly defaultsUnless?: readonly string[];
+  /**
    * An attribute the target always writes on the tags in `on`: `fallback`
    * when the element sets none, or sets it to anything but one of `keeps`
    * (`Card.FooterItem`'s `type` on its <button>). The element converts there
@@ -1710,8 +1727,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'is-fullwidth': 'isFullwidth',
         'is-right': 'isRight',
       }),
-      // `File` renders `{hasName && fileName && …}`, so a condition handed to
-      // it as it is would render a falsy number (`0`) as text.
+      // `File` renders its name area behind `hasName && …`, so a condition
+      // handed to it as it is would render a falsy number (`0`) as text.
       'has-name': { writes: [{ prop: 'hasName' }], onlyTrue: true },
     },
     omits: {
@@ -1745,6 +1762,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'iconRight',
       'inputClassName',
       'fileName',
+      'pickedFilesLabel',
     ],
     passThrough: ['ref'],
   },
@@ -1761,14 +1779,20 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  // With children, `Icon` renders `.icon` around them as given, and writes an
-  // `aria-label` (`"icon"` unless it's given one).
+  // With children, `Icon` renders `.icon` around them as given. It hides an
+  // icon with no name, no `role` and no `tabIndex`, and makes one named by
+  // `aria-label` or `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
     tag: 'span',
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
-    defaults: { 'aria-label': 'icon' },
+    defaults: { 'aria-hidden': 'true' },
+    namedDefaults: {
+      by: ['aria-label', 'aria-labelledby'],
+      defaults: { role: 'img' },
+    },
+    defaultsUnless: ['role', 'tabIndex'],
     requiresChildren: true,
     needsElementChildren: true,
     ownProps: [

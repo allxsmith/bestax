@@ -56,6 +56,8 @@ pnpm remove node-sass
 pnpm add sass
 ```
 
+If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
+
 ## CSS variables support
 
 One of the biggest changes in Bulma v1 is **CSS custom properties (variables)** instead of static values:

@@ -263,9 +263,11 @@ function example() {
     autoSave: true,
   });
 
-  const updateSetting = key => e => {
-    setSettings(prev => ({ ...prev, [key]: e.target.checked }));
-  };
+  const updateSetting =
+    (key: keyof typeof settings) =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setSettings(prev => ({ ...prev, [key]: e.target.checked }));
+    };
 
   return (
     <Block style={{ maxWidth: '300px' }}>

@@ -23,15 +23,16 @@ import {
   DEFAULT_DATE_FORMAT,
   DEFAULT_MONTH_FORMAT,
   DEFAULT_YEAR_FORMAT,
+  fromIsoValue,
+  toIsoValue,
 } from './_pickerInternals/formatters';
 import {
   isWithin,
   clampDate,
-  FIRST_YEAR,
   floorMin,
   isSameDay,
   isPeriodUnselectable,
-  makeDate,
+  startOfDay,
   startOfPeriod,
   endOfPeriod,
 } from './_pickerInternals/dateUtils';
@@ -42,39 +43,9 @@ import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { supportsInputType } from './_pickerInternals/nativeInputSupport';
 import type { SegmentKind } from './_pickerInternals/segmentMap';
 import { useControlLoading } from './controlLoading';
+import { useFieldLabelId } from './FormContext';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
-
-const pad2 = (n: number): string => String(n).padStart(2, '0');
-
-/**
- * The value as the native input and the hidden form input carry it:
- * `YYYY-MM-DD`, `YYYY-MM` or `YYYY`, the shapes `<input type="date">` and
- * `<input type="month">` use. The year is padded to four digits, as those
- * inputs require and as the `YYYY` token displays it. HTML has no such shape
- * for a year before 1, so a date then is empty, as those inputs would make it.
- */
-const toIsoValue = (d: Date, granularity: DateGranularity): string => {
-  if (d.getFullYear() < FIRST_YEAR) return '';
-  const year = String(d.getFullYear()).padStart(4, '0');
-  if (granularity === 'year') return year;
-  const month = `${year}-${pad2(d.getMonth() + 1)}`;
-  return granularity === 'month' ? month : `${month}-${pad2(d.getDate())}`;
-};
-
-/**
- * Read a native `type="date"` or `type="month"` value back into a Date. HTML
- * allows a year of four or more digits, as `toIsoValue` writes one past 9999.
- */
-const fromIsoValue = (s: string, granularity: DateGranularity): Date | null => {
-  if (granularity === 'month') {
-    const m = /^(\d{4,})-(\d{2})$/.exec(s);
-    return m ? makeDate(Number(m[1]), Number(m[2]) - 1) : null;
-  }
-  const m = /^(\d{4,})-(\d{2})-(\d{2})$/.exec(s);
-  if (!m) return null;
-  return makeDate(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
-};
 
 const DEFAULT_FORMATS: Record<DateGranularity, string> = {
   day: DEFAULT_DATE_FORMAT,
@@ -115,7 +86,10 @@ export interface DateInputBaseProps
   value?: Date | null;
   /** Initial date for uncontrolled usage. */
   defaultValue?: Date | null;
-  /** Fired when the value changes. */
+  /**
+   * Fired when the value changes. A day picked in the calendar, by click or
+   * by key, arrives at local midnight.
+   */
   onChange?: (d: Date | null) => void;
   /** Fired when the popover opens. */
   onOpen?: () => void;
@@ -191,7 +165,7 @@ export interface DateInputBaseProps
    * Open the popover when the input is focused. Focus that a closing popover
    * hands back to the input leaves it closed. Dismissing it commits nothing:
    * an empty field stays empty, and leaving afterwards commits only what was
-   * typed since.
+   * typed since. With it off, the launcher or Alt+ArrowDown opens it.
    */
   openOnFocus?: boolean;
   /** Close the popover after a date is selected. */
@@ -204,10 +178,9 @@ export interface DateInputBaseProps
    * Bulma color modifier for the input, also carried by the calendar, where it
    * colors the selected date. Today's date and the keyboard focus ring take
    * the color's `-on-scheme` variant, which Bulma adjusts to contrast with the
-   * background, so pale colors stay readable; that makes `'primary'` a shade
-   * off the unset calendar, which uses plain `primary` for both. Unset, the
-   * calendar uses its `--bulma-dateinput-*` variables, which follow `primary`
-   * by default.
+   * background, so pale colors stay readable. Unset, the calendar uses its
+   * `--bulma-dateinput-*` variables, which follow `primary` the same way by
+   * default.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Size variant. */
@@ -287,7 +260,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       name,
       form,
       required,
-      id,
+      id: idProp,
       onFocus,
       onClick,
       onKeyDown,
@@ -298,6 +271,12 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       labels,
       ...rest
     } = props;
+    // Inside a labeled Field the input takes the id the label points at
+    // when the caller set none, as InputBase does, and the popover's ids
+    // follow it. Inline there is no input to name, so nothing takes the
+    // Field's id or builds on it.
+    const fieldLabelId = useFieldLabelId();
+    const id = idProp ?? (inline ? undefined : fieldLabelId);
     // The launcher gives way to the loading spinner of a Control this sits in.
     const controlLoading = useControlLoading();
     const triggerIcon = triggerIconProp ?? !controlLoading;
@@ -407,8 +386,12 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
       [max, isDayGranularity, granularity]
     );
 
+    // A pick is the day at midnight, as a click on its cell gives. Enter hands
+    // over the focused date, which can carry a time of day from the clock, a
+    // value or a bound, so its time is dropped here.
     const handleSelect = useCallback(
-      (d: Date) => {
+      (picked: Date) => {
+        const d = startOfDay(picked);
         if (!isWithin(d, periodMin, periodMax)) return;
         commitValue(d);
         setFocusedDate(d);

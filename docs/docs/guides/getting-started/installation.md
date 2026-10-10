@@ -9,7 +9,7 @@ sidebar_position: 1
 This comprehensive guide covers all installation options, prerequisites, and configuration choices for bestax-bulma.
 
 :::tip Quick Setup
-Most users should run `pnpm create bestax@latest` — it handles everything on this page automatically (CSS imports, icon fonts, TypeScript) and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
+Most users should run `pnpm create bestax@latest`, which wires up the CSS imports, icon fonts and TypeScript for you and offers to preinstall the [bestax AI skills](/docs/skills/intro) into `.claude/skills/`. See the [Quick Start](/docs/guides/intro) for the 2-minute flow. This guide is for manual setup.
 :::
 
 :::info Already Configured?
@@ -53,7 +53,7 @@ The viewport meta tag is **essential** for Bulma's responsive features. Without 
 ## Package Installation
 
 :::info Prefer the installer
-`pnpm create bestax@latest` installs the package, wires up the CSS, and scaffolds a working app in one step. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
+`pnpm create bestax@latest` scaffolds a working app with the package already in its `package.json` and the CSS already wired up, so the only step left is installing its dependencies. Only follow the manual steps below if you're adding bestax-bulma to an existing project or using a toolchain the installer doesn't cover.
 :::
 
 <PackageManagerTabs>
@@ -99,7 +99,15 @@ import 'bulma/css/bulma.min.css';
 import '@allxsmith/bestax-bulma/extras.css';
 ```
 
-Bulma is already installed as a dependency of bestax-bulma — no extra install needed.
+These lines import from `bulma` itself, so add it to your app's own dependencies. bestax-bulma depends on Bulma, but under pnpm's default layout your code can only import the packages your app lists:
+
+<PackageManagerTabs>
+
+```bash
+pnpm add bulma
+```
+
+</PackageManagerTabs>
 
 ### Method 3: CDN
 
@@ -127,18 +135,21 @@ Or if you only need Bulma itself:
 
 ### Method 4: Custom SCSS Build
 
-**Pros**: Smallest bundle size, full customization
-**Cons**: More complex setup
+**Pros**: Full control of Bulma's Sass variables
+**Cons**: More complex setup. It compiles all of Bulma plus the extras, so the output is about the size of `bestax.css`; to ship less, see [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css).
 
-1. Install Sass as a dev dependency (Bulma is already installed):
+1. Add Bulma (Method 2 says why) and Sass as a dev dependency:
 
 <PackageManagerTabs>
 
 ```bash
+pnpm add bulma
 pnpm add -D sass
 ```
 
 </PackageManagerTabs>
+
+If pnpm stops on a build script here, see [When pnpm blocks a build script](/docs/guides/features/sass-customization#when-pnpm-blocks-a-build-script).
 
 2. Create a custom SCSS file:
 
@@ -293,27 +304,34 @@ pnpm add -D typescript @types/react @types/react-dom
 
 ### TypeScript Configuration
 
-Recommended `tsconfig.json` settings:
+The tsconfig a Vite `react-ts` app starts with already works with bestax-bulma. If you write your own for a Vite app, these settings work on TypeScript 5 and 6:
 
-```json
+```json title="tsconfig.json"
 {
   "compilerOptions": {
-    "target": "ES2020",
-    "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
-    "skipLibCheck": true,
-    "moduleResolution": "node",
-    "allowSyntheticDefaultImports": true,
-    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "types": ["vite/client"],
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
     "jsx": "react-jsx",
+    "skipLibCheck": true,
     "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "include": ["src"]
 }
 ```
+
+- `"moduleResolution": "bundler"` reads the package's `exports` map.
+- `"types": ["vite/client"]` declares CSS imports such as `import '@allxsmith/bestax-bulma/bestax.css'`. With another bundler, use its client types, or add a `.d.ts` file containing `declare module '*.css';`.
+- `"allowImportingTsExtensions"` lets `main.tsx` import `./App.tsx`, as Vite's template does. It needs `"noEmit"`, which suits an app whose bundler does the compiling.
+- `"isolatedModules"` makes `tsc` reject code that Vite's file-by-file compile can't handle, such as re-exporting a type without `export type`.
 
 ---
 
@@ -328,9 +346,6 @@ bestax-bulma supports tree shaking. Always use named imports:
 ```js
 // ✅ Good - Only imports what you need
 import { Button, Box, Title } from '@allxsmith/bestax-bulma';
-
-// ❌ Bad - Imports entire library
-import * as Bulma from '@allxsmith/bestax-bulma';
 ```
 
 ### Analyzing Bundle Size
@@ -359,7 +374,7 @@ pnpm dlx webpack-bundle-analyzer stats.json
 
 ### Expected Sizes
 
-- **bestax-bulma JS**: ~49KB min+gzip for the _entire_ library — with named imports, tree shaking means your app ships only the components it uses.
+- **bestax-bulma JS**: ~65KB min+gzip for the _entire_ library — with named imports, tree shaking means your app ships only the components it uses.
 - **CSS (`bestax.css`, the combined Bulma + extras bundle)**: ~800KB minified on disk, ~82KB gzipped over the wire. CSS is not tree-shaken — the whole file ships regardless of which components you use. Leaner prebuilt variations and a modular Sass path exist; see [CSS Variations](/docs/guides/getting-started/variations#file-size-comparison) for measured sizes and [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css) for the full trimming playbook.
 - **PurgeCSS** can strip unused selectors further, but it is not wired into any scaffold or template — [Optimizing CSS Size](/docs/guides/getting-started/optimizing-css#lever-2--purge-unused-selectors-build-step-biggest-win) covers the opt-in setup and the safelist patterns dynamic class names need to survive the purge.
 
@@ -416,7 +431,7 @@ import { Button } from '@allxsmith/bestax-bulma';
 Components should have Bulma styling applied. If components appear unstyled:
 
 - Verify bestax CSS is imported
-- Check browser console for 404 errors {/* bestax:count-ok: an HTTP status, not a tally */}
+- Check the browser console for a stylesheet that failed to load
 - Ensure CSS import order is correct
 
 ### 4. Check Icons (if using)
@@ -455,7 +470,6 @@ Icons should render correctly. If you see placeholder text instead of icons:
 ### Getting Help
 
 - Check our [Toolchains guide](/docs/guides/getting-started/react-setups) for toolchain-specific issues
-- View [example projects](https://github.com/allxsmith/bestax/tree/main/examples)
 - Open an [issue on GitHub](https://github.com/allxsmith/bestax/issues)
 
 ---

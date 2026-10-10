@@ -6,7 +6,6 @@
 // Set the library ONCE on ConfigProvider ('fa' | 'mdi' | 'ion' |
 // 'material-icons' | 'material-symbols' — Ionicons is 'ion', NOT 'ionicons');
 // every <Icon> below then omits `library`.
-import React from 'react';
 import {
   ConfigProvider,
   Icon,
@@ -22,7 +21,7 @@ export function IconShowcase() {
       <Box>
         <Title size="5">Meaningful icons carry their own label</Title>
         {/* Standalone icons convey information — give them a descriptive
-            ariaLabel (the default is just "icon"). */}
+            ariaLabel, which also makes the icon an image. */}
         <Icon
           name="triangle-exclamation"
           textColor="warning"
@@ -34,7 +33,8 @@ export function IconShowcase() {
           Decorative icons hide from screen readers
         </Title>
         {/* Next to visible text the icon repeats the message — aria-hidden
-            stops "icon" (or a duplicate) being announced. */}
+            keeps a duplicate from being announced. An Icon with no ariaLabel
+            renders it anyway; writing it out says so. */}
         <IconText iconProps={{ name: 'star', 'aria-hidden': 'true' }}>
           Starred
         </IconText>

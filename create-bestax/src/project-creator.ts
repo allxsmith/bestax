@@ -4,7 +4,8 @@ import chalk from 'chalk';
 import fs from 'fs-extra';
 import {
   checkDirectoryExists,
-  isDirectoryEmpty,
+  listDirectoryEntries,
+  existsAsNonDirectory,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -26,16 +27,21 @@ import {
   displayError,
   displayCancelled,
 } from './display.js';
-import { validateProjectName } from './validators.js';
+import { validateProjectName, toValidPackageName } from './validators.js';
 import {
   MESSAGES,
+  TEMPLATES,
   ICON_LIBRARIES,
   BULMA_FLAVORS,
   CLAUDE_MD,
   LAUNCH_JSON,
   CONFIG_PROVIDER_ICON_VALUES,
+  NO_HELPERS_STARTER_CLASSES,
+  NO_HELPERS_APP_CSS,
+  CSS_ORDER_COMMENT,
   type ClaudeMdOptions,
 } from './constants.js';
+import { detectPackageManager } from './package-manager.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -61,7 +67,15 @@ export interface CLIOptions {
   skills?: boolean;
   telemetry?: boolean;
   yes?: boolean;
+  overwrite?: boolean;
 }
+
+/**
+ * What create() does with the target directory once every prompt is answered:
+ * write into it as is ('empty'), remove what it holds first ('overwrite'), or
+ * nothing at all ('stop', with the reason already shown).
+ */
+export type ExistingDirectoryPlan = 'empty' | 'overwrite' | 'stop';
 
 export class ProjectCreator {
   private templatesDir: string;
@@ -83,25 +97,66 @@ export class ProjectCreator {
     return promptProjectName();
   }
 
+  /**
+   * Decides what happens to an existing target directory without touching it:
+   * create() empties it only after the last prompt, so a Ctrl+C at any later
+   * question leaves the user's files where they were (#945). Only --overwrite
+   * or a yes at the prompt removes files. -y never does, and neither -y nor a
+   * missing terminal can ask, so both stop at a non-empty directory instead.
+   * A file at the target path stops the run too, whatever the flags say.
+   */
   async checkExistingDirectory(
     targetPath: string,
-    targetDir: string
-  ): Promise<boolean> {
-    const exists = await checkDirectoryExists(targetPath);
-    const isEmpty = await isDirectoryEmpty(targetPath);
-
-    if (exists && !isEmpty) {
-      const shouldOverwrite = await promptOverwriteDirectory(targetDir);
-
-      if (!shouldOverwrite) {
-        return false;
-      }
-
-      console.log(chalk.yellow(`\n  Emptying ${targetDir}...`));
-      await emptyDirectory(targetPath);
+    targetDir: string,
+    options?: CLIOptions
+  ): Promise<ExistingDirectoryPlan> {
+    if (await existsAsNonDirectory(targetPath)) {
+      displayError(MESSAGES.NOT_A_DIRECTORY(targetDir));
+      return 'stop';
     }
 
-    return true;
+    const entries = await listDirectoryEntries(targetPath);
+    if (entries.length === 0) {
+      return 'empty';
+    }
+
+    if (options?.overwrite) {
+      return 'overwrite';
+    }
+
+    if (options?.yes || !process.stdin.isTTY) {
+      displayError(MESSAGES.DIRECTORY_NOT_EMPTY_REFUSED(targetDir, entries));
+      return 'stop';
+    }
+
+    if (!(await promptOverwriteDirectory(targetDir, entries))) {
+      displayCancelled();
+      return 'stop';
+    }
+    return 'overwrite';
+  }
+
+  /**
+   * Every flag's value is checked here, before any prompt runs or anything on
+   * disk changes, so a typo can never cost the user an emptied directory (#945).
+   */
+  validateOptions(options?: CLIOptions): string | null {
+    const validTemplates = TEMPLATES.map(t => t.name);
+    if (options?.template && !validTemplates.includes(options.template)) {
+      return `Invalid template: ${options.template}. Valid options are: ${validTemplates.join(', ')}`;
+    }
+
+    const validFlavors = BULMA_FLAVORS.map(f => f.name);
+    if (options?.bulma && !validFlavors.includes(options.bulma)) {
+      return `Invalid Bulma flavor: ${options.bulma}. Valid options are: ${validFlavors.join(', ')}`;
+    }
+
+    const validLibraries = ICON_LIBRARIES.map(lib => lib.name);
+    if (options?.icon && !validLibraries.includes(options.icon)) {
+      return `Invalid icon library: ${options.icon}. Valid options are: ${validLibraries.join(', ')}`;
+    }
+
+    return null;
   }
 
   getTemplatePath(template: string): string {
@@ -131,6 +186,30 @@ export class ProjectCreator {
     if (updated !== htmlContent) {
       await fs.writeFile(indexHtmlPath, updated);
     }
+  }
+
+  /**
+   * The template README is written with pnpm commands and lists no icon
+   * library. Rewrite the commands for the package manager that ran the CLI
+   * (the one the success message names too) and list the icon library the
+   * user picked, if any.
+   */
+  async updateReadme(targetPath: string, iconLibrary: string): Promise<void> {
+    const readmePath = path.join(targetPath, 'README.md');
+    if (!fs.existsSync(readmePath)) return;
+
+    const pm = detectPackageManager();
+    let readme = await fs.readFile(readmePath, 'utf8');
+    readme = readme.replace(/\bpnpm (install|run)\b/g, `${pm} $1`);
+
+    const library = ICON_LIBRARIES.find(lib => lib.name === iconLibrary);
+    if (library && iconLibrary !== 'none') {
+      readme = readme.replace(
+        /^(- .*bestax-bulma component library)$/m,
+        `$1\n- 🎯 ${library.display} icons`
+      );
+    }
+    await fs.writeFile(readmePath, readme);
   }
 
   async setupSkills(
@@ -178,15 +257,17 @@ export class ProjectCreator {
     if (fs.existsSync(mainFilePath)) {
       let content = await fs.readFile(mainFilePath, 'utf8');
 
-      // Replace the default bestax CSS import with the selected flavor
+      // Replace the default bestax CSS import, and the comment block directly
+      // above it, with the selected flavor's import under the comment that
+      // says why the stylesheets load before the app's own CSS.
       const bestaxImportRegex =
-        /\/\/.*\n\s*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
+        /(?:[ \t]*\/\/[^\n]*\n)+[ \t]*import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
       const bestaxImportSimpleRegex =
         /import\s+['"]@allxsmith\/bestax-bulma\/bestax\.css['"]\s*;?/;
       if (bestaxImportRegex.test(content)) {
         content = content.replace(
           bestaxImportRegex,
-          '// Import CSS\n' + flavor.importStatement
+          CSS_ORDER_COMMENT + '\n' + flavor.importStatement
         );
       } else if (bestaxImportSimpleRegex.test(content)) {
         content = content.replace(
@@ -211,6 +292,38 @@ export class ProjectCreator {
 
       await fs.writeFile(mainFilePath, content);
     }
+
+    if (flavor.noHelpers) {
+      await this.replaceStarterHelperProps(targetPath, template);
+    }
+  }
+
+  /**
+   * A flavor without Bulma's helper classes leaves the starter's helper props
+   * rendering nothing, so its title loses its centering and its cards their
+   * equal heights. Swap each prop for the named class in
+   * NO_HELPERS_STARTER_CLASSES and append the classes' rules to src/App.css.
+   */
+  async replaceStarterHelperProps(
+    targetPath: string,
+    template: string
+  ): Promise<void> {
+    const appFileName = template.includes('-ts') ? 'App.tsx' : 'App.jsx';
+    const appFilePath = path.join(targetPath, 'src', appFileName);
+    const appCssPath = path.join(targetPath, 'src', 'App.css');
+    if (!fs.existsSync(appFilePath) || !fs.existsSync(appCssPath)) return;
+
+    let appContent = await fs.readFile(appFilePath, 'utf8');
+    for (const { prop, className } of NO_HELPERS_STARTER_CLASSES) {
+      appContent = appContent.split(prop).join(`className="${className}"`);
+    }
+    await fs.writeFile(appFilePath, appContent);
+
+    const css = await fs.readFile(appCssPath, 'utf8');
+    await fs.writeFile(
+      appCssPath,
+      css.replace(/\n*$/, '\n') + NO_HELPERS_APP_CSS
+    );
   }
 
   private getIconName(
@@ -240,16 +353,23 @@ export class ProjectCreator {
     return iconMappings[iconLibrary]?.[iconType] || '';
   }
 
+  /**
+   * The `iconProps` entries for a starter card icon. Decorative, since the
+   * card title beside it says the same thing, so it is hidden from screen
+   * readers rather than announced as "icon".
+   */
   private getIconProps(
     iconLibrary: string,
     iconType: 'rocket' | 'book' | 'code'
-  ): string {
+  ): string[] {
     const iconName = this.getIconName(iconLibrary, iconType);
-    if (!iconName) return '';
+    if (!iconName) return [];
 
-    return iconLibrary === 'fontawesome'
-      ? `name="${iconName}" variant="solid"`
-      : `name="${iconName}"`;
+    return [
+      `name: '${iconName}'`,
+      ...(iconLibrary === 'fontawesome' ? [`variant: 'solid'`] : []),
+      `'aria-hidden': 'true'`,
+    ];
   }
 
   async setupIconLibrary(
@@ -311,9 +431,11 @@ export class ProjectCreator {
 
           if (fs.existsSync(mainFilePath)) {
             let content = await fs.readFile(mainFilePath, 'utf8');
-            // Add the icon library import after the CSS imports
+            // Add the icon library import after the bestax stylesheet import,
+            // whichever one the flavor wrote: bestax.css for complete, a
+            // versions/bestax-*.css file for every other flavor (#946).
             const cssImportMatch = content.match(
-              /import\s+['"](?:@allxsmith\/bestax-bulma\/(?:bestax|extras)\.css|bulma\/css\/.*?)['"]\s*;?/
+              /import\s+['"](?:@allxsmith\/bestax-bulma\/[^'"]+\.css|bulma\/css\/.*?)['"]\s*;?/
             );
             if (cssImportMatch) {
               const insertPosition =
@@ -324,13 +446,27 @@ export class ProjectCreator {
                 library.importStatement +
                 content.slice(insertPosition);
               await fs.writeFile(mainFilePath, content);
+            } else {
+              // Without its stylesheet every icon renders blank or as its
+              // name, so say so rather than finish as if it worked (#946).
+              console.log(
+                chalk.yellow(
+                  MESSAGES.ICON_CSS_NOT_ADDED(
+                    `src/${mainFileName}`,
+                    library.importStatement
+                  )
+                )
+              );
             }
           }
         }
       }
     }
 
-    // Now add Icon components to App.jsx/App.tsx (for all icon libraries)
+    // Now add an icon to each card title in App.jsx/App.tsx (for all icon
+    // libraries). IconText spaces the icon from its text with Bulma's own
+    // .icon-text rule rather than a margin helper, so the gap holds in the
+    // no-helpers flavors too.
     const isTypeScript = template.includes('-ts');
     const appFileName = isTypeScript ? 'App.tsx' : 'App.jsx';
     const appFilePath = path.join(targetPath, 'src', appFileName);
@@ -338,61 +474,52 @@ export class ProjectCreator {
     if (fs.existsSync(appFilePath)) {
       let appContent = await fs.readFile(appFilePath, 'utf8');
 
-      // Add Icon import to the bestax-bulma imports
+      // Add IconText to the bestax-bulma imports
       const bulmaImportRegex =
         /(import\s+\{[\s\S]*?)(}\s+from\s+['"]@allxsmith\/bestax-bulma['"])/;
-      if (bulmaImportRegex.test(appContent) && !appContent.includes('Icon')) {
-        // Check if the import ends with a comma or not
+      if (
+        bulmaImportRegex.test(appContent) &&
+        !/\bIconText\b/.test(appContent)
+      ) {
         const importMatch = appContent.match(bulmaImportRegex);
         if (importMatch) {
           const beforeClosingBrace = importMatch[1];
-          // Remove any trailing comma and whitespace, then add Icon properly
+          // Remove any trailing comma and whitespace, then add IconText properly
           const cleanedImport = beforeClosingBrace.replace(/,?\s*$/, '');
           appContent = appContent.replace(
             bulmaImportRegex,
-            cleanedImport + ',\n  Icon$2'
+            cleanedImport + ',\n  IconText,\n$2'
           );
         }
       }
 
-      // Add icon examples in the Cards section
-      // Find the Quick Start Card and add an icon
-      const quickStartRegex =
-        /(Card\.Header\.Title>\s*Quick Start\s*<\/Card\.Header\.Title>)/;
-      if (quickStartRegex.test(appContent)) {
-        const iconProps = this.getIconProps(iconLibrary, 'rocket');
-        if (iconProps) {
-          appContent = appContent.replace(
-            quickStartRegex,
-            `Card.Header.Title>\n                          <Icon ${iconProps} size="small" mr="2" />\n                          Quick Start\n                        </Card.Header.Title>`
-          );
-        }
-      }
-
-      // Add icon to Documentation Card
-      const docsRegex =
-        /(Card\.Header\.Title>\s*Documentation\s*<\/Card\.Header\.Title>)/;
-      if (docsRegex.test(appContent)) {
-        const iconProps = this.getIconProps(iconLibrary, 'book');
-        if (iconProps) {
-          appContent = appContent.replace(
-            docsRegex,
-            `Card.Header.Title>\n                          <Icon ${iconProps} size="small" mr="2" />\n                          Documentation\n                        </Card.Header.Title>`
-          );
-        }
-      }
-
-      // Add icon to Examples Card
-      const examplesRegex =
-        /(Card\.Header\.Title>\s*Examples\s*<\/Card\.Header\.Title>)/;
-      if (examplesRegex.test(appContent)) {
-        const iconProps = this.getIconProps(iconLibrary, 'code');
-        if (iconProps) {
-          appContent = appContent.replace(
-            examplesRegex,
-            `Card.Header.Title>\n                          <Icon ${iconProps} size="small" mr="2" />\n                          Examples\n                        </Card.Header.Title>`
-          );
-        }
+      const cardIcons: Array<['rocket' | 'book' | 'code', string]> = [
+        ['rocket', 'Quick Start'],
+        ['book', 'Documentation'],
+        ['code', 'Examples'],
+      ];
+      for (const [iconType, title] of cardIcons) {
+        const iconProps = this.getIconProps(iconLibrary, iconType);
+        if (iconProps.length === 0) continue;
+        const titleRegex = new RegExp(
+          `^([ \\t]*)(<Card\\.Header\\.Title[^>]*>)\\s*${title}\\s*(</Card\\.Header\\.Title>)`,
+          'm'
+        );
+        appContent = appContent.replace(
+          titleRegex,
+          (_match, indent: string, open: string, close: string) =>
+            [
+              `${indent}${open}`,
+              `${indent}  <IconText`,
+              `${indent}    iconProps={{`,
+              ...iconProps.map(entry => `${indent}      ${entry},`),
+              `${indent}    }}`,
+              `${indent}  >`,
+              `${indent}    ${title}`,
+              `${indent}  </IconText>`,
+              `${indent}${close}`,
+            ].join('\n')
+        );
       }
 
       await fs.writeFile(appFilePath, appContent);
@@ -474,6 +601,12 @@ export class ProjectCreator {
   async create(projectDir?: string, options?: CLIOptions): Promise<void> {
     displayHeader();
 
+    const optionsError = this.validateOptions(options);
+    if (optionsError) {
+      displayError(optionsError);
+      process.exit(1);
+    }
+
     // Get project name
     const targetDir = await this.getProjectName(projectDir);
     if (!targetDir) {
@@ -485,36 +618,20 @@ export class ProjectCreator {
     const targetPath = path.resolve(process.cwd(), targetDir);
     const projectName = path.basename(targetPath);
 
-    // Check existing directory (skip prompt if --yes is provided)
-    const canContinue = options?.yes
-      ? true
-      : await this.checkExistingDirectory(targetPath, targetDir);
-    if (!canContinue) {
-      displayCancelled();
+    // Decide about an existing directory now, but empty it only after the
+    // last prompt below (#945).
+    const directoryPlan = await this.checkExistingDirectory(
+      targetPath,
+      targetDir,
+      options
+    );
+    if (directoryPlan === 'stop') {
       process.exit(1);
-    }
-
-    // If --yes and directory exists, empty it
-    if (
-      options?.yes &&
-      (await checkDirectoryExists(targetPath)) &&
-      !(await isDirectoryEmpty(targetPath))
-    ) {
-      console.log(chalk.yellow(`\n  Emptying ${targetDir}...`));
-      await emptyDirectory(targetPath);
     }
 
     // Select template (use option or prompt)
     let template: string | null;
     if (options?.template) {
-      // Validate the provided template
-      const validTemplates = ['vite', 'vite-ts'];
-      if (!validTemplates.includes(options.template)) {
-        displayError(
-          `Invalid template: ${options.template}. Valid options are: ${validTemplates.join(', ')}`
-        );
-        process.exit(1);
-      }
       template = options.template;
     } else if (options?.yes) {
       template = 'vite'; // default template
@@ -529,14 +646,6 @@ export class ProjectCreator {
     // Select Bulma flavor (use option or prompt)
     let bulmaFlavor: string | null;
     if (options?.bulma) {
-      // Validate the provided Bulma flavor
-      const validFlavors = BULMA_FLAVORS.map(f => f.name);
-      if (!validFlavors.includes(options.bulma)) {
-        displayError(
-          `Invalid Bulma flavor: ${options.bulma}. Valid options are: ${validFlavors.join(', ')}`
-        );
-        process.exit(1);
-      }
       bulmaFlavor = options.bulma;
     } else if (options?.yes) {
       bulmaFlavor = 'complete'; // default flavor
@@ -551,14 +660,6 @@ export class ProjectCreator {
     // Select icon library (use option or prompt)
     let iconLibrary: string | null;
     if (options?.icon) {
-      // Validate the provided icon library
-      const validLibraries = ICON_LIBRARIES.map(lib => lib.name);
-      if (!validLibraries.includes(options.icon)) {
-        displayError(
-          `Invalid icon library: ${options.icon}. Valid options are: ${validLibraries.join(', ')}`
-        );
-        process.exit(1);
-      }
       iconLibrary = options.icon;
     } else if (options?.yes) {
       iconLibrary = 'none'; // default icon library
@@ -571,23 +672,37 @@ export class ProjectCreator {
     }
 
     // Install AI skills? (use option -> --yes default -> prompt)
-    let installSkills: boolean;
+    let installSkills: boolean | null;
     if (options?.skills !== undefined) {
       installSkills = options.skills;
     } else if (options?.yes) {
       installSkills = true;
     } else {
       installSkills = await promptInstallSkills();
+      if (installSkills === null) {
+        displayCancelled();
+        process.exit(1);
+      }
     }
 
-    // Create project
-    console.log();
-    console.log(chalk.green(MESSAGES.CREATING_PROJECT(targetPath)));
-
     try {
+      if (directoryPlan === 'overwrite') {
+        console.log(chalk.yellow(MESSAGES.EMPTYING_DIRECTORY(targetDir)));
+        await emptyDirectory(targetPath);
+      }
+
+      // Create project
+      console.log();
+      console.log(chalk.green(MESSAGES.CREATING_PROJECT(targetPath)));
+      const packageName = toValidPackageName(projectName);
+      if (packageName !== projectName) {
+        console.log(chalk.dim(MESSAGES.PACKAGE_NAME_NORMALIZED(packageName)));
+      }
+
       await this.copyTemplate(template, targetPath);
-      await updatePackageJson(targetPath, projectName);
+      await updatePackageJson(targetPath, packageName);
       await this.updateIndexHtmlTitle(targetPath, projectName);
+      await this.updateReadme(targetPath, iconLibrary);
       await this.setupBulmaFlavor(targetPath, bulmaFlavor, template);
       await this.setupIconLibrary(targetPath, iconLibrary, template);
       await this.setupConfigProvider(

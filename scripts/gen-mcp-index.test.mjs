@@ -22,7 +22,16 @@ import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { build, readSkills, reportFailure } from './gen-mcp-index.mjs';
+import {
+  absoluteLinks,
+  build,
+  helperImport,
+  orderDeclarers,
+  proseComponentInfo,
+  readSkills,
+  reportFailure,
+} from './gen-mcp-index.mjs';
+import { sectionSpans } from './lib/api-page.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -105,6 +114,242 @@ test('helper pages ship as prose, not as an empty props table', () => {
   assert.deepEqual(hook.parts, []);
   assert.ok(hook.doc.length > 1000, 'helper doc body is missing');
   assert.ok(!hook.doc.startsWith('---'), 'frontmatter must be stripped');
+  // A hook's signature block ships on its own, a small answer where the
+  // whole page is not.
+  const trap = components.get('useFocusTrap');
+  assert.match(trap.api, /function useFocusTrap\(/);
+  assert.ok(trap.api.length < trap.doc.length / 4, 'api is the whole page');
+});
+
+test('components documented on helpers pages get a props table (#933)', () => {
+  // Theme, ConfigProvider, Portal and ClientOnly have props interfaces, and
+  // shipping them as prose left get_props with no table to give.
+  for (const [name, prop] of [
+    ['Theme', 'colorMode'],
+    ['ConfigProvider', 'iconLibrary'],
+    ['Portal', 'container'],
+    ['ClientOnly', 'fallback'],
+  ]) {
+    const record = components.get(name);
+    assert.equal(record.kind, 'component', `${name} is not a component`);
+    assert.equal(record.category, 'helpers');
+    assert.ok(
+      record.parts[0]?.props.some(p => p.name === prop),
+      `${name} has no ${prop} row`
+    );
+    // The page still ships, for include: ["reference"].
+    assert.ok(record.doc.length > 1000, `${name} lost its page`);
+    assert.ok(record.summary, `${name} has no summary`);
+    const entry = catalog.components.find(c => c.name === name);
+    assert.equal(entry.kind, 'component');
+    assert.ok(entry.propCount > 0, `${name} counts no props`);
+    // A row with no description is a blank Notes cell, and search scores it on
+    // its name alone, so Theme.darkL outranked Theme.colorMode for "dark".
+    const blank = record.parts[0].props.filter(p => !p.description);
+    assert.deepEqual(
+      blank.map(p => p.name),
+      [],
+      `${name} props with no description`
+    );
+  }
+  // Nothing outside helpers/ carries a page it does not need.
+  assert.equal(components.get('Button').doc, undefined);
+});
+
+test('a capitalised prose-page title that names no export says what to change', () => {
+  const notExported = Object.assign(new Error('not exported'), {
+    code: 'BESTAX_NOT_EXPORTED',
+  });
+  assert.throws(
+    () =>
+      proseComponentInfo('Theming', 'helpers/theming.md', () => {
+        throw notExported;
+      }),
+    err =>
+      /^\[gen-mcp-index\] helpers\/theming\.md: the title "Theming" is capitalised like a component/.test(
+        err.message
+      ) &&
+      /Title the page after the export it documents/.test(err.message) &&
+      err.cause === notExported
+  );
+  // Any other failure is the extractor's own, and passes through as it is.
+  const other = new Error('cannot determine a props type');
+  assert.throws(
+    () =>
+      proseComponentInfo('Theme', 'helpers/theme.md', () => {
+        throw other;
+      }),
+    err => err === other
+  );
+  // And the real extractor tags the case it is about.
+  assert.throws(
+    () => proseComponentInfo('NotAnExport', 'helpers/x.md'),
+    /helpers\/x\.md: the title "NotAnExport"/
+  );
+  assert.ok(
+    proseComponentInfo('Portal', 'helpers/portal.md').tables[0].rows.length
+  );
+});
+
+test('a capitalised prose-page title with no props to read stops the build', () => {
+  // A title naming an export that is not a component, such as a props type,
+  // resolves and reads as empty. Falling back to prose then would have get_props
+  // call it "not a component", the #933 sentence.
+  const empty = { tables: [], sourceFile: join(REPO, 'bulma-ui/src/x/Y.tsx') };
+  assert.throws(
+    () => proseComponentInfo('YProps', 'helpers/y.md', () => empty),
+    /\[gen-mcp-index\] helpers\/y\.md: the title "YProps" names bulma-ui\/src\/x\/Y\.tsx but finds no props there/
+  );
+  assert.throws(
+    () => proseComponentInfo('ConfigProviderProps', 'helpers/x.md'),
+    /the title "ConfigProviderProps" names bulma-ui\/src\/helpers\/Config\.tsx/
+  );
+  // Props that are all inherited still make a component: the catch-all row.
+  const inherited = {
+    tables: [
+      { rows: [], extraProps: [], catchAll: { text: 'div attributes' } },
+    ],
+    sourceFile: empty.sourceFile,
+  };
+  assert.equal(
+    proseComponentInfo('Y', 'helpers/y.md', () => inherited),
+    inherited
+  );
+});
+
+test('nothing the index ships carries a link that only resolves on its page', () => {
+  // Every string the server can serve is read away from its page: a hook's API
+  // block, a prose page, an Accessibility section, and the summaries and
+  // purposes that come from TSDoc and frontmatter. There `./valid-values.md`
+  // names a file in the reader's workspace and `#scheme-backgrounds` a section
+  // the answer does not carry. Examples are code, and are left as written.
+  const outsideCode = md =>
+    md
+      .split(/^[ \t]{0,3}(?:```|~~~)[^\n]*$/m)
+      .filter((_, i) => i % 2 === 0)
+      .join('\n');
+  const dangling = [];
+  const walk = (value, at) => {
+    if (typeof value === 'string') {
+      for (const [, target] of outsideCode(value).matchAll(LINK_TARGET)) {
+        if (!/^<?https?:\/\//.test(target)) dangling.push(`${at}: ${target}`);
+      }
+    } else if (Array.isArray(value)) {
+      value.forEach((v, i) => walk(v, `${at}[${i}]`));
+    } else if (value && typeof value === 'object') {
+      for (const [key, v] of Object.entries(value)) {
+        if (key !== 'examples') walk(v, `${at}.${key}`);
+      }
+    }
+  };
+  for (const [name, record] of components) walk(record, name);
+  walk(catalog, 'catalog');
+  assert.deepEqual(dangling, []);
+  // The block the finding was about, followed to where its links now go.
+  const api = components.get('useBulmaClasses').api;
+  assert.match(
+    api,
+    /\]\(https:\/\/bestax\.io\/docs\/api\/helpers\/valid-values[#)]/
+  );
+  assert.ok(!/table below/.test(api), 'the API block still says "below"');
+});
+
+/** A markdown link's target, bare, in angle brackets, or before a title. */
+const LINK_TARGET = /\]\(\s*(<[^>]*>|[^)\s]+)/g;
+
+test('relative links resolve to the URL the docs site serves', () => {
+  const md = [
+    'See [values](./valid-values.md), [card](../components/card.md#usage),',
+    '[grid](../grid/grid.md), [guide](../../guides/helpers/color.md),',
+    '[here](#scheme-backgrounds), [site](/docs/skills/intro) and',
+    '[out](https://bulma.io/documentation/).',
+    '[titled](./portal.md "Portal") and [bracketed](<./theme.md>).',
+    '```tsx',
+    "<a href='#keep'>[not a link](./code.md)</a>",
+    '```',
+    '',
+    '1. In a list item, a fence sits indented:',
+    '',
+    '   ```tsx',
+    '   // see [docs](./indented.md)',
+    '   ```',
+  ].join('\n');
+  const out = absoluteLinks(md, 'helpers/usebulmaclasses.md');
+  // Every link target, in order. The last is inside the fence: code is code,
+  // links and all.
+  assert.deepEqual(
+    [...out.matchAll(LINK_TARGET)].map(m => m[1]),
+    [
+      'https://bestax.io/docs/api/helpers/valid-values',
+      'https://bestax.io/docs/api/components/card#usage',
+      'https://bestax.io/docs/api/grid',
+      'https://bestax.io/docs/guides/helpers/color',
+      'https://bestax.io/docs/api/helpers/usebulmaclasses#scheme-backgrounds',
+      'https://bestax.io/docs/skills/intro',
+      'https://bulma.io/documentation/',
+      'https://bestax.io/docs/api/helpers/portal',
+      '<https://bestax.io/docs/api/helpers/theme>',
+      './code.md',
+      './indented.md',
+    ]
+  );
+  // A title survives the rewrite.
+  assert.match(
+    out,
+    /\]\(https:\/\/bestax\.io\/docs\/api\/helpers\/portal "Portal"\)/
+  );
+  assert.match(out, /<a href='#keep'>/);
+});
+
+test('every import the index shows is an import statement', () => {
+  // The constants page used to ship `import { Valid value constants } from …`,
+  // built from its title (#935).
+  const statement =
+    /^import \{\s*([\s\S]+?)\s*\} from '@allxsmith\/bestax-bulma';$/;
+  for (const [name, record] of components) {
+    const m = record.import.match(statement);
+    assert.ok(m, `${name} imports with ${JSON.stringify(record.import)}`);
+    for (const binding of m[1]
+      .split(',')
+      .map(b => b.trim())
+      .filter(Boolean)) {
+      assert.match(binding, /^[A-Za-z_$][\w$]*$/, `${name}: ${binding}`);
+    }
+  }
+  assert.match(
+    components.get('Valid value constants').import,
+    /\bvalidColors\b/
+  );
+});
+
+test("a prose page's import comes from its Import section", () => {
+  const importOf = (name, body) => {
+    const { lines, sections } = sectionSpans(
+      `---\ntitle: X\n---\n\n## Import\n\n${body}\n`
+    );
+    const section = sections.find(s => s.heading === 'Import');
+    return helperImport(name, lines, section, 'helpers/x.md');
+  };
+  assert.equal(
+    importOf(
+      'Some constants',
+      "```tsx\nimport { a, b } from '@allxsmith/bestax-bulma';\n```"
+    ),
+    "import { a, b } from '@allxsmith/bestax-bulma';"
+  );
+  // A block importing from somewhere else is not the library's import.
+  assert.equal(
+    importOf('useThing', "```ts\nimport { x } from 'elsewhere';\n```"),
+    "import { useThing } from '@allxsmith/bestax-bulma';"
+  );
+  assert.throws(
+    () => importOf('Some constants', 'No code here.'),
+    /helpers\/x\.md: "Some constants" is not an identifier/
+  );
+  assert.equal(
+    helperImport('useThing', [], undefined, 'helpers/x.md'),
+    "import { useThing } from '@allxsmith/bestax-bulma';"
+  );
 });
 
 test('usage examples are harvested with their headings', () => {
@@ -127,11 +372,125 @@ test('CSS variables are indexed back to their component', () => {
   assert.ok(button.cssVars.length > 0);
   const row = button.cssVars.find(v => v.css === '--bulma-button-h');
   assert.ok(row, '--bulma-button-h missing');
-  assert.equal(catalog.cssVarIndex['--bulma-button-h'], 'Button');
+  assert.deepEqual(catalog.cssVarIndex['--bulma-button-h'], ['Button']);
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
     assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
   }
+});
+
+test('every CSS variable lists every declarer, the one it is named after first (#964)', () => {
+  // The index kept one name per variable, whichever declarer the generator read
+  // last, so DateInput's calendar variables were "declared by DateTimeInput".
+  const declarers = new Map();
+  for (const [name, record] of components) {
+    for (const v of record.cssVars) {
+      if (!declarers.has(v.css)) declarers.set(v.css, new Set());
+      declarers.get(v.css).add(name);
+    }
+  }
+  const byCode = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
+  const OWNERLESS = ['--bulma-picker-popover-'];
+  // How much of the variable a component's name accounts for: its lower-cased
+  // name, with or without hyphens between words, followed by `-` or the end.
+  const namedLength = (css, name) => {
+    const rest = css.replace(/^--bulma-/, '');
+    const keys = [
+      name.toLowerCase(),
+      name.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase(),
+    ].filter(k => rest === k || rest.startsWith(`${k}-`));
+    return Math.max(0, ...keys.map(k => k.length));
+  };
+
+  assert.deepEqual(
+    Object.keys(catalog.cssVarIndex).sort(byCode),
+    [...declarers.keys()].sort(byCode),
+    'the index covers exactly the variables the components declare'
+  );
+  let shared = 0;
+  for (const [css, listed] of Object.entries(catalog.cssVarIndex)) {
+    assert.ok(Array.isArray(listed), `${css} is not a list`);
+    assert.deepEqual(
+      [...listed].sort(byCode),
+      [...declarers.get(css)].sort(byCode),
+      `${css} lists ${listed}`
+    );
+    if (listed.length > 1) shared++;
+    const best = Math.max(...listed.map(n => namedLength(css, n)));
+    const [first, ...others] = listed;
+    // A variable several components declare is named after one of them, except
+    // the popover the pickers share. Without this an owner the rule failed to
+    // find would fall to code-point order, #964's own failure, and pass. A new
+    // exception is one to add here on purpose.
+    if (listed.length > 1 && !OWNERLESS.some(p => css.startsWith(p))) {
+      assert.ok(best > 0, `${css} has no owner among ${listed}`);
+    }
+    if (best > 0) {
+      assert.equal(namedLength(css, first), best, `${css} lists ${listed}`);
+    }
+    // Code-point order after the owner, or throughout when there is none.
+    const tail = best > 0 ? others : listed;
+    assert.deepEqual([...tail].sort(byCode), tail, `${css} lists ${listed}`);
+  }
+  assert.ok(shared > 0, 'no variable is declared by more than one component');
+
+  // The cases the rule exists for: a variable several components declare goes
+  // first to the one it is named after. Who else declares it moves as
+  // components are added (DateRangeInput reads the calendar's), so only the
+  // owner is pinned here; the loop above holds the rest of each list.
+  for (const [css, owner] of [
+    ['--bulma-dateinput-cell-color', 'DateInput'],
+    ['--bulma-timeinput-separator-color', 'TimeInput'],
+    ['--bulma-subtitle-color', 'SubTitle'],
+    ['--bulma-title-color', 'Title'],
+    ['--bulma-input-border-color', 'Input'],
+    // Decided by the hyphenated form of the name, `icon-text`, over `icon`.
+    ['--bulma-icon-text-spacing', 'IconText'],
+  ]) {
+    const listed = catalog.cssVarIndex[css];
+    assert.equal(listed?.[0], owner, `${css} lists ${listed}`);
+    assert.ok(listed.length > 1, `${css} has no other declarer to rank`);
+  }
+  assert.ok(
+    catalog.cssVarIndex['--bulma-dateinput-cell-color'].includes(
+      'DateTimeInput'
+    ),
+    'the declarer #964 named stays listed'
+  );
+});
+
+test('a variable goes to the declarer whose name accounts for most of it', () => {
+  assert.deepEqual(
+    orderDeclarers('--bulma-icon-text-spacing', ['Icon', 'IconText']),
+    ['IconText', 'Icon']
+  );
+  // Each case below puts a co-declarer that sorts first, so crediting the owner
+  // and leaving code-point order give different answers, and the case can fail.
+  // A shorter name wins where the longer one does not match.
+  assert.deepEqual(
+    orderDeclarers('--bulma-icon-dimensions', ['IconText', 'Field', 'Icon']),
+    ['Icon', 'Field', 'IconText']
+  );
+  // Named after none of them: code-point order, and each name once.
+  assert.deepEqual(
+    orderDeclarers('--bulma-picker-popover-shadow', [
+      'TimeInput',
+      'DateInput',
+      'DateTimeInput',
+      'TimeInput',
+    ]),
+    ['DateInput', 'DateTimeInput', 'TimeInput']
+  );
+  // A name the variable merely starts with, mid-word, is not its name.
+  assert.deepEqual(
+    orderDeclarers('--bulma-dateinputs-x', ['Control', 'DateInput']),
+    ['Control', 'DateInput']
+  );
+  // The whole of the variable is a name, so Box leads the earlier Block.
+  assert.deepEqual(orderDeclarers('--bulma-box', ['Block', 'Box']), [
+    'Box',
+    'Block',
+  ]);
 });
 
 test('related components resolve to real component names', () => {
@@ -147,6 +506,114 @@ test('related components resolve to real component names', () => {
       );
     }
   }
+});
+
+/**
+ * Every id the built Storybook answers to, derived the way its indexer derives
+ * them: Storybook's own CSF parser, from bulma-ui's `storybook`, run over the
+ * files bulma-ui's `.storybook/main.ts` globs. Borrowing the parser rather than
+ * re-implementing its id rules is the point, since a hand-written link that
+ * squashed `MutuallyExclusive` to `mutuallyexclusive` is the bug this guards,
+ * and resolving it from bulma-ui adds no dependency to the root.
+ *
+ * Besides each story, a component id on its own (`form-dateinput`) is a link
+ * Storybook resolves to that component's first entry, and a component tagged
+ * `autodocs` also answers to `<component>--docs`.
+ */
+async function storybookIds() {
+  const { readdir } = await import('node:fs/promises');
+  const { createRequire } = await import('node:module');
+  const { pathToFileURL } = await import('node:url');
+  const ui = join(REPO, 'bulma-ui');
+  const uiRequire = createRequire(join(ui, 'package.json'));
+  const { loadCsf } = await import(
+    pathToFileURL(uiRequire.resolve('storybook/internal/csf-tools')).href
+  );
+  const { sanitize } = await import(
+    pathToFileURL(uiRequire.resolve('storybook/internal/csf')).href
+  );
+  const ids = new Set();
+  const entries = await readdir(join(ui, 'src'), {
+    recursive: true,
+    withFileTypes: true,
+  });
+  for (const entry of entries) {
+    if (!entry.isFile() || !/\.stories\.[cm]?[jt]sx?$/.test(entry.name)) {
+      continue;
+    }
+    const file = join(entry.parentPath, entry.name);
+    const csf = loadCsf(await readFile(file, 'utf8'), {
+      fileName: file,
+      makeTitle: title => {
+        // Storybook would auto-title it from the path, which this does not model.
+        assert.ok(title, `${file} has no title`);
+        return title;
+      },
+    }).parse();
+    const component = sanitize(csf.meta.title);
+    ids.add(component);
+    if (csf.meta.tags?.includes('autodocs')) ids.add(`${component}--docs`);
+    for (const story of csf.stories) ids.add(story.id);
+  }
+  return ids;
+}
+
+/** The Storybook links in `text` whose id Storybook does not build. */
+function brokenStorybookLinks(text, ids) {
+  const urls = [
+    ...text.matchAll(/https:\/\/bestax\.io\/storybook\/\?path=[^\s)"\\]+/g),
+  ].map(m => m[0]);
+  return {
+    count: urls.length,
+    broken: urls.filter(url => {
+      const id = url.match(/[?&]path=\/(?:story|docs)\/([^&#]+)/)?.[1];
+      return !id || !ids.has(id);
+    }),
+  };
+}
+
+test('every Storybook link in the index and the docs opens a story that exists', async () => {
+  // The links are hand-written on the API pages, and three of them opened
+  // "Couldn't find story" (#936). Every link anywhere in a record counts, the
+  // helper pages' prose included, and so does every link on a docs page: the
+  // index copies only the one under Additional Resources, and bestax.io
+  // publishes the rest, such as the See Also links on the Columns and Grid
+  // pages.
+  const { readdir } = await import('node:fs/promises');
+  const ids = await storybookIds();
+  assert.ok(ids.has('elements-button--default'), 'story ids were not derived');
+  const broken = [];
+
+  let inIndex = 0;
+  for (const [name, record] of components) {
+    const found = brokenStorybookLinks(JSON.stringify(record), ids);
+    inIndex += found.count;
+    broken.push(...found.broken.map(url => `index ${name}: ${url}`));
+  }
+  // An extraction that broke would empty the field on every record at once, and
+  // the few links in helper-page prose would still pass a smaller floor.
+  const linked = [...components.values()].filter(r => r.storybook).length;
+  assert.ok(
+    linked > components.size / 2,
+    `only ${linked} of ${components.size} records have a Storybook link`
+  );
+
+  const docs = join(REPO, 'docs', 'docs');
+  let onPages = 0;
+  for (const entry of await readdir(docs, {
+    recursive: true,
+    withFileTypes: true,
+  })) {
+    if (!entry.isFile() || !/\.mdx?$/.test(entry.name)) continue;
+    const file = join(entry.parentPath, entry.name);
+    const found = brokenStorybookLinks(await readFile(file, 'utf8'), ids);
+    onPages += found.count;
+    const page = file.slice(REPO.length + 1);
+    broken.push(...found.broken.map(url => `${page}: ${url}`));
+  }
+  assert.ok(onPages >= inIndex, 'the docs pages were not read');
+
+  assert.deepEqual(broken, []);
 });
 
 test('the skills roster is read from the directory, not a hardcoded list', () => {

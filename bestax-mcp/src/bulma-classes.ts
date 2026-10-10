@@ -173,6 +173,8 @@ export type Verdict =
   /** A family bestax converts as a whole, by hand. */
   | { kind: 'family'; why: string }
   | { kind: 'prop'; writes: PropWrite[]; condition?: string }
+  /** A class the component renders itself, so it goes, on a condition. */
+  | { kind: 'rendered'; target: string; condition: string }
   | { kind: 'class'; why: string };
 
 export type Element =
@@ -574,6 +576,22 @@ export function lookupClasses(
     });
   }
 
+  // `File` renders Bulma's `is-empty` itself beside `hasName` while it has
+  // no name to show, so with no `.file-name` the class goes with the tree.
+  // The lookup can't see the tree, so the row says which tree it means.
+  if (
+    entry.buildsFile &&
+    writes.has('hasName') &&
+    tokens.includes('is-empty')
+  ) {
+    verdicts.set('is-empty', {
+      kind: 'rendered',
+      target: target!,
+      condition:
+        'with no `.file-name` in the tree; beside one it stays in `className`',
+    });
+  }
+
   let undone = false;
   /** Take a prop back, naming it: the class stays, but the prop is real. */
   const undo = (prop: string, why: string) => {
@@ -825,7 +843,7 @@ export function renderLookup(lookup: Lookup): string {
             ? ` It builds its icons from props: write each \`.icon\` inside as ` +
               `one icon's props, its <i>'s classes read as \`library\` and ` +
               `\`name\` (\`fas fa-home\` as \`library: 'fa', name: 'home'\`) ` +
-              `and its \`aria-label\` as \`ariaLabel\`, with the bare <span> of ` +
+              `and its attributes under their own names, with the bare <span> of ` +
               `text after it as its text. One icon goes in \`iconProps\`, with ` +
               `its text as the children, and more than one in \`items\`.`
             : '') +
@@ -835,8 +853,11 @@ export function renderLookup(lookup: Lookup): string {
               `content as \`buttonLabel\` (left out for its default text), ` +
               `each \`.file-icon\`'s content as \`iconLeft\` or ` +
               `\`iconRight\`, and the \`.file-name\`'s text as \`fileName\` ` +
-              `beside \`hasName\`. Outside a \`Field\` it renders a ` +
-              `\`.field\` of its own around it.`
+              `beside \`hasName\`. With \`hasName\` and no \`.file-name\`, ` +
+              `write \`fileName=""\`, so a file the user picks shows no name ` +
+              `where the markup shows none. It renders Bulma's \`is-empty\` ` +
+              `there itself, so that class isn't needed. Outside a \`Field\` ` +
+              `it renders a \`.field\` of its own around it.`
             : '') +
           (element.topLevel
             ? ` It renders \`.${element.topLevel}\` only when no other ` +
@@ -900,6 +921,12 @@ export function renderLookup(lookup: Lookup): string {
           `\`${token}\``,
           verdict.writes.map(writeText).join(' '),
           verdict.condition ?? '',
+        ];
+      case 'rendered':
+        return [
+          `\`${token}\``,
+          `rendered by \`${verdict.target}\``,
+          verdict.condition,
         ];
       case 'class':
         return [`\`${token}\``, 'stays in `className`', verdict.why];

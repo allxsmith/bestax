@@ -26,14 +26,13 @@ export const useConfig = () => useContext(ConfigContext);
 
 /**
  * Props for the ConfigProvider component.
- *
- * @property {React.ReactNode} children - Child components to receive configuration.
- * @property {string} [classPrefix] - Prefix applied to all Bulma class names.
- * @property {IconLibrary} [iconLibrary] - Default icon library for Icon components.
  */
 export interface ConfigProviderProps {
+  /** Child components to receive configuration. */
   children: ReactNode;
+  /** Prefix applied to all Bulma class names. */
   classPrefix?: string;
+  /** Default icon library for Icon components. */
   iconLibrary?: IconLibrary;
 }
 

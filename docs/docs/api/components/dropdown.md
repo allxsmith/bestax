@@ -153,8 +153,8 @@ function example() {
 
 ```tsx live
 function example() {
-  const dropdownRef = React.useRef(null);
-  const [tag, setTag] = React.useState(null);
+  const dropdownRef = React.useRef<HTMLDivElement>(null);
+  const [tag, setTag] = React.useState<string>();
 
   return (
     <>
@@ -236,6 +236,7 @@ function SplitButton() {
 - The dropdown root is a `<div class="dropdown">` with ARIA roles/attributes for menu and trigger.
 - The trigger button uses `aria-haspopup`, `aria-controls`, and `aria-expanded`.
 - Menu items are focusable and use `role="menuitem"`. An item given `role="menuitemcheckbox"` or `role="menuitemradio"` stays in the arrow-key order.
+- The items are the only focusable things inside `role="menu"`. A click between them, on a divider say, focuses the menu itself, so the arrow keys still reach the items from there.
 - `Dropdown.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.

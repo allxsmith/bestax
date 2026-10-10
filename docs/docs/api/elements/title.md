@@ -107,7 +107,7 @@ Quickly render titles of all sizes from `1` to `6` using a map function. This is
 
 ```tsx live
 <>
-  {['1', '2', '3', '4', '5', '6'].map(size => (
+  {(['1', '2', '3', '4', '5', '6'] as const).map(size => (
     <Title key={size} size={size}>
       Title Size {size}
     </Title>

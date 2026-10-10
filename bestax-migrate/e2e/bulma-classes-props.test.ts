@@ -377,7 +377,7 @@ describe('every bulma-classes conversion typechecks', () => {
           ),
           ...COMMON.map(attribute =>
             iconChild(['fas', 'fa-home'], [], {
-              'aria-label': 'x',
+              'aria-hidden': 'true',
               ...Object.fromEntries([attribute]),
             })
           ),
@@ -402,7 +402,8 @@ describe('every bulma-classes conversion typechecks', () => {
         );
       }
       // The tree it renders from props: the <input>'s attributes it takes as
-      // its own, its extra classes, the icons, the default text and a name.
+      // its own, its extra classes, the icons, the default text, a name and
+      // an empty name slot, its name pinned empty.
       if (entry.buildsFile) {
         const trees: FileTree[] = [
           { label: 'Choose a file\u2026' },
@@ -439,6 +440,16 @@ describe('every bulma-classes conversion typechecks', () => {
             undefined,
             undefined,
             fileChildren({ name: 'cv.pdf' })
+          )
+        );
+        add(
+          converted(
+            entry.tag!,
+            [root, 'has-name', 'is-empty'],
+            [],
+            undefined,
+            undefined,
+            fileChildren({})
           )
         );
       }

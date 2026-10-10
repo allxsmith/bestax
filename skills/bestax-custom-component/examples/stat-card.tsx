@@ -64,8 +64,8 @@ export function StatCard({
           name={icon}
           size="large"
           textColor={color}
-          // Decorative: the label below already says it, so hide it from AT —
-          // Icon otherwise emits its default aria-label="icon". (To *label* an
+          // Decorative: the label below already says it, so it stays hidden
+          // from AT, as an Icon with no `ariaLabel` is anyway. (To *label* an
           // icon, use Icon's own camelCase `ariaLabel`; most components take
           // the plain aria-label attribute.)
           aria-hidden="true"

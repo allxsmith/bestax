@@ -100,6 +100,7 @@ const BESTAX = {
   Taginput: 'form/taginput',
   TextArea: 'form/textarea',
   DateInput: 'form/datetime/dateinput',
+  DateRangeInput: 'form/datetime/daterangeinput',
   DateTimeInput: 'form/datetime/datetimeinput',
   TimeInput: 'form/datetime/timeinput',
   Column: 'columns/column',
@@ -958,7 +959,7 @@ export const categories = [
       ],
       [
         'Date range picker',
-        0,
+        'DateRangeInput',
         '~DatePickerInput',
         0,
         'DateRangePicker',

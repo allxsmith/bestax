@@ -6,7 +6,7 @@ license: MIT
 
 # Optimizing CSS size with @allxsmith/bestax-bulma
 
-The JS side is tree-shakable (the **entire** library is ~49 KB min+gzip). The stylesheet is
+The JS side is tree-shakable (the **entire** library is ~65 KB min+gzip). The stylesheet is
 not: a prebuilt flavor ships all of Bulma + the bestax extras regardless of which components
 the app renders. Judge stylesheet weight by the **gzipped** transfer size — never the raw
 `dist/` number.
@@ -77,10 +77,14 @@ recommending it, grep the app's source for helper props on bestax components:
 
 ## Lever 2 — modular Sass build
 
-Compile only the Bulma modules + bestax extras partials the app actually uses. Needs the
-`sass` compiler as a dev dependency (Bulma's own build tool — Vite compiles `.scss` natively):
+Compile only the Bulma modules + bestax extras partials the app actually uses. Needs `bulma`
+as a dependency of the app itself (under pnpm, the app's Sass can only load what the app lists)
+and the `sass` compiler as a dev dependency (Bulma's own build tool — Vite compiles `.scss`
+natively):
 
 ```sh
+# with the project's own package manager (pnpm add, yarn add) if it isn't npm
+npm install bulma
 npm install -D sass
 ```
 
@@ -114,9 +118,9 @@ partial inventory, and a worked example are in `references/modular-build.md`.
 
 ## Lever 3 — import & icon-asset hygiene (minor)
 
-- **Named imports.** `import * as Bestax from '@allxsmith/bestax-bulma'` defeats tree
-  shaking. Convert to named imports (`import { Button, Card } from …`) — a JS-side saving
-  (whole library ≈ 49 KB min+gzip), so report it honestly as minor.
+- **Named imports.** Convert `import * as Bestax from '@allxsmith/bestax-bulma'` to named
+  imports (`import { Button, Card } from …`). Any saving is on the JS side, so report it
+  honestly as minor.
 - **Unused icon libraries.** Scaffolded apps may carry an icon library the app never uses:
   icon-font packages in `package.json` (`@fortawesome/fontawesome-free`, `@mdi/font`,
   `material-icons`, `material-symbols`) with their CSS imports in `src/main.*`, or Ionicons

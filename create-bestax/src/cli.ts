@@ -4,7 +4,11 @@ import { Command } from 'commander';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { ProjectCreator, type CLIOptions } from './project-creator.js';
+import {
+  ProjectCreator,
+  type CLIOptions,
+  type ExistingDirectoryPlan,
+} from './project-creator.js';
 import { copyDirectory } from './file-system.js';
 
 // Re-export for backward compatibility with tests
@@ -41,7 +45,7 @@ export async function getProjectName(
 export async function checkExistingDirectory(
   targetPath: string,
   targetDir: string
-): Promise<boolean> {
+): Promise<ExistingDirectoryPlan> {
   const projectCreator = new ProjectCreator();
   return projectCreator.checkExistingDirectory(targetPath, targetDir);
 }
@@ -104,7 +108,14 @@ export function createCLI(): Command {
       'enable anonymous usage telemetry (https://bestax.io/docs/guides/telemetry)'
     )
     .option('--no-telemetry', 'disable anonymous usage telemetry')
-    .option('-y, --yes', 'skip prompts and use defaults or provided options')
+    .option(
+      '-y, --yes',
+      'skip prompts and use defaults or provided options (never removes files: see --overwrite)'
+    )
+    .option(
+      '--overwrite',
+      'remove existing files if the target directory is not empty'
+    )
     .action(async (projectDir?: string, options?: unknown) => {
       await projectCreator.create(projectDir, options as CLIOptions);
     });
@@ -116,9 +127,27 @@ export function isMainModule(importMetaUrl: string, argv1: string): boolean {
   return importMetaUrl === `file://${argv1}`;
 }
 
-export async function runCLI(): Promise<void> {
+/**
+ * pnpm, bun and bunx hand a `--` to the scaffolder as it was typed, where npm
+ * and Yarn 1 strip it, so `pnpm create bestax my-app -- -t vite-ts` arrives as
+ * `my-app -- -t vite-ts`. Commander reads `--` as the end of the options, and
+ * every flag after it became an extra argument: "too many arguments" (#950).
+ * Bun users need that `--`, because `bun create` rejects short flags such as
+ * `-t` and `-y` itself. So the first `--` after the script path is dropped
+ * before parsing, and a second keeps its usual meaning.
+ */
+export function dropForwardedSeparator(argv: readonly string[]): string[] {
+  const separator = argv.indexOf('--', 2);
+  return separator === -1
+    ? [...argv]
+    : [...argv.slice(0, separator), ...argv.slice(separator + 1)];
+}
+
+export async function runCLI(
+  argv: readonly string[] = process.argv
+): Promise<void> {
   const program = createCLI();
-  await program.parseAsync();
+  await program.parseAsync(dropForwardedSeparator(argv));
 }
 
 // Only run if this is the main module

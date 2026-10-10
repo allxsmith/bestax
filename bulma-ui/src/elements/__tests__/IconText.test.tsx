@@ -84,7 +84,7 @@ describe('IconText Component', () => {
         Star
       </IconText>
     );
-    const icon = screen.getByLabelText('icon');
+    const icon = document.body.querySelector('span.icon');
     expect(icon).toHaveClass('icon is-large has-text-danger');
   });
 

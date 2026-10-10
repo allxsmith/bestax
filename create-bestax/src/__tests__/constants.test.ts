@@ -1,4 +1,7 @@
 import { describe, it, expect, jest } from '@jest/globals';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 // Mock chalk
 jest.unstable_mockModule('chalk', () => ({
@@ -317,6 +320,18 @@ describe('constants', () => {
       });
     });
 
+    // Card.* sub-parts take helper props and Card.Header.Title an `as`, which
+    // the starter's own card titles use, so an agent told otherwise would
+    // strip the heading level the starter relies on.
+    it('keeps Card out of the sub-parts that take no helper props or `as`', () => {
+      const rule = md
+        .split('\n- ')
+        .find(line => line.startsWith('Compound sub-parts'));
+      expect(rule).toBeDefined();
+      expect(rule).toContain('no `as`');
+      expect(rule).not.toContain('`Card.*`');
+    });
+
     it('flags Notification as the mixed case: textColor yes, bgColor no', () => {
       // Notification omits `backgroundColor` and re-adds only `textColor`, so a
       // `bgColor` on it is inert — its background is the semantic `color` prop.
@@ -333,6 +348,116 @@ describe('constants', () => {
       expect(md).not.toContain('no `gap` helper');
     });
   });
+
+  // The no-helpers flavors ship none of the classes the helper props compile
+  // to, so the table that sends every inline style to a helper prop would
+  // send an agent to props that render nothing (#948).
+  describe.each(['no-helpers', 'no-helpers-prefixed'])(
+    'CLAUDE_MD under the %s flavor',
+    bulmaFlavor => {
+      const md = CLAUDE_MD('my-app', { bulmaFlavor, iconLibrary: 'none' });
+
+      it('says the helper props for the left-out classes render nothing', () => {
+        expect(md).toContain(
+          '**helper props that add those classes render nothing**'
+        );
+        expect(md).toContain(
+          "this app's flavor leaves out Bulma's helper classes"
+        );
+      });
+
+      // The flavor keeps Bulma's skeleton styles, so `skeleton` is a helper
+      // prop that still works, and a sentence saying every helper prop
+      // renders nothing would send an agent to hand-roll a loading state.
+      it('names skeleton as a helper prop that still works', () => {
+        expect(md).toContain('`skeleton` still works');
+        expect(md).not.toContain('and the rest');
+      });
+
+      // What the text says the flavor leaves out and keeps is what its
+      // stylesheet forwards.
+      it("matches what the flavor's stylesheet forwards", () => {
+        const flavor = BULMA_FLAVORS.find(f => f.name === bulmaFlavor)!;
+        const css = /versions\/([\w-]+)\.css/.exec(flavor.importStatement)![1];
+        const scss = fs.readFileSync(
+          path.resolve(
+            path.dirname(fileURLToPath(import.meta.url)),
+            `../../../bulma-ui/src/scss/versions/${css}.scss`
+          ),
+          'utf8'
+        );
+        expect(scss).toContain('@forward "bulma/sass/base/skeleton"');
+        expect(scss).not.toContain('bulma/sass/helpers');
+      });
+
+      it('sends inline styles to a named class instead of a helper prop', () => {
+        expect(md).toContain('Never inline `style={{}}`');
+        expect(md).toContain(
+          "Write a named class in `src/App.css`, which loads after Bulma's CSS, and pass it via `className`."
+        );
+        expect(md).not.toContain('Helper props instead');
+        expect(md).not.toContain('No helper matches');
+      });
+
+      // Neither a hand-written helper class nor the wrapper element's helper
+      // prop renders anything in this flavor, so the utility-class rule must
+      // not offer the wrapper as the way out.
+      it('does not send hand-written utility classes to helper props instead', () => {
+        expect(md).toContain("Don't hand-write Bulma utility classes");
+        expect(md).not.toContain('take the same helper props');
+        expect(md).toContain('`has-navbar-fixed-top`');
+      });
+    }
+  );
+
+  it('CLAUDE_MD offers the helper-prop wrappers where the flavor has helpers', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'none',
+    });
+    expect(md).toContain('take the same helper props');
+    expect(md).toContain('`Span`, `Paragraph`, `Strong`');
+  });
+
+  it('CLAUDE_MD keeps the helper-prop table for every flavor that has helpers', () => {
+    for (const flavor of BULMA_FLAVORS.filter(f => !f.noHelpers)) {
+      const md = CLAUDE_MD('my-app', {
+        bulmaFlavor: flavor.name,
+        iconLibrary: 'none',
+      });
+      expect(md).toContain('Helper props instead');
+      expect(md).not.toContain("leaves out Bulma's helper classes");
+    }
+  });
+
+  it('CLAUDE_MD says only the outlined Material Symbols style is loaded', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'material-symbols',
+    });
+    expect(md).toContain('Only the outlined style is loaded');
+    expect(md).toContain('`material-symbols/rounded.css`');
+  });
+
+  it('CLAUDE_MD says only the filled Material Icons style is loaded', () => {
+    const md = CLAUDE_MD('my-app', {
+      bulmaFlavor: 'complete',
+      iconLibrary: 'material-icons',
+    });
+    expect(md).toContain('Only the filled style is loaded');
+    expect(md).toContain('`material-icons/iconfont/`');
+  });
+
+  // Both Material packages' bare import pulls in every style's font, while
+  // the starter renders only the default style.
+  it.each(['material-icons', 'material-symbols'])(
+    'imports one %s font style, not the bare package',
+    name => {
+      const library = ICON_LIBRARIES.find(lib => lib.name === name)!;
+      expect(library.importStatement).not.toBe(`import '${name}';`);
+      expect(library.importStatement).toMatch(/\.css';$/);
+    }
+  );
 
   describe('DEFAULT_PROJECT_NAME', () => {
     it('should be a valid project name', () => {
@@ -399,9 +524,14 @@ describe('constants', () => {
     });
 
     it('should have functions that return strings', () => {
-      expect(typeof MESSAGES.DIRECTORY_NOT_EMPTY('test')).toBe('string');
-      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir')).toContain('mydir');
-      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir')).toContain('not empty');
+      expect(typeof MESSAGES.DIRECTORY_NOT_EMPTY('test', ['a'])).toBe('string');
+      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir', ['a'])).toContain('mydir');
+      expect(MESSAGES.DIRECTORY_NOT_EMPTY('mydir', ['a'])).toContain(
+        'not empty (a)'
+      );
+      expect(MESSAGES.NOT_A_DIRECTORY('notes.txt')).toContain(
+        'notes.txt already exists and is not a directory'
+      );
 
       expect(typeof MESSAGES.EMPTYING_DIRECTORY('test')).toBe('string');
       expect(MESSAGES.EMPTYING_DIRECTORY('mydir')).toContain('mydir');

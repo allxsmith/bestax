@@ -76,7 +76,11 @@ attributes you want (usually both, with a real label), then re-run. `Navbar` ren
 `role="navigation"` and `aria-label="main navigation"`, which Bulma's own navbar markup carries;
 give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 `aria-label="breadcrumbs"`, so give its `<nav>` an `aria-label`, whatever it says.
-`Icon` renders `aria-label="icon"`, so give a `.icon` an `aria-label` that says what the icon means.
+`Icon` hides an icon with no name, no `role` and no `tabIndex`, with `aria-hidden="true"`, and
+makes one named by `aria-label` or `aria-labelledby` an image, with `role="img"`. Give a decorative
+`.icon` `aria-hidden="true"`, and a meaningful one an `aria-label` that says what it means and
+`role="img"`. One whose name is an expression may render with no name, so it needs a `role` of its
+own.
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
 `Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, so give each
 element the attribute it's missing.
@@ -84,6 +88,11 @@ element the attribute it's missing.
 sets none, and `Card.Header.Icon` renders `aria-label="more options"` too. One whose `type` isn't
 `button`, `submit` or `reset` gets an `attr:type` TODO instead, since bestax writes `button` in its
 place. Write the type you mean, then re-run.
+`File` renders a class rather than an attribute: Bulma's `is-empty`, on a `has-name` `.file` with
+no `.file-name`, whatever a condition says. Write `is-empty` on the `.file` as a static class, then
+re-run: a condition on `is-empty` can't stand in, so one already there still gets this TODO. The
+`File` it becomes gets `fileName=""`, so a file the user picks leaves it as the markup was: no name
+area, and `is-empty` still on.
 
 ### `drops:<Target>`
 

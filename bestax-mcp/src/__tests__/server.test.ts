@@ -9,10 +9,14 @@
  * These run against the committed index, not fixtures. The index is the
  * product; a test that stubs it proves nothing about what ships.
  */
-import { describe, expect, it, beforeAll } from '@jest/globals';
+import { describe, expect, it, afterAll, beforeAll } from '@jest/globals';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
+import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
+import { DATA_DIR, loadCatalog, loadComponent } from '../data.js';
 import { createServer } from '../server.js';
 
 type TextResult = {
@@ -177,6 +181,19 @@ describe('search_bestax', () => {
       await call('search_bestax', { query: 'zzzzz-no-such-thing' })
     );
     expect(out).toContain('list_components');
+  });
+
+  // The example in the tool's own schema, which put DateInput 33rd (#934).
+  it('answers "date picker" with DateInput first', async () => {
+    const out = text(await call('search_bestax', { query: 'date picker' }));
+    const [first] = out.split('\n').slice(2);
+    expect(first).toMatch(/^\| component \| DateInput \|/);
+  });
+
+  it('suggests DateInput for a DatePicker that does not exist', async () => {
+    const res = await call('get_component', { name: 'DatePicker' });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('Did you mean "DateInput"');
   });
 });
 
@@ -394,6 +411,157 @@ describe('get_component', () => {
   });
 });
 
+// The links inside index text were made canonical by the generator, and are tagged at
+// render time like the footer's, so a visit that starts in an answer is counted as one.
+// Code, skill bodies and skill references are served as written.
+describe('the bestax.io links inside answers', () => {
+  const TAG = 'utm_source=bestax-mcp';
+  /** The site's origin, with nothing after it that makes a longer host. */
+  const SITE_ORIGIN = /https:\/\/bestax\.io(?![\w.-])/;
+  /** Every markdown link target into bestax.io in a piece of text. */
+  const siteLinks = (out: string) =>
+    [...out.matchAll(/\]\(<?(https:\/\/bestax\.io(?![\w.-])[^)\s>]*)/g)].map(
+      m => m[1]
+    );
+  /** The tag where it counts: in the query, ahead of any fragment. */
+  const TAGGED = new RegExp(`[?&]${TAG}(?:[&#]|$)`);
+  /** Markdown outside its fences, as the generator's guard reads it. */
+  const outsideFences = (md: string) =>
+    md
+      .split(/^[ \t]*(?:```|~~~)[^\n]*$/m)
+      .filter((_, i) => i % 2 === 0)
+      .join('\n');
+
+  it('tags the link in an accessibility note, keeping its fragment', async () => {
+    const out = text(
+      await call('get_component', {
+        name: 'Avatars',
+        include: ['accessibility'],
+      })
+    );
+    expect(out).toContain(
+      "[Avatar's accessibility notes](https://bestax.io/docs/api/components/avatar?utm_source=bestax-mcp#accessibility)"
+    );
+    // The code span beside it is served as written.
+    expect(out).toContain('``surplusLabel={count => `${count} weitere`}``');
+  });
+
+  it.each([
+    ['get_component', { name: 'Columns' }],
+    ['get_props', { component: 'Grid.Cell' }],
+    ['list_components', {}],
+    ['search_bestax', { query: 'columns' }],
+    ['get_component', { name: 'useBulmaClasses' }],
+    ['get_component', { name: 'useBulmaClasses', include: ['reference'] }],
+    ['get_helper_props', { group: 'layout' }],
+  ])('tags every one in %s %j', async (tool, args) => {
+    const links = siteLinks(text(await call(tool, args)));
+    expect(links.length).toBeGreaterThan(0);
+    for (const link of links) expect(link).toContain(TAG);
+  });
+
+  it.each(['Avatar', 'Footer', 'Input'])(
+    "serves %s's example code as written",
+    async component => {
+      const record = await loadComponent(component);
+      const examples = record.examples.filter(e => SITE_ORIGIN.test(e.code));
+      expect(examples.length).toBeGreaterThan(0);
+      for (const e of examples) {
+        const out = text(
+          await call('get_examples', { component, query: e.title })
+        );
+        expect(out).toContain('```tsx\n' + e.code + '\n```');
+      }
+    }
+  );
+
+  // The cases above, made exhaustive the way the generator's guard over relative links
+  // is: every record through each tool that renders it, and every catalog entry. A
+  // render path that serves a field without tagging it fails here, whichever field.
+  it('tags every site link in every record and catalog entry it serves', async () => {
+    const catalog = await loadCatalog();
+    const getComponent = (await client.listTools()).tools.find(
+      t => t.name === 'get_component'
+    );
+    // Every section get_component offers, as it advertises them.
+    const include = (
+      getComponent?.inputSchema.properties?.include as {
+        items: { enum: string[] };
+      }
+    ).items.enum;
+    const answers: { at: string; out: string }[] = [];
+    const refused: string[] = [];
+    const ask = async (tool: string, args: Record<string, unknown>) => {
+      const at = `${tool} ${JSON.stringify(args)}`;
+      const result = await call(tool, args);
+      if (failed(result)) refused.push(at);
+      answers.push({ at, out: text(result) });
+      return text(result);
+    };
+
+    // By category, since the unfiltered listing adds a section from a skill, and
+    // skills are served as written.
+    for (const { id } of catalog.categories) {
+      await ask('list_components', { category: id });
+    }
+    for (const { name } of catalog.components) {
+      const record = await loadComponent(name);
+      await ask('get_component', { name });
+      await ask('get_component', { name, include });
+      await ask('search_bestax', { query: name, kind: 'component' });
+      for (const { path } of record.parts.slice(1)) {
+        await ask('get_component', { name: path });
+        await ask('get_props', { component: name, path });
+      }
+      // Code is served as written, a link in it included.
+      for (const e of record.examples.filter(e => SITE_ORIGIN.test(e.code))) {
+        const out = await ask('get_examples', {
+          component: name,
+          query: e.title,
+        });
+        expect(out).toContain('```tsx\n' + e.code + '\n```');
+      }
+    }
+
+    expect(refused).toEqual([]);
+    const links = answers.flatMap(({ at, out }) =>
+      siteLinks(outsideFences(out)).map(link => ({ at, link }))
+    );
+    expect(links.length).toBeGreaterThan(0);
+    expect(
+      links
+        .filter(({ link }) => !TAGGED.test(link))
+        .map(({ at, link }) => `${at}: ${link}`)
+    ).toEqual([]);
+  });
+
+  it('serves a skill as written, untagged links included', async () => {
+    // The bundled markdown, read here rather than through the server's loader.
+    const body = await readFile(
+      join(DATA_DIR, 'skills', 'bestax-optimize', 'SKILL.md'),
+      'utf8'
+    );
+    const untagged = siteLinks(body).filter(link => !TAGGED.test(link));
+    expect(untagged.length).toBeGreaterThan(0);
+    const skill = text(await call('get_skill', { name: 'bestax-optimize' }));
+    const prompt = (
+      (await client.getPrompt({ name: 'optimize' })).messages[0].content as {
+        text: string;
+      }
+    ).text;
+    const resource = String(
+      (await client.readResource({ uri: 'bestax://skills/bestax-optimize' }))
+        .contents[0].text
+    );
+    // Each opens with the body as written. What may follow it is the server's own:
+    // the prompt's instructions, and on get_skill the version note, whose link is
+    // tagged like the footer's.
+    for (const out of [skill, prompt, resource]) {
+      expect(out.slice(0, body.length)).toBe(body);
+    }
+  });
+});
+
 describe('get_props', () => {
   it('returns a compound subcomponent by dot-path', async () => {
     const out = text(
@@ -426,7 +594,7 @@ describe('get_props', () => {
 
   it('explains that a hook has no props rather than returning nothing', async () => {
     const out = text(await call('get_props', { component: 'useBulmaClasses' }));
-    expect(out).toContain('hook');
+    expect(out).toContain('is not a component, so it has no prop table');
   });
 
   it('never leaks markdown escaping into a type', async () => {
@@ -496,6 +664,33 @@ describe('get_css_variables', () => {
   it('asks for one of the two arguments when given neither', async () => {
     const res = await call('get_css_variables', {});
     expect(failed(res)).toBe(true);
+  });
+
+  // The index named whichever declarer the generator read last, so DateInput's
+  // calendar variables were "declared by DateTimeInput" (#964).
+  it('names every declarer, the one a variable is named after first', async () => {
+    // The list comes from the index, since who else declares the calendar's
+    // variables grows with the pickers; what is pinned is DateInput leading it.
+    const declarers = (await loadCatalog()).cssVarIndex[
+      '--bulma-dateinput-cell-color'
+    ];
+    expect(declarers[0]).toBe('DateInput');
+    expect(declarers).toContain('DateTimeInput');
+    const named = declarers.join(', ');
+
+    const out = text(
+      await call('get_css_variables', { query: 'dateinput-cell-color' })
+    );
+    expect(out).toContain(`| \`--bulma-dateinput-cell-color\` | ${named} |`);
+
+    const search = text(
+      await call('search_bestax', {
+        query: '--bulma-dateinput-cell-color',
+        kind: 'css-var',
+      })
+    );
+    expect(search).toContain(`declared by ${named}`);
+    expect(search).toContain('get_css_variables({ component: "DateInput" })');
   });
 });
 
@@ -615,9 +810,9 @@ describe('get_helper_props', () => {
   });
 
   describe('get_component on a helper', () => {
-    // Three separate surfaces used to send a builder to get_component for a helper, and
-    // get_component on a helper is now itself a pointer — so each was a hop that answered
-    // nothing. All three now name get_helper_props directly.
+    // useBulmaClasses is where the helper props are documented, so its answers name
+    // get_helper_props as well as its own signature. Every other hook's must not: that
+    // tool describes none of them (#933).
     it('is reachable in one hop from search and from get_props', async () => {
       const search = text(
         await call('search_bestax', { query: 'useBulmaClasses' })
@@ -627,22 +822,25 @@ describe('get_helper_props', () => {
         .find(
           l => l.includes('| component |') && l.includes('useBulmaClasses')
         );
-      expect(helperRow).toContain('get_helper_props');
-      expect(helperRow).not.toContain('get_component');
+      expect(helperRow).toContain('get_component({ name: "useBulmaClasses" })');
 
       const props = text(
         await call('get_props', { component: 'useBulmaClasses' })
       );
-      expect(props).toContain('get_helper_props');
-      expect(props).not.toContain('get_component');
+      expect(props).toContain('useBulmaClasses(props)');
+      expect(props).toContain('get_helper_props()');
     });
 
-    it('is a pointer by default, not the whole reference', async () => {
+    it('is its signature and pointers by default, not the whole reference', async () => {
       const out = text(
         await call('get_component', { name: 'useBulmaClasses' })
       );
-      expect(out.length).toBeLessThan(1_000);
+      // The page runs to tens of thousands of characters; the default answer is the
+      // `## API` block and where to go next.
+      expect(out.length).toBeLessThan(3_000);
+      expect(out).toContain('## API');
       expect(out).toContain('get_helper_props');
+      expect(out).toContain('include: ["reference"]');
     });
 
     it('returns the full prose when it is asked for', async () => {
@@ -654,6 +852,97 @@ describe('get_helper_props', () => {
       );
       expect(out.length).toBeGreaterThan(40_000);
     });
+  });
+});
+
+// Theme, ConfigProvider, Portal and ClientOnly are documented on helpers pages, and
+// used to be answered as hooks: no prop table, and a pointer at get_helper_props,
+// which describes none of them (#933).
+describe('components documented on helpers pages', () => {
+  const TABLE = '| Prop | Type | Default | Notes |';
+
+  it.each([
+    ['Theme', '`colorMode`'],
+    ['ConfigProvider', '`iconLibrary`'],
+    ['Portal', '`container`'],
+    ['ClientOnly', '`fallback`'],
+  ])('get_props gives %s a prop table', async (component, prop) => {
+    const res = await call('get_props', { component });
+    expect(failed(res)).toBe(false);
+    const out = text(res);
+    expect(out).toContain(TABLE);
+    expect(out).toContain(prop);
+    expect(out).not.toContain('get_helper_props()');
+    // A table, not the page: Theme's page is about 40k characters.
+    expect(out.length).toBeLessThan(10_000);
+  });
+
+  it('get_component shows the table by default and the page on request', async () => {
+    const out = text(await call('get_component', { name: 'Theme' }));
+    expect(out).toContain(TABLE);
+    expect(out).toContain('`colorMode`');
+    expect(out.length).toBeLessThan(10_000);
+    // The page has far more than the table, and the default answer says where.
+    const pointer = 'get_component({ name: "Theme", include: ["reference"] })';
+    expect(out).toContain(pointer);
+    expect(text(await call('get_props', { component: 'Theme' }))).toContain(
+      pointer
+    );
+    // A component with no prose page has nothing to point at.
+    expect(text(await call('get_component', { name: 'Button' }))).not.toContain(
+      '"reference"'
+    );
+    // `include` replaces the default, so an answer without props has no table
+    // for the pointer to speak of, and says nothing about one.
+    for (const include of [['cssVars'], []]) {
+      expect(
+        text(await call('get_component', { name: 'Theme', include }))
+      ).not.toContain('this table');
+    }
+
+    const full = text(
+      await call('get_component', { name: 'Theme', include: ['reference'] })
+    );
+    expect(full).toContain('## Reference');
+    expect(full).toContain('### CSS Variable Props');
+  });
+
+  it.each([
+    ['colorMode', 'Theme.colorMode'],
+    ['iconLibrary', 'ConfigProvider.iconLibrary'],
+  ])('search_bestax finds %s as a prop', async (query, name) => {
+    const out = text(await call('search_bestax', { query }));
+    expect(out).toMatch(
+      new RegExp(`\\| prop \\| ${name.replace('.', '\\.')} \\|`)
+    );
+  });
+
+  it('points a hook at its own documentation, not at get_helper_props', async () => {
+    const props = text(await call('get_props', { component: 'useFocusTrap' }));
+    expect(props).toContain('function useFocusTrap(');
+    expect(props).toContain('include: ["reference"]');
+    expect(props).toContain('get_examples({ component: "useFocusTrap" })');
+    expect(props).not.toContain('get_helper_props');
+
+    const component = text(
+      await call('get_component', { name: 'useFocusTrap' })
+    );
+    expect(component).toContain('function useFocusTrap(');
+    expect(component).not.toContain('get_helper_props');
+
+    const search = text(await call('search_bestax', { query: 'useFocusTrap' }));
+    const row = search
+      .split('\n')
+      .find(l => l.includes('| component |') && l.includes('useFocusTrap'));
+    expect(row).toContain('get_component({ name: "useFocusTrap" })');
+  });
+
+  it('points a page with no API block at its reference', async () => {
+    const out = text(
+      await call('get_props', { component: 'Valid value constants' })
+    );
+    expect(out).toContain('For its API, pass `include: ["reference"]`');
+    expect(out).not.toContain('get_helper_props');
   });
 });
 
@@ -693,6 +982,21 @@ describe('lookup_bulma_classes', () => {
     expect(out).toContain('**Stays markup:** `.dropdown`:');
     expect(out).toContain('| `dropdown` | by hand |');
     expect(out).toContain('bulma-classes-unmappables');
+  });
+
+  it('says File renders is-empty itself beside has-name with no name', async () => {
+    // And that the name is pinned empty there, as the codemod writes it, so
+    // a pick shows no name where the markup shows none.
+    expect(await lookup('file has-name')).toContain(
+      'With `hasName` and no `.file-name`, write `fileName=""`, so a file the user picks shows no name where the markup shows none. ' +
+        "It renders Bulma's `is-empty` there itself, so that class isn't needed."
+    );
+    // The class's own row says the same, rather than keeping it as a class.
+    const out = await lookup('file has-name is-empty');
+    expect(out).toContain(
+      '| `is-empty` | rendered by `File` | with no `.file-name` in the tree; beside one it stays in `className` |'
+    );
+    expect(out).not.toMatch(/\| `is-empty` \| stays in `className` \|/);
   });
 
   it('writes a prop typed as a number as a number', async () => {
@@ -1052,5 +1356,204 @@ describe('edge cases that would otherwise read as "no answer"', () => {
       await call('get_examples', { component: 'Button', query: '!!!!' })
     );
     expect(out).toMatch(/No Button examples match|has no examples/);
+  });
+});
+
+// Rough edges from a smoke test of a published release (#935).
+describe('rough edges', () => {
+  const codeOf = async (uri: string) =>
+    client.readResource({ uri }).then(
+      () => null,
+      (err: { code?: number }) => err.code
+    );
+
+  it('reports its own version as serverInfo, not the library version', async () => {
+    const pkg = JSON.parse(
+      await readFile(join(process.cwd(), 'package.json'), 'utf8')
+    ) as { version: string };
+    expect(client.getServerVersion()).toMatchObject({
+      name: 'bestax',
+      version: pkg.version,
+    });
+    // The library version stays where a reader looks for it.
+    const catalog = JSON.parse(
+      await readFile(join(process.cwd(), 'data', 'catalog.json'), 'utf8')
+    ) as { generatedFrom: { version: string } };
+    expect(client.getInstructions()).toContain(catalog.generatedFrom.version);
+  });
+
+  it('shows an import a page written as prose can compile', async () => {
+    const out = text(
+      await call('get_component', { name: 'Valid value constants' })
+    );
+    expect(out).toContain('validColors');
+    expect(out).not.toContain('import { Valid value constants }');
+  });
+
+  it('prints the summary once', async () => {
+    for (const name of ['Button', 'Popover', 'Input']) {
+      const out = text(await call('get_component', { name }));
+      const opening = out.split('\n\n')[1];
+      expect(out.split(opening).length - 1).toBe(1);
+    }
+  });
+
+  it('answers a dot-path with the part it names', async () => {
+    const out = text(await call('get_component', { name: 'Navbar.Brand' }));
+    expect(out).toMatch(/^# Navbar\.Brand\n/);
+    expect(out).toContain('is a part of `Navbar`');
+    expect(out).not.toContain('**Subcomponents:**');
+
+    const resource = await client.readResource({
+      uri: 'bestax://components/Navbar.Brand',
+    });
+    expect(String(resource.contents[0].text)).toMatch(/^# Navbar\.Brand\n/);
+  });
+
+  // The self-closing form leaves a space before `/>`, which made `<Navbar.Brand />`
+  // a part that does not exist and `<Button />` a component that does not.
+  it('reads a name written as a self-closing tag', async () => {
+    const part = text(
+      await call('get_component', { name: '<Navbar.Brand />' })
+    );
+    expect(part).toMatch(/^# Navbar\.Brand\n/);
+    expect(part).not.toContain('has no part');
+
+    const res = await call('get_component', { name: '<Button />' });
+    expect(failed(res)).toBe(false);
+    expect(text(res)).toMatch(/^# Button\n/);
+  });
+
+  it('says in its schema that get_component takes a dot-path', async () => {
+    const tool = (await client.listTools()).tools.find(
+      t => t.name === 'get_component'
+    );
+    expect(tool?.description).toContain('"Navbar.Brand"');
+    expect(JSON.stringify(tool?.inputSchema.properties?.name)).toContain(
+      'Navbar.Brand'
+    );
+  });
+
+  it('says so when a dot-path names no part', async () => {
+    const out = text(await call('get_component', { name: 'Navbar.Nope' }));
+    expect(out).toMatch(/^# Navbar\n/);
+    expect(out).toContain('has no part `Navbar.Nope`');
+    expect(out).toContain('`Navbar.Brand`');
+  });
+
+  it('says `path` is for subcomponents when it is given a prop', async () => {
+    const res = await call('get_props', {
+      component: 'Button',
+      path: 'Button.isLoadng',
+    });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('names a subcomponent');
+    expect(text(res)).toContain('`isLoading`');
+
+    const typo = text(
+      await call('get_props', { component: 'Navbar', path: 'Navbar.Brnd' })
+    );
+    expect(typo).toContain('Did you mean "Navbar.Brand"?');
+  });
+
+  it("explains Theme's variables rather than saying it has none", async () => {
+    for (const query of [undefined, 'primary']) {
+      const out = text(
+        await call('get_css_variables', { component: 'Theme', query })
+      );
+      expect(out).not.toContain('registers no CSS variables');
+      expect(out).toContain('reference: "css-variables"');
+    }
+  });
+
+  it('marks a missing query and an unknown helper group as errors', async () => {
+    for (const query of ['', '   ']) {
+      expect(failed(await call('search_bestax', { query }))).toBe(true);
+    }
+    expect(
+      failed(await call('get_helper_props', { group: 'animations' }))
+    ).toBe(true);
+  });
+
+  it('answers an unknown resource as not found, not as an internal error', async () => {
+    for (const uri of [
+      'bestax://components/DatePicker',
+      'bestax://skills/nope',
+      'bestax://skills/nope/references/x',
+      'bestax://skills/bestax-theming/references/nope',
+    ]) {
+      expect(await codeOf(uri)).toBe(-32602);
+    }
+  });
+
+  it('reads a skill by the short name get_skill takes, and its examples', async () => {
+    const skill = await client.readResource({ uri: 'bestax://skills/theming' });
+    expect(String(skill.contents[0].text).length).toBeGreaterThan(500);
+    // get_skill lists dark-mode among what it can read; so does the resource now.
+    const example = await client.readResource({
+      uri: 'bestax://skills/bestax-theming/references/dark-mode',
+    });
+    expect(String(example.contents[0].text).length).toBeGreaterThan(100);
+  });
+
+  it('completes skill names by what has been typed, and reference ids', async () => {
+    const named = await client.complete({
+      ref: { type: 'ref/resource', uri: 'bestax://skills/{name}' },
+      argument: { name: 'name', value: 'them' },
+    });
+    expect(named.completion.values).toEqual(['bestax-theming']);
+
+    const ref = await client.complete({
+      ref: {
+        type: 'ref/resource',
+        uri: 'bestax://skills/{name}/references/{ref}',
+      },
+      argument: { name: 'ref', value: 'dark' },
+      context: { arguments: { name: 'bestax-theming' } },
+    });
+    expect(ref.completion.values).toEqual(['dark-mode']);
+  });
+});
+
+// A client that starts the server outside the project used to get answers checked
+// against nothing, and no word of it (#935).
+describe('with no installed library to check against', () => {
+  let elsewhere: Client;
+  let dir: string;
+
+  beforeAll(async () => {
+    dir = await mkdtemp(join(tmpdir(), 'bestax-mcp-elsewhere-'));
+    const server = await createServer({ cwd: dir });
+    const [clientTransport, serverTransport] =
+      InMemoryTransport.createLinkedPair();
+    elsewhere = new Client({ name: 'test', version: '0' });
+    await Promise.all([
+      server.connect(serverTransport),
+      elsewhere.connect(clientTransport),
+    ]);
+  });
+
+  afterAll(async () => {
+    await elsewhere.close();
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it('says so once, naming the variable that points it at the project', async () => {
+    const first = text(
+      await elsewhere.callTool({
+        name: 'get_component',
+        arguments: { name: 'Button' },
+      })
+    );
+    expect(first).toContain('no installed @allxsmith/bestax-bulma was found');
+    expect(first).toContain('BESTAX_MCP_PROJECT_DIR');
+
+    const second = text(
+      await elsewhere.callTool({
+        name: 'get_component',
+        arguments: { name: 'Button' },
+      })
+    );
+    expect(second).not.toContain('no installed');
   });
 });

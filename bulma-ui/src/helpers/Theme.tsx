@@ -780,51 +780,12 @@ const setRootThemeRules = (order: number, rules: string): void => {
 
 /**
  * Props for the Theme component.
- *
- * @property {React.ReactNode} children - Content to render inside the theme scope.
- * @property {string} [className] - Additional CSS classes (only when isRoot is false).
- * @property {BulmaVars} [bulmaVars] - Object mapping Bulma CSS variable names to values.
- * @property {string} [schemeH] - Scheme hue value.
- * @property {string} [schemeS] - Scheme saturation value.
- * @property {string} [lightL] - Light theme lightness value.
- * @property {string} [lightInvertL] - Light theme inverted lightness value.
- * @property {string} [darkL] - Dark theme lightness value.
- * @property {string} [darkInvertL] - Dark theme inverted lightness value.
- * @property {string} [softL] - Soft lightness value.
- * @property {string} [boldL] - Bold lightness value.
- * @property {string} [softInvertL] - Soft inverted lightness value.
- * @property {string} [boldInvertL] - Bold inverted lightness value.
- * @property {string} [hoverBackgroundLDelta] - Background lightness delta on hover.
- * @property {string} [activeBackgroundLDelta] - Background lightness delta on active.
- * @property {string} [hoverBorderLDelta] - Border lightness delta on hover.
- * @property {string} [activeBorderLDelta] - Border lightness delta on active.
- * @property {string} [hoverColorLDelta] - Text color lightness delta on hover.
- * @property {string} [activeColorLDelta] - Text color lightness delta on active.
- * @property {string} [hoverShadowADelta] - Shadow alpha delta on hover.
- * @property {string} [activeShadowADelta] - Shadow alpha delta on active.
- * @property {string} [primaryH] - Primary color hue.
- * @property {string} [primaryS] - Primary color saturation.
- * @property {string} [primaryL] - Primary color lightness.
- * @property {string} [linkH] - Link color hue.
- * @property {string} [linkS] - Link color saturation.
- * @property {string} [linkL] - Link color lightness.
- * @property {string} [infoH] - Info color hue.
- * @property {string} [infoS] - Info color saturation.
- * @property {string} [infoL] - Info color lightness.
- * @property {string} [successH] - Success color hue.
- * @property {string} [successS] - Success color saturation.
- * @property {string} [successL] - Success color lightness.
- * @property {string} [warningH] - Warning color hue.
- * @property {string} [warningS] - Warning color saturation.
- * @property {string} [warningL] - Warning color lightness.
- * @property {string} [dangerH] - Danger color hue.
- * @property {string} [dangerS] - Danger color saturation.
- * @property {string} [dangerL] - Danger color lightness.
  */
 export interface ThemeProps extends Omit<
   BulmaClassesProps,
   'color' | 'backgroundColor'
 > {
+  /** The content the theme applies to. */
   children: ReactNode;
   /**
    * Additional CSS classes for the wrapper div. A root Theme (`isRoot`) has no
@@ -861,6 +822,13 @@ export interface ThemeProps extends Omit<
    * write only `data-theme` and warn in development.
    */
   colorMode?: 'light' | 'dark' | 'system';
+  /**
+   * Bulma CSS variables to set, by name, such as
+   * `{ '--bulma-primary-h': '210' }`. Only Bulma's own variables, the keys
+   * the `BulmaVars` type allows, are applied, and an empty value is skipped.
+   * Where a variable prop, such as `primaryH`, sets the same variable, the
+   * prop wins.
+   */
   bulmaVars?: BulmaVars;
   /**
    * Border radius helper, as on every other component: `radiusless` adds
@@ -900,42 +868,78 @@ export interface ThemeProps extends Omit<
    */
   columnGap?: BulmaGapStep;
   // Bulma scheme variables
+  /** Base hue for the color scheme, 0 to 360. Sets `--bulma-scheme-h`. */
   schemeH?: string;
+  /** Base saturation for the color scheme, as a percentage. Sets `--bulma-scheme-s`. */
   schemeS?: string;
+  /** Lightness for light backgrounds. Sets `--bulma-light-l`. */
   lightL?: string;
+  /** Inverted lightness for light backgrounds. Sets `--bulma-light-invert-l`. */
   lightInvertL?: string;
+  /** Lightness for dark backgrounds. Sets `--bulma-dark-l`. */
   darkL?: string;
+  /** Inverted lightness for dark backgrounds. Sets `--bulma-dark-invert-l`. */
   darkInvertL?: string;
+  /** Lightness for soft colors. Sets `--bulma-soft-l`. */
   softL?: string;
+  /** Lightness for bold colors. Sets `--bulma-bold-l`. */
   boldL?: string;
+  /** Inverted lightness for soft colors. Sets `--bulma-soft-invert-l`. */
   softInvertL?: string;
+  /** Inverted lightness for bold colors. Sets `--bulma-bold-invert-l`. */
   boldInvertL?: string;
+  /** Lightness change of a background on hover. Sets `--bulma-hover-background-l-delta`. */
   hoverBackgroundLDelta?: string;
+  /** Lightness change of a background when active. Sets `--bulma-active-background-l-delta`. */
   activeBackgroundLDelta?: string;
+  /** Lightness change of a border on hover. Sets `--bulma-hover-border-l-delta`. */
   hoverBorderLDelta?: string;
+  /** Lightness change of a border when active. Sets `--bulma-active-border-l-delta`. */
   activeBorderLDelta?: string;
+  /** Lightness change of text color on hover. Sets `--bulma-hover-color-l-delta`. */
   hoverColorLDelta?: string;
+  /** Lightness change of text color when active. Sets `--bulma-active-color-l-delta`. */
   activeColorLDelta?: string;
+  /** Alpha change of a shadow on hover. Sets `--bulma-hover-shadow-a-delta`. */
   hoverShadowADelta?: string;
+  /** Alpha change of a shadow when active. Sets `--bulma-active-shadow-a-delta`. */
   activeShadowADelta?: string;
   // Bulma color variables
+  /** Primary color hue, 0 to 360. Sets `--bulma-primary-h`. */
   primaryH?: string;
+  /** Primary color saturation, as a percentage. Sets `--bulma-primary-s`. */
   primaryS?: string;
+  /** Primary color lightness, as a percentage. Sets `--bulma-primary-l`. */
   primaryL?: string;
+  /** Link color hue, 0 to 360. Sets `--bulma-link-h`. */
   linkH?: string;
+  /** Link color saturation, as a percentage. Sets `--bulma-link-s`. */
   linkS?: string;
+  /** Link color lightness, as a percentage. Sets `--bulma-link-l`. */
   linkL?: string;
+  /** Info color hue, 0 to 360. Sets `--bulma-info-h`. */
   infoH?: string;
+  /** Info color saturation, as a percentage. Sets `--bulma-info-s`. */
   infoS?: string;
+  /** Info color lightness, as a percentage. Sets `--bulma-info-l`. */
   infoL?: string;
+  /** Success color hue, 0 to 360. Sets `--bulma-success-h`. */
   successH?: string;
+  /** Success color saturation, as a percentage. Sets `--bulma-success-s`. */
   successS?: string;
+  /** Success color lightness, as a percentage. Sets `--bulma-success-l`. */
   successL?: string;
+  /** Warning color hue, 0 to 360. Sets `--bulma-warning-h`. */
   warningH?: string;
+  /** Warning color saturation, as a percentage. Sets `--bulma-warning-s`. */
   warningS?: string;
+  /** Warning color lightness, as a percentage. Sets `--bulma-warning-l`. */
   warningL?: string;
+  /** Danger color hue, 0 to 360. Sets `--bulma-danger-h`. */
   dangerH?: string;
+  /** Danger color saturation, as a percentage. Sets `--bulma-danger-s`. */
   dangerS?: string;
+  /** Danger color lightness, as a percentage. Sets `--bulma-danger-l`. */
   dangerL?: string;
   // Add other commonly used ones as needed
 }

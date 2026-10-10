@@ -30,11 +30,11 @@
     },
     {
       "title": "All Colors",
-      "code": "<Tags>\n  {[\n    'primary',\n    'link',\n    'info',\n    'success',\n    'warning',\n    'danger',\n    'black',\n    'dark',\n    'light',\n    'white',\n  ].map(color => (\n    <Tag key={color} color={color} isHoverable>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </Tag>\n  ))}\n</Tags>"
+      "code": "<Tags>\n  {(\n    [\n      'primary',\n      'link',\n      'info',\n      'success',\n      'warning',\n      'danger',\n      'black',\n      'dark',\n      'light',\n      'white',\n    ] as const\n  ).map(color => (\n    <Tag key={color} color={color} isHoverable>\n      {color.charAt(0).toUpperCase() + color.slice(1)}\n    </Tag>\n  ))}\n</Tags>"
     },
     {
       "title": "Sizes Together",
-      "code": "<Block>\n  {['primary', 'success', 'danger'].map(color => (\n    <Tags key={color}>\n      <Tag color={color} size=\"normal\" isHoverable>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Normal\n      </Tag>\n      <Tag color={color} size=\"medium\" isHoverable>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Medium\n      </Tag>\n      <Tag color={color} size=\"large\" isHoverable>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Large\n      </Tag>\n    </Tags>\n  ))}\n</Block>"
+      "code": "<Block>\n  {(['primary', 'success', 'danger'] as const).map(color => (\n    <Tags key={color}>\n      <Tag color={color} size=\"normal\" isHoverable>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Normal\n      </Tag>\n      <Tag color={color} size=\"medium\" isHoverable>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Medium\n      </Tag>\n      <Tag color={color} size=\"large\" isHoverable>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Large\n      </Tag>\n    </Tags>\n  ))}\n</Block>"
     },
     {
       "title": "Hoverable Tag",

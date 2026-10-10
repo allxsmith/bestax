@@ -262,7 +262,7 @@ describe('Checkboxes group label association (#494)', () => {
     expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
   });
 
-  it('injects nothing inside an outer Field, which drops the label', () => {
+  it("takes the outer Field's label in place of its own, which it drops (#939)", () => {
     const { container } = render(
       <Field label="Outer">
         <Checkboxes label="Dropped">
@@ -270,10 +270,12 @@ describe('Checkboxes group label association (#494)', () => {
         </Checkboxes>
       </Field>
     );
-    expect(screen.getByRole('group')).not.toHaveAttribute('aria-labelledby');
     const fieldLabel = container.querySelector('label.label') as HTMLElement;
     expect(fieldLabel).toHaveTextContent('Outer');
-    expect(fieldLabel).not.toHaveAttribute('id');
+    expect(screen.getByRole('group', { name: 'Outer' })).toHaveAttribute(
+      'aria-labelledby',
+      fieldLabel.id
+    );
   });
 
   it('lets a user aria-labelledby in rest win', () => {

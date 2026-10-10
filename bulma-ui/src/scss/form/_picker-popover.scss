@@ -140,10 +140,7 @@ $picker-trigger-pairs: (
   )
 );
 
-@each $pair in $picker-trigger-pairs {
-  $container: nth($pair, 1);
-  $trigger: nth($pair, 2);
-
+@each $container, $trigger in $picker-trigger-pairs {
   .#{$container} {
     position: relative;
     @include cv.register-vars(

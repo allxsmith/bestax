@@ -192,8 +192,13 @@ The snippets below rebuild simplified components by hand purely to show how `use
 `MyColumns` forwards all of its props to `useBulmaClasses` — the `textAlign` and `textTransform` helper props below flow through `props` into the hook (producing `has-text-centered is-uppercase`), while anything the hook doesn't recognize comes back in `rest` and lands on the `<div>`:
 
 ```tsx live
+import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
+
 function example() {
-  function MyColumns({ children, ...props }) {
+  function MyColumns({
+    children,
+    ...props
+  }: BulmaClassesProps & React.ComponentPropsWithoutRef<'div'>) {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     return (
       <div className={classNames('columns', bulmaHelperClasses)} {...rest}>
@@ -909,7 +914,7 @@ The `skeleton` prop applies Bulma's skeleton loading effect. [Skeleton's accessi
 const { bulmaHelperClasses, bulmaHelperStyles, rest } = useBulmaClasses(props);
 ```
 
-- **props**: An object supporting all Bulma helper class props (see table below), plus any additional props. `backgroundColor` additionally accepts the six [`validSchemeColors`](./valid-values.md) values.
+- **props**: An object supporting all Bulma helper class props (see [Supported Props](#supported-props)), plus any additional props. `backgroundColor` additionally accepts the six [`validSchemeColors`](./valid-values.md) values.
 - **bulmaHelperClasses**: A string of Bulma utility classes to be applied to your element.
 - **bulmaHelperStyles**: `React.CSSProperties | undefined` — an inline style for a scheme `backgroundColor` (see [Scheme Backgrounds](#scheme-backgrounds-and-bulmahelperstyles)); `undefined` for every other input. Apply it with [`mergeBulmaStyles`](#scheme-backgrounds-and-bulmahelperstyles) so a user `style` prop wins.
 - **rest**: An object of all remaining props (with helper props stripped out), suitable for spreading onto your component.
@@ -945,6 +950,8 @@ import {
 Here is a small custom component that only needs color and spacing helpers:
 
 ```tsx live
+import type { BulmaClassesProps } from '@allxsmith/bestax-bulma';
+
 function example() {
   function PriceTag({
     color,
@@ -952,7 +959,7 @@ function example() {
     backgroundColorShade,
     m,
     children,
-  }) {
+  }: BulmaClassesProps & { children?: React.ReactNode }) {
     const colorClasses = useColorClasses({
       color,
       backgroundColor,

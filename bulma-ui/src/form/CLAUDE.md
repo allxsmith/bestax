@@ -26,12 +26,23 @@ Conventions:
   `Control`, where those props do nothing, it can warn about the ones set (#921). A picker
   passes its `inline` too, since inline it renders no Control in either place. A new
   Control-level prop joins `ControlLevelProps`, and `bare-control.test.tsx` fails until it does.
+- A labeled `Field` names the one control it holds (#495, #939), and a new input keeps that
+  working by going through the label hooks in `useAutoLabelId.ts` rather than wiring ids
+  itself. One that renders its own input calls `useAutoLabelId` and puts `controlId` on that
+  input after any props spread, where an undefined `id` key would wipe it, passing
+  `hasInput: false` in a mode that renders none, so nothing derives ids from the Field's. A group calls `useAutoLabelledBy` with its remaining props as `callerProps`,
+  so an `aria-label` or `aria-labelledby` the caller set still wins, and puts
+  `ariaLabelledBy` on its group element.
 - `*Base.tsx` files (`InputBase`, `SelectBase`, `DateInputBase`, `TimeInputBase`, …) are the
   raw controls without the Field/Control wrapping — deliberately exported from `src/index.ts`
-  as escape hatches, so they are public API too.
-- Basic inputs (Input, Select, TextArea, File, …) ship no CSS, but more of this folder has SCSS
-  than you'd guess: even Checkbox and Radio have themed partials, and every extended input
-  (Autocomplete, DateInput, Numberinput, Rate, Slider, Switch, Taginput, …) does too. Check
-  `../scss/form/_index.scss` for the authoritative list before changing visuals.
+  as escape hatches, so they are public API too. A base with a single input of its own reads
+  `useFieldLabelId` itself and takes that id when the caller set none, as `InputBase` does, so
+  a labeled `Field` names it when composed by hand (#968). A picker base skips it `inline`,
+  where it renders no input.
+- Basic inputs (Input, Select, TextArea, …) ship no CSS, but more of this folder has SCSS
+  than you'd guess: even Checkbox and Radio have themed partials, File has one for its keyboard
+  focus ring and a boxed CTA's corners, and every extended input (Autocomplete, DateInput,
+  Numberinput, Rate, Slider, Switch, Taginput, …) does too. Check `../scss/form/_index.scss` for
+  the authoritative list before changing visuals.
 
 Follow the anatomy rule in `bulma-ui/CLAUDE.md` (test + story + docs page + export + catalog).

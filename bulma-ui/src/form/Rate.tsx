@@ -1,4 +1,4 @@
-import React, { forwardRef, useState, useCallback } from 'react';
+import React, { forwardRef, useState, useCallback, useId } from 'react';
 import {
   classNames,
   prefixedClassNames,
@@ -57,7 +57,7 @@ export interface RateProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'color'>,
     Omit<BulmaClassesProps, 'size'>,
     FormFieldProps {
-  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field` (label that `Field` yourself). */
+  /** Field label naming the rating group. Automatically associated via `aria-labelledby` on the `role="radiogroup"` container — uses your `labelProps.id` when provided, otherwise a generated one; it also replaces the default `aria-label="Rating"`. Dropped inside an outer `Field`, whose own label names the group instead through `aria-labelledby` when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`), and replaces the `aria-label="Rating"` fallback too. An `aria-label` or `aria-labelledby` you set on the group wins over either label, which still renders but no longer names it. An `aria-labelledby` key counts even when undefined, since it is spread over the group's own, and leaves the `"Rating"` fallback. */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `id` here is used as the `aria-labelledby` target instead of a generated one; any `htmlFor` is ignored (a group label names the group, never a single control). */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -209,8 +209,10 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       label,
       labelProps,
       rendersLabel: ownField,
+      callerProps: props,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const starBaseId = useId();
     const [internalValue, setInternalValue] = useState(defaultValue);
     const [hoverValue, setHoverValue] = useState<number | null>(null);
 
@@ -472,6 +474,16 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
       );
     };
 
+    // The star the value falls in is the checked radio, and it carries the
+    // value: a radiogroup takes no aria-value* of its own. A fractional value
+    // names that star by the value itself ("3.5 stars"). Both go by the value
+    // as that name writes it, to hundredths, so a value a hair over a whole
+    // number checks that number's star under its own name, and no two stars
+    // share a name.
+    const shownValue = Number(currentValue.toFixed(2));
+    const checkedIndex =
+      shownValue > 0 ? Math.min(Math.ceil(shownValue), max) - 1 : -1;
+
     // Render icons
     const renderIcons = () => {
       const icons = [];
@@ -498,14 +510,14 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
             onMouseEnter={() => handleMouseEnter(iconIndex)}
             onMouseMove={e => handleMouseMove(iconIndex, e)}
             onMouseLeave={handleMouseLeave}
+            id={`${starBaseId}-${iconIndex}`}
             role="radio"
-            aria-checked={
-              currentValue === iconIndex + 1 ||
-              (precision < 1 &&
-                currentValue > iconIndex &&
-                currentValue <= iconIndex + 1)
+            aria-checked={iconIndex === checkedIndex}
+            aria-label={
+              iconIndex === checkedIndex && shownValue % 1 !== 0
+                ? `${shownValue} stars`
+                : `${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`
             }
-            aria-label={`${iconIndex + 1} star${iconIndex === 0 ? '' : 's'}`}
             tabIndex={-1}
           >
             {icon}
@@ -517,10 +529,6 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
     };
 
     const text = getText();
-    const ariaValueText =
-      precision < 1 && currentValue % 1 !== 0
-        ? `${currentValue.toFixed(1)} out of ${max} stars`
-        : undefined;
 
     const helpClass = usePrefixedClassNames('help', {
       [`is-${messageColor}`]: !!messageColor,
@@ -540,10 +548,11 @@ export const Rate = forwardRef<HTMLDivElement, RateProps>(
         // Fallback name only: a wired label names the group via labelledby.
         aria-label={ariaLabelledBy ? undefined : 'Rating'}
         aria-labelledby={ariaLabelledBy}
-        aria-valuenow={currentValue}
-        aria-valuemin={0}
-        aria-valuemax={max}
-        aria-valuetext={ariaValueText}
+        // Focus stays on the group, so point it at the checked star for
+        // assistive technology to announce as the value changes.
+        aria-activedescendant={
+          checkedIndex >= 0 ? `${starBaseId}-${checkedIndex}` : undefined
+        }
         tabIndex={disabled ? -1 : 0}
         onKeyDown={handleKeyDown}
         {...rest}

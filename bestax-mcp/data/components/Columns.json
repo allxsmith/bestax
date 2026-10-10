@@ -73,14 +73,14 @@
   "accessibility": null,
   "related": [],
   "storybook": null,
-  "summary": "The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components.",
+  "summary": "The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](https://bestax.io/docs/api/columns/column) components.",
   "import": "import { Columns, Column } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/columns/Columns.tsx",
   "rootClass": "columns",
   "parts": [
     {
       "path": "Columns",
-      "summary": "The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](./column.md) components.",
+      "summary": "The `Columns` component provides Bulma's flexible, responsive grid container for aligning and distributing [`Column`](https://bestax.io/docs/api/columns/column) components.",
       "component": null,
       "props": [
         {
