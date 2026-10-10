@@ -4,6 +4,7 @@ import {
   useFieldLabelElementId,
   useFieldLabelFor,
   useFieldLabelId,
+  useReportFieldLabelFor,
 } from './FormContext';
 
 interface UseAutoLabelIdOptions {
@@ -42,8 +43,10 @@ interface UseAutoLabelIdOptions {
  * generation entirely: the user has taken over the association (#495 presence
  * semantics). When the control renders no label of its own, it adopts the id
  * a labeled Field around it offers, the way the bases do, so that Field's
- * label names it (#939); a user `id` still wins there. With `needsLabelId`
- * it also returns the id of whichever label names the control (#981).
+ * label names it (#939); a user `id` still wins there. It tells that Field
+ * when the control took its id, since the Field's label drops a `for`
+ * nothing took (#1004). With `needsLabelId` it also returns the id of
+ * whichever label names the control (#981).
  * Internal; not part of the public API.
  */
 export function useAutoLabelId({
@@ -83,6 +86,11 @@ export function useAutoLabelId({
   const userWired = !!labelProps && 'htmlFor' in labelProps;
   const adopted = !active && hasInput ? fieldLabelId : undefined;
   const controlId = id ?? (active && !userWired ? generatedId : adopted);
+  // Tells a labeled Field around the control when its label's `for` names
+  // the control, since it drops a `for` nothing took (#1004).
+  useReportFieldLabelFor(
+    fieldLabelId !== undefined && controlId === fieldLabelId
+  );
   const ownLabelProps = { htmlFor: controlId, ...labelProps };
   const labelTarget = active ? ownLabelProps.htmlFor : fieldLabelFor.htmlFor;
   const labelled = !!controlId && labelTarget === controlId;

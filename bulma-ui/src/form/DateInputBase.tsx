@@ -43,7 +43,7 @@ import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { supportsInputType } from './_pickerInternals/nativeInputSupport';
 import type { SegmentKind } from './_pickerInternals/segmentMap';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelId } from './FormContext';
+import { useFieldLabelTarget } from './FormContext';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { Icon } from '../elements/Icon';
 
@@ -275,8 +275,7 @@ export const DateInputBase = forwardRef<HTMLInputElement, DateInputBaseProps>(
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the
     // Field's id or builds on it.
-    const fieldLabelId = useFieldLabelId();
-    const id = idProp ?? (inline ? undefined : fieldLabelId);
+    const id = useFieldLabelTarget(idProp, !inline);
     // The launcher gives way to the loading spinner of a Control this sits in.
     const controlLoading = useControlLoading();
     const triggerIcon = triggerIconProp ?? !controlLoading;
