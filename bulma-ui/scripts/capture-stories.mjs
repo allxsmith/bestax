@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // Screenshot the Storybook stories affected by a set of changed files, once
-// light and once dark (#284). Used by story-screenshots.yml at ai-loop
-// handoff so the human reviewer gets pictures, not just text. Maps changed
+// light and once dark (#284). Used by story-screenshots.yml when a PR gets
+// `needs-human-review` (bestaxbot's handoff, or a maintainer asking for
+// pictures) so the human reviewer gets pictures, not just text. Maps changed
 // files to story IDs via storybook-static/index.json (importPath for a
 // changed *.stories.tsx, componentPath for a changed component, basename
 // heuristic for scss), serves the built storybook the same way

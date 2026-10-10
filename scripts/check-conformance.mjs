@@ -465,8 +465,8 @@ async function checkDocsSectionOrder() {
 // Staleness gate for the generated regions. Recomputes each managed page in
 // memory and diffs — no writes, so it is safe inside a read-only check. This
 // lives here rather than as a separate CI step because check:conformance is
-// already wired into the workflow, and the ai-loop refuses PRs touching
-// .github/**.
+// already wired into the workflow, and bestaxbot cannot change .github/**, so
+// a new step there would be a human's job.
 async function checkDocsGenerated() {
   const violations = [];
   for (const file of await docFiles(API_DIR)) {

@@ -174,8 +174,9 @@ an issue first.
 
 AI/LLM surfaces: the docs build publishes an LLM index (see `docs/CLAUDE.md`); the skills are a
 shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated index of both (see
-`bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
-and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
+`bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews), by the
+**`@claude`** GitHub Action and the Claude deep review (project instructions), and by
+**bestaxbot**'s sessions, so keep it accurate.
 
 **The bestax plugin.** The `bestax` coding-agent plugin, the skills plus the MCP server, installs
 from its own repository, allxsmith/bestax-skills, so an install does not clone this one.
@@ -239,127 +240,75 @@ them by hand. Third-party entries copy facts from this repo, and no check here c
 - Update the page in the same PR when a listing is added, accepted or removed, or when how one
   updates changes.
 
-## AI development loop
+## AI review and bestaxbot
 
-**The fix loop.** Issues labeled `claude-fix` (requires triage+ access, verified live) are
-implemented autonomously: Claude opens a PR labeled `ai-loop`, CodeRabbit + a Claude deep
-review comment on it, and `claude-pr-loop.yml` drives fix/verify rounds (cap 4) until CI is
-green and every AI review thread is resolved.
+A Claude deep review, run by this repository's own `claude-review.yml` and posting as
+`claude[bot]`, runs on bestaxbot's PRs once CI is green and on any same-repo PR a triage+
+user labels `deep-review`, never on a fork. `@claude`
+mentions (`claude.yml`) are maintainer-only. Both read the `AI_CLAUDE_ENABLED` repository
+variable: exactly `true` turns them on; anything else, unset included, is off. Copilot may
+review too. `.github/CLAUDE.md` is the security contract for those workflows.
 
-- **Labels:** `ai-loop` (in the loop), `needs-human-review` (converged or contested — owner
-  reviews and squash-merges manually; the loop never merges), `ai-loop-paused` (cap/guard
-  hit). AI-assisted PRs (bestaxbot author or the Claude Code attribution footer) also get
-  an auto-applied `claude-assisted` provenance label. Outside the loop, `review-converged`
-  marks a `deep-review` PR based on the default branch whose newest deep-review summary is
-  pinned to the head commit with nothing left open, with every review thread resolved and
-  every check green. Every deep-review finding, advisory included, is a review thread. A
-  verify pass reviews no commits, so the PR also needs a fresh deep review of the head commit
-  with no findings, or a fresh review whose findings later verify passes resolved, as fixed or
-  as a refutation the reviewer accepted, with the pass that resolved the last of them pinned
-  to the head commit. A stacked PR gets no CI run, so it is out of scope.
-  `review-converged.yml` adds it and removes it while the PR keeps `deep-review`, not
-  `ai-loop`, and the default branch as its base. `scripts/review-converged.mjs` holds the
-  full definition, and an `ai-loop` PR never gets it.
-- **Deep review on demand:** a triage+ user can apply the opt-in `deep-review` label to any
-  same-repo PR to run the Claude deep review on it. Never a fork: the job gate requires the
-  head repository to be this one, so labelling a fork PR is a no-op: the job
-  reports skipped and no review appears. That gate also requires the loop switch to be on,
-  so a label does nothing while it is off either — see the kill switches below. `claude-review.yml` fires on
-  `pull_request: [opened, labeled]` — deliberately not on `synchronize`, to stop
-  reviewer/fixer ping-pong — so pushing a commit starts no review, and neither does a
-  comment. Re-applying a label that is **already
-  present** emits no `labeled` event either, so a re-run needs the label removed and added
-  back, not just added. A loop driven by pushes and steer comments alone stalls silently and
-  looks exactly like a review that is merely slow.
-  Re-applying the label settles that review's own open threads and raises nothing new — it
-  does not review the commits pushed since, so a steer comment starting `deep-review: fresh`
-  is what asks for a full review of the current code. That comment selects the MODE of a run
-  the label toggle starts; it does not start one — and it **stays** selected: the run reads
-  the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
-  steer exists, later toggles stay fresh for as long as it is still the newest triage+ steer
-  the run can see — which a newer steer from any triage+ author displaces, not only one from
-  the same person. A steer the run cannot read leaves it
-  unfocused and in verify rather than failing, so an unexpected verify pass can mean a
-  lookup that did not resolve rather than a steer that was never posted.
-  Getting a verify pass back means changing the steer — editing, deleting or superseding
-  it — never a label action.
-  A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
-  lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
-  code checked out when its workflow started, which a racing push may have superseded — so
-  look for that review comment (not the current head's checks) and verify its findings
-  against current code. **Today a PR whose copy of `claude-review.yml` differs from the default
-  branch's is not deep-reviewed:** the run logs `Skipping action due to workflow validation` and
-  posts nothing while the job still goes green — so check for the review comment, never the job's
-  conclusion. Read that condition as written, because the narrower version ("a PR that _modifies_
-  `claude-review.yml`") is what this line said until it bit. The workflow runs from the **PR
-  head's** copy, so what matters is only whether that copy still matches the default branch —
-  never the branch's age, and never whether the PR touched the file. An old branch that has since
-  merged or rebased the current version is fine; a branch opened five minutes ago off a stale
-  base is not. #578's flip changed the file, so every PR still carrying the pre-flip copy
-  inherited a skipped review; #605 reproduced it (`"egress_policy":"audit"` read from the branch's
-  own retained copy, session skipped) and merging `main` in fixed it. Expect this after any edit
-  to `claude-review.yml`, and confirm the head's copy matches before trusting a green
-  deep-review job. That is a
-  consequence of configuration rather than a property of the action: the validation lives on
-  the OIDC to app-token exchange, and `setupGitHubToken()` returns before reaching it whenever
-  a `github_token` input is supplied — the same early return `ai-triage.yml` already documents
-  for #312. `claude-review.yml` and `claude.yml` are where this bites in practice, but they are
-  not the only jobs that omit the input: `claude-pr-loop.yml`'s `verify` omits one too. Its
-  usual triggers (`workflow_run` / `workflow_dispatch` / `schedule`) are not PR contexts, so the
-  validation path is not reached on them — but that workflow also fires on
-  `pull_request_review`, and its gate can select `verify` on that event, so a PR modifying
-  `claude-pr-loop.yml` can hit the same silent skip on the review-triggered path. Treat
-  "omits `github_token` **and** can run in a PR context" as the test, not the workflow name.
-  Supplying `GITHUB_TOKEN` would
-  restore the review, at the cost of moving the posting identity away from `claude`, which the
-  loop's gate and the `<!-- claude-deep-review -->` convention rely on. Weigh that before
-  changing it.
-- **Reviewer mechanics:** CodeRabbit reviews incrementally and rate-limits on OSS. After it
-  posts "review limit reached" it will not retry on its own; once the window resets, push a
-  commit or comment `@coderabbitai review`. Copilot also auto-reviews PRs and re-reviews on
-  push.
-- **State comment:** the `<!-- ai-loop-state … -->` PR comment is machine-managed — never
-  reformat its first line.
-- **Refusals:** the loop refuses PRs that touch `.github/**` or the
-  jest/commitlint/release/pnpm-workspace configs — workflow changes are human-authored, and
-  `.github/CLAUDE.md` states the rules they must hold to (allowlists are a confinement
-  boundary and never widen casually; action SHAs stay on the repo-wide pin; anything that
-  spends model usage gates on `== 'on'`).
+**bestaxbot** is a GitHub App maintained in a separate private repository. Describe it here
+and in the docs by what it does in this repository, never by its internals: no prompts,
+models, caps, budgets, runners, tokens or file names. The ai-development docs guide is the
+public description, and this section must not say more than that guide does.
 
-**Kill switches and variables.** Remove `ai-loop` (per PR) or set repo variable
-`AI_LOOP_ENABLED=false` (whole system). Every repository variable that steers this
-automation is tabulated in the ai-development docs guide, including which ones require an
-exact value. Everything that spends model usage is explicit opt-in —
-`AI_LOOP_ENABLED=true`, `AI_SCAN_MODE=on` (or `y`), `AI_LOOP_COPILOT=true` — so unset,
-empty, `off` or a typo all mean off, and deleting a variable never enables anything.
-`AI_TRIAGE_MODE` is the exception: its label path is `!= 'off'`, so unset still allows
-label-triggered triage.
+What it does here: implements `claude-fix` issues on `claude/` branches and opens the PR;
+answers every review thread on its own PRs (fixes what is right, refutes what is wrong,
+never resolves a reviewer's threads, and asks for a re-check by re-applying `deep-review`);
+drafts a reproduction test on `claude-repro` for a human to run (CI never runs it); triages
+new issues and PRs for duplicates and related work; screens new items for malicious code,
+prompt injection and social engineering; keeps a status comment current on its PR; hands a
+converged PR to a human with `needs-human-review`; replies to `@bestaxbot`. What it never
+does: merge, approve or enable auto-merge; push outside `claude/`; change workflows,
+release, commitlint, coverage or dependency policy; add dependencies; act on an item
+carrying `needs-security-review`; run fork code.
 
-**Triage.** `ai-triage` runs a one-shot sonnet triage session that searches for related
-issues/duplicates and reports them as a structured payload; the session itself posts nothing
-(#457). `scripts/render-triage-comment.mjs` renders the comment deterministically
-from that payload in the session's own job, and a separate job — holding the PAT and
-running no model — publishes it as bestaxbot. Triage is
-automatic on new issues/PRs when `AI_TRIAGE_MODE=auto` (outside authors
-capped at `AI_TRIAGE_DAILY_LIMIT`/day via a counter comment on issue #290; items opened by
-triage+ collaborators are uncapped), or on demand via the label (triage+ only,
-budget-exempt; auto-removed after the run). Fork PRs are never triaged (same-repo
-`pull_request` only — never `pull_request_target`; see #312). Flagged duplicates may be
-auto-closed after 14 days per `AI_TRIAGE_AUTOCLOSE` (see the ai-development docs guide).
+**The labels are the contract.** Never add or remove the bot's labels on PRs you do not own.
 
-**Repro drafts.** A triage+ user can apply `claude-repro` to an issue: Claude drafts a
-reproduction test (author-only — never executed by CI) that github-actions[bot] posts for a
-human to run; the pipeline holds no PAT and no job co-locates the model token with code
-execution.
+- `claude-fix` (issues, triage+): the bot implements it and opens a PR.
+- `claude-repro` (issues, triage+): the bot drafts a repro test for a human to run.
+- `ai-triage` (issues and PRs, triage+): triage on demand; the label comes off when done.
+- `deep-review` (PRs, triage+; the bot on its own PRs): starts the deep review. A re-run is
+  remove-and-re-add, since re-applying a label already present emits no event; pushes and
+  comments start nothing. A re-run settles that review's open threads and raises nothing
+  new. A comment starting `deep-review: fresh` from a triage+ author asks for a full review
+  of the current code and stays in force until a newer `deep-review:` comment from a
+  triage+ author replaces it, so getting the settle pass back means changing the steer,
+  never a label action.
+- `ai-loop` (the bot's PRs): the bot is working the PR. Remove it to stop the bot there; add
+  it back to resume from the current head.
+- `ai-loop-paused`: the bot parked itself; its note on the PR says why.
+- `needs-human-review`: converged or contested; the owner reviews and squash-merges. The
+  label also runs the screenshot pass (`story-screenshots.yml`).
+- `review-converged`: set by `review-converged.yml` on a `deep-review` PR based on the
+  default branch, the bot's included, when the newest deep review is pinned to the head
+  with nothing open, every thread is resolved and every check is green; a later push takes
+  it off until a fresh review. `scripts/review-converged.mjs` holds the definition.
+- `needs-security-review`: the bot and `@claude` refuse the item until a maintainer removes
+  it; third-party reviewers are not gated; a clean screen covers the text at open time only.
+  If `@claude` seems to ignore a mention, check for this label first.
+- `claude-assisted`: provenance; the bot's PRs and any PR carrying the Claude Code footer.
+- `stale` / `neverstale`: the stale sweep and its exemption. `slop` (triage+): a low-quality
+  AI-generated PR; `on-slop.yml` posts a standard note and closes it.
 
-**Security scan.** `ai-scan.yml` read-only-scans new issues/PRs for malicious code, prompt
-injection, and social engineering, applying `needs-security-review` (fail-closed; controls
-`AI_SCAN_MODE`, `AI_SCAN_DAILY_LIMIT`). A clean verdict is advisory (it only covers the
-text as it was at open time), but the flag itself **gates every entry point this repo
-controls** — `claude-repro`, `claude-fix`, `@claude` and `@bestaxbot` all refuse a flagged
-item until a maintainer removes the label. If `@claude` seems to ignore a mention, check
-for that label first.
+**Reviewer mechanics.** CodeRabbit reviews incrementally and rate-limits on OSS. After it
+posts "review limit reached" it will not retry on its own; once the window resets, push a
+commit or comment `@coderabbitai review`. Copilot re-reviews on push. A deep review lands as
+a PR review from `claude` marked `<!-- claude-deep-review -->` and reviewed the code checked
+out when its run started, which a racing push may have superseded, so look for that review
+and verify its findings against current code. A PR whose copy of `claude-review.yml`
+differs from the default branch's gets no deep review: the run skips on workflow validation
+and posts nothing while the job still goes green, so check for the review, never the job's
+conclusion, and merge `main` into the branch after any edit to that file.
 
-**Stale automation.** PRs go `stale` at 30 days and close 14 days later — except
-Claude-assisted PRs (`claude-assisted` label or bestaxbot author), which skip that sweep
-and instead close after 90 days of inactivity; `neverstale` exempts a PR from both layers.
+**Guardrails.** Humans always merge. A repository ruleset confines the bot to `claude/`
+branches and its App holds no permission to change workflows, so a PR touching `.github/**`
+or the jest, commitlint, release or pnpm-workspace configs is a human's to write. After a
+bounded number of rounds the bot parks a PR rather than thrashing. Remove `ai-loop` to stop
+one PR; the maintainers can stop the bot entirely. This repository still carries its own
+copies of the workflows the bot took over, each behind a repository variable, and the
+ai-development guide's Repository Variables table lists them with their unset defaults. The
+bot's code being private is defence in depth, not a control: every gate is enforced by GitHub
+against the App's identity and holds with the code public or not.
