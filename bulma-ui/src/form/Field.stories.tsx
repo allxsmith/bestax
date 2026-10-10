@@ -9,6 +9,7 @@ import { DateInput } from './DateInput';
 import { DateInputBase } from './DateInputBase';
 import { TimeInputBase } from './TimeInputBase';
 import { DateTimeInputBase } from './DateTimeInputBase';
+import { DateRangeInputBase } from './DateRangeInputBase';
 import { Radios } from './Radios';
 import { Radio } from './Radio';
 import { Rate } from './Rate';
@@ -135,7 +136,9 @@ export const LabelsCustomControls: Story = {
 
 /**
  * Composed by hand, a picker base takes the id the label points at, as
- * `InputBase` does, so the label names it with no wiring.
+ * `InputBase` does, so the label names it with no wiring. `DateRangeInputBase`
+ * holds two inputs, so the label names its group through `aria-labelledby`
+ * instead, as it does `DateRangeInput`'s.
  */
 export const LabelsComposedPickers: Story = {
   render: () => (
@@ -153,6 +156,11 @@ export const LabelsComposedPickers: Story = {
       <Field label="Appointment">
         <Control iconLeftName="calendar-alt">
           <DateTimeInputBase placeholder="YYYY-MM-DD HH:MM" />
+        </Control>
+      </Field>
+      <Field label="Stay">
+        <Control iconLeftName="calendar">
+          <DateRangeInputBase placeholder="YYYY-MM-DD" />
         </Control>
       </Field>
     </>

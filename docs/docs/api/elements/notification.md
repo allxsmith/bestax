@@ -84,6 +84,8 @@ You can use the `color` prop with values like `success`, `warning`, `danger`, `i
 
 To make notifications dismissible, set the `hasDelete` prop to show a close button. Combine with the `onDelete` callback to control visibility, such as hiding the notification when the button is clicked. This pattern is useful for temporary alerts or feedback that users can clear from the interface.
 
+Bulma puts the close button in the notification's top end corner, further in than its padding reaches, so on a narrow column the first line could run under it. With `hasDelete`, the notification pads its end by `--bulma-notification-delete-padding-inline-end` instead, room for the button and a gap, so the text wraps before it. A [`Delete`](./delete.md) you pass as a direct child gets the same room in browsers that support `:has()`, widened or narrowed to fit when you give it a `size`.
+
 ```tsx live
 function example() {
   const [visible, setVisible] = React.useState(true);
@@ -220,7 +222,7 @@ Always provide clear, actionable text inside notifications.
 | `color`     | [Bulma color](../helpers/valid-values.md)                               | —       | Bulma color modifier for the notification (renders `is-<color>`). Only `primary`, `link`, `info`, `success`, `warning`, `danger`, `black`, `white`, `light`, and `dark` have shipped CSS for `.notification`. Every other value the union accepts emits a class no CSS rule matches, so the notification renders unstyled; those log a console warning in development and will be removed from this union in the next major version. |
 | `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `isLight`   | `boolean`                                                               | `false` | Use the light color variant.                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `hasDelete` | `boolean`                                                               | `false` | Shows a close (delete) button in the notification. It renders `type="button"`, so it does not submit a form around it.                                                                                                                                                                                                                                                                                                               |
+| `hasDelete` | `boolean`                                                               | `false` | Shows a close (delete) button in the notification. It renders `type="button"`, so it does not submit a form around it. The notification also takes `has-delete`, which pads its end by `--bulma-notification-delete-padding-inline-end` so the text clears the button. That rule ships in bestax's stylesheets, not Bulma's, so an app styled by Bulma's CSS alone keeps Bulma's padding.                                            |
 | `onDelete`  | `() => void`                                                            | —       | Callback fired when the delete button is clicked.                                                                                                                                                                                                                                                                                                                                                                                    |
 | `children`  | `React.ReactNode`                                                       | —       | Content inside the notification.                                                                                                                                                                                                                                                                                                                                                                                                     |
 | `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                    |
@@ -235,14 +237,15 @@ Always provide clear, actionable text inside notifications.
 
 `Notification` registers these variables on its own `.notification` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                                 | Sass Variable                         | Default                      |
-| -------------------------------------------- | ------------------------------------- | ---------------------------- |
-| `--bulma-notification-h`                     | —                                     | `var(--bulma-scheme-h)`      |
-| `--bulma-notification-s`                     | —                                     | `var(--bulma-scheme-s)`      |
-| `--bulma-notification-background-l`          | —                                     | `var(--bulma-background-l)`  |
-| `--bulma-notification-color-l`               | —                                     | `var(--bulma-text-strong-l)` |
-| `--bulma-notification-code-background-color` | `$notification-code-background-color` | `var(--bulma-scheme-main)`   |
-| `--bulma-notification-radius`                | `$notification-radius`                | `var(--bulma-radius)`        |
-| `--bulma-notification-padding`               | `$notification-padding`               | `1.375em 1.5em`              |
+| CSS Variable                                     | Sass Variable                             | Default                          |
+| ------------------------------------------------ | ----------------------------------------- | -------------------------------- |
+| `--bulma-notification-delete-padding-inline-end` | `$notification-delete-padding-inline-end` | `calc(1rem + 1.25rem + 0.75rem)` |
+| `--bulma-notification-h`                         | —                                         | `var(--bulma-scheme-h)`          |
+| `--bulma-notification-s`                         | —                                         | `var(--bulma-scheme-s)`          |
+| `--bulma-notification-background-l`              | —                                         | `var(--bulma-background-l)`      |
+| `--bulma-notification-color-l`                   | —                                         | `var(--bulma-text-strong-l)`     |
+| `--bulma-notification-code-background-color`     | `$notification-code-background-color`     | `var(--bulma-scheme-main)`       |
+| `--bulma-notification-radius`                    | `$notification-radius`                    | `var(--bulma-radius)`            |
+| `--bulma-notification-padding`                   | `$notification-padding`                   | `1.375em 1.5em`                  |
 
 <!-- /bestax:generated cssvars -->
