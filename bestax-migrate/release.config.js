@@ -8,11 +8,9 @@ export default {
       '@semantic-release/commit-analyzer',
       {
         preset: 'angular',
-        // commit-analyzer evaluates EVERY matching rule and a matching
-        // `release: false` always wins (its priority index is -1), so rules
-        // are not first-match-wins. Values are micromatch globs, hence the
-        // negated glob below; a `release: false` rule must never be able to
-        // match a commit that should release.
+        // commit-analyzer evaluates EVERY matching rule, so rules are not
+        // first-match-wins. Values are micromatch globs, hence the negated
+        // glob below.
         releaseRules: [
           // Any commit scoped to something other than bestax-migrate never
           // releases this package. Without this, commits matching no rule
