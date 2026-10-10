@@ -17,25 +17,26 @@ import { Paragraph } from '../Paragraph';
 import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
+
+// The Bulma bulma-ui depends on, resolved once, through package.json since
+// jest maps any `.css` specifier to a stub. The partial compiles against its
+// Sass and is checked against its CSS, so an upgrade moves the two together.
+const BULMA = path.dirname(require.resolve('bulma/package.json'));
 
 const compile = (prefix = '') =>
   sass.compileString(
     `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
      @use 'elements/notification';`,
     {
-      loadPaths: [SCSS, NODE_MODULES],
+      // The directory holding that Bulma, so `bulma/…` resolves to it.
+      loadPaths: [SCSS, path.dirname(BULMA)],
       quietDeps: true,
       logger: sass.Logger.silent,
     }
   ).css;
 
-// Resolved through package.json: jest maps any `.css` specifier to a stub.
 const bulmaCss = (file = 'bulma.css') =>
-  fs.readFileSync(
-    path.join(path.dirname(require.resolve('bulma/package.json')), 'css', file),
-    'utf8'
-  );
+  fs.readFileSync(path.join(BULMA, 'css', file), 'utf8');
 
 /**
  * The sheet's top-level style rules, in source order, and the style rules
