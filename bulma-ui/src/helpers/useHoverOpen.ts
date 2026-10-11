@@ -286,7 +286,11 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
         stateRef.current.pointerIn = true;
         settle();
       },
-      onPointerLeave: () => {
+      onPointerLeave: event => {
+        // A touch pointer never set pointerIn, so its leave has nothing to
+        // clear, and on a device with a mouse too it would close a card the
+        // mouse is still holding open.
+        if (event.pointerType === 'touch') return;
         stateRef.current.pointerIn = false;
         settle();
       },

@@ -229,6 +229,21 @@ describe('HoverCard', () => {
       expect(onOpenChange).not.toHaveBeenCalled();
     });
 
+    it('stays open under the mouse when a touch pointer crosses the trigger', () => {
+      render(<Profile />);
+      const trigger = triggerLink();
+      hover(trigger);
+      advance(600);
+      expect(card()).toBeInTheDocument();
+      hover(trigger, 'touch');
+      pointer(trigger, 'pointerout', {
+        pointerType: 'touch',
+        relatedTarget: document.body,
+      });
+      advance(5000);
+      expect(card()).toBeInTheDocument();
+    });
+
     it('opens for a pen hovering', () => {
       render(<Profile />);
       hover(triggerLink(), 'pen');
