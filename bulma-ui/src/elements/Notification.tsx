@@ -16,6 +16,7 @@ import {
 import { warnUnstyledColor } from '../helpers/colorDeprecations';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 import { useIsHydrated } from '../helpers/useIsHydrated';
+import { usePortalContainer } from '../helpers/portal';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
 
 /**
@@ -514,6 +515,7 @@ export const NotificationContainer: React.FC<{
   // the server render and the hydrating one render nothing, and the container
   // portals in from the render after hydration.
   const isHydrated = useIsHydrated();
+  const resolveContainer = usePortalContainer();
 
   // The notifications the status region announces. Danger and warning
   // announce themselves.
@@ -577,6 +579,6 @@ export const NotificationContainer: React.FC<{
       ))}
       <StatusRegion items={politeItems} describe={describe} />
     </>,
-    document.body
+    resolveContainer()
   );
 };

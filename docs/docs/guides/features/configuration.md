@@ -6,16 +6,17 @@ sidebar_position: 1
 
 # Configuration
 
-`ConfigProvider` is bestax-bulma's extension point for app-wide choices that Bulma itself can't express in React: a class-prefix namespace for the Bulma CSS classes your components emit, and a default icon library every `Icon` should fall back to. It works through React context, so any setting you provide applies to every descendant component — no prop drilling.
+`ConfigProvider` is bestax-bulma's extension point for app-wide choices that Bulma itself can't express in React: a class-prefix namespace for the Bulma CSS classes your components emit, a default icon library every `Icon` should fall back to, and where portaled content such as a `Popover` panel renders. It works through React context, so any setting you provide applies to every descendant component, with no prop drilling.
 
 ## Overview
 
-`ConfigProvider` supports two settings today:
+`ConfigProvider` takes these settings:
 
 - **`classPrefix`** — prefix applied to every Bulma class name the library renders (pair it with the matching prefixed bestax CSS bundle, `@allxsmith/bestax-bulma/versions/bestax-prefixed.css`, for `classPrefix="bestax-"`).
 - **`iconLibrary`** — the default icon library (`'fa'`, `'mdi'`, `'ion'`, `'material-icons'`, `'material-symbols'`) that `Icon` components resolve to when no `library` prop is set.
+- **`portalContainer`**: where portaled content goes when it has no target of its own, such as `Popover`'s `appendToBody` panel, a `Modal` with `portal`, or a [`Portal`](../../api/helpers/portal.md) with no `container`.
 
-Both are optional; without a `ConfigProvider` the library uses unprefixed Bulma classes and Font Awesome icons.
+Each is optional; without a `ConfigProvider` the library uses unprefixed Bulma classes and Font Awesome icons, and portals into `document.body`.
 
 ## CSS Class Prefixing
 
@@ -105,6 +106,10 @@ function App() {
 
 Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'` (Ionicons), `'material-icons'`, and `'material-symbols'`. This is the same choice `pnpm create bestax@latest` prompts for during project setup.
 
+## Where Portaled Content Goes
+
+Content a component portals, such as the panel `Popover` renders with `appendToBody`, a `Modal` with `portal`, or a `Toast`, goes to `document.body` unless `portalContainer` names an element or a selector to use instead. Set it when that content has to stay inside something `document.body` is outside of: a scoped `Theme`, whose variables sit on its own wrapper, or a shadow root, whose styles stay inside it. The [ConfigProvider reference](../../api/helpers/config.md#where-portaled-content-goes) has a worked example.
+
 ## Combining Prefix and Icon Library
 
 Both settings are independent and compose. Set whichever you need:
@@ -177,7 +182,7 @@ function App() {
 
 ### Nested Providers
 
-ConfigProviders can be nested, with inner providers overriding outer settings:
+ConfigProviders can be nested. An inner provider replaces the outer one's settings rather than adding to them, so inside it any setting it leaves out is back to its default:
 
 ```tsx
 function NestedConfiguration() {

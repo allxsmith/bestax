@@ -5,13 +5,14 @@ type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
 /**
  * Shape of the configuration context value.
- *
- * @property {string} [classPrefix] - Prefix applied to all Bulma class names.
- * @property {IconLibrary} [iconLibrary] - Default icon library for Icon components.
  */
 export interface ConfigContextProps {
+  /** Prefix applied to all Bulma class names. */
   classPrefix?: string;
+  /** Default icon library for Icon components. */
   iconLibrary?: IconLibrary;
+  /** Where portaled content goes when it has no target of its own. */
+  portalContainer?: string | HTMLElement;
 }
 
 const ConfigContext = createContext<ConfigContextProps>({});
@@ -34,10 +35,26 @@ export interface ConfigProviderProps {
   classPrefix?: string;
   /** Default icon library for Icon components. */
   iconLibrary?: IconLibrary;
+  /**
+   * Where portaled content goes when it has no target of its own: what a
+   * `Portal` without a `container` renders, and what the library's components
+   * portal, such as Popover's `appendToBody` panel, a `Modal` with `portal`
+   * set to `true`, or a `Toast`. An element, or a `document.querySelector`
+   * selector. Unset, or a selector that matches nothing, that content goes to
+   * `document.body`. A target a component is given, such as a `Toast`'s
+   * `container`, still wins, and nothing portals that would otherwise render
+   * in place. A selector can't find an element inside a shadow root, so pass
+   * the element itself there, held in state from a ref callback so the
+   * content renders once it exists.
+   */
+  portalContainer?: string | HTMLElement;
 }
 
 /**
  * ConfigProvider injects configuration into all child components via React context.
+ *
+ * A nested provider replaces the outer one's settings rather than adding to
+ * them, so inside it any setting it leaves out is back to its default.
  *
  * @function
  * @param {ConfigProviderProps} props - Provider props.
@@ -51,10 +68,13 @@ export interface ConfigProviderProps {
 export const ConfigProvider: React.FC<ConfigProviderProps> = ({
   classPrefix,
   iconLibrary,
+  portalContainer,
   children,
 }) => {
   return (
-    <ConfigContext.Provider value={{ classPrefix, iconLibrary }}>
+    <ConfigContext.Provider
+      value={{ classPrefix, iconLibrary, portalContainer }}
+    >
       {children}
     </ConfigContext.Provider>
   );

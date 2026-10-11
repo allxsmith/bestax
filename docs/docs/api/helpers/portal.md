@@ -7,7 +7,7 @@ sidebar_label: Portal
 
 ## Overview
 
-`Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
+`Portal` renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
 
 It is the building block for your own overlays: a command palette, a floating panel. `Modal`, `Dialog`, `Toast` and `Popover` already portal through their own props, so reach for `Portal` when you are building something they don't cover.
 
@@ -27,7 +27,7 @@ import { Portal } from '@allxsmith/bestax-bulma';
 
 ### Into `document.body`
 
-With no `container`, the children go to the end of `document.body`, whatever clips or transforms the component that renders them.
+With no `container`, and no [default container](#a-default-container) set, the children go to the end of `document.body`, whatever clips or transforms the component that renders them.
 
 ```tsx
 function Banner() {
@@ -70,9 +70,19 @@ function example() {
 }
 ```
 
-An empty selector, or one that matches nothing, falls back to `document.body` rather than throwing.
+An empty selector counts as no `container`. One that matches nothing falls back to `document.body` rather than throwing.
 
 A selector is looked up again on each render, so the content follows the target when the target changes. Moving to another target remounts the children, which resets their state. That includes a selector that only starts matching after the content has already shown in `document.body`, so render the target first (an overlay root in the page shell is), or pass the element once you have it, as above.
+
+### A default container
+
+A `ConfigProvider` with a `portalContainer` sets where every `Portal` inside it goes when it has no `container` of its own. The library's components that portal follow it too, such as `Popover`'s `appendToBody` panel or a `Modal` with `portal`. It takes the same element or selector as `container`, and an element held in state from a ref callback works the same way. The [ConfigProvider page](./config.md#where-portaled-content-goes) has an example.
+
+```tsx
+<ConfigProvider portalContainer="#overlays">
+  <App />
+</ConfigProvider>
+```
 
 ### Rendering in place
 
@@ -92,7 +102,7 @@ Focus follows the DOM too. Content portaled to the end of `document.body` is las
 
 ### Context and styles
 
-React context reaches portaled children, so a `ConfigProvider` class prefix still applies, and their React events bubble up the React tree to the components around the `Portal`. CSS inheritance follows the DOM instead. A scoped `Theme` (one without `isRoot`) sets its CSS variables on a wrapper element that portaled content has left, so that content sees the page-level theme. Point `container` at an element inside the themed area to keep it themed.
+React context reaches portaled children, so a `ConfigProvider` class prefix still applies, and their React events bubble up the React tree to the components around the `Portal`. CSS inheritance follows the DOM instead. A scoped `Theme` (one without `isRoot`) sets its CSS variables on a wrapper element that portaled content has left, so that content sees the page-level theme, and styles scoped to a shadow root don't reach `document.body` at all. To keep them, portal into an element inside the themed area or the shadow root: pass it as `container`, or make it the [default container](#a-default-container) of a `ConfigProvider` around that area, which also reaches the content components such as `Popover` portal.
 
 ---
 
@@ -109,6 +119,7 @@ React context reaches portaled children, so a `ConfigProvider` class prefix stil
 - [`Modal`](../components/modal.md): Has its own `portal` prop, taking the same `true`, selector or element.
 - [`Toast`](../components/toast.md): Portals to `document.body` by default.
 - [`Theme`](./theme.md): Scoped themes stay behind when content is portaled; see above.
+- [`ConfigProvider`](./config.md): Its `portalContainer` is where a `Portal` with no `container` goes.
 
 ---
 
@@ -121,8 +132,8 @@ React context reaches portaled children, so a `ConfigProvider` class prefix stil
 
 ## Props
 
-| Prop        | Type                      | Default         | Description                                                                                                                                                                                    |
-| ----------- | ------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `ReactNode`               | —               | Content to render into the container.                                                                                                                                                          |
-| `container` | `string` \| `HTMLElement` | `document.body` | An element, or a `document.querySelector` selector looked up on each render. Empty, or a selector that matches nothing, means `document.body`. Moving to another target remounts the children. |
-| `disabled`  | `boolean`                 | `false`         | Render the children in place instead, on the server as well as the client.                                                                                                                     |
+| Prop        | Type                      | Default         | Description                                                                                                                                                                                                                                                                                     |
+| ----------- | ------------------------- | --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `ReactNode`               | —               | Content to render into the container.                                                                                                                                                                                                                                                           |
+| `container` | `string` \| `HTMLElement` | `document.body` | An element, or a `document.querySelector` selector looked up on each render. Omitted or empty, it is the `portalContainer` a `ConfigProvider` sets, or `document.body` when none is set. A selector that matches nothing means `document.body`. Moving to another target remounts the children. |
+| `disabled`  | `boolean`                 | `false`         | Render the children in place instead, on the server as well as the client.                                                                                                                                                                                                                      |

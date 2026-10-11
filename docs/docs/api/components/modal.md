@@ -216,7 +216,7 @@ function example() {
       <Modal
         active={open}
         onClose={() => setOpen(false)}
-        modalCardTitle="Rendered in document.body"
+        modalCardTitle="Portaled Modal"
         portal
       >
         This modal is portaled, so it escapes any ancestor with an `overflow:
@@ -227,7 +227,7 @@ function example() {
 }
 ```
 
-`portal` also accepts a `document.querySelector` selector string or an `HTMLElement` to target a specific container.
+`portal` also accepts a `document.querySelector` selector string or an `HTMLElement` to target a specific container. With `portal` set to `true`, a [`ConfigProvider`](../helpers/config.md#where-portaled-content-goes) `portalContainer` takes the place of `document.body`.
 
 It's SSR-safe: a portal has no server-rendered counterpart, so the modal renders inline on the server _and_ during hydration, then moves into the portal once the client takes over. Hydration matches instead of trading an SSR crash for a hydration mismatch.
 

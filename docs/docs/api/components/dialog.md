@@ -214,7 +214,7 @@ function example() {
       <Button onClick={() => setShowDialog(true)}>Show Portaled Dialog</Button>
       <Dialog
         isOpen={showDialog}
-        title="Rendered in document.body"
+        title="Portaled Dialog"
         message="This dialog is portaled, so it escapes any ancestor with overflow: hidden."
         onConfirm={() => setShowDialog(false)}
         showCancel={false}

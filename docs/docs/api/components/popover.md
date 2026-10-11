@@ -112,6 +112,11 @@ hydration.
 </Box>
 ```
 
+The panel goes wherever `Portal` puts content with no `container` of its own, so a `ConfigProvider`
+with a [`portalContainer`](../helpers/config.md#where-portaled-content-goes) sends it there
+instead. That keeps a scoped `Theme`, or a shadow root's styles, which the end of the page is
+outside of.
+
 ### Controlled
 
 Pass `open` to hold the state yourself. `onOpenChange` reports every request to change it, from

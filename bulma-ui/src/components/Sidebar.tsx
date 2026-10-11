@@ -4,6 +4,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useScrollLock } from '../helpers/scrollLock';
+import { usePortalContainer } from '../helpers/portal';
 import { buttonType } from '../helpers/buttonType';
 
 /** Position of the sidebar relative to the viewport. */
@@ -92,6 +93,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const resolveContainer = usePortalContainer();
     const sidebarRef = useRef<HTMLElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -234,7 +236,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 
     // Render to portal for proper stacking
     if (typeof document !== 'undefined') {
-      return createPortal(sidebarContent, document.body);
+      return createPortal(sidebarContent, resolveContainer());
     }
 
     return null;

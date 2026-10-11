@@ -8,7 +8,7 @@ sidebar_position: 1
 
 ## Overview
 
-The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components. Currently, it supports setting a `classPrefix` that will be automatically applied to **all Bulma CSS classes**, including both main component classes (like `button`, `box`, `title`) and helper/modifier classes (like `is-primary`, `has-text-centered`, `m-4`), allowing you to namespace Bulma classes to avoid conflicts with other CSS frameworks or customize the class naming convention.
+The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components. Its `classPrefix` is applied automatically to **all Bulma CSS classes**, including both main component classes (like `button`, `box`, `title`) and helper/modifier classes (like `is-primary`, `has-text-centered`, `m-4`), allowing you to namespace Bulma classes to avoid conflicts with other CSS frameworks or customize the class naming convention.
 
 ---
 
@@ -120,7 +120,7 @@ function App() {
 
 ### Nested ConfigProviders
 
-ConfigProviders can be nested, with inner providers overriding outer settings:
+ConfigProviders can be nested. An inner provider replaces the outer one's settings rather than adding to them, so inside it any setting it leaves out is back to its default:
 
 ```tsx
 function NestedExample() {
@@ -144,6 +144,39 @@ function NestedExample() {
   );
 }
 ```
+
+### Where Portaled Content Goes
+
+`portalContainer` sets where portaled content goes when it has no target of its own. That covers a [`Portal`](./portal.md) with no `container`, and what the library's components portal, such as the panel `Popover` renders with `appendToBody`, a `Modal` or `Dialog` with `portal` set to `true`, a `Toast`, or a `Sidebar`. It takes an element or a `document.querySelector` selector. Unset, that content goes to `document.body`.
+
+A target a component is given still wins, such as a `Modal`'s `portal` selector or a `Toast`'s `container`. And `portalContainer` only changes where portaled content goes: a component that renders in place, like a `Modal` without `portal` or a `Toast` with `inline`, still does.
+
+`document.body` is outside any styles scoped to where the content was declared: a scoped `Theme`'s variables, or a shadow root's stylesheets. To keep them, render an element inside that area and make it the `portalContainer`, held in state from a ref callback so the portal renders once the element exists. Below, the panel keeps the purple primary its `Theme` sets, which it would lose at the end of the page:
+
+```tsx live
+function ThemedOverlays() {
+  const [overlays, setOverlays] = useState<HTMLElement | null>(null);
+
+  return (
+    <Theme primaryH="270" primaryS="100%" primaryL="50%">
+      <ConfigProvider portalContainer={overlays ?? undefined}>
+        <Popover
+          appendToBody
+          ariaLabel="Themed panel"
+          trigger={<Button color="primary">Open</Button>}
+        >
+          <Popover.Body>
+            <Button color="primary">Still purple</Button>
+          </Popover.Body>
+        </Popover>
+      </ConfigProvider>
+      <div ref={setOverlays} />
+    </Theme>
+  );
+}
+```
+
+A selector can't find an element inside a shadow root, since `document.querySelector` doesn't look there, so in a shadow root pass the element itself, as above. A nested provider like this one needs the class prefix and icon library repeated if your app sets them (see [Nested ConfigProviders](#nested-configproviders)).
 
 ### Using Configuration in Custom Components
 
@@ -225,12 +258,14 @@ Full TypeScript support is included:
 interface ConfigContextProps {
   classPrefix?: string;
   iconLibrary?: 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
+  portalContainer?: string | HTMLElement;
 }
 
 interface ConfigProviderProps {
   children: ReactNode;
   classPrefix?: string;
   iconLibrary?: 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
+  portalContainer?: string | HTMLElement;
 }
 ```
 
@@ -238,8 +273,9 @@ interface ConfigProviderProps {
 
 ## Props
 
-| Prop          | Type                                                               | Description                                                                                                     |
-| ------------- | ------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------- |
-| `children`    | `ReactNode`                                                        | The child components that will inherit the configuration settings.                                              |
-| `classPrefix` | `string`                                                           | Optional prefix to add to all Bulma CSS classes. Useful for namespacing when integrating with other frameworks. |
-| `iconLibrary` | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | Default icon library for all child components.                                                                  |
+| Prop              | Type                                                               | Description                                                                                                                                                                                                                                                                                                                                                                                      |
+| ----------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `children`        | `ReactNode`                                                        | The child components that will inherit the configuration settings.                                                                                                                                                                                                                                                                                                                               |
+| `classPrefix`     | `string`                                                           | Optional prefix to add to all Bulma CSS classes. Useful for namespacing when integrating with other frameworks.                                                                                                                                                                                                                                                                                  |
+| `iconLibrary`     | `'fa' \| 'mdi' \| 'ion' \| 'material-icons' \| 'material-symbols'` | Default icon library for all child components.                                                                                                                                                                                                                                                                                                                                                   |
+| `portalContainer` | `string` \| `HTMLElement`                                          | Where portaled content goes when it has no target of its own: what a `Portal` without a `container` renders, and what the library's components portal, such as `Popover`'s `appendToBody` panel or a `Modal` with `portal`. An element, or a `document.querySelector` selector. Unset, or a selector that matches nothing, it goes to `document.body`. A target a component is given still wins. |

@@ -24,7 +24,7 @@ import {
   getActiveElementInTree,
   getDeepestActiveElement,
 } from '../helpers/shadowDom';
-import { resolvePortalContainer } from '../helpers/portal';
+import { usePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 
 /**
@@ -452,6 +452,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // hydrating render have to stay inline and only move into the portal once
   // we're past hydration.
   const onClient = useIsHydrated();
+  const resolveContainer = usePortalContainer();
   // Moving into the portal remounts the modal's subtree, so any effect holding
   // a DOM node from before the move is holding a detached one. Effects that
   // touch the modal's nodes key on this so they re-run against the new tree.
@@ -684,7 +685,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   }
 
   if (isPortaled) {
-    const target = resolvePortalContainer(
+    const target = resolveContainer(
       typeof portal === 'boolean' ? undefined : portal
     );
     return createPortal(modalElement, target);
