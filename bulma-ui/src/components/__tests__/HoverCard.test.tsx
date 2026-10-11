@@ -1025,29 +1025,27 @@ describe('HoverCard', () => {
       expect(card()).toBeNull();
     });
 
-    it('forgets a tap its caller turned down', () => {
+    it.each([
+      // A caller that keeps it closed without a state change of its own,
+      // so nothing renders after the tap.
+      ['without rendering', false],
+      ['by rendering it closed', true],
+    ])('forgets a tap its caller turns down %s', (_, rendersRefusal) => {
       const onOpenChange = jest.fn();
-      const { rerender } = render(
+      const ui = (open: boolean) => (
         <>
-          <Profile openOnTap open={false} onOpenChange={onOpenChange} />
+          <Profile openOnTap open={open} onOpenChange={onOpenChange} />
           <button>Elsewhere</button>
         </>
       );
+      const { rerender } = render(ui(false));
       tap(triggerLink());
       expect(onOpenChange).toHaveBeenLastCalledWith(true);
-      rerender(
-        <>
-          <Profile openOnTap open={false} onOpenChange={onOpenChange} />
-          <button>Elsewhere</button>
-        </>
-      );
+      if (rendersRefusal) rerender(ui(false));
+      // The event that asked is over.
+      advance(0);
       // Opened by its caller later, it isn't a card a tap opened.
-      rerender(
-        <>
-          <Profile openOnTap open onOpenChange={onOpenChange} />
-          <button>Elsewhere</button>
-        </>
-      );
+      rerender(ui(true));
       onOpenChange.mockClear();
       pointer(screen.getByRole('button', { name: 'Elsewhere' }), 'pointerdown');
       expect(onOpenChange).not.toHaveBeenCalled();

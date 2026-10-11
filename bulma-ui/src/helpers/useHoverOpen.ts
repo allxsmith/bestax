@@ -2,7 +2,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { FocusEvent, PointerEvent, RefObject } from 'react';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
-import { getDeepestActiveElement } from './shadowDom';
+import { getDeepestActiveElement, isEventInside } from './shadowDom';
 
 /**
  * Options for `useHoverOpen`.
@@ -191,11 +191,16 @@ interface HoverOpenState {
   held: boolean;
   /** An open is waiting on its delay. */
   opening: boolean;
-  /** An open was asked for and isn't showing yet: no commit has answered it. */
+  /**
+   * An open was asked for and isn't showing yet: no commit has answered it,
+   * and the event that asked isn't over.
+   */
   asked: boolean;
   /** Focus is on its way back to the trigger, which isn't focus arriving. */
   restoring: boolean;
   timer?: ReturnType<typeof setTimeout>;
+  /** Ends an ask to open that no commit answered, once the event that made it is over. */
+  askTimer?: ReturnType<typeof setTimeout>;
   /** Takes this hook out of the ones that want Escape, while it is in. */
   releaseEscape?: () => void;
   /**
@@ -306,6 +311,29 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
     },
   });
 
+  // Asks to open or to close. Escape can take an ask to open back until it is
+  // answered: by the commit that follows it, or, when the caller keeps it
+  // closed without rendering at all, once the event that asked is over, by
+  // which time React has rendered any answer the caller set.
+  const ask = useCallback(
+    (next: boolean) => {
+      const s = stateRef.current;
+      s.asked = next;
+      latestRef.current.onOpenChange(next);
+      listenForEscape();
+      if (!next) return;
+      clearTimeout(s.askTimer);
+      s.askTimer = setTimeout(() => {
+        // Still closed: the caller turned it down.
+        if (latestRef.current.open) return;
+        s.asked = false;
+        s.tappedIn = undefined;
+        listenForEscape();
+      });
+    },
+    [listenForEscape]
+  );
+
   // Asks for what the pointer and focus call for, after its delay, when that
   // changed since the last time and isn't the state already.
   const settle = useCallback(() => {
@@ -320,21 +348,15 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
         s.timer = setTimeout(
           () => {
             s.opening = false;
-            const now = latestRef.current;
-            if (now.open !== held) {
-              // Escape until the open shows takes it back, so the hook
-              // stays among the ones that want it.
-              s.asked = held;
-              now.onOpenChange(held);
-            }
-            listenForEscape();
+            if (latestRef.current.open !== held) ask(held);
+            else listenForEscape();
           },
           held ? openDelay : closeDelay
         );
       }
     }
     listenForEscape();
-  }, [listenForEscape]);
+  }, [listenForEscape, ask]);
 
   // While a tap holds the floating element open, a press outside the trigger
   // and the floating element closes it. Set up again each time it opens or
@@ -346,10 +368,19 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
     const doc = latestRef.current.open ? s.tappedIn : undefined;
     if (!doc) return;
     const handlePointerDown = (event: Event) => {
-      // React brings a press on the trigger or anywhere in the floating
-      // element's tree, portals included, to the holder before the document
-      // sees it, so any other press is outside.
-      if (event !== s.pressedInside) latestRef.current.onOpenChange(false);
+      // Inside is a press React brought to the holder, which covers content
+      // the floating element portals elsewhere, or one whose path runs
+      // through the trigger or the floating element, which covers a press
+      // that something inside stopped before React got it to the holder.
+      const { triggerRef, floatingRef } = latestRef.current;
+      if (
+        event === s.pressedInside ||
+        isEventInside(event, triggerRef.current) ||
+        isEventInside(event, floatingRef.current)
+      ) {
+        return;
+      }
+      latestRef.current.onOpenChange(false);
     };
     doc.addEventListener('pointerdown', handlePointerDown);
     s.stopPress = () =>
@@ -372,6 +403,7 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
     const s = stateRef.current;
     return () => {
       clearTimeout(s.timer);
+      clearTimeout(s.askTimer);
       s.opening = false;
       s.asked = false;
       s.releaseEscape?.();
@@ -466,15 +498,11 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
         ) {
           return;
         }
-        const s = stateRef.current;
-        s.tappedIn = now.open
+        stateRef.current.tappedIn = now.open
           ? undefined
           : (event.target as Element).ownerDocument;
-        // Escape until the open shows takes it back, as after a delay.
-        s.asked = !now.open;
-        now.onOpenChange(!now.open);
-        listenForEscape();
+        ask(!now.open);
       },
     };
-  }, [settle, listenForEscape]);
+  }, [settle, ask]);
 }

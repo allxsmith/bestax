@@ -251,6 +251,14 @@ describe('useHoverOpen', () => {
     expect(onOpenChange).not.toHaveBeenCalled();
   });
 
+  it('leaves no timer behind when it unmounts with an ask to open unanswered', () => {
+    const { unmount } = render(<Harness />);
+    pointer(trigger(), 'pointerover');
+    advance(100);
+    unmount();
+    expect(jest.getTimerCount()).toBe(0);
+  });
+
   describe('document listeners', () => {
     /**
      * Counts the capture-phase listeners of each type on `document` that are
@@ -394,6 +402,35 @@ describe('useHoverOpen', () => {
       onOpenChange.mockClear();
       fireEvent.keyDown(document.body, { key: 'Escape' });
       expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('lets an ask lapse once the event is over, when the caller turns it down without rendering', () => {
+      const listeners = jest.spyOn(document, 'removeEventListener');
+      try {
+        const onOpenChange = jest.fn();
+        // A controlled caller that ignores the ask: nothing renders.
+        render(<Harness onOpenChange={onOpenChange} />);
+        pointer(trigger(), 'pointerover');
+        advance(100);
+        expect(onOpenChange).toHaveBeenLastCalledWith(true);
+        expect(listeners).not.toHaveBeenCalledWith(
+          'keydown',
+          expect.anything(),
+          true
+        );
+        // Just after the delay's own event, the ask is over.
+        advance(1);
+        expect(listeners).toHaveBeenCalledWith(
+          'keydown',
+          expect.anything(),
+          true
+        );
+        onOpenChange.mockClear();
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(onOpenChange).not.toHaveBeenCalled();
+      } finally {
+        listeners.mockRestore();
+      }
     });
 
     it('takes back an open that a parent setting state would show next', () => {
