@@ -34,6 +34,15 @@ export interface UseHoverOpenOptions {
   triggerRef: RefObject<HTMLElement | null>;
   /** The floating element, while it is open. */
   floatingRef: RefObject<HTMLElement | null>;
+  /**
+   * Whether a tap on the trigger opens it at once, with the next tap closing
+   * it. Without it, a touch pointer never opens it. While a tap holds it
+   * open, no hover timer closes it, and a press outside the trigger and the
+   * floating element does, as Escape does. The trigger's own tap action
+   * still runs.
+   * @defaultValue false
+   */
+  openOnTap?: boolean;
 }
 
 /**
@@ -48,6 +57,8 @@ export interface HoverOpenHandlers {
   onPointerLeave: (event: PointerEvent<HTMLElement>) => void;
   onFocus: (event: FocusEvent<HTMLElement>) => void;
   onBlur: (event: FocusEvent<HTMLElement>) => void;
+  onPointerDown: (event: PointerEvent<HTMLElement>) => void;
+  onPointerUp: (event: PointerEvent<HTMLElement>) => void;
 }
 
 /**
@@ -187,6 +198,15 @@ interface HoverOpenState {
   timer?: ReturnType<typeof setTimeout>;
   /** Takes this hook out of the ones that want Escape, while it is in. */
   releaseEscape?: () => void;
+  /**
+   * The document of the tap that opened it, or asked to: a press outside in
+   * that document closes it while it is open.
+   */
+  tappedIn?: Document;
+  /** The last press React brought to the holder: on the trigger or in the floating element's tree. */
+  pressedInside?: Event;
+  /** Takes the listener for a press outside off its document, while it is on. */
+  stopPress?: () => void;
 }
 
 /**
@@ -213,6 +233,11 @@ interface HoverOpenState {
  *   opens takes the opening back and goes on its way. One key listener per
  *   document serves every hook on it, there only while one of them is open
  *   or on its way to open.
+ * - With `openOnTap`, a tap on the trigger opens it at once and the next tap
+ *   on the trigger closes it. While a tap holds it open, a press outside the
+ *   trigger and the floating element closes it, from a listener on the
+ *   document that is there only then. Taps never count as hover, and mouse
+ *   and pen work the same with it or without.
  * - Once it closes, for any reason, whatever was holding it open has to
  *   leave and come back to open it again.
  * - When the floating element closes with focus inside it, focus goes back
@@ -311,12 +336,34 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
     listenForEscape();
   }, [listenForEscape]);
 
+  // While a tap holds the floating element open, a press outside the trigger
+  // and the floating element closes it. Set up again each time it opens or
+  // closes.
+  const listenForPress = useCallback(() => {
+    const s = stateRef.current;
+    s.stopPress?.();
+    s.stopPress = undefined;
+    const doc = latestRef.current.open ? s.tappedIn : undefined;
+    if (!doc) return;
+    const handlePointerDown = (event: Event) => {
+      // React brings a press on the trigger or anywhere in the floating
+      // element's tree, portals included, to the holder before the document
+      // sees it, so any other press is outside.
+      if (event !== s.pressedInside) latestRef.current.onOpenChange(false);
+    };
+    doc.addEventListener('pointerdown', handlePointerDown);
+    s.stopPress = () =>
+      doc.removeEventListener('pointerdown', handlePointerDown);
+  }, []);
+
   useClientLayoutEffect(() => {
     latestRef.current = options;
-    // The commit after an ask to open answers it, open or still closed.
+    // The commit after an ask to open answers it, open or still closed. A
+    // tap that asked and still finds it closed was turned down.
     const s = stateRef.current;
     if (s.asked) {
       s.asked = false;
+      if (!options.open) s.tappedIn = undefined;
       listenForEscape();
     }
   });
@@ -329,6 +376,8 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       s.asked = false;
       s.releaseEscape?.();
       s.releaseEscape = undefined;
+      s.stopPress?.();
+      s.stopPress = undefined;
     };
   }, []);
 
@@ -342,6 +391,7 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       // its job too, so neither opens it again until it comes back.
       s.pointerIn = false;
       s.focusIn = false;
+      s.tappedIn = undefined;
       if (s.focusInFloating) {
         s.focusInFloating = false;
         const trigger = latestRef.current.triggerRef.current;
@@ -358,7 +408,8 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       }
     }
     settle();
-  }, [open, settle]);
+    listenForPress();
+  }, [open, settle, listenForPress]);
 
   return useMemo<HoverOpenHandlers>(() => {
     const inTrigger = (node: EventTarget | null) =>
@@ -401,6 +452,29 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
         s.focusIn = false;
         settle();
       },
+      onPointerDown: event => {
+        stateRef.current.pressedInside = event.nativeEvent;
+      },
+      onPointerUp: event => {
+        const now = latestRef.current;
+        // With openOnTap, a tap on the trigger opens it at once, and the
+        // next one closes it. A tap anywhere else does nothing here.
+        if (
+          !now.openOnTap ||
+          event.pointerType !== 'touch' ||
+          !inTrigger(event.target)
+        ) {
+          return;
+        }
+        const s = stateRef.current;
+        s.tappedIn = now.open
+          ? undefined
+          : (event.target as Element).ownerDocument;
+        // Escape until the open shows takes it back, as after a delay.
+        s.asked = !now.open;
+        now.onOpenChange(!now.open);
+        listenForEscape();
+      },
     };
-  }, [settle]);
+  }, [settle, listenForEscape]);
 }

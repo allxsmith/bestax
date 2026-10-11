@@ -22,7 +22,7 @@ type PointerType = 'mouse' | 'pen' | 'touch';
  */
 const pointer = (
   el: Element,
-  type: 'pointerover' | 'pointerout' | 'pointerdown',
+  type: 'pointerover' | 'pointerout' | 'pointerdown' | 'pointerup',
   {
     pointerType = 'mouse',
     relatedTarget = null,
@@ -857,6 +857,251 @@ describe('HoverCard', () => {
       fireEvent.click(write);
       expect(card()).toBeNull();
       expect(screen.getByRole('textbox', { name: 'Note' })).toHaveFocus();
+    });
+  });
+
+  describe('with openOnTap', () => {
+    /** A finger's press and lift on `el`. */
+    const tap = (el: Element) => {
+      pointer(el, 'pointerdown', { pointerType: 'touch' });
+      pointer(el, 'pointerup', { pointerType: 'touch' });
+    };
+
+    /** Press listeners on `document` outside the capture phase that are still on. */
+    const watchPresses = () => {
+      const add = jest.spyOn(document, 'addEventListener');
+      const remove = jest.spyOn(document, 'removeEventListener');
+      return () =>
+        add.mock.calls.filter(([t, , o]) => t === 'pointerdown' && !o).length -
+        remove.mock.calls.filter(([t, , o]) => t === 'pointerdown' && !o)
+          .length;
+    };
+
+    it('opens at once on a tap on the trigger, with no delay, and calls it expanded', () => {
+      const onOpenChange = jest.fn();
+      render(<Profile openOnTap onOpenChange={onOpenChange} />);
+      tap(triggerLink());
+      expect(card()).toBeInTheDocument();
+      expect(onOpenChange).toHaveBeenCalledWith(true);
+      expect(triggerLink()).toHaveAttribute('aria-expanded', 'true');
+    });
+
+    it('stays open with no timer, then closes on a second tap on the trigger', () => {
+      render(<Profile openOnTap />);
+      tap(triggerLink());
+      advance(60_000);
+      expect(card()).toBeInTheDocument();
+      tap(triggerLink());
+      expect(card()).toBeNull();
+    });
+
+    it('stays open for a tap inside the card, and closes for one outside', () => {
+      render(
+        <>
+          <Profile openOnTap />
+          <button>Elsewhere</button>
+        </>
+      );
+      tap(triggerLink());
+      tap(profileLink());
+      advance(60_000);
+      expect(card()).toBeInTheDocument();
+      tap(screen.getByRole('button', { name: 'Elsewhere' }));
+      expect(card()).toBeNull();
+    });
+
+    it('closes on Escape', () => {
+      render(<Profile openOnTap />);
+      tap(triggerLink());
+      expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(false);
+      expect(card()).toBeNull();
+    });
+
+    it('lets the trigger’s own tap action run', () => {
+      const onClick = jest.fn();
+      render(
+        <Profile
+          openOnTap
+          trigger={<Button onClick={onClick}>Ada Lovelace</Button>}
+        />
+      );
+      const trigger = screen.getByRole('button', { name: 'Ada Lovelace' });
+      tap(trigger);
+      expect(fireEvent.click(trigger)).toBe(true);
+      expect(onClick).toHaveBeenCalled();
+      expect(card()).toBeInTheDocument();
+    });
+
+    it('keeps the focus rules for a card a tap opened', () => {
+      render(
+        <>
+          <Profile openOnTap />
+          <button>Elsewhere</button>
+        </>
+      );
+      tap(triggerLink());
+      keyboardFocus(profileLink());
+      advance(60_000);
+      expect(card()).toBeInTheDocument();
+      // Focus leaving the card closes it after the delay, as it does
+      // however the card opened.
+      keyboardFocus(screen.getByRole('button', { name: 'Elsewhere' }));
+      advance(300);
+      expect(card()).toBeNull();
+    });
+
+    it('listens for a press outside only while a tap holds it open', () => {
+      const live = watchPresses();
+      const { unmount } = render(<Profile openOnTap />);
+      expect(live()).toBe(0);
+      tap(triggerLink());
+      expect(live()).toBe(1);
+      tap(triggerLink());
+      expect(live()).toBe(0);
+
+      // Opened by hover, nothing outside closes it but leaving.
+      hover(triggerLink());
+      advance(600);
+      expect(card()).toBeInTheDocument();
+      expect(live()).toBe(0);
+      unhover(triggerLink());
+      advance(300);
+
+      tap(triggerLink());
+      expect(live()).toBe(1);
+      unmount();
+      expect(live()).toBe(0);
+    });
+
+    it('forgets the tap once the card closes another way', () => {
+      render(
+        <>
+          <Profile openOnTap />
+          <button>Elsewhere</button>
+        </>
+      );
+      tap(triggerLink());
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(card()).toBeNull();
+      // Opened by hover next, a press elsewhere leaves it alone.
+      unhover(triggerLink());
+      hover(triggerLink());
+      advance(600);
+      pointer(screen.getByRole('button', { name: 'Elsewhere' }), 'pointerdown');
+      expect(card()).toBeInTheDocument();
+    });
+
+    it('does nothing for a tap without it', () => {
+      render(<Profile />);
+      tap(triggerLink());
+      advance(5000);
+      expect(card()).toBeNull();
+    });
+
+    it('leaves mouse and pen as they are', () => {
+      render(
+        <>
+          <Profile openOnTap />
+          <button>Elsewhere</button>
+        </>
+      );
+      // A click is no tap: it neither opens the card nor closes it.
+      pointer(triggerLink(), 'pointerdown');
+      pointer(triggerLink(), 'pointerup');
+      expect(card()).toBeNull();
+
+      hover(triggerLink(), 'pen');
+      advance(599);
+      expect(card()).toBeNull();
+      advance(1);
+      expect(card()).toBeInTheDocument();
+      pointer(triggerLink(), 'pointerup', { pointerType: 'pen' });
+      expect(card()).toBeInTheDocument();
+      // A press elsewhere doesn't close a card the pointer opened.
+      pointer(screen.getByRole('button', { name: 'Elsewhere' }), 'pointerdown');
+      expect(card()).toBeInTheDocument();
+      unhover(triggerLink());
+      advance(300);
+      expect(card()).toBeNull();
+    });
+
+    it('forgets a tap its caller turned down', () => {
+      const onOpenChange = jest.fn();
+      const { rerender } = render(
+        <>
+          <Profile openOnTap open={false} onOpenChange={onOpenChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      tap(triggerLink());
+      expect(onOpenChange).toHaveBeenLastCalledWith(true);
+      rerender(
+        <>
+          <Profile openOnTap open={false} onOpenChange={onOpenChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      // Opened by its caller later, it isn't a card a tap opened.
+      rerender(
+        <>
+          <Profile openOnTap open onOpenChange={onOpenChange} />
+          <button>Elsewhere</button>
+        </>
+      );
+      onOpenChange.mockClear();
+      pointer(screen.getByRole('button', { name: 'Elsewhere' }), 'pointerdown');
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    describe('with one card inside another', () => {
+      it.each([
+        ['in place', {}],
+        ['portaled', { appendToBody: true }],
+      ])('opens and closes them one tap at a time, %s', (_, props) => {
+        render(
+          <>
+            <HoverCard
+              openOnTap
+              trigger={<Button>Engine team</Button>}
+              {...props}
+            >
+              <HoverCard
+                openOnTap
+                contentClassName="inner"
+                trigger={<Button>Ada Lovelace</Button>}
+                {...props}
+              >
+                <a href="#profile">View profile</a>
+              </HoverCard>
+            </HoverCard>
+            <button>Elsewhere</button>
+          </>
+        );
+        const inner = () => document.querySelector('.inner');
+        tap(screen.getByRole('button', { name: 'Engine team' }));
+        tap(screen.getByRole('button', { name: 'Ada Lovelace' }));
+        expect(inner()).toBeInTheDocument();
+
+        // A tap in the inner card is inside both.
+        tap(profileLink());
+        expect(inner()).toBeInTheDocument();
+        expect(
+          screen.getByRole('button', { name: 'Ada Lovelace' })
+        ).toBeInTheDocument();
+
+        // Escape closes the inner one first.
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(inner()).toBeNull();
+        expect(
+          screen.getByRole('button', { name: 'Ada Lovelace' })
+        ).toBeInTheDocument();
+
+        // A tap outside closes the outer one.
+        tap(screen.getByRole('button', { name: 'Elsewhere' }));
+        expect(
+          screen.queryByRole('button', { name: 'Ada Lovelace' })
+        ).toBeNull();
+      });
     });
   });
 

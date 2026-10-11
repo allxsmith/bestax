@@ -20,7 +20,7 @@ const meta: Meta<typeof HoverCard> = {
     docs: {
       description: {
         component:
-          'A card that previews what is behind a link or a button while the pointer rests on it or keyboard focus is on it. The pointer can move onto the card, Escape closes it from anywhere, and touch never opens it.',
+          'A card that previews what is behind a link or a button while the pointer rests on it or keyboard focus is on it. The pointer can move onto the card, Escape closes it from anywhere, and touch opens it only with openOnTap.',
       },
     },
   },
@@ -70,6 +70,11 @@ const meta: Meta<typeof HoverCard> = {
       description:
         'Render the card at the end of document.body, fixed to the viewport',
     },
+    openOnTap: {
+      control: 'boolean',
+      description:
+        'Open the card with a tap on a touch screen; only for a trigger with no tap action of its own',
+    },
     contentClassName: {
       control: 'text',
       description: 'Additional classes for the card',
@@ -80,6 +85,7 @@ const meta: Meta<typeof HoverCard> = {
     closeDelay: 300,
     position: 'bottom-left',
     appendToBody: false,
+    openOnTap: false,
   },
 };
 
@@ -168,6 +174,24 @@ export const ButtonTrigger: Story = {
         <Tag>bulma</Tag>
         <Tag>typescript</Tag>
       </Tags>
+    </HoverCard>
+  ),
+};
+
+/**
+ * `openOnTap`, for a touch screen, which has no hover. A tap on the trigger
+ * opens the card at once, and another tap on the trigger, a tap outside or
+ * Escape closes it. The trigger is a button with no click action of its own,
+ * since the tap still does whatever the trigger does.
+ */
+export const TouchOpen: Story = {
+  render: () => (
+    <HoverCard openOnTap trigger={<Button>Engine team</Button>}>
+      <Title as="p" size="6">
+        Analytical Engine team
+      </Title>
+      <Paragraph mb="2">Ada Lovelace and Charles Babbage</Paragraph>
+      <Link href="#team">View the team</Link>
     </HoverCard>
   ),
 };

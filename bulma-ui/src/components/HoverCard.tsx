@@ -115,6 +115,18 @@ export interface HoverCardProps
    * @defaultValue false
    */
   appendToBody?: boolean;
+  /**
+   * Open the card with a tap on a touch screen. Touch has no hover, so
+   * without this a phone or tablet never opens the card. With it, a tap on
+   * the trigger opens the card at once, and it stays until a second tap on
+   * the trigger, a tap outside the trigger and the card, or Escape. The tap
+   * still does whatever the trigger does, so turn this on only for a trigger
+   * with no tap action of its own, such as a `Button` with no `onClick`: on
+   * a link, the first tap would follow the link rather than show the card.
+   * Mouse and pen work the same either way.
+   * @defaultValue false
+   */
+  openOnTap?: boolean;
   /** Additional classes for the card (`.hover-card-content`). */
   contentClassName?: string;
 }
@@ -136,8 +148,9 @@ function chain<E>(
  * Nothing moves focus when the card opens, and nothing traps it. In place,
  * the card comes right after the trigger, so Tab goes from the trigger into
  * its links and tabbing past them closes it. The pointer can move onto the
- * card, Escape closes it from anywhere, and touch doesn't open it, so tapping
- * the trigger just does what the trigger does. For hints with nothing to
+ * card, Escape closes it from anywhere, and by default touch doesn't open it,
+ * so tapping the trigger just does what the trigger does. `openOnTap` opens
+ * it with a tap, for a trigger with no tap action of its own. For hints with nothing to
  * click use `Tooltip`, and for content opened on purpose, such as a form,
  * use `Popover`.
  *
@@ -161,12 +174,21 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   closeDelay = 300,
   position = 'bottom-left',
   appendToBody = false,
+  openOnTap = false,
   className,
   contentClassName,
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const { onPointerEnter, onPointerLeave, onFocus, onBlur, ...attrs } = rest;
+  const {
+    onPointerEnter,
+    onPointerLeave,
+    onPointerDown,
+    onPointerUp,
+    onFocus,
+    onBlur,
+    ...attrs
+  } = rest;
   const rootRef = useRef<HTMLSpanElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const cardId = `${useId()}-card`;
@@ -219,6 +241,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
     closeDelay,
     triggerRef,
     floatingRef: cardRef,
+    openOnTap,
   });
 
   // A trigger that can't take focus leaves keyboard users no way to open the
@@ -276,6 +299,8 @@ export const HoverCard: React.FC<HoverCardProps> = ({
       onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
       onFocus={chain(onFocus, hover.onFocus)}
       onBlur={chain(onBlur, hover.onBlur)}
+      onPointerDown={chain(onPointerDown, hover.onPointerDown)}
+      onPointerUp={chain(onPointerUp, hover.onPointerUp)}
       ref={rootRef}
     >
       {clonedTrigger}
