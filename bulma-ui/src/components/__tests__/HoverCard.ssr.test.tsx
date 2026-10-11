@@ -35,11 +35,12 @@ describe('HoverCard on the server (node environment)', () => {
     expect(html).not.toContain('aria-haspopup');
   });
 
-  it('leaves a portaled card for the client', () => {
+  it('leaves a portaled card for the client, and calls nothing expanded until it is there', () => {
     const html = renderToStaticMarkup(
       ui({ defaultOpen: true, appendToBody: true })
     );
-    expect(html).toContain('aria-expanded="true"');
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain('is-active');
     expect(html).not.toContain('aria-controls');
     expect(html).not.toContain('hover-card-content');
   });

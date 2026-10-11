@@ -449,6 +449,116 @@ describe('HoverCard', () => {
       expect(card()).toBeInTheDocument();
     });
 
+    describe('who the key belongs to', () => {
+      it('passes it on to a field elsewhere that has focus, after closing the card', () => {
+        const onKeyDown = jest.fn();
+        render(
+          <>
+            <input aria-label="Search" onKeyDown={onKeyDown} />
+            <Profile />
+          </>
+        );
+        const search = screen.getByRole('textbox', { name: 'Search' });
+        search.focus();
+        hover(triggerLink());
+        advance(600);
+        expect(fireEvent.keyDown(search, { key: 'Escape' })).toBe(true);
+        expect(card()).toBeNull();
+        expect(onKeyDown).toHaveBeenCalledWith(
+          expect.objectContaining({ key: 'Escape' })
+        );
+      });
+
+      it.each([
+        ['the card', () => profileLink()],
+        ['its trigger', () => triggerLink()],
+      ])('keeps it when focus is in %s', (_, focusTarget) => {
+        render(<Profile />);
+        hover(triggerLink());
+        advance(600);
+        pressFocus(focusTarget());
+        expect(fireEvent.keyDown(focusTarget(), { key: 'Escape' })).toBe(false);
+        expect(card()).toBeNull();
+      });
+
+      it('keeps it when nothing has focus', () => {
+        render(<Profile />);
+        hover(triggerLink());
+        advance(600);
+        // Some browsers report no active element at all rather than <body>.
+        Object.defineProperty(document, 'activeElement', {
+          configurable: true,
+          get: () => null,
+        });
+        try {
+          expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(
+            false
+          );
+        } finally {
+          delete (document as unknown as { activeElement?: unknown })
+            .activeElement;
+        }
+        expect(card()).toBeNull();
+      });
+
+      it('lets a Modal opened from a button in the card close on it', () => {
+        const Page = () => {
+          const [reporting, setReporting] = useState(false);
+          return (
+            <>
+              <HoverCard trigger={<a href="#ada">Ada Lovelace</a>}>
+                <button onClick={() => setReporting(true)}>Report</button>
+              </HoverCard>
+              <Modal active={reporting} onClose={() => setReporting(false)}>
+                <button>Send report</button>
+              </Modal>
+            </>
+          );
+        };
+        render(<Page />);
+        hover(triggerLink());
+        advance(600);
+        unhover(triggerLink(), card()!);
+        const report = screen.getByRole('button', { name: 'Report' });
+        pressFocus(report);
+        fireEvent.click(report);
+        const send = screen.getByRole('button', { name: 'Send report' });
+        expect(send).toHaveFocus();
+        expect(document.querySelector('.modal')).toHaveClass('is-active');
+
+        // The Modal has focus, so the key is its: the card the pointer left
+        // open closes, and the Modal closes as well.
+        fireEvent.keyDown(send, { key: 'Escape' });
+        expect(document.querySelector('.modal')).not.toHaveClass('is-active');
+        expect(card()).toBeNull();
+      });
+
+      it('closes the card focus is in before one that opened after it', () => {
+        render(
+          <>
+            <Profile />
+            <HoverCard
+              trigger={<a href="#grace">Grace Hopper</a>}
+              contentClassName="grace"
+            >
+              Compiler team
+            </HoverCard>
+          </>
+        );
+        keyboardFocus(triggerLink());
+        advance(600);
+        hover(screen.getByRole('link', { name: 'Grace Hopper' }));
+        advance(600);
+        expect(document.querySelectorAll('.hover-card-content')).toHaveLength(
+          2
+        );
+
+        fireEvent.keyDown(triggerLink(), { key: 'Escape' });
+        expect(screen.queryByText('Analytical Engine team')).toBeNull();
+        expect(document.querySelector('.grace')).toBeInTheDocument();
+      });
+    });
+
     it('closes while the card is hovered, and the next hover of the trigger opens it', () => {
       render(<Profile />);
       hover(triggerLink());
@@ -583,6 +693,46 @@ describe('HoverCard', () => {
         expect(outer()).toBeNull();
         // Nothing is open, so the next Escape goes on its way.
         expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true);
+      });
+
+      it.each([
+        ['in place', {}],
+        ['portaled', { appendToBody: true }],
+      ])(
+        'closes the inner card first when both open in the same commit, %s',
+        (_, props) => {
+          // The inner card starts open, so it opens with the outer one.
+          render(
+            <HoverCard trigger={<a href="#team">Engine team</a>} {...props}>
+              <HoverCard
+                trigger={<a href="#ada">Ada Lovelace</a>}
+                contentClassName="inner"
+                defaultOpen
+                {...props}
+              >
+                <a href="#profile">View profile</a>
+              </HoverCard>
+            </HoverCard>
+          );
+          hover(screen.getByRole('link', { name: 'Engine team' }));
+          advance(600);
+          expect(inner()).toBeInTheDocument();
+
+          fireEvent.keyDown(document.body, { key: 'Escape' });
+          expect(inner()).toBeNull();
+          expect(outer()).toBeInTheDocument();
+        }
+      );
+
+      it('holds the outer card open for focus in a portaled inner card', () => {
+        render(<Nested appendToBody />);
+        openBoth();
+        unhover(triggerLink(), inner()!);
+        pressFocus(profileLink());
+        unhover(inner()!);
+        advance(60_000);
+        expect(inner()).toBeInTheDocument();
+        expect(outer()).toBeInTheDocument();
       });
 
       it('hands focus in the inner card back to its trigger, and keeps the outer open', () => {
@@ -1111,8 +1261,14 @@ describe('HoverCard', () => {
       expect(warn).toHaveBeenCalledTimes(1);
     });
 
-    it('stays quiet in production', () => {
+    it('stays quiet in production, without reading the page for it', () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      // The check finds the trigger as the wrapper's first element.
+      const firstChild = jest.spyOn(
+        Element.prototype,
+        'firstElementChild',
+        'get'
+      );
       const previous = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       try {
@@ -1121,6 +1277,8 @@ describe('HoverCard', () => {
         process.env.NODE_ENV = previous;
       }
       expect(warn).not.toHaveBeenCalled();
+      const wrapper = document.querySelector('.hover-card');
+      expect(firstChild.mock.contexts).not.toContain(wrapper);
     });
   });
 
@@ -1223,13 +1381,13 @@ describe('HoverCard', () => {
       try {
         expect(serverHtml).not.toContain('hover-card-content');
         expect(serverHtml).not.toContain('aria-controls');
+        expect(serverHtml).toContain('aria-expanded="false"');
         expect(errorSpy).not.toHaveBeenCalled();
         const panel = card()!;
         expect(panel.parentElement).toBe(document.body);
-        expect(container.querySelector('a')).toHaveAttribute(
-          'aria-controls',
-          panel.id
-        );
+        const trigger = container.querySelector('a');
+        expect(trigger).toHaveAttribute('aria-controls', panel.id);
+        expect(trigger).toHaveAttribute('aria-expanded', 'true');
       } finally {
         await cleanup();
       }

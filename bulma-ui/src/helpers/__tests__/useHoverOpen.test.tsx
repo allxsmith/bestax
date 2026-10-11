@@ -340,15 +340,19 @@ describe('useHoverOpen', () => {
       }
     });
 
-    it('stops listening when an opening its caller turns down runs out', () => {
+    it('keeps listening from the ask to open until a commit answers it', () => {
       const listeners = watchDocument();
       try {
         const onOpenChange = jest.fn();
-        render(<Harness onOpenChange={onOpenChange} />);
+        const { rerender } = render(<Harness onOpenChange={onOpenChange} />);
         pointer(trigger(), 'pointerover');
         advance(100);
-        // A controlled caller that keeps it closed.
         expect(onOpenChange).toHaveBeenCalledWith(true);
+        // Asked, and nothing has rendered since.
+        expect(listeners.keydown()).toBe(1);
+
+        // A controlled caller renders it closed again: that's a no.
+        rerender(<Harness onOpenChange={onOpenChange} />);
         expect(floating()).toBeNull();
         expect(listeners.keydown()).toBe(0);
       } finally {
@@ -365,6 +369,55 @@ describe('useHoverOpen', () => {
         expect(listeners.keydown()).toBe(0);
       } finally {
         listeners.restore();
+      }
+    });
+  });
+
+  describe('Escape between the ask to open and the open showing', () => {
+    it('takes the ask back, and lets the key through', () => {
+      const onOpenChange = jest.fn();
+      render(<Harness onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerover');
+      advance(100);
+      expect(onOpenChange).toHaveBeenLastCalledWith(true);
+      // The caller hasn't rendered the answer yet.
+      expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true);
+      expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('leaves alone an ask the caller already turned down', () => {
+      const onOpenChange = jest.fn();
+      const { rerender } = render(<Harness onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerover');
+      advance(100);
+      rerender(<Harness onOpenChange={onOpenChange} />);
+      onOpenChange.mockClear();
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('takes back an open that a parent setting state would show next', () => {
+      // The delay runs out outside act, so the parent's state update waits
+      // for React to render it, as it does in a browser, and Escape lands
+      // before that. React warns about exactly that, so the warning is
+      // expected here and nothing else is.
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        const onOpenChange = jest.fn();
+        render(<Stateful onOpenChange={onOpenChange} />);
+        pointer(trigger(), 'pointerover');
+        jest.advanceTimersByTime(100);
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        act(() => {
+          jest.runOnlyPendingTimers();
+        });
+        expect(onOpenChange.mock.calls).toEqual([[true], [false]]);
+        expect(floating()).toBeNull();
+        for (const [message] of error.mock.calls) {
+          expect(String(message)).toContain('not wrapped in act');
+        }
+      } finally {
+        error.mockRestore();
       }
     });
   });

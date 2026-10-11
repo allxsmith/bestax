@@ -2,6 +2,7 @@
 import { useCallback, useMemo, useRef } from 'react';
 import type { FocusEvent, PointerEvent, RefObject } from 'react';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
+import { getDeepestActiveElement } from './shadowDom';
 
 /**
  * Options for `useHoverOpen`.
@@ -11,7 +12,9 @@ export interface UseHoverOpenOptions {
   open: boolean;
   /**
    * Asks for the floating element to open or close: when a delay runs out,
-   * and at once on Escape. It isn't asked for the state it is already in.
+   * and at once on Escape. It isn't asked for the state it is already in,
+   * except that an Escape between asking to open and the open showing takes
+   * the ask back by asking to close.
    */
   onOpenChange: (open: boolean) => void;
   /** How long hover or keyboard focus waits before asking to open, in milliseconds. */
@@ -36,7 +39,9 @@ export interface UseHoverOpenOptions {
 /**
  * Pointer and focus handlers for the element that holds the trigger. The
  * floating element has to be inside it in React's tree, in place or through
- * a portal, since React's events reach it from there either way.
+ * a portal, since React's events reach it from there either way, and it
+ * should hold nothing else: focus inside it that isn't on the trigger counts
+ * as focus in the floating element.
  */
 export interface HoverOpenHandlers {
   onPointerEnter: (event: PointerEvent<HTMLElement>) => void;
@@ -60,11 +65,17 @@ function isKeyboardFocus(el: Element): boolean {
   }
 }
 
-/** A hook that wants Escape: its floating element is open, or an open is waiting on its delay. */
+/** Whether `node` is `container` or inside it, when there are both. */
+const within = (container: Node | null, node: Node | null): boolean =>
+  Boolean(container && node && container.contains(node));
+
+/** A hook that wants Escape: its floating element is open, or an open is on its way. */
 interface EscapeEntry {
   /** When its floating element opened, counted across the page, or 0 while it is closed. */
   openedAt: number;
-  /** Cancels an open that is waiting on its delay. */
+  trigger: () => HTMLElement | null;
+  floating: () => HTMLElement | null;
+  /** Takes back an open that is on its way: waiting on its delay, or asked for and not showing yet. */
   cancel: () => void;
   /** Asks to close. */
   close: () => void;
@@ -87,11 +98,22 @@ let openings = 0;
  * Adds `entry` to the hooks that want Escape on `doc`, starting the shared
  * listener when it is the first.
  *
- * Escape cancels every open that is waiting, so nothing appears right after
- * it, and closes the floating element that opened last, the innermost of a
- * nested pair. It stops the keypress only then, in the capture phase, before
- * anything around the floating element (a Popover, a Modal) sees it. With
- * nothing open it goes on its way.
+ * Escape takes back every open that is on its way, so nothing appears right
+ * after it, and closes one open floating element, chosen by these rules in
+ * turn:
+ *
+ * 1. One that focus is in, on its trigger or inside it, when there is one.
+ * 2. The innermost: one whose floating element holds no other's trigger.
+ *    That follows nesting whether either one is portaled, since an inner
+ *    trigger sits in the outer floating element either way.
+ * 3. The one that opened last.
+ *
+ * The keypress belongs to whatever has focus. When that is one of the open
+ * floating elements or their triggers, or nothing, the listener stops it in
+ * the capture phase, before anything around (a Popover, a Modal) sees it.
+ * When focus is anywhere else, such as a combobox or a dialog of its own,
+ * the floating element still closes, since hover put it there without
+ * focus, and the key goes on to that owner.
  *
  * @returns What to call when the hook stops wanting Escape.
  */
@@ -101,15 +123,32 @@ function wantEscape(doc: Document, entry: EscapeEntry): () => void {
     const entries = new Set<EscapeEntry>();
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      let top: EscapeEntry | undefined;
-      // A copy, since cancelling an open takes its hook out of the set.
+      const open: EscapeEntry[] = [];
+      // A copy, since taking an open back can take its hook out of the set.
       for (const each of [...entries]) {
-        if (each.openedAt > (top?.openedAt ?? 0)) top = each;
-        each.cancel();
+        if (each.openedAt) open.push(each);
+        else each.cancel();
+      }
+      const focused = getDeepestActiveElement(doc);
+      const holding = open.filter(
+        each =>
+          within(each.trigger(), focused) || within(each.floating(), focused)
+      );
+      const pool = holding.length > 0 ? holding : open;
+      let top: EscapeEntry | undefined;
+      for (const each of pool) {
+        const holdsAnother = pool.some(
+          other => other !== each && within(each.floating(), other.trigger())
+        );
+        if (!holdsAnother && (!top || each.openedAt > top.openedAt)) {
+          top = each;
+        }
       }
       if (!top) return;
-      event.preventDefault();
-      event.stopPropagation();
+      if (holding.length > 0 || !focused || focused === doc.body) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       top.close();
     };
     doc.addEventListener('keydown', handleKeyDown, true);
@@ -141,6 +180,8 @@ interface HoverOpenState {
   held: boolean;
   /** An open is waiting on its delay. */
   opening: boolean;
+  /** An open was asked for and isn't showing yet: no commit has answered it. */
+  asked: boolean;
   /** Focus is on its way back to the trigger, which isn't focus arriving. */
   restoring: boolean;
   timer?: ReturnType<typeof setTimeout>;
@@ -157,16 +198,21 @@ interface HoverOpenState {
  *   open after `openDelay`. A touch pointer doesn't count. Neither does focus
  *   that a press brings to the trigger: it counts when the browser shows it
  *   as `:focus-visible`.
- * - Focus in the floating element holds it open however it got there, so a
- *   control clicked inside it stays put when the pointer moves away.
+ * - Focus in the floating element holds it open however it got there,
+ *   including focus in content it portals elsewhere, such as a nested card.
+ *   Whether a click focuses what it lands on is up to the browser: Safari
+ *   and Firefox on macOS don't focus a button on click, so there a clicked
+ *   button doesn't hold it once the pointer leaves.
  * - Once the pointer and focus have both left, it asks to close after
  *   `closeDelay`, and either coming back before then keeps it open. Nothing
  *   else closes it on a timer.
- * - Escape while it is open asks to close at once, wherever focus is, and
- *   stops there, so a `Popover` or `Modal` around it keeps its own. Inside
- *   another one, the inner one closes first. Escape before it opens cancels
- *   the opening and goes on its way. One key listener per document serves
- *   every hook on it, there only while one of them is open or about to open.
+ * - Escape closes it at once, wherever focus is, and stops there when focus
+ *   is in it, on its trigger or nowhere, so a `Popover` or `Modal` around it
+ *   keeps its own. With focus somewhere else, the key goes on after closing
+ *   it. Inside another one, the inner one closes first. Escape before it
+ *   opens takes the opening back and goes on its way. One key listener per
+ *   document serves every hook on it, there only while one of them is open
+ *   or on its way to open.
  * - Once it closes, for any reason, whatever was holding it open has to
  *   leave and come back to open it again.
  * - When the floating element closes with focus inside it, focus goes back
@@ -181,29 +227,29 @@ interface HoverOpenState {
  */
 export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
   const latestRef = useRef(options);
-  useClientLayoutEffect(() => {
-    latestRef.current = options;
-  });
   const stateRef = useRef<HoverOpenState>({
     pointerIn: false,
     focusIn: false,
     focusInFloating: false,
     held: false,
     opening: false,
+    asked: false,
     restoring: false,
   });
 
-  // In the hooks that want Escape while the floating element is open or an
-  // open is waiting, and out otherwise. Stamped with the order it opened in.
+  // In the hooks that want Escape from the moment an open is on its way until
+  // the floating element closes, and out otherwise. Stamped with the order it
+  // opened in.
   const listenForEscape = useCallback(function listen() {
     const s = stateRef.current;
+    const entry = entryRef.current;
     const { open, triggerRef } = latestRef.current;
-    if (!open) entryRef.current.openedAt = 0;
-    else if (!entryRef.current.openedAt) {
+    if (!open) entry.openedAt = 0;
+    else if (!entry.openedAt) {
       openings += 1;
-      entryRef.current.openedAt = openings;
+      entry.openedAt = openings;
     }
-    const wanted = open || s.opening;
+    const wanted = open || s.opening || s.asked;
     if (wanted === Boolean(s.releaseEscape)) return;
     if (s.releaseEscape) {
       s.releaseEscape();
@@ -211,16 +257,22 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       return;
     }
     const doc = triggerRef.current?.ownerDocument ?? document;
-    s.releaseEscape = wantEscape(doc, entryRef.current);
+    s.releaseEscape = wantEscape(doc, entry);
   }, []);
 
   const entryRef = useRef<EscapeEntry>({
     openedAt: 0,
+    trigger: () => latestRef.current.triggerRef.current,
+    floating: () => latestRef.current.floatingRef.current,
+    // Only ever called while an open is on its way, so it is one or the
+    // other: still waiting on its delay, or asked for already.
     cancel: () => {
       const s = stateRef.current;
-      if (!s.opening) return;
       clearTimeout(s.timer);
+      // An ask already made is taken back by asking the other way.
+      if (s.asked) latestRef.current.onOpenChange(false);
       s.opening = false;
+      s.asked = false;
       listenForEscape();
     },
     close: () => {
@@ -244,7 +296,12 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
           () => {
             s.opening = false;
             const now = latestRef.current;
-            if (now.open !== held) now.onOpenChange(held);
+            if (now.open !== held) {
+              // Escape until the open shows takes it back, so the hook
+              // stays among the ones that want it.
+              s.asked = held;
+              now.onOpenChange(held);
+            }
             listenForEscape();
           },
           held ? openDelay : closeDelay
@@ -255,10 +312,21 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
   }, [listenForEscape]);
 
   useClientLayoutEffect(() => {
+    latestRef.current = options;
+    // The commit after an ask to open answers it, open or still closed.
+    const s = stateRef.current;
+    if (s.asked) {
+      s.asked = false;
+      listenForEscape();
+    }
+  });
+
+  useClientLayoutEffect(() => {
     const s = stateRef.current;
     return () => {
       clearTimeout(s.timer);
       s.opening = false;
+      s.asked = false;
       s.releaseEscape?.();
       s.releaseEscape = undefined;
     };
@@ -293,10 +361,8 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
   }, [open, settle]);
 
   return useMemo<HoverOpenHandlers>(() => {
-    const inFloating = (node: EventTarget | null) =>
-      Boolean(
-        latestRef.current.floatingRef.current?.contains(node as Node | null)
-      );
+    const inTrigger = (node: EventTarget | null) =>
+      within(latestRef.current.triggerRef.current, node as Node | null);
     return {
       onPointerEnter: event => {
         if (event.pointerType === 'touch') return;
@@ -313,7 +379,10 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       },
       onFocus: event => {
         const s = stateRef.current;
-        s.focusInFloating = inFloating(event.target);
+        // React brings focus here from the trigger and from the floating
+        // element's whole tree, portals included, so focus not in the
+        // trigger is in the floating element, wherever its DOM is.
+        s.focusInFloating = !inTrigger(event.target);
         if (s.restoring) return;
         // Any focus in the floating element holds it. On the trigger, only
         // keyboard focus does, so a click there opens nothing.
@@ -322,15 +391,13 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       },
       onBlur: event => {
         const s = stateRef.current;
-        const next = event.relatedTarget;
-        s.focusInFloating = inFloating(next);
+        const next = event.relatedTarget as Node | null;
+        // Where focus goes next, as far as the DOM can say. Focus going into
+        // content the floating element portals elsewhere reads as leaving,
+        // and the focus event that follows straight after brings it back.
+        s.focusInFloating = within(latestRef.current.floatingRef.current, next);
         // Moving between the trigger and the floating element isn't leaving.
-        if (
-          s.focusInFloating ||
-          event.currentTarget.contains(next as Node | null)
-        ) {
-          return;
-        }
+        if (s.focusInFloating || within(event.currentTarget, next)) return;
         s.focusIn = false;
         settle();
       },
