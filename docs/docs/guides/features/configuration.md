@@ -108,7 +108,7 @@ Valid values are `'fa'` (Font Awesome), `'mdi'` (Material Design Icons), `'ion'`
 
 ## Where Portaled Content Goes
 
-Content a component portals, such as the panel `Popover` renders with `appendToBody`, a `Modal` with `portal`, or a `Toast`, goes to `document.body` unless `portalContainer` names an element or a selector to use instead. Set it when that content has to stay inside something `document.body` is outside of: a scoped `Theme`, whose variables sit on its own wrapper, or a shadow root, whose styles stay inside it. The [ConfigProvider reference](../../api/helpers/config.md#where-portaled-content-goes) has a worked example.
+Content a component portals, such as the panel `Popover` renders with `appendToBody`, a `Modal` with `portal`, or a `Toast`, goes to `document.body` unless `portalContainer` names an element or a selector to use instead. Set it when that content has to stay inside something `document.body` is outside of: a scoped `Theme`, whose variables sit on its own wrapper, or a shadow root, whose styles stay inside it. The element must not sit under an ancestor with a `transform`, `filter`, `backdrop-filter`, `perspective`, `will-change: transform`, or a `contain` that includes `paint` or `layout`, because the overlays it receives are `position: fixed` and would be placed against that ancestor instead of the viewport. The [ConfigProvider reference](../../api/helpers/config.md#where-portaled-content-goes) has the rest of what to check, and a worked example.
 
 ## Combining Prefix and Icon Library
 

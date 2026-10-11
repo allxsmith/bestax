@@ -267,6 +267,9 @@ for a non-modal dialog:
 
 ## Props
 
+Where the table says `appendToBody` renders into `document.body`, a `ConfigProvider` with a
+[`portalContainer`](../helpers/config.md#where-portaled-content-goes) takes its place.
+
 <!-- bestax:generated props -->
 
 | Prop                  | Type                                                                             | Default         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |

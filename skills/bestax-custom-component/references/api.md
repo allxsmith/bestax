@@ -147,7 +147,11 @@ Content in `document.body` loses a scoped `Theme`'s variables and a shadow root'
 component or a themed section, wrap the area in a `ConfigProvider` whose `portalContainer` is an
 element inside it, which also covers what the library's components portal, such as `Popover`'s
 `appendToBody` panel or a `Modal` with `portal`. In a shadow root, pass the
-element itself, held in state from a ref callback, since a selector can't reach inside one.
+element itself, held in state from a ref callback, since a selector can't reach inside one. What
+moves there is `position: fixed`, so the element must not sit under an ancestor with a
+`transform`, `filter`, `backdrop-filter`, `perspective`, `will-change: transform`, or a `contain`
+that includes `paint` or `layout`: that ancestor becomes the containing block, and overlays and
+anchored panels land against it instead of the viewport.
 
 ## Holding focus: `useFocusTrap`
 

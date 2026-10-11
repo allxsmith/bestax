@@ -43,9 +43,23 @@ export interface ConfigProviderProps {
    * selector. Unset, or a selector that matches nothing, that content goes to
    * `document.body`. A target a component is given, such as a `Toast`'s
    * `container`, still wins, and nothing portals that would otherwise render
-   * in place. A selector can't find an element inside a shadow root, so pass
-   * the element itself there, held in state from a ref callback so the
-   * content renders once it exists.
+   * in place.
+   *
+   * The overlays and panels this moves are `position: fixed`, so pick an
+   * element with no ancestor that has a `transform`, `filter`,
+   * `backdrop-filter`, `perspective`, `will-change: transform`, or a
+   * `contain` that includes `paint` or `layout`. That ancestor becomes their
+   * containing block, and they cover or line up against it instead of the
+   * viewport. An ancestor that starts a stacking context, with a `z-index` or
+   * `isolation: isolate`, keeps them inside it, under anything the page
+   * stacks above it. `NotificationContainer`'s status region moves too, so
+   * this also decides where its announcements come from, and an `aria-hidden`
+   * ancestor silences them.
+   *
+   * A selector can't find an element inside a shadow root, so pass the
+   * element itself there, held in state from a ref callback. Content that
+   * portals before the element is set goes to `document.body` and moves when
+   * it is, which remounts it, as `Portal`'s `container` describes.
    */
   portalContainer?: string | HTMLElement;
 }

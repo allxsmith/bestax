@@ -151,7 +151,7 @@ function NestedExample() {
 
 A target a component is given still wins, such as a `Modal`'s `portal` selector or a `Toast`'s `container`. And `portalContainer` only changes where portaled content goes: a component that renders in place, like a `Modal` without `portal` or a `Toast` with `inline`, still does.
 
-`document.body` is outside any styles scoped to where the content was declared: a scoped `Theme`'s variables, or a shadow root's stylesheets. To keep them, render an element inside that area and make it the `portalContainer`, held in state from a ref callback so the portal renders once the element exists. Below, the panel keeps the purple primary its `Theme` sets, which it would lose at the end of the page:
+`document.body` is outside any styles scoped to where the content was declared: a scoped `Theme`'s variables, or a shadow root's stylesheets. To keep them, render an element inside that area and make it the `portalContainer`, held in state from a ref callback. Below, the panel keeps the purple primary its `Theme` sets, which it would lose at the end of the page:
 
 ```tsx live
 function ThemedOverlays() {
@@ -176,7 +176,11 @@ function ThemedOverlays() {
 }
 ```
 
-A selector can't find an element inside a shadow root, since `document.querySelector` doesn't look there, so in a shadow root pass the element itself, as above. A nested provider like this one needs the class prefix and icon library repeated if your app sets them (see [Nested ConfigProviders](#nested-configproviders)).
+A selector can't find an element inside a shadow root, since `document.querySelector` doesn't look there, so in a shadow root pass the element itself, as above. Content that portals before the element is set goes to `document.body` and moves when it is, which remounts it and resets its state, as [`Portal`'s `container`](./portal.md#into-a-container) describes. A nested provider like this one needs the class prefix and icon library repeated if your app sets them (see [Nested ConfigProviders](#nested-configproviders)).
+
+What gets portaled is `position: fixed`, so put the element where no ancestor has a `transform`, `filter`, `backdrop-filter`, `perspective`, `will-change: transform`, or a `contain` that includes `paint` or `layout`. Any of those becomes the containing block for the overlays and panels, which then cover or line up against that ancestor instead of the viewport. An ancestor that starts a stacking context, with a `z-index` or `isolation: isolate`, keeps them inside it, under anything the page stacks above it.
+
+`NotificationContainer` portals its status region along with its notifications, so the `portalContainer` also decides where announcements come from. Keep it out of any `aria-hidden` ancestor, which takes the region out of the accessibility tree and silences them.
 
 ### Using Configuration in Custom Components
 

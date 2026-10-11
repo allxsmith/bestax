@@ -102,7 +102,8 @@ export interface ModalProps
   /**
    * Renders the modal into a portal target instead of inline, so it isn't
    * clipped by an ancestor with `overflow: hidden`, `filter` or `transform`.
-   * `true` portals to `document.body`; a string is used as a
+   * `true` portals to the `portalContainer` a `ConfigProvider` sets,
+   * `document.body` by default; a string is used as a
    * `document.querySelector` selector; an element is used directly. Renders
    * inline on the server and while hydrating, moving into the portal once the
    * client takes over, so hydration matches.
