@@ -143,33 +143,58 @@ describe('useHoverOpen', () => {
     expect(latest).toHaveBeenCalledWith(true);
   });
 
-  it('counts focus as keyboard focus until a press, and again after a key', () => {
-    const onOpenChange = jest.fn();
-    render(
-      <>
-        <Harness onOpenChange={onOpenChange} />
-        <button>Elsewhere</button>
-      </>
-    );
-    const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
+  describe('telling keyboard focus on the trigger from other focus', () => {
+    /** Focuses the trigger while it answers `:focus-visible` with `answer`. */
+    const focusTrigger = (answer: boolean | Error) => {
+      const el = trigger();
+      const matches = el.matches.bind(el);
+      const spy = jest.spyOn(el, 'matches').mockImplementation(selector => {
+        if (selector !== ':focus-visible') return matches(selector);
+        if (answer instanceof Error) throw answer;
+        return answer;
+      });
+      try {
+        el.focus();
+      } finally {
+        spy.mockRestore();
+      }
+    };
 
-    // Nothing has been pressed yet, so focus counts, as `:focus-visible`
-    // would have it.
-    trigger().focus();
-    advance(100);
-    expect(onOpenChange).toHaveBeenCalledTimes(1);
+    it('asks the browser, which shows keyboard focus as :focus-visible', () => {
+      const onOpenChange = jest.fn();
+      render(<Harness onOpenChange={onOpenChange} />);
+      focusTrigger(true);
+      advance(100);
+      expect(onOpenChange).toHaveBeenCalledWith(true);
+    });
 
-    elsewhere.focus();
-    pointer(trigger(), 'pointerdown');
-    trigger().focus();
-    advance(1000);
-    expect(onOpenChange).toHaveBeenCalledTimes(1);
+    it('opens nothing for focus the browser does not show, such as a press brings or a script moves after one', () => {
+      const onOpenChange = jest.fn();
+      render(<Harness onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerdown');
+      focusTrigger(false);
+      advance(1000);
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
 
-    elsewhere.focus();
-    fireEvent.keyDown(elsewhere, { key: 'Tab', shiftKey: true });
-    trigger().focus();
-    advance(100);
-    expect(onOpenChange).toHaveBeenCalledTimes(2);
+    it('counts any focus where the browser cannot match :focus-visible, so keyboard users can still open it', () => {
+      const onOpenChange = jest.fn();
+      render(<Harness onOpenChange={onOpenChange} />);
+      focusTrigger(new SyntaxError("':focus-visible' is not a valid selector"));
+      advance(100);
+      expect(onOpenChange).toHaveBeenCalledWith(true);
+    });
+
+    it('holds an open floating element for any focus inside it, shown or not', () => {
+      const onOpenChange = jest.fn();
+      render(<Harness open onOpenChange={onOpenChange} />);
+      const inside = screen.getByRole('button', { name: 'Inside' });
+      const spy = jest.spyOn(inside, 'matches').mockReturnValue(false);
+      inside.focus();
+      spy.mockRestore();
+      advance(1000);
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
   });
 
   it('stops Escape at the document while open, and lets it through while closed', () => {
@@ -205,9 +230,10 @@ describe('useHoverOpen', () => {
   it('hands focus back to the trigger when the floating element closes with focus inside', () => {
     const onOpenChange = jest.fn();
     const { rerender } = render(<Harness open onOpenChange={onOpenChange} />);
-    pointer(screen.getByRole('button', { name: 'Inside' }), 'pointerdown');
+    // jsdom shows every focus as :focus-visible, so the trigger reads as
+    // keyboard focus when it gets it back: only the handback guard keeps
+    // that from opening it again.
     screen.getByRole('button', { name: 'Inside' }).focus();
-    fireEvent.keyDown(document.body, { key: 'Enter' });
     rerender(<Harness open={false} onOpenChange={onOpenChange} />);
     expect(trigger()).toHaveFocus();
     // Handing focus back is not keyboard focus arriving, so it asks for
@@ -248,21 +274,29 @@ describe('useHoverOpen', () => {
       };
     };
 
-    it('shares one pair for telling a key from a press across every hook, and takes it off with the last', () => {
+    it('adds none while closed, however many hooks are mounted', () => {
       const listeners = watchDocument();
       try {
-        const first = render(<Harness />);
-        const second = render(<Harness />);
-        const third = render(<Harness />);
-        expect(listeners.keydown()).toBe(1);
-        expect(listeners.pointerdown()).toBe(1);
-
-        first.unmount();
-        second.unmount();
-        expect(listeners.keydown()).toBe(1);
-        third.unmount();
+        render(<Harness />);
+        render(<Harness />);
+        render(<Harness />);
         expect(listeners.keydown()).toBe(0);
         expect(listeners.pointerdown()).toBe(0);
+      } finally {
+        listeners.restore();
+      }
+    });
+
+    it('shares one Escape listener across the open hooks on a document, and takes it off with the last', () => {
+      const listeners = watchDocument();
+      try {
+        const first = render(<Harness open />);
+        const second = render(<Harness open />);
+        expect(listeners.keydown()).toBe(1);
+        first.unmount();
+        expect(listeners.keydown()).toBe(1);
+        second.unmount();
+        expect(listeners.keydown()).toBe(0);
       } finally {
         listeners.restore();
       }
@@ -272,22 +306,20 @@ describe('useHoverOpen', () => {
       const listeners = watchDocument();
       try {
         render(<Stateful />);
-        const idle = listeners.keydown();
-
         pointer(trigger(), 'pointerover');
-        expect(listeners.keydown()).toBe(idle + 1);
+        expect(listeners.keydown()).toBe(1);
         pointer(trigger(), 'pointerout', document.body);
-        expect(listeners.keydown()).toBe(idle);
+        expect(listeners.keydown()).toBe(0);
 
         pointer(trigger(), 'pointerover');
         advance(100);
         expect(floating()).toBeInTheDocument();
-        expect(listeners.keydown()).toBe(idle + 1);
+        expect(listeners.keydown()).toBe(1);
 
         pointer(trigger(), 'pointerout', document.body);
         advance(50);
         expect(floating()).toBeNull();
-        expect(listeners.keydown()).toBe(idle);
+        expect(listeners.keydown()).toBe(0);
       } finally {
         listeners.restore();
       }
@@ -298,10 +330,9 @@ describe('useHoverOpen', () => {
       try {
         const onOpenChange = jest.fn();
         render(<Harness onOpenChange={onOpenChange} />);
-        const idle = listeners.keydown();
         pointer(trigger(), 'pointerover');
         fireEvent.keyDown(trigger(), { key: 'Escape' });
-        expect(listeners.keydown()).toBe(idle);
+        expect(listeners.keydown()).toBe(0);
         advance(1000);
         expect(onOpenChange).not.toHaveBeenCalled();
       } finally {
@@ -314,13 +345,12 @@ describe('useHoverOpen', () => {
       try {
         const onOpenChange = jest.fn();
         render(<Harness onOpenChange={onOpenChange} />);
-        const idle = listeners.keydown();
         pointer(trigger(), 'pointerover');
         advance(100);
         // A controlled caller that keeps it closed.
         expect(onOpenChange).toHaveBeenCalledWith(true);
         expect(floating()).toBeNull();
-        expect(listeners.keydown()).toBe(idle);
+        expect(listeners.keydown()).toBe(0);
       } finally {
         listeners.restore();
       }
@@ -330,12 +360,131 @@ describe('useHoverOpen', () => {
       const listeners = watchDocument();
       try {
         const { unmount } = render(<Harness open />);
-        expect(listeners.keydown()).toBe(2);
+        expect(listeners.keydown()).toBe(1);
         unmount();
         expect(listeners.keydown()).toBe(0);
       } finally {
         listeners.restore();
       }
+    });
+  });
+
+  describe('Escape with more than one open', () => {
+    it('closes the one that opened last, and stops the key only for it', () => {
+      const first = jest.fn();
+      const second = jest.fn();
+      const { rerender } = render(
+        <>
+          <Harness open onOpenChange={first} />
+        </>
+      );
+      // The second opens after the first, as a card inside a card does.
+      rerender(
+        <>
+          <Harness open onOpenChange={first} />
+          <Harness open onOpenChange={second} />
+        </>
+      );
+      expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(false);
+      expect(second).toHaveBeenCalledWith(false);
+      expect(first).not.toHaveBeenCalled();
+    });
+
+    it('cancels every opening that is waiting, and closes the open one', () => {
+      const open = jest.fn();
+      const waiting = jest.fn();
+      render(
+        <>
+          <Harness open onOpenChange={open} />
+          <Harness onOpenChange={waiting} />
+        </>
+      );
+      pointer(
+        screen.getAllByRole('button', { name: 'Trigger' })[1],
+        'pointerover'
+      );
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      advance(1000);
+      expect(open).toHaveBeenCalledWith(false);
+      expect(waiting).not.toHaveBeenCalled();
+    });
+
+    it('keeps the order across a close and a reopen', () => {
+      const first = jest.fn();
+      const second = jest.fn();
+      const ui = (firstOpen: boolean) => (
+        <>
+          <Harness open={firstOpen} onOpenChange={first} />
+          <Harness open onOpenChange={second} />
+        </>
+      );
+      const { rerender } = render(ui(true));
+      rerender(ui(false));
+      rerender(ui(true));
+      // The first one opened again after the second, so it is on top now.
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(first).toHaveBeenCalledWith(false);
+      expect(second).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      ['its delay runs out', false],
+      ['its caller opens it first', true],
+    ])(
+      'goes by when each opened, not when it started waiting to, when %s',
+      (_, callerOpens) => {
+        const hovered = jest.fn();
+        const other = jest.fn();
+        const ui = (otherOpen: boolean, hoveredOpen?: boolean) => (
+          <>
+            {hoveredOpen === undefined ? (
+              <Stateful onOpenChange={hovered} />
+            ) : (
+              <Harness open={hoveredOpen} onOpenChange={hovered} />
+            )}
+            <Harness open={otherOpen} onOpenChange={other} />
+          </>
+        );
+        const hoveredOpen = callerOpens ? false : undefined;
+        const { rerender } = render(ui(false, hoveredOpen));
+        pointer(
+          screen.getAllByRole('button', { name: 'Trigger' })[0],
+          'pointerover'
+        );
+        rerender(ui(true, hoveredOpen));
+        if (callerOpens) rerender(ui(true, true));
+        else advance(100);
+        expect(screen.getAllByTestId('floating')).toHaveLength(2);
+        // The hovered one started waiting first but opened last.
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(hovered).toHaveBeenLastCalledWith(false);
+        expect(other).not.toHaveBeenCalled();
+      }
+    );
+
+    it('leaves the closing of the ones below the top to their own delays', () => {
+      const below = jest.fn();
+      const top = jest.fn();
+      const ui = (topOpen: boolean) => (
+        <>
+          <Stateful onOpenChange={below} />
+          <Harness open={topOpen} onOpenChange={top} />
+        </>
+      );
+      const { rerender } = render(ui(false));
+      const belowTrigger = screen.getAllByRole('button', {
+        name: 'Trigger',
+      })[0];
+      pointer(belowTrigger, 'pointerover');
+      advance(100);
+      rerender(ui(true));
+      // The pointer leaves the one below, which starts its close delay.
+      pointer(belowTrigger, 'pointerout', document.body);
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(top).toHaveBeenCalledWith(false);
+      expect(below).toHaveBeenLastCalledWith(true);
+      advance(50);
+      expect(below).toHaveBeenLastCalledWith(false);
     });
   });
 });

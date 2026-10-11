@@ -38,8 +38,9 @@ const isDetailsSummary = (el: Element): boolean =>
  * can read `-1` for an editable region or an `<embed>` that Tab still visits,
  * and `0` for a `<video>` without controls that it doesn't. So a valid
  * `tabindex` attribute decides, and otherwise the element's kind does.
+ * Internal like `firstTabStop`: `src/index.ts` names what it takes from here.
  */
-function isTabbableKind(el: Element): boolean {
+export function isTabbableKind(el: Element): boolean {
   const tabindex = el.getAttribute('tabindex');
   if (tabindex !== null && /^\s*[+-]?\d/.test(tabindex)) {
     return (el as HTMLElement).tabIndex >= 0;

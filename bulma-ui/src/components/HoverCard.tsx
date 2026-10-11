@@ -13,7 +13,7 @@ import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { useHoverOpen } from '../helpers/useHoverOpen';
-import { firstTabStop } from '../helpers/useFocusTrap';
+import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 
@@ -36,15 +36,18 @@ export interface HoverCardProps
     Omit<React.HTMLAttributes<HTMLSpanElement>, 'color' | 'children'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /**
-   * The element the card previews, such as a link or a `Button`. Tab has to
-   * reach it, so keyboard users can open the card too. HoverCard gives it no
-   * role and no tab stop, since it can't know what the element is, and a
-   * development build warns when Tab can't reach it or anything inside it:
-   * use a link or a button, or give the element `tabIndex={0}`. A disabled
-   * button can't take focus either. HoverCard adds `aria-expanded`, and
-   * `aria-controls` naming the card while the card is on the page, so it has
-   * to be a single element that passes those to its DOM node. Its own click
-   * and keys stay its own; the card doesn't toggle on them.
+   * The element the card previews, such as a link or a `Button`. The element
+   * itself has to take focus, so keyboard users can open the card too: a
+   * link inside a `<span>` doesn't do, since focus comes back to the trigger
+   * and its ARIA is on it. HoverCard gives it no role and no tab stop, since
+   * it can't know what the element is, and a development build warns when
+   * it can't take focus: use a link or a button, or give the element
+   * `tabIndex={0}`. A disabled button can't take focus either. HoverCard adds
+   * `aria-expanded`, and `aria-controls` naming the card while the card is
+   * on the page, so it has to be a single element that passes those to its
+   * DOM node. Its own click and keys stay its own, and the card doesn't
+   * toggle on them, except Escape while the card is open, which closes the
+   * card before the trigger sees it.
    */
   trigger: React.ReactElement;
   /**
@@ -55,7 +58,10 @@ export interface HoverCardProps
   children?: React.ReactNode;
   /**
    * Controlled open state. When set, hover, focus and Escape only report
-   * through `onOpenChange`, so an action inside the card can close it.
+   * through `onOpenChange`, so an action inside the card can close it. While
+   * the card is open, Escape belongs to it: the key is reported and stops
+   * there even if you keep the card open, so a `Modal` around it doesn't
+   * close from the keyboard until the card does.
    */
   open?: boolean;
   /**
@@ -67,7 +73,8 @@ export interface HoverCardProps
   /**
    * Called with the state asked for: when `openDelay` or `closeDelay` runs
    * out, and right away on Escape. Fires in both controlled and uncontrolled
-   * use.
+   * use. The Escape it reports has stopped at the card, so nothing around it
+   * sees that key.
    */
   onOpenChange?: (open: boolean) => void;
   /**
@@ -94,13 +101,14 @@ export interface HoverCardProps
    * the viewport, so an ancestor's `overflow`, `transform` or stacking
    * context can't clip it. A trigger in running text needs it too, since the
    * card's block content can't sit inside a `<p>`. The card then shows from
-   * the commit after hydration, never in server markup, and it is out of the
-   * Tab order: keyboard users can open it, read it and close it with Escape,
-   * but can't Tab into it, so whatever it links to has to be reachable from
-   * the page as well. It is measured against the trigger when it opens and on
-   * resize and scroll, so it doesn't follow content that changes size while
-   * it is open. Theming variables set on an ancestor of the trigger don't
-   * reach it there.
+   * the commit after hydration, never in server markup, and it sits last in
+   * the Tab order, at the end of `<body>`. Tab reaches it only after the rest
+   * of the page, and focus leaving the trigger on the way closes it, so
+   * keyboard users can open it, read it and close it with Escape, and
+   * whatever it links to has to be reachable from the page as well. It is
+   * measured against the trigger when it opens and on resize and scroll, so
+   * it doesn't follow content that changes size while it is open. Theming
+   * variables set on an ancestor of the trigger don't reach it there.
    * @defaultValue false
    */
   appendToBody?: boolean;
@@ -210,20 +218,24 @@ export const HoverCard: React.FC<HoverCardProps> = ({
     floatingRef: cardRef,
   });
 
-  // A trigger Tab can't reach leaves keyboard users no way to open the card.
-  // The links in an open inline card would pass for the trigger's, so it is
-  // checked again each time the card closes. Only in development, since
-  // finding a tab stop reads styles.
+  // A trigger that can't take focus leaves keyboard users no way to open the
+  // card. It has to be the trigger element itself, not something inside it,
+  // since focus comes back to it and its ARIA is on it. Judged by what the
+  // element is rather than by its styles, which can hide it for now. After
+  // every commit, since the trigger can change, and only in development.
   useEffect(() => {
-    if (!isDev() || !triggerRef.current) return;
-    if (firstTabStop(rootRef.current as HTMLSpanElement)) return;
+    const triggerNode = triggerRef.current;
+    if (!isDev() || !triggerNode) return;
+    if (!triggerNode.matches(':disabled') && isTabbableKind(triggerNode)) {
+      return;
+    }
     warnOnce(
-      'HoverCard:unreachable-trigger',
-      "[bestax-bulma] <HoverCard> has a trigger that Tab can't reach, so " +
+      'HoverCard:unfocusable-trigger',
+      "[bestax-bulma] <HoverCard> has a trigger that can't take focus, so " +
         "keyboard users can't open the card. Use a link or a button as the " +
         'trigger, or give it tabIndex={0}.'
     );
-  }, [cardMounted, triggerRef]);
+  });
 
   const clonedTrigger = cloneElement(
     trigger as React.ReactElement<Record<string, unknown>>,

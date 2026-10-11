@@ -45,12 +45,31 @@ const hover = (el: Element, pointerType?: PointerType) =>
 /** The pointer leaves `el`, onto `to` (the page itself unless given). */
 const unhover = (el: Element, to: Element = document.body) =>
   pointer(el, 'pointerout', { relatedTarget: to });
-/** A press, which makes the focus that follows it press focus. */
-const press = (el: Element, pointerType: PointerType = 'mouse') =>
+/**
+ * Focus as a key brings it. HoverCard asks the browser, through
+ * `:focus-visible`, and jsdom matches that on any focus, which is what a
+ * browser does after a key, so plain `focus()` is keyboard focus here.
+ */
+const keyboardFocus = (el: HTMLElement) => el.focus();
+/**
+ * A press and the focus it brings. A browser doesn't show that focus as
+ * `:focus-visible` and jsdom does, so the element says it isn't until the
+ * focus handlers have run.
+ */
+const pressFocus = (el: HTMLElement, pointerType: PointerType = 'mouse') => {
   pointer(el, 'pointerdown', { pointerType });
-/** A key, which makes the focus that follows it keyboard focus. */
-const key = (el: Element = document.body, init: Partial<KeyboardEvent> = {}) =>
-  fireEvent.keyDown(el, { key: 'Tab', ...init });
+  const matches = el.matches.bind(el);
+  const spy = jest
+    .spyOn(el, 'matches')
+    .mockImplementation(selector =>
+      selector === ':focus-visible' ? false : matches(selector)
+    );
+  try {
+    el.focus();
+  } finally {
+    spy.mockRestore();
+  }
+};
 
 const advance = (ms: number) =>
   act(() => {
@@ -220,9 +239,8 @@ describe('HoverCard', () => {
       const onOpenChange = jest.fn();
       render(<Profile onOpenChange={onOpenChange} />);
       const trigger = triggerLink();
-      press(trigger, 'touch');
       hover(trigger, 'touch');
-      trigger.focus();
+      pressFocus(trigger, 'touch');
       fireEvent.click(trigger);
       advance(5000);
       expect(card()).toBeNull();
@@ -272,8 +290,7 @@ describe('HoverCard', () => {
   describe('keyboard focus', () => {
     it('opens on keyboard focus after openDelay', () => {
       render(<Profile />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(599);
       expect(card()).toBeNull();
       advance(1);
@@ -283,37 +300,21 @@ describe('HoverCard', () => {
     it('is not opened by focus that a press brings', () => {
       render(<Profile />);
       const trigger = triggerLink();
-      press(trigger);
-      trigger.focus();
+      pressFocus(trigger);
       advance(5000);
       expect(card()).toBeNull();
     });
 
-    it.each(['altKey', 'ctrlKey', 'metaKey'] as const)(
-      'does not count a key pressed with %s as keyboard use',
-      modifier => {
-        render(<Profile />);
-        const trigger = triggerLink();
-        press(trigger);
-        key(document.body, { key: 'Tab', [modifier]: true });
-        trigger.focus();
-        advance(5000);
-        expect(card()).toBeNull();
-      }
-    );
-
     it('stays open while focus is in the trigger or the card, whatever the pointer does', () => {
       render(<Profile />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
       hover(triggerLink());
       unhover(triggerLink());
       advance(5000);
       expect(card()).toBeInTheDocument();
 
-      key();
-      profileLink().focus();
+      keyboardFocus(profileLink());
       advance(5000);
       expect(card()).toBeInTheDocument();
     });
@@ -325,14 +326,11 @@ describe('HoverCard', () => {
           <button>Next</button>
         </>
       );
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
-      key();
-      profileLink().focus();
-      key();
+      keyboardFocus(profileLink());
       const next = screen.getByRole('button', { name: 'Next' });
-      next.focus();
+      keyboardFocus(next);
       advance(299);
       expect(card()).toBeInTheDocument();
       advance(1);
@@ -347,8 +345,7 @@ describe('HoverCard', () => {
           <button>Next</button>
         </>
       );
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
       screen.getByRole('button', { name: 'Next' }).focus();
       advance(300);
@@ -360,8 +357,7 @@ describe('HoverCard', () => {
       const trigger = screen.getByRole('button', { name: 'Ada Lovelace' });
       hover(trigger);
       advance(600);
-      press(trigger);
-      trigger.focus();
+      pressFocus(trigger);
       unhover(trigger);
       advance(300);
       expect(card()).toBeNull();
@@ -370,13 +366,10 @@ describe('HoverCard', () => {
 
     it('stops holding the card when a press moves focus from it to the trigger', () => {
       render(<Profile />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
-      key();
-      profileLink().focus();
-      press(triggerLink());
-      triggerLink().focus();
+      keyboardFocus(profileLink());
+      pressFocus(triggerLink());
       advance(299);
       expect(card()).toBeInTheDocument();
       advance(1);
@@ -386,11 +379,9 @@ describe('HoverCard', () => {
 
     it('keeps a card opened by keyboard open when a press moves focus into it', () => {
       render(<Profile />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
-      press(profileLink());
-      profileLink().focus();
+      pressFocus(profileLink());
       advance(5000);
       expect(card()).toBeInTheDocument();
     });
@@ -400,8 +391,7 @@ describe('HoverCard', () => {
     it('closes at once with focus on the trigger, and leaves focus there', () => {
       const onOpenChange = jest.fn();
       render(<Profile onOpenChange={onOpenChange} />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
       const event = fireEvent.keyDown(triggerLink(), { key: 'Escape' });
       expect(event).toBe(false);
@@ -419,11 +409,9 @@ describe('HoverCard', () => {
           <button>Next</button>
         </>
       );
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
-      key();
-      profileLink().focus();
+      keyboardFocus(profileLink());
       fireEvent.keyDown(profileLink(), { key: 'Escape' });
       expect(card()).toBeNull();
       expect(triggerLink()).toHaveFocus();
@@ -431,10 +419,8 @@ describe('HoverCard', () => {
       expect(card()).toBeNull();
 
       // Only focus that leaves and comes back opens it again.
-      key();
-      screen.getByRole('button', { name: 'Next' }).focus();
-      key();
-      triggerLink().focus();
+      keyboardFocus(screen.getByRole('button', { name: 'Next' }));
+      keyboardFocus(triggerLink());
       advance(600);
       expect(card()).toBeInTheDocument();
     });
@@ -483,8 +469,7 @@ describe('HoverCard', () => {
       hover(triggerLink());
       advance(600);
       unhover(triggerLink(), card()!);
-      press(profileLink());
-      profileLink().focus();
+      pressFocus(profileLink());
       // The pointer has gone and focus alone holds the card when Escape comes.
       unhover(card()!);
       advance(1000);
@@ -501,8 +486,7 @@ describe('HoverCard', () => {
 
     it('opens on a fresh hover after Escape, though keyboard focus is still on the trigger', () => {
       render(<Profile />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
       fireEvent.keyDown(triggerLink(), { key: 'Escape' });
       expect(card()).toBeNull();
@@ -557,6 +541,62 @@ describe('HoverCard', () => {
 
       fireEvent.keyDown(document.activeElement!, { key: 'Escape' });
       expect(onClose).toHaveBeenCalled();
+    });
+
+    describe('with one card inside another', () => {
+      const Nested: React.FC<Partial<HoverCardProps>> = props => (
+        <HoverCard trigger={<a href="#team">Engine team</a>} {...props}>
+          <HoverCard
+            trigger={<a href="#ada">Ada Lovelace</a>}
+            contentClassName="inner"
+            {...props}
+          >
+            <a href="#profile">View profile</a>
+          </HoverCard>
+        </HoverCard>
+      );
+      // The inner trigger sits in the outer card, so it is there while that is.
+      const outer = () => screen.queryByRole('link', { name: 'Ada Lovelace' });
+      const inner = () => document.querySelector('.inner');
+
+      /** Hovers the outer trigger, then the inner one in the outer card. */
+      const openBoth = () => {
+        hover(screen.getByRole('link', { name: 'Engine team' }));
+        advance(600);
+        hover(triggerLink());
+        advance(600);
+        expect(inner()).toBeInTheDocument();
+      };
+
+      it.each([
+        ['in place', {}],
+        ['portaled', { appendToBody: true }],
+      ])('closes the inner card first, then the outer one, %s', (_, props) => {
+        render(<Nested {...props} />);
+        openBoth();
+        const first = fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(first).toBe(false);
+        expect(inner()).toBeNull();
+        expect(outer()).toBeInTheDocument();
+
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(outer()).toBeNull();
+        // Nothing is open, so the next Escape goes on its way.
+        expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true);
+      });
+
+      it('hands focus in the inner card back to its trigger, and keeps the outer open', () => {
+        render(<Nested />);
+        keyboardFocus(screen.getByRole('link', { name: 'Engine team' }));
+        advance(600);
+        keyboardFocus(triggerLink());
+        advance(600);
+        keyboardFocus(profileLink());
+        fireEvent.keyDown(profileLink(), { key: 'Escape' });
+        expect(inner()).toBeNull();
+        expect(outer()).toBeInTheDocument();
+        expect(triggerLink()).toHaveFocus();
+      });
     });
   });
 
@@ -632,13 +672,10 @@ describe('HoverCard', () => {
         );
       };
       render(<Controlled />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
       const follow = screen.getByRole('button', { name: 'Follow' });
-      key(document.activeElement!);
-      follow.focus();
-      key(follow, { key: 'Enter' });
+      keyboardFocus(follow);
       fireEvent.click(follow);
       expect(card()).toBeNull();
       expect(triggerLink()).toHaveFocus();
@@ -684,8 +721,7 @@ describe('HoverCard', () => {
       hover(triggerLink());
       advance(600);
       unhover(triggerLink(), card()!);
-      press(profileLink());
-      profileLink().focus();
+      pressFocus(profileLink());
       unhover(card()!);
       advance(60_000);
       expect(card()).toBeInTheDocument();
@@ -694,8 +730,7 @@ describe('HoverCard', () => {
       // Focus leaving the card is what closes it, and it leaves focus where
       // it went.
       const elsewhere = screen.getByRole('button', { name: 'Elsewhere' });
-      press(elsewhere);
-      elsewhere.focus();
+      pressFocus(elsewhere);
       advance(299);
       expect(card()).toBeInTheDocument();
       advance(1);
@@ -708,11 +743,10 @@ describe('HoverCard', () => {
       hover(triggerLink());
       advance(600);
       unhover(triggerLink(), card()!);
-      press(profileLink());
-      profileLink().focus();
+      pressFocus(profileLink());
       unhover(card()!);
       advance(1000);
-      press(document.body);
+      pointer(document.body, 'pointerdown');
       profileLink().blur();
       advance(300);
       expect(card()).toBeNull();
@@ -725,8 +759,7 @@ describe('HoverCard', () => {
       advance(600);
       unhover(triggerLink());
       hover(card()!);
-      press(profileLink());
-      profileLink().focus();
+      pressFocus(profileLink());
       unhover(card()!);
       advance(60_000);
       expect(card()).toBeInTheDocument();
@@ -855,12 +888,10 @@ describe('HoverCard', () => {
 
     it('counts focus in a portaled card as inside, though the card is elsewhere in the page', () => {
       render(<Profile appendToBody />);
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       advance(600);
       hover(card()!);
-      press(profileLink());
-      profileLink().focus();
+      pressFocus(profileLink());
       unhover(card()!);
       advance(5000);
       expect(card()).toBeInTheDocument();
@@ -883,10 +914,8 @@ describe('HoverCard', () => {
       // The card comes last in the document, so Tab from the trigger reaches
       // the page's next stop, and the card closes behind it.
       unhover(card()!);
-      key();
-      triggerLink().focus();
-      key();
-      screen.getByRole('button', { name: 'Next' }).focus();
+      keyboardFocus(triggerLink());
+      keyboardFocus(screen.getByRole('button', { name: 'Next' }));
       advance(300);
       expect(card()).toBeNull();
     });
@@ -924,8 +953,7 @@ describe('HoverCard', () => {
       advance(600);
       expect(card()).toBeInTheDocument();
       unhover(triggerLink());
-      key();
-      triggerLink().focus();
+      keyboardFocus(triggerLink());
       triggerLink().blur();
       expect(calls).toEqual(['enter', 'leave', 'focus', 'blur']);
     });
@@ -979,8 +1007,7 @@ describe('HoverCard', () => {
           <a href="#profile">View profile</a>
         </HoverCard>
       );
-      key();
-      profileLink().focus();
+      keyboardFocus(profileLink());
       fireEvent.keyDown(profileLink(), { key: 'Escape' });
       expect(card()).toBeNull();
       expect(document.body).toHaveFocus();
@@ -989,7 +1016,7 @@ describe('HoverCard', () => {
     });
   });
 
-  describe('a trigger Tab cannot reach', () => {
+  describe('a trigger that cannot take focus', () => {
     afterEach(() => {
       resetDevWarnings();
     });
@@ -1004,7 +1031,7 @@ describe('HoverCard', () => {
       );
       expect(warn).toHaveBeenCalledTimes(1);
       expect(warn).toHaveBeenCalledWith(
-        expect.stringContaining("trigger that Tab can't reach")
+        expect.stringContaining("trigger that can't take focus")
       );
       expect(warn).toHaveBeenCalledWith(
         expect.stringContaining('Use a link or a button')
@@ -1022,14 +1049,6 @@ describe('HoverCard', () => {
         'an element given tabIndex={0}',
         () => <span tabIndex={0}>Ada Lovelace</span>,
       ],
-      [
-        'an element with a link inside',
-        () => (
-          <span>
-            <a href="#ada">Ada Lovelace</a>
-          </span>
-        ),
-      ],
     ])('does not warn for %s', (_, trigger) => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Profile trigger={trigger()} />);
@@ -1039,19 +1058,56 @@ describe('HoverCard', () => {
     it.each([
       ['an element given tabIndex={-1}', () => <span tabIndex={-1}>Ada</span>],
       ['a disabled button', () => <button disabled>Ada</button>],
+      [
+        'a disabled button given tabIndex={0}',
+        () => (
+          <button disabled tabIndex={0}>
+            Ada
+          </button>
+        ),
+      ],
       ['a link with no href', () => <a>Ada</a>],
+      // Focus comes back to the trigger and its ARIA is on it, so a link
+      // inside doesn't stand in for it.
+      [
+        'an element with a link inside',
+        () => (
+          <span>
+            <a href="#ada">Ada Lovelace</a>
+          </span>
+        ),
+      ],
     ])('warns for %s', (_, trigger) => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Profile trigger={trigger()} />);
       expect(warn).toHaveBeenCalledTimes(1);
     });
 
-    it('does not count the links in an open inline card, and warns once it closes', () => {
+    it('judges the trigger alone, so the links in an open card do not stand in for it', () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       render(<Profile defaultOpen trigger={<span>Ada Lovelace</span>} />);
+      expect(card()).toBeInTheDocument();
+      expect(warn).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not warn for a link that is hidden for now', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <div style={{ visibility: 'hidden' }}>
+          <Profile />
+        </div>
+      );
+      expect(
+        getComputedStyle(screen.getByText('Ada Lovelace')).visibility
+      ).toBe('hidden');
       expect(warn).not.toHaveBeenCalled();
-      fireEvent.keyDown(document.body, { key: 'Escape' });
-      expect(card()).toBeNull();
+    });
+
+    it('checks a trigger that changes', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { rerender } = render(<Profile />);
+      expect(warn).not.toHaveBeenCalled();
+      rerender(<Profile trigger={<span>Ada Lovelace</span>} />);
       expect(warn).toHaveBeenCalledTimes(1);
     });
 
@@ -1090,8 +1146,7 @@ describe('HoverCard', () => {
       const frame = within(frameDoc.body);
       const trigger = frame.getByRole('link', { name: 'Ada Lovelace' });
 
-      press(trigger);
-      trigger.focus();
+      pressFocus(trigger);
       advance(5000);
       expect(frameDoc.querySelector('.hover-card-content')).toBeNull();
 

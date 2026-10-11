@@ -23,9 +23,10 @@ export interface UseHoverOpenOptions {
    */
   closeDelay: number;
   /**
-   * The element that opens it. The key and press listeners go on its
-   * document, an iframe's when it renders into one, and focus left in the
-   * floating element comes back here when the floating element closes.
+   * The element that opens it, which has to take focus itself. The Escape
+   * listener goes on its document, an iframe's when it renders into one, and
+   * focus left in the floating element comes back here when the floating
+   * element closes.
    */
   triggerRef: RefObject<HTMLElement | null>;
   /** The floating element, while it is open. */
@@ -45,67 +46,87 @@ export interface HoverOpenHandlers {
 }
 
 /**
- * Whether the last input on a document was a key, which makes the focus that
- * follows it keyboard focus.
+ * Whether focus that just arrived on `el` is keyboard focus, as the browser
+ * decides it for `:focus-visible`: focus from a key or from the browser's
+ * own controls is, focus a press brings isn't, and focus a script moves
+ * follows whichever came last. A browser that can't match the selector
+ * throws, and then every focus counts, so keyboard users can still open it.
  */
-interface InputModality {
-  keyboard: boolean;
-  /** How many mounted hooks read it. Its listeners go with the last one. */
-  users: number;
-  stop: () => void;
+function isKeyboardFocus(el: Element): boolean {
+  try {
+    return el.matches(':focus-visible');
+  } catch {
+    return true;
+  }
+}
+
+/** A hook that wants Escape: its floating element is open, or an open is waiting on its delay. */
+interface EscapeEntry {
+  /** When its floating element opened, counted across the page, or 0 while it is closed. */
+  openedAt: number;
+  /** Cancels an open that is waiting on its delay. */
+  cancel: () => void;
+  /** Asks to close. */
+  close: () => void;
 }
 
 /**
- * One tracker per document, shared by every hook on it, so a page holding
- * many hover cards has one pair of listeners for this rather than a pair per
- * card. Nothing listens until a hook mounts.
+ * Per document, the hooks that want Escape and the one listener they share
+ * while there are any, so a card inside another card doesn't add a second
+ * listener that closes both on one keypress.
  */
-const modalities = new Map<Document, InputModality>();
+const escapeListeners = new Map<
+  Document,
+  { entries: Set<EscapeEntry>; stop: () => void }
+>();
+
+/** Counts openings across the page, so the most recent one is known. */
+let openings = 0;
 
 /**
- * Reads `doc`'s input modality for one hook, starting the tracker when it is
- * the first. A key counts unless it is pressed with Alt, Control or Meta,
- * which makes it a shortcut, and a press counts as the pointer. Nothing
- * pressed yet counts as a key.
+ * Adds `entry` to the hooks that want Escape on `doc`, starting the shared
+ * listener when it is the first.
  *
- * @returns The tracker, and what to call when the hook unmounts.
+ * Escape cancels every open that is waiting, so nothing appears right after
+ * it, and closes the floating element that opened last, the innermost of a
+ * nested pair. It stops the keypress only then, in the capture phase, before
+ * anything around the floating element (a Popover, a Modal) sees it. With
+ * nothing open it goes on its way.
+ *
+ * @returns What to call when the hook stops wanting Escape.
  */
-function watchModality(doc: Document): {
-  modality: InputModality;
-  release: () => void;
-} {
-  let modality = modalities.get(doc);
-  if (!modality) {
+function wantEscape(doc: Document, entry: EscapeEntry): () => void {
+  let listener = escapeListeners.get(doc);
+  if (!listener) {
+    const entries = new Set<EscapeEntry>();
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (!event.altKey && !event.ctrlKey && !event.metaKey) {
-        created.keyboard = true;
+      if (event.key !== 'Escape') return;
+      let top: EscapeEntry | undefined;
+      // A copy, since cancelling an open takes its hook out of the set.
+      for (const each of [...entries]) {
+        if (each.openedAt > (top?.openedAt ?? 0)) top = each;
+        each.cancel();
       }
-    };
-    const handlePointerDown = () => {
-      created.keyboard = false;
-    };
-    const created: InputModality = {
-      keyboard: true,
-      users: 0,
-      stop: () => {
-        doc.removeEventListener('keydown', handleKeyDown, true);
-        doc.removeEventListener('pointerdown', handlePointerDown, true);
-        modalities.delete(doc);
-      },
+      if (!top) return;
+      event.preventDefault();
+      event.stopPropagation();
+      top.close();
     };
     doc.addEventListener('keydown', handleKeyDown, true);
-    doc.addEventListener('pointerdown', handlePointerDown, true);
-    modalities.set(doc, created);
-    modality = created;
+    listener = {
+      entries,
+      stop: () => {
+        doc.removeEventListener('keydown', handleKeyDown, true);
+        escapeListeners.delete(doc);
+      },
+    };
+    escapeListeners.set(doc, listener);
   }
-  const watched = modality;
-  watched.users += 1;
-  return {
-    modality: watched,
-    release: () => {
-      watched.users -= 1;
-      if (watched.users === 0) watched.stop();
-    },
+  const shared = listener;
+  shared.entries.add(entry);
+  return () => {
+    shared.entries.delete(entry);
+    if (shared.entries.size === 0) shared.stop();
   };
 }
 
@@ -123,10 +144,8 @@ interface HoverOpenState {
   /** Focus is on its way back to the trigger, which isn't focus arriving. */
   restoring: boolean;
   timer?: ReturnType<typeof setTimeout>;
-  /** The input modality of the trigger's document, while mounted. */
-  modality?: InputModality;
-  /** Takes the Escape listener off its document, while it is on. */
-  stopEscape?: () => void;
+  /** Takes this hook out of the ones that want Escape, while it is in. */
+  releaseEscape?: () => void;
 }
 
 /**
@@ -136,27 +155,25 @@ interface HoverOpenState {
  *
  * - The pointer entering, or keyboard focus arriving on the trigger, asks to
  *   open after `openDelay`. A touch pointer doesn't count. Neither does focus
- *   that a press brings to the trigger: focus counts when the last input was
- *   a key, the way `:focus-visible` decides.
+ *   that a press brings to the trigger: it counts when the browser shows it
+ *   as `:focus-visible`.
  * - Focus in the floating element holds it open however it got there, so a
  *   control clicked inside it stays put when the pointer moves away.
  * - Once the pointer and focus have both left, it asks to close after
  *   `closeDelay`, and either coming back before then keeps it open. Nothing
  *   else closes it on a timer.
- * - Escape while it is open asks to close at once, wherever focus is. The
- *   key listener sits in the document's capture phase, and only while it is
- *   open or about to open. An Escape that closes it stops there, so a
- *   `Popover` or `Modal` around it keeps its own. Escape before it opens
- *   cancels the opening and goes on its way.
+ * - Escape while it is open asks to close at once, wherever focus is, and
+ *   stops there, so a `Popover` or `Modal` around it keeps its own. Inside
+ *   another one, the inner one closes first. Escape before it opens cancels
+ *   the opening and goes on its way. One key listener per document serves
+ *   every hook on it, there only while one of them is open or about to open.
  * - Once it closes, for any reason, whatever was holding it open has to
  *   leave and come back to open it again.
  * - When the floating element closes with focus inside it, focus goes back
  *   to the trigger, unless the same update put it somewhere else. Handing it
  *   back doesn't count as focus arriving.
  *
- * Telling keyboard focus from a press needs the last input on the page, so
- * every hook on a document shares one pair of listeners for it while any of
- * them is mounted. Nothing it scheduled runs after the component unmounts.
+ * Nothing it scheduled runs after the component unmounts.
  *
  * @function useHoverOpen
  * @param options - The open state, how to ask for another, the delays, and the two elements.
@@ -176,37 +193,41 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
     restoring: false,
   });
 
-  // The Escape listener is on the trigger's document while the floating
-  // element is open or an open is waiting, and off otherwise.
+  // In the hooks that want Escape while the floating element is open or an
+  // open is waiting, and out otherwise. Stamped with the order it opened in.
   const listenForEscape = useCallback(function listen() {
     const s = stateRef.current;
-    const wanted = latestRef.current.open || s.opening;
-    if (wanted === Boolean(s.stopEscape)) return;
-    if (s.stopEscape) {
-      s.stopEscape();
-      s.stopEscape = undefined;
+    const { open, triggerRef } = latestRef.current;
+    if (!open) entryRef.current.openedAt = 0;
+    else if (!entryRef.current.openedAt) {
+      openings += 1;
+      entryRef.current.openedAt = openings;
+    }
+    const wanted = open || s.opening;
+    if (wanted === Boolean(s.releaseEscape)) return;
+    if (s.releaseEscape) {
+      s.releaseEscape();
+      s.releaseEscape = undefined;
       return;
     }
-    const doc = latestRef.current.triggerRef.current?.ownerDocument ?? document;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
+    const doc = triggerRef.current?.ownerDocument ?? document;
+    s.releaseEscape = wantEscape(doc, entryRef.current);
+  }, []);
+
+  const entryRef = useRef<EscapeEntry>({
+    openedAt: 0,
+    cancel: () => {
+      const s = stateRef.current;
+      if (!s.opening) return;
       clearTimeout(s.timer);
       s.opening = false;
-      const { open, onOpenChange } = latestRef.current;
-      if (open) {
-        // The capture phase runs before anything around the floating element
-        // (a Popover, a Modal) sees the key, and stopping it there keeps them
-        // open.
-        event.preventDefault();
-        event.stopPropagation();
-        onOpenChange(false);
-      }
-      listen();
-    };
-    doc.addEventListener('keydown', handleKeyDown, true);
-    s.stopEscape = () =>
-      doc.removeEventListener('keydown', handleKeyDown, true);
-  }, []);
+      listenForEscape();
+    },
+    close: () => {
+      clearTimeout(stateRef.current.timer);
+      latestRef.current.onOpenChange(false);
+    },
+  });
 
   // Asks for what the pointer and focus call for, after its delay, when that
   // changed since the last time and isn't the state already.
@@ -235,15 +256,11 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
 
   useClientLayoutEffect(() => {
     const s = stateRef.current;
-    const doc = latestRef.current.triggerRef.current?.ownerDocument ?? document;
-    const { modality, release } = watchModality(doc);
-    s.modality = modality;
     return () => {
-      release();
       clearTimeout(s.timer);
       s.opening = false;
-      s.stopEscape?.();
-      s.stopEscape = undefined;
+      s.releaseEscape?.();
+      s.releaseEscape = undefined;
     };
   }, []);
 
@@ -300,7 +317,7 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
         if (s.restoring) return;
         // Any focus in the floating element holds it. On the trigger, only
         // keyboard focus does, so a click there opens nothing.
-        s.focusIn = s.focusInFloating || (s.modality as InputModality).keyboard;
+        s.focusIn = s.focusInFloating || isKeyboardFocus(event.target);
         settle();
       },
       onBlur: event => {
