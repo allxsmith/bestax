@@ -222,13 +222,14 @@ function example() {
 [WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)
 criterion, condition by condition:
 
-- **Dismissible:** <kbd>Escape</kbd> closes the card wherever focus is, without moving the pointer
-  or focus. The keypress belongs to whatever has focus. When that's the card, its trigger or
-  nothing, the card takes it, so a `Popover` or `Modal` around it stays open. When it's something
-  else, such as a field elsewhere on the page or a `Modal` opened from the card, the card still
-  closes and the key goes on to it. With one card inside another, the inner one closes first.
-  Focus that was in the card goes back to the trigger, and the card stays closed until the pointer
-  or focus leaves and comes back.
+- **Dismissible:** <kbd>Escape</kbd> closes the card wherever focus is, without you moving the
+  pointer or focus. In controlled use it asks to close through `onOpenChange`, so the card closes
+  when you set `open` to `false`. The keypress belongs to whatever has focus. When that's the card,
+  its trigger or nothing, the card takes it, so a `Popover` or `Modal` around it stays open. When
+  it's something else, such as a field elsewhere on the page or a `Modal` opened from the card, the
+  card still closes and the key goes on to it. With one card inside another, the inner one closes
+  first. Focus that was in the card goes back to the trigger, and the card stays closed until the
+  pointer or focus leaves and comes back, or, with `openOnTap`, until the next tap on the trigger.
 - **Hoverable:** the pointer can move from the trigger onto the card. `closeDelay` covers the gap
   between them, and the card takes pointer events.
 - **Persistent:** no timer closes a card that's hovered or focused. Focus inside the card holds it
