@@ -86,7 +86,8 @@ const meta: Meta<typeof Tooltip> = {
     },
     closeDelay: {
       control: 'number',
-      description: 'Delay before hiding tooltip after mouse leave (ms)',
+      description:
+        'Delay before hiding tooltip once the pointer and focus have left (ms)',
     },
   },
 };

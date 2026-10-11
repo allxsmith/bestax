@@ -12,7 +12,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
-import { useHoverOpen } from '../helpers/useHoverOpen';
+import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
@@ -129,17 +129,6 @@ export interface HoverCardProps
   openOnTap?: boolean;
   /** Additional classes for the card (`.hover-card-content`). */
   contentClassName?: string;
-}
-
-/** Runs the caller's handler on the wrapper, then the hover card's. */
-function chain<E>(
-  own: ((event: E) => void) | undefined,
-  ours: (event: E) => void
-): (event: E) => void {
-  return event => {
-    own?.(event);
-    ours(event);
-  };
 }
 
 /**

@@ -230,7 +230,7 @@ criterion, condition by condition:
   Focus that was in the card goes back to the trigger, and the card stays closed until the pointer
   or focus leaves and comes back.
 - **Hoverable:** the pointer can move from the trigger onto the card. `closeDelay` covers the gap
-  between them, and the card takes pointer events, unlike a tooltip.
+  between them, and the card takes pointer events.
 - **Persistent:** no timer closes a card that's hovered or focused. Focus inside the card holds it
   however it got there. Whether a click focuses what it lands on is up to the browser, though:
   Safari and Firefox on macOS don't focus a button on click, so there a clicked button doesn't keep

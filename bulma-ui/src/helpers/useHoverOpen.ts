@@ -62,6 +62,20 @@ export interface HoverOpenHandlers {
 }
 
 /**
+ * Runs the caller's own handler on the element that holds the trigger, then
+ * the hook's, so neither replaces the other.
+ */
+export function chain<E>(
+  own: ((event: E) => void) | undefined,
+  ours: (event: E) => void
+): (event: E) => void {
+  return event => {
+    own?.(event);
+    ours(event);
+  };
+}
+
+/**
  * Whether focus that just arrived on `el` is keyboard focus, as the browser
  * decides it for `:focus-visible`: focus from a key or from the browser's
  * own controls is, focus a press brings isn't, and focus a script moves

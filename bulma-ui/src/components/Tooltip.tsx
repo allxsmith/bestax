@@ -1,12 +1,7 @@
-import React, {
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-  useCallback,
-} from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 
 /** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
@@ -42,7 +37,11 @@ export interface TooltipProps
   color?: TooltipColor;
   /** Size of the tooltip. */
   size?: TooltipSize;
-  /** Force tooltip to be always visible. */
+  /**
+   * Force tooltip to be always visible. Hover, focus and Escape leave it
+   * shown, so Escape goes on to whatever has focus, or to a `Modal` or
+   * `Popover` around it.
+   */
   active?: boolean;
   /** Allow tooltip to wrap to multiple lines. */
   multiline?: boolean;
@@ -52,9 +51,16 @@ export interface TooltipProps
   square?: boolean;
   /** Show dashed underline on trigger. */
   dashed?: boolean;
-  /** Delay before showing tooltip (ms). */
+  /**
+   * How long the pointer or keyboard focus waits on the trigger before the
+   * tooltip shows, in milliseconds.
+   */
   delay?: number;
-  /** Delay in ms before hiding the tooltip. */
+  /**
+   * How long the tooltip stays after the pointer and focus have left the
+   * trigger and the tooltip, in milliseconds. The pointer can move from the
+   * trigger onto a shown tooltip without one.
+   */
   closeDelay?: number;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
@@ -62,6 +68,14 @@ export interface TooltipProps
 
 /**
  * The `Tooltip` component displays helpful information when users hover over or focus on an element.
+ *
+ * Hovering the trigger or giving it keyboard focus shows it. Touch doesn't,
+ * and neither does focus a click or a tap brings, so tapping the trigger just
+ * does what the trigger does. The pointer can move onto a shown tooltip.
+ * Escape hides it wherever focus is, without moving the pointer or focus,
+ * and it stays hidden until one of them leaves the trigger and comes back.
+ * The keypress stops there when focus is on the trigger or nowhere, and
+ * otherwise goes on to whatever has focus.
  *
  * @function
  * @param {TooltipProps} props - Props for the Tooltip component.
@@ -104,58 +118,29 @@ export const Tooltip: React.FC<TooltipProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const { onPointerEnter, onPointerLeave, onFocus, onBlur, ...attrs } = rest;
   const [isVisible, setIsVisible] = useState(false);
-  const [isHovering, setIsHovering] = useState(false);
   const [resolvedPosition, setResolvedPosition] = useState<
     Exclude<TooltipPosition, 'auto'>
   >(position === 'auto' ? 'top' : position);
   const [contentStyle, setContentStyle] = useState<React.CSSProperties>({});
-  const openTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const closeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
   const contentRef = useRef<HTMLSpanElement | null>(null);
 
-  // Clear timeouts on unmount
-  useEffect(() => {
-    return () => {
-      if (openTimeoutRef.current) {
-        clearTimeout(openTimeoutRef.current);
-      }
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-      }
-    };
-  }, []);
-
-  // Handle delayed visibility
-  useEffect(() => {
-    if (isHovering) {
-      if (closeTimeoutRef.current) {
-        clearTimeout(closeTimeoutRef.current);
-        closeTimeoutRef.current = null;
-      }
-      if (delay > 0) {
-        openTimeoutRef.current = setTimeout(() => {
-          setIsVisible(true);
-        }, delay);
-      } else {
-        // eslint-disable-next-line react-hooks/set-state-in-effect -- show immediately on hover when no delay
-        setIsVisible(true);
-      }
-    } else {
-      if (openTimeoutRef.current) {
-        clearTimeout(openTimeoutRef.current);
-        openTimeoutRef.current = null;
-      }
-      if (closeDelay > 0) {
-        closeTimeoutRef.current = setTimeout(() => {
-          setIsVisible(false);
-        }, closeDelay);
-      } else {
-        setIsVisible(false);
-      }
-    }
-  }, [isHovering, delay, closeDelay]);
+  const hover = useHoverOpen({
+    open: isVisible,
+    // `active` shows it whatever the pointer and focus do, so the hook's asks
+    // to open are turned down, and with nothing open Escape goes on its way.
+    // An ask to close can come while it's already hidden, which is no change.
+    onOpenChange: open => setIsVisible(open && !alwaysActive),
+    openDelay: delay,
+    closeDelay,
+    // The wrapper stands in for the trigger. It holds only the children and
+    // the tooltip, and nothing in the tooltip takes focus, so focus anywhere
+    // in it is focus on the trigger, and Escape there is the tooltip's.
+    triggerRef: wrapperRef,
+    floatingRef: contentRef,
+  });
 
   // Auto-placement and overflow correction
   useLayoutEffect(() => {
@@ -250,22 +235,6 @@ export const Tooltip: React.FC<TooltipProps> = ({
     });
   }, [position, resolvedPosition, isVisible, alwaysActive, label, content]);
 
-  const handleMouseEnter = useCallback(() => {
-    setIsHovering(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovering(false);
-  }, []);
-
-  const handleFocus = useCallback(() => {
-    setIsHovering(true);
-  }, []);
-
-  const handleBlur = useCallback(() => {
-    setIsHovering(false);
-  }, []);
-
   // Generate Bulma classes
   const tooltipClasses = usePrefixedClassNames('tooltip', {
     'is-active': alwaysActive || isVisible,
@@ -289,15 +258,17 @@ export const Tooltip: React.FC<TooltipProps> = ({
   );
 
   return (
+    // The tooltip is inside the wrapper, so the pointer on it is still on the
+    // wrapper, and the stylesheet bridges the gap between them.
     <span
       ref={wrapperRef}
       className={combinedClasses}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
+      onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+      onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
+      onFocus={chain(onFocus, hover.onFocus)}
+      onBlur={chain(onBlur, hover.onBlur)}
       {...(label ? { 'data-tooltip': label } : {})}
-      {...rest}
+      {...attrs}
     >
       {children}
       <span

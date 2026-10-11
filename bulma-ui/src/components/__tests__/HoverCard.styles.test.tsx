@@ -65,7 +65,7 @@ describe('HoverCard styles under a class prefix', () => {
     expect(style.marginTop).toBe('var(--bulma-hover-card-offset)');
   });
 
-  it('leaves the card to the pointer, unlike a tooltip, and pads it', () => {
+  it('leaves the card to the pointer, and pads it', () => {
     renderPrefixed();
     const style = getComputedStyle(card());
     expect(style.pointerEvents).not.toBe('none');
