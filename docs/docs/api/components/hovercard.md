@@ -20,6 +20,15 @@ not a destination, so everything in it should also be one click away wherever th
 `Tooltip` is for a short text hint with nothing to click, and `Popover` is for content people open
 on purpose and work with, such as a form.
 
+:::note On phones and tablets
+
+By default a touch screen never opens a `HoverCard`: there's no hover, and a tap belongs to the
+trigger. Whatever the card shows has to be reachable from the trigger as well. For a trigger with
+no tap action of its own, `openOnTap` opens the card with a tap, as
+[On Touch Screens](#on-touch-screens) shows.
+
+:::
+
 ---
 
 ## Import
@@ -92,13 +101,25 @@ the left.
 
 ```tsx live
 <Buttons>
-  <HoverCard position="bottom-left" trigger={<Button>bottom-left</Button>}>
+  <HoverCard
+    openOnTap
+    position="bottom-left"
+    trigger={<Button>bottom-left</Button>}
+  >
     <Paragraph>Opens below, on the left edge.</Paragraph>
   </HoverCard>
-  <HoverCard position="bottom-right" trigger={<Button>bottom-right</Button>}>
+  <HoverCard
+    openOnTap
+    position="bottom-right"
+    trigger={<Button>bottom-right</Button>}
+  >
     <Paragraph>Opens below, on the right edge.</Paragraph>
   </HoverCard>
-  <HoverCard position="auto" trigger={<Button color="info">auto</Button>}>
+  <HoverCard
+    openOnTap
+    position="auto"
+    trigger={<Button color="info">auto</Button>}
+  >
     <Paragraph>Opens wherever it fits.</Paragraph>
   </HoverCard>
 </Buttons>
@@ -114,10 +135,11 @@ pointer can reach it.
 
 ```tsx live
 <Buttons>
-  <HoverCard openDelay={0} trigger={<Button>Opens at once</Button>}>
+  <HoverCard openOnTap openDelay={0} trigger={<Button>Opens at once</Button>}>
     <Paragraph>No wait before this one.</Paragraph>
   </HoverCard>
   <HoverCard
+    openOnTap
     openDelay={1000}
     closeDelay={600}
     trigger={<Button>Takes its time</Button>}
@@ -125,6 +147,29 @@ pointer can reach it.
     <Paragraph>A slower card, with longer to reach it.</Paragraph>
   </HoverCard>
 </Buttons>
+```
+
+### On Touch Screens
+
+A touch screen has no hover, so a phone or tablet never opens the card unless you pass `openOnTap`.
+With it, a tap on the trigger opens the card at once, and the card stays until another tap on the
+trigger, a tap outside it, or <kbd>Escape</kbd>. The tap still does whatever the trigger does, so
+turn it on only for a trigger with no tap action of its own, like the `Button` below, which has no
+`onClick`. On a link, the first tap would follow the link rather than show the card. Mouse and pen
+work the same either way.
+
+The examples on this page with a `Button` trigger turn it on, so they open on a phone too. The ones
+with a link leave it off: a tap on a link should take you where it goes, and that page is where
+the preview's content lives anyway.
+
+```tsx live
+<HoverCard openOnTap trigger={<Button>Engine team</Button>}>
+  <Title as="p" size="6">
+    Analytical Engine team
+  </Title>
+  <Paragraph mb="2">Ada Lovelace and Charles Babbage</Paragraph>
+  <Link href="#team">View the team</Link>
+</HoverCard>
 ```
 
 ### Controlled
@@ -196,6 +241,9 @@ And around it:
 - Keyboard focus on the trigger opens the card, as hover does. Focus that a press brings doesn't,
   and neither does a touch pointer, so tapping the trigger on a phone just does what the trigger
   does. Clicking the trigger never toggles the card.
+- By default, then, a phone or tablet never opens the card, so whatever it shows has to be
+  reachable from the trigger as well. `openOnTap` opens it with a tap, for a trigger with no tap
+  action of its own. While a tap holds it open, a tap outside the trigger and the card closes it.
 - The trigger gets `aria-expanded` and `aria-controls`, which say it's expanded and name the card
   only while the card is on the page. It gets no role, no tab stop and no `aria-haspopup`, so the trigger element itself has to
   take focus, such as a link or a button. A link inside a `<span>` doesn't do, since focus comes
@@ -248,6 +296,7 @@ And around it:
 | `closeDelay`       | `number`                                                                         | `300`           | How long the card stays after the pointer and focus have left the trigger and the card, in milliseconds. It is the time the pointer has to cross the gap between the trigger and the card: with `0` the card closes as the pointer leaves the trigger, before the pointer can reach it.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 | `position`         | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'` | Where the card opens against the trigger.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
 | `appendToBody`     | `boolean`                                                                        | `false`         | Render the card at the end of `document.body` through `Portal`, fixed to the viewport, so an ancestor's `overflow`, `transform` or stacking context can't clip it. A trigger in running text needs it too, since the card's block content can't sit inside a `<p>`. The card then shows from the commit after hydration, never in server markup, and it sits last in the Tab order, at the end of `<body>`. Tab reaches it only after the rest of the page, and focus leaving the trigger on the way closes it, so keyboard users can open it, read it and close it with Escape, and whatever it links to has to be reachable from the page as well. It is measured against the trigger when it opens and on resize and scroll, so it doesn't follow content that changes size while it is open. Theming variables set on an ancestor of the trigger don't reach it there. |
+| `openOnTap`        | `boolean`                                                                        | `false`         | Open the card with a tap on a touch screen. Touch has no hover, so without this a phone or tablet never opens the card. With it, a tap on the trigger opens the card at once, and it stays until a second tap on the trigger, a tap outside the trigger and the card, or Escape. The tap still does whatever the trigger does, so turn this on only for a trigger with no tap action of its own, such as a `Button` with no `onClick`: on a link, the first tap would follow the link rather than show the card. Mouse and pen work the same either way.                                                                                                                                                                                                                                                                                                                   |
 | `contentClassName` | `string`                                                                         | —               | Additional classes for the card (`.hover-card-content`).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `className`        | `string`                                                                         | —               | Additional classes for the `span` around the trigger. The card takes `contentClassName`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `...`              | All standard `<span>` attributes and Bulma helper props                          | —               | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
