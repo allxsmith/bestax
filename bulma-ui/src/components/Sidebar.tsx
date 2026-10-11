@@ -5,6 +5,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useScrollLock } from '../helpers/scrollLock';
 import { usePortalContainer } from '../helpers/portal';
+import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 
 /** Position of the sidebar relative to the viewport. */
@@ -94,6 +95,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const resolveContainer = usePortalContainer();
+    const { portalContainer } = useConfig();
     const sidebarRef = useRef<HTMLElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -131,7 +133,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
     useScrollLock(isOpen && overlay);
 
-    // Focus trap (basic - focus sidebar when opened)
+    // Focus trap (basic - focus sidebar when opened). A different
+    // `portalContainer` remounts the portaled sidebar, so it focuses the new
+    // nodes then too.
     useEffect(() => {
       if (isOpen) {
         const element = sidebarRef.current;
@@ -147,7 +151,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
           }
         }
       }
-    }, [isOpen]);
+    }, [isOpen, portalContainer]);
 
     // Use combined ref
     const combinedRef = useCallback(

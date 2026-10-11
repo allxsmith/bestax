@@ -397,7 +397,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   },
   ref
 ) {
-  const { classPrefix } = useConfig();
+  const { classPrefix, portalContainer } = useConfig();
   const { bulmaHelperClasses, rest } = useBulmaClasses({
     color: textColor,
     backgroundColor: bgColor,
@@ -453,9 +453,11 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // we're past hydration.
   const onClient = useIsHydrated();
   const resolveContainer = usePortalContainer();
-  // Moving into the portal remounts the modal's subtree, so any effect holding
-  // a DOM node from before the move is holding a detached one. Effects that
-  // touch the modal's nodes key on this so they re-run against the new tree.
+  // Moving into the portal, or from one portal target to another, remounts
+  // the modal's subtree, so any effect holding a DOM node from before the move
+  // is holding a detached one. Effects that touch the modal's nodes key on
+  // this, on `portal` and on the configured `portalContainer`, so they re-run
+  // against the new tree.
   const isPortaled = Boolean(portal) && onClient;
 
   useScrollLock(isModalActive && lockScroll);
@@ -545,11 +547,12 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       previouslyFocusedRef.current?.focus?.();
     };
     // `isPortaled` flips once when a hydrated portal modal moves out of the
-    // inline tree; re-running rebinds focus onto the remounted nodes. The
-    // cleanup above restores focus to the pre-open element first (the detached
-    // subtree has left focus on <body>), so the re-run re-records the same
-    // element and restore-on-close still lands in the right place.
-  }, [isModalActive, isPortaled]);
+    // inline tree, and `portal` or `portalContainer` changing moves a portaled
+    // one to another target; re-running rebinds focus onto the remounted
+    // nodes. The cleanup above restores focus to the pre-open element first
+    // (the detached subtree has left focus on <body>), so the re-run re-records
+    // the same element and restore-on-close still lands in the right place.
+  }, [isModalActive, isPortaled, portal, portalContainer]);
 
   // Check if children contain compound components
   const hasCompoundComponents = React.Children.toArray(children).some(

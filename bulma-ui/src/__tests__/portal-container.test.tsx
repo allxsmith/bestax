@@ -111,6 +111,47 @@ describe('Modal', () => {
     expect(target).toBeEmptyDOMElement();
   });
 
+  it('keeps focus in the modal when the portalContainer changes while it is open', () => {
+    const ui = (container: HTMLElement) => (
+      <ConfigProvider portalContainer={container}>
+        <Modal active portal modalCardTitle="Settings">
+          Body
+        </Modal>
+      </ConfigProvider>
+    );
+    const { rerender } = render(ui(target));
+    expect(screen.getByRole('dialog')).toContainElement(
+      document.activeElement as HTMLElement
+    );
+
+    rerender(ui(own));
+    const dialog = screen.getByRole('dialog');
+    expect(own).toContainElement(dialog);
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+  });
+
+  it('keeps focus in the modal when the portalContainer is an element held in state', () => {
+    // The first render has no element yet, so the modal opens in
+    // document.body, then moves once the ref callback stores it.
+    const App = () => {
+      const [overlays, setOverlays] = React.useState<HTMLElement | null>(null);
+      return (
+        <>
+          <ConfigProvider portalContainer={overlays ?? undefined}>
+            <Modal active portal modalCardTitle="Settings">
+              Body
+            </Modal>
+          </ConfigProvider>
+          <div data-testid="overlays" ref={setOverlays} />
+        </>
+      );
+    };
+    render(<App />);
+    const dialog = screen.getByRole('dialog');
+    expect(screen.getByTestId('overlays')).toContainElement(dialog);
+    expect(dialog).toContainElement(document.activeElement as HTMLElement);
+  });
+
   it('portals into a portalContainer inside a shadow root', () => {
     const host = document.createElement('div');
     document.body.appendChild(host);
@@ -148,6 +189,20 @@ describe('Dialog', () => {
     );
     expect(own).toContainElement(screen.getByText('Sure?'));
     expect(target).toBeEmptyDOMElement();
+  });
+
+  it('keeps focus on its own button when the portalContainer changes while it is open', () => {
+    const ui = (container: HTMLElement) => (
+      <ConfigProvider portalContainer={container}>
+        <Dialog isOpen portal title="Delete?" message="Sure?" focusCancel />
+      </ConfigProvider>
+    );
+    const { rerender } = render(ui(target));
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+
+    rerender(ui(own));
+    expect(own).toContainElement(screen.getByText('Sure?'));
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
   });
 });
 
@@ -205,6 +260,22 @@ describe('Sidebar', () => {
       </Sidebar>
     );
     expect(target).toContainElement(screen.getByText('Links'));
+  });
+
+  it('keeps focus in the sidebar when the portalContainer changes while it is open', () => {
+    const ui = (container: HTMLElement) => (
+      <ConfigProvider portalContainer={container}>
+        <Sidebar isOpen onClose={() => {}} aria-label="Navigation">
+          <a href="#home">Home</a>
+        </Sidebar>
+      </ConfigProvider>
+    );
+    const { rerender } = render(ui(target));
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveFocus();
+
+    rerender(ui(own));
+    expect(own).toContainElement(screen.getByRole('link', { name: 'Home' }));
+    expect(screen.getByRole('link', { name: 'Home' })).toHaveFocus();
   });
 
   it('still renders in place when inline', () => {

@@ -8,6 +8,7 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useIsHydrated } from '../helpers/useIsHydrated';
+import { useConfig } from '../helpers/Config';
 import { Modal } from './Modal';
 
 /** Valid dialog type/color values. */
@@ -132,11 +133,13 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
       }
     }, [canCancel, handleCancel]);
 
-    // Moving into the portal remounts the Modal's subtree — these buttons
-    // included — so the focus effect below has to re-run against the new
-    // nodes, exactly as the Modal's own focus effect does.
+    // Moving into the portal, or from one portal target to another, remounts
+    // the Modal's subtree, these buttons included, so the focus effect below
+    // has to re-run against the new nodes, exactly as the Modal's own focus
+    // effect does, on the same inputs.
     const isHydrated = useIsHydrated();
     const isPortaled = Boolean(portal) && isHydrated;
+    const { portalContainer } = useConfig();
 
     // Focus management — Dialog picks a specific button rather than the
     // Modal's default (first focusable/root); this effect runs after the
@@ -147,7 +150,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
           focusCancel && showCancel ? cancelRef.current : confirmRef.current;
         buttonToFocus?.focus();
       }
-    }, [isOpen, focusCancel, showCancel, isPortaled]);
+    }, [isOpen, focusCancel, showCancel, isPortaled, portal, portalContainer]);
 
     // Use combined ref
     const combinedRef = useCallback(
