@@ -31,7 +31,7 @@
     },
     {
       "title": "Portal",
-      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Portaled Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Rendered in document.body\"\n        portal\n      >\n        This modal is portaled, so it escapes any ancestor with an `overflow:\n        hidden` style.\n      </Modal>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Portaled Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Portaled Modal\"\n        portal\n      >\n        This modal is portaled, so it escapes any ancestor with an `overflow:\n        hidden` style.\n      </Modal>\n    </>\n  );\n}"
     },
     {
       "title": "Forwarded ref",
