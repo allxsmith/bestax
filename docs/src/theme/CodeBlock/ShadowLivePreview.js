@@ -3,6 +3,7 @@ import root from 'react-shadow';
 import { LivePreview } from 'react-live';
 import { useColorMode } from '@docusaurus/theme-common';
 import useBaseUrl from '@docusaurus/useBaseUrl';
+import { ConfigProvider } from '@allxsmith/bestax-bulma';
 import {
   shadowStyleSheets,
   colorModeVars,
@@ -31,6 +32,13 @@ export default function ShadowLivePreview() {
 
   // Fallback path only: the <style> element standing in for themeSheet.
   const themeStyleRef = React.useRef(null);
+
+  // Where an example's portaled content goes: Popover's appendToBody panel,
+  // or a Portal with no container. Left to the library's default it would
+  // land in document.body, outside this shadow root and so outside the
+  // stylesheets above. This element sits inside the root instead, and the
+  // ConfigProvider around the preview makes it the default.
+  const [portalTarget, setPortalTarget] = React.useState(null);
 
   const updateShadowTheme = React.useCallback(
     themeVars => {
@@ -86,7 +94,10 @@ export default function ShadowLivePreview() {
           </>
         )}
         <div data-theme={colorMode}>
-          <LivePreview />
+          <ConfigProvider portalContainer={portalTarget ?? undefined}>
+            <LivePreview />
+          </ConfigProvider>
+          <div ref={setPortalTarget} />
         </div>
       </root.div>
     </ShadowThemeContext.Provider>
