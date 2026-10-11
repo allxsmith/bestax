@@ -46,17 +46,17 @@
       "code": "function example() {\n  return (\n    <Paragraph style={{ lineHeight: 1.8 }}>\n      Hover over{' '}\n      <Tooltip label=\"Cascading Style Sheets\" color=\"info\" dashed>\n        <Span>CSS</Span>\n      </Tooltip>{' '}\n      or{' '}\n      <Tooltip label=\"HyperText Markup Language\" color=\"info\" dashed>\n        <Span>HTML</Span>\n      </Tooltip>{' '}\n      to see their full names.\n    </Paragraph>\n  );\n}"
     }
   ],
-  "accessibility": "- Tooltip content has `role=\"tooltip\"` for screen reader announcement\n- Has `aria-hidden` that toggles based on visibility\n- Tooltip shows on both hover and focus for keyboard users\n- The `dashed` style provides a visual cue that more information is available",
+  "accessibility": "`Tooltip` is built to\n[WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)\ncriterion:\n\n- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without moving the\n  pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes\n  back. The keypress belongs to whatever has focus. When that's the trigger or nothing, the tooltip\n  takes it, so a `Popover` or `Modal` around it stays open. When it's something else, such as a\n  field elsewhere on the page, the tooltip still hides and the key goes on to it. With no tooltip\n  showing, Escape goes on as usual.\n- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, across the gap between\n  them, and it stays. A hidden tooltip lets the pointer through to whatever is under it.\n- **Persistent:** no timer hides a tooltip that's hovered or focused.\n\nAnd around it:\n\n- Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings\n  doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.\n- An `active` tooltip is always shown, whatever the pointer, focus and Escape do. It's part of the\n  page rather than something hover or focus brought, so Escape goes on to whatever else listens.\n- Tooltip content has `role=\"tooltip\"`, and `aria-hidden` while it's hidden.\n- The trigger isn't linked to the tooltip with `aria-describedby`, so a screen reader doesn't\n  announce the tooltip with it. Give an icon-only trigger its own name, such as an `aria-label`.\n- The `dashed` style provides a visual cue that more information is available.",
   "related": ["Button", "HoverCard", "Icon", "Popover"],
   "storybook": null,
-  "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
+  "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element. Hovering the trigger or giving it keyboard focus shows it. Touch doesn't, and neither does focus a click or a tap brings, so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip. Escape hides it wherever focus is, without moving the pointer or focus, and it stays hidden until one of them leaves the trigger and comes back. The keypress stops there when focus is on the trigger or nowhere, and otherwise goes on to whatever has focus.",
   "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Tooltip.tsx",
   "rootClass": "tooltip",
   "parts": [
     {
       "path": "Tooltip",
-      "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
+      "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element. Hovering the trigger or giving it keyboard focus shows it. Touch doesn't, and neither does focus a click or a tap brings, so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip. Escape hides it wherever focus is, without moving the pointer or focus, and it stays hidden until one of them leaves the trigger and comes back. The keypress stops there when focus is on the trigger or nowhere, and otherwise goes on to whatever has focus.",
       "component": null,
       "props": [
         {
@@ -108,7 +108,7 @@
           "name": "active",
           "type": "boolean",
           "default": "false",
-          "description": "Force tooltip to be always visible.",
+          "description": "Force tooltip to be always visible. Hover, focus and Escape leave it shown, so Escape goes on to whatever has focus, or to a `Modal` or `Popover` around it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -153,7 +153,7 @@
           "name": "delay",
           "type": "number",
           "default": "0",
-          "description": "Delay before showing tooltip (ms).",
+          "description": "How long the pointer or keyboard focus waits on the trigger before the tooltip shows, in milliseconds.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -162,7 +162,7 @@
           "name": "closeDelay",
           "type": "number",
           "default": "0",
-          "description": "Delay in ms before hiding the tooltip.",
+          "description": "How long the tooltip stays after the pointer and focus have left the trigger and the tooltip, in milliseconds. The pointer can move from the trigger onto a shown tooltip without one.",
           "required": false,
           "inherited": false,
           "deprecated": false
