@@ -554,8 +554,8 @@
       "slug": "components/hovercard",
       "import": "import { HoverCard } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 10,
-      "exampleCount": 5
+      "propCount": 11,
+      "exampleCount": 6
     },
     {
       "name": "Icon",
