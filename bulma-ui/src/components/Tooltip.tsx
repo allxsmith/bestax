@@ -1,7 +1,16 @@
-import React, { useState, useRef, useLayoutEffect } from 'react';
+import React, {
+  Fragment,
+  cloneElement,
+  isValidElement,
+  useId,
+  useState,
+  useRef,
+  useLayoutEffect,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
+import { warnOnce } from '../helpers/devWarnings';
 
 /** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
@@ -18,9 +27,21 @@ export type TooltipColor =
 /** Size variants for the tooltip. */
 export type TooltipSize = 'small' | 'medium' | 'large';
 
+/** An id list with `id` added at the end, unless it's in there already. */
+const withId = (ids: string | undefined, id: string) =>
+  [...new Set([...(ids ?? '').split(/\s+/), id])].filter(Boolean).join(' ');
+
 /**
  * Props for the Tooltip component.
- * @extraProp {React.ReactNode} [children] - The element that triggers the tooltip.
+ * @extraProp {React.ReactNode} [children] - The element that triggers the
+ * tooltip. Its `aria-describedby` points at the tooltip, after any ids it
+ * already had, so a screen reader reads the tooltip as its description when
+ * it takes focus, even while the tooltip is hidden. That takes a single
+ * element which passes `aria-describedby` on to its DOM node, as native
+ * elements and bestax components do, and takes focus itself, such as a
+ * button, a link or a `Span` with `tabIndex={0}`: something focusable inside
+ * it doesn't get the link. Text, a fragment or several elements get no link,
+ * and a development build warns.
  * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface TooltipProps
@@ -34,7 +55,8 @@ export interface TooltipProps
    * Nothing in it should take focus or a click: it isn't in the Tab order
    * while hidden, focus there isn't counted as being in the tooltip, and
    * Escape hiding it would drop that focus. For links or buttons, use
-   * `HoverCard` or `Popover`.
+   * `HoverCard` or `Popover`. A screen reader reads it as plain text, since
+   * it's the trigger's description.
    */
   content?: React.ReactNode;
   /** Position of the tooltip. Default: 'top'. */
@@ -97,7 +119,8 @@ export interface TooltipProps
  * the trigger and comes back, or, with `openOnTap`, until the next tap on
  * the trigger. The key always goes on too, to whatever has focus or a
  * `Modal` or `Popover` around it, since a tooltip only adds to what's
- * there.
+ * there. The tooltip is its trigger's description, so a screen reader reads
+ * it as the trigger takes focus, whether it's showing yet or not.
  *
  * @function
  * @param {TooltipProps} props - Props for the Tooltip component.
@@ -110,15 +133,17 @@ export interface TooltipProps
  * </Tooltip>
  *
  * @example
- * // Positioned tooltip with color
- * <Tooltip label="Delete item" position="right" color="danger">
- *   <Icon icon="fas fa-trash" />
+ * // Positioned tooltip with color, on an icon-only button with a name of its own
+ * <Tooltip label="Moves it to the trash" position="right" color="danger">
+ *   <Button aria-label="Delete">
+ *     <Icon name="fas fa-trash" />
+ *   </Button>
  * </Tooltip>
  *
  * @example
  * // Multiline tooltip
  * <Tooltip label="This is a longer tooltip that wraps to multiple lines" multiline>
- *   <span>?</span>
+ *   <button>More info</button>
  * </Tooltip>
  */
 export const Tooltip: React.FC<TooltipProps> = ({
@@ -158,6 +183,23 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const [contentStyle, setContentStyle] = useState<React.CSSProperties>({});
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
   const contentRef = useRef<HTMLSpanElement | null>(null);
+  const tooltipId = `${useId()}-tooltip`;
+
+  // The description has to be on the element that takes focus, and only a
+  // single element as children can be given it.
+  const linkable =
+    isValidElement<{ 'aria-describedby'?: string }>(children) &&
+    children.type !== Fragment;
+  if (!linkable) {
+    warnOnce(
+      'Tooltip:unlinked-trigger',
+      "[bestax-bulma] <Tooltip>'s children aren't a single element, so it " +
+        "can't point the trigger's aria-describedby at the tooltip, and a " +
+        "screen reader won't read the tooltip. Pass one focusable element, " +
+        'such as a button, a link or a Span with tabIndex={0}, or give the ' +
+        'trigger an aria-label or aria-describedby of your own.'
+    );
+  }
 
   const hover = useHoverOpen({
     // The pointer and focus as they are. `active` shows it on top of that, so
@@ -312,11 +354,20 @@ export const Tooltip: React.FC<TooltipProps> = ({
       {...(label ? { 'data-tooltip': label } : {})}
       {...attrs}
     >
-      {children}
+      {linkable
+        ? cloneElement(children, {
+            'aria-describedby': withId(
+              children.props['aria-describedby'],
+              tooltipId
+            ),
+          })
+        : children}
       <span
         ref={contentRef}
+        id={tooltipId}
         className={combinedTooltipClasses}
         role="tooltip"
+        // A hidden tooltip still describes the trigger (accname step 2A).
         aria-hidden={!isVisible && !alwaysActive}
         style={Object.keys(contentStyle).length > 0 ? contentStyle : undefined}
       >
