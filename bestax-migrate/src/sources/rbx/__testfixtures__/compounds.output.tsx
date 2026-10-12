@@ -1,5 +1,5 @@
 import React from "react";
-import { Breadcrumb, Card, Hero, Level, Media, Message, Table } from "@allxsmith/bestax-bulma";
+import { Breadcrumb, Button, Buttons, Card, Hero, Level, Media, Message, Table } from "@allxsmith/bestax-bulma";
 
 export const Compounds = () => (
   <>
@@ -22,7 +22,11 @@ export const Compounds = () => (
       <Media.Left>avatar</Media.Left>
       <Media.Content>body</Media.Content>
     </Media>
-    <Message color="info">
+    <Buttons size="large">
+      <Button>Back</Button>
+      <Button>Next</Button>
+    </Buttons>
+    <Message color="info" size="small">
       <Message.Header>head</Message.Header>
       <Message.Body>body</Message.Body>
     </Message>

@@ -129,7 +129,7 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 `bgColor`/`textColor` (they accept the full palette incl. shades), and replace
 `isSelected` with `className="is-selected"` inside grouped buttons.
 
-## `colorVariant` / Hero `gradient` / Hero `halfheight`
+## `colorVariant` / Hero `gradient` / Hero `halfheight` (`prop:size`)
 
 - `colorVariant="light"` → `isLight` where supported (Button, Notification), otherwise a
   shade: `bgColor="primary-90"`.

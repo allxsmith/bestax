@@ -196,9 +196,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { center: 'isCentered', right: 'isRight' },
             valueToProp: true,
           },
-          size: {
-            todo: 'bestax Buttons has no group size; set size on each Button',
-          },
+          size: {},
         },
       },
     },
@@ -565,9 +563,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Message',
     props: {
       color: {},
-      size: {
-        todo: 'no size prop on bestax Message; use textSize on the body',
-      },
+      size: {},
     },
     subs: {
       Header: { status: 'mapped', target: 'Message.Header' },

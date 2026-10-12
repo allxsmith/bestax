@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Level, Media, Message, Table, Hero, Breadcrumb } from "rbx";
+import { Button, Card, Level, Media, Message, Table, Hero, Breadcrumb } from "rbx";
 
 export const Compounds = () => (
   <>
@@ -22,7 +22,11 @@ export const Compounds = () => (
       <Media.Item align="left">avatar</Media.Item>
       <Media.Item align="content">body</Media.Item>
     </Media>
-    <Message color="info">
+    <Button.Group size="large">
+      <Button>Back</Button>
+      <Button>Next</Button>
+    </Button.Group>
+    <Message color="info" size="small">
       <Message.Header>head</Message.Header>
       <Message.Body>body</Message.Body>
     </Message>

@@ -189,9 +189,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { centered: 'isCentered', right: 'isRight' },
             valueToProp: true,
           },
-          size: {
-            todo: 'bestax `Buttons` has no size prop; set `size` on each Button instead',
-          },
+          size: {},
         },
       },
     },
@@ -338,9 +336,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Tags',
         props: {
           gapless: { booleanToProp: { name: 'hasAddons' } },
-          size: {
-            todo: 'bestax `Tags` has no size prop; set `size` on each Tag instead',
-          },
+          size: {},
         },
       },
     },
@@ -617,9 +613,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Message',
     props: {
       color: {},
-      size: {
-        todo: 'bestax `Message` has no size prop; use the `size` helper on its children',
-      },
+      size: {},
     },
     subs: {
       Body: { status: 'mapped', target: 'Message.Body' },
