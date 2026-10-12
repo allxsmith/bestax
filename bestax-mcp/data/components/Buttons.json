@@ -35,7 +35,7 @@
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<Buttons>\n  <Buttons.Button color=\"primary\">Save</Buttons.Button>\n  <Buttons.Button>Cancel</Buttons.Button>\n  <Buttons.LinkButton>Learn more</Buttons.LinkButton>\n</Buttons>"
+      "code": "<>\n  <Buttons>\n    <Buttons.Button color=\"primary\">Save</Buttons.Button>\n    <Buttons.Button>Cancel</Buttons.Button>\n    <Buttons.LinkButton>Learn more</Buttons.LinkButton>\n  </Buttons>\n  <Buttons hasAddons role=\"group\" aria-label=\"Text style\">\n    <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Italic</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Underline</Buttons.ToggleButton>\n  </Buttons>\n</>"
     }
   ],
   "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton) in `Buttons hasAddons`, and give the `Buttons` `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group, so use [`Radios`](https://bestax.io/docs/api/form/radios) for it.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
@@ -507,6 +507,153 @@
         }
       ],
       "catchAll": "Remaining props of the element or component selected by as (default <button>) and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Buttons.ToggleButton",
+      "summary": "The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type=\"button\">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `Radios`.",
+      "component": "ToggleButton",
+      "props": [
+        {
+          "name": "pressed",
+          "type": "boolean",
+          "default": null,
+          "description": "Whether it's pressed, when you hold the state. Setting it makes the toggle controlled: a click only calls `onPressedChange`, and nothing changes until you pass the new value. Pick this or `defaultPressed` for the button's lifetime.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultPressed",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether it starts pressed, when it holds its own state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onPressedChange",
+          "type": "(pressed: boolean) => void",
+          "default": null,
+          "description": "Called with the new state each time it's toggled, by a click, Enter or Space, whether or not `pressed` is set. An `onClick` that calls `preventDefault()` stops the toggle, and this doesn't fire.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": "'link'",
+          "description": "The fill while it's pressed. Not pressed, it's a plain button, so the fill is the difference people see. `white`, `light`, `dark` and `black` aren't offered, since in one theme or the other each fills about as light or dark as a plain button already is. Of the rest, a pale one such as `warning` changes less than the default `link`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label, which stays the same in both states: a screen reader announces whether it's pressed, so \"Mute\" stays \"Mute\". An icon can swap, but an icon-only toggle needs an `aria-label` that doesn't. A label that changes (\"Play\", then \"Pause\") belongs on a plain `Button`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows Bulma's spinner in place of the label and holds the toggle where it is: a click, Enter or Space does nothing, so neither `onClick` nor `onPressedChange` fires, until it's cleared. Set it while a change is saving. The button carries `aria-busy=\"true\"` meanwhile and stays focusable, so focus isn't lost mid-save. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button rounded.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullwidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isFullWidth",
+          "type": "boolean",
+          "default": "false",
+          "description": "Makes the button full-width.",
+          "required": false,
+          "inherited": true,
+          "deprecated": true,
+          "deprecationNote": "Use `isFullwidth` instead — `isFullwidth` wins if both are set."
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies disabled styling.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<button>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
       "types": []
     }
   ],
