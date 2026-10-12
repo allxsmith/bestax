@@ -69,6 +69,11 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   and focus only unless `openOnTap` is set, which suits only a trigger with no tap action of its
   own, such as a `Button` with no `onClick`; on touch a link trigger just follows the link, so
   what the card shows must be on that page too, and a form is a `Popover`),
+  `ContextMenu aria-label="…" trigger={<Table.Tr>…</Table.Tr>}` for actions on a right-click
+  or a long press (`trigger` is one element, a row or a card, cloned rather than wrapped; the
+  items are `ContextMenu.Item`/`ContextMenu.Divider`, which are `Dropdown`'s; no `open` prop,
+  `onOpenChange` reports it; always put the same items in a visible `Dropdown` on the row too,
+  since a context menu is only a shortcut),
   `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
   `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
   put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.

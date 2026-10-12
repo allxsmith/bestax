@@ -11,6 +11,7 @@ import { render, screen, act, fireEvent } from '@testing-library/react';
 import { ConfigProvider } from '../helpers/Config';
 import { Popover } from '../components/Popover';
 import { HoverCard } from '../components/HoverCard';
+import { ContextMenu } from '../components/ContextMenu';
 import { Modal } from '../components/Modal';
 import { Dialog } from '../components/Dialog';
 import { Toast, ToastContainer, toast } from '../components/Toast';
@@ -73,6 +74,25 @@ describe('HoverCard', () => {
       </HoverCard>
     );
     expect(target).toContainElement(screen.getByText('Analytical Engine team'));
+  });
+});
+
+describe('ContextMenu', () => {
+  it.each([
+    ['an element', () => target],
+    ['a selector', () => '#configured'],
+  ])('portals its menu into the portalContainer, given as %s', (_, make) => {
+    render(
+      <ConfigProvider portalContainer={make()}>
+        <ContextMenu aria-label="Actions" trigger={<div>report.pdf</div>}>
+          <ContextMenu.Item>Rename</ContextMenu.Item>
+        </ContextMenu>
+      </ConfigProvider>
+    );
+    fireEvent.contextMenu(screen.getByText('report.pdf'));
+    expect(target).toContainElement(
+      screen.getByRole('menu', { name: 'Actions' })
+    );
   });
 });
 

@@ -66,6 +66,7 @@ const BESTAX = {
   Carousel: 'components/carousel',
   Collapse: 'components/collapse',
   Collapses: 'components/collapses',
+  ContextMenu: 'components/contextmenu',
   Dialog: 'components/dialog',
   Dropdown: 'components/dropdown',
   HoverCard: 'components/hovercard',
@@ -1095,7 +1096,7 @@ export const categories = [
       ],
       [
         'Context menu (right-click)',
-        0,
+        'ContextMenu',
         'Menu.ContextMenu',
         0,
         '~Menu (context menu demo)',

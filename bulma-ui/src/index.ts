@@ -20,6 +20,7 @@ export * from './components/Collapses';
 export * from './components/Tooltip';
 export * from './components/Popover';
 export * from './components/HoverCard';
+export * from './components/ContextMenu';
 export * from './components/Steps';
 export * from './components/Sidebar';
 export * from './components/Toast';

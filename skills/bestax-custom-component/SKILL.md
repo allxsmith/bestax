@@ -74,6 +74,15 @@ touch unless `openOnTap` is on, which suits only a trigger with no tap action of
 `Button` with no `onClick`, never a link). Its `trigger` has to be a link or a button, and a trigger in running text takes
 `appendToBody`. A form never goes in one; that's `Popover`.
 
+A menu of actions that opens on a right-click (Rename and Delete on a table row, Archive on a
+card) is `ContextMenu`: use it rather than an `onContextMenu` handler that positions a
+`Dropdown`. It opens at the point, also on Shift+F10, the context menu key and a long press,
+and its items are `ContextMenu.Item` and `ContextMenu.Divider`, the same components as
+`Dropdown.Item` and `Dropdown.Divider`. Its `trigger` is cloned, not wrapped, so a `Table.Tr`
+works, and the menu needs `aria-label`. Put the same items in a visible `Dropdown` as well:
+nothing tells a screen reader user a context menu is there, and on macOS only VoiceOver opens
+it from the keyboard.
+
 Building something else that floats (a command palette)? Render it through the library's
 `Portal` rather than `createPortal`: it renders nothing on the server and during hydration, so
 the server and client markup match. `references/api.md` has the details.

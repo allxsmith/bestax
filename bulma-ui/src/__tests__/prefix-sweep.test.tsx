@@ -106,6 +106,12 @@ const PROPS: Record<string, Record<string, unknown>> = {
     position: 'top-right',
     children: 'Analytical Engine team',
   },
+  // Its menu needs a gesture, so the sweep sees the trigger and its class.
+  // ContextMenu.test.tsx opens the menu under a prefix.
+  ContextMenu: {
+    trigger: <div>report.pdf</div>,
+    children: <Library.ContextMenu.Item>Rename</Library.ContextMenu.Item>,
+  },
   Sidebar: { isOpen: true, children: 'Sidebar content' },
   Pagination: { current: 1, total: 5 },
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },

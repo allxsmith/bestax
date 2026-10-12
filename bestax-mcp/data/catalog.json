@@ -55,6 +55,7 @@
         "Carousel",
         "Collapse",
         "Collapses",
+        "ContextMenu",
         "Dialog",
         "Dropdown",
         "HoverCard",
@@ -380,6 +381,17 @@
       "compound": false,
       "propCount": 6,
       "exampleCount": 10
+    },
+    {
+      "name": "ContextMenu",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen.",
+      "slug": "components/contextmenu",
+      "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 10,
+      "exampleCount": 9
     },
     {
       "name": "Control",
@@ -1373,6 +1385,8 @@
     "--bulma-content-table-foot-cell-color": ["Content"],
     "--bulma-content-table-head-cell-border-width": ["Content"],
     "--bulma-content-table-head-cell-color": ["Content"],
+    "--bulma-context-menu-max-height": ["ContextMenu"],
+    "--bulma-context-menu-z-index": ["ContextMenu"],
     "--bulma-control-border-width": ["Control"],
     "--bulma-control-focus-shadow-l": ["Control"],
     "--bulma-control-height": ["Control"],
