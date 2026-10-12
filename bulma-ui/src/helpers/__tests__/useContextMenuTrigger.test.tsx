@@ -253,6 +253,18 @@ describe('useContextMenuTrigger', () => {
         'another pointer coming down',
         () => pointer(region(), 'pointerdown', { pointerId: 2 }),
       ],
+      [
+        'another pointer coming down anywhere in the document',
+        () => pointer(document.body, 'pointerdown', { pointerId: 2 }),
+      ],
+      [
+        'a mouse button going down',
+        () =>
+          pointer(document.body, 'pointerdown', {
+            pointerType: 'mouse',
+            pointerId: 2,
+          }),
+      ],
     ])('is cancelled by %s', (_, interrupt) => {
       const onOpen = jest.fn();
       render(<Region onOpen={onOpen} />);
@@ -402,13 +414,62 @@ describe('useContextMenuTrigger', () => {
       expect(jest.getTimerCount()).toBe(0);
     });
 
-    it('leaves no timer behind once it unmounts', () => {
+    it('opens neither of two sibling triggers held at once', () => {
+      const first = jest.fn();
+      const second = jest.fn();
+      render(
+        <>
+          <Region onOpen={first} testId="first" />
+          <Region onOpen={second} testId="second" />
+        </>
+      );
+      pointer(region('first'), 'pointerdown', { pointerId: 1 });
+      advance(100);
+      pointer(region('second'), 'pointerdown', { pointerId: 2 });
+      expect(jest.getTimerCount()).toBe(0);
+      advance(LONG_PRESS_DELAY * 2);
+      expect(first).not.toHaveBeenCalled();
+      expect(second).not.toHaveBeenCalled();
+
+      // Once both are up, a fresh press on either works again.
+      pointer(region('first'), 'pointerup', { pointerId: 1 });
+      pointer(region('second'), 'pointerup', { pointerId: 2 });
+      pointer(region('second'), 'pointerdown', { pointerId: 3 });
+      advance(LONG_PRESS_DELAY);
+      expect(second).toHaveBeenCalledTimes(1);
+    });
+
+    it('listens on the document only while a finger is down', () => {
+      const listen = jest.spyOn(document, 'addEventListener');
+      const unlisten = jest.spyOn(document, 'removeEventListener');
+      const presses = (spy: jest.SpyInstance) =>
+        spy.mock.calls.filter(([type]) => type === 'pointerdown');
+      render(<Region />);
+      pointer(region(), 'pointerdown', { pointerType: 'mouse' });
+      expect(presses(listen)).toHaveLength(0);
+
+      pointer(region(), 'pointerdown');
+      expect(presses(listen)).toEqual([
+        ['pointerdown', expect.any(Function), true],
+      ]);
+      advance(LONG_PRESS_DELAY);
+      // Still held after it opens, so a second finger then is heard too.
+      expect(presses(unlisten)).toHaveLength(0);
+      pointer(region(), 'pointerup');
+      expect(presses(unlisten)).toEqual(presses(listen));
+    });
+
+    it('leaves no timer and no listener behind once it unmounts', () => {
+      const unlisten = jest.spyOn(document, 'removeEventListener');
       const onOpen = jest.fn();
       const { unmount } = render(<Region onOpen={onOpen} />);
       pointer(region(), 'pointerdown');
       expect(jest.getTimerCount()).toBe(1);
       unmount();
       expect(jest.getTimerCount()).toBe(0);
+      expect(
+        unlisten.mock.calls.filter(([type]) => type === 'pointerdown')
+      ).toHaveLength(1);
     });
   });
 });

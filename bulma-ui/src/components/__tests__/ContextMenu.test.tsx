@@ -103,20 +103,30 @@ const layout = ({
       return rect({ left: 0, top: 0, width: 0, height: 0 });
     });
 
-const setViewport = (width: number, height: number) => {
-  Object.defineProperty(window, 'innerWidth', {
-    configurable: true,
-    writable: true,
-    value: width,
-  });
-  Object.defineProperty(window, 'innerHeight', {
-    configurable: true,
-    writable: true,
-    value: height,
-  });
+/**
+ * Sizes the window, and the root element's client area inside it, which is
+ * what a fixed box resolves against. A classic scrollbar takes `scrollbar`
+ * pixels off the client area on each axis, and jsdom has no layout, so
+ * without this the client area is 0 by 0.
+ */
+const setViewport = (width: number, height: number, scrollbar = 0) => {
+  for (const [target, key, value] of [
+    [window, 'innerWidth', width],
+    [window, 'innerHeight', height],
+    [document.documentElement, 'clientWidth', width - scrollbar],
+    [document.documentElement, 'clientHeight', height - scrollbar],
+  ] as const) {
+    Object.defineProperty(target, key, { configurable: true, value });
+  }
 };
 const originalWidth = window.innerWidth;
 const originalHeight = window.innerHeight;
+const resetViewport = () => {
+  setViewport(originalWidth, originalHeight);
+  // Back to jsdom's own getters on the prototype.
+  delete (document.documentElement as { clientWidth?: number }).clientWidth;
+  delete (document.documentElement as { clientHeight?: number }).clientHeight;
+};
 
 /** A file's row of actions, with a visible way in as well. */
 const FileMenu: React.FC<
@@ -151,12 +161,13 @@ const item = (name: string) =>
 beforeEach(() => {
   jest.useFakeTimers();
   layout();
+  setViewport(1024, 768);
 });
 
 afterEach(() => {
   jest.useRealTimers();
   jest.restoreAllMocks();
-  setViewport(originalWidth, originalHeight);
+  resetViewport();
 });
 
 describe('ContextMenu', () => {
@@ -592,6 +603,41 @@ describe('ContextMenu', () => {
       expect(menu()).toBeNull();
     });
 
+    it('opens neither of two sibling regions held at once', () => {
+      const onOpenChange = jest.fn();
+      render(
+        <>
+          <FileMenu
+            onOpenChange={onOpenChange}
+            trigger={<div data-testid="first">report.pdf</div>}
+          />
+          <FileMenu
+            onOpenChange={onOpenChange}
+            trigger={<div data-testid="second">notes.txt</div>}
+          />
+        </>
+      );
+      pointer(screen.getByTestId('first'), 'pointerdown', { pointerId: 1 });
+      advance(100);
+      pointer(screen.getByTestId('second'), 'pointerdown', { pointerId: 2 });
+      advance(LONG_PRESS_DELAY * 2);
+      expect(menu()).toBeNull();
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('is cancelled by a second finger anywhere on the page', () => {
+      render(
+        <>
+          <FileMenu />
+          <p>Elsewhere</p>
+        </>
+      );
+      pointer(region(), 'pointerdown', { pointerId: 1 });
+      pointer(screen.getByText('Elsewhere'), 'pointerdown', { pointerId: 2 });
+      advance(LONG_PRESS_DELAY * 2);
+      expect(menu()).toBeNull();
+    });
+
     it('opens only the innermost of nested regions', () => {
       render(
         <ContextMenu
@@ -663,6 +709,24 @@ describe('ContextMenu', () => {
       expect(box().style.top).toBe('20px');
     });
 
+    it('places it inside the root element’s client area, which leaves out a classic scrollbar', () => {
+      // A menu that fits inside innerWidth and innerHeight, and not inside
+      // the client area a scrollbar narrows, flips.
+      setViewport(1000, 800, 15);
+      render(<FileMenu />);
+      contextMenu(region(), 790, 640);
+      expect(box()).toHaveClass('is-up', 'is-right');
+      fireEvent.keyDown(menu()!, { key: 'Escape' });
+
+      // And one that fits on neither side is pinned to the client area's
+      // edge, not the window's.
+      setViewport(300, 200, 15);
+      layout({ menu: { width: 250, height: 180 } });
+      contextMenu(region(), 150, 100);
+      expect(box().style.left).toBe('35px');
+      expect(box().style.top).toBe('5px');
+    });
+
     it('starts at the top of the viewport when it is taller than it', () => {
       setViewport(1000, 200);
       layout({ menu: { width: 200, height: 500 } });
@@ -685,6 +749,47 @@ describe('ContextMenu', () => {
   });
 
   describe('focus', () => {
+    it('moves to the first item once the menu is placed, without scrolling to it', () => {
+      setViewport(1000, 800);
+      const focus = HTMLElement.prototype.focus;
+      const calls: { options?: FocusOptions; placed: boolean }[] = [];
+      jest.spyOn(HTMLElement.prototype, 'focus').mockImplementation(function (
+        this: HTMLElement,
+        options?: FocusOptions
+      ) {
+        if (this.getAttribute('role') === 'menuitem') {
+          calls.push({
+            options,
+            placed: box().classList.contains('is-up'),
+          });
+        }
+        focus.call(this, options);
+      });
+      render(<FileMenu />);
+      contextMenu(region(), 900, 750);
+      expect(calls).toEqual([
+        { options: { preventScroll: true }, placed: true },
+      ]);
+      expect(item('Rename')).toHaveFocus();
+    });
+
+    it('closes on scroll only from once the menu is placed', () => {
+      setViewport(1000, 800);
+      const listen = document.addEventListener.bind(document);
+      const placedWhenArmed: boolean[] = [];
+      jest
+        .spyOn(document, 'addEventListener')
+        .mockImplementation((type, listener, options) => {
+          if (type === 'scroll') {
+            placedWhenArmed.push(box().classList.contains('is-up'));
+          }
+          listen(type, listener, options);
+        });
+      render(<FileMenu />);
+      contextMenu(region(), 900, 750);
+      expect(placedWhenArmed).toEqual([true]);
+    });
+
     it('moves to the first enabled item when it opens', () => {
       render(
         <ContextMenu aria-label="Actions" trigger={<div data-region>Row</div>}>
@@ -792,8 +897,12 @@ describe('ContextMenu', () => {
       details.focus();
       contextMenu(details, 0, 0);
       expect(item('Rename')).toHaveFocus();
+      fireEvent.keyDown(item('Rename'), { key: 'ArrowDown' });
       contextMenu(region(), 400, 200);
-      fireEvent.keyDown(item('Rename'), { key: 'Escape' });
+      // Focus stays on the item it was on, in the menu at its new point.
+      expect(item('Duplicate')).toHaveFocus();
+      expect(box().style.left).toBe('400px');
+      fireEvent.keyDown(item('Duplicate'), { key: 'Escape' });
       expect(details).toHaveFocus();
     });
 
@@ -925,6 +1034,41 @@ describe('ContextMenu', () => {
       expect(
         fireEvent.keyDown(item('Rename'), { key: 'Enter', repeat: true })
       ).toBe(false);
+    });
+
+    it('starts a new search each time it opens', () => {
+      render(<FileMenu />);
+      contextMenu(region());
+      fireEvent.keyDown(item('Rename'), { key: 'r' });
+      expect(item('Rename')).toHaveFocus();
+      fireEvent.keyDown(item('Rename'), { key: 'Escape' });
+      // Inside the typeahead window. Carried over, the search would be "rd",
+      // which matches nothing.
+      contextMenu(region());
+      fireEvent.keyDown(item('Rename'), { key: 'd' });
+      expect(item('Duplicate')).toHaveFocus();
+    });
+
+    it('leaves the keys of a field inside the menu to it', () => {
+      render(
+        <ContextMenu aria-label="Move to" trigger={<div data-region>Row</div>}>
+          <input aria-label="Find a folder" />
+          <ContextMenu.Item as="button">Documents</ContextMenu.Item>
+          <ContextMenu.Item as="button">Downloads</ContextMenu.Item>
+        </ContextMenu>
+      );
+      contextMenu(region());
+      const field = within(document.body).getByRole('textbox', {
+        name: 'Find a folder',
+      });
+      field.focus();
+      for (const key of ['d', 'ArrowDown', 'ArrowUp', 'Home', 'End']) {
+        expect(fireEvent.keyDown(field, { key })).toBe(true);
+        expect(field).toHaveFocus();
+      }
+      // Escape and Tab still close it from there.
+      fireEvent.keyDown(field, { key: 'Escape' });
+      expect(menu()).toBeNull();
     });
 
     it('keeps its keys from the tree around it', () => {

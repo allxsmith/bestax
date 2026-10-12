@@ -195,22 +195,27 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     },
   });
 
-  // Measured once per opening, before it paints.
+  // Measured once per opening, before it paints, against what a fixed box
+  // resolves against: the root element's client area, which leaves out a
+  // classic scrollbar. `useAnchoredPosition` and Tooltip read innerWidth and
+  // innerHeight, which count it. A menu pinned to the viewport's edge would
+  // sit under the scrollbar by that much, so this reads the narrower box.
   useClientLayoutEffect(() => {
     const menuNode = menuRef.current;
     if (!menu || menu.placed || !menuNode) return;
-    const view = menuNode.ownerDocument.defaultView as Window;
+    const root = menuNode.ownerDocument.documentElement;
     const { width, height } = menuNode.getBoundingClientRect();
-    const x = placeAlong(menu.point.x, width, view.innerWidth);
-    const y = placeAlong(menu.point.y, height, view.innerHeight);
+    const x = placeAlong(menu.point.x, width, root.clientWidth);
+    const y = placeAlong(menu.point.y, height, root.clientHeight);
     setMenu({
       ...menu,
       placed: { left: x.start, top: y.start, right: x.flip, up: y.flip },
     });
   }, [menu]);
+  const isPlaced = Boolean(placed);
 
-  // Focus in on opening and back on closing, and what closes it while it's
-  // open. Nothing listens while it's closed.
+  // What closes it while it's open, and focus back on closing. Nothing
+  // listens while it's closed.
   useEffect(() => {
     const box = boxRef.current;
     const menuNode = menuRef.current;
@@ -219,19 +224,15 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
     // What had focus when it opened. This runs once per opening, so opening
     // again at a new point while it's open keeps it.
     const opener = openerRef.current as HTMLElement | null;
-    (enabledMenuItems(menuNode)[0] ?? menuNode).focus();
-
     const close = () => setMenu(null);
     const closeOutside = (event: Event) => {
       if (!isEventInside(event, box)) close();
     };
     doc.addEventListener('pointerdown', closeOutside, true);
-    doc.addEventListener('scroll', closeOutside, true);
     view.addEventListener('resize', close);
     view.addEventListener('blur', close);
     return () => {
       doc.removeEventListener('pointerdown', closeOutside, true);
-      doc.removeEventListener('scroll', closeOutside, true);
       view.removeEventListener('resize', close);
       view.removeEventListener('blur', close);
       // Back to what had focus while the menu still has it, or it dropped to
@@ -241,6 +242,28 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
       if (!now || now === doc.body || menuNode.contains(now)) opener?.focus();
     };
   }, [doc]);
+
+  // Focus in, and closing on scroll, once it's placed. Placed, it's inside
+  // the viewport, so its first item has nothing to scroll into view, and
+  // `preventScroll` makes sure: a scroll the focus caused would close it as
+  // it opened. Opening again at a new point places it again, and leaves
+  // focus where it is in the menu.
+  useEffect(() => {
+    const box = boxRef.current;
+    const menuNode = menuRef.current;
+    if (!doc || !isPlaced || !box || !menuNode) return undefined;
+    if (!menuNode.contains(getDeepestActiveElement(doc))) {
+      menuKeys.reset();
+      (enabledMenuItems(menuNode)[0] ?? menuNode).focus({
+        preventScroll: true,
+      });
+    }
+    const closeOutside = (event: Event) => {
+      if (!isEventInside(event, box)) setMenu(null);
+    };
+    doc.addEventListener('scroll', closeOutside, true);
+    return () => doc.removeEventListener('scroll', closeOutside, true);
+  }, [doc, isPlaced, menuKeys]);
 
   // Before paint, so what the caller does with it, such as highlighting the
   // row, shows with the menu rather than a frame behind it.
@@ -273,7 +296,7 @@ const ContextMenuComponent: React.FC<ContextMenuProps> = ({
       setMenu(null);
       return;
     }
-    menuKeys(event);
+    menuKeys.onKeyDown(event);
   };
 
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {

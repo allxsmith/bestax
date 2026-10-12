@@ -1,9 +1,11 @@
 import React from 'react';
+import { createPortal } from 'react-dom';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import {
   enabledMenuItems,
   isEnabledMenuItem,
+  MenuKeys,
   TYPEAHEAD_TIMEOUT,
   useMenuKeys,
 } from '../useMenuKeys';
@@ -17,11 +19,14 @@ const advance = (ms: number) =>
 const Menu = ({
   children,
   onKeyDown,
+  onMenuKeys,
 }: {
   children: React.ReactNode;
   onKeyDown?: (event: React.KeyboardEvent<HTMLElement>) => void;
+  onMenuKeys?: (menuKeys: MenuKeys) => void;
 }) => {
   const menuKeys = useMenuKeys();
+  onMenuKeys?.(menuKeys);
   return (
     <div
       role="menu"
@@ -29,7 +34,7 @@ const Menu = ({
       tabIndex={-1}
       onKeyDown={event => {
         onKeyDown?.(event);
-        menuKeys(event);
+        menuKeys.onKeyDown(event);
       }}
     >
       {children}
@@ -379,6 +384,121 @@ describe('useMenuKeys', () => {
       press('s');
       unmount();
       expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it('starts a new search after reset, and clears its timer', () => {
+      let menuKeys: MenuKeys | undefined;
+      render(
+        <Menu onMenuKeys={keys => (menuKeys = keys)}>
+          <button role="menuitem">Rename</button>
+          <button role="menuitem">Duplicate</button>
+        </Menu>
+      );
+      item('Rename').focus();
+      press('r');
+      expect(jest.getTimerCount()).toBe(1);
+      act(() => menuKeys!.reset());
+      expect(jest.getTimerCount()).toBe(0);
+      // Without the reset, this would search for "rd", which matches nothing.
+      press('d');
+      expect(item('Duplicate')).toHaveFocus();
+    });
+
+    it('returns the same handler and reset on every render', () => {
+      const seen: MenuKeys[] = [];
+      const ui = (name: string) => (
+        <Menu onMenuKeys={keys => seen.push(keys)}>
+          <button role="menuitem">{name}</button>
+        </Menu>
+      );
+      const { rerender } = render(ui('Rename'));
+      rerender(ui('Duplicate'));
+      expect(seen).toHaveLength(2);
+      expect(seen[1]).toBe(seen[0]);
+    });
+  });
+
+  describe('what has focus', () => {
+    /** A menu with a field among its items, as a free-form menu can have. */
+    const WithField = ({ onClick = jest.fn() }) => (
+      <Menu>
+        <button role="menuitem" onClick={onClick}>
+          Rename
+        </button>
+        <input aria-label="Filter" />
+        <div role="menuitem" tabIndex={0} onClick={onClick}>
+          Duplicate
+        </div>
+        <div role="menuitem" tabIndex={0} aria-disabled="true">
+          Delete
+        </div>
+      </Menu>
+    );
+    const field = () => screen.getByRole('textbox', { name: 'Filter' });
+
+    it('leaves the keys of a field inside the menu to it', () => {
+      const onClick = jest.fn();
+      render(<WithField onClick={onClick} />);
+      field().focus();
+      for (const key of [
+        'd',
+        'R',
+        ' ',
+        'ArrowDown',
+        'ArrowUp',
+        'Home',
+        'End',
+        'Enter',
+      ]) {
+        expect(press(key)).toBe(true);
+        expect(field()).toHaveFocus();
+      }
+      expect(onClick).not.toHaveBeenCalled();
+      expect(jest.getTimerCount()).toBe(0);
+    });
+
+    it('still moves from the menu itself, and from a disabled item that has focus', () => {
+      render(<WithField />);
+      screen.getByRole('menu').focus();
+      expect(press('ArrowDown')).toBe(false);
+      expect(item('Rename')).toHaveFocus();
+      item('Delete').focus();
+      expect(press('Home')).toBe(false);
+      expect(item('Rename')).toHaveFocus();
+      press('d');
+      expect(item('Duplicate')).toHaveFocus();
+    });
+
+    it('leaves the keys of an item portaled out of it to that item', () => {
+      render(
+        <Menu>
+          <button role="menuitem">Rename</button>
+          {createPortal(
+            <button role="menuitem">Elsewhere</button>,
+            document.body
+          )}
+        </Menu>
+      );
+      item('Elsewhere').focus();
+      expect(press('ArrowDown')).toBe(true);
+      expect(press('r')).toBe(true);
+      expect(item('Elsewhere')).toHaveFocus();
+    });
+
+    it('leaves a key alone when focus is outside the menu', () => {
+      render(
+        <>
+          <button>Elsewhere</button>
+          <WithField />
+        </>
+      );
+      screen.getByRole('button', { name: 'Elsewhere' }).focus();
+      // A key event that reaches the menu while focus is elsewhere, as a
+      // script can send one.
+      expect(
+        fireEvent.keyDown(screen.getByRole('menu'), { key: 'ArrowDown' })
+      ).toBe(true);
+      expect(screen.getByRole('button', { name: 'Elsewhere' })).toHaveFocus();
     });
   });
 });

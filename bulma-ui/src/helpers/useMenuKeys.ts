@@ -1,5 +1,5 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useCallback, useEffect, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import type { KeyboardEvent } from 'react';
 import { getActiveElementInTree } from './shadowDom';
 
@@ -20,6 +20,10 @@ export function isEnabledMenuItem(item: Element): boolean {
     item.getAttribute('aria-disabled') !== 'true'
   );
 }
+
+/** Whether `node` is one of `menu`'s items, enabled or not. */
+const isItemOf = (menu: Element, node: Element | null): boolean =>
+  Boolean(node && menu.contains(node) && node.matches(MENU_ITEM_SELECTOR));
 
 /** The items in `menu` the keys reach, in document order. */
 export function enabledMenuItems(menu: Element): HTMLElement[] {
@@ -83,11 +87,27 @@ function typeaheadMatch(
   return undefined;
 }
 
+/** What `useMenuKeys` returns. */
+export interface MenuKeys {
+  /** The `keydown` handler for the `role="menu"` element. */
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
+  /**
+   * Forgets what has been typed, so the next character starts a new search.
+   * Call it when the menu opens, so a search typed just before it last
+   * closed doesn't carry over.
+   */
+  reset: () => void;
+}
+
 /**
  * Moves through and activates the items of a `role="menu"` element from the
- * keyboard. Put the handler it returns on that element's `onKeyDown`. It
- * reads the items from the element each time, so items that come and go are
- * found, and it renders nothing.
+ * keyboard. Put the `onKeyDown` it returns on that element. It reads the
+ * items from the element each time, so items that come and go are found,
+ * and it renders nothing.
+ *
+ * It acts only while focus is on the menu element itself or on one of its
+ * items, so anything else focusable inside the menu, such as a filter
+ * field, keeps its own keys.
  *
  * - Down and Up move to the next and previous enabled item, wrapping, and
  *   Home and End go to the first and last. From no item, Down goes to the
@@ -99,16 +119,17 @@ function typeaheadMatch(
  *   `preventDefault()` has claimed the key, and nothing else runs it.
  * - A printable character moves to the next enabled item whose text starts
  *   with what has been typed. Characters typed within `TYPEAHEAD_TIMEOUT` of
- *   each other add up to one search.
+ *   each other add up to one search, until `reset` starts a new one.
  *
  * Items are `MENU_ITEM_SELECTOR` matches, and disabled ones are skipped by
  * all of the above. Escape and Tab are left to the menu's owner, since what
  * closing means is up to it, and so is any other key.
  *
  * @function useMenuKeys
- * @returns The `keydown` handler for the menu element.
+ * @returns The `keydown` handler for the menu element, and a way to forget
+ * what has been typed.
  */
-export function useMenuKeys(): (event: KeyboardEvent<HTMLElement>) => void {
+export function useMenuKeys(): MenuKeys {
   const typedRef = useRef<{
     text: string;
     timer?: ReturnType<typeof setTimeout>;
@@ -119,68 +140,76 @@ export function useMenuKeys(): (event: KeyboardEvent<HTMLElement>) => void {
     return () => clearTimeout(typed.timer);
   }, []);
 
-  return useCallback((event: KeyboardEvent<HTMLElement>) => {
-    const menu = event.currentTarget;
-    const items = enabledMenuItems(menu);
-    if (!items.length) return;
-    const current = items.indexOf(getActiveElementInTree(menu) as HTMLElement);
-    switch (event.key) {
-      case 'ArrowDown':
-        event.preventDefault();
-        items[current >= 0 ? (current + 1) % items.length : 0].focus();
-        return;
-      case 'ArrowUp':
-        event.preventDefault();
-        items[
-          current >= 0
-            ? (current - 1 + items.length) % items.length
-            : items.length - 1
-        ].focus();
-        return;
-      case 'Home':
-        event.preventDefault();
-        items[0].focus();
-        return;
-      case 'End':
-        event.preventDefault();
-        items[items.length - 1].focus();
-        return;
-      case 'Enter':
-      case ' ': {
-        if (current < 0 || event.defaultPrevented) return;
-        const item = items[current];
-        if (activatesItself(item, event.key)) {
-          // The browser clicks on Enter's keydown, and a held key sends one
-          // per auto-repeat. Space clicks on keyup, once however long it's
-          // held.
-          if (event.repeat && event.key === 'Enter') event.preventDefault();
+  return useMemo<MenuKeys>(() => {
+    const reset = () => {
+      const typed = typedRef.current;
+      clearTimeout(typed.timer);
+      typed.text = '';
+    };
+    const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+      const menu = event.currentTarget;
+      const focused = getActiveElementInTree(menu);
+      if (focused !== menu && !isItemOf(menu, focused)) return;
+      const items = enabledMenuItems(menu);
+      if (!items.length) return;
+      const current = items.indexOf(focused as HTMLElement);
+      switch (event.key) {
+        case 'ArrowDown':
+          event.preventDefault();
+          items[current >= 0 ? (current + 1) % items.length : 0].focus();
+          return;
+        case 'ArrowUp':
+          event.preventDefault();
+          items[
+            current >= 0
+              ? (current - 1 + items.length) % items.length
+              : items.length - 1
+          ].focus();
+          return;
+        case 'Home':
+          event.preventDefault();
+          items[0].focus();
+          return;
+        case 'End':
+          event.preventDefault();
+          items[items.length - 1].focus();
+          return;
+        case 'Enter':
+        case ' ': {
+          if (current < 0 || event.defaultPrevented) return;
+          const item = items[current];
+          if (activatesItself(item, event.key)) {
+            // The browser clicks on Enter's keydown, and a held key sends one
+            // per auto-repeat. Space clicks on keyup, once however long it's
+            // held.
+            if (event.repeat && event.key === 'Enter') event.preventDefault();
+            return;
+          }
+          // Space would scroll the page, and a held key repeats.
+          event.preventDefault();
+          if (!event.repeat) item.click();
           return;
         }
-        // Space would scroll the page, and a held key repeats.
-        event.preventDefault();
-        if (!event.repeat) item.click();
+        default:
+          break;
+      }
+
+      if (
+        event.key.length !== 1 ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey ||
+        event.defaultPrevented
+      ) {
         return;
       }
-      default:
-        break;
-    }
-
-    if (
-      event.key.length !== 1 ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.altKey ||
-      event.defaultPrevented
-    ) {
-      return;
-    }
-    event.preventDefault();
-    const typed = typedRef.current;
-    typed.text += event.key.toLowerCase();
-    clearTimeout(typed.timer);
-    typed.timer = setTimeout(() => {
-      typed.text = '';
-    }, TYPEAHEAD_TIMEOUT);
-    typeaheadMatch(items, typed.text, current)?.focus();
+      event.preventDefault();
+      const typed = typedRef.current;
+      typed.text += event.key.toLowerCase();
+      clearTimeout(typed.timer);
+      typed.timer = setTimeout(reset, TYPEAHEAD_TIMEOUT);
+      typeaheadMatch(items, typed.text, current)?.focus();
+    };
+    return { onKeyDown, reset };
   }, []);
 }

@@ -14,14 +14,18 @@ import { ContextMenu } from '../ContextMenu';
 import { ConfigProvider } from '../../helpers/Config';
 
 /** A press, from the element's own window, which jsdom has no PointerEvent in. */
-const press = (el: Element) => {
+const press = (
+  el: Element,
+  { pointerType = 'mouse', pointerId = 1, type = 'pointerdown' } = {}
+) => {
   const view = el.ownerDocument.defaultView as typeof window;
-  const event = new view.MouseEvent('pointerdown', {
+  const event = new view.MouseEvent(type, {
     bubbles: true,
     cancelable: true,
     composed: true,
   });
-  Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+  Object.defineProperty(event, 'pointerType', { value: pointerType });
+  Object.defineProperty(event, 'pointerId', { value: pointerId });
   fireEvent(el, event);
 };
 
@@ -144,6 +148,41 @@ describe('ContextMenu in an iframe', () => {
     press(within(frameDoc.body).getByText('Elsewhere'));
     expect(frameMenu()).toBeNull();
     expect(frameDoc.activeElement).toBe(details());
+  });
+
+  it('cancels a long press for a second finger in the iframe, not on the page around it', () => {
+    jest.useFakeTimers();
+    try {
+      render(
+        <>
+          <FileMenu />
+          <p>Elsewhere</p>
+        </>,
+        { container: mount, baseElement: frameDoc.body }
+      );
+      const region = mount.querySelector('[data-region]')!;
+      press(region, { pointerType: 'touch' });
+      press(document.body, { pointerType: 'touch', pointerId: 2 });
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+      expect(frameMenu()).toBeInTheDocument();
+      fireEvent.keyDown(frameDoc.activeElement!, { key: 'Escape' });
+      press(region, { pointerType: 'touch', type: 'pointerup' });
+
+      press(region, { pointerType: 'touch', pointerId: 3 });
+      expect(jest.getTimerCount()).toBe(1);
+      press(within(frameDoc.body).getByText('Elsewhere'), {
+        pointerType: 'touch',
+        pointerId: 4,
+      });
+      act(() => {
+        jest.advanceTimersByTime(500);
+      });
+      expect(frameMenu()).toBeNull();
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('closes on the iframe’s scrolling, resizing and losing focus, not the page’s', () => {

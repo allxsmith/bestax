@@ -47,12 +47,17 @@ interface Press {
   timer?: ReturnType<typeof setTimeout>;
   /** A `contextmenu` arrived while it was down, so the menu opened. */
   opened: boolean;
+  /** Stops listening for another pointer coming down in its document. */
+  stop: () => void;
 }
 
 /**
- * The last press a trigger took. A press reaches every trigger it bubbles
- * through, the innermost first and all before the next press, so this is
- * how a trigger around another one knows the inner one took it.
+ * The last press no trigger is to start a long press for: one a trigger
+ * took, or another pointer coming down while a press is held. A press
+ * reaches every trigger it bubbles through, the innermost first and all
+ * before the next press, so this is how a trigger around another one knows
+ * the inner one took it, and how a trigger a second finger lands on knows to
+ * leave it.
  */
 let claimed: Event | null = null;
 
@@ -85,9 +90,13 @@ function contextMenuPoint(event: MouseEvent<HTMLElement>): ContextMenuPoint {
  * - **Long press:** a touch or a pen held still on the trigger for
  *   `LONG_PRESS_DELAY` fires a `contextmenu` at what it landed on, so it
  *   takes the same path, handlers on the way included. Moving more than
- *   `LONG_PRESS_TOLERANCE`, lifting, another pointer coming down on the
- *   trigger, or `pointercancel`, which is the browser taking the gesture for
- *   a scroll or a zoom, cancels it, and a mouse never starts one. Where the
+ *   `LONG_PRESS_TOLERANCE`, lifting, another pointer coming down anywhere in
+ *   the document, or `pointercancel`, which is the browser taking the
+ *   gesture for a scroll or a zoom, cancels it, and a mouse never starts
+ *   one. A pointer that comes down while another is held starts no long
+ *   press of its own, on this trigger or another, so two fingers on two rows
+ *   open nothing. While the finger is down, and only then, a listener on the
+ *   document hears other pointers coming down. Where the
  *   browser fires `contextmenu` for a long press itself, the first of the two
  *   opens it, and the end of a touch that opened it is prevented, so lifting
  *   doesn't click what is under the finger.
@@ -113,18 +122,20 @@ export function useContextMenuTrigger({
   /** A long press opened the menu, and the touch that made it hasn't ended. */
   const heldRef = useRef(false);
 
+  const cancel = () => {
+    clearTimeout(pressRef.current?.timer);
+    pressRef.current?.stop();
+    pressRef.current = null;
+  };
+
   useEffect(
     () => () => {
       clearTimeout(pressRef.current?.timer);
+      pressRef.current?.stop();
       pressRef.current = null;
     },
     []
   );
-
-  const cancel = () => {
-    clearTimeout(pressRef.current?.timer);
-    pressRef.current = null;
-  };
   const isPress = (event: PointerEvent<HTMLElement>) =>
     pressRef.current?.pointerId === event.pointerId;
 
@@ -143,14 +154,6 @@ export function useContextMenuTrigger({
     },
     onPointerDown: event => {
       const native = event.nativeEvent;
-      if (pressRef.current) {
-        // Another pointer coming down makes it a pinch, not a long press,
-        // here and in any trigger around this one.
-        cancel();
-        claimed = native;
-        return;
-      }
-      heldRef.current = false;
       if (
         disabled ||
         (event.pointerType !== 'touch' && event.pointerType !== 'pen') ||
@@ -160,12 +163,25 @@ export function useContextMenuTrigger({
         return;
       }
       claimed = native;
+      heldRef.current = false;
+      const target = event.target as Element;
+      const doc = target.ownerDocument;
+      // Another pointer coming down anywhere makes it a pinch or a second
+      // touch, not a long press. In the capture phase, so it's heard before
+      // any trigger it lands on, which then leaves it. The press's own
+      // pointerdown has passed the document already, so it isn't heard.
+      const another = (other: Event) => {
+        claimed = other;
+        cancel();
+      };
+      doc.addEventListener('pointerdown', another, true);
       const press: Press = {
         pointerId: event.pointerId,
-        target: event.target as Element,
+        target,
         x: event.clientX,
         y: event.clientY,
         opened: false,
+        stop: () => doc.removeEventListener('pointerdown', another, true),
       };
       press.timer = setTimeout(() => {
         const view = press.target.ownerDocument.defaultView as typeof window;
