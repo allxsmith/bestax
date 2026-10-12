@@ -111,6 +111,8 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
   Message: { children: 'Hello' },
   Notification: { children: 'Hello' },
+  // Pressed, so the fill and `is-selected` it adds are swept too.
+  ToggleButton: { defaultPressed: true, children: 'Mute' },
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',

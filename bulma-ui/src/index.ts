@@ -32,6 +32,7 @@ export * from './elements/Box';
 export * from './elements/Button';
 export * from './elements/Buttons';
 export * from './elements/LinkButton';
+export * from './elements/ToggleButton';
 export * from './elements/Code';
 export * from './elements/Content';
 export * from './elements/Delete';
