@@ -34,6 +34,7 @@ interface HarnessProps {
   openDelay?: number;
   closeDelay?: number;
   withTrigger?: boolean;
+  consumeEscape?: boolean;
   onHandlers?: (handlers: HoverOpenHandlers) => void;
 }
 
@@ -44,6 +45,7 @@ const Harness = ({
   openDelay = 100,
   closeDelay = 50,
   withTrigger = true,
+  consumeEscape,
   onHandlers,
 }: HarnessProps) => {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -55,6 +57,7 @@ const Harness = ({
     closeDelay,
     triggerRef,
     floatingRef,
+    consumeEscape,
   });
   onHandlers?.(handlers);
   return (
@@ -207,6 +210,23 @@ describe('useHoverOpen', () => {
 
       rerender(<Harness open />);
       fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(outer).toHaveBeenCalledTimes(1);
+    } finally {
+      document.removeEventListener('keydown', outer);
+    }
+  });
+
+  it('closes on Escape and lets the key go on with consumeEscape off', () => {
+    const outer = jest.fn();
+    const onOpenChange = jest.fn();
+    document.addEventListener('keydown', outer);
+    try {
+      render(
+        <Harness open consumeEscape={false} onOpenChange={onOpenChange} />
+      );
+      trigger().focus();
+      expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
       expect(outer).toHaveBeenCalledTimes(1);
     } finally {
       document.removeEventListener('keydown', outer);

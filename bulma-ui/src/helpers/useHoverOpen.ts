@@ -43,6 +43,14 @@ export interface UseHoverOpenOptions {
    * @defaultValue false
    */
   openOnTap?: boolean;
+  /**
+   * Whether an Escape that closes it stops there when focus is on the
+   * trigger, in the floating element or nowhere, so a `Popover` or `Modal`
+   * around it keeps its own. Off, Escape still closes it and always goes on
+   * to whatever has focus, as suits content that only adds to the trigger.
+   * @defaultValue true
+   */
+  consumeEscape?: boolean;
 }
 
 /**
@@ -105,6 +113,8 @@ interface EscapeEntry {
   cancel: () => void;
   /** Asks to close. */
   close: () => void;
+  /** Whether an Escape that closes it can stop there. */
+  consumes: () => boolean;
 }
 
 /**
@@ -136,7 +146,8 @@ let openings = 0;
  *
  * The keypress belongs to whatever has focus. When that is one of the open
  * floating elements or their triggers, or nothing, the listener stops it in
- * the capture phase, before anything around (a Popover, a Modal) sees it.
+ * the capture phase, before anything around (a Popover, a Modal) sees it,
+ * unless the one it closes was set not to consume Escape.
  * When focus is anywhere else, such as a combobox or a dialog of its own,
  * the floating element still closes, since hover put it there without
  * focus, and the key goes on to that owner.
@@ -171,7 +182,10 @@ function wantEscape(doc: Document, entry: EscapeEntry): () => void {
         }
       }
       if (!top) return;
-      if (holding.length > 0 || !focused || focused === doc.body) {
+      if (
+        top.consumes() &&
+        (holding.length > 0 || !focused || focused === doc.body)
+      ) {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -249,8 +263,9 @@ interface HoverOpenState {
  *   else closes it on a timer.
  * - Escape closes it at once, wherever focus is, and stops there when focus
  *   is in it, on its trigger or nowhere, so a `Popover` or `Modal` around it
- *   keeps its own. With focus somewhere else, the key goes on after closing
- *   it. Inside another one, the inner one closes first. Escape before it
+ *   keeps its own. With focus somewhere else, or with `consumeEscape` off,
+ *   the key goes on after closing it. Inside another one, the inner one
+ *   closes first. Escape before it
  *   opens takes the opening back and goes on its way. One key listener per
  *   document serves every hook on it, there only while one of them is open
  *   or on its way to open.
@@ -325,6 +340,7 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       clearTimeout(stateRef.current.timer);
       latestRef.current.onOpenChange(false);
     },
+    consumes: () => latestRef.current.consumeEscape !== false,
   });
 
   // Asks to open or to close. Escape can take an ask to open back until it is

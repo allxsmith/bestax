@@ -9,6 +9,7 @@ import { Tooltip } from '../Tooltip';
 import { Popover } from '../Popover';
 import { Modal } from '../Modal';
 import { HoverCard } from '../HoverCard';
+import { Dropdown, DropdownItem } from '../Dropdown';
 import { ConfigProvider } from '../../helpers/Config';
 
 type PointerType = 'mouse' | 'pen' | 'touch';
@@ -839,7 +840,7 @@ describe('Tooltip', () => {
   });
 
   describe('Escape', () => {
-    it('hides it with keyboard focus on the trigger, leaving focus there, until focus leaves and comes back', () => {
+    it('hides it with keyboard focus on the trigger, leaving focus there and the key going on, until focus leaves and comes back', () => {
       render(
         <>
           <Tooltip label="Test tooltip">
@@ -852,7 +853,7 @@ describe('Tooltip', () => {
       advance(0);
       expect(wrapper()).toHaveClass('is-active');
 
-      expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(false);
+      expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
       expect(wrapper()).not.toHaveClass('is-active');
       expect(bubble()).toHaveAttribute('aria-hidden', 'true');
       expect(trigger()).toHaveFocus();
@@ -895,7 +896,7 @@ describe('Tooltip', () => {
       expect(wrapper()).toHaveClass('is-active');
     });
 
-    it('hides it while the pointer is on the tooltip and focus is on nothing, taking the key, and the next hover of the trigger shows it', () => {
+    it('hides it while the pointer is on the tooltip and focus is on nothing, letting the key go on, and the next hover of the trigger shows it', () => {
       render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
@@ -904,7 +905,7 @@ describe('Tooltip', () => {
       hover(trigger());
       advance(0);
       unhover(trigger(), bubble());
-      expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(false);
+      expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true);
       expect(wrapper()).not.toHaveClass('is-active');
       advance(5000);
       expect(wrapper()).not.toHaveClass('is-active');
@@ -914,7 +915,7 @@ describe('Tooltip', () => {
       expect(wrapper()).toHaveClass('is-active');
     });
 
-    it('lets the key through while no tooltip is showing', () => {
+    it('lets the key through whether a tooltip is showing or not', () => {
       const outer = jest.fn();
       document.addEventListener('keydown', outer);
       try {
@@ -929,13 +930,44 @@ describe('Tooltip', () => {
         hover(trigger());
         advance(0);
         fireEvent.keyDown(trigger(), { key: 'Escape' });
-        expect(outer).toHaveBeenCalledTimes(1);
-
-        fireEvent.keyDown(trigger(), { key: 'Escape' });
+        expect(wrapper()).not.toHaveClass('is-active');
         expect(outer).toHaveBeenCalledTimes(2);
       } finally {
         document.removeEventListener('keydown', outer);
       }
+    });
+
+    it('leaves a focused child its own Escape, and hides on the same key', () => {
+      const onKeyDown = jest.fn();
+      render(
+        <Tooltip label="Test tooltip">
+          <button onKeyDown={onKeyDown}>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(onKeyDown).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes a Dropdown in the trigger and hides the tooltip on one Escape', () => {
+      const onActiveChange = jest.fn();
+      render(
+        <Tooltip label="Row actions">
+          <Dropdown label="Actions" active onActiveChange={onActiveChange}>
+            <DropdownItem>Rename</DropdownItem>
+          </Dropdown>
+        </Tooltip>
+      );
+      const item = screen.getByText('Rename');
+      keyboardFocus(item);
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(wrapper()).not.toHaveClass('is-active');
     });
 
     it('cancels a delayed show that has not happened yet, and lets the key through', () => {
@@ -963,7 +995,7 @@ describe('Tooltip', () => {
       expect(wrapper()).toHaveClass('is-active');
     });
 
-    it('hides only the tooltip inside an open Modal while focus is on its trigger', () => {
+    it('hides the tooltip and closes an open Modal around it on one Escape, with focus on its trigger', () => {
       const onClose = jest.fn();
       render(
         <Modal active onClose={onClose}>
@@ -977,9 +1009,6 @@ describe('Tooltip', () => {
       expect(wrapper()).toHaveClass('is-active');
       fireEvent.keyDown(trigger(), { key: 'Escape' });
       expect(wrapper()).not.toHaveClass('is-active');
-      expect(onClose).not.toHaveBeenCalled();
-
-      fireEvent.keyDown(trigger(), { key: 'Escape' });
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
@@ -1003,7 +1032,7 @@ describe('Tooltip', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('hides only the tooltip inside an open Popover while focus is on its trigger', () => {
+    it('hides the tooltip and closes an open Popover around it on one Escape, with focus on its trigger', () => {
       render(
         <Popover trigger={<button>Team</button>} ariaLabel="Team" defaultOpen>
           <Tooltip label="Test tooltip">
@@ -1015,11 +1044,9 @@ describe('Tooltip', () => {
       advance(0);
       expect(wrapper()).toHaveClass('is-active');
       fireEvent.keyDown(trigger(), { key: 'Escape' });
-      expect(wrapper()).not.toHaveClass('is-active');
-      expect(screen.getByRole('dialog', { name: 'Team' })).toBeInTheDocument();
-
-      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      // The Popover closes, and the tooltip goes with its panel.
       expect(screen.queryByRole('dialog', { name: 'Team' })).toBeNull();
+      expect(wrapper()).toBeNull();
     });
 
     it('hides a hovered tooltip in an open Popover and lets the Popover have the key when focus is elsewhere in it', () => {

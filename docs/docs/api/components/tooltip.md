@@ -281,12 +281,11 @@ function example() {
 [WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)
 criterion:
 
-- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without moving the
+- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without you moving the
   pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes
-  back. The keypress belongs to whatever has focus. When that's the trigger or nothing, the tooltip
-  takes it, so a `Popover` or `Modal` around it stays open. When it's something else, such as a
-  field elsewhere on the page, the tooltip still hides and the key goes on to it. With no tooltip
-  showing, Escape goes on as usual.
+  back. The key goes on as well, to whatever has focus, so a control in the trigger, such as a
+  `Dropdown`, still gets its own Escape. Inside a `Popover` or `Modal`, one Escape hides the tooltip
+  and closes that too, since a tooltip only adds to what's there.
 - **Hoverable:** the pointer can move from the trigger onto a shown tooltip, across the gap between
   them, and it stays. A hidden tooltip lets the pointer through to whatever is under it.
 - **Persistent:** no timer hides a tooltip that's hovered or focused.
@@ -295,8 +294,7 @@ And around it:
 
 - Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings
   doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.
-- An `active` tooltip is always shown, whatever the pointer, focus and Escape do. It's part of the
-  page rather than something hover or focus brought, so Escape goes on to whatever else listens.
+- An `active` tooltip is always shown, whatever the pointer, focus and Escape do.
 - Tooltip content has `role="tooltip"`, and `aria-hidden` while it's hidden.
 - The trigger isn't linked to the tooltip with `aria-describedby`, so a screen reader doesn't
   announce the tooltip with it. Give an icon-only trigger its own name, such as an `aria-label`.
