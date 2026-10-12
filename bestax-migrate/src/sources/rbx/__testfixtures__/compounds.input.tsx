@@ -47,6 +47,9 @@ export const Compounds = () => (
       <Hero.Body>body</Hero.Body>
       <Hero.Foot>foot</Hero.Foot>
     </Hero>
+    <Hero size="fullheight-with-navbar">
+      <Hero.Body>under a fixed navbar</Hero.Body>
+    </Hero>
     <Breadcrumb align="centered" separator="arrow">
       <Breadcrumb.Item href="/a">A</Breadcrumb.Item>
       <Breadcrumb.Item active href="/b">B</Breadcrumb.Item>

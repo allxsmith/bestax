@@ -844,12 +844,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Hero',
     props: {
       color: {},
-      size: {
-        valueTodo: {
-          'fullheight-with-navbar':
-            'set `size="fullheight"` plus `fullheightWithNavbar` on the bestax Hero',
-        },
-      },
+      // rbx's five sizes are bestax's five, `fullheight-with-navbar`
+      // included, and both render the one `is-<size>` class.
+      size: {},
       gradient: {
         todo: 'bestax `Hero` has no gradient variant; add a custom class or `bgColor`',
       },

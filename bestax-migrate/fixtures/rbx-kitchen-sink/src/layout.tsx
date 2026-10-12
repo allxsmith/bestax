@@ -9,6 +9,9 @@ export const Layout = () => (
         <Hero.Body>Body</Hero.Body>
         <Hero.Foot>Foot</Hero.Foot>
       </Hero>
+      <Hero size="fullheight-with-navbar">
+        <Hero.Body>Under a fixed navbar</Hero.Body>
+      </Hero>
     </Section>
     <Divider />
     <Footer as="footer">Footer</Footer>
