@@ -171,6 +171,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const {
     onPointerEnter,
+    onPointerOver,
     onPointerLeave,
     onPointerDown,
     onPointerUp,
@@ -285,6 +286,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
       className={rootClasses}
       {...attrs}
       onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+      onPointerOver={chain(onPointerOver, hover.onPointerOver)}
       onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
       onFocus={chain(onFocus, hover.onFocus)}
       onBlur={chain(onBlur, hover.onBlur)}

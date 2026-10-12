@@ -54,6 +54,7 @@ export interface UseHoverOpenOptions {
  */
 export interface HoverOpenHandlers {
   onPointerEnter: (event: PointerEvent<HTMLElement>) => void;
+  onPointerOver: (event: PointerEvent<HTMLElement>) => void;
   onPointerLeave: (event: PointerEvent<HTMLElement>) => void;
   onFocus: (event: FocusEvent<HTMLElement>) => void;
   onBlur: (event: FocusEvent<HTMLElement>) => void;
@@ -236,7 +237,8 @@ interface HoverOpenState {
  * - The pointer entering, or keyboard focus arriving on the trigger, asks to
  *   open after `openDelay`. A touch pointer doesn't count. Neither does focus
  *   that a press brings to the trigger: it counts when the browser shows it
- *   as `:focus-visible`.
+ *   as `:focus-visible`. The pointer arriving from outside a shadow root the
+ *   trigger renders into counts too, though React sends no enter for it.
  * - Focus in the floating element holds it open however it got there,
  *   including focus in content it portals elsewhere, such as a nested card.
  *   Whether a click focuses what it lands on is up to the browser: Safari
@@ -464,6 +466,26 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       onPointerEnter: event => {
         if (event.pointerType === 'touch') return;
         stateRef.current.pointerIn = true;
+        settle();
+      },
+      onPointerOver: event => {
+        // React makes the enter out of the pointerout on the element the
+        // pointer left, and skips this pointerover when that element is its
+        // own. Leaving page content for a trigger inside a shadow root, that
+        // pointerout names only the shadow host, so no enter reaches here.
+        // A pointerover from outside the holder and the floating element is
+        // the pointer arriving, then. One from inside them is the pointer
+        // moving about within, which doesn't bring back a closed one.
+        const s = stateRef.current;
+        if (s.pointerIn || event.pointerType === 'touch') return;
+        const from = event.relatedTarget as Node | null;
+        if (
+          within(event.currentTarget, from) ||
+          within(latestRef.current.floatingRef.current, from)
+        ) {
+          return;
+        }
+        s.pointerIn = true;
         settle();
       },
       onPointerLeave: event => {

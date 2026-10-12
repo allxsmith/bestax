@@ -118,7 +118,14 @@ export const Tooltip: React.FC<TooltipProps> = ({
   ...props
 }) => {
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
-  const { onPointerEnter, onPointerLeave, onFocus, onBlur, ...attrs } = rest;
+  const {
+    onPointerEnter,
+    onPointerOver,
+    onPointerLeave,
+    onFocus,
+    onBlur,
+    ...attrs
+  } = rest;
   const [isVisible, setIsVisible] = useState(false);
   const [resolvedPosition, setResolvedPosition] = useState<
     Exclude<TooltipPosition, 'auto'>
@@ -264,6 +271,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
       ref={wrapperRef}
       className={combinedClasses}
       onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+      onPointerOver={chain(onPointerOver, hover.onPointerOver)}
       onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
       onFocus={chain(onFocus, hover.onFocus)}
       onBlur={chain(onBlur, hover.onBlur)}

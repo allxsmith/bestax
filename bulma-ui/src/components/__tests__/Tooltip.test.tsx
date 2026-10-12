@@ -1,4 +1,6 @@
-import type { ReactElement } from 'react';
+import { useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -700,6 +702,105 @@ describe('Tooltip', () => {
         </Tooltip>
       );
       hover(trigger(), 'pen');
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+  });
+
+  describe('portaled into a shadow root from page content', () => {
+    /**
+     * A page that portals its preview into a shadow root, as the docs site's
+     * live examples do. Moving from the page onto something in the shadow
+     * root, the browser's pointerout names only the shadow host, so React
+     * sends no enter, and it skips the pointerover since the page is its own.
+     */
+    const Page = ({ children }: { children: ReactNode }) => {
+      const [root, setRoot] = useState<ShadowRoot | null>(null);
+      return (
+        <>
+          <p>Page text</p>
+          <div
+            ref={el => {
+              if (el && !el.shadowRoot) {
+                setRoot(el.attachShadow({ mode: 'open' }));
+              }
+            }}
+          >
+            {root && createPortal(children, root)}
+          </div>
+        </>
+      );
+    };
+    const page = () => screen.getByText('Page text');
+    const shadow = () => page().nextElementSibling!.shadowRoot!;
+    const shadowWrapper = () => wrapper(shadow());
+    /** The browser's events for the pointer moving from `from` onto `to`. */
+    const move = (
+      from: Element,
+      to: Element,
+      pointerType: PointerType = 'mouse'
+    ) => {
+      pointer(from, 'pointerout', { pointerType, relatedTarget: to });
+      pointer(to, 'pointerover', { pointerType, relatedTarget: from });
+    };
+
+    it('shows after its delay when the pointer comes from the page, and hides once it goes back', () => {
+      render(
+        <Page>
+          <Tooltip label="Test tooltip" delay={200}>
+            <button>Hover me</button>
+          </Tooltip>
+        </Page>
+      );
+      const button = shadow().querySelector('button')!;
+      move(page(), button);
+      advance(199);
+      expect(shadowWrapper()).not.toHaveClass('is-active');
+      advance(1);
+      expect(shadowWrapper()).toHaveClass('is-active');
+
+      move(button, page());
+      advance(0);
+      expect(shadowWrapper()).not.toHaveClass('is-active');
+    });
+
+    it('is not shown by a touch pointer coming from the page', () => {
+      render(
+        <Page>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </Page>
+      );
+      move(page(), shadow().querySelector('button')!, 'touch');
+      advance(5000);
+      expect(shadowWrapper()).not.toHaveClass('is-active');
+    });
+  });
+
+  describe('after Escape, with the pointer still on the trigger', () => {
+    it('stays hidden while the pointer moves between the trigger’s own children, until it leaves and comes back', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>
+            <span>Save</span> <span>draft</span>
+          </button>
+        </Tooltip>
+      );
+      const [first, last] = Array.from(wrapper().querySelectorAll('span'));
+      hover(first);
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      pointer(first, 'pointerout', { relatedTarget: last });
+      pointer(last, 'pointerover', { relatedTarget: first });
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      unhover(last);
+      hover(last);
       advance(0);
       expect(wrapper()).toHaveClass('is-active');
     });

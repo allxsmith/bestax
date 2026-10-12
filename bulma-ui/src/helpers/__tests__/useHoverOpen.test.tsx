@@ -259,6 +259,51 @@ describe('useHoverOpen', () => {
     expect(jest.getTimerCount()).toBe(0);
   });
 
+  describe('a pointerover React sends no enter for', () => {
+    // React skips the enter for a pointerover whose relatedTarget is an
+    // element it renders, trusting the pointerout before it to have sent
+    // one. These send the pointerover alone, the way a page outside a shadow
+    // root the trigger is in leaves it.
+    const Page = (props: HarnessProps) => (
+      <>
+        <p>Page</p>
+        <Stateful {...props} />
+      </>
+    );
+    const page = () => screen.getByText('Page');
+
+    it('counts one from outside the holder as the pointer arriving', () => {
+      const onOpenChange = jest.fn();
+      render(<Page onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerover', page());
+      advance(99);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      advance(1);
+      expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    });
+
+    it('does not count one from inside the holder', () => {
+      const onOpenChange = jest.fn();
+      render(<Page onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerover', screen.getByTestId('root'));
+      advance(1000);
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('does not count one from a touch pointer', () => {
+      const onOpenChange = jest.fn();
+      render(<Page onOpenChange={onOpenChange} />);
+      const event = new MouseEvent('pointerover', {
+        bubbles: true,
+        relatedTarget: page(),
+      });
+      Object.defineProperty(event, 'pointerType', { value: 'touch' });
+      fireEvent(trigger(), event);
+      advance(1000);
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+  });
+
   describe('document listeners', () => {
     /**
      * Counts the capture-phase listeners of each type on `document` that are
