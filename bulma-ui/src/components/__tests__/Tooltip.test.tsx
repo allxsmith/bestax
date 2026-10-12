@@ -264,7 +264,6 @@ describe('Tooltip', () => {
       advance(1000);
       fireEvent.keyDown(trigger(), { key: 'Escape' });
       expect(wrapper()).toHaveClass('is-active');
-      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
@@ -282,7 +281,6 @@ describe('Tooltip', () => {
         </Tooltip>
       );
       expect(wrapper()).toHaveClass('is-active');
-      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
 
       unhover(trigger());
       advance(0);
@@ -925,7 +923,6 @@ describe('Tooltip', () => {
 
       expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
       expect(wrapper()).not.toHaveClass('is-active');
-      expect(bubble()).toHaveAttribute('aria-hidden', 'true');
       expect(trigger()).toHaveFocus();
       advance(5000);
       expect(wrapper()).not.toHaveClass('is-active');
@@ -1174,46 +1171,20 @@ describe('Tooltip', () => {
       expect(screen.getByRole('tooltip', { hidden: true })).toBeInTheDocument();
     });
 
-    it('tooltip content has aria-hidden="true" when not visible', () => {
+    // The stylesheet hides it with `visibility: hidden`, which keeps it out
+    // of the accessibility tree and still lets it describe its trigger.
+    // Tooltip.styles.test.tsx checks that with the real stylesheet.
+    it('leaves hiding the content to the stylesheet, with no aria-hidden', () => {
       render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'true'
-      );
-    });
-
-    it('tooltip content has aria-hidden="false" when visible', () => {
-      const { container } = render(
-        <Tooltip label="Test tooltip">
-          <button>Hover me</button>
-        </Tooltip>
-      );
-
-      hover(container.querySelector('.tooltip')!);
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'false'
-      );
-    });
-
-    it('tooltip content has aria-hidden="false" when always active', () => {
-      render(
-        <Tooltip label="Test tooltip" active>
-          <button>Hover me</button>
-        </Tooltip>
-      );
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'false'
-      );
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
     });
   });
 
@@ -1235,12 +1206,12 @@ describe('Tooltip', () => {
       );
       expect(bubble().id).not.toBe('');
       expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
-      expect(bubble()).toHaveAttribute('aria-hidden', 'true');
+      expect(wrapper()).not.toHaveClass('is-active');
       expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
 
       hover(trigger());
       advance(0);
-      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
+      expect(wrapper()).toHaveClass('is-active');
       expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
     });
 
@@ -1649,7 +1620,7 @@ describe('Tooltip', () => {
         </Tooltip>
       );
       try {
-        expect(serverHtml).toContain('aria-hidden="true"');
+        expect(serverHtml).not.toContain('is-active');
         expect(errorSpy).not.toHaveBeenCalled();
         hover(trigger());
         advance(0);

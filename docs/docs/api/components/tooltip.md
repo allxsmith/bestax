@@ -331,7 +331,8 @@ And around it:
   doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.
   `openOnTap` shows it with a tap, for a trigger with no tap action of its own.
 - An `active` tooltip is always shown, whatever the pointer, focus and Escape do.
-- Tooltip content has `role="tooltip"`, and `aria-hidden` while it's hidden.
+- Tooltip content has `role="tooltip"`. While it's hidden, the stylesheet gives it
+  `visibility: hidden`, which keeps it out of the accessibility tree.
 - The tooltip describes its trigger. The trigger's `aria-describedby` points at it, after any ids it
   already had, so a screen reader reads the tooltip when the trigger takes focus. A hidden tooltip
   still counts as a description, so that's before any `delay` runs out. `content` is read as plain
