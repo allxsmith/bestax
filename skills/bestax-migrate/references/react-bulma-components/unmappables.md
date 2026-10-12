@@ -136,6 +136,12 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.
 
+## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
+
+`Button.Group` and `Message` sizes carry over as written when bestax's `Buttons` or `Message`
+takes the value. Any other value, or one the codemod can't read, stays as written with a TODO
+that lists the sizes that component takes: use one of them, or drop the prop.
+
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls,

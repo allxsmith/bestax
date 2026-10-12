@@ -28,7 +28,7 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 | `Loader`       | plain `<div className="loader">`             | Auto (Bulma v1 still ships the class); swap in bestax's `Loader` by hand for its progressbar role and accessible name                               |
 | `Media`        | `Media`                                      | Auto                                                                                                                                                |
 | `Menu`         | `Menu`                                       | Auto                                                                                                                                                |
-| `Message`      | `Message`                                    | Auto                                                                                                                                                |
+| `Message`      | `Message`                                    | Auto; unknown or dynamic `size` flagged                                                                                                             |
 | `Modal`        | `Modal`                                      | `show`→`active`, `closeOnEsc`→`closeOnEscape`; `closeOnBlur`/`showClose` flagged (compound form renders neither)                                    |
 | `Navbar`       | `Navbar`                                     | Auto; see dropdown note below                                                                                                                       |
 | `Notification` | `Notification`                               | Auto; `light`→`isLight`                                                                                                                             |
@@ -46,7 +46,7 @@ codemod converts it; **Flagged** = it leaves a `TODO(bestax-migrate)` comment (s
 | RBC                                                         | bestax                                                                   |
 | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
 | `Breadcrumb.Item`                                           | plain `<li><a href=…>` (`active` → `is-active`)                          |
-| `Button.Group`                                              | `Buttons` (`align="right"`→`isRight`)                                    |
+| `Button.Group`                                              | `Buttons` (`align="right"`→`isRight`); unknown or dynamic `size` flagged |
 | `Card.Header` / `.Title` / `.Icon`                          | `Card.Header` / `.Header.Title` / `.Header.Icon`                         |
 | `Card.Image`                                                | `Card.Image` wrapping an inner `<Image>`                                 |
 | `Card.Content`                                              | `Card.Content`                                                           |

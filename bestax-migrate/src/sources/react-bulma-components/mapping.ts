@@ -12,6 +12,7 @@
  */
 
 import type { ComponentMapping, PropAction } from '../../types.js';
+import { SIZE_UNIONS } from '../_shared/size-unions.js';
 
 const DOCS = 'https://bestax.io/docs';
 
@@ -196,7 +197,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { center: 'isCentered', right: 'isRight' },
             valueToProp: true,
           },
-          size: {},
+          size: { allowed: SIZE_UNIONS.Buttons },
         },
       },
     },
@@ -563,7 +564,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Message',
     props: {
       color: {},
-      size: {},
+      size: { allowed: SIZE_UNIONS.Message },
     },
     subs: {
       Header: { status: 'mapped', target: 'Message.Header' },

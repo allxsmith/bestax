@@ -171,6 +171,16 @@ converted — bestax has its own unrelated `responsive` prop (`'mobile' | 'narro
 half-emptied rbx object behind would be a type error rather than a leftover. The TODO names
 which breakpoints did not carry.
 
+## A size bestax doesn't take (`prop:size`)
+
+`Button.Group`, `Tag.Group` and `Message` sizes carry over as written when bestax's `Buttons`,
+`Tags` or `Message` takes the value. Any other value, or one the codemod can't read, stays as
+written with a TODO that lists the sizes that component takes: use one of them, or drop the
+prop.
+
+A dynamic `Image.Container` size gets the same rule, since the codemod can't turn it into
+bestax's `NxN` form. Set `size` on the migrated `<Image>` by hand.
+
 ## Props with no counterpart
 
 | TODO                                         | What to do                                                                                                                                                                                                                                               |
