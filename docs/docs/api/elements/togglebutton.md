@@ -121,8 +121,8 @@ target `[aria-pressed='true']` or `.is-selected`, which are both there while it'
 
 ### Sizes and Shapes
 
-`size`, `isRounded`, `isFullwidth` and `isLoading` work in both states, the same as on `Button`,
-and so do the helper props.
+`size`, `isRounded` and `isFullwidth` work in both states, the same as on `Button`, and so do the
+helper props.
 
 ```tsx live
 <Buttons>
@@ -255,6 +255,41 @@ Your `onClick` runs before the toggle. Call `event.preventDefault()` in it and n
 </ToggleButton>
 ```
 
+### Loading
+
+`isLoading` shows Bulma's spinner in place of the label and holds the toggle where it is until you
+clear it. A click, <kbd>Enter</kbd> or <kbd>Space</kbd> does nothing meanwhile, and neither
+`onClick` nor `onPressedChange` fires. Set it while a change is saving, so nobody flips it again
+before the last change has landed. It isn't disabled, so it keeps focus, and it carries
+`aria-busy="true"` until you clear it.
+
+```tsx live
+function example() {
+  const [pinned, setPinned] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Stands in for the request that saves the change.
+  useEffect(() => {
+    if (!saving) return undefined;
+    const timer = setTimeout(() => setSaving(false), 1500);
+    return () => clearTimeout(timer);
+  }, [saving]);
+
+  return (
+    <ToggleButton
+      pressed={pinned}
+      isLoading={saving}
+      onPressedChange={next => {
+        setPinned(next);
+        setSaving(true);
+      }}
+    >
+      Pin
+    </ToggleButton>
+  );
+}
+```
+
 ### Disabled
 
 `isDisabled` (or `disabled`) makes it a disabled button: clicks and keys don't toggle it, and
@@ -281,6 +316,8 @@ Your `onClick` runs before the toggle. Call `event.preventDefault()` in it and n
   not pressed. It's never `"mixed"`.
 - **Keyboard:** <kbd>Enter</kbd> and <kbd>Space</kbd> toggle it, as on any button, and focus stays
   on it.
+- **Loading:** while `isLoading` is set, it carries `aria-busy="true"`, and keys hold it still the
+  same as the pointer does. It keeps focus, since it isn't disabled.
 - **The label stays put:** APG says "it is critical the label on a toggle does not change when its
   state changes." Mute stays "Mute". An icon can change, but the `aria-label` doesn't. A label that
   changes, "Play" and then "Pause", belongs on a plain `Button` with no `aria-pressed`. Nothing can
