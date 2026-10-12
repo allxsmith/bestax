@@ -819,6 +819,20 @@ describe('Tooltip', () => {
       expect(wrapper()).not.toHaveClass('is-active');
     });
 
+    it('shows again on the next tap after Escape hid it', () => {
+      render(
+        <Tooltip label="Test tooltip" openOnTap>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
     it('hides on a tap anywhere else', () => {
       render(
         <>

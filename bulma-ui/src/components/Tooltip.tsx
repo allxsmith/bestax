@@ -87,11 +87,13 @@ export interface TooltipProps
  *
  * Hovering the trigger or giving it keyboard focus shows it. Touch doesn't,
  * unless `openOnTap` is on, and neither does focus a click or a tap brings,
- * so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip.
- * Escape hides it wherever focus is, without moving the pointer or focus,
- * and it stays hidden until one of them leaves the trigger and comes back.
- * The key always goes on too, to whatever has focus or a `Modal` or
- * `Popover` around it, since a tooltip only adds to what's there.
+ * so tapping the trigger just does what the trigger does. The pointer can
+ * move onto a shown tooltip. Escape hides it wherever focus is, without
+ * moving the pointer or focus, and it stays hidden until one of them leaves
+ * the trigger and comes back, or, with `openOnTap`, until the next tap on
+ * the trigger. The key always goes on too, to whatever has focus or a
+ * `Modal` or `Popover` around it, since a tooltip only adds to what's
+ * there.
  *
  * @function
  * @param {TooltipProps} props - Props for the Tooltip component.

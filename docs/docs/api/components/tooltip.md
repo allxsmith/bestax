@@ -308,9 +308,10 @@ criterion:
 
 - **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without you moving the
   pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes
-  back. The key goes on as well, to whatever has focus, so a control in the trigger, such as a
-  `Dropdown`, still gets its own Escape. Inside a `Popover` or `Modal`, one Escape hides the tooltip
-  and closes that too, since a tooltip only adds to what's there.
+  back, or, with `openOnTap`, until the next tap on the trigger. The key goes on as well, to
+  whatever has focus, so a control in the trigger, such as a `Dropdown`, still gets its own Escape.
+  Inside a `Popover` or `Modal`, one Escape hides the tooltip and closes that too, since a tooltip
+  only adds to what's there.
 - **Hoverable:** the pointer can move from the trigger onto a shown tooltip, straight across the gap
   between them, and it stays. A hidden tooltip, or one only `active` shows, lets the pointer through
   to whatever is under it.
