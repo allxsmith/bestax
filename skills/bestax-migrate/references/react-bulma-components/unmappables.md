@@ -141,8 +141,8 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls,
 plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`,
 `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast`. On those, rename `domRef` to
-`ref` and it works; do not restructure the markup. "The form controls" means the inputs
+`Navbar.Item`, `Navbar.Link`, `Sidebar`, `Toast` and `ToggleButton`. On those, rename `domRef`
+to `ref` and it works; do not restructure the markup. "The form controls" means the inputs
 themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers
 around them forward nothing, and `Field` is a target this codemod emits.
 
