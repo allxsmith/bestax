@@ -6,11 +6,11 @@
       "promptName": "custom-component",
       "dir": "bestax-custom-component",
       "references": [
-        { "id": "api", "file": "references/api.md", "bytes": 11973 },
+        { "id": "api", "file": "references/api.md", "bytes": 12181 },
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 18983
+          "bytes": 19418
         },
         {
           "id": "library-contributor",
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 24541
+          "bytes": 24557
         },
         {
           "id": "bloomer-unmappables",
@@ -128,12 +128,12 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 12306
+          "bytes": 12322
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 14229
+          "bytes": 14336
         },
         {
           "id": "react-bulma-components-component-map",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 11810
+          "bytes": 12184
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 10126
+          "bytes": 10291
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 32380
+          "bytes": 33044
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 21731
+          "bytes": 22152
         }
       ],
       "examples": [

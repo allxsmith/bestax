@@ -252,6 +252,7 @@ for a non-modal dialog:
 - [`Tooltip`](./tooltip.md): A hover and focus hint for content nobody needs to interact with.
 - [`HoverCard`](./hovercard.md): A preview on a link or a button that opens on hover or keyboard focus, without taking focus.
 - [`Dropdown`](./dropdown.md): A menu of actions, with menu roles and arrow-key navigation.
+- [`ContextMenu`](./contextmenu.md): A menu of actions that opens where you right-click an element, or long press it.
 - [`Modal`](./modal.md): A modal overlay that blocks the page behind it.
 - [`Portal`](../helpers/portal.md): What `appendToBody` renders through.
 - [`useFocusTrap`](../helpers/usefocustrap.md): The focus trap the panel uses.
@@ -330,7 +331,7 @@ for a non-modal dialog:
 | `isOutlined`  | `boolean`                                                                                                                                                   | `false`    | Applies outlined styling (requires color).                                                                                       |
 | `isInverted`  | `boolean`                                                                                                                                                   | `false`    | Applies inverted styling (requires color).                                                                                       |
 | `isFocused`   | `boolean`                                                                                                                                                   | `false`    | Applies focused styling (visual only).                                                                                           |
-| `isActive`    | `boolean`                                                                                                                                                   | `false`    | Applies active styling (visual only).                                                                                            |
+| `isActive`    | `boolean`                                                                                                                                                   | `false`    | Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.               |
 | `isHovered`   | `boolean`                                                                                                                                                   | `false`    | Applies hovered styling (visual only).                                                                                           |
 | `isDisabled`  | `boolean`                                                                                                                                                   | `false`    | Applies disabled styling.                                                                                                        |
 | `className`   | `string`                                                                                                                                                    | —          | Custom class name.                                                                                                               |

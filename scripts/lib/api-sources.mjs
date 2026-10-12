@@ -104,6 +104,9 @@ export const SCSS_SOURCES = {
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
+  ContextMenu: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_contextmenu.scss' },
+  ],
   Control: [
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
@@ -252,6 +255,7 @@ export const SCSS_SOURCES = {
   ],
   Title: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Toast: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_toast.scss' }],
+  ToggleButton: [{ pkg: 'bulma', path: 'sass/elements/button.scss' }],
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],

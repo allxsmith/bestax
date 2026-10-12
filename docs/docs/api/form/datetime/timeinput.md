@@ -91,7 +91,7 @@ function example() {
 
 ### 12-hour Format
 
-`hourFormat="12"` renders an AM/PM toggle column.
+`hourFormat="12"` adds an AM/PM column to the wheels.
 
 ```tsx live
 function example() {
@@ -408,7 +408,7 @@ function example() {
 
 #### Controlled with live value
 
-The value updates on every increment, digit, or AM/PM toggle — exactly like the wheel popover. Bind to `useState` to see it.
+The value updates with every segment you change, the same as in the wheel popover. Bind to `useState` to see it.
 
 ```tsx live
 function example() {
@@ -456,7 +456,7 @@ function example() {
 
 #### 12-hour with seconds
 
-The full segment walk: `hh` → `mm` → `ss` → AM/PM. `→` / `←` move through all four segments, digits overwrite with auto-advance, and `a` / `p` toggle the meridiem.
+The full segment walk: `hh` → `mm` → `ss` → AM/PM. `→` / `←` move through all four segments, digits overwrite with auto-advance, and `a` / `p` set the meridiem to AM or PM.
 
 ```tsx live
 function example() {
@@ -923,7 +923,7 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | `Alt+↓` / `Alt+↑`     | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`             | Move to previous / next segment (hour ↔ minute ↔ second ↔ AM/PM)               |
 | `0`–`9`               | Overwrite the active segment; auto-advances when no further digit is valid     |
-| `a` / `A` / `p` / `P` | Toggle AM/PM on the meridiem segment                                           |
+| `a` / `A` / `p` / `P` | Set AM (`a`) or PM (`p`) on the meridiem segment                               |
 | `Backspace`           | Clear the typed-digit buffer; if already cleared, move to the previous segment |
 | `Tab`                 | Clear segment selection so focus moves out naturally                           |
 | `Escape`              | Close popover                                                                  |
@@ -987,7 +987,7 @@ function TimeInputFormDemo() {
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
 - Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
-- AM/PM toggle exposes `aria-pressed`.
+- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` reads `AM` or `PM`; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - Honors `prefers-reduced-motion`.
 
 ---
@@ -1059,7 +1059,7 @@ Combine `incrementMinutes={5}` (or `15`/`30`) with `min` and `max` to build a ti
 | `color`             | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —                | Bulma color modifier for the input, also carried by the wheels, where it colors the selection band. A focused wheel's keyboard focus ring is drawn inside the band in the color's `-invert`, like the selected value, so it shows on the fill. Unset, the wheels use `--bulma-timeinput-wheel-selected-bg`, which defaults to `primary`.                                                  |
 | `size`              | `'small'` \| `'medium'` \| `'large'`                                             | —                | Size variant.                                                                                                                                                                                                                                                                                                                                                                             |
 | `isRounded`         | `boolean`                                                                        | `false`          | Render the input with rounded corners.                                                                                                                                                                                                                                                                                                                                                    |
-| `hourFormat`        | `'12'` \| `'24'`                                                                 | `'24'`           | Hour format. `'12'` shows an AM/PM toggle.                                                                                                                                                                                                                                                                                                                                                |
+| `hourFormat`        | `'12'` \| `'24'`                                                                 | `'24'`           | Hour format. `'12'` adds an AM/PM column to the wheels.                                                                                                                                                                                                                                                                                                                                   |
 | `enableSeconds`     | `boolean`                                                                        | `false`          | Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS.                                                                                                                                                                                                                                     |
 | `incrementHours`    | `number`                                                                         | `1`              | Hour step for the spinner.                                                                                                                                                                                                                                                                                                                                                                |
 | `incrementMinutes`  | `number`                                                                         | `1`              | Minute step. Combine with `min`/`max` for slot-style pickers.                                                                                                                                                                                                                                                                                                                             |
@@ -1067,7 +1067,7 @@ Combine `incrementMinutes={5}` (or `15`/`30`) with `min` and `max` to build a ti
 | `unselectableTimes` | `(d: Date) => boolean`                                                           | —                | Predicate returning `true` for times that should be skipped. Blocked times are also rejected during manual typing.                                                                                                                                                                                                                                                                        |
 | `iconLeftName`      | `string`                                                                         | `'clock'`        | Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.                                                                                                                                                                                                                                                                                               |
 | `triggerIconName`   | `string`                                                                         | `'chevron-down'` | Glyph for the right launcher button.                                                                                                                                                                                                                                                                                                                                                      |
-| `labels`            | `PickerLabels`                                                                   | —                | Optional translatable string overrides.                                                                                                                                                                                                                                                                                                                                                   |
+| `labels`            | `PickerLabels`                                                                   | —                | Optional translatable string overrides. In a 12-hour picker, `ampm` names the AM/PM column, `'AM/PM'` by default.                                                                                                                                                                                                                                                                         |
 | `audioTick`         | `boolean`                                                                        | `false`          | Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless.                                                                                                                                                                     |
 | `haptics`           | `boolean`                                                                        | `false`          | Auto-route platform-appropriate feedback: vibrate on Android (already happening), audio thunk on iOS (where vibrate is unavailable). One switch instead of platform-sniffing on the consumer side. `audioTick={true}` always wins.                                                                                                                                                        |
 | `name`              | `string`                                                                         | —                | Form field name.                                                                                                                                                                                                                                                                                                                                                                          |

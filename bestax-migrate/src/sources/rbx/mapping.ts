@@ -14,6 +14,7 @@
  */
 
 import type { ComponentMapping, PropAction } from '../../types.js';
+import { SIZE_UNIONS } from '../_shared/size-unions.js';
 
 const DOCS = 'https://bestax.io/docs';
 
@@ -144,7 +145,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
   forwardRefAs: {
     status: 'todo',
-    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast` — pass `ref` directly on those, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a wrapping element you control',
+    todo: '`forwardRefAs` is rbx-internal and has no counterpart. bestax forwards a ref from the form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar`, `Toast` and `ToggleButton` — pass `ref` directly on those, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: your rbx `Navbar.Dropdown` is the menu and becomes `Navbar.DropdownMenu`, which forwards no ref, while bestax `Navbar.Dropdown` — the container your `<Navbar.Item dropdown>` becomes — does. The rest, `Box` included, forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a wrapping element you control',
   },
 
   // ---- elements -----------------------------------------------------------
@@ -189,9 +190,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { centered: 'isCentered', right: 'isRight' },
             valueToProp: true,
           },
-          size: {
-            todo: 'bestax `Buttons` has no size prop; set `size` on each Button instead',
-          },
+          size: { allowed: SIZE_UNIONS.Buttons },
         },
       },
     },
@@ -338,9 +337,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Tags',
         props: {
           gapless: { booleanToProp: { name: 'hasAddons' } },
-          size: {
-            todo: 'bestax `Tags` has no size prop; set `size` on each Tag instead',
-          },
+          size: { allowed: SIZE_UNIONS.Tags },
         },
       },
     },
@@ -617,9 +614,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Message',
     props: {
       color: {},
-      size: {
-        todo: 'bestax `Message` has no size prop; use the `size` helper on its children',
-      },
+      size: { allowed: SIZE_UNIONS.Message },
     },
     subs: {
       Body: { status: 'mapped', target: 'Message.Body' },
@@ -849,12 +844,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Hero',
     props: {
       color: {},
-      size: {
-        valueTodo: {
-          'fullheight-with-navbar':
-            'set `size="fullheight"` plus `fullheightWithNavbar` on the bestax Hero',
-        },
-      },
+      // rbx's five sizes are bestax's five, `fullheight-with-navbar`
+      // included, and both render the one `is-<size>` class.
+      size: {},
       gradient: {
         todo: 'bestax `Hero` has no gradient variant; add a custom class or `bgColor`',
       },

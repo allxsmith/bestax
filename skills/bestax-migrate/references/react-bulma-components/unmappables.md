@@ -129,20 +129,26 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 `bgColor`/`textColor` (they accept the full palette incl. shades), and replace
 `isSelected` with `className="is-selected"` inside grouped buttons.
 
-## `colorVariant` / Hero `gradient` / Hero `halfheight`
+## `colorVariant` / Hero `gradient` / Hero `halfheight` (`prop:size`)
 
 - `colorVariant="light"` → `isLight` where supported (Button, Notification), otherwise a
   shade: `bgColor="primary-90"`.
 - Bulma v1 removed `is-bold` hero gradients — delete `gradient` or restyle with CSS.
 - `halfheight` has no bestax size; use `size="medium"` or a CSS height.
 
+## A size bestax doesn't take (`prop:size` on `Button.Group` and `Message`)
+
+`Button.Group` and `Message` sizes carry over as written when bestax's `Buttons` or `Message`
+takes the value. Any other value, or one the codemod can't read, stays as written with a TODO
+that lists the sizes that component takes: use one of them, or drop the prop.
+
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls,
 plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`,
 `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast`. On those, rename `domRef` to
-`ref` and it works; do not restructure the markup. "The form controls" means the inputs
+`Navbar.Item`, `Navbar.Link`, `Sidebar`, `Toast` and `ToggleButton`. On those, rename `domRef`
+to `ref` and it works; do not restructure the markup. "The form controls" means the inputs
 themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers
 around them forward nothing, and `Field` is a target this codemod emits.
 

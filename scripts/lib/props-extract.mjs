@@ -1464,6 +1464,7 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
+  ToggleButton: 'button', // renders a `.button` through Button
 };
 
 /**
@@ -1688,7 +1689,18 @@ export function extractComponent(
       // so resolve the sub through the barrel and reuse its own root table.
       // Without this, Table rendered no sub-tables at all and the six cell
       // components' props vanished from the page.
-      if (_depth === 0 && impl !== name && mods.has(impl)) {
+      //
+      // A sub with no initializer here that reaches the barrel from a module
+      // named something else, as ContextMenu attaches Dropdown's own
+      // `DropdownItem`, is resolved the same way. Without that it fell to
+      // neither branch, and `ContextMenu.Item` was missing from its page and
+      // from the MCP index.
+      if (
+        _depth === 0 &&
+        impl !== name &&
+        (mods.has(impl) ||
+          (!inits.get(impl) && starExportedModule(ts, program, checker, impl)))
+      ) {
         const sub = extractComponent(impl, { depth, _depth: 1, markdown });
         const rootTable = sub.tables[0];
         // `component` names the standalone export. Where that export has an API

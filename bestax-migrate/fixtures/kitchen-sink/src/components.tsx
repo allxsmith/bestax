@@ -67,7 +67,7 @@ export function Widgets() {
           <Menu.List.Item>Customers</Menu.List.Item>
         </Menu.List>
       </Menu>
-      <Message color="danger">
+      <Message color="danger" size="small">
         <Message.Header>Error</Message.Header>
         <Message.Body>Something failed.</Message.Body>
       </Message>

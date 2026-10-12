@@ -53,6 +53,7 @@ const NAMED_INDIVIDUALLY = [
   'Navbar.Link',
   'Sidebar',
   'Toast',
+  'ToggleButton',
 ] as const;
 
 /**

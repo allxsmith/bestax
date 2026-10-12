@@ -12,6 +12,7 @@
  */
 
 import type { ComponentMapping, PropAction } from '../../types.js';
+import { SIZE_UNIONS } from '../_shared/size-unions.js';
 
 const DOCS = 'https://bestax.io/docs';
 
@@ -31,7 +32,7 @@ export const UNIVERSAL_PROPS: Record<string, PropAction> = {
     todo: 'this bestax component has no `as` prop; restructure the element instead',
   },
   domRef: {
-    todo: 'bestax-bulma has no `domRef`. The form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar` and `Toast` forward a ref — on those, rename `domRef` to `ref`, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a DOM child or wrap the component',
+    todo: 'bestax-bulma has no `domRef`. The form controls, plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`, `Navbar.Link`, `Sidebar`, `Toast` and `ToggleButton` forward a ref — on those, rename `domRef` to `ref`, though not on the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers, which forward none. Mind the `Navbar.Dropdown` collision: the `Navbar.Item` that wrapped your dropdown became bestax `Navbar.Dropdown` and forwards one, while your `Navbar.Dropdown` became `Navbar.DropdownMenu` and does not. The rest forward no ref: React 18 drops it with a warning, React 19 leaves it wherever the rest props go, so put the ref on a DOM child or wrap the component',
   },
   // ColorProps
   backgroundColor: { rename: 'bgColor' },
@@ -196,9 +197,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { center: 'isCentered', right: 'isRight' },
             valueToProp: true,
           },
-          size: {
-            todo: 'bestax Buttons has no group size; set size on each Button',
-          },
+          size: { allowed: SIZE_UNIONS.Buttons },
         },
       },
     },
@@ -565,9 +564,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Message',
     props: {
       color: {},
-      size: {
-        todo: 'no size prop on bestax Message; use textSize on the body',
-      },
+      size: { allowed: SIZE_UNIONS.Message },
     },
     subs: {
       Header: { status: 'mapped', target: 'Message.Header' },

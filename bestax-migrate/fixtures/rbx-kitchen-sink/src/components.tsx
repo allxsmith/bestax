@@ -55,7 +55,7 @@ export const Components = () => (
         <Menu.List.Item>Other</Menu.List.Item>
       </Menu.List>
     </Menu>
-    <Message color="success">
+    <Message color="success" size="medium">
       <Message.Header>Header</Message.Header>
       <Message.Body>Body</Message.Body>
     </Message>

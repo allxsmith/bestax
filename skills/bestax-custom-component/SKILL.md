@@ -63,6 +63,15 @@ Wrap it in the library's `ClientOnly` rather than checking `typeof window`: it r
 until the page has hydrated, so the server and client markup match. `references/api.md` has the
 details.
 
+A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
+`ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
+`aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes
+`pressed` with `onPressedChange`, and fills with `color` (default `link`) only while pressed.
+Its label stays the same in both states, and an icon-only one needs an `aria-label`. A set goes
+in `Buttons hasAddons role="group" aria-label="…"`. A row where only one can be on is a radio
+group, so it's `Radios`, never toggles that switch each other off. A setting saved with a form is
+a `Switch` or a `Checkbox`.
+
 A panel opened from a button (a filter form, share options, an inline edit) is `Popover`: use
 it rather than building one. It anchors the panel, moves focus in and back, and closes on
 Escape and outside presses.
@@ -73,6 +82,15 @@ keyboard focus after a delay, lets the pointer move onto the card, closes on Esc
 touch unless `openOnTap` is on, which suits only a trigger with no tap action of its own (a
 `Button` with no `onClick`, never a link). Its `trigger` has to be a link or a button, and a trigger in running text takes
 `appendToBody`. A form never goes in one; that's `Popover`.
+
+A menu of actions that opens on a right-click (Rename and Delete on a table row, Archive on a
+card) is `ContextMenu`: use it rather than an `onContextMenu` handler that positions a
+`Dropdown`. It opens at the point, also on Shift+F10, the context menu key and a long press,
+and its items are `ContextMenu.Item` and `ContextMenu.Divider`, the same components as
+`Dropdown.Item` and `Dropdown.Divider`. Its `trigger` is cloned, not wrapped, so a `Table.Tr`
+works, and the menu needs `aria-label`. Put the same items in a visible `Dropdown` as well:
+nothing tells a screen reader user a context menu is there, and on macOS only VoiceOver opens
+it from the keyboard.
 
 Building something else that floats (a command palette)? Render it through the library's
 `Portal` rather than `createPortal`: it renders nothing on the server and during hydration, so

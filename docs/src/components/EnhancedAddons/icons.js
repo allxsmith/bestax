@@ -81,6 +81,17 @@ function LoadingIcon() {
   );
 }
 
+// The pointer, and a menu of actions opening at its tip: context menu
+function ContextMenuIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M2 2.5v6.5l1.7-1.5 1.3 2.5 1.3-.7-1.3-2.5 2.3-.3z" />
+      <rect x="8" y="7" width="13" height="14.5" rx="2" />
+      <path d="M11 11h7M11 14.5h7M11 18h4" />
+    </svg>
+  );
+}
+
 // A link with the pointer resting on it, and the card it opens below: hover card
 function HoverCardIcon() {
   return (
@@ -165,6 +176,7 @@ const ADDON_ICONS = {
   badge: BadgeIcon,
   carousel: CarouselIcon,
   collapse: CollapseIcon,
+  contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,

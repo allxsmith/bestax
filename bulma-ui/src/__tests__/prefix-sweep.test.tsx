@@ -106,11 +106,19 @@ const PROPS: Record<string, Record<string, unknown>> = {
     position: 'top-right',
     children: 'Analytical Engine team',
   },
+  // Its menu needs a gesture, so the sweep sees the trigger and its class.
+  // ContextMenu.test.tsx opens the menu under a prefix.
+  ContextMenu: {
+    trigger: <div>report.pdf</div>,
+    children: <Library.ContextMenu.Item>Rename</Library.ContextMenu.Item>,
+  },
   Sidebar: { isOpen: true, children: 'Sidebar content' },
   Pagination: { current: 1, total: 5 },
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
   Message: { children: 'Hello' },
   Notification: { children: 'Hello' },
+  // Pressed, so the fill and `is-selected` it adds are swept too.
+  ToggleButton: { defaultPressed: true, children: 'Mute' },
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',

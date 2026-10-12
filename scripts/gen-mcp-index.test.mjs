@@ -372,7 +372,9 @@ test('CSS variables are indexed back to their component', () => {
   assert.ok(button.cssVars.length > 0);
   const row = button.cssVars.find(v => v.css === '--bulma-button-h');
   assert.ok(row, '--bulma-button-h missing');
-  assert.deepEqual(catalog.cssVarIndex['--bulma-button-h'], ['Button']);
+  // ToggleButton renders a `.button` too, so it declares the same variables,
+  // but Button is the one they're named after.
+  assert.equal(catalog.cssVarIndex['--bulma-button-h'][0], 'Button');
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
     assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
@@ -418,7 +420,9 @@ test('every CSS variable lists every declarer, the one it is named after first (
     }
   }
   const byCode = (a, b) => (a < b ? -1 : a > b ? 1 : 0);
-  const OWNERLESS = ['--bulma-picker-popover-'];
+  // The popover the pickers share, and the spinner color Bulma sets on
+  // `.button`, which ToggleButton declares as well since it renders one.
+  const OWNERLESS = ['--bulma-picker-popover-', '--bulma-loading-color'];
   // How much of the variable a component's name accounts for: its lower-cased
   // name, with or without hyphens between words, followed by `-` or the end.
   const namedLength = (css, name) => {
