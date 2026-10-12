@@ -157,7 +157,7 @@ export interface TimeInputBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Render the input with rounded corners. */
   isRounded?: boolean;
-  /** Hour format. `'12'` shows an AM/PM toggle. */
+  /** Hour format. `'12'` adds an AM/PM column to the wheels. */
   hourFormat?: HourFormat;
   /** Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. */
   enableSeconds?: boolean;
