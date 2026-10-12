@@ -30,6 +30,7 @@ const PUBLIC_EXPORTS = [
   'ConfigProvider',
   'Container',
   'Content',
+  'ContextMenu',
   'Control',
   'DateInput',
   'DateInputBase',
