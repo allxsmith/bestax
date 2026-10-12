@@ -171,22 +171,31 @@ converted — bestax has its own unrelated `responsive` prop (`'mobile' | 'narro
 half-emptied rbx object behind would be a type error rather than a leftover. The TODO names
 which breakpoints did not carry.
 
+## A size bestax doesn't take (`prop:size`)
+
+`Button.Group`, `Tag.Group` and `Message` sizes carry over as written when bestax's `Buttons`,
+`Tags` or `Message` takes the value. Any other value, or one the codemod can't read, stays as
+written with a TODO that lists the sizes that component takes: use one of them, or drop the
+prop.
+
+A dynamic `Image.Container` size gets the same rule, since the codemod can't turn it into
+bestax's `NxN` form. Set `size` on the migrated `<Image>` by hand.
+
 ## Props with no counterpart
 
-| TODO                                               | What to do                                                                                                                                                                                                                                               |
-| -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `prop:closeOnBlur` on `Modal`                      | the migrated compound form renders `Modal.Background` as you wrote it; wire its `onClick` to your `onClose`                                                                                                                                              |
-| `prop:selected`, `prop:text` on `Button`           | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                                                                                                                   |
-| `prop:size` on `Button.Group` / `Tags` / `Message` | set `size` on each child instead                                                                                                                                                                                                                         |
-| `prop:gradient` on `Hero`                          | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                                                                                                                    |
-| `prop:color`, `prop:vertical` on `Divider`         | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                                                                                                            |
-| `component:Divider` (a labelled divider)           | rbx rendered `<Divider>OR</Divider>`'s children as a centred label via `data-content`; bestax's `Divider` is a bare `<hr>` and takes no children -- React rejects children on a void element at runtime. Put the label in surrounding markup, or drop it |
-| `prop:direction` on `PageLoader`                   | no directional variant; drop it or add a class                                                                                                                                                                                                           |
-| `prop:managed`                                     | bestax components are uncontrolled; drive the `Modal` with `active` and `onClose`                                                                                                                                                                        |
-| `prop:document` on `Modal`                         | bestax portals via `portal`, but it takes `true`, a selector or an element rather than a `Document` — see [Modal: what carries over](#modal-what-carries-over)                                                                                           |
-| `prop:document` on `Navbar`                        | bestax's `Navbar` has no `document` prop; drop it                                                                                                                                                                                                        |
-| `badgeOutlined`, `badgeRounded`, `badgeSize`       | bestax's `Badge` has no outline, pill or size variant                                                                                                                                                                                                    |
-| `tooltipResponsive`                                | bestax's `Tooltip` has one `position` for all viewports                                                                                                                                                                                                  |
+| TODO                                         | What to do                                                                                                                                                                                                                                               |
+| -------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `prop:closeOnBlur` on `Modal`                | the migrated compound form renders `Modal.Background` as you wrote it; wire its `onClick` to your `onClose`                                                                                                                                              |
+| `prop:selected`, `prop:text` on `Button`     | `className="is-selected"`; for `is-text` use `color="ghost"` or a link                                                                                                                                                                                   |
+| `prop:gradient` on `Hero`                    | Bulma v1 removed `is-bold` gradients; use `bgColor` or a custom class                                                                                                                                                                                    |
+| `prop:color`, `prop:vertical` on `Divider`   | bestax's `Divider` takes only `bgColor` and renders an `<hr>`                                                                                                                                                                                            |
+| `component:Divider` (a labelled divider)     | rbx rendered `<Divider>OR</Divider>`'s children as a centred label via `data-content`; bestax's `Divider` is a bare `<hr>` and takes no children -- React rejects children on a void element at runtime. Put the label in surrounding markup, or drop it |
+| `prop:direction` on `PageLoader`             | no directional variant; drop it or add a class                                                                                                                                                                                                           |
+| `prop:managed`                               | bestax components are uncontrolled; drive the `Modal` with `active` and `onClose`                                                                                                                                                                        |
+| `prop:document` on `Modal`                   | bestax portals via `portal`, but it takes `true`, a selector or an element rather than a `Document` — see [Modal: what carries over](#modal-what-carries-over)                                                                                           |
+| `prop:document` on `Navbar`                  | bestax's `Navbar` has no `document` prop; drop it                                                                                                                                                                                                        |
+| `badgeOutlined`, `badgeRounded`, `badgeSize` | bestax's `Badge` has no outline, pill or size variant                                                                                                                                                                                                    |
+| `tooltipResponsive`                          | bestax's `Tooltip` has one `position` for all viewports                                                                                                                                                                                                  |
 
 ## Modal: what carries over
 

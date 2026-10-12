@@ -122,6 +122,22 @@ const POLYMORPHIC = [
 const table = (component, path) =>
   extractComponent(component).tables.find(t => t.path === path);
 
+test('a sub-component imported from a module named something else keeps its table', () => {
+  // ContextMenu attaches Dropdown's own DropdownItem and DropdownDivider. Neither
+  // has a module of its own or an initializer in ContextMenu.tsx, so both
+  // dropped off the page and out of the MCP index.
+  const item = table('ContextMenu', 'ContextMenu.Item');
+  assert.ok(item, 'ContextMenu.Item has no table');
+  assert.equal(item.component, 'DropdownItem');
+  assert.deepEqual(
+    item.rows.map(r => r.name),
+    table('Dropdown', 'Dropdown.Item').rows.map(r => r.name)
+  );
+  const divider = table('ContextMenu', 'ContextMenu.Divider');
+  assert.ok(divider?.listOnly, 'ContextMenu.Divider is not listed');
+  assert.equal(divider.component, 'DropdownDivider');
+});
+
 test('a polymorphic component still resolves its props type', () => {
   // The cast defeats every existing path in `propsInterfaceName`. A miss is
   // near-silent: `gen-api-docs` skips a `listOnly` SUB outright, so Navbar.Item

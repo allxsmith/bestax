@@ -252,6 +252,7 @@ for a non-modal dialog:
 - [`Tooltip`](./tooltip.md): A hover and focus hint for content nobody needs to interact with.
 - [`HoverCard`](./hovercard.md): A preview on a link or a button that opens on hover or keyboard focus, without taking focus.
 - [`Dropdown`](./dropdown.md): A menu of actions, with menu roles and arrow-key navigation.
+- [`ContextMenu`](./contextmenu.md): A menu of actions that opens where you right-click an element, or long press it.
 - [`Modal`](./modal.md): A modal overlay that blocks the page behind it.
 - [`Portal`](../helpers/portal.md): What `appendToBody` renders through.
 - [`useFocusTrap`](../helpers/usefocustrap.md): The focus trap the panel uses.

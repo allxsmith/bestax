@@ -171,7 +171,8 @@ lone class or the `style` prop cannot outrank:
   `.button.link-button { --bulma-link-button-ghost-color: … }`.
 - **Constituent elements** — Tooltip's variables (all but `--bulma-tooltip-dashed-color`)
   are declared on `.tooltip-content`, Popover's on its panel, `.popover-content`, HoverCard's
-  on its card, `.hover-card-content`, and Sidebar's
+  on its card, `.hover-card-content`, ContextMenu's on the box its menu hangs from,
+  `.context-menu-content`, and Sidebar's
   `--bulma-sidebar-overlay-background` on `.sidebar-background`. Values set via `className` or
   `style` land on the component root and are only inherited by the constituent, so they lose to
   its own declaration — target the declaring element in your CSS:
@@ -256,6 +257,18 @@ own-selector override rule applies.
 items of a `Collapses` group, which reads it with a 0.5rem fallback and declares no value itself,
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
+
+### ContextMenu
+
+Both are declared on the box the menu hangs from, `.context-menu-content`, which is portaled away
+from the trigger. See the constituent-element exception above.
+
+`--bulma-context-menu-max-height`, `--bulma-context-menu-z-index`
+
+The menu inside that box is Bulma's dropdown markup, and the box is a `.dropdown` too, so the
+`--bulma-dropdown-*` variables theme it. Bulma declares them on `.dropdown`, so a context menu
+takes a value set on the box: `.dropdown.context-menu-content { --bulma-dropdown-content-radius: … }`
+changes context menus and leaves `Dropdown` alone.
 
 ### DateInput
 
@@ -477,6 +490,10 @@ wheel item's height inline.
 
 All but `--bulma-tooltip-dashed-color` are declared on `.tooltip-content` — see the
 constituent-element exception above.
+
+Raising `--bulma-tooltip-arrow-size` or `--bulma-tooltip-arrow-margin` widens the gap between the
+trigger and the tooltip past what the pointer can cross on its own, so give the tooltip a
+`closeDelay` long enough to cross it.
 
 `--bulma-tooltip-arrow-margin`, `--bulma-tooltip-arrow-size`, `--bulma-tooltip-background`,
 `--bulma-tooltip-color`, `--bulma-tooltip-dashed-color`, `--bulma-tooltip-font-size`,

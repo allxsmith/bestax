@@ -16,6 +16,15 @@ The `Tooltip` component displays helpful information when users hover over or fo
 
 It supports multiple positions, colors, and styles. Perfect for providing additional context, abbreviation expansions, or action descriptions.
 
+:::note On phones and tablets
+
+By default a touch screen never shows a `Tooltip`: there's no hover, and a tap belongs to the
+trigger. Anything a touch user needs to know can't live only in a tooltip. For a trigger with no
+tap action of its own, `openOnTap` shows the tooltip with a tap, as
+[On Touch Screens](#on-touch-screens) shows.
+
+:::
+
 ---
 
 ## Import
@@ -191,6 +200,22 @@ function example() {
 
 ---
 
+### On Touch Screens
+
+A touch screen has no hover, so a phone or tablet never shows the tooltip unless you pass
+`openOnTap`. With it, a tap on the trigger shows the tooltip at once, and it stays until another tap
+on the trigger or the tooltip, a tap anywhere else, or <kbd>Escape</kbd>. The tap still does
+whatever the trigger does, so turn it on only for a trigger with no tap action of its own, like the
+`Button` below, which has no `onClick`. Mouse and pen work the same either way.
+
+```tsx live
+<Tooltip label="Orders over $50 ship free" openOnTap>
+  <Button>Shipping</Button>
+</Tooltip>
+```
+
+---
+
 ### On Icons
 
 Tooltips on icon buttons for action descriptions.
@@ -277,10 +302,31 @@ function example() {
 
 ## Accessibility
 
-- Tooltip content has `role="tooltip"` for screen reader announcement
-- Has `aria-hidden` that toggles based on visibility
-- Tooltip shows on both hover and focus for keyboard users
-- The `dashed` style provides a visual cue that more information is available
+`Tooltip` is built to
+[WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)
+criterion:
+
+- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without you moving the
+  pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes
+  back, or, with `openOnTap`, until the next tap on the trigger. The key goes on as well, to
+  whatever has focus, so a control in the trigger, such as a `Dropdown`, still gets its own Escape.
+  Inside a `Popover` or `Modal`, one Escape hides the tooltip and closes that too, since a tooltip
+  only adds to what's there.
+- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, straight across the gap
+  between them, and it stays. A hidden tooltip, or one only `active` shows, lets the pointer through
+  to whatever is under it.
+- **Persistent:** no timer hides a tooltip that's hovered or focused.
+
+And around it:
+
+- Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings
+  doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.
+  `openOnTap` shows it with a tap, for a trigger with no tap action of its own.
+- An `active` tooltip is always shown, whatever the pointer, focus and Escape do.
+- Tooltip content has `role="tooltip"`, and `aria-hidden` while it's hidden.
+- The trigger isn't linked to the tooltip with `aria-describedby`, so a screen reader doesn't
+  announce the tooltip with it. Give an icon-only trigger its own name, such as an `aria-label`.
+- The `dashed` style provides a visual cue that more information is available.
 
 ---
 
@@ -297,24 +343,25 @@ function example() {
 
 <!-- bestax:generated props -->
 
-| Prop               | Type                                                                                                     | Default | Description                                       |
-| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `label`            | `string`                                                                                                 | —       | The tooltip text content.                         |
-| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`).    |
-| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip. Default: 'top'.          |
-| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant for the tooltip.                    |
-| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size of the tooltip.                              |
-| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible.               |
-| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.          |
-| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation. Default: true.             |
-| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.            |
-| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                 |
-| `delay`            | `number`                                                                                                 | `0`     | Delay before showing tooltip (ms).                |
-| `closeDelay`       | `number`                                                                                                 | `0`     | Delay in ms before hiding the tooltip.            |
-| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.       |
-| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.            |
-| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                           |
-| `...`              | All standard `<span>` attributes and Bulma helper props                                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop               | Type                                                                                                     | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                |
+| ------------------ | -------------------------------------------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`            | `string`                                                                                                 | —       | The tooltip text content.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `content`          | `React.ReactNode`                                                                                        | —       | Rich tooltip content (alternative to `label`), to read rather than use. Nothing in it should take focus or a click: it isn't in the Tab order while hidden, focus there isn't counted as being in the tooltip, and Escape hiding it would drop that focus. For links or buttons, use `HoverCard` or `Popover`.                                                                                                             |
+| `position`         | `'top'` \| `'bottom'` \| `'left'` \| `'right'` \| `'auto'`                                               | `'top'` | Position of the tooltip. Default: 'top'.                                                                                                                                                                                                                                                                                                                                                                                   |
+| `color`            | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'dark'` \| `'light'` | —       | Color variant for the tooltip.                                                                                                                                                                                                                                                                                                                                                                                             |
+| `size`             | `'small'` \| `'medium'` \| `'large'`                                                                     | —       | Size of the tooltip.                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `active`           | `boolean`                                                                                                | `false` | Force tooltip to be always visible. Hover, focus and Escape leave it shown, so Escape goes on to whatever has focus, or to a `Modal` or `Popover` around it.                                                                                                                                                                                                                                                               |
+| `multiline`        | `boolean`                                                                                                | `false` | Allow tooltip to wrap to multiple lines.                                                                                                                                                                                                                                                                                                                                                                                   |
+| `animated`         | `boolean`                                                                                                | `true`  | Enable fade animation. Default: true.                                                                                                                                                                                                                                                                                                                                                                                      |
+| `square`           | `boolean`                                                                                                | `false` | Use square corners instead of rounded.                                                                                                                                                                                                                                                                                                                                                                                     |
+| `dashed`           | `boolean`                                                                                                | `false` | Show dashed underline on trigger.                                                                                                                                                                                                                                                                                                                                                                                          |
+| `delay`            | `number`                                                                                                 | `0`     | How long the pointer or keyboard focus waits on the trigger before the tooltip shows, in milliseconds.                                                                                                                                                                                                                                                                                                                     |
+| `closeDelay`       | `number`                                                                                                 | `0`     | How long the tooltip stays after the pointer and focus have left the trigger and the tooltip, in milliseconds. The pointer can move from the trigger onto a shown tooltip without one, across the default gap. A theme that raises `--bulma-tooltip-arrow-size` or `--bulma-tooltip-arrow-margin` widens the gap past what the pointer can cross on its own, so give it a `closeDelay` long enough to cross the rest.      |
+| `openOnTap`        | `boolean`                                                                                                | `false` | Show the tooltip with a tap on a touch screen. Touch has no hover, so without this a phone or tablet never shows it. With it, a tap on the trigger shows it at once, and it stays until another tap on the trigger or the tooltip, a tap anywhere else, or Escape. The tap still does whatever the trigger does, so turn this on only for a trigger with no tap action of its own. Mouse and pen work the same either way. |
+| `tooltipClassName` | `string`                                                                                                 | —       | Additional classes for the tooltip element.                                                                                                                                                                                                                                                                                                                                                                                |
+| `children`         | `React.ReactNode`                                                                                        | —       | The element that triggers the tooltip.                                                                                                                                                                                                                                                                                                                                                                                     |
+| `className`        | `string`                                                                                                 | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `...`              | All standard `<span>` attributes and Bulma helper props                                                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                          |
 
 <!-- /bestax:generated props -->
 
@@ -345,3 +392,9 @@ function example() {
 ‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->
+
+`--bulma-tooltip-arrow-size` and `--bulma-tooltip-arrow-margin` together set the gap between the
+trigger and the tooltip. The bridge that carries the pointer across that gap is sized from their
+Sass defaults, so it covers the default gap only. If you raise either variable, give the tooltip a
+`closeDelay` long enough for the pointer to cross the wider gap, or it hides before the pointer
+reaches it.

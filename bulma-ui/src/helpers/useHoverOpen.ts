@@ -43,6 +43,14 @@ export interface UseHoverOpenOptions {
    * @defaultValue false
    */
   openOnTap?: boolean;
+  /**
+   * Whether an Escape that closes it stops there when focus is on the
+   * trigger, in the floating element or nowhere, so a `Popover` or `Modal`
+   * around it keeps its own. Off, Escape still closes it and always goes on
+   * to whatever has focus, as suits content that only adds to the trigger.
+   * @defaultValue true
+   */
+  consumeEscape?: boolean;
 }
 
 /**
@@ -54,11 +62,26 @@ export interface UseHoverOpenOptions {
  */
 export interface HoverOpenHandlers {
   onPointerEnter: (event: PointerEvent<HTMLElement>) => void;
+  onPointerOver: (event: PointerEvent<HTMLElement>) => void;
   onPointerLeave: (event: PointerEvent<HTMLElement>) => void;
   onFocus: (event: FocusEvent<HTMLElement>) => void;
   onBlur: (event: FocusEvent<HTMLElement>) => void;
   onPointerDown: (event: PointerEvent<HTMLElement>) => void;
   onPointerUp: (event: PointerEvent<HTMLElement>) => void;
+}
+
+/**
+ * Runs the caller's own handler on the element that holds the trigger, then
+ * the hook's, so neither replaces the other.
+ */
+export function chain<E>(
+  own: ((event: E) => void) | undefined,
+  ours: (event: E) => void
+): (event: E) => void {
+  return event => {
+    own?.(event);
+    ours(event);
+  };
 }
 
 /**
@@ -90,6 +113,8 @@ interface EscapeEntry {
   cancel: () => void;
   /** Asks to close. */
   close: () => void;
+  /** Whether an Escape that closes it can stop there. */
+  consumes: () => boolean;
 }
 
 /**
@@ -121,7 +146,8 @@ let openings = 0;
  *
  * The keypress belongs to whatever has focus. When that is one of the open
  * floating elements or their triggers, or nothing, the listener stops it in
- * the capture phase, before anything around (a Popover, a Modal) sees it.
+ * the capture phase, before anything around (a Popover, a Modal) sees it,
+ * unless the one it closes was set not to consume Escape.
  * When focus is anywhere else, such as a combobox or a dialog of its own,
  * the floating element still closes, since hover put it there without
  * focus, and the key goes on to that owner.
@@ -156,7 +182,10 @@ function wantEscape(doc: Document, entry: EscapeEntry): () => void {
         }
       }
       if (!top) return;
-      if (holding.length > 0 || !focused || focused === doc.body) {
+      if (
+        top.consumes() &&
+        (holding.length > 0 || !focused || focused === doc.body)
+      ) {
         event.preventDefault();
         event.stopPropagation();
       }
@@ -222,7 +251,8 @@ interface HoverOpenState {
  * - The pointer entering, or keyboard focus arriving on the trigger, asks to
  *   open after `openDelay`. A touch pointer doesn't count. Neither does focus
  *   that a press brings to the trigger: it counts when the browser shows it
- *   as `:focus-visible`.
+ *   as `:focus-visible`. The pointer arriving from outside a shadow root the
+ *   trigger renders into counts too, though React sends no enter for it.
  * - Focus in the floating element holds it open however it got there,
  *   including focus in content it portals elsewhere, such as a nested card.
  *   Whether a click focuses what it lands on is up to the browser: Safari
@@ -233,8 +263,9 @@ interface HoverOpenState {
  *   else closes it on a timer.
  * - Escape closes it at once, wherever focus is, and stops there when focus
  *   is in it, on its trigger or nowhere, so a `Popover` or `Modal` around it
- *   keeps its own. With focus somewhere else, the key goes on after closing
- *   it. Inside another one, the inner one closes first. Escape before it
+ *   keeps its own. With focus somewhere else, or with `consumeEscape` off,
+ *   the key goes on after closing it. Inside another one, the inner one
+ *   closes first. Escape before it
  *   opens takes the opening back and goes on its way. One key listener per
  *   document serves every hook on it, there only while one of them is open
  *   or on its way to open.
@@ -309,6 +340,7 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       clearTimeout(stateRef.current.timer);
       latestRef.current.onOpenChange(false);
     },
+    consumes: () => latestRef.current.consumeEscape !== false,
   });
 
   // Asks to open or to close. Escape can take an ask to open back until it is
@@ -450,6 +482,26 @@ export function useHoverOpen(options: UseHoverOpenOptions): HoverOpenHandlers {
       onPointerEnter: event => {
         if (event.pointerType === 'touch') return;
         stateRef.current.pointerIn = true;
+        settle();
+      },
+      onPointerOver: event => {
+        // React makes the enter out of the pointerout on the element the
+        // pointer left, and skips this pointerover when that element is its
+        // own. Leaving page content for a trigger inside a shadow root, that
+        // pointerout names only the shadow host, so no enter reaches here.
+        // A pointerover from outside the holder and the floating element is
+        // the pointer arriving, then. One from inside them is the pointer
+        // moving about within, which doesn't bring back a closed one.
+        const s = stateRef.current;
+        if (s.pointerIn || event.pointerType === 'touch') return;
+        const from = event.relatedTarget as Node | null;
+        if (
+          within(event.currentTarget, from) ||
+          within(latestRef.current.floatingRef.current, from)
+        ) {
+          return;
+        }
+        s.pointerIn = true;
         settle();
       },
       onPointerLeave: event => {

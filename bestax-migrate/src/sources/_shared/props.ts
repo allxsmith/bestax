@@ -14,6 +14,7 @@ import {
   addTodo,
   attributesOf,
   findAttr,
+  jsxNameParts,
   jsxStringValue,
   literalValueOf,
   makeAttr,
@@ -191,6 +192,33 @@ export function applyPropAction(
       path,
       `prop:${originalName}`,
       `\`${written}\` — ${action.valueTodo[todoKey]}`
+    );
+    return;
+  }
+
+  if (action.allowed) {
+    if (literal.kind === 'string' && action.allowed.includes(literal.value)) {
+      return;
+    }
+    const values = action.allowed.map(v => `'${v}'`).join(', ');
+    // Several of these can land on one statement, so say which element.
+    const parts = jsxNameParts(element.openingElement?.name);
+    const on = parts ? ` on \`<${parts.join('.')}>\`` : '';
+    let written: string | undefined;
+    if (literal.kind === 'string') {
+      written = `${originalName}="${literal.value}"`;
+    } else if (literal.kind === 'number') {
+      written = `${originalName}={${literal.value}}`;
+    } else if (literal.kind === 'boolean') {
+      written = literal.value ? originalName : `${originalName}={false}`;
+    }
+    addTodo(
+      ctx,
+      path,
+      `prop:${originalName}`,
+      written === undefined
+        ? `\`${originalName}\`${on} has a dynamic value, and bestax-bulma takes only ${values}; make sure it can only be one of those`
+        : `\`${written}\`${on} is not a value bestax-bulma takes (${values}); use one of those or drop it`
     );
     return;
   }

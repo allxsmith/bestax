@@ -65,6 +65,49 @@ describe('TimeInput', () => {
     expect((getByRole('combobox') as HTMLInputElement).value).toBe('01:45 PM');
   });
 
+  it('names the AM/PM wheel "AM/PM" by default', () => {
+    const { getByRole } = render(
+      <TimeInput defaultValue={at(13, 45)} hourFormat="12" />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('spinbutton', { name: 'AM/PM' })).toHaveAttribute(
+      'aria-valuetext',
+      'PM'
+    );
+  });
+
+  it('labels.ampm renames the AM/PM wheel', () => {
+    const { getByRole, queryByRole } = render(
+      <TimeInput
+        defaultValue={at(9, 15)}
+        hourFormat="12"
+        labels={{ ampm: 'Période' }}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('spinbutton', { name: 'Période' })).toHaveAttribute(
+      'aria-valuetext',
+      'AM'
+    );
+    expect(queryByRole('spinbutton', { name: 'AM/PM' })).toBeNull();
+  });
+
+  it("keeps the AM/PM wheel's name when labels.ampm is undefined", () => {
+    // A locale table that has no `ampm` yet spreads in as an undefined key.
+    const { getByRole } = render(
+      <TimeInput
+        defaultValue={at(13, 45)}
+        hourFormat="12"
+        labels={{ ampm: undefined }}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    expect(getByRole('spinbutton', { name: 'AM/PM' })).toHaveAttribute(
+      'aria-valuetext',
+      'PM'
+    );
+  });
+
   it('renders three wheels when enableSeconds=true', () => {
     const { getByRole, getAllByRole } = render(
       <TimeInput defaultValue={at(10, 20, 30)} enableSeconds />

@@ -85,6 +85,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 - [Collapse](https://bestax.io/docs/api/components/collapse) — The `Collapse` component provides an expandable/collapsible content panel.
 - [Collapses](https://bestax.io/docs/api/components/collapses) — The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.
+- [ContextMenu](https://bestax.io/docs/api/components/contextmenu) — The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen.
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
 - [HoverCard](https://bestax.io/docs/api/components/hovercard) — The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.

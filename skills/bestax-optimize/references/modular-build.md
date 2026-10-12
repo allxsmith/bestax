@@ -73,8 +73,8 @@ Every extras partial that exists (from the library's `src/scss/**/_index.scss` â
 is **more complete** than the docs page's Option C example, which omits several):
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
-`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `steps`, `sidebar`, `toast`, `dialog`,
-`carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`
+`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
+`toast`, `dialog`, `carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
@@ -96,6 +96,8 @@ Notes:
   `picker-popover` too.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
+- `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
+  `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, so include it next to the Bulma

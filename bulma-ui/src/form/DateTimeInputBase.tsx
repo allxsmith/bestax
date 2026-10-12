@@ -219,7 +219,10 @@ export interface DateTimeInputBaseProps
   audioTick?: boolean;
   /** Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`. */
   haptics?: boolean;
-  /** Optional translatable string overrides. */
+  /**
+   * Optional translatable string overrides. In a 12-hour picker, `ampm`
+   * names the AM/PM column, `'AM/PM'` by default.
+   */
   labels?: PickerLabels;
 }
 
