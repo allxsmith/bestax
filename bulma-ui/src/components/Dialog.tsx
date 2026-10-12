@@ -140,6 +140,8 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
     const isHydrated = useIsHydrated();
     const isPortaled = Boolean(portal) && isHydrated;
     const { portalContainer } = useConfig();
+    const defaultTarget =
+      isPortaled && portal === true ? portalContainer : undefined;
 
     // Focus management — Dialog picks a specific button rather than the
     // Modal's default (first focusable/root); this effect runs after the
@@ -150,7 +152,7 @@ export const Dialog = forwardRef<HTMLDivElement, DialogProps>(
           focusCancel && showCancel ? cancelRef.current : confirmRef.current;
         buttonToFocus?.focus();
       }
-    }, [isOpen, focusCancel, showCancel, isPortaled, portal, portalContainer]);
+    }, [isOpen, focusCancel, showCancel, isPortaled, portal, defaultTarget]);
 
     // Use combined ref
     const combinedRef = useCallback(

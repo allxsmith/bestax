@@ -96,6 +96,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const resolveContainer = usePortalContainer();
     const { portalContainer } = useConfig();
+    // Where the configured default puts the sidebar. An `inline` one doesn't
+    // portal, so a change to the default moves nothing.
+    const defaultTarget = inline ? undefined : portalContainer;
     const sidebarRef = useRef<HTMLElement>(null);
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
     const consumerCleanupRef = useRef<(() => void) | null>(null);
@@ -134,7 +137,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     useScrollLock(isOpen && overlay);
 
     // Focus trap (basic - focus sidebar when opened). A different
-    // `portalContainer` remounts the portaled sidebar, so it focuses the new
+    // `defaultTarget` remounts the portaled sidebar, so it focuses the new
     // nodes then too.
     useEffect(() => {
       if (isOpen) {
@@ -151,7 +154,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
           }
         }
       }
-    }, [isOpen, portalContainer]);
+    }, [isOpen, defaultTarget]);
 
     // Use combined ref
     const combinedRef = useCallback(

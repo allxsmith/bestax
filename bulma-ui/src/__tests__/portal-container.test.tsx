@@ -146,6 +146,33 @@ describe('Modal', () => {
     expect(dialog).toContainElement(document.activeElement as HTMLElement);
   });
 
+  it.each([
+    ['in place', {}],
+    ['with a target of its own', { portal: '#own' }],
+  ])(
+    'leaves focus where the user put it, %s, when the portalContainer changes',
+    (_, props) => {
+      const ui = (container?: HTMLElement) => (
+        <ConfigProvider portalContainer={container}>
+          <Modal active modalCardTitle="Settings" {...props}>
+            <input aria-label="Name" />
+            <input aria-label="Email" />
+          </Modal>
+        </ConfigProvider>
+      );
+      // The ref-callback pattern: no container, then the element.
+      const { rerender } = render(ui());
+      // It opens on its first control, and the user moves on.
+      const email = screen.getByRole('textbox', { name: 'Email' });
+      act(() => {
+        email.focus();
+      });
+
+      rerender(ui(target));
+      expect(email).toHaveFocus();
+    }
+  );
+
   it('keeps focus in the modal when the portalContainer is an element held in state', () => {
     // The first render has no element yet, so the modal opens in
     // document.body, then moves once the ref callback stores it.
@@ -220,6 +247,23 @@ describe('Dialog', () => {
     expect(own).toContainElement(screen.getByText('Sure?'));
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
   });
+
+  it('leaves focus where the user put it, in place, when the portalContainer changes', () => {
+    const ui = (container?: HTMLElement) => (
+      <ConfigProvider portalContainer={container}>
+        <Dialog isOpen title="Delete?" message="Sure?" />
+      </ConfigProvider>
+    );
+    const { rerender } = render(ui());
+    // It opens on OK, and the user moves to Cancel.
+    const cancel = screen.getByRole('button', { name: 'Cancel' });
+    act(() => {
+      cancel.focus();
+    });
+
+    rerender(ui(target));
+    expect(cancel).toHaveFocus();
+  });
 });
 
 describe('Toast', () => {
@@ -292,6 +336,25 @@ describe('Sidebar', () => {
     rerender(ui(own));
     expect(own).toContainElement(screen.getByRole('link', { name: 'Home' }));
     expect(screen.getByRole('link', { name: 'Home' })).toHaveFocus();
+  });
+
+  it('leaves focus where the user put it, inline, when the portalContainer changes', () => {
+    const ui = (container?: HTMLElement) => (
+      <ConfigProvider portalContainer={container}>
+        <Sidebar inline isOpen onClose={() => {}} aria-label="Navigation">
+          <a href="#home">Home</a>
+          <a href="#settings">Settings</a>
+        </Sidebar>
+      </ConfigProvider>
+    );
+    const { rerender } = render(ui());
+    const settings = screen.getByRole('link', { name: 'Settings' });
+    act(() => {
+      settings.focus();
+    });
+
+    rerender(ui(target));
+    expect(settings).toHaveFocus();
   });
 
   it('still renders in place when inline', () => {

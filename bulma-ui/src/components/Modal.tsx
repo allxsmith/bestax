@@ -457,9 +457,14 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   // Moving into the portal, or from one portal target to another, remounts
   // the modal's subtree, so any effect holding a DOM node from before the move
   // is holding a detached one. Effects that touch the modal's nodes key on
-  // this, on `portal` and on the configured `portalContainer`, so they re-run
-  // against the new tree.
+  // this, on `portal` and on `defaultTarget`, so they re-run against the new
+  // tree.
   const isPortaled = Boolean(portal) && onClient;
+  // The configured `portalContainer` only places a modal portaled with
+  // `portal` set to `true`. In place, or with a target of its own, a change
+  // to it moves nothing, so it mustn't re-run the effects either.
+  const defaultTarget =
+    isPortaled && portal === true ? portalContainer : undefined;
 
   useScrollLock(isModalActive && lockScroll);
 
@@ -548,12 +553,12 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       previouslyFocusedRef.current?.focus?.();
     };
     // `isPortaled` flips once when a hydrated portal modal moves out of the
-    // inline tree, and `portal` or `portalContainer` changing moves a portaled
+    // inline tree, and `portal` or `defaultTarget` changing moves a portaled
     // one to another target; re-running rebinds focus onto the remounted
     // nodes. The cleanup above restores focus to the pre-open element first
     // (the detached subtree has left focus on <body>), so the re-run re-records
     // the same element and restore-on-close still lands in the right place.
-  }, [isModalActive, isPortaled, portal, portalContainer]);
+  }, [isModalActive, isPortaled, portal, defaultTarget]);
 
   // Check if children contain compound components
   const hasCompoundComponents = React.Children.toArray(children).some(
