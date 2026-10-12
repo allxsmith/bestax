@@ -12,10 +12,6 @@ const COLORS: ToggleButtonColor[] = [
   'success',
   'warning',
   'danger',
-  'dark',
-  'black',
-  'light',
-  'white',
 ];
 
 const meta: Meta<typeof ToggleButton> = {
@@ -119,8 +115,9 @@ export const Controlled: Story = {
 };
 
 /**
- * Each fill, not pressed and pressed. `white` and `light` barely differ from
- * off in the light theme, as `dark` and `black` do in the dark one.
+ * Each fill, not pressed and pressed. `white`, `light`, `dark` and `black`
+ * aren't offered, since each fills about as light or dark as a plain button
+ * already is in one theme or the other.
  */
 export const Colors: Story = {
   render: function ColorsExample() {

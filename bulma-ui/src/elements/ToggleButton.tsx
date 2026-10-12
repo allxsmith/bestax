@@ -2,24 +2,18 @@ import React, { forwardRef, useState } from 'react';
 import { Button, type ButtonOwnProps } from './Button';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 
-// Spelled out rather than `Exclude<ButtonOwnProps['color'], 'text' | 'ghost'>`
-// so the API page can list the values. The tests hold it to that expression,
-// so a color Button gains fails there until it's added here too.
+// Spelled out rather than as an `Exclude` of Button's colors so the API page
+// can list the values. The tests hold it to that `Exclude`, so a color Button
+// gains fails there until it's added here or left out on purpose.
 /**
  * The fills a pressed `ToggleButton` takes: `Button`'s colors, minus `text`
- * and `ghost`, which don't fill.
+ * and `ghost`, which don't fill, and `white`, `light`, `dark` and `black`.
+ * Bulma's color modifier fills the button and drops its border, and those four
+ * fill it with about the lightness a plain button already has in one theme or
+ * the other, so pressed would look like off without its border.
  */
 export type ToggleButtonColor =
-  | 'primary'
-  | 'link'
-  | 'info'
-  | 'success'
-  | 'warning'
-  | 'danger'
-  | 'white'
-  | 'light'
-  | 'dark'
-  | 'black';
+  'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
 
 /**
  * Props for the ToggleButton component. The helper props, the other button
@@ -30,7 +24,8 @@ export type ToggleButtonColor =
  * `pressed` here, and `isStatic`, a toggle you couldn't press. And the props
  * that change the fill (`isLight`, `isOutlined`, `isInverted`, `textColor`,
  * `bgColor` and their shades), since each would color the button in both
- * states or turn "on" into a faint tint.
+ * states or turn "on" into a faint tint. `color` takes only the fills that
+ * stand out from a plain button: see `ToggleButtonColor`.
  *
  * @extraProp {React.Ref<HTMLButtonElement>} [ref] - Ref forwarded to the `<button>`.
  */
@@ -48,7 +43,6 @@ export interface ToggleButtonProps
       | 'bgColor'
       | 'colorShade'
       | 'backgroundColorShade'
-      | 'isFullWidth'
     >,
     Omit<
       React.ButtonHTMLAttributes<HTMLButtonElement>,
@@ -71,9 +65,10 @@ export interface ToggleButtonProps
   onPressedChange?: (pressed: boolean) => void;
   /**
    * The fill while it's pressed. Not pressed, it's a plain button, so the fill
-   * is the difference people see: prefer a strong one. A pale fill such as
-   * `warning` changes less, and `white` and `light` barely differ from a plain
-   * button in a light theme, as `dark` and `black` do in a dark one.
+   * is the difference people see. `white`, `light`, `dark` and `black` aren't
+   * offered, since in one theme or the other each fills about as light or dark
+   * as a plain button already is. Of the rest, a pale one such as `warning`
+   * changes less than the default `link`.
    */
   color?: ToggleButtonColor;
   /**

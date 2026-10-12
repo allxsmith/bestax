@@ -305,6 +305,22 @@ describe('ToggleButton', () => {
       expect(toggle()).not.toHaveClass('is-active');
     });
 
+    it('takes the deprecated isFullWidth the way Button does', () => {
+      render(
+        <>
+          <ToggleButton isFullWidth>Mute</ToggleButton>
+          <ToggleButton isFullwidth>Pin</ToggleButton>
+          <ToggleButton isFullwidth={false} isFullWidth>
+            Star
+          </ToggleButton>
+        </>
+      );
+      expect(toggle()).toHaveClass('button', 'is-fullwidth');
+      expect(toggle('Pin').className).toBe(toggle().className);
+      // `isFullwidth` wins when both are set, as on Button.
+      expect(toggle('Star')).not.toHaveClass('is-fullwidth');
+    });
+
     it.each([false, true])(
       'applies size, isRounded, isFullwidth and isLoading (pressed: %s)',
       pressed => {
@@ -368,11 +384,16 @@ describe('ToggleButton', () => {
   });
 
   describe('props it leaves out', () => {
-    it('takes Button’s colors except text and ghost, which don’t fill', () => {
+    it('takes Button’s colors except the ones that don’t stand out pressed', () => {
       // Checked by `typecheck:tests`: a color Button gains makes this false.
+      // `text` and `ghost` don't fill, and the other four fill about as light
+      // or dark as a plain button already is in one theme or the other.
       const same: Same<
         ToggleButtonColor,
-        Exclude<ButtonOwnProps['color'], 'text' | 'ghost' | undefined>
+        Exclude<
+          ButtonOwnProps['color'],
+          'text' | 'ghost' | 'white' | 'light' | 'dark' | 'black' | undefined
+        >
       > = true;
       expect(same).toBe(true);
     });
@@ -404,9 +425,17 @@ describe('ToggleButton', () => {
           <ToggleButton color="text">K</ToggleButton>
           {/* @ts-expect-error: and neither does ghost */}
           <ToggleButton color="ghost">L</ToggleButton>
+          {/* @ts-expect-error: white fills like a plain button in a light theme */}
+          <ToggleButton color="white">M</ToggleButton>
+          {/* @ts-expect-error: and light nearly so */}
+          <ToggleButton color="light">N</ToggleButton>
+          {/* @ts-expect-error: dark fills like a plain button in a dark theme */}
+          <ToggleButton color="dark">O</ToggleButton>
+          {/* @ts-expect-error: and black fills darker than one */}
+          <ToggleButton color="black">P</ToggleButton>
         </>
       );
-      expect(screen.getAllByRole('button')).toHaveLength(12);
+      expect(screen.getAllByRole('button')).toHaveLength(16);
     });
 
     it('stays a pressed-or-not button whatever a spread passes along', () => {
