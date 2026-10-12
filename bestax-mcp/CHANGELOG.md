@@ -1,3 +1,10 @@
+## [1.14.5](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.14.4...bestax-mcp@1.14.5) (2026-10-12)
+
+
+### Features
+
+* **bulma-ui:** add HoverCard, a card that opens on hover or keyboard focus ([#1030](https://github.com/allxsmith/bestax/issues/1030)) ([0eb41df](https://github.com/allxsmith/bestax/commit/0eb41df1f24066d829de6c59f566c9ba819b7f40))
+
 ## [1.14.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.14.3...bestax-mcp@1.14.4) (2026-10-10)
 
 

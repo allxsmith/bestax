@@ -1,3 +1,15 @@
+# [5.28.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.8...@allxsmith/bestax-bulma@5.28.0) (2026-10-12)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** release with every bulma-ui release so the published index keeps up ([#1027](https://github.com/allxsmith/bestax/issues/1027)) ([618e483](https://github.com/allxsmith/bestax/commit/618e483f2cb2d6fba40e21453518c60d84acb387))
+
+
+### Features
+
+* **bulma-ui:** add HoverCard, a card that opens on hover or keyboard focus ([#1030](https://github.com/allxsmith/bestax/issues/1030)) ([0eb41df](https://github.com/allxsmith/bestax/commit/0eb41df1f24066d829de6c59f566c9ba819b7f40))
+
 ## [5.27.8](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.7...@allxsmith/bestax-bulma@5.27.8) (2026-10-10)
 
 
