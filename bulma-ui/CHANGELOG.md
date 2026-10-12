@@ -1,3 +1,10 @@
+# [5.29.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.28.0...@allxsmith/bestax-bulma@5.29.0) (2026-10-12)
+
+
+### Features
+
+* **bulma-ui:** let ConfigProvider set where portaled content goes ([#1032](https://github.com/allxsmith/bestax/issues/1032)) ([5e928ae](https://github.com/allxsmith/bestax/commit/5e928ae294a026c41ea64c52b27536e20d441128))
+
 # [5.28.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.27.8...@allxsmith/bestax-bulma@5.28.0) (2026-10-12)
 
 
