@@ -7,7 +7,7 @@
 import * as sass from 'sass';
 import path from 'path';
 import type { ComponentProps } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Tooltip } from '../Tooltip';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -53,8 +53,36 @@ const rulesFor = (selector: string) =>
       rule.selectorText.split(',').some(part => part.trim() === selector)
   );
 
-const gap =
-  'calc(var(--bulma-tooltip-arrow-size) + var(--bulma-tooltip-arrow-margin))';
+/** Shows it the way the pointer does, so it is open rather than only active. */
+const hoverOpen = () => {
+  const event = new MouseEvent('pointerover', { bubbles: true });
+  Object.defineProperty(event, 'pointerType', { value: 'mouse' });
+  fireEvent(screen.getByRole('button', { name: 'Trigger' }), event);
+  act(() => {
+    jest.runOnlyPendingTimers();
+  });
+};
+
+/** A registered `--bulma-*` value as the rule for `selector` declares it. */
+const registered = (selector: string, name: string) =>
+  rulesFor(selector)
+    .map(rule => rule.style.getPropertyValue(`--bulma-${name}`))
+    .find(Boolean);
+
+const bridge = (selector: string) => {
+  const rules = rulesFor(`${selector}::after`);
+  expect(rules.length).toBeGreaterThan(0);
+  return (property: string) =>
+    rules.map(rule => rule.style.getPropertyValue(property)).find(Boolean);
+};
+
+beforeEach(() => {
+  jest.useFakeTimers();
+});
+
+afterEach(() => {
+  jest.useRealTimers();
+});
 
 describe('Tooltip styles under a class prefix', () => {
   it('lets the pointer through a hidden tooltip', () => {
@@ -63,14 +91,20 @@ describe('Tooltip styles under a class prefix', () => {
     expect(getComputedStyle(content()).visibility).toBe('hidden');
   });
 
-  it('lets the pointer onto a shown tooltip', () => {
-    renderPrefixed({ active: true });
-    expect(getComputedStyle(content()).pointerEvents).toBe('auto');
+  it('lets the pointer through a tooltip only active shows, with no bridge', () => {
+    const { container } = renderPrefixed({ active: true });
     expect(getComputedStyle(content()).visibility).toBe('visible');
+    expect(getComputedStyle(content()).pointerEvents).toBe('none');
+    expect(container.firstChild).not.toHaveClass('bestax-is-open');
   });
 
-  it('lets the pointer onto a shown multiline tooltip', () => {
-    renderPrefixed({ active: true, multiline: true });
+  it.each([
+    ['', {}],
+    [' multiline', { multiline: true }],
+  ])('lets the pointer onto a%s tooltip the pointer opened', (_, props) => {
+    const { container } = renderPrefixed(props);
+    hoverOpen();
+    expect(container.firstChild).toHaveClass('bestax-is-open');
     expect(getComputedStyle(content()).pointerEvents).toBe('auto');
   });
 
@@ -79,60 +113,81 @@ describe('Tooltip styles under a class prefix', () => {
     expect(arrow.style.getPropertyValue('pointer-events')).toBe('none');
   });
 
-  it('gives the bridge a box of its own, apart from the arrow', () => {
-    const [bridge] = rulesFor('.bestax-tooltip-content::after');
-    expect(bridge.style.content).toBe('""');
-    expect(bridge.style.position).toBe('absolute');
+  it('draws the bridge from the wrapper, and only while open', () => {
+    const at = bridge('.bestax-tooltip.bestax-is-open');
+    expect(at('content')).toBe('""');
+    expect(at('position')).toBe('absolute');
+    expect(rulesFor('.bestax-tooltip-content::after')).toHaveLength(0);
   });
 
   it.each([
-    ['top', '.bestax-tooltip.bestax-is-top', { top: '100%', height: gap }],
+    ['top', '.bestax-tooltip.bestax-is-open.bestax-is-top', 'bottom'],
     [
       'top, with no position class',
-      '.bestax-tooltip:not(.bestax-is-bottom):not(.bestax-is-left):not(.bestax-is-right)',
-      { top: '100%', height: gap },
-    ],
-    [
+      '.bestax-tooltip.bestax-is-open:not(.bestax-is-bottom):not(.bestax-is-left):not(.bestax-is-right)',
       'bottom',
-      '.bestax-tooltip.bestax-is-bottom',
-      { bottom: '100%', height: gap },
     ],
+    ['bottom', '.bestax-tooltip.bestax-is-open.bestax-is-bottom', 'top'],
   ])(
-    'bridges the gap to the trigger across the whole tooltip at %s',
-    (_, wrapperSelector, expected) => {
-      const rules = rulesFor(
-        `${wrapperSelector} .bestax-tooltip-content::after`
-      );
-      expect(rules).toHaveLength(1);
-      const { style } = rules[0];
-      expect(style.left).toBe('0');
-      expect(style.right).toBe('0');
-      for (const [property, value] of Object.entries(expected)) {
-        expect(style.getPropertyValue(property)).toBe(value);
-      }
+    'bridges the gap at %s across the trigger’s width only',
+    (_, selector, edge) => {
+      const at = bridge(selector);
+      expect(at(edge)).toBe('100%');
+      expect(at('left')).toBe('0');
+      expect(at('right')).toBe('0');
+      expect(at('width')).toBeUndefined();
     }
   );
 
   it.each([
-    ['left', { left: '100%', width: gap }],
-    ['right', { right: '100%', width: gap }],
+    ['left', 'right'],
+    ['right', 'left'],
   ])(
-    'bridges the gap to the trigger down the whole tooltip at %s',
-    (position, expected) => {
-      const rules = rulesFor(
-        `.bestax-tooltip.bestax-is-${position} .bestax-tooltip-content::after`
-      );
-      expect(rules).toHaveLength(1);
-      const { style } = rules[0];
-      expect(style.top).toBe('0');
-      expect(style.bottom).toBe('0');
-      for (const [property, value] of Object.entries(expected)) {
-        expect(style.getPropertyValue(property)).toBe(value);
-      }
+    'bridges the gap at %s down the trigger’s height only',
+    (position, edge) => {
+      const at = bridge(`.bestax-tooltip.bestax-is-open.bestax-is-${position}`);
+      expect(at(edge)).toBe('100%');
+      expect(at('top')).toBe('0');
+      expect(at('bottom')).toBe('0');
+      expect(at('height')).toBeUndefined();
     }
   );
 
-  it('spans the same distance the tooltip keeps from the trigger', () => {
+  it.each([
+    ['the default size', '', '.bestax-tooltip-content'],
+    [
+      'small',
+      '.bestax-is-small',
+      '.bestax-tooltip.bestax-is-small .bestax-tooltip-content',
+    ],
+    [
+      'medium',
+      '.bestax-is-medium',
+      '.bestax-tooltip.bestax-is-medium .bestax-tooltip-content',
+    ],
+    [
+      'large',
+      '.bestax-is-large',
+      '.bestax-tooltip.bestax-is-large .bestax-tooltip-content',
+    ],
+  ])(
+    'spans the gap the tooltip keeps at %s, in every position',
+    (_, size, contentSelector) => {
+      const arrow = registered(contentSelector, 'tooltip-arrow-size');
+      const margin = registered(
+        '.bestax-tooltip-content',
+        'tooltip-arrow-margin'
+      );
+      const gap = `calc(${arrow} + ${margin})`;
+      const open = `.bestax-tooltip.bestax-is-open${size}`;
+      expect(bridge(`${open}.bestax-is-top`)('height')).toBe(gap);
+      expect(bridge(`${open}.bestax-is-bottom`)('height')).toBe(gap);
+      expect(bridge(`${open}.bestax-is-left`)('width')).toBe(gap);
+      expect(bridge(`${open}.bestax-is-right`)('width')).toBe(gap);
+    }
+  );
+
+  it('keeps the tooltip that distance from the trigger', () => {
     renderPrefixed({ position: 'bottom' });
     expect(getComputedStyle(content()).top).toBe(
       'calc(100% + var(--bulma-tooltip-arrow-size) + var(--bulma-tooltip-arrow-margin))'

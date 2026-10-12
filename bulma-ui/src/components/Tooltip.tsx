@@ -268,6 +268,9 @@ export const Tooltip: React.FC<TooltipProps> = ({
   // Generate Bulma classes
   const tooltipClasses = usePrefixedClassNames('tooltip', {
     'is-active': alwaysActive || isVisible,
+    // Open by the pointer, focus or a tap, rather than shown by `active`
+    // alone: only then does the tooltip, and the gap to it, take the pointer.
+    'is-open': isVisible,
     [`is-${resolvedPosition}`]: resolvedPosition,
     [`is-${color}`]: color,
     [`is-${size}`]: size,

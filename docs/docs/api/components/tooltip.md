@@ -311,8 +311,9 @@ criterion:
   back. The key goes on as well, to whatever has focus, so a control in the trigger, such as a
   `Dropdown`, still gets its own Escape. Inside a `Popover` or `Modal`, one Escape hides the tooltip
   and closes that too, since a tooltip only adds to what's there.
-- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, across the gap between
-  them, and it stays. A hidden tooltip lets the pointer through to whatever is under it.
+- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, straight across the gap
+  between them, and it stays. A hidden tooltip, or one only `active` shows, lets the pointer through
+  to whatever is under it.
 - **Persistent:** no timer hides a tooltip that's hovered or focused.
 
 And around it:
