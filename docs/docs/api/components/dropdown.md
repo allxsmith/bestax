@@ -273,6 +273,7 @@ existing click-outside-to-close behavior — add those yourself if your use case
 
 - [`Button`](../elements/button.md): Use Bulma/Bestax buttons as triggers if needed.
 - [`Popover`](./popover.md): A panel of interactive content, such as a form, rather than a menu of actions.
+- [`ContextMenu`](./contextmenu.md): The same items in a menu that opens where you right-click an element, or long press it, rather than from a button.
 - [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers can be used.
 
 ---

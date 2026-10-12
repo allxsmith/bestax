@@ -629,6 +629,30 @@ A versatile dropdown menu for navigation, actions, or pop-up lists. [View full d
 
 ---
 
+### ContextMenu
+
+A menu of actions that opens where you right-click an element, such as a table row or a card, or long press it on a touch screen. Its items are `Dropdown`'s, and its actions need a visible way in as well, such as a `Dropdown` on the same row. [View full documentation.](../../api/components/contextmenu.md)
+
+```tsx live
+<ContextMenu
+  aria-label="Actions for report.pdf"
+  trigger={
+    <Box tabIndex={0} p="6" textAlign="centered">
+      report.pdf: right-click here, or long press on a touch screen
+    </Box>
+  }
+>
+  <ContextMenu.Item as="button">Rename</ContextMenu.Item>
+  <ContextMenu.Item as="button">Duplicate</ContextMenu.Item>
+  <ContextMenu.Divider />
+  <ContextMenu.Item as="button" color="danger">
+    Delete
+  </ContextMenu.Item>
+</ContextMenu>
+```
+
+---
+
 ## Feedback
 
 ### Badge

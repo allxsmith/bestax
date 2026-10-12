@@ -37,6 +37,12 @@ const ADDONS = [
     desc: 'Smoothly expanding panels for accordions and FAQs.',
   },
   {
+    name: 'ContextMenu',
+    icon: 'contextmenu',
+    link: '/docs/api/components/contextmenu',
+    desc: 'Menus of actions that open where you right-click, or long press on a touch screen.',
+  },
+  {
     name: 'Dialog',
     icon: 'dialog',
     link: '/docs/api/components/dialog',

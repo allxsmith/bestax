@@ -104,6 +104,9 @@ export const SCSS_SOURCES = {
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
+  ContextMenu: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_contextmenu.scss' },
+  ],
   Control: [
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
