@@ -33,7 +33,7 @@ import { Sidebar } from '@allxsmith/bestax-bulma';
 ## Usage
 
 :::info
-The examples below use the `inline` prop so the sidebar renders inside the live preview. In real apps, omit `inline` so the sidebar uses a portal (rendered at document.body) for proper stacking above all page content.
+The examples below use the `inline` prop so the sidebar renders inside the live preview. In real apps, omit `inline` so the sidebar uses a portal for proper stacking above all page content.
 :::
 
 ### Basic Sidebar

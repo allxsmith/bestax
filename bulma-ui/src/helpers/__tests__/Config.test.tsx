@@ -637,3 +637,48 @@ describe('Complete prefix functionality', () => {
     expect(iconElement?.textContent).toBe('home');
   });
 });
+
+describe('portalContainer', () => {
+  let target: HTMLElement;
+
+  beforeEach(() => {
+    target = document.createElement('section');
+    document.body.appendChild(target);
+  });
+
+  afterEach(() => {
+    target.remove();
+  });
+
+  // Names what useConfig reports, so a test can read it from the DOM.
+  const PortalContainerReader = () => {
+    const { portalContainer } = useConfig();
+    const seen =
+      portalContainer === target ? 'the target' : String(portalContainer);
+    return <output aria-label="portalContainer">{seen}</output>;
+  };
+
+  it('provides portalContainer via context', () => {
+    render(
+      <ConfigProvider portalContainer={target}>
+        <PortalContainerReader />
+      </ConfigProvider>
+    );
+    expect(screen.getByLabelText('portalContainer')).toHaveTextContent(
+      'the target'
+    );
+  });
+
+  it('is not inherited by a nested provider that leaves it out', () => {
+    render(
+      <ConfigProvider portalContainer={target}>
+        <ConfigProvider classPrefix="bestax-">
+          <PortalContainerReader />
+        </ConfigProvider>
+      </ConfigProvider>
+    );
+    expect(screen.getByLabelText('portalContainer')).toHaveTextContent(
+      'undefined'
+    );
+  });
+});

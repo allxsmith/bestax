@@ -31,7 +31,7 @@
     },
     {
       "title": "Portal",
-      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Portaled Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Rendered in document.body\"\n        portal\n      >\n        This modal is portaled, so it escapes any ancestor with an `overflow:\n        hidden` style.\n      </Modal>\n    </>\n  );\n}"
+      "code": "function example() {\n  const [open, setOpen] = useState(false);\n\n  return (\n    <>\n      <Button color=\"success\" onClick={() => setOpen(true)}>\n        Show Portaled Modal\n      </Button>\n      <Modal\n        active={open}\n        onClose={() => setOpen(false)}\n        modalCardTitle=\"Portaled Modal\"\n        portal\n      >\n        This modal is portaled, so it escapes any ancestor with an `overflow:\n        hidden` style.\n      </Modal>\n    </>\n  );\n}"
     },
     {
       "title": "Forwarded ref",
@@ -180,7 +180,7 @@
           "name": "portal",
           "type": "boolean | string | HTMLElement",
           "default": "false",
-          "description": "Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to `document.body`; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.",
+          "description": "Renders the modal into a portal target instead of inline, so it isn't clipped by an ancestor with `overflow: hidden`, `filter` or `transform`. `true` portals to the `portalContainer` a `ConfigProvider` sets, `document.body` by default; a string is used as a `document.querySelector` selector; an element is used directly. Renders inline on the server and while hydrating, moving into the portal once the client takes over, so hydration matches.",
           "required": false,
           "inherited": false,
           "deprecated": false

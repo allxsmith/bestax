@@ -7,6 +7,7 @@
  */
 import { renderToStaticMarkup } from 'react-dom/server';
 import { Portal } from '../portal';
+import { ConfigProvider } from '../Config';
 
 describe('Portal on the server (node environment)', () => {
   it('renders nothing, or its children in place when disabled', () => {
@@ -22,5 +23,17 @@ describe('Portal on the server (node environment)', () => {
         </>
       )
     ).toBe('<p>In place</p>');
+  });
+
+  it("renders nothing under a ConfigProvider's portalContainer either", () => {
+    expect(
+      renderToStaticMarkup(
+        <ConfigProvider portalContainer="#overlays">
+          <Portal>
+            <p>Portaled</p>
+          </Portal>
+        </ConfigProvider>
+      )
+    ).toBe('');
   });
 });

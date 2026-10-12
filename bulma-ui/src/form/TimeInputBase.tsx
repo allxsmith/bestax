@@ -139,7 +139,8 @@ export interface TimeInputBaseProps
   /** Popover anchor position relative to the input. */
   position?: PickerPosition;
   /**
-   * Render the popover into `document.body` via portal. On a narrow screen
+   * Render the popover through a portal, into the `portalContainer` a
+   * `ConfigProvider` sets, `document.body` by default. On a narrow screen
    * an in-place popover spans the bottom of the viewport, while a portaled
    * one stays on its `position` corner.
    */

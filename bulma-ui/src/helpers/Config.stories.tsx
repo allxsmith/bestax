@@ -1,8 +1,11 @@
+import { useState } from 'react';
 import { ConfigProvider } from './Config';
+import { Theme } from './Theme';
 import Box from '../elements/Box';
 import Title from '../elements/Title';
 import Button from '../elements/Button';
 import { Notification } from '../elements/Notification';
+import { Popover } from '../components/Popover';
 
 export default {
   title: 'Helpers/ConfigProvider',
@@ -54,3 +57,31 @@ export const PrefixedBulma = () => (
     </Box>
   </div>
 );
+
+const PortalContainerDemo = () => {
+  const [overlays, setOverlays] = useState<HTMLElement | null>(null);
+  return (
+    <Theme primaryH="270" primaryS="100%" primaryL="50%">
+      <ConfigProvider portalContainer={overlays ?? undefined}>
+        <Popover
+          appendToBody
+          ariaLabel="Themed panel"
+          trigger={<Button color="primary">Open</Button>}
+        >
+          <Popover.Body>
+            <Button color="primary">Still purple</Button>
+          </Popover.Body>
+        </Popover>
+      </ConfigProvider>
+      <div ref={setOverlays} />
+    </Theme>
+  );
+};
+
+/**
+ * `portalContainer` is where `Portal` renders content that has no
+ * `container` of its own, Popover's `appendToBody` panel included. Pointed at
+ * an element inside a scoped `Theme`, the panel keeps the theme's purple
+ * primary, which it would lose at the end of `document.body`.
+ */
+export const PortalContainer = () => <PortalContainerDemo />;
