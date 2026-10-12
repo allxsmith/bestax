@@ -29,7 +29,13 @@ export interface TooltipProps
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
   /** The tooltip text content. */
   label?: string;
-  /** Rich tooltip content (alternative to `label`). */
+  /**
+   * Rich tooltip content (alternative to `label`), to read rather than use.
+   * Nothing in it should take focus or a click: it isn't in the Tab order
+   * while hidden, focus there isn't counted as being in the tooltip, and
+   * Escape hiding it would drop that focus. For links or buttons, use
+   * `HoverCard` or `Popover`.
+   */
   content?: React.ReactNode;
   /** Position of the tooltip. Default: 'top'. */
   position?: TooltipPosition;
