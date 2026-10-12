@@ -89,6 +89,11 @@ const meta: Meta<typeof Tooltip> = {
       description:
         'Delay before hiding tooltip once the pointer and focus have left (ms)',
     },
+    openOnTap: {
+      control: 'boolean',
+      description:
+        'Show the tooltip with a tap on a touch screen; only for a trigger with no tap action of its own',
+    },
   },
 };
 
@@ -277,6 +282,22 @@ export const WithCloseDelay: Story = {
         <Button>1s close delay</Button>
       </Tooltip>
     </Buttons>
+  ),
+};
+
+/**
+ * `openOnTap`, for a touch screen, which has no hover. A tap on the trigger
+ * shows the tooltip at once, and another tap, a tap anywhere else or Escape
+ * hides it. The trigger is a button with no click action of its own, since
+ * the tap still does whatever the trigger does.
+ */
+export const TouchOpen: Story = {
+  render: () => (
+    <Box p="6">
+      <Tooltip label="Orders over $50 ship free" openOnTap>
+        <Button>Shipping</Button>
+      </Tooltip>
+    </Box>
   ),
 };
 

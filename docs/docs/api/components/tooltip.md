@@ -16,6 +16,15 @@ The `Tooltip` component displays helpful information when users hover over or fo
 
 It supports multiple positions, colors, and styles. Perfect for providing additional context, abbreviation expansions, or action descriptions.
 
+:::note On phones and tablets
+
+By default a touch screen never shows a `Tooltip`: there's no hover, and a tap belongs to the
+trigger. Anything a touch user needs to know can't live only in a tooltip. For a trigger with no
+tap action of its own, `openOnTap` shows the tooltip with a tap, as
+[On Touch Screens](#on-touch-screens) shows.
+
+:::
+
 ---
 
 ## Import
@@ -191,6 +200,22 @@ function example() {
 
 ---
 
+### On Touch Screens
+
+A touch screen has no hover, so a phone or tablet never shows the tooltip unless you pass
+`openOnTap`. With it, a tap on the trigger shows the tooltip at once, and it stays until another tap
+on the trigger or the tooltip, a tap anywhere else, or <kbd>Escape</kbd>. The tap still does
+whatever the trigger does, so turn it on only for a trigger with no tap action of its own, like the
+`Button` below, which has no `onClick`. Mouse and pen work the same either way.
+
+```tsx live
+<Tooltip label="Orders over $50 ship free" openOnTap>
+  <Button>Shipping</Button>
+</Tooltip>
+```
+
+---
+
 ### On Icons
 
 Tooltips on icon buttons for action descriptions.
@@ -294,6 +319,7 @@ And around it:
 
 - Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings
   doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.
+  `openOnTap` shows it with a tap, for a trigger with no tap action of its own.
 - An `active` tooltip is always shown, whatever the pointer, focus and Escape do.
 - Tooltip content has `role="tooltip"`, and `aria-hidden` while it's hidden.
 - The trigger isn't linked to the tooltip with `aria-describedby`, so a screen reader doesn't

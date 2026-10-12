@@ -22,7 +22,7 @@ type PointerType = 'mouse' | 'pen' | 'touch';
  */
 const pointer = (
   el: Element,
-  type: 'pointerover' | 'pointerout' | 'pointerdown',
+  type: 'pointerover' | 'pointerout' | 'pointerdown' | 'pointerup',
   {
     pointerType = 'mouse',
     relatedTarget = null,
@@ -798,6 +798,67 @@ describe('Tooltip', () => {
     });
   });
 
+  describe('with openOnTap', () => {
+    /** A finger's press and lift on `el`. */
+    const tap = (el: Element) => {
+      pointer(el, 'pointerdown', { pointerType: 'touch' });
+      pointer(el, 'pointerup', { pointerType: 'touch' });
+    };
+
+    it('shows at once on a tap on the trigger, and hides on the next one', () => {
+      render(
+        <Tooltip label="Test tooltip" delay={500} openOnTap>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+      advance(60_000);
+      expect(wrapper()).toHaveClass('is-active');
+      tap(trigger());
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('hides on a tap anywhere else', () => {
+      render(
+        <>
+          <Tooltip label="Test tooltip" openOnTap>
+            <button>Hover me</button>
+          </Tooltip>
+          <button>Elsewhere</button>
+        </>
+      );
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+      tap(screen.getByRole('button', { name: 'Elsewhere' }));
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('lets the trigger’s own tap action run', () => {
+      const onClick = jest.fn();
+      render(
+        <Tooltip label="Test tooltip" openOnTap>
+          <button onClick={onClick}>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      fireEvent.click(trigger());
+      expect(onClick).toHaveBeenCalled();
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('shows nothing on a tap without it', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+  });
+
   describe('touch', () => {
     it('is not shown by a touch pointer, or by the focus a tap brings', () => {
       render(
@@ -1235,6 +1296,8 @@ describe('Tooltip', () => {
           onPointerLeave={() => calls.push('leave')}
           onFocus={() => calls.push('focus')}
           onBlur={() => calls.push('blur')}
+          onPointerDown={() => calls.push('down')}
+          onPointerUp={() => calls.push('up')}
         >
           <button>Hover me</button>
         </Tooltip>
@@ -1247,7 +1310,9 @@ describe('Tooltip', () => {
       advance(0);
       expect(wrapper()).toHaveClass('is-active');
       trigger().blur();
-      expect(calls).toEqual(['enter', 'leave', 'focus', 'blur']);
+      pointer(trigger(), 'pointerdown');
+      pointer(trigger(), 'pointerup');
+      expect(calls).toEqual(['enter', 'leave', 'focus', 'blur', 'down', 'up']);
     });
   });
 

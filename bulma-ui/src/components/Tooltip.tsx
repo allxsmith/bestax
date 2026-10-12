@@ -68,6 +68,16 @@ export interface TooltipProps
    * trigger onto a shown tooltip without one.
    */
   closeDelay?: number;
+  /**
+   * Show the tooltip with a tap on a touch screen. Touch has no hover, so
+   * without this a phone or tablet never shows it. With it, a tap on the
+   * trigger shows it at once, and it stays until another tap on the trigger
+   * or the tooltip, a tap anywhere else, or Escape. The tap still does
+   * whatever the trigger does, so turn this on only for a trigger with no
+   * tap action of its own. Mouse and pen work the same either way.
+   * @defaultValue false
+   */
+  openOnTap?: boolean;
   /** Additional classes for the tooltip element. */
   tooltipClassName?: string;
 }
@@ -76,8 +86,8 @@ export interface TooltipProps
  * The `Tooltip` component displays helpful information when users hover over or focus on an element.
  *
  * Hovering the trigger or giving it keyboard focus shows it. Touch doesn't,
- * and neither does focus a click or a tap brings, so tapping the trigger just
- * does what the trigger does. The pointer can move onto a shown tooltip.
+ * unless `openOnTap` is on, and neither does focus a click or a tap brings,
+ * so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip.
  * Escape hides it wherever focus is, without moving the pointer or focus,
  * and it stays hidden until one of them leaves the trigger and comes back.
  * The key always goes on too, to whatever has focus or a `Modal` or
@@ -118,6 +128,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
   dashed = false,
   delay = 0,
   closeDelay = 0,
+  openOnTap = false,
   children,
   className,
   tooltipClassName,
@@ -128,6 +139,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
     onPointerEnter,
     onPointerOver,
     onPointerLeave,
+    onPointerDown,
+    onPointerUp,
     onFocus,
     onBlur,
     ...attrs
@@ -156,6 +169,7 @@ export const Tooltip: React.FC<TooltipProps> = ({
     // Escape hides it and carries on, so a control in the trigger, or a
     // Modal around it, still gets the key.
     consumeEscape: false,
+    openOnTap,
   });
 
   // Auto-placement and overflow correction
@@ -284,6 +298,8 @@ export const Tooltip: React.FC<TooltipProps> = ({
       onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
       onFocus={chain(onFocus, hover.onFocus)}
       onBlur={chain(onBlur, hover.onBlur)}
+      onPointerDown={chain(onPointerDown, hover.onPointerDown)}
+      onPointerUp={chain(onPointerUp, hover.onPointerUp)}
       {...(label ? { 'data-tooltip': label } : {})}
       {...attrs}
     >
