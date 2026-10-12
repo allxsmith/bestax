@@ -1,5 +1,5 @@
 import React from "react";
-import { Footer } from "@allxsmith/bestax-bulma";
+import { Button, Buttons, Footer, Tag, Tags } from "@allxsmith/bestax-bulma";
 // TODO(bestax-migrate): Fieldset, Generic, Highlight, List, Numeric, Tile have no bestax-bulma equivalent yet — migrate and remove this import
 import { Tile, List, Generic, Fieldset, Numeric, Highlight } from "rbx";
 
@@ -10,7 +10,9 @@ import { Tile, List, Generic, Fieldset, Numeric, Highlight } from "rbx";
 // TODO(bestax-migrate): `Fieldset` — bestax has no `Fieldset` component; render a plain <fieldset> (its `disabled` attribute works natively)
 // TODO(bestax-migrate): `Numeric` — `Numeric` (locale number formatting) has no bestax equivalent; use Intl.NumberFormat directly
 // TODO(bestax-migrate): `Highlight` — `Highlight` (syntax-highlighted <pre>) has no bestax equivalent; use `<Pre>` plus your own highlighter (https://bestax.io/docs/api/elements/pre)
-export const Unmappable = () => (
+// TODO(bestax-migrate): `size="small"` on `<Tags>` is not a value bestax-bulma takes ('medium', 'large'); use one of those or drop it
+// TODO(bestax-migrate): `size` on `<Buttons>` has a dynamic value, and bestax-bulma takes only 'small', 'medium', 'large'; make sure it can only be one of those
+export const Unmappable = ({ size }: { size: "small" | "medium" }) => (
   <Footer>
     <Tile kind="ancestor">
       <Tile kind="parent" vertical>
@@ -24,5 +26,11 @@ export const Unmappable = () => (
     <Fieldset disabled>fields</Fieldset>
     <Numeric>{1000}</Numeric>
     <Highlight>{"const a = 1;"}</Highlight>
+    <Tags size="small">
+      <Tag>not a Tags size</Tag>
+    </Tags>
+    <Buttons size={size}>
+      <Button>a size the codemod cannot read</Button>
+    </Buttons>
   </Footer>
 );

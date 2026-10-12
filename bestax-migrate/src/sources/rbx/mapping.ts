@@ -14,6 +14,7 @@
  */
 
 import type { ComponentMapping, PropAction } from '../../types.js';
+import { SIZE_UNIONS } from '../_shared/size-unions.js';
 
 const DOCS = 'https://bestax.io/docs';
 
@@ -189,9 +190,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
             valueMap: { centered: 'isCentered', right: 'isRight' },
             valueToProp: true,
           },
-          size: {
-            todo: 'bestax `Buttons` has no size prop; set `size` on each Button instead',
-          },
+          size: { allowed: SIZE_UNIONS.Buttons },
         },
       },
     },
@@ -338,9 +337,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
         target: 'Tags',
         props: {
           gapless: { booleanToProp: { name: 'hasAddons' } },
-          size: {
-            todo: 'bestax `Tags` has no size prop; set `size` on each Tag instead',
-          },
+          size: { allowed: SIZE_UNIONS.Tags },
         },
       },
     },
@@ -617,9 +614,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Message',
     props: {
       color: {},
-      size: {
-        todo: 'bestax `Message` has no size prop; use the `size` helper on its children',
-      },
+      size: { allowed: SIZE_UNIONS.Message },
     },
     subs: {
       Body: { status: 'mapped', target: 'Message.Body' },
@@ -849,12 +844,9 @@ export const MAPPING: Record<string, ComponentMapping> = {
     target: 'Hero',
     props: {
       color: {},
-      size: {
-        valueTodo: {
-          'fullheight-with-navbar':
-            'set `size="fullheight"` plus `fullheightWithNavbar` on the bestax Hero',
-        },
-      },
+      // rbx's five sizes are bestax's five, `fullheight-with-navbar`
+      // included, and both render the one `is-<size>` class.
+      size: {},
       gradient: {
         todo: 'bestax `Hero` has no gradient variant; add a custom class or `bgColor`',
       },

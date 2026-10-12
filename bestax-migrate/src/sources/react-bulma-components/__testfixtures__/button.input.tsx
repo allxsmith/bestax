@@ -2,7 +2,7 @@ import { Button } from 'react-bulma-components';
 
 export function Toolbar({ onClose }: { onClose: () => void }) {
   return (
-    <Button.Group align="right" hasAddons>
+    <Button.Group align="right" hasAddons size="small">
       <Button color="link" state="hover" outlined rounded>
         Hover me
       </Button>
