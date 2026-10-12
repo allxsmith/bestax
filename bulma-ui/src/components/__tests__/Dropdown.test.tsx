@@ -1699,6 +1699,99 @@ describe('Dropdown focus after an item runs', () => {
   );
 });
 
+describe('Dropdown with a field in its menu', () => {
+  // The menu takes any content, so a caller can put a field in it. The menu's
+  // keys act only while focus is on the menu or one of its items.
+  const onClick = jest.fn();
+  const onActiveChange = jest.fn();
+  beforeEach(() => {
+    onClick.mockClear();
+    onActiveChange.mockClear();
+  });
+  const renderWithField = () =>
+    render(
+      <Dropdown
+        label="Menu"
+        active
+        closeOnClick={false}
+        onActiveChange={onActiveChange}
+      >
+        <input aria-label="Filter" />
+        <Dropdown.Item onClick={onClick}>Archive</Dropdown.Item>
+        <Dropdown.Item onClick={onClick}>Delete</Dropdown.Item>
+      </Dropdown>
+    );
+  const field = () => screen.getByRole('textbox', { name: 'Filter' });
+
+  test('the field keeps its arrows, Home, End and the rest of its keys', () => {
+    renderWithField();
+    field().focus();
+    for (const key of ['ArrowDown', 'ArrowUp', 'Home', 'End', 'a', ' ']) {
+      const event = createEvent.keyDown(field(), { key });
+      fireEvent(field(), event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(field()).toHaveFocus();
+    }
+    fireEvent.keyDown(field(), { key: 'Enter' });
+    expect(onClick).not.toHaveBeenCalled();
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
+  test('Escape in the field still closes the menu and focuses the trigger', () => {
+    renderWithField();
+    field().focus();
+    fireEvent.keyDown(field(), { key: 'Escape' });
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(screen.getByRole('button', { name: 'Menu' })).toHaveFocus();
+  });
+
+  test('Tab in the field still closes the menu and lets focus move on', () => {
+    renderWithField();
+    field().focus();
+    const tab = createEvent.keyDown(field(), { key: 'Tab' });
+    fireEvent(field(), tab);
+    expect(onActiveChange).toHaveBeenCalledWith(false);
+    expect(tab.defaultPrevented).toBe(false);
+  });
+
+  test('the arrows move between the items past the field', () => {
+    renderWithField();
+    screen.getByText('Archive').focus();
+    fireEvent.keyDown(screen.getByText('Archive'), { key: 'ArrowUp' });
+    expect(screen.getByText('Delete')).toHaveFocus();
+    fireEvent.keyDown(screen.getByText('Delete'), { key: 'ArrowDown' });
+    expect(screen.getByText('Archive')).toHaveFocus();
+  });
+});
+
+describe('Dropdown held Enter', () => {
+  // The browser clicks a button, and a link with an href, on every Enter
+  // keydown, auto-repeats included. `user-event` plays that, and marks the
+  // repeats the way a browser does.
+  test.each([
+    ['button', { as: 'button' as const }],
+    ['link', { href: '#docs' }],
+  ])('a held Enter runs a %s item once', async (_name, itemProps) => {
+    const user = userEvent.setup();
+    // Prevented so jsdom does not try to navigate.
+    const onClick = jest.fn((e: { preventDefault: () => void }) =>
+      e.preventDefault()
+    );
+    render(
+      <Dropdown label="Menu" active closeOnClick={false}>
+        <Dropdown.Item {...itemProps} onClick={onClick}>
+          Unread
+        </Dropdown.Item>
+      </Dropdown>
+    );
+    const item = screen.getByText('Unread');
+    item.focus();
+    await user.keyboard('{Enter>3/}');
+    expect(onClick).toHaveBeenCalledTimes(1);
+    expect(item).toHaveFocus();
+  });
+});
+
 describe('Compound components', () => {
   test('Dropdown.Item is the DropdownItem component', () => {
     expect(Dropdown.Item).toBe(DropdownItem);
