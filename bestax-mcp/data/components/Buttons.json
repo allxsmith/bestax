@@ -38,8 +38,8 @@
       "code": "<Buttons>\n  <Buttons.Button color=\"primary\">Save</Buttons.Button>\n  <Buttons.Button>Cancel</Buttons.Button>\n  <Buttons.LinkButton>Learn more</Buttons.LinkButton>\n</Buttons>"
     }
   ],
-  "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- If grouping radio or toggle buttons, consider `aria-pressed` or `aria-checked` for stateful controls.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
-  "related": ["Button", "useBulmaClasses"],
+  "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton) in `Buttons hasAddons`, and give the `Buttons` `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group, so use [`Radios`](https://bestax.io/docs/api/form/radios) for it.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
+  "related": ["Button", "ToggleButton", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-button--default",
   "summary": "The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.",
   "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
@@ -257,7 +257,7 @@
           "name": "isActive",
           "type": "boolean",
           "default": "false",
-          "description": "Applies active styling (visual only).",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -433,7 +433,7 @@
           "name": "isActive",
           "type": "boolean",
           "default": "false",
-          "description": "Applies active styling (visual only).",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
           "required": false,
           "inherited": true,
           "deprecated": false

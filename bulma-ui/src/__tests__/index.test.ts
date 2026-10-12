@@ -161,6 +161,7 @@ const PUBLIC_EXPORTS = [
   'Title',
   'Toast',
   'ToastContainer',
+  'ToggleButton',
   'Tooltip',
   'Tr',
   'UnorderedList',

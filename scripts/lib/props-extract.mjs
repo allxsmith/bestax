@@ -1464,6 +1464,7 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
+  ToggleButton: 'button', // renders a `.button` through Button
 };
 
 /**

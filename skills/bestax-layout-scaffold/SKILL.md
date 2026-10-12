@@ -59,6 +59,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `aria-controls`/`aria-labelledby` links come built in, so add no `onKeyDown` or ARIA
   of your own; `onChange` fires when a tab is activated, never on
   arrow-key focus), `Dropdown active/onActiveChange`,
+  `ToggleButton pressed/defaultPressed onPressedChange` for a button that stays on or off (not
+  `Button isActive`, which sets no `aria-pressed`; the label stays the same in both states; a
+  set goes in `Buttons hasAddons role="group"` with an `aria-label`, and a row where only one
+  can be on is `Radios`),
   `Popover trigger={<Button>…</Button>} open/defaultOpen onOpenChange` (`trigger` is one
   element, not a node: Popover clones it to add the click and ARIA, so never wrap it in a
   clickable of your own; build the panel from `Popover.Header`/`Body`/`Footer`/`Close`, and a

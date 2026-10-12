@@ -155,7 +155,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 - Grouping buttons in a `<div class="buttons">` has no negative impact on accessibility.
 - Ensure each `Button` has a clear label (text or `aria-label`).
-- If grouping radio or toggle buttons, consider `aria-pressed` or `aria-checked` for stateful controls.
+- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](./togglebutton.md) in `Buttons hasAddons`, and give the `Buttons` `role="group"` and an `aria-label`. A set where only one can be on is a radio group, so use [`Radios`](../form/radios.md) for it.
 
 :::tip
 You can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.
@@ -166,6 +166,7 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 ## Related Components
 
 - [`Button`](./button.md): The underlying button component used in the group.
+- [`ToggleButton`](./togglebutton.md): A button that stays pressed, for a set of toggles in a group.
 - [Helper Props](../helpers/usebulmaclasses.md): All supported Bulma helper props for layout, color, and spacing.
 
 ---

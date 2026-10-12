@@ -349,7 +349,7 @@
           "name": "isActive",
           "type": "boolean",
           "default": "false",
-          "description": "Applies active styling (visual only).",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
           "required": false,
           "inherited": true,
           "deprecated": false
