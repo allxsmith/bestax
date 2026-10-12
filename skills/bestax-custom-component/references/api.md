@@ -115,8 +115,8 @@ hard-coding values.
 ## Floating content: `Portal`
 
 A panel anchored to the button that opens it is `Popover`, which already portals
-(`appendToBody`), traps focus and dismisses itself. `Portal` is for the overlays it doesn't
-cover.
+(`appendToBody`), traps focus and dismisses itself, and a preview that opens on hover is
+`HoverCard`, which portals the same way. `Portal` is for the overlays they don't cover.
 
 `<Portal container?>` (`helpers/portal.tsx`) renders its children into `container` (an element or
 a selector), or without one into the `portalContainer` a `ConfigProvider` sets, and
@@ -125,8 +125,10 @@ a selector), or without one into the `portalContainer` a `ConfigProvider` sets, 
 first client render matches; `disabled` renders in place instead. Use it rather than calling
 `createPortal` yourself, which React's server renderer can't render.
 
-Focus follows the DOM, not the React tree: portaled content comes last in the Tab order, so move
-focus into it when it opens and back to its trigger when it closes. To trap portaled content,
+Focus follows the DOM, not the React tree: portaled content sits in the Tab order where its
+container is, which for the default `document.body` is last, so an overlay you build that takes
+focus moves it in when it opens and back to its trigger when it closes. A `HoverCard` moves no
+focus when it opens. To trap portaled content,
 put the trap's ref on the element inside the `Portal`, as below with
 `useFocusTrap(panelRef, { active: open, restoreFocus: buttonRef })`. A focus trap doesn't cover
 what a `Portal` inside it renders, so render nested overlays inside the trapped element.

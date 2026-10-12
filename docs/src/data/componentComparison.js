@@ -68,6 +68,7 @@ const BESTAX = {
   Collapses: 'components/collapses',
   Dialog: 'components/dialog',
   Dropdown: 'components/dropdown',
+  HoverCard: 'components/hovercard',
   Loading: 'components/loading',
   Menu: 'components/menu',
   Message: 'components/message',
@@ -1671,7 +1672,7 @@ export const categories = [
       ],
       [
         'Hover card',
-        0,
+        'HoverCard',
         'HoverCard',
         0,
         '~Popover',
