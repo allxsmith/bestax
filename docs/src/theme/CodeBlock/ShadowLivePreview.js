@@ -37,7 +37,10 @@ export default function ShadowLivePreview() {
   // or a Portal with no container. Left to the library's default it would
   // land in document.body, outside this shadow root and so outside the
   // stylesheets above. This element sits inside the root instead, and the
-  // ConfigProvider around the preview makes it the default.
+  // ConfigProvider around the preview makes it the default. A ConfigProvider
+  // the example nests replaces this one's settings rather than adding to
+  // them, so an example that portals must not nest one without a
+  // portalContainer of its own (docs/CLAUDE.md, on live examples).
   const [portalTarget, setPortalTarget] = React.useState(null);
 
   const updateShadowTheme = React.useCallback(

@@ -98,6 +98,13 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   is wrong on purpose takes `notypecheck` in its info string (` ```tsx live notypecheck `),
   which also changes nothing on the page. It holds only while the fence still has a type
   error, so it goes when the mistake does, the way `nolint` does.
+- **Live examples render in a shadow root**, and the preview
+  (`src/theme/CodeBlock/ShadowLivePreview.js`) wraps each one in a `ConfigProvider` whose
+  `portalContainer` is an element inside that root, so what an example portals keeps the
+  preview's styles. A `ConfigProvider` the example nests replaces that setting rather than
+  adding to it, and its portaled content lands unstyled in `document.body` with every gate
+  green. In an example that portals, don't nest one, or give it a `portalContainer`: an element
+  the example renders, or the preview's own, read with `useConfig()`.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 
