@@ -402,7 +402,7 @@ export const ManualEntry12h: Story = {
     docs: {
       description: {
         story:
-          'In 12-hour mode the format gains a trailing meridiem segment. Move to it and press `a` / `p` to toggle AM/PM.',
+          'In 12-hour mode the format gains a trailing meridiem segment. Move to it and press `a` for AM or `p` for PM.',
       },
     },
   },
@@ -473,7 +473,7 @@ export const ManualEntry12hWithSeconds: Story = {
     docs: {
       description: {
         story:
-          'The full segment set — date, hh, mm, ss, and a trailing meridiem. Move to the AM/PM segment and press `a` / `p` to toggle it.',
+          'The full segment set — date, hh, mm, ss, and a trailing meridiem. Move to the AM/PM segment and press `a` for AM or `p` for PM.',
       },
     },
   },

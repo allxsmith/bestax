@@ -172,7 +172,7 @@ Combine `hourFormat="12"` with `enableSeconds` for an `hh:mm:ss A` field — the
 The OS-native pickers honor neither half: `hourFormat` follows the device clock setting, and iOS Safari has no seconds wheel at all. This example forces `mobileNative={false}` so the 12-hour seconds wheel shows on every device.
 :::
 
-**Typing-first** — the full segment set with `openOnFocus={false}`: type through date, `hh`, `mm`, `ss`, toggle the trailing meridiem with `a` / `p`, and open the popover via the launcher icon or `Alt+↓`.
+**Typing-first** — the full segment set with `openOnFocus={false}`: type through date, `hh`, `mm`, `ss`, set the trailing meridiem with `a` / `p`, and open the popover via the launcher icon or `Alt+↓`.
 
 ```tsx live
 function example() {
@@ -769,7 +769,7 @@ A single field spans year → month → day → hours → minutes (→ seconds �
 | `Alt+↓` / `Alt+↑`                 | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`                         | Move to previous / next segment                                                |
 | `0`–`9`                           | Overwrite the active segment; auto-advances when no further digit is valid     |
-| `a` / `A` / `p` / `P`             | Toggle AM/PM on the meridiem segment (12-hour formats)                         |
+| `a` / `A` / `p` / `P`             | Set AM (`a`) or PM (`p`) on the meridiem segment (12-hour formats)             |
 | Separator (`-` `/` `:` `.` space) | Skip to the next segment without inserting the character                       |
 | `Backspace`                       | Clear the typed-digit buffer; if already cleared, move to the previous segment |
 | `Tab`                             | Clear segment selection so focus moves out naturally                           |

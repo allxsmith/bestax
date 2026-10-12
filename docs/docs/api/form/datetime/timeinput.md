@@ -408,7 +408,7 @@ function example() {
 
 #### Controlled with live value
 
-The value updates on every increment, digit, or AM/PM toggle — exactly like the wheel popover. Bind to `useState` to see it.
+The value updates with every segment you change, the same as in the wheel popover. Bind to `useState` to see it.
 
 ```tsx live
 function example() {
@@ -456,7 +456,7 @@ function example() {
 
 #### 12-hour with seconds
 
-The full segment walk: `hh` → `mm` → `ss` → AM/PM. `→` / `←` move through all four segments, digits overwrite with auto-advance, and `a` / `p` toggle the meridiem.
+The full segment walk: `hh` → `mm` → `ss` → AM/PM. `→` / `←` move through all four segments, digits overwrite with auto-advance, and `a` / `p` set the meridiem to AM or PM.
 
 ```tsx live
 function example() {
@@ -923,7 +923,7 @@ Focus the input — the **hours** segment is automatically highlighted. Segment 
 | `Alt+↓` / `Alt+↑`     | Open / close the popover, leaving the segment as it is                         |
 | `←` / `→`             | Move to previous / next segment (hour ↔ minute ↔ second ↔ AM/PM)               |
 | `0`–`9`               | Overwrite the active segment; auto-advances when no further digit is valid     |
-| `a` / `A` / `p` / `P` | Toggle AM/PM on the meridiem segment                                           |
+| `a` / `A` / `p` / `P` | Set AM (`a`) or PM (`p`) on the meridiem segment                               |
 | `Backspace`           | Clear the typed-digit buffer; if already cleared, move to the previous segment |
 | `Tab`                 | Clear segment selection so focus moves out naturally                           |
 | `Escape`              | Close popover                                                                  |
