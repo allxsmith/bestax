@@ -392,3 +392,9 @@ And around it:
 ‡ declared on a constituent element: values set via `className`, the `style` prop, or an ancestor are only inherited and lose — target the declaring element in your CSS.
 
 <!-- /bestax:generated cssvars -->
+
+`--bulma-tooltip-arrow-size` and `--bulma-tooltip-arrow-margin` together set the gap between the
+trigger and the tooltip. The bridge that carries the pointer across that gap is sized from their
+Sass defaults, so it covers the default gap only. If you raise either variable, give the tooltip a
+`closeDelay` long enough for the pointer to cross the wider gap, or it hides before the pointer
+reaches it.

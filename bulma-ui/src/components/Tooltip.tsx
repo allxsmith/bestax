@@ -65,7 +65,11 @@ export interface TooltipProps
   /**
    * How long the tooltip stays after the pointer and focus have left the
    * trigger and the tooltip, in milliseconds. The pointer can move from the
-   * trigger onto a shown tooltip without one.
+   * trigger onto a shown tooltip without one, across the default gap. A
+   * theme that raises `--bulma-tooltip-arrow-size` or
+   * `--bulma-tooltip-arrow-margin` widens the gap past what the pointer can
+   * cross on its own, so give it a `closeDelay` long enough to cross the
+   * rest.
    */
   closeDelay?: number;
   /**
