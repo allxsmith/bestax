@@ -157,9 +157,9 @@ reach it through something focusable inside it, like the row's `Dropdown` button
 ### On Touch Screens
 
 A touch or a pen held still on the trigger opens the menu at that point, which is the only way in on
-an iPhone, since iOS never fires `contextmenu`. Moving the finger, lifting it early, a second finger,
-or the page starting to scroll cancels it, and lifting the finger after the menu opens doesn't click
-what's under it. The trigger turns off iOS's own callout for links and images, so it doesn't cover
+an iPhone, since iOS never fires `contextmenu`. Moving the finger, lifting it early, a second finger
+anywhere on the page, or the page starting to scroll cancels it, so two fingers on two rows open
+neither menu. Lifting the finger after the menu opens doesn't click what's under it. The trigger turns off iOS's own callout for links and images, so it doesn't cover
 the menu.
 
 A long press on text still selects it, the way it does anywhere. Where that gets in the way, give
@@ -401,7 +401,7 @@ without a menubar or submenus:
   <kbd>Home</kbd> and <kbd>End</kbd> go to the first and last.
 - **Typing** a letter moves to the next item whose text starts with what's been typed. Letters typed
   in quick succession add up to one search, and the same letter again cycles through the items that
-  start with it.
+  start with it. Each opening starts a new search.
 - <kbd>Enter</kbd> and <kbd>Space</kbd> activate the focused item the way a click does, so its
   `onClick` runs, and a key held down activates it once.
 - <kbd>Escape</kbd> closes the menu and returns focus to what had it before the menu opened. It
@@ -429,8 +429,8 @@ And around it:
 
 - The menu isn't modal. A press outside it closes it and does whatever it does, the rest of the page
   stays reachable, and nothing locks scrolling.
-- Nothing listens on the page while the menu is closed, so a table with a menu on every row adds no
-  listeners until one opens.
+- Nothing listens on the page while the menu is closed and no finger is held on its trigger, so a
+  table with a menu on every row adds no listeners until one is used.
 - The menu doesn't animate.
 
 ---
