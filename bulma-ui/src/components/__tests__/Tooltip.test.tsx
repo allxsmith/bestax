@@ -10,7 +10,10 @@ import { Popover } from '../Popover';
 import { Modal } from '../Modal';
 import { HoverCard } from '../HoverCard';
 import { Dropdown, DropdownItem } from '../Dropdown';
+import { Button } from '../../elements/Button';
+import { Span } from '../../elements/Span';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 type PointerType = 'mouse' | 'pen' | 'touch';
 
@@ -1209,6 +1212,170 @@ describe('Tooltip', () => {
     });
   });
 
+  describe('describing the trigger', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+      resetDevWarnings();
+    });
+
+    it('points the trigger at the tooltip, which describes it hidden and shown', () => {
+      render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(bubble().id).not.toBe('');
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(bubble()).toHaveAttribute('aria-hidden', 'true');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+
+      hover(trigger());
+      advance(0);
+      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+    });
+
+    it('is described before a delay runs out', () => {
+      render(
+        <Tooltip label="Deletes it for good" delay={1000}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(500);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+    });
+
+    it('gives each tooltip an id of its own', () => {
+      render(
+        <>
+          <Tooltip label="First">
+            <button>One</button>
+          </Tooltip>
+          <Tooltip label="Second">
+            <button>Two</button>
+          </Tooltip>
+        </>
+      );
+      expect(
+        screen.getByRole('button', { name: 'One' })
+      ).toHaveAccessibleDescription('First');
+      expect(
+        screen.getByRole('button', { name: 'Two' })
+      ).toHaveAccessibleDescription('Second');
+    });
+
+    it('keeps an aria-describedby the trigger already has, and adds the tooltip after it', () => {
+      render(
+        <>
+          <span id="own-hint">Can't be undone.</span>
+          <Tooltip label="Deletes it for good">
+            <button aria-describedby="own-hint">Hover me</button>
+          </Tooltip>
+        </>
+      );
+      expect(trigger()).toHaveAttribute(
+        'aria-describedby',
+        `own-hint ${bubble().id}`
+      );
+      expect(trigger()).toHaveAccessibleDescription(
+        "Can't be undone. Deletes it for good"
+      );
+    });
+
+    it('adds the tooltip only once when the trigger already names it', () => {
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const id = bubble().id;
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <button aria-describedby={`${id} own-hint`}>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute('aria-describedby', `${id} own-hint`);
+    });
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a Button', () => <Button>Trigger</Button>],
+      ['a link', () => <a href="#details">Trigger</a>],
+      ['a Span with tabIndex={0}', () => <Span tabIndex={0}>Trigger</Span>],
+    ])('describes %s, without a warning', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<Tooltip label="Deletes it for good">{child()}</Tooltip>);
+      const triggerNode = screen.getByText('Trigger');
+      expect(triggerNode).toHaveAttribute('aria-describedby', bubble().id);
+      expect(triggerNode).toHaveAccessibleDescription('Deletes it for good');
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('reads rich content as its text', () => {
+      render(
+        <Tooltip
+          content={
+            <span>
+              <strong>Bold</strong> and <em>italic</em>
+            </span>
+          }
+        >
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAccessibleDescription('Bold and italic');
+    });
+
+    it.each([
+      ['text', () => 'Hover me'],
+      [
+        'a fragment',
+        () => (
+          <>
+            <button>Hover me</button>
+          </>
+        ),
+      ],
+      [
+        'several elements',
+        () => [<button key="a">Hover me</button>, <button key="b">Too</button>],
+      ],
+      ['nothing', () => null],
+    ])('leaves %s unlinked, and warns once in development', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { container } = render(
+        <>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+        </>
+      );
+      expect(container.querySelector('[aria-describedby]')).toBeNull();
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("children aren't a single element")
+      );
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Pass one focusable element, such as a button, a link or a Span with tabIndex={0}'
+        )
+      );
+    });
+
+    it('stays quiet in production', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(<Tooltip label="Deletes it for good">Hover me</Tooltip>);
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+      expect(warn).not.toHaveBeenCalled();
+    });
+  });
+
   describe('className handling', () => {
     it('applies custom className', () => {
       const { container } = render(
@@ -1288,6 +1455,8 @@ describe('Tooltip', () => {
       );
       expect(bubble()).toHaveClass('bestax-tooltip-content');
       expect(classes()).toEqual([]);
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(trigger()).toHaveAccessibleDescription('Test');
 
       hover(trigger());
       advance(0);
@@ -1388,6 +1557,36 @@ describe('Tooltip', () => {
         hover(trigger());
         advance(0);
         expect(wrapper(container)).toHaveClass('is-active');
+      } finally {
+        await cleanup();
+      }
+    });
+
+    // The client's ids have to match the server's, or React reports the
+    // mismatch through console.error.
+    it('hydrates the tooltip ids the server rendered, so each trigger stays described', async () => {
+      const { errorSpy, cleanup } = await hydrate(
+        <>
+          <Tooltip label="First">
+            <button>One</button>
+          </Tooltip>
+          <Tooltip label="Second">
+            <button>Two</button>
+          </Tooltip>
+        </>
+      );
+      try {
+        expect(errorSpy).not.toHaveBeenCalled();
+        const one = screen.getByRole('button', { name: 'One' });
+        const two = screen.getByRole('button', { name: 'Two' });
+        expect(one.getAttribute('aria-describedby')).not.toBe(
+          two.getAttribute('aria-describedby')
+        );
+        expect(one).toHaveAccessibleDescription('First');
+        expect(two).toHaveAccessibleDescription('Second');
+        hover(one);
+        advance(0);
+        expect(one).toHaveAccessibleDescription('First');
       } finally {
         await cleanup();
       }
