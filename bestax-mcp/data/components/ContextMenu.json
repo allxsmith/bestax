@@ -1,0 +1,213 @@
+{
+  "name": "ContextMenu",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/contextmenu",
+  "docsUrl": "https://bestax.io/docs/api/components/contextmenu",
+  "examples": [
+    {
+      "title": "Basic ContextMenu",
+      "code": "<ContextMenu\n  aria-label=\"Actions for report.pdf\"\n  trigger={\n    <Box tabIndex={0} p=\"6\" textAlign=\"centered\">\n      report.pdf: right-click here, or long press on a touch screen\n    </Box>\n  }\n>\n  <ContextMenu.Item as=\"button\">Rename</ContextMenu.Item>\n  <ContextMenu.Item as=\"button\">Duplicate</ContextMenu.Item>\n  <ContextMenu.Divider />\n  <ContextMenu.Item as=\"button\" color=\"danger\">\n    Delete\n  </ContextMenu.Item>\n</ContextMenu>"
+    },
+    {
+      "title": "On Table Rows",
+      "code": "function example() {\n  const [openFor, setOpenFor] = useState<string | null>(null);\n  const [last, setLast] = useState('nothing yet');\n  const files = ['report.pdf', 'budget.xlsx', 'notes.txt'];\n\n  return (\n    <>\n      <Paragraph mb=\"3\">Last action: {last}</Paragraph>\n      <Table isFullwidth>\n        <Table.Tbody>\n          {files.map(name => {\n            const actions = (\n              <>\n                <ContextMenu.Item\n                  as=\"button\"\n                  onClick={() => setLast(`Rename ${name}`)}\n                >\n                  Rename\n                </ContextMenu.Item>\n                <ContextMenu.Item\n                  as=\"button\"\n                  onClick={() => setLast(`Duplicate ${name}`)}\n                >\n                  Duplicate\n                </ContextMenu.Item>\n                <ContextMenu.Divider />\n                <ContextMenu.Item\n                  as=\"button\"\n                  color=\"danger\"\n                  onClick={() => setLast(`Delete ${name}`)}\n                >\n                  Delete\n                </ContextMenu.Item>\n              </>\n            );\n            return (\n              <ContextMenu\n                key={name}\n                aria-label={`Actions for ${name}`}\n                onOpenChange={open =>\n                  setOpenFor(current =>\n                    open ? name : current === name ? null : current\n                  )\n                }\n                trigger={\n                  <Table.Tr isSelected={openFor === name}>\n                    <Table.Td>{name}</Table.Td>\n                    <Table.Td>\n                      <Dropdown label=\"Actions\" right>\n                        {actions}\n                      </Dropdown>\n                    </Table.Td>\n                  </Table.Tr>\n                }\n              >\n                {actions}\n              </ContextMenu>\n            );\n          })}\n        </Table.Tbody>\n      </Table>\n    </>\n  );\n}"
+    },
+    {
+      "title": "On Touch Screens",
+      "code": "<ContextMenu\n  aria-label=\"Actions for IMG_0042.jpg\"\n  trigger={\n    <Box tabIndex={0} interaction=\"unselectable\" p=\"6\" textAlign=\"centered\">\n      IMG_0042.jpg: long press, and no text gets selected\n    </Box>\n  }\n>\n  <ContextMenu.Item as=\"button\">Copy link</ContextMenu.Item>\n  <ContextMenu.Item as=\"button\">Download</ContextMenu.Item>\n</ContextMenu>"
+    },
+    {
+      "title": "Keeping It Open",
+      "code": "function example() {\n  const [hidden, setHidden] = useState(false);\n  const [extensions, setExtensions] = useState(true);\n\n  return (\n    <ContextMenu\n      aria-label=\"View options\"\n      closeOnClick={false}\n      trigger={\n        <Box tabIndex={0} p=\"6\" textAlign=\"centered\">\n          Hidden files are {hidden ? 'shown' : 'hidden'}, extensions are{' '}\n          {extensions ? 'shown' : 'hidden'}\n        </Box>\n      }\n    >\n      <ContextMenu.Item\n        as=\"button\"\n        role=\"menuitemcheckbox\"\n        aria-checked={hidden}\n        onClick={() => setHidden(value => !value)}\n      >\n        Show hidden files\n      </ContextMenu.Item>\n      <ContextMenu.Item\n        as=\"button\"\n        role=\"menuitemcheckbox\"\n        aria-checked={extensions}\n        onClick={() => setExtensions(value => !value)}\n      >\n        Show extensions\n      </ContextMenu.Item>\n    </ContextMenu>\n  );\n}"
+    },
+    {
+      "title": "Disabled Items",
+      "code": "<ContextMenu\n  aria-label=\"Clipboard\"\n  trigger={\n    <Box tabIndex={0} p=\"6\" textAlign=\"centered\">\n      Right-click for the clipboard\n    </Box>\n  }\n>\n  <ContextMenu.Item as=\"button\" disabled>\n    Cut\n  </ContextMenu.Item>\n  <ContextMenu.Item as=\"button\" disabled>\n    Copy\n  </ContextMenu.Item>\n  <ContextMenu.Item as=\"button\">Paste</ContextMenu.Item>\n</ContextMenu>"
+    },
+    {
+      "title": "Nested Regions",
+      "code": "<ContextMenu\n  aria-label=\"Board\"\n  trigger={\n    <Box p=\"5\">\n      <Paragraph mb=\"4\">Right-click between the cards for the board</Paragraph>\n      <ContextMenu\n        aria-label=\"Actions for Write the docs\"\n        trigger={\n          <Card tabIndex={0}>\n            <Card.Content>Write the docs</Card.Content>\n          </Card>\n        }\n      >\n        <ContextMenu.Item as=\"button\">Move to Done</ContextMenu.Item>\n        <ContextMenu.Item as=\"button\">Archive</ContextMenu.Item>\n      </ContextMenu>\n    </Box>\n  }\n>\n  <ContextMenu.Item as=\"button\">New card</ContextMenu.Item>\n  <ContextMenu.Item as=\"button\">Rename board</ContextMenu.Item>\n</ContextMenu>"
+    },
+    {
+      "title": "Turning It Off",
+      "code": "function example() {\n  const [disabled, setDisabled] = useState(false);\n\n  return (\n    <>\n      <Switch\n        mb=\"3\"\n        checked={disabled}\n        onChange={event => setDisabled(event.target.checked)}\n      >\n        Use the browser's menu\n      </Switch>\n      <ContextMenu\n        aria-label=\"Actions for notes.txt\"\n        disabled={disabled}\n        trigger={\n          <Box tabIndex={0} p=\"6\" textAlign=\"centered\">\n            notes.txt\n          </Box>\n        }\n      >\n        <ContextMenu.Item as=\"button\">Rename</ContextMenu.Item>\n        <ContextMenu.Item as=\"button\">Delete</ContextMenu.Item>\n      </ContextMenu>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Where the Menu Goes",
+      "code": "function RenameDialog({ active, onClose }) {\n  const [overlays, setOverlays] = useState<HTMLElement | null>(null);\n\n  return (\n    <Modal active={active} onClose={onClose}>\n      <ConfigProvider portalContainer={overlays ?? undefined}>\n        <ContextMenu\n          aria-label=\"Actions for report.pdf\"\n          trigger={<Box tabIndex={0}>report.pdf</Box>}\n        >\n          <ContextMenu.Item as=\"button\">Rename</ContextMenu.Item>\n        </ContextMenu>\n      </ConfigProvider>\n      <div ref={setOverlays} />\n    </Modal>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<ContextMenu\n  aria-label=\"Actions for notes.txt\"\n  trigger={\n    <Box tabIndex={0} p=\"6\" textAlign=\"centered\">\n      notes.txt\n    </Box>\n  }\n>\n  <ContextMenu.Item as=\"button\">Open</ContextMenu.Item>\n  <ContextMenu.Item as=\"button\">Rename</ContextMenu.Item>\n  <ContextMenu.Divider />\n  <ContextMenu.Item as=\"button\">Delete</ContextMenu.Item>\n</ContextMenu>"
+    }
+  ],
+  "accessibility": "`ContextMenu` follows the [WAI-ARIA menu pattern](https://www.w3.org/WAI/ARIA/apg/patterns/menubar/),\nwithout a menubar or submenus:\n\n- **Opening:** APG names \"a command, such as Shift + F10 in Windows, that opens a context specific\n  menu\". That's the browser's `contextmenu` event, which <kbd>Shift</kbd>+<kbd>F10</kbd> and the\n  context menu key fire on Windows and Linux, and VoiceOver's <kbd>VO</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>\n  fires on macOS. `ContextMenu` adds no key handler of its own, so the menu never opens twice for\n  one key.\n- **Focus on open** goes to the first enabled item, or to the menu itself when there's none.\n- <kbd>ArrowDown</kbd> and <kbd>ArrowUp</kbd> move to the next and previous item, wrapping, and\n  <kbd>Home</kbd> and <kbd>End</kbd> go to the first and last.\n- **Typing** a letter moves to the next item whose text starts with what's been typed. Letters typed\n  in quick succession add up to one search, and the same letter again cycles through the items that\n  start with it.\n- <kbd>Enter</kbd> and <kbd>Space</kbd> activate the focused item the way a click does, so its\n  `onClick` runs, and a key held down activates it once.\n- <kbd>Escape</kbd> closes the menu and returns focus to what had it before the menu opened. It\n  stops there, so a `Popover` or a `Modal` around the menu stays open.\n- <kbd>Tab</kbd> and <kbd>Shift</kbd>+<kbd>Tab</kbd> close it and return focus too. The menu sits at\n  the end of the page, so letting Tab go on from it would skip the rest of the page.\n- An item that runs closes the menu and returns focus, unless it moved focus somewhere else, such as\n  into a `Modal` it opened or a rename field.\n\nRoles and names:\n\n- The menu is `role=\"menu\"`, named by the `aria-label` or `aria-labelledby` you pass. There's no\n  button to borrow a name from, and a development build warns when a menu opens without one.\n- Items are `menuitem` by default, and `menuitemcheckbox` or `menuitemradio` with `aria-checked`\n  through the item's `role`. A divider is an `<hr>`, which is a separator.\n- Disabled items, a `button` with `disabled` or an item with `aria-disabled=\"true\"`, are skipped by\n  the arrow keys and by typing, as in `Dropdown`.\n- The trigger gets no ARIA, no role and no tab stop. `aria-haspopup` describes a popup that opens\n  when an element is activated, and a right-click on a row isn't that. So nothing tells a screen\n  reader user the menu is there, and on macOS only VoiceOver opens it from the keyboard: every action\n  in it has to be reachable from a visible control as well, which\n  [WCAG 2.1.1](https://www.w3.org/WAI/WCAG22/Understanding/keyboard.html) asks for.\n\nAnd around it:\n\n- The menu isn't modal. A press outside it closes it and does whatever it does, the rest of the page\n  stays reachable, and nothing locks scrolling.\n- Nothing listens on the page while the menu is closed, so a table with a menu on every row adds no\n  listeners until one opens.\n- The menu doesn't animate.",
+  "related": [
+    "ConfigProvider",
+    "Dropdown",
+    "HoverCard",
+    "Popover",
+    "Portal",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-contextmenu--default",
+  "summary": "The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen. Shift+F10 and the context menu key open it too, where the browser fires `contextmenu` for them, which Windows and Linux do. The menu is Dropdown's markup, portaled into the `portalContainer` a `ConfigProvider` sets, or the end of the trigger's own document's `<body>`, so it never has server markup. It opens below and to the right of the point, flips above or to the left where there's no room, moves in where it fits neither way, and scrolls inside when it's taller than the viewport. It doesn't follow the trigger, since scrolling closes it. Inside a `Modal` or a shadow root, point `portalContainer` inside it, so screen readers that honor `aria-modal` reach the menu and the shadow root's styles apply. Opening moves focus to the first enabled item. The arrow keys, Home, End and typing move between items, and Enter and Space activate one. Escape, Tab, an item, a press outside, scrolling, resizing and the window losing focus close it, handing focus back to what had it unless an item moved it somewhere else. For a menu opened from a button use `Dropdown`.",
+  "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/ContextMenu.tsx",
+  "rootClass": "context-menu",
+  "parts": [
+    {
+      "path": "ContextMenu",
+      "summary": "The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen. Shift+F10 and the context menu key open it too, where the browser fires `contextmenu` for them, which Windows and Linux do. The menu is Dropdown's markup, portaled into the `portalContainer` a `ConfigProvider` sets, or the end of the trigger's own document's `<body>`, so it never has server markup. It opens below and to the right of the point, flips above or to the left where there's no room, moves in where it fits neither way, and scrolls inside when it's taller than the viewport. It doesn't follow the trigger, since scrolling closes it. Inside a `Modal` or a shadow root, point `portalContainer` inside it, so screen readers that honor `aria-modal` reach the menu and the shadow root's styles apply. Opening moves focus to the first enabled item. The arrow keys, Home, End and typing move between items, and Enter and Space activate one. Escape, Tab, an item, a press outside, scrolling, resizing and the window losing focus close it, handing focus back to what had it unless an item moved it somewhere else. For a menu opened from a button use `Dropdown`.",
+      "component": null,
+      "props": [
+        {
+          "name": "trigger",
+          "type": "React.ReactElement",
+          "default": null,
+          "description": "The element a right-click, Shift+F10, the context menu key or a long press opens the menu from: a table row, a card, an image. It's cloned, not wrapped, so a row stays a row, which means it has to be a single element that passes `className` and the `onContextMenu`, `onPointerDown`, `onPointerMove`, `onPointerUp`, `onPointerCancel` and `onTouchEnd` handlers to its DOM node. Its own handlers for those run first, and one that calls `preventDefault()` on `contextmenu` keeps the menu closed. A `ContextMenu` inside it opens instead of this one. It gets no ARIA and no tab stop, since it can be any element and a right-click isn't an activation. Keyboard users reach it through something focusable inside it, such as the row's own `Dropdown` button, or a `tabIndex={0}` you give it, and press Shift+F10 or the context menu key there. It gets `-webkit-touch-callout: none`, so iOS doesn't put its own callout for a link or an image over the menu. A long press still selects text the way it does anywhere, so give a region where it shouldn't `interaction=\"unselectable\"`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The menu's items: `ContextMenu.Item` and `ContextMenu.Divider`, the same components as `Dropdown.Item` and `Dropdown.Divider`. Every action in it needs a visible way in as well, such as a `Dropdown` on the same row: nothing tells a screen reader user the menu is there, and on macOS only VoiceOver opens it from the keyboard.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpenChange",
+          "type": "(open: boolean) => void",
+          "default": null,
+          "description": "Called with `true` when the menu opens and `false` when it closes, whatever closed it, such as for highlighting the row whose menu is open. Nothing fires after ContextMenu unmounts. There's no `open` prop to go with it: a menu opened from code has no point to open at.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnClick",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the menu when an item is clicked, or activated with Enter or Space. A click on a divider or between items leaves it open either way.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Leave the trigger to the browser: a right-click shows the browser's own menu, a long press does what it does anywhere, and an open menu closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "The menu's accessible name, such as \"Actions for report.pdf\". There's no button to borrow a name from, so pass this or `aria-labelledby`, and a development build warns when the menu opens with neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional classes for the menu (`role=\"menu\"`). The trigger keeps its own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ContextMenu.Item",
+      "summary": "Bulma Dropdown item.",
+      "component": "DropdownItem",
+      "props": [
+        {
+          "name": "as",
+          "type": "'a' | 'div' | 'button'",
+          "default": "'a'",
+          "description": "The element type to render. `'button'` renders `type=\"button\"` unless you pass `type=\"submit\"` or `type=\"reset\"`, so an item inside a form does not submit it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "boolean",
+          "default": "false",
+          "description": "Whether the item is active.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Marks the item as disabled; disabled items are skipped during keyboard navigation. Use with `as=\"button\"` for a native disabled control, or pair with `aria-disabled` on a link.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Item content.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "Remaining props of the element selected by as and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "ContextMenu.Divider",
+      "summary": "Bulma Dropdown divider.",
+      "component": "DropdownDivider",
+      "props": [],
+      "extraProps": [],
+      "catchAll": null,
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-context-menu-z-index",
+      "sass": "$context-menu-z-index",
+      "default": "$extras-z-index-tooltip",
+      "scope": "element"
+    },
+    {
+      "css": "--bulma-context-menu-max-height",
+      "sass": "$context-menu-max-height",
+      "default": "calc(100dvh - 1rem)",
+      "scope": "element"
+    }
+  ]
+}
