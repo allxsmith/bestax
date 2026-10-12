@@ -218,7 +218,8 @@ export const AlwaysActive: Story = {
 };
 
 /**
- * Tooltip with dashed underline style.
+ * Tooltip with dashed underline style, on an `abbr` given `tabIndex={0}` so
+ * keyboard users can reach it too.
  */
 export const DashedStyle: Story = {
   render: () => (
@@ -226,7 +227,7 @@ export const DashedStyle: Story = {
       <p>
         The term{' '}
         <Tooltip label="Application Programming Interface" dashed>
-          <span>API</span>
+          <abbr tabIndex={0}>API</abbr>
         </Tooltip>{' '}
         is commonly used in software development.
       </p>
@@ -315,44 +316,39 @@ export const NoAnimation: Story = {
 };
 
 /**
- * Tooltip on icons.
+ * Tooltip on icon-only buttons. The tooltip describes its trigger rather than
+ * naming it, so each button has a name of its own in `aria-label`.
  */
 export const OnIcons: Story = {
   render: () => (
     <Buttons p="5">
-      <Tooltip
-        label="Delete item"
-        color="danger"
-        position="bottom"
-        cursor="pointer"
-      >
-        <Icon name="trash" />
+      <Tooltip label="Moves it to the trash" color="danger" position="bottom">
+        <Button aria-label="Delete">
+          <Icon name="trash" />
+        </Button>
       </Tooltip>
-      <Tooltip
-        label="Edit item"
-        color="info"
-        position="bottom"
-        cursor="pointer"
-      >
-        <Icon name="edit" />
+      <Tooltip label="Opens it for editing" color="info" position="bottom">
+        <Button aria-label="Edit">
+          <Icon name="edit" />
+        </Button>
       </Tooltip>
-      <Tooltip
-        label="Download"
-        color="success"
-        position="bottom"
-        cursor="pointer"
-      >
-        <Icon name="download" />
+      <Tooltip label="Saves a copy as a PDF" color="success" position="bottom">
+        <Button aria-label="Download">
+          <Icon name="download" />
+        </Button>
       </Tooltip>
-      <Tooltip label="Share" color="primary" position="bottom" cursor="pointer">
-        <Icon name="share" />
+      <Tooltip label="Copies a link to it" color="primary" position="bottom">
+        <Button aria-label="Share">
+          <Icon name="share" />
+        </Button>
       </Tooltip>
     </Buttons>
   ),
 };
 
 /**
- * Tooltip on text elements.
+ * Tooltip on text elements, each given `tabIndex={0}` so keyboard users can
+ * reach it too.
  */
 export const OnText: Story = {
   render: () => (
@@ -362,11 +358,11 @@ export const OnText: Story = {
           <p>
             Hover over the{' '}
             <Tooltip label="Cascading Style Sheets" color="info" dashed>
-              <span>CSS</span>
+              <abbr tabIndex={0}>CSS</abbr>
             </Tooltip>{' '}
             or{' '}
             <Tooltip label="HyperText Markup Language" color="info" dashed>
-              <span>HTML</span>
+              <abbr tabIndex={0}>HTML</abbr>
             </Tooltip>{' '}
             terms to see their full names. You can also learn about{' '}
             <Tooltip
@@ -375,7 +371,7 @@ export const OnText: Story = {
               multiline
               dashed
             >
-              <span>JavaScript</span>
+              <span tabIndex={0}>JavaScript</span>
             </Tooltip>
             .
           </p>
@@ -386,26 +382,35 @@ export const OnText: Story = {
 };
 
 /**
- * Form field with help tooltip.
+ * Form field with help tooltip. The help is a button beside the label rather
+ * than inside it, since a label can't hold a control other than the one it
+ * names.
  */
 export const FormFieldHelp: Story = {
   render: () => (
     <Columns isCentered>
       <Column size="one-third">
         <Field>
-          <label className="label">
-            Password{' '}
+          <Block display="flex" alignItems="center" mb="2">
+            <label className="label mb-0" htmlFor="tooltip-story-password">
+              Password
+            </label>
             <Tooltip
               label="Must be at least 8 characters with one number and one special character"
               multiline
               color="info"
-              cursor="help"
             >
-              <Icon name="question-circle" size="small" />
+              <Button size="small" color="ghost" aria-label="Password rules">
+                <Icon name="question-circle" />
+              </Button>
             </Tooltip>
-          </label>
+          </Block>
           <Control>
-            <Input type="password" placeholder="Enter password" />
+            <Input
+              id="tooltip-story-password"
+              type="password"
+              placeholder="Enter password"
+            />
           </Control>
         </Field>
       </Column>
@@ -533,7 +538,9 @@ export const AutoPlacement: Story = {
 };
 
 /**
- * Tooltip with different trigger elements.
+ * Tooltip with different trigger elements. Each one takes focus, so keyboard
+ * users can reach it: the icon, text and image through `tabIndex={0}`, and
+ * the icon has a name of its own in `ariaLabel`.
  */
 export const DifferentTriggers: Story = {
   render: () => (
@@ -547,15 +554,16 @@ export const DifferentTriggers: Story = {
         </a>
       </Tooltip>
       <Tooltip label="Tooltip on icon" cursor="pointer">
-        <Icon name="info-circle" />
+        <Icon name="info-circle" ariaLabel="Info" tabIndex={0} />
       </Tooltip>
       <Tooltip label="Tooltip on text" dashed>
-        <span>Text</span>
+        <span tabIndex={0}>Text</span>
       </Tooltip>
       <Tooltip label="Tooltip on image" cursor="pointer">
         <img
           src="https://bulma.io/assets/images/placeholders/64x64.png"
           alt="Example"
+          tabIndex={0}
         />
       </Tooltip>
     </Buttons>

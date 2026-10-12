@@ -158,7 +158,9 @@ function example() {
 
 ### Dashed Underline
 
-Tooltip on text with a dashed underline to indicate more info is available.
+Tooltip on text with a dashed underline to indicate more info is available. The `abbr` takes
+`tabIndex={0}`, so keyboard users can reach it too, and a screen reader reads the full name as its
+description.
 
 ```tsx live
 function example() {
@@ -166,7 +168,7 @@ function example() {
     <Paragraph>
       The term{' '}
       <Tooltip label="Application Programming Interface" dashed>
-        <Span>API</Span>
+        <abbr tabIndex={0}>API</abbr>
       </Tooltip>{' '}
       is commonly used in software development.
     </Paragraph>
@@ -218,28 +220,29 @@ whatever the trigger does, so turn it on only for a trigger with no tap action o
 
 ### On Icons
 
-Tooltips on icon buttons for action descriptions.
+Tooltips on icon-only buttons. A tooltip describes its trigger rather than naming it, so each button
+gets a name of its own with `aria-label`, and a screen reader reads the name and then the tooltip.
 
 ```tsx live
 function example() {
   return (
-    <Block display="flex" p="6">
-      <Tooltip label="Delete item" color="danger" position="bottom">
-        <Span cursor="pointer">
+    <Buttons p="6">
+      <Tooltip label="Moves it to the trash" color="danger" position="bottom">
+        <Button aria-label="Delete">
           <Icon name="fas fa-trash" />
-        </Span>
+        </Button>
       </Tooltip>
-      <Tooltip label="Edit item" color="info" position="bottom">
-        <Span cursor="pointer">
+      <Tooltip label="Opens it for editing" color="info" position="bottom">
+        <Button aria-label="Edit">
           <Icon name="fas fa-edit" />
-        </Span>
+        </Button>
       </Tooltip>
-      <Tooltip label="Download" color="success" position="bottom">
-        <Span cursor="pointer">
+      <Tooltip label="Saves a copy as a PDF" color="success" position="bottom">
+        <Button aria-label="Download">
           <Icon name="fas fa-download" />
-        </Span>
+        </Button>
       </Tooltip>
-    </Block>
+    </Buttons>
   );
 }
 ```
@@ -248,26 +251,30 @@ function example() {
 
 ### Form Field Help
 
-Using tooltips to provide help for form fields.
+Using tooltips to provide help for form fields. The help is a button beside the label rather than
+inside it, since a label can't hold a control other than the one it names.
 
 ```tsx live
 function example() {
+  const id = React.useId();
   return (
     <Field>
-      <label className="label">
-        Password{' '}
+      <Block display="flex" alignItems="center" mb="2">
+        <label className="label mb-0" htmlFor={id}>
+          Password
+        </label>
         <Tooltip
           label="Must be at least 8 characters with one number and one special character"
           multiline
           color="info"
         >
-          <Span cursor="help">
-            <Icon name="fas fa-question-circle" size="small" />
-          </Span>
+          <Button size="small" color="ghost" aria-label="Password rules">
+            <Icon name="fas fa-question-circle" />
+          </Button>
         </Tooltip>
-      </label>
+      </Block>
       <Control>
-        <Input type="password" placeholder="Enter password" />
+        <Input id={id} type="password" placeholder="Enter password" />
       </Control>
     </Field>
   );
@@ -278,7 +285,8 @@ function example() {
 
 ### Abbreviations
 
-Using tooltips to explain abbreviations in text.
+Using tooltips to explain abbreviations in text. Each `abbr` takes `tabIndex={0}` so Tab reaches it,
+as the [Dashed Underline](#dashed-underline) example does.
 
 ```tsx live
 function example() {
@@ -286,11 +294,11 @@ function example() {
     <Paragraph style={{ lineHeight: 1.8 }}>
       Hover over{' '}
       <Tooltip label="Cascading Style Sheets" color="info" dashed>
-        <Span>CSS</Span>
+        <abbr tabIndex={0}>CSS</abbr>
       </Tooltip>{' '}
       or{' '}
       <Tooltip label="HyperText Markup Language" color="info" dashed>
-        <Span>HTML</Span>
+        <abbr tabIndex={0}>HTML</abbr>
       </Tooltip>{' '}
       to see their full names.
     </Paragraph>
@@ -324,8 +332,16 @@ And around it:
   `openOnTap` shows it with a tap, for a trigger with no tap action of its own.
 - An `active` tooltip is always shown, whatever the pointer, focus and Escape do.
 - Tooltip content has `role="tooltip"`, and `aria-hidden` while it's hidden.
-- The trigger isn't linked to the tooltip with `aria-describedby`, so a screen reader doesn't
-  announce the tooltip with it. Give an icon-only trigger its own name, such as an `aria-label`.
+- The tooltip describes its trigger. The trigger's `aria-describedby` points at it, after any ids it
+  already had, so a screen reader reads the tooltip when the trigger takes focus. A hidden tooltip
+  still counts as a description, so that's before any `delay` runs out. `content` is read as plain
+  text.
+- That takes a single element as `children`, which passes `aria-describedby` on to its DOM node, as
+  native elements and bestax components do, and takes focus itself: a button, a link, or a `Span`
+  with `tabIndex={0}`. Text, a fragment or several elements get no link, and a development build
+  warns.
+- A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
+  `aria-label`, as [On Icons](#on-icons) does.
 - The `dashed` style provides a visual cue that more information is available.
 
 ---
