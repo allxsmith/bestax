@@ -338,8 +338,9 @@ And around it:
   text.
 - That takes a single element as `children`, which passes `aria-describedby` on to its DOM node, as
   native elements and bestax components do, and takes focus itself: a button, a link, or a `Span`
-  with `tabIndex={0}`. Text, a fragment or several elements get no link, and a development build
-  warns.
+  with `tabIndex={0}`. Something focusable inside it doesn't get the link, and text, a fragment or
+  several elements get none. A development build warns when the first element Tab reaches in the
+  trigger doesn't carry the link, or there isn't one.
 - A tooltip describes and doesn't name, so give an icon-only trigger a name of its own, such as an
   `aria-label`, as [On Icons](#on-icons) does.
 - The `dashed` style provides a visual cue that more information is available.

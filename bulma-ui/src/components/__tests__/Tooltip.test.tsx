@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
@@ -12,6 +12,7 @@ import { HoverCard } from '../HoverCard';
 import { Dropdown, DropdownItem } from '../Dropdown';
 import { Button } from '../../elements/Button';
 import { Span } from '../../elements/Span';
+import { Icon } from '../../elements/Icon';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 
@@ -445,7 +446,7 @@ describe('Tooltip', () => {
     it('applies is-dashed class when dashed is true', () => {
       const { container } = render(
         <Tooltip label="Test" dashed>
-          <span>Hover me</span>
+          <span tabIndex={0}>Hover me</span>
         </Tooltip>
       );
       expect(container.querySelector('.tooltip')).toHaveClass('is-dashed');
@@ -454,7 +455,7 @@ describe('Tooltip', () => {
     it('does not apply is-dashed class by default', () => {
       const { container } = render(
         <Tooltip label="Test">
-          <span>Hover me</span>
+          <span tabIndex={0}>Hover me</span>
         </Tooltip>
       );
       expect(container.querySelector('.tooltip')).not.toHaveClass('is-dashed');
@@ -1022,6 +1023,9 @@ describe('Tooltip', () => {
     });
 
     it('closes a Dropdown in the trigger and hides the tooltip on one Escape', () => {
+      // The link lands on the Dropdown's wrapper rather than its button, which
+      // a development build warns about. That's not what this test is for.
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
       const onActiveChange = jest.fn();
       render(
         <Tooltip label="Row actions">
@@ -1037,6 +1041,7 @@ describe('Tooltip', () => {
       fireEvent.keyDown(item, { key: 'Escape' });
       expect(onActiveChange).toHaveBeenCalledWith(false);
       expect(wrapper()).not.toHaveClass('is-active');
+      jest.restoreAllMocks();
     });
 
     it('cancels a delayed show that has not happened yet, and lets the key through', () => {
@@ -1213,6 +1218,10 @@ describe('Tooltip', () => {
   });
 
   describe('describing the trigger', () => {
+    beforeEach(() => {
+      resetDevWarnings();
+    });
+
     afterEach(() => {
       jest.restoreAllMocks();
       resetDevWarnings();
@@ -1328,6 +1337,18 @@ describe('Tooltip', () => {
       expect(trigger()).toHaveAccessibleDescription('Bold and italic');
     });
 
+    const warnsUnlinked = (warn: jest.SpyInstance) => {
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("<Tooltip> can't describe its trigger")
+      );
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Pass one element that takes focus and passes aria-describedby on to its DOM node'
+        )
+      );
+    };
+
     it.each([
       ['text', () => 'Hover me'],
       [
@@ -1352,19 +1373,94 @@ describe('Tooltip', () => {
         </>
       );
       expect(container.querySelector('[aria-describedby]')).toBeNull();
-      expect(warn).toHaveBeenCalledTimes(1);
-      expect(warn).toHaveBeenCalledWith(
-        expect.stringContaining("children aren't a single element")
-      );
-      expect(warn).toHaveBeenCalledWith(
-        expect.stringContaining(
-          'Pass one focusable element, such as a button, a link or a Span with tabIndex={0}'
-        )
-      );
+      warnsUnlinked(warn);
     });
 
-    it('stays quiet in production', () => {
+    // A component that keeps the props it's given to itself.
+    const Swallows = (props: { 'aria-describedby'?: string }) => (
+      <button data-ignored={Object.keys(props).join()}>Hover me</button>
+    );
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a component that does not pass the link on', () => <Swallows />],
+      [
+        'a focusable element inside the one that takes the link',
+        () => (
+          <span>
+            <button aria-describedby="own-hint">Hover me</button>
+          </span>
+        ),
+      ],
+      [
+        'Suspense around the trigger',
+        () => (
+          <Suspense fallback={null}>
+            <button>Hover me</button>
+          </Suspense>
+        ),
+      ],
+      ['a trigger that cannot take focus', () => <Span>Hover me</Span>],
+      ['an icon that cannot take focus', () => <Icon name="info-circle" />],
+      ['a disabled button', () => <button disabled>Hover me</button>],
+    ])('warns once in development for %s', (_, child) => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+        </>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('judges the trigger alone, not what comes after it', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Tooltip label="Deletes it for good">
+            <span>Hover me</span>
+          </Tooltip>
+          <button>Next</button>
+        </>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('does not warn for a trigger that is hidden for now', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <div style={{ visibility: 'hidden' }}>
+          <Tooltip label="Deletes it for good">
+            <button>Hover me</button>
+          </Tooltip>
+        </div>
+      );
+      expect(getComputedStyle(screen.getByText('Hover me')).visibility).toBe(
+        'hidden'
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('checks a trigger that changes', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(warn).not.toHaveBeenCalled();
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <span>Hover me</span>
+        </Tooltip>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('stays quiet in production, without reading the page for it', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const queries = jest.spyOn(Element.prototype, 'querySelectorAll');
       const previous = process.env.NODE_ENV;
       process.env.NODE_ENV = 'production';
       try {
@@ -1373,6 +1469,7 @@ describe('Tooltip', () => {
         process.env.NODE_ENV = previous;
       }
       expect(warn).not.toHaveBeenCalled();
+      expect(queries.mock.contexts).not.toContain(wrapper());
     });
   });
 
