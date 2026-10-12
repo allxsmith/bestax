@@ -178,7 +178,7 @@
       "code": "function example() {\n  return (\n    <Field\n      horizontal\n      label=\"Time\"\n      labelProps={{ htmlFor: 'time-field-control' }}\n    >\n      <Field.Body>\n        <Field>\n          <Control iconLeftName=\"clock\">\n            <TimeInput id=\"time-field-control\" placeholder=\"HH:MM\" />\n          </Control>\n        </Field>\n      </Field.Body>\n    </Field>\n  );\n}"
     }
   ],
-  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- AM/PM toggle exposes `aria-pressed`.\n- Honors `prefers-reduced-motion`.",
+  "accessibility": "- Trigger uses `role=\"combobox\"` with `aria-haspopup=\"dialog\"`, `aria-expanded`, and `aria-controls`.\n- Popover panel has `role=\"dialog\"` with an accessible name.\n- Each spinner column has `role=\"spinbutton\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.\n- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` reads `AM` or `PM`; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. Its accessible name is `AM/PM` unless `labels.ampm` sets another.\n- Honors `prefers-reduced-motion`.",
   "related": ["DateInput", "DateTimeInput", "Input"],
   "storybook": "https://bestax.io/storybook/?path=/story/form-timeinput",
   "summary": "The `TimeInput` component is a form input that opens a popover spinner for time-of-day selection.",
@@ -582,7 +582,7 @@
           "name": "hourFormat",
           "type": "'12' | '24'",
           "default": "'24'",
-          "description": "Hour format. `'12'` shows an AM/PM toggle.",
+          "description": "Hour format. `'12'` adds an AM/PM column to the wheels.",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -654,7 +654,7 @@
           "name": "labels",
           "type": "PickerLabels",
           "default": null,
-          "description": "Optional translatable string overrides.",
+          "description": "Optional translatable string overrides. In a 12-hour picker, `ampm` names the AM/PM column, `'AM/PM'` by default.",
           "required": false,
           "inherited": true,
           "deprecated": false
