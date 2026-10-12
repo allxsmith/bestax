@@ -180,7 +180,10 @@ export interface TimeInputBaseProps
   triggerIcon?: boolean;
   /** Glyph for the right launcher button. */
   triggerIconName?: string;
-  /** Optional translatable string overrides. */
+  /**
+   * Optional translatable string overrides. In a 12-hour picker, `ampm`
+   * names the AM/PM column, `'AM/PM'` by default.
+   */
   labels?: PickerLabels;
   /** Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless. */
   audioTick?: boolean;

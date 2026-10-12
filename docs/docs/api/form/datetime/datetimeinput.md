@@ -837,6 +837,7 @@ function DateTimeInputFormDemo() {
 - Calendar uses `role="grid"`; cells expose `aria-selected`, `aria-disabled`, and `aria-current="date"`.
 - Roving `tabindex` keeps a single day focusable at a time, and focus moves with it, inline as in the popover. When the focused date is disabled, that cell is the nearest enabled day of the month.
 - Each time wheel uses `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
+- In a 12-hour picker, AM/PM is one of those wheels, reading `AM` or `PM`. Its accessible name is `AM/PM` unless `labels.ampm` sets another.
 - The footer's confirm button exposes an accessible label (`Done`); the Reset button reverts your edits to the value the popover opened with.
 - Tab order walks from the calendar to the footer (Reset / ✓), and from the time wheels to the footer while they are open.
 
