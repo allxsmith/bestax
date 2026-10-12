@@ -264,34 +264,25 @@ describe('Tooltip', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('leaves no Escape listener behind once it turns down the ask to open', () => {
-      const add = jest.spyOn(document, 'addEventListener');
-      const remove = jest.spyOn(document, 'removeEventListener');
-      const liveKeydown = () =>
-        add.mock.calls.filter(
-          ([type, , capture]) => type === 'keydown' && capture
-        ).length -
-        remove.mock.calls.filter(
-          ([type, , capture]) => type === 'keydown' && capture
-        ).length;
-      try {
-        render(
-          <Tooltip label="Test tooltip" active>
-            <button>Hover me</button>
-          </Tooltip>
-        );
-        hover(trigger());
-        // The delay runs out and the hook asks to open, which `active`
-        // turns down. That ask lapses on a timer the fake clock runs a
-        // millisecond later, since it is set while another timer runs.
-        advance(0);
-        advance(1);
-        expect(wrapper()).toHaveClass('is-active');
-        expect(liveKeydown()).toBe(0);
-      } finally {
-        add.mockRestore();
-        remove.mockRestore();
-      }
+    it('stays shown under the pointer when active is dropped, and hides once the pointer leaves', () => {
+      const { rerender } = render(
+        <Tooltip label="Test tooltip" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      rerender(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).toHaveClass('is-active');
+      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
+
+      unhover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
     });
 
     it('hides once active is dropped, and shows on the next hover', () => {

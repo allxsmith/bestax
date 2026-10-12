@@ -135,11 +135,11 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const contentRef = useRef<HTMLSpanElement | null>(null);
 
   const hover = useHoverOpen({
-    open: isVisible,
-    // `active` shows it whatever the pointer and focus do, so the hook's asks
-    // to open are turned down, and with nothing open Escape goes on its way.
+    // The pointer and focus as they are. `active` shows it on top of that, so
+    // dropping `active` leaves it shown while the pointer or focus holds it.
     // An ask to close can come while it's already hidden, which is no change.
-    onOpenChange: open => setIsVisible(open && !alwaysActive),
+    open: isVisible,
+    onOpenChange: setIsVisible,
     openDelay: delay,
     closeDelay,
     // The wrapper stands in for the trigger. It holds only the children and
