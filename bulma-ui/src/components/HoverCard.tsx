@@ -100,18 +100,20 @@ export interface HoverCardProps
    */
   position?: HoverCardPosition;
   /**
-   * Render the card at the end of `document.body` through `Portal`, fixed to
-   * the viewport, so an ancestor's `overflow`, `transform` or stacking
-   * context can't clip it. A trigger in running text needs it too, since the
-   * card's block content can't sit inside a `<p>`. The card then shows from
-   * the commit after hydration, never in server markup, and it sits last in
-   * the Tab order, at the end of `<body>`. Tab reaches it only after the rest
-   * of the page, and focus leaving the trigger on the way closes it, so
-   * keyboard users can open it, read it and close it with Escape, and
-   * whatever it links to has to be reachable from the page as well. It is
-   * measured against the trigger when it opens and on resize and scroll, so
-   * it doesn't follow content that changes size while it is open. Theming
-   * variables set on an ancestor of the trigger don't reach it there.
+   * Render the card through `Portal`, into the `portalContainer` a
+   * `ConfigProvider` sets, `document.body` by default, fixed to the viewport,
+   * so an ancestor's `overflow`, `transform` or stacking context can't clip
+   * it. A trigger in running text needs it too, since the card's block
+   * content can't sit inside a `<p>`. The card then shows from the commit
+   * after hydration, never in server markup, and it sits in the Tab order
+   * where its container is. At the end of `<body>`, the default, Tab reaches
+   * it only after the rest of the page, and focus leaving the trigger on the
+   * way closes it, so keyboard users can open it, read it and close it with
+   * Escape, and whatever it links to has to be reachable from the page as
+   * well. It is measured against the trigger when it opens and on resize and
+   * scroll, so it doesn't follow content that changes size while it is open.
+   * Theming variables set on an ancestor of the trigger reach it only when its
+   * container is inside that ancestor.
    * @defaultValue false
    */
   appendToBody?: boolean;

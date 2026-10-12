@@ -33,7 +33,7 @@ import { Toast, ToastContainer, toast } from '@allxsmith/bestax-bulma';
 ## Usage
 
 :::tip Live Preview Only
-The `inline` prop in the examples below is only there to render the toast inside the docs preview's shadow DOM. **Do not copy `inline`** — in your app, omit it and `Toast` will portal to `document.body` and float over the page automatically.
+The `inline` prop in the examples below keeps each toast inside its example instead of floating over the page. **Do not copy `inline`**: in your app, omit it and `Toast` will portal and float over the page automatically.
 :::
 
 ### Basic Toast

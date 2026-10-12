@@ -371,7 +371,7 @@ test('a component the barrel re-exports with `export *` from another module reso
   assert.match(info.sourceFile, /\/helpers\/Config\.tsx$/);
   assert.deepEqual(
     info.tables[0].rows.map(r => r.name),
-    ['children', 'classPrefix', 'iconLibrary']
+    ['children', 'classPrefix', 'iconLibrary', 'portalContainer']
   );
   assert.throws(
     () => extractComponent('NotAnExport'),

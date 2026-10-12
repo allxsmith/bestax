@@ -414,7 +414,7 @@
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Render the popover into `document.body` via portal.",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
           "required": false,
           "inherited": true,
           "deprecated": false

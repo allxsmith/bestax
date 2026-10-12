@@ -156,7 +156,10 @@ export interface DateTimeInputBaseProps
   closeOnSelect?: boolean;
   /** Popover anchor position. */
   position?: PickerPosition;
-  /** Render the popover into `document.body` via portal. */
+  /**
+   * Render the popover through a portal, into the `portalContainer` a
+   * `ConfigProvider` sets, `document.body` by default.
+   */
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the input, also carried by the calendar and the

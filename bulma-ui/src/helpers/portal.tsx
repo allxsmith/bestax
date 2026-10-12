@@ -1,6 +1,7 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import { useIsHydrated } from './useIsHydrated';
+import { useConfig } from './Config';
 
 /**
  * Resolves a portal target: an `HTMLElement` is used directly, a non-empty
@@ -31,6 +32,28 @@ export function resolvePortalContainer(
 }
 
 /**
+ * Where a component's portal goes, as a function to call when the portal is
+ * created: the target the component was given, else the `portalContainer` a
+ * `ConfigProvider` sets, else `document.body`, each read as
+ * `resolvePortalContainer` reads it. A component that portals resolves its
+ * target through this, so the provider's default reaches it.
+ *
+ * The hook only reads context, so it is safe to call on the server, ahead of
+ * any early return. The function it returns reads the DOM, so call it only
+ * where the portal is created, which the server never reaches.
+ *
+ * @function usePortalContainer
+ * @returns A function that takes the component's own target, if any, and
+ * returns the DOM node to portal into.
+ */
+export function usePortalContainer(): (
+  container?: string | HTMLElement
+) => HTMLElement {
+  const { portalContainer } = useConfig();
+  return container => resolvePortalContainer(container || portalContainer);
+}
+
+/**
  * Props for the Portal component.
  */
 export interface PortalProps {
@@ -38,8 +61,10 @@ export interface PortalProps {
   children?: React.ReactNode;
   /**
    * Where the content goes: an element, or a `document.querySelector`
-   * selector. Omitted, empty, or a selector that matches nothing, it goes to
-   * `document.body`. A selector is looked up again on each render, so the
+   * selector. Omitted or empty, it goes to the `portalContainer` a
+   * `ConfigProvider` sets, and to `document.body` when none is set. A
+   * selector that matches nothing means `document.body` too. A selector is
+   * looked up again on each render, so the
    * content follows the target when it changes. Moving to another target
    * remounts the children and resets their state, which includes a selector
    * that only starts matching after the content has shown in `document.body`.
@@ -56,7 +81,7 @@ export interface PortalProps {
 }
 
 /**
- * Renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
+ * Renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise, so floating content escapes an ancestor's `overflow`, `transform` or stacking context.
  *
  * React's server renderer can't render a portal, so `Portal` renders nothing
  * on the server and during hydration, and mounts its children in the commit
@@ -67,8 +92,12 @@ export interface PortalProps {
  * portaled children, and their React events bubble through the React tree.
  * CSS inheritance follows the DOM instead: a scoped (non-`isRoot`) `Theme`
  * sets its variables on a wrapper element the portaled content has left, so
- * that content sees the page-level theme. Point `container` at an element
- * inside the themed area to keep it.
+ * that content sees the page-level theme, and styles scoped to a shadow root
+ * don't reach `document.body` at all. To keep them, portal into an element
+ * inside the themed area or the shadow root: pass it as `container`, or as
+ * the `portalContainer` of a `ConfigProvider` around that area. The second
+ * also reaches what the library's components portal, such as Popover's
+ * `appendToBody` panel or a `Modal` with `portal`.
  *
  * Tab order and focus follow the DOM too. Content portaled from inside a
  * focus trap is no longer inside the trapped element, so the trap neither
@@ -94,7 +123,8 @@ export interface PortalProps {
  */
 export function Portal({ children, container, disabled = false }: PortalProps) {
   const hydrated = useIsHydrated();
+  const resolveContainer = usePortalContainer();
   if (disabled) return <>{children}</>;
   if (!hydrated) return null;
-  return createPortal(children, resolvePortalContainer(container));
+  return createPortal(children, resolveContainer(container));
 }

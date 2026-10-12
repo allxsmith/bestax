@@ -88,7 +88,8 @@ union (a compile error beats a silent no-op).
 
 ## `ConfigProvider` / `Theme` — `helpers/Config.tsx`, `helpers/Theme.tsx`
 
-`ConfigProvider` provides the runtime `classPrefix` (and `iconLibrary`) consumed via `useConfig`;
+`ConfigProvider` provides the runtime `classPrefix` (and `iconLibrary` and `portalContainer`)
+consumed via `useConfig`;
 `classPrefix` feeds `usePrefixedClassNames` (opt-in class prefixing to avoid collisions). `Theme`
 overrides `--bulma-*` custom properties at runtime —
 which is exactly why component SCSS must register its vars via `cv.register-vars` rather than
@@ -117,8 +118,9 @@ A panel anchored to the button that opens it is `Popover`, which already portals
 (`appendToBody`), traps focus and dismisses itself, and a preview that opens on hover is
 `HoverCard`, which portals the same way. `Portal` is for the overlays they don't cover.
 
-`<Portal container?>` (`helpers/portal.tsx`) renders its children into `document.body`, or into
-`container` (an element or a selector), so floating content escapes an ancestor's `overflow`,
+`<Portal container?>` (`helpers/portal.tsx`) renders its children into `container` (an element or
+a selector), or without one into the `portalContainer` a `ConfigProvider` sets, and
+`document.body` when none is set, so floating content escapes an ancestor's `overflow`,
 `transform` or stacking context. It renders nothing on the server and during hydration, so the
 first client render matches; `disabled` renders in place instead. Use it rather than calling
 `createPortal` yourself, which React's server renderer can't render.
@@ -142,6 +144,16 @@ what a `Portal` inside it renders, so render nested overlays inside the trapped 
   );
 }
 ```
+
+Content in `document.body` loses a scoped `Theme`'s variables and a shadow root's styles. In a web
+component or a themed section, wrap the area in a `ConfigProvider` whose `portalContainer` is an
+element inside it, which also covers what the library's components portal, such as `Popover`'s
+`appendToBody` panel or a `Modal` with `portal`. In a shadow root, pass the
+element itself, held in state from a ref callback, since a selector can't reach inside one. What
+moves there is `position: fixed`, so the element must not sit under an ancestor with a
+`transform`, `filter`, `backdrop-filter`, `perspective`, `will-change: transform`, or a `contain`
+that includes `paint` or `layout`: that ancestor becomes the containing block, and overlays and
+anchored panels land against it instead of the viewport.
 
 ## Holding focus: `useFocusTrap`
 

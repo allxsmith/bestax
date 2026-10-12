@@ -204,7 +204,7 @@ function example() {
 
 ### Portal
 
-Set `portal` to render the dialog into `document.body` instead of inline — it's forwarded straight to the underlying [`Modal`](./modal.md), which renders inline on the server and during hydration, then moves into the portal once the client takes over so hydration matches.
+Set `portal` to render the dialog through a portal instead of inline. It's forwarded straight to the underlying [`Modal`](./modal.md), which renders inline on the server and during hydration, then moves into the portal once the client takes over so hydration matches.
 
 ```tsx live
 function example() {
@@ -214,7 +214,7 @@ function example() {
       <Button onClick={() => setShowDialog(true)}>Show Portaled Dialog</Button>
       <Dialog
         isOpen={showDialog}
-        title="Rendered in document.body"
+        title="Portaled Dialog"
         message="This dialog is portaled, so it escapes any ancestor with overflow: hidden."
         onConfirm={() => setShowDialog(false)}
         showCancel={false}
