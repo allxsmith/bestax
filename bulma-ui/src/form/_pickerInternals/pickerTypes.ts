@@ -63,12 +63,19 @@ export interface PickerLabels {
    * @defaultValue 'AM/PM'
    */
   ampm?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   increaseHours?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   decreaseHours?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   increaseMinutes?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   decreaseMinutes?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   increaseSeconds?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   decreaseSeconds?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   toggleAmPm?: string;
   chooseTime?: string;
   chooseDateTime?: string;
