@@ -122,10 +122,17 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   time: 'Time',
 };
 
-/** Merge user-supplied label overrides with the defaults. */
+/**
+ * Merge user-supplied label overrides with the defaults. A key set to
+ * `undefined` keeps its default, so a locale table that is missing a string
+ * still names its control instead of leaving it with no accessible name.
+ */
 export const mergeLabels = (
   overrides?: PickerLabels
-): Required<PickerLabels> => ({
-  ...DEFAULT_PICKER_LABELS,
-  ...(overrides ?? {}),
-});
+): Required<PickerLabels> => {
+  const merged = { ...DEFAULT_PICKER_LABELS };
+  for (const [key, value] of Object.entries(overrides ?? {})) {
+    if (value !== undefined) merged[key as keyof PickerLabels] = value;
+  }
+  return merged;
+};
