@@ -91,7 +91,7 @@ function example() {
 
 ### 12-hour Format
 
-`hourFormat="12"` renders an AM/PM toggle column.
+`hourFormat="12"` adds an AM/PM column to the wheels.
 
 ```tsx live
 function example() {
@@ -987,7 +987,7 @@ function TimeInputFormDemo() {
 - Trigger uses `role="combobox"` with `aria-haspopup="dialog"`, `aria-expanded`, and `aria-controls`.
 - Popover panel has `role="dialog"` with an accessible name.
 - Each spinner column has `role="spinbutton"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow`, and `aria-valuetext`. The values drawn above and below are click targets hidden from assistive technology, which reads the value from the spinbutton.
-- AM/PM toggle exposes `aria-pressed`.
+- In a 12-hour picker, AM/PM is one of those spinbutton columns rather than a toggle button. Its `aria-valuetext` reads `AM` or `PM`; `↑`, `PageUp` and `End` move it to PM, and `↓`, `PageDown` and `Home` move it to AM. It stops at either end instead of wrapping around. `labels.ampm` sets its accessible name.
 - Honors `prefers-reduced-motion`.
 
 ---
