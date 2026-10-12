@@ -139,14 +139,21 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 ### Compound (dot-notation) usage
 
-`Button` and `LinkButton` are also available as `Buttons.Button` and `Buttons.LinkButton`, so a button group can be composed from the single `Buttons` import.
+`Button`, `LinkButton` and `ToggleButton` are also available as `Buttons.Button`, `Buttons.LinkButton` and `Buttons.ToggleButton`, so a button group, a set of toggles included, can be composed from the single `Buttons` import.
 
 ```tsx live
-<Buttons>
-  <Buttons.Button color="primary">Save</Buttons.Button>
-  <Buttons.Button>Cancel</Buttons.Button>
-  <Buttons.LinkButton>Learn more</Buttons.LinkButton>
-</Buttons>
+<>
+  <Buttons>
+    <Buttons.Button color="primary">Save</Buttons.Button>
+    <Buttons.Button>Cancel</Buttons.Button>
+    <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+  </Buttons>
+  <Buttons hasAddons role="group" aria-label="Text style">
+    <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>
+    <Buttons.ToggleButton>Italic</Buttons.ToggleButton>
+    <Buttons.ToggleButton>Underline</Buttons.ToggleButton>
+  </Buttons>
+</>
 ```
 
 ---

@@ -3,6 +3,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { Button } from './Button';
 import { LinkButton } from './LinkButton';
+import { ToggleButton } from './ToggleButton';
 import {
   useBulmaClasses,
   BulmaClassesProps,
@@ -101,6 +102,7 @@ export const Buttons = withSubComponents(
   {
     Button,
     LinkButton,
+    ToggleButton,
   },
   'Buttons'
 );

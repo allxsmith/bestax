@@ -166,7 +166,8 @@ Toggles that each turn on and off on their own, like Bold, Italic and Underline,
 `Buttons hasAddons`. Give the `Buttons` `role="group"` and an `aria-label`, so a screen reader
 names the set. Each toggle keeps its own state and its own tab stop. Pressed, a toggle takes
 Bulma's `is-selected`, which lifts it above its neighbours so their borders don't cut into its
-fill.
+fill. `ToggleButton` is also `Buttons.ToggleButton`, so the set can come from the one `Buttons`
+import.
 
 ```tsx live
 <Buttons hasAddons role="group" aria-label="Text style">
