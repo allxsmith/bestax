@@ -5,6 +5,7 @@ import {
   fireEvent,
   createEvent,
   waitFor,
+  act,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
@@ -15,6 +16,7 @@ import {
 } from '../Dropdown';
 import * as DropdownModule from '../Dropdown';
 import { ConfigProvider } from '../../helpers/Config';
+import { TYPEAHEAD_TIMEOUT } from '../../helpers/useMenuKeys';
 
 describe('Dropdown', () => {
   test('renders label', () => {
@@ -1789,6 +1791,97 @@ describe('Dropdown held Enter', () => {
     await user.keyboard('{Enter>3/}');
     expect(onClick).toHaveBeenCalledTimes(1);
     expect(item).toHaveFocus();
+  });
+});
+
+describe('Dropdown typeahead', () => {
+  // No time passes unless a test advances it, so what is typed adds up to
+  // one search until the test says otherwise.
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const press = (key: string) =>
+    fireEvent.keyDown(document.activeElement!, { key });
+  const item = (name: string) => screen.getByRole('menuitem', { name });
+
+  const Files = () => (
+    <Dropdown label="Menu" active>
+      <Dropdown.Item>Archive</Dropdown.Item>
+      <Dropdown.Item as="button" disabled>
+        Delete
+      </Dropdown.Item>
+      <Dropdown.Item>Download</Dropdown.Item>
+      <Dropdown.Item>
+        <span aria-hidden="true">content_copy</span> Duplicate
+      </Dropdown.Item>
+      <Dropdown.Divider />
+      <Dropdown.Item>Copy link</Dropdown.Item>
+    </Dropdown>
+  );
+
+  test('a letter moves to the next item that starts with it, past disabled ones, and cycles', () => {
+    render(<Files />);
+    item('Archive').focus();
+    expect(press('d')).toBe(false);
+    expect(item('Download')).toHaveFocus();
+    press('d');
+    expect(item('Duplicate')).toHaveFocus();
+    press('D');
+    expect(item('Download')).toHaveFocus();
+  });
+
+  test('letters typed in quick succession are one search', () => {
+    render(<Files />);
+    item('Archive').focus();
+    press('d');
+    press('u');
+    expect(item('Duplicate')).toHaveFocus();
+  });
+
+  test('a new search starts once typing pauses', () => {
+    render(<Files />);
+    item('Archive').focus();
+    press('d');
+    act(() => {
+      jest.advanceTimersByTime(TYPEAHEAD_TIMEOUT);
+    });
+    press('a');
+    expect(item('Archive')).toHaveFocus();
+  });
+
+  test('an icon hidden from assistive technology does not take the letter', () => {
+    render(<Files />);
+    item('Archive').focus();
+    press('c');
+    expect(item('Copy link')).toHaveFocus();
+  });
+
+  test('a new search starts each time the menu opens', () => {
+    render(
+      <Dropdown label="Menu">
+        <Dropdown.Item>Rename</Dropdown.Item>
+        <Dropdown.Item>Delete</Dropdown.Item>
+        <Dropdown.Item>Remove</Dropdown.Item>
+      </Dropdown>
+    );
+    const trigger = screen.getByRole('button', { name: 'Menu' });
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(item('Rename')).toHaveFocus();
+    press('r');
+    expect(item('Remove')).toHaveFocus();
+    press('Escape');
+    expect(trigger).toHaveFocus();
+
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(item('Rename')).toHaveFocus();
+    // Still inside the typeahead window. Carried over, the search would be
+    // "rd", which matches nothing.
+    press('d');
+    expect(item('Delete')).toHaveFocus();
   });
 });
 

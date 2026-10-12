@@ -67,6 +67,15 @@ export interface DropdownProps
 /**
  * The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
  *
+ * Down, Enter and Space on the trigger open the menu on its first enabled
+ * item, and Up opens it on its last. In the menu, the arrow keys, Home and
+ * End move between the items, and Enter and Space run the focused one the
+ * way a click does. Typing a letter moves to the next item whose text starts
+ * with it, skipping disabled ones, and letters typed in quick succession add
+ * up to one search. Escape closes the menu and focuses the trigger, and Tab
+ * closes it and lets focus move on. A field or other control you put in the
+ * menu keeps its own keys, apart from Escape and Tab.
+ *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
  * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the root dropdown element.
