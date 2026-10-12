@@ -161,7 +161,7 @@ A scaffolder runs with write access to your filesystem and picks your starting d
 - **Dependencies are a deliberate act** — install scripts are blocked unless individually allow-listed, freshly published versions are refused for 3 days, and CI installs only what the reviewed lockfile resolves.
 - **Every GitHub Action is pinned to a full commit SHA**, so a compromised action release can't roll silently into a build of this CLI.
 - **CodeQL, Dependency Review, and Dependabot** run continuously, alongside a high-severity `pnpm audit` gate.
-- **Layered AI review before merge** — [CodeRabbit](https://coderabbit.ai) plus an independent adversarial Claude review (a different model from the one writing AI-authored changes), on top of required green CI, an approving review, and a human merge.
+- **Layered AI review before merge** — [CodeRabbit](https://coderabbit.ai) plus an independent Claude deep review, on top of required green CI, an approving review, and a human merge.
 
 Full detail: [`SECURITY.md`](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 

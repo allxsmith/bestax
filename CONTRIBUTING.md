@@ -308,7 +308,7 @@ no `npm publish`, no tag, no GitHub release.
    pnpm all
    ```
 
-   This command will run build, typecheck, tests (w/ coverage), lint, format check, and Storybook build.
+   This command runs the build, typecheck, tests with coverage, the scripts suite, the conformance and generated-file checks, lint, the format check, and the Storybook build.
 
 9. **Commit your changes** following the [commit message guidelines](#commit-message-guidelines).
 10. **Push and open a Pull Request** targeting the `main` branch.
@@ -318,45 +318,45 @@ no `npm publish`, no tag, no GitHub release.
 
 ## AI-Assisted Development & Review
 
-This repo uses AI reviewers and an autonomous fix loop — full details in the docs:
-[AI-Assisted Development](https://bestax.io/docs/guides/getting-started/ai-development).
+This repo uses AI reviewers and a maintainer-steered bot, bestaxbot. The full description is in
+the docs: [AI-Assisted Development](https://bestax.io/docs/guides/getting-started/ai-development).
 The short version for contributors:
 
-- **A PR targeting `main` gets a CodeRabbit review** automatically once it is out of draft. Address or refute its comments — it
-  reviews incrementally and marks addressed comments "✅ Addressed". It also rate-limits, so a
-  push during a spent window waits for the next one; the AI-assisted section below says how to
-  nudge it. A human maintainer still reviews and merges everything.
+- **A PR targeting `main` gets a CodeRabbit review** automatically once it is out of draft.
+  Address or refute its comments; it reviews incrementally and marks the comments it considers
+  addressed. It also rate-limits, so a push during a spent window waits for the next one; nudge
+  it with `@coderabbitai review` when the window reopens. A human maintainer still reviews and
+  merges everything.
+- **A Claude deep review posts as `claude[bot]`** on bestaxbot's PRs once CI is green and on any
+  same-repo PR a maintainer labels `deep-review`. Every finding is a review thread on the line it
+  concerns.
 - **`@claude` mentions are maintainer-only** (they spend the maintainer's Claude usage).
-  External contributors don't need them — just push your changes.
-- **Issues labeled `claude-fix`** are implemented autonomously: Claude opens a PR labeled
-  `ai-loop` and iterates with the AI reviewers until it converges, then a human reviews and
-  squash-merges. Don't add or remove the loop labels (`ai-loop`, `needs-human-review`,
-  `ai-loop-paused`) on PRs you don't own — they are the loop's state machine.
+  External contributors don't need them. Just push your changes.
+- **Issues labeled `claude-fix` are implemented by bestaxbot**, a GitHub App maintained outside
+  this repository. It opens a PR from a `claude/` branch, answers every review thread on it, and
+  hands it to a human with `needs-human-review` once the reviews converge. A human reviews and
+  squash-merges; the bot never merges. Don't add or remove the bot's labels (`ai-loop`,
+  `ai-loop-paused`, `needs-human-review`, `review-converged`) on PRs you don't own.
 - **Hand-driven PRs that want a deep review**: applying the `deep-review` label is what starts
-  a run — pushing a commit does not, and neither does commenting — and a label that is still on
+  a run. Pushing a commit does not, and neither does commenting, and a label that is still on
   the PR emits no event when applied again, so every re-run means removing it and adding it
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
-  open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
-  newer commits themselves want reviewing, post a `deep-review: fresh` comment first, then
-  toggle the label to start the run. Both the label and the steer are triage+ only, so this is a
-  maintainer's move rather than yours. On a PR from a fork it is nobody's move: the job runs
-  only for same-repo PRs, so the label does nothing there whoever applies it, and the run
-  reports skipped.
-  That steer sticks: the run re-reads the newest `deep-review:` comment it can attribute to a
-  triage+ author, so later toggles stay fresh for as long as it is still the newest triage+ steer the run
-  can see — the settle-my-threads pass is the default only until the
-  first time someone asks for a fresh one. CodeRabbit reviews incrementally
-  on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
-  its window reopens.
-  Do not relabel per push: each application spends a full opus session, and relabeling after
-  every fix is what turned #643 into 14 review rounds.
-- **Know when to stop fixing.** The autonomous loop stops after `MAX_ITERATIONS` fix rounds
-  (`claude-pr-loop.yml` sets it), pauses, and labels the PR `ai-loop-paused` for a human. Give
-  a hand-driven PR the same stopping point. Once the PR has been through that many rounds and
+  open threads (verified fixed, still wrong, or conceded) and raises nothing new; when the newer
+  commits themselves want reviewing, post a `deep-review: fresh` comment first, then toggle the
+  label to start the run. That steer sticks: the run reads the newest `deep-review:` comment
+  from a triage+ author, so later toggles stay fresh until a newer steer replaces it. Both the
+  label and the steer are triage+ only, so this is a maintainer's move rather than yours. On a
+  PR from a fork it is nobody's move: the review runs only for same-repo PRs, so the label does
+  nothing there whoever applies it. CodeRabbit reviews incrementally on its own and
+  rate-limits, so let it go last and nudge it with `@coderabbitai review` when its window
+  reopens. Do not relabel per push: each application spends a full review session, and
+  relabeling after every fix is what turned #643 into 14 review rounds.
+- **Know when to stop fixing.** bestaxbot parks a PR after a bounded number of fix rounds and
+  labels it `ai-loop-paused` for a human. Give a hand-driven PR the same stopping point. Once
   what is left is wording rather than behaviour, reply once naming the findings you are leaving
-  and why, then take the PR to human review. The reviewers keep reviewing; what changes
-  is that you stop treating every finding as blocking. A finding that names a defect in
-  behaviour still earns another round.
+  and why, then take the PR to human review. The reviewers keep reviewing; what changes is that
+  you stop treating every finding as blocking. A finding that names a defect in behaviour still
+  earns another round.
 - **A PR based on another PR's branch draws fewer reviewers.** Ask for what you want with
   `@coderabbitai review`, and prefer landing a stack one PR at a time. The
   [AI-Assisted Development](https://bestax.io/docs/guides/getting-started/ai-development) guide
@@ -438,7 +438,7 @@ One-time setup, in this order. Step 1 comes **before** the workflow is merged: a
    gh api repos/allxsmith/bestax/environments/skills-publish/deployment-branch-policies
    ```
 
-   The last command must list exactly one policy, `main` of type `branch`. This repository has other writers, including bestaxbot, whose token reaches sessions that run pull request code, and any writer can dispatch the workflow from a branch carrying its own copy of the file. The branch rule is what keeps such a run away from the key, so do not set the secret in step 5 until it is confirmed.
+   The last command must list exactly one policy, `main` of type `branch`. This repository has other writers, bestaxbot among them, and any writer can dispatch the workflow from a branch carrying its own copy of the file. The branch rule is what keeps such a run away from the key, so do not set the secret in step 5 until it is confirmed.
 
 2. Create the public repository, empty, with issues and the wiki off so reports come here:
 

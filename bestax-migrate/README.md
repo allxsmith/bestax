@@ -105,7 +105,7 @@ A codemod rewrites your source in place, so how it is built and published matter
 - **The libraries this tool migrates away from are never installed here** — source fixtures are read as text only, so no unmaintained third-party package enters the dependency tree.
 - **Dependencies are a deliberate act** — install scripts are blocked unless individually allow-listed, freshly published versions are refused for 3 days, and CI installs only what the reviewed lockfile resolves.
 - **Every GitHub Action is pinned to a full commit SHA**, and CodeQL, Dependency Review, and Dependabot run continuously alongside a high-severity `pnpm audit` gate.
-- **Layered AI review before merge** — [CodeRabbit](https://coderabbit.ai) plus an independent adversarial Claude review (a different model from the one writing AI-authored changes), on top of required green CI, an approving review, and a human merge.
+- **Layered AI review before merge** — [CodeRabbit](https://coderabbit.ai) plus an independent Claude deep review, on top of required green CI, an approving review, and a human merge.
 
 Full detail: [`SECURITY.md`](https://github.com/allxsmith/bestax/blob/main/SECURITY.md) · [Security guide](https://bestax.io/docs/guides/security)
 
