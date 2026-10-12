@@ -12,7 +12,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
-import { useHoverOpen } from '../helpers/useHoverOpen';
+import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
@@ -133,17 +133,6 @@ export interface HoverCardProps
   contentClassName?: string;
 }
 
-/** Runs the caller's handler on the wrapper, then the hover card's. */
-function chain<E>(
-  own: ((event: E) => void) | undefined,
-  ours: (event: E) => void
-): (event: E) => void {
-  return event => {
-    own?.(event);
-    ours(event);
-  };
-}
-
 /**
  * The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.
  *
@@ -184,6 +173,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
   const { bulmaHelperClasses, rest } = useBulmaClasses(props);
   const {
     onPointerEnter,
+    onPointerOver,
     onPointerLeave,
     onPointerDown,
     onPointerUp,
@@ -298,6 +288,7 @@ export const HoverCard: React.FC<HoverCardProps> = ({
       className={rootClasses}
       {...attrs}
       onPointerEnter={chain(onPointerEnter, hover.onPointerEnter)}
+      onPointerOver={chain(onPointerOver, hover.onPointerOver)}
       onPointerLeave={chain(onPointerLeave, hover.onPointerLeave)}
       onFocus={chain(onFocus, hover.onFocus)}
       onBlur={chain(onBlur, hover.onBlur)}

@@ -34,6 +34,10 @@
       "code": "function example() {\n  return (\n    <Buttons>\n      <Tooltip label=\"No delay\" delay={0}>\n        <Button>No delay</Button>\n      </Tooltip>\n      <Tooltip label=\"500ms delay\" delay={500}>\n        <Button>500ms delay</Button>\n      </Tooltip>\n      <Tooltip label=\"1 second delay\" delay={1000}>\n        <Button>1s delay</Button>\n      </Tooltip>\n    </Buttons>\n  );\n}"
     },
     {
+      "title": "On Touch Screens",
+      "code": "<Tooltip label=\"Orders over $50 ship free\" openOnTap>\n  <Button>Shipping</Button>\n</Tooltip>"
+    },
+    {
       "title": "On Icons",
       "code": "function example() {\n  return (\n    <Block display=\"flex\" p=\"6\">\n      <Tooltip label=\"Delete item\" color=\"danger\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-trash\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Edit item\" color=\"info\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-edit\" />\n        </Span>\n      </Tooltip>\n      <Tooltip label=\"Download\" color=\"success\" position=\"bottom\">\n        <Span cursor=\"pointer\">\n          <Icon name=\"fas fa-download\" />\n        </Span>\n      </Tooltip>\n    </Block>\n  );\n}"
     },
@@ -46,17 +50,17 @@
       "code": "function example() {\n  return (\n    <Paragraph style={{ lineHeight: 1.8 }}>\n      Hover over{' '}\n      <Tooltip label=\"Cascading Style Sheets\" color=\"info\" dashed>\n        <Span>CSS</Span>\n      </Tooltip>{' '}\n      or{' '}\n      <Tooltip label=\"HyperText Markup Language\" color=\"info\" dashed>\n        <Span>HTML</Span>\n      </Tooltip>{' '}\n      to see their full names.\n    </Paragraph>\n  );\n}"
     }
   ],
-  "accessibility": "- Tooltip content has `role=\"tooltip\"` for screen reader announcement\n- Has `aria-hidden` that toggles based on visibility\n- Tooltip shows on both hover and focus for keyboard users\n- The `dashed` style provides a visual cue that more information is available",
+  "accessibility": "`Tooltip` is built to\n[WCAG's Content on Hover or Focus](https://www.w3.org/WAI/WCAG22/Understanding/content-on-hover-or-focus.html)\ncriterion:\n\n- **Dismissible:** <kbd>Escape</kbd> hides a shown tooltip wherever focus is, without you moving the\n  pointer or focus, and it stays hidden until the pointer or focus leaves the trigger and comes\n  back, or, with `openOnTap`, until the next tap on the trigger. The key goes on as well, to\n  whatever has focus, so a control in the trigger, such as a `Dropdown`, still gets its own Escape.\n  Inside a `Popover` or `Modal`, one Escape hides the tooltip and closes that too, since a tooltip\n  only adds to what's there.\n- **Hoverable:** the pointer can move from the trigger onto a shown tooltip, straight across the gap\n  between them, and it stays. A hidden tooltip, or one only `active` shows, lets the pointer through\n  to whatever is under it.\n- **Persistent:** no timer hides a tooltip that's hovered or focused.\n\nAnd around it:\n\n- Keyboard focus on the trigger shows the tooltip, as hover does. Focus that a click or a tap brings\n  doesn't, and neither does a touch pointer, so tapping the trigger just does what the trigger does.\n  `openOnTap` shows it with a tap, for a trigger with no tap action of its own.\n- An `active` tooltip is always shown, whatever the pointer, focus and Escape do.\n- Tooltip content has `role=\"tooltip\"`, and `aria-hidden` while it's hidden.\n- The trigger isn't linked to the tooltip with `aria-describedby`, so a screen reader doesn't\n  announce the tooltip with it. Give an icon-only trigger its own name, such as an `aria-label`.\n- The `dashed` style provides a visual cue that more information is available.",
   "related": ["Button", "HoverCard", "Icon", "Popover"],
   "storybook": null,
-  "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
+  "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element. Hovering the trigger or giving it keyboard focus shows it. Touch doesn't, unless `openOnTap` is on, and neither does focus a click or a tap brings, so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip. Escape hides it wherever focus is, without moving the pointer or focus, and it stays hidden until one of them leaves the trigger and comes back, or, with `openOnTap`, until the next tap on the trigger. The key always goes on too, to whatever has focus or a `Modal` or `Popover` around it, since a tooltip only adds to what's there.",
   "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/components/Tooltip.tsx",
   "rootClass": "tooltip",
   "parts": [
     {
       "path": "Tooltip",
-      "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element.",
+      "summary": "The `Tooltip` component displays helpful information when users hover over or focus on an element. Hovering the trigger or giving it keyboard focus shows it. Touch doesn't, unless `openOnTap` is on, and neither does focus a click or a tap brings, so tapping the trigger just does what the trigger does. The pointer can move onto a shown tooltip. Escape hides it wherever focus is, without moving the pointer or focus, and it stays hidden until one of them leaves the trigger and comes back, or, with `openOnTap`, until the next tap on the trigger. The key always goes on too, to whatever has focus or a `Modal` or `Popover` around it, since a tooltip only adds to what's there.",
       "component": null,
       "props": [
         {
@@ -72,7 +76,7 @@
           "name": "content",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Rich tooltip content (alternative to `label`).",
+          "description": "Rich tooltip content (alternative to `label`), to read rather than use. Nothing in it should take focus or a click: it isn't in the Tab order while hidden, focus there isn't counted as being in the tooltip, and Escape hiding it would drop that focus. For links or buttons, use `HoverCard` or `Popover`.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -108,7 +112,7 @@
           "name": "active",
           "type": "boolean",
           "default": "false",
-          "description": "Force tooltip to be always visible.",
+          "description": "Force tooltip to be always visible. Hover, focus and Escape leave it shown, so Escape goes on to whatever has focus, or to a `Modal` or `Popover` around it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -153,7 +157,7 @@
           "name": "delay",
           "type": "number",
           "default": "0",
-          "description": "Delay before showing tooltip (ms).",
+          "description": "How long the pointer or keyboard focus waits on the trigger before the tooltip shows, in milliseconds.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -162,7 +166,16 @@
           "name": "closeDelay",
           "type": "number",
           "default": "0",
-          "description": "Delay in ms before hiding the tooltip.",
+          "description": "How long the tooltip stays after the pointer and focus have left the trigger and the tooltip, in milliseconds. The pointer can move from the trigger onto a shown tooltip without one, across the default gap. A theme that raises `--bulma-tooltip-arrow-size` or `--bulma-tooltip-arrow-margin` widens the gap past what the pointer can cross on its own, so give it a `closeDelay` long enough to cross the rest.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnTap",
+          "type": "boolean",
+          "default": "false",
+          "description": "Show the tooltip with a tap on a touch screen. Touch has no hover, so without this a phone or tablet never shows it. With it, a tap on the trigger shows it at once, and it stays until another tap on the trigger or the tooltip, a tap anywhere else, or Escape. The tap still does whatever the trigger does, so turn this on only for a trigger with no tap action of its own. Mouse and pen work the same either way.",
           "required": false,
           "inherited": false,
           "deprecated": false
