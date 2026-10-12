@@ -10,6 +10,7 @@ import React from 'react';
 import { render, screen, act, fireEvent } from '@testing-library/react';
 import { ConfigProvider } from '../helpers/Config';
 import { Popover } from '../components/Popover';
+import { HoverCard } from '../components/HoverCard';
 import { Modal } from '../components/Modal';
 import { Dialog } from '../components/Dialog';
 import { Toast, ToastContainer, toast } from '../components/Toast';
@@ -59,6 +60,21 @@ afterEach(() => {
 
 const withDefault = (ui: React.ReactElement) =>
   render(<ConfigProvider portalContainer={target}>{ui}</ConfigProvider>);
+
+describe('HoverCard', () => {
+  it('portals its appendToBody card into the portalContainer', () => {
+    withDefault(
+      <HoverCard
+        appendToBody
+        defaultOpen
+        trigger={<a href="#ada">Ada Lovelace</a>}
+      >
+        Analytical Engine team
+      </HoverCard>
+    );
+    expect(target).toContainElement(screen.getByText('Analytical Engine team'));
+  });
+});
 
 describe('Popover', () => {
   it('portals its appendToBody panel into the portalContainer', () => {
