@@ -252,20 +252,24 @@ out of the box:
   <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu
   and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue
   naturally.
+- Typing a letter moves to the next item whose text starts with it, and typing it again cycles
+  through the items that do. Letters typed in quick succession add up to one search, so
+  <kbd>d</kbd> then <kbd>u</kbd> lands on "Duplicate" past "Download". Text hidden with
+  `aria-hidden`, such as an icon's ligature name, doesn't count, and a new search starts each
+  time the menu opens.
 - On an item: <kbd>Enter</kbd> or <kbd>Space</kbd> activates it the way a click does, so its
   `onClick` runs and the menu closes unless `closeOnClick` is `false`. That includes the
   default anchor without an `href` and `as="div"`, which the browser would not activate on
-  its own.
+  its own. Holding the key down runs it once.
 - When running an item closes the menu, by click or by key, focus goes back to the trigger,
   as it does for <kbd>Escape</kbd>. An item whose `onClick` moves focus somewhere else keeps
   it there.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
-  `aria-disabled="true"`) and dividers are skipped during arrow-key navigation.
-
-:::note
-There is no typeahead and no built-in outside-click handling inside the menu beyond the
-existing click-outside-to-close behavior — add those yourself if your use case needs them.
-:::
+  `aria-disabled="true"`) and dividers are skipped by the arrow keys and by typing.
+- A field or other control you put in the menu keeps its own keys, so its arrows,
+  <kbd>Home</kbd>, <kbd>End</kbd> and letters work the way they do anywhere else.
+  <kbd>Escape</kbd> and <kbd>Tab</kbd> still close the menu from it. For a panel built around
+  fields, [`Popover`](./popover.md) fits better.
 
 ---
 
