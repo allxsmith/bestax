@@ -63,7 +63,7 @@ export interface ButtonOwnProps extends Omit<
   isInverted?: boolean;
   /** Applies focused styling (visual only). */
   isFocused?: boolean;
-  /** Applies active styling (visual only). */
+  /** Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`. */
   isActive?: boolean;
   /** Applies hovered styling (visual only). */
   isHovered?: boolean;

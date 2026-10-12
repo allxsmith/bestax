@@ -63,6 +63,15 @@ Wrap it in the library's `ClientOnly` rather than checking `typeof window`: it r
 until the page has hydrated, so the server and client markup match. `references/api.md` has the
 details.
 
+A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
+`ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
+`aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes
+`pressed` with `onPressedChange`, and fills with `color` (default `link`) only while pressed.
+Its label stays the same in both states, and an icon-only one needs an `aria-label`. A set goes
+in `Buttons hasAddons role="group" aria-label="…"`. A row where only one can be on is a radio
+group, so it's `Radios`, never toggles that switch each other off. A setting saved with a form is
+a `Switch` or a `Checkbox`.
+
 A panel opened from a button (a filter form, share options, an inline edit) is `Popover`: use
 it rather than building one. It anchors the panel, moves focus in and back, and closes on
 Escape and outside presses.

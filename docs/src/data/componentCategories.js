@@ -25,6 +25,7 @@ const categories = [
       { name: 'Tags', link: '/docs/api/elements/tags' },
       { name: 'Title', link: '/docs/api/elements/title' },
       { name: 'SubTitle', link: '/docs/api/elements/subtitle' },
+      { name: 'ToggleButton', link: '/docs/api/elements/togglebutton' },
     ],
   },
   {

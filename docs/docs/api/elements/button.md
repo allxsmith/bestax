@@ -158,7 +158,7 @@ Show a focused state by enabling the `isFocused` prop. This can help demonstrate
 
 ### Active
 
-The `isActive` prop highlights the button as currently pressed or selected. This is useful in toggle groups, tab bars, or any situation where you need to indicate the active choice to your users.
+The `isActive` prop draws Bulma's active state, the slightly darker shade every button shows while the mouse is down. It's visual only: it sets no `aria-pressed`, so a screen reader hears a plain button. For a button that stays on or off, such as Bold or Mute, use [`ToggleButton`](./togglebutton.md), which reports its state and has a pressed look you can see at a glance.
 
 ```tsx live
 <Button color="info" isActive>
@@ -316,6 +316,7 @@ function example() {
 - **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.
 - **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.
 - **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.
+- **Toggles:** `isActive` tells a screen reader nothing. A button that turns something on or off is a [`ToggleButton`](./togglebutton.md), which sets `aria-pressed`.
 
 :::note
 If your button has only an icon, use `aria-label` to provide accessible text.
@@ -326,6 +327,7 @@ If your button has only an icon, use `aria-label` to provide accessible text.
 ## Related Components
 
 - [`Buttons`](./buttons.md): Group multiple buttons together, including add-ons and alignment.
+- [`ToggleButton`](./togglebutton.md): A button that stays pressed while something is on, and says so through `aria-pressed`.
 - [`Icon`](../elements/icon.md): Inline icons for use inside buttons.
 - [Helper Props](../helpers/usebulmaclasses.md): List of all supported Bulma helper props for spacing, colors, etc.
 
@@ -361,7 +363,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Butto
 | `isOutlined`  | `boolean`                                                                                                                                                   | `false`    | Applies outlined styling (requires color).                                                                                                                                                                                                                                  |
 | `isInverted`  | `boolean`                                                                                                                                                   | `false`    | Applies inverted styling (requires color).                                                                                                                                                                                                                                  |
 | `isFocused`   | `boolean`                                                                                                                                                   | `false`    | Applies focused styling (visual only).                                                                                                                                                                                                                                      |
-| `isActive`    | `boolean`                                                                                                                                                   | `false`    | Applies active styling (visual only).                                                                                                                                                                                                                                       |
+| `isActive`    | `boolean`                                                                                                                                                   | `false`    | Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.                                                                                                                                                          |
 | `isHovered`   | `boolean`                                                                                                                                                   | `false`    | Applies hovered styling (visual only).                                                                                                                                                                                                                                      |
 | `isDisabled`  | `boolean`                                                                                                                                                   | `false`    | Applies disabled styling.                                                                                                                                                                                                                                                   |
 | `className`   | `string`                                                                                                                                                    | —          | Custom class name.                                                                                                                                                                                                                                                          |
