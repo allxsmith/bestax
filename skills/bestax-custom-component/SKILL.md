@@ -74,6 +74,15 @@ touch unless `openOnTap` is on, which suits only a trigger with no tap action of
 `Button` with no `onClick`, never a link). Its `trigger` has to be a link or a button, and a trigger in running text takes
 `appendToBody`. A form never goes in one; that's `Popover`.
 
+A button that turns something on or off and stays that way (Bold, Mute, Show archived) is
+`ToggleButton`: use it rather than `Button isActive`, which only draws a shade and sets no
+`aria-pressed`. It's always `type="button"`, holds its own state (`defaultPressed`) or takes
+`pressed` with `onPressedChange`, and fills with `color` (default `link`) only while pressed.
+Its label stays the same in both states, and an icon-only one needs an `aria-label`. A set goes
+in `Buttons hasAddons role="group" aria-label="…"`. A row where only one can be on is a radio
+group, so it's `Radios`, never toggles that switch each other off. A setting saved with a form is
+a `Switch` or a `Checkbox`.
+
 Building something else that floats (a command palette)? Render it through the library's
 `Portal` rather than `createPortal`: it renders nothing on the server and during hydration, so
 the server and client markup match. `references/api.md` has the details.

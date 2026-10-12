@@ -57,6 +57,7 @@ const BESTAX = {
   Tag: 'elements/tag',
   Tags: 'elements/tags',
   Title: 'elements/title',
+  ToggleButton: 'elements/togglebutton',
   UnorderedList: 'elements/unorderedlist',
   Avatar: 'components/avatar',
   Avatars: 'components/avatars',
@@ -641,8 +642,8 @@ export const categories = [
       ],
       [
         'Toggle button',
-        '~Button',
-        '~Chip',
+        'ToggleButton',
+        'Toggle',
         'ToggleButton',
         'ToggleButton',
         '~Button',

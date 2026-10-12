@@ -252,6 +252,7 @@ export const SCSS_SOURCES = {
   ],
   Title: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Toast: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_toast.scss' }],
+  ToggleButton: [{ pkg: 'bulma', path: 'sass/elements/button.scss' }],
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
