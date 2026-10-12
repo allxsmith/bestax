@@ -58,6 +58,10 @@ export interface PickerLabels {
   hours?: string;
   minutes?: string;
   seconds?: string;
+  /**
+   * Time wheels: names the AM/PM column a 12-hour picker shows.
+   * @defaultValue 'AM/PM'
+   */
   ampm?: string;
   increaseHours?: string;
   decreaseHours?: string;
@@ -98,7 +102,7 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',
-  ampm: 'ampm',
+  ampm: 'AM/PM',
   increaseHours: 'Increase hours',
   decreaseHours: 'Decrease hours',
   increaseMinutes: 'Increase minutes',
