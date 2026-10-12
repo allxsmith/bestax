@@ -1101,26 +1101,28 @@ describe('Dropdown keyboard navigation', () => {
     expect(third).toHaveFocus();
   });
 
-  test('ArrowDown/ArrowUp within the menu default to an edge item when nothing is focused', () => {
+  test('ArrowDown/ArrowUp within the menu default to an edge item from the menu itself', () => {
     render(
       <Dropdown label="Menu" active>
         <DropdownItem>First</DropdownItem>
         <DropdownItem>Second</DropdownItem>
       </Dropdown>
     );
+    screen.getByTestId('dropdown-menu').focus();
     fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
       key: 'ArrowDown',
     });
     expect(screen.getByText('First')).toHaveFocus();
   });
 
-  test('ArrowUp within the menu defaults to the last item when nothing is focused', () => {
+  test('ArrowUp within the menu defaults to the last item from the menu itself', () => {
     render(
       <Dropdown label="Menu" active>
         <DropdownItem>First</DropdownItem>
         <DropdownItem>Second</DropdownItem>
       </Dropdown>
     );
+    screen.getByTestId('dropdown-menu').focus();
     fireEvent.keyDown(screen.getByTestId('dropdown-menu'), {
       key: 'ArrowUp',
     });
