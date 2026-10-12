@@ -74,6 +74,11 @@ describe('Tooltip styles under a class prefix', () => {
     expect(getComputedStyle(content()).pointerEvents).toBe('auto');
   });
 
+  it('keeps the arrow out of hit testing, so it never covers the trigger', () => {
+    const [arrow] = rulesFor('.bestax-tooltip-content::before');
+    expect(arrow.style.getPropertyValue('pointer-events')).toBe('none');
+  });
+
   it('gives the bridge a box of its own, apart from the arrow', () => {
     const [bridge] = rulesFor('.bestax-tooltip-content::after');
     expect(bridge.style.content).toBe('""');

@@ -91,11 +91,13 @@ $tooltip-large-arrow-size: 7px !default;
   opacity: 0;
   visibility: hidden;
 
-  // Arrow
+  // Arrow. Its box is taller than the gap the bridge covers, so taking the
+  // pointer it would reach over the trigger, and the bridge covers the gap.
   &::before {
     content: '';
     position: absolute;
     border: cv.getVar("tooltip-arrow-size") solid transparent;
+    pointer-events: none;
   }
 
   // Bridge: fills the gap to the trigger, so the pointer stays on the
