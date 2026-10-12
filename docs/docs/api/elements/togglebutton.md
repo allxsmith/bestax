@@ -389,58 +389,8 @@ function example() {
 
 ## CSS & Sass Variables
 
-<!-- bestax:generated cssvars -->
-
-`ToggleButton` registers these variables on its own `.button` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
-
-| CSS Variable                                 | Sass Variable                         | Default                                                                               |
-| -------------------------------------------- | ------------------------------------- | ------------------------------------------------------------------------------------- |
-| `--bulma-button-family`                      | `$button-family`                      | `false`                                                                               |
-| `--bulma-button-weight`                      | `$button-weight`                      | `var(--bulma-weight-medium)`                                                          |
-| `--bulma-button-border-color`                | `$button-border-color`                | `var(--bulma-border)`                                                                 |
-| `--bulma-button-border-style`                | `$button-border-style`                | `solid`                                                                               |
-| `--bulma-button-border-width`                | `$button-border-width`                | `var(--bulma-control-border-width)`                                                   |
-| `--bulma-button-padding-vertical`            | `$button-padding-vertical`            | `0.5em`                                                                               |
-| `--bulma-button-padding-horizontal`          | `$button-padding-horizontal`          | `1em`                                                                                 |
-| `--bulma-button-focus-border-color`          | `$button-focus-border-color`          | `var(--bulma-link-focus-border)`                                                      |
-| `--bulma-button-focus-box-shadow-size`       | `$button-focus-box-shadow-size`       | `0 0 0 0.125em`                                                                       |
-| `--bulma-button-focus-box-shadow-color`      | `$button-focus-box-shadow-color`      | `hsla(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-on-scheme-l), 0.25)` |
-| `--bulma-button-active-color`                | `$button-active-color`                | `var(--bulma-link-active)`                                                            |
-| `--bulma-button-active-border-color`         | `$button-active-border-color`         | `var(--bulma-link-active-border)`                                                     |
-| `--bulma-button-text-color`                  | `$button-text-color`                  | `var(--bulma-text)`                                                                   |
-| `--bulma-button-text-decoration`             | `$button-text-decoration`             | `underline`                                                                           |
-| `--bulma-button-text-hover-background-color` | `$button-text-hover-background-color` | `var(--bulma-background)`                                                             |
-| `--bulma-button-text-hover-color`            | `$button-text-hover-color`            | `var(--bulma-text-strong)`                                                            |
-| `--bulma-button-ghost-background`            | `$button-ghost-background`            | `none`                                                                                |
-| `--bulma-button-ghost-border-color`          | `$button-ghost-border-color`          | `transparent`                                                                         |
-| `--bulma-button-ghost-color`                 | `$button-ghost-color`                 | `var(--bulma-link-text)`                                                              |
-| `--bulma-button-ghost-decoration`            | `$button-ghost-decoration`            | `none`                                                                                |
-| `--bulma-button-ghost-hover-color`           | `$button-ghost-hover-color`           | `var(--bulma-link)`                                                                   |
-| `--bulma-button-ghost-hover-decoration`      | `$button-ghost-hover-decoration`      | `underline`                                                                           |
-| `--bulma-button-disabled-background-color`   | `$button-disabled-background-color`   | `var(--bulma-scheme-main)`                                                            |
-| `--bulma-button-disabled-border-color`       | `$button-disabled-border-color`       | `var(--bulma-border)`                                                                 |
-| `--bulma-button-disabled-shadow`             | `$button-disabled-shadow`             | `none`                                                                                |
-| `--bulma-button-disabled-opacity`            | `$button-disabled-opacity`            | `0.5`                                                                                 |
-| `--bulma-button-static-color`                | `$button-static-color`                | `var(--bulma-text-weak)`                                                              |
-| `--bulma-button-static-background-color`     | `$button-static-background-color`     | `var(--bulma-scheme-main-ter)`                                                        |
-| `--bulma-button-static-border-color`         | `$button-static-border-color`         | `var(--bulma-border)`                                                                 |
-| `--bulma-button-h`                           | `$button-h`                           | `var(--bulma-scheme-h)`                                                               |
-| `--bulma-button-s`                           | `$button-s`                           | `var(--bulma-scheme-s)`                                                               |
-| `--bulma-button-l`                           | `$button-l`                           | `var(--bulma-scheme-main-l)`                                                          |
-| `--bulma-button-background-l`                | `$button-background-l`                | `var(--bulma-scheme-main-l)`                                                          |
-| `--bulma-button-background-l-delta`          | `$button-background-l-delta`          | `0%`                                                                                  |
-| `--bulma-button-hover-background-l-delta`    | `$button-hover-background-l-delta`    | `var(--bulma-hover-background-l-delta)`                                               |
-| `--bulma-button-active-background-l-delta`   | `$button-active-background-l-delta`   | `var(--bulma-active-background-l-delta)`                                              |
-| `--bulma-button-color-l`                     | `$button-color-l`                     | `var(--bulma-text-strong-l)`                                                          |
-| `--bulma-button-border-l`                    | `$button-border-l`                    | `var(--bulma-border-l)`                                                               |
-| `--bulma-button-border-l-delta`              | `$button-border-l-delta`              | `0%`                                                                                  |
-| `--bulma-button-hover-border-l-delta`        | `$button-hover-border-l-delta`        | `var(--bulma-hover-border-l-delta)`                                                   |
-| `--bulma-button-active-border-l-delta`       | `$button-active-border-l-delta`       | `var(--bulma-active-border-l-delta)`                                                  |
-| `--bulma-button-focus-border-l-delta`        | `$button-focus-border-l-delta`        | `var(--bulma-focus-border-l-delta)`                                                   |
-| `--bulma-button-outer-shadow-h`              | `$button-outer-shadow-h`              | `0`                                                                                   |
-| `--bulma-button-outer-shadow-s`              | `$button-outer-shadow-s`              | `0%`                                                                                  |
-| `--bulma-button-outer-shadow-l`              | `$button-outer-shadow-l`              | `20%`                                                                                 |
-| `--bulma-button-outer-shadow-a`              | `$button-outer-shadow-a`              | `0.05`                                                                                |
-| `--bulma-loading-color`                      | —                                     | `hsl(var(--bulma-button-h), var(--bulma-button-s), var(--bulma-button-color-l))`      |
-
-<!-- /bestax:generated cssvars -->
+`ToggleButton` has no variables of its own. It's a `Button` underneath, so
+[Button's variables](./button.md#css--sass-variables) style it, set the same way: on the button
+itself or through `className`. The `--bulma-button-text-*`, `--bulma-button-ghost-*` and
+`--bulma-button-static-*` rows there don't apply, since they style `is-text`, `is-ghost` and
+`is-static`, and `ToggleButton` offers none of those.
