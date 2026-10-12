@@ -1,3 +1,19 @@
+# [5.30.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.29.0...@allxsmith/bestax-bulma@5.30.0) (2026-10-12)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** carry size to Buttons, Tags and Message ([#1038](https://github.com/allxsmith/bestax/issues/1038)) ([7549264](https://github.com/allxsmith/bestax/commit/7549264c46a831333f9d9357ef4c9b1a11464917))
+* **bulma-ui:** give TimeInput's AM/PM column a real name for screen readers ([2b1122f](https://github.com/allxsmith/bestax/commit/2b1122f005bded7724637f4f8e3213a19c5b4f82))
+* **bulma-ui:** keep a picker label's default when its override is undefined ([aa88e50](https://github.com/allxsmith/bestax/commit/aa88e50e42e5a9d06eeaaf3fd68a028be815d269))
+
+
+### Features
+
+* **bulma-ui:** add ContextMenu, a menu that opens on right-click or long press ([#1036](https://github.com/allxsmith/bestax/issues/1036)) ([85a3e77](https://github.com/allxsmith/bestax/commit/85a3e775b72e36774e101892154a8849a6b3d0a1))
+* **bulma-ui:** add ToggleButton, a button that stays pressed ([#1041](https://github.com/allxsmith/bestax/issues/1041)) ([582aff0](https://github.com/allxsmith/bestax/commit/582aff063e3bccca125054458d5e13cc847d3597))
+* **bulma-ui:** let a Tooltip be hovered, dismissed with Escape, and opened by a tap ([#1033](https://github.com/allxsmith/bestax/issues/1033)) ([52aeeda](https://github.com/allxsmith/bestax/commit/52aeeda220d4eecdc909bfaccc7fe24960283a4a))
+
 # [5.29.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.28.0...@allxsmith/bestax-bulma@5.29.0) (2026-10-12)
 
 
