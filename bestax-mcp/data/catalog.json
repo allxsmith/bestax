@@ -1105,7 +1105,7 @@
       "slug": "elements/togglebutton",
       "import": "import { ToggleButton } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 13,
+      "propCount": 14,
       "exampleCount": 11
     },
     {
