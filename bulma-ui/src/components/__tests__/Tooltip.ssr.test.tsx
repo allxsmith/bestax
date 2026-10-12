@@ -22,13 +22,13 @@ describe('Tooltip on the server (node environment)', () => {
     const id = html.match(/<span id="([^"]+)"[^>]* role="tooltip"/)?.[1];
     expect(id).toBeTruthy();
     expect(html).toContain(`<button aria-describedby="${id}">Delete</button>`);
-    expect(html).toContain('aria-hidden="true"');
     expect(html).not.toContain('is-active');
+    expect(html).not.toContain('aria-hidden');
   });
 
   it('renders an active tooltip shown', () => {
     const html = renderToStaticMarkup(ui({ active: true }));
     expect(html).toContain('is-active');
-    expect(html).toContain('aria-hidden="false"');
+    expect(html).not.toContain('aria-hidden');
   });
 });

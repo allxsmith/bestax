@@ -398,9 +398,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
         ref={contentRef}
         id={tooltipId}
         className={combinedTooltipClasses}
+        // Hidden by `visibility: hidden` in the stylesheet, which keeps it out
+        // of the accessibility tree and still lets it describe the trigger
+        // (accname step 2A), so it takes no aria-hidden.
         role="tooltip"
-        // A hidden tooltip still describes the trigger (accname step 2A).
-        aria-hidden={!isVisible && !alwaysActive}
         style={Object.keys(contentStyle).length > 0 ? contentStyle : undefined}
       >
         {content || label}
