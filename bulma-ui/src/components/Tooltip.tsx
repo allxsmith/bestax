@@ -2,6 +2,7 @@ import React, {
   Fragment,
   cloneElement,
   isValidElement,
+  useEffect,
   useId,
   useState,
   useRef,
@@ -10,7 +11,8 @@ import React, {
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
-import { warnOnce } from '../helpers/devWarnings';
+import { isTabbableKind } from '../helpers/useFocusTrap';
+import { isDev, warnOnce } from '../helpers/devWarnings';
 
 /** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
@@ -32,6 +34,18 @@ const withId = (ids: string | undefined, id: string) =>
   [...new Set([...(ids ?? '').split(/\s+/), id])].filter(Boolean).join(' ');
 
 /**
+ * The first element in the trigger that Tab lands on, judged by what it is
+ * rather than by its styles, which can hide it for now. The trigger is all
+ * of the wrapper that comes before the tooltip.
+ */
+const triggerTabStop = (wrapper: Element, tooltip: Element) => {
+  const elements = Array.from(wrapper.querySelectorAll('*'));
+  return elements
+    .slice(0, elements.indexOf(tooltip))
+    .find(el => isTabbableKind(el) && !el.matches(':disabled'));
+};
+
+/**
  * Props for the Tooltip component.
  * @extraProp {React.ReactNode} [children] - The element that triggers the
  * tooltip. Its `aria-describedby` points at the tooltip, after any ids it
@@ -40,8 +54,9 @@ const withId = (ids: string | undefined, id: string) =>
  * element which passes `aria-describedby` on to its DOM node, as native
  * elements and bestax components do, and takes focus itself, such as a
  * button, a link or a `Span` with `tabIndex={0}`: something focusable inside
- * it doesn't get the link. Text, a fragment or several elements get no link,
- * and a development build warns.
+ * it doesn't get the link, and text, a fragment or several elements get none.
+ * A development build warns when the first element Tab reaches in the
+ * trigger doesn't carry the link, or there isn't one.
  * @extraProp {string} [className] - Additional CSS classes.
  */
 export interface TooltipProps
@@ -185,21 +200,38 @@ export const Tooltip: React.FC<TooltipProps> = ({
   const contentRef = useRef<HTMLSpanElement | null>(null);
   const tooltipId = `${useId()}-tooltip`;
 
-  // The description has to be on the element that takes focus, and only a
-  // single element as children can be given it.
+  // Only a single element can be given the link, and a fragment takes no
+  // props of its own.
   const linkable =
     isValidElement<{ 'aria-describedby'?: string }>(children) &&
     children.type !== Fragment;
-  if (!linkable) {
+
+  // A screen reader reads the tooltip only when Tab lands on an element that
+  // carries the link. Only the page shows whether it does, since a component
+  // may not pass the attribute on, or what takes focus may sit inside the
+  // element that took it. After every commit, since the children can change,
+  // and only in development.
+  useEffect(() => {
+    if (!isDev()) return;
+    const stop = triggerTabStop(
+      wrapperRef.current as HTMLSpanElement,
+      contentRef.current as HTMLSpanElement
+    );
+    if (
+      stop?.getAttribute('aria-describedby')?.split(/\s+/).includes(tooltipId)
+    ) {
+      return;
+    }
     warnOnce(
       'Tooltip:unlinked-trigger',
-      "[bestax-bulma] <Tooltip>'s children aren't a single element, so it " +
-        "can't point the trigger's aria-describedby at the tooltip, and a " +
-        "screen reader won't read the tooltip. Pass one focusable element, " +
-        'such as a button, a link or a Span with tabIndex={0}, or give the ' +
-        'trigger an aria-label or aria-describedby of your own.'
+      "[bestax-bulma] <Tooltip> can't describe its trigger, so a screen " +
+        "reader won't read the tooltip: Tab reaches nothing in the trigger, " +
+        "or what it reaches doesn't carry the aria-describedby that points " +
+        'at the tooltip. Pass one element that takes focus and passes ' +
+        'aria-describedby on to its DOM node, such as a button, a link or a ' +
+        'Span with tabIndex={0}.'
     );
-  }
+  });
 
   const hover = useHoverOpen({
     // The pointer and focus as they are. `active` shows it on top of that, so
