@@ -1116,8 +1116,8 @@
       "slug": "components/tooltip",
       "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 13,
-      "exampleCount": 10
+      "propCount": 14,
+      "exampleCount": 11
     },
     {
       "name": "UnorderedList",

@@ -491,6 +491,10 @@ wheel item's height inline.
 All but `--bulma-tooltip-dashed-color` are declared on `.tooltip-content` — see the
 constituent-element exception above.
 
+Raising `--bulma-tooltip-arrow-size` or `--bulma-tooltip-arrow-margin` widens the gap between the
+trigger and the tooltip past what the pointer can cross on its own, so give the tooltip a
+`closeDelay` long enough to cross it.
+
 `--bulma-tooltip-arrow-margin`, `--bulma-tooltip-arrow-size`, `--bulma-tooltip-background`,
 `--bulma-tooltip-color`, `--bulma-tooltip-dashed-color`, `--bulma-tooltip-font-size`,
 `--bulma-tooltip-font-weight`, `--bulma-tooltip-line-height`, `--bulma-tooltip-max-width`,

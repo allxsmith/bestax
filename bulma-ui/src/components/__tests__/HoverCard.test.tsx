@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { renderToString } from 'react-dom/server';
+import { createPortal } from 'react-dom';
 import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -1290,6 +1291,25 @@ describe('HoverCard', () => {
       expect(card()).toBeInTheDocument();
     });
 
+    it('does not take the pointer moving about inside a portaled card for the pointer arriving', () => {
+      render(
+        <>
+          <Profile appendToBody />
+          <button>Next</button>
+        </>
+      );
+      keyboardFocus(triggerLink());
+      advance(600);
+      // A pointerover inside the card, from elsewhere in the card, which
+      // the card's DOM holds though the wrapper's doesn't.
+      const text = screen.getByText('Analytical Engine team');
+      pointer(profileLink(), 'pointerover', { relatedTarget: text });
+      // So focus leaving closes it, with nothing holding it.
+      keyboardFocus(screen.getByRole('button', { name: 'Next' }));
+      advance(300);
+      expect(card()).toBeNull();
+    });
+
     it('keeps a portaled card open while the pointer is on it, and leaves it out of the Tab order', () => {
       render(
         <>
@@ -1577,6 +1597,103 @@ describe('HoverCard', () => {
       } finally {
         host.remove();
       }
+    });
+  });
+
+  describe('portaled into a shadow root from page content', () => {
+    /**
+     * A page that portals its preview into a shadow root, as the docs site's
+     * live examples do. Moving from the page onto something in the shadow
+     * root, the browser's pointerout names only the shadow host, so React
+     * sends no enter, and it skips the pointerover since the page is its own.
+     */
+    const Page = ({ children }: { children: React.ReactNode }) => {
+      const [root, setRoot] = useState<ShadowRoot | null>(null);
+      return (
+        <>
+          <p>Page text</p>
+          <div
+            ref={el => {
+              if (el && !el.shadowRoot) {
+                setRoot(el.attachShadow({ mode: 'open' }));
+              }
+            }}
+          >
+            {root && createPortal(children, root)}
+          </div>
+        </>
+      );
+    };
+    const page = () => screen.getByText('Page text');
+    const shadow = () => page().nextElementSibling!.shadowRoot!;
+    const shadowCard = () => shadow().querySelector('.hover-card-content');
+    /** The browser's events for the pointer moving from `from` onto `to`. */
+    const move = (
+      from: Element,
+      to: Element,
+      pointerType: PointerType = 'mouse'
+    ) => {
+      pointer(from, 'pointerout', { pointerType, relatedTarget: to });
+      pointer(to, 'pointerover', { pointerType, relatedTarget: from });
+    };
+
+    it('opens after openDelay when the pointer comes from the page, and closes once it goes back', () => {
+      render(
+        <Page>
+          <Profile />
+        </Page>
+      );
+      const trigger = shadow().querySelector('a')!;
+      move(page(), trigger);
+      advance(599);
+      expect(shadowCard()).toBeNull();
+      advance(1);
+      expect(shadowCard()).not.toBeNull();
+
+      move(trigger, page());
+      advance(300);
+      expect(shadowCard()).toBeNull();
+    });
+
+    it('is not opened by a touch pointer coming from the page', () => {
+      render(
+        <Page>
+          <Profile />
+        </Page>
+      );
+      move(page(), shadow().querySelector('a')!, 'touch');
+      advance(5000);
+      expect(shadowCard()).toBeNull();
+    });
+
+    it('stays closed after Escape while the pointer moves between the trigger’s own children, until it leaves and comes back', () => {
+      render(
+        <Page>
+          <Profile
+            trigger={
+              <a href="#ada">
+                <span>Ada</span> <span>Lovelace</span>
+              </a>
+            }
+          />
+        </Page>
+      );
+      const [first, last] = Array.from(shadow().querySelectorAll('a span'));
+      move(page(), first);
+      advance(600);
+      expect(shadowCard()).not.toBeNull();
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(shadowCard()).toBeNull();
+
+      move(first, last);
+      move(last, first);
+      advance(5000);
+      expect(shadowCard()).toBeNull();
+
+      move(first, page());
+      move(page(), first);
+      advance(600);
+      expect(shadowCard()).not.toBeNull();
     });
   });
 

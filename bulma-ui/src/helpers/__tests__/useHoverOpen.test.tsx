@@ -34,6 +34,7 @@ interface HarnessProps {
   openDelay?: number;
   closeDelay?: number;
   withTrigger?: boolean;
+  consumeEscape?: boolean;
   onHandlers?: (handlers: HoverOpenHandlers) => void;
 }
 
@@ -44,6 +45,7 @@ const Harness = ({
   openDelay = 100,
   closeDelay = 50,
   withTrigger = true,
+  consumeEscape,
   onHandlers,
 }: HarnessProps) => {
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -55,6 +57,7 @@ const Harness = ({
     closeDelay,
     triggerRef,
     floatingRef,
+    consumeEscape,
   });
   onHandlers?.(handlers);
   return (
@@ -213,6 +216,23 @@ describe('useHoverOpen', () => {
     }
   });
 
+  it('closes on Escape and lets the key go on with consumeEscape off', () => {
+    const outer = jest.fn();
+    const onOpenChange = jest.fn();
+    document.addEventListener('keydown', outer);
+    try {
+      render(
+        <Harness open consumeEscape={false} onOpenChange={onOpenChange} />
+      );
+      trigger().focus();
+      expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
+      expect(onOpenChange).toHaveBeenCalledWith(false);
+      expect(outer).toHaveBeenCalledTimes(1);
+    } finally {
+      document.removeEventListener('keydown', outer);
+    }
+  });
+
   it('listens on the page’s document when there is no trigger', () => {
     const onOpenChange = jest.fn();
     render(<Harness open withTrigger={false} onOpenChange={onOpenChange} />);
@@ -257,6 +277,51 @@ describe('useHoverOpen', () => {
     advance(100);
     unmount();
     expect(jest.getTimerCount()).toBe(0);
+  });
+
+  describe('a pointerover React sends no enter for', () => {
+    // React skips the enter for a pointerover whose relatedTarget is an
+    // element it renders, trusting the pointerout before it to have sent
+    // one. These send the pointerover alone, the way a page outside a shadow
+    // root the trigger is in leaves it.
+    const Page = (props: HarnessProps) => (
+      <>
+        <p>Page</p>
+        <Stateful {...props} />
+      </>
+    );
+    const page = () => screen.getByText('Page');
+
+    it('counts one from outside the holder as the pointer arriving', () => {
+      const onOpenChange = jest.fn();
+      render(<Page onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerover', page());
+      advance(99);
+      expect(onOpenChange).not.toHaveBeenCalled();
+      advance(1);
+      expect(onOpenChange).toHaveBeenLastCalledWith(true);
+    });
+
+    it('does not count one from inside the holder', () => {
+      const onOpenChange = jest.fn();
+      render(<Page onOpenChange={onOpenChange} />);
+      pointer(trigger(), 'pointerover', screen.getByTestId('root'));
+      advance(1000);
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
+
+    it('does not count one from a touch pointer', () => {
+      const onOpenChange = jest.fn();
+      render(<Page onOpenChange={onOpenChange} />);
+      const event = new MouseEvent('pointerover', {
+        bubbles: true,
+        relatedTarget: page(),
+      });
+      Object.defineProperty(event, 'pointerType', { value: 'touch' });
+      fireEvent(trigger(), event);
+      advance(1000);
+      expect(onOpenChange).not.toHaveBeenCalled();
+    });
   });
 
   describe('document listeners', () => {
