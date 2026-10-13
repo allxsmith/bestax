@@ -694,10 +694,11 @@ describe('get_css_variables', () => {
   });
 
   // "Registers no CSS variables" and nothing else read as "this can't be themed", for
-  // a component that Button's variables style perfectly well (#1045).
+  // a component that Button's variables style (#1045).
   describe("a component that renders another component's element", () => {
     const pointer = (from: string, too: string, query?: string) =>
-      `renders ${from}'s element, so ${from}'s variables style it${too}. They are ` +
+      `renders ${from}'s element, so ${from}'s variables style it${too}, for the ` +
+      `colors and modifiers it accepts. They are ` +
       `in \`get_css_variables({ component: "${from}"${
         query ? `, query: "${query}"` : ''
       } })\`.`;

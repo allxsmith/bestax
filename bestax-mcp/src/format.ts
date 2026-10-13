@@ -526,10 +526,10 @@ export function renderCssVars(vars: CssVar[]): string {
  * `record.cssVars`, or the ones matching `query`.
  *
  * A component that renders another component's element (`cssVarsFrom`) is styled by
- * that component's variables too, so the answer names the call that lists them, under
- * its own rows when it has some and in their place when it has none. "Registers no CSS
- * variables" on its own reads as "this can't be themed", and sends an agent to custom
- * CSS (#1045).
+ * that component's variables too, for the colors and modifiers it accepts, so the
+ * answer names the call that lists them, under its own rows when it has some and in
+ * their place when it has none. "Registers no CSS variables" on its own reads as "this
+ * can't be themed", and sends an agent to custom CSS (#1045).
  */
 export function renderCssVarsAnswer(
   record: ComponentRecord,
@@ -566,7 +566,8 @@ function cssVarsFromClause(
   if (!from) return null;
   return (
     `renders ${from}'s element, so ${from}'s variables style it` +
-    `${record.cssVars.length ? ' too' : ''}. They are in \`get_css_variables({ ` +
+    `${record.cssVars.length ? ' too' : ''}, for the colors and modifiers it ` +
+    `accepts. They are in \`get_css_variables({ ` +
     `component: "${from}"${query ? `, query: ${JSON.stringify(query)}` : ''} })\`.`
   );
 }

@@ -363,8 +363,9 @@ describe('renderComponent CSS variable pointer', () => {
   // `include` can't serve the other component's variables on this call, so that
   // part of the hint names get_css_variables, as that tool's own answer does.
   const linkButtonPointer =
-    "LinkButton renders Button's element, so Button's variables style it too. " +
-    'They are in `get_css_variables({ component: "Button" })`.';
+    "LinkButton renders Button's element, so Button's variables style it too, " +
+    'for the colors and modifiers it accepts. They are in ' +
+    '`get_css_variables({ component: "Button" })`.';
 
   it("adds the other component's call to the count for one that renders its element", async () => {
     const record = await loadComponent('LinkButton');
@@ -373,7 +374,8 @@ describe('renderComponent CSS variable pointer', () => {
     expect(out).toContain(
       `\`LinkButton\` has ${record.cssVars.length} CSS variables for theming ` +
         '— pass `include: ["cssVars"]` to see them. It renders ' +
-        "Button's element, so Button's variables style it too. They are in " +
+        "Button's element, so Button's variables style it too, for the colors " +
+        'and modifiers it accepts. They are in ' +
         '`get_css_variables({ component: "Button" })`.'
     );
     // A component that renders its own element gets the count alone.
@@ -423,7 +425,8 @@ describe('a component with no class of its own', () => {
     expect(record.cssVarsFrom).toBe('Button');
     expect(renderCssVarsAnswer(record, [])).toBe(
       'ToggleButton registers no CSS variables of its own. It renders ' +
-        "Button's element, so Button's variables style it. They are in " +
+        "Button's element, so Button's variables style it, for the colors and " +
+        'modifiers it accepts. They are in ' +
         '`get_css_variables({ component: "Button" })`.'
     );
   });
@@ -432,7 +435,8 @@ describe('a component with no class of its own', () => {
     // "None matching" would undersell a component that has none at all.
     expect(renderCssVarsAnswer(await bare(), [], 'say "hi"')).toBe(
       'ToggleButton registers no CSS variables of its own. It renders ' +
-        "Button's element, so Button's variables style it. They are in " +
+        "Button's element, so Button's variables style it, for the colors and " +
+        'modifiers it accepts. They are in ' +
         '`get_css_variables({ component: "Button", query: "say \\"hi\\"" })`.'
     );
   });

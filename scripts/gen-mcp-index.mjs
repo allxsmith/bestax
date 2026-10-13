@@ -817,8 +817,9 @@ export async function build() {
           })),
           cssVars,
           // The component whose element this one renders, so its variables
-          // style this one too. Present only where RENDERS_ELEMENT_OF declares
-          // one, the way `doc` is present only on a prose page.
+          // style this one too, for the colors and modifiers it accepts. Present
+          // only where RENDERS_ELEMENT_OF declares one, the way `doc` is present
+          // only on a prose page.
           ...(Object.hasOwn(RENDERS_ELEMENT_OF, name)
             ? { cssVarsFrom: RENDERS_ELEMENT_OF[name] }
             : {}),

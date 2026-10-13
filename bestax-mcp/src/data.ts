@@ -85,7 +85,8 @@ export interface ComponentRecord {
   cssVars: CssVar[];
   /**
    * The component whose element this one renders (`Button`, for LinkButton), so
-   * that component's variables style this one too. Absent when it renders its own.
+   * that component's variables style this one too, for the colors and modifiers it
+   * accepts. Absent when it renders its own.
    */
   cssVarsFrom?: string;
   sourceFile?: string;

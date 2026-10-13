@@ -266,7 +266,11 @@ export const SCSS_SOURCES = {
 
 /**
  * Components that render another component's element, so that component's CSS
- * variables style them too.
+ * variables style them too, for the colors and modifiers each one accepts.
+ *
+ * That can be fewer than the other component offers, where a component leaves
+ * some of its colors or modifiers out. The answer says so in general terms, so
+ * each entry stays one name.
  *
  * `gen-mcp-index.mjs` carries this map into the index as `cssVarsFrom`, and
  * `get_css_variables` names that component's call in its answer, under the
