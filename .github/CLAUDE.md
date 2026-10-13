@@ -405,7 +405,9 @@ its check prove", below.
     exit 1
 ```
 
-Copy the full version from any block job — the shapes above are each load-bearing:
+Copy the full version from a block job that matches the new one on
+`disable-sudo-and-containers`, which `scripts/harden-runner-sudo.test.mjs` holds together. The
+shapes above are each load-bearing:
 
 - **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
   and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or
@@ -654,7 +656,9 @@ the version the pin installs.
 - **They depend on the runner image as well as the pin**: on how the image grants the runner
   sudo, and on the modes it gives the sockets. So a runner image change, not only a pin bump, can
   turn every job that sets the flag red at once. In `ai-scan`, a failure in `gate` or `scan`
-  flags the item, as their other assertion failures do.
+  flags the item, as their other assertion failures do. In `supply-chain`'s `sign-sbom` it
+  leaves the SBOMs unsigned: `attach-sbom` still attaches them with a warning, and the release
+  still ships.
 - **The agent also purges Docker in the background** (`uninstallDocker` in `sudo.go`), alongside
   the job's first steps. It runs whenever the agent starts with the flag, including on runs that
   stop early and run no repository code, and it holds the dpkg lock while it runs. A step in such
@@ -814,7 +818,8 @@ Then resolve every host before it goes in the list, per the rule above.
       local composite action (rule 1 — pins under `.github/actions/` are fine and one exists, so
       this is about per-job review, not pin location).
 - [ ] New `block` job sets `disable-sudo-and-containers` and checks it in that assertion, or
-      says above its harden-runner which step needs sudo or Docker (rule 10).
+      says above its harden-runner which step needs sudo or Docker (rule 10;
+      `scripts/harden-runner-sudo.test.mjs` checks both).
 - [ ] New verdict path fails closed; new counter path fails open.
 - [ ] Security comments claim exactly what the mechanism delivers — no more.
 
