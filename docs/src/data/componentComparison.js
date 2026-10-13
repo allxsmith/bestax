@@ -8,7 +8,7 @@
 // · 0 = none. Row order is fixed (see the header comment on `categories`); the display
 // order is controlled by `libs[].idx`.
 
-export const lastReviewed = '2026-09-26';
+export const lastReviewed = '2026-10-13';
 
 // ---------------------------------------------------------------------------
 // Link resolvers — bestax links are internal (validated by the production build's
@@ -163,7 +163,7 @@ const MANTINE = {
   RichTextEditor: 'x/tiptap',
   NavigationProgress: 'x/nprogress',
   Lightbox: 'x/lightbox',
-  CodeHighlight: 'x/code-highlight',
+  CodeHighlight: 'code-highlight/code-highlight',
   modals: 'x/modals',
   MantineProvider: 'theming/mantine-provider',
   clsx: 'https://github.com/lukeed/clsx',
@@ -595,7 +595,7 @@ export const categories = [
       [
         'Toolbar',
         '~Level',
-        '~Group + Button.Group',
+        'Toolbar',
         'ButtonToolbar',
         'Toolbar',
         '~Level',

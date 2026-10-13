@@ -79,6 +79,9 @@
 
 /* ---- table ------------------------------------------------------------ */
 .tableWrap {
+  /* The containing block for the cells' absolutely positioned screen-reader
+     text, so it scrolls with the table instead of widening the page. */
+  position: relative;
   overflow-x: auto;
   border: 1px solid var(--ifm-color-emphasis-200);
   border-radius: 8px;
