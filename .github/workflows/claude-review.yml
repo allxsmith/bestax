@@ -276,8 +276,9 @@ jobs:
       # so "fresh," or "fresh:" does not count. Deleting a fresh steer brings
       # back whichever triage+ steer is now newest, which may be fresh too.
       # To get a verify pass, post a newer steer whose first word is not
-      # "fresh", or edit the one the run reads. The run log names the steer
-      # author.
+      # "fresh", or edit the one the run reads so its first word is not
+      # "fresh" and it still starts "deep-review:". The run log names the
+      # steer author.
       #
       # Emits a fully-formed FOCUS block, or an empty string, so the prompt
       # needs no conditional. Best-effort by design, since the steer is an
@@ -480,8 +481,9 @@ jobs:
             This pass settles the findings it left open, and nothing else.
             Do NOT
             re-review the PR, and raise NO new findings — a reader who wants
-            the current code reviewed asks for a fresh one, which is what a
-            steer starting "deep-review: fresh" gives them. Skip steps 1
+            the current code reviewed asks for a fresh one: a "deep-review:"
+            steer whose first word is "fresh", then the label re-applied.
+            Skip steps 1
             through 3 and do exactly this:
             a. List your own unresolved inline threads (GraphQL
                reviewThreads on the PR, first comment by claude), with
