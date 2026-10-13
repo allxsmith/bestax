@@ -1159,6 +1159,44 @@ describe('SegmentedControl', () => {
       );
     });
 
+    // The limit the docs and the `defaultValue` TSDoc state: the fallback
+    // stop needs the segments to register, which only happens in the browser.
+    it('has no tab stop in the server markup while nothing is checked, and the first segment takes it once hydrated', async () => {
+      const ui = <Alignment />;
+      const html = renderToString(ui);
+      expect(html.match(/role="radio"/g)).toHaveLength(4);
+      expect(html).not.toContain('aria-checked="true"');
+      expect(html).not.toContain('tabindex="0"');
+      expect(html.match(/tabindex="-1"/g)).toHaveLength(4);
+
+      const container = document.createElement('div');
+      container.innerHTML = html;
+      document.body.appendChild(container);
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      try {
+        await act(async () => {
+          root = hydrateRoot(container, ui);
+        });
+        expect(errorSpy).not.toHaveBeenCalled();
+        const segments = Array.from(
+          container.querySelectorAll<HTMLButtonElement>('[role="radio"]')
+        );
+        expect(segments.map(segment => segment.tabIndex)).toEqual([
+          0, -1, -1, -1,
+        ]);
+        expect(
+          segments.map(segment => segment.getAttribute('aria-checked'))
+        ).toEqual(['false', 'false', 'false', 'false']);
+      } finally {
+        errorSpy.mockRestore();
+        await act(async () => root!.unmount());
+        container.remove();
+      }
+    });
+
     it('hydrates without a mismatch, then moves the check with the keys', async () => {
       const ui = <Alignment defaultValue="left" />;
       const container = document.createElement('div');

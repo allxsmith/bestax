@@ -125,14 +125,18 @@ export interface SegmentedControlProps
   /**
    * The checked segment's `value`, when you hold the state. Setting it makes
    * the group controlled: picking a segment only calls `onChange`, and nothing
-   * changes until you pass the new value. `null` checks nothing. Pick this or
-   * `defaultValue` for the group's lifetime.
+   * changes until you pass the new value. `null` checks nothing, with the
+   * tab stop `defaultValue` describes for that. Pick this or `defaultValue`
+   * for the group's lifetime.
    */
   value?: string | null;
   /**
    * The segment checked to begin with, when the group holds its own state.
    * Leave it out and nothing is checked until someone picks one, and Tab
-   * lands on the first enabled segment meanwhile.
+   * lands on the first enabled segment meanwhile. That fallback takes hold
+   * once the row has rendered in the browser: server markup with nothing
+   * checked has no tab stop until then, while a checked segment is the stop
+   * from the server markup on.
    */
   defaultValue?: string;
   /**

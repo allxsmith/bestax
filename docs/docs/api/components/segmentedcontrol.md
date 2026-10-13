@@ -68,6 +68,11 @@ Leave `defaultValue` out and nothing is checked until someone picks. Tab lands o
 without checking it, and Space, Enter or an arrow key picks one. After that it can't go back to
 nothing: pressing the checked segment again keeps it checked, as a radio group does.
 
+That first segment becomes the tab stop once the row has rendered in the browser, since the row
+learns which segments it has from there. In server-rendered markup a row with nothing checked
+can't be reached with Tab until then. If yours has to be reachable before the page hydrates, give
+it a `defaultValue`: the checked segment is the tab stop in the server markup too.
+
 ```tsx live
 <SegmentedControl aria-label="Plan">
   <SegmentedControl.Segment value="starter">Starter</SegmentedControl.Segment>
@@ -302,7 +307,9 @@ outside a toolbar:
 | <kbd>Enter</kbd>                               | Does what it does on any button: clicks the focused segment, which checks it                                         |
 
 Disabled segments are skipped by all of these. A segment's `onKeyDown` runs first, and a
-`preventDefault()` there keeps the row from handling that key.
+`preventDefault()` there keeps the row from handling that key. A key the row takes stops there, so
+a handler above it, such as a carousel's arrows, doesn't act on it too. Keys the row leaves alone
+carry on up.
 
 ---
 
@@ -322,7 +329,9 @@ is in the pressed state, the toggles behave like radio buttons."
   development build warns when it has neither.
 - **One tab stop:** the checked segment holds it, or the first enabled segment while none is
   checked. While focus is in the row the stop goes with it, so Tab always leaves from where you
-  are.
+  are. The first-segment fallback needs the browser: server markup with nothing checked has no
+  tab stop until the row has rendered on the client, as
+  [Nothing Checked Yet](#nothing-checked-yet) says.
 - **The check follows focus:** the arrow keys, Home and End check the segment they move to, as
   native radio buttons do. A screen reader announces the new segment as checked straight away.
 - **It can't be cleared:** once a segment is checked, one always is. Pressing the checked segment
