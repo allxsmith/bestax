@@ -261,8 +261,8 @@ Your `onClick` runs before the toggle. Call `event.preventDefault()` in it and n
 `isLoading` shows Bulma's spinner in place of the label and holds the toggle where it is until you
 clear it. A click, <kbd>Enter</kbd> or <kbd>Space</kbd> does nothing meanwhile, and neither
 `onClick` nor `onPressedChange` fires. Set it while a change is saving, so nobody flips it again
-before the last change has landed. It isn't disabled, so it keeps focus, and it carries
-`aria-busy="true"` until you clear it.
+before the last change has landed. It carries `aria-busy` and `aria-disabled` until you clear it,
+and keeps focus, since it isn't `disabled`.
 
 ```tsx live
 function example() {
@@ -317,8 +317,9 @@ function example() {
   not pressed. It's never `"mixed"`.
 - **Keyboard:** <kbd>Enter</kbd> and <kbd>Space</kbd> toggle it, as on any button, and focus stays
   on it.
-- **Loading:** while `isLoading` is set, it carries `aria-busy="true"`, and keys hold it still the
-  same as the pointer does. It keeps focus, since it isn't disabled.
+- **Loading:** while `isLoading` is set, it carries `aria-busy="true"` and `aria-disabled="true"`,
+  so a screen reader can tell it won't respond, and keys hold it still the same as the pointer
+  does. It keeps focus, since `aria-disabled` doesn't take it away the way `disabled` would.
 - **The label stays put:** APG says "it is critical the label on a toggle does not change when its
   state changes." Mute stays "Mute". An icon can change, but the `aria-label` doesn't. A label that
   changes, "Play" and then "Pause", belongs on a plain `Button` with no `aria-pressed`. Nothing can

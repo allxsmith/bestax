@@ -82,8 +82,8 @@ export interface ToggleButtonProps
    * Shows Bulma's spinner in place of the label and holds the toggle where it
    * is: a click, Enter or Space does nothing, so neither `onClick` nor
    * `onPressedChange` fires, until it's cleared. Set it while a change is
-   * saving. The button carries `aria-busy="true"` meanwhile and stays
-   * focusable, so focus isn't lost mid-save. Under
+   * saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and
+   * stays focusable, so focus isn't lost mid-save. Under
    * `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with
    * bestax's CSS loaded).
    */
@@ -131,6 +131,7 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
       color = 'link',
       isLoading,
       'aria-busy': ariaBusy,
+      'aria-disabled': ariaDisabled,
       className,
       onClick,
       ...props
@@ -165,7 +166,8 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
     // The props are spread first, so what a toggle depends on wins over
     // anything a JavaScript caller or a spread object passes along: it stays
     // a button, never submits, reports the state it's in, and says it's busy
-    // while it's loading.
+    // and won't respond while it's loading. A caller's own `aria-busy` or
+    // `aria-disabled` stays when it isn't loading.
     return (
       <Button
         {...props}
@@ -174,6 +176,7 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
         type="button"
         isLoading={isLoading}
         aria-busy={isLoading || ariaBusy}
+        aria-disabled={isLoading || ariaDisabled}
         aria-pressed={pressed}
         color={pressed ? color : undefined}
         className={classNames(selectedClass, className)}

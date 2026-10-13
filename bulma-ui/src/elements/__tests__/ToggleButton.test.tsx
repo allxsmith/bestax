@@ -279,7 +279,7 @@ describe('ToggleButton', () => {
   });
 
   describe('loading', () => {
-    it('holds still for a click, Enter and Space, and says it is busy', async () => {
+    it('holds still for a click, Enter and Space, and says it is busy and unavailable', async () => {
       const user = userEvent.setup();
       const onClick = jest.fn();
       const onPressedChange = jest.fn();
@@ -293,6 +293,7 @@ describe('ToggleButton', () => {
         </ToggleButton>
       );
       expect(toggle()).toHaveAttribute('aria-busy', 'true');
+      expect(toggle()).toHaveAttribute('aria-disabled', 'true');
       expect(toggle()).not.toBeDisabled();
       await user.tab();
       expect(toggle()).toHaveFocus();
@@ -333,6 +334,7 @@ describe('ToggleButton', () => {
       await user.click(toggle('Pin'));
       expect(toggle('Pin')).toHaveAttribute('aria-pressed', 'true');
       expect(toggle('Pin')).toHaveAttribute('aria-busy', 'true');
+      expect(toggle('Pin')).toHaveAttribute('aria-disabled', 'true');
       expect(toggle('Pin')).toHaveFocus();
 
       await user.keyboard(' ');
@@ -342,14 +344,26 @@ describe('ToggleButton', () => {
 
       act(() => finishSaving());
       expect(toggle('Pin')).not.toHaveAttribute('aria-busy');
+      expect(toggle('Pin')).not.toHaveAttribute('aria-disabled');
       await user.keyboard(' ');
       expect(changes).toEqual([true, false]);
       expect(toggle('Pin')).toHaveAttribute('aria-pressed', 'false');
     });
 
-    it('keeps an aria-busy of the caller’s while it is not loading', () => {
-      render(<ToggleButton aria-busy="true">Mute</ToggleButton>);
+    it('keeps the caller’s aria-busy and aria-disabled while it is not loading', () => {
+      render(
+        <ToggleButton aria-busy="true" aria-disabled="true">
+          Mute
+        </ToggleButton>
+      );
       expect(toggle()).toHaveAttribute('aria-busy', 'true');
+      expect(toggle()).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('sets neither while it is not loading and the caller sets neither', () => {
+      render(<ToggleButton>Mute</ToggleButton>);
+      expect(toggle()).not.toHaveAttribute('aria-busy');
+      expect(toggle()).not.toHaveAttribute('aria-disabled');
     });
   });
 
