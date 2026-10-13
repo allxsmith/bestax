@@ -338,7 +338,7 @@ The short version for contributors:
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
   open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
   newer commits themselves want reviewing, first post a `deep-review:` comment whose first word
-  is `fresh`, with nothing attached, then toggle the label to start the run. Both the label and
+  is `fresh` as a word of its own (not `fresh,`), then toggle the label to start the run. Both the label and
   the steer are triage+ only, so this is a maintainer's move rather than yours. On a PR from a
   fork it is nobody's move: the job runs only for same-repo PRs, so the label does nothing
   there whoever applies it, and the run reports skipped.

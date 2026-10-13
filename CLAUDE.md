@@ -275,7 +275,7 @@ green and every AI review thread is resolved.
   looks exactly like a review that is merely slow.
   Re-applying the label settles that review's own open threads and raises nothing new — it
   does not review the commits pushed since, so a steer comment whose first word after
-  `deep-review:` is `fresh`, with nothing attached, can make it a full review of the current
+  `deep-review:` is `fresh` as a word of its own (not `fresh,`), can make it a full review of the current
   code instead. A steer selects the MODE of a run the label toggle starts and does not start
   one; which steer a run reads, and how to get a verify pass back, are in the focus step of
   `claude-review.yml`. A steer the run cannot read leaves it unfocused rather than failing,
