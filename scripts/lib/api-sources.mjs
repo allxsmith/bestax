@@ -265,6 +265,23 @@ export const SCSS_SOURCES = {
 // </generated:scss-sources>
 
 /**
+ * Components that render another component's element, so that component's CSS
+ * variables style them too.
+ *
+ * `gen-mcp-index.mjs` carries this map into the index as `cssVarsFrom`, and
+ * `get_css_variables` names that component's call in its answer, under the
+ * component's own rows or in their place.
+ *
+ * Declared rather than read from the root class: LinkButton renders Button's
+ * `.button` under a class of its own. Hand-written, so it sits outside the
+ * generated markers, where `pnpm gen:api-sources` leaves it alone.
+ */
+export const RENDERS_ELEMENT_OF = {
+  LinkButton: 'Button', // renders `.button.link-button` through Button
+  ToggleButton: 'Button', // renders a `.button` through Button
+};
+
+/**
  * Pages whose `## Import` deliberately imports more than the page's own
  * component, because the component is not usable alone (`Table` with its cell
  * elements) or is always shown with a companion.
