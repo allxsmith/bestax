@@ -413,10 +413,9 @@ describe('codesandboxFiles', () => {
     // URLs, so an installed icon font never loads there.
     const html = files['public/index.html'].content;
     const mdi = lowest(INPUT.versions['@mdi/font']);
-    assert.match(
-      html,
-      new RegExp(
-        `<link rel="stylesheet" href="https://cdn\\.jsdelivr\\.net/npm/@mdi/font@${mdi.replace(/\./g, '\\.')}/css/materialdesignicons\\.min\\.css" />`
+    assert.ok(
+      html.includes(
+        `<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@${mdi}/css/materialdesignicons.min.css" />`
       )
     );
     assert.match(html, /fontawesome-free@[\d.]+\/css\/all\.min\.css/);
