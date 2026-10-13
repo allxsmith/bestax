@@ -380,6 +380,31 @@ describe('SegmentedControl', () => {
       );
       expect(radio('Grid')).toHaveAttribute('tabindex', '0');
     });
+
+    it('moves the stop to the new first segment when keyed segments are reordered', () => {
+      const Row = ({ order }: { order: string[] }) => (
+        <SegmentedControl aria-label="View">
+          {order.map(value => (
+            <SegmentedControl.Segment key={value} value={value}>
+              {value}
+            </SegmentedControl.Segment>
+          ))}
+        </SegmentedControl>
+      );
+      const { rerender } = render(<Row order={['list', 'grid', 'board']} />);
+      expect(tabIndexes()).toEqual([0, -1, -1]);
+      expect(radio('list')).toHaveAttribute('tabindex', '0');
+
+      // Same segments, same keys, new order: nothing mounts or unmounts.
+      rerender(<Row order={['board', 'list', 'grid']} />);
+      expect(screen.getAllByRole('radio').map(s => s.textContent)).toEqual([
+        'board',
+        'list',
+        'grid',
+      ]);
+      expect(tabIndexes()).toEqual([0, -1, -1]);
+      expect(radio('board')).toHaveAttribute('tabindex', '0');
+    });
   });
 
   describe('the keyboard', () => {

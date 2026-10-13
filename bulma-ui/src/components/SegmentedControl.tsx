@@ -12,6 +12,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { warnOnce } from '../helpers/devWarnings';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 
 // Spelled out so the API page can list the values. The tests hold it to
 // ToggleButton's, since the checked segment fills the way a pressed toggle
@@ -222,28 +223,38 @@ const SegmentedControlRoot = forwardRef<HTMLDivElement, SegmentedControlProps>(
       onChange?.(next);
     };
 
-    // The segments mount and register from an effect, in page order, so the
-    // group knows which can hold the tab stop wherever in the tree they sit.
+    // The segments mount and register from an effect, so the group knows
+    // which can hold the tab stop wherever in the tree they sit.
     const [segments, setSegments] = useState<SegmentRecord[]>([]);
     const register = useCallback((record: SegmentRecord) => {
-      setSegments(prev => [...prev, record].sort(inDocumentOrder));
+      setSegments(prev => [...prev, record]);
       return () => setSegments(prev => prev.filter(r => r !== record));
     }, []);
     const [focused, setFocused] = useState<string | undefined>();
+
+    // The first enabled segment in the page, sorted when it's read rather
+    // than when a segment registers, so reordered segments are seen too. It's
+    // read after the commit: a render runs before React moves the nodes, so
+    // sorting there would find the old order.
+    const [firstEnabled, setFirstEnabled] = useState<string | undefined>();
+    useClientLayoutEffect(() => {
+      const inPage = segments.filter(s => !s.disabled).sort(inDocumentOrder);
+      setFirstEnabled(inPage[0]?.value);
+    }, [segments, children]);
 
     // One tab stop for the row (roving tabindex). While focus is in the row
     // the stop follows it, so Tab leaves from wherever focus is even when a
     // controlled group hasn't taken the new value. Otherwise it's the checked
     // segment, or the first enabled one when none is checked or the checked
     // one is disabled. Before the segments register (the server render and
-    // the first client render) the checked one holds it.
-    const enabled = segments.filter(s => !s.disabled);
+    // the first client render) the checked one holds it, so a row with
+    // nothing checked has no stop until the client has rendered.
     const canHoldStop = (candidate: string | undefined) =>
-      enabled.some(s => s.value === candidate);
+      segments.some(s => !s.disabled && s.value === candidate);
     let tabStop: string | undefined;
     if (canHoldStop(focused)) tabStop = focused;
     else if (segments.length === 0 || canHoldStop(checked)) tabStop = checked;
-    else tabStop = enabled[0]?.value;
+    else tabStop = firstEnabled;
 
     const named = Boolean(rest['aria-label'] || rest['aria-labelledby']);
     useEffect(() => {
