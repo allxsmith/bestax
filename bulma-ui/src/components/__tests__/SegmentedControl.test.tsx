@@ -533,7 +533,9 @@ describe('SegmentedControl', () => {
         >
           <SegmentedControl.Segment value="list">List</SegmentedControl.Segment>
           {createPortal(
-            <SegmentedControl.Segment value="grid">Grid</SegmentedControl.Segment>,
+            <SegmentedControl.Segment value="grid">
+              Grid
+            </SegmentedControl.Segment>,
             document.body
           )}
         </SegmentedControl>
@@ -619,18 +621,22 @@ describe('SegmentedControl', () => {
         document.removeEventListener('keydown', listener);
       });
 
-      it.each(['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp', 'Home', 'End'])(
-        'stops %s, a key the row takes',
-        async key => {
-          const user = userEvent.setup();
-          render(<Alignment defaultValue="center" />);
-          await user.tab();
-          seen = [];
-          await user.keyboard(`{${key}}`);
-          expect(radio('Center')).not.toHaveFocus();
-          expect(seen).toEqual([]);
-        }
-      );
+      it.each([
+        'ArrowRight',
+        'ArrowLeft',
+        'ArrowDown',
+        'ArrowUp',
+        'Home',
+        'End',
+      ])('stops %s, a key the row takes', async key => {
+        const user = userEvent.setup();
+        render(<Alignment defaultValue="center" />);
+        await user.tab();
+        seen = [];
+        await user.keyboard(`{${key}}`);
+        expect(radio('Center')).not.toHaveFocus();
+        expect(seen).toEqual([]);
+      });
 
       it('lets a key the row leaves alone bubble on', async () => {
         const user = userEvent.setup();
@@ -645,9 +651,7 @@ describe('SegmentedControl', () => {
       });
 
       it('lets an arrow bubble on when it finds no segment to move to', () => {
-        render(
-          <Alignment disabled={['left', 'center', 'right', 'justify']} />
-        );
+        render(<Alignment disabled={['left', 'center', 'right', 'justify']} />);
         fireEvent.keyDown(radio('Left'), { key: 'ArrowRight' });
         expect(seen).toEqual(['ArrowRight']);
       });
