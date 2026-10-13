@@ -395,8 +395,8 @@ comment above its harden-runner.
     for _ in $(seq 1 30); do
       if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
         # only in a job that sets disable-sudo-and-containers
-        if sudo -n true 2>/dev/null || [ -w /var/run/docker.sock ] \
-          || [ -w /run/containerd/containerd.sock ]; then exit 1; fi
+        if sudo -n true 2>/dev/null; then echo "::error::sudo still works"; exit 1; fi
+        if [ -w /var/run/docker.sock ]; then echo "::error::docker.sock is writable"; exit 1; fi
         exit 0
       fi
       sleep 1
@@ -420,10 +420,17 @@ Copy the full version from any block job — the shapes above are each load-bear
   its status, so a cold resolver or a long list can leave it absent or empty at this point.
 - **`^Initialized`, not `-qx`.** `writeStatus` appends without a trailing newline, so a second
   status would concatenate onto the same line and an exact-line match would stop matching.
-- **The sudo and socket check waits for `Initialized`.** The agent takes sudo and the container
-  sockets away before it writes that status, so a check made earlier could find them still open.
-  It proves the setting held at that step, as the lines above it do for the policy: the agent
-  puts sudo back when it reverts (`RevertChanges` in `agent.go`).
+- **The sudo and socket check waits for `Initialized`.** The agent closes sudo and the sockets
+  before it writes that status (`disableSudoAndContainers` in `sudo.go`), so a check made earlier
+  could find them open. It proves sudo and `docker.sock` were closed at that step, and no more:
+  the agent puts sudo back when it reverts (`RevertChanges` in `agent.go`), and the check covers
+  those two, not every container endpoint. `containerd.sock` is left out because the runner user
+  cannot write it whether or not the agent closed it.
+
+  Unlike the lines above it, the check depends on the runner image as well as the pin: on how the
+  image grants the runner sudo and on the modes it gives the sockets. So a runner image change,
+  not only a pin bump, can turn every job that sets the flag red at once. The agent also purges
+  Docker in the background (`uninstallDocker` in `sudo.go`), alongside the job's first steps.
 
 **Placement.** The default is immediately after harden-runner, and most jobs use it. Two things
 override it, both derived from one rule:
@@ -552,10 +559,9 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
   (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay`, `generate`
-  and `publish`). The command below lists them. `bestaxbot-reply` (`respond`) and
-  `claude-pr-loop` (`fix` and `verify`) leave `disable-sudo-and-containers` off, since each
-  installs its `gh-thread` helper with `sudo`, and
-  `grep -rn "disable-sudo-and-containers: true" .github/workflows/` lists the jobs that set it.
+  and `publish`). The command below lists them, and
+  `grep -rn "disable-sudo-and-containers: true" .github/workflows/` lists the jobs that set
+  `disable-sudo-and-containers`.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
   group by measuring every member instead of guessing for them. They all now **use** the same
   allowlist, and the gap between that and what the measurement produced is the part worth
