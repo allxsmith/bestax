@@ -226,25 +226,12 @@ test('only the publish job holds the environment, the secret and id-token: write
     /ref: \$\{\{ needs\.validate\.outputs\.sha \}\}/,
     'publish checks out the commit validate checked'
   );
+  // The check that goes with the flag is held in every workflow by
+  // harden-runner-sudo.test.mjs.
   for (const job of [validateJob, publishJob]) {
     assert.match(job, /egress-policy: block$/m);
     assert.match(job, /disable-sudo-and-containers: true$/m);
     assert.match(job, /Assert egress policy is enforced/);
-    assert.match(
-      job,
-      /jq -e '\.disable_sudo_and_containers == true' \/home\/agent\/agent\.json/,
-      'the assertion checks agent.json records the flag'
-    );
-    assert.match(
-      job,
-      /if sudo -n true 2>\/dev\/null; then/,
-      'the assertion checks sudo'
-    );
-    assert.match(
-      job,
-      /if \[ -w \/var\/run\/docker\.sock \]; then/,
-      'the assertion checks docker.sock'
-    );
   }
 });
 
