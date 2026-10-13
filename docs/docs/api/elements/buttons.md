@@ -101,7 +101,7 @@ Set the `size` prop (`'small'`, `'medium'`, `'large'`) on `Buttons` to size ever
 
 ### Add-ons (No Spacing Between Buttons)
 
-The `hasAddons` prop removes spacing between buttons, making them appear as a single connected group. This is useful for segmented controls or tightly grouped actions.
+The `hasAddons` prop removes spacing between buttons, making them appear as a single connected group. This is useful for tightly grouped actions. A row where only one button can be on, such as left, center or right alignment, is a [`SegmentedControl`](../components/segmentedcontrol.md): it draws this same row, fills the chosen button, and handles the choosing and the keyboard for you.
 
 ```tsx live
 <Buttons hasAddons>
@@ -162,7 +162,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 - Grouping buttons in a `<div class="buttons">` has no negative impact on accessibility.
 - Ensure each `Button` has a clear label (text or `aria-label`).
-- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](./togglebutton.md) in `Buttons hasAddons`, and give the `Buttons` `role="group"` and an `aria-label`. A set where only one can be on is a radio group, so use [`Radios`](../form/radios.md) for it.
+- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](./togglebutton.md) in `Buttons hasAddons`, and give the `Buttons` `role="group"` and an `aria-label`. A set where only one can be on is a radio group, so use [`SegmentedControl`](../components/segmentedcontrol.md) for it, which draws the same `has-addons` row, or [`Radios`](../form/radios.md) when the choice is sent with a form.
 
 :::tip
 You can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.
@@ -174,6 +174,7 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 
 - [`Button`](./button.md): The underlying button component used in the group.
 - [`ToggleButton`](./togglebutton.md): A button that stays pressed, for a set of toggles in a group.
+- [`SegmentedControl`](../components/segmentedcontrol.md): A `has-addons` row where only one button can be on.
 - [Helper Props](../helpers/usebulmaclasses.md): All supported Bulma helper props for layout, color, and spacing.
 
 ---
@@ -206,6 +207,6 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 
 - [`Buttons.Button`](button.md): The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 - [`Buttons.LinkButton`](linkbutton.md): The `LinkButton` component renders a `<button>` that visually looks like text or a link.
-- [`Buttons.ToggleButton`](togglebutton.md): The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type="button">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `Radios`.
+- [`Buttons.ToggleButton`](togglebutton.md): The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type="button">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `SegmentedControl`, or `Radios` for a choice that's sent with a form.
 
 <!-- /bestax:generated props -->

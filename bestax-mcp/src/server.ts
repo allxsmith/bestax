@@ -44,7 +44,7 @@ import {
   HELPER_PROPS_PAGE,
   renderCatalog,
   renderComponent,
-  renderCssVars,
+  renderCssVarsAnswer,
   renderExamples,
   renderHelperApi,
   renderPart,
@@ -662,18 +662,7 @@ export async function createServer(
             note()
           );
         }
-        if (!vars.length) {
-          return textResult(
-            `${record.name} registers no CSS variables${
-              query ? ` matching "${query}"` : ''
-            }.`,
-            note()
-          );
-        }
-        return textResult(
-          `# ${record.name} CSS variables\n\n${renderCssVars(vars)}`,
-          note()
-        );
+        return textResult(renderCssVarsAnswer(record, vars, query), note());
       }
 
       if (!query) {
