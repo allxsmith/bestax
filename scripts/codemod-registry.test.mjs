@@ -232,6 +232,11 @@ test('only the publish job holds the environment, the secret and id-token: write
     assert.match(job, /Assert egress policy is enforced/);
     assert.match(
       job,
+      /jq -e '\.disable_sudo_and_containers == true' \/home\/agent\/agent\.json/,
+      'the assertion checks agent.json records the flag'
+    );
+    assert.match(
+      job,
       /if sudo -n true 2>\/dev\/null; then/,
       'the assertion checks sudo'
     );
