@@ -1860,3 +1860,171 @@ export const categories = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------
+// Corrections: cells and row names fixed after an edition went out because
+// that edition had them wrong, not because the library changed. The next
+// edition's changes table marks a corrected cell as a correction instead of
+// as something that shipped.
+// Snapshots carry this list as it stands, so published editions never change.
+//
+// A fix names the edition it corrects by that edition's `reviewed` date
+// (between editions, that's `lastReviewed`), the pull request that made it,
+// and the mark it gave each cell ('full', 'partial' or 'none'), by the row's
+// name in that edition and the library id. A cell reads as a correction only
+// while it still has the fix's mark, so a release that moves it again before
+// the next edition reads as a change. A fix that renamed a row maps the old
+// name to the new one in `renamed`, so the table compares the row under its
+// new name with the old one, rather than showing one dropped and one new. A
+// row a fix added has nothing to compare with, so it still shows as new.
+// Record a fix in the same PR as the matrix edit; the runbook is
+// docs/blog/CLAUDE.md.
+// ---------------------------------------------------------------------------
+export const corrections = [
+  {
+    edition: '2026-09-26',
+    pr: 766,
+    renamed: {
+      'Box (polymorphic primitive)': 'Styling primitive (unstyled, any tag)',
+    },
+    cells: {
+      'Close / delete button': { rbulma: 'partial' },
+      'Copy button': { shadcn: 'partial' },
+      'File-trigger button': {
+        bestax: 'partial',
+        rbulma: 'partial',
+        mui: 'partial',
+        chakra: 'full',
+      },
+      'Toggle button': { bestax: 'partial', rbulma: 'partial', chakra: 'full' },
+      'Segmented / toggle group': { bestax: 'partial', rbulma: 'partial' },
+      'Floating action button': { mantine: 'partial' },
+      'Action bar (bulk actions)': { mui: 'partial' },
+      Textarea: { rbootstrap: 'partial' },
+      'Number input (steppers)': { mui: 'partial' },
+      'Password input': { mui: 'partial' },
+      'Checkbox group': { shadcn: 'partial' },
+      Radio: { rbootstrap: 'partial' },
+      'Multi-select': {
+        rbulma: 'partial',
+        shadcn: 'partial',
+        rbootstrap: 'partial',
+      },
+      'Combobox (headless)': { mui: 'partial' },
+      'Pills input (multi-value)': {
+        bestax: 'full',
+        mui: 'partial',
+        shadcn: 'partial',
+      },
+      'Color input': { rbootstrap: 'partial' },
+      'File input': { shadcn: 'partial', rbootstrap: 'partial' },
+      Fieldset: { shadcn: 'full', rbootstrap: 'partial' },
+      'Field (label+control+error)': { mui: 'full' },
+      'Floating label': { mantine: 'partial', chakra: 'partial' },
+      'Date input': { shadcn: 'partial' },
+      'Date picker (popover)': { shadcn: 'partial' },
+      'Date range picker': { mantine: 'partial' },
+      'Date-time picker': { chakra: 'partial', shadcn: 'partial' },
+      'Time input / picker': { shadcn: 'partial' },
+      'Calendar (inline)': { bestax: 'partial' },
+      'Month picker': { mui: 'full' },
+      'Year picker': { mui: 'full' },
+      'App shell (layout frame)': { mui: 'partial', shadcn: 'partial' },
+      'Bottom navigation': {
+        bestax: 'partial',
+        rbulma: 'partial',
+        rbootstrap: 'partial',
+      },
+      'Burger / hamburger': {
+        bestax: 'full',
+        rbulma: 'full',
+        mui: 'partial',
+        rbootstrap: 'full',
+      },
+      'Command palette / spotlight': { chakra: 'partial' },
+      'Grid cell': { rbulma: 'full', mantine: 'full' },
+      'Stack (vertical)': { rbulma: 'partial' },
+      'Group (horizontal)': { bestax: 'partial', rbulma: 'partial' },
+      Flex: { bestax: 'partial', rbulma: 'partial' },
+      Center: { bestax: 'partial', rbulma: 'partial' },
+      Spacer: { rbulma: 'partial' },
+      'Aspect ratio': { rbulma: 'partial' },
+      'Affix (sticky)': { chakra: 'full' },
+      'Level (space-between bar)': { mui: 'partial' },
+      'Media object': { shadcn: 'full' },
+      'Avatar group': { shadcn: 'full' },
+      'Badge (corner indicator)': { shadcn: 'partial' },
+      'Chip (deletable / interactive)': { shadcn: 'partial' },
+      'Data grid (sort/filter/page)': { chakra: 'partial', shadcn: 'partial' },
+      'Description / data list': { shadcn: 'partial' },
+      'List (styled)': { shadcn: 'partial' },
+      'Tree view': { shadcn: 'partial' },
+      'Image list / gallery': { mantine: 'none' },
+      'Lightbox (media viewer)': { chakra: 'partial' },
+      'Background image': { mui: 'partial', chakra: 'partial' },
+      Figure: { shadcn: 'partial' },
+      'Theme icon (colored container)': {
+        bestax: 'partial',
+        mui: 'partial',
+        chakra: 'partial',
+      },
+      'Spoiler (clamp / expand)': {
+        mui: 'partial',
+        chakra: 'partial',
+        shadcn: 'partial',
+      },
+      'Inline code': { shadcn: 'partial' },
+      Blockquote: { bestax: 'partial', rbulma: 'partial' },
+      'Highlight / mark text': { shadcn: 'partial' },
+      'Inline semantic (em/strong/span)': { chakra: 'full', shadcn: 'partial' },
+      'Spinner (standalone)': { rbulma: 'full' },
+      'Loading overlay': { chakra: 'partial' },
+      'Semi-circle progress': { mui: 'partial' },
+      'Confirm / alert dialog': { rbulma: 'partial' },
+      'Swipeable drawer': { shadcn: 'full' },
+      'Hover card': { mui: 'partial' },
+      'Backdrop / scrim': { bestax: 'partial' },
+      'Accordion (grouped)': { bestax: 'partial' },
+      'Dropzone (drag-drop upload)': { chakra: 'full' },
+      'Rich text editor': { chakra: 'full' },
+      'Transfer list': {
+        mantine: 'partial',
+        mui: 'partial',
+        chakra: 'partial',
+      },
+      'Theme / provider': { rbootstrap: 'none' },
+      'Global config provider': { mui: 'partial', rbootstrap: 'full' },
+      'CSS reset / baseline': {
+        bestax: 'partial',
+        mantine: 'partial',
+        chakra: 'partial',
+      },
+      'Focus trap': { mui: 'partial', chakra: 'full' },
+      'Click-away listener': { mantine: 'partial' },
+      'Transition primitives': { chakra: 'full' },
+      'Scroll-reveal (on-scroll)': { mantine: 'partial' },
+      'Visually hidden (a11y)': { bestax: 'partial', rbulma: 'partial' },
+      'No-SSR guard': { mantine: 'partial' },
+      'classNames utility': {
+        mantine: 'none',
+        mui: 'none',
+        chakra: 'none',
+        shadcn: 'full',
+      },
+    },
+  },
+  {
+    edition: '2026-09-26',
+    pr: 843,
+    cells: {
+      'Pills input (multi-value)': { chakra: 'partial' },
+      'Navbar / app bar': { shadcn: 'partial' },
+      'Menu (vertical nav)': { chakra: 'partial' },
+      'Burger / hamburger': { shadcn: 'partial' },
+      'Affix (sticky)': { mui: 'partial' },
+      'Media object': { mui: 'partial' },
+      'Heading / title': { mui: 'partial' },
+      'Visually hidden (a11y)': { rbootstrap: 'partial' },
+    },
+  },
+];

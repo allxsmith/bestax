@@ -234,18 +234,21 @@ data, so a published post never changes under its readers.
 These files back every edition:
 
 - `docs/src/data/componentComparison.js`: the live matrix (capabilities × libraries), the
-  per-cell link resolvers, and `lastReviewed`. **This is the source of truth** for the current
-  data.
+  per-cell link resolvers, `lastReviewed`, and `corrections` (the cells and row names fixed
+  because an edition had them wrong). **This is the source of truth** for the current data.
 - `docs/src/data/state-of-react/{YYYY-MM}.json`: one frozen copy per edition, written by the
-  `snapshot:comparison` script. A published edition's snapshot never changes; the resolvers
-  keep old component names resolving instead (the Mantine map carries one such alias).
+  `snapshot:comparison` script, which carries `corrections` along with the matrix. A published
+  edition's snapshot never changes; the resolvers keep old component names resolving instead
+  (the Mantine map carries one such alias).
 - `docs/docs/guides/getting-started/compare.md`: the docs page. It renders
   `<ComponentComparison interactive />` on the live data. Its prose stays free of dates and
   counts because the LLM index serves it as current fact; the dated matrix renders from the
   component, which the index strips.
 - `docs/src/components/ComponentComparison/`: `index.js` renders the full matrix (the filters
   when `interactive`, a frozen full table when given `snapshot`, which the July 2026 edition
-  uses) and `Changes.js` renders one edition's changed rows from two snapshots.
+  uses) and `Changes.js` renders one edition's changed rows from two snapshots, marking a cell
+  the previous edition had wrong as a correction rather than a change, and comparing a row a
+  correction renamed with the row under its old name.
 - `docs/blog/{YYYY-MM-DD}-state-of-react/index.md`: the edition post. It imports the previous
   and current snapshots and renders `<ComparisonChanges from={…} to={…} />`.
 
@@ -272,6 +275,17 @@ These files back every edition:
 1. **Update the data** in `docs/src/data/componentComparison.js`:
    - Adjust the matrix for anything that shipped or moved since last month (new components,
      renamed docs, packages promoted out of "lab"/experimental).
+   - **Record a correction** when a cell's mark was wrong in the last edition, rather than
+     changed by the library since. That can happen any time between editions, so do it in the
+     PR that fixes the cell: add the cell to `corrections` under a fix with the last edition's
+     `reviewed` date (the live `lastReviewed` until the bump below), the PR number (fill it in
+     once the PR is open), and the mark the fix gives the cell (`full`, `partial` or `none`).
+     The edition's changes table then shows that cell as a correction, not a change. If a
+     release moves the cell again before the edition, leave the entry be: the mark no longer
+     matches, so the table shows the release. If the fix renames a row, put the old name and
+     the new one in the fix's `renamed`, and name the row's cells the way the last edition did.
+     The table then compares the row with the old one instead of showing one dropped and one
+     new. A row the fix adds has nothing to compare with, so it still shows as new.
    - Cell encoding: `"Name"` = dedicated component · `"~Name"` = via prop/composition · `0` = none.
    - Fix or extend the per-library link resolvers/override maps as needed. **bestax** cells are
      internal `/docs/api/...` links (validated by the build); competitor links are best-effort deep
@@ -285,6 +299,10 @@ These files back every edition:
    Import the previous edition's snapshot and this one, and render
    `<ComparisonChanges from={previous} to={current} />` from
    `@site/src/components/ComponentComparison/Changes`. Link the docs page for the full matrix.
+   The table marks a corrected cell apart from a changed one, and follows a recorded rename, so
+   the prose can own those as corrections and keep them out of what shipped. A row a correction
+   added still shows as new, though, so the prose says which new rows are additions to the
+   matrix rather than things that shipped.
 4. **Verify** (see below), then commit with a `docs` type and push. Open a PR to `main` only when
    asked.
 
