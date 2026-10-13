@@ -1,3 +1,20 @@
+## [1.14.8](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.14.7...bestax-mcp@1.14.8) (2026-10-13)
+
+
+### Bug Fixes
+
+* **bulma-ui:** describe a Tooltip's trigger with its text for screen readers ([5a7eb99](https://github.com/allxsmith/bestax/commit/5a7eb99e31c0d8176145e0b5cdfe88df1a8f3770)), closes [#1031](https://github.com/allxsmith/bestax/issues/1031)
+* **bulma-ui:** hide a Tooltip with its stylesheet alone, without aria-hidden ([d4cbee4](https://github.com/allxsmith/bestax/commit/d4cbee4ef4501a1ab7063032388722b8f6ddf6a8))
+* **bulma-ui:** keep a loading ToggleButton from toggling ([cf9f6e8](https://github.com/allxsmith/bestax/commit/cf9f6e81d2325944570aef8bebe0333e1c02909f))
+* **bulma-ui:** mark a loading ToggleButton aria-disabled as well as aria-busy ([f87425f](https://github.com/allxsmith/bestax/commit/f87425fd981e83b67aeed692293a2bc7a286514f))
+* **bulma-ui:** warn when Tab can't reach a Tooltip trigger that carries the link ([cfd21c7](https://github.com/allxsmith/bestax/commit/cfd21c7c6302dd7c6ea44669341114d09e4d576e))
+
+
+### Features
+
+* **bulma-ui:** add Buttons.ToggleButton ([0c8fb10](https://github.com/allxsmith/bestax/commit/0c8fb10ca8cac5f45e1667c6a0d3885d5a228448))
+* **bulma-ui:** give Dropdown typeahead ([1bb35bf](https://github.com/allxsmith/bestax/commit/1bb35bf79f43c7ae75f884b284dc58e97b55ffb3)), closes [#1035](https://github.com/allxsmith/bestax/issues/1035)
+
 ## [1.14.7](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.14.6...bestax-mcp@1.14.7) (2026-10-12)
 
 
