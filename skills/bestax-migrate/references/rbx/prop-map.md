@@ -160,9 +160,10 @@ An existing `ref` is passed through untouched — which is safe only where the b
 forwards one. rbx forwards a ref on every component; bestax does so on the form controls, plus
 `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`, `LinkButton`,
 `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`, `Navbar.Item`,
-`Navbar.Link`, `Sidebar`, `Toast` and `ToggleButton`. "The form controls" there means the
-inputs themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers
-around them forward nothing, and `Field` is a target this codemod emits.
+`Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast` and
+`ToggleButton`. "The form controls" there means the inputs themselves: the `Field`,
+`Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers around them forward nothing, and
+`Field` is a target this codemod emits.
 
 Carry a `ref` onto anything else — `Card`, `Box`, `Section`, `Message`, `Tabs` and most of the
 catalogue — and it is unsupported, but the two React majors fail differently. React 18 drops

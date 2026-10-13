@@ -104,7 +104,8 @@ export interface ToggleButtonProps
  * carries no form value: a setting saved with a form is a `Checkbox` or a
  * `Switch`. A set of toggles that each turn on and off on their own goes in
  * `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only
- * one can be on is a radio group rather than a row of these: use `Radios`.
+ * one can be on is a radio group rather than a row of these: use
+ * `SegmentedControl`, or `Radios` for a choice that's sent with a form.
  *
  * @function
  * @param {ToggleButtonProps} props - Props for the ToggleButton component.

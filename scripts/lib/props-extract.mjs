@@ -1464,6 +1464,9 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
+  // The row is Bulma's `.buttons`, the class Buttons renders too. Its segments
+  // are Button's `.button`, which SCSS_SOURCES says why it doesn't claim.
+  SegmentedControl: 'buttons',
   // Not ToggleButton, though it renders a `.button`: that class is Button's,
   // and SCSS_SOURCES in api-sources.mjs says why it stays without one.
 };

@@ -25,8 +25,9 @@ It isn't a form field. A setting that's saved with a form is a [`Switch`](../for
 :::tip Only one can be on?
 
 A row where pressing one option turns the others off (left, center or right; list or grid) looks
-like a set of toggles, but it behaves like radio buttons. Use [`Radios`](../form/radios.md) for
-it, as [Picking One of Several](#picking-one-of-several) shows.
+like a set of toggles, but it behaves like radio buttons. Use
+[`SegmentedControl`](../components/segmentedcontrol.md) for it, as
+[Picking One of Several](#picking-one-of-several) shows.
 
 :::
 
@@ -188,14 +189,26 @@ import.
 A row where only one option can be on, such as text alignment or a list or grid view, isn't a set
 of toggles. Pressing one turns the others off, so it behaves like radio buttons, and the
 [APG toolbar example](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/examples/toolbar/) gives
-its alignment buttons radio semantics for that reason. Use `Radios` for it.
+its alignment buttons radio semantics for that reason. Use
+[`SegmentedControl`](../components/segmentedcontrol.md) for it: the same joined row of buttons,
+with the chosen one filled, that a screen reader hears as a radio group.
 
 ```tsx live
-<Radios label="View" name="view" defaultValue="list">
-  <Radio value="list"> List </Radio>
-  <Radio value="grid"> Grid </Radio>
-</Radios>
+<SegmentedControl aria-label="Text alignment" defaultValue="left">
+  <SegmentedControl.Segment value="left" aria-label="Align left">
+    <Icon name="align-left" />
+  </SegmentedControl.Segment>
+  <SegmentedControl.Segment value="center" aria-label="Align center">
+    <Icon name="align-center" />
+  </SegmentedControl.Segment>
+  <SegmentedControl.Segment value="right" aria-label="Align right">
+    <Icon name="align-right" />
+  </SegmentedControl.Segment>
+</SegmentedControl>
 ```
+
+A `SegmentedControl` carries no form value, so a choice that's sent with a form is
+[`Radios`](../form/radios.md).
 
 ### Inside a Form
 
@@ -335,7 +348,8 @@ function example() {
   button marked only by a darker shade of its color "would not pass Use of color".
 - **A set has a name:** give the `Buttons` around a set of toggles `role="group"` and an
   `aria-label`.
-- **One choice from several** is a radio group, not a set of toggles, so it's `Radios`.
+- **One choice from several** is a radio group, not a set of toggles, so it's
+  `SegmentedControl`, or `Radios` when the choice is sent with a form.
 
 ---
 
@@ -346,7 +360,9 @@ function example() {
 - [`Buttons`](./buttons.md): Groups toggles, and `hasAddons` joins them into one row.
 - [`Switch`](../form/switch.md): An on or off setting that's saved with a form.
 - [`Checkbox`](../form/checkbox.md): A form value that's checked or not.
-- [`Radios`](../form/radios.md): One choice from several.
+- [`SegmentedControl`](../components/segmentedcontrol.md): One choice from several, as a row of
+  buttons where only one can be on.
+- [`Radios`](../form/radios.md): One choice from several, sent with a form.
 - [`Icon`](./icon.md): The icon in an icon-only toggle.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, display, etc.
 

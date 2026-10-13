@@ -1,0 +1,272 @@
+{
+  "name": "SegmentedControl",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/segmentedcontrol",
+  "docsUrl": "https://bestax.io/docs/api/components/segmentedcontrol",
+  "examples": [
+    {
+      "title": "Default SegmentedControl",
+      "code": "<SegmentedControl aria-label=\"Text alignment\" defaultValue=\"left\">\n  <SegmentedControl.Segment value=\"left\">Left</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"center\">Center</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"right\">Right</SegmentedControl.Segment>\n</SegmentedControl>"
+    },
+    {
+      "title": "Nothing Checked Yet",
+      "code": "<SegmentedControl aria-label=\"Plan\">\n  <SegmentedControl.Segment value=\"starter\">Starter</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"team\">Team</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"business\">Business</SegmentedControl.Segment>\n</SegmentedControl>"
+    },
+    {
+      "title": "Controlled",
+      "code": "function example() {\n  const [range, setRange] = useState('week');\n\n  return (\n    <>\n      <SegmentedControl\n        aria-label=\"Calendar range\"\n        value={range}\n        onChange={setRange}\n      >\n        <SegmentedControl.Segment value=\"day\">Day</SegmentedControl.Segment>\n        <SegmentedControl.Segment value=\"week\">Week</SegmentedControl.Segment>\n        <SegmentedControl.Segment value=\"month\">Month</SegmentedControl.Segment>\n      </SegmentedControl>\n      <Paragraph mt=\"3\">Showing one {range} at a time.</Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "The Check Follows Focus",
+      "code": "function example() {\n  const [view, setView] = useState('list');\n\n  return (\n    <>\n      <SegmentedControl aria-label=\"View\" value={view} onChange={setView}>\n        <SegmentedControl.Segment value=\"list\">List</SegmentedControl.Segment>\n        <SegmentedControl.Segment value=\"grid\">Grid</SegmentedControl.Segment>\n        <SegmentedControl.Segment value=\"board\">Board</SegmentedControl.Segment>\n      </SegmentedControl>\n      <Paragraph mt=\"3\">\n        Tab to the row and press the arrow keys: the {view} view follows.\n      </Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Colors",
+      "code": "<>\n  <SegmentedControl aria-label=\"Billing\" defaultValue=\"yearly\">\n    <SegmentedControl.Segment value=\"monthly\">Monthly</SegmentedControl.Segment>\n    <SegmentedControl.Segment value=\"yearly\">Yearly</SegmentedControl.Segment>\n  </SegmentedControl>\n  <SegmentedControl aria-label=\"Billing\" color=\"primary\" defaultValue=\"yearly\">\n    <SegmentedControl.Segment value=\"monthly\">Monthly</SegmentedControl.Segment>\n    <SegmentedControl.Segment value=\"yearly\">Yearly</SegmentedControl.Segment>\n  </SegmentedControl>\n  <SegmentedControl aria-label=\"Billing\" color=\"success\" defaultValue=\"yearly\">\n    <SegmentedControl.Segment value=\"monthly\">Monthly</SegmentedControl.Segment>\n    <SegmentedControl.Segment value=\"yearly\">Yearly</SegmentedControl.Segment>\n  </SegmentedControl>\n</>"
+    },
+    {
+      "title": "Sizes and Placement",
+      "code": "<>\n  <SegmentedControl aria-label=\"View\" size=\"small\" defaultValue=\"list\">\n    <SegmentedControl.Segment value=\"list\">List</SegmentedControl.Segment>\n    <SegmentedControl.Segment value=\"grid\">Grid</SegmentedControl.Segment>\n  </SegmentedControl>\n  <SegmentedControl\n    aria-label=\"View\"\n    size=\"medium\"\n    isCentered\n    defaultValue=\"grid\"\n  >\n    <SegmentedControl.Segment value=\"list\">List</SegmentedControl.Segment>\n    <SegmentedControl.Segment value=\"grid\">Grid</SegmentedControl.Segment>\n  </SegmentedControl>\n  <SegmentedControl aria-label=\"View\" size=\"large\" isRight defaultValue=\"list\">\n    <SegmentedControl.Segment value=\"list\">List</SegmentedControl.Segment>\n    <SegmentedControl.Segment value=\"grid\">Grid</SegmentedControl.Segment>\n  </SegmentedControl>\n</>"
+    },
+    {
+      "title": "Separate Buttons",
+      "code": "<SegmentedControl aria-label=\"Shirt size\" hasAddons={false} defaultValue=\"m\">\n  <SegmentedControl.Segment value=\"s\">S</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"m\">M</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"l\">L</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"xl\">XL</SegmentedControl.Segment>\n</SegmentedControl>"
+    },
+    {
+      "title": "Icon-Only Segments",
+      "code": "<SegmentedControl aria-label=\"Text alignment\" defaultValue=\"left\">\n  <SegmentedControl.Segment value=\"left\" aria-label=\"Align left\">\n    <Icon name=\"align-left\" />\n  </SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"center\" aria-label=\"Align center\">\n    <Icon name=\"align-center\" />\n  </SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"right\" aria-label=\"Align right\">\n    <Icon name=\"align-right\" />\n  </SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"justify\" aria-label=\"Justify\">\n    <Icon name=\"align-justify\" />\n  </SegmentedControl.Segment>\n</SegmentedControl>"
+    },
+    {
+      "title": "Disabled Segments",
+      "code": "<SegmentedControl aria-label=\"Shipping speed\" defaultValue=\"standard\">\n  <SegmentedControl.Segment value=\"standard\">Standard</SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"express\" isDisabled>\n    Express\n  </SegmentedControl.Segment>\n  <SegmentedControl.Segment value=\"overnight\">\n    Overnight\n  </SegmentedControl.Segment>\n</SegmentedControl>"
+    },
+    {
+      "title": "Stopping a Change",
+      "code": "<SegmentedControl aria-label=\"Visibility\" defaultValue=\"private\">\n  <SegmentedControl.Segment value=\"private\">Private</SegmentedControl.Segment>\n  <SegmentedControl.Segment\n    value=\"public\"\n    onClick={event => {\n      if (!window.confirm('Anyone with the link will see it.')) {\n        event.preventDefault();\n      }\n    }}\n  >\n    Public\n  </SegmentedControl.Segment>\n</SegmentedControl>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  const views = [\n    { value: 'list', label: 'List' },\n    { value: 'grid', label: 'Grid' },\n    { value: 'board', label: 'Board' },\n  ];\n\n  return (\n    <SegmentedControl aria-label=\"View\" defaultValue=\"grid\">\n      {views.map(view => (\n        <SegmentedControl.Segment key={view.value} value={view.value}>\n          {view.label}\n        </SegmentedControl.Segment>\n      ))}\n    </SegmentedControl>\n  );\n}"
+    }
+  ],
+  "accessibility": "`SegmentedControl` follows the\n[APG radio group pattern](https://www.w3.org/WAI/ARIA/apg/patterns/radio/), which is what the\n[APG toolbar example](https://www.w3.org/WAI/ARIA/apg/patterns/toolbar/examples/toolbar/) uses for\nits alignment buttons: \"since pressing one toggles off another so that only one button in the group\nis in the pressed state, the toggles behave like radio buttons.\"\n\n- **Roles and state:** the row is `role=\"radiogroup\"`, and each segment is a native\n  `<button type=\"button\">` with `role=\"radio\"` and `aria-checked` set to `\"true\"` or `\"false\"` from\n  the first render, server markup included. There's no `aria-pressed`: a segment is checked or not,\n  not pressed.\n- **A name for the group:** a radio group needs one, so pass `aria-label` or `aria-labelledby`. A\n  development build warns when it has neither.\n- **One tab stop:** the checked segment holds it, or the first enabled segment while none is\n  checked. While focus is in the row the stop goes with it, so Tab always leaves from where you\n  are. The first-segment fallback needs the browser: server markup with nothing checked has no\n  tab stop until the row has rendered on the client, as\n  [Nothing Checked Yet](https://bestax.io/docs/api/components/segmentedcontrol#nothing-checked-yet) says.\n- **The check follows focus:** the arrow keys, Home and End check the segment they move to, as\n  native radio buttons do. A screen reader announces the new segment as checked straight away.\n- **It can't be cleared:** once a segment is checked, one always is. Pressing the checked segment\n  again keeps it checked and doesn't call `onChange`.\n- **Icon-only segments** need an `aria-label`, as on `Button`.\n- **Checked is easy to see:** the default `link` fill turns a light segment solid blue, and a dark\n  one bright in dark mode, so it's a change in lightness and not only in hue. `color` leaves out the\n  fills that wouldn't be, the same way `ToggleButton` does.\n- **Not a form field:** it's always `type=\"button\"`, so it never submits a form, and it carries no\n  value. A choice the form should send is `Radios`.",
+  "related": [
+    "Buttons",
+    "Icon",
+    "Radios",
+    "Tabs",
+    "ToggleButton",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-segmentedcontrol--default",
+  "summary": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group. It's Bulma's `.buttons.has-addons` row, with the checked segment filled and marked `is-selected`, the way Bulma's button docs show it. To a screen reader it's `role=\"radiogroup\"`, with `role=\"radio\"` and `aria-checked` on each segment, which is how the APG toolbar example marks its alignment buttons. The keys follow the APG radio group: the row is one tab stop, the arrow keys move to the next or previous enabled segment and check it, wrapping at either end, Home and End go to the first and last, and Space checks the focused segment. Once a segment is checked, one always is. It carries no form value. A choice that's sent with a form is `Radios`.",
+  "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/SegmentedControl.tsx",
+  "rootClass": "buttons",
+  "parts": [
+    {
+      "path": "SegmentedControl",
+      "summary": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group. It's Bulma's `.buttons.has-addons` row, with the checked segment filled and marked `is-selected`, the way Bulma's button docs show it. To a screen reader it's `role=\"radiogroup\"`, with `role=\"radio\"` and `aria-checked` on each segment, which is how the APG toolbar example marks its alignment buttons. The keys follow the APG radio group: the row is one tab stop, the arrow keys move to the next or previous enabled segment and check it, wrapping at either end, Home and End go to the first and last, and Space checks the focused segment. Once a segment is checked, one always is. It carries no form value. A choice that's sent with a form is `Radios`.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string | null",
+          "default": null,
+          "description": "The checked segment's `value`, when you hold the state. Setting it makes the group controlled: picking a segment only calls `onChange`, and nothing changes until you pass the new value. `null` checks nothing, with the tab stop `defaultValue` describes for that. Pick this or `defaultValue` for the group's lifetime.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string",
+          "default": null,
+          "description": "The segment checked to begin with, when the group holds its own state. Leave it out and nothing is checked until someone picks one, and Tab lands on the first enabled segment meanwhile. That fallback takes hold once the row has rendered in the browser: server markup with nothing checked has no tab stop until then, while a checked segment is the stop from the server markup on.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the newly checked segment's `value`, whether or not `value` is set. The arrow keys, Home and End check the segment they move to, so each of those calls it too: the check follows focus, as in a native radio group. Pressing the checked segment again doesn't call it, since a segmented control can't be cleared: one stays checked once one is.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": "'link'",
+          "description": "The checked segment's fill. The others are plain buttons, so the fill is the difference people see. Takes the same colors as `ToggleButton`, for the same reason: `white`, `light`, `dark` and `black` fill about as light or dark as a plain button already is in one theme or the other.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of every segment, through Bulma's `are-<size>` on the row.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasAddons",
+          "type": "boolean",
+          "default": "true",
+          "description": "Joins the segments into one row with no gap between them, Bulma's `has-addons`. Set it to `false` for separate buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isCentered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Centers the row.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRight",
+          "type": "boolean",
+          "default": "false",
+          "description": "Aligns the row to the right.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The `SegmentedControl.Segment`s, each with a `value` of its own.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the group for a screen reader, such as \"Text alignment\". A radio group needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of a visible heading or label that names the group, in place of `aria-label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the row's `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "SegmentedControl.Segment",
+      "summary": "One option in the row: a `<button role=\"radio\">` that's checked while the group's value is its `value`, filled with the group's `color` and marked `is-selected`.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "**Required.** What `onChange` reports when this segment is checked, and what the group's `value` and `defaultValue` name it by. Unique within the group.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The label. An icon on its own needs an `aria-label`, so a screen reader has something to say.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isDisabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the segment, the same as `disabled`: it can't be clicked, the arrow keys, Home and End skip it, and it never holds the row's tab stop. A checked one keeps its fill under Bulma's disabled look.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered styling (visual only).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Custom class name.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLButtonElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<button>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <button> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": []
+}

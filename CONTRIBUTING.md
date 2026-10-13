@@ -336,18 +336,18 @@ The short version for contributors:
   a run — pushing a commit does not, and neither does commenting — and a label that is still on
   the PR emits no event when applied again, so every re-run means removing it and adding it
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
-  open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
-  newer commits themselves want reviewing, post a `deep-review: fresh` comment first, then
-  toggle the label to start the run. Both the label and the steer are triage+ only, so this is a
-  maintainer's move rather than yours. On a PR from a fork it is nobody's move: the job runs
-  only for same-repo PRs, so the label does nothing there whoever applies it, and the run
-  reports skipped.
-  That steer sticks: the run re-reads the newest `deep-review:` comment it can attribute to a
-  triage+ author, so later toggles stay fresh for as long as it is still the newest triage+ steer the run
-  can see — the settle-my-threads pass is the default only until the
-  first time someone asks for a fresh one. CodeRabbit reviews incrementally
-  on its own and rate-limits, so let it go last and nudge it with `@coderabbitai review` when
-  its window reopens.
+  open threads — verified fixed, still wrong, or conceded — and raises nothing new, unless a
+  fresh steer is in effect; when the newer commits themselves want reviewing, first post a
+  `deep-review:` comment whose first word is `fresh` as a word of its own (not `fresh,`), then
+  toggle the label to start the run. That steer keeps making later toggles full reviews while
+  it is the steer the run reads. Both the label and
+  the steer are triage+ only, so this is a maintainer's move rather than yours. On a PR from a
+  fork it is nobody's move: the job runs only for same-repo PRs, so the label does nothing
+  there whoever applies it, and the run reports skipped.
+  A steer starts no run. Which steer a later run reads, and how to get the settle-my-threads
+  pass back, are in the focus step of `.github/workflows/claude-review.yml`. CodeRabbit reviews
+  incrementally on its own and rate-limits, so let it go last and nudge it with
+  `@coderabbitai review` when its window reopens.
   Do not relabel per push: each application spends a full opus session, and relabeling after
   every fix is what turned #643 into 14 review rounds.
 - **Know when to stop fixing.** The autonomous loop stops after `MAX_ITERATIONS` fix rounds

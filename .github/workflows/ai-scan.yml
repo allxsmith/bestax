@@ -41,7 +41,7 @@ name: AI Security Scan
 #
 # Be precise about what that adds: it narrows where the OAuth token can be sent
 # while the tool allowlist holds. It is no backstop once the allowlist is
-# defeated: a shell on the runner can get root and reach past the list
+# defeated: a shell on the runner can reach past the list
 # (.github/CLAUDE.md, "What the agent allows beyond the list"). Nor does it
 # replace the allowlist: `gh` reaches api.github.com, which is allow-listed, so
 # egress-block would not stop a write issued through a tool.
@@ -202,6 +202,7 @@ jobs:
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.github.com:443
             github.com:443
@@ -289,7 +290,7 @@ jobs:
       # counter or infra failure in this job leaves the item unscanned and
       # UNLABELED (see that job's comment — gate trouble must not flag). An
       # enforcement failure is not that category: it means a credentialed job
-      # ran with no firewall, which is the one thing #487 says must never pass
+      # ran unprotected, which is the one thing #487 says must never pass
       # silently. Distinguishing the two here keeps both directions right
       # instead of trading one for the other.
       #
@@ -315,8 +316,19 @@ jobs:
           if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
             fail "effective egress policy is not block — harden-runner downgraded it (#487)."
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            fail "this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+          fi
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                fail "sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                fail "/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+              fi
               exit 0
             fi
             sleep 1
@@ -356,9 +368,9 @@ jobs:
   # CLAUDE_CODE_OAUTH_TOKEN alongside Bash, so by I1 the allowlist remains the
   # only control against reading that credential out of the environment. Egress
   # is enforced as of #487, but it narrows WHERE data can go only while the
-  # allowlist holds (past it, a shell can get root), and never what a tool can
-  # do with an allow-listed host, as api.github.com is on the list. Keep the
-  # allowlist narrow (rule 2); the two controls cover different things.
+  # allowlist holds, and never what a tool can do with an allow-listed host,
+  # as api.github.com is on the list. Keep the allowlist narrow (rule 2); the
+  # two controls cover different things.
   #
   # The read grants are explicit rather than implied by
   # the public-repo fallback, so `gh issue view` / `gh pr diff` work because a
@@ -424,6 +436,7 @@ jobs:
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.anthropic.com:443
             claude.ai:443
@@ -455,12 +468,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -616,8 +643,8 @@ jobs:
   #
   # The `enforcement == 'failed'` arm is the ONE exception carved out of the
   # first rule, added with #487. A gate that failed its egress assertion is not
-  # counter/infra trouble: it means a job holding `issues: write` ran with no
-  # firewall, and the item is then unscanned. Letting that fall through the
+  # counter/infra trouble: it means a job holding `issues: write` ran
+  # unprotected, and the item is then unscanned. Letting that fall through the
   # fail-OPEN arm would leave it unscanned and unflagged — indistinguishable
   # from clean to every downstream consumer, which is precisely what #487
   # exists to stop. So that one case flags, and every other gate failure still
@@ -666,6 +693,7 @@ jobs:
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.github.com:443
             github.com:443
@@ -732,8 +760,22 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1

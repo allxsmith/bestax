@@ -333,8 +333,8 @@ jobs:
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
-      # The sibling sweep/gate/handoff/halt jobs make GitHub API calls only and
-      # carry no harden-runner; only `fix` and `verify` execute repo code.
+      # The sibling sweep/gate/handoff/halt jobs carry no harden-runner. Rule
+      # 10's inventory in .github/CLAUDE.md says which of them run code.
       #
       # Apart from one addition, these hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
@@ -364,6 +364,11 @@ jobs:
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
+      #
+      # No disable-sudo-and-containers (rule 10): the Stage gh-thread helper
+      # step below installs into /usr/local/bin with sudo. That leaves the root
+      # paths past the list open in a job holding bestaxbot's PAT and SSH
+      # signing key ("What the agent allows beyond the list").
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -782,6 +787,11 @@ jobs:
       # and not an assumed one: the two jobs check out the same way, install the
       # same way, and run the same tooling. #578 was right to refuse to derive one
       # from the other, and the derivation turned out to be correct anyway.
+      #
+      # No disable-sudo-and-containers (rule 10): the Stage gh-thread helper
+      # step below installs into /usr/local/bin with sudo. That leaves the root
+      # paths past the list open in a job holding bestaxbot's PAT ("What the
+      # agent allows beyond the list").
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:

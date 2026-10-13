@@ -1,7 +1,9 @@
 name: Claude Deep Review
 
-# One full adversarial Claude review per AI-loop PR, at open. Uses a stronger
-# model (opus) than the sonnet implementer to decorrelate blind spots. Its
+# An adversarial Claude review of an AI-loop PR when it opens or is
+# labelled `ai-loop`, until a deep review is posted, and of any same-repo
+# PR a triage+ user labels `deep-review`. Uses a stronger model
+# (opus) than the sonnet implementer to decorrelate blind spots. Its
 # inline threads are work items for the fixer in claude-pr-loop.yml; the
 # fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
 # claude-pr-loop.yml's verify mode and resolves only what is genuinely fixed
@@ -21,13 +23,17 @@ name: Claude Deep Review
 # and the dedupe marker caps AUTOMATIC usage at one review per PR — a
 # triage+ user re-applying `deep-review` is the one deliberate re-run
 # path. That re-run settles the open threads of the review already on
-# the PR; it does not review the commits pushed since. A steer comment
-# starting "deep-review: fresh" is what asks for a full review of the
-# current code (see the dedupe step's EXCEPTION below).
+# the PR, and does not review the commits pushed since, unless the steer
+# it reads is a fresh one: a steer comment whose first word after
+# "deep-review:" is "fresh", as a word of its own (not "fresh,"), makes
+# it a full review of the current code instead, and keeps doing so on
+# later re-runs while it is the steer the run reads. A steer selects the
+# mode of a run the label starts, and does not start one. The focus step
+# below says which steer a run reads.
 #
-# Deliberately does NOT trigger on `synchronize`: one review per PR, so
-# Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
-# ping-pong, no claude-code-action#1299-style self-trigger failures).
+# Deliberately does NOT trigger on `synchronize`, so Claude's own fix
+# pushes can never re-fire this workflow (no reviewer/fixer ping-pong, no
+# claude-code-action#1299-style self-trigger failures).
 
 on:
   pull_request:
@@ -102,6 +108,7 @@ jobs:
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.anthropic.com:443
             claude.ai:443
@@ -117,6 +124,8 @@ jobs:
       # actually came up (agent.status, written only once the firewall rules are
       # installed). Either alone is a false pass: #487 was the first kind, and an
       # unresolvable host in an allowlist is the second.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
       #
       # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
       # NOT prove the policy stays armed — the agent writes `Initialized` and then
@@ -144,12 +153,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -190,20 +213,16 @@ jobs:
           esac
 
       # `opened` and `labeled` both fire when a PR is created with the label
-      # already attached — review exactly once. The concurrency group
-      # serializes the double-fire; the marker probe catches the second run.
+      # already attached. The concurrency group serializes the double-fire,
+      # and for `ai-loop` the marker probe catches the second run.
       # (The marker, not just any claude[bot] activity: the fix agent posts
       # claude[bot] thread replies too, which must not count as "reviewed".)
       #
       # EXCEPTION — a deep-review `labeled` event runs whatever the probe
       # finds: a triage+ human re-applying the label (verified live by the
-      # perm step above) is a deliberate re-run: a verify pass that settles
-      # its own open threads when a marker review already exists (see MODE in
-      # the prompt), or a fresh review when none does or the steer comment
-      # starts "deep-review: fresh".
-      # Usage stays human-metered: one opus session per deliberate label
-      # application. The ai-loop path and label-at-creation double-fires
-      # keep the one-review invariant.
+      # perm step above) is a deliberate re-run. Its mode is MODE in the
+      # prompt, set from `reviewed` below and the steer the focus step reads.
+      # Usage stays human-metered.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
@@ -228,7 +247,7 @@ jobs:
           echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by a verified triage+ user — running ($([ "$REVIEWED" = true ] && echo verify || echo fresh))"
+            echo "deep-review label applied by a verified triage+ user; running"
             exit 0
           fi
           if [ "$REVIEWED" = true ]; then
@@ -243,18 +262,36 @@ jobs:
       # before applying the label. Anyone can comment on a public-repo PR and
       # this text enters the LLM prompt, so each candidate author's LIVE role
       # is re-verified via the collaborators API (same belt-and-braces as the
-      # perm step above). Scans newest-first over the newest steer per
-      # distinct author and takes the first that verifies triage+ — a later
-      # "deep-review:" comment from an outsider can neither inject text nor
-      # displace the maintainer's steer. At most 5 distinct authors are
-      # role-checked (bounds the API calls comment spam can force). Emits a
-      # fully-formed FOCUS block, or an empty string, so the prompt needs no
-      # conditional. Best-effort by design — the steer is an enhancement,
-      # not an authorization gate, so unlike the perm step it degrades open:
-      # an API failure means an unfocused review, never a red run. A steer
-      # persists across re-labels (edit/delete the comment to change it; the
-      # run log names the steer author). On ai-loop `opened` events no
-      # comments can exist yet, so this is a cheap no-op there.
+      # perm step above).
+      #
+      # Which steer a run reads: each author's newest "deep-review:" comment
+      # (by when it was posted), newest first, and the first whose author
+      # verifies triage+. So the run reads the newest steer whose author it
+      # verifies, and an outsider's is not read. Only the authors with the
+      # newest steers, up to the script's cap, are role-checked, which bounds
+      # the API calls comment spam can force, so enough newer outside authors
+      # would hide a maintainer's steer and the run would read none. The
+      # steer it reads sets the focus. On a PR that already has a deep
+      # review, a first word of "fresh" makes the run a full review instead
+      # of a verify pass. The word is compared whole and case-insensitively,
+      # so "fresh," or "fresh:" does not count. Deleting a fresh steer brings
+      # back whichever triage+ steer is now newest, which may be fresh too.
+      # To get a verify pass, post a newer steer whose first word is not
+      # "fresh", or edit the one the run reads so its first word is not
+      # "fresh" and it still starts "deep-review:". The run log names the
+      # steer author.
+      #
+      # Emits a fully-formed FOCUS block, or an empty string, so the prompt
+      # needs no conditional. Best-effort by design, since the steer is an
+      # enhancement and not an authorization gate: unlike the perm step it
+      # degrades open, and an API failure never turns the run red. A failed
+      # comment fetch reads no steer, so the run is unfocused and, on a PR
+      # that already has a deep review, a verify pass even if a fresh steer
+      # was posted. A failed role lookup skips that author, so the next
+      # verified author's steer is read, if there is one, fresh or not. So
+      # an unexpected mode, verify or full, can mean a lookup failed. On
+      # ai-loop `opened` events no comments can exist yet, so this is a
+      # cheap no-op there.
       - name: Extract focus steer
         id: focus
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
@@ -265,10 +302,10 @@ jobs:
         run: |
           set -euo pipefail
           echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
-          echo "fresh=false" >> "$GITHUB_OUTPUT" # default: verify mode on a relabel
+          echo "fresh=false" >> "$GITHUB_OUTPUT" # default: no fresh steer
 
           # All "deep-review:"-prefixed comments -> newest first -> newest
-          # per distinct author -> cap 5. --paginate because loop PRs
+          # per distinct author -> capped. --paginate because loop PRs
           # routinely exceed the default page size; gh applies --jq per page
           # (NDJSON out), the outer jq -s reassembles across pages. Note
           # unique_by would re-sort, hence the reduce for first-per-login.
@@ -310,11 +347,8 @@ jobs:
           # length, and treat a whitespace-only remainder as no steer.
           TEXT=$(printf '%s' "$BODY" | tr -d '\r')
           TEXT="${TEXT#deep-review:}"
-          # A steer whose first word is "fresh" opts out of verify mode on a
-          # relabel, asking for a full review of the current code; the word
-          # itself is
-          # not part of the focus text. Steers persist across relabels, so
-          # delete the comment to return to verify mode.
+          # A first word of "fresh" sets fresh=true and is not part of the
+          # focus text. The step's comment says what that does to the mode.
           # First word across the whole comment, not the first line, so a
           # steer written as "deep-review:" then "fresh" on the next line
           # still opts out; sed -z treats the text as one record so the
@@ -453,8 +487,9 @@ jobs:
             This pass settles the findings it left open, and nothing else.
             Do NOT
             re-review the PR, and raise NO new findings — a reader who wants
-            the current code reviewed asks for a fresh one, which is what a
-            steer starting "deep-review: fresh" gives them. Skip steps 1
+            the current code reviewed asks for a fresh one: a "deep-review:"
+            steer whose first word is "fresh", then the label re-applied.
+            Skip steps 1
             through 3 and do exactly this:
             a. List your own unresolved inline threads (GraphQL
                reviewThreads on the PR, first comment by claude), with

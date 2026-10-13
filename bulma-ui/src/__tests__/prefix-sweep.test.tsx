@@ -119,6 +119,20 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Notification: { children: 'Hello' },
   // Pressed, so the fill and `is-selected` it adds are swept too.
   ToggleButton: { defaultPressed: true, children: 'Mute' },
+  // Checked and sized, so the fill, `is-selected` and `are-small` are swept.
+  SegmentedControl: {
+    'aria-label': 'View',
+    defaultValue: 'list',
+    size: 'small',
+    children: [
+      <Library.SegmentedControl.Segment key="list" value="list">
+        List
+      </Library.SegmentedControl.Segment>,
+      <Library.SegmentedControl.Segment key="grid" value="grid">
+        Grid
+      </Library.SegmentedControl.Segment>,
+    ],
+  },
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',

@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.31.0"
+    "version": "5.32.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -69,6 +69,7 @@
         "Panel",
         "Popover",
         "Reveal",
+        "SegmentedControl",
         "Sidebar",
         "Steps",
         "Tabs",
@@ -899,6 +900,17 @@
       "compound": false,
       "propCount": 6,
       "exampleCount": 4
+    },
+    {
+      "name": "SegmentedControl",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.",
+      "slug": "components/segmentedcontrol",
+      "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 16,
+      "exampleCount": 11
     },
     {
       "name": "Select",
