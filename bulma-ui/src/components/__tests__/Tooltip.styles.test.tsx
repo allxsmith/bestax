@@ -91,6 +91,23 @@ describe('Tooltip styles under a class prefix', () => {
     expect(getComputedStyle(content()).visibility).toBe('hidden');
   });
 
+  // It takes no aria-hidden: `visibility: hidden` keeps it out of the
+  // accessibility tree, and a description that points straight at it still
+  // reads it (accname step 2A).
+  it('keeps a hidden tooltip out of the accessibility tree, still describing its trigger', () => {
+    renderPrefixed();
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(
+      screen.getByRole('button', { name: 'Trigger' })
+    ).toHaveAccessibleDescription('Tip');
+
+    hoverOpen();
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Tip');
+    expect(
+      screen.getByRole('button', { name: 'Trigger' })
+    ).toHaveAccessibleDescription('Tip');
+  });
+
   it('lets the pointer through a tooltip only active shows, with no bridge', () => {
     const { container } = renderPrefixed({ active: true });
     expect(getComputedStyle(content()).visibility).toBe('visible');

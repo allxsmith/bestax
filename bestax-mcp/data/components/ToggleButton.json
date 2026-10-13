@@ -46,11 +46,15 @@
       "code": "<ToggleButton\n  onClick={event => {\n    const turningOn =\n      event.currentTarget.getAttribute('aria-pressed') === 'false';\n    if (turningOn && !window.confirm('Anyone with the link will see it.')) {\n      event.preventDefault();\n    }\n  }}\n>\n  Public\n</ToggleButton>"
     },
     {
+      "title": "Loading",
+      "code": "function example() {\n  const [pinned, setPinned] = useState(false);\n  const [saving, setSaving] = useState(false);\n\n  // Stands in for the request that saves the change.\n  useEffect(() => {\n    if (!saving) return undefined;\n    const timer = setTimeout(() => setSaving(false), 1500);\n    return () => clearTimeout(timer);\n  }, [saving]);\n\n  return (\n    <ToggleButton\n      pressed={pinned}\n      isLoading={saving}\n      onPressedChange={next => {\n        setPinned(next);\n        setSaving(true);\n      }}\n    >\n      Pin\n    </ToggleButton>\n  );\n}"
+    },
+    {
       "title": "Disabled",
       "code": "<Buttons>\n  <ToggleButton isDisabled>Show archived</ToggleButton>\n  <ToggleButton isDisabled defaultPressed>\n    Show archived\n  </ToggleButton>\n</Buttons>"
     }
   ],
-  "accessibility": "`ToggleButton` follows the toggle button in the\n[APG button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/):\n\n- **Role and state:** it's a native `<button>` with `aria-pressed` set to `\"true\"` or `\"false\"`\n  from the first render, server markup included, so it's announced as a toggle button, pressed or\n  not pressed. It's never `\"mixed\"`.\n- **Keyboard:** <kbd>Enter</kbd> and <kbd>Space</kbd> toggle it, as on any button, and focus stays\n  on it.\n- **The label stays put:** APG says \"it is critical the label on a toggle does not change when its\n  state changes.\" Mute stays \"Mute\". An icon can change, but the `aria-label` doesn't. A label that\n  changes, \"Play\" and then \"Pause\", belongs on a plain `Button` with no `aria-pressed`. Nothing can\n  check this at runtime, so it's yours to keep.\n- **Icon-only toggles** need an `aria-label`, as on `Button`.\n- **On is easy to see:** the default `link` fill turns a light button solid blue, and a dark one\n  bright in dark mode, so it's a change in lightness and not only in hue. `color` leaves out the\n  fills that wouldn't be: `white`, `light`, `dark` and `black` each match a plain button's\n  lightness in one theme or the other. That's also why the pressed look isn't\n  `Button`'s `isActive` shade:\n  [WCAG's own example](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html) of a\n  button marked only by a darker shade of its color \"would not pass Use of color\".\n- **A set has a name:** give the `Buttons` around a set of toggles `role=\"group\"` and an\n  `aria-label`.\n- **One choice from several** is a radio group, not a set of toggles, so it's `Radios`.",
+  "accessibility": "`ToggleButton` follows the toggle button in the\n[APG button pattern](https://www.w3.org/WAI/ARIA/apg/patterns/button/):\n\n- **Role and state:** it's a native `<button>` with `aria-pressed` set to `\"true\"` or `\"false\"`\n  from the first render, server markup included, so it's announced as a toggle button, pressed or\n  not pressed. It's never `\"mixed\"`.\n- **Keyboard:** <kbd>Enter</kbd> and <kbd>Space</kbd> toggle it, as on any button, and focus stays\n  on it.\n- **Loading:** while `isLoading` is set, it carries `aria-busy=\"true\"` and `aria-disabled=\"true\"`,\n  so a screen reader can tell it won't respond, and keys hold it still the same as the pointer\n  does. It keeps focus, since `aria-disabled` doesn't take it away the way `disabled` would.\n- **The label stays put:** APG says \"it is critical the label on a toggle does not change when its\n  state changes.\" Mute stays \"Mute\". An icon can change, but the `aria-label` doesn't. A label that\n  changes, \"Play\" and then \"Pause\", belongs on a plain `Button` with no `aria-pressed`. Nothing can\n  check this at runtime, so it's yours to keep.\n- **Icon-only toggles** need an `aria-label`, as on `Button`.\n- **On is easy to see:** the default `link` fill turns a light button solid blue, and a dark one\n  bright in dark mode, so it's a change in lightness and not only in hue. `color` leaves out the\n  fills that wouldn't be: `white`, `light`, `dark` and `black` each match a plain button's\n  lightness in one theme or the other. That's also why the pressed look isn't\n  `Button`'s `isActive` shade:\n  [WCAG's own example](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html) of a\n  button marked only by a darker shade of its color \"would not pass Use of color\".\n- **A set has a name:** give the `Buttons` around a set of toggles `role=\"group\"` and an\n  `aria-label`.\n- **One choice from several** is a radio group, not a set of toggles, so it's `Radios`.",
   "related": [
     "Button",
     "Buttons",
@@ -64,7 +68,7 @@
   "summary": "The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type=\"button\">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `Radios`.",
   "import": "import { ToggleButton } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/elements/ToggleButton.tsx",
-  "rootClass": "button",
+  "rootClass": null,
   "parts": [
     {
       "path": "ToggleButton",
@@ -93,7 +97,7 @@
           "name": "onPressedChange",
           "type": "(pressed: boolean) => void",
           "default": null,
-          "description": "Called with the new state each time it's toggled, by a click, Enter or Space, whether or not `pressed` is set. An `onClick` that calls `preventDefault()` stops the toggle, and this doesn't fire.",
+          "description": "Called with the new state each time it's toggled, whether or not `pressed` is set. An `onClick` that calls `preventDefault()` stops the toggle, and this doesn't fire.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -117,6 +121,15 @@
           "deprecated": false
         },
         {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows Bulma's spinner in place of the label and holds the toggle where it is: a click, Enter or Space does nothing, so neither `onClick` nor `onPressedChange` fires, until it's cleared. Set it while a change is saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and stays focusable, so focus isn't lost mid-save. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "size",
           "type": "'small' | 'normal' | 'medium' | 'large'",
           "default": null,
@@ -130,15 +143,6 @@
           "type": "boolean",
           "default": "false",
           "description": "Makes the button rounded.",
-          "required": false,
-          "inherited": true,
-          "deprecated": false
-        },
-        {
-          "name": "isLoading",
-          "type": "boolean",
-          "default": "false",
-          "description": "Displays a loading spinner. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": true,
           "deprecated": false
@@ -214,289 +218,5 @@
       "types": []
     }
   ],
-  "cssVars": [
-    {
-      "css": "--bulma-button-family",
-      "sass": "$button-family",
-      "default": "false",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-weight",
-      "sass": "$button-weight",
-      "default": "var(--bulma-weight-medium)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-border-color",
-      "sass": "$button-border-color",
-      "default": "var(--bulma-border)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-border-style",
-      "sass": "$button-border-style",
-      "default": "solid",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-border-width",
-      "sass": "$button-border-width",
-      "default": "var(--bulma-control-border-width)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-padding-vertical",
-      "sass": "$button-padding-vertical",
-      "default": "0.5em",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-padding-horizontal",
-      "sass": "$button-padding-horizontal",
-      "default": "1em",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-focus-border-color",
-      "sass": "$button-focus-border-color",
-      "default": "var(--bulma-link-focus-border)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-focus-box-shadow-size",
-      "sass": "$button-focus-box-shadow-size",
-      "default": "0 0 0 0.125em",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-focus-box-shadow-color",
-      "sass": "$button-focus-box-shadow-color",
-      "default": "hsla(var(--bulma-link-h), var(--bulma-link-s), var(--bulma-link-on-scheme-l), 0.25)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-active-color",
-      "sass": "$button-active-color",
-      "default": "var(--bulma-link-active)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-active-border-color",
-      "sass": "$button-active-border-color",
-      "default": "var(--bulma-link-active-border)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-text-color",
-      "sass": "$button-text-color",
-      "default": "var(--bulma-text)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-text-decoration",
-      "sass": "$button-text-decoration",
-      "default": "underline",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-text-hover-background-color",
-      "sass": "$button-text-hover-background-color",
-      "default": "var(--bulma-background)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-text-hover-color",
-      "sass": "$button-text-hover-color",
-      "default": "var(--bulma-text-strong)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-ghost-background",
-      "sass": "$button-ghost-background",
-      "default": "none",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-ghost-border-color",
-      "sass": "$button-ghost-border-color",
-      "default": "transparent",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-ghost-color",
-      "sass": "$button-ghost-color",
-      "default": "var(--bulma-link-text)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-ghost-decoration",
-      "sass": "$button-ghost-decoration",
-      "default": "none",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-ghost-hover-color",
-      "sass": "$button-ghost-hover-color",
-      "default": "var(--bulma-link)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-ghost-hover-decoration",
-      "sass": "$button-ghost-hover-decoration",
-      "default": "underline",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-disabled-background-color",
-      "sass": "$button-disabled-background-color",
-      "default": "var(--bulma-scheme-main)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-disabled-border-color",
-      "sass": "$button-disabled-border-color",
-      "default": "var(--bulma-border)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-disabled-shadow",
-      "sass": "$button-disabled-shadow",
-      "default": "none",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-disabled-opacity",
-      "sass": "$button-disabled-opacity",
-      "default": "0.5",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-static-color",
-      "sass": "$button-static-color",
-      "default": "var(--bulma-text-weak)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-static-background-color",
-      "sass": "$button-static-background-color",
-      "default": "var(--bulma-scheme-main-ter)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-static-border-color",
-      "sass": "$button-static-border-color",
-      "default": "var(--bulma-border)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-h",
-      "sass": "$button-h",
-      "default": "var(--bulma-scheme-h)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-s",
-      "sass": "$button-s",
-      "default": "var(--bulma-scheme-s)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-l",
-      "sass": "$button-l",
-      "default": "var(--bulma-scheme-main-l)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-background-l",
-      "sass": "$button-background-l",
-      "default": "var(--bulma-scheme-main-l)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-background-l-delta",
-      "sass": "$button-background-l-delta",
-      "default": "0%",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-hover-background-l-delta",
-      "sass": "$button-hover-background-l-delta",
-      "default": "var(--bulma-hover-background-l-delta)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-active-background-l-delta",
-      "sass": "$button-active-background-l-delta",
-      "default": "var(--bulma-active-background-l-delta)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-color-l",
-      "sass": "$button-color-l",
-      "default": "var(--bulma-text-strong-l)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-border-l",
-      "sass": "$button-border-l",
-      "default": "var(--bulma-border-l)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-border-l-delta",
-      "sass": "$button-border-l-delta",
-      "default": "0%",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-hover-border-l-delta",
-      "sass": "$button-hover-border-l-delta",
-      "default": "var(--bulma-hover-border-l-delta)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-active-border-l-delta",
-      "sass": "$button-active-border-l-delta",
-      "default": "var(--bulma-active-border-l-delta)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-focus-border-l-delta",
-      "sass": "$button-focus-border-l-delta",
-      "default": "var(--bulma-focus-border-l-delta)",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-outer-shadow-h",
-      "sass": "$button-outer-shadow-h",
-      "default": "0",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-outer-shadow-s",
-      "sass": "$button-outer-shadow-s",
-      "default": "0%",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-outer-shadow-l",
-      "sass": "$button-outer-shadow-l",
-      "default": "20%",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-button-outer-shadow-a",
-      "sass": "$button-outer-shadow-a",
-      "default": "0.05",
-      "scope": "root"
-    },
-    {
-      "css": "--bulma-loading-color",
-      "sass": null,
-      "default": "hsl(var(--bulma-button-h), var(--bulma-button-s), var(--bulma-button-color-l))",
-      "scope": "root"
-    }
-  ],
-  "cssVarsFrom": "Button"
+  "cssVars": []
 }

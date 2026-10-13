@@ -68,6 +68,16 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  * is a hard error in `gen-api-docs.mjs`, and a partial registering variables
  * that no entry here claims fails `check:conformance` (the orphan rule).
  *
+ * A component lists the variables registered on its own class and no
+ * others. Where it renders another component's element, its page links that
+ * component's table rather than copying it. LinkButton renders Button's
+ * `.button` and adds `.link-button`, so it lists what `_linkbutton.scss`
+ * registers on that. ToggleButton renders Button's `.button` with no class of
+ * its own, so it has no ROOT_CLASS_OVERRIDES entry, comes out `[]`, and its
+ * page writes the section by hand, pointing at Button's. Copying Button's
+ * table named ToggleButton, in the MCP index too, as a declarer of the
+ * `is-text`, `is-ghost` and `is-static` variables, which it can't render.
+ *
  * `pkg: 'bulma'` resolves under node_modules/bulma; `pkg: 'repo'` is
  * repo-relative (the extras in bulma-ui/src/scss).
  */
@@ -255,7 +265,7 @@ export const SCSS_SOURCES = {
   ],
   Title: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Toast: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_toast.scss' }],
-  ToggleButton: [{ pkg: 'bulma', path: 'sass/elements/button.scss' }],
+  ToggleButton: [],
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],

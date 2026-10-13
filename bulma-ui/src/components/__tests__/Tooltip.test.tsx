@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import type { ReactElement, ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { renderToString } from 'react-dom/server';
@@ -10,7 +10,11 @@ import { Popover } from '../Popover';
 import { Modal } from '../Modal';
 import { HoverCard } from '../HoverCard';
 import { Dropdown, DropdownItem } from '../Dropdown';
+import { Button } from '../../elements/Button';
+import { Span } from '../../elements/Span';
+import { Icon } from '../../elements/Icon';
 import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
 
 type PointerType = 'mouse' | 'pen' | 'touch';
 
@@ -260,7 +264,6 @@ describe('Tooltip', () => {
       advance(1000);
       fireEvent.keyDown(trigger(), { key: 'Escape' });
       expect(wrapper()).toHaveClass('is-active');
-      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
@@ -278,7 +281,6 @@ describe('Tooltip', () => {
         </Tooltip>
       );
       expect(wrapper()).toHaveClass('is-active');
-      expect(bubble()).toHaveAttribute('aria-hidden', 'false');
 
       unhover(trigger());
       advance(0);
@@ -442,7 +444,7 @@ describe('Tooltip', () => {
     it('applies is-dashed class when dashed is true', () => {
       const { container } = render(
         <Tooltip label="Test" dashed>
-          <span>Hover me</span>
+          <span tabIndex={0}>Hover me</span>
         </Tooltip>
       );
       expect(container.querySelector('.tooltip')).toHaveClass('is-dashed');
@@ -451,7 +453,7 @@ describe('Tooltip', () => {
     it('does not apply is-dashed class by default', () => {
       const { container } = render(
         <Tooltip label="Test">
-          <span>Hover me</span>
+          <span tabIndex={0}>Hover me</span>
         </Tooltip>
       );
       expect(container.querySelector('.tooltip')).not.toHaveClass('is-dashed');
@@ -921,7 +923,6 @@ describe('Tooltip', () => {
 
       expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
       expect(wrapper()).not.toHaveClass('is-active');
-      expect(bubble()).toHaveAttribute('aria-hidden', 'true');
       expect(trigger()).toHaveFocus();
       advance(5000);
       expect(wrapper()).not.toHaveClass('is-active');
@@ -1019,6 +1020,9 @@ describe('Tooltip', () => {
     });
 
     it('closes a Dropdown in the trigger and hides the tooltip on one Escape', () => {
+      // The link lands on the Dropdown's wrapper rather than its button, which
+      // a development build warns about. That's not what this test is for.
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
       const onActiveChange = jest.fn();
       render(
         <Tooltip label="Row actions">
@@ -1034,6 +1038,7 @@ describe('Tooltip', () => {
       fireEvent.keyDown(item, { key: 'Escape' });
       expect(onActiveChange).toHaveBeenCalledWith(false);
       expect(wrapper()).not.toHaveClass('is-active');
+      jest.restoreAllMocks();
     });
 
     it('cancels a delayed show that has not happened yet, and lets the key through', () => {
@@ -1166,46 +1171,276 @@ describe('Tooltip', () => {
       expect(screen.getByRole('tooltip', { hidden: true })).toBeInTheDocument();
     });
 
-    it('tooltip content has aria-hidden="true" when not visible', () => {
+    // The stylesheet hides it with `visibility: hidden`, which keeps it out
+    // of the accessibility tree and still lets it describe its trigger.
+    // Tooltip.styles.test.tsx checks that with the real stylesheet.
+    it('leaves hiding the content to the stylesheet, with no aria-hidden', () => {
       render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'true'
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+    });
+  });
+
+  describe('describing the trigger', () => {
+    beforeEach(() => {
+      resetDevWarnings();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      resetDevWarnings();
+    });
+
+    it('points the trigger at the tooltip, which describes it hidden and shown', () => {
+      render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(bubble().id).not.toBe('');
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+    });
+
+    it('is described before a delay runs out', () => {
+      render(
+        <Tooltip label="Deletes it for good" delay={1000}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(500);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+    });
+
+    it('gives each tooltip an id of its own', () => {
+      render(
+        <>
+          <Tooltip label="First">
+            <button>One</button>
+          </Tooltip>
+          <Tooltip label="Second">
+            <button>Two</button>
+          </Tooltip>
+        </>
+      );
+      expect(
+        screen.getByRole('button', { name: 'One' })
+      ).toHaveAccessibleDescription('First');
+      expect(
+        screen.getByRole('button', { name: 'Two' })
+      ).toHaveAccessibleDescription('Second');
+    });
+
+    it('keeps an aria-describedby the trigger already has, and adds the tooltip after it', () => {
+      render(
+        <>
+          <span id="own-hint">Can't be undone.</span>
+          <Tooltip label="Deletes it for good">
+            <button aria-describedby="own-hint">Hover me</button>
+          </Tooltip>
+        </>
+      );
+      expect(trigger()).toHaveAttribute(
+        'aria-describedby',
+        `own-hint ${bubble().id}`
+      );
+      expect(trigger()).toHaveAccessibleDescription(
+        "Can't be undone. Deletes it for good"
       );
     });
 
-    it('tooltip content has aria-hidden="false" when visible', () => {
+    it('adds the tooltip only once when the trigger already names it', () => {
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const id = bubble().id;
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <button aria-describedby={`${id} own-hint`}>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute('aria-describedby', `${id} own-hint`);
+    });
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a Button', () => <Button>Trigger</Button>],
+      ['a link', () => <a href="#details">Trigger</a>],
+      ['a Span with tabIndex={0}', () => <Span tabIndex={0}>Trigger</Span>],
+    ])('describes %s, without a warning', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<Tooltip label="Deletes it for good">{child()}</Tooltip>);
+      const triggerNode = screen.getByText('Trigger');
+      expect(triggerNode).toHaveAttribute('aria-describedby', bubble().id);
+      expect(triggerNode).toHaveAccessibleDescription('Deletes it for good');
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('reads rich content as its text', () => {
+      render(
+        <Tooltip
+          content={
+            <span>
+              <strong>Bold</strong> and <em>italic</em>
+            </span>
+          }
+        >
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAccessibleDescription('Bold and italic');
+    });
+
+    const warnsUnlinked = (warn: jest.SpyInstance) => {
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("<Tooltip> can't describe its trigger")
+      );
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Pass one element that takes focus and passes aria-describedby on to its DOM node'
+        )
+      );
+    };
+
+    it.each([
+      ['text', () => 'Hover me'],
+      [
+        'a fragment',
+        () => (
+          <>
+            <button>Hover me</button>
+          </>
+        ),
+      ],
+      [
+        'several elements',
+        () => [<button key="a">Hover me</button>, <button key="b">Too</button>],
+      ],
+      ['nothing', () => null],
+    ])('leaves %s unlinked, and warns once in development', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const { container } = render(
-        <Tooltip label="Test tooltip">
-          <button>Hover me</button>
-        </Tooltip>
+        <>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+        </>
       );
-
-      hover(container.querySelector('.tooltip')!);
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'false'
-      );
+      expect(container.querySelector('[aria-describedby]')).toBeNull();
+      warnsUnlinked(warn);
     });
 
-    it('tooltip content has aria-hidden="false" when always active', () => {
+    // A component that keeps the props it's given to itself.
+    const Swallows = (props: { 'aria-describedby'?: string }) => (
+      <button data-ignored={Object.keys(props).join()}>Hover me</button>
+    );
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a component that does not pass the link on', () => <Swallows />],
+      [
+        'a focusable element inside the one that takes the link',
+        () => (
+          <span>
+            <button aria-describedby="own-hint">Hover me</button>
+          </span>
+        ),
+      ],
+      [
+        'Suspense around the trigger',
+        () => (
+          <Suspense fallback={null}>
+            <button>Hover me</button>
+          </Suspense>
+        ),
+      ],
+      ['a trigger that cannot take focus', () => <Span>Hover me</Span>],
+      ['an icon that cannot take focus', () => <Icon name="info-circle" />],
+      ['a disabled button', () => <button disabled>Hover me</button>],
+    ])('warns once in development for %s', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       render(
-        <Tooltip label="Test tooltip" active>
+        <>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+        </>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('judges the trigger alone, not what comes after it', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Tooltip label="Deletes it for good">
+            <span>Hover me</span>
+          </Tooltip>
+          <button>Next</button>
+        </>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('does not warn for a trigger that is hidden for now', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <div style={{ visibility: 'hidden' }}>
+          <Tooltip label="Deletes it for good">
+            <button>Hover me</button>
+          </Tooltip>
+        </div>
+      );
+      expect(getComputedStyle(screen.getByText('Hover me')).visibility).toBe(
+        'hidden'
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('checks a trigger that changes', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'false'
+      expect(warn).not.toHaveBeenCalled();
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <span>Hover me</span>
+        </Tooltip>
       );
+      warnsUnlinked(warn);
+    });
+
+    it('stays quiet in production, without reading the page for it', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const queries = jest.spyOn(Element.prototype, 'querySelectorAll');
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(<Tooltip label="Deletes it for good">Hover me</Tooltip>);
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+      expect(warn).not.toHaveBeenCalled();
+      expect(queries.mock.contexts).not.toContain(wrapper());
     });
   });
 
@@ -1288,6 +1523,8 @@ describe('Tooltip', () => {
       );
       expect(bubble()).toHaveClass('bestax-tooltip-content');
       expect(classes()).toEqual([]);
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(trigger()).toHaveAccessibleDescription('Test');
 
       hover(trigger());
       advance(0);
@@ -1383,11 +1620,41 @@ describe('Tooltip', () => {
         </Tooltip>
       );
       try {
-        expect(serverHtml).toContain('aria-hidden="true"');
+        expect(serverHtml).not.toContain('is-active');
         expect(errorSpy).not.toHaveBeenCalled();
         hover(trigger());
         advance(0);
         expect(wrapper(container)).toHaveClass('is-active');
+      } finally {
+        await cleanup();
+      }
+    });
+
+    // The client's ids have to match the server's, or React reports the
+    // mismatch through console.error.
+    it('hydrates the tooltip ids the server rendered, so each trigger stays described', async () => {
+      const { errorSpy, cleanup } = await hydrate(
+        <>
+          <Tooltip label="First">
+            <button>One</button>
+          </Tooltip>
+          <Tooltip label="Second">
+            <button>Two</button>
+          </Tooltip>
+        </>
+      );
+      try {
+        expect(errorSpy).not.toHaveBeenCalled();
+        const one = screen.getByRole('button', { name: 'One' });
+        const two = screen.getByRole('button', { name: 'Two' });
+        expect(one.getAttribute('aria-describedby')).not.toBe(
+          two.getAttribute('aria-describedby')
+        );
+        expect(one).toHaveAccessibleDescription('First');
+        expect(two).toHaveAccessibleDescription('Second');
+        hover(one);
+        advance(0);
+        expect(one).toHaveAccessibleDescription('First');
       } finally {
         await cleanup();
       }

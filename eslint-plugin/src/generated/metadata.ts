@@ -35,6 +35,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  'Buttons.ToggleButton': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   Columns: {
     gapSize: {
       replacement: 'gap',

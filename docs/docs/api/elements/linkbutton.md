@@ -255,3 +255,6 @@ The `isOutlined`, `isInverted`, and `isLight` props from Button are not availabl
 | `--bulma-link-button-ghost-hover-color`   | `$link-button-ghost-hover-color`   | `var(--bulma-text-strong)` |
 
 <!-- /bestax:generated cssvars -->
+
+These are the ones `LinkButton` adds. It's a `Button` underneath, so
+[Button's variables](./button.md#css--sass-variables) style it as well.

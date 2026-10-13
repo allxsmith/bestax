@@ -278,6 +278,95 @@ describe('ToggleButton', () => {
     });
   });
 
+  describe('loading', () => {
+    it('holds still for a click, Enter and Space, and says it is busy and unavailable', async () => {
+      const user = userEvent.setup();
+      const onClick = jest.fn();
+      const onPressedChange = jest.fn();
+      render(
+        <ToggleButton
+          isLoading
+          onClick={onClick}
+          onPressedChange={onPressedChange}
+        >
+          Mute
+        </ToggleButton>
+      );
+      expect(toggle()).toHaveAttribute('aria-busy', 'true');
+      expect(toggle()).toHaveAttribute('aria-disabled', 'true');
+      expect(toggle()).not.toBeDisabled();
+      await user.tab();
+      expect(toggle()).toHaveFocus();
+      await user.keyboard('{Enter}');
+      await user.keyboard(' ');
+      // jsdom applies no Bulma CSS, so this click reaches the button the way
+      // a key does in a browser, where the spinner stops only the pointer.
+      await user.click(toggle());
+      expect(toggle()).toHaveAttribute('aria-pressed', 'false');
+      expect(onClick).not.toHaveBeenCalled();
+      expect(onPressedChange).not.toHaveBeenCalled();
+      expect(toggle()).toHaveFocus();
+    });
+
+    it('toggles again once the change it was saving lands', async () => {
+      const user = userEvent.setup();
+      const changes: boolean[] = [];
+      let finishSaving = () => {};
+      function Pin() {
+        const [pinned, setPinned] = useState(false);
+        const [saving, setSaving] = useState(false);
+        finishSaving = () => setSaving(false);
+        return (
+          <ToggleButton
+            pressed={pinned}
+            isLoading={saving}
+            onPressedChange={next => {
+              changes.push(next);
+              setPinned(next);
+              setSaving(true);
+            }}
+          >
+            Pin
+          </ToggleButton>
+        );
+      }
+      render(<Pin />);
+      await user.click(toggle('Pin'));
+      expect(toggle('Pin')).toHaveAttribute('aria-pressed', 'true');
+      expect(toggle('Pin')).toHaveAttribute('aria-busy', 'true');
+      expect(toggle('Pin')).toHaveAttribute('aria-disabled', 'true');
+      expect(toggle('Pin')).toHaveFocus();
+
+      await user.keyboard(' ');
+      await user.keyboard('{Enter}');
+      expect(changes).toEqual([true]);
+      expect(toggle('Pin')).toHaveAttribute('aria-pressed', 'true');
+
+      act(() => finishSaving());
+      expect(toggle('Pin')).not.toHaveAttribute('aria-busy');
+      expect(toggle('Pin')).not.toHaveAttribute('aria-disabled');
+      await user.keyboard(' ');
+      expect(changes).toEqual([true, false]);
+      expect(toggle('Pin')).toHaveAttribute('aria-pressed', 'false');
+    });
+
+    it('keeps the caller’s aria-busy and aria-disabled while it is not loading', () => {
+      render(
+        <ToggleButton aria-busy="true" aria-disabled="true">
+          Mute
+        </ToggleButton>
+      );
+      expect(toggle()).toHaveAttribute('aria-busy', 'true');
+      expect(toggle()).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    it('sets neither while it is not loading and the caller sets neither', () => {
+      render(<ToggleButton>Mute</ToggleButton>);
+      expect(toggle()).not.toHaveAttribute('aria-busy');
+      expect(toggle()).not.toHaveAttribute('aria-disabled');
+    });
+  });
+
   describe('the pressed look', () => {
     it('adds is-link and is-selected while pressed, and neither when not', async () => {
       const user = userEvent.setup();

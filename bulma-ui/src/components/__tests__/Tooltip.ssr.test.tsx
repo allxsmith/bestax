@@ -17,17 +17,18 @@ const ui = (props: Partial<React.ComponentProps<typeof Tooltip>> = {}) => (
 );
 
 describe('Tooltip on the server (node environment)', () => {
-  it('renders a hidden tooltip after its trigger, kept from screen readers', () => {
+  it('renders a hidden tooltip after its trigger, which it describes', () => {
     const html = renderToStaticMarkup(ui());
-    expect(html).toContain('<button>Delete</button>');
-    expect(html).toContain('role="tooltip"');
-    expect(html).toContain('aria-hidden="true"');
+    const id = html.match(/<span id="([^"]+)"[^>]* role="tooltip"/)?.[1];
+    expect(id).toBeTruthy();
+    expect(html).toContain(`<button aria-describedby="${id}">Delete</button>`);
     expect(html).not.toContain('is-active');
+    expect(html).not.toContain('aria-hidden');
   });
 
   it('renders an active tooltip shown', () => {
     const html = renderToStaticMarkup(ui({ active: true }));
     expect(html).toContain('is-active');
-    expect(html).toContain('aria-hidden="false"');
+    expect(html).not.toContain('aria-hidden');
   });
 });

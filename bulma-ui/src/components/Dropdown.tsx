@@ -16,6 +16,7 @@ import {
   omitAttrs,
 } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
+import { enabledMenuItems, useMenuKeys } from '../helpers/useMenuKeys';
 
 /**
  * Checks if code is running in a browser environment.
@@ -66,6 +67,19 @@ export interface DropdownProps
 /**
  * The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
  *
+ * Down, Enter and Space on the trigger open the menu on its first enabled
+ * item, and Up opens it on its last. On the trigger of a menu that's already
+ * open, Down and Up move focus to its first and last item. In the menu, the
+ * arrow keys, Home and End move between the items, and Enter and Space run
+ * the focused one the way a click does. Typing a letter moves to the next
+ * item whose text starts with it, skipping disabled ones, and letters typed
+ * in quick succession add up to one search. Typing searches once focus is in
+ * the menu, so a letter typed on the trigger does nothing. Escape closes the
+ * menu and focuses the trigger, and Tab closes it and lets focus move on.
+ * Anything focusable in the menu that isn't an item, such as a field, keeps
+ * its own keys apart from Escape and Tab. For a panel built around fields,
+ * use `Popover`.
+ *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
  * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the root dropdown element.
@@ -94,6 +108,8 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
     const [active, setActive] = useState<boolean>(!!activeProp);
     const dropdownRef = useRef<HTMLDivElement>(null);
     const triggerRef = useRef<HTMLButtonElement>(null);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const menuKeys = useMenuKeys();
     const pendingFocusRef = useRef<'first' | 'last' | null>(null);
 
     // Cleanup returned by a consumer's callback ref on attach, held until detach.
@@ -191,35 +207,22 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       }
     };
 
-    const getMenuItems = (): HTMLElement[] => {
-      /* istanbul ignore next: dropdownRef.current is never null once mounted */
-      if (!dropdownRef.current) return [];
-      return Array.from(
-        // Every menu-item role, so an item a caller gives `menuitemcheckbox`
-        // or `menuitemradio` (a filter or sort menu) stays reachable.
-        dropdownRef.current.querySelectorAll<HTMLElement>(
-          '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]'
-        )
-      ).filter(
-        el =>
-          !el.hasAttribute('disabled') &&
-          el.getAttribute('aria-disabled') !== 'true'
-      );
+    const focusEdgeItem = (edge: 'first' | 'last') => {
+      const items = enabledMenuItems(menuRef.current as HTMLElement);
+      items[edge === 'first' ? 0 : items.length - 1]?.focus();
     };
 
-    // Focus the pending menu item once the menu becomes visible; the item is
-    // unfocusable while `display: none` applies, so this must wait for the
-    // `is-active` class to actually land in the DOM.
+    // Once the menu shows, forget a search typed just before it last closed,
+    // and focus the pending item. The item is unfocusable while
+    // `display: none` applies, so this must wait for the `is-active` class to
+    // actually land in the DOM.
     useEffect(() => {
-      if (!active || !pendingFocusRef.current) return;
-      const items = getMenuItems();
-      if (items.length) {
-        const index =
-          pendingFocusRef.current === 'first' ? 0 : items.length - 1;
-        items[index].focus();
-      }
+      if (!active) return;
+      menuKeys.reset();
+      if (!pendingFocusRef.current) return;
+      focusEdgeItem(pendingFocusRef.current);
       pendingFocusRef.current = null;
-    }, [active]);
+    }, [active, menuKeys]);
 
     const handleTriggerKeyDown = (
       e: React.KeyboardEvent<HTMLButtonElement>
@@ -233,8 +236,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
             setActive(true);
             onActiveChange?.(true);
           } else {
-            const items = getMenuItems();
-            if (items.length) items[0].focus();
+            focusEdgeItem('first');
             pendingFocusRef.current = null;
           }
           break;
@@ -245,8 +247,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
             setActive(true);
             onActiveChange?.(true);
           } else {
-            const items = getMenuItems();
-            if (items.length) items[items.length - 1].focus();
+            focusEdgeItem('last');
             pendingFocusRef.current = null;
           }
           break;
@@ -279,8 +280,10 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
     };
 
     const handleMenuKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-      // Escape and Tab close the menu regardless of whether it has any focusable
-      // items — an empty or all-disabled menu must still honor the close contract.
+      // Closing is Dropdown's: Escape and Tab close the menu from anywhere in
+      // it, a field included, and an empty or all-disabled menu too. Moving
+      // between the items, running them and typeahead are the hook's, which
+      // acts only while focus is on the menu or one of its items.
       if (e.key === 'Escape') {
         e.preventDefault();
         setActive(false);
@@ -294,67 +297,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
         return;
       }
 
-      const items = getMenuItems();
-      if (!items.length) return;
-      const currentIndex = items.indexOf(
-        getActiveElementInTree(e.currentTarget) as HTMLElement
-      );
-      switch (e.key) {
-        case 'ArrowDown': {
-          e.preventDefault();
-          const next =
-            currentIndex >= 0 ? (currentIndex + 1) % items.length : 0;
-          items[next].focus();
-          break;
-        }
-        case 'ArrowUp': {
-          e.preventDefault();
-          const prev =
-            currentIndex >= 0
-              ? (currentIndex - 1 + items.length) % items.length
-              : items.length - 1;
-          items[prev].focus();
-          break;
-        }
-        case 'Home':
-          e.preventDefault();
-          items[0].focus();
-          break;
-        case 'End':
-          e.preventDefault();
-          items[items.length - 1].focus();
-          break;
-        case 'Enter':
-        case ' ': {
-          // Activate the focused item by clicking it, so its `onClick` runs and
-          // closing follows `closeOnClick` as it does for the mouse. A caller's
-          // own key handler that prevented the default has claimed the key, and
-          // is left to it rather than followed by a second activation.
-          if (currentIndex < 0 || e.defaultPrevented) break;
-          const item = items[currentIndex];
-          // Leave the browser's own activation alone, or the item runs twice: a
-          // `<button>` answers both keys, and a link with an `href` answers
-          // Enter. A link does not answer Space, so Space on a link is handled
-          // here too, which also keeps the page from scrolling.
-          if (item.tagName === 'BUTTON') break;
-          if (
-            e.key === 'Enter' &&
-            item.tagName === 'A' &&
-            item.hasAttribute('href')
-          ) {
-            break;
-          }
-          e.preventDefault();
-          // A held key sends a keydown per auto-repeat. Clicking on each would
-          // toggle a checkbox item over and over while `closeOnClick` is off,
-          // so only the first press activates. The default is still prevented
-          // on the repeats above, so a held Space does not scroll the page.
-          if (!e.repeat) item.click();
-          break;
-        }
-        default:
-          break;
-      }
+      menuKeys.onKeyDown(e);
     };
 
     const dropdownClasses = classNames(
@@ -398,6 +341,7 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
             menuClassName
           )}
           id={id ? `${id}-menu` : undefined}
+          ref={menuRef}
           role="menu"
           data-testid="dropdown-menu"
           onKeyDown={handleMenuKeyDown}

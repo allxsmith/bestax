@@ -1464,7 +1464,8 @@ const ROOT_CLASS_OVERRIDES = {
   DateInputBase: 'input', // the trigger is an `.input`
   TimeInputBase: 'input',
   DateTimeInputBase: 'input',
-  ToggleButton: 'button', // renders a `.button` through Button
+  // Not ToggleButton, though it renders a `.button`: that class is Button's,
+  // and SCSS_SOURCES in api-sources.mjs says why it stays without one.
 };
 
 /**
