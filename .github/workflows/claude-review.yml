@@ -22,12 +22,14 @@ name: Claude Deep Review
 # triage+ user re-applying `deep-review` is the one deliberate re-run
 # path. That re-run settles the open threads of the review already on
 # the PR; it does not review the commits pushed since. A steer comment
-# starting "deep-review: fresh" is what asks for a full review of the
-# current code (see the dedupe step's EXCEPTION below).
+# starting "deep-review: fresh" makes that re-run a full review of the
+# current code instead. It selects the mode of a run the label starts;
+# it does not start one. It also persists across re-runs, and the focus
+# step below says which steer a run reads.
 #
-# Deliberately does NOT trigger on `synchronize`: one review per PR, so
-# Claude's own fix pushes can never re-fire this workflow (no reviewer/fixer
-# ping-pong, no claude-code-action#1299-style self-trigger failures).
+# Deliberately does NOT trigger on `synchronize`, so Claude's own fix
+# pushes can never re-fire this workflow (no reviewer/fixer ping-pong, no
+# claude-code-action#1299-style self-trigger failures).
 
 on:
   pull_request:
