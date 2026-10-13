@@ -50,8 +50,8 @@ export function columnOrder(libs) {
  * Serialize a snapshot with one matrix row per line, so a diff between two
  * editions' files reads row by row. `libs` is the column order from
  * columnOrder(); a row whose length doesn't match it is refused.
- * `corrections` is the live list as it stands, one corrected row per line;
- * the edition's changes table reads it to tell a fix from a release.
+ * `corrections` is the live list as it stands, one corrected or renamed row
+ * per line; the edition's changes table reads it to tell a fix from a release.
  */
 export function serializeSnapshot({
   reviewed,
@@ -79,21 +79,29 @@ export function serializeSnapshot({
       '    }',
     ].join('\n');
   });
-  const fixes = corrections.map(fix => {
-    const cells = Object.entries(fix.cells).map(
-      ([capability, marks]) =>
-        `        ${JSON.stringify(capability)}: ${JSON.stringify(marks)}`
+  // A fix's `renamed` or `cells`, one row per line.
+  const byRow = (key, rows) => {
+    const lines = Object.entries(rows).map(
+      ([row, value]) =>
+        `        ${JSON.stringify(row)}: ${JSON.stringify(value)}`
     );
+    if (lines.length === 0) return `      ${JSON.stringify(key)}: {}`;
     return [
+      `      ${JSON.stringify(key)}: {`,
+      lines.join(',\n'),
+      '      }',
+    ].join('\n');
+  };
+  const fixes = corrections.map(fix =>
+    [
       '    {',
       `      "edition": ${JSON.stringify(fix.edition)},`,
       `      "pr": ${JSON.stringify(fix.pr)},`,
-      '      "cells": {',
-      cells.join(',\n'),
-      '      }',
+      ...(fix.renamed ? [`${byRow('renamed', fix.renamed)},`] : []),
+      byRow('cells', fix.cells),
       '    }',
-    ].join('\n');
-  });
+    ].join('\n')
+  );
   return [
     '{',
     `  "reviewed": ${JSON.stringify(reviewed)},`,

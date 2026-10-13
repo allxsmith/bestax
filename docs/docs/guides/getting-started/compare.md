@@ -37,4 +37,4 @@ How does bestax-bulma stack up against the other React component libraries? This
 
 ## How It Stays Current
 
-The matrix is compiled by hand from each library's components and documentation, and it's revised with each edition of [_The State of React_](/blog/tags/state-of-react), which also covers what changed and why. Spot a cell that's wrong? Please [open an issue](https://github.com/allxsmith/bestax/issues). The fix shows up here first, and the next edition marks it as a correction, so it doesn't read as something the library shipped.
+The matrix is compiled by hand from each library's components and documentation, and it's revised with each edition of [_The State of React_](/blog/tags/state-of-react), which also covers what changed and why. Spot a cell that's wrong? Please [open an issue](https://github.com/allxsmith/bestax/issues).
