@@ -83,7 +83,7 @@ deterministic sanitizer or renderer on the publication paths that have one — r
 triage's comment (rule 5, I2); plain
 `pull_request` with a head-repo guard, never `pull_request_target` (rule 7); sender exclusions
 on comment triggers (rule 8); trust decisions re-verified against the live API rather than read
-from the event payload (the trusted-labeler gates); an enforced, measured egress policy
+from the event payload (the trusted-labeler gates); an enforced egress policy
 (rule 10, and read I1 for exactly what that leg adds); and a human merge — the loop never
 merges. A finding that one of these could be stronger is advisory unless it shows the control
 absent or false.
@@ -119,7 +119,7 @@ regardless of how convenient it is.
   execution.** `CLAUDE_CODE_OAUTH_TOKEN` pays for a session; anything that can run code in the
   same job can read it out of the environment. `claude-repro.yml` splits drafting from publishing
   for exactly this reason: the drafting job has no `Bash`, no `Task`, no network tool, so it
-  cannot read env, fetch, or execute. Note the direction of the guarantee — it raises the cost of
+  cannot fetch or execute. Note the direction of the guarantee — it raises the cost of
   exfiltration, it is not a proof. The credential-shape check in `Collect draft` (literal,
   base64, and hex forms) is a backstop for the same reason, and is documented as one.
 
@@ -133,10 +133,9 @@ regardless of how convenient it is.
   says it delivers: it narrows **where** a session that does not escalate can send data, and
   `api.github.com` is necessarily on every one of those allowlists, so it does not bound what the
   session can do through a tool. Nor does it hold an injected session that runs code: that code
-  can get root, and from root it reaches past the list ("What the agent allows beyond the list"
-  under rule 10; hardening is tracked in #1014). Saying I1 covers those jobs would be the exact
-  overstatement the checklist at the bottom of this file ends on. It covers the pipeline that was
-  designed around it.
+  can reach past the list ("What the agent allows beyond the list" under rule 10). Saying I1
+  covers those jobs would be the exact overstatement the checklist at the bottom of this file
+  ends on. It covers the pipeline that was designed around it.
 
   harden-runner's egress block enforces again as of #487 — `block` used to degrade silently to
   `audit`, and now enforces and is asserted (rule 10). **Do not promote it to a third leg of
@@ -247,10 +246,10 @@ Read the third column for **which** credential — since #455 and #457 neither s
 reach repository write any more, and "the session can't write to the repo" is not the same
 claim as "the allowlist stopped mattering":
 
-| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| --------------- | ----------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired.                                                                                                                                                                                         |
-| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. Egress-block IS enforced here as of #487 (rule 10), and the two are complementary rather than redundant: while the allowlist holds, it narrows **where** data can go, though `api.github.com` is necessarily allow-listed, so it cannot stop a write issued through a tool. It is no backstop once the allowlist is defeated: a shell on the runner can get root and reach past the list ("What the agent allows beyond the list"). Narrow, not retired. |
+| Workflow        | Credential in the session's job                                                                                   | What the allowlist is holding back                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ai-triage.yml` | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #457 | **Repository write: nothing any more.** This session held `AI_LOOP_PAT` — full repo write, unscoped by the job's `permissions:` block — until #457 split publishing out: the session emits a structured payload, `scripts/render-triage-comment.mjs` renders the comment, and the PAT lives only in a `publish` job that runs no model. **The model credential: everything.** The session still runs Bash (GET-only `gh`) and Task beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. #457 closed the concrete instance of that — `Read` is not workspace-confined, and the prefix match accepted `gh issue comment N --body "$CLAUDE_CODE_OAUTH_TOKEN"`. Narrow, not retired.                                                                                                                                                                            |
+| `ai-scan.yml`   | `CLAUDE_CODE_OAUTH_TOKEN`; job `GITHUB_TOKEN` is **read**-scoped (`contents`/`issues`/`pull-requests`) since #455 | **Repository write: nothing any more.** The budget marker and the `needs-security-review` label moved to separate `gate` and `label` jobs that run no repository code, and only the coarse verdict enum crosses between them, so widening the allowlist can no longer grant issue/PR write. **The model credential: everything.** This job still runs Bash beside `CLAUDE_CODE_OAUTH_TOKEN`, so by I1 the allowlist is what stands between an injected session and reading that token out of the environment. Egress-block IS enforced here as of #487 (rule 10), and the two are complementary rather than redundant: while the allowlist holds, it narrows **where** data can go, though `api.github.com` is necessarily allow-listed, so it cannot stop a write issued through a tool. It is no backstop once the allowlist is defeated: a shell on the runner can reach past the list ("What the agent allows beyond the list"). Narrow, not retired. |
 
 Concrete rules:
 
@@ -380,6 +379,11 @@ first, because flipping straight to block risks breaking it if the action's runt
 an un-allow-listed host — but that is a temporary state that owes a follow-up issue, not a
 resting place.
 
+Block jobs also set `disable-sudo-and-containers: true`, unless a step needs sudo or Docker. A
+job that leaves it off says which step needs it, in the comment above its harden-runner. What
+the setting and its check do and do not prove is under "What `disable-sudo-and-containers` and
+its check prove", below.
+
 **Every block-mode job must carry the assertion step** (placement rules below the snippet):
 
 ```yaml
@@ -388,14 +392,22 @@ resting place.
     set -uo pipefail
     [ -e /home/agent/agent.json ] || { echo "::error::harden-runner installed no agent"; exit 1; }
     jq -e '.egress_policy == "block"' /home/agent/agent.json || exit 1
+    # In a job that sets disable-sudo-and-containers, this line and the two in the loop:
+    jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json || exit 1
     for _ in $(seq 1 30); do
-      grep -q '^Initialized' /home/agent/agent.status 2>/dev/null && exit 0
+      if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+        if sudo -n true 2>/dev/null; then echo "::error::sudo still works"; exit 1; fi
+        if [ -w /var/run/docker.sock ]; then echo "::error::docker.sock is writable"; exit 1; fi
+        exit 0
+      fi
       sleep 1
     done
     exit 1
 ```
 
-Copy the full version from any block job — the shapes above are each load-bearing:
+Copy the full version from a block job that matches the new one on
+`disable-sudo-and-containers`, which `scripts/harden-runner-sudo.test.mjs` holds together. The
+shapes above are each load-bearing:
 
 - **The `-e` check comes first** because harden-runner has deliberate paths that install nothing
   and still exit 0 (a StepSecurity outage, the `skip-harden-runner` repo property, a container or
@@ -411,6 +423,8 @@ Copy the full version from any block job — the shapes above are each load-bear
   its status, so a cold resolver or a long list can leave it absent or empty at this point.
 - **`^Initialized`, not `-qx`.** `writeStatus` appends without a trailing newline, so a second
   status would concatenate onto the same line and an exact-line match would stop matching.
+- **The `disable-sudo-and-containers` lines** are explained under "What
+  `disable-sudo-and-containers` and its check prove", below.
 
 **Placement.** The default is immediately after harden-runner, and most jobs use it. Two things
 override it, both derived from one rule:
@@ -464,7 +478,7 @@ some should flag:
 | ------------------------------- | ------------------------------------------ | -------------------------------------------------- |
 | harden-runner at runtime (gate) | yes, via `enforcement=failed`              | flag — nothing was enforcing                       |
 | harden-runner **preparation**   | no — `label` cannot initialize either      | residual above; nothing reaches it                 |
-| the assertion (gate or scan)    | yes                                        | flag — nothing was enforcing                       |
+| the assertion (gate or scan)    | yes                                        | flag — enforcement was not proven                  |
 | the `scan` job                  | yes (`result` is `failure`, not `skipped`) | flag — empty verdict hits the enum default         |
 | the gate's budget read          | no                                         | **no flag** — counter trouble fails open (rule 4)  |
 | budget spent, or bot author     | no                                         | no flag — nothing was scanned and nothing is wrong |
@@ -539,7 +553,9 @@ jobs (`ci.yml`, `deploy.yml`, `test-deploy.yml`, `visual-regression.yml`, `story
   `claude-implement` (`implement`), `bestaxbot-reply` (`respond`), `claude-review` (`review`),
   `claude-pr-loop` (`fix` and `verify`), `mcp-registry` (`publish`), `codemod-registry`
   (`validate` and `publish`), `review-converged` (`sync`), `skills-publish` (`relay`, `generate`
-  and `publish`). The command below lists them.
+  and `publish`). The command below lists them, and
+  `grep -rn "disable-sudo-and-containers: true" .github/workflows/` lists the jobs that set
+  `disable-sudo-and-containers`.
 - **Audit, deliberately, pending a measured allowlist** — none, as of #578. That issue closed the
   group by measuring every member instead of guessing for them. They all now **use** the same
   allowlist, and the gap between that and what the measurement produced is the part worth
@@ -618,6 +634,39 @@ The codemod-registry and skills-publish comments give the reason for each host.
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
 
+#### What `disable-sudo-and-containers` and its check prove
+
+Each job's comment points here. The setting closes the ways a step gets root past the list
+("Root, and containers" under "What the agent allows beyond the list", below), and none of the
+paths that need no root. Citations are to harden-runner at the pin and to step-security/agent at
+the version the pin installs.
+
+- **The `agent.json` line** shows that harden-runner took the input: the pre-step writes the
+  field from it (`src/setup.ts`), and the agent reads it from that file (`config.go`). Without
+  the line, a dropped input would surface only as "sudo still works". Like the `egress_policy`
+  line, it shows what the pre-step decided, not what the agent did.
+- **The sudo and `docker.sock` tests wait for `Initialized`,** because the agent closes both
+  before it writes that status (`disableSudoAndContainers` in `sudo.go`). They show both were
+  closed when the step ran, not that they stay closed: a later agent revert, which the flag's
+  own Docker purge might set off, puts sudo back along with the firewall (`RevertChanges` in
+  `agent.go`), and as with the policy above, no step-level check sees it.
+- **They cover sudo and `docker.sock`, not every way to reach a container.** `containerd.sock` is
+  not tested: on the hosted runners checked so far, the runner user cannot write it whether or
+  not the agent closed it, so a test there would tell us nothing.
+- **They depend on the runner image as well as the pin**: on how the image grants the runner
+  sudo, and on the modes it gives the sockets. So a runner image change, not only a pin bump, can
+  turn every job that sets the flag red at once. In `ai-scan`, a failure in `gate` or `scan`
+  flags the item, as their other assertion failures do. In `supply-chain`'s `sign-sbom` it
+  leaves the SBOMs unsigned: `attach-sbom` still attaches them with a warning, and the release
+  still ships.
+- **The agent also purges Docker in the background** (`uninstallDocker` in `sudo.go`), alongside
+  the job's first steps. It runs whenever the agent starts with the flag, including on runs that
+  stop early and run no repository code, and it holds the dpkg lock while it runs. A step in such
+  a job has no sudo for apt in any case.
+- **The post step skips the `agent.service` journal.** harden-runner prints it with
+  `sudo journalctl` only when neither sudo setting is on (`src/cleanup.ts`), so a job that sets
+  the flag does not print it. `agent.log` still prints.
+
 #### What the agent allows beyond the list
 
 A block job's `allowed-endpoints` names hosts the job adds to the firewall. Others are added
@@ -671,15 +720,16 @@ far, not a complete account, so add to them rather than treating them as one:
   matches on prefix and suffix alone (`matchWildcardDomain`), and Azure account names run to 24
   characters, so an account anyone can create matches it and takes uploads. That is a way out of
   every block job here, and it is older than the meta list.
-- **Root, and containers.** Any step can `sudo`, and root can change the firewall rules themselves.
-  `disable-sudo` takes away less than its name says: it empties the runner's sudoers file
-  (`sudo.go`) and leaves the Docker socket open to the runner user, which is in the `docker` group,
-  so a step can still get root in a container (`docker run --privileged --net=host`) and rewrite the
-  rules from there. A container on a user-defined Docker network needs no `sudo` to get out: its
-  traffic arrives from that network's bridge, and the agent's `DOCKER-USER` rules match only
-  `docker0` (`firewall.go`). `disable-sudo-and-containers` also closes the Docker and containerd
-  sockets, and it is the only setting that shuts both. `grep -rn disable-sudo .github/workflows/`
-  lists any job that sets either.
+- **Root, and containers.** In a job that leaves `disable-sudo-and-containers` off, any step can
+  `sudo`, and root can change the firewall rules themselves. `disable-sudo` takes away less than
+  its name says: it empties the runner's sudoers file (`sudo.go`) and leaves the Docker socket
+  open to the runner user, which is in the `docker` group, so a step can still get root in a
+  container (`docker run --privileged --net=host`) and rewrite the rules from there. A container
+  on a user-defined Docker network needs no `sudo` to get out: its traffic arrives from that
+  network's bridge, and the agent's `DOCKER-USER` rules match only `docker0` (`firewall.go`).
+  `disable-sudo-and-containers` also closes the Docker and containerd sockets, and it is the only
+  setting that shuts both. `grep -rn disable-sudo .github/workflows/` lists any job that sets
+  either.
 - **Public DNS over HTTPS.** The firewall (`addBlockRules` in the agent's `firewall.go`) accepts TCP
   443 to `8.8.8.8`, `8.8.4.4` and `1.1.1.1` from the agent's own user, which is root, so a step that
   can get root, through `sudo` or a host-network container, can carry data out in DNS queries and
@@ -722,11 +772,11 @@ Two things about reading its output, both learned assembling the #578 lists:
   three without a listing ("What the agent allows beyond the list"). The meta list's
   `*.githubapp.com` admits the last when the meta fetch succeeds, and one run passed with it not
   admitted at all (run 33286967625, below), which suggests the runner can do without it but
-  does not prove it ("One run is not a measurement"). Leave them off a new list. The blob host
+  does not prove it ("One run is not a measurement"). Leave them off a list. The blob host
   has no one name a list could carry, since N varies between runs. An exact entry for one of the
   others is not free, though: the agent resolves every exact entry at startup, and one that does
   not resolve then reverts the firewall (rule 10), so an entry the job never needed can still
-  turn its policy off. Removing the ones lists already carry is tracked in #1014.
+  turn its policy off.
   Run 33221210633's log shows `auto-close-duplicates` at `block` connecting to `api.github.com`
   and `github.com` and nothing else. That shows the job did not use these hosts, not that
   leaving them off works for a job that does. Run 33286967625, below, is the evidence for
@@ -767,6 +817,9 @@ Then resolve every host before it goes in the list, per the rule above.
       placement section; security-relevant steps stay in the workflow rather than moving behind a
       local composite action (rule 1 — pins under `.github/actions/` are fine and one exists, so
       this is about per-job review, not pin location).
+- [ ] New `block` job sets `disable-sudo-and-containers` and checks it in that assertion, or
+      says above its harden-runner which step needs sudo or Docker (rule 10;
+      `scripts/harden-runner-sudo.test.mjs` checks both).
 - [ ] New verdict path fails closed; new counter path fails open.
 - [ ] Security comments claim exactly what the mechanism delivers — no more.
 
