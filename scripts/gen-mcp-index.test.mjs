@@ -32,6 +32,7 @@ import {
   reportFailure,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
+import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -379,6 +380,31 @@ test('CSS variables are indexed back to their component', () => {
     assert.match(v.css, /^--/);
     assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
   }
+});
+
+test('RENDERS_ELEMENT_OF names real components, and points at one with variables', () => {
+  // A rename would otherwise leave an entry naming nothing: a key the index no
+  // longer has drops the pointer without a word, and a value it no longer has
+  // sends get_css_variables to a component that doesn't exist.
+  const entries = Object.entries(RENDERS_ELEMENT_OF);
+  assert.ok(entries.length > 0, 'the map is empty');
+  for (const [name, from] of entries) {
+    assert.equal(components.get(name)?.kind, 'component', `${name} is unknown`);
+    assert.equal(components.get(from)?.kind, 'component', `${from} is unknown`);
+    assert.notEqual(name, from, `${name} points at itself`);
+    // The pointer is only worth giving if the table it names has rows.
+    assert.ok(components.get(from).cssVars.length, `${from} has no variables`);
+  }
+});
+
+test('the index carries the component whose element a component renders', () => {
+  for (const [name, record] of components) {
+    assert.equal(record.cssVarsFrom, RENDERS_ELEMENT_OF[name], name);
+  }
+  assert.equal(components.get('LinkButton').cssVarsFrom, 'Button');
+  assert.equal(components.get('ToggleButton').cssVarsFrom, 'Button');
+  // Absent, not null, where there is nothing to point at.
+  assert.ok(!Object.hasOwn(components.get('Button'), 'cssVarsFrom'));
 });
 
 test('every CSS variable scope is one the server has advice for', () => {

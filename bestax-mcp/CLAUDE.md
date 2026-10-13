@@ -69,7 +69,10 @@ the API pages and the skill catalog.
 - **Unhelpful answers are bugs.** A missing component suggests near misses by
   edit distance; a bad dot-path lists the real ones; a component with no CSS
   variables says so rather than returning blank. An empty response reads as a
-  failed lookup and costs a retry.
+  failed lookup and costs a retry. A component that renders another component's
+  element (`RENDERS_ELEMENT_OF` in `scripts/lib/api-sources.mjs`) names that
+  component's `get_css_variables` call too, since "none" alone reads as "can't
+  be themed".
 
 ## Dependencies
 

@@ -256,5 +256,6 @@
       "default": "var(--bulma-text-strong)",
       "scope": "compound"
     }
-  ]
+  ],
+  "cssVarsFrom": "Button"
 }
