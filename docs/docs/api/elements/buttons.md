@@ -207,6 +207,6 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 
 - [`Buttons.Button`](button.md): The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 - [`Buttons.LinkButton`](linkbutton.md): The `LinkButton` component renders a `<button>` that visually looks like text or a link.
-- [`Buttons.ToggleButton`](togglebutton.md): The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type="button">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `Radios`.
+- [`Buttons.ToggleButton`](togglebutton.md): The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type="button">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `SegmentedControl`, or `Radios` for a choice that's sent with a form.
 
 <!-- /bestax:generated props -->
