@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToggleButton, type ToggleButtonColor } from './ToggleButton';
 import { Buttons } from './Buttons';
 import { Icon } from './Icon';
@@ -173,6 +173,38 @@ export const IconOnly: Story = {
           <Icon name="heart" />
         </ToggleButton>
       </Buttons>
+    );
+  },
+};
+
+/**
+ * Loading while a change saves. Press it and it shows the spinner and holds
+ * still, to a click, Enter or Space, until the save lands.
+ */
+export const Loading: Story = {
+  render: function LoadingExample(args) {
+    const [pinned, setPinned] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Stands in for the request that saves the change.
+    useEffect(() => {
+      if (!saving) return undefined;
+      const timer = setTimeout(() => setSaving(false), 1500);
+      return () => clearTimeout(timer);
+    }, [saving]);
+
+    return (
+      <ToggleButton
+        {...args}
+        pressed={pinned}
+        isLoading={saving}
+        onPressedChange={next => {
+          setPinned(next);
+          setSaving(true);
+        }}
+      >
+        Pin
+      </ToggleButton>
     );
   },
 };
