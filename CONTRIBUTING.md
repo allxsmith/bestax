@@ -336,9 +336,11 @@ The short version for contributors:
   a run — pushing a commit does not, and neither does commenting — and a label that is still on
   the PR emits no event when applied again, so every re-run means removing it and adding it
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
-  open threads — verified fixed, still wrong, or conceded — and raises nothing new; when the
-  newer commits themselves want reviewing, first post a `deep-review:` comment whose first word
-  is `fresh` as a word of its own (not `fresh,`), then toggle the label to start the run. Both the label and
+  open threads — verified fixed, still wrong, or conceded — and raises nothing new, unless a
+  fresh steer is in effect; when the newer commits themselves want reviewing, first post a
+  `deep-review:` comment whose first word is `fresh` as a word of its own (not `fresh,`), then
+  toggle the label to start the run. That steer keeps making later toggles full reviews while
+  it is the steer the run reads. Both the label and
   the steer are triage+ only, so this is a maintainer's move rather than yours. On a PR from a
   fork it is nobody's move: the job runs only for same-repo PRs, so the label does nothing
   there whoever applies it, and the run reports skipped.

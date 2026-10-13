@@ -23,11 +23,13 @@ name: Claude Deep Review
 # and the dedupe marker caps AUTOMATIC usage at one review per PR — a
 # triage+ user re-applying `deep-review` is the one deliberate re-run
 # path. That re-run settles the open threads of the review already on
-# the PR; it does not review the commits pushed since. A steer comment
-# whose first word after "deep-review:" is "fresh", as a word of its own
-# (not "fresh,"), can make it a full review of the current code instead:
-# a steer selects the mode of a run the label starts, and does not start
-# one. The focus step below says which steer a run reads.
+# the PR, and does not review the commits pushed since, unless the steer
+# it reads is a fresh one: a steer comment whose first word after
+# "deep-review:" is "fresh", as a word of its own (not "fresh,"), makes
+# it a full review of the current code instead, and keeps doing so on
+# later re-runs while it is the steer the run reads. A steer selects the
+# mode of a run the label starts, and does not start one. The focus step
+# below says which steer a run reads.
 #
 # Deliberately does NOT trigger on `synchronize`, so Claude's own fix
 # pushes can never re-fire this workflow (no reviewer/fixer ping-pong, no
@@ -285,9 +287,11 @@ jobs:
       # needs no conditional. Best-effort by design, since the steer is an
       # enhancement and not an authorization gate: unlike the perm step it
       # degrades open, and an API failure never turns the run red. A failed
-      # comment fetch leaves the run unfocused; a failed role lookup skips
-      # that author, so the next verified author's steer is read, if there
-      # is one. On ai-loop `opened` events no comments can exist yet, so
+      # comment fetch reads no steer, so the run is unfocused and, on a PR
+      # that already has a deep review, a verify pass even if a fresh steer
+      # was posted. A failed role lookup skips that author, so the next
+      # verified author's steer is read, if there is one. Either way, an
+      # unexpected verify pass can mean a lookup failed. On ai-loop `opened` events no comments can exist yet, so
       # this is a cheap no-op there.
       - name: Extract focus steer
         id: focus
