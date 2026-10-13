@@ -46,7 +46,7 @@ Mantine shipped the most again, nearly all of it in one release.
   - **[JsonViewer](https://mantine.dev/code-highlight/json-viewer/)**, a collapsible JSON tree in `@mantine/code-highlight`.
 - The same release has some opt-in extras: image upload in RichTextEditor, resizable AppShell sections, a light variant for Checkbox and Radio, and `notifications.promise()`, which shows a loading notification and updates it when the promise settles.
 - Two defaults changed, so they're worth a look before you upgrade. Tooltip now hides when its target leaves the page or scrolls out of view (`hideDetached={false}` brings the old behavior back, and Jest or Vitest needs `env="test"` on `MantineProvider`). HoverCard now opens on keyboard focus and closes on Escape, and it no longer opens on a tap.
-- [9.7.1](https://github.com/mantinedev/mantine/releases/tag/9.7.1) (October 6) and [9.7.2](https://github.com/mantinedev/mantine/releases/tag/9.7.2) (October 11) are fixes, a lot of them accessibility.
+- [9.7.1](https://github.com/mantinedev/mantine/releases/tag/9.7.1) (October 6) and [9.7.2](https://github.com/mantinedev/mantine/releases/tag/9.7.2) (October 11) are fixes.
 
 ### MUI
 
@@ -96,14 +96,14 @@ This is the one I work on. The September edition listed five gaps in my own colu
 - One fix I should own: until 5.27.1, an app that imported only `Button` still bundled nearly the whole library. The ESM build now ships one file per module, so a bundler drops what you don't import.
 - The tools kept going too:
   - **[`bestax-mcp`](/docs/guides/llms#mcp-server)** is listed in the official [MCP Registry](https://registry.modelcontextprotocol.io) as of October 3, and it now releases with every bestax-bulma release, so its index keeps up.
-  - **[`bestax-migrate`](/docs/guides/getting-started/migration/bulma-classes)** kept growing for apps written in plain Bulma class markup. Grids, menus, modals, pagination, panels, tabs, images, file inputs, and the new helper classes all convert now.
+  - **[`bestax-migrate`](/docs/guides/getting-started/migration/bulma-classes)** kept growing for apps written in plain Bulma class markup. Grids, menus, pagination, panels, tabs, images, the parts inside a modal, a file input inside a field, and the new helper classes all convert now.
   - The **[ESLint plugin](/docs/guides/getting-started/eslint-plugin)** checks the new gap props. Its opt-in [rule for raw Bulma markup](/docs/guides/getting-started/eslint-plugin#no-bulma-component-class), which landed the same day as the last edition, flags markup a bestax component could replace, so it doesn't creep back in after a migration.
 
 ## What the September Table Got Wrong
 
-Right after the September edition went out, I audited every column against each library's current docs, and the table had a lot wrong: 128 cells. Most of it ran one way. A library that offered something through a prop, a mode, or a docs example often got a dash instead of ◐, so 112 of those fixes went up.
+Right after the September edition went out, I audited every column against each library's current docs, and the table had a lot wrong: 130 cells. Most of it ran one way. A library that offered something through a prop, a mode, or a docs example often got a dash instead of ◐, so 114 of those fixes went up. Releases have since overtaken two of them, both in my own column (Toggle button by ToggleButton, Accordion by Collapses), so the table below shows 128 as corrections.
 
-How does a table get 128 cells wrong? I never wrote down what earns a mark, so I applied it differently from one column to the next. The rules are on the [comparison page](/docs/guides/getting-started/compare#how-to-read-it) now. The gist, library by library:
+How does a table get 130 cells wrong? I never wrote down what earns a mark, so I applied it differently from one column to the next. The rules are on the [comparison page](/docs/guides/getting-started/compare#how-to-read-it) now. The gist, library by library:
 
 - **shadcn/ui** moved the most. A lot of what it does comes from composing its own pieces, and the September table mostly counted only dedicated components. It also had DatePicker and DataTable as dedicated, and they're compositions.
 - **Chakra UI** had exports I'd missed, like Toggle, FocusTrap, Sticky, and Em, plus the ◐ cells its docs examples earn.
@@ -130,7 +130,7 @@ Hover any cell for the component name, or click it to open that component's docs
 ## What the Matrix Says
 
 :::tip bestax is a superset of react-bulma-components
-Within the Bulma world there isn't much of a contest. react-bulma-components covers Bulma core only and hasn't shipped since February 2022. bestax covers everything it does except Bulma's old `Tile` and an unstyled `Element` primitive, and adds 55 more rows of the full matrix: date, range, and time inputs, autocomplete, rating, tag input, slider, switch, Carousel, Steps, Avatar, Badge, Toast, Tooltip, Popover, HoverCard, ContextMenu, Skeleton, Sidebar, Dialog, and Reveal, among others.
+Within the Bulma world there isn't much of a contest. react-bulma-components covers Bulma core only and hasn't shipped since February 2022. bestax covers everything it does except Bulma's old `Tile` and an unstyled `Element` primitive, and adds 55 more rows of the full matrix: date, range, and time inputs, autocomplete, rating, tag input, slider, switch, Carousel, Steps, Avatar, Badge, Toast, Tooltip, Popover, HoverCard, ContextMenu, Skeleton, Sidebar, and Reveal, among others.
 :::
 
 A few honest takeaways across the wider field:
@@ -147,7 +147,7 @@ shadcn/ui looks broad because it's a **copy-paste registry**, not an npm depende
 
 ## Corrections Welcome
 
-I compile this by hand from each library's source and docs, and this edition is mostly me fixing my own table. That's the point of doing it in the open. A fix lands on the [comparison page](/docs/guides/getting-started/compare) first, and the next edition marks it as a correction, so it never reads as something a library shipped.
+I compile this by hand from each library's source and docs, and this edition is mostly me fixing my own table. That's the point of doing it in the open. A fix lands on the [comparison page](/docs/guides/getting-started/compare) first, and the next edition marks it as a correction.
 
 :::caution Spot something off?
 Please [open an issue](https://github.com/allxsmith/bestax/issues). Corrections make the next edition better.
