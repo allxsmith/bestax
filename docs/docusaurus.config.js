@@ -5,11 +5,19 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import { themes as prismThemes } from 'prism-react-renderer';
+import { readFileSync } from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// The library version the docs were built from. A live example's StackBlitz and
+// CodeSandbox buttons install a caret range from it, so a sandbox gets this
+// release or a later compatible one, never an older one missing a documented prop.
+const bestaxVersion = JSON.parse(
+  readFileSync(path.join(__dirname, '../bulma-ui/package.json'), 'utf8')
+).version;
 
 // Compact security posture for generated llms.txt / llms-full.txt. Keep in
 // sync with the same block in bulma-ui/llms.txt and bulma-ui/AGENTS.md (#413).
@@ -47,6 +55,10 @@ const config = {
   organizationName: 'allxsmith', // Usually your GitHub org/user name.
   projectName: 'bestax', // Usually your repo name.
   trailingSlash: false,
+
+  customFields: {
+    bestaxVersion,
+  },
 
   onBrokenLinks: 'throw',
   onBrokenAnchors: 'throw',

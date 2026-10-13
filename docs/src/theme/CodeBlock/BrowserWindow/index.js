@@ -2,6 +2,7 @@ import React, { useContext } from 'react';
 import clsx from 'clsx';
 import { LiveContext } from 'react-live';
 import CustomCopyButton from '../CustomCopyButton';
+import SandboxButtons from '../SandboxButtons';
 
 import styles from './styles.module.css';
 
@@ -24,6 +25,7 @@ export default function BrowserWindow({
         </div>
         <div className={styles.browserWindowAddressBar}>{url}</div>
         <div className={styles.buttonGroup}>
+          <SandboxButtons code={code} />
           <CustomCopyButton code={code} />
         </div>
       </div>

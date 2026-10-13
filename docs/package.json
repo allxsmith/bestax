@@ -26,16 +26,19 @@
     "@fortawesome/fontawesome-free": "^7.3.1",
     "@mdi/font": "^7.4.47",
     "@mdx-js/react": "^3.0.0",
+    "@stackblitz/sdk": "^1.11.1",
     "bulma": "^1.0.4",
     "clsx": "^2.0.0",
     "ionicons": "^8.1.0",
+    "lz-string": "^1.5.0",
     "material-icons": "^1.13.14",
     "material-symbols": "^0.47.6",
     "prism-react-renderer": "^2.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-live": "^5.0.0",
-    "react-shadow": "^20.6.0"
+    "react-shadow": "^20.6.0",
+    "sucrase": "^3.35.1"
   },
   "devDependencies": {
     "@docusaurus/module-type-aliases": "^3.10.2",

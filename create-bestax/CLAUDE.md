@@ -79,6 +79,11 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
+- `templates/vite-ts` is also what the docs site's StackBlitz and CodeSandbox buttons build
+  from (`docs/src/theme/CodeBlock/sandbox/`, read at docs build time). The builders edit
+  `src/main.tsx` by string pattern, so `docs/scripts/sandbox.test.mjs` runs them against the
+  real template and fails if the bestax stylesheet import or the `./App.tsx` import moves, or
+  a file they copy is renamed.
 - The scaffolder edits the starter `App` with string patterns, so `src/__tests__/templates.test.ts`
   runs every edit against the real templates. Under a `noHelpers` flavor each helper prop in
   the starter becomes a named class from `NO_HELPERS_STARTER_CLASSES` in `src/constants.ts`;
