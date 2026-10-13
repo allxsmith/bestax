@@ -1,8 +1,8 @@
 name: Claude Deep Review
 
-# An adversarial Claude review of an AI-loop PR, once, when it opens or
-# is first labelled `ai-loop`, and of any same-repo PR a triage+ user
-# labels `deep-review`. Uses a stronger model
+# An adversarial Claude review of an AI-loop PR when it opens or is
+# labelled `ai-loop`, until a deep review is posted, and of any same-repo
+# PR a triage+ user labels `deep-review`. Uses a stronger model
 # (opus) than the sonnet implementer to decorrelate blind spots. Its
 # inline threads are work items for the fixer in claude-pr-loop.yml; the
 # fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
