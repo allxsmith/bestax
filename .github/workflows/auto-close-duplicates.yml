@@ -130,11 +130,11 @@ jobs:
               # Proves sudo and docker.sock were closed when this ran. Rule 10 in
               # .github/CLAUDE.md has what the flag and this check do not prove.
               if sudo -n true 2>/dev/null; then
-                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See the Post Harden runner step for the agent log."
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
                 exit 1
               fi
               if [ -w /var/run/docker.sock ]; then
-                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See the Post Harden runner step for the agent log."
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
                 exit 1
               fi
               exit 0
