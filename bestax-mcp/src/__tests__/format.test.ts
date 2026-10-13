@@ -395,6 +395,19 @@ describe('renderComponent CSS variable pointer', () => {
   });
 });
 
+describe('renderCssVarsAnswer without a query', () => {
+  it('never says "matching", even given no rows for a component that has some', async () => {
+    // The server passes all of a component's rows when there is no query, but the
+    // function is exported, so a caller passing an empty list mustn't get a sentence
+    // naming a query nobody made.
+    const record = await loadComponent('LinkButton');
+    expect(record.cssVars.length).toBeGreaterThan(0);
+    const out = renderCssVarsAnswer(record, []);
+    expect(out).not.toContain('matching');
+    expect(out).not.toContain('undefined');
+  });
+});
+
 describe('a component with no class of its own', () => {
   // A component that renders another's element and adds no class lists no variables,
   // so both tools answer with the pointer and nothing else. ToggleButton's record with

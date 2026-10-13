@@ -546,8 +546,9 @@ export function renderCssVarsAnswer(
       query ? ` matching "${query}"` : ''
     }.`;
   }
-  // "Matching" only where it has some of its own that didn't match.
-  return record.cssVars.length
+  // "Matching" only for a query that found none of its own rows, the way the plain
+  // sentence above keys it on the query.
+  return record.cssVars.length && query
     ? `${record.name} registers no CSS variables matching "${query}". It ${from}`
     : noCssVarsOfItsOwn(record, query);
 }
