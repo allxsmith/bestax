@@ -379,10 +379,10 @@ first, because flipping straight to block risks breaking it if the action's runt
 an un-allow-listed host — but that is a temporary state that owes a follow-up issue, not a
 resting place.
 
-Block jobs also set `disable-sudo-and-containers: true`, unless a step needs sudo or Docker. It
-shuts the ways a step gets root past the list ("What the agent allows beyond the list"), and
-none of the paths that need no root. A job that leaves it off says which step needs it, in the
-comment above its harden-runner.
+Block jobs also set `disable-sudo-and-containers: true`, unless a step needs sudo or Docker. A
+job that leaves it off says which step needs it, in the comment above its harden-runner. What
+the setting and its check do and do not prove is under "What `disable-sudo-and-containers` and
+its check prove", below.
 
 **Every block-mode job must carry the assertion step** (placement rules below the snippet):
 
@@ -392,9 +392,10 @@ comment above its harden-runner.
     set -uo pipefail
     [ -e /home/agent/agent.json ] || { echo "::error::harden-runner installed no agent"; exit 1; }
     jq -e '.egress_policy == "block"' /home/agent/agent.json || exit 1
+    # In a job that sets disable-sudo-and-containers, this line and the two in the loop:
+    jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json || exit 1
     for _ in $(seq 1 30); do
       if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
-        # only in a job that sets disable-sudo-and-containers
         if sudo -n true 2>/dev/null; then echo "::error::sudo still works"; exit 1; fi
         if [ -w /var/run/docker.sock ]; then echo "::error::docker.sock is writable"; exit 1; fi
         exit 0
@@ -420,17 +421,8 @@ Copy the full version from any block job — the shapes above are each load-bear
   its status, so a cold resolver or a long list can leave it absent or empty at this point.
 - **`^Initialized`, not `-qx`.** `writeStatus` appends without a trailing newline, so a second
   status would concatenate onto the same line and an exact-line match would stop matching.
-- **The sudo and socket check waits for `Initialized`.** The agent closes sudo and the sockets
-  before it writes that status (`disableSudoAndContainers` in `sudo.go`), so a check made earlier
-  could find them open. It proves sudo and `docker.sock` were closed at that step, and no more:
-  the agent puts sudo back when it reverts (`RevertChanges` in `agent.go`), and the check covers
-  those two, not every container endpoint. `containerd.sock` is left out because the runner user
-  cannot write it whether or not the agent closed it.
-
-  Unlike the lines above it, the check depends on the runner image as well as the pin: on how the
-  image grants the runner sudo and on the modes it gives the sockets. So a runner image change,
-  not only a pin bump, can turn every job that sets the flag red at once. The agent also purges
-  Docker in the background (`uninstallDocker` in `sudo.go`), alongside the job's first steps.
+- **The `disable-sudo-and-containers` lines** are explained under "What
+  `disable-sudo-and-containers` and its check prove", below.
 
 **Placement.** The default is immediately after harden-runner, and most jobs use it. Two things
 override it, both derived from one rule:
@@ -639,6 +631,37 @@ The codemod-registry and skills-publish comments give the reason for each host.
 
 Verify rather than assume, on any run: the assertion step passes, and harden-runner's post-step
 prints the effective `EgressPolicy:`.
+
+#### What `disable-sudo-and-containers` and its check prove
+
+Each job's comment points here. The setting closes the ways a step gets root past the list
+("Root, and containers" under "What the agent allows beyond the list", below), and none of the
+paths that need no root. Citations are to harden-runner at the pin and to step-security/agent at
+the version the pin installs.
+
+- **The `agent.json` line** shows that harden-runner took the input: the pre-step writes the
+  field from it (`src/setup.ts`), and the agent reads it from that file (`config.go`). Without
+  the line, a dropped input would surface only as "sudo still works". Like the `egress_policy`
+  line, it shows what the pre-step decided, not what the agent did.
+- **The sudo and `docker.sock` tests wait for `Initialized`,** because the agent closes both
+  before it writes that status (`disableSudoAndContainers` in `sudo.go`). They show both were
+  closed when the step ran, not that they stay closed: a later agent revert, which the flag's
+  own Docker purge might set off, puts sudo back along with the firewall (`RevertChanges` in
+  `agent.go`), and as with the policy above, no step-level check sees it.
+- **They cover sudo and `docker.sock`, not every way to reach a container.** `containerd.sock` is
+  not tested: on the hosted runners checked so far, the runner user cannot write it whether or
+  not the agent closed it, so a test there would tell us nothing.
+- **They depend on the runner image as well as the pin**: on how the image grants the runner
+  sudo, and on the modes it gives the sockets. So a runner image change, not only a pin bump, can
+  turn every job that sets the flag red at once. In `ai-scan`, a failure in `gate` or `scan`
+  flags the item, as their other assertion failures do.
+- **The agent also purges Docker in the background** (`uninstallDocker` in `sudo.go`), alongside
+  the job's first steps. It runs whenever the agent starts with the flag, including on runs that
+  stop early and run no repository code, and it holds the dpkg lock while it runs. A step in such
+  a job has no sudo for apt in any case.
+- **The post step skips the `agent.service` journal.** harden-runner prints it with
+  `sudo journalctl` only when neither sudo setting is on (`src/cleanup.ts`), so a job that sets
+  the flag does not print it. `agent.log` still prints.
 
 #### What the agent allows beyond the list
 
