@@ -1433,6 +1433,20 @@ describe('edge cases that would otherwise read as "no answer"', () => {
     expect(out).not.toContain('--bulma-button-family');
   });
 
+  it('says "matching" when a query finds none of the rows a component has', async () => {
+    // Rows of its own and no other component to point at, so the sentence is the
+    // plain one, with the query in it.
+    const box = await loadComponent('Box');
+    expect(box.cssVars.length).toBeGreaterThan(0);
+    expect(box.cssVarsFrom).toBeUndefined();
+    const out = text(
+      await call('get_css_variables', { component: 'Box', query: 'zzz' })
+    );
+    expect(out).toMatch(
+      /^Box registers no CSS variables matching "zzz"\.(\n|$)/
+    );
+  });
+
   it('describes a subcomponent that has no props of its own', async () => {
     // `Navbar.Divider` types its props inline, so it has no table. Saying
     // nothing would read as a failed lookup.
