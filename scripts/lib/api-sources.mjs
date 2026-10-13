@@ -74,7 +74,8 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  * `.button` and adds `.link-button`, so it lists what `_linkbutton.scss`
  * registers on that. ToggleButton renders Button's `.button` with no class of
  * its own, so it has no ROOT_CLASS_OVERRIDES entry, comes out `[]`, and its
- * page writes the section by hand, pointing at Button's. Copying Button's
+ * page writes the section by hand, pointing at Button's. RENDERS_ELEMENT_OF
+ * below gives the MCP index the same pointer. Copying Button's
  * table named ToggleButton, in the MCP index too, as a declarer of the
  * `is-text`, `is-ghost` and `is-static` variables, which it can't render.
  *
