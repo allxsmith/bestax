@@ -497,5 +497,6 @@
       "default": "hsl(var(--bulma-button-h), var(--bulma-button-s), var(--bulma-button-color-l))",
       "scope": "root"
     }
-  ]
+  ],
+  "cssVarsFrom": "Button"
 }
