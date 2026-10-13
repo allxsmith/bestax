@@ -692,6 +692,83 @@ describe('get_css_variables', () => {
     expect(search).toContain(`declared by ${named}`);
     expect(search).toContain('get_css_variables({ component: "DateInput" })');
   });
+
+  // "Registers no CSS variables" and nothing else read as "this can't be themed", for
+  // a component that Button's variables style perfectly well (#1045).
+  describe("a component that renders another component's element", () => {
+    const pointer = (from: string, too: string, query?: string) =>
+      `renders ${from}'s element, so ${from}'s variables style it${too}. They are ` +
+      `in \`get_css_variables({ component: "${from}"${
+        query ? `, query: "${query}"` : ''
+      } })\`.`;
+
+    it('points at the other table under its own rows', async () => {
+      const out = text(
+        await call('get_css_variables', { component: 'LinkButton' })
+      );
+      expect(out).toContain('# LinkButton CSS variables');
+      const line = `LinkButton ${pointer('Button', ' too')}`;
+      expect(out).toContain(line);
+      expect(out.indexOf(line)).toBeGreaterThan(
+        out.lastIndexOf('--bulma-link-button-')
+      );
+    });
+
+    it('keeps "matching" honest when the query finds none of its own', async () => {
+      const out = text(
+        await call('get_css_variables', {
+          component: 'LinkButton',
+          query: 'padding',
+        })
+      );
+      expect(out).toContain(
+        `LinkButton registers no CSS variables matching "padding". It ` +
+          pointer('Button', ' too', 'padding')
+      );
+      // And the call it names finds them.
+      const there = text(
+        await call('get_css_variables', {
+          component: 'Button',
+          query: 'padding',
+        })
+      );
+      expect(there).toContain('--bulma-button-padding-horizontal');
+    });
+
+    it('gives every component the index points elsewhere a call that answers', async () => {
+      const catalog = await loadCatalog();
+      const pointing = (
+        await Promise.all(catalog.components.map(c => loadComponent(c.name)))
+      ).filter(r => r.cssVarsFrom);
+      expect(pointing.map(r => r.name)).toEqual(
+        expect.arrayContaining(['LinkButton', 'ToggleButton'])
+      );
+      for (const record of pointing) {
+        const from = record.cssVarsFrom as string;
+        const out = text(
+          await call('get_css_variables', { component: record.name })
+        );
+        expect(out).toContain(
+          `\`get_css_variables({ component: "${from}" })\``
+        );
+        const there = text(
+          await call('get_css_variables', { component: from })
+        );
+        expect(there).toContain(`# ${from} CSS variables`);
+      }
+    });
+
+    it('says nothing of the kind for a component without one', async () => {
+      expect((await loadComponent('Block')).cssVarsFrom).toBeUndefined();
+      const out = text(await call('get_css_variables', { component: 'Block' }));
+      expect(out).toMatch(/^Block registers no CSS variables\.(\n|$)/);
+      expect(out).not.toContain('element, so');
+      const button = text(
+        await call('get_css_variables', { component: 'Button' })
+      );
+      expect(button).not.toContain('element, so');
+    });
+  });
 });
 
 describe('get_helper_props', () => {

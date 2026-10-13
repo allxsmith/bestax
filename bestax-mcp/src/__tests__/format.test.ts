@@ -17,6 +17,7 @@ import {
   referenceOf,
   referencePointer,
   renderComponent,
+  renderCssVarsAnswer,
   renderHelperApi,
 } from '../format.js';
 
@@ -357,5 +358,34 @@ describe('renderComponent CSS variable pointer', () => {
     expect(record.cssVars).toHaveLength(0);
     const out = renderComponent(record, ['props']);
     expect(out).not.toContain('CSS variable');
+  });
+});
+
+describe('renderCssVarsAnswer for a component with no class of its own', () => {
+  // A component that renders another's element and adds no class lists no variables,
+  // so its answer is the pointer and nothing else. ToggleButton's record with its rows
+  // taken out stands in for one; the server tests hold the records the index ships.
+  const bare = async () => ({
+    ...(await loadComponent('ToggleButton')),
+    cssVars: [],
+  });
+
+  it('says it has none of its own and names the call for the ones that style it', async () => {
+    const record = await bare();
+    expect(record.cssVarsFrom).toBe('Button');
+    expect(renderCssVarsAnswer(record, [])).toBe(
+      'ToggleButton registers no CSS variables of its own. It renders ' +
+        "Button's element, so Button's variables style it. They are in " +
+        '`get_css_variables({ component: "Button" })`.'
+    );
+  });
+
+  it('says "of its own" with a query too, and carries the query to the call', async () => {
+    // "None matching" would undersell a component that has none at all.
+    expect(renderCssVarsAnswer(await bare(), [], 'say "hi"')).toBe(
+      'ToggleButton registers no CSS variables of its own. It renders ' +
+        "Button's element, so Button's variables style it. They are in " +
+        '`get_css_variables({ component: "Button", query: "say \\"hi\\"" })`.'
+    );
   });
 });

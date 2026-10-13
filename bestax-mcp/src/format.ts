@@ -514,6 +514,44 @@ export function renderCssVars(vars: CssVar[]): string {
   return `${body}\n\n${notes.join('\n\n')}`;
 }
 
+/**
+ * get_css_variables' answer for one component, given the rows it asked for: all of
+ * `record.cssVars`, or the ones matching `query`.
+ *
+ * A component that renders another component's element (`cssVarsFrom`) is styled by
+ * that component's variables too, so the answer names the call that lists them, under
+ * its own rows when it has some and in their place when it has none. "Registers no CSS
+ * variables" on its own reads as "this can't be themed", and sends an agent to custom
+ * CSS (#1045).
+ */
+export function renderCssVarsAnswer(
+  record: ComponentRecord,
+  vars: CssVar[],
+  query?: string
+): string {
+  const from = record.cssVarsFrom;
+  const own = record.cssVars.length > 0;
+  const pointer = from
+    ? `renders ${from}'s element, so ${from}'s variables style it` +
+      `${own ? ' too' : ''}. They are in \`get_css_variables({ component: ` +
+      `"${from}"${query ? `, query: ${JSON.stringify(query)}` : ''} })\`.`
+    : null;
+  if (vars.length) {
+    const rows = `# ${record.name} CSS variables\n\n${renderCssVars(vars)}`;
+    return pointer ? `${rows}\n\n${record.name} ${pointer}` : rows;
+  }
+  if (!pointer) {
+    return `${record.name} registers no CSS variables${
+      query ? ` matching "${query}"` : ''
+    }.`;
+  }
+  // "Matching" only where it has some of its own that didn't match.
+  return (
+    `${record.name} registers no CSS variables ` +
+    `${own ? `matching "${query}"` : 'of its own'}. It ${pointer}`
+  );
+}
+
 export function renderCatalog(entries: CatalogEntry[]): string {
   const byCategory = new Map<string, CatalogEntry[]>();
   for (const e of entries) {
