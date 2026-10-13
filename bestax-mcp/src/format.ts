@@ -536,11 +536,14 @@ export function renderCssVarsAnswer(
   vars: CssVar[],
   query?: string
 ): string {
-  const from = cssVarsFromClause(record, query);
   if (vars.length) {
     const rows = `# ${record.name} CSS variables\n\n${renderCssVars(vars)}`;
-    return from ? `${rows}\n\n${record.name} ${from}` : rows;
+    // The query found its answer in these rows, so it stays behind: carried on, it
+    // would ask the other component for this one's own names and find nothing.
+    const whole = cssVarsFromClause(record);
+    return whole ? `${rows}\n\n${record.name} ${whole}` : rows;
   }
+  const from = cssVarsFromClause(record, query);
   if (!from) {
     return `${record.name} registers no CSS variables${
       query ? ` matching "${query}"` : ''

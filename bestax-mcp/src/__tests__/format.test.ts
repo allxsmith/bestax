@@ -410,6 +410,22 @@ describe('renderCssVarsAnswer without a query', () => {
   });
 });
 
+describe('renderCssVarsAnswer with a query its own rows answer', () => {
+  it("names the other component's whole table, without the query", async () => {
+    // LinkButton's own names start `--bulma-link-button-`, so a query that narrows
+    // to them matches nothing of Button's. Carried on, it would point at an empty
+    // answer.
+    const record = await loadComponent('LinkButton');
+    const query = 'link-button';
+    const own = record.cssVars.filter(v => v.css.includes(query));
+    expect(own.length).toBeGreaterThan(0);
+    const out = renderCssVarsAnswer(record, own, query);
+    expect(out).toContain('# LinkButton CSS variables');
+    expect(out).toContain('`get_css_variables({ component: "Button" })`.');
+    expect(out).not.toContain('query:');
+  });
+});
+
 describe('a component with no class of its own', () => {
   // A component that renders another's element and adds no class lists no variables,
   // so both tools answer with the pointer and nothing else. ToggleButton's record with
