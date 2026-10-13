@@ -50,7 +50,6 @@ Glama labels its builds with its own version numbers, so they don't match npm.
 | [agenticskills.io](https://agenticskills.io)                                       | Skills and MCP     | Manual    | In review.                                                                                                                                          |
 | [mcpm.sh registry](https://github.com/pathintegral-institute/mcpm.sh)              | `bestax-mcp`       | Manual    | In review in [#427](https://github.com/pathintegral-institute/mcpm.sh/pull/427). The entry gives `npx -y bestax-mcp@1` and lists each tool by name. |
 | [Kilo marketplace](https://github.com/Kilo-Org/kilo-marketplace)                   | `bestax-mcp`       | Manual    | In review in [#339](https://github.com/Kilo-Org/kilo-marketplace/pull/339). The entry gives `npx -y bestax-mcp@1`.                                  |
-| [Goose extensions directory](https://block.github.io/goose/extensions/)            | `bestax-mcp`       | Manual    | In review in [#12784](https://github.com/aaif-goose/goose/pull/12784). One object in `servers.json` giving `npx -y bestax-mcp@1`.                   |
 | [llms-txt-hub](https://llmstxthub.com)                                             | bestax.io llms.txt | Manual    | In review in [#1925](https://github.com/thedaviddias/llms-txt-hub/pull/1925). An `.mdx` file with the name, description and both URLs.              |
 | [mcp.directory](https://mcp.directory)                                             | `bestax-mcp`       | Mixed     | In review, through its form. It reads the repo for metadata. Claiming the page is an email to hello@mcp.directory.                                  |
 | [Tessl Registry](https://tessl.io/registry/skills/github/allxsmith/bestax)         | The skills         | Manual    | Listed, with evaluation pending. One entry per skill from a scan of the `skills/` folder; run the analysis again after a skill changes.             |
@@ -104,6 +103,10 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [lauthieb/awesome-storybook](https://github.com/lauthieb/awesome-storybook)                                         | Bestax Storybook                   | [#21](https://github.com/lauthieb/awesome-storybook/pull/21)                       |
 | [Piebald-AI/awesome-gemini-cli-extensions](https://github.com/Piebald-AI/awesome-gemini-cli-extensions)             | Bestax                             | [#61](https://github.com/Piebald-AI/awesome-gemini-cli-extensions/pull/61)         |
 | [VoltAgent/official-mcp-servers](https://github.com/VoltAgent/official-mcp-servers)                                 | allxsmith/bestax                   | [#9](https://github.com/VoltAgent/official-mcp-servers/pull/9)                     |
+| [AIAnytime/Awesome-MCP-Server](https://github.com/AIAnytime/Awesome-MCP-Server)                                     | Bestax                             | [#169](https://github.com/AIAnytime/Awesome-MCP-Server/pull/169)                   |
+| [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills)                                 | allxsmith/bestax                   | [#1132](https://github.com/VoltAgent/awesome-agent-skills/pull/1132)               |
+| [VoltAgent/awesome-openclaw-skills](https://github.com/VoltAgent/awesome-openclaw-skills)                           | bestax-layout-scaffold             | [#591](https://github.com/VoltAgent/awesome-openclaw-skills/pull/591)              |
+| [aycanogut/front-end-resources](https://github.com/aycanogut/front-end-resources)                                   | bestax-bulma                       | [#89](https://github.com/aycanogut/front-end-resources/pull/89)                    |
 
 ### In review
 
@@ -112,7 +115,6 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [enaqx/awesome-react](https://github.com/enaqx/awesome-react)                                             | bestax-bulma                              | [#1862](https://github.com/enaqx/awesome-react/pull/1862)                     |
 | [brillout/awesome-react-components](https://github.com/brillout/awesome-react-components)                 | Bestax                                    | [#616](https://github.com/brillout/awesome-react-components/pull/616)         |
 | [jgthms/bulma](https://github.com/jgthms/bulma) (README)                                                  | Bestax                                    | [#4014](https://github.com/jgthms/bulma/pull/4014)                            |
-| [aycanogut/front-end-resources](https://github.com/aycanogut/front-end-resources)                         | bestax-bulma                              | [#89](https://github.com/aycanogut/front-end-resources/pull/89)               |
 | [semlinker/awesome-typescript](https://github.com/semlinker/awesome-typescript)                           | create-bestax                             | [#198](https://github.com/semlinker/awesome-typescript/pull/198)              |
 | [SecretiveShell/Awesome-llms-txt](https://github.com/SecretiveShell/Awesome-llms-txt)                     | bestax.io llms.txt                        | [#200](https://github.com/SecretiveShell/Awesome-llms-txt/pull/200)           |
 | [punkpeye/awesome-mcp-servers](https://github.com/punkpeye/awesome-mcp-servers)                           | allxsmith/bestax                          | [#15446](https://github.com/punkpeye/awesome-mcp-servers/pull/15446)          |
@@ -120,7 +122,6 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [ai-for-developers/awesome-ai-coding-tools](https://github.com/ai-for-developers/awesome-ai-coding-tools) | Bestax                                    | [#817](https://github.com/ai-for-developers/awesome-ai-coding-tools/pull/817) |
 | [eltociear/awesome-AI-driven-development](https://github.com/eltociear/awesome-AI-driven-development)     | bestax-mcp                                | [#146](https://github.com/eltociear/awesome-AI-driven-development/pull/146)   |
 | [narrowin/awesome-generative-ui](https://github.com/narrowin/awesome-generative-ui)                       | bestax-mcp                                | [#21](https://github.com/narrowin/awesome-generative-ui/pull/21)              |
-| [VoltAgent/awesome-agent-skills](https://github.com/VoltAgent/awesome-agent-skills)                       | allxsmith/bestax                          | [#1132](https://github.com/VoltAgent/awesome-agent-skills/pull/1132)          |
 | [abubakarsiddik31/claude-skills-collection](https://github.com/abubakarsiddik31/claude-skills-collection) | Bestax                                    | [#57](https://github.com/abubakarsiddik31/claude-skills-collection/pull/57)   |
 | [GetBindu/awesome-claude-code-and-skills](https://github.com/GetBindu/awesome-claude-code-and-skills)     | allxsmith/bestax                          | [#237](https://github.com/GetBindu/awesome-claude-code-and-skills/pull/237)   |
 | [JayLZhou/Awesome-Agent-Skills](https://github.com/JayLZhou/Awesome-Agent-Skills)                         | Bestax Skills                             | [#48](https://github.com/JayLZhou/Awesome-Agent-Skills/pull/48)               |
@@ -133,7 +134,6 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [nafasebra/awesome-webdesign-tools](https://github.com/nafasebra/awesome-webdesign-tools)                 | Bestax                                    | [#149](https://github.com/nafasebra/awesome-webdesign-tools/pull/149)         |
 | [aldi/awesome-bulma](https://github.com/aldi/awesome-bulma)                                               | bestax-mcp and Bestax Skills, new section | [#6](https://github.com/aldi/awesome-bulma/pull/6)                            |
 | [tolkonepiu/best-of-mcp-servers](https://github.com/tolkonepiu/best-of-mcp-servers)                       | allxsmith/bestax                          | [#481](https://github.com/tolkonepiu/best-of-mcp-servers/pull/481)            |
-| [AIAnytime/Awesome-MCP-Server](https://github.com/AIAnytime/Awesome-MCP-Server)                           | Bestax                                    | [#169](https://github.com/AIAnytime/Awesome-MCP-Server/pull/169)              |
 | [YuzeHao2023/Awesome-MCP-Servers](https://github.com/YuzeHao2023/Awesome-MCP-Servers)                     | Bestax                                    | [#594](https://github.com/YuzeHao2023/Awesome-MCP-Servers/pull/594)           |
 | [ccplugins/awesome-claude-code-plugins](https://github.com/ccplugins/awesome-claude-code-plugins)         | Bestax and allxsmith/bestax-skills        | [#661](https://github.com/ccplugins/awesome-claude-code-plugins/pull/661)     |
 | [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills)                   | bestax-skills                             | [#2154](https://github.com/ComposioHQ/awesome-claude-skills/pull/2154)        |
@@ -144,7 +144,6 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [rohitg00/awesome-claude-code-toolkit](https://github.com/rohitg00/awesome-claude-code-toolkit)           | bestax-skills                             | [#832](https://github.com/rohitg00/awesome-claude-code-toolkit/pull/832)      |
 | [Prat011/awesome-llm-skills](https://github.com/Prat011/awesome-llm-skills)                               | bestax-skills                             | [#273](https://github.com/Prat011/awesome-llm-skills/pull/273)                |
 | [finfin/awesome-frontend-skills](https://github.com/finfin/awesome-frontend-skills)                       | allxsmith/bestax                          | [#6](https://github.com/finfin/awesome-frontend-skills/pull/6)                |
-| [VoltAgent/awesome-openclaw-skills](https://github.com/VoltAgent/awesome-openclaw-skills)                 | bestax-layout-scaffold                    | [#591](https://github.com/VoltAgent/awesome-openclaw-skills/pull/591)         |
 
 Every list entry is Manual: it holds the text we submitted until someone opens a pull request
 against that list.
@@ -172,6 +171,7 @@ Not live yet.
 | [PulseMCP](https://www.pulsemcp.com)                                                                                                                                            | `bestax-mcp`                | Automatic | Closed to submissions; says it will import from the official MCP registry when it reopens.                                                                                                                                      |
 | [RoggeOhta/awesome-codex-cli](https://github.com/RoggeOhta/awesome-codex-cli) and [awesome-opencode](https://github.com/awesome-opencode/awesome-opencode)                      | The skills                  | Manual    | Each wants docs that cover its agent, and the skills docs mention neither Codex nor OpenCode.                                                                                                                                   |
 | [markodenic/web-development-resources](https://github.com/markodenic/web-development-resources) and [agarrharr/awesome-cli-apps](https://github.com/agarrharr/awesome-cli-apps) | bestax-bulma, create-bestax | Manual    | Both refuse submissions written with an LLM, so a maintainer writes these by hand.                                                                                                                                              |
+| [goose extensions directory](https://goose-docs.ai/extensions/)                                                                                                                 | `bestax-mcp`                | Unknown   | Closed without merging in [#12784](https://github.com/aaif-goose/goose/pull/12784). goose takes no new third-party servers in its directory and is moving to the Official MCP Registry, which lists `bestax-mcp` already.       |
 | farhan523/awesome-js-starters                                                                                                                                                   | `@allxsmith/bestax-bulma`   | Manual    | The repository stopped resolving shortly after [#59](https://github.com/farhan523/awesome-js-starters/pull/59) opened with a package README. The fork `allxsmith/awesome-js-starters` keeps that README if the list comes back. |
 
 ## GitHub topics
@@ -204,13 +204,13 @@ Say in the pull request which listings need an update, then open those updates o
 - **Changing what `bestax-mcp` offers.** Most MCP entries say it serves props, examples, CSS
   variables and Agent Skills, offline, with no API key. awesome-AI-driven-development also gives
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
-  `BESTAX_MCP_NO_VERSION_CHECK` variable, and the mcpm.sh registry lists each tool by name. The
-  goose extensions directory, AIAnytime, YuzeHao2023, ccplugins, best-of-mcp-servers,
+  `BESTAX_MCP_NO_VERSION_CHECK` variable, and the mcpm.sh registry lists each tool by name.
+  AIAnytime, YuzeHao2023, ccplugins, best-of-mcp-servers,
   Chat2AnyLLM's `mcp_server_repos.json`, the Cline issue and mcp.directory carry the same
   description. official-mcp-servers, the new awesome-bulma section and
   awesome-gemini-cli-extensions give a shorter one.
 - **A new major of `bestax-mcp`.** Awesome-MCP-ZH, TensorBlock, cursor.directory, the mcpm.sh
-  registry, the Kilo marketplace, the goose extensions directory, AIAnytime, ccplugins,
+  registry, the Kilo marketplace, AIAnytime, ccplugins,
   Chat2AnyLLM, the Cline issue and mcp.directory give `npx -y bestax-mcp@1` as the command. The `bestax` plugin does not go stale here: it pins the
   exact version, and `skills-publish.yml` regenerates it after each release.
 - **A plugin release.** Once listed, awesome-copilot, the OpenAI directory and Kiro pin the
