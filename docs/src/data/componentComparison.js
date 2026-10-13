@@ -1861,23 +1861,31 @@ export const categories = [
 ];
 
 // ---------------------------------------------------------------------------
-// Corrections: cells fixed after an edition went out because that edition had
-// them wrong, not because the library changed. The next edition's changes
-// table marks each one as a correction instead of as something that shipped.
+// Corrections: cells and row names fixed after an edition went out because
+// that edition had them wrong, not because the library changed. The next
+// edition's changes table marks a corrected cell as a correction instead of
+// as something that shipped.
 // Snapshots carry this list as it stands, so published editions never change.
 //
 // A fix names the edition it corrects by that edition's `reviewed` date
 // (between editions, that's `lastReviewed`), the pull request that made it,
-// and the mark it gave each cell ('full', 'partial' or 'none'), by capability
-// and library id. A cell reads as a correction only while it still has the
-// fix's mark, so a release that moves it again before the next edition reads
-// as a change. Record a fix in the same PR as the matrix edit; the runbook is
+// and the mark it gave each cell ('full', 'partial' or 'none'), by the row's
+// name in that edition and the library id. A cell reads as a correction only
+// while it still has the fix's mark, so a release that moves it again before
+// the next edition reads as a change. A fix that renamed a row maps the old
+// name to the new one in `renamed`, so the table compares the row under its
+// new name with the old one, rather than showing one dropped and one new. A
+// row a fix added has nothing to compare with, so it still shows as new.
+// Record a fix in the same PR as the matrix edit; the runbook is
 // docs/blog/CLAUDE.md.
 // ---------------------------------------------------------------------------
 export const corrections = [
   {
     edition: '2026-09-26',
     pr: 766,
+    renamed: {
+      'Box (polymorphic primitive)': 'Styling primitive (unstyled, any tag)',
+    },
     cells: {
       'Close / delete button': { rbulma: 'partial' },
       'Copy button': { shadcn: 'partial' },
