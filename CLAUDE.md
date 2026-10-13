@@ -278,8 +278,7 @@ green and every AI review thread is resolved.
   `deep-review:` is `fresh` as a word of its own (not `fresh,`), can make it a full review of the current
   code instead. A steer selects the MODE of a run the label toggle starts and does not start
   one; which steer a run reads, and how to get a verify pass back, are in the focus step of
-  `claude-review.yml`. A steer the run cannot read leaves it unfocused rather than failing,
-  so on a PR that already has a deep review, a fresh steer the run cannot read gives a verify pass.
+  `claude-review.yml`.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so

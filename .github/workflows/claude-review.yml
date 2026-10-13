@@ -266,8 +266,8 @@ jobs:
       #
       # Which steer a run reads: each author's newest "deep-review:" comment
       # (by when it was posted), newest first, and the first whose author
-      # verifies triage+. So the newest triage+ steer the run can see is the
-      # one it reads, and an outsider's is not read. Only the authors with the
+      # verifies triage+. So the run reads the newest steer whose author it
+      # verifies, and an outsider's is not read. Only the authors with the
       # newest steers, up to the script's cap, are role-checked, which bounds
       # the API calls comment spam can force, so enough newer outside authors
       # would hide a maintainer's steer and the run would read none. The
@@ -284,8 +284,10 @@ jobs:
       # Emits a fully-formed FOCUS block, or an empty string, so the prompt
       # needs no conditional. Best-effort by design, since the steer is an
       # enhancement and not an authorization gate: unlike the perm step it
-      # degrades open, and an API failure means an unfocused review, never a
-      # red run. On ai-loop `opened` events no comments can exist yet, so
+      # degrades open, and an API failure never turns the run red. A failed
+      # comment fetch leaves the run unfocused; a failed role lookup skips
+      # that author, so the next verified author's steer is read, if there
+      # is one. On ai-loop `opened` events no comments can exist yet, so
       # this is a cheap no-op there.
       - name: Extract focus steer
         id: focus
