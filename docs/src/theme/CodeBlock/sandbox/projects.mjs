@@ -266,10 +266,16 @@ export function codesandboxFiles({
   const vite = JSON.parse(template['package.json']);
   const fromTemplate = names =>
     Object.fromEntries(
-      names.map(name => [
-        name,
-        vite.dependencies[name] ?? vite.devDependencies[name],
-      ])
+      names.map(name => {
+        const version = vite.dependencies[name] ?? vite.devDependencies[name];
+        if (!version) {
+          throw new Error(
+            `The template's package.json no longer lists ${name}, so the ` +
+              'CodeSandbox project cannot pin it.'
+          );
+        }
+        return [name, version];
+      })
     );
 
   const main = template['src/main.tsx'];
@@ -328,6 +334,7 @@ export function codesandboxFiles({
       content: main.replace("from './App.tsx'", "from './App'"),
     },
     'src/index.css': { content: template['src/index.css'] },
+    'src/css.d.ts': { content: "declare module '*.css';\n" },
     'src/App.tsx': { content: app },
     'tsconfig.json': {
       content: `${JSON.stringify(CODESANDBOX_TSCONFIG, null, 2)}\n`,

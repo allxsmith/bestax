@@ -373,6 +373,7 @@ describe('codesandboxFiles', () => {
       'package.json',
       'public/index.html',
       'src/App.tsx',
+      'src/css.d.ts',
       'src/index.css',
       'src/index.tsx',
       'tsconfig.json',

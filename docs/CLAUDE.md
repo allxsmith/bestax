@@ -109,7 +109,7 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   button (`src/theme/CodeBlock/SandboxButtons`, builders in `src/theme/CodeBlock/sandbox/`).
   The project is built in the reader's browser when they click, from the code in the editor:
   the fence becomes an `App.tsx` with exactly the imports it uses, inside the create-bestax
-  `vite-ts` template, installing the library release this build read or a later compatible one.
+  `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
   Nothing is published ahead of time and a fence needs no marker. A component that exists only in this site goes in
   `docsOnlyScope` in `src/theme/CodeBlock/scope.js` (and in the scope header of
   `scripts/docs-fence-types.test.mjs`): an example using one shows no sandbox buttons, since no
