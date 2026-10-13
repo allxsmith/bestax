@@ -42,13 +42,7 @@ const FLAG = 'disable-sudo-and-containers';
  * whose job now sets the flag, or no longer exists, fails the test, so none
  * outlives its reason.
  */
-const PENDING = new Map([
-  [
-    'claude-review.yml:review',
-    "its change rides on #730's PR: a PR whose claude-review.yml differs " +
-      "from main's gets no deep review",
-  ],
-]);
+const PENDING = new Map([]);
 
 /** Each arm's opening line, as a regex source. */
 const ARMS = {
