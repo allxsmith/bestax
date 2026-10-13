@@ -456,6 +456,10 @@ const Segment = forwardRef<HTMLButtonElement, SegmentedControlSegmentProps>(
       const target = segmentFor(event.currentTarget, event.key);
       if (!target) return;
       event.preventDefault();
+      // The row has taken this key, so nothing above it acts on it too: a
+      // Carousel moves its slide on the arrows from a document listener that
+      // doesn't read `defaultPrevented`. Keys the row leaves alone still bubble.
+      event.stopPropagation();
       target.focus();
       // The check follows focus, APG's rule for a radio group outside a
       // toolbar. It goes through a click on the segment, as a native radio's
