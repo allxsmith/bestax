@@ -1407,10 +1407,20 @@ describe('edge cases that would otherwise read as "no answer"', () => {
   });
 
   it('narrows CSS variables within one component', async () => {
+    // A query that matches some of Button's variables and not others. One matching none
+    // would pass a check for the query's own text, since the "none matching" sentence
+    // repeats it.
+    const all = (await loadComponent('Button')).cssVars.map(v => v.css);
+    const matching = all.filter(css => css.includes('padding'));
+    expect(matching.length).toBeGreaterThan(0);
+    expect(matching.length).toBeLessThan(all.length);
+    expect(all).toContain('--bulma-button-family');
+
     const out = text(
-      await call('get_css_variables', { component: 'Button', query: 'radius' })
+      await call('get_css_variables', { component: 'Button', query: 'padding' })
     );
-    expect(out).toContain('radius');
+    expect(out).toContain('# Button CSS variables');
+    for (const css of matching) expect(out).toContain(`\`${css}\``);
     expect(out).not.toContain('--bulma-button-family');
   });
 
