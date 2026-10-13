@@ -109,7 +109,9 @@ jobs:
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
       #
       # No disable-sudo-and-containers (rule 10): the Stage gh-thread helper
-      # step below installs into /usr/local/bin with sudo.
+      # step below installs into /usr/local/bin with sudo. That leaves the root
+      # paths past the list open in a job holding bestaxbot's PAT and SSH
+      # signing key ("What the agent allows beyond the list").
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
