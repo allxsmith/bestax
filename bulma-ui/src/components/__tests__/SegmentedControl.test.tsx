@@ -2,6 +2,7 @@ import React, { createRef, useState } from 'react';
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { renderToString } from 'react-dom/server';
+import { createPortal } from 'react-dom';
 import { hydrateRoot } from 'react-dom/client';
 import {
   SegmentedControl,
@@ -519,6 +520,51 @@ describe('SegmentedControl', () => {
         expect(event).toBe(true);
       }
       expect(checkedStates()).toEqual(['false', 'false', 'false', 'false']);
+    });
+
+    it('leaves the keys alone on a segment portaled out of its row, and still lets a click check it', async () => {
+      const user = userEvent.setup();
+      const onChange = jest.fn();
+      render(
+        <SegmentedControl
+          aria-label="View"
+          defaultValue="list"
+          onChange={onChange}
+        >
+          <SegmentedControl.Segment value="list">List</SegmentedControl.Segment>
+          {createPortal(
+            <SegmentedControl.Segment value="grid">Grid</SegmentedControl.Segment>,
+            document.body
+          )}
+        </SegmentedControl>
+      );
+      expect(group()).not.toContainElement(radio('Grid'));
+      // A throw in a React handler is reported, not thrown back to the test.
+      const errors: unknown[] = [];
+      const onError = (event: ErrorEvent) => {
+        event.preventDefault();
+        errors.push(event.error);
+      };
+      window.addEventListener('error', onError);
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      try {
+        act(() => radio('Grid').focus());
+        for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End']) {
+          expect(fireEvent.keyDown(radio('Grid'), { key })).toBe(true);
+        }
+        expect(errors).toEqual([]);
+        expect(errorSpy).not.toHaveBeenCalled();
+      } finally {
+        window.removeEventListener('error', onError);
+        errorSpy.mockRestore();
+      }
+      expect(radio('Grid')).toHaveFocus();
+      expect(onChange).not.toHaveBeenCalled();
+      await user.click(radio('Grid'));
+      expect(onChange).toHaveBeenCalledWith('grid');
+      expect(radio('Grid')).toHaveAttribute('aria-checked', 'true');
     });
 
     it.each([

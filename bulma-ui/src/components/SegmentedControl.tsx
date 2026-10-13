@@ -72,13 +72,15 @@ const STEPS: Record<string, number> = {
 /**
  * The segment a key moves to, found among the segments of the same group in
  * DOM order, skipping disabled ones and wrapping at either end. `undefined`
- * for a key the group leaves alone, or when no enabled segment is left.
+ * for a key the group leaves alone, when no enabled segment is left, or when
+ * the segment isn't inside its row in the page, as a portaled one isn't.
  */
 function segmentFor(
   current: HTMLButtonElement,
   key: string
 ): HTMLButtonElement | undefined {
-  const group = current.closest('[role="radiogroup"]') as HTMLElement;
+  const group = current.closest('[role="radiogroup"]');
+  if (!group) return undefined;
   const segments = Array.from(
     group.querySelectorAll<HTMLButtonElement>('[role="radio"]')
   );
