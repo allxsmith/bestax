@@ -218,5 +218,6 @@
       "types": []
     }
   ],
-  "cssVars": []
+  "cssVars": [],
+  "cssVarsFrom": "Button"
 }
