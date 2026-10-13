@@ -1,3 +1,22 @@
+# [5.32.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.31.0...@allxsmith/bestax-bulma@5.32.0) (2026-10-13)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** leave the query behind when a component's own rows answered it ([ec8a2f1](https://github.com/allxsmith/bestax/commit/ec8a2f183072a6a9b20036d5722217f0e798a93c))
+* **bestax-mcp:** say "matching" in the pointer answer only when there is a query ([2d28530](https://github.com/allxsmith/bestax/commit/2d28530b797a9f0fae350f0fcd5a910b0d56c147))
+* **bestax-mcp:** say Button's variables style it for the colors and modifiers it accepts ([2b94042](https://github.com/allxsmith/bestax/commit/2b94042fd80ed0f448de2dcccb5ead13dd463dae))
+* **bulma-ui:** keep SegmentedControl's fallback tab stop on the first segment after a reorder ([b32df32](https://github.com/allxsmith/bestax/commit/b32df32877122a8870e3d450c3d30bb1760777a4))
+* **bulma-ui:** leave the keys alone on a SegmentedControl segment outside its row ([f477666](https://github.com/allxsmith/bestax/commit/f47766604a80625d9c78f432b73dbe807885568b))
+* **bulma-ui:** stop the keys a SegmentedControl takes from reaching listeners above it ([6b9e797](https://github.com/allxsmith/bestax/commit/6b9e7970c8edb3277dac25fe86cf8a84acc75517))
+
+
+### Features
+
+* **bestax-mcp:** name the other component's call in get_component's theming hint ([cbedd5f](https://github.com/allxsmith/bestax/commit/cbedd5f7d27b340f16eac301881e7f13e32d30b5))
+* **bestax-mcp:** point get_css_variables at the component whose element a component renders ([d4be1a8](https://github.com/allxsmith/bestax/commit/d4be1a85b80e033bcb5728a9a0848dada7bfcf1c))
+* **bulma-ui:** add SegmentedControl, a row of buttons where only one can be on ([b1be0e8](https://github.com/allxsmith/bestax/commit/b1be0e8997bac7949e3086ca69338105c1a3a311)), closes [#1040](https://github.com/allxsmith/bestax/issues/1040)
+
 # [5.31.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.30.0...@allxsmith/bestax-bulma@5.31.0) (2026-10-13)
 
 
