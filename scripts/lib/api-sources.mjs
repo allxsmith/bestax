@@ -290,6 +290,11 @@ export const SCSS_SOURCES = {
  * Declared rather than read from the root class: LinkButton renders Button's
  * `.button` under a class of its own. Hand-written, so it sits outside the
  * generated markers, where `pnpm gen:api-sources` leaves it alone.
+ *
+ * Keyed by component, the way the server answers a CSS variable lookup. A part
+ * of a compound component that renders another component's element has no key
+ * here, since the lookup answers a part with its parent's rows, so a part
+ * missing from this map doesn't mean it renders an element of its own.
  */
 export const RENDERS_ELEMENT_OF = {
   LinkButton: 'Button', // renders `.button.link-button` through Button
