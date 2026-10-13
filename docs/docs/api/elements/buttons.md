@@ -101,7 +101,7 @@ Set the `size` prop (`'small'`, `'medium'`, `'large'`) on `Buttons` to size ever
 
 ### Add-ons (No Spacing Between Buttons)
 
-The `hasAddons` prop removes spacing between buttons, making them appear as a single connected group. This is useful for segmented controls or tightly grouped actions.
+The `hasAddons` prop removes spacing between buttons, making them appear as a single connected group. This is useful for tightly grouped actions. A row where only one button can be on, such as left, center or right alignment, is a [`SegmentedControl`](../components/segmentedcontrol.md): it draws this same row, fills the chosen button, and handles the choosing and the keyboard for you.
 
 ```tsx live
 <Buttons hasAddons>
@@ -162,7 +162,7 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 - Grouping buttons in a `<div class="buttons">` has no negative impact on accessibility.
 - Ensure each `Button` has a clear label (text or `aria-label`).
-- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](./togglebutton.md) in `Buttons hasAddons`, and give the `Buttons` `role="group"` and an `aria-label`. A set where only one can be on is a radio group, so use [`Radios`](../form/radios.md) for it.
+- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](./togglebutton.md) in `Buttons hasAddons`, and give the `Buttons` `role="group"` and an `aria-label`. A set where only one can be on is a radio group, so use [`SegmentedControl`](../components/segmentedcontrol.md) for it, which draws the same `has-addons` row, or [`Radios`](../form/radios.md) when the choice is sent with a form.
 
 :::tip
 You can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.
@@ -174,6 +174,7 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 
 - [`Button`](./button.md): The underlying button component used in the group.
 - [`ToggleButton`](./togglebutton.md): A button that stays pressed, for a set of toggles in a group.
+- [`SegmentedControl`](../components/segmentedcontrol.md): A `has-addons` row where only one button can be on.
 - [Helper Props](../helpers/usebulmaclasses.md): All supported Bulma helper props for layout, color, and spacing.
 
 ---
