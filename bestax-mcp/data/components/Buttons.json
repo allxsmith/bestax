@@ -536,7 +536,7 @@
           "name": "onPressedChange",
           "type": "(pressed: boolean) => void",
           "default": null,
-          "description": "Called with the new state each time it's toggled, by a click, Enter or Space, whether or not `pressed` is set. An `onClick` that calls `preventDefault()` stops the toggle, and this doesn't fire.",
+          "description": "Called with the new state each time it's toggled, whether or not `pressed` is set. An `onClick` that calls `preventDefault()` stops the toggle, and this doesn't fire.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -563,7 +563,7 @@
           "name": "isLoading",
           "type": "boolean",
           "default": "false",
-          "description": "Shows Bulma's spinner in place of the label and holds the toggle where it is: a click, Enter or Space does nothing, so neither `onClick` nor `onPressedChange` fires, until it's cleared. Set it while a change is saving. The button carries `aria-busy=\"true\"` meanwhile and stays focusable, so focus isn't lost mid-save. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
+          "description": "Shows Bulma's spinner in place of the label and holds the toggle where it is: a click, Enter or Space does nothing, so neither `onClick` nor `onPressedChange` fires, until it's cleared. Set it while a change is saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and stays focusable, so focus isn't lost mid-save. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with bestax's CSS loaded).",
           "required": false,
           "inherited": false,
           "deprecated": false
