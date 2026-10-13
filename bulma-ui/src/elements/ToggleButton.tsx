@@ -58,9 +58,9 @@ export interface ToggleButtonProps
   /** Whether it starts pressed, when it holds its own state. */
   defaultPressed?: boolean;
   /**
-   * Called with the new state each time it's toggled, by a click, Enter or
-   * Space, whether or not `pressed` is set. An `onClick` that calls
-   * `preventDefault()` stops the toggle, and this doesn't fire.
+   * Called with the new state each time it's toggled, whether or not
+   * `pressed` is set. An `onClick` that calls `preventDefault()` stops the
+   * toggle, and this doesn't fire.
    */
   onPressedChange?: (pressed: boolean) => void;
   /**
@@ -78,6 +78,16 @@ export interface ToggleButtonProps
    * ("Play", then "Pause") belongs on a plain `Button`.
    */
   children?: React.ReactNode;
+  /**
+   * Shows Bulma's spinner in place of the label and holds the toggle where it
+   * is: a click, Enter or Space does nothing, so neither `onClick` nor
+   * `onPressedChange` fires, until it's cleared. Set it while a change is
+   * saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and
+   * stays focusable, so focus isn't lost mid-save. Under
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with
+   * bestax's CSS loaded).
+   */
+  isLoading?: boolean;
   /**
    * Not accepted: `aria-pressed` follows the state. Declared because JSX lets a
    * hyphenated attribute through when the props don't name it, so leaving it
@@ -119,6 +129,9 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
       defaultPressed = false,
       onPressedChange,
       color = 'link',
+      isLoading,
+      'aria-busy': ariaBusy,
+      'aria-disabled': ariaDisabled,
       className,
       onClick,
       ...props
@@ -137,7 +150,12 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
     // The caller's onClick runs first, so a `preventDefault()` there vetoes
     // the toggle, as it does in Radix, MUI and Zag. Enter and Space reach here
     // through the button's own click, and a disabled button gets no click.
+    //
+    // A loading one gets the click but drops it. Bulma's spinner only stops a
+    // pointer, so without this a key flipped a toggle the mouse couldn't.
+    // `disabled` would stop both, but it takes focus away mid-save.
     const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+      if (isLoading) return;
       onClick?.(event);
       if (event.defaultPrevented) return;
       const next = !pressed;
@@ -145,15 +163,20 @@ export const ToggleButton = forwardRef<HTMLButtonElement, ToggleButtonProps>(
       if (!isControlled) setInternalPressed(next);
     };
 
-    // The props are spread first, so the four things a toggle depends on win
-    // over anything a JavaScript caller or a spread object passes along: it
-    // stays a button, never submits, and reports the state it's in.
+    // The props are spread first, so what a toggle depends on wins over
+    // anything a JavaScript caller or a spread object passes along: it stays
+    // a button, never submits, reports the state it's in, and says it's busy
+    // and won't respond while it's loading. A caller's own `aria-busy` or
+    // `aria-disabled` stays when it isn't loading.
     return (
       <Button
         {...props}
         ref={ref}
         as="button"
         type="button"
+        isLoading={isLoading}
+        aria-busy={isLoading || ariaBusy}
+        aria-disabled={isLoading || ariaDisabled}
         aria-pressed={pressed}
         color={pressed ? color : undefined}
         className={classNames(selectedClass, className)}

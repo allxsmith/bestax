@@ -139,14 +139,21 @@ The `isRight` prop aligns the button group to the right edge of its container. T
 
 ### Compound (dot-notation) usage
 
-`Button` and `LinkButton` are also available as `Buttons.Button` and `Buttons.LinkButton`, so a button group can be composed from the single `Buttons` import.
+`Button`, `LinkButton` and `ToggleButton` are also available as `Buttons.Button`, `Buttons.LinkButton` and `Buttons.ToggleButton`, so a button group, a set of toggles included, can be composed from the single `Buttons` import.
 
 ```tsx live
-<Buttons>
-  <Buttons.Button color="primary">Save</Buttons.Button>
-  <Buttons.Button>Cancel</Buttons.Button>
-  <Buttons.LinkButton>Learn more</Buttons.LinkButton>
-</Buttons>
+<>
+  <Buttons>
+    <Buttons.Button color="primary">Save</Buttons.Button>
+    <Buttons.Button>Cancel</Buttons.Button>
+    <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+  </Buttons>
+  <Buttons hasAddons role="group" aria-label="Text style">
+    <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>
+    <Buttons.ToggleButton>Italic</Buttons.ToggleButton>
+    <Buttons.ToggleButton>Underline</Buttons.ToggleButton>
+  </Buttons>
+</>
 ```
 
 ---
@@ -199,5 +206,6 @@ You can use all Bulma helper props (spacing, color, alignment) with `Buttons` fo
 
 - [`Buttons.Button`](button.md): The `Button` component provides a flexible and highly customizable button for your Bulma React UI.
 - [`Buttons.LinkButton`](linkbutton.md): The `LinkButton` component renders a `<button>` that visually looks like text or a link.
+- [`Buttons.ToggleButton`](togglebutton.md): The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type="button">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role="group"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `Radios`.
 
 <!-- /bestax:generated props -->

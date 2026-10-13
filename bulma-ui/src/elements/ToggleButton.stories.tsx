@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ToggleButton, type ToggleButtonColor } from './ToggleButton';
 import { Buttons } from './Buttons';
 import { Icon } from './Icon';
@@ -44,7 +44,7 @@ const meta: Meta<typeof ToggleButton> = {
     onPressedChange: {
       control: false,
       description:
-        'Called with the new state on each click, Enter or Space, whether or not pressed is set',
+        'Called with the new state each time it is toggled, whether or not pressed is set',
     },
     color: {
       control: 'select',
@@ -67,7 +67,8 @@ const meta: Meta<typeof ToggleButton> = {
     },
     isLoading: {
       control: 'boolean',
-      description: 'Shows Bulma’s spinner in place of the label',
+      description:
+        'Shows Bulma’s spinner in place of the label and holds the toggle: no clicks, no keys and no onPressedChange until it is cleared',
     },
     isDisabled: {
       control: 'boolean',
@@ -77,7 +78,7 @@ const meta: Meta<typeof ToggleButton> = {
     onClick: {
       control: false,
       description:
-        'Runs before the toggle; calling preventDefault() in it stops the toggle',
+        'Runs before the toggle, unless the button is loading; calling preventDefault() in it stops the toggle',
     },
   },
   args: {
@@ -172,6 +173,38 @@ export const IconOnly: Story = {
           <Icon name="heart" />
         </ToggleButton>
       </Buttons>
+    );
+  },
+};
+
+/**
+ * Loading while a change saves. Press it and it shows the spinner and holds
+ * still, to a click, Enter or Space, until the save lands.
+ */
+export const Loading: Story = {
+  render: function LoadingExample(args) {
+    const [pinned, setPinned] = useState(false);
+    const [saving, setSaving] = useState(false);
+
+    // Stands in for the request that saves the change.
+    useEffect(() => {
+      if (!saving) return undefined;
+      const timer = setTimeout(() => setSaving(false), 1500);
+      return () => clearTimeout(timer);
+    }, [saving]);
+
+    return (
+      <ToggleButton
+        {...args}
+        pressed={pinned}
+        isLoading={saving}
+        onPressedChange={next => {
+          setPinned(next);
+          setSaving(true);
+        }}
+      >
+        Pin
+      </ToggleButton>
     );
   },
 };
