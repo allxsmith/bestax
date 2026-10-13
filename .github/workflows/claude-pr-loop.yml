@@ -333,8 +333,8 @@ jobs:
       # on that issue, each read out of its own `Post Harden runner` log rather
       # than transcribed from the StepSecurity UI.
       #
-      # The sibling sweep/gate/handoff/halt jobs make GitHub API calls only and
-      # carry no harden-runner; only `fix` and `verify` execute repo code.
+      # The sibling sweep/gate/handoff/halt jobs carry no harden-runner. Rule
+      # 10's inventory in .github/CLAUDE.md says which of them run code.
       #
       # Apart from one addition, these hosts are the set already enforcing on ai-scan/scan,
       # ai-triage/triage and claude-repro/author, and the measurement came out a
