@@ -107,6 +107,9 @@ jobs:
       # Resolve any host before adding it here. An unresolvable entry is not inert:
       # the agent reverts the firewall while the pre-step still exits 0, which is
       # how statsig.anthropic.com silently disabled the policy on #577 (rule 10).
+      #
+      # No disable-sudo-and-containers (rule 10): the Stage gh-thread helper
+      # step below installs into /usr/local/bin with sudo.
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:

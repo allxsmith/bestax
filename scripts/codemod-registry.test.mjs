@@ -228,7 +228,13 @@ test('only the publish job holds the environment, the secret and id-token: write
   );
   for (const job of [validateJob, publishJob]) {
     assert.match(job, /egress-policy: block$/m);
+    assert.match(job, /disable-sudo-and-containers: true$/m);
     assert.match(job, /Assert egress policy is enforced/);
+    assert.match(
+      job,
+      /if sudo -n true 2>\/dev\/null/,
+      'the assertion checks sudo'
+    );
   }
 });
 

@@ -141,6 +141,7 @@ jobs:
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             github.com:443
             release-assets.githubusercontent.com:443
@@ -172,6 +173,13 @@ jobs:
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # disable-sudo-and-containers is set above. The agent takes sudo and
+              # the container sockets away before it reports Initialized.
+              if sudo -n true 2>/dev/null || [ -w /var/run/docker.sock ] \
+                || [ -w /run/containerd/containerd.sock ]; then
+                echo "::error::this job sets disable-sudo-and-containers, but sudo or a container socket still works. Check the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
