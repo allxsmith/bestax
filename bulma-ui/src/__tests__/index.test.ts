@@ -126,6 +126,7 @@ const PUBLIC_EXPORTS = [
   'Rate',
   'Reveal',
   'Section',
+  'SegmentedControl',
   'Select',
   'SelectBase',
   'Sidebar',

@@ -38,8 +38,8 @@
       "code": "<>\n  <Buttons>\n    <Buttons.Button color=\"primary\">Save</Buttons.Button>\n    <Buttons.Button>Cancel</Buttons.Button>\n    <Buttons.LinkButton>Learn more</Buttons.LinkButton>\n  </Buttons>\n  <Buttons hasAddons role=\"group\" aria-label=\"Text style\">\n    <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Italic</Buttons.ToggleButton>\n    <Buttons.ToggleButton>Underline</Buttons.ToggleButton>\n  </Buttons>\n</>"
     }
   ],
-  "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton) in `Buttons hasAddons`, and give the `Buttons` `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group, so use [`Radios`](https://bestax.io/docs/api/form/radios) for it.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
-  "related": ["Button", "ToggleButton", "useBulmaClasses"],
+  "accessibility": "- Grouping buttons in a `<div class=\"buttons\">` has no negative impact on accessibility.\n- Ensure each `Button` has a clear label (text or `aria-label`).\n- For a set of toggles that each turn on and off on their own, use [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton) in `Buttons hasAddons`, and give the `Buttons` `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group, so use [`SegmentedControl`](https://bestax.io/docs/api/components/segmentedcontrol) for it, which draws the same `has-addons` row, or [`Radios`](https://bestax.io/docs/api/form/radios) when the choice is sent with a form.\n\n:::tip\nYou can use all Bulma helper props (spacing, color, alignment) with `Buttons` for even more control.\n:::",
+  "related": ["Button", "SegmentedControl", "ToggleButton", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-button--default",
   "summary": "The `Buttons` component lets you group multiple `Button` elements together with Bulma's spacing, alignment, and add-on features.",
   "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
@@ -511,7 +511,7 @@
     },
     {
       "path": "Buttons.ToggleButton",
-      "summary": "The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type=\"button\">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `Radios`.",
+      "summary": "The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`. It's always a `<button type=\"button\">`, so it never submits a form and carries no form value: a setting saved with a form is a `Checkbox` or a `Switch`. A set of toggles that each turn on and off on their own goes in `Buttons hasAddons` with `role=\"group\"` and an `aria-label`. A set where only one can be on is a radio group rather than a row of these: use `SegmentedControl`, or `Radios` for a choice that's sent with a form.",
       "component": "ToggleButton",
       "props": [
         {

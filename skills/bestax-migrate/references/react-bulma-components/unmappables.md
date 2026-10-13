@@ -147,10 +147,11 @@ that lists the sizes that component takes: use one of them, or drop the prop.
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls,
 plus `Avatar`, `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `Link`,
 `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `Sidebar`, `Toast` and `ToggleButton`. On those, rename `domRef`
-to `ref` and it works; do not restructure the markup. "The form controls" means the inputs
-themselves: the `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers
-around them forward nothing, and `Field` is a target this codemod emits.
+`Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast`
+and `ToggleButton`. On those, rename `domRef` to `ref` and it works; do not restructure the
+markup. "The form controls" means the inputs themselves: the `Field`, `Field.Label`,
+`Field.Body`, `Checkboxes` and `Radios` wrappers around them forward nothing, and `Field` is a
+target this codemod emits.
 
 Everywhere else the rename is not enough, and the two React majors differ: React 18 drops the
 ref and logs "Function components cannot be given refs", while React 19 passes it through as

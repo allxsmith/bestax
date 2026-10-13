@@ -74,9 +74,13 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  * `.button` and adds `.link-button`, so it lists what `_linkbutton.scss`
  * registers on that. ToggleButton renders Button's `.button` with no class of
  * its own, so it has no ROOT_CLASS_OVERRIDES entry, comes out `[]`, and its
- * page writes the section by hand, pointing at Button's. Copying Button's
+ * page writes the section by hand, pointing at Button's. RENDERS_ELEMENT_OF
+ * below gives the MCP index the same pointer. Copying Button's
  * table named ToggleButton, in the MCP index too, as a declarer of the
  * `is-text`, `is-ghost` and `is-static` variables, which it can't render.
+ * SegmentedControl is the same case one level down: its row is Buttons'
+ * `.buttons`, which registers nothing, and its segments render Button's
+ * `.button`, so it comes out `[]` and its page points at Button's table too.
  *
  * `pkg: 'bulma'` resolves under node_modules/bulma; `pkg: 'repo'` is
  * repo-relative (the extras in bulma-ui/src/scss).
@@ -213,6 +217,7 @@ export const SCSS_SOURCES = {
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
   Section: [{ pkg: 'bulma', path: 'sass/layout/section.scss' }],
+  SegmentedControl: [],
   Select: [
     { pkg: 'bulma', path: 'sass/form/select.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
@@ -273,6 +278,32 @@ export const SCSS_SOURCES = {
   UnorderedList: [],
 };
 // </generated:scss-sources>
+
+/**
+ * Components that render another component's element, so that component's CSS
+ * variables style them too, for the colors and modifiers each one accepts.
+ *
+ * That can be fewer than the other component offers, where a component leaves
+ * some of its colors or modifiers out. The answer says so in general terms, so
+ * each entry stays one name.
+ *
+ * `gen-mcp-index.mjs` carries this map into the index as `cssVarsFrom`, and
+ * `get_css_variables` names that component's call in its answer, under the
+ * component's own rows or in their place.
+ *
+ * Declared rather than read from the root class: LinkButton renders Button's
+ * `.button` under a class of its own. Hand-written, so it sits outside the
+ * generated markers, where `pnpm gen:api-sources` leaves it alone.
+ *
+ * Keyed by component, the way the server answers a CSS variable lookup. A part
+ * of a compound component that renders another component's element has no key
+ * here, since the lookup answers a part with its parent's rows, so a part
+ * missing from this map doesn't mean it renders an element of its own.
+ */
+export const RENDERS_ELEMENT_OF = {
+  LinkButton: 'Button', // renders `.button.link-button` through Button
+  ToggleButton: 'Button', // renders a `.button` through Button
+};
 
 /**
  * Pages whose `## Import` deliberately imports more than the page's own

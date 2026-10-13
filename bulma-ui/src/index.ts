@@ -14,6 +14,7 @@ export * from './components/Navbar';
 export * from './components/Pagination';
 export * from './components/Panel';
 export * from './components/Tabs';
+export * from './components/SegmentedControl';
 export * from './components/Loading';
 export * from './components/Collapse';
 export * from './components/Collapses';

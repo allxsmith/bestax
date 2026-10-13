@@ -87,6 +87,20 @@ A flexible tab navigation system for switching between views or filtering conten
 
 ---
 
+### SegmentedControl
+
+A row of buttons where only one can be on, for switching a view or picking a setting that applies right away, like a list or grid above a gallery. A screen reader hears a radio group, and the arrow keys move the check. [View full documentation.](../../api/components/segmentedcontrol.md)
+
+```tsx live
+<SegmentedControl aria-label="View" defaultValue="grid">
+  <SegmentedControl.Segment value="list">List</SegmentedControl.Segment>
+  <SegmentedControl.Segment value="grid">Grid</SegmentedControl.Segment>
+  <SegmentedControl.Segment value="board">Board</SegmentedControl.Segment>
+</SegmentedControl>
+```
+
+---
+
 ### Steps
 
 Multi-step progress indicator for wizard flows. Supports horizontal and vertical layouts with customizable markers. [View full documentation.](../../api/components/steps.md)
