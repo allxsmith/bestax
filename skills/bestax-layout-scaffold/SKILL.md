@@ -66,9 +66,9 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `SegmentedControl aria-label="…" value/defaultValue onChange` for a row of buttons where
   only one can be on, such as a list or grid view (one `SegmentedControl.Segment value="…"` per
   option; a radio group with the single tab stop and the arrow keys built in, so add no
-  `onKeyDown` or ARIA of your own; the arrows check as they move, so `onChange(value)` fires on
-  each, and it can't be cleared; it carries no form value, so a choice a form submits is
-  `Radios`),
+  `onKeyDown` of your own; an icon-only segment needs its own `aria-label`; the arrows check as
+  they move, so `onChange(value)` fires on each, and it can't be cleared; it carries no form
+  value, so a choice a form submits is `Radios`),
   `Popover trigger={<Button>…</Button>} open/defaultOpen onOpenChange` (`trigger` is one
   element, not a node: Popover clones it to add the click and ARIA, so never wrap it in a
   clickable of your own; build the panel from `Popover.Header`/`Body`/`Footer`/`Close`, and a

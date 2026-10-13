@@ -77,9 +77,10 @@ billing) is `SegmentedControl`: use it rather than `Buttons hasAddons` with `isA
 you move yourself. Give it an `aria-label`, put one `SegmentedControl.Segment value="…"` inside per
 option, and hold the choice with `defaultValue`, or `value` with `onChange(value)`. A screen reader
 hears a radio group, and the single tab stop, the arrow keys, Home and End come built in, so add
-no `onKeyDown`, `role` or `aria-*` of your own. The arrow keys check the segment they land on, so
-`onChange` fires on each, and pressing the checked segment keeps it checked. It carries no form
-value: a choice the form submits is `Radios`.
+no `onKeyDown` or `role` of your own. An icon-only segment needs its own `aria-label`, as an
+icon-only `ToggleButton` does. The arrow keys check the segment they land on, so `onChange` fires
+on each, and pressing the checked segment keeps it checked. It carries no form value: a choice
+the form submits is `Radios`.
 
 A panel opened from a button (a filter form, share options, an inline edit) is `Popover`: use
 it rather than building one. It anchors the panel, moves focus in and back, and closes on
