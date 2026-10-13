@@ -222,9 +222,7 @@ jobs:
       # finds: a triage+ human re-applying the label (verified live by the
       # perm step above) is a deliberate re-run. Its mode is MODE in the
       # prompt, set from `reviewed` below and the steer the focus step reads.
-      # Usage stays human-metered, with one exception: a PR created with
-      # `deep-review` already on it gets two sessions, the review from
-      # `opened` and a re-run from `labeled`, so add the label after opening.
+      # Usage stays human-metered.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'

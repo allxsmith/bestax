@@ -274,7 +274,7 @@ green and every AI review thread is resolved.
   back, not just added. A loop driven by pushes and steer comments alone stalls silently and
   looks exactly like a review that is merely slow.
   Re-applying the label settles that review's own open threads and raises nothing new — it
-  does not review the commits pushed since — unless the steer the run reads is a fresh one: a
+  does not review the commits pushed since, unless the steer the run reads is a fresh one: a
   steer comment whose first word after `deep-review:` is `fresh` as a word of its own (not
   `fresh,`) makes the run a full review of the current code instead, and keeps doing so on
   later toggles while it is the steer the run reads. A steer selects the MODE of a run the
