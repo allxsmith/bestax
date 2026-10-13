@@ -1,3 +1,54 @@
+## [2.25.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.2...bestax-migrate@2.25.3) (2026-10-12)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** release with every bulma-ui release so the published index keeps up ([#1027](https://github.com/allxsmith/bestax/issues/1027)) ([618e483](https://github.com/allxsmith/bestax/commit/618e483f2cb2d6fba40e21453518c60d84acb387))
+* **bestax-migrate:** carry size to Buttons, Tags and Message ([#1038](https://github.com/allxsmith/bestax/issues/1038)) ([7549264](https://github.com/allxsmith/bestax/commit/7549264c46a831333f9d9357ef4c9b1a11464917))
+* **bulma-ui:** accept material-symbols 0.47 in the peer range ([539cca2](https://github.com/allxsmith/bestax/commit/539cca22c92e3b9a3c766d37d7cd9605d6bd3547))
+* **bulma-ui:** drop a Field label's for when nothing it holds takes it ([#1020](https://github.com/allxsmith/bestax/issues/1020)) ([3604c14](https://github.com/allxsmith/bestax/commit/3604c14a13b1a4d6674c6e57e0cd6d00df880e7d))
+* **bulma-ui:** give TimeInput's AM/PM column a real name for screen readers ([2b1122f](https://github.com/allxsmith/bestax/commit/2b1122f005bded7724637f4f8e3213a19c5b4f82))
+* **bulma-ui:** keep a Notification's text clear of its close button ([#1017](https://github.com/allxsmith/bestax/issues/1017)) ([91ebb63](https://github.com/allxsmith/bestax/commit/91ebb63b61b44495f0c472a7f3a00460eacffce7))
+* **bulma-ui:** keep a picker label's default when its override is undefined ([aa88e50](https://github.com/allxsmith/bestax/commit/aa88e50e42e5a9d06eeaaf3fd68a028be815d269))
+* **bulma-ui:** keep Theme's component-variable check out of production ([537d90d](https://github.com/allxsmith/bestax/commit/537d90d104c95ae3dbbbc5a93b78bd57f882c174))
+* **bulma-ui:** let a caller's aria-label or aria-labelledby name both range Slider thumbs ([047ff7c](https://github.com/allxsmith/bestax/commit/047ff7ca5f2988ad044e8112c6bf872beb0a5f1d)), closes [#974](https://github.com/allxsmith/bestax/issues/974)
+* **bulma-ui:** name a composed DateRangeInputBase's group from a Field label ([75aa6cb](https://github.com/allxsmith/bestax/commit/75aa6cb20281f3aae46af17f487f54f2592bdb59))
+* **bulma-ui:** name a range Slider's thumbs from a hand-wired Field label's id ([355065b](https://github.com/allxsmith/bestax/commit/355065b5296b110bcb56829bb174fae4eaa8697f))
+* **bulma-ui:** name Autocomplete's list from a hand-wired Field label's id ([ad46c06](https://github.com/allxsmith/bestax/commit/ad46c0642f508a466dbac1a393e1aad85c1cc611))
+* **bulma-ui:** name Autocomplete's suggestion list from a surrounding Field's label ([190183f](https://github.com/allxsmith/bestax/commit/190183f38298ff823a6e5c1d4871dd2a8bb39674)), closes [#998](https://github.com/allxsmith/bestax/issues/998)
+* **bulma-ui:** name each range Slider thumb from its label ([6b962e3](https://github.com/allxsmith/bestax/commit/6b962e3490bbc103c1b73bb432c79b7819139dd7)), closes [#981](https://github.com/allxsmith/bestax/issues/981)
+* **bulma-ui:** name the date and time picker bases from a Field label ([e7ae797](https://github.com/allxsmith/bestax/commit/e7ae79766191a6e37e5f3893ee603b16d8ac3e44))
+* **bulma-ui:** say a label placed in Field.Label reaches no thumbs or list ([07c2a99](https://github.com/allxsmith/bestax/commit/07c2a993157bf0136f11b175ae56c0ecf4c004a9))
+* **bulma-ui:** say FieldLabel renders the label column, not a label ([2a6ab10](https://github.com/allxsmith/bestax/commit/2a6ab105d9b5f4fedcbe0a2bf626d9691f9db1fe))
+* **bulma-ui:** say the label prop needs wiring to reach thumbs or list in an inner Field ([9b33d8d](https://github.com/allxsmith/bestax/commit/9b33d8d921b58716d769152d8f8404de505fcc56))
+* **bulma-ui:** say which controls a hand-wired Field label's id reaches ([514127f](https://github.com/allxsmith/bestax/commit/514127fb66ed0333dbc6125d6341d445d7484935))
+* **bulma-ui:** warn when Theme is given a variable Bulma sets on the component ([bb8f9b8](https://github.com/allxsmith/bestax/commit/bb8f9b86c78a5e4ca681155393000d0f8bcc5320)), closes [#1021](https://github.com/allxsmith/bestax/issues/1021)
+* **create-bestax:** announce the starter's notifications through a status region ([91dbfd5](https://github.com/allxsmith/bestax/commit/91dbfd5a806078b1cabee705712b3d9a95ec501b))
+* **create-bestax:** give each starter notification a status region of its own ([f1ef4df](https://github.com/allxsmith/bestax/commit/f1ef4df0798f9baaf2998e051196bf5b5efd5fb0))
+* **create-bestax:** keep focus on the counter when Reset disables itself ([733e505](https://github.com/allxsmith/bestax/commit/733e5058ef7ca29f093996720fcba0545a58481b))
+* **create-bestax:** keep the reason for the stylesheet order in every scaffolded entry file ([f4591e0](https://github.com/allxsmith/bestax/commit/f4591e0bd43ad472462fbf18422f74de2b0f64c5))
+* **create-bestax:** pin material-symbols to the newest range bestax-bulma accepts ([ff4f820](https://github.com/allxsmith/bestax/commit/ff4f820f373b65eda5336d1652192f296c71f4ae))
+* **create-bestax:** return focus when the starter's notification closes, and tighten guards ([67e3678](https://github.com/allxsmith/bestax/commit/67e36782d3d81dbc2e29f6cb0543ed9c116c15cf))
+* **create-bestax:** say which helper props render nothing under the no-helpers flavors ([b29985b](https://github.com/allxsmith/bestax/commit/b29985b59f8e43a4751ab79a196c22712d02f1d1))
+* **create-bestax:** stop the no-helpers CLAUDE.md offering helper props as the way out ([a96c203](https://github.com/allxsmith/bestax/commit/a96c2032ac02620c764e9626712f479e6b7b64a8))
+* **create-bestax:** stop the vite-ts build shadowing its config, and fix the starter page ([1dd964d](https://github.com/allxsmith/bestax/commit/1dd964d2527a6c2c27d89a9ac0b4f7b5b814bf7d))
+* **docs:** give the mixin note the modifier caveat its lead carries ([1427f08](https://github.com/allxsmith/bestax/commit/1427f0824432200ebf30d2ce4e46d90306da4b0d))
+* **docs:** keep the modifier caveat for mixin variables in the MCP index ([e227663](https://github.com/allxsmith/bestax/commit/e2276639e81c6d979f4888357b4e2b8f5ab5c0db))
+* **docs:** name the one edge of the rule for which variables Theme reaches ([b33ebfa](https://github.com/allxsmith/bestax/commit/b33ebfa21012c79749afd2a3a25729a1e8ea5ac4))
+* **docs:** qualify the guide and the theming skill on what Theme reaches ([9c2347b](https://github.com/allxsmith/bestax/commit/9c2347ba6a53bebd2adb07a22d1a33c2228d7c36))
+* **docs:** read only a component's own mixin as its home ([f40cd2c](https://github.com/allxsmith/bestax/commit/f40cd2c7611f702c250f4f3b924cc587ca53de49))
+* **docs:** refuse a CSS-variable scope the page cannot fully word ([c815602](https://github.com/allxsmith/bestax/commit/c815602fb85c46077686c383965c717660fca26c))
+* **docs:** say where component-scoped Bulma variables have to be set ([771d5bd](https://github.com/allxsmith/bestax/commit/771d5bd980ffd4c8d3068b881bf2ca4b24c7ddfa)), closes [#1021](https://github.com/allxsmith/bestax/issues/1021)
+
+
+### Features
+
+* **bulma-ui:** add ContextMenu, a menu that opens on right-click or long press ([#1036](https://github.com/allxsmith/bestax/issues/1036)) ([85a3e77](https://github.com/allxsmith/bestax/commit/85a3e775b72e36774e101892154a8849a6b3d0a1))
+* **bulma-ui:** add HoverCard, a card that opens on hover or keyboard focus ([#1030](https://github.com/allxsmith/bestax/issues/1030)) ([0eb41df](https://github.com/allxsmith/bestax/commit/0eb41df1f24066d829de6c59f566c9ba819b7f40))
+* **bulma-ui:** add ToggleButton, a button that stays pressed ([#1041](https://github.com/allxsmith/bestax/issues/1041)) ([582aff0](https://github.com/allxsmith/bestax/commit/582aff063e3bccca125054458d5e13cc847d3597))
+* **bulma-ui:** let a Tooltip be hovered, dismissed with Escape, and opened by a tap ([#1033](https://github.com/allxsmith/bestax/issues/1033)) ([52aeeda](https://github.com/allxsmith/bestax/commit/52aeeda220d4eecdc909bfaccc7fe24960283a4a))
+* **bulma-ui:** let ConfigProvider set where portaled content goes ([#1032](https://github.com/allxsmith/bestax/issues/1032)) ([5e928ae](https://github.com/allxsmith/bestax/commit/5e928ae294a026c41ea64c52b27536e20d441128))
+
 ## [2.25.2](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.1...bestax-migrate@2.25.2) (2026-10-09)
 
 
