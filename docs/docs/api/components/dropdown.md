@@ -247,7 +247,9 @@ out of the box:
 
 - On the trigger: <kbd>ArrowDown</kbd> or <kbd>Enter</kbd>/<kbd>Space</kbd> open the menu and
   focus the first item; <kbd>ArrowUp</kbd> opens the menu and focuses the last item;
-  <kbd>Escape</kbd> closes an open menu.
+  <kbd>Escape</kbd> closes an open menu. On the trigger of a menu that's already open,
+  <kbd>ArrowDown</kbd>/<kbd>ArrowUp</kbd> focus the first/last item and
+  <kbd>Enter</kbd>/<kbd>Space</kbd> close it.
 - Inside the menu: <kbd>ArrowDown</kbd>/<kbd>ArrowUp</kbd> move between items and wrap around;
   <kbd>Home</kbd>/<kbd>End</kbd> jump to the first/last item; <kbd>Escape</kbd> closes the menu
   and returns focus to the trigger; <kbd>Tab</kbd> closes the menu and lets focus continue
@@ -256,7 +258,8 @@ out of the box:
   through the items that do. Letters typed in quick succession add up to one search, so
   <kbd>d</kbd> then <kbd>u</kbd> lands on "Duplicate" past "Download". Text hidden with
   `aria-hidden`, such as an icon's ligature name, doesn't count, and a new search starts each
-  time the menu opens.
+  time the menu opens. Typing searches once focus is in the menu, where the trigger's keys
+  above put it. A letter typed on the trigger itself does nothing.
 - On an item: <kbd>Enter</kbd> or <kbd>Space</kbd> activates it the way a click does, so its
   `onClick` runs and the menu closes unless `closeOnClick` is `false`. That includes the
   default anchor without an `href` and `as="div"`, which the browser would not activate on
@@ -266,10 +269,13 @@ out of the box:
   it there.
 - Disabled items (a `Dropdown.Item` rendered with a native `disabled` attribute or
   `aria-disabled="true"`) and dividers are skipped by the arrow keys and by typing.
-- A field or other control you put in the menu keeps its own keys, so its arrows,
-  <kbd>Home</kbd>, <kbd>End</kbd> and letters work the way they do anywhere else.
-  <kbd>Escape</kbd> and <kbd>Tab</kbd> still close the menu from it. For a panel built around
-  fields, [`Popover`](./popover.md) fits better.
+- For a panel built around fields, [`Popover`](./popover.md) fits better: `role="menu"` owns
+  menu items, and the default `closeOnClick` shuts the menu on a click anywhere in it, a field
+  included. Anything focusable you put in the menu anyway that isn't an item (a field, a
+  button, a checkbox, a link without a menu-item role) keeps its own keys, so its arrows,
+  <kbd>Home</kbd>, <kbd>End</kbd> and letters don't move to the items. A field needs
+  `closeOnClick={false}`, or a click into it closes the menu. <kbd>Escape</kbd> and
+  <kbd>Tab</kbd> still close the menu from any of them.
 
 ---
 
