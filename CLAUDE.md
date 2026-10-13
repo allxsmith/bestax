@@ -275,17 +275,12 @@ green and every AI review thread is resolved.
   looks exactly like a review that is merely slow.
   Re-applying the label settles that review's own open threads and raises nothing new — it
   does not review the commits pushed since, so a steer comment starting `deep-review: fresh`
-  is what asks for a full review of the current code. That comment selects the MODE of a run
-  the label toggle starts; it does not start one — and it **stays** selected: the run reads
-  the newest `deep-review:` comment it can attribute to a triage+ author, so once a `fresh`
-  steer exists, later toggles stay fresh for as long as it is still the newest triage+ steer
-  the run can see — which a newer steer from any triage+ author displaces, not only one from
-  the same person. A steer the run cannot read leaves it
-  unfocused and in verify rather than failing, so an unexpected verify pass can mean a
-  lookup that did not resolve rather than a steer that was never posted.
-  Getting a verify pass back means changing the steer, never a label action: post a newer
-  steer whose first word is not `fresh`, or edit the one the run reads. Deleting it brings
-  back whichever triage+ steer is now newest, which may be fresh too.
+  can make it a full review of the current code instead. A steer selects the MODE of a run
+  the label toggle starts and does not start one; which steer a run reads, and how to get a
+  verify pass back, are in the focus step of `claude-review.yml`. A steer the run cannot read
+  leaves it unfocused and in verify rather than failing, so an unexpected verify pass can mean
+  a lookup that did not resolve rather than a steer that was never posted. Getting a verify
+  pass back is never a label action.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
