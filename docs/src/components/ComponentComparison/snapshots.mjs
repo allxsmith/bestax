@@ -63,6 +63,28 @@ export function snapshotColumns(snapshot, liveLibs) {
     .map(lib => ({ ...lib, idx: recorded.indexOf(lib.id) + 1 }));
 }
 
+const cellKey = (capability, id) => JSON.stringify([capability, id]);
+
+/**
+ * The fixes `to` records against the `from` edition, by cell: the mark each
+ * one gave the cell and the pull request that made it. A snapshot carries the
+ * live `corrections` list as it stood, and a fix names the edition it
+ * corrects by that edition's `reviewed` date.
+ */
+function fixesAgainst(from, to) {
+  const byCell = new Map();
+  for (const fix of to.corrections ?? []) {
+    if (fix.edition !== from.reviewed) continue;
+    for (const [capability, marks] of Object.entries(fix.cells)) {
+      for (const [id, mark] of Object.entries(marks)) {
+        const key = cellKey(capability, id);
+        byCell.set(key, [...(byCell.get(key) ?? []), { mark, pr: fix.pr }]);
+      }
+    }
+  }
+  return byCell;
+}
+
 /**
  * Work out what moved between two edition snapshots: rows whose status
  * changed for any library both snapshots cover, rows that are new, and rows
@@ -70,15 +92,25 @@ export function snapshotColumns(snapshot, liveLibs) {
  * a reader can see in the glyphs, so it is left out, and a library that only
  * the newer snapshot covers has nothing to compare against.
  *
+ * A changed cell is a correction when `to` records a fix to the `from`
+ * edition that gave the cell the mark it has now: the older edition had that
+ * cell wrong, rather than the library changing since. When a release moves
+ * the cell again after the fix, the mark it has now isn't the fix's, so the
+ * cell reads as a change.
+ *
  * Returns the newer snapshot's columns, each library's position in the older
  * snapshot's rows (`fromIdx`, by id), the changed rows grouped by heading
- * (each with the previous row, or null when the row is new, and the set of
- * library ids whose status changed), and the dropped capability names.
+ * (each with the previous row, or null when the row is new, the set of
+ * library ids whose status changed, and the subset of those that are
+ * corrections), the dropped capability names, and the pull requests behind
+ * the corrections shown (`fixes`, ascending).
  */
 export function diffSnapshots(from, to, liveLibs) {
   const fromColumns = snapshotColumns(from, liveLibs);
   const columns = snapshotColumns(to, liveLibs);
   const fromIdx = new Map(fromColumns.map(lib => [lib.id, lib.idx]));
+  const fixesByCell = fixesAgainst(from, to);
+  const fixes = new Set();
 
   const before = new Map();
   for (const group of from.categories) {
@@ -91,7 +123,11 @@ export function diffSnapshots(from, to, liveLibs) {
       rows: group.rows.flatMap(row => {
         seen.add(row[0]);
         const prev = before.get(row[0]);
-        if (!prev) return [{ row, prev: null, changed: new Set() }];
+        if (!prev) {
+          return [
+            { row, prev: null, changed: new Set(), corrected: new Set() },
+          ];
+        }
         const changed = new Set(
           columns
             .filter(
@@ -102,10 +138,27 @@ export function diffSnapshots(from, to, liveLibs) {
             )
             .map(lib => lib.id)
         );
-        return changed.size > 0 ? [{ row, prev, changed }] : [];
+        if (changed.size === 0) return [];
+        const corrected = new Set();
+        for (const lib of columns.filter(c => changed.has(c.id))) {
+          const now = parseStatus(row[lib.idx]);
+          const made = (fixesByCell.get(cellKey(row[0], lib.id)) ?? []).filter(
+            fix => fix.mark === now
+          );
+          if (made.length === 0) continue;
+          corrected.add(lib.id);
+          for (const fix of made) fixes.add(fix.pr);
+        }
+        return [{ row, prev, changed, corrected }];
       }),
     }))
     .filter(group => group.rows.length > 0);
   const removed = [...before.keys()].filter(cap => !seen.has(cap));
-  return { columns, fromIdx, groups, removed };
+  return {
+    columns,
+    fromIdx,
+    groups,
+    removed,
+    fixes: [...fixes].sort((a, b) => a - b),
+  };
 }
