@@ -83,7 +83,7 @@ deterministic sanitizer or renderer on the publication paths that have one — r
 triage's comment (rule 5, I2); plain
 `pull_request` with a head-repo guard, never `pull_request_target` (rule 7); sender exclusions
 on comment triggers (rule 8); trust decisions re-verified against the live API rather than read
-from the event payload (the trusted-labeler gates); an enforced, measured egress policy
+from the event payload (the trusted-labeler gates); an enforced egress policy
 (rule 10, and read I1 for exactly what that leg adds); and a human merge — the loop never
 merges. A finding that one of these could be stronger is advisory unless it shows the control
 absent or false.
@@ -119,7 +119,7 @@ regardless of how convenient it is.
   execution.** `CLAUDE_CODE_OAUTH_TOKEN` pays for a session; anything that can run code in the
   same job can read it out of the environment. `claude-repro.yml` splits drafting from publishing
   for exactly this reason: the drafting job has no `Bash`, no `Task`, no network tool, so it
-  cannot read env, fetch, or execute. Note the direction of the guarantee — it raises the cost of
+  cannot fetch or execute. Note the direction of the guarantee — it raises the cost of
   exfiltration, it is not a proof. The credential-shape check in `Collect draft` (literal,
   base64, and hex forms) is a backstop for the same reason, and is documented as one.
 
