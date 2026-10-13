@@ -1,8 +1,8 @@
 name: Claude Deep Review
 
-# An adversarial Claude review of an AI-loop PR when it opens or is
-# labelled `ai-loop`, and of any same-repo PR a triage+ user labels
-# `deep-review`. Uses a stronger model
+# An adversarial Claude review of an AI-loop PR, once, when it opens or
+# is first labelled `ai-loop`, and of any same-repo PR a triage+ user
+# labels `deep-review`. Uses a stronger model
 # (opus) than the sonnet implementer to decorrelate blind spots. Its
 # inline threads are work items for the fixer in claude-pr-loop.yml; the
 # fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
@@ -213,8 +213,8 @@ jobs:
           esac
 
       # `opened` and `labeled` both fire when a PR is created with the label
-      # already attached — review exactly once. The concurrency group
-      # serializes the double-fire; the marker probe catches the second run.
+      # already attached. The concurrency group serializes the double-fire,
+      # and for `ai-loop` the marker probe catches the second run.
       # (The marker, not just any claude[bot] activity: the fix agent posts
       # claude[bot] thread replies too, which must not count as "reviewed".)
       #
@@ -222,9 +222,9 @@ jobs:
       # finds: a triage+ human re-applying the label (verified live by the
       # perm step above) is a deliberate re-run. Its mode is MODE in the
       # prompt, set from `reviewed` below and the steer the focus step reads.
-      # Usage stays human-metered: one opus session per deliberate label
-      # application. The ai-loop path and label-at-creation double-fires
-      # keep the one-review invariant.
+      # Usage stays human-metered, with one exception: a PR created with
+      # `deep-review` already on it gets two sessions, the review from
+      # `opened` and a re-run from `labeled`, so add the label after opening.
       - name: Skip if already reviewed
         id: dedupe
         if: steps.perm.outputs.allowed == 'true'
@@ -290,9 +290,10 @@ jobs:
       # comment fetch reads no steer, so the run is unfocused and, on a PR
       # that already has a deep review, a verify pass even if a fresh steer
       # was posted. A failed role lookup skips that author, so the next
-      # verified author's steer is read, if there is one. Either way, an
-      # unexpected verify pass can mean a lookup failed. On ai-loop `opened` events no comments can exist yet, so
-      # this is a cheap no-op there.
+      # verified author's steer is read, if there is one, fresh or not. So
+      # an unexpected mode, verify or full, can mean a lookup failed. On
+      # ai-loop `opened` events no comments can exist yet, so this is a
+      # cheap no-op there.
       - name: Extract focus steer
         id: focus
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
