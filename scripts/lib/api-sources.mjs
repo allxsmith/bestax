@@ -77,6 +77,9 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  * page writes the section by hand, pointing at Button's. Copying Button's
  * table named ToggleButton, in the MCP index too, as a declarer of the
  * `is-text`, `is-ghost` and `is-static` variables, which it can't render.
+ * SegmentedControl is the same case one level down: its row is Buttons'
+ * `.buttons`, which registers nothing, and its segments render Button's
+ * `.button`, so it comes out `[]` and its page points at Button's table too.
  *
  * `pkg: 'bulma'` resolves under node_modules/bulma; `pkg: 'repo'` is
  * repo-relative (the extras in bulma-ui/src/scss).
@@ -213,6 +216,7 @@ export const SCSS_SOURCES = {
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
   Section: [{ pkg: 'bulma', path: 'sass/layout/section.scss' }],
+  SegmentedControl: [],
   Select: [
     { pkg: 'bulma', path: 'sass/form/select.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },

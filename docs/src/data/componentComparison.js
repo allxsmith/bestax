@@ -81,6 +81,7 @@ const BESTAX = {
   Panel: 'components/panel',
   Popover: 'components/popover',
   Reveal: 'components/reveal',
+  SegmentedControl: 'components/segmentedcontrol',
   Sidebar: 'components/sidebar',
   Steps: 'components/steps',
   Tabs: 'components/tabs',
@@ -653,7 +654,7 @@ export const categories = [
       ],
       [
         'Segmented / toggle group',
-        '~Buttons',
+        'SegmentedControl',
         'SegmentedControl',
         'ToggleButtonGroup',
         'ToggleButtonGroup',
