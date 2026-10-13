@@ -66,13 +66,17 @@ export function snapshotColumns(snapshot, liveLibs) {
 const cellKey = (capability, id) => JSON.stringify([capability, id]);
 
 /**
- * The fixes `to` records against the `from` edition, by cell: the mark each
- * one gave the cell and the pull request that made it. A snapshot carries the
+ * The fixes `to` records against the `from` edition. A snapshot carries the
  * live `corrections` list as it stood, and a fix names the edition it
  * corrects by that edition's `reviewed` date.
+ *
+ * Returns them by cell (`byCell`: the mark each fix gave the cell and the
+ * pull request that made it, with the row named as the edition had it), and
+ * the rows they renamed (`oldNames`: the name now, mapped to the edition's).
  */
 function fixesAgainst(from, to) {
   const byCell = new Map();
+  const oldNames = new Map();
   for (const fix of to.corrections ?? []) {
     if (fix.edition !== from.reviewed) continue;
     for (const [capability, marks] of Object.entries(fix.cells)) {
@@ -81,8 +85,11 @@ function fixesAgainst(from, to) {
         byCell.set(key, [...(byCell.get(key) ?? []), { mark, pr: fix.pr }]);
       }
     }
+    for (const [was, now] of Object.entries(fix.renamed ?? {})) {
+      oldNames.set(now, was);
+    }
   }
-  return byCell;
+  return { byCell, oldNames };
 }
 
 /**
@@ -91,6 +98,10 @@ function fixesAgainst(from, to) {
  * that were dropped. A renamed component with the same status is not a change
  * a reader can see in the glyphs, so it is left out, and a library that only
  * the newer snapshot covers has nothing to compare against.
+ *
+ * A row's previous row is the one a recorded fix to the `from` edition renamed
+ * it from, or else the one with its name. A renamed row is then compared cell
+ * by cell like any other, and reads as neither dropped nor new.
  *
  * A changed cell is a correction when `to` records a fix to the `from`
  * edition that gave the cell the mark it has now: the older edition had that
@@ -109,7 +120,7 @@ export function diffSnapshots(from, to, liveLibs) {
   const fromColumns = snapshotColumns(from, liveLibs);
   const columns = snapshotColumns(to, liveLibs);
   const fromIdx = new Map(fromColumns.map(lib => [lib.id, lib.idx]));
-  const fixesByCell = fixesAgainst(from, to);
+  const { byCell, oldNames } = fixesAgainst(from, to);
   const fixes = new Set();
 
   const before = new Map();
@@ -121,8 +132,9 @@ export function diffSnapshots(from, to, liveLibs) {
     .map(group => ({
       heading: group.heading,
       rows: group.rows.flatMap(row => {
-        seen.add(row[0]);
-        const prev = before.get(row[0]);
+        const name = oldNames.get(row[0]) ?? row[0];
+        seen.add(name);
+        const prev = before.get(name);
         if (!prev) {
           return [
             { row, prev: null, changed: new Set(), corrected: new Set() },
@@ -142,7 +154,7 @@ export function diffSnapshots(from, to, liveLibs) {
         const corrected = new Set();
         for (const lib of columns.filter(c => changed.has(c.id))) {
           const now = parseStatus(row[lib.idx]);
-          const made = (fixesByCell.get(cellKey(row[0], lib.id)) ?? []).filter(
+          const made = (byCell.get(cellKey(name, lib.id)) ?? []).filter(
             fix => fix.mark === now
           );
           if (made.length === 0) continue;

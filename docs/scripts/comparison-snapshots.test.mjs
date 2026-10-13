@@ -240,6 +240,94 @@ test('a snapshot without corrections shows every changed cell as a change', () =
   assert.deepEqual(fixes, []);
 });
 
+// July's Month picker row, renamed Month calendar by October, with bestax's
+// cell on it moved from – to ◐ unless `steady`.
+const renamedOctober = (corrections, steady = false) =>
+  snapshot(
+    '2026-10-13',
+    ['bestax', 'mantine', 'rbootstrap', 'mui'],
+    [
+      ['Date input', 'DateInput', 'DateInput', 0, 'DateField'],
+      ['Time input', 'TimeInput', 'TimePicker', 0, 'TimePicker'],
+      [
+        'Month calendar',
+        steady ? 0 : '~DateInput',
+        'MonthPicker',
+        0,
+        '~DatePicker',
+      ],
+    ],
+    corrections
+  );
+
+const RENAME = { 'Month picker': 'Month calendar' };
+
+test('a row a fix renamed is compared with its old row, neither dropped nor new', () => {
+  const { groups, removed } = diffSnapshots(
+    JULY,
+    renamedOctober([
+      { edition: '2026-07-27', pr: 101, renamed: RENAME, cells: {} },
+    ]),
+    LIVE
+  );
+  assert.deepEqual(removed, []);
+  const rows = groups.flatMap(g => g.rows);
+  assert.deepEqual(
+    rows.map(r => r.row[0]),
+    ['Month calendar']
+  );
+  // Compared with July's Month picker row, so it gets no "new" badge, and
+  // only the cell that moved is marked.
+  assert.equal(rows[0].prev, JULY.categories[0].rows[2]);
+  assert.deepEqual([...rows[0].changed], ['bestax']);
+  assert.deepEqual([...rows[0].corrected], []);
+});
+
+test("a renamed row's corrected cells are named as the edition had them", () => {
+  const { corrected, fixes } = diffCells(
+    JULY,
+    renamedOctober([
+      {
+        edition: '2026-07-27',
+        pr: 101,
+        renamed: RENAME,
+        cells: { 'Month picker': { bestax: 'partial' } },
+      },
+    ])
+  );
+  assert.deepEqual(corrected, ['Month calendar/bestax']);
+  assert.deepEqual(fixes, [101]);
+});
+
+test('a renamed row whose cells held steady is left out like any other', () => {
+  const { groups, removed } = diffSnapshots(
+    JULY,
+    renamedOctober(
+      [{ edition: '2026-07-27', pr: 101, renamed: RENAME, cells: {} }],
+      true
+    ),
+    LIVE
+  );
+  assert.deepEqual(groups, []);
+  assert.deepEqual(removed, []);
+});
+
+test('a rename recorded against a different edition does nothing', () => {
+  const { groups, removed } = diffSnapshots(
+    JULY,
+    renamedOctober([
+      { edition: '2026-09-26', pr: 101, renamed: RENAME, cells: {} },
+    ]),
+    LIVE
+  );
+  assert.deepEqual(removed, ['Month picker']);
+  const rows = groups.flatMap(g => g.rows);
+  assert.deepEqual(
+    rows.map(r => [r.row[0], r.prev]),
+    [['Month calendar', null]]
+  );
+});
+
 test('serializeSnapshot writes the column order and round-trips', () => {
   const libs = columnOrder([
     lib('mui', 4),
@@ -261,15 +349,22 @@ test('serializeSnapshot writes the column order and round-trips', () => {
   );
 });
 
-test('serializeSnapshot carries the corrections, one corrected row per line', () => {
+test('serializeSnapshot carries the corrections, one corrected or renamed row per line', () => {
   const corrections = [
     {
       edition: '2026-07-27',
       pr: 101,
+      renamed: { 'Time picker': 'Time input' },
       cells: {
         'Date input': { rbootstrap: 'full' },
         'Month picker': { bestax: 'partial', mui: 'full' },
       },
+    },
+    { edition: '2026-07-27', pr: 102, renamed: RENAME, cells: {} },
+    {
+      edition: '2026-07-27',
+      pr: 103,
+      cells: { 'Date input': { mui: 'none' } },
     },
   ];
   const text = serializeSnapshot({
@@ -278,11 +373,14 @@ test('serializeSnapshot carries the corrections, one corrected row per line', ()
     categories: JULY.categories,
     corrections,
   });
+  // A fix without renames writes no `renamed`, so this round-trips exactly.
   assert.deepEqual(JSON.parse(text).corrections, corrections);
   assert.match(
     text,
     /\n {8}"Month picker": \{"bestax":"partial","mui":"full"\}/
   );
+  assert.match(text, /\n {8}"Time picker": "Time input"\n/);
+  assert.match(text, /\n {6}"cells": \{\}\n/);
 });
 
 test('serializeSnapshot refuses a row that does not match the columns', () => {
@@ -355,9 +453,10 @@ function committedSnapshots() {
 
 const MARKS = ['full', 'partial', 'none'];
 
-test('every live correction fixes a cell an edition showed differently', async () => {
-  // A fix finds its edition by review date and its cells by capability name
-  // and library id, so a typo in any of them would silently mark nothing.
+test('every live correction fixes a cell or a row name an edition showed differently', async () => {
+  // A fix finds its edition by review date, its cells by capability name and
+  // library id, and its renamed rows by name, so a typo in any of them would
+  // silently mark nothing.
   const { corrections } = await loadLiveData();
   const editions = new Map(committedSnapshots().map(s => [s.reviewed, s]));
   for (const fix of corrections) {
@@ -368,7 +467,15 @@ test('every live correction fixes a cell an edition showed differently', async (
     const rows = new Map(
       edition.categories.flatMap(g => g.rows.map(r => [r[0], r]))
     );
-    assert.ok(Object.keys(fix.cells).length > 0, `${name} names no cells`);
+    const renamed = Object.entries(fix.renamed ?? {});
+    assert.ok(
+      Object.keys(fix.cells).length + renamed.length > 0,
+      `${name} names no cells and renames no rows`
+    );
+    for (const [was, now] of renamed) {
+      assert.ok(rows.has(was), `${name}: that edition has no row "${was}"`);
+      assert.ok(!rows.has(now), `${name}: that edition already has "${now}"`);
+    }
     for (const [capability, marks] of Object.entries(fix.cells)) {
       const row = rows.get(capability);
       assert.ok(row, `${name}: that edition has no row "${capability}"`);
@@ -400,21 +507,31 @@ test('the next edition shows each pending correction it still holds as one', asy
       corrections,
     })
   );
-  const shown = new Map(
-    diffSnapshots(newest, next, libs)
-      .groups.flatMap(g => g.rows)
-      .map(r => [r.row[0], r])
-  );
+  const { groups, removed } = diffSnapshots(newest, next, libs);
+  const shown = new Map(groups.flatMap(g => g.rows).map(r => [r.row[0], r]));
   const live = new Map(categories.flatMap(g => g.rows.map(r => [r[0], r])));
-  for (const fix of corrections.filter(f => f.edition === newest.reviewed)) {
+  const pending = corrections.filter(f => f.edition === newest.reviewed);
+  const renamed = new Map(
+    pending.flatMap(f => Object.entries(f.renamed ?? {}))
+  );
+  for (const [was, now] of renamed) {
+    // A rename the live data has since undone or renamed again has nothing
+    // to follow.
+    if (!live.has(now)) continue;
+    assert.ok(!removed.includes(was), `"${was}" reads as dropped`);
+    assert.notEqual(shown.get(now)?.prev, null, `"${now}" reads as new`);
+  }
+  for (const fix of pending) {
     for (const [capability, marks] of Object.entries(fix.cells)) {
+      const now = renamed.get(capability) ?? capability;
       for (const [id, mark] of Object.entries(marks)) {
-        const row = live.get(capability);
+        const row = live.get(now);
         const lib = libs.find(l => l.id === id);
-        // A renamed row or a release since the fix leaves nothing to mark.
+        // A row renamed again or a release since the fix leaves nothing to
+        // mark.
         if (!row || parseStatus(row[lib.idx]) !== mark) continue;
         assert.ok(
-          shown.get(capability)?.corrected.has(id),
+          shown.get(now)?.corrected.has(id),
           `${capability}, ${id} (#${fix.pr})`
         );
       }
