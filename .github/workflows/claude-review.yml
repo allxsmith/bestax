@@ -1,7 +1,7 @@
 name: Claude Deep Review
 
-# One full adversarial Claude review per AI-loop PR, at open. Uses a stronger
-# model (opus) than the sonnet implementer to decorrelate blind spots. Its
+# An adversarial Claude review of AI-loop PRs. Uses a stronger model
+# (opus) than the sonnet implementer to decorrelate blind spots. Its
 # inline threads are work items for the fixer in claude-pr-loop.yml; the
 # fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
 # claude-pr-loop.yml's verify mode and resolves only what is genuinely fixed
@@ -24,8 +24,8 @@ name: Claude Deep Review
 # the PR; it does not review the commits pushed since. A steer comment
 # starting "deep-review: fresh" makes that re-run a full review of the
 # current code instead. It selects the mode of a run the label starts;
-# it does not start one. It also persists across re-runs, and the focus
-# step below says which steer a run reads.
+# it does not start one. It stays selected while it is the newest
+# triage+ steer the run can see (the focus step below).
 #
 # Deliberately does NOT trigger on `synchronize`, so Claude's own fix
 # pushes can never re-fire this workflow (no reviewer/fixer ping-pong, no
