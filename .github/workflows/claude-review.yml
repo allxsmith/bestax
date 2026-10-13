@@ -22,10 +22,9 @@ name: Claude Deep Review
 # triage+ user re-applying `deep-review` is the one deliberate re-run
 # path. That re-run settles the open threads of the review already on
 # the PR; it does not review the commits pushed since. A steer comment
-# starting "deep-review: fresh" makes that re-run a full review of the
-# current code instead. It selects the mode of a run the label starts;
-# it does not start one. It stays selected while it is the newest
-# triage+ steer the run can see (the focus step below).
+# starting "deep-review: fresh" can make it a full review of the current
+# code instead: a steer selects the mode of a run the label starts, and
+# does not start one. The focus step below says which steer a run reads.
 #
 # Deliberately does NOT trigger on `synchronize`, so Claude's own fix
 # pushes can never re-fire this workflow (no reviewer/fixer ping-pong, no
@@ -148,10 +147,10 @@ jobs:
           if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
+          fi
           if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
             echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
             exit 1
-          fi
           fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
@@ -218,8 +217,8 @@ jobs:
       # finds: a triage+ human re-applying the label (verified live by the
       # perm step above) is a deliberate re-run: a verify pass that settles
       # its own open threads when a marker review already exists (see MODE in
-      # the prompt), or a fresh review when none does or the steer comment
-      # starts "deep-review: fresh".
+      # the prompt), or a fresh review when none does or the steer the focus
+      # step reads starts with "fresh".
       # Usage stays human-metered: one opus session per deliberate label
       # application. The ai-loop path and label-at-creation double-fires
       # keep the one-review invariant.
@@ -262,18 +261,27 @@ jobs:
       # before applying the label. Anyone can comment on a public-repo PR and
       # this text enters the LLM prompt, so each candidate author's LIVE role
       # is re-verified via the collaborators API (same belt-and-braces as the
-      # perm step above). Scans newest-first over the newest steer per
-      # distinct author and takes the first that verifies triage+ — a later
-      # "deep-review:" comment from an outsider can neither inject text nor
-      # displace the maintainer's steer. At most 5 distinct authors are
-      # role-checked (bounds the API calls comment spam can force). Emits a
-      # fully-formed FOCUS block, or an empty string, so the prompt needs no
+      # perm step above).
+      #
+      # Which steer a run reads: each author's newest "deep-review:" comment
+      # (by when it was posted), newest first, and the first whose author
+      # verifies triage+. So the newest triage+ steer the run can see is the
+      # one it reads, and an outsider's is not read. Only the 5 authors with
+      # the newest steers are role-checked, which bounds the API calls comment
+      # spam can force, so five newer outside authors would hide a
+      # maintainer's steer and the run would read none. The steer it reads
+      # sets the focus, and a first word of "fresh" makes a relabel a full
+      # review instead of a verify pass. Deleting a fresh steer brings back
+      # whichever triage+ steer is now newest, which may be fresh too. To get
+      # a verify pass, post a newer steer whose first word is not "fresh", or
+      # edit the one the run reads. The run log names the steer author.
+      #
+      # Emits a fully-formed FOCUS block, or an empty string, so the prompt needs no
       # conditional. Best-effort by design — the steer is an enhancement,
       # not an authorization gate, so unlike the perm step it degrades open:
-      # an API failure means an unfocused review, never a red run. A steer
-      # persists across re-labels (edit/delete the comment to change it; the
-      # run log names the steer author). On ai-loop `opened` events no
-      # comments can exist yet, so this is a cheap no-op there.
+      # an API failure means an unfocused review, never a red run. On ai-loop
+      # `opened` events no comments can exist yet, so this is a cheap no-op
+      # there.
       - name: Extract focus steer
         id: focus
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
@@ -331,9 +339,7 @@ jobs:
           TEXT="${TEXT#deep-review:}"
           # A steer whose first word is "fresh" opts out of verify mode on a
           # relabel, asking for a full review of the current code; the word
-          # itself is
-          # not part of the focus text. Steers persist across relabels, so
-          # delete the comment to return to verify mode.
+          # itself is not part of the focus text.
           # First word across the whole comment, not the first line, so a
           # steer written as "deep-review:" then "fresh" on the next line
           # still opts out; sed -z treats the text as one record so the
