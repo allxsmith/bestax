@@ -160,14 +160,10 @@ jobs:
       # The list below is measured, not guessed: raw.githubusercontent
       # .com is here because sbom-action fetches syft's install script from it,
       # which no amount of reading the action would have made obvious. The cache
-      # host (productionresultssa12.blob.core.windows.net) is absent on purpose,
-      # as runner infrastructure, which needs no listing (.github/CLAUDE.md,
-      # "Measuring an allowlist"). The list's
-      # results-receiver.actions.githubusercontent.com entry is runner
-      # infrastructure too and needs no listing either. It is not free: the
-      # agent resolves it at startup, and an entry that does not resolve
-      # reverts the firewall (that section). It stays for now; removing it is
-      # tracked in #1014.
+      # host (productionresultssa12.blob.core.windows.net) and
+      # results-receiver.actions.githubusercontent.com are absent on purpose, as
+      # runner infrastructure, which needs no listing (.github/CLAUDE.md,
+      # "Measuring an allowlist").
       - name: Harden runner
         uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
@@ -177,7 +173,6 @@ jobs:
             github.com:443
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
-            results-receiver.actions.githubusercontent.com:443
             registry.npmjs.org:443
             nodejs.org:443
             raw.githubusercontent.com:443
@@ -741,12 +736,9 @@ jobs:
       # from run to run: if a real run ever shows a blob endpoint blocked,
       # start from "Measuring an allowlist", not from this list.
       #
-      # The two *.actions.githubusercontent.com entries below, token and
-      # results-receiver, need no listing either ("What the agent allows
-      # beyond the list"). They are not free: the agent resolves each at
-      # startup, and an entry that does not resolve reverts the firewall
-      # ("Measuring an allowlist"). They stay for now; removing them is
-      # tracked in #1014.
+      # token.actions.githubusercontent.com and
+      # results-receiver.actions.githubusercontent.com are absent too: the
+      # agent admits them itself ("What the agent allows beyond the list").
       #
       # Of this file's other jobs, `sbom`, `attach-sbom` and
       # `verify-provenance` predate rule 10 and are grandfathered by its
@@ -762,8 +754,6 @@ jobs:
             github.com:443
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
-            token.actions.githubusercontent.com:443
-            results-receiver.actions.githubusercontent.com:443
             fulcio.sigstore.dev:443
             rekor.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443

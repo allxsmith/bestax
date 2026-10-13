@@ -722,11 +722,11 @@ Two things about reading its output, both learned assembling the #578 lists:
   three without a listing ("What the agent allows beyond the list"). The meta list's
   `*.githubapp.com` admits the last when the meta fetch succeeds, and one run passed with it not
   admitted at all (run 33286967625, below), which suggests the runner can do without it but
-  does not prove it ("One run is not a measurement"). Leave them off a new list. The blob host
+  does not prove it ("One run is not a measurement"). Leave them off a list. The blob host
   has no one name a list could carry, since N varies between runs. An exact entry for one of the
   others is not free, though: the agent resolves every exact entry at startup, and one that does
   not resolve then reverts the firewall (rule 10), so an entry the job never needed can still
-  turn its policy off. Removing the ones lists already carry is tracked in #1014.
+  turn its policy off.
   Run 33221210633's log shows `auto-close-duplicates` at `block` connecting to `api.github.com`
   and `github.com` and nothing else. That shows the job did not use these hosts, not that
   leaving them off works for a job that does. Run 33286967625, below, is the evidence for
