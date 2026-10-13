@@ -58,9 +58,9 @@ export interface ToggleButtonProps
   /** Whether it starts pressed, when it holds its own state. */
   defaultPressed?: boolean;
   /**
-   * Called with the new state each time it's toggled, by a click, Enter or
-   * Space, whether or not `pressed` is set. An `onClick` that calls
-   * `preventDefault()` stops the toggle, and this doesn't fire.
+   * Called with the new state each time it's toggled, whether or not
+   * `pressed` is set. An `onClick` that calls `preventDefault()` stops the
+   * toggle, and this doesn't fire.
    */
   onPressedChange?: (pressed: boolean) => void;
   /**

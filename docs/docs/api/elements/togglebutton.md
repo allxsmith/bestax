@@ -239,8 +239,9 @@ function example() {
 
 ### Stopping a Toggle
 
-Your `onClick` runs before the toggle. Call `event.preventDefault()` in it and nothing flips, and
-`onPressedChange` doesn't fire, which is how you'd ask before turning something on.
+Your `onClick` runs before the toggle, unless the button is [loading](#loading). Call
+`event.preventDefault()` in it and nothing flips, and `onPressedChange` doesn't fire, which is how
+you'd ask before turning something on.
 
 ```tsx live
 <ToggleButton

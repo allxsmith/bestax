@@ -44,7 +44,7 @@ const meta: Meta<typeof ToggleButton> = {
     onPressedChange: {
       control: false,
       description:
-        'Called with the new state on each click, Enter or Space, whether or not pressed is set',
+        'Called with the new state each time it is toggled, whether or not pressed is set',
     },
     color: {
       control: 'select',
@@ -78,7 +78,7 @@ const meta: Meta<typeof ToggleButton> = {
     onClick: {
       control: false,
       description:
-        'Runs before the toggle; calling preventDefault() in it stops the toggle',
+        'Runs before the toggle, unless the button is loading; calling preventDefault() in it stops the toggle',
     },
   },
   args: {
