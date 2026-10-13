@@ -232,8 +232,13 @@ test('only the publish job holds the environment, the secret and id-token: write
     assert.match(job, /Assert egress policy is enforced/);
     assert.match(
       job,
-      /if sudo -n true 2>\/dev\/null/,
+      /if sudo -n true 2>\/dev\/null; then/,
       'the assertion checks sudo'
+    );
+    assert.match(
+      job,
+      /if \[ -w \/var\/run\/docker\.sock \]; then/,
+      'the assertion checks docker.sock'
     );
   }
 });

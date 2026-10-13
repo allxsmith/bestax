@@ -152,6 +152,9 @@ jobs:
       # was armed at this step, not that it stays armed; rule 10 in
       # .github/CLAUDE.md carries the mechanism and what to check when a run
       # looks wrong. Linux-only paths; the runner is ubuntu-latest.
+      #
+      # It also asserts that sudo and docker.sock are closed, because this job
+      # sets disable-sudo-and-containers. The check below says what that proves.
       - name: Assert egress policy is enforced
         timeout-minutes: 2
         run: |
@@ -174,11 +177,18 @@ jobs:
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
-              # disable-sudo-and-containers is set above. The agent takes sudo and
-              # the container sockets away before it reports Initialized.
-              if sudo -n true 2>/dev/null || [ -w /var/run/docker.sock ] \
-                || [ -w /run/containerd/containerd.sock ]; then
-                echo "::error::this job sets disable-sudo-and-containers, but sudo or a container socket still works. Check the agent log."
+              # disable-sudo-and-containers is set above (disableSudoAndContainers in
+              # step-security/agent, at the version the harden-runner pin installs).
+              # This proves sudo and docker.sock are closed when it runs. If the agent
+              # errors later and reverts, sudo comes back with the firewall. It checks
+              # those two, not every container endpoint. containerd.sock is left out:
+              # the runner user cannot write it whether or not the agent closed it.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::this job sets disable-sudo-and-containers, but sudo still works. Check the agent log for 'disabled sudo and docker', then whether the runner image grants sudo some other way."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::this job sets disable-sudo-and-containers, but /var/run/docker.sock is still writable. Check the agent log for 'disabled sudo and docker', then whether the runner image moved or re-created the socket."
                 exit 1
               fi
               exit 0
@@ -266,11 +276,18 @@ jobs:
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
-              # disable-sudo-and-containers is set above. The agent takes sudo and
-              # the container sockets away before it reports Initialized.
-              if sudo -n true 2>/dev/null || [ -w /var/run/docker.sock ] \
-                || [ -w /run/containerd/containerd.sock ]; then
-                echo "::error::this job sets disable-sudo-and-containers, but sudo or a container socket still works. Check the agent log."
+              # disable-sudo-and-containers is set above (disableSudoAndContainers in
+              # step-security/agent, at the version the harden-runner pin installs).
+              # This proves sudo and docker.sock are closed when it runs. If the agent
+              # errors later and reverts, sudo comes back with the firewall. It checks
+              # those two, not every container endpoint. containerd.sock is left out:
+              # the runner user cannot write it whether or not the agent closed it.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::this job sets disable-sudo-and-containers, but sudo still works. Check the agent log for 'disabled sudo and docker', then whether the runner image grants sudo some other way."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::this job sets disable-sudo-and-containers, but /var/run/docker.sock is still writable. Check the agent log for 'disabled sudo and docker', then whether the runner image moved or re-created the socket."
                 exit 1
               fi
               exit 0
@@ -404,11 +421,18 @@ jobs:
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
-              # disable-sudo-and-containers is set above. The agent takes sudo and
-              # the container sockets away before it reports Initialized.
-              if sudo -n true 2>/dev/null || [ -w /var/run/docker.sock ] \
-                || [ -w /run/containerd/containerd.sock ]; then
-                echo "::error::this job sets disable-sudo-and-containers, but sudo or a container socket still works. Check the agent log."
+              # disable-sudo-and-containers is set above (disableSudoAndContainers in
+              # step-security/agent, at the version the harden-runner pin installs).
+              # This proves sudo and docker.sock are closed when it runs. If the agent
+              # errors later and reverts, sudo comes back with the firewall. It checks
+              # those two, not every container endpoint. containerd.sock is left out:
+              # the runner user cannot write it whether or not the agent closed it.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::this job sets disable-sudo-and-containers, but sudo still works. Check the agent log for 'disabled sudo and docker', then whether the runner image grants sudo some other way."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::this job sets disable-sudo-and-containers, but /var/run/docker.sock is still writable. Check the agent log for 'disabled sudo and docker', then whether the runner image moved or re-created the socket."
                 exit 1
               fi
               exit 0
