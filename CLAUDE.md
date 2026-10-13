@@ -283,8 +283,9 @@ green and every AI review thread is resolved.
   the same person. A steer the run cannot read leaves it
   unfocused and in verify rather than failing, so an unexpected verify pass can mean a
   lookup that did not resolve rather than a steer that was never posted.
-  Getting a verify pass back means changing the steer — editing, deleting or superseding
-  it — never a label action.
+  Getting a verify pass back means changing the steer, never a label action: post a newer
+  steer whose first word is not `fresh`, or edit the one the run reads. Deleting it brings
+  back whichever triage+ steer is now newest, which may be fresh too.
   A `deep-review:`-prefixed PR comment from a triage+ user pre-steers the focus. Its output
   lands as a PR review from `claude` marked `<!-- claude-deep-review -->`; it reviewed the
   code checked out when its workflow started, which a racing push may have superseded — so
