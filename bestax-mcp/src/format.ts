@@ -432,8 +432,12 @@ export function renderComponent(
       );
     }
   }
+  // The variables of the component whose element this one renders. `include` can't
+  // serve those on this call, so this one does point at get_css_variables.
+  const from = cssVarsFromClause(record);
   if (include.includes('cssVars') && record.cssVars.length) {
     out.push('## CSS Variables', renderCssVars(record.cssVars));
+    if (from) out.push(`${record.name} ${from}`);
   } else if (record.cssVars.length) {
     // Routing, not a second tool call: get_component can already serve this on the
     // call being made, so the fix is a pointer at `include`, not at get_css_variables.
@@ -442,8 +446,11 @@ export function renderComponent(
     out.push(
       `\`${record.name}\` has ${record.cssVars.length} CSS variable${
         record.cssVars.length === 1 ? '' : 's'
-      } for theming — pass \`include: ["cssVars"]\` to see them.`
+      } for theming — pass \`include: ["cssVars"]\` to see them.` +
+        (from ? ` It ${from}` : '')
     );
+  } else if (from) {
+    out.push(noCssVarsOfItsOwn(record));
   }
   if (include.includes('accessibility') && record.accessibility) {
     out.push('## Accessibility', attributedLinks(record.accessibility));
@@ -529,26 +536,45 @@ export function renderCssVarsAnswer(
   vars: CssVar[],
   query?: string
 ): string {
-  const from = record.cssVarsFrom;
-  const own = record.cssVars.length > 0;
-  const pointer = from
-    ? `renders ${from}'s element, so ${from}'s variables style it` +
-      `${own ? ' too' : ''}. They are in \`get_css_variables({ component: ` +
-      `"${from}"${query ? `, query: ${JSON.stringify(query)}` : ''} })\`.`
-    : null;
+  const from = cssVarsFromClause(record, query);
   if (vars.length) {
     const rows = `# ${record.name} CSS variables\n\n${renderCssVars(vars)}`;
-    return pointer ? `${rows}\n\n${record.name} ${pointer}` : rows;
+    return from ? `${rows}\n\n${record.name} ${from}` : rows;
   }
-  if (!pointer) {
+  if (!from) {
     return `${record.name} registers no CSS variables${
       query ? ` matching "${query}"` : ''
     }.`;
   }
   // "Matching" only where it has some of its own that didn't match.
+  return record.cssVars.length
+    ? `${record.name} registers no CSS variables matching "${query}". It ${from}`
+    : noCssVarsOfItsOwn(record, query);
+}
+
+/**
+ * The clause naming the component whose element `record` renders and the call that
+ * lists its variables, or null when it renders its own. It starts at the verb, for the
+ * caller to put the component's name or "It" in front. `query` goes on into the call.
+ */
+function cssVarsFromClause(
+  record: ComponentRecord,
+  query?: string
+): string | null {
+  const from = record.cssVarsFrom;
+  if (!from) return null;
   return (
-    `${record.name} registers no CSS variables ` +
-    `${own ? `matching "${query}"` : 'of its own'}. It ${pointer}`
+    `renders ${from}'s element, so ${from}'s variables style it` +
+    `${record.cssVars.length ? ' too' : ''}. They are in \`get_css_variables({ ` +
+    `component: "${from}"${query ? `, query: ${JSON.stringify(query)}` : ''} })\`.`
+  );
+}
+
+/** What both tools say for a component with `cssVarsFrom` and no rows of its own. */
+function noCssVarsOfItsOwn(record: ComponentRecord, query?: string): string {
+  return (
+    `${record.name} registers no CSS variables of its own. ` +
+    `It ${cssVarsFromClause(record, query)}`
   );
 }
 

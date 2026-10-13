@@ -359,12 +359,47 @@ describe('renderComponent CSS variable pointer', () => {
     const out = renderComponent(record, ['props']);
     expect(out).not.toContain('CSS variable');
   });
+
+  // `include` can't serve the other component's variables on this call, so that
+  // part of the hint names get_css_variables, as that tool's own answer does.
+  const linkButtonPointer =
+    "LinkButton renders Button's element, so Button's variables style it too. " +
+    'They are in `get_css_variables({ component: "Button" })`.';
+
+  it("adds the other component's call to the count for one that renders its element", async () => {
+    const record = await loadComponent('LinkButton');
+    expect(record.cssVarsFrom).toBe('Button');
+    const out = renderComponent(record, ['props']);
+    expect(out).toContain(
+      `\`LinkButton\` has ${record.cssVars.length} CSS variables for theming ` +
+        '— pass `include: ["cssVars"]` to see them. It renders ' +
+        "Button's element, so Button's variables style it too. They are in " +
+        '`get_css_variables({ component: "Button" })`.'
+    );
+    // A component that renders its own element gets the count alone.
+    expect(
+      renderComponent(await loadComponent('Button'), ['props'])
+    ).not.toContain('element, so');
+  });
+
+  it('puts the call under its own rows when cssVars is included', async () => {
+    const out = renderComponent(await loadComponent('LinkButton'), [
+      'props',
+      'cssVars',
+    ]);
+    expect(out).toContain('## CSS Variables');
+    expect(out).toContain(linkButtonPointer);
+    expect(out.indexOf(linkButtonPointer)).toBeGreaterThan(
+      out.lastIndexOf('--bulma-link-button-')
+    );
+  });
 });
 
-describe('renderCssVarsAnswer for a component with no class of its own', () => {
+describe('a component with no class of its own', () => {
   // A component that renders another's element and adds no class lists no variables,
-  // so its answer is the pointer and nothing else. ToggleButton's record with its rows
-  // taken out stands in for one; the server tests hold the records the index ships.
+  // so both tools answer with the pointer and nothing else. ToggleButton's record with
+  // its rows taken out stands in for one; the server tests hold the records the index
+  // ships.
   const bare = async () => ({
     ...(await loadComponent('ToggleButton')),
     cssVars: [],
@@ -387,5 +422,18 @@ describe('renderCssVarsAnswer for a component with no class of its own', () => {
         "Button's element, so Button's variables style it. They are in " +
         '`get_css_variables({ component: "Button", query: "say \\"hi\\"" })`.'
     );
+  });
+
+  it('gives get_component the same pointer in place of the count', async () => {
+    // Without it the answer says nothing about CSS variables at all, since the count
+    // is of the component's own rows.
+    const record = await bare();
+    const pointer = renderCssVarsAnswer(record, []);
+    for (const include of [['props'], ['props', 'cssVars']]) {
+      const out = renderComponent(record, include);
+      expect(out).toContain(pointer);
+      expect(out).not.toContain('for theming');
+      expect(out).not.toContain('## CSS Variables');
+    }
   });
 });

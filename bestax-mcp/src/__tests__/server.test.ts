@@ -745,12 +745,21 @@ describe('get_css_variables', () => {
       );
       for (const record of pointing) {
         const from = record.cssVarsFrom as string;
-        const out = text(
-          await call('get_css_variables', { component: record.name })
-        );
-        expect(out).toContain(
-          `\`get_css_variables({ component: "${from}" })\``
-        );
+        const named = `\`get_css_variables({ component: "${from}" })\``;
+        // get_css_variables, get_component's default answer, and the resource,
+        // which includes cssVars.
+        const answers = [
+          text(await call('get_css_variables', { component: record.name })),
+          text(await call('get_component', { name: record.name })),
+          String(
+            (
+              await client.readResource({
+                uri: `bestax://components/${record.name}`,
+              })
+            ).contents[0].text
+          ),
+        ];
+        for (const out of answers) expect(out).toContain(named);
         const there = text(
           await call('get_css_variables', { component: from })
         );
