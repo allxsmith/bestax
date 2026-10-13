@@ -23,9 +23,10 @@ name: Claude Deep Review
 # triage+ user re-applying `deep-review` is the one deliberate re-run
 # path. That re-run settles the open threads of the review already on
 # the PR; it does not review the commits pushed since. A steer comment
-# starting "deep-review: fresh" can make it a full review of the current
-# code instead: a steer selects the mode of a run the label starts, and
-# does not start one. The focus step below says which steer a run reads.
+# whose first word is "fresh", with nothing attached, can make it a full
+# review of the current code instead: a steer selects the mode of a run
+# the label starts, and does not start one. The focus step below says
+# which steer a run reads.
 #
 # Deliberately does NOT trigger on `synchronize`, so Claude's own fix
 # pushes can never re-fire this workflow (no reviewer/fixer ping-pong, no
@@ -216,10 +217,8 @@ jobs:
       #
       # EXCEPTION — a deep-review `labeled` event runs whatever the probe
       # finds: a triage+ human re-applying the label (verified live by the
-      # perm step above) is a deliberate re-run: a verify pass that settles
-      # its own open threads when a marker review already exists (see MODE in
-      # the prompt), or a fresh review when none does or the steer the focus
-      # step reads starts with "fresh".
+      # perm step above) is a deliberate re-run. Its mode is MODE in the
+      # prompt, set from `reviewed` below and the steer the focus step reads.
       # Usage stays human-metered: one opus session per deliberate label
       # application. The ai-loop path and label-at-creation double-fires
       # keep the one-review invariant.
@@ -247,7 +246,7 @@ jobs:
           echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by a verified triage+ user; running, fresh or verify is decided once the focus step reads the steer"
+            echo "deep-review label applied by a verified triage+ user; running"
             exit 0
           fi
           if [ "$REVIEWED" = true ]; then
@@ -271,12 +270,14 @@ jobs:
       # newest steers, up to the script's cap, are role-checked, which bounds
       # the API calls comment spam can force, so enough newer outside authors
       # would hide a maintainer's steer and the run would read none. The
-      # steer it reads sets the focus, and a first word of "fresh" makes a
-      # relabel a full review instead of a verify pass. Deleting a fresh
-      # steer brings back whichever triage+ steer is now newest, which may be
-      # fresh too. To get a verify pass, post a newer steer whose first word
-      # is not "fresh", or edit the one the run reads. The run log names the
-      # steer author.
+      # steer it reads sets the focus. On a PR that already has a deep
+      # review, a first word of "fresh" makes the run a full review instead
+      # of a verify pass. The word is compared whole and case-insensitively,
+      # so "fresh," or "fresh:" does not count. Deleting a fresh steer brings
+      # back whichever triage+ steer is now newest, which may be fresh too.
+      # To get a verify pass, post a newer steer whose first word is not
+      # "fresh", or edit the one the run reads. The run log names the steer
+      # author.
       #
       # Emits a fully-formed FOCUS block, or an empty string, so the prompt
       # needs no conditional. Best-effort by design, since the steer is an
@@ -294,7 +295,7 @@ jobs:
         run: |
           set -euo pipefail
           echo "block=" >> "$GITHUB_OUTPUT" # default: no focus (last write wins)
-          echo "fresh=false" >> "$GITHUB_OUTPUT" # default: verify mode on a relabel
+          echo "fresh=false" >> "$GITHUB_OUTPUT" # default: no fresh steer
 
           # All "deep-review:"-prefixed comments -> newest first -> newest
           # per distinct author -> capped. --paginate because loop PRs
@@ -339,9 +340,8 @@ jobs:
           # length, and treat a whitespace-only remainder as no steer.
           TEXT=$(printf '%s' "$BODY" | tr -d '\r')
           TEXT="${TEXT#deep-review:}"
-          # A steer whose first word is "fresh" opts out of verify mode on a
-          # relabel, asking for a full review of the current code; the word
-          # itself is not part of the focus text.
+          # A first word of "fresh" sets fresh=true and is not part of the
+          # focus text. The step's comment says what that does to the mode.
           # First word across the whole comment, not the first line, so a
           # steer written as "deep-review:" then "fresh" on the next line
           # still opts out; sed -z treats the text as one record so the
