@@ -1,6 +1,7 @@
 name: Claude Deep Review
 
-# An adversarial Claude review of AI-loop PRs. Uses a stronger model
+# An adversarial Claude review of an AI-loop PR at open, and of any
+# same-repo PR a triage+ user labels `deep-review`. Uses a stronger model
 # (opus) than the sonnet implementer to decorrelate blind spots. Its
 # inline threads are work items for the fixer in claude-pr-loop.yml; the
 # fixer may NOT resolve them — the reviewer re-verifies each claimed fix in
@@ -246,7 +247,7 @@ jobs:
           echo "reviewed=$REVIEWED" >> "$GITHUB_OUTPUT"
           if [ "$ACTION" = "labeled" ] && [ "$LABEL" = "deep-review" ]; then
             echo "skip=false" >> "$GITHUB_OUTPUT"
-            echo "deep-review label applied by a verified triage+ user — running ($([ "$REVIEWED" = true ] && echo verify || echo fresh))"
+            echo "deep-review label applied by a verified triage+ user; running, fresh or verify is decided once the focus step reads the steer"
             exit 0
           fi
           if [ "$REVIEWED" = true ]; then
@@ -266,22 +267,23 @@ jobs:
       # Which steer a run reads: each author's newest "deep-review:" comment
       # (by when it was posted), newest first, and the first whose author
       # verifies triage+. So the newest triage+ steer the run can see is the
-      # one it reads, and an outsider's is not read. Only the 5 authors with
-      # the newest steers are role-checked, which bounds the API calls comment
-      # spam can force, so five newer outside authors would hide a
-      # maintainer's steer and the run would read none. The steer it reads
-      # sets the focus, and a first word of "fresh" makes a relabel a full
-      # review instead of a verify pass. Deleting a fresh steer brings back
-      # whichever triage+ steer is now newest, which may be fresh too. To get
-      # a verify pass, post a newer steer whose first word is not "fresh", or
-      # edit the one the run reads. The run log names the steer author.
+      # one it reads, and an outsider's is not read. Only the authors with the
+      # newest steers, up to the script's cap, are role-checked, which bounds
+      # the API calls comment spam can force, so enough newer outside authors
+      # would hide a maintainer's steer and the run would read none. The
+      # steer it reads sets the focus, and a first word of "fresh" makes a
+      # relabel a full review instead of a verify pass. Deleting a fresh
+      # steer brings back whichever triage+ steer is now newest, which may be
+      # fresh too. To get a verify pass, post a newer steer whose first word
+      # is not "fresh", or edit the one the run reads. The run log names the
+      # steer author.
       #
-      # Emits a fully-formed FOCUS block, or an empty string, so the prompt needs no
-      # conditional. Best-effort by design — the steer is an enhancement,
-      # not an authorization gate, so unlike the perm step it degrades open:
-      # an API failure means an unfocused review, never a red run. On ai-loop
-      # `opened` events no comments can exist yet, so this is a cheap no-op
-      # there.
+      # Emits a fully-formed FOCUS block, or an empty string, so the prompt
+      # needs no conditional. Best-effort by design, since the steer is an
+      # enhancement and not an authorization gate: unlike the perm step it
+      # degrades open, and an API failure means an unfocused review, never a
+      # red run. On ai-loop `opened` events no comments can exist yet, so
+      # this is a cheap no-op there.
       - name: Extract focus steer
         id: focus
         if: steps.perm.outputs.allowed == 'true' && steps.dedupe.outputs.skip == 'false'
@@ -295,7 +297,7 @@ jobs:
           echo "fresh=false" >> "$GITHUB_OUTPUT" # default: verify mode on a relabel
 
           # All "deep-review:"-prefixed comments -> newest first -> newest
-          # per distinct author -> cap 5. --paginate because loop PRs
+          # per distinct author -> capped. --paginate because loop PRs
           # routinely exceed the default page size; gh applies --jq per page
           # (NDJSON out), the outer jq -s reassembles across pages. Note
           # unique_by would re-sort, hence the reduce for first-per-login.
