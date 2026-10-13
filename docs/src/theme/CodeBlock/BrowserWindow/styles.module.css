@@ -51,6 +51,11 @@ pre.prism-code {
   width: 0.8rem;
 }
 
+.buttonGroup {
+  display: flex;
+  gap: 0.25rem;
+}
+
 .buttonGroup button {
   display: flex;
   align-items: center;

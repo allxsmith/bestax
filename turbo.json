@@ -37,6 +37,20 @@
       ],
       "outputs": ["coverage/**"]
     },
+    "@allxsmith/bestax-docs#build": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**"
+      ],
+      "outputs": ["dist/**", "build/**"]
+    },
+    "@allxsmith/bestax-docs#test": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/create-bestax/templates/vite-ts/**"
+      ]
+    },
     "create-bestax#build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "$TURBO_ROOT$/skills/**"],

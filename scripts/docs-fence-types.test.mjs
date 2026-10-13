@@ -12,15 +12,17 @@
  * as `.tsx` too, since the site renders it the same way, so it is held to the
  * same types.
  *
- * Each fence is read the way the site runs it. `transformCode` in
- * `docs/src/theme/CodeBlock/index.js` drops a live fence's `import` and
- * `export default` lines, and react-live wraps what is left in `return (…)`, so
+ * Each fence is read the way the site runs it. The live editor drops a live
+ * fence's `import` and `export default` lines (`stripModuleLines`, in
+ * `docs/src/theme/CodeBlock/sandbox/moduleLines.mjs`), and react-live wraps
+ * what is left in `return (…)`, so
  * the fence is one expression: an element or a function. The module here
  * drops the same lines and exports that expression. An `import type` line
  * stays, since the site drops it only because types do not run, and it is how
  * an example names a library type. Every other name comes from what the site
- * puts in scope: `React`, `useState`, `useEffect`, every export of the
- * library, and the docs-only `ProfileCard`. A fence that uses something else,
+ * puts in scope (`docs/src/theme/CodeBlock/scope.js`): `React`, `useState`,
+ * `useEffect`, every export of the library, and the docs-only `ProfileCard`.
+ * A fence that uses something else,
  * such as a bare `useRef`, fails here as it would on the page.
  *
  * Because the fence's own value imports are dropped, a missing or extra name
@@ -31,6 +33,15 @@
  * one fence that is wrong on purpose. It holds only while the fence still has
  * a type error, so the marker goes when the mistake does, the way `nolint`
  * works for the ESLint pass.
+ *
+ * A second check compiles each fence the way its StackBlitz and CodeSandbox
+ * buttons write it: the `App.tsx` that `toExampleModule` in
+ * `docs/src/theme/CodeBlock/sandbox/example.mjs` makes, with only the imports
+ * the fence uses. The first check already holds the fence's own code to the
+ * types, so an error here is the converter's: an import it missed reports as
+ * a missing name and one it should not have written as unused. A fence using
+ * a docs-only name is skipped, since the page shows it no sandbox buttons, and
+ * so is a `notypecheck` fence.
  */
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
@@ -39,6 +50,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
+import { toExampleModule } from '../docs/src/theme/CodeBlock/sandbox/example.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const LIBRARY = '@allxsmith/bestax-bulma';
@@ -54,6 +66,10 @@ const PROFILE_CARD = join(
   REPO,
   'docs/src/components/SkillExamples/ProfileCard.jsx'
 );
+/** The React exports the live scope provides bare, beside `React`. */
+const REACT_SCOPE = ['useEffect', 'useState'];
+/** Scope names that exist only in the docs site, so no sandbox can import. */
+const DOCS_ONLY = ['ProfileCard'];
 /** "Declared but never read" and "all imports in a declaration are unused". */
 const UNUSED = new Set([6133, 6192]);
 
@@ -110,7 +126,7 @@ export function liveFences(src) {
  */
 function asModule(body, { libraryNames, profileCard }) {
   const header = [
-    "import React, { useEffect, useState } from 'react';",
+    `import React, { ${REACT_SCOPE.join(', ')} } from 'react';`,
     `import { ${libraryNames.join(', ')} } from '${LIBRARY}';`,
     `import { ProfileCard } from ${JSON.stringify(profileCard)};`,
   ];
@@ -163,6 +179,42 @@ function loadTools() {
 }
 
 /**
+ * One program over in-memory modules, keyed by file name. Each module's
+ * `source` is served as that file.
+ */
+function compileModules(ts, options, modules) {
+  const host = ts.createCompilerHost(options);
+  const { getSourceFile, fileExists, readFile } = host;
+  host.fileExists = name => modules.has(name) || fileExists.call(host, name);
+  host.readFile = name =>
+    modules.get(name)?.source ?? readFile.call(host, name);
+  host.getSourceFile = (name, version, ...rest) =>
+    modules.has(name)
+      ? ts.createSourceFile(name, modules.get(name).source, version, true)
+      : getSourceFile.call(host, name, version, ...rest);
+  return ts.createProgram([...modules.keys()], options, host);
+}
+
+/** Problems with the program as a whole rather than one module. */
+function compilerProblems(ts, program) {
+  return [
+    ...program.getOptionsDiagnostics(),
+    ...program.getGlobalDiagnostics(),
+  ].map(
+    d => `compiler: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`
+  );
+}
+
+/** A module path for one fence, in the library's directory. */
+function modulePath(prefix, file, fence) {
+  return join(
+    LIBRARY_DIR,
+    '.docs-fences',
+    `${prefix}${file.replace(/[^\w]/g, '_')}_L${fence.open + 1}.tsx`
+  );
+}
+
+/**
  * Type-check the live fences of every page given, in one program, and return
  * one line per problem. Pages are `{ file, src }`; the modules sit in the
  * library's directory so its own name and its React types resolve as they do
@@ -173,12 +225,7 @@ export function checkPages(pages, tools) {
   const modules = new Map();
   for (const { file, src } of pages) {
     for (const fence of liveFences(src)) {
-      const name = join(
-        LIBRARY_DIR,
-        '.docs-fences',
-        `${file.replace(/[^\w]/g, '_')}_L${fence.open + 1}.tsx`
-      );
-      modules.set(name, {
+      modules.set(modulePath('', file, fence), {
         file,
         fence,
         ...asModule(fence.body, tools),
@@ -186,24 +233,8 @@ export function checkPages(pages, tools) {
     }
   }
 
-  const host = ts.createCompilerHost(options);
-  const { getSourceFile, fileExists, readFile } = host;
-  host.fileExists = name => modules.has(name) || fileExists.call(host, name);
-  host.readFile = name =>
-    modules.get(name)?.source ?? readFile.call(host, name);
-  host.getSourceFile = (name, version, ...rest) =>
-    modules.has(name)
-      ? ts.createSourceFile(name, modules.get(name).source, version, true)
-      : getSourceFile.call(host, name, version, ...rest);
-  const program = ts.createProgram([...modules.keys()], options, host);
-
-  const problems = [];
-  const global = program.getGlobalDiagnostics();
-  for (const d of [...program.getOptionsDiagnostics(), ...global]) {
-    problems.push(
-      `compiler: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`
-    );
-  }
+  const program = compileModules(ts, options, modules);
+  const problems = compilerProblems(ts, program);
   // The header imports the whole scope, and most of it goes unused, so an
   // unused-import report there is expected. Anything else on the header means
   // a name did not bind, such as `ProfileCard` after a move, and every fence
@@ -239,6 +270,50 @@ export function checkPages(pages, tools) {
     }
   }
   problems.push(...scope);
+  return problems;
+}
+
+/**
+ * Type-check every live fence as its sandbox buttons would write it, and
+ * return one line per problem, naming the fence's opening line and the line
+ * of the generated `App.tsx`. Nothing is exempt: the converter writes every
+ * import, so an unused one is its mistake too.
+ */
+export function checkSandboxes(pages, tools) {
+  const { ts, options } = tools;
+  const modules = new Map();
+  for (const { file, src } of pages) {
+    for (const fence of liveFences(src)) {
+      if (fence.optOut) continue;
+      const example = toExampleModule(fence.body.join('\n'), {
+        libraryExports: tools.libraryNames,
+        reactNames: REACT_SCOPE,
+        docsOnlyNames: DOCS_ONLY,
+      });
+      if (!example) continue;
+      modules.set(modulePath('sandbox_', file, fence), {
+        file,
+        fence,
+        source: example.source,
+      });
+    }
+  }
+
+  const program = compileModules(ts, options, modules);
+  const problems = compilerProblems(ts, program);
+  for (const [name, { file, fence }] of modules) {
+    const sourceFile = program.getSourceFile(name);
+    for (const d of [
+      ...program.getSyntacticDiagnostics(sourceFile),
+      ...program.getSemanticDiagnostics(sourceFile),
+    ]) {
+      const line = sourceFile.getLineAndCharacterOfPosition(d.start ?? 0).line;
+      const text = ts.flattenDiagnosticMessageText(d.messageText, ' ');
+      problems.push(
+        `${file}:${fence.open + 1}: App.tsx line ${line + 1}: TS${d.code} ${text}`
+      );
+    }
+  }
   return problems;
 }
 
@@ -417,6 +492,45 @@ describe('the docs live examples type-check', () => {
       [],
       'Fix the example so it compiles in a new Vite react-ts app. One that ' +
         `is wrong on purpose takes \`${OPT_OUT}\` in its info string.`
+    );
+  });
+});
+
+describe('every live example converts into a sandbox App.tsx that type-checks', () => {
+  const tools = loadTools();
+  const pages = docsPages();
+  const problems = checkSandboxes([...pages, ...FIXTURES], tools);
+  const about = file => problems.filter(p => p.startsWith(`${file}:`));
+
+  it('writes exactly the imports a fence uses, type imports included', () => {
+    assert.deepEqual(about('fixture/imports.md'), []);
+    assert.deepEqual(about('fixture/jsx-live.md').length, 1);
+  });
+
+  it('skips a docs-only example and a notypecheck one', () => {
+    assert.deepEqual(about('fixture/scope-only.md'), []);
+    assert.deepEqual(about('fixture/marked-and-wrong.md'), []);
+  });
+
+  it('reports what the converter gets wrong, at the fence', () => {
+    const found = checkSandboxes(
+      [page('fixture/bogus.md', '<Box><Bogus /></Box>')],
+      { ...tools, libraryNames: [...tools.libraryNames, 'Bogus'] }
+    );
+    assert.equal(found.length, 1, found.join('\n'));
+    assert.match(
+      found[0],
+      /^fixture\/bogus\.md:3: App\.tsx line 1: TS2305 .*'Bogus'/
+    );
+  });
+
+  it('every live example under docs/docs opens in a sandbox without a type error', () => {
+    assert.deepEqual(
+      problems.filter(p => !p.startsWith('fixture/')),
+      [],
+      'The sandbox converter (docs/src/theme/CodeBlock/sandbox/example.mjs) ' +
+        'wrote a module that does not compile, for a fence that does. Fix ' +
+        'the converter, not the fence.'
     );
   });
 });
