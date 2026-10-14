@@ -180,6 +180,7 @@ export const SCSS_SOURCES = {
   Image: [],
   Input: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
   InputBase: [{ pkg: 'bulma', path: 'sass/form/shared.scss' }],
+  Kbd: [{ pkg: 'repo', path: 'bulma-ui/src/scss/elements/_kbd.scss' }],
   Level: [{ pkg: 'bulma', path: 'sass/layout/level.scss' }],
   Link: [],
   LinkButton: [
