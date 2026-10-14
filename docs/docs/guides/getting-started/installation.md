@@ -177,7 +177,7 @@ import './custom-bestax.scss';
 bestax-bulma components support multiple icon libraries. Icons are optional but enhance the user experience.
 
 :::tip
-`create-bestax` installs and wires up any of these for you when you pick one at the prompt. The steps below are for setting up an icon library by hand.
+`create-bestax` wires up any of these for you when you pick one at the prompt. The steps below are for setting up an icon library by hand.
 :::
 
 ### Font Awesome (Most Popular)
@@ -232,16 +232,14 @@ Usage: `<Icon name="person" library="material-icons" />`
 
 ### Ionicons
 
-<PackageManagerTabs>
+Ionicons v8 is a set of web components with no stylesheet. Load it with a script tag in your
+HTML rather than an import:
 
-```bash
-pnpm add ionicons
-```
-
-</PackageManagerTabs>
-
-```js
-import 'ionicons/dist/css/ionicons.min.css';
+```html
+<script
+  type="module"
+  src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"
+></script>
 ```
 
 Usage: `<Icon name="person" library="ion" />`

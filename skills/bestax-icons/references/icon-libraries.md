@@ -44,7 +44,7 @@ Set it once on `ConfigProvider` and omit `library` everywhere else.
 
 ## Ionicons — `'ion'` ⚠️ value is `ion`, not `ionicons`
 
-- **Setup:** a CDN script pair in `index.html` (no npm package — it registers the
+- **Setup:** a CDN script in `index.html` (no npm package — it registers the
   `<ion-icon>` web component):
 
   ```html
@@ -138,7 +138,7 @@ Docs: https://bestax.io/docs/guides/getting-started/alternative-icons#making-the
 2. **Name format for that library** — kebab vs snake_case (see the table above); for
    material-* a wrong name renders as literal text instead of a glyph.
 3. **The library's CSS/script is actually loaded** — the import in `main.tsx` (or the
-   Ionicons scripts in `index.html`) must exist; bestax ships none of them.
+   Ionicons script in `index.html`) must exist; bestax ships none of them.
 4. **Variant availability** — Font Awesome free has no `light`/`duotone`/`thin`; brand
    glyphs need `variant="brands"`.
 
