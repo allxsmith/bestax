@@ -229,46 +229,50 @@ button has a shortcut, and the `Kbd` is the hint people see.
 A key in a tooltip follows the tooltip's light text on its dark fill.
 
 ```tsx live
-<Block pt="6">
-  <Tooltip
-    active
-    content={
-      <>
-        Bold{' '}
-        <Kbd.Group>
-          <Kbd>Ctrl</Kbd>
-          <Kbd>B</Kbd>
-        </Kbd.Group>
-      </>
-    }
-  >
-    <Button aria-keyshortcuts="Control+B">Bold</Button>
-  </Tooltip>
-</Block>
+<Tooltip
+  active
+  position="right"
+  content={
+    <>
+      Bold{' '}
+      <Kbd.Group>
+        <Kbd>Ctrl</Kbd>
+        <Kbd>B</Kbd>
+      </Kbd.Group>
+    </>
+  }
+>
+  <Button aria-keyshortcuts="Control+B">Bold</Button>
+</Tooltip>
 ```
 
 ### Colors
 
-There's no `color` prop, since a key isn't a status. The key's edge and fill are mixed from its
-text color, so `textColor` tints all three, and `bgColor` replaces the fill. A key in a colored
-notification follows the notification's text the same way.
+A key takes its colors from the text around it, so it fits a colored notification with no props.
+There's no `color` prop, since a key isn't a status. To tint one key, such as one that deletes
+something, give it a `textColor` with `colorShade="on-scheme"`, Bulma's shade of each color for
+text on the page, which reads in light mode and dark.
 
 ```tsx live
 <>
-  <Paragraph>
-    <Kbd textColor="link" mr="2">
-      Enter
-    </Kbd>
-    <Kbd textColor="danger" mr="2">
-      Del
-    </Kbd>
-    <Kbd bgColor="warning" textColor="black">
-      Tab
-    </Kbd>
-  </Paragraph>
   <Notification color="info">
-    Press <Kbd>Esc</Kbd> to close.
+    Press <Kbd>Esc</Kbd> to close this panel.
   </Notification>
+  <Notification color="warning" isLight>
+    You have unsaved changes. Press{' '}
+    <Kbd.Group>
+      <Kbd>Ctrl</Kbd>
+      <Kbd>S</Kbd>
+    </Kbd.Group>{' '}
+    to save them.
+  </Notification>
+  <Paragraph>
+    Select a row and press{' '}
+    <Kbd textColor="danger" colorShade="on-scheme">
+      Del
+    </Kbd>{' '}
+    to delete it.
+  </Paragraph>
 </>
 ```
 
