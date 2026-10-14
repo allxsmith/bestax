@@ -177,7 +177,7 @@ import './custom-bestax.scss';
 bestax-bulma components support multiple icon libraries. Icons are optional but enhance the user experience.
 
 :::tip
-`create-bestax` installs and wires up any of these for you when you pick one at the prompt. The steps below are for setting up an icon library by hand.
+`create-bestax` wires up any of these for you when you pick one at the prompt. The steps below are for setting up an icon library by hand.
 :::
 
 ### Font Awesome (Most Popular)
