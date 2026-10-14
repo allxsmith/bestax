@@ -247,8 +247,12 @@ function escapeHtml(text) {
 /**
  * The `files` object for CodeSandbox's define API.
  *
- * Icon stylesheets load from a CDN here rather than from the installed
- * packages. CodeSandbox's in-browser bundler inlines a package's CSS without
+ * The library's stylesheet and the icon stylesheets load from a CDN here rather
+ * than from the installed packages. Its published file starts with a byte-order
+ * mark, which CodeSandbox keeps when it inlines a stylesheet, so the `:root` rule
+ * after it never matches and the buttons lose their radius.
+ *
+ * The icon stylesheets CodeSandbox's in-browser bundler inlines a package's CSS without
  * rewriting its relative `url()`s, so the icon fonts would resolve against the
  * sandbox's own address and fail; from the CDN they resolve beside the CSS.
  *
@@ -290,6 +294,7 @@ export function codesandboxFiles({
     '<meta charset="UTF-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
     `<title>${escapeHtml(title)}</title>`,
+    `<link rel="stylesheet" href="${cdnUrl(versions, LIBRARY, 'dist/bestax.css')}" />`,
     ...iconLinks(icons, versions),
     ...iconScripts(icons, versions),
   ];
@@ -331,7 +336,11 @@ export function codesandboxFiles({
     },
     'public/index.html': { content: html },
     'src/index.tsx': {
-      content: main.replace("from './App.tsx'", "from './App'"),
+      content: main
+        .split('\n')
+        .filter(line => !line.includes(`'${LIBRARY}/bestax.css'`))
+        .join('\n')
+        .replace("from './App.tsx'", "from './App'"),
     },
     'src/index.css': { content: template['src/index.css'] },
     'src/css.d.ts': { content: "declare module '*.css';\n" },

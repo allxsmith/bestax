@@ -25,8 +25,10 @@ import { ShadowThemeContext, hostRule } from './ShadowTheme';
  * only `themeSheet`, which holds whatever `<Theme isRoot>` in the example set,
  * belongs to this instance.
  */
-export default function ShadowLivePreview() {
-  const { colorMode } = useColorMode();
+export default function ShadowLivePreview({ forcedColorMode }) {
+  const { colorMode: siteColorMode } = useColorMode();
+  // An example window can pin its own palette, e.g. the dark example window.
+  const colorMode = forcedColorMode ?? siteColorMode;
   const themeSheet = useInstanceStyleSheet(null);
   const styleSheets = useShadowStyleSheets(themeSheet);
 

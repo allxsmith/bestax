@@ -392,7 +392,13 @@ describe('codesandboxFiles', () => {
   it('enters through the template main file, importing App without extension', () => {
     const entry = files['src/index.tsx'].content;
     assert.match(entry, /^import App from '\.\/App';$/m);
-    assert.match(entry, /^import '@allxsmith\/bestax-bulma\/bestax\.css';$/m);
+    // The library stylesheet loads from the CDN in index.html instead, since
+    // CodeSandbox inlines an imported stylesheet and keeps its byte-order mark.
+    assert.doesNotMatch(entry, /bestax-bulma\/bestax\.css/);
+    assert.match(
+      files['public/index.html'].content,
+      /<link rel="stylesheet" href="https:\/\/cdn\.jsdelivr\.net\/npm\/@allxsmith\/bestax-bulma@[\d.]+\/dist\/bestax\.css" \/>/
+    );
     // The editor's TypeScript predates `bundler` and cannot resolve the
     // library's types under it.
     assert.equal(
