@@ -39,11 +39,11 @@
     },
     {
       "title": "In a Tooltip",
-      "code": "<Block pt=\"6\">\n  <Tooltip\n    active\n    content={\n      <>\n        Bold{' '}\n        <Kbd.Group>\n          <Kbd>Ctrl</Kbd>\n          <Kbd>B</Kbd>\n        </Kbd.Group>\n      </>\n    }\n  >\n    <Button aria-keyshortcuts=\"Control+B\">Bold</Button>\n  </Tooltip>\n</Block>"
+      "code": "<Tooltip\n  active\n  position=\"right\"\n  content={\n    <>\n      Bold{' '}\n      <Kbd.Group>\n        <Kbd>Ctrl</Kbd>\n        <Kbd>B</Kbd>\n      </Kbd.Group>\n    </>\n  }\n>\n  <Button aria-keyshortcuts=\"Control+B\">Bold</Button>\n</Tooltip>"
     },
     {
       "title": "Colors",
-      "code": "<>\n  <Paragraph>\n    <Kbd textColor=\"link\" mr=\"2\">\n      Enter\n    </Kbd>\n    <Kbd textColor=\"danger\" mr=\"2\">\n      Del\n    </Kbd>\n    <Kbd bgColor=\"warning\" textColor=\"black\">\n      Tab\n    </Kbd>\n  </Paragraph>\n  <Notification color=\"info\">\n    Press <Kbd>Esc</Kbd> to close.\n  </Notification>\n</>"
+      "code": "<>\n  <Notification color=\"info\">\n    Press <Kbd>Esc</Kbd> to close this panel.\n  </Notification>\n  <Notification color=\"warning\" isLight>\n    You have unsaved changes. Press{' '}\n    <Kbd.Group>\n      <Kbd>Ctrl</Kbd>\n      <Kbd>S</Kbd>\n    </Kbd.Group>{' '}\n    to save them.\n  </Notification>\n  <Paragraph>\n    Select a row and press{' '}\n    <Kbd textColor=\"danger\" colorShade=\"on-scheme\">\n      Del\n    </Kbd>{' '}\n    to delete it.\n  </Paragraph>\n</>"
     },
     {
       "title": "Mac and Windows",
