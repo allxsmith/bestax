@@ -9,6 +9,7 @@ import { DateInput } from './DateInput';
 import { DateInputBase } from './DateInputBase';
 import { TimeInputBase } from './TimeInputBase';
 import { DateTimeInputBase } from './DateTimeInputBase';
+import { DateRangeInputBase } from './DateRangeInputBase';
 import { Radios } from './Radios';
 import { Radio } from './Radio';
 import { Rate } from './Rate';
@@ -135,7 +136,9 @@ export const LabelsCustomControls: Story = {
 
 /**
  * Composed by hand, a picker base takes the id the label points at, as
- * `InputBase` does, so the label names it with no wiring.
+ * `InputBase` does, so the label names it with no wiring. `DateRangeInputBase`
+ * holds two inputs, so the label names its group through `aria-labelledby`
+ * instead, as it does `DateRangeInput`'s.
  */
 export const LabelsComposedPickers: Story = {
   render: () => (
@@ -153,6 +156,11 @@ export const LabelsComposedPickers: Story = {
       <Field label="Appointment">
         <Control iconLeftName="calendar-alt">
           <DateTimeInputBase placeholder="YYYY-MM-DD HH:MM" />
+        </Control>
+      </Field>
+      <Field label="Stay">
+        <Control iconLeftName="calendar">
+          <DateRangeInputBase placeholder="YYYY-MM-DD" />
         </Control>
       </Field>
     </>
@@ -226,10 +234,10 @@ export const LabelSizes: Story = {
  */
 export const Horizontal: Story = {
   render: () => (
-    <Field horizontal label="Name">
+    <Field horizontal label="Name" labelProps={{ htmlFor: 'horizontal-name' }}>
       <Field>
         <Control>
-          <Input placeholder="Your name" />
+          <Input id="horizontal-name" placeholder="Your name" />
         </Control>
       </Field>
     </Field>
@@ -244,16 +252,16 @@ export const Horizontal: Story = {
 export const HorizontalExplicitBody: Story = {
   render: () => (
     <>
-      <Field horizontal label="From">
+      <Field horizontal label="From" labelProps={{ htmlFor: 'from-name' }}>
         <Field.Body>
           <Field>
             <Control isExpanded iconLeftName="user">
-              <Input placeholder="Name" />
+              <Input id="from-name" placeholder="Name" />
             </Control>
           </Field>
           <Field>
             <Control isExpanded iconLeftName="envelope">
-              <Input type="email" placeholder="Email" />
+              <Input type="email" placeholder="Email" aria-label="Email" />
             </Control>
           </Field>
         </Field.Body>
@@ -278,11 +286,15 @@ export const HorizontalExplicitBody: Story = {
  */
 export const HorizontalNarrow: Story = {
   render: () => (
-    <Field horizontal label="Department">
+    <Field
+      horizontal
+      label="Department"
+      labelProps={{ htmlFor: 'narrow-department' }}
+    >
       <Field.Body>
         <Field narrow>
           <Control>
-            <Select isFullwidth>
+            <Select id="narrow-department" isFullwidth>
               <option>Business development</option>
               <option>Marketing</option>
               <option>Sales</option>

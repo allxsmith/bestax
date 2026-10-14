@@ -69,7 +69,10 @@ the API pages and the skill catalog.
 - **Unhelpful answers are bugs.** A missing component suggests near misses by
   edit distance; a bad dot-path lists the real ones; a component with no CSS
   variables says so rather than returning blank. An empty response reads as a
-  failed lookup and costs a retry.
+  failed lookup and costs a retry. A component that renders another component's
+  element (`RENDERS_ELEMENT_OF` in `scripts/lib/api-sources.mjs`) names that
+  component's `get_css_variables` call too, since "none" alone reads as "can't
+  be themed".
 
 ## Dependencies
 
@@ -109,11 +112,18 @@ test that stubs it proves nothing about what ships.
 
 ## Releases
 
-Independent semantic-release keyed off the `bestax-mcp` commit scope
-(`release.config.js`, tag `bestax-mcp@x.y.z`). It publishes with
+Released by semantic-release, keyed off the `bestax-mcp` commit scope (`release.config.js`, tag
+`bestax-mcp@x.y.z`), and patched with every bulma-ui release so the index ships with the
+library (VERSIONING.md, "bestax-mcp releases with bestax-bulma"). It publishes with
 `pnpm publish`, like every package here (#532) — the command, its flags, and the
 ways that publish fails quietly are documented in `VERSIONING.md` and
 `scripts/lib/pnpm-publish.mjs`.
+
+The release job regenerates `data/` after bulma-ui's release and before this package's, and
+the publish packs that working tree, so the index a release ships is stamped with the
+`bestax-bulma` version released in the same run (#932). The release commit does not take the
+change; the job's last step commits it to main. `ci.yml` has the details, at "Regenerate the MCP
+index".
 
 MCP directories and lists describe what the server offers and give `npx -y bestax-mcp@1` as
 its command. A change to either, to how it starts, or a new major means updating the listings
@@ -132,8 +142,8 @@ change to either updates it in the same PR.
 Its `prepack` runs the guard and then `scripts/sync-skills.mjs`, which fills
 `data/skills/` at pack time. That directory is gitignored while the manifest
 `data/skills.json` is committed, so packing locally does not dirty the tree —
-which also keeps it clear of the post-release restamp step in `ci.yml`, whose
-diff check is scoped to `bestax-mcp/data`.
+which also keeps it clear of the MCP index restamp in `ci.yml`, whose diff check
+and commit are scoped to `bestax-mcp/data`.
 
 `files` carries a `"!data/.sync-skills"` negation, and it is not cosmetic.
 `files` ships all of `data/`, and `sync-skills.mjs` keeps its fingerprint and

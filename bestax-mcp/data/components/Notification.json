@@ -89,7 +89,7 @@
           "name": "hasDelete",
           "type": "boolean",
           "default": "false",
-          "description": "Shows a close (delete) button in the notification. It renders `type=\"button\"`, so it does not submit a form around it.",
+          "description": "Shows a close (delete) button in the notification. It renders `type=\"button\"`, so it does not submit a form around it. The notification also takes `has-delete`, which pads its end by `--bulma-notification-delete-padding-inline-end` so the text clears the button. That rule ships in bestax's stylesheets, not Bulma's, so an app styled by Bulma's CSS alone keeps Bulma's padding.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -119,6 +119,12 @@
     }
   ],
   "cssVars": [
+    {
+      "css": "--bulma-notification-delete-padding-inline-end",
+      "sass": "$notification-delete-padding-inline-end",
+      "default": "calc(1rem + 1.25rem + 0.75rem)",
+      "scope": "root"
+    },
     {
       "css": "--bulma-notification-h",
       "sass": null,

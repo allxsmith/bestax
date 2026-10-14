@@ -81,6 +81,30 @@ function LoadingIcon() {
   );
 }
 
+// The pointer, and a menu of actions opening at its tip: context menu
+function ContextMenuIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M2 2.5v6.5l1.7-1.5 1.3 2.5 1.3-.7-1.3-2.5 2.3-.3z" />
+      <rect x="8" y="7" width="13" height="14.5" rx="2" />
+      <path d="M11 11h7M11 14.5h7M11 18h4" />
+    </svg>
+  );
+}
+
+// A link with the pointer resting on it, and the card it opens below: hover card
+function HoverCardIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M3 6h7" />
+      <path d="M13 2.5v6.5l1.7-1.5 1.3 2.5 1.3-.7-1.3-2.5 2.3-.3z" />
+      <rect x="3" y="12" width="18" height="9.5" rx="2" />
+      <circle cx="7.5" cy="16.75" r="1.9" />
+      <path d="M11.5 15.5h6M11.5 18h4" />
+    </svg>
+  );
+}
+
 // A button with a panel opened below it, pointing back up: popover
 function PopoverIcon() {
   return (
@@ -152,7 +176,9 @@ const ADDON_ICONS = {
   badge: BadgeIcon,
   carousel: CarouselIcon,
   collapse: CollapseIcon,
+  contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
+  hovercard: HoverCardIcon,
   loading: LoadingIcon,
   popover: PopoverIcon,
   reveal: RevealIcon,

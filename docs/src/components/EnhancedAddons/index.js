@@ -37,10 +37,22 @@ const ADDONS = [
     desc: 'Smoothly expanding panels for accordions and FAQs.',
   },
   {
+    name: 'ContextMenu',
+    icon: 'contextmenu',
+    link: '/docs/api/components/contextmenu',
+    desc: 'Menus of actions that open where you right-click, or long press on a touch screen.',
+  },
+  {
     name: 'Dialog',
     icon: 'dialog',
     link: '/docs/api/components/dialog',
     desc: 'Confirmation and alert dialogs with customizable actions.',
+  },
+  {
+    name: 'HoverCard',
+    icon: 'hovercard',
+    link: '/docs/api/components/hovercard',
+    desc: 'Previews on links and buttons that open on hover or keyboard focus, and that the pointer can reach.',
   },
   {
     name: 'Loading',

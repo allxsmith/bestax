@@ -68,6 +68,20 @@ export const GENERATED_EXEMPT = new Set(['helpers']);
  * is a hard error in `gen-api-docs.mjs`, and a partial registering variables
  * that no entry here claims fails `check:conformance` (the orphan rule).
  *
+ * A component lists the variables registered on its own class and no
+ * others. Where it renders another component's element, its page links that
+ * component's table rather than copying it. LinkButton renders Button's
+ * `.button` and adds `.link-button`, so it lists what `_linkbutton.scss`
+ * registers on that. ToggleButton renders Button's `.button` with no class of
+ * its own, so it has no ROOT_CLASS_OVERRIDES entry, comes out `[]`, and its
+ * page writes the section by hand, pointing at Button's. RENDERS_ELEMENT_OF
+ * below gives the MCP index the same pointer. Copying Button's
+ * table named ToggleButton, in the MCP index too, as a declarer of the
+ * `is-text`, `is-ghost` and `is-static` variables, which it can't render.
+ * SegmentedControl is the same case one level down: its row is Buttons'
+ * `.buttons`, which registers nothing, and its segments render Button's
+ * `.button`, so it comes out `[]` and its page points at Button's table too.
+ *
  * `pkg: 'bulma'` resolves under node_modules/bulma; `pkg: 'repo'` is
  * repo-relative (the extras in bulma-ui/src/scss).
  */
@@ -104,6 +118,9 @@ export const SCSS_SOURCES = {
   Config: [],
   Container: [],
   Content: [{ pkg: 'bulma', path: 'sass/elements/content.scss' }],
+  ContextMenu: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_contextmenu.scss' },
+  ],
   Control: [
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
     { pkg: 'bulma', path: 'sass/utilities/controls.scss' },
@@ -155,6 +172,9 @@ export const SCSS_SOURCES = {
   Footer: [{ pkg: 'bulma', path: 'sass/layout/footer.scss' }],
   Grid: [{ pkg: 'bulma', path: 'sass/grid/grid.scss' }],
   Hero: [{ pkg: 'bulma', path: 'sass/layout/hero.scss' }],
+  HoverCard: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_hovercard.scss' },
+  ],
   Icon: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
   IconText: [{ pkg: 'bulma', path: 'sass/elements/icon.scss' }],
   Image: [],
@@ -175,7 +195,10 @@ export const SCSS_SOURCES = {
   Message: [{ pkg: 'bulma', path: 'sass/components/message.scss' }],
   Modal: [{ pkg: 'bulma', path: 'sass/components/modal.scss' }],
   Navbar: [{ pkg: 'bulma', path: 'sass/components/navbar.scss' }],
-  Notification: [{ pkg: 'bulma', path: 'sass/elements/notification.scss' }],
+  Notification: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/elements/_notification.scss' },
+    { pkg: 'bulma', path: 'sass/elements/notification.scss' },
+  ],
   Numberinput: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_numberinput.scss' },
   ],
@@ -194,6 +217,7 @@ export const SCSS_SOURCES = {
   Rate: [{ pkg: 'repo', path: 'bulma-ui/src/scss/form/_rate.scss' }],
   Reveal: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_reveal.scss' }],
   Section: [{ pkg: 'bulma', path: 'sass/layout/section.scss' }],
+  SegmentedControl: [],
   Select: [
     { pkg: 'bulma', path: 'sass/form/select.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
@@ -246,6 +270,7 @@ export const SCSS_SOURCES = {
   ],
   Title: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Toast: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_toast.scss' }],
+  ToggleButton: [],
   Tooltip: [
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
@@ -253,6 +278,32 @@ export const SCSS_SOURCES = {
   UnorderedList: [],
 };
 // </generated:scss-sources>
+
+/**
+ * Components that render another component's element, so that component's CSS
+ * variables style them too, for the colors and modifiers each one accepts.
+ *
+ * That can be fewer than the other component offers, where a component leaves
+ * some of its colors or modifiers out. The answer says so in general terms, so
+ * each entry stays one name.
+ *
+ * `gen-mcp-index.mjs` carries this map into the index as `cssVarsFrom`, and
+ * `get_css_variables` names that component's call in its answer, under the
+ * component's own rows or in their place.
+ *
+ * Declared rather than read from the root class: LinkButton renders Button's
+ * `.button` under a class of its own. Hand-written, so it sits outside the
+ * generated markers, where `pnpm gen:api-sources` leaves it alone.
+ *
+ * Keyed by component, the way the server answers a CSS variable lookup. A part
+ * of a compound component that renders another component's element has no key
+ * here, since the lookup answers a part with its parent's rows, so a part
+ * missing from this map doesn't mean it renders an element of its own.
+ */
+export const RENDERS_ELEMENT_OF = {
+  LinkButton: 'Button', // renders `.button.link-button` through Button
+  ToggleButton: 'Button', // renders a `.button` through Button
+};
 
 /**
  * Pages whose `## Import` deliberately imports more than the page's own

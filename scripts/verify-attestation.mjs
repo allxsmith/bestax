@@ -36,11 +36,41 @@
  * install already wrote, which makes every assertion testable against a temp
  * directory.
  *
- * Usage:
- *   node scripts/verify-attestation.mjs --dir <scratch-tree> <pkg>...
+ * ## Which release (#719)
  *
- * Exit codes: 0 every package's attestation checks out,
- *             1 at least one did not,
+ * Everything above checks the tarball that is in the tree, which on a
+ * `release` run is not necessarily the one the release names: the install
+ * resolves `latest`, `latest` can be stale for minutes after a publish, and
+ * the previous version's attestation verifies perfectly well. That run goes
+ * green having never opened the release's own attestation.
+ *
+ * `--event` and `--release` carry the triggering event and its release tag
+ * into this script, so it can fail when the tree holds anything else. The
+ * event decides whether a release is held, and the tag is read only once it
+ * has: a release event whose tag is empty fails rather than reading as a run
+ * no release asked about. `--print-spec` is the same decision made before the
+ * pinned install, so the workflow can pin the released package and wait out
+ * propagation rather than turn a lagged release red. `--await-attestation`
+ * waits out the clock after that one, since the registry serves attestations
+ * on a route of its own (see RELEASE_ATTESTATION_RETRY). The tag goes through
+ * consumer-sbom-meta.mjs's parseReleaseTag rather than a second last-`@` split
+ * here.
+ *
+ * Usage:
+ *   node scripts/verify-attestation.mjs --dir <scratch-tree> --event <name> --release <tag> [<pkg>...]
+ *   node scripts/verify-attestation.mjs --dir <scratch-tree> --event <name> --release <tag> --print-spec
+ *   node scripts/verify-attestation.mjs --dir <scratch-tree> --event <name> --release <tag> --await-attestation
+ *
+ * `--event` is the triggering event's name, and an event NO_RELEASE_EVENTS
+ * does not list is an error unless it is `release`. `--release` is that
+ * event's release tag, empty on any other event. Both are required because
+ * the absence of either would turn the release check off with nothing
+ * reporting it.
+ *
+ * Exit codes: 0 every package's attestation checks out, or the spec was
+ *               printed, or the release's attestation is served,
+ *             1 at least one did not, the tree is not the release, the run's
+ *               release cannot be decided, or its attestation never arrived,
  *             2 bad usage or an unusable scratch tree — kept distinct so a
  *               typo'd flag is not reported as a provenance failure.
  */
@@ -49,18 +79,69 @@ import path from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 import { fetchWithRetry } from './lib/fetch-retry.mjs';
+import {
+  assertVersion,
+  forLog,
+  parseReleaseTag,
+} from './consumer-sbom-meta.mjs';
+import {
+  DEFAULT_BUDGET_SECONDS,
+  DEFAULT_SLEEP_SECONDS,
+} from './npm-install-retry.mjs';
 
 /**
- * Backoff for the attestation lookup, deliberately longer than the shared
- * default.
+ * Backoff for the assertion's own lookups, longer than the shared default.
  *
- * The shared 1s/3s was tuned for the pull-request URL gate. This job's primary
- * trigger is `release: published`, seconds after `npm publish`, and the shell
- * loop it replaces spent 5s/10s waiting out exactly that propagation lag.
- * Inheriting the PR-tuned budget would have cut the wait from ~15s to ~4s and
- * false-redded a release whose attestation was merely slow.
+ * The shared 1s/3s was tuned for the pull-request URL gate. On a release run
+ * the released version's attestation has already been waited for by the time
+ * these lookups happen (RELEASE_ATTESTATION_RETRY), and every other lookup is
+ * of `latest`, which is normally long settled. So this covers a blip rather
+ * than propagation. The 5s/10s it keeps from the shell loop it replaced is
+ * margin, not a measurement: that loop fetched whatever `latest` resolved to,
+ * so it never met a fresh version either.
  */
 export const ATTESTATION_BACKOFF_MS = [5000, 10000];
+
+/**
+ * How long a release run waits for the release's own attestation, through
+ * `--await-attestation` (#719).
+ *
+ * The registry serves the attestations route separately from the packument,
+ * so the released version resolving is no evidence its attestation can be
+ * fetched yet. That route's lag on a fresh version has not been measured on
+ * its own, because until the pin every lookup here asked for `latest`. So it
+ * borrows the propagation budget npm-install-retry.mjs sets for the packument
+ * (#716), imported rather than restated, and for the reason given there: a
+ * generous budget costs time only on a release that was already broken.
+ * The wait logs what it spent, which is how a budget of its own can be sized
+ * later.
+ *
+ * Attempts and a fixed interval, because fetchWithRetry counts attempts. The
+ * count is derived from the duration, so the duration is what is set; each
+ * request's own timeout comes on top, so a route that never serves the
+ * attestation is given at least the budget.
+ *
+ * Only the wait uses it, and only a release run waits. Every lookup the
+ * assertion makes, on any run, keeps ATTESTATION_BACKOFF_MS.
+ */
+export const RELEASE_ATTESTATION_RETRY = Object.freeze({
+  attempts: Math.floor(DEFAULT_BUDGET_SECONDS / DEFAULT_SLEEP_SECONDS) + 1,
+  backoffMs: Object.freeze([DEFAULT_SLEEP_SECONDS * 1000]),
+});
+
+/**
+ * The events that ask no release question: the run checks `latest` and the
+ * tag is not read.
+ *
+ * Listed rather than inferred from "anything but `release`", so a trigger
+ * added to the workflow later fails this job until it is classified here. A
+ * release-shaped trigger read as "no release" would be the silent pass #719
+ * closed, with the event standing in for the empty tag.
+ */
+export const NO_RELEASE_EVENTS = Object.freeze([
+  'schedule',
+  'workflow_dispatch',
+]);
 
 /** The SLSA predicate type npm publishes alongside its own publish attestation. */
 export const SLSA_PREDICATE = 'https://slsa.dev/provenance/v1';
@@ -151,12 +232,28 @@ export function samePurl(a, b) {
 export function parseArgs(argv) {
   const packages = [];
   let dir = null;
+  let event = null;
+  let release = null;
+  let printSpec = false;
+  let awaitAttestation = false;
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === '--dir') {
       dir = argv[++i] ?? null;
     } else if (arg.startsWith('--dir=')) {
       dir = arg.slice('--dir='.length);
+    } else if (arg === '--event') {
+      event = argv[++i] ?? null;
+    } else if (arg.startsWith('--event=')) {
+      event = arg.slice('--event='.length);
+    } else if (arg === '--release') {
+      release = argv[++i] ?? null;
+    } else if (arg.startsWith('--release=')) {
+      release = arg.slice('--release='.length);
+    } else if (arg === '--print-spec') {
+      printSpec = true;
+    } else if (arg === '--await-attestation') {
+      awaitAttestation = true;
     } else if (arg.startsWith('-')) {
       throw new Error(`unknown option "${arg}"`);
     } else {
@@ -164,7 +261,92 @@ export function parseArgs(argv) {
     }
   }
   if (!dir) throw new Error('--dir <scratch-tree> is required');
-  return { dir, packages };
+  // A falsy test, unlike --release below: no event is named the empty string,
+  // so an empty one is a broken invocation, not a run no release asked about.
+  if (!event) throw new Error('--event <name> is required and not empty');
+  // Present but possibly empty, so `=== null` rather than a falsy test.
+  if (release === null) {
+    throw new Error('--release <tag> is required (empty when no release)');
+  }
+  if (printSpec && awaitAttestation) {
+    throw new Error(
+      '--print-spec and --await-attestation run before and after the ' +
+        'pinned install, so pass one'
+    );
+  }
+  return { dir, packages, event, release, printSpec, awaitAttestation };
+}
+
+/**
+ * The package and version this run must hold the tree to, or null when no
+ * release asked.
+ *
+ * The event decides and the tag is read only once it has, the way installSpec
+ * in consumer-sbom-meta.mjs decides for the consumer-sbom legs. On a release
+ * event, a tag that is empty or names nothing is an error rather than a
+ * fallback to "no release": this run was asked about a release, and checking
+ * whatever the tree happens to hold is the silent pass #719 exists to close.
+ */
+export function releaseUnderTest({ eventName, tagName } = {}) {
+  if (eventName !== 'release') {
+    if (NO_RELEASE_EVENTS.includes(eventName)) return null;
+    throw new Error(
+      `event ${forLog(eventName)} is neither a release nor one of ` +
+        `${NO_RELEASE_EVENTS.join(', ')}, so whether it holds a release is ` +
+        `unknown. Classify it in NO_RELEASE_EVENTS in ` +
+        `scripts/verify-attestation.mjs if it asks no release question`
+    );
+  }
+  const value = String(tagName ?? '').trim();
+  if (value === '') {
+    throw new Error(
+      'a release event arrived with an empty release tag, so there is no ' +
+        'release to hold the tree to'
+    );
+  }
+  const parsed = parseReleaseTag(value);
+  if (!parsed) {
+    throw new Error(
+      `release tag ${forLog(value)} does not name <package>@<version>`
+    );
+  }
+  assertVersion(parsed.version, `release tag ${forLog(value)}`);
+  return parsed;
+}
+
+/** Why a release cannot be checked against this roster, or null when it can. */
+function rosterProblem(release, packages) {
+  if (packages.includes(release.package)) return null;
+  return (
+    `the release names ${forLog(release.package)}, which is not among the ` +
+    `packages verified (${packages.join(', ')})`
+  );
+}
+
+/**
+ * What stops the tree from being some other release than the one asked about.
+ *
+ * Membership is checked as well as the version, because a release for a
+ * package the roster does not install would otherwise check out by never
+ * being looked at.
+ */
+export function checkRelease(release, packages, dir) {
+  const missing = rosterProblem(release, packages);
+  if (missing) return [missing];
+  let installed;
+  try {
+    installed = installedVersion(dir, release.package);
+  } catch (err) {
+    return [err.message];
+  }
+  if (installed !== release.version) {
+    return [
+      `the release is ${release.package}@${release.version} but the tree ` +
+        `carries ${forLog(installed)}, so the attestation checked was not ` +
+        `this release's`,
+    ];
+  }
+  return [];
 }
 
 /**
@@ -378,19 +560,12 @@ export function checkStatement(statement, { pkg, version, digest }) {
   return problems;
 }
 
-/** Verify one package end to end. Never throws; returns a result to report. */
-export async function verifyPackage(pkg, { dir, retryOptions = {} }) {
-  let version;
-  let digest;
-  try {
-    version = installedVersion(dir, pkg);
-    digest = installedDigest(dir, pkg);
-  } catch (err) {
-    return { pkg, ok: false, problems: [err.message] };
-  }
-
-  const res = await fetchWithRetry(attestationUrl(pkg, version), {
-    backoffMs: ATTESTATION_BACKOFF_MS,
+/**
+ * Fetch one package version's attestations, the request both the wait and the
+ * assertion make. `retryOptions` sets how long it is worth waiting.
+ */
+function fetchAttestation(pkg, version, retryOptions) {
+  return fetchWithRetry(attestationUrl(pkg, version), {
     ...retryOptions,
     // GET, because the payload is the whole point, and keepBody to get it.
     methods: ['GET'],
@@ -403,6 +578,47 @@ export async function verifyPackage(pkg, { dir, retryOptions = {} }) {
     // reason ("a gate that cries wolf gets ignored"); without this the move to
     // a single-source fetch would have quietly thrown that away.
     alsoRetryable: [404],
+  });
+}
+
+/**
+ * Wait for the registry to serve a release's own attestation (#719).
+ *
+ * The workflow runs this after the pinned install and before the audit step,
+ * because `npm audit signatures` asks the registry for the same attestations
+ * and the step that runs it has no retry around it. Waiting here means both
+ * checks ask for an attestation the registry has already served.
+ *
+ * Never throws; resolves to fetchWithRetry's result plus `waited`, the seconds
+ * the wait took. `now` is injectable so a test can read that figure without a
+ * real clock.
+ */
+export async function awaitAttestation(
+  release,
+  { retryOptions = {}, now = () => Date.now() } = {}
+) {
+  const started = now();
+  const res = await fetchAttestation(release.package, release.version, {
+    ...RELEASE_ATTESTATION_RETRY,
+    ...retryOptions,
+  });
+  return { ...res, waited: Math.round((now() - started) / 1000) };
+}
+
+/** Verify one package end to end. Never throws; returns a result to report. */
+export async function verifyPackage(pkg, { dir, retryOptions = {} }) {
+  let version;
+  let digest;
+  try {
+    version = installedVersion(dir, pkg);
+    digest = installedDigest(dir, pkg);
+  } catch (err) {
+    return { pkg, ok: false, problems: [err.message] };
+  }
+
+  const res = await fetchAttestation(pkg, version, {
+    backoffMs: ATTESTATION_BACKOFF_MS,
+    ...retryOptions,
   });
   if (res.outcome !== 'ok') {
     return {
@@ -428,7 +644,7 @@ export async function verifyPackage(pkg, { dir, retryOptions = {} }) {
 
 export async function main(
   argv = process.argv.slice(2),
-  { retryOptions } = {}
+  { retryOptions, now } = {}
 ) {
   let args;
   let packages;
@@ -441,6 +657,56 @@ export async function main(
   } catch (err) {
     console.error(`::error::verify-attestation: ${err.message}`);
     return 2;
+  }
+
+  let release;
+  try {
+    release = releaseUnderTest({
+      eventName: args.event,
+      tagName: args.release,
+    });
+  } catch (err) {
+    console.error(`::error::verify-attestation: ${err.message}`);
+    return 1;
+  }
+
+  // The spec the install step pins, printed alone on stdout so the step can
+  // capture it. Nothing is printed when no release asked, and a release for a
+  // package the tree does not carry is refused here rather than installed, so
+  // a tag can only ever pin a package the roster already names. The wait
+  // after the install is held to the same roster.
+  if (args.printSpec || args.awaitAttestation) {
+    if (!release) return 0;
+    const missing = rosterProblem(release, packages);
+    if (missing) {
+      console.error(`::error::verify-attestation: ${missing}`);
+      return 1;
+    }
+    const spec = `${release.package}@${release.version}`;
+    if (args.printSpec) {
+      console.log(spec);
+      return 0;
+    }
+    const res = await awaitAttestation(release, { retryOptions, now });
+    const spent = `${res.waited}s and ${res.attempts} attempt(s)`;
+    if (res.outcome !== 'ok') {
+      console.error(
+        `::error::verify-attestation: could not fetch the attestation for ` +
+          `${spec} (${res.detail ?? res.outcome}) after ${spent}. If the ` +
+          `release published with provenance, the registry took longer to ` +
+          `serve its attestation than RELEASE_ATTESTATION_RETRY allows.`
+      );
+      return 1;
+    }
+    // Said on success too, because a budget of the route's own would be sized
+    // from this line. Read it as npm-install-retry.mjs asks its own to be
+    // read: it times this wait, which starts after the pinned install, so it
+    // is not a measurement of the lag since the publish.
+    console.log(
+      `verify-attestation: the registry serves the attestation for ${spec}, ` +
+        `after ${spent}`
+    );
+    return 0;
   }
 
   console.log(
@@ -465,6 +731,19 @@ export async function main(
     );
     for (const p of r.problems) console.error(`  - ${p}`);
   }
+
+  // Reported beside the per-package results rather than instead of them, so
+  // one run says everything that is wrong.
+  const releaseProblems = release
+    ? checkRelease(release, packages, args.dir)
+    : [];
+  if (releaseProblems.length > 0) {
+    console.error(
+      `::error::the tree is not the release this run was asked about`
+    );
+    for (const p of releaseProblems) console.error(`  - ${p}`);
+  }
+
   if (failed > 0) {
     console.error(
       `verify-attestation: ${failed}/${results.length} package(s) failed. An ` +
@@ -473,7 +752,13 @@ export async function main(
     );
     return 1;
   }
-  console.log(`verify-attestation: ${results.length} package(s) check out`);
+  if (releaseProblems.length > 0) return 1;
+  console.log(
+    `verify-attestation: ${results.length} package(s) check out` +
+      (release
+        ? `, including the release ${release.package}@${release.version}`
+        : '')
+  );
   return 0;
 }
 

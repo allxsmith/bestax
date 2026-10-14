@@ -13,7 +13,9 @@ theming means overriding the right `--bulma-*` values.
 - `isRoot` → injects the variables globally at `:root` (use once, at the app root).
 - without `isRoot` → wraps children in a `<div>` and scopes the variables to that subtree.
 - Named props set the color/scheme HSL channels and common values (see "Theme props" below).
-- `bulmaVars` sets any other variable, keyed by its real `--bulma-*` name:
+- `bulmaVars` sets any other variable, keyed by its real `--bulma-*` name. It only changes
+  variables the component inherits, though: see "Component variables" below for the ones Bulma
+  declares on the component itself.
 
 ```tsx
 <Theme
@@ -101,6 +103,29 @@ and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
 | `--bulma-size-small` / `-normal` / `-medium` / `-large`                       | 0.75 / 1 / 1.25 / 1.5rem          | via `bulmaVars`                 |
 | `--bulma-weight-light/normal/medium/semibold/bold/extrabold`                  | 300 / 400 / 500 / 600 / 700 / 800 | via `bulmaVars`                 |
 
+## Component variables: set them on the component, not on `Theme`
+
+A custom property set on an ancestor only reaches an element that declares no value of its own.
+Bulma declares the scheme, color, typography, radius and spacing tokens on `:root`, so `Theme`
+(scoped or `isRoot`) and plain `:root` CSS both work for them. Some of those Bulma also declares
+again on one component, which keeps its own value while everything else takes yours; that
+component's API page lists the variable as declared on it, and `Theme` doesn't warn about these.
+To change that one component too, set the variable on it as described below.
+
+Bulma's per-component variables (`--bulma-card-radius`, `--bulma-tag-h`,
+`--bulma-delete-dimensions`, …) are declared on the component's own element instead (`.card`,
+`.tag`, `.delete`), so a value set on any ancestor, including `Theme`'s `bulmaVars`, always loses
+and nothing changes. `bulmaVars` still accepts those keys, and `Theme` logs a development warning
+naming them.
+
+Set a component variable on the component itself: in your CSS on its own class, loaded after
+the library styles (mind the class prefix), e.g. `.card { --bulma-card-radius: 1.5rem; }`, on a
+class you pass through `className`, or with the component's `style` prop. A size or color
+modifier can declare the variable again on a more specific selector (`.delete.is-small`), which a
+lone class loses to and `style` does not. Each component's API page lists its variables under
+**CSS & Sass Variables** and says where Bulma declares them; the extras below follow the same
+rule.
+
 ## Shadow — override the upstream token, not the derived one
 
 `--bulma-shadow` (plus its `--bulma-shadow-h`/`-s`/`-l` channels) is a real Bulma variable that
@@ -145,7 +170,9 @@ lone class or the `style` prop cannot outrank:
   styles with a selector that matches or exceeds the compound:
   `.button.link-button { --bulma-link-button-ghost-color: … }`.
 - **Constituent elements** — Tooltip's variables (all but `--bulma-tooltip-dashed-color`)
-  are declared on `.tooltip-content`, Popover's on its panel, `.popover-content`, and Sidebar's
+  are declared on `.tooltip-content`, Popover's on its panel, `.popover-content`, HoverCard's
+  on its card, `.hover-card-content`, ContextMenu's on the box its menu hangs from,
+  `.context-menu-content`, and Sidebar's
   `--bulma-sidebar-overlay-background` on `.sidebar-background`. Values set via `className` or
   `style` land on the component root and are only inherited by the constituent, so they lose to
   its own declaration — target the declaring element in your CSS:
@@ -231,6 +258,18 @@ items of a `Collapses` group, which reads it with a 0.5rem fallback and declares
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
 
+### ContextMenu
+
+Both are declared on the box the menu hangs from, `.context-menu-content`, which is portaled away
+from the trigger. See the constituent-element exception above.
+
+`--bulma-context-menu-max-height`, `--bulma-context-menu-z-index`
+
+The menu inside that box is Bulma's dropdown markup, and the box is a `.dropdown` too, so the
+`--bulma-dropdown-*` variables theme it. Bulma declares them on `.dropdown`, so a context menu
+takes a value set on the box: `.dropdown.context-menu-content { --bulma-dropdown-content-radius: … }`
+changes context menus and leaves `Dropdown` alone.
+
 ### DateInput
 
 `--bulma-dateinput-cell-color`, `--bulma-dateinput-cell-disabled-color`,
@@ -272,6 +311,16 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
 
+### HoverCard
+
+All are declared on the card, `.hover-card-content`, so a card rendered with `appendToBody` keeps
+them. See the constituent-element exception above.
+
+`--bulma-hover-card-animation-duration`, `--bulma-hover-card-background`,
+`--bulma-hover-card-border-color`, `--bulma-hover-card-color`, `--bulma-hover-card-max-width`,
+`--bulma-hover-card-min-width`, `--bulma-hover-card-offset`, `--bulma-hover-card-padding`,
+`--bulma-hover-card-radius`, `--bulma-hover-card-shadow`, `--bulma-hover-card-z-index`
+
 ### LinkButton
 
 Declared on the compound `.button.link-button` — see the compound-selector exception above.
@@ -294,6 +343,14 @@ Declared on the compound `.button.link-button` — see the compound-selector exc
 `--bulma-loading-overlay-opacity-dark`, `--bulma-loading-overlay-opacity-light`,
 `--bulma-loading-overlay-opacity-opaque`, `--bulma-loading-text-color`,
 `--bulma-loading-text-size`
+
+### Notification
+
+`--bulma-notification-delete-padding-inline-end` is the end padding of a notification with a close
+button, which keeps the text clear of the button. It applies with `hasDelete`, and to a `Delete`
+passed as a direct child in browsers that support `:has()`. It is the padding for a default-size
+button: a `Delete` passed in with a `size` gets it plus or minus the difference between the two
+sizes. Bulma's own `--bulma-notification-*` variables set the rest.
 
 ### Numberinput
 
@@ -433,6 +490,10 @@ wheel item's height inline.
 
 All but `--bulma-tooltip-dashed-color` are declared on `.tooltip-content` — see the
 constituent-element exception above.
+
+Raising `--bulma-tooltip-arrow-size` or `--bulma-tooltip-arrow-margin` widens the gap between the
+trigger and the tooltip past what the pointer can cross on its own, so give the tooltip a
+`closeDelay` long enough to cross it.
 
 `--bulma-tooltip-arrow-margin`, `--bulma-tooltip-arrow-size`, `--bulma-tooltip-background`,
 `--bulma-tooltip-color`, `--bulma-tooltip-dashed-color`, `--bulma-tooltip-font-size`,

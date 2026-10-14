@@ -20,7 +20,7 @@ export const Basic = () => (
       <Tag color="danger" size="medium" isRounded>
         New
       </Tag>
-      <Tags hasAddons>
+      <Tags size="medium" hasAddons>
         <Tag>a</Tag>
         <Tag>b</Tag>
       </Tags>

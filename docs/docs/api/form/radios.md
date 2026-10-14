@@ -77,7 +77,7 @@ The simplest usage — the component automatically renders its own Field and Con
 
 When you need manual control over the Field layout (e.g., horizontal forms), wrap the component in `Field`. The component detects it's inside a Field and skips rendering its own.
 
-A labeled `Field` that holds the Radios directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Radios in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Radios. The `htmlFor: undefined` keeps the label from pointing a `for` at a control, since a group takes none.
+A labeled `Field` that holds the Radios directly names the group through `aria-labelledby`, with no extra wiring. In a horizontal form the label sits on the outer `Field` and the Radios in an inner one, which starts its own scope, so these examples point the group at the label by hand: `labelProps={{ id, htmlFor: undefined }}` on that `Field` and a matching `aria-labelledby` on the Radios. Nothing in the inner `Field` takes the label's `for`, so the label drops it once the page mounts and `labelProps={{ id }}` works too. The `htmlFor: undefined` keeps the `for` out of server-rendered HTML as well.
 
 ```tsx live
 function example() {

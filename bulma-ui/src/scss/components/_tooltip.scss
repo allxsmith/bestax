@@ -86,15 +86,19 @@ $tooltip-large-arrow-size: 7px !default;
   background-color: cv.getVar("tooltip-background");
   color: cv.getVar("tooltip-color");
   border-radius: cv.getVar("tooltip-radius");
+  // A hidden tooltip, or one only `active` shows, lets the pointer through
+  // to what's under it.
   pointer-events: none;
   opacity: 0;
   visibility: hidden;
 
-  // Arrow
+  // Arrow. Its box is taller than the gap the bridge covers, so taking the
+  // pointer it would reach over the trigger, and the bridge covers the gap.
   &::before {
     content: '';
     position: absolute;
     border: cv.getVar("tooltip-arrow-size") solid transparent;
+    pointer-events: none;
   }
 
   // Animation styles
@@ -106,6 +110,11 @@ $tooltip-large-arrow-size: 7px !default;
   .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-active & {
     opacity: 1;
     visibility: visible;
+  }
+
+  // Open by the pointer, focus or a tap: the pointer can move onto it
+  .#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-open & {
+    pointer-events: auto;
   }
 
   // Square corners
@@ -175,6 +184,72 @@ $tooltip-large-arrow-size: 7px !default;
     top: calc(50% + var(--tooltip-arrow-offset, 0px));
     transform: translateY(-50%);
     border-right-color: cv.getVar("tooltip-background");
+  }
+}
+
+// Bridge: while the pointer, focus or a tap has it open, the gap between
+// the trigger and the tooltip, as wide as the trigger, belongs to the
+// wrapper, so the pointer crossing it never leaves. The gap's size is
+// declared on `.tooltip-content`, out of the wrapper's reach, so the bridge
+// takes the same defaults for each size.
+@mixin tooltip-bridge-size($arrow-size) {
+  $gap: calc(#{$arrow-size} + #{$tooltip-arrow-margin});
+
+  &.#{iv.$class-prefix}is-top::after,
+  &:not(.#{iv.$class-prefix}is-bottom):not(.#{iv.$class-prefix}is-left):not(.#{iv.$class-prefix}is-right)::after,
+  &.#{iv.$class-prefix}is-bottom::after {
+    height: $gap;
+  }
+
+  &.#{iv.$class-prefix}is-left::after,
+  &.#{iv.$class-prefix}is-right::after {
+    width: $gap;
+  }
+}
+
+.#{iv.$class-prefix}tooltip.#{iv.$class-prefix}is-open {
+  &::after {
+    content: '';
+    position: absolute;
+  }
+
+  &.#{iv.$class-prefix}is-top::after,
+  &:not(.#{iv.$class-prefix}is-bottom):not(.#{iv.$class-prefix}is-left):not(.#{iv.$class-prefix}is-right)::after {
+    bottom: 100%;
+    left: 0;
+    right: 0;
+  }
+
+  &.#{iv.$class-prefix}is-bottom::after {
+    top: 100%;
+    left: 0;
+    right: 0;
+  }
+
+  &.#{iv.$class-prefix}is-left::after {
+    right: 100%;
+    top: 0;
+    bottom: 0;
+  }
+
+  &.#{iv.$class-prefix}is-right::after {
+    left: 100%;
+    top: 0;
+    bottom: 0;
+  }
+
+  @include tooltip-bridge-size($tooltip-arrow-size);
+
+  &.#{iv.$class-prefix}is-small {
+    @include tooltip-bridge-size($tooltip-small-arrow-size);
+  }
+
+  &.#{iv.$class-prefix}is-medium {
+    @include tooltip-bridge-size($tooltip-medium-arrow-size);
+  }
+
+  &.#{iv.$class-prefix}is-large {
+    @include tooltip-bridge-size($tooltip-large-arrow-size);
   }
 }
 

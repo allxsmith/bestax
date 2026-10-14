@@ -33,7 +33,7 @@ export function Elements() {
           </Content>
         </Box>
         <Block textAlign="center">
-          <Button.Group align="center" hasAddons>
+          <Button.Group align="center" hasAddons size="small">
             <Button color="primary" size="medium" rounded outlined>
               Confirm
             </Button>

@@ -34,7 +34,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelId } from './FormContext';
+import { useFieldLabelTarget } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { Buttons } from '../elements/Buttons';
 
@@ -139,7 +139,8 @@ export interface TimeInputBaseProps
   /** Popover anchor position relative to the input. */
   position?: PickerPosition;
   /**
-   * Render the popover into `document.body` via portal. On a narrow screen
+   * Render the popover through a portal, into the `portalContainer` a
+   * `ConfigProvider` sets, `document.body` by default. On a narrow screen
    * an in-place popover spans the bottom of the viewport, while a portaled
    * one stays on its `position` corner.
    */
@@ -156,7 +157,7 @@ export interface TimeInputBaseProps
   size?: 'small' | 'medium' | 'large';
   /** Render the input with rounded corners. */
   isRounded?: boolean;
-  /** Hour format. `'12'` shows an AM/PM toggle. */
+  /** Hour format. `'12'` adds an AM/PM column to the wheels. */
   hourFormat?: HourFormat;
   /** Show a seconds column. Note: iOS Safari's native time picker UI does not include a seconds wheel; pass `mobileNative={false}` if you need one on iOS. */
   enableSeconds?: boolean;
@@ -179,7 +180,10 @@ export interface TimeInputBaseProps
   triggerIcon?: boolean;
   /** Glyph for the right launcher button. */
   triggerIconName?: string;
-  /** Optional translatable string overrides. */
+  /**
+   * Optional translatable string overrides. In a 12-hour picker, `ampm`
+   * names the AM/PM column, `'AM/PM'` by default.
+   */
   labels?: PickerLabels;
   /** Play a short audible click on each wheel-item crossing. Substitute for haptic feedback on iOS Safari (which has no web haptic API as of May 2026); on Android, `navigator.vibrate(5)` fires automatically regardless. */
   audioTick?: boolean;
@@ -249,8 +253,7 @@ export const TimeInputBase = forwardRef<HTMLInputElement, TimeInputBaseProps>(
     // when the caller set none, as InputBase does, and the popover's ids
     // follow it. Inline there is no input to name, so nothing takes the
     // Field's id or builds on it.
-    const fieldLabelId = useFieldLabelId();
-    const id = idProp ?? (inline ? undefined : fieldLabelId);
+    const id = useFieldLabelTarget(idProp, !inline);
     // The launcher gives way to the loading spinner of a Control this sits in.
     const controlLoading = useControlLoading();
     const triggerIcon = triggerIconProp ?? !controlLoading;

@@ -5,6 +5,7 @@
 // TODO rules instead.
 import React from "react";
 import {
+  Button,
   Divider,
   Dropdown,
   Fieldset,
@@ -18,6 +19,7 @@ import {
   Modal,
   Navbar,
   Numeric,
+  Tag,
   Tile,
 } from "rbx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -89,6 +91,14 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
 
     {/* rbx rendered the children as a label; bestax's Divider is a void <hr> */}
     <Divider>OR</Divider>
+
+    {/* a size bestax's Tags does not take, and one the codemod cannot read */}
+    <Tag.Group size="small">
+      <Tag>small</Tag>
+    </Tag.Group>
+    <Button.Group size={where === "left" ? "small" : "large"}>
+      <Button>sized</Button>
+    </Button.Group>
 
     {/* dynamic values are never best-guessed */}
     <Generic as="div" textAlign={where === "left" ? "left" : "right"} />

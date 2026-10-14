@@ -10,7 +10,9 @@
  * src/data/state-of-react/<YYYY-MM>.json, and the edition post imports it (and
  * the previous edition's copy, to show what changed). Rows are positional, so
  * the snapshot records its column order (`libs`, library ids by position) and
- * the component resolves cells through that, not the live order.
+ * the component resolves cells through that, not the live order. It also
+ * carries the live `corrections` list, so the edition's changes table can mark
+ * a cell the previous edition had wrong as a correction, not a release.
  *
  * Usage:
  *   pnpm --filter @allxsmith/bestax-docs snapshot:comparison <YYYY-MM> [--force]
@@ -48,8 +50,15 @@ export function columnOrder(libs) {
  * Serialize a snapshot with one matrix row per line, so a diff between two
  * editions' files reads row by row. `libs` is the column order from
  * columnOrder(); a row whose length doesn't match it is refused.
+ * `corrections` is the live list as it stands, one corrected or renamed row
+ * per line; the edition's changes table reads it to tell a fix from a release.
  */
-export function serializeSnapshot({ reviewed, libs, categories }) {
+export function serializeSnapshot({
+  reviewed,
+  libs,
+  categories,
+  corrections = [],
+}) {
   for (const cat of categories) {
     for (const row of cat.rows) {
       if (row.length !== libs.length + 1) {
@@ -70,13 +79,39 @@ export function serializeSnapshot({ reviewed, libs, categories }) {
       '    }',
     ].join('\n');
   });
+  // A fix's `renamed` or `cells`, one row per line.
+  const byRow = (key, rows) => {
+    const lines = Object.entries(rows).map(
+      ([row, value]) =>
+        `        ${JSON.stringify(row)}: ${JSON.stringify(value)}`
+    );
+    if (lines.length === 0) return `      ${JSON.stringify(key)}: {}`;
+    return [
+      `      ${JSON.stringify(key)}: {`,
+      lines.join(',\n'),
+      '      }',
+    ].join('\n');
+  };
+  const fixes = corrections.map(fix =>
+    [
+      '    {',
+      `      "edition": ${JSON.stringify(fix.edition)},`,
+      `      "pr": ${JSON.stringify(fix.pr)},`,
+      ...(fix.renamed ? [`${byRow('renamed', fix.renamed)},`] : []),
+      byRow('cells', fix.cells),
+      '    }',
+    ].join('\n')
+  );
   return [
     '{',
     `  "reviewed": ${JSON.stringify(reviewed)},`,
     `  "libs": ${JSON.stringify(libs)},`,
     '  "categories": [',
     cats.join(',\n'),
-    '  ]',
+    '  ],',
+    fixes.length > 0
+      ? ['  "corrections": [', fixes.join(',\n'), '  ]'].join('\n')
+      : '  "corrections": []',
     '}',
     '',
   ].join('\n');
@@ -108,6 +143,7 @@ async function main() {
       reviewed: data.lastReviewed,
       libs: columnOrder(data.libs),
       categories: data.categories,
+      corrections: data.corrections,
     })
   );
   console.log(`snapshot-comparison: wrote ${out} (${data.lastReviewed})`);

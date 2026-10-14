@@ -26,7 +26,7 @@ export const Elements = () => (
       <Content size="medium">
         <p>Body copy</p>
       </Content>
-      <Button.Group hasAddons align="centered">
+      <Button.Group hasAddons align="centered" size="medium">
         <Button color="primary" size="small" outlined>
           One
         </Button>
@@ -37,7 +37,7 @@ export const Elements = () => (
           Three
         </Button>
       </Button.Group>
-      <Tag.Group gapless>
+      <Tag.Group gapless size="large">
         <Tag color="info" size="medium" rounded>
           tag
         </Tag>

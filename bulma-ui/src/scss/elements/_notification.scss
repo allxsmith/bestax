@@ -1,0 +1,69 @@
+// Notification Styles
+// Bulma already styles the notification; this keeps its text clear of the
+// close button
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+// Bulma pads a notification 1.5em at each end and puts its close button 1rem
+// in from the end, 1.25rem square, so the button reaches further in than the
+// padding does and on a narrow column the end of the first line runs under
+// it. A notification with a close button pads its end enough to clear it:
+// Bulma's inset for the button, plus its size, plus the 0.75rem gap Bulma 0.9
+// left between the text and the button. The button is sized in rem, so the
+// padding is too.
+//
+// Bulma writes the inset as a literal and declares the size on the button
+// itself, through --bulma-delete-dimensions. Custom properties only inherit
+// downward, so the notification can't read the button's size, and the
+// default restates Bulma's numbers. Notification.styles.test.tsx holds them
+// to Bulma's CSS.
+$notification-delete-padding-inline-end: calc(1rem + 1.25rem + 0.75rem) !default;
+
+// Bulma's sizes for the close button: the one above, and the ones its size
+// modifiers set. A notification whose close button has a modifier pads by
+// the difference, so the gap stays the same.
+$-delete-dimensions: 1.25rem;
+$-delete-sizes: (
+  "small": 1rem,
+  "medium": 1.5rem,
+  "large": 2rem,
+);
+
+.#{iv.$class-prefix}notification {
+  @include cv.register-vars(
+    (
+      "notification-delete-padding-inline-end": #{$notification-delete-padding-inline-end},
+    )
+  );
+}
+
+// has-delete is the class Notification adds with hasDelete. The :has() rule
+// covers a close button bestax didn't render, such as a Delete passed in as
+// a child, in browsers that support :has(). They are separate rules, not one
+// selector list, so a browser without :has() still applies the first.
+//
+// Each outranks Bulma's `.notification` padding, so the order Bulma's CSS and
+// this partial land in doesn't matter, and neither uses !important, so a
+// spacing helper on the notification still wins.
+.#{iv.$class-prefix}notification.#{iv.$class-prefix}has-delete {
+  padding-inline-end: cv.getVar("notification-delete-padding-inline-end");
+}
+
+.#{iv.$class-prefix}notification:has(> .#{iv.$class-prefix}delete) {
+  padding-inline-end: cv.getVar("notification-delete-padding-inline-end");
+}
+
+// A close button with a size modifier, which only a Delete passed in can
+// have, so these need :has() too. Each outranks the two rules above, and
+// builds on the variable, so overriding it moves these as well.
+@each $size, $dimensions in $-delete-sizes {
+  .#{iv.$class-prefix}notification:has(
+      > .#{iv.$class-prefix}delete.#{iv.$class-prefix}is-#{$size}
+    ) {
+    padding-inline-end: calc(
+      cv.getVar("notification-delete-padding-inline-end") +
+        ($dimensions - $-delete-dimensions)
+    );
+  }
+}

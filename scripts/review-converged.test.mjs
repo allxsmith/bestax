@@ -764,8 +764,8 @@ test('a clean fresh review then a verify pass on the same head converges', () =>
 });
 
 test('commits pushed after a clean fresh review need another fresh review', () => {
-  // Re-applying deep-review after a push runs a verify pass, pinned to the
-  // new head, that reviewed none of the new commits.
+  // A verify pass after a push, pinned to the new head, reviewed none of
+  // the new commits.
   const stale = posted(freshWith(0), 1, { commit_id: OLD });
   assert.deepEqual(problemsFor([stale, posted(verifyWith(0, 0), 2)]), [
     'the newest fresh review is for bbbbbbb, and no fresh review covers ' +

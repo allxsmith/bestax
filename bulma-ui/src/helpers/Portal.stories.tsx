@@ -12,7 +12,7 @@ const meta: Meta<typeof Portal> = {
     docs: {
       description: {
         component:
-          'Renders its children into another part of the page, `document.body` unless `container` says otherwise. Renders nothing on the server and during hydration, then portals in the commit that follows.',
+          'Renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise. Renders nothing on the server and during hydration, then portals in the commit that follows.',
       },
     },
   },
@@ -21,7 +21,7 @@ const meta: Meta<typeof Portal> = {
     container: {
       control: 'text',
       description:
-        'An element or a `document.querySelector` selector to render into. Omitted, empty, or matching nothing, the content goes to `document.body`.',
+        'An element or a `document.querySelector` selector to render into. Omitted or empty, the content goes to the `portalContainer` a `ConfigProvider` sets, or `document.body` when none is set. A selector matching nothing means `document.body`.',
     },
     disabled: {
       control: 'boolean',

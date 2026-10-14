@@ -118,12 +118,14 @@ semantic-release. Two repo-specific rules:
   reject an unscoped revert in that form — keep reverts conventional and scoped by hand, and
   know that a scoped revert releases nothing: ship a rollback as `fix(<scope>)` (see
   VERSIONING.md for why).
-- **Packages release independently, keyed off the scope**: `feat(bulma-ui)` bumps only
-  `@allxsmith/bestax-bulma`; `fix(create-bestax)` bumps only `create-bestax`. The
-  `releaseRules` in each package's `release.config.js` are the source of truth.
+- **Packages release independently, keyed off the scope**: `fix(create-bestax)` bumps only
+  `create-bestax`. The exception is bestax-mcp, which also cuts a patch with every
+  `@allxsmith/bestax-bulma` release because its index documents the library (VERSIONING.md,
+  "bestax-mcp releases with bestax-bulma"). The `releaseRules` in each package's
+  `release.config.js` are the source of truth.
 
 ```
-feat(bulma-ui): add Collapse component   → minor release of bulma-ui only
+feat(bulma-ui): add Collapse component   → minor release of bulma-ui, patch of bestax-mcp
 fix(create-bestax): handle missing TTY   → patch release of create-bestax only
 docs: fix typo in contributing guide     → no release; scope optional
 ```
@@ -274,10 +276,11 @@ carrying `needs-security-review`; run fork code.
 - `deep-review` (PRs, triage+; the bot on its own PRs): starts the deep review. A re-run is
   remove-and-re-add, since re-applying a label already present emits no event; pushes and
   comments start nothing. A re-run settles that review's open threads and raises nothing
-  new. A comment starting `deep-review: fresh` from a triage+ author asks for a full review
-  of the current code and stays in force until a newer `deep-review:` comment from a
-  triage+ author replaces it, so getting the settle pass back means changing the steer,
-  never a label action.
+  new, unless the steer the run reads is a fresh one: a comment whose first word after
+  `deep-review:` is `fresh` as a word of its own (not `fresh,`) makes the run a full review of
+  the current code instead, and keeps doing so on later toggles while it is the steer the run
+  reads. A steer starts no run. Which steer a run reads, and how to get the settle pass back,
+  are in the focus step of `claude-review.yml`.
 - `ai-loop` (the bot's PRs): the bot is working the PR. Remove it to stop the bot there; add
   it back to resume from the current head.
 - `ai-loop-paused`: the bot parked itself; its note on the PR says why.

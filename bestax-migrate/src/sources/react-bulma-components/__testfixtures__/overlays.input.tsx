@@ -9,7 +9,7 @@ export function Overlays({ show, close }: { show: boolean; close: () => void }) 
             <Modal.Card.Title>Terms</Modal.Card.Title>
           </Modal.Card.Header>
           <Modal.Card.Body>
-            <Message color="warning">
+            <Message color="warning" size="small">
               <Message.Header>Heads up</Message.Header>
               <Message.Body>Read carefully</Message.Body>
             </Message>

@@ -58,13 +58,24 @@ export interface PickerLabels {
   hours?: string;
   minutes?: string;
   seconds?: string;
+  /**
+   * Time wheels: names the AM/PM column a 12-hour picker shows.
+   * @defaultValue 'AM/PM'
+   */
   ampm?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   increaseHours?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   decreaseHours?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   increaseMinutes?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   decreaseMinutes?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   increaseSeconds?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   decreaseSeconds?: string;
+  /** @deprecated Rendered nowhere: no picker reads it. It goes in the next major. */
   toggleAmPm?: string;
   chooseTime?: string;
   chooseDateTime?: string;
@@ -98,7 +109,7 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   hours: 'hours',
   minutes: 'minutes',
   seconds: 'seconds',
-  ampm: 'ampm',
+  ampm: 'AM/PM',
   increaseHours: 'Increase hours',
   decreaseHours: 'Decrease hours',
   increaseMinutes: 'Increase minutes',
@@ -118,10 +129,17 @@ export const DEFAULT_PICKER_LABELS: Required<PickerLabels> = {
   time: 'Time',
 };
 
-/** Merge user-supplied label overrides with the defaults. */
+/**
+ * Merge user-supplied label overrides with the defaults. A key set to
+ * `undefined` keeps its default, so a locale table that is missing a string
+ * still names its control instead of leaving it with no accessible name.
+ */
 export const mergeLabels = (
   overrides?: PickerLabels
-): Required<PickerLabels> => ({
-  ...DEFAULT_PICKER_LABELS,
-  ...(overrides ?? {}),
-});
+): Required<PickerLabels> => {
+  const merged = { ...DEFAULT_PICKER_LABELS };
+  for (const [key, value] of Object.entries(overrides ?? {})) {
+    if (value !== undefined) merged[key as keyof PickerLabels] = value;
+  }
+  return merged;
+};

@@ -1,0 +1,50 @@
+// ContextMenu Component Styles
+// A menu of actions that opens at the point of a right-click or a long press
+
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+
+// ContextMenu-specific SCSS variables
+$context-menu-z-index: $extras-z-index-tooltip !default;
+$context-menu-max-height: calc(100dvh - 1rem) !default;
+
+// Registered on the box the menu hangs from, which is portaled to the end of
+// <body> and would inherit nothing from where the trigger is.
+.#{iv.$class-prefix}context-menu-content {
+  @include cv.register-vars(
+    (
+      'context-menu-z-index': #{$context-menu-z-index},
+      'context-menu-max-height': #{$context-menu-max-height},
+    )
+  );
+}
+
+// The trigger. iOS shows its own callout for a link or an image on a long
+// press, over the menu the same press opens.
+.#{iv.$class-prefix}context-menu {
+  -webkit-touch-callout: none;
+}
+
+// A zero-size `.dropdown` at the point, which the component places, so
+// Bulma's dropdown variables reach the menu and its `is-up` and `is-right`
+// flip the menu above and to the left of the point. Both classes, so this
+// wins over `.dropdown` whichever stylesheet loads last.
+.#{iv.$class-prefix}dropdown.#{iv.$class-prefix}context-menu-content {
+  position: fixed;
+  z-index: cv.getVar('context-menu-z-index');
+  width: 0;
+  height: 0;
+
+  .#{iv.$class-prefix}dropdown-content {
+    max-height: cv.getVar('context-menu-max-height');
+    overflow-y: auto;
+  }
+
+  // The content scrolls, which clips what's drawn outside it, and an item is
+  // as wide as the content, so a focus ring around the item loses its sides.
+  // Drawn just inside the item, it shows whole.
+  .#{iv.$class-prefix}dropdown-item:focus-visible {
+    outline-offset: calc(-1 * #{cv.getVar('focus-width')});
+  }
+}

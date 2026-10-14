@@ -17,6 +17,7 @@ import {
   referenceOf,
   referencePointer,
   renderComponent,
+  renderCssVarsAnswer,
   renderHelperApi,
 } from '../format.js';
 
@@ -357,5 +358,115 @@ describe('renderComponent CSS variable pointer', () => {
     expect(record.cssVars).toHaveLength(0);
     const out = renderComponent(record, ['props']);
     expect(out).not.toContain('CSS variable');
+  });
+
+  // `include` can't serve the other component's variables on this call, so that
+  // part of the hint names get_css_variables, as that tool's own answer does.
+  const linkButtonPointer =
+    "LinkButton renders Button's element, so Button's variables style it too, " +
+    'for the colors and modifiers it accepts. They are in ' +
+    '`get_css_variables({ component: "Button" })`.';
+
+  it("adds the other component's call to the count for one that renders its element", async () => {
+    const record = await loadComponent('LinkButton');
+    expect(record.cssVarsFrom).toBe('Button');
+    const out = renderComponent(record, ['props']);
+    expect(out).toContain(
+      `\`LinkButton\` has ${record.cssVars.length} CSS variables for theming ` +
+        '— pass `include: ["cssVars"]` to see them. It renders ' +
+        "Button's element, so Button's variables style it too, for the colors " +
+        'and modifiers it accepts. They are in ' +
+        '`get_css_variables({ component: "Button" })`.'
+    );
+    // A component that renders its own element gets the count alone.
+    expect(
+      renderComponent(await loadComponent('Button'), ['props'])
+    ).not.toContain('element, so');
+  });
+
+  it('puts the call under its own rows when cssVars is included', async () => {
+    const out = renderComponent(await loadComponent('LinkButton'), [
+      'props',
+      'cssVars',
+    ]);
+    expect(out).toContain('## CSS Variables');
+    expect(out).toContain(linkButtonPointer);
+    expect(out.indexOf(linkButtonPointer)).toBeGreaterThan(
+      out.lastIndexOf('--bulma-link-button-')
+    );
+  });
+});
+
+describe('renderCssVarsAnswer without a query', () => {
+  it('never says "matching", even given no rows for a component that has some', async () => {
+    // The server passes all of a component's rows when there is no query, but the
+    // function is exported, so a caller passing an empty list mustn't get a sentence
+    // naming a query nobody made.
+    const record = await loadComponent('LinkButton');
+    expect(record.cssVars.length).toBeGreaterThan(0);
+    const out = renderCssVarsAnswer(record, []);
+    expect(out).not.toContain('matching');
+    expect(out).not.toContain('undefined');
+  });
+});
+
+describe('renderCssVarsAnswer with a query its own rows answer', () => {
+  it("names the other component's whole table, without the query", async () => {
+    // LinkButton's own names start `--bulma-link-button-`, so a query that narrows
+    // to them matches nothing of Button's. Carried on, it would point at an empty
+    // answer.
+    const record = await loadComponent('LinkButton');
+    const query = 'link-button';
+    const own = record.cssVars.filter(v => v.css.includes(query));
+    expect(own.length).toBeGreaterThan(0);
+    const out = renderCssVarsAnswer(record, own, query);
+    expect(out).toContain('# LinkButton CSS variables');
+    expect(out).toContain('`get_css_variables({ component: "Button" })`.');
+    expect(out).not.toContain('query:');
+  });
+});
+
+describe('a component with no class of its own', () => {
+  // A component that renders another's element and adds no class lists no variables,
+  // so both tools answer with the pointer and nothing else. ToggleButton's record with
+  // its rows taken out stands in for one; the server tests hold the records the index
+  // ships.
+  const bare = async () => ({
+    ...(await loadComponent('ToggleButton')),
+    cssVars: [],
+  });
+
+  it('says it has none of its own and names the call for the ones that style it', async () => {
+    const record = await bare();
+    expect(record.cssVarsFrom).toBe('Button');
+    expect(renderCssVarsAnswer(record, [])).toBe(
+      'ToggleButton registers no CSS variables of its own. It renders ' +
+        "Button's element, so Button's variables style it, for the colors and " +
+        'modifiers it accepts. They are in ' +
+        '`get_css_variables({ component: "Button" })`.'
+    );
+  });
+
+  it('says "of its own" with a query too, and carries the query to the call', async () => {
+    // "None matching" would undersell a component that has none at all.
+    expect(renderCssVarsAnswer(await bare(), [], 'say "hi"')).toBe(
+      'ToggleButton registers no CSS variables of its own. It renders ' +
+        "Button's element, so Button's variables style it, for the colors and " +
+        'modifiers it accepts. They are in ' +
+        '`get_css_variables({ component: "Button", query: "say \\"hi\\"" })`.'
+    );
+  });
+
+  it('gives get_component the same pointer in place of the count', async () => {
+    // Without it the answer says nothing about CSS variables at all, since the count
+    // is of the component's own rows.
+    const record = await bare();
+    const pointer = renderCssVarsAnswer(record, []);
+    for (const include of [['props'], ['props', 'cssVars']]) {
+      const out = renderComponent(record, include);
+      expect(out).toContain(pointer);
+      expect(out).not.toContain('for theming');
+      expect(out).not.toContain('## CSS Variables');
+    }
   });
 });

@@ -39,7 +39,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
-import { useFieldLabelId } from './FormContext';
+import { useFieldLabelTarget } from './FormContext';
 import { Icon } from '../elements/Icon';
 import { getActiveElementInTree } from '../helpers/shadowDom';
 import { inertProps } from '../helpers/inertProps';
@@ -156,7 +156,10 @@ export interface DateTimeInputBaseProps
   closeOnSelect?: boolean;
   /** Popover anchor position. */
   position?: PickerPosition;
-  /** Render the popover into `document.body` via portal. */
+  /**
+   * Render the popover through a portal, into the `portalContainer` a
+   * `ConfigProvider` sets, `document.body` by default.
+   */
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the input, also carried by the calendar and the
@@ -216,7 +219,10 @@ export interface DateTimeInputBaseProps
   audioTick?: boolean;
   /** Auto-route tactile feedback per wheel tick (vibrate on Android, audio thunk on iOS). Default `false`. */
   haptics?: boolean;
-  /** Optional translatable string overrides. */
+  /**
+   * Optional translatable string overrides. In a 12-hour picker, `ampm`
+   * names the AM/PM column, `'AM/PM'` by default.
+   */
   labels?: PickerLabels;
 }
 
@@ -291,8 +297,7 @@ export const DateTimeInputBase = forwardRef<
   // when the caller set none, as InputBase does, and the popover's ids
   // follow it. Inline there is no input to name, so nothing takes the
   // Field's id or builds on it.
-  const fieldLabelId = useFieldLabelId();
-  const id = idProp ?? (inline ? undefined : fieldLabelId);
+  const id = useFieldLabelTarget(idProp, !inline);
   // The launcher gives way to the loading spinner of a Control this sits in.
   const controlLoading = useControlLoading();
   const triggerIcon = triggerIconProp ?? !controlLoading;

@@ -35,6 +35,12 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
+  'Buttons.ToggleButton': {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
+    },
+  },
   Columns: {
     gapSize: {
       replacement: 'gap',
@@ -148,6 +154,12 @@ export const DEPRECATED_PROPS: Readonly<
     isMultiline: {
       replacement: null,
       note: "Bulma's `.tags` wraps by default (no shipped `are-multiline` CSS exists for it) — this prop has never had a visual effect and will be removed in the next major version.",
+    },
+  },
+  ToggleButton: {
+    isFullWidth: {
+      replacement: 'isFullwidth',
+      note: 'Use `isFullwidth` instead — `isFullwidth` wins if both are set.',
     },
   },
 };

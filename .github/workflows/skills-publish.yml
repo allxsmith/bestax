@@ -137,12 +137,14 @@ jobs:
       #
       #   api.github.com: `gh workflow run` is one REST call.
       #
-      # Deliberately absent: github.com, as there is no checkout.
+      # Not listed: github.com, as there is no checkout; see "What the agent
+      # allows beyond the list" in .github/CLAUDE.md.
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.github.com:443
 
@@ -150,6 +152,8 @@ jobs:
       # was armed at this step, not that it stays armed; rule 10 in
       # .github/CLAUDE.md carries the mechanism and what to check when a run
       # looks wrong. Linux-only paths; the runner is ubuntu-latest.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
       - name: Assert egress policy is enforced
         timeout-minutes: 2
         run: |
@@ -166,12 +170,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -215,21 +233,21 @@ jobs:
       #     the exact bestax-mcp version the plugin pins, with GET requests
       #     and no install. The npx the plugin runs installs from this host.
       #
-      # Deliberately absent: api.github.com, as nothing here calls the API,
-      # and nodejs.org, as the generator imports node: builtins and local
-      # modules only and runs on the runner's Node with no install. Also
-      # absent: the hosts upload-artifact reaches,
-      # results-receiver.actions.githubusercontent.com and a per-run
-      # productionresultssa<N>.blob.core.windows.net. They are the runner's
-      # control plane, which .github/CLAUDE.md ("Measuring an allowlist")
-      # says never to allow-list, as harden-runner does not gate it and the
-      # blob host's name changes from run to run. claude-implement's
-      # `implement` job uploads its log at block with neither listed.
+      # Not listed: api.github.com, as nothing here calls the API; see "What
+      # the agent allows beyond the list" in .github/CLAUDE.md. Nor
+      # nodejs.org, as the generator imports node: builtins and local modules
+      # only and runs on the runner's Node with no install. Nor the hosts
+      # upload-artifact reaches, results-receiver.actions.githubusercontent.com
+      # and a per-run productionresultssa<N>.blob.core.windows.net, as runner
+      # infrastructure, which needs no listing ("Measuring an allowlist" in
+      # .github/CLAUDE.md). claude-implement's `implement` job uploads its
+      # log at block with neither listed.
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             github.com:443
             registry.npmjs.org:443
@@ -251,12 +269,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -320,7 +352,7 @@ jobs:
       # "Re-runs" in the header).
       - name: Upload the tree
         timeout-minutes: 5
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bestax-skills-tree-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bestax-skills-tree.tar
@@ -347,8 +379,9 @@ jobs:
       #     ls-remote, the clone and the push. The deploy key works over SSH
       #     only.
       #
-      # Deliberately absent: github.com:443, as nothing here checks out this
-      # repository, and api.github.com, as nothing calls the API.
+      # Not listed: github.com:443, as nothing here checks out this
+      # repository, and api.github.com, as nothing calls the API; see "What
+      # the agent allows beyond the list" in .github/CLAUDE.md.
       # download-artifact reaches the same control-plane hosts as
       # upload-artifact in `generate`, left out for the reason given there.
       # No block job here downloads an artifact with them unlisted yet, so
@@ -357,9 +390,10 @@ jobs:
       # (.github/CLAUDE.md, "Measuring an allowlist").
       - name: Harden runner
         timeout-minutes: 2
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             github.com:22
 
@@ -380,12 +414,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -395,7 +443,7 @@ jobs:
 
       - name: Download the tree
         timeout-minutes: 5
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: bestax-skills-tree-${{ github.run_attempt }}
           path: ${{ runner.temp }}/bestax-skills-artifact

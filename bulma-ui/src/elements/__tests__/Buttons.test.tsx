@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { Buttons } from '../Buttons';
 import { Button } from '../Button';
 import { LinkButton } from '../LinkButton';
+import { ToggleButton } from '../ToggleButton';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Buttons Component', () => {
@@ -188,9 +189,10 @@ describe('Buttons Component', () => {
 });
 
 describe('Compound components', () => {
-  test('Buttons.Button and Buttons.LinkButton are the exported components', () => {
+  test('Buttons.Button, Buttons.LinkButton and Buttons.ToggleButton are the exported components', () => {
     expect(Buttons.Button).toBe(Button);
     expect(Buttons.LinkButton).toBe(LinkButton);
+    expect(Buttons.ToggleButton).toBe(ToggleButton);
   });
 
   test('renders buttons through the dot path', () => {
@@ -198,10 +200,14 @@ describe('Compound components', () => {
       <Buttons>
         <Buttons.Button>Save</Buttons.Button>
         <Buttons.LinkButton>Docs</Buttons.LinkButton>
+        <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>
       </Buttons>
     );
     expect(screen.getByRole('button', { name: 'Save' })).toHaveClass('button');
     expect(screen.getByRole('button', { name: 'Docs' })).toHaveClass('button');
+    expect(
+      screen.getByRole('button', { name: 'Bold', pressed: true })
+    ).toHaveClass('button', 'is-selected');
   });
 });
 

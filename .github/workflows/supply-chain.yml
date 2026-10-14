@@ -38,7 +38,7 @@ jobs:
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
           cache: 'pnpm'
@@ -54,7 +54,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Generate SPDX SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
           format: spdx-json
@@ -68,7 +68,7 @@ jobs:
       # Both formats on purpose: SPDX is the ISO standard procurement asks for,
       # CycloneDX is what most scanning tools ingest natively.
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: .
           format: cyclonedx-json
@@ -160,19 +160,20 @@ jobs:
       # The list below is measured, not guessed: raw.githubusercontent
       # .com is here because sbom-action fetches syft's install script from it,
       # which no amount of reading the action would have made obvious. The cache
-      # host (productionresultssa12.blob.core.windows.net) is absent on purpose
-      # — harden-runner's probe discovers and adds it itself, as the sign-sbom
-      # comment already claimed and this run confirms.
+      # host (productionresultssa12.blob.core.windows.net) and
+      # results-receiver.actions.githubusercontent.com are absent on purpose, as
+      # runner infrastructure, which needs no listing (.github/CLAUDE.md,
+      # "Measuring an allowlist").
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
-            results-receiver.actions.githubusercontent.com:443
             registry.npmjs.org:443
             nodejs.org:443
             raw.githubusercontent.com:443
@@ -181,6 +182,8 @@ jobs:
       # actually came up (agent.status, written only once the firewall rules are
       # installed). Either alone is a false pass: #487 was the first kind, and an
       # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
       #
       # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
       # NOT prove the policy stays armed — the agent writes `Initialized` and then
@@ -205,12 +208,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -259,7 +276,7 @@ jobs:
       # — narrower, but the same kind. Both facts are here so the next reader
       # does not have to rediscover them.
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 
@@ -568,7 +585,7 @@ jobs:
       # downstream expand to nothing, and `attach-sbom` emits its ::warning::
       # while the repository SBOMs still ship.
       - name: Generate SPDX consumer SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: ${{ runner.temp }}/scan
           format: spdx-json
@@ -579,7 +596,7 @@ jobs:
           upload-release-assets: false
 
       - name: Generate CycloneDX consumer SBOM
-        uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
+        uses: anchore/sbom-action@66cbf4bc1f1c0d2edc94016e65bc221b6bb0ad6c # v0.24.3
         with:
           path: ${{ runner.temp }}/scan
           format: cyclonedx-json
@@ -650,7 +667,7 @@ jobs:
       # No `if:`, deliberately. This step is reached only when every step above
       # it succeeded, which is exactly the gate described above.
       - name: Upload the consumer SBOMs
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: ${{ steps.install.outputs.basename }}
           path: |
@@ -727,20 +744,18 @@ jobs:
       # flow, and this job uses the ambient GitHub Actions credential instead.
       #
       # `*.blob.core.windows.net` is deliberately absent, and this note exists
-      # because review passes keep proposing to add it. The
-      # artifact actions do reach Azure blob storage, but #487 measured a real
-      # run and found those hosts (`results-receiver.actions.githubusercontent
-      # .com`, `productionresultssa9.blob.core.windows.net`) already covered by
-      # harden-runner's built-in Actions baseline, so allow-listing them is
-      # unnecessary. In block mode harden-runner also runs a probe whose whole
-      # purpose is to discover the per-run blob backend host and add it itself —
-      # since v2.21.0 that probe is allowed to come up empty without changing the
-      # policy, because the agent admits the cache endpoints implicitly and the
-      # probe is defense-in-depth on top of that.
-      # The wildcard is the specific thing to avoid: every Azure storage account
-      # in existence lives under that suffix, so it would turn the tightest
-      # egress policy in this repository into something close to open egress. If
-      # a real run ever shows a blocked blob endpoint, add that exact host.
+      # because review passes keep proposing to add it. The artifact actions do
+      # reach Azure blob storage, through runner infrastructure, which needs no
+      # listing (.github/CLAUDE.md, "Measuring an allowlist"). The wildcard
+      # would admit every Azure storage account, a wider form of a path out
+      # that the agent already opens ("What the agent allows beyond the list").
+      # Listing one exact blob host would not help either, as the name changes
+      # from run to run: if a real run ever shows a blob endpoint blocked,
+      # start from "Measuring an allowlist", not from this list.
+      #
+      # token.actions.githubusercontent.com and
+      # results-receiver.actions.githubusercontent.com are absent too: the
+      # agent admits them itself ("What the agent allows beyond the list").
       #
       # Of this file's other jobs, `sbom`, `attach-sbom` and
       # `verify-provenance` predate rule 10 and are grandfathered by its
@@ -748,16 +763,15 @@ jobs:
       # enforces, same as this job — do not read the grandfather clause as
       # covering it.
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.github.com:443
             github.com:443
             objects.githubusercontent.com:443
             release-assets.githubusercontent.com:443
-            token.actions.githubusercontent.com:443
-            results-receiver.actions.githubusercontent.com:443
             fulcio.sigstore.dev:443
             rekor.sigstore.dev:443
             tuf-repo-cdn.sigstore.dev:443
@@ -767,6 +781,8 @@ jobs:
       # actually came up (agent.status, written only once the firewall rules are
       # installed). Either alone is a false pass: #487 was the first kind, and an
       # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
       #
       # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
       # NOT prove the policy stays armed — the agent writes `Initialized` and then
@@ -798,12 +814,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -816,7 +846,7 @@ jobs:
       # the two), so the narrower pattern would silently sign only half of what
       # gets attached.
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: bestax-*sbom*
           merge-multiple: true
@@ -867,7 +897,7 @@ jobs:
       # and attach-sbom's nullglob branch emits its ::warning:: as before.
       - name: Upload signature bundles
         if: ${{ !cancelled() }}
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: bestax-sbom.signatures
           path: |
@@ -901,7 +931,7 @@ jobs:
 
     steps:
       - name: Download SBOM artifacts
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           pattern: bestax-*sbom*
           merge-multiple: true
@@ -1002,7 +1032,7 @@ jobs:
           persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 
@@ -1021,7 +1051,26 @@ jobs:
       # This list is the single source of truth for what gets verified: the
       # assertion step below reads the roster back out of this tree rather than
       # repeating it.
+      #
+      # On a release, the package it names is then reinstalled at the tagged
+      # version (#719). The bare install resolves `latest`, which can still be
+      # the previous version for minutes after a publish, and that version's
+      # attestation verifies fine, so the job went green without opening the
+      # release's own. verify-attestation.mjs decides the spec from the event
+      # and its tag: a release event with no usable tag fails here rather than
+      # skipping the pin, and a tag naming a package this roster does not
+      # install is refused. The install goes through npm-install-retry.mjs
+      # because an exact version can be unresolvable while the registry
+      # propagates (#716). `--await-attestation` then waits for the release's
+      # attestation, which the registry serves on a route of its own, so the
+      # audit and the assertion below ask for one the registry has already
+      # served; its budget is RELEASE_ATTESTATION_RETRY in that script, and
+      # only a release run waits on it. The assertion step then fails if the
+      # tree is not that release.
       - name: Install published packages into a scratch tree
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
         run: |
           mkdir -p "$RUNNER_TEMP/verify"
           cd "$RUNNER_TEMP/verify"
@@ -1029,6 +1078,17 @@ jobs:
           npm install --ignore-scripts \
             @allxsmith/bestax-bulma create-bestax bestax-migrate bestax-mcp \
             @allxsmith/eslint-plugin-bestax
+
+          SPEC=$(node "$GITHUB_WORKSPACE/scripts/verify-attestation.mjs" \
+            --dir "$RUNNER_TEMP/verify" --event "$EVENT" \
+            --release "$RELEASE_TAG" --print-spec)
+          if [ -n "$SPEC" ]; then
+            node "$GITHUB_WORKSPACE/scripts/npm-install-retry.mjs" \
+              --spec "$SPEC" --dir "$RUNNER_TEMP/verify"
+            node "$GITHUB_WORKSPACE/scripts/verify-attestation.mjs" \
+              --dir "$RUNNER_TEMP/verify" --event "$EVENT" \
+              --release "$RELEASE_TAG" --await-attestation
+          fi
 
       - name: Audit registry signatures and provenance attestations
         run: |
@@ -1057,5 +1117,16 @@ jobs:
       # hand-maintained invariant with nothing enforcing it — add a newly
       # published package to one and not the other and it ships unverified,
       # silently, green.
+      #
+      # `--event` decides whether a release is held, as it does for the pin.
+      # A scheduled or dispatched run holds none, since `latest` is the right
+      # question there; a release event must carry its tag or the step fails;
+      # and an event the script does not classify fails too, so a trigger
+      # added later cannot pass with no release held.
       - name: Assert the attestations say this repository built these tarballs
-        run: node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify"
+        env:
+          EVENT: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          node scripts/verify-attestation.mjs --dir "$RUNNER_TEMP/verify" \
+            --event "$EVENT" --release "$RELEASE_TAG"

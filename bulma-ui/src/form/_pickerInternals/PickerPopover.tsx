@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
+import { usePortalContainer } from '../../helpers/portal';
 import {
   marginGap,
   useAnchoredPosition,
@@ -60,6 +61,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   initialFocusSelector,
 }) => {
   const panelRef = useRef<HTMLDivElement>(null);
+  const resolveContainer = usePortalContainer();
   // Read as the trap turns on, once the panel's content has rendered.
   const initialFocusRef = useMemo(
     () =>
@@ -160,7 +162,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   );
 
   if (appendToBody && isBrowser) {
-    return createPortal(panel, document.body);
+    return createPortal(panel, resolveContainer());
   }
   return panel;
 };

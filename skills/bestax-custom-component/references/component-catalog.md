@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-94 documented components. Generated from the API docs — every exported
+98 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -72,6 +72,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Tag](https://bestax.io/docs/api/elements/tag) — The `Tag` component renders a Bulma-styled label or badge.
 - [Tags](https://bestax.io/docs/api/elements/tags) — The `Tags` component groups multiple `Tag` components together in a Bulma-styled container that wraps onto multiple lines by default.
 - [Title](https://bestax.io/docs/api/elements/title) — The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`…
+- [ToggleButton](https://bestax.io/docs/api/elements/togglebutton) — The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`.
 - [UnorderedList](https://bestax.io/docs/api/elements/unorderedlist) — The `UnorderedList` component renders a styled unordered list (`<ul>`) element with Bulma helper class integration.
 
 ## Components
@@ -84,8 +85,10 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Carousel](https://bestax.io/docs/api/components/carousel) — The `Carousel` component provides an image/content slider with navigation arrows and indicators.
 - [Collapse](https://bestax.io/docs/api/components/collapse) — The `Collapse` component provides an expandable/collapsible content panel.
 - [Collapses](https://bestax.io/docs/api/components/collapses) — The `Collapses` component groups `Collapse` items into an accordion that keeps one item open at a time, or any number with `multiple`.
+- [ContextMenu](https://bestax.io/docs/api/components/contextmenu) — The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen.
 - [Dialog](https://bestax.io/docs/api/components/dialog) — The `Dialog` component provides ready-made confirm and alert dialogs, so a destructive action stays one `await dialog.confirm()` call away.
 - [Dropdown](https://bestax.io/docs/api/components/dropdown) — The `Dropdown` component provides Bulma's versatile dropdown menu for your Bulma React UI.
+- [HoverCard](https://bestax.io/docs/api/components/hovercard) — The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.
 - [Loading](https://bestax.io/docs/api/components/loading) — The `Loading` component provides a loading overlay with a spinner animation.
 - [Menu](https://bestax.io/docs/api/components/menu) — The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.
 - [Message](https://bestax.io/docs/api/components/message) — The `Message` component provides Bulma's flexible notice/message box for your Bulma React UI.
@@ -95,6 +98,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Panel](https://bestax.io/docs/api/components/panel) — The `Panel` component implements Bulma's versatile panel block for React.
 - [Popover](https://bestax.io/docs/api/components/popover) — The `Popover` component opens a panel of interactive content, such as a filter form or a set of share options, anchored to the element that toggles it.
 - [Reveal](https://bestax.io/docs/api/components/reveal) — The `Reveal` component animates its content into view as it scrolls into the viewport, backed by `IntersectionObserver`.
+- [SegmentedControl](https://bestax.io/docs/api/components/segmentedcontrol) — The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.
 - [Sidebar](https://bestax.io/docs/api/components/sidebar) — The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
 - [Steps](https://bestax.io/docs/api/components/steps) — The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
@@ -147,7 +151,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 
 - [ClientOnly](https://bestax.io/docs/api/helpers/clientonly) — `ClientOnly` renders its children only in the browser, after hydration, and a `fallback` until then…
 - [ConfigProvider](https://bestax.io/docs/api/helpers/config) — The `ConfigProvider` component provides a React context for configuring global settings across all Bulma UI components.
-- [Portal](https://bestax.io/docs/api/helpers/portal) — `Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise…
+- [Portal](https://bestax.io/docs/api/helpers/portal) — `Portal` renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise…
 - [Theme](https://bestax.io/docs/api/helpers/theme) — The `Theme` component provides a powerful way to customize Bulma's appearance using CSS custom properties (CSS variables).
 - [Valid value constants](https://bestax.io/docs/api/helpers/valid-values) — The helper tuples enumerate the core accepted values for the shared Bulma helper props — public API for building prop types and validation.
 - [classNames](https://bestax.io/docs/api/helpers/classnames) — `classNames` is a utility function for conditionally joining class names together.

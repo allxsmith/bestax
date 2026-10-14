@@ -83,6 +83,12 @@ export interface ComponentRecord {
   storybook: string | null;
   parts: Part[];
   cssVars: CssVar[];
+  /**
+   * The component whose element this one renders (`Button`, for LinkButton), so
+   * that component's variables style this one too, for the colors and modifiers it
+   * accepts. Absent when it renders its own.
+   */
+  cssVarsFrom?: string;
   sourceFile?: string;
   rootClass?: string | null;
   /**

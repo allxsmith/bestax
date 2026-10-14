@@ -13,6 +13,28 @@ const countries = [
   { value: 'uk', label: 'United Kingdom' },
 ];
 
+/**
+ * Each id reference under `root` that names no element in the document, as
+ * `attribute=id`, so a reference left pointing at nothing shows up by name.
+ */
+const danglingIdRefs = (root: HTMLElement): string[] => {
+  const attributes = [
+    'aria-labelledby',
+    'aria-describedby',
+    'aria-controls',
+    'aria-activedescendant',
+    'for',
+  ];
+  return Array.from(root.querySelectorAll('*')).flatMap(el =>
+    attributes.flatMap(attribute =>
+      (el.getAttribute(attribute) ?? '')
+        .split(/\s+/)
+        .filter(id => id && !document.getElementById(id))
+        .map(id => `${attribute}=${id}`)
+    )
+  );
+};
+
 describe('Autocomplete', () => {
   describe('Rendering', () => {
     it('renders an input element', () => {
@@ -660,49 +682,353 @@ describe('Autocomplete', () => {
       expect(input).not.toHaveAttribute('aria-activedescendant');
     });
 
-    it('names the listbox by its label', () => {
-      render(<Autocomplete data={fruits} label="Fruit" />);
-      fireEvent.change(screen.getByRole('combobox'), {
-        target: { value: 'a' },
-      });
-      expect(screen.getByRole('listbox')).toHaveAccessibleName('Fruit');
+    // The label that names the input names the list too, whichever renders
+    // it: the Autocomplete's own `label` or a Field's label around it, so
+    // both go through the same cases. Each builds an Autocomplete labelled
+    // `name`, passing `labelProps` to whichever renders the label.
+    type LabelledUi = (
+      name: string,
+      labelProps?: { id: string }
+    ) => React.ReactElement;
+    // A Field label wired by hand to the input `${name}-input`, the way the
+    // docs' horizontal examples wire one, with the `id` the list needs.
+    const wiredByHand = (name: string, labelProps?: { id: string }) => ({
+      htmlFor: `${name}-input`,
+      id: `${name}-label`,
+      ...labelProps,
+    });
+    const labelSources: Array<[string, LabelledUi]> = [
+      [
+        'its own label prop',
+        (name, labelProps) => (
+          <Autocomplete data={fruits} label={name} labelProps={labelProps} />
+        ),
+      ],
+      [
+        'its own label prop in a horizontal layout',
+        (name, labelProps) => (
+          <Autocomplete
+            data={fruits}
+            label={name}
+            labelProps={labelProps}
+            horizontal
+          />
+        ),
+      ],
+      [
+        'its own label wired by hand to its own id',
+        (name, labelProps) => (
+          <Autocomplete
+            data={fruits}
+            id={`${name}-input`}
+            label={name}
+            labelProps={{ htmlFor: `${name}-input`, ...labelProps }}
+          />
+        ),
+      ],
+      [
+        "a surrounding Field's label",
+        (name, labelProps) => (
+          <Field label={name} labelProps={labelProps}>
+            <Autocomplete data={fruits} />
+          </Field>
+        ),
+      ],
+      [
+        "a Field's label over its own dropped one",
+        (name, labelProps) => (
+          <Field label={name} labelProps={labelProps}>
+            <Autocomplete data={fruits} label="Dropped" />
+          </Field>
+        ),
+      ],
+      [
+        "a Field's label through a Control",
+        (name, labelProps) => (
+          <Field label={name} labelProps={labelProps}>
+            <Control>
+              <Autocomplete data={fruits} />
+            </Control>
+          </Field>
+        ),
+      ],
+      [
+        "a horizontal Field's label through its Field.Body",
+        (name, labelProps) => (
+          <Field horizontal label={name} labelProps={labelProps}>
+            <Field.Body>
+              <Autocomplete data={fruits} />
+            </Field.Body>
+          </Field>
+        ),
+      ],
+      [
+        "a Field's label wired by hand, with an id",
+        (name, labelProps) => (
+          <Field label={name} labelProps={wiredByHand(name, labelProps)}>
+            <Autocomplete id={`${name}-input`} data={fruits} />
+          </Field>
+        ),
+      ],
+      [
+        "a horizontal Field's label wired by hand into an inner Field",
+        (name, labelProps) => (
+          <Field
+            horizontal
+            label={name}
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Field.Body>
+              <Field>
+                <Autocomplete id={`${name}-input`} data={fruits} />
+              </Field>
+            </Field.Body>
+          </Field>
+        ),
+      ],
+      [
+        "a horizontal Field's label wired by hand into an inner Field's Control",
+        (name, labelProps) => (
+          <Field
+            horizontal
+            label={name}
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Field.Body>
+              <Field>
+                <Control iconLeftName="search">
+                  <Autocomplete id={`${name}-input`} data={fruits} />
+                </Control>
+              </Field>
+            </Field.Body>
+          </Field>
+        ),
+      ],
+      // A grouped or addons Field generates no target id for its several
+      // controls, but a label wired by hand has picked one with its `for`.
+      [
+        "a grouped Field's label wired by hand, with an id",
+        (name, labelProps) => (
+          <Field
+            label={name}
+            grouped
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Control>
+              <Autocomplete id={`${name}-input`} data={fruits} />
+            </Control>
+            <Control>
+              <button type="button">Go</button>
+            </Control>
+          </Field>
+        ),
+      ],
+      [
+        "an addons Field's label wired by hand, with an id",
+        (name, labelProps) => (
+          <Field
+            label={name}
+            hasAddons
+            labelProps={wiredByHand(name, labelProps)}
+          >
+            <Control isExpanded>
+              <Autocomplete id={`${name}-input`} data={fruits} />
+            </Control>
+            <Control>
+              <button type="button">Go</button>
+            </Control>
+          </Field>
+        ),
+      ],
+    ];
+
+    const openList = (combobox: HTMLElement) =>
+      fireEvent.change(combobox, { target: { value: 'a' } });
+
+    it.each(labelSources)('names the listbox by %s', (_source, ui) => {
+      render(ui('Fruit'));
+      openList(screen.getByRole('combobox', { name: 'Fruit' }));
+      const listbox = screen.getByRole('listbox');
+      expect(listbox).toHaveAccessibleName('Fruit');
+      expect(listbox).not.toHaveAttribute('aria-label');
+      // The id it points at is the rendered label's own.
+      const label = document.getElementById(
+        listbox.getAttribute('aria-labelledby') ?? ''
+      );
+      expect(label?.tagName).toBe('LABEL');
+      expect(label).toHaveTextContent('Fruit');
     });
 
-    it('names the listbox through a labelProps id of your own', () => {
+    it.each(labelSources)(
+      'names the listbox through a labelProps id of your own on %s',
+      (_source, ui) => {
+        render(ui('Fruit', { id: 'fruit-label' }));
+        openList(screen.getByRole('combobox', { name: 'Fruit' }));
+        const listbox = screen.getByRole('listbox');
+        expect(listbox).toHaveAttribute('aria-labelledby', 'fruit-label');
+        expect(listbox).toHaveAccessibleName('Fruit');
+      }
+    );
+
+    it.each(labelSources)('tells two lists apart by %s', (_source, ui) => {
       render(
-        <Autocomplete
-          data={fruits}
-          label="Fruit"
-          labelProps={{ id: 'fruit-label' }}
-        />
+        <>
+          {ui('Country')}
+          {ui('City')}
+        </>
       );
-      fireEvent.change(screen.getByRole('combobox'), {
-        target: { value: 'a' },
-      });
-      expect(screen.getByRole('listbox')).toHaveAttribute(
-        'aria-labelledby',
-        'fruit-label'
-      );
-      expect(screen.getByRole('listbox')).toHaveAccessibleName('Fruit');
+      const [country, city] = screen.getAllByRole('combobox');
+      openList(country);
+      openList(city);
+      expect(
+        screen.getByRole('listbox', { name: 'Country' })
+      ).toBeInTheDocument();
+      expect(screen.getByRole('listbox', { name: 'City' })).toBeInTheDocument();
     });
+
+    it.each(labelSources)(
+      'points at no missing id as the list opens and closes, labelled by %s',
+      (_source, ui) => {
+        const { container } = render(ui('Fruit'));
+        const combobox = screen.getByRole('combobox');
+        expect(danglingIdRefs(container)).toEqual([]);
+        openList(combobox);
+        fireEvent.keyDown(combobox, { key: 'ArrowDown' });
+        expect(screen.getByRole('listbox')).toHaveAttribute('aria-labelledby');
+        expect(combobox).toHaveAttribute('aria-activedescendant');
+        expect(danglingIdRefs(container)).toEqual([]);
+        fireEvent.keyDown(combobox, { key: 'Escape' });
+        expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+        expect(danglingIdRefs(container)).toEqual([]);
+      }
+    );
 
     it.each([
       ['with no label', <Autocomplete key="bare" data={fruits} />],
       [
-        'inside an outer Field',
-        <Field key="field" label="Fruit">
-          <Autocomplete data={fruits} label="Dropped" />
+        'under its own label opted out of the association',
+        <Autocomplete
+          key="own-opt-out"
+          data={fruits}
+          label="Fruit"
+          labelProps={{ htmlFor: undefined }}
+        />,
+      ],
+      [
+        'under its own label wired to another control',
+        <Autocomplete
+          key="own-elsewhere"
+          data={fruits}
+          label="Fruit"
+          labelProps={{ htmlFor: 'other' }}
+        />,
+      ],
+      [
+        "with an id of its own that a Field's label misses",
+        <Field key="own-id" label="Fruit">
+          <Autocomplete id="mine" data={fruits} />
         </Field>,
       ],
-    ])('falls back to a name for the listbox %s', (_name, ui) => {
-      render(ui);
-      fireEvent.change(screen.getByRole('combobox'), {
-        target: { value: 'a' },
-      });
-      const listbox = screen.getByRole('listbox');
-      expect(listbox).toHaveAccessibleName('Suggestions');
-      expect(listbox).not.toHaveAttribute('aria-labelledby');
-    });
+      [
+        'in a grouped Field',
+        <Field key="grouped" label="Fruit" grouped>
+          <Autocomplete data={fruits} />
+        </Field>,
+      ],
+      [
+        'in a Field with addons',
+        <Field key="addons" label="Fruit" hasAddons>
+          <Autocomplete data={fruits} />
+        </Field>,
+      ],
+      [
+        'in a Field whose label opts out of the association',
+        <Field key="opt-out" label="Fruit" labelProps={{ htmlFor: undefined }}>
+          <Autocomplete data={fruits} />
+        </Field>,
+      ],
+      [
+        'in an unlabelled Field inside a labelled one',
+        <Field key="nested" label="Fruit">
+          <Field>
+            <Autocomplete data={fruits} />
+          </Field>
+        </Field>,
+      ],
+    ])(
+      'keeps the fallback name when no label names the input, %s',
+      (_name, ui) => {
+        render(ui);
+        const combobox = screen.getByRole('combobox');
+        expect(combobox).toHaveAccessibleName('');
+        openList(combobox);
+        const listbox = screen.getByRole('listbox');
+        expect(listbox).toHaveAccessibleName('Suggestions');
+        expect(listbox).not.toHaveAttribute('aria-labelledby');
+      }
+    );
+
+    it.each([
+      [
+        'a Field label',
+        <Field key="plain" label="Fruit" labelProps={{ htmlFor: 'fruit' }}>
+          <Autocomplete id="fruit" data={fruits} />
+        </Field>,
+      ],
+      [
+        "a horizontal Field's label wired into an inner Field",
+        <Field
+          key="horizontal"
+          horizontal
+          label="Fruit"
+          labelProps={{ htmlFor: 'fruit' }}
+        >
+          <Field.Body>
+            <Field>
+              <Autocomplete id="fruit" data={fruits} />
+            </Field>
+          </Field.Body>
+        </Field>,
+      ],
+      [
+        "a grouped Field's label",
+        <Field
+          key="grouped"
+          label="Fruit"
+          grouped
+          labelProps={{ htmlFor: 'fruit' }}
+        >
+          <Control>
+            <Autocomplete id="fruit" data={fruits} />
+          </Control>
+        </Field>,
+      ],
+      [
+        "an addons Field's label",
+        <Field
+          key="addons"
+          label="Fruit"
+          hasAddons
+          labelProps={{ htmlFor: 'fruit' }}
+        >
+          <Control>
+            <Autocomplete id="fruit" data={fruits} />
+          </Control>
+        </Field>,
+      ],
+    ])(
+      'keeps the fallback name under %s wired by hand with no id to point at',
+      (_name, ui) => {
+        const { container } = render(ui);
+        const combobox = screen.getByRole('combobox', { name: 'Fruit' });
+        expect(container.querySelector('label')).not.toHaveAttribute('id');
+        openList(combobox);
+        const listbox = screen.getByRole('listbox');
+        expect(listbox).toHaveAccessibleName('Suggestions');
+        expect(listbox).not.toHaveAttribute('aria-labelledby');
+        expect(danglingIdRefs(container)).toEqual([]);
+      }
+    );
 
     it('gives each Autocomplete its own listbox id', () => {
       render(

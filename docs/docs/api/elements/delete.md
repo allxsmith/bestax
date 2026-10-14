@@ -109,7 +109,7 @@ The `Delete` component is often used inside a `Tag` for removable labels. This e
 
 ### In a Notification
 
-Use the `Delete` component inside a `Notification` to provide a dismiss action for alerts or messages.
+Use the `Delete` component inside a `Notification` to provide a dismiss action for alerts or messages. The notification pads its end so the text clears a `Delete` placed directly inside it, at any `size`, in browsers that support `:has()`. `Notification`'s own `hasDelete` prop renders the button and leaves that room without depending on `:has()`.
 
 ```tsx live
 <Notification color="primary">
@@ -183,7 +183,7 @@ For custom close actions, use the `onClick` prop.
 
 <!-- bestax:generated cssvars -->
 
-Bulma declares these variables globally rather than on `Delete`'s own element, so the defaults come from the theme. Override them anywhere above the component — on the element itself (via `className`/`style`) for a one-off, or on `:root` to retheme every instance. See [Theme](../helpers/theme.md).
+Bulma declares these variables on the `.delete` element itself, through a mixin its rule includes, and declares some of them again on `.delete.is-small`, `.delete.is-medium` and `.delete.is-large`. A value set on an ancestor, on `:root` or through [Theme](../helpers/theme.md) never reaches them, because the element's own declaration wins. Set them on the element: with the `style` prop, or with a class via `className` whose rule loads after the library styles and, with one of those modifiers on, out-ranks the modifier's rule.
 
 | CSS Variable                      | Sass Variable | Default              |
 | --------------------------------- | ------------- | -------------------- |

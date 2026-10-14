@@ -100,11 +100,39 @@ const PROPS: Record<string, Record<string, unknown>> = {
       </Library.Popover.Footer>,
     ],
   },
+  HoverCard: {
+    trigger: <a href="#ada">Ada Lovelace</a>,
+    defaultOpen: true,
+    position: 'top-right',
+    children: 'Analytical Engine team',
+  },
+  // Its menu needs a gesture, so the sweep sees the trigger and its class.
+  // ContextMenu.test.tsx opens the menu under a prefix.
+  ContextMenu: {
+    trigger: <div>report.pdf</div>,
+    children: <Library.ContextMenu.Item>Rename</Library.ContextMenu.Item>,
+  },
   Sidebar: { isOpen: true, children: 'Sidebar content' },
   Pagination: { current: 1, total: 5 },
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
   Message: { children: 'Hello' },
   Notification: { children: 'Hello' },
+  // Pressed, so the fill and `is-selected` it adds are swept too.
+  ToggleButton: { defaultPressed: true, children: 'Mute' },
+  // Checked and sized, so the fill, `is-selected` and `are-small` are swept.
+  SegmentedControl: {
+    'aria-label': 'View',
+    defaultValue: 'list',
+    size: 'small',
+    children: [
+      <Library.SegmentedControl.Segment key="list" value="list">
+        List
+      </Library.SegmentedControl.Segment>,
+      <Library.SegmentedControl.Segment key="grid" value="grid">
+        Grid
+      </Library.SegmentedControl.Segment>,
+    ],
+  },
   Slider: {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',

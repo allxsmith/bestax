@@ -87,6 +87,20 @@ A flexible tab navigation system for switching between views or filtering conten
 
 ---
 
+### SegmentedControl
+
+A row of buttons where only one can be on, for switching a view or picking a setting that applies right away, like a list or grid above a gallery. A screen reader hears a radio group, and the arrow keys move the check. [View full documentation.](../../api/components/segmentedcontrol.md)
+
+```tsx live
+<SegmentedControl aria-label="View" defaultValue="grid">
+  <SegmentedControl.Segment value="list">List</SegmentedControl.Segment>
+  <SegmentedControl.Segment value="grid">Grid</SegmentedControl.Segment>
+  <SegmentedControl.Segment value="board">Board</SegmentedControl.Segment>
+</SegmentedControl>
+```
+
+---
+
 ### Steps
 
 Multi-step progress indicator for wizard flows. Supports horizontal and vertical layouts with customizable markers. [View full documentation.](../../api/components/steps.md)
@@ -480,6 +494,31 @@ A click-to-open panel of interactive content anchored to its trigger, such as a 
 
 ---
 
+### HoverCard
+
+A card that previews what's behind a link or a button while the pointer rests on it or keyboard focus is on it, such as a person's avatar and team on a username. The pointer can move onto the card and Escape closes it. A touch screen opens it only with `openOnTap`, for a trigger with no tap action of its own. [View full documentation.](../../api/components/hovercard.md)
+
+```tsx live
+<HoverCard trigger={<Link href="#ada">Ada Lovelace</Link>}>
+  <Media>
+    <Media.Left>
+      <Avatar name="Ada Lovelace" size="48x48" />
+    </Media.Left>
+    <Media.Content>
+      <Title as="p" size="6">
+        Ada Lovelace
+      </Title>
+      <SubTitle as="p" size="6">
+        Analytical Engine team
+      </SubTitle>
+      <Link href="#profile">View profile</Link>
+    </Media.Content>
+  </Media>
+</HoverCard>
+```
+
+---
+
 ### Sidebar
 
 Slide-out navigation panel from left or right. Supports overlay, custom width, and keyboard navigation. [View full documentation.](../../api/components/sidebar.md)
@@ -600,6 +639,30 @@ A versatile dropdown menu for navigation, actions, or pop-up lists. [View full d
   <Dropdown.Item>Fourth Item</Dropdown.Item>
   <Dropdown.Item>Fifth Item</Dropdown.Item>
 </Dropdown>
+```
+
+---
+
+### ContextMenu
+
+A menu of actions that opens where you right-click an element, such as a table row or a card, or long press it on a touch screen. Its items are `Dropdown`'s, and its actions need a visible way in as well, such as a `Dropdown` on the same row. [View full documentation.](../../api/components/contextmenu.md)
+
+```tsx live
+<ContextMenu
+  aria-label="Actions for report.pdf"
+  trigger={
+    <Box tabIndex={0} p="6" textAlign="centered">
+      report.pdf: right-click here, or long press on a touch screen
+    </Box>
+  }
+>
+  <ContextMenu.Item as="button">Rename</ContextMenu.Item>
+  <ContextMenu.Item as="button">Duplicate</ContextMenu.Item>
+  <ContextMenu.Divider />
+  <ContextMenu.Item as="button" color="danger">
+    Delete
+  </ContextMenu.Item>
+</ContextMenu>
 ```
 
 ---

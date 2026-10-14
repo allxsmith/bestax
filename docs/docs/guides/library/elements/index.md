@@ -224,6 +224,19 @@ These elements are invisible or misleading to screen readers because they lack s
 
 ---
 
+### ToggleButton
+
+A button that stays pressed while something is on, such as Bold in an editor toolbar or Mute in a player, and says so through `aria-pressed`. [View full documentation.](../../../api/elements/togglebutton.md)
+
+```tsx live
+<Buttons>
+  <ToggleButton>Mute</ToggleButton>
+  <ToggleButton defaultPressed>Show archived</ToggleButton>
+</Buttons>
+```
+
+---
+
 ## Media
 
 ### Icon

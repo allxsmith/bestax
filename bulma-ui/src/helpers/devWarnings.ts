@@ -12,9 +12,14 @@ export const resetDevWarnings = (): void => {
 // it statically.
 declare const process: { env: { NODE_ENV?: string } };
 
-// Fail closed: with no bundler and no Node (raw CDN ESM), reading `process`
-// throws and warnings stay off, so production can never warn by accident.
-const isDev = (): boolean => {
+/**
+ * Whether this is a development build. Fail closed: with no bundler and no
+ * Node (raw CDN ESM), reading `process` throws and this is false, so
+ * production can never warn by accident. Exported for a caller whose
+ * development-only check costs something before it reaches `warnOnce`, so it
+ * can skip that work in production too.
+ */
+export const isDev = (): boolean => {
   try {
     return process.env.NODE_ENV !== 'production';
   } catch {

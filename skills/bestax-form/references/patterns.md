@@ -164,9 +164,10 @@ Recipes built on addons, each written out in full in the docs:
 - **Split button** ([docs](https://bestax.io/docs/api/components/dropdown#split-button)): a
   `Button` and a `Dropdown` in `Field hasAddons`, one `Control` each. `Buttons hasAddons` does
   not join the Dropdown's trigger. Keep the default color, since the trigger takes no `color`.
-- To label an addon row, put the label on an outer `Field` with `labelProps={{ htmlFor }}` and a
-  matching `id` on the input. A label inside the `hasAddons` field sits in the row beside the
-  controls.
+- To label an addon row, put the label on an outer `Field` with `labelProps={{ htmlFor, id }}`
+  and a matching `id` on the input. The label's `id` names an `Autocomplete`'s suggestion list
+  or a range `Slider`'s thumbs, which point `aria-labelledby` at it. A label inside the
+  `hasAddons` field sits in the row beside the controls.
 
 ## Horizontal field with explicit label/body
 

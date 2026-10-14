@@ -1,5 +1,5 @@
 import React from "react";
-import { Breadcrumb, Card, Hero, Level, Media, Message, Table } from "@allxsmith/bestax-bulma";
+import { Breadcrumb, Button, Buttons, Card, Hero, Level, Media, Message, Table } from "@allxsmith/bestax-bulma";
 
 export const Compounds = () => (
   <>
@@ -22,7 +22,11 @@ export const Compounds = () => (
       <Media.Left>avatar</Media.Left>
       <Media.Content>body</Media.Content>
     </Media>
-    <Message color="info">
+    <Buttons size="large">
+      <Button>Back</Button>
+      <Button>Next</Button>
+    </Buttons>
+    <Message color="info" size="small">
       <Message.Header>head</Message.Header>
       <Message.Body>body</Message.Body>
     </Message>
@@ -42,6 +46,9 @@ export const Compounds = () => (
       <Hero.Head>head</Hero.Head>
       <Hero.Body>body</Hero.Body>
       <Hero.Foot>foot</Hero.Foot>
+    </Hero>
+    <Hero size="fullheight-with-navbar">
+      <Hero.Body>under a fixed navbar</Hero.Body>
     </Hero>
     <Breadcrumb alignment="centered" separator="arrow">
       <li><a href="/a">A</a></li>

@@ -197,7 +197,7 @@ export const ManualEntry: Story = {
     docs: {
       description: {
         story:
-          "Segmented keyboard entry on the input — focus the field (Tab or click) and the **hours** segment highlights automatically. From there:\n\n- **Up/Down** increment / decrement the active segment (wraps at boundaries).\n- **Left/Right** move between hour, minute, second, AM/PM segments.\n- **Digit keys** overwrite the active segment and auto-advance when no further digit could form a valid value (typing `5` for 24-hour hours advances immediately; typing `2` waits since `20`–`23` are still valid).\n- **a / A / p / P** toggle the AM/PM segment in 12-hour mode.\n- **Backspace** clears the typed-digit buffer; if already empty, moves to the previous segment.\n- **Tab** clears segment selection so focus moves out naturally.\n\nSegment mode activates only when `format` is a token string with padded tokens (`HH`, `hh`, `mm`, `ss`, `A`, `a`). `Intl.DateTimeFormatOptions` formats fall back to free-form text entry. This story sets `openOnFocus={false}` so the popover doesn't cover the input — leave it at its default `true` and both UIs coexist.",
+          "Segmented keyboard entry on the input — focus the field (Tab or click) and the **hours** segment highlights automatically. From there:\n\n- **Up/Down** increment / decrement the active segment (wraps at boundaries).\n- **Left/Right** move between hour, minute, second, AM/PM segments.\n- **Digit keys** overwrite the active segment and auto-advance when no further digit could form a valid value (typing `5` for 24-hour hours advances immediately; typing `2` waits since `20`–`23` are still valid).\n- **a / A** sets AM and **p / P** sets PM on the AM/PM segment in 12-hour mode.\n- **Backspace** clears the typed-digit buffer; if already empty, moves to the previous segment.\n- **Tab** clears segment selection so focus moves out naturally.\n\nSegment mode activates only when `format` is a token string with padded tokens (`HH`, `hh`, `mm`, `ss`, `A`, `a`). `Intl.DateTimeFormatOptions` formats fall back to free-form text entry. This story sets `openOnFocus={false}` so the popover doesn't cover the input — leave it at its default `true` and both UIs coexist.",
       },
     },
   },
@@ -258,7 +258,7 @@ export const ManualEntryControlled: Story = {
     docs: {
       description: {
         story:
-          'The value updates on every increment, digit, or AM/PM toggle — same `onChange` pipeline as the wheel popover. Bind to `useState` to observe it; here the displayed `Paragraph` re-renders on each segment edit.',
+          'The value updates with every segment you change, through the same `onChange` as the wheel popover. Bind to `useState` to observe it; here the displayed `Paragraph` re-renders on each segment edit.',
       },
     },
   },
@@ -293,7 +293,7 @@ export const ManualEntry12hWithSeconds: Story = {
     docs: {
       description: {
         story:
-          'The full segment walk: hh → mm → ss → AM/PM. →/← move through all four, digits overwrite with auto-advance, and `a` / `p` toggle the meridiem.',
+          'The full segment walk: hh → mm → ss → AM/PM. →/← move through all four, digits overwrite with auto-advance, and `a` / `p` set the meridiem to AM or PM.',
       },
     },
   },

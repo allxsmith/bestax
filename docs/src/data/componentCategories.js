@@ -25,6 +25,7 @@ const categories = [
       { name: 'Tags', link: '/docs/api/elements/tags' },
       { name: 'Title', link: '/docs/api/elements/title' },
       { name: 'SubTitle', link: '/docs/api/elements/subtitle' },
+      { name: 'ToggleButton', link: '/docs/api/elements/togglebutton' },
     ],
   },
   {
@@ -42,6 +43,10 @@ const categories = [
       { name: 'Navbar', link: '/docs/api/components/navbar' },
       { name: 'Pagination', link: '/docs/api/components/pagination' },
       { name: 'Panel', link: '/docs/api/components/panel' },
+      {
+        name: 'SegmentedControl',
+        link: '/docs/api/components/segmentedcontrol',
+      },
       { name: 'Tabs/Tab', link: '/docs/api/components/tabs' },
     ],
   },

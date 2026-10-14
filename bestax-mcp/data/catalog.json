@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.27.5"
+    "version": "5.32.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -40,6 +40,7 @@
         "Tag",
         "Tags",
         "Title",
+        "ToggleButton",
         "UnorderedList"
       ]
     },
@@ -55,8 +56,10 @@
         "Carousel",
         "Collapse",
         "Collapses",
+        "ContextMenu",
         "Dialog",
         "Dropdown",
+        "HoverCard",
         "Loading",
         "Menu",
         "Message",
@@ -66,6 +69,7 @@
         "Panel",
         "Popover",
         "Reveal",
+        "SegmentedControl",
         "Sidebar",
         "Steps",
         "Tabs",
@@ -223,7 +227,7 @@
       "slug": "elements/buttons",
       "import": "import { Buttons } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 45,
+      "propCount": 59,
       "exampleCount": 8
     },
     {
@@ -355,7 +359,7 @@
       "slug": "helpers/config",
       "import": "import { ConfigProvider, useConfig } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 3,
+      "propCount": 4,
       "exampleCount": 0
     },
     {
@@ -379,6 +383,17 @@
       "compound": false,
       "propCount": 6,
       "exampleCount": 10
+    },
+    {
+      "name": "ContextMenu",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `ContextMenu` component opens a menu of actions where you right-click an element, such as a table row or a card, or long press it on a touch screen.",
+      "slug": "components/contextmenu",
+      "import": "import { ContextMenu } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 10,
+      "exampleCount": 9
     },
     {
       "name": "Control",
@@ -543,6 +558,17 @@
       "import": "import { Hero } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 21,
+      "exampleCount": 6
+    },
+    {
+      "name": "HoverCard",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `HoverCard` component shows a card previewing what's behind a link or a button while the pointer rests on it or keyboard focus is on it.",
+      "slug": "components/hovercard",
+      "import": "import { HoverCard } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 11,
       "exampleCount": 6
     },
     {
@@ -791,12 +817,12 @@
       "name": "Portal",
       "kind": "component",
       "category": "helpers",
-      "purpose": "`Portal` renders its children into another part of the page, `document.body` unless `container` says otherwise, so floating content escapes an ancestor's…",
+      "purpose": "`Portal` renders its children into another part of the page, `document.body` unless `container` or a `ConfigProvider` says otherwise, so floating content…",
       "slug": "helpers/portal",
       "import": "import { Portal } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 3,
-      "exampleCount": 3
+      "exampleCount": 4
     },
     {
       "name": "Pre",
@@ -874,6 +900,17 @@
       "compound": false,
       "propCount": 6,
       "exampleCount": 4
+    },
+    {
+      "name": "SegmentedControl",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `SegmentedControl` component renders a row of buttons where only one can be on, and tells a screen reader it's a radio group.",
+      "slug": "components/segmentedcontrol",
+      "import": "import { SegmentedControl } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 16,
+      "exampleCount": 11
     },
     {
       "name": "Select",
@@ -1085,6 +1122,17 @@
       "exampleCount": 7
     },
     {
+      "name": "ToggleButton",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `ToggleButton` component renders a button that stays pressed until it's pressed again, and says whether it's on through `aria-pressed`.",
+      "slug": "elements/togglebutton",
+      "import": "import { ToggleButton } from '@allxsmith/bestax-bulma';",
+      "compound": false,
+      "propCount": 14,
+      "exampleCount": 12
+    },
+    {
       "name": "Tooltip",
       "kind": "component",
       "category": "components",
@@ -1092,8 +1140,8 @@
       "slug": "components/tooltip",
       "import": "import { Tooltip } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 13,
-      "exampleCount": 10
+      "propCount": 14,
+      "exampleCount": 11
     },
     {
       "name": "UnorderedList",
@@ -1361,6 +1409,8 @@
     "--bulma-content-table-foot-cell-color": ["Content"],
     "--bulma-content-table-head-cell-border-width": ["Content"],
     "--bulma-content-table-head-cell-color": ["Content"],
+    "--bulma-context-menu-max-height": ["ContextMenu"],
+    "--bulma-context-menu-z-index": ["ContextMenu"],
     "--bulma-control-border-width": ["Control"],
     "--bulma-control-focus-shadow-l": ["Control"],
     "--bulma-control-height": ["Control"],
@@ -1545,6 +1595,17 @@
     "--bulma-hero-gradient-h-offset": ["Hero"],
     "--bulma-hero-gradient-l-offset": ["Hero"],
     "--bulma-hero-gradient-s-offset": ["Hero"],
+    "--bulma-hover-card-animation-duration": ["HoverCard"],
+    "--bulma-hover-card-background": ["HoverCard"],
+    "--bulma-hover-card-border-color": ["HoverCard"],
+    "--bulma-hover-card-color": ["HoverCard"],
+    "--bulma-hover-card-max-width": ["HoverCard"],
+    "--bulma-hover-card-min-width": ["HoverCard"],
+    "--bulma-hover-card-offset": ["HoverCard"],
+    "--bulma-hover-card-padding": ["HoverCard"],
+    "--bulma-hover-card-radius": ["HoverCard"],
+    "--bulma-hover-card-shadow": ["HoverCard"],
+    "--bulma-hover-card-z-index": ["HoverCard"],
     "--bulma-icon-dimensions": ["Icon", "IconText"],
     "--bulma-icon-dimensions-large": ["Icon", "IconText"],
     "--bulma-icon-dimensions-medium": ["Icon", "IconText"],
@@ -2007,6 +2068,7 @@
     "--bulma-notification-background-l": ["Notification"],
     "--bulma-notification-code-background-color": ["Notification"],
     "--bulma-notification-color-l": ["Notification"],
+    "--bulma-notification-delete-padding-inline-end": ["Notification"],
     "--bulma-notification-h": ["Notification"],
     "--bulma-notification-padding": ["Notification"],
     "--bulma-notification-radius": ["Notification"],

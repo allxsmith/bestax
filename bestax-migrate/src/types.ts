@@ -49,6 +49,13 @@ export interface PropAction {
    * `className` (`isSize="large"` → `is-large`). A dynamic value is a TODO.
    */
   toClassPrefix?: string;
+  /**
+   * The string values bestax takes for this prop. One of them passes through
+   * unchanged; any other value, or one the codemod cannot read, stays as
+   * written with a TODO that lists these. For a source that types the prop as
+   * any string where bestax has a closed union.
+   */
+  allowed?: readonly string[];
   /** Remove the attribute entirely. */
   drop?: boolean;
   /** Leave the attribute as-is and attach a TODO with this hint. */

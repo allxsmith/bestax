@@ -37,6 +37,7 @@ import { PickerPopover } from './_pickerInternals/PickerPopover';
 import { useNativeMobilePicker } from './_pickerInternals/useNativeMobilePicker';
 import { useSegmentedEntry } from './_pickerInternals/useSegmentedEntry';
 import { useControlLoading } from './controlLoading';
+import { useAutoLabelledBy } from './useAutoLabelId';
 import { Icon } from '../elements/Icon';
 
 export type { DateRangeValue };
@@ -136,7 +137,10 @@ export interface DateRangeInputBaseProps
   closeOnSelect?: boolean;
   /** Popover anchor position relative to the field. */
   position?: PickerPosition;
-  /** Render the popover into `document.body` via portal. */
+  /**
+   * Render the popover through a portal, into the `portalContainer` a
+   * `ConfigProvider` sets, `document.body` by default.
+   */
   appendToBody?: boolean;
   /**
    * Bulma color modifier for the field, also carried by the calendar, where it
@@ -216,6 +220,11 @@ export interface DateRangeInputBaseProps
 /**
  * Raw DateRangeInput: the two inputs and the popover calendar without
  * Field/Control wrapping. Use `DateRangeInput` for the convenience wrapper.
+ * Composed in a labeled `Field`, its `role="group"` root points
+ * `aria-labelledby` at that `Field`'s label, `inline` too, as the wrapper's
+ * does, and each input keeps its own name. An `aria-label` or
+ * `aria-labelledby` you give it wins over the label, and an `aria-labelledby`
+ * key counts even when undefined, since it is spread over the group's own.
  *
  * @function
  * @param {DateRangeInputBaseProps} props
@@ -320,6 +329,15 @@ export const DateRangeInputBase = forwardRef<
   const popoverId = id ? `${id}-popover` : `picker-${reactId}`;
 
   const { bulmaHelperClasses, rest: cleanRest } = useBulmaClasses(rest);
+  // Two inputs can't share a labeled Field's `for`, so inside one the group
+  // points `aria-labelledby` at that Field's label, as `DateRangeInput`
+  // does, in every mode. A name the caller gave the group wins, and so does
+  // the `aria-labelledby` that wrapper always passes, so it decides there.
+  const { ariaLabelledBy } = useAutoLabelledBy({
+    label: undefined,
+    rendersLabel: false,
+    callerProps: rest,
+  });
 
   const { shouldUseNative } = useNativeMobilePicker({
     force: mobileNative === 'auto' ? undefined : mobileNative,
@@ -585,6 +603,7 @@ export const DateRangeInputBase = forwardRef<
     const maxIso = max ? isoDay(max) : undefined;
     return (
       <div
+        aria-labelledby={ariaLabelledBy}
         {...cleanRest}
         ref={containerRef}
         role="group"
@@ -657,6 +676,7 @@ export const DateRangeInputBase = forwardRef<
   if (inline) {
     return (
       <div
+        aria-labelledby={ariaLabelledBy}
         {...cleanRest}
         ref={containerRef}
         role="group"
@@ -705,6 +725,7 @@ export const DateRangeInputBase = forwardRef<
 
   return (
     <div
+      aria-labelledby={ariaLabelledBy}
       {...cleanRest}
       ref={containerRef}
       role="group"

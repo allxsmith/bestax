@@ -168,7 +168,10 @@ Rules that keep components consistent:
   place in the DOM uses `Portal` (`helpers/portal.tsx`) rather than its own `createPortal` and
   `typeof document` check. `Portal` renders nothing on the server or during hydration, so the
   first client render matches the server markup. Test that with `renderToString` plus
-  `hydrateRoot` and a `console.error` spy, as `portal.test.tsx` does.
+  `hydrateRoot` and a `console.error` spy, as `portal.test.tsx` does. A component that has to
+  call `createPortal` itself, as `Modal` does to render in place until hydration, resolves its
+  target with `usePortalContainer` from the same module, so the `portalContainer` a
+  `ConfigProvider` sets reaches it too. Add it to `src/__tests__/portal-container.test.tsx`.
 
 - **Focus management builds on `useFocusTrap`.** A new component that holds focus while it is
   open uses `useFocusTrap` (`helpers/useFocusTrap.ts`) rather than its own Tab handler, so it

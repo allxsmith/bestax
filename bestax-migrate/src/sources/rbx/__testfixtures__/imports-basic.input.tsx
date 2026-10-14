@@ -20,7 +20,7 @@ export const Basic = () => (
       <Tag color="danger" rounded size="medium">
         New
       </Tag>
-      <Tag.Group gapless>
+      <Tag.Group gapless size="medium">
         <Tag>a</Tag>
         <Tag>b</Tag>
       </Tag.Group>

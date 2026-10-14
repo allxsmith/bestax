@@ -4,9 +4,11 @@ Bulma's _elements_: single-purpose components that render (mostly) one HTML elem
 classes — Button, Box, Icon, Tag, Title, and friends (the generated
 `skills/bestax-custom-component/references/component-catalog.md` is the authoritative list).
 
-**Belongs here?** One element, one Bulma concept, no internal state or subcomponents.
-Interactive multi-part widgets (dropdowns, modals, …) go in `../components/`; page structure in
-`../layout/`; anything with a `Field`/`Control` role in `../form/`.
+**Belongs here?** One element, one Bulma concept, no subcomponents. An element may keep a
+little state of its own, the kind a native control keeps (a toggle's pressed flag that a caller
+can take over), but nothing that coordinates several parts. Interactive multi-part widgets
+(dropdowns, modals, …) go in `../components/`; page structure in `../layout/`; anything with a
+`Field`/`Control` role in `../form/`.
 
 Layout is flat: `Foo.tsx` + `Foo.stories.tsx`, with tests in `__tests__/Foo.test.tsx`.
 Follow the anatomy rule in `bulma-ui/CLAUDE.md` (test + story + docs page + export + catalog).

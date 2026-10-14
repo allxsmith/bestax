@@ -1,6 +1,88 @@
+import { Suspense, useState } from 'react';
+import type { ReactElement, ReactNode } from 'react';
+import { createPortal } from 'react-dom';
+import { renderToString } from 'react-dom/server';
+import { hydrateRoot } from 'react-dom/client';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { Tooltip } from '../Tooltip';
+import { Popover } from '../Popover';
+import { Modal } from '../Modal';
+import { HoverCard } from '../HoverCard';
+import { Dropdown, DropdownItem } from '../Dropdown';
+import { Button } from '../../elements/Button';
+import { Span } from '../../elements/Span';
+import { Icon } from '../../elements/Icon';
+import { ConfigProvider } from '../../helpers/Config';
+import { resetDevWarnings } from '../../helpers/devWarnings';
+
+type PointerType = 'mouse' | 'pen' | 'touch';
+
+/**
+ * jsdom has no PointerEvent, so build a MouseEvent and give it a
+ * `pointerType`; React reads both off the native event. React makes
+ * `onPointerEnter` and `onPointerLeave` out of `pointerover` and `pointerout`,
+ * walking from the element the pointer left to the one it entered.
+ */
+const pointer = (
+  el: Element,
+  type: 'pointerover' | 'pointerout' | 'pointerdown' | 'pointerup',
+  {
+    pointerType = 'mouse',
+    relatedTarget = null,
+  }: { pointerType?: PointerType; relatedTarget?: EventTarget | null } = {}
+) => {
+  const event = new MouseEvent(type, {
+    bubbles: true,
+    cancelable: true,
+    composed: true,
+    relatedTarget,
+  });
+  Object.defineProperty(event, 'pointerType', { value: pointerType });
+  fireEvent(el, event);
+};
+
+/** The pointer arrives on `el` from outside the page's React tree. */
+const hover = (el: Element, pointerType?: PointerType) =>
+  pointer(el, 'pointerover', { pointerType });
+/** The pointer leaves `el`, onto `to` (the page itself unless given). */
+const unhover = (el: Element, to: Element = document.body) =>
+  pointer(el, 'pointerout', { relatedTarget: to });
+/**
+ * Focus as a key brings it. Tooltip asks the browser, through
+ * `:focus-visible`, and jsdom matches that on any focus, which is what a
+ * browser does after a key, so plain `focus()` is keyboard focus here.
+ */
+const keyboardFocus = (el: HTMLElement) => el.focus();
+/**
+ * A press and the focus it brings. A browser doesn't show that focus as
+ * `:focus-visible` and jsdom does, so the element says it isn't until the
+ * focus handlers have run.
+ */
+const pressFocus = (el: HTMLElement, pointerType: PointerType = 'mouse') => {
+  pointer(el, 'pointerdown', { pointerType });
+  const matches = el.matches.bind(el);
+  const spy = jest
+    .spyOn(el, 'matches')
+    .mockImplementation(selector =>
+      selector === ':focus-visible' ? false : matches(selector)
+    );
+  try {
+    el.focus();
+  } finally {
+    spy.mockRestore();
+  }
+};
+
+const advance = (ms: number) =>
+  act(() => {
+    jest.advanceTimersByTime(ms);
+  });
+
+const wrapper = (root: ParentNode = document) =>
+  root.querySelector('.tooltip') as HTMLElement;
+const bubble = () => screen.getByRole('tooltip', { hidden: true });
+const trigger = () => screen.getByRole('button', { name: 'Hover me' });
 
 describe('Tooltip', () => {
   beforeEach(() => {
@@ -8,7 +90,10 @@ describe('Tooltip', () => {
   });
 
   afterEach(() => {
-    jest.runOnlyPendingTimers();
+    // The tooltip is still mounted here, so what the timers set goes in act.
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
     jest.useRealTimers();
   });
 
@@ -65,14 +150,14 @@ describe('Tooltip', () => {
       expect(container.querySelector('.tooltip')).not.toHaveClass('is-active');
     });
 
-    it('becomes visible on mouse enter', () => {
+    it('becomes visible on pointer enter', () => {
       const { container } = render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
 
-      fireEvent.mouseEnter(container.querySelector('.tooltip')!);
+      hover(container.querySelector('.tooltip')!);
       act(() => {
         jest.runAllTimers();
       });
@@ -80,7 +165,7 @@ describe('Tooltip', () => {
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
     });
 
-    it('hides on mouse leave', () => {
+    it('hides on pointer leave', () => {
       const { container } = render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
@@ -88,27 +173,27 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.mouseEnter(tooltip);
+      hover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
-      fireEvent.mouseLeave(tooltip);
+      unhover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
       expect(tooltip).not.toHaveClass('is-active');
     });
 
-    it('becomes visible on focus', () => {
+    it('becomes visible on keyboard focus', () => {
       const { container } = render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
 
-      fireEvent.focus(container.querySelector('.tooltip')!);
+      keyboardFocus(trigger());
       act(() => {
         jest.runAllTimers();
       });
@@ -124,13 +209,13 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.focus(tooltip);
+      keyboardFocus(trigger());
       act(() => {
         jest.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
-      fireEvent.blur(tooltip);
+      trigger().blur();
       act(() => {
         jest.runAllTimers();
       });
@@ -148,7 +233,7 @@ describe('Tooltip', () => {
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
     });
 
-    it('stays visible on mouse leave when active', () => {
+    it('stays visible on pointer leave when active', () => {
       const { container } = render(
         <Tooltip label="Test tooltip" active>
           <button>Hover me</button>
@@ -156,13 +241,67 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.mouseEnter(tooltip);
-      fireEvent.mouseLeave(tooltip);
+      hover(tooltip);
+      unhover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
 
       expect(tooltip).toHaveClass('is-active');
+    });
+
+    it('stays shown on Escape, and lets the key through to a Modal around it', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          <Tooltip label="Test tooltip" active>
+            <button>Hover me</button>
+          </Tooltip>
+        </Modal>
+      );
+      hover(trigger());
+      keyboardFocus(trigger());
+      advance(1000);
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(wrapper()).toHaveClass('is-active');
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays shown under the pointer when active is dropped, and hides once the pointer leaves', () => {
+      const { rerender } = render(
+        <Tooltip label="Test tooltip" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      rerender(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).toHaveClass('is-active');
+
+      unhover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('hides once active is dropped, and shows on the next hover', () => {
+      const { rerender } = render(
+        <Tooltip label="Test tooltip" active>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      rerender(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(wrapper()).not.toHaveClass('is-active');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
     });
   });
 
@@ -305,7 +444,7 @@ describe('Tooltip', () => {
     it('applies is-dashed class when dashed is true', () => {
       const { container } = render(
         <Tooltip label="Test" dashed>
-          <span>Hover me</span>
+          <span tabIndex={0}>Hover me</span>
         </Tooltip>
       );
       expect(container.querySelector('.tooltip')).toHaveClass('is-dashed');
@@ -314,7 +453,7 @@ describe('Tooltip', () => {
     it('does not apply is-dashed class by default', () => {
       const { container } = render(
         <Tooltip label="Test">
-          <span>Hover me</span>
+          <span tabIndex={0}>Hover me</span>
         </Tooltip>
       );
       expect(container.querySelector('.tooltip')).not.toHaveClass('is-dashed');
@@ -329,7 +468,7 @@ describe('Tooltip', () => {
         </Tooltip>
       );
 
-      fireEvent.mouseEnter(container.querySelector('.tooltip')!);
+      hover(container.querySelector('.tooltip')!);
       act(() => {
         jest.runAllTimers();
       });
@@ -344,7 +483,7 @@ describe('Tooltip', () => {
         </Tooltip>
       );
 
-      fireEvent.mouseEnter(container.querySelector('.tooltip')!);
+      hover(container.querySelector('.tooltip')!);
 
       // Not visible yet
       expect(container.querySelector('.tooltip')).not.toHaveClass('is-active');
@@ -357,7 +496,7 @@ describe('Tooltip', () => {
       expect(container.querySelector('.tooltip')).toHaveClass('is-active');
     });
 
-    it('cancels delay when mouse leaves before timeout', () => {
+    it('cancels delay when the pointer leaves before timeout', () => {
       const { container } = render(
         <Tooltip label="Test" delay={500}>
           <button>Hover me</button>
@@ -365,7 +504,7 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.mouseEnter(tooltip);
+      hover(tooltip);
 
       // Not visible yet
       expect(tooltip).not.toHaveClass('is-active');
@@ -374,7 +513,7 @@ describe('Tooltip', () => {
       act(() => {
         jest.advanceTimersByTime(250);
       });
-      fireEvent.mouseLeave(tooltip);
+      unhover(tooltip);
 
       act(() => {
         jest.advanceTimersByTime(250);
@@ -394,13 +533,13 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.mouseEnter(tooltip);
+      hover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
-      fireEvent.mouseLeave(tooltip);
+      unhover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
@@ -415,13 +554,13 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.mouseEnter(tooltip);
+      hover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
-      fireEvent.mouseLeave(tooltip);
+      unhover(tooltip);
 
       // Still visible immediately after leave
       expect(tooltip).toHaveClass('is-active');
@@ -439,7 +578,7 @@ describe('Tooltip', () => {
       expect(tooltip).not.toHaveClass('is-active');
     });
 
-    it('cancels close delay when mouse re-enters before timeout', () => {
+    it('cancels close delay when the pointer re-enters before timeout', () => {
       const { container } = render(
         <Tooltip label="Test" closeDelay={500}>
           <button>Hover me</button>
@@ -447,24 +586,578 @@ describe('Tooltip', () => {
       );
 
       const tooltip = container.querySelector('.tooltip')!;
-      fireEvent.mouseEnter(tooltip);
+      hover(tooltip);
       act(() => {
         jest.runAllTimers();
       });
       expect(tooltip).toHaveClass('is-active');
 
       // Leave, then re-enter before closeDelay elapses
-      fireEvent.mouseLeave(tooltip);
+      unhover(tooltip);
       act(() => {
         jest.advanceTimersByTime(250);
       });
-      fireEvent.mouseEnter(tooltip);
+      hover(tooltip);
       act(() => {
         jest.advanceTimersByTime(500);
       });
 
       // Should still be visible
       expect(tooltip).toHaveClass('is-active');
+    });
+  });
+
+  describe('keyboard focus', () => {
+    it('shows after delay on keyboard focus, and hides once focus leaves', () => {
+      render(
+        <>
+          <Tooltip label="Test tooltip" delay={200}>
+            <button>Hover me</button>
+          </Tooltip>
+          <button>Next</button>
+        </>
+      );
+      keyboardFocus(trigger());
+      advance(199);
+      expect(wrapper()).not.toHaveClass('is-active');
+      advance(1);
+      expect(wrapper()).toHaveClass('is-active');
+
+      keyboardFocus(screen.getByRole('button', { name: 'Next' }));
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('stays while keyboard focus holds it, whatever the pointer does', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      hover(trigger());
+      unhover(trigger());
+      advance(5000);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('is not held by the focus a click brings, so it goes with the pointer', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      pressFocus(trigger());
+      unhover(trigger());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveFocus();
+    });
+  });
+
+  describe('hoverable', () => {
+    it('stays while the pointer moves from the trigger onto the tooltip, with no closeDelay', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      unhover(trigger(), bubble());
+      advance(5000);
+      expect(wrapper()).toHaveClass('is-active');
+
+      unhover(bubble());
+      advance(0);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('has no timer that hides a tooltip the pointer is on', () => {
+      render(
+        <Tooltip label="Test tooltip" closeDelay={300}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      unhover(trigger(), bubble());
+      advance(60_000);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('shows for a pen hovering', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger(), 'pen');
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+  });
+
+  describe('portaled into a shadow root from page content', () => {
+    /**
+     * A page that portals its preview into a shadow root, as the docs site's
+     * live examples do. Moving from the page onto something in the shadow
+     * root, the browser's pointerout names only the shadow host, so React
+     * sends no enter, and it skips the pointerover since the page is its own.
+     */
+    const Page = ({ children }: { children: ReactNode }) => {
+      const [root, setRoot] = useState<ShadowRoot | null>(null);
+      return (
+        <>
+          <p>Page text</p>
+          <div
+            ref={el => {
+              if (el && !el.shadowRoot) {
+                setRoot(el.attachShadow({ mode: 'open' }));
+              }
+            }}
+          >
+            {root && createPortal(children, root)}
+          </div>
+        </>
+      );
+    };
+    const page = () => screen.getByText('Page text');
+    const shadow = () => page().nextElementSibling!.shadowRoot!;
+    const shadowWrapper = () => wrapper(shadow());
+    /** The browser's events for the pointer moving from `from` onto `to`. */
+    const move = (
+      from: Element,
+      to: Element,
+      pointerType: PointerType = 'mouse'
+    ) => {
+      pointer(from, 'pointerout', { pointerType, relatedTarget: to });
+      pointer(to, 'pointerover', { pointerType, relatedTarget: from });
+    };
+
+    it('shows after its delay when the pointer comes from the page, and hides once it goes back', () => {
+      render(
+        <Page>
+          <Tooltip label="Test tooltip" delay={200}>
+            <button>Hover me</button>
+          </Tooltip>
+        </Page>
+      );
+      const button = shadow().querySelector('button')!;
+      move(page(), button);
+      advance(199);
+      expect(shadowWrapper()).not.toHaveClass('is-active');
+      advance(1);
+      expect(shadowWrapper()).toHaveClass('is-active');
+
+      move(button, page());
+      advance(0);
+      expect(shadowWrapper()).not.toHaveClass('is-active');
+    });
+
+    it('is not shown by a touch pointer coming from the page', () => {
+      render(
+        <Page>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </Page>
+      );
+      move(page(), shadow().querySelector('button')!, 'touch');
+      advance(5000);
+      expect(shadowWrapper()).not.toHaveClass('is-active');
+    });
+  });
+
+  describe('after Escape, with the pointer still on the trigger', () => {
+    it('stays hidden while the pointer moves between the trigger’s own children, until it leaves and comes back', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>
+            <span>Save</span> <span>draft</span>
+          </button>
+        </Tooltip>
+      );
+      const [first, last] = Array.from(wrapper().querySelectorAll('span'));
+      hover(first);
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      pointer(first, 'pointerout', { relatedTarget: last });
+      pointer(last, 'pointerover', { relatedTarget: first });
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      unhover(last);
+      hover(last);
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+  });
+
+  describe('with openOnTap', () => {
+    /** A finger's press and lift on `el`. */
+    const tap = (el: Element) => {
+      pointer(el, 'pointerdown', { pointerType: 'touch' });
+      pointer(el, 'pointerup', { pointerType: 'touch' });
+    };
+
+    it('shows at once on a tap on the trigger, and hides on the next one', () => {
+      render(
+        <Tooltip label="Test tooltip" delay={500} openOnTap>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+      advance(60_000);
+      expect(wrapper()).toHaveClass('is-active');
+      tap(trigger());
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('shows again on the next tap after Escape hid it', () => {
+      render(
+        <Tooltip label="Test tooltip" openOnTap>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('hides on a tap anywhere else', () => {
+      render(
+        <>
+          <Tooltip label="Test tooltip" openOnTap>
+            <button>Hover me</button>
+          </Tooltip>
+          <button>Elsewhere</button>
+        </>
+      );
+      tap(trigger());
+      expect(wrapper()).toHaveClass('is-active');
+      tap(screen.getByRole('button', { name: 'Elsewhere' }));
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('lets the trigger’s own tap action run', () => {
+      const onClick = jest.fn();
+      render(
+        <Tooltip label="Test tooltip" openOnTap>
+          <button onClick={onClick}>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      fireEvent.click(trigger());
+      expect(onClick).toHaveBeenCalled();
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('shows nothing on a tap without it', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      tap(trigger());
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+  });
+
+  describe('touch', () => {
+    it('is not shown by a touch pointer, or by the focus a tap brings', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger(), 'touch');
+      pressFocus(trigger(), 'touch');
+      fireEvent.click(trigger());
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('stays under the mouse when a touch pointer crosses the trigger', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      hover(trigger(), 'touch');
+      pointer(trigger(), 'pointerout', {
+        pointerType: 'touch',
+        relatedTarget: document.body,
+      });
+      advance(5000);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+  });
+
+  describe('Escape', () => {
+    it('hides it with keyboard focus on the trigger, leaving focus there and the key going on, until focus leaves and comes back', () => {
+      render(
+        <>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+          <button>Next</button>
+        </>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+
+      expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveFocus();
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      keyboardFocus(screen.getByRole('button', { name: 'Next' }));
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('hides it while the trigger is hovered and focus is in a field elsewhere, and the key goes on to that field', () => {
+      const onKeyDown = jest.fn();
+      render(
+        <>
+          <input aria-label="Search" onKeyDown={onKeyDown} />
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </>
+      );
+      const search = screen.getByRole('textbox', { name: 'Search' });
+      search.focus();
+      hover(trigger());
+      advance(0);
+      expect(fireEvent.keyDown(search, { key: 'Escape' })).toBe(true);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(search).toHaveFocus();
+      expect(onKeyDown).toHaveBeenCalledTimes(1);
+
+      // The pointer moving about inside the wrapper brings nothing back.
+      pointer(trigger(), 'pointerout', { relatedTarget: wrapper() });
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      unhover(wrapper());
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('hides it while the pointer is on the tooltip and focus is on nothing, letting the key go on, and the next hover of the trigger shows it', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      unhover(trigger(), bubble());
+      expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true);
+      expect(wrapper()).not.toHaveClass('is-active');
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('lets the key through whether a tooltip is showing or not', () => {
+      const outer = jest.fn();
+      document.addEventListener('keydown', outer);
+      try {
+        render(
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        );
+        fireEvent.keyDown(trigger(), { key: 'Escape' });
+        expect(outer).toHaveBeenCalledTimes(1);
+
+        hover(trigger());
+        advance(0);
+        fireEvent.keyDown(trigger(), { key: 'Escape' });
+        expect(wrapper()).not.toHaveClass('is-active');
+        expect(outer).toHaveBeenCalledTimes(2);
+      } finally {
+        document.removeEventListener('keydown', outer);
+      }
+    });
+
+    it('leaves a focused child its own Escape, and hides on the same key', () => {
+      const onKeyDown = jest.fn();
+      render(
+        <Tooltip label="Test tooltip">
+          <button onKeyDown={onKeyDown}>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(onKeyDown).toHaveBeenCalledTimes(1);
+    });
+
+    it('closes a Dropdown in the trigger and hides the tooltip on one Escape', () => {
+      // The link lands on the Dropdown's wrapper rather than its button, which
+      // a development build warns about. That's not what this test is for.
+      jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const onActiveChange = jest.fn();
+      render(
+        <Tooltip label="Row actions">
+          <Dropdown label="Actions" active onActiveChange={onActiveChange}>
+            <DropdownItem>Rename</DropdownItem>
+          </Dropdown>
+        </Tooltip>
+      );
+      const item = screen.getByText('Rename');
+      keyboardFocus(item);
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(item, { key: 'Escape' });
+      expect(onActiveChange).toHaveBeenCalledWith(false);
+      expect(wrapper()).not.toHaveClass('is-active');
+      jest.restoreAllMocks();
+    });
+
+    it('cancels a delayed show that has not happened yet, and lets the key through', () => {
+      render(
+        <Tooltip label="Test tooltip" delay={500}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(200);
+      expect(fireEvent.keyDown(trigger(), { key: 'Escape' })).toBe(true);
+      advance(5000);
+      expect(wrapper()).not.toHaveClass('is-active');
+    });
+
+    it('ignores other keys while shown', () => {
+      render(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      fireEvent.keyDown(trigger(), { key: 'a' });
+      expect(wrapper()).toHaveClass('is-active');
+    });
+
+    it('hides the tooltip and closes an open Modal around it on one Escape, with focus on its trigger', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </Modal>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides a hovered tooltip in an open Modal and lets the Modal have the key when focus is elsewhere in it', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          <button>Save</button>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </Modal>
+      );
+      const save = screen.getByRole('button', { name: 'Save' });
+      keyboardFocus(save);
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(save, { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hides the tooltip and closes an open Popover around it on one Escape, with focus on its trigger', () => {
+      render(
+        <Popover trigger={<button>Team</button>} ariaLabel="Team" defaultOpen>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </Popover>
+      );
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      // The Popover closes, and the tooltip goes with its panel.
+      expect(screen.queryByRole('dialog', { name: 'Team' })).toBeNull();
+      expect(wrapper()).toBeNull();
+    });
+
+    it('hides a hovered tooltip in an open Popover and lets the Popover have the key when focus is elsewhere in it', () => {
+      render(
+        <Popover trigger={<button>Team</button>} ariaLabel="Team" defaultOpen>
+          <button>Invite</button>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </Popover>
+      );
+      const invite = screen.getByRole('button', { name: 'Invite' });
+      keyboardFocus(invite);
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(invite, { key: 'Escape' });
+      // The Popover closes, and the tooltip goes with its panel.
+      expect(screen.queryByRole('dialog', { name: 'Team' })).toBeNull();
+      expect(wrapper()).toBeNull();
+    });
+
+    it('hides a tooltip inside an open HoverCard before the card', () => {
+      render(
+        <HoverCard trigger={<a href="#ada">Ada Lovelace</a>} defaultOpen>
+          <Tooltip label="Test tooltip">
+            <button>Hover me</button>
+          </Tooltip>
+        </HoverCard>
+      );
+      const card = () => document.querySelector('.hover-card-content');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(card()).toBeInTheDocument();
+
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(card()).toBeNull();
     });
   });
 
@@ -478,46 +1171,276 @@ describe('Tooltip', () => {
       expect(screen.getByRole('tooltip', { hidden: true })).toBeInTheDocument();
     });
 
-    it('tooltip content has aria-hidden="true" when not visible', () => {
+    // The stylesheet hides it with `visibility: hidden`, which keeps it out
+    // of the accessibility tree and still lets it describe its trigger.
+    // Tooltip.styles.test.tsx checks that with the real stylesheet.
+    it('leaves hiding the content to the stylesheet, with no aria-hidden', () => {
       render(
         <Tooltip label="Test tooltip">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'true'
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      expect(bubble()).not.toHaveAttribute('aria-hidden');
+    });
+  });
+
+  describe('describing the trigger', () => {
+    beforeEach(() => {
+      resetDevWarnings();
+    });
+
+    afterEach(() => {
+      jest.restoreAllMocks();
+      resetDevWarnings();
+    });
+
+    it('points the trigger at the tooltip, which describes it hidden and shown', () => {
+      render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(bubble().id).not.toBe('');
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+    });
+
+    it('is described before a delay runs out', () => {
+      render(
+        <Tooltip label="Deletes it for good" delay={1000}>
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      keyboardFocus(trigger());
+      advance(500);
+      expect(wrapper()).not.toHaveClass('is-active');
+      expect(trigger()).toHaveAccessibleDescription('Deletes it for good');
+    });
+
+    it('gives each tooltip an id of its own', () => {
+      render(
+        <>
+          <Tooltip label="First">
+            <button>One</button>
+          </Tooltip>
+          <Tooltip label="Second">
+            <button>Two</button>
+          </Tooltip>
+        </>
+      );
+      expect(
+        screen.getByRole('button', { name: 'One' })
+      ).toHaveAccessibleDescription('First');
+      expect(
+        screen.getByRole('button', { name: 'Two' })
+      ).toHaveAccessibleDescription('Second');
+    });
+
+    it('keeps an aria-describedby the trigger already has, and adds the tooltip after it', () => {
+      render(
+        <>
+          <span id="own-hint">Can't be undone.</span>
+          <Tooltip label="Deletes it for good">
+            <button aria-describedby="own-hint">Hover me</button>
+          </Tooltip>
+        </>
+      );
+      expect(trigger()).toHaveAttribute(
+        'aria-describedby',
+        `own-hint ${bubble().id}`
+      );
+      expect(trigger()).toHaveAccessibleDescription(
+        "Can't be undone. Deletes it for good"
       );
     });
 
-    it('tooltip content has aria-hidden="false" when visible', () => {
+    it('adds the tooltip only once when the trigger already names it', () => {
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      const id = bubble().id;
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <button aria-describedby={`${id} own-hint`}>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAttribute('aria-describedby', `${id} own-hint`);
+    });
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a Button', () => <Button>Trigger</Button>],
+      ['a link', () => <a href="#details">Trigger</a>],
+      ['a Span with tabIndex={0}', () => <Span tabIndex={0}>Trigger</Span>],
+    ])('describes %s, without a warning', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(<Tooltip label="Deletes it for good">{child()}</Tooltip>);
+      const triggerNode = screen.getByText('Trigger');
+      expect(triggerNode).toHaveAttribute('aria-describedby', bubble().id);
+      expect(triggerNode).toHaveAccessibleDescription('Deletes it for good');
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('reads rich content as its text', () => {
+      render(
+        <Tooltip
+          content={
+            <span>
+              <strong>Bold</strong> and <em>italic</em>
+            </span>
+          }
+        >
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      expect(trigger()).toHaveAccessibleDescription('Bold and italic');
+    });
+
+    const warnsUnlinked = (warn: jest.SpyInstance) => {
+      expect(warn).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining("<Tooltip> can't describe its trigger")
+      );
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining(
+          'Pass one element that takes focus and passes aria-describedby on to its DOM node'
+        )
+      );
+    };
+
+    it.each([
+      ['text', () => 'Hover me'],
+      [
+        'a fragment',
+        () => (
+          <>
+            <button>Hover me</button>
+          </>
+        ),
+      ],
+      [
+        'several elements',
+        () => [<button key="a">Hover me</button>, <button key="b">Too</button>],
+      ],
+      ['nothing', () => null],
+    ])('leaves %s unlinked, and warns once in development', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       const { container } = render(
-        <Tooltip label="Test tooltip">
-          <button>Hover me</button>
-        </Tooltip>
+        <>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+        </>
       );
-
-      fireEvent.mouseEnter(container.querySelector('.tooltip')!);
-      act(() => {
-        jest.runAllTimers();
-      });
-
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'false'
-      );
+      expect(container.querySelector('[aria-describedby]')).toBeNull();
+      warnsUnlinked(warn);
     });
 
-    it('tooltip content has aria-hidden="false" when always active', () => {
+    // A component that keeps the props it's given to itself.
+    const Swallows = (props: { 'aria-describedby'?: string }) => (
+      <button data-ignored={Object.keys(props).join()}>Hover me</button>
+    );
+
+    // Each case builds its trigger, so the table holds no bare elements.
+    it.each([
+      ['a component that does not pass the link on', () => <Swallows />],
+      [
+        'a focusable element inside the one that takes the link',
+        () => (
+          <span>
+            <button aria-describedby="own-hint">Hover me</button>
+          </span>
+        ),
+      ],
+      [
+        'Suspense around the trigger',
+        () => (
+          <Suspense fallback={null}>
+            <button>Hover me</button>
+          </Suspense>
+        ),
+      ],
+      ['a trigger that cannot take focus', () => <Span>Hover me</Span>],
+      ['an icon that cannot take focus', () => <Icon name="info-circle" />],
+      ['a disabled button', () => <button disabled>Hover me</button>],
+    ])('warns once in development for %s', (_, child) => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
       render(
-        <Tooltip label="Test tooltip" active>
+        <>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+          <Tooltip label="Deletes it for good">{child()}</Tooltip>
+        </>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('judges the trigger alone, not what comes after it', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <>
+          <Tooltip label="Deletes it for good">
+            <span>Hover me</span>
+          </Tooltip>
+          <button>Next</button>
+        </>
+      );
+      warnsUnlinked(warn);
+    });
+
+    it('does not warn for a trigger that is hidden for now', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      render(
+        <div style={{ visibility: 'hidden' }}>
+          <Tooltip label="Deletes it for good">
+            <button>Hover me</button>
+          </Tooltip>
+        </div>
+      );
+      expect(getComputedStyle(screen.getByText('Hover me')).visibility).toBe(
+        'hidden'
+      );
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it('checks a trigger that changes', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const { rerender } = render(
+        <Tooltip label="Deletes it for good">
           <button>Hover me</button>
         </Tooltip>
       );
-      expect(screen.getByRole('tooltip', { hidden: true })).toHaveAttribute(
-        'aria-hidden',
-        'false'
+      expect(warn).not.toHaveBeenCalled();
+      rerender(
+        <Tooltip label="Deletes it for good">
+          <span>Hover me</span>
+        </Tooltip>
       );
+      warnsUnlinked(warn);
+    });
+
+    it('stays quiet in production, without reading the page for it', () => {
+      const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});
+      const queries = jest.spyOn(Element.prototype, 'querySelectorAll');
+      const previous = process.env.NODE_ENV;
+      process.env.NODE_ENV = 'production';
+      try {
+        render(<Tooltip label="Deletes it for good">Hover me</Tooltip>);
+      } finally {
+        process.env.NODE_ENV = previous;
+      }
+      expect(warn).not.toHaveBeenCalled();
+      expect(queries.mock.contexts).not.toContain(wrapper());
     });
   });
 
@@ -562,6 +1485,179 @@ describe('Tooltip', () => {
         'is-multiline',
         'custom-class'
       );
+    });
+  });
+
+  describe('class prefix', () => {
+    it('prefixes every class under ConfigProvider classPrefix, shown or hidden', () => {
+      const { container } = render(
+        <ConfigProvider classPrefix="bestax-">
+          <Tooltip
+            label="Test"
+            color="info"
+            size="small"
+            multiline
+            square
+            dashed
+            m="1"
+          >
+            <button>Hover me</button>
+          </Tooltip>
+        </ConfigProvider>
+      );
+      const root = container.firstChild as HTMLElement;
+      const classes = () =>
+        [...root.classList, ...bubble().classList].filter(
+          name => !name.startsWith('bestax-')
+        );
+      expect(root).toHaveClass(
+        'bestax-tooltip',
+        'bestax-is-top',
+        'bestax-is-info',
+        'bestax-is-small',
+        'bestax-is-multiline',
+        'bestax-is-animated',
+        'bestax-is-square',
+        'bestax-is-dashed',
+        'bestax-m-1'
+      );
+      expect(bubble()).toHaveClass('bestax-tooltip-content');
+      expect(classes()).toEqual([]);
+      expect(trigger()).toHaveAttribute('aria-describedby', bubble().id);
+      expect(trigger()).toHaveAccessibleDescription('Test');
+
+      hover(trigger());
+      advance(0);
+      expect(root).toHaveClass('bestax-is-active');
+      expect(classes()).toEqual([]);
+
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(root).not.toHaveClass('bestax-is-active');
+      expect(container.querySelector('.tooltip')).toBeNull();
+    });
+  });
+
+  describe('own handlers', () => {
+    it("runs the wrapper's own pointer and focus handlers as well", () => {
+      const calls: string[] = [];
+      render(
+        <Tooltip
+          label="Test"
+          onPointerEnter={() => calls.push('enter')}
+          onPointerLeave={() => calls.push('leave')}
+          onFocus={() => calls.push('focus')}
+          onBlur={() => calls.push('blur')}
+          onPointerDown={() => calls.push('down')}
+          onPointerUp={() => calls.push('up')}
+        >
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      unhover(trigger());
+      keyboardFocus(trigger());
+      advance(0);
+      expect(wrapper()).toHaveClass('is-active');
+      trigger().blur();
+      pointer(trigger(), 'pointerdown');
+      pointer(trigger(), 'pointerup');
+      expect(calls).toEqual(['enter', 'leave', 'focus', 'blur', 'down', 'up']);
+    });
+  });
+
+  describe('lifecycle', () => {
+    it('shows nothing and holds no Escape after it unmounts', () => {
+      const outer = jest.fn();
+      document.addEventListener('keydown', outer);
+      try {
+        const { unmount } = render(
+          <Tooltip label="Test" delay={500}>
+            <button>Hover me</button>
+          </Tooltip>
+        );
+        hover(trigger());
+        unmount();
+        advance(5000);
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(outer).toHaveBeenCalledTimes(1);
+      } finally {
+        document.removeEventListener('keydown', outer);
+      }
+    });
+  });
+
+  describe('hydration', () => {
+    const hydrate = async (ui: ReactElement) => {
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(ui);
+      document.body.appendChild(container);
+      const serverHtml = container.innerHTML;
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      return {
+        container,
+        serverHtml,
+        errorSpy,
+        cleanup: async () => {
+          await act(async () => root!.unmount());
+          container.remove();
+          errorSpy.mockRestore();
+        },
+      };
+    };
+
+    it('hydrates a hidden tooltip without a mismatch, and shows it on hover', async () => {
+      const { container, serverHtml, errorSpy, cleanup } = await hydrate(
+        <Tooltip label="Test tooltip">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      try {
+        expect(serverHtml).not.toContain('is-active');
+        expect(errorSpy).not.toHaveBeenCalled();
+        hover(trigger());
+        advance(0);
+        expect(wrapper(container)).toHaveClass('is-active');
+      } finally {
+        await cleanup();
+      }
+    });
+
+    // The client's ids have to match the server's, or React reports the
+    // mismatch through console.error.
+    it('hydrates the tooltip ids the server rendered, so each trigger stays described', async () => {
+      const { errorSpy, cleanup } = await hydrate(
+        <>
+          <Tooltip label="First">
+            <button>One</button>
+          </Tooltip>
+          <Tooltip label="Second">
+            <button>Two</button>
+          </Tooltip>
+        </>
+      );
+      try {
+        expect(errorSpy).not.toHaveBeenCalled();
+        const one = screen.getByRole('button', { name: 'One' });
+        const two = screen.getByRole('button', { name: 'Two' });
+        expect(one.getAttribute('aria-describedby')).not.toBe(
+          two.getAttribute('aria-describedby')
+        );
+        expect(one).toHaveAccessibleDescription('First');
+        expect(two).toHaveAccessibleDescription('Second');
+        hover(one);
+        advance(0);
+        expect(one).toHaveAccessibleDescription('First');
+      } finally {
+        await cleanup();
+      }
     });
   });
 
@@ -716,6 +1812,23 @@ describe('Tooltip', () => {
       });
 
       expect(container.querySelector('.tooltip')).toHaveClass('is-left');
+    });
+
+    it('resolves auto position when hover shows it', () => {
+      setViewport(1024, 768);
+      mockRects({ top: 10, bottom: 30, left: 500, right: 540 });
+
+      render(
+        <Tooltip label="Test" position="auto">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      act(() => {
+        jest.runAllTimers();
+      });
+
+      expect(wrapper()).toHaveClass('is-active', 'is-bottom');
     });
   });
 
@@ -942,6 +2055,28 @@ describe('Tooltip', () => {
       expect(content.style.getPropertyValue('--tooltip-arrow-offset')).toBe(
         '15px'
       );
+    });
+
+    it('corrects a tooltip hover shows, and drops the correction once Escape hides it', () => {
+      setViewport(1024, 768);
+      mockRects(
+        { top: 100, bottom: 120, left: 0, right: 40 },
+        { top: 60, bottom: 100, left: -10, right: 90 }
+      );
+
+      render(
+        <Tooltip label="Test" position="top">
+          <button>Hover me</button>
+        </Tooltip>
+      );
+      hover(trigger());
+      act(() => {
+        jest.runAllTimers();
+      });
+      expect(bubble().style.left).toBe('calc(50% + 18px)');
+
+      fireEvent.keyDown(trigger(), { key: 'Escape' });
+      expect(bubble().style.left).toBe('');
     });
   });
 

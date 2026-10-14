@@ -241,10 +241,17 @@ export const WithIconTextAndAddons: Story = {
 
 export const CompoundUsage: Story = {
   render: () => (
-    <Buttons>
-      <Buttons.Button color="primary">Save</Buttons.Button>
-      <Buttons.Button>Cancel</Buttons.Button>
-      <Buttons.LinkButton>Learn more</Buttons.LinkButton>
-    </Buttons>
+    <>
+      <Buttons>
+        <Buttons.Button color="primary">Save</Buttons.Button>
+        <Buttons.Button>Cancel</Buttons.Button>
+        <Buttons.LinkButton>Learn more</Buttons.LinkButton>
+      </Buttons>
+      <Buttons hasAddons role="group" aria-label="Text style">
+        <Buttons.ToggleButton defaultPressed>Bold</Buttons.ToggleButton>
+        <Buttons.ToggleButton>Italic</Buttons.ToggleButton>
+        <Buttons.ToggleButton>Underline</Buttons.ToggleButton>
+      </Buttons>
+    </>
   ),
 };

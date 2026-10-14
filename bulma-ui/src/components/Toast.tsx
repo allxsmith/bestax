@@ -10,7 +10,7 @@ import { createPortal } from 'react-dom';
 import { isEventInside } from '../helpers/shadowDom';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { resolvePortalContainer } from '../helpers/portal';
+import { usePortalContainer } from '../helpers/portal';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
 
 /** Color/style type presets for toast messages. */
@@ -117,6 +117,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     ref
   ) => {
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+    const resolveContainer = usePortalContainer();
     const [isVisible, setIsVisible] = useState(true);
     const [isPaused, setIsPaused] = useState(false);
     const toastRef = useRef<HTMLDivElement | null>(null);
@@ -316,7 +317,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     const toastContent = <div className={containerClasses}>{toastElement}</div>;
 
     if (typeof document !== 'undefined') {
-      return createPortal(toastContent, resolvePortalContainer(container));
+      return createPortal(toastContent, resolveContainer(container));
     }
 
     return null;
@@ -528,6 +529,7 @@ export const ToastContainer: React.FC<{
     getVisibleToasts,
     getServerToasts
   );
+  const resolveContainer = usePortalContainer();
 
   if (typeof document === 'undefined' || toastList.length === 0) {
     return null;
@@ -556,7 +558,7 @@ export const ToastContainer: React.FC<{
         })}
       </div>
     )),
-    document.body
+    resolveContainer()
   );
 };
 

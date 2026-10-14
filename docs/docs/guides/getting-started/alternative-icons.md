@@ -9,7 +9,7 @@ sidebar_position: 3
 bestax-bulma supports these icon libraries out of the box: **Font Awesome**, **Material Design Icons**, **Ionicons**, **Google Material Icons**, and **Material Symbols**. Font Awesome is the default when no `library` prop is set.
 
 :::tip Easiest path: `create-bestax`
-The [Quick Start](/docs/guides/intro) installer prompts you to pick an icon library (or none) and handles the install, CSS import, and any needed `ConfigProvider` wiring automatically. Use the manual steps below if you're adding icons to an existing project or want to switch libraries later.
+The [Quick Start](/docs/guides/intro) installer prompts you to pick an icon library (or none) and handles the setup and any needed `ConfigProvider` wiring automatically. Use the manual steps below if you're adding icons to an existing project or want to switch libraries later.
 :::
 
 ---
@@ -105,39 +105,12 @@ function MaterialIconExample() {
 
 ## Ionicons
 
-Ionicons is a modern icon library designed specifically for web, iOS, Android, and desktop apps. The library now uses web components for better performance and loading.
+Ionicons is a modern icon library designed specifically for web, iOS, Android, and desktop apps. Ionicons v8 is a set of web components rather than a stylesheet, so there's no CSS to import.
 
-**Install:**
+**Setup:**
 
-<PackageManagerTabs>
-
-```bash
-pnpm add ionicons@^8.0.13
-```
-
-</PackageManagerTabs>
-
-**Import:**
-
-:::info No CSS Import Needed
-
-Ionicons v8 uses web components that are automatically loaded in your documentation examples.
-
-:::
-
-**Setup for Your Application:**
-
-For your own application, you need to import the ionicons ES module. Add this to your main application file (e.g., `index.js`, `App.js`, or `main.tsx`):
-
-```js
-// Import ionicons as ES module - this will auto-register the web components
-import 'ionicons/dist/ionicons/ionicons.esm.js';
-```
-
-**Alternative Setup (CDN):**
-
-You can also load ionicons via CDN by adding this script tag to your HTML. Ionicons v8 ships
-only an ES module build, so no `nomodule` fallback script is needed:
+Load the web components with this script tag in your HTML (`index.html` in a Vite app).
+Ionicons v8 ships only an ES module build, so no `nomodule` fallback script is needed:
 
 ```html
 <script
@@ -145,6 +118,10 @@ only an ES module build, so no `nomodule` fallback script is needed:
   src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"
 ></script>
 ```
+
+Use the script tag rather than importing that file from your bundler: the `ionicons` package
+doesn't export `dist/ionicons/ionicons.esm.js`, so the import fails with
+`ERR_PACKAGE_PATH_NOT_EXPORTED`. The live examples on this site load Ionicons for you.
 
 **Usage:**
 
@@ -514,6 +491,32 @@ Material Symbols is Google's newer icon system with:
 For a complete list of available symbols and detailed usage instructions, visit the [material-symbols package documentation](https://www.npmjs.com/package/material-symbols).
 :::
 
+### Making the font smaller
+
+Material Symbols is a variable font, and each style's stylesheet loads all of it: every symbol, at every fill, weight, grade and optical size. That's several megabytes per style, and an app that shows a few icons downloads the lot. `create-bestax` imports the outlined style on its own and stops there on purpose, because it's one import, it works offline, and any name you give `Icon` just renders. For most apps that's the right trade. If the download matters to yours, you have other ways to load it.
+
+**Import only the styles you render.** The bare `import 'material-symbols'` in the Import step above declares the rounded and sharp fonts next to the outlined one, so your build ships all of them. A browser fetches a font when a page first renders text in it, so until something uses those variants the extras weigh on your deploy rather than on each visit, but there's no reason to carry them. `Icon` renders the outlined style unless you pass `variant`, so `import 'material-symbols/outlined.css'` on its own is usually enough, with no new dependency and no list of names to keep. That's where `create-bestax` already stands. The style you keep is still the whole variable font, though, so it's still several megabytes, and the rest of this section is about shrinking that.
+
+**Ask Google Fonts for only the icons you use.** Google Fonts' CSS2 API takes an `icon_names` parameter and serves a font holding just those glyphs. Drop the `material-symbols` import and link the stylesheet from `index.html` instead:
+
+```html
+<link
+  rel="stylesheet"
+  href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined&icon_names=home,palette,settings&display=block"
+/>
+```
+
+[Google's guide](https://developers.google.com/fonts/docs/material_symbols#optimize_the_icon_font) asks for the names comma-separated and sorted alphabetically, and for `&display=block`, which stops the names flashing up as text before the font arrives. The stylesheet defines the same `material-symbols-outlined` class `Icon` renders, so your components stay as they are. What it costs you:
+
+- The icons now load from Google's servers, so every visitor's browser talks to Google. That's a privacy question for some apps, and an app that has to work offline loses its icons.
+- The list has to keep up with the icons the app renders. A name that isn't on it shows up as plain text.
+- The font comes at the default fill, weight, grade and optical size. If the app sets `font-variation-settings`, request those axes in the URL too, the way Google's guide shows.
+- `variant="rounded"` and `variant="sharp"` use other font families, so request `Material+Symbols+Rounded` or `Material+Symbols+Sharp` for those.
+
+**Self-host a subset.** To keep the small font without the request to Google, cut a subset from the package's `.woff2` yourself with a font subsetting tool such as [fontTools' subsetter](https://fonttools.readthedocs.io/en/latest/subset/), keeping only the glyphs for the names the app renders. Then load it with your own `@font-face` and `.material-symbols-outlined` rules in place of the package import. The "Self-hosting the font" section of Google's guide shows both. The list still has to keep up with the app's icons.
+
+**Use a font with fewer variations.** [`@material-symbols/font-400`](https://www.npmjs.com/package/@material-symbols/font-400) comes from the same project as `material-symbols` and keeps every symbol, but fixes the weight, grade and optical size, so its font is a fraction of the size. Its `outlined.css` defines the same class, so installing it and importing `@material-symbols/font-400/outlined.css` in place of `material-symbols/outlined.css` is the whole change, with no list to maintain. You give up the axes it fixes.
+
 ---
 
 :::tip Skip the manual setup
@@ -579,13 +582,13 @@ See [Button Accessibility](/docs/api/elements/button#accessibility) and the [Ico
 
 ## Choosing the Right Icon Library
 
-| Library                   | Icons Count | File Size | Best For                        |
-| ------------------------- | ----------- | --------- | ------------------------------- |
-| **Font Awesome**          | 2,000+      | ~75KB     | General purpose, most popular   |
-| **Material Design Icons** | 7,000+      | ~50KB     | Material Design projects        |
-| **Ionicons v8**           | 1,300+      | Dynamic   | Modern web components, mobile   |
-| **Google Material Icons** | 1,100+      | ~45KB     | Official Google Material Design |
-| **Material Symbols**      | 2,500+      | ~55KB     | Modern Material Design projects |
+| Library                   | Icons Count | Best For                        |
+| ------------------------- | ----------- | ------------------------------- |
+| **Font Awesome**          | 2,000+      | General purpose, most popular   |
+| **Material Design Icons** | 7,000+      | Material Design projects        |
+| **Ionicons v8**           | 1,300+      | Modern web components, mobile   |
+| **Google Material Icons** | 1,100+      | Official Google Material Design |
+| **Material Symbols**      | 2,500+      | Modern Material Design projects |
 
 ---
 

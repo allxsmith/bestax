@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
-import { useFieldLabelId } from './FormContext';
+import { useFieldLabelTarget } from './FormContext';
 
 /**
  * Props for the Input component.
@@ -74,7 +74,9 @@ export const InputBase = forwardRef<HTMLInputElement, InputBaseProps>(
       color,
       ...props,
     });
-    const fieldLabelId = useFieldLabelId();
+    // A labeled Field's generated id when no user id arrived (rest.id may be
+    // an undefined own key), reported to that Field (#1004).
+    const id = useFieldLabelTarget(rest.id);
 
     const mainClass = usePrefixedClassNames('input', {
       [`is-${color}`]: !!color,
@@ -94,9 +96,8 @@ export const InputBase = forwardRef<HTMLInputElement, InputBaseProps>(
         disabled={disabled}
         readOnly={readOnly}
         {...rest}
-        // After the spread: a labeled Field's generated id is adopted only
-        // when no user id arrived (rest.id may be an undefined own key).
-        id={rest.id ?? fieldLabelId}
+        // After the spread, which may carry an undefined id key.
+        id={id}
       />
     );
   }

@@ -457,6 +457,37 @@ describe('DateTimeInput', () => {
     expect(getAllByRole('spinbutton').length).toBe(3);
   });
 
+  it('names the AM/PM wheel "AM/PM" by default', () => {
+    const v = new Date(2024, 5, 7, 17, 7);
+    const { getByRole } = render(
+      <DateTimeInput defaultValue={v} hourFormat="12" />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    expect(getByRole('spinbutton', { name: 'AM/PM' })).toHaveAttribute(
+      'aria-valuetext',
+      'PM'
+    );
+  });
+
+  it('labels.ampm renames the AM/PM wheel', () => {
+    const v = new Date(2024, 5, 7, 9, 7);
+    const { getByRole, queryByRole } = render(
+      <DateTimeInput
+        defaultValue={v}
+        hourFormat="12"
+        labels={{ ampm: 'Période' }}
+      />
+    );
+    fireEvent.click(getByRole('combobox'));
+    fireEvent.click(getByRole('button', { name: /Time/ }));
+    expect(getByRole('spinbutton', { name: 'Période' })).toHaveAttribute(
+      'aria-valuetext',
+      'AM'
+    );
+    expect(queryByRole('spinbutton', { name: 'AM/PM' })).toBeNull();
+  });
+
   it('an explicit 24h format string wins over hourFormat="12" for the pill and wheels', () => {
     const v = new Date(2024, 5, 7, 17, 7);
     const { getByRole, getByText, getAllByRole } = render(

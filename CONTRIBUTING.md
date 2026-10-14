@@ -341,16 +341,19 @@ The short version for contributors:
   a run. Pushing a commit does not, and neither does commenting, and a label that is still on
   the PR emits no event when applied again, so every re-run means removing it and adding it
   back. Apply it at open, fix everything it raised, then toggle it. The re-run settles its own
-  open threads (verified fixed, still wrong, or conceded) and raises nothing new; when the newer
-  commits themselves want reviewing, post a `deep-review: fresh` comment first, then toggle the
-  label to start the run. That steer sticks: the run reads the newest `deep-review:` comment
-  from a triage+ author, so later toggles stay fresh until a newer steer replaces it. Both the
-  label and the steer are triage+ only, so this is a maintainer's move rather than yours. On a
-  PR from a fork it is nobody's move: the review runs only for same-repo PRs, so the label does
-  nothing there whoever applies it. CodeRabbit reviews incrementally on its own and
-  rate-limits, so let it go last and nudge it with `@coderabbitai review` when its window
-  reopens. Do not relabel per push: each application spends a full review session, and
-  relabeling after every fix is what turned #643 into 14 review rounds.
+  open threads (verified fixed, still wrong, or conceded) and raises nothing new, unless a
+  fresh steer is in effect; when the newer commits themselves want reviewing, first post a
+  `deep-review:` comment whose first word is `fresh` as a word of its own (not `fresh,`), then
+  toggle the label to start the run. That steer keeps making later toggles full reviews while
+  it is the steer the run reads. Both the label and the steer are triage+ only, so this is a
+  maintainer's move rather than yours. On a PR from a fork it is nobody's move: the review runs
+  only for same-repo PRs, so the label does nothing there whoever applies it, and the run
+  reports skipped. A steer starts no run. Which steer a later run reads, and how to get the
+  settle-my-threads pass back, are in the focus step of `.github/workflows/claude-review.yml`.
+  CodeRabbit reviews incrementally on its own and rate-limits, so let it go last and nudge it
+  with `@coderabbitai review` when its window reopens. Do not relabel per push: each
+  application spends a full review session, and relabeling after every fix is what turned
+  #643 into 14 review rounds.
 - **Know when to stop fixing.** bestaxbot parks a PR after a bounded number of fix rounds and
   labels it `ai-loop-paused` for a human. Give a hand-driven PR the same stopping point. Once
   what is left is wording rather than behaviour, reply once naming the findings you are leaving
@@ -380,7 +383,7 @@ The short version for contributors:
 We use [Semantic Release](https://semantic-release.gitbook.io/) to automate publishing of every package to npm: `bulma-ui` as [`@allxsmith/bestax-bulma`](https://www.npmjs.com/package/@allxsmith/bestax-bulma), plus [`create-bestax`](https://www.npmjs.com/package/create-bestax), [`bestax-migrate`](https://www.npmjs.com/package/bestax-migrate), [`bestax-mcp`](https://www.npmjs.com/package/bestax-mcp) and `eslint-plugin` as [`@allxsmith/eslint-plugin-bestax`](https://www.npmjs.com/package/@allxsmith/eslint-plugin-bestax).
 
 - Use [Conventional Commits](https://www.conventionalcommits.org/) to trigger releases — see [Commit Message Guidelines](#commit-message-guidelines).
-- **Packages version and release independently, keyed off the commit scope** — `feat(bulma-ui)` releases only bestax-bulma. See [`VERSIONING.md`](./VERSIONING.md).
+- **Packages version and release independently, keyed off the commit scope**: `fix(create-bestax)` releases only create-bestax, and the one exception is the bestax-mcp patch that follows every bestax-bulma release. See [`VERSIONING.md`](./VERSIONING.md).
 - Only the `main` branch is published.
 
 ### npm authentication (OIDC trusted publishing)

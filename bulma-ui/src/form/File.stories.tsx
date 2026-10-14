@@ -388,10 +388,15 @@ export const WithLabel: Story = {
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Document">
+    <Field
+      horizontal
+      label="Document"
+      labelProps={{ htmlFor: 'document-field' }}
+    >
       <Field.Body>
         <Field>
           <File
+            id="document-field"
             buttonLabel="Choose a file…"
             iconLeft={<Icon name="upload" aria-hidden="true" />}
           />
@@ -407,11 +412,16 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Document">
+    <Field
+      horizontal
+      label="Document"
+      labelProps={{ htmlFor: 'document-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="paperclip">
             <File
+              id="document-field-control"
               buttonLabel="Choose a file…"
               iconLeft={<Icon name="upload" aria-hidden="true" />}
             />

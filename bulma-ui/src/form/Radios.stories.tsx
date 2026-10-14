@@ -90,10 +90,14 @@ export const WithLabel: Story = {
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Color">
+    <Field
+      horizontal
+      label="Color"
+      labelProps={{ id: 'color-label', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
-          <Radios>
+          <Radios aria-labelledby="color-label">
             <Radio name="color" value="red">
               Red
             </Radio>
@@ -113,11 +117,15 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Color">
+    <Field
+      horizontal
+      label="Color"
+      labelProps={{ id: 'color-label-control', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Radios>
+            <Radios aria-labelledby="color-label-control">
               <Radio name="color" value="red">
                 Red
               </Radio>

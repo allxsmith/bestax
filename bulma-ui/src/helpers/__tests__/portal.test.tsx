@@ -229,3 +229,165 @@ describe('Portal', () => {
     });
   });
 });
+
+describe("Portal under a ConfigProvider's portalContainer", () => {
+  let target: HTMLElement;
+
+  beforeEach(() => {
+    target = document.createElement('section');
+    target.id = 'overlay-root';
+    document.body.appendChild(target);
+  });
+
+  afterEach(() => {
+    target.remove();
+  });
+
+  it('renders into the portalContainer element when it has no container', () => {
+    render(
+      <ConfigProvider portalContainer={target}>
+        <Portal>
+          <p>Defaulted</p>
+        </Portal>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Defaulted').parentElement).toBe(target);
+  });
+
+  it('renders into the element a portalContainer selector matches', () => {
+    render(
+      <ConfigProvider portalContainer="#overlay-root">
+        <Portal>
+          <p>By selector</p>
+        </Portal>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('By selector').parentElement).toBe(target);
+  });
+
+  it('uses the portalContainer for an empty container as well', () => {
+    render(
+      <ConfigProvider portalContainer={target}>
+        <Portal container="">
+          <p>Empty</p>
+        </Portal>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Empty').parentElement).toBe(target);
+  });
+
+  it('lets its own container element win', () => {
+    const own = document.createElement('aside');
+    document.body.appendChild(own);
+    try {
+      render(
+        <ConfigProvider portalContainer={target}>
+          <Portal container={own}>
+            <p>Own element</p>
+          </Portal>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Own element').parentElement).toBe(own);
+      expect(target).toBeEmptyDOMElement();
+    } finally {
+      own.remove();
+    }
+  });
+
+  it('lets its own container selector win', () => {
+    const own = document.createElement('aside');
+    own.id = 'own-root';
+    document.body.appendChild(own);
+    try {
+      render(
+        <ConfigProvider portalContainer={target}>
+          <Portal container="#own-root">
+            <p>Own selector</p>
+          </Portal>
+        </ConfigProvider>
+      );
+      expect(screen.getByText('Own selector').parentElement).toBe(own);
+      expect(target).toBeEmptyDOMElement();
+    } finally {
+      own.remove();
+    }
+  });
+
+  it('goes to document.body when its own selector matches nothing', () => {
+    render(
+      <ConfigProvider portalContainer={target}>
+        <Portal container="#nowhere">
+          <p>Own miss</p>
+        </Portal>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Own miss').parentElement).toBe(document.body);
+  });
+
+  it('goes to document.body when the portalContainer selector matches nothing', () => {
+    render(
+      <ConfigProvider portalContainer="#nowhere">
+        <Portal>
+          <p>Default miss</p>
+        </Portal>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('Default miss').parentElement).toBe(document.body);
+  });
+
+  it('still renders in place when disabled', () => {
+    render(
+      <ConfigProvider portalContainer={target}>
+        <div data-testid="host">
+          <Portal disabled>
+            <p>In place</p>
+          </Portal>
+        </div>
+      </ConfigProvider>
+    );
+    expect(screen.getByText('In place').parentElement).toBe(
+      screen.getByTestId('host')
+    );
+    expect(target).toBeEmptyDOMElement();
+  });
+
+  describe('server rendering and hydration', () => {
+    const App: React.FC = () => (
+      <ConfigProvider portalContainer="#overlay-root">
+        <main>
+          <Portal>
+            <p>Portaled</p>
+          </Portal>
+        </main>
+      </ConfigProvider>
+    );
+
+    it('renders nothing on the server', () => {
+      expect(renderToString(<App />)).toBe('<main></main>');
+    });
+
+    it('hydrates without a mismatch, then portals into the portalContainer', async () => {
+      const container = document.createElement('div');
+      container.innerHTML = renderToString(<App />);
+      document.body.appendChild(container);
+
+      const errorSpy = jest
+        .spyOn(console, 'error')
+        .mockImplementation(() => {});
+      let unmountRoot = () => {};
+      try {
+        await act(async () => {
+          const root = hydrateRoot(container, <App />);
+          unmountRoot = () => root.unmount();
+        });
+
+        expect(errorSpy).not.toHaveBeenCalled();
+        expect(screen.getByText('Portaled').parentElement).toBe(target);
+      } finally {
+        await act(async () => unmountRoot());
+        errorSpy.mockRestore();
+        container.remove();
+      }
+    });
+  });
+});

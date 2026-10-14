@@ -97,8 +97,8 @@
       "code": "function example() {\n  const buttonRef = React.useRef<HTMLButtonElement>(null);\n  const [tag, setTag] = React.useState<string>();\n\n  return (\n    <>\n      <Button color=\"primary\" ref={buttonRef}>\n        Target\n      </Button>\n      <Button ml=\"2\" onClick={() => setTag(buttonRef.current?.tagName)}>\n        Read the tag from its ref\n      </Button>\n      <p>Rendered element: {tag ?? '—'}</p>\n    </>\n  );\n}"
     }
   ],
-  "accessibility": "- **Labeling:** Always provide descriptive content for buttons for screen readers.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.\n- **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.\n\n:::note\nIf your button has only an icon, use `aria-label` to provide accessible text.\n:::",
-  "related": ["Buttons", "Icon", "useBulmaClasses"],
+  "accessibility": "- **Labeling:** Always provide descriptive content for buttons for screen readers.\n- **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.\n- **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.\n- **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.\n- **Toggles:** `isActive` tells a screen reader nothing. A button that turns something on or off is a [`ToggleButton`](https://bestax.io/docs/api/elements/togglebutton), which sets `aria-pressed`.\n\n:::note\nIf your button has only an icon, use `aria-label` to provide accessible text.\n:::",
+  "related": ["Buttons", "Icon", "ToggleButton", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-button--default",
   "summary": "The `Button` component provides a flexible and highly customizable button for your Bulma React UI.",
   "import": "import { Button } from '@allxsmith/bestax-bulma';",
@@ -223,7 +223,7 @@
           "name": "isActive",
           "type": "boolean",
           "default": "false",
-          "description": "Applies active styling (visual only).",
+          "description": "Applies active styling (visual only), with no `aria-pressed`. For a button that stays pressed, use `ToggleButton`.",
           "required": false,
           "inherited": false,
           "deprecated": false

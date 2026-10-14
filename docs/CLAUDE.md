@@ -37,19 +37,15 @@ content is to reach an agent:
   rendered site looked fine. Before giving a docs component a prop that carries prose or a
   command, check what the generated `.md` looks like.
 
-The known casualty is `<TabItem label="…">`: the label is Docusaurus's own prop and can't move
-to children, so `<Tabs>` collapses to its bodies with nothing marking which option is which.
-`skills/theming.mdx` and `skills/custom-component.mdx` are affected. Tracked upstream at
-rachfop/docusaurus-plugin-llms#64, which asks for a preserve-list or a pre-clean hook.
+Docusaurus's `<TabItem label="…">` is handled by the plugin itself: it writes the label as a
+bold line ahead of the tab's body, so a `<Tabs>` block keeps which option is which.
 
-`build` then chains `scripts/strip-generated-markers.mjs`, which removes the
-`<!-- bestax:generated -->` markers from the built `.md`/`.txt` only — the plugin does not
-strip HTML comments, and the markers are a source-control device no reader of the site needs.
-It is a build step rather than a Docusaurus plugin because `postBuild` hooks run under
-`Promise.all`, so a plugin declared after `docusaurus-plugin-llms` still races it. The strip
-leaves a marker shown inside a code fence, so the step fails the build when a built file keeps
-more such markers than the source pages show. A code fence left open in one page of
-`llms-full.txt` would otherwise hide every later page's markers.
+The plugin also drops HTML comments outside code, and with them the `<!-- bestax:generated -->`
+markers, a source-control device no reader of the site needs. The rule: the keyword
+`bestax:generated` must never reach the built markdown or the llms files, so a docs page or blog
+post that wants to show marker syntax shows it without the keyword. `build` chains
+`scripts/check-generated-markers.mjs` to check that, and that script's header says exactly what
+the step checks and fails on.
 
 Consequences: moving/renaming/deleting a doc page changes the published LLM index that AI
 agents consume — treat URL changes like API changes. The canonical AI entrypoint is the LLMs
@@ -102,6 +98,13 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   is wrong on purpose takes `notypecheck` in its info string (` ```tsx live notypecheck `),
   which also changes nothing on the page. It holds only while the fence still has a type
   error, so it goes when the mistake does, the way `nolint` does.
+- **Live examples render in a shadow root**, and the preview
+  (`src/theme/CodeBlock/ShadowLivePreview.js`) wraps each one in a `ConfigProvider` whose
+  `portalContainer` is an element inside that root, so what an example portals keeps the
+  preview's styles. A `ConfigProvider` the example nests replaces that setting rather than
+  adding to it, and its portaled content lands unstyled in `document.body` with every gate
+  green. In an example that portals, don't nest one, or give it a `portalContainer`: an element
+  the example renders, or the preview's own, read with `useConfig()`.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 

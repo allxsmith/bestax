@@ -2,7 +2,8 @@
 
 `@allxsmith/bestax-bulma`, `create-bestax`, `bestax-migrate`, `bestax-mcp`, and
 `@allxsmith/eslint-plugin-bestax` are versioned
-and released **independently**. Each package releases only when a commit is scoped to it — the
+and released **independently**. Each package releases when a commit is scoped to it, except that
+bestax-mcp also releases with bestax-bulma ([below](#bestax-mcp-releases-with-bestax-bulma)). The
 version numbers are unrelated (e.g. bestax-bulma 5.x alongside create-bestax 3.x).
 
 The source of truth is the `releaseRules` in each package's semantic-release config:
@@ -14,21 +15,21 @@ The source of truth is the `releaseRules` in each package's semantic-release con
 
 ## Release Rules
 
-A commit releases **only** the package its scope names. Representative examples — the same
-`feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules apply to every package
-through its own scope:
+A commit releases **only** the package its scope names, apart from the bestax-mcp patch that
+follows every bestax-bulma release ([below](#bestax-mcp-releases-with-bestax-bulma)). Representative
+examples follow, and the same `feat`/`fix`/`perf`/`refactor`/`style` and `BREAKING CHANGE:` rules
+apply to every package through its own scope:
 
-| Commit                                                            | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp | eslint-plugin |
-| ----------------------------------------------------------------- | ------------ | ------------- | -------------- | ---------- | ------------- |
-| `feat(bulma-ui): …`                                               | minor        | —             | —              | —          | —             |
-| `fix(bulma-ui): …`                                                | patch        | —             | —              | —          | —             |
-| `perf/refactor/style(bulma-ui): …`                                | patch        | —             | —              | —          | —             |
-| `feat(create-bestax): …`                                          | —            | minor         | —              | —          | —             |
-| `fix(bestax-migrate): …`                                          | —            | —             | patch          | —          | —             |
-| `feat(bestax-mcp): …`                                             | —            | —             | —              | minor      | —             |
-| `feat(eslint-plugin): …`                                          | —            | —             | —              | —          | minor         |
-| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer                   | major        | —             | —              | —          | —             |
-| `docs: …`, `chore: …`, `ci: …`, `test: …`, `build: …` (any scope) | —            | —             | —              | —          | —             |
+| Commit                                          | bestax-bulma | create-bestax | bestax-migrate | bestax-mcp | eslint-plugin |
+| ----------------------------------------------- | ------------ | ------------- | -------------- | ---------- | ------------- |
+| `feat(bulma-ui): …`                             | minor        | —             | —              | patch      | —             |
+| `fix(bulma-ui): …`                              | patch        | —             | —              | patch      | —             |
+| `perf/refactor/style(bulma-ui): …`              | patch        | —             | —              | patch      | —             |
+| `feat(create-bestax): …`                        | —            | minor         | —              | —          | —             |
+| `fix(bestax-migrate): …`                        | —            | —             | patch          | —          | —             |
+| `feat(bestax-mcp): …`                           | —            | —             | —              | minor      | —             |
+| `feat(eslint-plugin): …`                        | —            | —             | —              | —          | minor         |
+| `feat(bulma-ui): …` + `BREAKING CHANGE:` footer | major        | —             | —              | patch      | —             |
 
 Notes:
 
@@ -52,6 +53,15 @@ Notes:
   revert rule with **no scope to confine it** and would patch-release every package — so
   keep reverts in conventional, scoped form, and don't expect them to publish on their own.
 - A commit scoped to `docs` never releases any package.
+
+### bestax-mcp releases with bestax-bulma
+
+bestax-mcp ships an index of the library, and a new index only reaches npm when bestax-mcp
+releases. So every commit that releases bestax-bulma releases bestax-mcp too, in the same run, and
+the published index keeps up with the library (#932). That release is a patch whatever
+bestax-bulma's own bump, a major included. The rules, the reasons for them and what they do to
+bestax-mcp's changelog are in [`bestax-mcp/release.config.js`](./bestax-mcp/release.config.js),
+and `scripts/release-rules.test.mjs` holds them to bulma-ui's.
 
 ## Tags & Changelogs
 
@@ -83,7 +93,8 @@ On merge to `main`, CI (`.github/workflows/ci.yml`) runs semantic-release in eac
    - Note the ordering, because it decides what a failed publish costs: semantic-release runs
      **every** `prepare` step — including the release commit and tag — before **any** `publish`
      step. A publish that fails leaves the commit and tag behind, and that version is spent.
-3. A push may release any subset of the packages — they never bump each other.
+3. A push may release any subset of the packages. None bumps another, apart from bestax-mcp
+   following bestax-bulma.
 
 For `bestax-mcp`, the GitHub release then triggers `.github/workflows/mcp-registry.yml`, which
 lists that version in the official MCP Registry. The listing is metadata pointing at the npm
@@ -138,7 +149,7 @@ are in [`CONTRIBUTING.md`](./CONTRIBUTING.md#codemod-registry-bestax-migrate).
 
 ```bash
 git commit -m "feat(bulma-ui): add new Modal variant"
-# → bestax-bulma minor bump; create-bestax untouched
+# → bestax-bulma minor bump, bestax-mcp patch; create-bestax untouched
 
 git commit -m "fix(create-bestax): correct template scaffolding issue"
 # → create-bestax patch bump; bestax-bulma untouched
@@ -147,7 +158,7 @@ git commit -m "docs: update README"
 # → no release
 
 git commit -m "feat(bulma-ui): rename Theme props" -m "BREAKING CHANGE: bulmaVars renamed to vars"
-# → bestax-bulma major bump
+# → bestax-bulma major bump, bestax-mcp patch
 ```
 
 ## History

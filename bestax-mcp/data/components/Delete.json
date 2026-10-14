@@ -129,25 +129,25 @@
       "css": "--bulma-delete-dimensions",
       "sass": null,
       "default": "1.25rem",
-      "scope": "global"
+      "scope": "compound"
     },
     {
       "css": "--bulma-delete-background-l",
       "sass": null,
       "default": "0%",
-      "scope": "global"
+      "scope": "root"
     },
     {
       "css": "--bulma-delete-background-alpha",
       "sass": null,
       "default": "0.5",
-      "scope": "global"
+      "scope": "root"
     },
     {
       "css": "--bulma-delete-color",
       "sass": null,
       "default": "var(--bulma-white)",
-      "scope": "global"
+      "scope": "root"
     }
   ]
 }

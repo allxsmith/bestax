@@ -32,6 +32,7 @@ import {
   reportFailure,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
+import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -372,11 +373,66 @@ test('CSS variables are indexed back to their component', () => {
   assert.ok(button.cssVars.length > 0);
   const row = button.cssVars.find(v => v.css === '--bulma-button-h');
   assert.ok(row, '--bulma-button-h missing');
+  // ToggleButton renders a `.button` too, but the class is Button's, so it
+  // doesn't declare them again (SCSS_SOURCES in api-sources.mjs says why).
   assert.deepEqual(catalog.cssVarIndex['--bulma-button-h'], ['Button']);
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
     assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
   }
+});
+
+test('RENDERS_ELEMENT_OF names real components, and points at one with variables', () => {
+  // A rename would otherwise leave an entry naming nothing: a key the index no
+  // longer has drops the pointer without a word, and a value it no longer has
+  // sends get_css_variables to a component that doesn't exist.
+  const entries = Object.entries(RENDERS_ELEMENT_OF);
+  assert.ok(entries.length > 0, 'the map is empty');
+  for (const [name, from] of entries) {
+    assert.equal(components.get(name)?.kind, 'component', `${name} is unknown`);
+    assert.equal(components.get(from)?.kind, 'component', `${from} is unknown`);
+    assert.notEqual(name, from, `${name} points at itself`);
+    // The pointer is only worth giving if the table it names has rows.
+    assert.ok(components.get(from).cssVars.length, `${from} has no variables`);
+  }
+});
+
+test('the index carries the component whose element a component renders', () => {
+  for (const [name, record] of components) {
+    assert.equal(record.cssVarsFrom, RENDERS_ELEMENT_OF[name], name);
+  }
+  assert.equal(components.get('LinkButton').cssVarsFrom, 'Button');
+  assert.equal(components.get('ToggleButton').cssVarsFrom, 'Button');
+  // Absent, not null, where there is nothing to point at.
+  assert.ok(!Object.hasOwn(components.get('Button'), 'cssVarsFrom'));
+});
+
+test('every CSS variable scope is one the server has advice for', () => {
+  for (const [name, record] of components) {
+    for (const v of record.cssVars) {
+      assert.ok(
+        ['root', 'compound', 'element', 'global'].includes(v.scope),
+        `${name}: ${v.css} has scope ${v.scope}`
+      );
+    }
+  }
+});
+
+test("Delete's variables are scoped to its element, not :root (#1021)", () => {
+  // Bulma declares them in `@mixin delete`, which lands on `.delete` itself,
+  // so the server's `global` advice (set it on :root or with Theme) was the
+  // one thing that never works for them.
+  const vars = components.get('Delete').cssVars;
+  assert.ok(vars.length > 0);
+  assert.ok(!vars.some(v => v.scope === 'global'));
+  // Most are declared on `.delete` alone, so `root` and its className
+  // advice are right for them.
+  const scopeOf = css => vars.find(v => v.css === css)?.scope;
+  assert.equal(scopeOf('--bulma-delete-color'), 'root');
+  // The size modifiers declare `delete-dimensions` again, and
+  // `.delete.is-small` out-ranks a lone className class, so that one gets
+  // `compound`, whose advice (inline style) works on a sized Delete too.
+  assert.equal(scopeOf('--bulma-delete-dimensions'), 'compound');
 });
 
 test('every CSS variable lists every declarer, the one it is named after first (#964)', () => {

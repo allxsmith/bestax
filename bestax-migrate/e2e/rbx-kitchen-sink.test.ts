@@ -243,6 +243,8 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('prop:as');
     expect(rules).toContain('prop:href');
     expect(rules).toContain('prop:target');
+    // A group size bestax does not take, or cannot be read, stays a TODO.
+    expect(rules).toContain('prop:size');
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),

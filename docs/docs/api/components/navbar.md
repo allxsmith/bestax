@@ -636,7 +636,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 | CSS Variable                                    | Sass Variable                            | Default                                                                                                                                                                                                |
 | ----------------------------------------------- | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `--bulma-navbar-height`                         | `$navbar-height`                         | `3.25rem`                                                                                                                                                                                              |
+| `--bulma-navbar-height` §                       | `$navbar-height`                         | `3.25rem`                                                                                                                                                                                              |
 | `--bulma-navbar-h`                              | `$navbar-h`                              | `var(--bulma-scheme-h)`                                                                                                                                                                                |
 | `--bulma-navbar-s`                              | `$navbar-s`                              | `var(--bulma-scheme-s)`                                                                                                                                                                                |
 | `--bulma-navbar-l`                              | `$navbar-l`                              | `var(--bulma-scheme-main-l)`                                                                                                                                                                           |
@@ -687,5 +687,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 | `--bulma-navbar-divider-background-l`           | `$navbar-divider-background-l`           | `var(--bulma-background-l)`                                                                                                                                                                            |
 | `--bulma-navbar-divider-height`                 | `$navbar-divider-height`                 | `0.125em`                                                                                                                                                                                              |
 | `--bulma-navbar-bottom-box-shadow-size`         | `$navbar-bottom-box-shadow-size`         | `0 -0.125em 0 0`                                                                                                                                                                                       |
+
+§ declared globally, on `:root`, rather than on the element: set it on the element itself (via `className`/`style`) or on any ancestor, up to `:root` to retheme every instance.
 
 <!-- /bestax:generated cssvars -->

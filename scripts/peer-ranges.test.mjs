@@ -6,9 +6,11 @@
  * the passing branch. These drive each violation directly, starting from the
  * one that went unnoticed: Dependabot moving the repo's copies of
  * material-symbols to a minor the published peer range refused (#1003), with
- * every check green.
+ * every check green. The same goes for its sibling rule, which holds
+ * create-bestax's react and react-dom to the whole peer range after a
+ * Dependabot bump narrowed both, again with every check green (#1012).
  */
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { after, test } from 'node:test';
@@ -16,12 +18,16 @@ import assert from 'node:assert/strict';
 
 import {
   PEER_COPIES,
+  WHOLE_RANGE_DEPENDENTS,
   checkPeerRanges,
   peerRangeViolations,
+  wholeRangeViolations,
 } from './check-conformance.mjs';
 
 const LIB = 'bulma-ui/package.json';
 const DOCS = 'docs/package.json';
+const CLI = 'create-bestax/package.json';
+const REACT = '^18.0.0 || ^19.0.0';
 
 /** One copy per manifest, each naming `name` at `spec`. */
 const copiesOf = (name, ...specs) =>
@@ -194,6 +200,133 @@ test('PEER_COPIES names bulma-ui itself and the docs site', () => {
   );
 });
 
+test("fails the Dependabot bump that narrowed create-bestax's react (#1012)", () => {
+  const v = wholeRangeViolations({ react: REACT, 'react-dom': REACT }, [
+    {
+      file: CLI,
+      deps: {
+        chalk: '^6.0.1',
+        react: '^19.3.0',
+        'react-dom': '^19.3.0',
+      },
+    },
+  ]);
+  assert.equal(v.length, 2);
+  assert.match(
+    v[0],
+    /^create-bestax\/package\.json depends on react "\^19\.3\.0"/
+  );
+  assert.match(v[1], /^create-bestax\/package\.json depends on react-dom /);
+  for (const message of v) {
+    assert.match(
+      message,
+      /not bestax-bulma's peer range "\^18\.0\.0 \|\| \^19\.0\.0"/
+    );
+    assert.match(message, /Yarn 1, #950/);
+    assert.match(message, /: "\^18\.0\.0 \|\| \^19\.0\.0"\. Dependabot/);
+    assert.match(message, /as fix\(create-bestax\)/);
+  }
+  assert.match(v[0], /Restore "react": "\^18\.0\.0 \|\| \^19\.0\.0"\./);
+});
+
+test('the whole range, written the same way, passes', () => {
+  assert.deepEqual(
+    wholeRangeViolations({ react: REACT, 'react-dom': REACT }, [
+      { file: CLI, deps: { react: REACT, 'react-dom': REACT } },
+    ]),
+    []
+  );
+});
+
+test('any other spelling fails, narrower, wider or merely respaced', () => {
+  // Narrower ranges are what Dependabot writes, and what a peer range that
+  // gains an arm leaves behind; wider ones are what one that drops an arm
+  // leaves behind. Compared as text, so even an equivalent spelling is told
+  // the one value to write.
+  for (const spec of [
+    '^19.3.0',
+    '^19.0.0',
+    '^18.0.0',
+    '^18.3.1 || ^19.0.0',
+    '^17.0.0 || ^18.0.0 || ^19.0.0',
+    '>=18',
+    '*',
+    'workspace:^',
+    '^18.0.0||^19.0.0',
+  ]) {
+    const v = wholeRangeViolations({ react: REACT }, [
+      { file: CLI, deps: { react: spec } },
+    ]);
+    assert.equal(v.length, 1, spec);
+    assert.match(v[0], /Restore "react": "\^18\.0\.0 \|\| \^19\.0\.0"/, spec);
+  }
+});
+
+test('the range follows the peer range when it moves', () => {
+  // A new arm on the peer range leaves the old whole range narrower.
+  const v = wholeRangeViolations({ react: '^18.0.0 || ^19.0.0 || ^20.0.0' }, [
+    { file: CLI, deps: { react: REACT } },
+  ]);
+  assert.equal(v.length, 1);
+  assert.match(
+    v[0],
+    /Restore "react": "\^18\.0\.0 \|\| \^19\.0\.0 \|\| \^20\.0\.0"/
+  );
+});
+
+test('every peer it declares is held, optional ones included', () => {
+  const peers = {
+    react: REACT,
+    'react-dom': REACT,
+    'material-symbols': '^0.34.1 || ^0.45.0 || ^0.46.0 || ^0.47.0',
+  };
+  const v = wholeRangeViolations(peers, [
+    {
+      file: CLI,
+      deps: { react: REACT, 'react-dom': REACT, 'material-symbols': '^0.47.6' },
+    },
+  ]);
+  assert.equal(v.length, 1);
+  assert.match(v[0], /depends on material-symbols "\^0\.47\.6"/);
+});
+
+test('peers it does not declare, and packages that are not peers, are left alone', () => {
+  // `constructor` checks that "declares" means an own key, not one the
+  // merged object inherits.
+  assert.deepEqual(
+    wholeRangeViolations(
+      { react: REACT, ionicons: '^8.0.0', constructor: '^1.0.0' },
+      [{ file: CLI, deps: { react: REACT, chalk: '^6.0.1' } }]
+    ),
+    []
+  );
+});
+
+test('a dependent that declares none of the peers is reported', () => {
+  for (const deps of [{ chalk: '^6.0.1' }, {}, undefined]) {
+    const v = wholeRangeViolations({ react: REACT }, [{ file: CLI, deps }]);
+    assert.equal(v.length, 1);
+    assert.match(v[0], /^create-bestax\/package\.json declares none of/);
+    assert.match(v[0], /Drop the entry if that is deliberate/);
+  }
+});
+
+test('whole-range violations come out in peer name order', () => {
+  const v = wholeRangeViolations({ zeta: '^1.0.0', alpha: '^1.0.0' }, [
+    { file: CLI, deps: { zeta: '^2.0.0', alpha: '^2.0.0' } },
+  ]);
+  assert.equal(v.length, 2);
+  assert.match(v[0], /depends on alpha/);
+  assert.match(v[1], /depends on zeta/);
+  assert.deepEqual(wholeRangeViolations(undefined, []), []);
+});
+
+test("WHOLE_RANGE_DEPENDENTS names create-bestax's runtime dependencies", () => {
+  assert.deepEqual(WHOLE_RANGE_DEPENDENTS, [
+    { file: CLI, sections: ['dependencies'] },
+  ]);
+});
+
 const roots = [];
 after(() =>
   Promise.all(roots.map(root => rm(root, { recursive: true, force: true })))
@@ -223,11 +356,40 @@ test('reads every declared section of every declared manifest', async () => {
       dependencies: { 'material-symbols': '^0.46.0' },
       devDependencies: { react: '^18.3.1' },
     },
+    [CLI]: {
+      dependencies: { react: '^19.3.0' },
+      // Not a section WHOLE_RANGE_DEPENDENTS reads.
+      devDependencies: { 'material-symbols': '^0.47.6' },
+    },
   });
   const v = await checkPeerRanges(root);
-  assert.equal(v.length, 2);
+  assert.equal(v.length, 3);
   assert.match(v[0], /^bulma-ui\/package\.json installs material-symbols/);
   assert.match(v[1], /^docs\/package\.json installs react \^18\.3\.1/);
+  assert.match(
+    v[2],
+    /^create-bestax\/package\.json depends on react "\^19\.3\.0"/
+  );
+});
+
+test("the real tree with #1012's create-bestax ranges fails on exactly those", async () => {
+  const real = async file =>
+    JSON.parse(await readFile(new URL(`../${file}`, import.meta.url), 'utf8'));
+  const cli = await real(CLI);
+  cli.dependencies = {
+    ...cli.dependencies,
+    react: '^19.3.0',
+    'react-dom': '^19.3.0',
+  };
+  const root = await tree({
+    [LIB]: await real(LIB),
+    [DOCS]: await real(DOCS),
+    [CLI]: cli,
+  });
+  const v = await checkPeerRanges(root);
+  assert.equal(v.length, 2, v.join('\n'));
+  assert.match(v[0], /depends on react "\^19\.3\.0"/);
+  assert.match(v[1], /depends on react-dom "\^19\.3\.0"/);
 });
 
 test('an unreadable manifest is a violation, not a pass', async () => {
@@ -242,10 +404,23 @@ test('an unreadable manifest is a violation, not a pass', async () => {
       devDependencies: { ionicons: '^8.1.0' },
     },
     [DOCS]: '[]',
+    [CLI]: { dependencies: { ionicons: '^8.0.0' } },
   });
   assert.deepEqual(await checkPeerRanges(badDocs), [
     'docs/package.json could not be read as a package manifest, so ' +
       "bestax-bulma's peer ranges cannot be held to it.",
+  ]);
+
+  const noCli = await tree({
+    [LIB]: {
+      peerDependencies: { ionicons: '^8.0.0' },
+      devDependencies: { ionicons: '^8.1.0' },
+    },
+    [DOCS]: {},
+  });
+  assert.deepEqual(await checkPeerRanges(noCli), [
+    'create-bestax/package.json could not be read as a package manifest, ' +
+      "so bestax-bulma's peer ranges cannot be held to it.",
   ]);
 
   const brokenJson = await tree({ [LIB]: '{ not json' });

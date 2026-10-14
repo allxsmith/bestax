@@ -73,15 +73,15 @@ Every extras partial that exists (from the library's `src/scss/**/_index.scss` �
 is **more complete** than the docs page's Option C example, which omits several):
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
-`loading`, `collapse`, `tooltip`, `popover`, `steps`, `sidebar`, `toast`, `dialog`, `carousel`,
-`tabs`, `reveal`, `avatar`, `avatars`, `badge`
+`loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
+`toast`, `dialog`, `carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
 `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`, `loader`,
-`progress`, `skeleton`
+`notification`, `progress`, `skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
 
@@ -96,6 +96,8 @@ Notes:
   `picker-popover` too.
 - `Popover.Close` renders a Bulma button, so an app using it needs `bulma/sass/elements/button`
   next to `scss/components/popover`.
+- `ContextMenu`'s menu is Bulma's dropdown markup, so an app using it needs
+  `bulma/sass/components/dropdown` next to `scss/components/contextmenu`.
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, so include it next to the Bulma
@@ -105,6 +107,10 @@ Notes:
   `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials stop the
   indeterminate bar's sweep and the skeleton pulse (`Skeleton`, the `skeleton` prop,
   `hasSkeleton`) under `prefers-reduced-motion: reduce`, the same way and in either order.
+- `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
+  extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
+  so its text clears the button, so include it next to the Bulma module in any build that shows
+  a dismissible notification. It doesn't depend on the order of the two `@use` lines either.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.
@@ -154,12 +160,13 @@ not `flexbox` — `flexbox` holds only the alignment props. Verified failure mod
 
 The `npm create bestax` starter renders `Container`, `Section`, `Columns`/`Column`, `Image`,
 `Title`/`SubTitle`, `Box`, `Card`, `Buttons`/`Button`, and `Notification` with its close
-button: all stock Bulma, no bestax extras. Its helper props are `display` (visibility),
-`flexGrow` (flexbox), and `textAlign` (typography); it uses no spacing or color props. That
-inventory compiles to the following, verified pixel-equivalent to the prebuilt `complete`
-flavor in headless Chromium (light and dark, phone and desktop width, notification open), at
-274 KB raw / 30 KB gzip vs 819 KB / 84 KB. Scaffolded with an icon library, the starter also
-needs `bulma/sass/elements/icon` for its `IconText` card titles:
+button: all stock Bulma, plus the `notification` extras partial for that close button. Its
+helper props are `display` (visibility), `flexGrow` (flexbox), and `textAlign` (typography);
+it uses no spacing or color props. That inventory compiles to the following, verified
+pixel-equivalent to the prebuilt `complete` flavor in headless Chromium (light and dark, phone
+and desktop width, notification open), at 274 KB raw / 30 KB gzip vs 819 KB / 84 KB.
+Scaffolded with an icon library, the starter also needs `bulma/sass/elements/icon` for its
+`IconText` card titles:
 
 ```scss
 // src/styles.scss
@@ -184,6 +191,8 @@ needs `bulma/sass/elements/icon` for its `IconText` card titles:
 @use 'bulma/sass/helpers/visibility'; // display="flex"
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
+
+@use '@allxsmith/bestax-bulma/scss/elements/notification'; // text clears the close button
 ```
 
 ```tsx

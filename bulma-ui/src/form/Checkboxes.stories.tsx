@@ -75,10 +75,14 @@ export const WithLabel: Story = {
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Tags">
+    <Field
+      horizontal
+      label="Tags"
+      labelProps={{ id: 'tags-label', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
-          <Checkboxes>
+          <Checkboxes aria-labelledby="tags-label">
             <Checkbox value="react">React</Checkbox>
             <Checkbox value="vue">Vue</Checkbox>
           </Checkboxes>
@@ -94,11 +98,15 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Tags">
+    <Field
+      horizontal
+      label="Tags"
+      labelProps={{ id: 'tags-label-control', htmlFor: undefined }}
+    >
       <Field.Body>
         <Field>
           <Control>
-            <Checkboxes>
+            <Checkboxes aria-labelledby="tags-label-control">
               <Checkbox value="react">React</Checkbox>
               <Checkbox value="vue">Vue</Checkbox>
             </Checkboxes>

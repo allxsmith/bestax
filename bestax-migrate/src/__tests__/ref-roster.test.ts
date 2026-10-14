@@ -51,8 +51,11 @@ const NAMED_INDIVIDUALLY = [
   'Navbar.Dropdown',
   'Navbar.Item',
   'Navbar.Link',
+  'SegmentedControl',
+  'SegmentedControl.Segment',
   'Sidebar',
   'Toast',
+  'ToggleButton',
 ] as const;
 
 /**

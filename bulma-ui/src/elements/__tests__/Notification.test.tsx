@@ -55,6 +55,22 @@ describe('Notification Component', () => {
     expect(deleteButton).toHaveClass('delete');
   });
 
+  // has-delete is what pads the notification's end clear of the button
+  // (_notification.scss, held by Notification.styles.test.tsx).
+  test('marks a notification with a delete button has-delete', () => {
+    render(<Notification {...defaultProps} hasDelete />);
+    expect(
+      screen.getByText('This is a notification').closest('div')
+    ).toHaveClass('notification has-delete');
+  });
+
+  test('leaves has-delete off a notification without one', () => {
+    render(<Notification {...defaultProps} />);
+    expect(
+      screen.getByText('This is a notification').closest('div')
+    ).not.toHaveClass('has-delete');
+  });
+
   test('renders the delete button with type="button", so it does not submit a form around it', () => {
     render(<Notification {...defaultProps} hasDelete />);
     expect(screen.getByLabelText('Close notification')).toHaveAttribute(
@@ -140,6 +156,7 @@ describe('Notification Component', () => {
       expect(notification).toHaveClass('bulma-notification');
       expect(notification).toHaveClass('bulma-is-primary');
       expect(notification).toHaveClass('bulma-is-light');
+      expect(notification).toHaveClass('bulma-has-delete');
       expect(notification).toHaveClass('bulma-m-2');
 
       const deleteButton = screen.getByRole('button');
@@ -765,6 +782,9 @@ describe('Notification Programmatic API', () => {
       });
 
       expect(screen.getByLabelText('Close notification')).toBeInTheDocument();
+      expect(
+        screen.getByText('With delete').closest('.notification')
+      ).toHaveClass('has-delete');
     });
 
     it('closes when delete button is clicked', () => {
@@ -790,6 +810,9 @@ describe('Notification Programmatic API', () => {
       expect(
         screen.queryByLabelText('Close notification')
       ).not.toBeInTheDocument();
+      expect(
+        screen.getByText('No delete').closest('.notification')
+      ).not.toHaveClass('has-delete');
     });
   });
 
@@ -1204,8 +1227,8 @@ describe('NotificationContainer with notifications shown at their own position',
         .map(el => el.outerHTML)
     ).toEqual([
       '<div style="position: fixed; z-index: 100; display: flex; flex-direction: column-reverse; gap: 0.75rem; padding: 1rem; pointer-events: none; max-width: 100%; bottom: 0px; left: 50%; transform: translateX(-50%); align-items: center;">' +
-        '<div class="notification" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>One</span></div>' +
-        '<div class="notification" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
+        '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>One</span></div>' +
+        '<div class="notification has-delete" style="pointer-events: auto;"><button type="button" class="delete" aria-label="Close notification"></button><span>Two</span></div>' +
         '</div>',
       '<div role="status" aria-live="polite" aria-atomic="false" style="position: absolute; width: 1px; height: 1px; padding: 0px; margin: -1px; overflow: hidden; clip: rect(0px, 0px, 0px, 0px); clip-path: inset(50%); white-space: nowrap; border: 0px;"></div>',
     ]);

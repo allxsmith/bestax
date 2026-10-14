@@ -37,12 +37,14 @@ jobs:
       # checkout (github.com trio), the pnpm/node toolchain (npm registry,
       # nodejs.org + release assets for a toolcache miss), and the upload
       # itself (api.cloudflare.com). Wrangler's own metrics beacon is disabled
-      # below instead of allow-listing its host. No actions-cache endpoints on
-      # purpose: setup-node runs cache-less here to keep this list short.
+      # below instead of allow-listing its host. setup-node runs without a
+      # cache here; with one, the cache's hosts would still need no listing
+      # (.github/CLAUDE.md, "Measuring an allowlist").
       - name: Harden runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: block
+          disable-sudo-and-containers: true
           allowed-endpoints: >
             api.cloudflare.com:443
             api.github.com:443
@@ -56,6 +58,8 @@ jobs:
       # actually came up (agent.status, written only once the firewall rules are
       # installed). Either alone is a false pass: #487 was the first kind, and an
       # unresolvable host in this allowlist was the second, on this PR's own run.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
       #
       # Scope it honestly: this proves enforcement was armed AT THIS STEP. It does
       # NOT prove the policy stays armed — the agent writes `Initialized` and then
@@ -79,12 +83,26 @@ jobs:
             echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
             exit 1
           fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
           # Poll rather than test once: the pre-step waits only for the file to
           # EXIST and gives up after ~9s, while the agent resolves every
           # allow-listed host before writing its status, so a cold resolver or a
           # long list can leave the file absent or still empty here.
           for _ in $(seq 1 30); do
             if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
               exit 0
             fi
             sleep 1
@@ -103,7 +121,7 @@ jobs:
         uses: pnpm/action-setup@ea17c68df8912ef543352723c149a84f56e3d413 # v6.1.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: '24'
 

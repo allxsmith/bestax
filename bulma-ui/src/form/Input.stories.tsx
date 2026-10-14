@@ -496,11 +496,12 @@ export const GroupedMultiline: Story = {
  */
 export const HorizontalWithError: Story = {
   render: () => (
-    <Field horizontal label="Email">
+    <Field horizontal label="Email" labelProps={{ htmlFor: 'invalid-email' }}>
       <Field.Body>
         <Field>
           <Control iconLeftName="envelope" iconRightName="exclamation-triangle">
             <Input
+              id="invalid-email"
               type="email"
               color="danger"
               value="hello@"
@@ -520,14 +521,18 @@ export const HorizontalWithError: Story = {
  */
 export const HorizontalAddons: Story = {
   render: () => (
-    <Field horizontal label="Phone">
+    <Field horizontal label="Phone" labelProps={{ htmlFor: 'phone-number' }}>
       <Field.Body>
         <Field hasAddons>
           <Control>
             <Button isStatic>+44</Button>
           </Control>
           <Control isExpanded>
-            <Input type="tel" placeholder="Your phone number" />
+            <Input
+              id="phone-number"
+              type="tel"
+              placeholder="Your phone number"
+            />
           </Control>
         </Field>
       </Field.Body>
@@ -542,11 +547,15 @@ export const HorizontalAddons: Story = {
 export const HorizontalSubmitRow: Story = {
   render: () => (
     <>
-      <Field horizontal label="Name">
+      <Field
+        horizontal
+        label="Name"
+        labelProps={{ htmlFor: 'submit-row-name' }}
+      >
         <Field.Body>
           <Field>
             <Control>
-              <Input placeholder="Your name" />
+              <Input id="submit-row-name" placeholder="Your name" />
             </Control>
           </Field>
         </Field.Body>
@@ -594,10 +603,14 @@ export const WithLabel: Story = {
  */
 export const WithFieldWrapper: Story = {
   render: () => (
-    <Field horizontal label="Username">
+    <Field
+      horizontal
+      label="Username"
+      labelProps={{ htmlFor: 'username-field' }}
+    >
       <Field.Body>
         <Field>
-          <Input placeholder="Enter username" />
+          <Input id="username-field" placeholder="Enter username" />
         </Field>
       </Field.Body>
     </Field>
@@ -609,11 +622,15 @@ export const WithFieldWrapper: Story = {
  */
 export const WithFieldControlWrapper: Story = {
   render: () => (
-    <Field horizontal label="Username">
+    <Field
+      horizontal
+      label="Username"
+      labelProps={{ htmlFor: 'username-field-control' }}
+    >
       <Field.Body>
         <Field>
           <Control iconLeftName="user">
-            <Input placeholder="Enter username" />
+            <Input id="username-field-control" placeholder="Enter username" />
           </Control>
         </Field>
       </Field.Body>
