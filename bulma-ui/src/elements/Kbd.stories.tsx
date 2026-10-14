@@ -51,7 +51,8 @@ const meta: Meta<typeof Kbd> = {
     bgColor: {
       control: 'select',
       options: [...validColors, 'inherit', 'current'],
-      description: 'Background color helper, in place of the faint fill',
+      description:
+        'Background color helper, in place of the faint fill; pair it with a textColor that reads on it in both schemes',
     },
     textSize: {
       control: 'select',
@@ -342,7 +343,9 @@ export const TextColor: Story = {
         <Kbd textColor="danger" mr="2">
           Del
         </Kbd>
-        <Kbd bgColor="warning">Tab</Kbd>
+        <Kbd bgColor="warning" textColor="black">
+          Tab
+        </Kbd>
       </Paragraph>
     );
   },

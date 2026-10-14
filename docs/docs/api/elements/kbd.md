@@ -262,7 +262,9 @@ notification follows the notification's text the same way.
     <Kbd textColor="danger" mr="2">
       Del
     </Kbd>
-    <Kbd bgColor="warning">Tab</Kbd>
+    <Kbd bgColor="warning" textColor="black">
+      Tab
+    </Kbd>
   </Paragraph>
   <Notification color="info">
     Press <Kbd>Esc</Kbd> to close.
@@ -333,7 +335,9 @@ function example() {
   link the shortcut triggers, in UI Events key names: `Control+Shift+P`, with `Meta` for ⌘ and
   `Alt` for Option. `Kbd` is only the hint people see.
 - **Contrast:** the key's text is the color of the text around it and its fill is faint, so the
-  text keeps the contrast its paragraph, button or tooltip already has.
+  text keeps the contrast its paragraph, button or tooltip already has. `bgColor` replaces that
+  faint fill, so pair it with a `textColor` that holds contrast in both color schemes, such as
+  `textColor="black"` on `bgColor="warning"`.
 - **Forced colors:** the key is drawn with a border, not a shadow, so it still looks like a key in
   Windows high contrast mode.
 - **Selectable:** the text can be selected and copied, so people can copy a shortcut out of a help
