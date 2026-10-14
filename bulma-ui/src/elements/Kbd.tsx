@@ -68,8 +68,12 @@ export interface KbdGroupProps
    * The keys, a `Kbd` each, in the order they're pressed. The group renders
    * the outer `<kbd>` around them, so it doesn't go inside a `Kbd` of its
    * own, and it puts the separator between them, so don't type one: a `+`
-   * of your own doubles up. A child that renders nothing (`null`, `false`)
-   * gets no separator.
+   * of your own doubles up. A `null` or `false` child, or an empty Fragment,
+   * gets no separator, and the keys in a Fragment are separated like the
+   * rest. A component that renders nothing still gets one, since the group
+   * can't see what a child renders, so write a conditional key inline
+   * (`{isMac && <Kbd label="Command">⌘</Kbd>}`), not in a component of its
+   * own.
    */
   children?: React.ReactNode;
   /**
