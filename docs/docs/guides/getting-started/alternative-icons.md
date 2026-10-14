@@ -105,39 +105,12 @@ function MaterialIconExample() {
 
 ## Ionicons
 
-Ionicons is a modern icon library designed specifically for web, iOS, Android, and desktop apps. The library now uses web components for better performance and loading.
+Ionicons is a modern icon library designed specifically for web, iOS, Android, and desktop apps. Ionicons v8 is a set of web components rather than a stylesheet, so there's no CSS to import.
 
-**Install:**
+**Setup:**
 
-<PackageManagerTabs>
-
-```bash
-pnpm add ionicons@^8.0.13
-```
-
-</PackageManagerTabs>
-
-**Import:**
-
-:::info No CSS Import Needed
-
-Ionicons v8 uses web components that are automatically loaded in your documentation examples.
-
-:::
-
-**Setup for Your Application:**
-
-For your own application, you need to import the ionicons ES module. Add this to your main application file (e.g., `index.js`, `App.js`, or `main.tsx`):
-
-```js
-// Import ionicons as ES module - this will auto-register the web components
-import 'ionicons/dist/ionicons/ionicons.esm.js';
-```
-
-**Alternative Setup (CDN):**
-
-You can also load ionicons via CDN by adding this script tag to your HTML. Ionicons v8 ships
-only an ES module build, so no `nomodule` fallback script is needed:
+Load the web components with this script tag in your HTML (`index.html` in a Vite app).
+Ionicons v8 ships only an ES module build, so no `nomodule` fallback script is needed:
 
 ```html
 <script
@@ -145,6 +118,10 @@ only an ES module build, so no `nomodule` fallback script is needed:
   src="https://unpkg.com/ionicons@8.0.13/dist/ionicons/ionicons.esm.js"
 ></script>
 ```
+
+Use the script tag rather than importing that file from your bundler: the `ionicons` package
+doesn't export `dist/ionicons/ionicons.esm.js`, so the import fails with
+`ERR_PACKAGE_PATH_NOT_EXPORTED`. The live examples on this site load Ionicons for you.
 
 **Usage:**
 
