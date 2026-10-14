@@ -96,7 +96,7 @@ function DeferredShadowPreview() {
     <div ref={ref} className="live-preview-slot">
       {inView && (
         <React.Suspense fallback={null}>
-          <ShadowLivePreview />
+          <ShadowLivePreview forcedColorMode="dark" />
         </React.Suspense>
       )}
     </div>

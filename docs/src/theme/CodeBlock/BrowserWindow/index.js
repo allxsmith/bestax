@@ -16,24 +16,26 @@ export default function BrowserWindow({
   const { code } = useContext(LiveContext);
 
   return (
-    <div className={clsx(styles.browserWindow)} style={style}>
-      <div className={styles.browserWindowHeader}>
-        <div className={styles.buttons}>
-          <span className={styles.dot} style={{ background: '#f25f58' }} />
-          <span className={styles.dot} style={{ background: '#fbbe3c' }} />
-          <span className={styles.dot} style={{ background: '#58cb42' }} />
+    <div className={styles.stage}>
+      <div className={clsx(styles.browserWindow)} style={style}>
+        <div className={styles.browserWindowHeader}>
+          <div className={styles.buttons}>
+            <span className={styles.dot} style={{ background: '#f25f58' }} />
+            <span className={styles.dot} style={{ background: '#fbbe3c' }} />
+            <span className={styles.dot} style={{ background: '#58cb42' }} />
+          </div>
+          <div className={styles.browserWindowAddressBar}>{url}</div>
+          <div className={styles.buttonGroup}>
+            <SandboxButtons code={code} />
+            <CustomCopyButton code={code} />
+          </div>
         </div>
-        <div className={styles.browserWindowAddressBar}>{url}</div>
-        <div className={styles.buttonGroup}>
-          <SandboxButtons code={code} />
-          <CustomCopyButton code={code} />
+        <div
+          className={styles.browserWindowBody}
+          style={{ minHeight, ...bodyStyle }}
+        >
+          {children}
         </div>
-      </div>
-      <div
-        className={styles.browserWindowBody}
-        style={{ minHeight, ...bodyStyle }}
-      >
-        {children}
       </div>
     </div>
   );
