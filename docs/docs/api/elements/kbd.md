@@ -10,6 +10,8 @@ description: The `Kbd` component renders a `<kbd>` drawn as a keycap, for a key 
 
 <!-- bestax:generated overview -->
 
+The `Kbd` component renders a `<kbd>` drawn as a keycap, for a key the reader presses.
+
 <!-- /bestax:generated overview -->
 
 Reach for it wherever a page tells someone which key to press: "Press Esc to close" in a dialog's
@@ -30,6 +32,10 @@ in `extras.css` next to your own Bulma.
 ## Import
 
 <!-- bestax:generated import -->
+
+```tsx
+import { Kbd } from '@allxsmith/bestax-bulma';
+```
 
 <!-- /bestax:generated import -->
 
@@ -360,6 +366,31 @@ function example() {
 
 <!-- bestax:generated props -->
 
+| Prop        | Type                                                                    | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ----------- | ----------------------------------------------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `children`  | `React.ReactNode`                                                       | —       | The key as it's printed on the keyboard: a word (`Ctrl`, `Esc`), a letter, or a symbol (`⌘`).                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `label`     | `string`                                                                | —       | What a screen reader says in place of a symbol, in your app's language: `label="Command"` on `⌘`. The symbol is hidden from assistive tech with `aria-hidden`, and the label is read in its place, from text that's visually hidden. Use it for a glyph that isn't a word, such as `⌘`, `⌥`, `⇧`, `⌃` or `⏎`, and leave it off a key written as a word. Copying the key copies the label along with the glyph. Don't reach for `aria-label` instead: ARIA in HTML prohibits naming a `<kbd>`, so nothing obliges a screen reader to read it. |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper. The key's edge and fill are mixed from its text color, so they follow it.                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper. It replaces the key's faint fill.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `ref`       | `React.Ref<HTMLElement>`                                                | —       | Ref forwarded to the `<kbd>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+
+**Subcomponents:**
+
+- `Kbd.Group`: Keys pressed together or one after another, in the outer `<kbd>` HTML gives a combination, with the separator between each pair as text. It doesn't wrap in the middle and isn't drawn as a key itself. It sets no font size, so the keys in it are the size of a key on its own.
+
+### Kbd.Group
+
+| Prop        | Type                                                                    | Default | Description                                                                                                                                                                                                                                                                                                   |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                              |
+| `children`  | `React.ReactNode`                                                       | —       | The keys, a `Kbd` each, in the order they're pressed. The group renders the outer `<kbd>` around them, so it doesn't go inside a `Kbd` of its own, and it puts the separator between them, so don't type one: a `+` of your own doubles up. A child that renders nothing (`null`, `false`) gets no separator. |
+| `separator` | `string`                                                                | `'+'`   | What goes between the keys, shown and read aloud, with a space either side. Use `'then'` for a sequence pressed one key after another. It's a string because a screen reader has to read it.                                                                                                                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper. The keys and separators inside follow it.                                                                                                                                                                                                                                                  |
+| `ref`       | `React.Ref<HTMLElement>`                                                | —       | Ref forwarded to the outer `<kbd>`.                                                                                                                                                                                                                                                                           |
+| `...`       | All standard HTML attributes and Bulma helper props                     | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                             |
+
 <!-- /bestax:generated props -->
 
 ---
@@ -367,5 +398,20 @@ function example() {
 ## CSS & Sass Variables
 
 <!-- bestax:generated cssvars -->
+
+`Kbd` registers these variables on its own `.kbd` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                      | Sass Variable              | Default                                             |
+| --------------------------------- | -------------------------- | --------------------------------------------------- |
+| `--bulma-kbd-family`              | `$kbd-family`              | `var(--bulma-family-code)`                          |
+| `--bulma-kbd-size`                | `$kbd-size`                | `0.875em`                                           |
+| `--bulma-kbd-weight`              | `$kbd-weight`              | `var(--bulma-weight-normal)`                        |
+| `--bulma-kbd-padding`             | `$kbd-padding`             | `0.125em 0.375em`                                   |
+| `--bulma-kbd-radius`              | `$kbd-radius`              | `var(--bulma-radius-small)`                         |
+| `--bulma-kbd-border-width`        | `$kbd-border-width`        | `max(1px, 0.0625em)`                                |
+| `--bulma-kbd-border-bottom-width` | `$kbd-border-bottom-width` | `max(2px, 0.125em)`                                 |
+| `--bulma-kbd-border-color`        | `$kbd-border-color`        | `color-mix(in srgb, currentColor 35%, transparent)` |
+| `--bulma-kbd-background`          | `$kbd-background`          | `color-mix(in srgb, currentColor 8%, transparent)`  |
+| `--bulma-kbd-color`               | `$kbd-color`               | `currentColor`                                      |
 
 <!-- /bestax:generated cssvars -->

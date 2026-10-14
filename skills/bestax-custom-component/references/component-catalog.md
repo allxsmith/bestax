@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-98 documented components. Generated from the API docs — every exported
+99 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -55,6 +55,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Icon](https://bestax.io/docs/api/elements/icon) — The `Icon` component is a Bulma-styled wrapper for displaying icons from various libraries (Font Awesome, Material Design Icons, Ionicons…
 - [IconText](https://bestax.io/docs/api/elements/icontext) — The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.
 - [Image](https://bestax.io/docs/api/elements/image) — The `Image` component wraps images, iframes, or custom content in a Bulma-styled container, supporting fixed sizes, aspect ratios, rounded corners…
+- [Kbd](https://bestax.io/docs/api/elements/kbd) — The `Kbd` component renders a `<kbd>` drawn as a keycap, for a key the reader presses.
 - [Link](https://bestax.io/docs/api/elements/link) — The `Link` component renders a styled anchor (`<a>`) element with Bulma helper class integration.
 - [LinkButton](https://bestax.io/docs/api/elements/linkbutton) — The `LinkButton` component renders a `<button>` that visually looks like text or a link.
 - [ListItem](https://bestax.io/docs/api/elements/listitem) — The `ListItem` component renders a styled list item (`<li>`) element with Bulma helper class integration.

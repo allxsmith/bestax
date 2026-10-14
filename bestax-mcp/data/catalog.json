@@ -23,6 +23,7 @@
         "Icon",
         "IconText",
         "Image",
+        "Kbd",
         "Link",
         "LinkButton",
         "ListItem",
@@ -305,7 +306,7 @@
       "import": "import { Code } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 4,
-      "exampleCount": 9
+      "exampleCount": 8
     },
     {
       "name": "Collapse",
@@ -614,6 +615,17 @@
       "compound": false,
       "propCount": 29,
       "exampleCount": 30
+    },
+    {
+      "name": "Kbd",
+      "kind": "component",
+      "category": "elements",
+      "purpose": "The `Kbd` component renders a `<kbd>` drawn as a keycap, for a key the reader presses.",
+      "slug": "elements/kbd",
+      "import": "import { Kbd } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 9,
+      "exampleCount": 12
     },
     {
       "name": "Level",
@@ -1911,6 +1923,16 @@
       "TextArea",
       "TimeInput"
     ],
+    "--bulma-kbd-background": ["Kbd"],
+    "--bulma-kbd-border-bottom-width": ["Kbd"],
+    "--bulma-kbd-border-color": ["Kbd"],
+    "--bulma-kbd-border-width": ["Kbd"],
+    "--bulma-kbd-color": ["Kbd"],
+    "--bulma-kbd-family": ["Kbd"],
+    "--bulma-kbd-padding": ["Kbd"],
+    "--bulma-kbd-radius": ["Kbd"],
+    "--bulma-kbd-size": ["Kbd"],
+    "--bulma-kbd-weight": ["Kbd"],
     "--bulma-level-item-spacing": ["Level"],
     "--bulma-link-button-ghost-color": ["LinkButton"],
     "--bulma-link-button-ghost-hover-color": ["LinkButton"],

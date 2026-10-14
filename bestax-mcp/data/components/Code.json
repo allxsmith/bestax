@@ -36,14 +36,10 @@
     {
       "title": "File Path",
       "code": "<Paragraph>\n  Edit the configuration file at <Code>src/config/settings.ts</Code> to change\n  the default values.\n</Paragraph>"
-    },
-    {
-      "title": "Keyboard Shortcuts",
-      "code": "<Paragraph>\n  Press <Code>Ctrl + C</Code> to copy and <Code>Ctrl + V</Code> to paste.\n</Paragraph>"
     }
   ],
   "accessibility": "- **Code Semantics:** Screen readers may indicate code content differently, helping users understand it's technical content.\n- **Monospace Font:** The `<code>` element typically renders in a monospace font, aiding readability of technical content.\n- **Context:** Provide context around code snippets so users understand what the code represents.\n\n:::info\nUse `Code` for short inline snippets. For multi-line code blocks that need to preserve whitespace and formatting, use the `Pre` component.\n:::",
-  "related": ["Figure", "Paragraph", "Pre", "useBulmaClasses"],
+  "related": ["Figure", "Kbd", "Paragraph", "Pre", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-code--default",
   "summary": "The `Code` component renders a styled `<code>` element with Bulma helper class integration.",
   "import": "import { Code } from '@allxsmith/bestax-bulma';",
