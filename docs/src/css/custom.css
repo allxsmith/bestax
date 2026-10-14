@@ -47,6 +47,16 @@ pre.prism-code {
   min-height: 6rem;
 }
 
+/* The preview is forced to Bulma's dark palette (see DeferredShadowPreview),
+   so the surface it paints on has to be dark too, or its light text lands on
+   the light page. The padding matches the sandboxes' #root. */
+.live-preview-slot {
+  background: #16171d;
+  border-radius: 0.5rem;
+  color: #e8e8ea;
+  padding: 1.5rem;
+}
+
 .live-editor {
   font-family: var(--ifm-font-family-monospace);
 }
