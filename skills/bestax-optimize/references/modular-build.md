@@ -80,7 +80,7 @@ is **more complete** than the docs page's Option C example, which omits several)
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
 `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
 
-**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `linkbutton`, `loader`,
+**Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
 `notification`, `progress`, `skeleton`
 
 **Helpers** (`@allxsmith/bestax-bulma/scss/helpers/<name>`): `cursor`, `sizing`
