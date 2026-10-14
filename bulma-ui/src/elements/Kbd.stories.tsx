@@ -246,22 +246,21 @@ export const InAButton: Story = {
 export const InATooltip: Story = {
   render: function InATooltipExample() {
     return (
-      <Block pt="6" mt="4">
-        <Tooltip
-          active
-          content={
-            <>
-              Bold{' '}
-              <Kbd.Group>
-                <Kbd>Ctrl</Kbd>
-                <Kbd>B</Kbd>
-              </Kbd.Group>
-            </>
-          }
-        >
-          <Button aria-keyshortcuts="Control+B">Bold</Button>
-        </Tooltip>
-      </Block>
+      <Tooltip
+        active
+        position="right"
+        content={
+          <>
+            Bold{' '}
+            <Kbd.Group>
+              <Kbd>Ctrl</Kbd>
+              <Kbd>B</Kbd>
+            </Kbd.Group>
+          </>
+        }
+      >
+        <Button aria-keyshortcuts="Control+B">Bold</Button>
+      </Tooltip>
     );
   },
 };
@@ -336,17 +335,26 @@ export const ShortcutsTable: Story = {
 export const TextColor: Story = {
   render: function TextColorExample() {
     return (
-      <Paragraph>
-        <Kbd textColor="link" mr="2">
-          Enter
-        </Kbd>
-        <Kbd textColor="danger" mr="2">
-          Del
-        </Kbd>
-        <Kbd bgColor="warning" textColor="black">
-          Tab
-        </Kbd>
-      </Paragraph>
+      <>
+        <Notification color="info">
+          Press <Kbd>Esc</Kbd> to close this panel.
+        </Notification>
+        <Notification color="warning" isLight>
+          You have unsaved changes. Press{' '}
+          <Kbd.Group>
+            <Kbd>Ctrl</Kbd>
+            <Kbd>S</Kbd>
+          </Kbd.Group>{' '}
+          to save them.
+        </Notification>
+        <Paragraph>
+          Select a row and press{' '}
+          <Kbd textColor="danger" colorShade="on-scheme">
+            Del
+          </Kbd>{' '}
+          to delete it.
+        </Paragraph>
+      </>
     );
   },
 };
