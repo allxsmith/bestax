@@ -173,6 +173,39 @@ describe('Kbd.Group', () => {
     expect(groupIn(container).textContent).toBe('G then I');
   });
 
+  it('gives an empty Fragment between two keys no separator', () => {
+    const { container } = render(
+      <Kbd.Group>
+        <Kbd>Ctrl</Kbd>
+        <></>
+        <Kbd>S</Kbd>
+      </Kbd.Group>
+    );
+    expect(groupIn(container).textContent).toBe('Ctrl + S');
+    expect(groupIn(container).querySelectorAll('.kbd-separator')).toHaveLength(
+      1
+    );
+  });
+
+  it('separates the keys inside a Fragment like the rest', () => {
+    const { container } = render(
+      <Kbd.Group>
+        <>
+          <Kbd>Ctrl</Kbd>
+          <Kbd>Shift</Kbd>
+        </>
+        <Kbd>P</Kbd>
+      </Kbd.Group>
+    );
+    const group = groupIn(container);
+    expect(group.textContent).toBe('Ctrl + Shift + P');
+    // Each key is a direct child of the group, with a separator between
+    // each pair, as it would be without the Fragment.
+    expect(
+      Array.from(group.children).map(el => el.className.split(' ')[0])
+    ).toEqual(['kbd', 'kbd-separator', 'kbd', 'kbd-separator', 'kbd']);
+  });
+
   it('gives a child that renders nothing no separator', () => {
     const showShift = false;
     const { container } = render(

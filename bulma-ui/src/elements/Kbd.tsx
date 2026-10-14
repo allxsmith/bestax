@@ -5,6 +5,7 @@ import {
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { flattenChildren } from '../helpers/flattenChildren';
 import { visuallyHidden } from '../helpers/statusRegion';
 import { withSubComponents } from '../helpers/withSubComponents';
 
@@ -109,11 +110,12 @@ export const KbdGroup = forwardRef<HTMLElement, KbdGroupProps>(
     const groupClass = usePrefixedClassNames('kbd-group');
     const separatorClass = usePrefixedClassNames('kbd-separator');
 
-    // toArray drops null, undefined and booleans, so a key that renders
-    // nothing leaves no separator behind. The spaces are part of the text,
-    // so a screen reader reads "Ctrl plus S" rather than one run-together
-    // word, whatever the CSS does.
-    const keys = React.Children.toArray(children);
+    // Null, undefined and booleans drop out, and Fragments are opened up, so
+    // an empty Fragment leaves no separator behind and the keys in one are
+    // separated like the rest. The spaces are part of the text, so a screen
+    // reader reads "Ctrl plus S" rather than one run-together word, whatever
+    // the CSS does.
+    const keys = flattenChildren(children);
 
     return (
       <kbd
