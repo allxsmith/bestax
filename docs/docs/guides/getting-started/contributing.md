@@ -187,8 +187,8 @@ or refute its comments; it re-reviews on each push), and a **Claude deep review*
 `claude[bot]` on bestaxbot's PRs once CI is green and on any same-repo PR a maintainer labels
 `deep-review`. Maintainers can invoke the
 **`@claude`** assistant (maintainer-only, since it spends the maintainer's Claude usage). Issues
-labeled `claude-fix` are implemented by **bestaxbot**, a GitHub App maintained outside this
-repository: it opens a PR from a `claude/` branch, answers every review thread on it, and hands
+labeled `claude-fix` are implemented by **bestaxbot**, a collaborator account maintained outside
+this repository: it opens a PR from a `claude/` branch, answers every review thread on it, and hands
 it to a human with `needs-human-review` once the reviews converge. A human always reviews and
 squash-merges the result; the bot never merges. Don't touch the bot's labels (`ai-loop`,
 `ai-loop-paused`, `needs-human-review`, `review-converged`) on PRs you don't own. Full details:

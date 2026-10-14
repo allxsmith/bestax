@@ -332,8 +332,8 @@ The short version for contributors:
   concerns.
 - **`@claude` mentions are maintainer-only** (they spend the maintainer's Claude usage).
   External contributors don't need them. Just push your changes.
-- **Issues labeled `claude-fix` are implemented by bestaxbot**, a GitHub App maintained outside
-  this repository. It opens a PR from a `claude/` branch, answers every review thread on it, and
+- **Issues labeled `claude-fix` are implemented by bestaxbot**, a collaborator account
+  maintained outside this repository. It opens a PR from a `claude/` branch, answers every review thread on it, and
   hands it to a human with `needs-human-review` once the reviews converge. A human reviews and
   squash-merges; the bot never merges. Don't add or remove the bot's labels (`ai-loop`,
   `ai-loop-paused`, `needs-human-review`, `review-converged`) on PRs you don't own.

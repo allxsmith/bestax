@@ -8,9 +8,9 @@ sidebar_position: 11
 
 bestax uses AI in two ways. Pull requests get **AI review**: CodeRabbit, plus a deep review
 that this repository's own workflow runs and that posts as `claude[bot]`. And a
-maintainer-steered bot, **bestaxbot**, implements approved issues. bestaxbot is a GitHub App
-maintained outside this repository. Everything it does here is labelled, a human reviews and
-merges everything, and the bot never merges.
+maintainer-steered bot, **bestaxbot**, implements approved issues. bestaxbot is a collaborator
+account maintained outside this repository. Everything it does here is labelled, a human
+reviews and merges everything, and the bot never merges.
 
 ## For Users: Filing Issues the Bot Can Pick Up
 
@@ -56,8 +56,8 @@ the review-time requirements (a Storybook story for UI changes, a docs page for 
 
 ## The Bot
 
-bestaxbot is a GitHub App maintained outside this repository. This is what you can see it do
-here:
+bestaxbot is a collaborator account maintained outside this repository. This is what you can
+see it do here:
 
 - **It implements `claude-fix` issues.** It works on a `claude/` branch and opens the pull
   request, which references the issue.
@@ -146,8 +146,9 @@ silent handoff always means there was nothing to show, never that the screenshot
 
 - **Humans always merge.** The bot cannot merge, enable auto-merge, or approve its own work,
   and `main` requires an approving review from a human.
-- **Its branches are confined.** A repository ruleset keeps the bot on `claude/` branches,
-  and its App holds no permission to change workflows.
+- **Its branches are confined.** A repository ruleset keeps the bot on `claude/` branches and
+  requires signed commits there, and its token carries no `workflow` scope, so it cannot
+  change workflows.
 - **It parks rather than thrashes.** After a bounded number of fix rounds on a PR it stops,
   labels the PR `ai-loop-paused`, and says why.
 - **Kill switches.** Remove `ai-loop` to stop the bot on one PR. The maintainers can stop the
@@ -178,10 +179,10 @@ its row says.
 
 ## Where the Bot Lives, and Reporting It
 
-bestaxbot is a GitHub App maintained outside this repository. Its behaviour here is bounded
-by gates GitHub enforces against its identity, whether or not its code is readable: the
-ruleset that confines its branches, the permissions its App holds, and the human approval and
-merge that `main` requires.
+bestaxbot is a collaborator account maintained outside this repository. Its behaviour here is
+bounded by gates GitHub enforces against the account's permissions, whether or not its code is
+readable: the ruleset that confines its branches, the scopes its token carries, and the human
+approval and merge that `main` requires.
 
 To report a misbehaving bot, comment on the PR or issue so a maintainer sees it, and remove
 `ai-loop` if it is working a PR. For anything security-shaped, use the channels in

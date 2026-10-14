@@ -249,7 +249,8 @@ mentions (`claude.yml`) are maintainer-only. Both read the `AI_CLAUDE_ENABLED` r
 variable: exactly `true` turns them on; anything else, unset included, is off. Copilot may
 review too. `.github/CLAUDE.md` is the security contract for those workflows.
 
-**bestaxbot** is a GitHub App maintained in a separate private repository. Describe it here
+**bestaxbot** is a collaborator account, a machine User, whose code is maintained in a separate
+private repository. Describe it here
 and in the docs by what it does in this repository, never by its internals: no prompts,
 models, caps, budgets, runners, tokens or file names. The ai-development docs guide is the
 public description, and this section must not say more than that guide does.
@@ -304,11 +305,12 @@ and posts nothing while the job still goes green, so check for the review, never
 conclusion, and merge `main` into the branch after any edit to that file.
 
 **Guardrails.** Humans always merge. A repository ruleset confines the bot to `claude/`
-branches and its App holds no permission to change workflows, so a PR touching `.github/**`
-or the jest, commitlint, release or pnpm-workspace configs is a human's to write. After a
+branches and its token carries no `workflow` scope, so it cannot change workflows, and a PR
+touching `.github/**` or the jest, commitlint, release or pnpm-workspace configs is a human's
+to write. After a
 bounded number of rounds the bot parks a PR rather than thrashing. Remove `ai-loop` to stop
 one PR; the maintainers can stop the bot entirely. This repository still carries its own
 copies of the workflows the bot took over, each behind a repository variable, and the
 ai-development guide's Repository Variables table lists them with their unset defaults. The
 bot's code being private is defence in depth, not a control: every gate is enforced by GitHub
-against the App's identity and holds with the code public or not.
+against the account's permissions and holds with the code public or not.

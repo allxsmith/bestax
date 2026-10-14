@@ -144,8 +144,8 @@ Measures active in this repository and its release pipeline:
   that posts as `claude[bot]`; `main` then requires green CI, an approving
   review, and a human merge. The bot that writes AI-authored changes cannot
   touch the workflows, release configuration, or supply-chain settings that
-  gate it: its GitHub App holds no permission to change workflows, and a
-  repository ruleset confines its branches to `claude/`.
+  gate it: its token carries no `workflow` scope, so it cannot change
+  workflows, and a repository ruleset confines its branches to `claude/`.
 - **Inbound security triage.** bestaxbot screens new issues and pull requests
   for code crafted to harm whoever runs it, prompt injection aimed at this
   repository's own automation, and social engineering. Anything not positively
@@ -163,15 +163,16 @@ Measures active in this repository and its release pipeline:
   variable. Switched on, it does the same job in a read-only session that
   holds no write tools, no PAT, and no write-scoped token, and it applies the
   label from a separate job the session never runs in.
-- **The bot.** bestaxbot is a GitHub App maintained outside this repository.
-  Here it writes only `claude/` branches, comments, and labels. Its App holds
-  no permission to change workflows, a repository ruleset confines its branches
-  to `claude/`, and nothing it does counts as an approval or a merge, because
-  `main` requires a human for both. Its code and runtime being private is
-  defence in depth, not a control: every gate is enforced by GitHub against the
-  App's identity and holds with the code public or not. To report a misbehaving
-  bot, comment on the PR or issue and remove `ai-loop`; anything security-shaped
-  goes through the channels below.
+- **The bot.** bestaxbot is a collaborator account maintained outside this
+  repository. Here it writes only `claude/` branches, comments, and labels.
+  Its token carries no `workflow` scope, so it cannot change workflows; a
+  branch ruleset keeps it to `claude/` branches and requires signed commits
+  there; and nothing it does counts as an approval or a merge, because `main`
+  requires a human for both. Its code and runtime being private is defence in
+  depth, not a control: every gate is enforced by GitHub against the account's
+  permissions and holds whether the code is public or not. To report a
+  misbehaving bot, comment on the PR or issue and remove `ai-loop`; anything
+  security-shaped goes through the channels below.
 
 Consumers can verify provenance themselves: the npm package pages show the
 attestation ("Provenance" section), and — in projects installed with the npm
