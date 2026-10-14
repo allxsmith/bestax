@@ -43,7 +43,7 @@
     },
     {
       "title": "Colors",
-      "code": "<>\n  <Paragraph>\n    <Kbd textColor=\"link\" mr=\"2\">\n      Enter\n    </Kbd>\n    <Kbd textColor=\"danger\" mr=\"2\">\n      Del\n    </Kbd>\n    <Kbd bgColor=\"warning\">Tab</Kbd>\n  </Paragraph>\n  <Notification color=\"info\">\n    Press <Kbd>Esc</Kbd> to close.\n  </Notification>\n</>"
+      "code": "<>\n  <Paragraph>\n    <Kbd textColor=\"link\" mr=\"2\">\n      Enter\n    </Kbd>\n    <Kbd textColor=\"danger\" mr=\"2\">\n      Del\n    </Kbd>\n    <Kbd bgColor=\"warning\" textColor=\"black\">\n      Tab\n    </Kbd>\n  </Paragraph>\n  <Notification color=\"info\">\n    Press <Kbd>Esc</Kbd> to close.\n  </Notification>\n</>"
     },
     {
       "title": "Mac and Windows",
@@ -54,7 +54,7 @@
       "code": "<Paragraph>\n  Press{' '}\n  <Kbd.Group>\n    <Kbd label=\"Command\">⌘</Kbd>\n    <Kbd>Shift</Kbd>\n    <Kbd>P</Kbd>\n  </Kbd.Group>{' '}\n  on a Mac, then{' '}\n  <Kbd.Group separator=\"then\">\n    <Kbd>G</Kbd>\n    <Kbd>I</Kbd>\n  </Kbd.Group>\n  .\n</Paragraph>"
     }
   ],
-  "accessibility": "- **Markup:** a key is a `<kbd>`, and a combination is an outer `<kbd>` around one `<kbd>` per key,\n  the form the [HTML standard](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-kbd-element)\n  gives for keys pressed together. Neither adds a role or any `aria-*`, and neither takes focus.\n- **What a screen reader hears:** nothing marks a `<kbd>` as a key, so a screen reader reads the\n  text inside it like the rest of the sentence. The separator is text with a space either side,\n  so `Ctrl`, `Shift` and `P` read as \"Ctrl plus Shift plus P\" and never run together into one word.\n- **Symbols:** a glyph like ⌘, ⌥, ⇧, ⌃ or ⏎ needs a `label`. It goes in visually hidden text,\n  with the glyph hidden from assistive tech. Copying the key copies the label along with the glyph.\n- **Never `aria-label` on a key:** ARIA in HTML prohibits naming a `<kbd>`, so nothing obliges a\n  screen reader to read one. That's why `label` renders text instead.\n- **The shortcut lives on the control:** put\n  [`aria-keyshortcuts`](https://www.w3.org/TR/wai-aria-1.2/#aria-keyshortcuts) on the button or\n  link the shortcut triggers, in UI Events key names: `Control+Shift+P`, with `Meta` for ⌘ and\n  `Alt` for Option. `Kbd` is only the hint people see.\n- **Contrast:** the key's text is the color of the text around it and its fill is faint, so the\n  text keeps the contrast its paragraph, button or tooltip already has.\n- **Forced colors:** the key is drawn with a border, not a shadow, so it still looks like a key in\n  Windows high contrast mode.\n- **Selectable:** the text can be selected and copied, so people can copy a shortcut out of a help\n  page.",
+  "accessibility": "- **Markup:** a key is a `<kbd>`, and a combination is an outer `<kbd>` around one `<kbd>` per key,\n  the form the [HTML standard](https://html.spec.whatwg.org/multipage/text-level-semantics.html#the-kbd-element)\n  gives for keys pressed together. Neither adds a role or any `aria-*`, and neither takes focus.\n- **What a screen reader hears:** nothing marks a `<kbd>` as a key, so a screen reader reads the\n  text inside it like the rest of the sentence. The separator is text with a space either side,\n  so `Ctrl`, `Shift` and `P` read as \"Ctrl plus Shift plus P\" and never run together into one word.\n- **Symbols:** a glyph like ⌘, ⌥, ⇧, ⌃ or ⏎ needs a `label`. It goes in visually hidden text,\n  with the glyph hidden from assistive tech. Copying the key copies the label along with the glyph.\n- **Never `aria-label` on a key:** ARIA in HTML prohibits naming a `<kbd>`, so nothing obliges a\n  screen reader to read one. That's why `label` renders text instead.\n- **The shortcut lives on the control:** put\n  [`aria-keyshortcuts`](https://www.w3.org/TR/wai-aria-1.2/#aria-keyshortcuts) on the button or\n  link the shortcut triggers, in UI Events key names: `Control+Shift+P`, with `Meta` for ⌘ and\n  `Alt` for Option. `Kbd` is only the hint people see.\n- **Contrast:** the key's text is the color of the text around it and its fill is faint, so the\n  text keeps the contrast its paragraph, button or tooltip already has. `bgColor` replaces that\n  faint fill, so pair it with a `textColor` that holds contrast in both color schemes, such as\n  `textColor=\"black\"` on `bgColor=\"warning\"`.\n- **Forced colors:** in Windows high contrast mode the key keeps its border and drops its fill, so\n  it's an outlined key over whatever it sits on, a filled button or a tooltip included, rather\n  than a plate of the system's background color. Its bottom edge is a border, not a shadow, so it\n  survives too.\n- **Selectable:** the text can be selected and copied, so people can copy a shortcut out of a help\n  page.",
   "related": [
     "Button",
     "ClientOnly",
@@ -115,7 +115,7 @@
           "name": "bgColor",
           "type": "Bulma color | 'inherit' | 'current'",
           "default": null,
-          "description": "Background color helper. It replaces the key's faint fill.",
+          "description": "Background color helper. It replaces the key's faint fill, and the text still follows the text around it, which turns light in dark mode, so pair it with a `textColor` that reads on that color in both schemes, such as `textColor=\"black\"` on `bgColor=\"warning\"`.",
           "required": false,
           "inherited": false,
           "deprecated": false,
@@ -154,7 +154,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The keys, a `Kbd` each, in the order they're pressed. The group renders the outer `<kbd>` around them, so it doesn't go inside a `Kbd` of its own, and it puts the separator between them, so don't type one: a `+` of your own doubles up. A child that renders nothing (`null`, `false`) gets no separator.",
+          "description": "The keys, a `Kbd` each, in the order they're pressed. The group renders the outer `<kbd>` around them, so it doesn't go inside a `Kbd` of its own, and it puts the separator between them, so don't type one: a `+` of your own doubles up. A `null` or `false` child, or an empty Fragment, gets no separator, and the keys in a Fragment are separated like the rest. A component that renders nothing still gets one, since the group can't see what a child renders, so write a conditional key inline (`{isMac && <Kbd label=\"Command\">⌘</Kbd>}`), not in a component of its own.",
           "required": false,
           "inherited": false,
           "deprecated": false
