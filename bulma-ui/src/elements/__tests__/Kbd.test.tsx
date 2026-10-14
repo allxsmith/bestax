@@ -269,6 +269,33 @@ describe('Kbd.Group', () => {
     expect(k.outerHTML).toBe('<kbd class="kbd">K</kbd>');
   });
 
+  it('keeps a keyed key’s node when the keys change order', () => {
+    const Keys: React.FC<{ order: string[] }> = ({ order }) => (
+      <Kbd.Group>
+        {order.map(name => (
+          <Kbd key={name}>{name}</Kbd>
+        ))}
+      </Kbd.Group>
+    );
+    const { container, rerender } = render(<Keys order={['Ctrl', 'K']} />);
+    const ctrl = screen.getByText('Ctrl');
+    const k = screen.getByText('K');
+    rerender(<Keys order={['K', 'Ctrl']} />);
+    expect(groupIn(container).textContent).toBe('K + Ctrl');
+    expect(screen.getByText('Ctrl')).toBe(ctrl);
+    expect(screen.getByText('K')).toBe(k);
+  });
+
+  it('places text keys, which have no key of their own, by position', () => {
+    const { container } = render(
+      <Kbd.Group>
+        {'Ctrl'}
+        <Kbd key="s">S</Kbd>
+      </Kbd.Group>
+    );
+    expect(groupIn(container).textContent).toBe('Ctrl + S');
+  });
+
   it('applies the helper props, attributes and className to the outer <kbd>', () => {
     render(
       <Kbd.Group
