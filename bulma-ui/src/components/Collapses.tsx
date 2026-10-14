@@ -4,6 +4,7 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { Collapse } from './Collapse';
 import { CollapsesItemContext } from './collapsesContext';
+import { flattenChildren } from '../helpers/flattenChildren';
 
 /**
  * Props shared by both modes of the Collapses component.
@@ -66,32 +67,6 @@ export type CollapsesProps = CollapsesSingleProps | CollapsesMultipleProps;
 function toIndexes(value: number | number[] | null | undefined): number[] {
   if (Array.isArray(value)) return value;
   return typeof value === 'number' ? [value] : [];
-}
-
-/**
- * Flattens Fragment children (recursively) so each item inside one gets its
- * own index rather than sharing the fragment's. Children.toArray keys restart
- * at ".0" inside each fragment, so those children are re-keyed with the
- * fragment's own key as a prefix, the way Avatars does it.
- */
-function flattenChildren(
-  children: React.ReactNode,
-  keyPrefix = ''
-): React.ReactNode[] {
-  return React.Children.toArray(children).flatMap(child => {
-    if (!React.isValidElement(child)) return [child];
-    if (child.type === React.Fragment) {
-      return flattenChildren(
-        (child.props as { children?: React.ReactNode }).children,
-        keyPrefix + child.key
-      );
-    }
-    return [
-      keyPrefix
-        ? React.cloneElement(child, { key: keyPrefix + child.key })
-        : child,
-    ];
-  });
 }
 
 /**

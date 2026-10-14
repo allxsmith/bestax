@@ -2,6 +2,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
+import { flattenChildren } from '../helpers/flattenChildren';
 import { Avatar, AvatarProps } from './Avatar';
 
 /** Valid overlap spacing values for the Avatars component. */
@@ -30,32 +31,6 @@ export interface AvatarsProps
   surplusLabel?: (count: number) => string;
   /** `Avatar` elements to render inside the group. */
   children?: React.ReactNode;
-}
-
-/**
- * Flattens Fragment children (recursively) into a flat element array so they
- * participate in max clamping and size/shape injection. Children.toArray keys
- * restart at ".0" inside each fragment, so fragment children are re-keyed by
- * prefixing the fragment's own key — otherwise a fragment sibling of a direct
- * child would collide (both ".0") and trigger duplicate-key warnings.
- */
-function flattenChildren(
-  children: React.ReactNode,
-  keyPrefix = ''
-): React.ReactElement<AvatarProps>[] {
-  return React.Children.toArray(children).flatMap(child => {
-    if (!React.isValidElement(child)) return [];
-    if (child.type === React.Fragment) {
-      return flattenChildren(
-        (child.props as { children?: React.ReactNode }).children,
-        keyPrefix + child.key
-      );
-    }
-    const el = child as React.ReactElement<AvatarProps>;
-    return [
-      keyPrefix ? React.cloneElement(el, { key: keyPrefix + el.key }) : el,
-    ];
-  });
 }
 
 /**
@@ -104,7 +79,12 @@ const AvatarsComponent: React.FC<AvatarsProps> = ({
     className
   );
 
-  const childArray = flattenChildren(children);
+  // Fragments are opened up, so the avatars inside one count toward `max` and
+  // take the group's size and shape one by one. Text between them is dropped.
+  const childArray = flattenChildren(children).filter(
+    (child): child is React.ReactElement<AvatarProps> =>
+      React.isValidElement(child)
+  );
 
   const maxCount =
     typeof max === 'number' && Number.isInteger(max) && max >= 0
