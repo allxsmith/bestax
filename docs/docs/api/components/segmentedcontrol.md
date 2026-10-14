@@ -297,14 +297,14 @@ function example() {
 The keys follow the [APG radio group](https://www.w3.org/WAI/ARIA/apg/patterns/radio/), the one
 outside a toolbar:
 
-| Key                                            | What it does                                                                                                         |
-| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| <kbd>Tab</kbd> / <kbd>Shift+Tab</kbd>          | Moves into the row at the checked segment, or the first enabled one while none is checked, and out again in one step |
-| <kbd>Right Arrow</kbd> / <kbd>Down Arrow</kbd> | Moves to the next enabled segment and checks it, wrapping from the last to the first                                 |
-| <kbd>Left Arrow</kbd> / <kbd>Up Arrow</kbd>    | Moves to the previous enabled segment and checks it, wrapping from the first to the last                             |
-| <kbd>Home</kbd> / <kbd>End</kbd>               | Moves to the first or last enabled segment and checks it                                                             |
-| <kbd>Space</kbd>                               | Checks the focused segment, when it isn't already                                                                    |
-| <kbd>Enter</kbd>                               | Does what it does on any button: clicks the focused segment, which checks it                                         |
+| Key                                              | What it does                                                                                                         |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| <kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd> | Moves into the row at the checked segment, or the first enabled one while none is checked, and out again in one step |
+| <kbd>Right Arrow</kbd> / <kbd>Down Arrow</kbd>   | Moves to the next enabled segment and checks it, wrapping from the last to the first                                 |
+| <kbd>Left Arrow</kbd> / <kbd>Up Arrow</kbd>      | Moves to the previous enabled segment and checks it, wrapping from the first to the last                             |
+| <kbd>Home</kbd> / <kbd>End</kbd>                 | Moves to the first or last enabled segment and checks it                                                             |
+| <kbd>Space</kbd>                                 | Checks the focused segment, when it isn't already                                                                    |
+| <kbd>Enter</kbd>                                 | Does what it does on any button: clicks the focused segment, which checks it                                         |
 
 Disabled segments are skipped by all of these. A segment's `onKeyDown` runs first, and a
 `preventDefault()` there keeps the row from handling that key. A key the row takes stops there, so
