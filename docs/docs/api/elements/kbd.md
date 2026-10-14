@@ -295,6 +295,10 @@ function example() {
 }
 ```
 
+Write a key that comes and goes inline in the group, as here, rather than in a component of its
+own. The group leaves out a `null` or `false` child, but it can't see that a component rendered
+nothing, so it would still put a separator before the next key.
+
 ### Compound (dot-notation) usage
 
 `Kbd.Group` is also exported as `KbdGroup`, for code that imports each part by name.
