@@ -32,21 +32,42 @@ const compile = (prefix: string) =>
 const bulmaCss = (file: string) =>
   fs.readFileSync(path.join(BULMA, 'css', file), 'utf8');
 
-/** Every top-level style rule in `css`, in source order. */
-function rulesOf(css: string): CSSStyleRule[] {
+/**
+ * Every style rule in `css`, at any depth, in source order, each with the
+ * at-rules it sits in (`@media (forced-colors: active)`), outermost first.
+ */
+function allRulesOf(css: string) {
   const sheet = document.createElement('style');
   // An @charset is valid only at the very start, and two sheets joined put
   // one in the middle.
   sheet.textContent = css.replace(/@charset "UTF-8";/g, '');
   document.head.appendChild(sheet);
+  const out: { rule: CSSStyleRule; within: string[] }[] = [];
+  const walk = (list: CSSRuleList, within: string[]) => {
+    for (const rule of Array.from(list)) {
+      if (rule instanceof CSSStyleRule) {
+        out.push({ rule, within });
+      } else if ('cssRules' in rule) {
+        walk((rule as CSSGroupingRule).cssRules, [
+          ...within,
+          rule.cssText.split('{')[0].trim(),
+        ]);
+      }
+    }
+  };
   try {
-    return Array.from((sheet.sheet as CSSStyleSheet).cssRules).filter(
-      (rule): rule is CSSStyleRule => rule instanceof CSSStyleRule
-    );
+    walk((sheet.sheet as CSSStyleSheet).cssRules, []);
   } finally {
     sheet.remove();
   }
+  return out;
 }
+
+/** Every top-level style rule in `css`, in source order. */
+const rulesOf = (css: string): CSSStyleRule[] =>
+  allRulesOf(css)
+    .filter(({ within }) => within.length === 0)
+    .map(({ rule }) => rule);
 
 /** Every declaration the rules for `selector` make, merged in order. */
 function declarations(css: string, selector: string) {
@@ -88,10 +109,39 @@ describe.each([
     );
 
   it('writes its rules for the prefixed classes Kbd renders, and no others', () => {
-    const selectors = rulesOf(compile(prefix)).map(rule => rule.selectorText);
+    // Inside at-rules too, so a rule in a media block is held to it as well.
+    const selectors = allRulesOf(compile(prefix)).map(
+      ({ rule }) => rule.selectorText
+    );
     expect([...new Set(selectors)].sort()).toEqual([
       `.${prefix}kbd`,
       `.${prefix}kbd-group`,
+    ]);
+  });
+
+  it('drops the fill in forced colors and keeps the border', () => {
+    // Forced colors turns any fill that isn't fully transparent into an
+    // opaque system color, so the key's faint fill has to go there. jsdom
+    // evaluates no media query, so the block is read off the sheet.
+    const nested = allRulesOf(compile(prefix)).filter(
+      ({ within }) => within.length > 0
+    );
+    expect(
+      nested.map(({ rule, within }) => ({
+        within,
+        selector: rule.selectorText,
+        declarations: Array.from(
+          { length: rule.style.length },
+          (_, i) =>
+            `${rule.style[i]}: ${rule.style.getPropertyValue(rule.style[i])}`
+        ),
+      }))
+    ).toEqual([
+      {
+        within: ['@media (forced-colors: active)'],
+        selector: `.${prefix}kbd`,
+        declarations: ['background-color: transparent'],
+      },
     ]);
   });
 
@@ -135,8 +185,8 @@ describe.each([
     );
     expect(separator).not.toBeNull();
     expect(label).toBeDefined();
-    const matching = rulesOf(compile(prefix)).filter(
-      rule =>
+    const matching = allRulesOf(compile(prefix)).filter(
+      ({ rule }) =>
         separator?.matches(rule.selectorText) ||
         label?.matches(rule.selectorText)
     );

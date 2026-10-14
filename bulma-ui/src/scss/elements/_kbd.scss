@@ -66,6 +66,16 @@ $kbd-color: currentColor !default;
   white-space: nowrap;
 }
 
+// Forced colors keeps borders, and forces every fill that isn't fully
+// transparent to an opaque system color, so the faint fill would become a
+// plate over a filled Button or the Tooltip. The border alone is what makes
+// it a key there.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}kbd {
+    background-color: transparent;
+  }
+}
+
 // The outer `<kbd>` of a combination. The browser sets every kbd in
 // monospace, so this hands it back the font of the text around it, and keeps
 // the combination on one line. It sets no font size, so a key inside it is
