@@ -42,7 +42,12 @@ export interface KbdProps
    * color, so they follow it.
    */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Background color helper. It replaces the key's faint fill. */
+  /**
+   * Background color helper. It replaces the key's faint fill, and the text
+   * still follows the text around it, which turns light in dark mode, so pair
+   * it with a `textColor` that reads on that color in both schemes, such as
+   * `textColor="black"` on `bgColor="warning"`.
+   */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
 }
 
