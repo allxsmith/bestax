@@ -342,8 +342,10 @@ nothing, so it would still put a separator before the next key.
   text keeps the contrast its paragraph, button or tooltip already has. `bgColor` replaces that
   faint fill, so pair it with a `textColor` that holds contrast in both color schemes, such as
   `textColor="black"` on `bgColor="warning"`.
-- **Forced colors:** the key is drawn with a border, not a shadow, so it still looks like a key in
-  Windows high contrast mode.
+- **Forced colors:** in Windows high contrast mode the key keeps its border and drops its fill, so
+  it's an outlined key over whatever it sits on, a filled button or a tooltip included, rather
+  than a plate of the system's background color. Its bottom edge is a border, not a shadow, so it
+  survives too.
 - **Selectable:** the text can be selected and copied, so people can copy a shortcut out of a help
   page.
 
