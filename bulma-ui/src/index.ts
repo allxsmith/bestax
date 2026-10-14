@@ -44,6 +44,7 @@ export * from './elements/Figure';
 export * from './elements/Icon';
 export * from './elements/IconText';
 export * from './elements/Image';
+export * from './elements/Kbd';
 export * from './elements/Link';
 export * from './elements/ListItem';
 export * from './elements/Loader';

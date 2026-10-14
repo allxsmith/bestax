@@ -321,6 +321,16 @@ them. See the constituent-element exception above.
 `--bulma-hover-card-min-width`, `--bulma-hover-card-offset`, `--bulma-hover-card-padding`,
 `--bulma-hover-card-radius`, `--bulma-hover-card-shadow`, `--bulma-hover-card-z-index`
 
+### Kbd
+
+Declared on each key, `.kbd`. The border color and the fill default to `color-mix()` of
+`currentColor` with `transparent`, so a key follows its text in dark mode, in a filled button and
+in a tooltip without an override of its own. The sizes are in `em`, so `textSize` scales them.
+
+`--bulma-kbd-background`, `--bulma-kbd-border-bottom-width`, `--bulma-kbd-border-color`,
+`--bulma-kbd-border-width`, `--bulma-kbd-color`, `--bulma-kbd-family`, `--bulma-kbd-padding`,
+`--bulma-kbd-radius`, `--bulma-kbd-size`, `--bulma-kbd-weight`
+
 ### LinkButton
 
 Declared on the compound `.button.link-button` — see the compound-selector exception above.

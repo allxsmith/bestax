@@ -20,6 +20,17 @@ function LinkButtonIcon() {
   );
 }
 
+// A keycap with its heavier bottom edge, and a letter on it
+function KbdIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M4 16.5h16" />
+      <path d="M10 8v5M10 10.5l4-2.5M11.5 10l2.5 3" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -172,6 +183,7 @@ function TooltipIcon() {
 
 const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
+  kbd: KbdIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,

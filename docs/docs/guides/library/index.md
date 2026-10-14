@@ -156,11 +156,11 @@ Every Bulma class has a corresponding React component in the matching tier, so t
 
 ---
 
-## Elements (32)
+## Elements (33)
 
 Foundational building blocks: typography, buttons, media, lists, data display, and feedback.
 
-[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [Content](/docs/api/elements/content), [Delete](/docs/api/elements/delete), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [ToggleButton](/docs/api/elements/togglebutton), [UnorderedList](/docs/api/elements/unorderedlist)
+[Block](/docs/api/elements/block), [Box](/docs/api/elements/box), [Button](/docs/api/elements/button), [Buttons](/docs/api/elements/buttons), [Code](/docs/api/elements/code), [Content](/docs/api/elements/content), [Delete](/docs/api/elements/delete), [Divider](/docs/api/elements/divider), [Emphasis](/docs/api/elements/emphasis), [Figure](/docs/api/elements/figure), [Icon](/docs/api/elements/icon), [IconText](/docs/api/elements/icontext), [Image](/docs/api/elements/image), [Kbd](/docs/api/elements/kbd), [Link](/docs/api/elements/link), [LinkButton](/docs/api/elements/linkbutton), [ListItem](/docs/api/elements/listitem), [Loader](/docs/api/elements/loader), [Notification](/docs/api/elements/notification), [OrderedList](/docs/api/elements/orderedlist), [Paragraph](/docs/api/elements/paragraph), [Pre](/docs/api/elements/pre), [Progress](/docs/api/elements/progress), [Skeleton](/docs/api/elements/skeleton), [Span](/docs/api/elements/span), [Strong](/docs/api/elements/strong), [SubTitle](/docs/api/elements/subtitle), [Table](/docs/api/elements/table), [Tag](/docs/api/elements/tag), [Tags](/docs/api/elements/tags), [Title](/docs/api/elements/title), [ToggleButton](/docs/api/elements/togglebutton), [UnorderedList](/docs/api/elements/unorderedlist)
 
 ```tsx live
 <div>
@@ -380,6 +380,6 @@ Beyond the core Bulma wrappers, bestax-bulma ships additional components that fi
 | -------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Components** | Avatar, Avatars, Badge, Carousel, Collapse, Collapses, ContextMenu, Dialog, HoverCard, Loading, Popover, Reveal, Sidebar, Steps, Toast, Tooltip |
 | **Form**       | Autocomplete, DateInput, DateRangeInput, DateTimeInput, Numberinput, Rate, Slider, Switch, Taginput, TimeInput                                  |
-| **Elements**   | LinkButton                                                                                                                                      |
+| **Elements**   | Kbd, LinkButton                                                                                                                                 |
 
 These extras include purpose-built SCSS that follows Bulma v1's CSS-variable conventions, so they theme and customise exactly like native Bulma components. They're bundled into `bestax.css` — no separate import needed.

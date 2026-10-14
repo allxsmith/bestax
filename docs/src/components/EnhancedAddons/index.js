@@ -13,6 +13,12 @@ const ADDONS = [
     desc: 'A button that dresses like a link — semantics of a button, look of an anchor.',
   },
   {
+    name: 'Kbd',
+    icon: 'kbd',
+    link: '/docs/api/elements/kbd',
+    desc: 'Keys and shortcuts drawn as keycaps that follow the text around them, with names for symbols like ⌘.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',

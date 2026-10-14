@@ -1,0 +1,76 @@
+// Bestax Extras - Kbd Styles
+// Bulma v1 doesn't style `<kbd>` at all, so a key falls back to the browser's
+// monospace with no box around it. This draws `.kbd` as a keycap: a thin
+// border with a heavier bottom edge and a faint fill. `.kbd-group`, the outer
+// `<kbd>` of a combination, stays plain text, so its separators read like the
+// sentence around them.
+//
+// The edge and the fill are mixed from currentColor, so a key follows the
+// text it sits in: dark on the page, light in dark mode, and light again
+// inside a filled Button or the dark Tooltip, with no rules for any of them.
+// The sizes are in em, so a key follows the size of that text too, and the
+// `textSize` helper sets it outright, padding and edges included.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+$kbd-family: cv.getVar("family-code") !default;
+$kbd-size: 0.875em !default;
+$kbd-weight: cv.getVar("weight-normal") !default;
+$kbd-padding: 0.125em 0.375em !default;
+$kbd-radius: cv.getVar("radius-small") !default;
+// Floored in px, so a small key keeps an edge a screen can draw.
+$kbd-border-width: max(1px, 0.0625em) !default;
+$kbd-border-bottom-width: max(2px, 0.125em) !default;
+$kbd-border-color: color-mix(in srgb, currentColor 35%, transparent) !default;
+$kbd-background: color-mix(in srgb, currentColor 8%, transparent) !default;
+$kbd-color: currentColor !default;
+
+.#{iv.$class-prefix}kbd {
+  @include cv.register-vars(
+    (
+      "kbd-family": #{$kbd-family},
+      "kbd-size": #{$kbd-size},
+      "kbd-weight": #{$kbd-weight},
+      "kbd-padding": #{$kbd-padding},
+      "kbd-radius": #{$kbd-radius},
+      "kbd-border-width": #{$kbd-border-width},
+      "kbd-border-bottom-width": #{$kbd-border-bottom-width},
+      "kbd-border-color": #{$kbd-border-color},
+      "kbd-background": #{$kbd-background},
+      "kbd-color": #{$kbd-color},
+    )
+  );
+}
+
+// Inline, with a line-height of 1, so the padding and the border draw around
+// the key without pushing its line away from the lines around it, the way
+// Bulma's `code` sits in a paragraph. The key's own text never wraps.
+//
+// It's a border rather than a shadow because forced colors mode drops
+// shadows and keeps borders, so the key still looks like one there.
+.#{iv.$class-prefix}kbd {
+  background-color: cv.getVar("kbd-background");
+  border-color: cv.getVar("kbd-border-color");
+  border-radius: cv.getVar("kbd-radius");
+  border-style: solid;
+  border-width: cv.getVar("kbd-border-width");
+  border-bottom-width: cv.getVar("kbd-border-bottom-width");
+  color: cv.getVar("kbd-color");
+  display: inline;
+  font-family: cv.getVar("kbd-family");
+  font-size: cv.getVar("kbd-size");
+  font-weight: cv.getVar("kbd-weight");
+  line-height: 1;
+  padding: cv.getVar("kbd-padding");
+  white-space: nowrap;
+}
+
+// The outer `<kbd>` of a combination. The browser sets every kbd in
+// monospace, so this hands it back the font of the text around it, and keeps
+// the combination on one line. It sets no font size, so a key inside it is
+// the size of a key on its own.
+.#{iv.$class-prefix}kbd-group {
+  font-family: inherit;
+  white-space: nowrap;
+}
