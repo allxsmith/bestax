@@ -12,6 +12,11 @@
 
 const LIBRARY = '@allxsmith/bestax-bulma';
 
+/** Any stylesheet import from the library, whatever flavor it names. */
+const LIBRARY_STYLESHEET = /^import '@allxsmith\/bestax-bulma\/[^']+\.css';$/;
+const LIBRARY_STYLESHEET_NAME =
+  /^import '@allxsmith\/bestax-bulma\/([^']+\.css)';$/m;
+
 /** The template files a sandbox is built from, by path in the template. */
 export const TEMPLATE_FILES = [
   'index.html',
@@ -316,11 +321,19 @@ export function codesandboxFiles({
     );
   }
 
+  const librarySheet = main.match(LIBRARY_STYLESHEET_NAME)?.[1];
+  if (!librarySheet) {
+    throw new Error(
+      "The template's main.tsx no longer imports a bestax stylesheet, so the " +
+        'CodeSandbox page cannot link it.'
+    );
+  }
+
   const head = [
     '<meta charset="UTF-8" />',
     '<meta name="viewport" content="width=device-width, initial-scale=1.0" />',
     `<title>${escapeHtml(title)}</title>`,
-    `<link rel="stylesheet" href="${cdnUrl(versions, LIBRARY, 'dist/bestax.css')}" />`,
+    `<link rel="stylesheet" href="${cdnUrl(versions, LIBRARY, `dist/${librarySheet}`)}" />`,
     ...iconLinks(icons, versions),
     ...iconScripts(icons, versions),
   ];
@@ -364,7 +377,7 @@ export function codesandboxFiles({
     'src/index.tsx': {
       content: main
         .split('\n')
-        .filter(line => !line.includes(`'${LIBRARY}/bestax.css'`))
+        .filter(line => !LIBRARY_STYLESHEET.test(line))
         .join('\n')
         .replace("from './App.tsx'", "from './App'"),
     },
