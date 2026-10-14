@@ -362,6 +362,15 @@ describe('stackblitzProject', () => {
       /No version was given for @allxsmith\/bestax-bulma/
     );
   });
+  it('darkens the page and pads the example, in index.html and index.css', () => {
+    assert.match(
+      project.files['index.html'],
+      /<html lang="en" data-theme="dark">/
+    );
+    const css = project.files['src/index.css'];
+    assert.match(css, /background: #16171d/);
+    assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
+  });
 });
 
 describe('codesandboxFiles', () => {
@@ -429,5 +438,15 @@ describe('codesandboxFiles', () => {
     assert.doesNotMatch(files['src/index.tsx'].content, /fontawesome|@mdi/);
     assert.equal(pkg.dependencies['@mdi/font'], undefined);
     assert.equal(pkg.dependencies['@fortawesome/fontawesome-free'], undefined);
+  });
+
+  it('darkens the page and pads the example in the CodeSandbox page and CSS', () => {
+    assert.match(
+      files['public/index.html'].content,
+      /<html lang="en" data-theme="dark">/
+    );
+    const css = files['src/index.css'].content;
+    assert.match(css, /background: #16171d/);
+    assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
   });
 });

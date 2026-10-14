@@ -150,6 +150,31 @@ function withStylesheets(main, icons) {
 }
 
 /**
+ * The look of a docs example window, carried into both sandboxes: a dark page
+ * with padding around the example, and Bulma's dark palette on the root.
+ */
+const STAGE_CSS = `
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: #16171d;
+}
+
+#root {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: 1.5rem;
+}
+`;
+
+/** Sets the dark palette on the root element of a template page. */
+function darkRoot(html) {
+  return html.replace('<html lang="en">', '<html lang="en" data-theme="dark">');
+}
+
+/**
  * @typedef {object} SandboxInput
  * @property {string} app The example module, written as `src/App.tsx`.
  * @property {string[]} icons Icon library ids, from `iconLibrariesIn`.
@@ -208,7 +233,8 @@ export function stackblitzProject({
     template: 'node',
     files: {
       ...Object.fromEntries(copied.map(path => [path, template[path]])),
-      'index.html': html,
+      'index.html': darkRoot(html),
+      'src/index.css': `${template['src/index.css']}${STAGE_CSS}`,
       'package.json': `${JSON.stringify(pkg, null, 2)}\n`,
       'src/main.tsx': withStylesheets(template['src/main.tsx'], icons),
       'src/App.tsx': app,
@@ -300,7 +326,7 @@ export function codesandboxFiles({
   ];
   const html = [
     '<!doctype html>',
-    '<html lang="en">',
+    '<html lang="en" data-theme="dark">',
     '  <head>',
     ...head.map(line => `    ${line}`),
     '  </head>',
@@ -342,7 +368,9 @@ export function codesandboxFiles({
         .join('\n')
         .replace("from './App.tsx'", "from './App'"),
     },
-    'src/index.css': { content: template['src/index.css'] },
+    'src/index.css': {
+      content: `${template['src/index.css']}${STAGE_CSS}`,
+    },
     'src/css.d.ts': { content: "declare module '*.css';\n" },
     'src/App.tsx': { content: app },
     'tsconfig.json': {
