@@ -36,7 +36,7 @@ pre.prism-code {
 }
 
 .live-preview {
-  margin-bottom: var(--ifm-leading);
+  margin-bottom: 0;
 }
 
 /* Live previews mount only once they scroll near the viewport (see
@@ -55,6 +55,7 @@ pre.prism-code {
   border-radius: 0.5rem;
   color: #e8e8ea;
   color-scheme: dark;
+  margin-bottom: var(--ifm-leading);
   padding: 1.5rem;
 }
 
