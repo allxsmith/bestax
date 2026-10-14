@@ -124,7 +124,11 @@ export const KbdGroup = forwardRef<HTMLElement, KbdGroupProps>(
         {...rest}
       >
         {keys.map((key, index) => (
-          <React.Fragment key={index}>
+          // Each wrapper takes its child's own React key, so a child that
+          // moves keeps its node. Text has none, so it goes by its place.
+          <React.Fragment
+            key={React.isValidElement(key) && key.key != null ? key.key : index}
+          >
             {index > 0 && (
               <span className={separatorClass}>{` ${separator} `}</span>
             )}
