@@ -52,6 +52,14 @@ pre.prism-code {
   margin-bottom: 0;
 }
 
+/* Three header controls need more width than a phone leaves once the stage
+   inset is subtracted, and the window clips what overflows. */
+@media (max-width: 30rem) {
+  .stage {
+    padding: 0.5rem;
+  }
+}
+
 .buttons {
   white-space: nowrap;
 }
