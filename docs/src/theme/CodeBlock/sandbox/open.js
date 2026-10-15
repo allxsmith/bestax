@@ -116,6 +116,9 @@ async function defineSandbox(files) {
     throw new Error(`CodeSandbox answered ${response.status}`);
   }
   const { sandbox_id: id } = await response.json();
+  if (!id) {
+    throw new Error('CodeSandbox returned no sandbox id');
+  }
   return id;
 }
 
