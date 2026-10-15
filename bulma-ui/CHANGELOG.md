@@ -1,3 +1,30 @@
+# [5.34.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.33.1...@allxsmith/bestax-bulma@5.34.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** keep EmptyState's left room only for an indicator, and follow py ([9a615d6](https://github.com/allxsmith/bestax/commit/9a615d6e6f0c819b43a7ee0df1613fd1dd05a02b)), closes [#1065](https://github.com/allxsmith/bestax/issues/1065)
+* **docs:** address the deep review of the sandbox builders ([b7338d9](https://github.com/allxsmith/bestax/commit/b7338d994968cc6a8f3ac10922726fe78b277f35))
+* **docs:** close the CodeSandbox tab when its launch fails ([d1e6d1d](https://github.com/allxsmith/bestax/commit/d1e6d1d6df82c2b10922d123d418632bb62c5fc4))
+* **docs:** compare the icon link as a string in the sandbox test ([9ac4737](https://github.com/allxsmith/bestax/commit/9ac4737ca56bc0a0171c56c74870717fa6d7037a))
+* **docs:** darken the live preview surface and follow the library stylesheet import ([363badf](https://github.com/allxsmith/bestax/commit/363badf4a958b5a2973290405b9408a5121fc838))
+* **docs:** draw the CodeSandbox button icon as the cube mark ([8389e18](https://github.com/allxsmith/bestax/commit/8389e1861b5d81f3e39cb5fc708340adb5520c1f))
+* **docs:** give both sandboxes the example window's dark page and padding ([33dfb4a](https://github.com/allxsmith/bestax/commit/33dfb4ae853a1e8e860d9198605efacb17e2c244))
+* **docs:** keep the live preview's spacing outside its dark surface ([7a158e1](https://github.com/allxsmith/bestax/commit/7a158e162d3f702de481d9da254c90da6a567e79))
+* **docs:** keep the live-preview margin off the homepage previews ([f18eed3](https://github.com/allxsmith/bestax/commit/f18eed3f39ea06acba85bc42ee9967513ea736e7))
+* **docs:** load the CodeSandbox stylesheet from the CDN and darken example windows ([253f057](https://github.com/allxsmith/bestax/commit/253f057512274a115f940e8008685d297a971642))
+* **docs:** match the preview's color scheme and keep the copy button on narrow screens ([c4d6d25](https://github.com/allxsmith/bestax/commit/c4d6d25d55a0e7e09c3df9912f96003bddf852da))
+* **docs:** open CodeSandbox through its JSON define API ([6a65276](https://github.com/allxsmith/bestax/commit/6a6527641e649a72384675211a6e3ba3caac307d))
+* **docs:** open the CodeSandbox tab on the click, and skip the sandbox when popups are blocked ([bcc0634](https://github.com/allxsmith/bestax/commit/bcc0634dec98d7acb5835627c643ee359eb08688))
+* **docs:** restore the homepage preview margin, and reject a CodeSandbox reply without an id ([9e0991f](https://github.com/allxsmith/bestax/commit/9e0991faef2bdf2817d6490e36dd817156cec538))
+* **docs:** send the copy and sandbox buttons the code the reader typed ([019edf0](https://github.com/allxsmith/bestax/commit/019edf087d22faabb6c1e2232d556ba705b62ac9))
+
+
+### Features
+
+* **bulma-ui:** add EmptyState, the block a list shows when it has nothing in it ([c5929d2](https://github.com/allxsmith/bestax/commit/c5929d23d79c4b1836423fe1beb30affd2a0ebf5)), closes [#1065](https://github.com/allxsmith/bestax/issues/1065)
+* **docs:** open live examples in StackBlitz and CodeSandbox ([654b16c](https://github.com/allxsmith/bestax/commit/654b16c0189def26a3d26b86e135d87c0e333802))
+
 ## [5.33.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.33.0...@allxsmith/bestax-bulma@5.33.1) (2026-10-15)
 
 
