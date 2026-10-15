@@ -1,0 +1,512 @@
+{
+  "name": "EmptyState",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/emptystate",
+  "docsUrl": "https://bestax.io/docs/api/components/emptystate",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<Box>\n  <EmptyState\n    icon=\"folder-open\"\n    title=\"No projects yet\"\n    description=\"Projects you create or join show up here.\"\n  >\n    <Button color=\"primary\">New project</Button>\n  </EmptyState>\n</Box>"
+    },
+    {
+      "title": "More Than One Action",
+      "code": "<Box>\n  <EmptyState\n    icon=\"folder-open\"\n    title=\"No projects yet\"\n    description=\"Projects you create or join show up here.\"\n  >\n    <EmptyState.Actions>\n      <Button color=\"primary\">New project</Button>\n      <Button>Import</Button>\n    </EmptyState.Actions>\n  </EmptyState>\n</Box>"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Columns isMultiline>\n  {(['small', 'normal', 'medium', 'large'] as const).map(size => (\n    <Column key={size} size=\"half\" display=\"flex\" flexDirection=\"column\">\n      <Box\n        flexGrow=\"1\"\n        display=\"flex\"\n        flexDirection=\"column\"\n        justifyContent=\"center\"\n      >\n        <EmptyState\n          size={size}\n          icon=\"inbox\"\n          title=\"No messages\"\n          description=\"Messages people send you show up here.\"\n        >\n          <Button>Write a message</Button>\n        </EmptyState>\n      </Box>\n    </Column>\n  ))}\n</Columns>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Columns isMultiline>\n  <Column size=\"one-third\">\n    <Box>\n      <EmptyState\n        size=\"small\"\n        color=\"primary\"\n        icon=\"folder-open\"\n        title=\"No projects yet\"\n      />\n    </Box>\n  </Column>\n  <Column size=\"one-third\">\n    <Box>\n      <EmptyState\n        size=\"small\"\n        color=\"link\"\n        icon=\"bookmark\"\n        title=\"No bookmarks yet\"\n      />\n    </Box>\n  </Column>\n  <Column size=\"one-third\">\n    <Box>\n      <EmptyState\n        size=\"small\"\n        color=\"info\"\n        icon=\"upload\"\n        title=\"Nothing uploaded yet\"\n      />\n    </Box>\n  </Column>\n  <Column size=\"one-third\">\n    <Box>\n      <EmptyState size=\"small\" color=\"success\" icon=\"check\" title=\"All done\" />\n    </Box>\n  </Column>\n  <Column size=\"one-third\">\n    <Box>\n      <EmptyState\n        size=\"small\"\n        color=\"warning\"\n        icon=\"box-archive\"\n        title=\"No backups yet\"\n      />\n    </Box>\n  </Column>\n  <Column size=\"one-third\">\n    <Box>\n      <EmptyState\n        size=\"small\"\n        color=\"danger\"\n        icon=\"trash\"\n        title=\"The trash is empty\"\n      />\n    </Box>\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "Variants",
+      "code": "<Columns>\n  <Column>\n    <Box>\n      <EmptyState size=\"small\" icon=\"bell\" title=\"No alerts\" />\n    </Box>\n  </Column>\n  <Column>\n    <Box>\n      <EmptyState size=\"small\" variant=\"filled\" icon=\"bell\" title=\"No alerts\" />\n    </Box>\n  </Column>\n  <Column>\n    <Box>\n      <EmptyState size=\"small\" color=\"success\" icon=\"check\" title=\"All done\" />\n    </Box>\n  </Column>\n  <Column>\n    <Box>\n      <EmptyState\n        size=\"small\"\n        color=\"success\"\n        variant=\"filled\"\n        icon=\"check\"\n        title=\"All done\"\n      />\n    </Box>\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "Alignment",
+      "code": "<Box>\n  <EmptyState\n    align=\"left\"\n    color=\"primary\"\n    icon=\"users\"\n    title=\"No one else is here yet\"\n    description=\"Invite the people you work with, and they'll show up in this list.\"\n  >\n    <EmptyState.Actions>\n      <Button color=\"primary\">Invite people</Button>\n      <Button>Copy invite link</Button>\n    </EmptyState.Actions>\n  </EmptyState>\n</Box>"
+    },
+    {
+      "title": "In a Card",
+      "code": "<Columns>\n  <Column>\n    <Card header=\"Invoices\">\n      <EmptyState\n        size=\"small\"\n        align=\"left\"\n        color=\"success\"\n        variant=\"filled\"\n        icon=\"check\"\n        title=\"All paid up\"\n        titleAs=\"h3\"\n        description=\"New invoices show up here when they arrive.\"\n      />\n    </Card>\n  </Column>\n  <Column>\n    <Card header=\"Files\">\n      <EmptyState\n        size=\"small\"\n        icon=\"cloud-arrow-up\"\n        title=\"Nothing uploaded yet\"\n        titleAs=\"h3\"\n        description=\"Files you add to this project show up here.\"\n      >\n        <Button size=\"small\" color=\"info\">\n          Upload files\n        </Button>\n      </EmptyState>\n    </Card>\n  </Column>\n</Columns>"
+    },
+    {
+      "title": "A Search With No Results",
+      "code": "function example() {\n  const projects = ['Apollo', 'Gemini', 'Mercury'];\n  const [query, setQuery] = useState('kraken');\n  const searchRef = React.useRef<HTMLInputElement>(null);\n  const term = query.trim().toLowerCase();\n  const shown = projects.filter(name => name.toLowerCase().includes(term));\n\n  function clear() {\n    setQuery('');\n    // The button goes away with the empty state, so focus goes back to the field.\n    searchRef.current?.focus();\n  }\n\n  return (\n    <Box>\n      <Title as=\"h2\" textSize=\"5\">\n        Projects\n      </Title>\n      <Field label=\"Search projects\">\n        <Control>\n          <Input\n            ref={searchRef}\n            type=\"search\"\n            value={query}\n            onChange={e => setQuery(e.target.value)}\n          />\n        </Control>\n      </Field>\n      {/* Always in the page, so a change to its text is announced. */}\n      <Paragraph role=\"status\" aria-atomic=\"true\" visibility=\"sr-only\">\n        {shown.length === 0\n          ? 'No projects match the search'\n          : `${shown.length} of ${projects.length} projects`}\n      </Paragraph>\n      {shown.length === 0 ? (\n        <EmptyState\n          icon=\"magnifying-glass\"\n          title={`No projects match “${query}”`}\n          titleAs=\"h3\"\n          description=\"Check the spelling, or clear the search.\"\n        >\n          <Button onClick={clear}>Clear search</Button>\n        </EmptyState>\n      ) : (\n        <UnorderedList>\n          {shown.map(name => (\n            <ListItem key={name}>{name}</ListItem>\n          ))}\n        </UnorderedList>\n      )}\n    </Box>\n  );\n}"
+    },
+    {
+      "title": "A First-Run Screen",
+      "code": "<Hero color=\"primary\">\n  <Hero.Body>\n    <EmptyState\n      size=\"large\"\n      icon=\"rocket\"\n      title=\"Welcome to your workspace\"\n      titleAs=\"h1\"\n      description=\"Make a project to get started. You can invite people once it's set up.\"\n    >\n      <Button color=\"primary\" isInverted>\n        Make a project\n      </Button>\n    </EmptyState>\n  </Hero.Body>\n</Hero>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<Box>\n  <EmptyState align=\"left\" color=\"warning\">\n    <EmptyState.Indicator>\n      <Icon name=\"star\" variant=\"regular\" />\n    </EmptyState.Indicator>\n    <EmptyState.Title as=\"h3\">No favorites yet</EmptyState.Title>\n    <EmptyState.Description>\n      Star a project to keep it here. A few to start with:\n    </EmptyState.Description>\n    <UnorderedList>\n      <ListItem>\n        <a href=\"#apollo\">Apollo</a>\n      </ListItem>\n      <ListItem>\n        <a href=\"#gemini\">Gemini</a>\n      </ListItem>\n    </UnorderedList>\n    <EmptyState.Actions size=\"small\">\n      <Button color=\"warning\">Browse projects</Button>\n      <Button>Not now</Button>\n    </EmptyState.Actions>\n  </EmptyState>\n</Box>"
+    }
+  ],
+  "accessibility": "- **The title is a heading:** it's always one, `h1` to `h6`, and `h2` by default. Pick the level\n  under the heading of the list it stands in for: an `h2` on a page, an `h3` or an `h4` in a Card.\n  `titleAs` sets it for the `title` prop and `as` sets it on `EmptyState.Title`, and nothing about\n  the size changes it. The size comes from the EmptyState, so `EmptyState.Title` doesn't take\n  `Title`'s `size`.\n- **The picture is decoration:** the indicator has `aria-hidden=\"true\"`, so everything in it is\n  hidden, an `Icon` with an `ariaLabel` included. Say what it means in the title or the\n  description.\n- **No role and no live region:** an empty state is content, and the heading makes it findable. It\n  doesn't announce itself, since it arrives already filled, would read its buttons along with it,\n  and is gone when results come back. After a search or a filter, announce the result with a\n  `role=\"status\"` region that's in the page the whole time, beside the search field, as in\n  [A Search With No Results](https://bestax.io/docs/api/components/emptystate#a-search-with-no-results). Primer's\n  [loading pattern](https://primer.style/product/ui-patterns/loading/) describes the same thing.\n- **Focus:** nothing in the component moves focus. A \"Clear search\" button goes away with the\n  empty state, so its click handler puts focus back in the search field rather than leaving it on\n  the page's `<body>`.\n- **Not for loading or errors:** while the data loads, show a [`Skeleton`](https://bestax.io/docs/api/elements/skeleton)\n  or a [`Loader`](https://bestax.io/docs/api/elements/loader), so \"No projects yet\" doesn't flash before the projects\n  arrive. A load that failed is a [`Message`](https://bestax.io/docs/api/components/message) or a\n  [`Notification`](https://bestax.io/docs/api/elements/notification).\n- **Contrast:** the description is the color of the text around it, so it keeps the contrast its\n  container has, a colored Hero included, and the title is Bulma's title color. The circle is\n  decoration, so it doesn't owe a contrast ratio, but every pairing reads in light and dark mode.\n- **Forced colors:** in Windows high contrast mode the icon takes the system's text color and\n  stays visible. The circle's fill drops out, since it's decoration.\n- **No motion:** nothing animates.",
+  "related": [
+    "Buttons",
+    "Icon",
+    "Loader",
+    "Media",
+    "Message",
+    "Skeleton",
+    "Title",
+    "useBulmaClasses"
+  ],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-emptystate--default",
+  "summary": "The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen. It's a column of a picture in a circle, a heading, a line of text and the actions, with one layout whether it's written with the `icon`, `title` and `description` props or with the parts. The children always render as written, after the parts the props render. It has no role and no live region. It arrives already filled and goes away when results come back, so it can't announce a search that matched nothing: keep a `role=\"status\"` region beside the search field for that, in the page the whole time. While the data loads, show a `Skeleton` or a `Loader` instead, so \"No projects yet\" doesn't flash first, and show a load that failed in a `Message` or a `Notification`.",
+  "import": "import { EmptyState } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/EmptyState.tsx",
+  "rootClass": "empty-state",
+  "parts": [
+    {
+      "path": "EmptyState",
+      "summary": "The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen. It's a column of a picture in a circle, a heading, a line of text and the actions, with one layout whether it's written with the `icon`, `title` and `description` props or with the parts. The children always render as written, after the parts the props render. It has no role and no live region. It arrives already filled and goes away when results come back, so it can't announce a search that matched nothing: keep a `role=\"status\"` region beside the search field for that, in the page the whole time. While the data loads, show a `Skeleton` or a `Loader` instead, so \"No projects yet\" doesn't flash first, and show a load that failed in a `Message` or a `Notification`.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The picture in the indicator's circle. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. Anything else (an `<Icon>` with its own `variant` or `library`, an SVG, an `<img>`) renders as it is. It's decorative and hidden from assistive tech, so the title says what it means.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The heading, rendered as `EmptyState.Title`. It's always a real heading, at the level `titleAs` sets.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "titleAs",
+          "type": "'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
+          "default": "'h2'",
+          "description": "The heading level for `title`: the level under the heading of the list it stands in for, such as `h3` for a list under an `h2`. Only this sets the level, and the size comes from `size`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "description",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A sentence or two under the title, rendered as `EmptyState.Description`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Rendered as written, after whatever `icon`, `title` and `description` render. One button can go straight in, and it sits centered under the text. Group two or more in `EmptyState.Actions`, or they stack. Without the props, write the parts here in the order they're shown: `EmptyState.Indicator`, `.Title`, `.Description`, then the actions.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "The indicator's color. It colors the circle and its icon, not the text. Without it the circle is neutral, since an empty list isn't a status.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "variant",
+          "type": "'light' | 'filled'",
+          "default": "'light'",
+          "description": "`light` is a soft tint of `color` behind the icon in the color. `filled` is the color itself, with the icon in its invert.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'normal' | 'medium' | 'large'",
+          "default": "'normal'",
+          "description": "Sizes the indicator, the title, the description and the spacing together.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "align",
+          "type": "'center' | 'left'",
+          "default": "'center'",
+          "description": "`center` stacks everything in a centered column. `left` puts the indicator beside the text, at the start of the line, so on the right in a right-to-left page. In `left`, the padding at the start of the line is what makes room for the indicator, so pad it with `py` rather than `p` or `px`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLDivElement>",
+          "default": null,
+          "description": "Ref forwarded to the root `<div>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "EmptyState.Indicator",
+      "summary": "The circle the picture sits in, hidden from assistive tech whatever is in it.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The picture: an `Icon`, an SVG or an `<img>`. The indicator is hidden from assistive tech, an `Icon` with an `ariaLabel` included, so anything it means goes in the title or the description.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "EmptyState.Title",
+      "summary": "The heading, a Bulma `Title` at the level `as` sets, `h2` by default, and at the EmptyState's size.",
+      "component": null,
+      "props": [
+        {
+          "name": "as",
+          "type": "'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'",
+          "default": "'h2'",
+          "description": "The heading level: the level under the heading of the list the empty state stands in for.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "hasSkeleton",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies the `has-skeleton` class to part of the content.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Title content.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "skeleton",
+          "type": "boolean",
+          "default": null,
+          "description": "Applies the `is-skeleton` class to the entire component.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <h1>–<h6> / <p> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "EmptyState.Description",
+      "summary": "A sentence or two under the title, in the color of the text around it.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Content to render inside the paragraph.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <p> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "EmptyState.Actions",
+      "summary": "A row of buttons, centered under the text or at the start of the line beside the indicator.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper for the button group.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.buttons.is-<color>` CSS exists; color the individual `Button`s instead). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper for the button group.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "hasAddons",
+          "type": "boolean",
+          "default": "false",
+          "description": "Group buttons together as addons (removes spacing between them).",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size of the button group.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The button elements to render inside the group.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-empty-state-gap",
+      "sass": "$empty-state-gap",
+      "default": "1rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-padding",
+      "sass": "$empty-state-padding",
+      "default": "3rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-indicator-size",
+      "sass": "$empty-state-indicator-size",
+      "default": "3rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-indicator-radius",
+      "sass": "$empty-state-indicator-radius",
+      "default": "var(--bulma-radius-rounded)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-indicator-background",
+      "sass": "$empty-state-indicator-background",
+      "default": "var(--bulma-background)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-indicator-color",
+      "sass": "$empty-state-indicator-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-icon-size",
+      "sass": "$empty-state-icon-size",
+      "default": "1.5rem",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-title-size",
+      "sass": "$empty-state-title-size",
+      "default": "var(--bulma-size-5)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-description-size",
+      "sass": "$empty-state-description-size",
+      "default": "var(--bulma-size-6)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-description-color",
+      "sass": "$empty-state-description-color",
+      "default": "currentColor",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-empty-state-description-max-width",
+      "sass": "$empty-state-description-max-width",
+      "default": "32em",
+      "scope": "root"
+    }
+  ]
+}

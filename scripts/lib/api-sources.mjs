@@ -166,6 +166,9 @@ export const SCSS_SOURCES = {
   Divider: [],
   Dropdown: [{ pkg: 'bulma', path: 'sass/components/dropdown.scss' }],
   Emphasis: [],
+  EmptyState: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_emptystate.scss' },
+  ],
   Field: [{ pkg: 'bulma', path: 'sass/form/tools.scss' }],
   Figure: [],
   File: [{ pkg: 'bulma', path: 'sass/form/file.scss' }],
