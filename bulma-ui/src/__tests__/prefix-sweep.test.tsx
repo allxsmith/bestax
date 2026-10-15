@@ -117,6 +117,26 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
   Message: { children: 'Hello' },
   Notification: { children: 'Hello' },
+  // Every shorthand part, a size, a color and the left alignment, with the
+  // actions row as a child, so each class the EmptyState family adds is swept.
+  EmptyState: {
+    icon: 'folder-open',
+    title: 'No projects yet',
+    description: 'Projects you create show up here.',
+    size: 'small',
+    color: 'info',
+    variant: 'filled',
+    align: 'left',
+    children: (
+      <Library.EmptyState.Actions>
+        <Library.Button>New project</Library.Button>
+      </Library.EmptyState.Actions>
+    ),
+  },
+  EmptyStateActions: { children: <Library.Button>New project</Library.Button> },
+  EmptyStateDescription: { children: 'Projects you create show up here.' },
+  EmptyStateIndicator: { children: <Library.Icon name="folder-open" /> },
+  EmptyStateTitle: { children: 'No projects yet' },
   // A symbol with a label, so its two spans are swept, and in a group with a
   // second key, so the separator is too.
   Kbd: { label: 'Command', children: '⌘' },

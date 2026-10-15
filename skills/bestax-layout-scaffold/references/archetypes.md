@@ -239,6 +239,63 @@ build the whole grid with `Grid`/`Cell` (`<Grid isFixed fixedColsMobile={1} fixe
 fixedColsDesktop={3} gap={4}>`) — CSS Grid keeps cells equal-height for free; see the
 `Grid / Cell` section in `layout-components.md`.
 
+**Nothing to show:** when the collection is empty, or a search or a filter matches nothing,
+render an `EmptyState` in the grid's place rather than composing one from `Box`, `Icon` and
+`Title`. Its `title` is always a heading: set `titleAs` to the level under the section's own
+heading. It doesn't announce itself, so a search keeps a status region beside its field the
+whole time, saying the count, and "Clear search" puts focus back in the field, since the button
+goes away with the empty state:
+
+```tsx
+const searchRef = useRef<HTMLInputElement>(null);
+const shown = items.filter(item =>
+  item.name.toLowerCase().includes(query.trim().toLowerCase())
+);
+
+<>
+  <Field label="Search products">
+    <Control>
+      <Input
+        ref={searchRef}
+        type="search"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+      />
+    </Control>
+  </Field>
+  {/* Always in the page, so a change to its text is announced. */}
+  <Paragraph role="status" aria-atomic="true" visibility="sr-only">
+    {shown.length === 0
+      ? 'No products match the search'
+      : `${shown.length} products`}
+  </Paragraph>
+  {shown.length === 0 ? (
+    <EmptyState
+      icon="magnifying-glass"
+      title={`No products match “${query}”`}
+      titleAs="h2"
+      description="Check the spelling, or clear the search."
+    >
+      <Button
+        onClick={() => {
+          setQuery('');
+          searchRef.current?.focus();
+        }}
+      >
+        Clear search
+      </Button>
+    </EmptyState>
+  ) : (
+    <Columns isMultiline>{/* the cards, as above */}</Columns>
+  )}
+</>;
+```
+
+With nothing in the collection at all, the same component says so and offers the first step:
+`<EmptyState icon="box-open" title="No products yet" titleAs="h2" description="…">` with one
+`<Button color="primary">` as its child, or two or more in `EmptyState.Actions`. While the items
+load, show a `Skeleton` or a `Loader` instead, so the empty state doesn't flash first.
+
 ---
 
 ## Combining archetypes
