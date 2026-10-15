@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 19769
+          "bytes": 19985
         },
         {
           "id": "library-contributor",
@@ -59,7 +59,7 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 8276
+          "bytes": 10240
         },
         {
           "id": "layout-components",
@@ -93,12 +93,12 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26302
+          "bytes": 24639
         },
         {
           "id": "bloomer-unmappables",
           "file": "references/bloomer/unmappables.md",
-          "bytes": 17686
+          "bytes": 16955
         },
         {
           "id": "bulma-classes-component-map",
@@ -128,12 +128,12 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 13930
+          "bytes": 12404
         },
         {
           "id": "rbx-unmappables",
           "file": "references/rbx/unmappables.md",
-          "bytes": 15067
+          "bytes": 14336
         },
         {
           "id": "react-bulma-components-component-map",
@@ -143,12 +143,12 @@
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 8850
+          "bytes": 7334
         },
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 12997
+          "bytes": 12266
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 10298
+          "bytes": 10312
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 33582
+          "bytes": 34455
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 22998
+          "bytes": 23417
         }
       ],
       "examples": [

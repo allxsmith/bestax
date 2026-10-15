@@ -1,11 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useContext } from 'react';
 import OriginalCodeBlock from '@theme-init/CodeBlock';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-import { LiveProvider, LiveEditor, LiveError } from 'react-live';
-import * as BestaxBulma from '@allxsmith/bestax-bulma';
-import { ProfileCard } from '@site/src/components/SkillExamples';
-import SmartTheme from './ShadowTheme';
+import { LiveProvider, LiveContext, LiveEditor, LiveError } from 'react-live';
 import BrowserWindow from './BrowserWindow';
+import { scope } from './scope';
+import { stripModuleLines } from './sandbox/moduleLines.mjs';
 
 /**
  * The preview's shadow root, split out of the main bundle.
@@ -28,35 +27,19 @@ function extractTitleFromMeta(metastring) {
   return match ? match[1] : undefined;
 }
 
-// Define a transform function to remove import lines and export default statements
-function transformCode(code) {
-  // Split into lines, filter out those starting with 'import' or 'export default' (after trimming whitespace),
-  // and rejoin. This handles single-line imports and exports; for multi-line, adjust if your examples use them.
-  return code
-    .split('\n')
-    .filter(line => {
-      const trimmed = line.trim();
-      return (
-        !trimmed.startsWith('import') && !trimmed.startsWith('export default')
-      );
-    })
-    .join('\n');
-}
-
-// If needed, extend the scope to include your bestax-bulma components for use in live code
-const scope = {
-  ...BestaxBulma,
-  Theme: SmartTheme, // Override with our smart Theme selector
-  ProfileCard, // docs-only Skill Example component (not shipped in the library)
-  React,
-  useState,
-  useEffect,
-};
-
 function BrowserEditor({ title }) {
+  const live = useContext(LiveContext);
+  const [code, setCode] = React.useState(live.code);
+  // react-live keeps the code it was given and only retranspiles on edit, so
+  // the text the reader has typed is kept here for the copy and sandbox buttons.
+  const onChange = next => {
+    setCode(next);
+    live.onChange(next);
+  };
   return (
-    <BrowserWindow url={title}>
+    <BrowserWindow url={title} code={code}>
       <LiveEditor
+        onChange={onChange}
         style={{
           backgroundColor: 'var(--prism-background-color)',
           font: 'var(--ifm-code-font-size) / var(--ifm-pre-line-height) var(--ifm-font-family-monospace)',
@@ -122,7 +105,7 @@ function DeferredShadowPreview() {
     <div ref={ref} className="live-preview-slot">
       {inView && (
         <React.Suspense fallback={null}>
-          <ShadowLivePreview />
+          <ShadowLivePreview forcedColorMode="dark" />
         </React.Suspense>
       )}
     </div>
@@ -140,7 +123,7 @@ export default function CodeBlockEnhancer(props) {
     <LiveProvider
       code={props.children}
       scope={scope} /* other props as needed */
-      transformCode={transformCode}
+      transformCode={stripModuleLines}
     >
       <BrowserOnly fallback={<div className="live-preview-slot" />}>
         {() => <DeferredShadowPreview />}

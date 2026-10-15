@@ -105,6 +105,17 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   adding to it, and its portaled content lands unstyled in `document.body` with every gate
   green. In an example that portals, don't nest one, or give it a `portalContainer`: an element
   the example renders, or the preview's own, read with `useConfig()`.
+- **A live example opens in StackBlitz and CodeSandbox** from the two buttons beside its copy
+  button (`src/theme/CodeBlock/SandboxButtons`, builders in `src/theme/CodeBlock/sandbox/`).
+  The project is built in the reader's browser when they click, from the code in the editor:
+  the fence becomes an `App.tsx` with exactly the imports it uses, inside the create-bestax
+  `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
+  Nothing is published ahead of time and a fence needs no marker. A component that exists only in this site goes in
+  `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs`, which the corpus gate
+  also reads, and gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one shows no sandbox buttons, since no
+  sandbox can install it. That test also runs the converter over every live fence that is not
+  marked `notypecheck`, and type-checks what it writes, so a fence it cannot convert fails `pnpm test` instead of opening
+  broken; a failure there is the converter's to fix, not the fence's.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 

@@ -7,6 +7,7 @@ export * from './components/Badge';
 export * from './components/Breadcrumb';
 export * from './components/Card';
 export * from './components/Dropdown';
+export * from './components/EmptyState';
 export * from './components/Menu';
 export * from './components/Message';
 export * from './components/Modal';

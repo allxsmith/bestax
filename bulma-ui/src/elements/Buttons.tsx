@@ -19,7 +19,7 @@ export type ButtonsSize = (typeof validButtonsSizes)[number];
 /**
  * Props for the Buttons component.
  */
-interface ButtonsProps
+export interface ButtonsProps
   extends
     React.HTMLAttributes<HTMLDivElement>,
     Omit<BulmaClassesProps, 'size'> {

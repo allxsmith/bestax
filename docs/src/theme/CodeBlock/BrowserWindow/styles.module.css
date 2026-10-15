@@ -34,8 +34,25 @@ pre.prism-code {
   border-radius: 0;
 }
 
-.browserWindowBody {
-  background-color: var(--ifm-background-surface-color);
+/* The stage sits behind every example window, so an example never reads as
+   bare page content. */
+.stage {
+  background: var(--ifm-color-emphasis-100);
+  border-radius: 0.5rem;
+  margin-bottom: var(--ifm-leading);
+  padding: 1.5rem;
+}
+
+.stage .browserWindow {
+  margin-bottom: 0;
+}
+
+/* Three header controls need more width than a phone leaves once the stage
+   inset is subtracted, and the window clips what overflows. */
+@media (max-width: 30rem) {
+  .stage {
+    padding: 0.5rem;
+  }
 }
 
 .buttons {
@@ -49,6 +66,11 @@ pre.prism-code {
   height: 0.8rem;
   margin-right: 0.5rem;
   width: 0.8rem;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 0.25rem;
 }
 
 .buttonGroup button {

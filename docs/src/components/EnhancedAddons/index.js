@@ -55,6 +55,12 @@ const ADDONS = [
     desc: 'Confirmation and alert dialogs with customizable actions.',
   },
   {
+    name: 'EmptyState',
+    icon: 'emptystate',
+    link: '/docs/api/components/emptystate',
+    desc: 'What a list or a search shows when there is nothing in it, with a real heading and a way forward.',
+  },
+  {
     name: 'HoverCard',
     icon: 'hovercard',
     link: '/docs/api/components/hovercard',
