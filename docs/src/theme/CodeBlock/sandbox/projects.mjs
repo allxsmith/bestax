@@ -363,7 +363,8 @@ export function codesandboxFiles({
         }),
         devDependencies: sortKeys({
           ...fromTemplate(['@types/react', '@types/react-dom', 'typescript']),
-          'react-scripts': 'latest',
+          // The Vite template has none to copy, so it is pinned here.
+          'react-scripts': '^5.0.1',
         }),
         scripts: {
           start: 'react-scripts start',
