@@ -128,6 +128,9 @@ export interface AutocompleteProps
    * rather than in it, so the input's `aria-expanded` stays false while it
    * shows. When the user's typing leaves nothing that matches, a polite
    * status region announces its text: once each time the matches run out.
+   * The text is read when they first run out, and isn't read again as it
+   * changes while they stay out, so a message that names the query is heard
+   * for that first query only. Keep it static.
    * Opening the list without typing, or emptying the field, announces
    * nothing. While `loading`, or a `Control` with `isLoading` around the
    * Autocomplete, is on, it waits, and it's announced once loading ends
