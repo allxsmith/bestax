@@ -13,5 +13,6 @@ export const Levels = () => (
     <Title as="h3" size={3}>h3, which size 3 renders too</Title>
     <Title as="h2" textSize="5">h2</Title>
     <SubTitle as="p" size={5}>p, which size never changes</SubTitle>
+    <Title as="p" textSize="7">p, where size 7 would lose its class</Title>
   </section>
 );

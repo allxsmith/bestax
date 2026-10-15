@@ -181,13 +181,13 @@ prop.
 A dynamic `Image.Container` size gets the same rule, since the codemod can't turn it into
 bestax's `NxN` form. Set `size` on the migrated `<Image>` by hand.
 
-## `prop:size` on `Title`: a size the codemod cannot read
+## `prop:size` on `Title`: a size the codemod cannot carry
 
 rbx's `Title` rendered an `<h1>` at every size, subtitle or not. bestax's `Title` and `SubTitle`
 render the heading their `size` names unless `as="p"`, so a literal size moves to `textSize` to
 keep the level (see "Title sizes" in the prop map). A dynamic one cannot move, because
-`textSize` takes a string: it stays `size` and is flagged, and as written the heading level
-follows the value. Pass the size to `textSize` yourself:
+`textSize` takes a string, and a literal outside 1 to 7 has no Bulma class to move to. Either
+stays `size` and is flagged. Pass the size to `textSize` yourself:
 
 ```jsx
 <Title size={compact ? 5 : 4}>Report</Title>

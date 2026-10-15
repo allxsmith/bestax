@@ -904,16 +904,25 @@ describe('bloomer navigation handlers', () => {
     const tag = migrate(dyn('Title', '<Title isSize={1} tag={p.t}>x</Title>'));
     expect(tag.rules).toEqual([]);
     expect(tag.output).toContain('<Title textSize="1" as={p.t}>x</Title>');
-    const spread = migrate(dyn('Title', '<Title {...p} isSize={1}>x</Title>'));
-    expect(spread.output).toContain('<Title {...p} textSize="1">x</Title>');
   });
 
-  it('leaves a size outside 1 to 6 to the type checker', () => {
-    const { output, rules } = migrate(
-      dyn('Title', '<Title isSize={7}>x</Title>')
+  // A `tag` inside a spread never becomes bestax's `as`, so the element is
+  // the one the written props decide, for the size and for `as` alike.
+  it('reads the element past a spread, which cannot carry `as`', () => {
+    const sized = migrate(
+      dyn('Subtitle', '<Subtitle {...p} isSize={2}>x</Subtitle>')
     );
-    expect(rules).toEqual([]);
-    expect(output).toContain('<Title size={7}>x</Title>');
+    expect(sized.output).toContain('<SubTitle {...p} size={2}>x</SubTitle>');
+    const bare = migrate(dyn('Subtitle', '<Subtitle {...p}>x</Subtitle>'));
+    expect(bare.output).toContain('<SubTitle {...p} as="h2">x</SubTitle>');
+  });
+
+  it('flags a literal size Bulma has no class for', () => {
+    const { output, rules } = migrate(
+      dyn('Title', '<Title isSize={8}>x</Title>')
+    );
+    expect(rules).toEqual(['prop:isSize']);
+    expect(jsx(output)).toContain('<Title size={8}>x</Title>');
   });
 
   it('keeps a Page it cannot fold as a plain list item', () => {

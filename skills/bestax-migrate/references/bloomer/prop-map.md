@@ -95,10 +95,10 @@ bloomer rendered:
 | `<Subtitle isSize={4}>`       | `<SubTitle textSize="4" as="h2">` | `<h2>`  |
 
 `size` stays only where it renders the same element: a `<p>`, or the heading the size names.
-Everywhere else the size moves to the `textSize` helper, which sets the same font size through
-Bulma's `is-size-4` class rather than the title's own `is-4`, so a rule of your own that targets
-`.title.is-4` needs the new class too. A size the codemod cannot read keeps `size` and gets a
-`prop:isSize` TODO.
+Everywhere else the size moves to the `textSize` helper, and so does a 7, which bestax's `size`
+does not take. The helper sets the same font size through Bulma's `is-size-4` class rather than the
+title's own `is-4`, so a rule of your own that targets `.title.is-4` needs the new class too. A
+size the codemod cannot read, or one outside 1 to 7, keeps `size` and gets a `prop:isSize` TODO.
 
 ## Column sizes
 

@@ -133,11 +133,11 @@ codemod keeps the element rbx rendered:
 | `<Title as="p" subtitle size={5}>` | `<SubTitle as="p" size={5}>`   | `<p>`   |
 
 `size` stays only where it renders the same element: a `<p>`, or the heading the size names.
-Everywhere else the size moves to the `textSize` helper, which sets the same font size through
-Bulma's `is-size-4` class rather than the title's own `is-4`, so a rule of your own that targets
-`.title.is-4` needs the new class too. Beside a spread, which may carry `as`, a size moves even
-where it names the default `<h1>`. A size the codemod cannot read keeps `size` and gets a
-`prop:size` TODO.
+Everywhere else the size moves to the `textSize` helper, and so does a 7, which bestax's `size`
+does not take. The helper sets the same font size through Bulma's `is-size-4` class rather than the
+title's own `is-4`, so a rule of your own that targets `.title.is-4` needs the new class too.
+Beside a spread, which may carry `as`, a size moves even where it names the default `<h1>`. A size
+the codemod cannot read, or one outside 1 to 7, keeps `size` and gets a `prop:size` TODO.
 
 ## `href` follows `as`
 

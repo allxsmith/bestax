@@ -366,6 +366,9 @@ export function restrictAsToTargets(
 /** The sizes bestax's Title and SubTitle turn into a heading level. */
 const TITLE_SIZES = ['1', '2', '3', '4', '5', '6'];
 
+/** Bulma's seven sizes, all of which `textSize` takes. */
+const TEXT_SIZES = [...TITLE_SIZES, '7'];
+
 /** What a source's title handler tells `keepTitleLevel` about it. */
 export interface TitleSource {
   /** The source component, for the TODO (`Heading`, `Subtitle`). */
@@ -387,12 +390,13 @@ export interface TitleSource {
  * or at its own default, whatever the size. bestax's `Title` and `SubTitle`
  * render the heading their `size` names unless `as="p"`, so `<Title size={4}>`
  * is an <h4>. A size therefore stays `size` only where that renders the
- * element the source did: a <p>, or the <hN> the size names. Anywhere else it
- * moves to the `textSize` helper, which sets the same font size and leaves
- * the level to `as`. A size the codemod cannot read gets a TODO.
+ * element the source did: a <p>, or the <hN> the size names, at a size bestax
+ * takes. Anywhere else it moves to the `textSize` helper, which sets the same
+ * font size and leaves the level to `as`. Any other size gets a TODO.
  *
  * bestax defaults to an <h1>, so a source whose default is another level gets
- * it written out as `as`, unless the size already renders it.
+ * it written out as `as`, unless the size already renders it or a spread may
+ * name the element.
  *
  * Returns the props it consumed, for the handler's `handledProps`.
  */
@@ -408,12 +412,13 @@ export function keepTitleLevel(
     (a: any) => a.type === 'JSXSpreadAttribute'
   );
   // The element the source rendered, where the codemod can see it. A spread
-  // may carry the tag prop, so beside one only a written tag counts.
+  // names the element only where the source spells its tag prop `as`, the
+  // name bestax reads: a `tag` or `renderAs` inside one never reaches `as`.
   let rendered: string | undefined;
   if (tagAttr) {
     const literal = literalValueOf(tagAttr);
     if (literal.kind === 'string') rendered = literal.value;
-  } else if (!spread) {
+  } else if (!spread || source.tag !== 'as') {
     rendered = source.level;
   }
 
@@ -426,9 +431,12 @@ export function keepTitleLevel(
       literal.kind === 'string' || literal.kind === 'number'
         ? String(literal.value)
         : undefined;
-    const movable = size !== undefined && TITLE_SIZES.includes(size);
+    const movable = size !== undefined && TEXT_SIZES.includes(size);
     const textSize = findAttr(element, 'textSize');
-    if (rendered === 'p' || (size !== undefined && rendered === `h${size}`)) {
+    // A size the codemod cannot read is still safe beside a <p>; a literal
+    // has to be one bestax's `size` takes, or its class goes.
+    const takes = size === undefined || TITLE_SIZES.includes(size);
+    if (takes && (rendered === 'p' || rendered === `h${size}`)) {
       // `size` renders this element too, so the prop map carries it as is.
       sizeRendersLevel = true;
     } else if (movable && !textSize) {
@@ -436,7 +444,7 @@ export function keepTitleLevel(
       sizeAttr.value = j.stringLiteral(size);
       handled.push(source.size);
       ctx.dirty = true;
-    } else if (movable || literal.kind === 'expression') {
+    } else if (literal.kind !== 'boolean') {
       const level = `bestax's \`${source.target}\` renders the heading its \`size\` names unless \`as="p"\``;
       addTodo(
         ctx,
@@ -444,7 +452,7 @@ export function keepTitleLevel(
         `prop:${source.size}`,
         textSize
           ? `\`${source.where}\` sets a size and \`textSize\` both, and ${level}; to keep the level, drop \`size\` and let \`textSize\` set the font size`
-          : `\`${source.where}\` kept its element at every size, but ${level}; to keep the level, pass this size as \`textSize\` (a string, '1' to '6'), which sets the same font size`
+          : `\`${source.where}\` kept its element at every size, but ${level}; to keep the level, carry the size with \`textSize\`, which takes '1' to '7' as strings`
       );
       // Written as bestax's prop either way, so the prop map adds nothing.
       sizeAttr.name = j.jsxIdentifier('size');
@@ -452,7 +460,7 @@ export function keepTitleLevel(
     }
   }
 
-  if (!tagAttr && source.level !== 'h1' && !sizeRendersLevel) {
+  if (!tagAttr && rendered && source.level !== 'h1' && !sizeRendersLevel) {
     addAttr(element, makeAttr(j, 'as', source.level));
     ctx.dirty = true;
   }

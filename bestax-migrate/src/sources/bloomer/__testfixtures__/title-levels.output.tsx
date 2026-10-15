@@ -12,6 +12,8 @@ export const Levels = () => (
     <Title textSize="4" as="h2">h2</Title>
     <Title size={4} as="h4">h4, which size 4 renders too</Title>
     <Title size={6} as="p">p, which size never changes</Title>
+    <Title textSize="7">h1, at a size bestax's size does not take</Title>
+    <Title textSize="7" as="p">p, where size 7 would lose its class</Title>
     <SubTitle as="h2">h2</SubTitle>
     <SubTitle size={2}>h2, which size 2 renders too</SubTitle>
     <SubTitle textSize="4" as="h2">h2</SubTitle>

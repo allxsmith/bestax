@@ -40,6 +40,8 @@ const LIBRARIES: Array<[source: string, imports: string, cases: Case[]]> = [
       ['<Title isSize={4} tag="h2">x</Title>', '<h2 class="title is-4">'],
       ['<Title isSize={4} tag="h4">x</Title>', '<h4 class="title is-4">'],
       ['<Title isSize={6} tag="p">x</Title>', '<p class="title is-6">'],
+      ['<Title isSize={7}>x</Title>', '<h1 class="title is-7">'],
+      ['<Title isSize={7} tag="p">x</Title>', '<p class="title is-7">'],
       ['<Subtitle>x</Subtitle>', '<h2 class="subtitle">'],
       ['<Subtitle isSize={2}>x</Subtitle>', '<h2 class="subtitle is-2">'],
       ['<Subtitle isSize={4}>x</Subtitle>', '<h2 class="subtitle is-4">'],
@@ -63,6 +65,7 @@ const LIBRARIES: Array<[source: string, imports: string, cases: Case[]]> = [
         '<Title as="p" subtitle size={5}>x</Title>',
         '<p class="subtitle is-5">',
       ],
+      ['<Title as="p" size={7}>x</Title>', '<p class="title is-7">'],
     ],
   ],
   [
@@ -85,6 +88,7 @@ const LIBRARIES: Array<[source: string, imports: string, cases: Case[]]> = [
         '<Heading renderAs="p" subtitle size={5}>x</Heading>',
         '<p class="subtitle is-5">',
       ],
+      ['<Heading size={7}>x</Heading>', '<h1 class="title is-7">'],
     ],
   ],
 ];

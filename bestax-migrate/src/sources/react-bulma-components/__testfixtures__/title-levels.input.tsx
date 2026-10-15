@@ -13,5 +13,6 @@ export const Levels = () => (
     <Heading renderAs="h3" size={3}>h3, which size 3 renders too</Heading>
     <Heading renderAs="h2" size="5">h2</Heading>
     <Heading renderAs="p" subtitle size={5}>p, which size never changes</Heading>
+    <Heading size={7}>h1, at a size bestax's size does not take</Heading>
   </section>
 );
