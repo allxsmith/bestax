@@ -221,7 +221,7 @@ function example() {
 
 ### With Empty State
 
-Custom content when no results match. Screen reader users hear it too, once their typing runs the matches out (see [Accessibility](#accessibility)).
+Custom content when no results match. Screen reader users hear it too, once their typing runs the matches out, so keep it to a static message (see [Accessibility](#accessibility)).
 
 ```tsx live
 function example() {
@@ -426,6 +426,7 @@ function AutocompleteFormDemo() {
 - While `loading` is on, or a `Control` with `isLoading` around the Autocomplete, the announcement waits, so the `empty` text that shows while results are on their way isn't read out. It's said once loading ends with nothing matching, for each search that comes back empty. Pass `loading` while you fetch results, as the async story in Storybook does
 - Focusing the field, opening the list with `openOnFocus` or `↓`, or emptying the field announces nothing. Without `empty`, nothing is announced at all, since there's no built-in message to say
 - `empty` is a message, so keep it to text. `Tab` closes the list, so a keyboard user can't reach a link or a button in it
+- Keep that message static, like "No results found". Its text is read when the matches first run out and isn't read again while they stay out, so a message that names the query, like "No results for xyz", is only heard for the query that ran them out
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
