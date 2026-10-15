@@ -267,9 +267,10 @@ describe.each([
     expect(root.paddingInlineStart).toBe(
       'calc(var(--bulma-empty-state-indicator-size) + var(--bulma-empty-state-gap))'
     );
-    expect(root.minHeight).toBe(
-      'calc(var(--bulma-empty-state-indicator-size) + 2 * var(--bulma-empty-state-padding))'
-    );
+    // On the content box, so the room it keeps follows the block padding in
+    // effect, a `py` helper's included, rather than the padding variable.
+    expect(root.boxSizing).toBe('content-box');
+    expect(root.minHeight).toBe('var(--bulma-empty-state-indicator-size)');
     const indicator = getComputedStyle(
       container.querySelector(p('empty-state-indicator'))!
     );
@@ -277,6 +278,56 @@ describe.each([
     expect(indicator.insetInlineStart).toMatch(/^0(px)?$/);
     expect(getComputedStyle(getByTestId('actions')).justifyContent).toBe(
       'flex-start'
+    );
+  });
+
+  it('hands the parts border-box back, since Bulma’s reset makes them inherit', () => {
+    load(compile(prefix));
+    const { getByTestId, container } = renderEmpty({ align: 'left' });
+    for (const part of [
+      container.querySelector(p('empty-state-indicator'))!,
+      container.querySelector('h2')!,
+      container.querySelector('p')!,
+      getByTestId('actions'),
+    ]) {
+      expect(getComputedStyle(part).boxSizing).toBe('border-box');
+    }
+  });
+
+  it('keeps no room in left when there is no indicator', () => {
+    load(compile(prefix));
+    const { getByTestId } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <EmptyState
+          data-testid="root"
+          align="left"
+          title="No projects yet"
+          description="Projects you create show up here."
+        >
+          <EmptyState.Actions data-testid="actions">
+            <Button>New project</Button>
+          </EmptyState.Actions>
+        </EmptyState>
+      </ConfigProvider>
+    );
+    const root = getComputedStyle(getByTestId('root'));
+    // Still the start of the line, with no indent and no height kept.
+    expect(root.alignItems).toBe('flex-start');
+    expect(root.textAlign).toBe('start');
+    expect(root.paddingInlineStart).toBe('');
+    expect(root.minHeight).toBe('');
+    expect(root.boxSizing).toBe('');
+    expect(getComputedStyle(getByTestId('actions')).justifyContent).toBe(
+      'flex-start'
+    );
+  });
+
+  it('keeps the room only for an indicator that is the root’s own child', () => {
+    const rule = rulesOf(compile(prefix)).find(r =>
+      r.style.getPropertyValue('min-height')
+    );
+    expect(selectorOf(rule!)).toBe(
+      `${p('empty-state')}${p('is-left')}:has(> ${p('empty-state-indicator')})`
     );
   });
 

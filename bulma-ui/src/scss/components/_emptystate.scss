@@ -209,18 +209,28 @@ $empty-state-sizes: (
 // indicator comes out of the flow and sits there, level with the top of the
 // first part, wherever it's written, and the column makes room for it. A grid
 // can't do this, since the children are free-form and it can't span rows it
-// can't count.
+// can't count. With no indicator, `left` only puts the text at the start of
+// the line, and no room is kept.
 .#{iv.$class-prefix}empty-state.#{iv.$class-prefix}is-left {
   align-items: flex-start;
-  min-height: calc(
-    #{cv.getVar("empty-state-indicator-size")} + 2 *
-      #{cv.getVar("empty-state-padding")}
-  );
-  padding-inline-start: calc(
-    #{cv.getVar("empty-state-indicator-size")} + #{cv.getVar("empty-state-gap")}
-  );
   position: relative;
   text-align: start;
+
+  // The height is kept on the content box, so whatever padding is in effect,
+  // a `py` helper's included, the block is just tall enough for the circle.
+  // Bulma's reset has every element inherit its box-sizing, so the parts are
+  // handed border-box back.
+  &:has(> .#{iv.$class-prefix}empty-state-indicator) {
+    box-sizing: content-box;
+    min-height: cv.getVar("empty-state-indicator-size");
+    padding-inline-start: calc(
+      #{cv.getVar("empty-state-indicator-size")} + #{cv.getVar("empty-state-gap")}
+    );
+
+    > * {
+      box-sizing: border-box;
+    }
+  }
 
   .#{iv.$class-prefix}empty-state-indicator {
     inset-inline-start: 0;
