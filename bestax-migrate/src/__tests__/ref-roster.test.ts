@@ -41,6 +41,7 @@ const NAMED_INDIVIDUALLY = [
   'CarouselItem',
   'Dialog',
   'Dropdown',
+  'EmptyState',
   'Kbd',
   'Kbd.Group',
   'Link',

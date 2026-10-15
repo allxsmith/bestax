@@ -1,0 +1,233 @@
+// Bestax Extras - EmptyState Styles
+// The block an app shows where content would be: a circle with a picture in
+// it, a heading, a line of text and some actions, in one column. Bulma has a
+// class for every piece of that but the circle.
+//
+// A size is a handful of variables rather than a set of rules: the size
+// classes change the `--bulma-empty-state-*` values and the rules read them.
+// The colors work the same way, and every pairing is made from Bulma's scheme
+// tokens, so dark mode needs no rules of its own.
+
+@use "sass:map";
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+
+$empty-state-gap: 1rem !default;
+// Block padding only. Whatever holds the empty state pads its sides.
+$empty-state-padding: 3rem !default;
+$empty-state-indicator-size: 3rem !default;
+$empty-state-indicator-radius: cv.getVar("radius-rounded") !default;
+$empty-state-indicator-background: cv.getVar("background") !default;
+$empty-state-indicator-color: cv.getVar("text-weak") !default;
+$empty-state-icon-size: 1.5rem !default;
+$empty-state-title-size: cv.getVar("size-5") !default;
+$empty-state-description-size: cv.getVar("size-6") !default;
+// The text around it, so the description keeps the contrast its container
+// has, a colored Hero included.
+$empty-state-description-color: currentColor !default;
+// In em, so it's a readable line at every size.
+$empty-state-description-max-width: 32em !default;
+
+// The other sizes, each with the values it changes. The icon sizes are
+// Bulma's `.icon` dimensions and the indicator is twice the icon.
+$empty-state-sizes: (
+  "small": (
+    "gap": 0.75rem,
+    "padding": 1.5rem,
+    "indicator-size": 2rem,
+    "icon-size": 1rem,
+    "title-size": cv.getVar("size-6"),
+    "description-size": cv.getVar("size-7"),
+  ),
+  "medium": (
+    "gap": 1.25rem,
+    "padding": 4.5rem,
+    "indicator-size": 4rem,
+    "icon-size": 2rem,
+    "title-size": cv.getVar("size-4"),
+    "description-size": cv.getVar("size-6"),
+  ),
+  "large": (
+    "gap": 1.5rem,
+    "padding": 6rem,
+    "indicator-size": 6rem,
+    "icon-size": 3rem,
+    "title-size": cv.getVar("size-3"),
+    "description-size": cv.getVar("size-5"),
+  ),
+) !default;
+
+.#{iv.$class-prefix}empty-state {
+  @include cv.register-vars(
+    (
+      "empty-state-gap": #{$empty-state-gap},
+      "empty-state-padding": #{$empty-state-padding},
+      "empty-state-indicator-size": #{$empty-state-indicator-size},
+      "empty-state-indicator-radius": #{$empty-state-indicator-radius},
+      "empty-state-indicator-background": #{$empty-state-indicator-background},
+      "empty-state-indicator-color": #{$empty-state-indicator-color},
+      "empty-state-icon-size": #{$empty-state-icon-size},
+      "empty-state-title-size": #{$empty-state-title-size},
+      "empty-state-description-size": #{$empty-state-description-size},
+      "empty-state-description-color": #{$empty-state-description-color},
+      "empty-state-description-max-width": #{$empty-state-description-max-width},
+    )
+  );
+}
+
+@each $size, $values in $empty-state-sizes {
+  .#{iv.$class-prefix}empty-state.#{iv.$class-prefix}is-#{$size} {
+    @include cv.register-vars(
+      (
+        "empty-state-gap": #{map.get($values, "gap")},
+        "empty-state-padding": #{map.get($values, "padding")},
+        "empty-state-indicator-size": #{map.get($values, "indicator-size")},
+        "empty-state-icon-size": #{map.get($values, "icon-size")},
+        "empty-state-title-size": #{map.get($values, "title-size")},
+        "empty-state-description-size": #{map.get($values, "description-size")},
+      )
+    );
+  }
+}
+
+// The neutral pair turned around: the text color behind an icon in the
+// page's own background.
+.#{iv.$class-prefix}empty-state.#{iv.$class-prefix}is-filled {
+  @include cv.register-vars(
+    (
+      "empty-state-indicator-background": #{cv.getVar("text")},
+      "empty-state-indicator-color": #{cv.getVar("scheme-main")},
+    )
+  );
+}
+
+// `light` is the pair Bulma's `.button.is-soft` uses, built here from the
+// lightness the scheme sets, the way that button builds it, so a dark theme
+// set on part of the page turns it too. `filled` is the color itself with the
+// icon in its invert.
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}empty-state.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "empty-state-indicator-background":
+          hsl(
+            #{cv.getVar($name, "", "-h")},
+            #{cv.getVar($name, "", "-s")},
+            #{cv.getVar("soft-l")}
+          ),
+        "empty-state-indicator-color":
+          hsl(
+            #{cv.getVar($name, "", "-h")},
+            #{cv.getVar($name, "", "-s")},
+            #{cv.getVar("soft-invert-l")}
+          ),
+      )
+    );
+  }
+
+  .#{iv.$class-prefix}empty-state.#{iv.$class-prefix}is-#{$name}.#{iv.$class-prefix}is-filled {
+    @include cv.register-vars(
+      (
+        "empty-state-indicator-background": #{cv.getVar($name)},
+        "empty-state-indicator-color": #{cv.getVar($name, "", "-invert")},
+      )
+    );
+  }
+}
+
+// One column with the gap between its parts, so a part that isn't there
+// leaves no space. A centered flex item keeps its own width, so a lone button
+// sits centered under the text without being stretched across.
+.#{iv.$class-prefix}empty-state {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar("empty-state-gap");
+  padding-block: cv.getVar("empty-state-padding");
+  text-align: center;
+}
+
+.#{iv.$class-prefix}empty-state-indicator {
+  align-items: center;
+  background-color: cv.getVar("empty-state-indicator-background");
+  border-radius: cv.getVar("empty-state-indicator-radius");
+  color: cv.getVar("empty-state-indicator-color");
+  display: flex;
+  flex-shrink: 0;
+  font-size: cv.getVar("empty-state-icon-size");
+  height: cv.getVar("empty-state-indicator-size");
+  justify-content: center;
+  line-height: 1;
+  width: cv.getVar("empty-state-indicator-size");
+
+  // Font Awesome, Material Design Icons and Ionicons draw at the font size
+  // already. An Icon's box is 1.5rem whatever the glyph is, so it's sized to
+  // the glyph here, and a bare SVG or image is drawn at it too.
+  > .#{iv.$class-prefix}icon,
+  > svg,
+  > img {
+    height: 1em;
+    width: 1em;
+  }
+
+  // Material Icons and Material Symbols set a fixed 24px on the glyph, so
+  // they're handed the indicator's size back.
+  .material-icons,
+  .material-icons-outlined,
+  .material-icons-round,
+  .material-icons-sharp,
+  .material-icons-two-tone,
+  .material-symbols-outlined,
+  .material-symbols-rounded,
+  .material-symbols-sharp {
+    font-size: inherit;
+  }
+}
+
+// The title keeps Bulma's title look at the EmptyState's size. Bulma's
+// `.title:not(:last-child)` and `.buttons:not(:last-child)` margins are
+// cleared by selectors that out-rank them, so the gap is the only space
+// between the parts. Any other child keeps its margins, and a margin helper
+// still wins, since the helpers are `!important`.
+.#{iv.$class-prefix}empty-state .#{iv.$class-prefix}title.#{iv.$class-prefix}empty-state-title {
+  font-size: cv.getVar("empty-state-title-size");
+  margin-bottom: 0;
+}
+
+.#{iv.$class-prefix}empty-state .#{iv.$class-prefix}buttons.#{iv.$class-prefix}empty-state-actions {
+  justify-content: center;
+  margin-bottom: 0;
+}
+
+.#{iv.$class-prefix}empty-state-description {
+  color: cv.getVar("empty-state-description-color");
+  font-size: cv.getVar("empty-state-description-size");
+  max-width: cv.getVar("empty-state-description-max-width");
+}
+
+// `left` is the start of the line, so the right in a right-to-left page. The
+// indicator comes out of the flow and sits there, level with the top of the
+// first part, wherever it's written, and the column makes room for it. A grid
+// can't do this, since the children are free-form and it can't span rows it
+// can't count.
+.#{iv.$class-prefix}empty-state.#{iv.$class-prefix}is-left {
+  align-items: flex-start;
+  min-height: calc(
+    #{cv.getVar("empty-state-indicator-size")} + 2 *
+      #{cv.getVar("empty-state-padding")}
+  );
+  padding-inline-start: calc(
+    #{cv.getVar("empty-state-indicator-size")} + #{cv.getVar("empty-state-gap")}
+  );
+  position: relative;
+  text-align: start;
+
+  .#{iv.$class-prefix}empty-state-indicator {
+    inset-inline-start: 0;
+    position: absolute;
+  }
+
+  .#{iv.$class-prefix}buttons.#{iv.$class-prefix}empty-state-actions {
+    justify-content: flex-start;
+  }
+}

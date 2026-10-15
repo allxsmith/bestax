@@ -82,6 +82,17 @@ function DialogIcon() {
   );
 }
 
+// A picture in a circle over a title and a line of text, centered
+function EmptyStateIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="7.5" r="4.5" />
+      <path d="M10 7.5h4" />
+      <path d="M6.5 16h11M9 20h6" />
+    </svg>
+  );
+}
+
 // Spinner arc — loading
 function LoadingIcon() {
   return (
@@ -190,6 +201,7 @@ const ADDON_ICONS = {
   collapse: CollapseIcon,
   contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
+  emptystate: EmptyStateIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
   popover: PopoverIcon,
