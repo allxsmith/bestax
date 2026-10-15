@@ -1,3 +1,17 @@
+# [5.33.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.32.0...@allxsmith/bestax-bulma@5.33.0) (2026-10-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** drop a key's fill in forced colors, so only its border draws it ([466ad38](https://github.com/allxsmith/bestax/commit/466ad3800862cdfe0ab0f8d068c2d75a0f93c900)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+* **bulma-ui:** key each key in Kbd.Group by its own React key ([b51c5c8](https://github.com/allxsmith/bestax/commit/b51c5c87e6ca30bf07f820e511c1709fa01397de)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+* **bulma-ui:** open Fragments in Kbd.Group before placing its separators ([c595de2](https://github.com/allxsmith/bestax/commit/c595de28b34c6b88cb65d6bdcd2fbe23178c4f04)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+
+
+### Features
+
+* **bulma-ui:** add Kbd, a key drawn as a keycap, and Kbd.Group for combinations ([98d1578](https://github.com/allxsmith/bestax/commit/98d1578d07b013c00c09013fcbf86e07fdcb68a2)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+
 # [5.32.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.31.0...@allxsmith/bestax-bulma@5.32.0) (2026-10-13)
 
 
