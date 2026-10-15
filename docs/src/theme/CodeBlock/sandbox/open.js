@@ -1,5 +1,4 @@
 import sdk from '@stackblitz/sdk';
-import { compressToBase64 } from 'lz-string';
 import * as BestaxBulma from '@allxsmith/bestax-bulma';
 import docsPackage from '@site/package.json';
 import indexHtml from '!!raw-loader!@site/../create-bestax/templates/vite-ts/index.html';
@@ -87,33 +86,6 @@ function prepare({ code, sourceUrl, bestaxVersion }) {
   };
 }
 
-function postForm(action, fields) {
-  const form = document.createElement('form');
-  form.method = 'POST';
-  form.action = action;
-  form.target = '_blank';
-  form.rel = 'noopener';
-  form.style.display = 'none';
-  for (const [name, value] of Object.entries(fields)) {
-    const input = document.createElement('input');
-    input.type = 'hidden';
-    input.name = name;
-    input.value = value;
-    form.appendChild(input);
-  }
-  document.body.appendChild(form);
-  form.submit();
-  form.remove();
-}
-
-/** lz-string's base64, made URL-safe the way CodeSandbox's define API reads it. */
-function compress(value) {
-  return compressToBase64(JSON.stringify(value))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-}
-
 export function openInStackBlitz(options) {
   const input = prepare(options);
   if (!input) return;
@@ -123,11 +95,41 @@ export function openInStackBlitz(options) {
   });
 }
 
+const CODESANDBOX_DEFINE =
+  'https://codesandbox.io/api/v1/sandboxes/define?json=1';
+
+/** Creates the sandbox from its files and resolves to the id CodeSandbox gives it. */
+async function defineSandbox(files) {
+  const response = await fetch(CODESANDBOX_DEFINE, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ files }),
+  });
+  if (!response.ok) {
+    throw new Error(`CodeSandbox answered ${response.status}`);
+  }
+  const { sandbox_id: id } = await response.json();
+  return id;
+}
+
+/**
+ * The tab opens inside the click, before the request: a window opened after
+ * the await would be refused as a popup. It is pointed at the sandbox once
+ * CodeSandbox has created it.
+ */
 export function openInCodeSandbox(options) {
   const input = prepare(options);
   if (!input) return;
-  postForm('https://codesandbox.io/api/v1/sandboxes/define', {
-    parameters: compress({ files: codesandboxFiles(input) }),
-    query: 'file=/src/App.tsx',
-  });
+  const tab = window.open('', '_blank');
+  if (tab) tab.opener = null;
+  defineSandbox(codesandboxFiles(input)).then(
+    id => {
+      if (tab)
+        tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
+    },
+    error => {
+      tab?.close();
+      console.error('Could not open the example in CodeSandbox:', error);
+    }
+  );
 }
