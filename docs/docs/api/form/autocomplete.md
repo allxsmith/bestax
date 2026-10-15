@@ -221,7 +221,7 @@ function example() {
 
 ### With Empty State
 
-Custom content when no results match.
+Custom content when no results match. Screen reader users hear it too, once their typing runs the matches out (see [Accessibility](#accessibility)).
 
 ```tsx live
 function example() {
@@ -417,10 +417,13 @@ function AutocompleteFormDemo() {
 
 - The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one), so clicking the label focuses the input and assistive technology announces it. Inside a labeled `Field`, that `Field`'s label names the input instead when it points at it: a `Field` that is not `grouped` or `hasAddons` points it there on its own when the Autocomplete has no `id` and no inner `Field` sits between them, and a label you wire by hand with `labelProps.htmlFor` points at the input with that `id`.
 - A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.
-- Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen
+- Uses `role="combobox"` with `aria-expanded`, which is true only while the list is on screen. When nothing matches, the dropdown shows the `empty` content but no list, so it stays false
 - Has `aria-haspopup="listbox"` and `aria-autocomplete="list"`, and, while the list is on screen, `aria-controls` pointing at it
 - Focus stays in the input, which points `aria-activedescendant` at the highlighted option as the arrow keys move it
 - The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input, when that label has an id: the `label` prop's label always has one, and so does a `Field`'s label that the `Field` wires itself. A `Field` label you wire by hand with `labelProps.htmlFor`, which is how a horizontal form names an Autocomplete in an inner `Field`, needs an `id` in its `labelProps` as well. Otherwise the list falls back to `aria-label="Suggestions"`
+- The list holds only the options. The `header`, `footer` and `empty` content sit beside it in the dropdown, so a screen reader doesn't count them as options
+- When the user's typing leaves nothing that matches, the `empty` text is announced through a polite `role="status"` region. That region is in the page from the start, so it's there before the message arrives. It's said once each time the matches run out, not again on every keystroke while they stay out, and the next search that comes up empty is announced too: after matches come back, after the field is emptied, or after the list closes and the user types again
+- Focusing the field, opening the list with `openOnFocus` or `↓`, or emptying the field announces nothing. Without `empty`, nothing is announced at all, since there's no built-in message to say
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it

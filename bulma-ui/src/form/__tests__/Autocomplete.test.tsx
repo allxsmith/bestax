@@ -1,9 +1,13 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Autocomplete, AutocompleteItem } from '../Autocomplete';
 import { Field } from '../Field';
 import { Control } from '../Control';
+import {
+  announceDelay,
+  announcementLifetime,
+} from '../../helpers/statusRegion';
 
 const fruits = ['Apple', 'Banana', 'Cherry', 'Date', 'Elderberry'];
 
@@ -475,6 +479,67 @@ describe('Autocomplete', () => {
 
       expect(screen.getByText('Footer')).toBeInTheDocument();
     });
+
+    // The dropdown's parts, in order, by what each one is.
+    const dropdownParts = (container: HTMLElement) =>
+      Array.from(
+        container.querySelector('.dropdown-content')?.children ?? [],
+        part =>
+          part.getAttribute('role') ??
+          (part.className.includes('dropdown-item') ? 'empty' : part.className)
+      );
+
+    it('keeps the listbox to options, with the header above it and the footer below', () => {
+      const { container } = render(
+        <Autocomplete
+          data={fruits}
+          header={<span>Header</span>}
+          footer={<span>Footer</span>}
+        />
+      );
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'e' },
+      });
+
+      const listbox = screen.getByRole('listbox');
+      const owned = Array.from(listbox.children);
+      expect(owned.length).toBeGreaterThan(0);
+      owned.forEach(child => expect(child).toHaveAttribute('role', 'option'));
+
+      expect(dropdownParts(container)).toEqual([
+        'dropdown-header',
+        'listbox',
+        'dropdown-footer',
+      ]);
+      for (const text of ['Header', 'Footer']) {
+        expect(listbox).not.toContainElement(screen.getByText(text));
+        expect(screen.getByText(text)).toBeVisible();
+      }
+    });
+
+    it('shows the empty content between the header and footer, with no listbox', () => {
+      const { container } = render(
+        <Autocomplete
+          data={fruits}
+          header={<span>Header</span>}
+          footer={<span>Footer</span>}
+          empty="No results"
+        />
+      );
+      fireEvent.change(screen.getByRole('combobox'), {
+        target: { value: 'xyz' },
+      });
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(dropdownParts(container)).toEqual([
+        'dropdown-header',
+        'empty',
+        'dropdown-footer',
+      ]);
+      for (const text of ['Header', 'No results', 'Footer']) {
+        expect(screen.getByText(text)).toBeVisible();
+      }
+    });
   });
 
   describe('Disabled Items', () => {
@@ -650,6 +715,25 @@ describe('Autocomplete', () => {
       );
       fireEvent.keyDown(input, { key: 'Escape' });
       expect(input).not.toHaveAttribute('aria-controls');
+    });
+
+    it('leaves the combobox collapsed and pointing at nothing while only the empty content shows', () => {
+      const { container } = render(
+        <Autocomplete data={fruits} empty="No results" />
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+      expect(input).toHaveAttribute('aria-activedescendant');
+
+      fireEvent.change(input, { target: { value: 'xyz' } });
+
+      expect(screen.getByText('No results')).toBeInTheDocument();
+      expect(input).toHaveAttribute('aria-expanded', 'false');
+      expect(input).not.toHaveAttribute('aria-controls');
+      expect(input).not.toHaveAttribute('aria-activedescendant');
+      expect(danglingIdRefs(container)).toEqual([]);
     });
 
     it('points aria-activedescendant at the highlighted option', () => {
@@ -1122,6 +1206,11 @@ describe('Autocomplete', () => {
   });
 
   describe('Infinite Scroll', () => {
+    // What scrolls is the dropdown, which holds the header and footer as well
+    // as the listbox.
+    const scrollingDropdown = () =>
+      screen.getByRole('listbox').closest('.dropdown-content') as HTMLElement;
+
     it('calls onInfiniteScroll when scrolled near bottom', () => {
       const onInfiniteScroll = jest.fn();
       render(
@@ -1135,24 +1224,24 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
+      const dropdown = scrollingDropdown();
 
       // Force the dropdown div's scroll metrics so the threshold triggers.
-      Object.defineProperty(listbox, 'scrollHeight', {
+      Object.defineProperty(dropdown, 'scrollHeight', {
         configurable: true,
         value: 500,
       });
-      Object.defineProperty(listbox, 'clientHeight', {
+      Object.defineProperty(dropdown, 'clientHeight', {
         configurable: true,
         value: 200,
       });
-      Object.defineProperty(listbox, 'scrollTop', {
+      Object.defineProperty(dropdown, 'scrollTop', {
         configurable: true,
         writable: true,
         value: 260, // 500 - 260 - 200 = 40 <= 50 -> triggers
       });
 
-      fireEvent.scroll(listbox);
+      fireEvent.scroll(dropdown);
 
       expect(onInfiniteScroll).toHaveBeenCalled();
     });
@@ -1170,22 +1259,22 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
-      Object.defineProperty(listbox, 'scrollHeight', {
+      const dropdown = scrollingDropdown();
+      Object.defineProperty(dropdown, 'scrollHeight', {
         configurable: true,
         value: 500,
       });
-      Object.defineProperty(listbox, 'clientHeight', {
+      Object.defineProperty(dropdown, 'clientHeight', {
         configurable: true,
         value: 200,
       });
-      Object.defineProperty(listbox, 'scrollTop', {
+      Object.defineProperty(dropdown, 'scrollTop', {
         configurable: true,
         writable: true,
         value: 0, // 500 - 0 - 200 = 300 > 50 -> no trigger
       });
 
-      fireEvent.scroll(listbox);
+      fireEvent.scroll(dropdown);
 
       expect(onInfiniteScroll).not.toHaveBeenCalled();
     });
@@ -1198,8 +1287,7 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
-      fireEvent.scroll(listbox);
+      fireEvent.scroll(scrollingDropdown());
 
       expect(onInfiniteScroll).not.toHaveBeenCalled();
     });
@@ -1448,22 +1536,24 @@ describe('Autocomplete', () => {
       const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'a' } });
 
-      const listbox = screen.getByRole('listbox');
-      Object.defineProperty(listbox, 'scrollHeight', {
+      const dropdown = screen
+        .getByRole('listbox')
+        .closest('.dropdown-content') as HTMLElement;
+      Object.defineProperty(dropdown, 'scrollHeight', {
         configurable: true,
         value: 500,
       });
-      Object.defineProperty(listbox, 'clientHeight', {
+      Object.defineProperty(dropdown, 'clientHeight', {
         configurable: true,
         value: 200,
       });
-      Object.defineProperty(listbox, 'scrollTop', {
+      Object.defineProperty(dropdown, 'scrollTop', {
         configurable: true,
         writable: true,
         value: 260,
       });
 
-      expect(() => fireEvent.scroll(listbox)).not.toThrow();
+      expect(() => fireEvent.scroll(dropdown)).not.toThrow();
     });
 
     it('returns early in handleSelect when item is disabled (via Enter w/ keepFirst)', () => {
@@ -1587,5 +1677,233 @@ describe('Autocomplete label association (#493)', () => {
     );
     expect(container.querySelectorAll('label').length).toBe(1);
     expect(screen.getByRole('combobox', { name: 'Outer' })).toBeInTheDocument();
+  });
+});
+
+describe('Autocomplete announces when nothing matches (#1066)', () => {
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  const advance = (ms: number) =>
+    act(() => {
+      jest.advanceTimersByTime(ms);
+    });
+
+  // What the status region says, one entry per announcement.
+  const said = () =>
+    Array.from(screen.getByRole('status').children, el => el.textContent);
+
+  const type = (value: string) =>
+    fireEvent.change(screen.getByRole('combobox'), { target: { value } });
+
+  it('has its polite status region in the page, empty, before anything is typed', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    const status = screen.getByRole('status');
+    expect(status).toHaveAttribute('aria-live', 'polite');
+    expect(status).toBeEmptyDOMElement();
+
+    type('xyz');
+    advance(announceDelay);
+
+    // The announcement goes into the region that was already there.
+    expect(screen.getByRole('status')).toBe(status);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('announces the empty content once typing runs the matches out', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+
+    type('ch');
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+
+    type('chx');
+    expect(said()).toEqual([]);
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it("doesn't announce it again on each keystroke while nothing matches", () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('x');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+
+    type('xy');
+    advance(announceDelay);
+    type('xyz');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+
+    advance(announcementLifetime);
+    type('xyzw');
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+  });
+
+  it('announces a second search that comes up empty', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('xyz');
+    advance(announceDelay + announcementLifetime);
+
+    // After matches come back.
+    type('a');
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+    type('aq');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+    advance(announcementLifetime);
+
+    // After the field is cleared.
+    type('');
+    type('qq');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+    advance(announcementLifetime);
+
+    // After the list closes, with nothing matching all along.
+    fireEvent.keyDown(screen.getByRole('combobox'), { key: 'Escape' });
+    type('qqq');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('announces a second empty search made while the first is still being read', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    try {
+      render(<Autocomplete data={fruits} empty="No results" />);
+      type('xyz');
+      advance(announceDelay);
+
+      type('a');
+      type('aq');
+      advance(announceDelay);
+
+      // Each is a node of its own, so the second is read as it's added.
+      expect(said()).toEqual(['No results', 'No results']);
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('announces it once when matches come and go again before it was due', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('xyz');
+    type('a');
+    type('aq');
+    advance(announceDelay);
+
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('stays quiet when the list opens on focus without typing', () => {
+    render(
+      <Autocomplete data={fruits} value="xyz" openOnFocus empty="No results" />
+    );
+
+    fireEvent.focus(screen.getByRole('combobox'));
+    advance(announceDelay);
+
+    expect(screen.getByText('No results')).toBeVisible();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('stays quiet when the list opens again without typing', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    const input = screen.getByRole('combobox');
+    type('xyz');
+    advance(announceDelay + announcementLifetime);
+
+    fireEvent.keyDown(input, { key: 'Escape' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    advance(announceDelay);
+
+    expect(screen.getByText('No results')).toBeVisible();
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('says nothing without `empty`, as before', () => {
+    render(<Autocomplete data={fruits} />);
+    type('xyz');
+    advance(announceDelay);
+
+    expect(screen.getByRole('status')).toBeEmptyDOMElement();
+  });
+
+  it('says nothing for an empty field, even with no data to match', () => {
+    render(<Autocomplete data={[]} empty="No results" />);
+    type('a');
+    advance(announceDelay + announcementLifetime);
+
+    type('');
+    advance(announceDelay);
+    expect(screen.getByText('No results')).toBeVisible();
+    expect(said()).toEqual([]);
+
+    type('b');
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+  });
+
+  it('announces results that come in empty after the typing, and not ones that come in time', () => {
+    const { rerender } = render(
+      <Autocomplete data={fruits} empty="No results" />
+    );
+    type('ap');
+    rerender(<Autocomplete data={[]} empty="No results" />);
+    advance(announceDelay);
+    expect(said()).toEqual(['No results']);
+    advance(announcementLifetime);
+
+    type('ch');
+    rerender(<Autocomplete data={['Cherry']} empty="No results" />);
+    advance(announceDelay);
+    expect(said()).toEqual([]);
+  });
+
+  it('reads out the text the empty content renders', () => {
+    render(
+      <Autocomplete
+        data={fruits}
+        empty={
+          <p>
+            <span aria-hidden="true">!</span> No <strong>fruits</strong> found
+          </p>
+        }
+      />
+    );
+    type('xyz');
+    advance(announceDelay);
+
+    expect(said()).toEqual(['No fruits found']);
+  });
+
+  it('is read once: the copy on screen is no live region, and the region lets its own go', () => {
+    render(<Autocomplete data={fruits} empty="No results" />);
+    type('xyz');
+    advance(announceDelay);
+
+    const status = screen.getByRole('status');
+    const [shown, ...others] = screen
+      .getAllByText('No results')
+      .filter(el => !status.contains(el));
+    expect(others).toEqual([]);
+    expect(said()).toEqual(['No results']);
+    expect(
+      shown.closest('[aria-live], [role="status"], [role="alert"]')
+    ).toBeNull();
+    expect(shown).not.toHaveAttribute('aria-hidden');
+
+    advance(announcementLifetime);
+
+    expect(status).toBeEmptyDOMElement();
+    expect(screen.getAllByText('No results')).toEqual([shown]);
   });
 });
