@@ -35,7 +35,7 @@ pre.prism-code {
   border-radius: 0;
 }
 
-.live-preview {
+.live-preview-slot > .live-preview {
   margin-bottom: 0;
 }
 

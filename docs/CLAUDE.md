@@ -113,8 +113,8 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   Nothing is published ahead of time and a fence needs no marker. A component that exists only in this site goes in
   `docsOnlyScope` in `src/theme/CodeBlock/scope.js` (and in the scope header of
   `scripts/docs-fence-types.test.mjs`): an example using one shows no sandbox buttons, since no
-  sandbox can install it. That test also runs the converter over every live fence and
-  type-checks what it writes, so a fence it cannot convert fails `pnpm test` instead of opening
+  sandbox can install it. That test also runs the converter over every live fence that is not
+  marked `notypecheck`, and type-checks what it writes, so a fence it cannot convert fails `pnpm test` instead of opening
   broken; a failure there is the converter's to fix, not the fence's.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
