@@ -425,6 +425,7 @@ function AutocompleteFormDemo() {
 - When the user's typing leaves nothing that matches, the `empty` text is announced through a polite `role="status"` region. That region is in the page from the start, so it's there before the message arrives. It's said once each time the matches run out, not again on every keystroke while they stay out, and the next search that comes up empty is announced too: after matches come back, after the field is emptied, or after the list closes and the user types again
 - While `loading` is on, or a `Control` with `isLoading` around the Autocomplete, the announcement waits, so the `empty` text that shows while results are on their way isn't read out. It's said once loading ends with nothing matching, for each search that comes back empty. Pass `loading` while you fetch results, as the async story in Storybook does
 - Focusing the field, opening the list with `openOnFocus` or `↓`, or emptying the field announces nothing. Without `empty`, nothing is announced at all, since there's no built-in message to say
+- `empty` is a message, so keep it to text. `Tab` closes the list, so a keyboard user can't reach a link or a button in it
 - Dropdown items use `role="option"` with `aria-selected`
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
