@@ -54,7 +54,14 @@ const LIBRARY_EXPORTS = Object.keys(BestaxBulma);
 function iconVersions() {
   const deps = docsPackage.dependencies;
   return Object.fromEntries(
-    Object.values(ICON_LIBRARIES).map(({ package: name }) => [name, deps[name]])
+    Object.values(ICON_LIBRARIES).map(({ package: name }) => {
+      if (!deps[name]) {
+        throw new Error(
+          `docs/package.json must declare ${name}, which sandboxes install`
+        );
+      }
+      return [name, deps[name]];
+    })
   );
 }
 
@@ -117,18 +124,27 @@ async function defineSandbox(files) {
  * the await would be refused as a popup. It is pointed at the sandbox once
  * CodeSandbox has created it.
  */
-export function openInCodeSandbox(options) {
+export function openInCodeSandbox({ tab, ...options }) {
   const input = prepare(options);
-  if (!input) return;
-  const tab = window.open('', '_blank');
-  if (tab) tab.opener = null;
+  if (!input) {
+    tab?.close();
+    return;
+  }
+  // No tab means the browser refused the popup. Creating the sandbox anyway
+  // would leave a public sandbox that the reader never sees.
+  if (!tab) {
+    console.error(
+      'The browser blocked the CodeSandbox tab; allow popups for this site.'
+    );
+    return;
+  }
+  tab.opener = null;
   defineSandbox(codesandboxFiles(input)).then(
     id => {
-      if (tab)
-        tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
+      tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
     },
     error => {
-      tab?.close();
+      tab.close();
       console.error('Could not open the example in CodeSandbox:', error);
     }
   );

@@ -99,6 +99,12 @@ export default function SandboxButtons({ code }) {
       sourceUrl: new URL(pathname, siteConfig.url).href,
       bestaxVersion: siteConfig.customFields.bestaxVersion,
     };
+    // A window opened after the builder loads is refused as a popup, so the
+    // CodeSandbox tab is opened here, inside the click, and pointed at the
+    // sandbox once it exists.
+    if (name === 'openInCodeSandbox') {
+      options.tab = window.open('', '_blank');
+    }
     if (loaded) {
       loaded[name](options);
     } else {
