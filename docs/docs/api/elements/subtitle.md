@@ -130,7 +130,9 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 - **Screen readers:** Subtitles should be used in conjunction with titles for clarity.
 
 :::tip
-`SubTitle` is visually styled as a heading, but its semantic level depends on the `as` prop.
+`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from
+`as` when it doesn't, and with neither it's an `<h1>`. `as="p"` makes it a paragraph whatever its
+size, and the `textSize` helper sizes it without changing the level.
 :::
 
 ---
