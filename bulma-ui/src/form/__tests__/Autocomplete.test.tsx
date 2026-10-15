@@ -1868,6 +1868,82 @@ describe('Autocomplete announces when nothing matches (#1066)', () => {
     expect(said()).toEqual([]);
   });
 
+  describe('while results load', () => {
+    const loadingUi = (loading: boolean, data: string[] = []) => (
+      <Autocomplete data={data} loading={loading} empty="No results" />
+    );
+
+    it('says nothing while `loading` is on, even with the empty content showing', () => {
+      render(loadingUi(true));
+      type('xyz');
+      advance(announceDelay);
+
+      expect(screen.getByText('No results')).toBeVisible();
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('announces it once loading ends with nothing matching', () => {
+      const { rerender } = render(loadingUi(true));
+      type('xyz');
+      advance(announceDelay);
+
+      rerender(loadingUi(false));
+      expect(said()).toEqual([]);
+      advance(announceDelay);
+      expect(said()).toEqual(['No results']);
+    });
+
+    it('says nothing when results arrive while loading', () => {
+      const { rerender } = render(loadingUi(true));
+      type('ch');
+      advance(announceDelay);
+
+      rerender(loadingUi(true, ['Cherry']));
+      advance(announceDelay);
+      rerender(loadingUi(false, ['Cherry']));
+      advance(announceDelay);
+
+      expect(screen.getByRole('option', { name: 'Cherry' })).toBeVisible();
+      expect(screen.getByRole('status')).toBeEmptyDOMElement();
+    });
+
+    it('waits on a loading Control around it the same way', () => {
+      const inControl = (isLoading: boolean) => (
+        <Field>
+          <Control isLoading={isLoading}>
+            <Autocomplete data={[]} empty="No results" />
+          </Control>
+        </Field>
+      );
+      const { rerender } = render(inControl(true));
+      type('xyz');
+      advance(announceDelay);
+      expect(said()).toEqual([]);
+
+      rerender(inControl(false));
+      advance(announceDelay);
+      expect(said()).toEqual(['No results']);
+    });
+
+    it('announces each search that settles with nothing matching', () => {
+      const { rerender } = render(loadingUi(true));
+      type('xyz');
+      rerender(loadingUi(false));
+      advance(announceDelay + announcementLifetime);
+
+      // The next keystroke starts another search, which comes back empty
+      // too, and that's said once it settles.
+      rerender(loadingUi(true));
+      type('xyzw');
+      advance(announceDelay);
+      expect(said()).toEqual([]);
+
+      rerender(loadingUi(false));
+      advance(announceDelay);
+      expect(said()).toEqual(['No results']);
+    });
+  });
+
   it('reads out the text the empty content renders', () => {
     render(
       <Autocomplete
