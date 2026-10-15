@@ -250,7 +250,10 @@ to the right in a right-to-left page.
 ```
 
 In `left`, the padding at the start of the line is what makes room for the circle, so adjust the
-padding with `py` rather than `p` or `px`.
+padding with `py` rather than `p` or `px`. Inside whatever padding `py` leaves, the block keeps
+room for the circle's height and no more, so `py="0"` in a Card or a table cell is as tight as it
+gets. With no `icon` and no `EmptyState.Indicator`, `left` only puts the text at the start of the
+line.
 
 ### In a Card
 
