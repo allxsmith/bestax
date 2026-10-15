@@ -450,3 +450,15 @@ describe('codesandboxFiles', () => {
     assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
   });
 });
+
+/*
+ * The live preview on the docs page and the sandboxes paint the same dark
+ * surface, but in two files. This keeps the page's copy from drifting.
+ */
+describe('docs live preview surface', () => {
+  it("matches the sandboxes' dark background and padding", () => {
+    const css = readFileSync(join(DOCS, 'src', 'css', 'custom.css'), 'utf8');
+    assert.match(css, /\.live-preview-slot \{[^}]*background: #16171d/);
+    assert.match(css, /\.live-preview-slot \{[^}]*padding: 1\.5rem/);
+  });
+});
