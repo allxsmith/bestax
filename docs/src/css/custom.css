@@ -35,6 +35,11 @@ pre.prism-code {
   border-radius: 0;
 }
 
+.live-preview {
+  margin-bottom: var(--ifm-leading);
+}
+
+/* Inside a code block the slot carries this spacing, so the preview adds none. */
 .live-preview-slot > .live-preview {
   margin-bottom: 0;
 }
