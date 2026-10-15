@@ -110,12 +110,19 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   The project is built in the reader's browser when they click, from the code in the editor:
   the fence becomes an `App.tsx` with exactly the imports it uses, inside the create-bestax
   `vite-ts` template (StackBlitz; CodeSandbox gets a Create React App layout), installing the library release this build read or a later compatible one.
-  Nothing is published ahead of time and a fence needs no marker. A component that exists only in this site goes in
-  `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs`, which the corpus gate
-  also reads, and gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one shows no sandbox buttons, since no
-  sandbox can install it. That test also runs the converter over every live fence that is not
-  marked `notypecheck`, and type-checks what it writes, so a fence it cannot convert fails `pnpm test` instead of opening
-  broken; a failure there is the converter's to fix, not the fence's.
+  Nothing is published ahead of time and a fence needs no marker. A component that exists only
+  in this site goes in `DOCS_ONLY_NAMES` in `src/theme/CodeBlock/sandbox/scope-names.mjs` and
+  gets its value in the `pick` call in `src/theme/CodeBlock/scope.js`: an example using one
+  shows no sandbox buttons, since no sandbox can install it. Export it from
+  `src/components/SkillExamples`, where scope.js imports it: the corpus gate
+  (`scripts/docs-fence-types.test.mjs`) binds every name on that list from there in its
+  `asModule` header, and fails on one it cannot find. That test also runs the converter over
+  every live fence that is not marked `notypecheck`, and type-checks what it writes, so a fence
+  it cannot convert fails `pnpm test` instead of opening broken; a failure there is the
+  converter's to fix, not the fence's. The tests stop at the files a sandbox is built from, so
+  open one plain example and one example with icons in each service before merging a bump of
+  `@stackblitz/sdk` or react-live, and again once a bulma-ui release that changes its exports,
+  dependencies or CSS file names is on npm, which is where a sandbox installs it from.
 - **Install and run commands go in `<PackageManagerTabs>`**, wrapping the pnpm fence you would
   have written anyway, so npm/yarn/bun readers don't translate by hand:
 
