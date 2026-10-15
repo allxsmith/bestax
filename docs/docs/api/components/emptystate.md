@@ -9,6 +9,9 @@ description: 'The `EmptyState` component renders the block an app shows where co
 ## Overview
 
 <!-- bestax:generated overview -->
+
+The `EmptyState` component renders the block an app shows where content would be: an empty list, a search with no results, or a first-run screen.
+
 <!-- /bestax:generated overview -->
 
 Reach for it wherever a list, a table or a page has nothing to show yet: "No projects yet" with a
@@ -31,6 +34,11 @@ or in `extras.css` next to your own Bulma.
 ## Import
 
 <!-- bestax:generated import -->
+
+```tsx
+import { EmptyState } from '@allxsmith/bestax-bulma';
+```
+
 <!-- /bestax:generated import -->
 
 ---
@@ -473,6 +481,77 @@ out of the flow and sits at the start of the line, wherever it's written.
 ## Props
 
 <!-- bestax:generated props -->
+
+| Prop          | Type                                                                            | Default    | Description                                                                                                                                                                                                                                                                                                                                         |
+| ------------- | ------------------------------------------------------------------------------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                        | —          | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                                    |
+| `icon`        | `React.ReactNode`                                                               | —          | The picture in the indicator's circle. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets. Anything else (an `<Icon>` with its own `variant` or `library`, an SVG, an `<img>`) renders as it is. It's decorative and hidden from assistive tech, so the title says what it means.                                        |
+| `title`       | `React.ReactNode`                                                               | —          | The heading, rendered as `EmptyState.Title`. It's always a real heading, at the level `titleAs` sets.                                                                                                                                                                                                                                               |
+| `titleAs`     | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'`                        | `'h2'`     | The heading level for `title`: the level under the heading of the list it stands in for, such as `h3` for a list under an `h2`. Only this sets the level, and the size comes from `size`.                                                                                                                                                           |
+| `description` | `React.ReactNode`                                                               | —          | A sentence or two under the title, rendered as `EmptyState.Description`.                                                                                                                                                                                                                                                                            |
+| `children`    | `React.ReactNode`                                                               | —          | Rendered as written, after whatever `icon`, `title` and `description` render. One button can go straight in, and it sits centered under the text. Group two or more in `EmptyState.Actions`, or they stack. Without the props, write the parts here in the order they're shown: `EmptyState.Indicator`, `.Title`, `.Description`, then the actions. |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —          | The indicator's color. It colors the circle and its icon, not the text. Without it the circle is neutral, since an empty list isn't a status.                                                                                                                                                                                                       |
+| `variant`     | `'light'` \| `'filled'`                                                         | `'light'`  | `light` is a soft tint of `color` behind the icon in the color. `filled` is the color itself, with the icon in its invert.                                                                                                                                                                                                                          |
+| `size`        | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                              | `'normal'` | Sizes the indicator, the title, the description and the spacing together.                                                                                                                                                                                                                                                                           |
+| `align`       | `'center'` \| `'left'`                                                          | `'center'` | `center` stacks everything in a centered column. `left` puts the indicator beside the text, at the start of the line, so on the right in a right-to-left page. In `left`, the padding at the start of the line is what makes room for the indicator, so pad it with `py` rather than `p` or `px`.                                                   |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —          | Text color helper.                                                                                                                                                                                                                                                                                                                                  |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —          | Background color helper.                                                                                                                                                                                                                                                                                                                            |
+| `ref`         | `React.Ref<HTMLDivElement>`                                                     | —          | Ref forwarded to the root `<div>`.                                                                                                                                                                                                                                                                                                                  |
+| `...`         | All standard `<div>` attributes and Bulma helper props                          | —          | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                   |
+
+**Subcomponents:**
+
+- `EmptyState.Indicator`: The circle the picture sits in, hidden from assistive tech whatever is in it.
+- `EmptyState.Title`: The heading, a Bulma `Title` at the level `as` sets, `h2` by default, and at the EmptyState's size.
+- `EmptyState.Description`: A sentence or two under the title, in the color of the text around it.
+- `EmptyState.Actions`: A row of buttons, centered under the text or at the start of the line beside the indicator.
+
+### EmptyState.Indicator
+
+| Prop        | Type                                                                    | Default | Description                                                                                                                                                                                   |
+| ----------- | ----------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                                                                                                                                                              |
+| `children`  | `React.ReactNode`                                                       | —       | The picture: an `Icon`, an SVG or an `<img>`. The indicator is hidden from assistive tech, an `Icon` with an `ariaLabel` included, so anything it means goes in the title or the description. |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                                                                                                                            |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                                                                                                                      |
+| `...`       | All standard `<div>` attributes and Bulma helper props                  | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                             |
+
+### EmptyState.Title
+
+| Prop          | Type                                                                    | Default | Description                                                                               |
+| ------------- | ----------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------- |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'`                | `'h2'`  | The heading level: the level under the heading of the list the empty state stands in for. |
+| `className`   | `string`                                                                | —       | Additional CSS classes to apply.                                                          |
+| `hasSkeleton` | `boolean`                                                               | `false` | Applies the `has-skeleton` class to part of the content.                                  |
+| `children`    | `React.ReactNode`                                                       | —       | Title content.                                                                            |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                                                        |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                                                                  |
+| `skeleton`    | `boolean`                                                               | —       | Applies the `is-skeleton` class to the entire component.                                  |
+| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props    | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                         |
+
+### EmptyState.Description
+
+| Prop        | Type                                                                    | Default | Description                                       |
+| ----------- | ----------------------------------------------------------------------- | ------- | ------------------------------------------------- |
+| `className` | `string`                                                                | —       | Additional CSS classes to apply.                  |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Text color helper.                                |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'` | —       | Background color helper.                          |
+| `children`  | `React.ReactNode`                                                       | —       | Content to render inside the paragraph.           |
+| `...`       | All standard `<p>` attributes and Bulma helper props                    | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+
+### EmptyState.Actions
+
+| Prop        | Type                                                                            | Default | Description                                                                                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `className` | `string`                                                                        | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                               |
+| `textColor` | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Text color helper for the button group.                                                                                                                                                                                                                                        |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` | —       | Text color alias: renders `has-text-<color>`, exactly like `textColor`. Not a filled variant (no `.buttons.is-<color>` CSS exists; color the individual `Button`s instead). Prefer `textColor`, which takes precedence when both are set; use `bgColor` for a colored surface. |
+| `bgColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`         | —       | Background color helper for the button group.                                                                                                                                                                                                                                  |
+| `hasAddons` | `boolean`                                                                       | `false` | Group buttons together as addons (removes spacing between them).                                                                                                                                                                                                               |
+| `size`      | `'small'` \| `'medium'` \| `'large'`                                            | —       | Size of the button group.                                                                                                                                                                                                                                                      |
+| `children`  | `React.ReactNode`                                                               | —       | The button elements to render inside the group.                                                                                                                                                                                                                                |
+| `...`       | All standard `<div>` attributes and Bulma helper props                          | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                              |
+
 <!-- /bestax:generated props -->
 
 ---
@@ -480,4 +559,21 @@ out of the flow and sits at the start of the line, wherever it's written.
 ## CSS & Sass Variables
 
 <!-- bestax:generated cssvars -->
+
+`EmptyState` registers these variables on its own `.empty-state` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+
+| CSS Variable                                | Sass Variable                        | Default                       |
+| ------------------------------------------- | ------------------------------------ | ----------------------------- |
+| `--bulma-empty-state-gap`                   | `$empty-state-gap`                   | `1rem`                        |
+| `--bulma-empty-state-padding`               | `$empty-state-padding`               | `3rem`                        |
+| `--bulma-empty-state-indicator-size`        | `$empty-state-indicator-size`        | `3rem`                        |
+| `--bulma-empty-state-indicator-radius`      | `$empty-state-indicator-radius`      | `var(--bulma-radius-rounded)` |
+| `--bulma-empty-state-indicator-background`  | `$empty-state-indicator-background`  | `var(--bulma-background)`     |
+| `--bulma-empty-state-indicator-color`       | `$empty-state-indicator-color`       | `var(--bulma-text-weak)`      |
+| `--bulma-empty-state-icon-size`             | `$empty-state-icon-size`             | `1.5rem`                      |
+| `--bulma-empty-state-title-size`            | `$empty-state-title-size`            | `var(--bulma-size-5)`         |
+| `--bulma-empty-state-description-size`      | `$empty-state-description-size`      | `var(--bulma-size-6)`         |
+| `--bulma-empty-state-description-color`     | `$empty-state-description-color`     | `currentColor`                |
+| `--bulma-empty-state-description-max-width` | `$empty-state-description-max-width` | `32em`                        |
+
 <!-- /bestax:generated cssvars -->

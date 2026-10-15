@@ -38,7 +38,7 @@
       "code": "<Block>\n  <Title as=\"p\" size=\"1\">\n    Title 1\n  </Title>\n  <SubTitle as=\"p\" size=\"3\">\n    Subtitle 3\n  </SubTitle>\n</Block>"
     }
   ],
-  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n\n:::tip\n`SubTitle` is visually styled as a heading, but its semantic level depends on the `as` prop.\n:::",
+  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Screen readers:** Subtitles should be used in conjunction with titles for clarity.\n\n:::tip\n`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from\n`as` when it doesn't, and with neither it's an `<h1>`. `as=\"p\"` makes it a paragraph whatever its\nsize, and the `textSize` helper sizes it without changing the level.\n:::",
   "related": ["Block", "Title", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-subtitle--default",
   "summary": "The `SubTitle` component renders a Bulma-styled subtitle (secondary heading), supporting sizes `1-6` and rendering as any heading or paragraph element (`h1-h6`, `p`).",
@@ -64,7 +64,7 @@
           "name": "size",
           "type": "'1' | '2' | '3' | '4' | '5' | '6' | 1 | 2 | 3 | 4 | 5 | 6",
           "default": null,
-          "description": "Size of the subtitle (Bulma sizes `1`-`6`, as a string or number).",
+          "description": "Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). It also picks the heading level: unless `as` is `p`, `size=\"5\"` renders an `<h5>`, whatever `as` says. For a heading whose level and size differ, set the level with `as` and the size with the `textSize` helper.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -73,7 +73,7 @@
           "name": "as",
           "type": "'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'",
           "default": "'h1'",
-          "description": "HTML element to render as (h1-h6 or p).",
+          "description": "HTML element to render as (`h1`-`h6` or `p`). With neither `as` nor `size` set it's an `<h1>`, so a subtitle that isn't a heading of its own takes `as=\"p\"`. A `size` overrides `as` unless it's `p`, so `as=\"h3\" size=\"5\"` renders an `<h5>`. To keep the level `as` sets, size the subtitle with the `textSize` helper instead.",
           "required": false,
           "inherited": false,
           "deprecated": false

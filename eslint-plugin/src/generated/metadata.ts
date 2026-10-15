@@ -184,6 +184,7 @@ export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
   'Container',
   'Content',
   'Delete',
+  'EmptyState.Actions',
   'IconText',
   'Image',
 ];
