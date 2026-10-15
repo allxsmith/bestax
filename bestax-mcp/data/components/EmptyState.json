@@ -153,7 +153,7 @@
           "name": "align",
           "type": "'center' | 'left'",
           "default": "'center'",
-          "description": "`center` stacks everything in a centered column. `left` puts the indicator beside the text, at the start of the line, so on the right in a right-to-left page. In `left`, the padding at the start of the line is what makes room for the indicator, so pad it with `py` rather than `p` or `px`.",
+          "description": "`center` stacks everything in a centered column. `left` puts the indicator beside the text, at the start of the line, so on the right in a right-to-left page, and keeps the block at least as tall as the circle whatever block padding is in effect. Without an indicator, it only puts the text at the start of the line. In `left`, the padding at the start of the line is what makes room for the indicator, so pad it with `py` rather than `p` or `px`.",
           "required": false,
           "inherited": false,
           "deprecated": false
