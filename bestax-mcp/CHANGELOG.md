@@ -1,3 +1,11 @@
+## [1.15.2](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.1...bestax-mcp@1.15.2) (2026-10-15)
+
+
+### Bug Fixes
+
+* **bulma-ui:** announce Autocomplete's empty content, and keep its listbox to options ([98cfaac](https://github.com/allxsmith/bestax/commit/98cfaac779fa66679b62a94dd8ad2b316773d8dd)), closes [#1066](https://github.com/allxsmith/bestax/issues/1066)
+* **bulma-ui:** hold Autocomplete's empty announcement while results load ([75d8fdf](https://github.com/allxsmith/bestax/commit/75d8fdf75f8b404febe6079a302cd0d2383e0d35))
+
 ## [1.15.1](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.0...bestax-mcp@1.15.1) (2026-10-15)
 
 

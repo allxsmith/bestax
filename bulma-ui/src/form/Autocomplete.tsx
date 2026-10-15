@@ -18,6 +18,7 @@ import { Field } from './Field';
 import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
 import { useControlLoading } from './controlLoading';
+import { StatusRegion, spokenText } from '../helpers/statusRegion';
 
 /**
  * An item in the Autocomplete dropdown list.
@@ -31,6 +32,11 @@ export interface AutocompleteItem {
   disabled?: boolean;
   [key: string]: unknown;
 }
+
+// What the status region announces: the `empty` content, as the one item
+// it's handed while that content is on screen because of the user's typing.
+const typedNoMatches = [{ id: 'empty' }];
+const nothingToAnnounce: Array<{ id: string }> = [];
 
 /**
  * Props for the Autocomplete component.
@@ -111,11 +117,26 @@ export interface AutocompleteProps
   onInfiniteScroll?: () => void;
   /** Custom render for items. */
   itemTemplate?: (item: AutocompleteItem | string) => React.ReactNode;
-  /** Custom header in dropdown. */
+  /** Custom header at the top of the dropdown. It sits above the list of options rather than in it, so assistive technology doesn't count it as one. */
   header?: React.ReactNode;
-  /** Custom footer in dropdown. */
+  /** Custom footer at the bottom of the dropdown. It sits below the list of options rather than in it, so assistive technology doesn't count it as one. */
   footer?: React.ReactNode;
-  /** Content to show when no results. */
+  /**
+   * A message the dropdown shows in place of the options when nothing
+   * matches. Keep it to text: `Tab` closes the list, so a keyboard user
+   * can't reach a link or button in it. It sits beside the list of options
+   * rather than in it, so the input's `aria-expanded` stays false while it
+   * shows. When the user's typing leaves nothing that matches, a polite
+   * status region announces its text: once each time the matches run out.
+   * The text is read when they first run out, and isn't read again as it
+   * changes while they stay out, so a message that names the query is heard
+   * for that first query only. Keep it static.
+   * Opening the list without typing, or emptying the field, announces
+   * nothing. While `loading`, or a `Control` with `isLoading` around the
+   * Autocomplete, is on, it waits, and it's announced once loading ends
+   * with nothing matching. Without `empty`, the dropdown closes when nothing
+   * matches and nothing is announced.
+   */
   empty?: React.ReactNode;
 }
 
@@ -209,6 +230,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
 
     const [internalValue, setInternalValue] = useState('');
     const [isActive, setIsActive] = useState(false);
+    // Whether the user has typed since the list opened, since only typing
+    // gets the `empty` content announced. Closing the list resets it (during
+    // render, React's pattern for adjusting state when other state changes),
+    // so opening the list again without typing stays quiet.
+    const [typed, setTyped] = useState(false);
+    if (typed && !isActive) setTyped(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
     const listboxId = `${useId()}-listbox`;
 
@@ -230,6 +257,12 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       return displayValue.toLowerCase().includes(inputValue.toLowerCase());
     });
 
+    // The dropdown shows the options or, when nothing matches, the `empty`
+    // content. The listbox holds only options, so it's on screen only while
+    // there are some.
+    const menuOpen = isActive && (filteredData.length > 0 || !!empty);
+    const listOpen = isActive && filteredData.length > 0;
+
     // Handle input change
     const handleInputChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -238,6 +271,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           setInternalValue(newValue);
         }
         onInput?.(newValue);
+        setTyped(true);
         if (!isActive && newValue) {
           setIsActive(true);
         }
@@ -425,7 +459,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     );
 
     const dropdownMenuClasses = usePrefixedClassNames('dropdown-menu', {
-      'is-active': isActive && (filteredData.length > 0 || !!empty),
+      'is-active': menuOpen,
     });
 
     const dropdownContentClass = usePrefixedClassNames('dropdown-content');
@@ -465,14 +499,42 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // The listbox takes its name from the label that names the combobox, the
     // one this renders or a surrounding Field's, so the two say the same
     // thing. When no label names the combobox, or the one that does has no
-    // id to point at, the list keeps a fallback name.
-    const listOpen = isActive && (filteredData.length > 0 || !!empty);
+    // id to point at, the list keeps a fallback name. While the dropdown
+    // shows only the `empty` content there's no listbox, so the combobox is
+    // collapsed and points at nothing.
     const activeOptionId =
       listOpen &&
       highlightedIndex >= 0 &&
       highlightedIndex < filteredData.length
         ? `${listboxId}-${highlightedIndex}`
         : undefined;
+
+    // A polite status region, in the page from the start so it's there
+    // before anything is written into it, announces the `empty` content
+    // when the user's typing leaves nothing that matches what's in the
+    // field. It follows what's on screen, so results that come in after the
+    // typing count too. It's said once each time that happens, not again on
+    // each keystroke while nothing matches. An empty field isn't a search,
+    // so it stays quiet then, even with no data. While `loading`, or a
+    // loading Control around it, says results are on their way, it waits,
+    // and it's said once loading ends with nothing matching.
+    const emptyItems =
+      typed &&
+      menuOpen &&
+      !listOpen &&
+      !!inputValue &&
+      !loading &&
+      !controlLoading
+        ? typedNoMatches
+        : nothingToAnnounce;
+    // The region reads the text on screen, whatever `empty` renders.
+    const emptyRef = useRef<HTMLDivElement>(null);
+    const describeEmpty = useCallback(() => {
+      const node = emptyRef.current;
+      /* istanbul ignore if: it's only announced while it's on screen */
+      if (!node) return null;
+      return spokenText(node);
+    }, []);
 
     const autocompleteElement = (
       <div ref={containerRef} className={combinedClasses} {...rest}>
@@ -528,62 +590,70 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
           )}
         </div>
 
-        {listOpen && (
+        {menuOpen && (
           <div className={dropdownMenuClasses}>
             <div
               ref={dropdownRef}
               className={dropdownContentClass}
               style={{ maxHeight: `${maxHeight}px`, overflowY: 'auto' }}
-              id={listboxId}
-              role="listbox"
-              aria-labelledby={listLabelId}
-              aria-label={listLabelId ? undefined : 'Suggestions'}
               onScroll={handleDropdownScroll}
             >
               {header && <div className={dropdownHeaderClass}>{header}</div>}
 
-              {filteredData.length > 0 ? (
-                filteredData.map((item, index) => {
-                  const isDisabled = typeof item !== 'string' && item.disabled;
-                  const isHighlighted = index === highlightedIndex;
+              {listOpen ? (
+                <div
+                  id={listboxId}
+                  role="listbox"
+                  aria-labelledby={listLabelId}
+                  aria-label={listLabelId ? undefined : 'Suggestions'}
+                >
+                  {filteredData.map((item, index) => {
+                    const isDisabled =
+                      typeof item !== 'string' && item.disabled;
+                    const isHighlighted = index === highlightedIndex;
 
-                  const itemClasses = prefixedClassNames(
-                    classPrefix,
-                    'dropdown-item',
-                    {
-                      'is-active': isHighlighted,
-                      'is-disabled': isDisabled,
-                    }
-                  );
-
-                  return (
-                    <a
-                      key={index}
-                      id={`${listboxId}-${index}`}
-                      data-index={index}
-                      className={itemClasses}
-                      onClick={() => !isDisabled && handleSelect(item)}
-                      onMouseEnter={() =>
-                        !isDisabled && setHighlightedIndex(index)
+                    const itemClasses = prefixedClassNames(
+                      classPrefix,
+                      'dropdown-item',
+                      {
+                        'is-active': isHighlighted,
+                        'is-disabled': isDisabled,
                       }
-                      role="option"
-                      aria-selected={isHighlighted}
-                      aria-disabled={isDisabled}
-                    >
-                      {itemTemplate
-                        ? itemTemplate(item)
-                        : getDisplayValue(item)}
-                    </a>
-                  );
-                })
+                    );
+
+                    return (
+                      <a
+                        key={index}
+                        id={`${listboxId}-${index}`}
+                        data-index={index}
+                        className={itemClasses}
+                        onClick={() => !isDisabled && handleSelect(item)}
+                        onMouseEnter={() =>
+                          !isDisabled && setHighlightedIndex(index)
+                        }
+                        role="option"
+                        aria-selected={isHighlighted}
+                        aria-disabled={isDisabled}
+                      >
+                        {itemTemplate
+                          ? itemTemplate(item)
+                          : getDisplayValue(item)}
+                      </a>
+                    );
+                  })}
+                </div>
               ) : (
-                <div className={emptyItemClasses}>{empty}</div>
+                <div ref={emptyRef} className={emptyItemClasses}>
+                  {empty}
+                </div>
               )}
 
               {footer && <div className={dropdownFooterClass}>{footer}</div>}
             </div>
           </div>
         )}
+
+        <StatusRegion items={emptyItems} describe={describeEmpty} />
       </div>
     );
 

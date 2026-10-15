@@ -174,6 +174,54 @@ describe('StatusRegion', () => {
     expect(said()).toEqual([]);
   });
 
+  it('announces an item again each time it comes back', () => {
+    const { rerender } = render(region([alpha]));
+    advance(announceDelay + announcementLifetime);
+    rerender(region([]));
+
+    rerender(region([alpha]));
+    advance(announceDelay);
+
+    expect(said()).toEqual(['Alpha']);
+  });
+
+  it('gives an item that comes back while it is still written a node of its own', () => {
+    const consoleError = jest.spyOn(console, 'error').mockImplementation();
+    try {
+      const { rerender } = render(region([alpha]));
+      advance(announceDelay);
+      const first = screen.getByRole('status').firstElementChild;
+
+      advance(50);
+      rerender(region([]));
+      rerender(region([alpha]));
+      advance(announceDelay);
+
+      // The new one is added after the one still there, which keeps its node.
+      expect(said()).toEqual(['Alpha', 'Alpha']);
+      expect(screen.getByRole('status').firstElementChild).toBe(first);
+      expect(consoleError).not.toHaveBeenCalled();
+
+      // Each leaves when its own lifetime is up.
+      advance(announcementLifetime - announceDelay - 50);
+      expect(said()).toEqual(['Alpha']);
+      advance(announceDelay + 50);
+      expect(said()).toEqual([]);
+    } finally {
+      consoleError.mockRestore();
+    }
+  });
+
+  it('writes an item that comes back before its announcement is due once', () => {
+    const { rerender } = render(region([alpha]));
+    rerender(region([]));
+    rerender(region([alpha]));
+
+    advance(announceDelay);
+
+    expect(said()).toEqual(['Alpha']);
+  });
+
   it('keeps what it said for its whole lifetime while the next items wait, then adds them', () => {
     const { rerender } = render(region([alpha, bravo]));
     advance(announceDelay);

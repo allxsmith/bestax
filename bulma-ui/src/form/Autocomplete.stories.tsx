@@ -402,7 +402,8 @@ export const EmptyState: Story = {
 };
 
 /**
- * With header and footer in dropdown.
+ * With header and footer in dropdown, around the options or, when nothing
+ * matches, the empty content.
  */
 export const HeaderFooter: Story = {
   render: function HeaderFooterExample() {
@@ -414,6 +415,7 @@ export const HeaderFooter: Story = {
           openOnFocus
           header={<Span>Popular Fruits</Span>}
           footer={<a href="#">View all fruits</a>}
+          empty="No fruits found"
         />
       </ResponsiveWrapper>
     );
