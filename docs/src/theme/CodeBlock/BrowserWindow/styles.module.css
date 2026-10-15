@@ -34,11 +34,6 @@ pre.prism-code {
   border-radius: 0;
 }
 
-.browserWindowBody {
-  background-color: #16171d;
-  color: #e8e8ea;
-}
-
 /* The stage sits behind every example window, so an example never reads as
    bare page content. */
 .stage {

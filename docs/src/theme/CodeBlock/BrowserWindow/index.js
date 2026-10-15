@@ -1,6 +1,4 @@
-import React, { useContext } from 'react';
 import clsx from 'clsx';
-import { LiveContext } from 'react-live';
 import CustomCopyButton from '../CustomCopyButton';
 import SandboxButtons from '../SandboxButtons';
 
@@ -12,9 +10,8 @@ export default function BrowserWindow({
   url = '',
   style,
   bodyStyle,
+  code,
 }) {
-  const { code } = useContext(LiveContext);
-
   return (
     <div className={styles.stage}>
       <div className={clsx(styles.browserWindow)} style={style}>
@@ -30,12 +27,7 @@ export default function BrowserWindow({
             <CustomCopyButton code={code} />
           </div>
         </div>
-        <div
-          className={styles.browserWindowBody}
-          style={{ minHeight, ...bodyStyle }}
-        >
-          {children}
-        </div>
+        <div style={{ minHeight, ...bodyStyle }}>{children}</div>
       </div>
     </div>
   );

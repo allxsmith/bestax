@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import OriginalCodeBlock from '@theme-init/CodeBlock';
 import BrowserOnly from '@docusaurus/BrowserOnly';
-import { LiveProvider, LiveEditor, LiveError } from 'react-live';
+import { LiveProvider, LiveContext, LiveEditor, LiveError } from 'react-live';
 import BrowserWindow from './BrowserWindow';
 import { scope } from './scope';
 import { stripModuleLines } from './sandbox/moduleLines.mjs';
@@ -28,9 +28,18 @@ function extractTitleFromMeta(metastring) {
 }
 
 function BrowserEditor({ title }) {
+  const live = useContext(LiveContext);
+  const [code, setCode] = React.useState(live.code);
+  // react-live keeps the code it was given and only retranspiles on edit, so
+  // the text the reader has typed is kept here for the copy and sandbox buttons.
+  const onChange = next => {
+    setCode(next);
+    live.onChange(next);
+  };
   return (
-    <BrowserWindow url={title}>
+    <BrowserWindow url={title} code={code}>
       <LiveEditor
+        onChange={onChange}
         style={{
           backgroundColor: 'var(--prism-background-color)',
           font: 'var(--ifm-code-font-size) / var(--ifm-pre-line-height) var(--ifm-font-family-monospace)',
