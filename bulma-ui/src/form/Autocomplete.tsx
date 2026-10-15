@@ -128,8 +128,10 @@ export interface AutocompleteProps
    * nothing that matches, a polite status region announces its text: once
    * each time the matches run out, not again on every keystroke while they
    * stay out. Opening the list without typing, or emptying the field,
-   * announces nothing. Without it, the dropdown closes when nothing matches
-   * and nothing is announced.
+   * announces nothing. While `loading`, or a `Control` with `isLoading`
+   * around the Autocomplete, is on, it waits, and it's announced once
+   * loading ends with nothing matching. Without `empty`, the dropdown closes
+   * when nothing matches and nothing is announced.
    */
   empty?: React.ReactNode;
 }
@@ -509,9 +511,16 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // field. It follows what's on screen, so results that come in after the
     // typing count too. It's said once each time that happens, not again on
     // each keystroke while nothing matches. An empty field isn't a search,
-    // so it stays quiet then, even with no data.
+    // so it stays quiet then, even with no data. While `loading`, or a
+    // loading Control around it, says results are on their way, it waits,
+    // and it's said once loading ends with nothing matching.
     const emptyItems =
-      typed && menuOpen && !listOpen && !!inputValue
+      typed &&
+      menuOpen &&
+      !listOpen &&
+      !!inputValue &&
+      !loading &&
+      !controlLoading
         ? typedNoMatches
         : nothingToAnnounce;
     // The region reads the text on screen, whatever `empty` renders.
