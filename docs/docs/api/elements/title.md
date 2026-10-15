@@ -136,7 +136,10 @@ Combine `Title` with `SubTitle` for a structured heading and subheading layout. 
 
 - **Semantic HTML:** Use appropriate heading levels for document structure.
 - **Spacing:** Use `isSpaced` for extra margin when needed.
-- **Screen readers:** Headings are key landmarks, so set the correct `as` and `size` prop for hierarchy.
+- **Screen readers:** Headings are key landmarks, so give each one the level the page's hierarchy
+  needs. `size` picks that level as well as the size, unless `as` is `p`: `as="h2" size="4"`
+  renders an `<h4>`. For a heading whose level and size differ, set the level with `as` and the
+  size with the `textSize` helper, as in `<Title as="h2" textSize="4">`.
 
 :::tip
 When using `as="p"`, the element is visually styled as a heading but semantically a paragraph.
