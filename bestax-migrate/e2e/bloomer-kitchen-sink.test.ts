@@ -279,6 +279,12 @@ describe('bloomer kitchen-sink e2e', () => {
         present: true,
       });
     }
+    // A Subtitle size it cannot read, which bestax would turn into a level.
+    expect(
+      todos.some(
+        t => t.rule === 'prop:isSize' && t.message.includes('textSize')
+      )
+    ).toBe(true);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),
       'utf8'

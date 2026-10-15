@@ -876,9 +876,44 @@ describe('bloomer navigation handlers', () => {
 
   it('keeps Subtitle an <h2> unless told otherwise', () => {
     const bare = migrate(dyn('Subtitle', '<Subtitle isSize={4}>x</Subtitle>'));
-    expect(bare.output).toContain('<SubTitle size={4} as="h2">x</SubTitle>');
+    expect(bare.output).toContain(
+      '<SubTitle textSize="4" as="h2">x</SubTitle>'
+    );
     const tagged = migrate(dyn('Subtitle', '<Subtitle tag="p">x</Subtitle>'));
     expect(tagged.output).toContain('<SubTitle as="p">x</SubTitle>');
+  });
+
+  // bestax renders the heading `size` names, so a size the codemod cannot
+  // read cannot be moved to `textSize` either.
+  it('flags a dynamic Title size unless the element is a <p>', () => {
+    const heading = migrate(dyn('Title', '<Title isSize={p.n}>x</Title>'));
+    expect(heading.rules).toEqual(['prop:isSize']);
+    expect(heading.todos[0].message).toContain('textSize');
+    expect(jsx(heading.output)).toContain('<Title size={p.n}>x</Title>');
+    const sub = migrate(dyn('Subtitle', '<Subtitle isSize={p.n}>x</Subtitle>'));
+    expect(sub.rules).toEqual(['prop:isSize']);
+    expect(jsx(sub.output)).toContain(
+      '<SubTitle size={p.n} as="h2">x</SubTitle>'
+    );
+    const para = migrate(dyn('Title', '<Title isSize={p.n} tag="p">x</Title>'));
+    expect(para.rules).toEqual([]);
+    expect(para.output).toContain('<Title size={p.n} as="p">x</Title>');
+  });
+
+  it('moves the size to textSize when it cannot see the element', () => {
+    const tag = migrate(dyn('Title', '<Title isSize={1} tag={p.t}>x</Title>'));
+    expect(tag.rules).toEqual([]);
+    expect(tag.output).toContain('<Title textSize="1" as={p.t}>x</Title>');
+    const spread = migrate(dyn('Title', '<Title {...p} isSize={1}>x</Title>'));
+    expect(spread.output).toContain('<Title {...p} textSize="1">x</Title>');
+  });
+
+  it('leaves a size outside 1 to 6 to the type checker', () => {
+    const { output, rules } = migrate(
+      dyn('Title', '<Title isSize={7}>x</Title>')
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<Title size={7}>x</Title>');
   });
 
   it('keeps a Page it cannot fold as a plain list item', () => {

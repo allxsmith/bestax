@@ -239,6 +239,43 @@ describe('rbx Title / Icon / PageLoader / Navbar / Field', () => {
     expect(output).toContain('<Title>');
   });
 
+  // rbx rendered an <h1> at every size; bestax renders the heading `size`
+  // names, so the size moves to textSize unless `size` renders the same tag.
+  it('keeps the heading level by moving the size to textSize', () => {
+    const { output, rules } = migrate(
+      imp('Title') +
+        'export const A = () => <><Title subtitle size={4}>x</Title><Title size={1}>y</Title></>;'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('<SubTitle textSize="4">x</SubTitle>');
+    expect(output).toContain('<Title size={1}>y</Title>');
+  });
+
+  it('moves the size when a spread may carry the element', () => {
+    const { output } = migrate(
+      imp('Title') +
+        'export const A = (p: object) => <Title {...p} size={1}>x</Title>;'
+    );
+    expect(output).toContain('<Title {...p} textSize="1">x</Title>');
+  });
+
+  it('flags a size it cannot move, and keeps it as size', () => {
+    const dynamic = migrate(
+      imp('Title') +
+        'export const A = ({ n }: { n: 4 }) => <Title size={n}>x</Title>;'
+    );
+    expect(dynamic.rules).toEqual(['prop:size']);
+    expect(dynamic.output).toContain('<Title size={n}>x</Title>');
+    // rbx's textSize helper is already there, so a second one cannot be added.
+    const both = migrate(
+      imp('Title') +
+        'export const A = () => <Title size={4} textSize={6}>x</Title>;'
+    );
+    expect(both.rules).toEqual(['prop:size']);
+    expect(both.todos[0].message).toContain('drop `size`');
+    expect(both.output).toContain('<Title size={4} textSize="6">x</Title>');
+  });
+
   it('reads an icon-font child into Icon name/library/variant', () => {
     const { output } = migrate(
       imp('Icon') +

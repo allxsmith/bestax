@@ -118,6 +118,27 @@ wrong:
   Note that this one does change the rendered element: rbx's `forwardRefAs` rendered the tag you
   gave it, so that really was a `<span>`, and the TODO exists to tell you the element moved.
 
+## Title sizes
+
+rbx's `Title` rendered an `<h1>` at every size, subtitle or not, or the element `as` named.
+bestax's `Title` and `SubTitle` render the heading their `size` names unless `as="p"`, so the
+codemod keeps the element rbx rendered:
+
+| rbx                                | bestax-bulma                   | renders |
+| ---------------------------------- | ------------------------------ | ------- |
+| `<Title size={4}>`                 | `<Title textSize="4">`         | `<h1>`  |
+| `<Title size={1}>`                 | `<Title size={1}>`             | `<h1>`  |
+| `<Title subtitle size={6}>`        | `<SubTitle textSize="6">`      | `<h1>`  |
+| `<Title as="h2" size={5}>`         | `<Title as="h2" textSize="5">` | `<h2>`  |
+| `<Title as="p" subtitle size={5}>` | `<SubTitle as="p" size={5}>`   | `<p>`   |
+
+`size` stays only where it renders the same element: a `<p>`, or the heading the size names.
+Everywhere else the size moves to the `textSize` helper, which sets the same font size through
+Bulma's `is-size-4` class rather than the title's own `is-4`, so a rule of your own that targets
+`.title.is-4` needs the new class too. Beside a spread, which may carry `as`, a size moves even
+where it names the default `<h1>`. A size the codemod cannot read keeps `size` and gets a
+`prop:size` TODO.
+
 ## `href` follows `as`
 
 bestax gives an element the attributes of the tag `as` names, so `href` exists only where that

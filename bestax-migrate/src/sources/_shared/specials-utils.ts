@@ -363,6 +363,102 @@ export function restrictAsToTargets(
   ctx.dirty = true;
 }
 
+/** The sizes bestax's Title and SubTitle turn into a heading level. */
+const TITLE_SIZES = ['1', '2', '3', '4', '5', '6'];
+
+/** What a source's title handler tells `keepTitleLevel` about it. */
+export interface TitleSource {
+  /** The source component, for the TODO (`Heading`, `Subtitle`). */
+  where: string;
+  /** The bestax component it becomes: `Title` or `SubTitle`. */
+  target: string;
+  /** The source's size prop: `isSize` in bloomer, `size` elsewhere. */
+  size: string;
+  /** The source's element prop: `tag`, `renderAs` or `as`. */
+  tag: string;
+  /** The element the source rendered when no tag was given. */
+  level: string;
+}
+
+/**
+ * Carry a title's size across without changing its heading level.
+ *
+ * Every source library rendered a title at the element its tag prop named,
+ * or at its own default, whatever the size. bestax's `Title` and `SubTitle`
+ * render the heading their `size` names unless `as="p"`, so `<Title size={4}>`
+ * is an <h4>. A size therefore stays `size` only where that renders the
+ * element the source did: a <p>, or the <hN> the size names. Anywhere else it
+ * moves to the `textSize` helper, which sets the same font size and leaves
+ * the level to `as`. A size the codemod cannot read gets a TODO.
+ *
+ * bestax defaults to an <h1>, so a source whose default is another level gets
+ * it written out as `as`, unless the size already renders it.
+ *
+ * Returns the props it consumed, for the handler's `handledProps`.
+ */
+export function keepTitleLevel(
+  ctx: TransformContext,
+  path: ASTPath<any>,
+  element: any,
+  source: TitleSource
+): string[] {
+  const { j } = ctx;
+  const tagAttr = findAttr(element, source.tag) ?? findAttr(element, 'as');
+  const spread = (element.openingElement.attributes ?? []).some(
+    (a: any) => a.type === 'JSXSpreadAttribute'
+  );
+  // The element the source rendered, where the codemod can see it. A spread
+  // may carry the tag prop, so beside one only a written tag counts.
+  let rendered: string | undefined;
+  if (tagAttr) {
+    const literal = literalValueOf(tagAttr);
+    if (literal.kind === 'string') rendered = literal.value;
+  } else if (!spread) {
+    rendered = source.level;
+  }
+
+  const handled: string[] = [];
+  let sizeRendersLevel = false;
+  const sizeAttr = findAttr(element, source.size);
+  if (sizeAttr) {
+    const literal = literalValueOf(sizeAttr);
+    const size =
+      literal.kind === 'string' || literal.kind === 'number'
+        ? String(literal.value)
+        : undefined;
+    const movable = size !== undefined && TITLE_SIZES.includes(size);
+    const textSize = findAttr(element, 'textSize');
+    if (rendered === 'p' || (size !== undefined && rendered === `h${size}`)) {
+      // `size` renders this element too, so the prop map carries it as is.
+      sizeRendersLevel = true;
+    } else if (movable && !textSize) {
+      sizeAttr.name = j.jsxIdentifier('textSize');
+      sizeAttr.value = j.stringLiteral(size);
+      handled.push(source.size);
+      ctx.dirty = true;
+    } else if (movable || literal.kind === 'expression') {
+      const level = `bestax's \`${source.target}\` renders the heading its \`size\` names unless \`as="p"\``;
+      addTodo(
+        ctx,
+        path,
+        `prop:${source.size}`,
+        textSize
+          ? `\`${source.where}\` sets a size and \`textSize\` both, and ${level}; to keep the level, drop \`size\` and let \`textSize\` set the font size`
+          : `\`${source.where}\` kept its element at every size, but ${level}; to keep the level, pass this size as \`textSize\` (a string, '1' to '6'), which sets the same font size`
+      );
+      // Written as bestax's prop either way, so the prop map adds nothing.
+      sizeAttr.name = j.jsxIdentifier('size');
+      handled.push(source.size);
+    }
+  }
+
+  if (!tagAttr && source.level !== 'h1' && !sizeRendersLevel) {
+    addAttr(element, makeAttr(j, 'as', source.level));
+    ctx.dirty = true;
+  }
+  return handled;
+}
+
 /**
  * Strip the link attributes a plain element cannot carry.
  *
