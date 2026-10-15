@@ -146,6 +146,23 @@ An inline code (`<code>`) wrapper for short code snippets. [View full documentat
 
 ---
 
+### Kbd
+
+A key the reader presses, drawn as a keycap on a `<kbd>` that takes its colors and size from the text around it, with `Kbd.Group` for combinations. [View full documentation.](../../../api/elements/kbd.md)
+
+```tsx live
+<Paragraph>
+  Press <Kbd>Esc</Kbd> to close, or{' '}
+  <Kbd.Group>
+    <Kbd>Ctrl</Kbd>
+    <Kbd>S</Kbd>
+  </Kbd.Group>{' '}
+  to save.
+</Paragraph>
+```
+
+---
+
 ### Pre
 
 A preformatted text (`<pre>`) wrapper for code blocks. [View full documentation.](../../../api/elements/pre.md)

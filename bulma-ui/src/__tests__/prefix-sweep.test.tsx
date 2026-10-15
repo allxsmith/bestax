@@ -117,6 +117,17 @@ const PROPS: Record<string, Record<string, unknown>> = {
   Breadcrumb: { items: [{ label: 'Home', href: '#' }] },
   Message: { children: 'Hello' },
   Notification: { children: 'Hello' },
+  // A symbol with a label, so its two spans are swept, and in a group with a
+  // second key, so the separator is too.
+  Kbd: { label: 'Command', children: '⌘' },
+  KbdGroup: {
+    children: [
+      <Library.Kbd key="mod" label="Command">
+        ⌘
+      </Library.Kbd>,
+      <Library.Kbd key="k">K</Library.Kbd>,
+    ],
+  },
   // Pressed, so the fill and `is-selected` it adds are swept too.
   ToggleButton: { defaultPressed: true, children: 'Mute' },
   // Checked and sized, so the fill, `is-selected` and `are-small` are swept.

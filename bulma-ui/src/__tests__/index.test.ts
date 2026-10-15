@@ -63,6 +63,8 @@ const PUBLIC_EXPORTS = [
   'Image',
   'Input',
   'InputBase',
+  'Kbd',
+  'KbdGroup',
   'Level',
   'LevelItem',
   'LevelLeft',
