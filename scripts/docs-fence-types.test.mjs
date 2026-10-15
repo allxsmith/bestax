@@ -20,10 +20,11 @@
  * drops the same lines and exports that expression. An `import type` line
  * stays, since the site drops it only because types do not run, and it is how
  * an example names a library type. Every other name comes from what the site
- * puts in scope (`docs/src/theme/CodeBlock/scope.js`): `React`, `useState`,
- * `useEffect`, every export of the library, and the docs-only `ProfileCard`.
- * A fence that uses something else,
- * such as a bare `useRef`, fails here as it would on the page.
+ * puts in scope (`docs/src/theme/CodeBlock/scope.js`): `React`, every export
+ * of the library, and the names listed in
+ * `docs/src/theme/CodeBlock/sandbox/scope-names.mjs`, which the header here
+ * binds too. A fence that uses something else, such as a bare `useRef`, fails
+ * here as it would on the page.
  *
  * Because the fence's own value imports are dropped, a missing or extra name
  * in one is not caught. Unused locals are, as the template's
@@ -66,9 +67,10 @@ const OPT_OUT = 'notypecheck';
  * string. These are the languages the ESLint pass reads as examples.
  */
 const LIVE_LANGS = new Set(['jsx', 'tsx']);
-const PROFILE_CARD = join(
+/** Where scope.js imports the docs-only components from. */
+const DOCS_ONLY_MODULE = join(
   REPO,
-  'docs/src/components/SkillExamples/ProfileCard.jsx'
+  'docs/src/components/SkillExamples/index.js'
 );
 /** "Declared but never read" and "all imports in a declaration are unused". */
 const UNUSED = new Set([6133, 6192]);
@@ -76,9 +78,10 @@ const UNUSED = new Set([6133, 6192]);
 /**
  * The `compilerOptions` of a new Vite `react-ts` app's `tsconfig.app.json`,
  * with `strict` spelled out (TypeScript 6 turns it on by default; earlier
- * versions do not) and `allowJs` added for the docs-only `ProfileCard`, which
- * is a `.jsx` file. `types` is empty because the template's `vite/client` only
- * declares asset imports, and the fences' imports are dropped.
+ * versions do not) and `allowJs` added so the docs-only components bind from
+ * their JavaScript sources. `types` is empty because the template's
+ * `vite/client` only declares asset imports, and the fences' imports are
+ * dropped.
  */
 const VITE_REACT_TS = {
   target: 'es2023',
@@ -124,11 +127,11 @@ export function liveFences(src) {
  * every line where it was, so a diagnostic's line maps straight back to the
  * page. Returns the source and how many header lines precede the body.
  */
-function asModule(body, { libraryNames, profileCard }) {
+function asModule(body, { libraryNames, docsOnlyModule }) {
   const header = [
     `import React, { ${REACT_SCOPE_NAMES.join(', ')} } from 'react';`,
     `import { ${libraryNames.join(', ')} } from '${LIBRARY}';`,
-    `import { ProfileCard } from ${JSON.stringify(profileCard)};`,
+    `import { ${DOCS_ONLY_NAMES.join(', ')} } from ${JSON.stringify(docsOnlyModule)};`,
   ];
   const lines = body.map(line => {
     const trimmed = line.trim();
@@ -175,7 +178,7 @@ function loadTools() {
     LIBRARY_DIR
   );
   assert.deepEqual(errors, [], 'the compiler options did not parse');
-  return { ts, options, libraryNames, profileCard: PROFILE_CARD };
+  return { ts, options, libraryNames, docsOnlyModule: DOCS_ONLY_MODULE };
 }
 
 /**
@@ -237,9 +240,9 @@ export function checkPages(pages, tools) {
   const problems = compilerProblems(ts, program);
   // The header imports the whole scope, and most of it goes unused, so an
   // unused-import report there is expected. Anything else on the header means
-  // a name did not bind, such as `ProfileCard` after a move, and every fence
-  // using it would type it `any`. The header is the same in every module, so
-  // each such report is kept once.
+  // a name did not bind, such as a docs-only component after a move, and
+  // every fence using it would type it `any`. The header is the same in every
+  // module, so each such report is kept once.
   const scope = new Set();
   for (const [name, { file, fence, headerLines }] of modules) {
     const sourceFile = program.getSourceFile(name);
@@ -455,7 +458,7 @@ describe('the docs live examples type-check', () => {
     assert.deepEqual(about('fixture/imports.md'), []);
   });
 
-  it('binds the docs-only ProfileCard, as the live scope does', () => {
+  it('binds the docs-only components, as the live scope does', () => {
     assert.deepEqual(about('fixture/scope-only.md'), []);
     assert.deepEqual(
       problems.filter(p => p.startsWith('scope:')),
@@ -466,16 +469,16 @@ describe('the docs live examples type-check', () => {
   });
 
   it('reports a scope name that stops binding, once', () => {
-    const moved = join(dirname(PROFILE_CARD), 'Moved.jsx');
+    const moved = join(dirname(DOCS_ONLY_MODULE), 'Moved.js');
     const found = checkPages(
       [
         page('fixture/uses-it.md', '<ProfileCard name="Ada" />'),
         page('fixture/does-not.md', '<Box>Go</Box>'),
       ],
-      { ...tools, profileCard: moved }
+      { ...tools, docsOnlyModule: moved }
     );
     assert.equal(found.length, 1, found.join('\n'));
-    assert.match(found[0], /^scope: TS2307 Cannot find module '.*Moved\.jsx'/);
+    assert.match(found[0], /^scope: TS2307 Cannot find module '.*Moved\.js'/);
   });
 
   it(`holds a \`${OPT_OUT}\` fence only while it has an error`, () => {
