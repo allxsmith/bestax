@@ -105,14 +105,21 @@ export default function SandboxButtons({ code }) {
     if (name === 'openInCodeSandbox') {
       options.tab = window.open('', '_blank');
     }
+    // A failed launch must not leave the tab opened above blank.
+    const fail = error => {
+      options.tab?.close();
+      console.error('Could not open the example in a sandbox:', error);
+    };
     if (loaded) {
-      loaded[name](options);
+      try {
+        loaded[name](options);
+      } catch (error) {
+        fail(error);
+      }
     } else {
       loadSandbox()
         .then(module => module[name](options))
-        .catch(error => {
-          console.error('Could not open the example in a sandbox:', error);
-        });
+        .catch(fail);
     }
   };
 
