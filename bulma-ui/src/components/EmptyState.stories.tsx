@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react-vite';
+import { expect, userEvent, within } from 'storybook/test';
 import { EmptyState } from './EmptyState';
 import { Card } from './Card';
 import { Panel } from './Panel';
@@ -263,6 +264,34 @@ export const AlignLeft: Story = {
             <Button color="info">כתיבת הודעה</Button>
           </EmptyState>
         </Box>
+        <Columns>
+          <Column>
+            <Card header="Without a picture">
+              <EmptyState
+                align="left"
+                size="small"
+                title="No comments yet"
+                titleAs="h3"
+                description="With no indicator, left keeps no room for one."
+              />
+            </Card>
+          </Column>
+          <Column>
+            <Card header="No block padding">
+              {/* `py` replaces the padding, and the height kept for the
+                  circle follows it. */}
+              <EmptyState
+                align="left"
+                size="small"
+                py="0"
+                color="success"
+                icon="check"
+                title="All paid up"
+                titleAs="h3"
+              />
+            </Card>
+          </Column>
+        </Columns>
       </>
     );
   },
@@ -488,7 +517,9 @@ export const SearchWithNoResults: Story = {
 
     return (
       <Box>
-        <Title as="h2" size="5">
+        {/* The level from `as` and the size from `textSize`. On Title, `size`
+            would pick the level too, and make this an h5. */}
+        <Title as="h2" textSize="5">
           Projects
         </Title>
         <Field label="Search projects">
@@ -505,7 +536,7 @@ export const SearchWithNoResults: Story = {
         <Paragraph role="status" aria-atomic="true" visibility="sr-only">
           {shown.length === 0
             ? 'No projects match the search'
-            : `${shown.length} projects`}
+            : `${shown.length} of ${projects.length} projects`}
         </Paragraph>
         {shown.length === 0 ? (
           <EmptyState
@@ -525,6 +556,36 @@ export const SearchWithNoResults: Story = {
         )}
       </Box>
     );
+  },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    // The section's heading is an h2, and the empty state's sits under it.
+    await expect(
+      canvas.getByRole('heading', { level: 2, name: 'Projects' })
+    ).toBeInTheDocument();
+    await expect(
+      canvas.getByRole('heading', { level: 3, name: /No projects match/ })
+    ).toBeInTheDocument();
+    await expect(canvas.getByRole('status')).toHaveTextContent(
+      'No projects match the search'
+    );
+
+    // The button goes away with the empty state, so focus goes back to the
+    // field, and the status region, in the page all along, says the count.
+    await userEvent.click(canvas.getByRole('button', { name: 'Clear search' }));
+    await expect(canvas.getByRole('searchbox')).toHaveFocus();
+    await expect(canvas.getByRole('status')).toHaveTextContent(
+      '3 of 3 projects'
+    );
+
+    // Search for nothing again, so the story ends where it started.
+    await userEvent.type(canvas.getByRole('searchbox'), 'kraken');
+    await expect(canvas.getByRole('status')).toHaveTextContent(
+      'No projects match the search'
+    );
+    await expect(
+      canvas.getByRole('heading', { level: 3, name: /No projects match/ })
+    ).toBeInTheDocument();
   },
 };
 
