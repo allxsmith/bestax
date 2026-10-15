@@ -104,6 +104,14 @@ export function openInStackBlitz(options) {
 
 const CODESANDBOX_DEFINE =
   'https://codesandbox.io/api/v1/sandboxes/define?json=1';
+/** How long the tab waits on CodeSandbox before it says so. */
+const DEFINE_TIMEOUT_MS = 20000;
+
+/** Writes a line into the tab the click opened, so the reader sees progress. */
+function say(tab, text) {
+  tab.document.title = 'CodeSandbox';
+  tab.document.body.textContent = text;
+}
 
 /** Creates the sandbox from its files and resolves to the id CodeSandbox gives it. */
 async function defineSandbox(files) {
@@ -111,6 +119,8 @@ async function defineSandbox(files) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ files }),
+    // Bounded, so a reply that never comes cannot leave the tab waiting forever.
+    signal: AbortSignal.timeout(DEFINE_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new Error(`CodeSandbox answered ${response.status}`);
@@ -142,12 +152,16 @@ export function openInCodeSandbox({ tab, ...options }) {
     return;
   }
   tab.opener = null;
+  say(tab, 'Creating your CodeSandbox…');
   defineSandbox(codesandboxFiles(input)).then(
     id => {
       tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
     },
     error => {
-      tab.close();
+      say(
+        tab,
+        'CodeSandbox did not open this example. Close this tab and try again.'
+      );
       console.error('Could not open the example in CodeSandbox:', error);
     }
   );
