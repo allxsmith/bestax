@@ -126,9 +126,8 @@ export interface AutocompleteProps
    * It sits beside the list of options rather than in it, so the input's
    * `aria-expanded` stays false while it shows. When the user's typing leaves
    * nothing that matches, a polite status region announces its text: once
-   * each time the matches run out, not again on every keystroke while they
-   * stay out. Opening the list without typing, or emptying the field,
-   * announces nothing. While `loading`, or a `Control` with `isLoading`
+   * each time the matches run out. Opening the list without typing, or
+   * emptying the field, announces nothing. While `loading`, or a `Control` with `isLoading`
    * around the Autocomplete, is on, it waits, and it's announced once
    * loading ends with nothing matching. Without `empty`, the dropdown closes
    * when nothing matches and nothing is announced.
