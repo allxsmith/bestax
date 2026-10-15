@@ -51,6 +51,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
 import { toExampleModule } from '../docs/src/theme/CodeBlock/sandbox/example.mjs';
+import {
+  DOCS_ONLY_NAMES,
+  REACT_SCOPE_NAMES,
+} from '../docs/src/theme/CodeBlock/sandbox/scope-names.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const LIBRARY = '@allxsmith/bestax-bulma';
@@ -66,10 +70,6 @@ const PROFILE_CARD = join(
   REPO,
   'docs/src/components/SkillExamples/ProfileCard.jsx'
 );
-/** The React exports the live scope provides bare, beside `React`. */
-const REACT_SCOPE = ['useEffect', 'useState'];
-/** Scope names that exist only in the docs site, so no sandbox can import. */
-const DOCS_ONLY = ['ProfileCard'];
 /** "Declared but never read" and "all imports in a declaration are unused". */
 const UNUSED = new Set([6133, 6192]);
 
@@ -126,7 +126,7 @@ export function liveFences(src) {
  */
 function asModule(body, { libraryNames, profileCard }) {
   const header = [
-    `import React, { ${REACT_SCOPE.join(', ')} } from 'react';`,
+    `import React, { ${REACT_SCOPE_NAMES.join(', ')} } from 'react';`,
     `import { ${libraryNames.join(', ')} } from '${LIBRARY}';`,
     `import { ProfileCard } from ${JSON.stringify(profileCard)};`,
   ];
@@ -287,8 +287,8 @@ export function checkSandboxes(pages, tools) {
       if (fence.optOut) continue;
       const example = toExampleModule(fence.body.join('\n'), {
         libraryExports: tools.libraryNames,
-        reactNames: REACT_SCOPE,
-        docsOnlyNames: DOCS_ONLY,
+        reactNames: REACT_SCOPE_NAMES,
+        docsOnlyNames: DOCS_ONLY_NAMES,
       });
       if (!example) continue;
       modules.set(modulePath('sandbox_', file, fence), {
