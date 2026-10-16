@@ -28,6 +28,7 @@ import {
 import { applyPropAction } from '../_shared/props.js';
 import {
   applyIconProps,
+  keepTitleLevel,
   makeStripModifierProps,
   makeStructuralHelpers,
   modifierClass,
@@ -1152,15 +1153,34 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * bloomer's Subtitle defaulted to an <h2>; bestax's SubTitle defaults to an
-   * <h1>. Keeping the heading level is what a screen reader hears.
+   * bloomer's Title rendered an <h1> and its Subtitle an <h2> at every
+   * `isSize`, while bestax's render the heading their `size` names. Keeping
+   * the heading level is what a screen reader hears, so the size moves to
+   * `textSize` wherever `size` would change it (see `keepTitleLevel`).
    */
-  subtitle(ctx, _path, element) {
-    if (!findAttr(element, 'tag') && !findAttr(element, 'as')) {
-      addAttr(element, makeAttr(ctx.j, 'as', 'h2'));
-      ctx.dirty = true;
-    }
-    return {};
+  title(ctx, path, element) {
+    return {
+      handledProps: keepTitleLevel(ctx, path, element, {
+        where: 'Title',
+        target: 'Title',
+        size: 'isSize',
+        tag: 'tag',
+        level: 'h1',
+      }),
+    };
+  },
+
+  /** As `title`, from bloomer's <h2>; bestax's SubTitle defaults to an <h1>. */
+  subtitle(ctx, path, element) {
+    return {
+      handledProps: keepTitleLevel(ctx, path, element, {
+        where: 'Subtitle',
+        target: 'SubTitle',
+        size: 'isSize',
+        tag: 'tag',
+        level: 'h2',
+      }),
+    };
   },
 
   /**

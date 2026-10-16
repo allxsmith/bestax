@@ -54,8 +54,8 @@ leftover would be a type error rather than a no-op.
 | ------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `isColor="primary"`                                                                                          | `color="primary"` (every component that had it)                                                                                                                                                                                                                           |
 | `isSize="large"`                                                                                             | `size="large"` — Button, Content, Delete, Icon, Input, Progress, Section, Select, Tag, TextArea, Breadcrumb, Pagination, Tabs, Field.Label, Modal.Close                                                                                                                   |
-| `Title isSize={3}`                                                                                           | `size={3}` — bestax accepts the numbers 1–6                                                                                                                                                                                                                               |
-| `Subtitle isSize={4}`                                                                                        | `SubTitle size={4} as="h2"` — bloomer's default was an `<h2>`, bestax's is an `<h1>`, so the level is kept                                                                                                                                                                |
+| `Title isSize={3}`                                                                                           | `textSize="3"`, so the `<h1>` stays an `<h1>` (see [Title and Subtitle sizes](#title-and-subtitle-sizes))                                                                                                                                                                 |
+| `Subtitle isSize={4}`                                                                                        | `SubTitle textSize="4" as="h2"`: bloomer's default was an `<h2>`, bestax's is an `<h1>`, so the level is written out                                                                                                                                                      |
 | `Image isSize="128x128"`                                                                                     | `size="128x128"`                                                                                                                                                                                                                                                          |
 | `Image isRatio="16:9"`                                                                                       | `size="16by9"` (`square`→`square`, `1:1`→`1by1`, `4:3`→`4by3`, `3:2`→`3by2`, `2:1`→`2by1`)                                                                                                                                                                                |
 | `Breadcrumb isAlign`                                                                                         | `alignment`                                                                                                                                                                                                                                                               |
@@ -76,6 +76,31 @@ leftover would be a type error rather than a no-op.
 | `PageLink isCurrent`                                                                                         | `active`                                                                                                                                                                                                                                                                  |
 | `isActive` on Dropdown, DropdownItem, MenuLink, Modal, NavbarBurger, NavbarMenu, NavbarItem, PanelBlock, Tab | `active`                                                                                                                                                                                                                                                                  |
 | `Input`, `Select`, `TextArea`                                                                                | `InputBase`, `SelectBase`, `TextAreaBase` — bloomer's were bare elements; bestax's `Input`/`Select`/`TextArea` wrap themselves in `Field` and `Control`, so the bare `*Base` exports are the faithful targets and your existing `Field`/`Control` markup stays as written |
+
+## Title and Subtitle sizes
+
+bloomer's `Title` rendered an `<h1>` and its `Subtitle` an `<h2>` whatever `isSize` said, or
+the element `tag` named. bestax's `Title` and `SubTitle` render the heading their `size` names
+unless `as="p"`, so `<SubTitle size={4} as="h2">` is an `<h4>`. The codemod keeps the element
+bloomer rendered:
+
+| bloomer                       | bestax-bulma                      | renders |
+| ----------------------------- | --------------------------------- | ------- |
+| `<Title isSize={4}>`          | `<Title textSize="4">`            | `<h1>`  |
+| `<Title isSize={1}>`          | `<Title size={1}>`                | `<h1>`  |
+| `<Title isSize={4} tag="h2">` | `<Title textSize="4" as="h2">`    | `<h2>`  |
+| `<Title isSize={6} tag="p">`  | `<Title size={6} as="p">`         | `<p>`   |
+| `<Subtitle>`                  | `<SubTitle as="h2">`              | `<h2>`  |
+| `<Subtitle isSize={2}>`       | `<SubTitle size={2}>`             | `<h2>`  |
+| `<Subtitle isSize={4}>`       | `<SubTitle textSize="4" as="h2">` | `<h2>`  |
+
+`size` stays only where it renders the same element: a `<p>`, or the heading the size names.
+Everywhere else the size moves to the `textSize` helper, and so does a 7, which bestax's `size`
+does not take. The helper sets the same font size through Bulma's `is-size-4` class rather than the
+title's own `is-4`, so a rule of your own that targets `.title.is-4` needs the new class too.
+`is-size-4` is also `!important`, so a font size your own CSS gives the title, such as
+`.hero .title`, now loses to it where it used to beat `is-4`. A literal outside 1 to 7 keeps `size`
+and gets a `prop:isSize` TODO.
 
 ## Column sizes
 

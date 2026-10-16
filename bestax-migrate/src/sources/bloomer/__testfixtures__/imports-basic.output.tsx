@@ -4,10 +4,10 @@ import "@allxsmith/bestax-bulma/bestax.css";
 
 export const Basic = () => (
   <Box>
-    <Title size={2} isSpaced>
+    <Title textSize="2" isSpaced>
       Heading
     </Title>
-    <SubTitle size={4} as="h3">
+    <SubTitle textSize="4" as="h3">
       Sub
     </SubTitle>
     <Button color="primary" size="medium" isOutlined>

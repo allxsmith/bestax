@@ -21,6 +21,7 @@ import {
   Numeric,
   Tag,
   Tile,
+  Title,
 } from "rbx";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faHome } from "@fortawesome/free-solid-svg-icons";
@@ -99,6 +100,9 @@ export const Leftovers = ({ where }: { where: "left" | "right" }) => (
     <Button.Group size={where === "left" ? "small" : "large"}>
       <Button>sized</Button>
     </Button.Group>
+
+    {/* bestax's Title renders the heading its size names, and this one is unreadable */}
+    <Title size={where === "left" ? 3 : 4}>a dynamic size</Title>
 
     {/* dynamic values are never best-guessed */}
     <Generic as="div" textAlign={where === "left" ? "left" : "right"} />

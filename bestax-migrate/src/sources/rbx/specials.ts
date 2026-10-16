@@ -38,6 +38,7 @@ import {
 import {
   alignTarget,
   applyIconProps,
+  keepTitleLevel,
   makeStripModifierProps,
   makeStructuralHelpers,
   mergeClassName,
@@ -132,6 +133,8 @@ const SPECIALS: Record<string, SpecialHandler> = {
    * rbx folds title and subtitle into one component behind a `subtitle`
    * boolean; bestax splits them into `Title` and `SubTitle`. rbx also ignores
    * `spaced` when `subtitle` is set, so a subtitle never carries isSpaced.
+   * Both rendered an <h1> at every `size`, which bestax's turn into the
+   * heading the size names, so `keepTitleLevel` decides where the size goes.
    */
   title(ctx, path, element) {
     const subtitleAttr = findAttr(element, 'subtitle');
@@ -181,7 +184,14 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
     }
 
-    return { target, handledProps: ['subtitle', 'spaced'] };
+    const sized = keepTitleLevel(ctx, path, element, {
+      where: 'Title',
+      target,
+      size: 'size',
+      tag: 'as',
+      level: 'h1',
+    });
+    return { target, handledProps: ['subtitle', 'spaced', ...sized] };
   },
 
   /**
