@@ -4,6 +4,7 @@ import React, {
   useRef,
   useEffect,
   useCallback,
+  useId,
 } from 'react';
 import {
   classNames,
@@ -55,9 +56,9 @@ export interface TaginputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback too. */
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback too. With `data`, the label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
   label?: React.ReactNode;
-  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). */
+  /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). With `data`, while the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
     [key: string]: unknown;
   };
@@ -67,7 +68,12 @@ export interface TaginputProps
   value?: TaginputTag[];
   /** Default tags (uncontrolled). */
   defaultValue?: TaginputTag[];
-  /** Autocomplete suggestions. */
+  /**
+   * Autocomplete suggestions. With `data` set, even to an empty array, the
+   * text input is a `role="combobox"` that controls the suggestion list and
+   * points `aria-activedescendant` at the highlighted suggestion. Without it
+   * there's no list, so the input stays a plain text field.
+   */
   data?: string[];
   /** Placeholder text when no tags. */
   placeholder?: string;
@@ -193,7 +199,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       fieldClassName,
       value: controlledValue,
       defaultValue = [],
-      data = [],
+      data: dataProp,
       placeholder,
       field = 'label',
       allowNew = true,
@@ -271,19 +277,34 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const [inputValue, setInputValue] = useState('');
     const [isActive, setIsActive] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
+    const listboxId = `${useId()}-listbox`;
+
+    // With `data` the input offers suggestions, so it's a combobox, even
+    // while none match. Without it there's never a list, so it stays a plain
+    // text field.
+    const hasSuggestions = dataProp !== undefined;
+    const data = dataProp ?? [];
 
     // Use controlled or internal tags
     const tags = controlledValue !== undefined ? controlledValue : internalTags;
 
     const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
     // At the tag limit the text input is not rendered, so there is nothing to
-    // wire a label to, its own or a surrounding Field's.
-    const { controlId, fieldLabelProps, labelled } = useAutoLabelId({
+    // wire a label to, its own or a surrounding Field's. The suggestion list
+    // points `aria-labelledby` at the label that names the input, so with
+    // suggestions it needs that label's id.
+    const {
+      controlId,
+      fieldLabelProps,
+      labelled,
+      labelId: listLabelId,
+    } = useAutoLabelId({
       label,
       id,
       labelProps,
       rendersLabel: ownField && !isMaxReached,
       hasInput: !isMaxReached,
+      needsLabelId: hasSuggestions,
     });
 
     // Get display value from tag
@@ -304,6 +325,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       const hasInput = inputValue || (openOnFocus && isActive);
       return matchesInput && notAlreadyAdded && hasInput;
     });
+    const listOpen = isActive && filteredData.length > 0;
 
     // keepFirst: auto-highlight first item when dropdown opens
     useEffect(() => {
@@ -613,6 +635,28 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     });
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
+    // The combobox controls its listbox and points at the highlighted option,
+    // the way Autocomplete's does. The listbox takes its name from the label
+    // that names the combobox, the one this renders or a surrounding Field's,
+    // and keeps a fallback name when no label names it or the one that does
+    // has no id to point at. While no suggestion matches there's no listbox,
+    // so the combobox is collapsed and points at nothing. It skips a
+    // highlighted suggestion that's blank once trimmed, since that one can't
+    // become a tag, and the option it points at is the one marked selected.
+    const optionId = (index: number) => `${listboxId}-${index}`;
+    const activeOptionId =
+      listOpen && filteredData[highlightedIndex]?.trim()
+        ? optionId(highlightedIndex)
+        : undefined;
+    const comboboxProps: React.InputHTMLAttributes<HTMLInputElement> = {
+      role: 'combobox',
+      'aria-expanded': listOpen,
+      'aria-controls': listOpen ? listboxId : undefined,
+      'aria-activedescendant': activeOptionId,
+      'aria-haspopup': 'listbox',
+      'aria-autocomplete': 'list',
+    };
+
     const taginputElement = (
       <div
         ref={containerRef}
@@ -671,6 +715,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
+                {...(hasSuggestions && comboboxProps)}
                 // Fallback name, dropped only when a rendered label actually
                 // targets this input, its own or a surrounding Field's
                 // (aria-label would win otherwise). A label pointing elsewhere
@@ -686,23 +731,27 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           )}
         </div>
 
-        {isActive && filteredData.length > 0 && (
+        {listOpen && (
           <div className={dropdownMenuClasses}>
             <div
               ref={dropdownRef}
+              id={listboxId}
               className={dropdownContentClasses}
               role="listbox"
+              aria-labelledby={listLabelId}
+              aria-label={listLabelId ? undefined : 'Suggestions'}
             >
               {filteredData.map((item, index) => (
                 <a
                   key={index}
+                  id={optionId(index)}
                   className={pcn('dropdown-item', {
                     'is-active': index === highlightedIndex,
                   })}
                   onClick={() => addTag(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
-                  aria-selected={index === highlightedIndex}
+                  aria-selected={optionId(index) === activeOptionId}
                 >
                   {item}
                 </a>
