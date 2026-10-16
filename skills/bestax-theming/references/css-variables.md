@@ -263,12 +263,12 @@ list it, so set it in your CSS or through a `style` prop.)
 Declared on the root, `.combobox`, and again on a dropdown rendered with `appendToBody`,
 `.combobox-dropdown.is-portal`, which sits at the end of the page outside the root. A dropdown in
 place inherits the root's, so a value set on `.combobox` reaches it; for a portaled one, set it on
-`.combobox-dropdown` as well. Each size class (`.is-small`, `.is-medium`, `.is-large`, on the root
-and on the dropdown) sets the option size and padding, so retune a size on that class. The
-highlight is the link color and its invert, the pair Bulma gives an active dropdown item, and
-every color comes from Bulma's scheme tokens, so the list follows dark mode with no override. The
-panel reads these rather than Bulma's `--bulma-dropdown-*`, which Bulma declares on `.dropdown`
-alone.
+`.combobox-dropdown.is-portal` as well, where they're declared, since a lone `.combobox-dropdown`
+loses to that on specificity. Each size class (`.is-small`, `.is-medium`, `.is-large`, on the root
+and on the dropdown) sets the option size and padding, so retune a size on that class. The highlight
+is the link color and its invert, the pair Bulma gives an active dropdown item, and every color
+comes from Bulma's scheme tokens, so the list follows dark mode with no override. The panel reads
+these rather than Bulma's `--bulma-dropdown-*`, which Bulma declares on `.dropdown` alone.
 
 `--bulma-combobox-check-color`, `--bulma-combobox-check-gap`, `--bulma-combobox-check-size`,
 `--bulma-combobox-disabled-color`, `--bulma-combobox-divider-color`,

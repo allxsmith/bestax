@@ -134,12 +134,14 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 
 **Labels.** Default to the convenience `label` prop, with `horizontal` for a side-by-side row.
 `Input`, `Select`, `TextArea`, `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`,
-`DateTimeInput`, `Autocomplete`, `Combobox` and `Taginput` then render the `Field` and the label and
-wire `htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal
-/>`); an explicit `labelProps={{ htmlFor }}` wins. The group inputs (`Checkboxes`, `Radios`, `Rate`,
-`DateRangeInput`) name their `role="group"`/`"radiogroup"` wrapper through `aria-labelledby`
-instead. Inside a `Field` a convenience input drops its `label`, and an `inline` date/time picker or
-a `Taginput` at `maxTags` has no visible input to wire.
+`DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
+`htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`); an
+explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
+them to `Combobox.Input`: put an `id` on that, since one on the `Combobox` lands on its wrapper
+`div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
+`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
+convenience input drops its `label`, and an `inline` date/time picker or a `Taginput` at `maxTags`
+has no visible input to wire.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not

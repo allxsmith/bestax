@@ -328,7 +328,7 @@ function setRefs<T>(
  * `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and
  * a `checked` option shows a check mark and takes the highlight when the
  * list opens. With `multiple`, `checked` is each option's `aria-selected`.
- * Tab and focus leaving close the list without picking.
+ * Tab and focus leaving close a dropdown list without picking.
  *
  * When typing leaves `Combobox.Empty` on screen, its text is announced
  * through a polite status region, once, after any loading ends. Result

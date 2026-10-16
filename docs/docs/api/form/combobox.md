@@ -621,8 +621,9 @@ takes, and `auto` picks the one that keeps the list in the viewport, preferring 
 Inside a container that clips its overflow, such as a Modal card's scrolling body, add
 `appendToBody`. The dropdown is then portaled, fixed to the viewport at the field and at least as
 wide as it. A portaled panel sits outside the Combobox, so it carries its own copy of the
-`--bulma-combobox-*` defaults: set a theme override on `.combobox-dropdown` as well as on
-`.combobox`. In a `Modal`, point a `ConfigProvider`'s `portalContainer` at an element inside the
+`--bulma-combobox-*` defaults, declared on `.combobox-dropdown.is-portal`: set a theme override
+there as well as on `.combobox`. A lone `.combobox-dropdown` loses to it on specificity. In a
+`Modal`, point a `ConfigProvider`'s `portalContainer` at an element inside the
 modal, so the list stays inside the dialog for assistive tech:
 
 ```tsx
@@ -737,19 +738,21 @@ function example() {
 
 Focus stays in the field the whole time. The keys work on the field like this:
 
-| Key                                                  | List closed                                                                                   | List open                                                                                                                      |
-| ---------------------------------------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| Down Arrow                                           | Opens it, highlighting the checked option if it's showing, otherwise the first enabled option | Highlights the next option, wrapping to the first                                                                              |
-| Up Arrow                                             | Opens it, highlighting the checked option if it's showing, otherwise the last enabled option  | Highlights the previous option, wrapping to the last                                                                           |
-| Alt+Down Arrow                                       | Opens it without a highlight                                                                  | Nothing                                                                                                                        |
-| Alt+Up Arrow                                         | Nothing                                                                                       | Closes it                                                                                                                      |
-| Enter                                                | Left alone, so a form submits                                                                 | Picks the highlighted option, and does nothing on a disabled one. With nothing highlighted, closes it and lets the form submit |
-| Escape                                               | Left alone, so it reaches whatever is around the field                                        | Closes it, and stops there: a Popover around it stays open                                                                     |
-| Tab                                                  | Left alone                                                                                    | Closes it and picks nothing. Focus moves on                                                                                    |
-| Home, End, Left, Right, Backspace, Delete and typing | The field's own                                                                               | The field's own, and the highlight clears. Typing changes the field, and your new options follow                               |
+| Key                          | List closed                                                                                   | List open                                                                                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Down Arrow                   | Opens it, highlighting the checked option if it's showing, otherwise the first enabled option | Highlights the next option, wrapping to the first                                                                                                    |
+| Up Arrow                     | Opens it, highlighting the checked option if it's showing, otherwise the last enabled option  | Highlights the previous option, wrapping to the last                                                                                                 |
+| Alt+Down Arrow               | Opens it without a highlight                                                                  | Nothing                                                                                                                                              |
+| Alt+Up Arrow                 | Nothing                                                                                       | Closes it                                                                                                                                            |
+| Enter                        | Left alone, so a form submits                                                                 | Picks the highlighted option, and does nothing on a disabled one. With nothing highlighted, closes it and lets the form submit                       |
+| Escape                       | Left alone, so it reaches whatever is around the field                                        | Closes it. When a panel was on screen, the key stops there, so a Popover around it stays open                                                        |
+| Tab                          | Left alone                                                                                    | Closes it and picks nothing. Focus moves on                                                                                                          |
+| Home, End, Left, Right       | The field's own                                                                               | The field's own, and the highlight clears                                                                                                            |
+| Typing, Backspace and Delete | The field's own, and a change to the text opens the list                                      | The field's own. When the text changes, the highlight clears, or moves to the first enabled option with `autoHighlight`, and your new options follow |
 
 - **`inline`:** the "List open" column applies the whole time, except that Escape and Alt+Up Arrow
-  are left alone, so they reach whatever is around the list.
+  are left alone, so they reach whatever is around the list, and Tab only moves focus on, since
+  nothing closes an inline list.
 - **While an IME is composing,** none of this runs, so Enter finishes the word instead of picking.
 - **Your own `onKeyDown`** on `Combobox.Input` runs first, and one that calls `preventDefault()`
   keeps the Combobox from handling that key.
@@ -764,12 +767,14 @@ and a click in the field opens the list. A press in the list never takes focus f
 - **The roles:** the field is `role="combobox"` with `aria-autocomplete="list"` and
   `aria-haspopup="listbox"`. The list is a `listbox` of `option`s, and a group is a `group` named by
   its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.
-- **Focus stays in the field:** the highlighted option is the field's `aria-activedescendant`, and
-  the highlighted option is scrolled into view, since a browser only scrolls to what has focus. A
-  click on an option keeps focus in the field too.
-- **`aria-expanded`** is `true` only while a list with an option in it is on screen, and
-  `aria-controls` points at the list only then. While the dropdown shows just `Combobox.Empty`, the
-  field says it's collapsed.
+- **Focus stays in the field:** the highlighted option is the field's `aria-activedescendant`.
+  When a key or the list opening moves the highlight, the option is scrolled into view, since a
+  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer
+  is already on that option. A click on an option keeps focus in the field too.
+- **`aria-expanded`** is `true` while a list with an option in it is on screen, and
+  `aria-controls` points at the list then. While the dropdown shows just `Combobox.Empty`, the
+  field says it's collapsed, and so does the server markup for a list rendered with
+  `appendToBody`, which shows only once the page has hydrated.
 - **The list's name** comes from the label that names the field: the Combobox's `label`, or an
   outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.Options` wins, and
   with none of these the list is named "Suggestions".
@@ -786,12 +791,13 @@ and a click in the field opens the list. A press in the list never takes focus f
   your typing brings it on screen, its text is announced through a polite status region that's in
   the page from the start, once each time the matches run out. Opening the list with it already
   there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`
-  is around the Combobox, the announcement waits and is made once loading ends. Keep it to text:
-  Tab closes the list, so a keyboard user can't reach a link or a button in it.
+  is around the Combobox, the announcement waits and is made once loading ends. In a dropdown,
+  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.
+  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.
 - **No counts are announced,** for the reasons in [A Result Count](#a-result-count).
 - **Enter and Escape** leave a form and the layers around the field alone unless they did
   something: Enter submits the form when nothing is highlighted, and Escape only stops at the
-  Combobox when it closed the list.
+  Combobox when it closed a panel that was on screen.
 - **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the
   system's highlight color, a disabled option takes the system's color for disabled text, and the
   check mark and the panel's edge stay visible.
@@ -924,10 +930,11 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 ### Combobox.Empty
 
-| Prop        | Type                            | Default | Description             |
-| ----------- | ------------------------------- | ------- | ----------------------- |
-| `className` | `string`                        | —       | Additional CSS classes. |
-| `...`       | All standard `<div>` attributes | —       |                         |
+| Prop        | Type                            | Default | Description                                                                                                                                                                                                |
+| ----------- | ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `React.ReactNode`               | —       | The message, such as "No countries match". Its text is announced when typing brings it on screen and isn't read again while it stays, so a message that names the query is heard for the first query only. |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                                                                                    |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                                                                                            |
 
 <!-- /bestax:generated props -->
 
