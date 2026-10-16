@@ -608,6 +608,16 @@ describe('Toast', () => {
       }
     });
 
+    it('stops listening for Escape once it has closed', () => {
+      const onClose = jest.fn();
+      render(<Toast message="Test" duration={0} onClose={onClose} />);
+
+      fireEvent.keyDown(document, { key: 'Escape' });
+      fireEvent.keyDown(document, { key: 'Escape' });
+
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
     it('does not close on Escape when cancelable is false', () => {
       const onClose = jest.fn();
       render(

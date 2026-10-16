@@ -183,7 +183,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
     // On `window`, as in `Modal`, so a popup on the page has had the key
     // first, and an Escape it closed on doesn't dismiss the toast as well.
     useEffect(() => {
-      if (!cancelable) return undefined;
+      if (!cancelable || !isVisible) return undefined;
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape' && !e.defaultPrevented) {
@@ -193,7 +193,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cancelable, handleClose]);
+    }, [cancelable, isVisible, handleClose]);
 
     const containerClasses = usePrefixedClassNames('toast-container', {
       [`is-${position}`]: true,
