@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { render, fireEvent, act } from '@testing-library/react';
+import { render, fireEvent, act, createEvent } from '@testing-library/react';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import { Calendar, CALENDAR_FOCUSED_CELL } from '../_pickerInternals/Calendar';
 
@@ -58,6 +58,26 @@ describe('PickerPopover', () => {
       fireEvent.keyDown(document, { key: 'Escape' });
     });
     expect(queryByTestId('inside')).toBeNull();
+  });
+
+  it('marks the Escape it closes on as used, and lets it go on', () => {
+    // A Modal or Sidebar around it reads `defaultPrevented` and stays open.
+    // The key still reaches listeners further out.
+    const { getByTestId } = render(<Harness />);
+    const further = jest.fn();
+    window.addEventListener('keydown', further);
+    try {
+      const escape = createEvent.keyDown(getByTestId('inside'), {
+        key: 'Escape',
+      });
+      act(() => {
+        fireEvent(getByTestId('inside'), escape);
+      });
+      expect(escape.defaultPrevented).toBe(true);
+      expect(further).toHaveBeenCalledTimes(1);
+    } finally {
+      window.removeEventListener('keydown', further);
+    }
   });
 
   it('does not close on Escape when closeOnEscape=false', () => {
