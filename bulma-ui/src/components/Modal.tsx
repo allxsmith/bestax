@@ -504,7 +504,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
         if (closeOnEscape && !e.defaultPrevented) onClose?.();
         return;
       }
-      if (e.key !== 'Tab' || !node) return;
+      // A trap inside the modal, such as a portaled popup's, already moved
+      // focus on this Tab, so the modal leaves it where it went.
+      if (e.key !== 'Tab' || !node || e.defaultPrevented) return;
 
       // Keep Tab within the modal — `aria-modal` hides the rest of the page
       // from assistive technology, so the keyboard order has to agree.

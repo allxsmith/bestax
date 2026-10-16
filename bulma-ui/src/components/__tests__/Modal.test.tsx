@@ -693,6 +693,32 @@ describe('Modal', () => {
       expect(middle).toHaveFocus();
     });
 
+    it('leaves a Tab that a later trap already used', () => {
+      // A portaled popup's own trap moves focus outside the modal's node and
+      // claims the key; the modal must not pull focus back.
+      const panel = document.createElement('button');
+      document.body.appendChild(panel);
+
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+      const trap = (e: KeyboardEvent) => {
+        e.preventDefault();
+        panel.focus();
+      };
+      document.addEventListener('keydown', trap);
+      try {
+        fireEvent.keyDown(document, { key: 'Tab' });
+        expect(panel).toHaveFocus();
+      } finally {
+        document.removeEventListener('keydown', trap);
+        document.body.removeChild(panel);
+      }
+    });
+
     it('focuses the modal root on Tab when nothing inside is focusable', () => {
       render(<Modal active>{latin}</Modal>);
       const modal = screen.getByTestId('modal');
