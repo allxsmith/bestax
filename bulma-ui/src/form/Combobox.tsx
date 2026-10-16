@@ -217,7 +217,10 @@ export interface ComboboxGroupProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   'role'
 > {
-  /** The heading, which also names the group for assistive tech. */
+  /**
+   * The heading, which also names the group for assistive tech, unless you
+   * give the group an `aria-label` or `aria-labelledby` of its own.
+   */
   label: React.ReactNode;
   /** The group's `Combobox.Option`s. */
   children?: React.ReactNode;
@@ -896,12 +899,14 @@ export const ComboboxGroup: React.FC<ComboboxGroupProps> = ({
   const labelId = useId();
   const groupClass = usePrefixedClassNames('combobox-group');
   const labelClass = usePrefixedClassNames('combobox-group-label');
+  // A name the caller gave the group wins over its heading's, as on the list.
+  const callerNamed = !!props['aria-label'] || 'aria-labelledby' in props;
   return (
     <div
       className={classNames(groupClass, className)}
       {...props}
       role="group"
-      aria-labelledby={labelId}
+      aria-labelledby={callerNamed ? props['aria-labelledby'] : labelId}
     >
       <div className={labelClass} id={labelId}>
         {label}

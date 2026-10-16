@@ -1314,6 +1314,32 @@ describe('Combobox', () => {
       expect(screen.getByRole('group', { name: 'Vegetables' })).toBeVisible();
     });
 
+    it("lets a name the caller gave a group win over its heading's", () => {
+      render(
+        <Combobox label="Produce" defaultOpen>
+          <Combobox.Input />
+          <Combobox.Dropdown>
+            <Combobox.Options>
+              <Combobox.Group label="Fruit" aria-label="Fresh fruit (2)">
+                <Combobox.Option value="apple">Apple</Combobox.Option>
+                <Combobox.Option value="pear">Pear</Combobox.Option>
+              </Combobox.Group>
+              <Combobox.Group label="Vegetables" aria-labelledby="veg-name">
+                <Combobox.Option value="leek">Leek</Combobox.Option>
+              </Combobox.Group>
+            </Combobox.Options>
+          </Combobox.Dropdown>
+        </Combobox>
+      );
+      const fruit = screen.getByRole('group', { name: 'Fresh fruit (2)' });
+      expect(fruit).not.toHaveAttribute('aria-labelledby');
+      // The heading still shows, and keeps its id.
+      expect(within(fruit).getByText('Fruit')).toHaveAttribute('id');
+      expect(
+        screen.getByText('Vegetables').closest('[role="group"]')
+      ).toHaveAttribute('aria-labelledby', 'veg-name');
+    });
+
     it('moves through the options across groups, in document order', () => {
       render(<Produce />);
       key('ArrowDown');
