@@ -7,9 +7,9 @@
  * the repo root.
  */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, relative, sep } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
@@ -370,6 +370,53 @@ describe('stackblitzProject', () => {
     const css = project.files['src/index.css'];
     assert.match(css, /background: #16171d/);
     assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
+  });
+});
+
+/**
+ * The template files a StackBlitz project leaves out, each with the reason.
+ * Every other file is in TEMPLATE_FILES, so a file the template gains when it
+ * catches up with create-vite reaches the sandbox, or fails here, instead of
+ * the sandbox falling a step behind the scaffold.
+ */
+const LEFT_OUT = {
+  _gitignore: 'a sandbox is not a repository',
+  'README.md': 'it describes the starter app, not the example',
+  'eslint.config.js': 'a sandbox runs no lint, and drops its packages too',
+  'public/react.svg': 'only the starter App shows it',
+  'public/vite.svg': 'only the starter App shows it',
+  'src/App.css': 'only the starter App imports it',
+  'src/App.tsx': 'the example is written in its place',
+};
+
+/** Every file in the template, by path in it, as the scaffolder copies it. */
+function templateFiles(dir = TEMPLATE_DIR) {
+  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
+    // Finder's .DS_Store and a local install are not part of the template.
+    if (entry.name === '.DS_Store' || entry.name === 'node_modules') return [];
+    const path = join(dir, entry.name);
+    return entry.isDirectory()
+      ? templateFiles(path)
+      : [relative(TEMPLATE_DIR, path).split(sep).join('/')];
+  });
+}
+
+describe('the template files', () => {
+  it('each reach the StackBlitz project or are left out for a reason', () => {
+    const files = templateFiles();
+    assert.deepEqual(
+      files.filter(
+        path => !TEMPLATE_FILES.includes(path) && !Object.hasOwn(LEFT_OUT, path)
+      ),
+      [],
+      'Add each file to TEMPLATE_FILES (projects.mjs) and TEMPLATE (open.js), ' +
+        'or to LEFT_OUT here with the reason the sandbox does without it.'
+    );
+    assert.deepEqual(
+      Object.keys(LEFT_OUT).filter(path => !files.includes(path)),
+      [],
+      'LEFT_OUT names a file the template no longer has.'
+    );
   });
 });
 
