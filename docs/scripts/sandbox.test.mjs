@@ -405,6 +405,33 @@ function templateFiles() {
     .filter(path => path && existsSync(join(TEMPLATE_DIR, path)));
 }
 
+/**
+ * What open.js copies: each key of its TEMPLATE, with the template file the
+ * raw-loader import bound to that key reads. open.js only runs under webpack,
+ * so it is read here as text.
+ */
+function openJsTemplate() {
+  const source = readFileSync(
+    join(DOCS, 'src', 'theme', 'CodeBlock', 'sandbox', 'open.js'),
+    'utf8'
+  );
+  const imports = new Map(
+    [
+      ...source.matchAll(
+        /^import (\w+) from '!!raw-loader!@site\/\.\.\/create-bestax\/templates\/vite-ts\/([^']+)';$/gm
+      ),
+    ].map(([, name, path]) => [name, path])
+  );
+  const body = source.match(/^const TEMPLATE = \{\n([\s\S]*?)\n\};$/m)?.[1];
+  assert.ok(body, 'open.js no longer declares `const TEMPLATE = { … };`');
+  return new Map(
+    [...body.matchAll(/^ {2}'([^']+)': (\w+),$/gm)].map(([, key, name]) => [
+      key,
+      imports.get(name),
+    ])
+  );
+}
+
 describe('the template files', () => {
   it('each reach the StackBlitz project or are left out for a reason', () => {
     const files = templateFiles();
@@ -420,6 +447,22 @@ describe('the template files', () => {
       Object.keys(LEFT_OUT).filter(path => !files.includes(path)),
       [],
       'LEFT_OUT names a file the template no longer has.'
+    );
+  });
+
+  // A file TEMPLATE_FILES names and open.js leaves out passes the docs build
+  // and the builders' tests, and the button then throws on the reader's click.
+  it("are each copied by open.js's TEMPLATE, from the file of that name", () => {
+    const copied = openJsTemplate();
+    assert.deepEqual(
+      [...copied.keys()].sort(),
+      [...TEMPLATE_FILES].sort(),
+      "open.js's TEMPLATE must hold a key for exactly the files in TEMPLATE_FILES."
+    );
+    assert.deepEqual(
+      TEMPLATE_FILES.filter(path => copied.get(path) !== path),
+      [],
+      "Each key in open.js's TEMPLATE must be bound to the raw-loader import of that file."
     );
   });
 });
