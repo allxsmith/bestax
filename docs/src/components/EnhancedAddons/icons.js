@@ -20,6 +20,17 @@ function LinkButtonIcon() {
   );
 }
 
+// A keycap with its heavier bottom edge, and a letter on it
+function KbdIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="4" y="4" width="16" height="16" rx="3" />
+      <path d="M4 16.5h16" />
+      <path d="M10 8v5M10 10.5l4-2.5M11.5 10l2.5 3" />
+    </svg>
+  );
+}
+
 // Person in a frame — avatar
 function AvatarIcon() {
   return (
@@ -67,6 +78,17 @@ function DialogIcon() {
       <rect x="3" y="4" width="18" height="14" rx="2" />
       <path d="M7 14h4M14 14h3M7 8.5h10" />
       <path d="M9 18v3l3-3" />
+    </svg>
+  );
+}
+
+// A picture in a circle over a title and a line of text, centered
+function EmptyStateIcon() {
+  return (
+    <svg {...iconProps}>
+      <circle cx="12" cy="7.5" r="4.5" />
+      <path d="M10 7.5h4" />
+      <path d="M6.5 16h11M9 20h6" />
     </svg>
   );
 }
@@ -172,12 +194,14 @@ function TooltipIcon() {
 
 const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
+  kbd: KbdIcon,
   avatar: AvatarIcon,
   badge: BadgeIcon,
   carousel: CarouselIcon,
   collapse: CollapseIcon,
   contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
+  emptystate: EmptyStateIcon,
   hovercard: HoverCardIcon,
   loading: LoadingIcon,
   popover: PopoverIcon,

@@ -689,6 +689,27 @@ A small status/count indicator overlaid on a corner of its `children` (or standa
 
 ---
 
+### EmptyState
+
+What a list, a table or a search shows when there's nothing in it: a picture in a soft circle, a real heading, a line of text and a way forward, written with props or with its parts. [View full documentation.](../../api/components/emptystate.md)
+
+```tsx live
+<Box>
+  <EmptyState
+    icon="folder-open"
+    title="No projects yet"
+    description="Projects you create or join show up here."
+  >
+    <EmptyState.Actions>
+      <Button color="primary">New project</Button>
+      <Button>Import</Button>
+    </EmptyState.Actions>
+  </EmptyState>
+</Box>
+```
+
+---
+
 ### Message
 
 A Bulma-styled message box for feedback, alerts, or notifications. [View full documentation.](../../api/components/message.md)

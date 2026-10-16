@@ -311,6 +311,20 @@ The field around the two inputs. Its calendar is the `DateInput` one, with the v
 `--bulma-dialog-radius`, `--bulma-dialog-shadow`, `--bulma-dialog-title-color`,
 `--bulma-dialog-title-size`, `--bulma-dialog-title-weight`, `--bulma-dialog-width`
 
+### EmptyState
+
+Declared on the root, `.empty-state`. Each size class (`.is-small`, `.is-medium`, `.is-large`)
+sets its own gap, padding, indicator and icon sizes, and title and description sizes, so retune a
+size on that class. The color classes and `.is-filled` set the indicator's background and color
+from Bulma's scheme tokens, so the circle follows dark mode with no override. The description is
+`currentColor`, so it reads on whatever surface holds it.
+
+`--bulma-empty-state-description-color`, `--bulma-empty-state-description-max-width`,
+`--bulma-empty-state-description-size`, `--bulma-empty-state-gap`, `--bulma-empty-state-icon-size`,
+`--bulma-empty-state-indicator-background`, `--bulma-empty-state-indicator-color`,
+`--bulma-empty-state-indicator-radius`, `--bulma-empty-state-indicator-size`,
+`--bulma-empty-state-padding`, `--bulma-empty-state-title-size`
+
 ### HoverCard
 
 All are declared on the card, `.hover-card-content`, so a card rendered with `appendToBody` keeps
@@ -320,6 +334,16 @@ them. See the constituent-element exception above.
 `--bulma-hover-card-border-color`, `--bulma-hover-card-color`, `--bulma-hover-card-max-width`,
 `--bulma-hover-card-min-width`, `--bulma-hover-card-offset`, `--bulma-hover-card-padding`,
 `--bulma-hover-card-radius`, `--bulma-hover-card-shadow`, `--bulma-hover-card-z-index`
+
+### Kbd
+
+Declared on each key, `.kbd`. The border color and the fill default to `color-mix()` of
+`currentColor` with `transparent`, so a key follows its text in dark mode, in a filled button and
+in a tooltip without an override of its own. The sizes are in `em`, so `textSize` scales them.
+
+`--bulma-kbd-background`, `--bulma-kbd-border-bottom-width`, `--bulma-kbd-border-color`,
+`--bulma-kbd-border-width`, `--bulma-kbd-color`, `--bulma-kbd-family`, `--bulma-kbd-padding`,
+`--bulma-kbd-radius`, `--bulma-kbd-size`, `--bulma-kbd-weight`
 
 ### LinkButton
 

@@ -87,6 +87,16 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   `Steps value={i}/onStepClick items={[{label, icon?}]}` (child form is `Steps.Step`, not
   `Steps.Item`). `Reveal cascade` staggers only its **direct children** — to stagger a grid,
   put `<Reveal delay={i * 80}>` inside each `Cell`, not around the container.
+- **An empty list, table or search with no results is `EmptyState`**, not a hand-built `Box`
+  of `Icon`, `Title` and `Buttons isCentered`:
+  `<EmptyState icon="folder-open" title="No projects yet" titleAs="h3" description="…">` with
+  its one `<Button>` as a child (two or more go in `EmptyState.Actions`). Its `title` is always a
+  heading, so set `titleAs` to the level under the list's own heading. It has no live region:
+  after a search or a filter, keep a `Paragraph` with `role="status"`, `aria-atomic="true"` and
+  `visibility="sr-only"` beside the search field the whole time, saying the count, and have
+  "Clear search" put focus back in the field. While data loads show a `Skeleton` or a `Loader`,
+  and a failed load is a `Message` or a `Notification`, never an EmptyState. The archetypes
+  reference has the full pattern under Card grid.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
@@ -221,6 +231,8 @@ inline `style`.
 - [ ] Do not use `Tile` — it is not shipped.
 - [ ] Action feedback goes through `Toast`, a confirmation through `Dialog`, a text-styled
       action through `LinkButton` — not `Notification`, `Modal` or a bare `<a>`.
+- [ ] An empty list or a search with no results renders `EmptyState`, and a search or a filter
+      keeps a `role="status"` region beside its field that says the count.
 - [ ] Style with helper props, not inline `style` — translate via the mapping table; values
       with no helper get a named class in the stylesheet, never `style={{}}`. No raw Bulma
       `className`s either (`Span`/`Paragraph` wrap bare text; `Th`/`Td` take `textAlign`/`textWeight`).

@@ -13,6 +13,12 @@ const ADDONS = [
     desc: 'A button that dresses like a link — semantics of a button, look of an anchor.',
   },
   {
+    name: 'Kbd',
+    icon: 'kbd',
+    link: '/docs/api/elements/kbd',
+    desc: 'Keys and shortcuts drawn as keycaps that follow the text around them, with names for symbols like ⌘.',
+  },
+  {
     name: 'Avatar',
     icon: 'avatar',
     link: '/docs/api/components/avatar',
@@ -47,6 +53,12 @@ const ADDONS = [
     icon: 'dialog',
     link: '/docs/api/components/dialog',
     desc: 'Confirmation and alert dialogs with customizable actions.',
+  },
+  {
+    name: 'EmptyState',
+    icon: 'emptystate',
+    link: '/docs/api/components/emptystate',
+    desc: 'What a list or a search shows when there is nothing in it, with a real heading and a way forward.',
   },
   {
     name: 'HoverCard',

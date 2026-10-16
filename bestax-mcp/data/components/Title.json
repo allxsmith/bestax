@@ -36,7 +36,7 @@
       "code": "<Block>\n  <Title as=\"p\" size=\"1\">\n    Title 1\n  </Title>\n  <SubTitle as=\"p\" size=\"3\">\n    Subtitle 3\n  </SubTitle>\n</Block>"
     }
   ],
-  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Spacing:** Use `isSpaced` for extra margin when needed.\n- **Screen readers:** Headings are key landmarks, so set the correct `as` and `size` prop for hierarchy.\n\n:::tip\nWhen using `as=\"p\"`, the element is visually styled as a heading but semantically a paragraph.\n:::",
+  "accessibility": "- **Semantic HTML:** Use appropriate heading levels for document structure.\n- **Spacing:** Use `isSpaced` for extra margin when needed.\n- **Screen readers:** Headings are key landmarks, so give each one the level the page's hierarchy\n  needs. `size` picks that level as well as the size, unless `as` is `p`: `as=\"h2\" size=\"4\"`\n  renders an `<h4>`. For a heading whose level and size differ, set the level with `as` and the\n  size with the `textSize` helper, as in `<Title as=\"h2\" textSize=\"4\">`.\n\n:::tip\nWhen using `as=\"p\"`, the element is visually styled as a heading but semantically a paragraph.\n:::",
   "related": ["Block", "SubTitle", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-title--default",
   "summary": "The `Title` component renders a Bulma-styled title (heading), supporting sizes `1`-`6`, spacing, and rendering as any heading or paragraph element (`h1`-`h6`, `p`).",
@@ -62,7 +62,7 @@
           "name": "size",
           "type": "'1' | '2' | '3' | '4' | '5' | '6' | 1 | 2 | 3 | 4 | 5 | 6",
           "default": null,
-          "description": "Size of the title (Bulma sizes `1`-`6`, as a string or number).",
+          "description": "Size of the title (Bulma sizes `1`-`6`, as a string or number). It also picks the heading level: unless `as` is `p`, `size=\"4\"` renders an `<h4>`, whatever `as` says. For a heading whose level and size differ, set the level with `as` and the size with the `textSize` helper.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -80,7 +80,7 @@
           "name": "as",
           "type": "'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'",
           "default": "'h1'",
-          "description": "HTML element to render as (h1-h6 or p).",
+          "description": "HTML element to render as (`h1`-`h6` or `p`). A `size` overrides it unless it's `p`, so `as=\"h2\" size=\"4\"` renders an `<h4>`. To keep the level `as` sets, size the title with the `textSize` helper instead.",
           "required": false,
           "inherited": false,
           "deprecated": false

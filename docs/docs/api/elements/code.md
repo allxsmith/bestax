@@ -118,16 +118,6 @@ Display file or directory paths.
 </Paragraph>
 ```
 
-### Keyboard Shortcuts
-
-Display keyboard shortcuts.
-
-```tsx live
-<Paragraph>
-  Press <Code>Ctrl + C</Code> to copy and <Code>Ctrl + V</Code> to paste.
-</Paragraph>
-```
-
 ---
 
 ## Accessibility
@@ -145,6 +135,8 @@ Use `Code` for short inline snippets. For multi-line code blocks that need to pr
 ## Related Components
 
 - [`Pre`](./pre.md): For multi-line preformatted code blocks.
+- [`Kbd`](./kbd.md): For keys and keyboard shortcuts the reader presses, such as Ctrl + C, which
+  are input rather than code.
 - [`Figure`](./figure.md): For code figures with captions.
 - [`Paragraph`](./paragraph.md): For text paragraphs containing code.
 - [Helper Props](../helpers/usebulmaclasses.md): Bulma helper props for spacing, color, etc.

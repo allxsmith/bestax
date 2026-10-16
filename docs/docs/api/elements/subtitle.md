@@ -130,7 +130,9 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 - **Screen readers:** Subtitles should be used in conjunction with titles for clarity.
 
 :::tip
-`SubTitle` is visually styled as a heading, but its semantic level depends on the `as` prop.
+`SubTitle` is visually styled as a heading. Its level comes from `size` when it has one and from
+`as` when it doesn't, and with neither it's an `<h1>`. `as="p"` makes it a paragraph whatever its
+size, and the `textSize` helper sizes it without changing the level.
 :::
 
 ---
@@ -154,17 +156,17 @@ Combine `Title` and `SubTitle` components for a structured heading and subheadin
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                         | Default | Description                                                        |
-| ------------- | -------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------ |
-| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                   |
-| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). |
-| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (h1-h6 or p).                            |
-| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.           |
-| `children`    | `React.ReactNode`                                                                            | —       | Subtitle content.                                                  |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                                 |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                           |
-| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.           |
-| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)                  |
+| Prop          | Type                                                                                         | Default | Description                                                                                                                                                                                                                                                                                                                       |
+| ------------- | -------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                                                                  |
+| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the subtitle (Bulma sizes `1`-`6`, as a string or number). It also picks the heading level: unless `as` is `p`, `size="5"` renders an `<h5>`, whatever `as` says. For a heading whose level and size differ, set the level with `as` and the size with the `textSize` helper.                                             |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (`h1`-`h6` or `p`). With neither `as` nor `size` set it's an `<h1>`, so a subtitle that isn't a heading of its own takes `as="p"`. A `size` overrides `as` unless it's `p`, so `as="h3" size="5"` renders an `<h5>`. To keep the level `as` sets, size the subtitle with the `textSize` helper instead. |
+| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.                                                                                                                                                                                                                                                                          |
+| `children`    | `React.ReactNode`                                                                            | —       | Subtitle content.                                                                                                                                                                                                                                                                                                                 |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                                                                                                                                                                                                                                                                                                |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                                                                                                                                                                                                                                                                                          |
+| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.                                                                                                                                                                                                                                                                          |
+| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                 |
 
 <!-- /bestax:generated props -->
 

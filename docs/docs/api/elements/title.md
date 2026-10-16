@@ -136,7 +136,10 @@ Combine `Title` with `SubTitle` for a structured heading and subheading layout. 
 
 - **Semantic HTML:** Use appropriate heading levels for document structure.
 - **Spacing:** Use `isSpaced` for extra margin when needed.
-- **Screen readers:** Headings are key landmarks, so set the correct `as` and `size` prop for hierarchy.
+- **Screen readers:** Headings are key landmarks, so give each one the level the page's hierarchy
+  needs. `size` picks that level as well as the size, unless `as` is `p`: `as="h2" size="4"`
+  renders an `<h4>`. For a heading whose level and size differ, set the level with `as` and the
+  size with the `textSize` helper, as in `<Title as="h2" textSize="4">`.
 
 :::tip
 When using `as="p"`, the element is visually styled as a heading but semantically a paragraph.
@@ -163,18 +166,18 @@ When using `as="p"`, the element is visually styled as a heading but semanticall
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                         | Default | Description                                                     |
-| ------------- | -------------------------------------------------------------------------------------------- | ------- | --------------------------------------------------------------- |
-| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                |
-| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the title (Bulma sizes `1`-`6`, as a string or number). |
-| `isSpaced`    | `boolean`                                                                                    | `false` | Adds margin below the title.                                    |
-| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (h1-h6 or p).                         |
-| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.        |
-| `children`    | `React.ReactNode`                                                                            | —       | Title content.                                                  |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                              |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                        |
-| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.        |
-| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)               |
+| Prop          | Type                                                                                         | Default | Description                                                                                                                                                                                                                                                                        |
+| ------------- | -------------------------------------------------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                                     | —       | Additional CSS classes to apply.                                                                                                                                                                                                                                                   |
+| `size`        | `'1'` \| `'2'` \| `'3'` \| `'4'` \| `'5'` \| `'6'` \| `1` \| `2` \| `3` \| `4` \| `5` \| `6` | —       | Size of the title (Bulma sizes `1`-`6`, as a string or number). It also picks the heading level: unless `as` is `p`, `size="4"` renders an `<h4>`, whatever `as` says. For a heading whose level and size differ, set the level with `as` and the size with the `textSize` helper. |
+| `isSpaced`    | `boolean`                                                                                    | `false` | Adds margin below the title.                                                                                                                                                                                                                                                       |
+| `as`          | `'h1'` \| `'h2'` \| `'h3'` \| `'h4'` \| `'h5'` \| `'h6'` \| `'p'`                            | `'h1'`  | HTML element to render as (`h1`-`h6` or `p`). A `size` overrides it unless it's `p`, so `as="h2" size="4"` renders an `<h4>`. To keep the level `as` sets, size the title with the `textSize` helper instead.                                                                      |
+| `hasSkeleton` | `boolean`                                                                                    | `false` | Applies the `has-skeleton` class to part of the content.                                                                                                                                                                                                                           |
+| `children`    | `React.ReactNode`                                                                            | —       | Title content.                                                                                                                                                                                                                                                                     |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Text color helper.                                                                                                                                                                                                                                                                 |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                      | —       | Background color helper.                                                                                                                                                                                                                                                           |
+| `skeleton`    | `boolean`                                                                                    | —       | Applies the `is-skeleton` class to the entire component.                                                                                                                                                                                                                           |
+| `...`         | All standard `<h1>`–`<h6>` / `<p>` attributes and Bulma helper props                         | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                  |
 
 <!-- /bestax:generated props -->
 
