@@ -33,7 +33,7 @@ export const ProfileCard = forwardRef(
           />
         </div>
         <div className={bodyClass}>
-          <Title size="4" as="h3">
+          <Title as="h3" textSize="4">
             {name}
           </Title>
           {role && (

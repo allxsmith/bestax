@@ -19,9 +19,11 @@ import {
 } from '../src/theme/CodeBlock/sandbox/example.mjs';
 import { stripModuleLines } from '../src/theme/CodeBlock/sandbox/moduleLines.mjs';
 import {
+  ICON_LIBRARIES,
   TEMPLATE_FILES,
   codesandboxFiles,
   iconLibrariesIn,
+  sandboxVersions,
   stackblitzProject,
 } from '../src/theme/CodeBlock/sandbox/projects.mjs';
 
@@ -34,6 +36,9 @@ const TEMPLATE = Object.fromEntries(
   ])
 );
 const docsPackage = createRequire(import.meta.url)('../package.json');
+const libraryPackage = JSON.parse(
+  readFileSync(join(DOCS, '..', 'bulma-ui', 'package.json'), 'utf8')
+);
 
 const OPTIONS = {
   libraryExports: [
@@ -532,6 +537,27 @@ describe('codesandboxFiles', () => {
     );
   });
 
+  it("links the stylesheet the library's exports give the template's import", () => {
+    // The link is `dist/` and the file name the template imports. That holds
+    // only while the exports map that import to the same name under dist/,
+    // which is not true of every stylesheet the library exports.
+    const sheet = TEMPLATE['src/main.tsx'].match(
+      /^import '@allxsmith\/bestax-bulma\/([^']+\.css)';$/m
+    )?.[1];
+    assert.ok(sheet, "the template's main.tsx imports no bestax stylesheet");
+    const exported = libraryPackage.exports[`./${sheet}`];
+    assert.ok(exported, `bulma-ui's package.json exports no ./${sheet}`);
+    const linked = files['public/index.html'].content.match(
+      /href="https:\/\/cdn\.jsdelivr\.net\/npm\/@allxsmith\/bestax-bulma@[^/]+\/([^"]+)"/
+    )?.[1];
+    assert.equal(
+      `./${linked}`,
+      exported.default ?? exported,
+      'CodeSandbox links a stylesheet path the library does not publish ' +
+        'for the import. Link the file the exports map names instead.'
+    );
+  });
+
   it('writes a page with a root, the escaped title and the Ionicons script', () => {
     const html = files['public/index.html'].content;
     assert.match(html, /<div id="root"><\/div>/);
@@ -563,6 +589,76 @@ describe('codesandboxFiles', () => {
     const css = files['src/index.css'].content;
     assert.match(css, /background: #16171d/);
     assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
+  });
+});
+
+/*
+ * A sandbox has no lockfile, so it installs what its package.json and CDN
+ * links name on the day a reader opens it. A dist-tag such as `latest`, or a
+ * URL, would change under the reader with nothing changing here. So both
+ * projects are built from the versions open.js passes, through the same
+ * `sandboxVersions` call on the same inputs, every icon library included, and
+ * held to plain semver.
+ */
+describe('what a sandbox installs', () => {
+  const site = {
+    ...INPUT,
+    icons: Object.keys(ICON_LIBRARIES),
+    // The docs build reads the release from bulma-ui's package.json.
+    versions: sandboxVersions(libraryPackage.version, docsPackage.dependencies),
+  };
+  const stackblitz = stackblitzProject(site);
+  const codesandbox = codesandboxFiles(site);
+
+  it('names each icon package docs/package.json must declare', () => {
+    assert.throws(
+      () => sandboxVersions(libraryPackage.version, {}),
+      /docs\/package\.json must declare @fortawesome\/fontawesome-free/
+    );
+  });
+
+  it('names a plain semver range for every package either project installs', () => {
+    const manifests = {
+      StackBlitz: JSON.parse(stackblitz.files['package.json']),
+      CodeSandbox: codesandbox['package.json'].content,
+    };
+    const loose = Object.entries(manifests).flatMap(([service, pkg]) =>
+      ['dependencies', 'devDependencies'].flatMap(section =>
+        Object.entries(pkg[section] ?? {})
+          .filter(([, range]) => !/^[~^]?\d+\.\d+\.\d+$/.test(range))
+          .map(([name, range]) => `${service} ${section}: ${name}@${range}`)
+      )
+    );
+    assert.deepEqual(
+      loose,
+      [],
+      'Give each of these a version range, never a tag or a URL.'
+    );
+  });
+
+  it('names an exact version in every CDN link either project writes', () => {
+    // Every absolute link counts, so one with no version, which jsDelivr
+    // serves as `latest`, or on another host fails instead of going unseen.
+    const links = [
+      stackblitz.files['index.html'],
+      codesandbox['public/index.html'].content,
+    ].flatMap(html =>
+      [...html.matchAll(/(?:href|src)="((?:https?:)?\/\/[^"]+)"/g)].map(
+        ([, url]) => url
+      )
+    );
+    assert.ok(links.length > 0, 'found no CDN links to check');
+    assert.deepEqual(
+      links.filter(
+        url =>
+          !/^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:@[^/@]+\/)?[^/@]+@\d+\.\d+\.\d+\//.test(
+            url
+          )
+      ),
+      [],
+      'A CDN link is a jsDelivr URL with the lowest version its range ' +
+        'allows, so the range must start from a version.'
+    );
   });
 });
 

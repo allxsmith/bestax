@@ -74,6 +74,8 @@ export function Leftovers() {
       />
       <Heading subtitle={choice === 'a'}>Dynamic subtitle</Heading>
       <Heading heading={choice === 'a'}>Dynamic heading</Heading>
+      {/* bestax's Title renders the heading its size names, and this one is unreadable */}
+      <Heading size={choice === 'a' ? 3 : 4}>Dynamic size</Heading>
     </div>
   );
 }

@@ -27,8 +27,8 @@ interface UseAutoLabelIdOptions {
   hasInput?: boolean;
   /**
    * True when the control also points `aria-labelledby` at the label, as a
-   * range Slider's thumbs (#981) and Autocomplete's suggestion list (#998)
-   * do, so it needs the label's own id. Its own label then gets one
+   * range Slider's thumbs (#981) and Autocomplete's and Taginput's
+   * suggestion lists (#998, #1082) do, so it needs the label's own id. Its own label then gets one
    * (`labelProps.id` when given, otherwise a generated one), and the hook
    * returns it, or a surrounding Field's, as `labelId`.
    */

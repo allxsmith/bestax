@@ -45,7 +45,8 @@ in place:
   `Form.Textarea` → `TextArea`, `Card.Footer.Item` → `Card.FooterItem`, `Hero.Footer` →
   `Hero.Foot`, `Panel.Header` → `Panel.Heading`, `Heading` → `Title`/`SubTitle` by prop value
   (`subtitle={true}` → `SubTitle`, `subtitle={false}`/absent → `Title`, a dynamic `subtitle`/`heading`
-  value is left in place with a `TODO(bestax-migrate)`),
+  value is left in place with a `TODO(bestax-migrate)`, and its `size` becomes `textSize` wherever
+  bestax's `size`, which picks the heading level, would change the element RBC rendered),
   `Level.Side align="right"` → `Level.Right`, `Loader` → a plain `<div className="loader">`.
 - **Props** — `renderAs` → `as` (where supported), boolean modifiers gain their bestax prefixes
   (`loading` → `isLoading`, `fullwidth` → `isFullwidth`), numeric spacing and text sizes become

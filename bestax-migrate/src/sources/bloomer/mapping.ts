@@ -336,10 +336,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
     props: { isColor: color, isSize: size },
   },
   // bestax's `Title.size` accepts the numbers 1–6 as well as their string
-  // forms, so bloomer's numeric `isSize` carries over untouched.
+  // forms, but it also picks the heading level, which bloomer's `isSize`
+  // never did. The special keeps the level, moving the size to `textSize`
+  // where `size` would change it; `isSize: size` covers the rest.
   Title: {
     status: 'mapped',
     target: 'Title',
+    special: 'title',
     props: {
       hasTextColor: TEXT_COLOR_OK,
       isSize: size,
