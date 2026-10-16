@@ -486,7 +486,10 @@ function TaginputFormDemo() {
 - When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute.
 - Tags are keyboard navigable
 - Delete buttons have proper `aria-label`
-- Autocomplete dropdown follows ARIA listbox pattern
+- With `data`, the input is a `role="combobox"` with `aria-autocomplete="list"` and `aria-haspopup="listbox"`. Its `aria-expanded` is true only while the suggestion list is on screen, and while it is, `aria-controls` points at the list. While no suggestion matches there's no list, so it stays false. Without `data` there's never a list, so the input stays a plain text field
+- Focus stays in the input, which points `aria-activedescendant` at the highlighted suggestion as the arrow keys or the mouse move it
+- The list is a `role="listbox"` named through `aria-labelledby` by the label that names the input, when that label has an id: the `label` prop's label always has one, and so does a `Field`'s label that the `Field` wires itself. A `Field` label you wire by hand with `labelProps.htmlFor`, which is how the horizontal examples above name the Taginput, needs an `id` in its `labelProps` as well. Otherwise the list falls back to `aria-label="Suggestions"`
+- The list holds only the suggestions, each a `role="option"` with an id of its own, and the highlighted one has `aria-selected="true"`
 
 ---
 
