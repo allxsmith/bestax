@@ -13,7 +13,8 @@
 const LIBRARY = '@allxsmith/bestax-bulma';
 
 /** Any stylesheet import from the library, whatever flavor it names. */
-const LIBRARY_STYLESHEET = /^import '@allxsmith\/bestax-bulma\/[^']+\.css';$/;
+const LIBRARY_STYLESHEET =
+  /^import '@allxsmith\/bestax-bulma\/[^']+\.css';\r?$/;
 const LIBRARY_STYLESHEET_NAME =
   /^import '@allxsmith\/bestax-bulma\/([^']+\.css)';$/m;
 

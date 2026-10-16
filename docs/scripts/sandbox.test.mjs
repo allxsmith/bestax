@@ -324,7 +324,9 @@ describe('stackblitzProject', () => {
   });
 
   it('imports the icon stylesheets after the bestax one', () => {
-    const lines = project.files['src/main.tsx'].split('\n');
+    const lines = project.files['src/main.tsx']
+      .split('\n')
+      .map(line => line.trimEnd());
     const at = lines.indexOf("import '@allxsmith/bestax-bulma/bestax.css';");
     assert.ok(at >= 0);
     assert.deepEqual(lines.slice(at + 1, at + 3), [
@@ -490,6 +492,25 @@ describe('codesandboxFiles', () => {
     );
     assert.equal(pkg.dependencies['@allxsmith/bestax-bulma'], '^5.16.8');
     assert.equal(files['src/App.tsx'].content, INPUT.app);
+  });
+
+  it('reads a CRLF checkout of the template the same way', () => {
+    // The template comes off disk, so a Windows checkout hands these reads
+    // CRLF lines that the LF fixture never exercises.
+    const crlf = Object.fromEntries(
+      Object.entries(TEMPLATE).map(([path, text]) => [
+        path,
+        text.replace(/\r?\n/g, '\r\n'),
+      ])
+    );
+    const crlfFiles = codesandboxFiles({ ...INPUT, template: crlf });
+    const entry = crlfFiles['src/index.tsx'].content;
+    assert.match(entry, /^import App from '\.\/App';\r?$/m);
+    assert.doesNotMatch(entry, /bestax-bulma\/bestax\.css/);
+    assert.equal(
+      crlfFiles['public/index.html'].content,
+      files['public/index.html'].content
+    );
   });
 
   it('enters through the template main file, importing App without extension', () => {

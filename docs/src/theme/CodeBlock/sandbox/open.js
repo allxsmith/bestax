@@ -102,6 +102,28 @@ export function openInStackBlitz(options) {
 
 const CODESANDBOX_DEFINE =
   'https://codesandbox.io/api/v1/sandboxes/define?json=1';
+/** How long the tab waits on CodeSandbox before it says so. */
+const DEFINE_TIMEOUT_MS = 20000;
+
+/**
+ * Writes a line into the tab the click opened, so the reader sees progress.
+ * A reader can close the tab while it waits, and a closed window has no
+ * document, so there is nothing left to write to.
+ */
+function say(tab, text, role = 'status') {
+  if (tab.closed || !tab.document?.body) return;
+  tab.document.documentElement.lang = 'en';
+  tab.document.title = 'CodeSandbox';
+  // The line is inserted with its text. A screen reader announces an alert on
+  // insertion, so a failure is not lost when it lands moments after the
+  // progress line, and a polite region is not relied on to catch the swap.
+  const { body } = tab.document;
+  body.querySelector('[role="status"], [role="alert"]')?.remove();
+  const line = tab.document.createElement('p');
+  line.setAttribute('role', role);
+  line.textContent = text;
+  body.appendChild(line);
+}
 
 /** Creates the sandbox from its files and resolves to the id CodeSandbox gives it. */
 async function defineSandbox(files) {
@@ -109,6 +131,8 @@ async function defineSandbox(files) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ files }),
+    // Bounded, so a reply that never comes cannot leave the tab waiting forever.
+    signal: AbortSignal.timeout?.(DEFINE_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new Error(`CodeSandbox answered ${response.status}`);
@@ -140,13 +164,18 @@ export function openInCodeSandbox({ tab, ...options }) {
     return;
   }
   tab.opener = null;
+  say(tab, 'Creating your CodeSandbox…');
   defineSandbox(codesandboxFiles(input)).then(
     id => {
       tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
     },
     error => {
-      tab.close();
       console.error('Could not open the example in CodeSandbox:', error);
+      say(
+        tab,
+        'CodeSandbox did not open this example. Close this tab and try again.',
+        'alert'
+      );
     }
   );
 }
