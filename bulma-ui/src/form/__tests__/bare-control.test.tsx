@@ -17,6 +17,7 @@ import { Slider } from '../Slider';
 import { Rate } from '../Rate';
 import { File as FileInput } from '../File';
 import { Taginput } from '../Taginput';
+import { Combobox } from '../Combobox';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import type { FormFieldProps } from '../fieldProps';
 import type { ControlLevelProps } from '../FormContext';
@@ -132,6 +133,18 @@ const wrappers: Wrapper[] = [
     name: 'Taginput',
     render: p => <Taginput {...p} />,
     root: '.taginput',
+    ownControl: false,
+  },
+  {
+    name: 'Combobox',
+    // The Control is the field's, inside the Combobox, and its props go on
+    // Combobox.Input, so the tests that pass Control-level props skip it.
+    render: p => (
+      <Combobox {...(p as FormFieldProps)}>
+        <Combobox.Input />
+      </Combobox>
+    ),
+    root: '.combobox',
     ownControl: false,
   },
 ];

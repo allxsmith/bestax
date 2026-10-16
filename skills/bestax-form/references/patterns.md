@@ -210,6 +210,36 @@ const [city, setCity] = useState('');
   openOnFocus
 />;
 
+// Combobox: a value from a list. You filter, keep the value and set the
+// text, and a pick calls onOptionSubmit with the option's value.
+const countries = ['Canada', 'France', 'Japan'];
+const [country, setCountry] = useState<string | null>(null);
+const [query, setQuery] = useState('');
+const term = query === country ? '' : query.trim().toLowerCase();
+const matches = countries.filter(c => c.toLowerCase().includes(term));
+<Combobox
+  label="Country"
+  onOptionSubmit={picked => {
+    setCountry(picked);
+    setQuery(picked);
+  }}
+>
+  <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
+  <Combobox.Dropdown>
+    {matches.length > 0 ? (
+      <Combobox.Options>
+        {matches.map(c => (
+          <Combobox.Option key={c} value={c} checked={c === country}>
+            {c}
+          </Combobox.Option>
+        ))}
+      </Combobox.Options>
+    ) : (
+      <Combobox.Empty>No countries match</Combobox.Empty>
+    )}
+  </Combobox.Dropdown>
+</Combobox>;
+
 // Slider (single and dual thumb)
 const [volume, setVolume] = useState(50);
 <Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;

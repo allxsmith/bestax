@@ -436,6 +436,7 @@ function AutocompleteFormDemo() {
 
 ## Related Components
 
+- [Combobox](./combobox.md) - For a value from a list: a server search whose results aren't filtered again, a searchable select that keeps its value, several values or grouped options
 - [Taginput](./taginput.md) - For multiple tag selection with autocomplete
 - [Select](./select.md) - For simple dropdown selection
 - [Input](./input.md) - For basic text input

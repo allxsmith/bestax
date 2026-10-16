@@ -105,6 +105,80 @@ describe('useAnchoredPosition', () => {
   });
 });
 
+/** A fixed panel of a given width, placed against a 300px-wide anchor. */
+const Matched = ({
+  position,
+  panelWidth,
+}: {
+  position: PickerPosition;
+  panelWidth: number;
+}) => {
+  const anchorRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const resolved = useAnchoredPosition(anchorRef, panelRef, {
+    active: true,
+    position,
+    fixed: true,
+    offset: 0,
+    matchWidth: true,
+  });
+  return (
+    <>
+      <button ref={anchorRef} data-width="300">
+        anchor
+      </button>
+      <div ref={panelRef} data-width={panelWidth} />
+      <output>{JSON.stringify(resolved)}</output>
+    </>
+  );
+};
+
+describe('useAnchoredPosition with matchWidth', () => {
+  beforeEach(() => {
+    jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const button = this.tagName === 'BUTTON';
+        const width = Number(this.dataset.width);
+        return {
+          top: button ? 200 : 0,
+          bottom: button ? 236 : 150,
+          left: button ? 500 : 0,
+          right: button ? 800 : width,
+          width,
+          height: button ? 36 : 150,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        } as DOMRect;
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('carries the anchor width, and lines a right corner up at that width', () => {
+    render(<Matched position="top-right" panelWidth={120} />);
+    expect(JSON.parse(screen.getByRole('status').textContent!)).toEqual({
+      position: 'top-right',
+      top: 50,
+      left: 500,
+      minWidth: 300,
+    });
+  });
+
+  it('keeps a wider panel its own width', () => {
+    render(<Matched position="bottom-right" panelWidth={400} />);
+    expect(JSON.parse(screen.getByRole('status').textContent!)).toEqual({
+      position: 'bottom-right',
+      top: 236,
+      left: 400,
+      minWidth: 300,
+    });
+  });
+});
+
 describe('marginGap', () => {
   const panel = (style: Partial<CSSStyleDeclaration>) => {
     const el = document.createElement('div');

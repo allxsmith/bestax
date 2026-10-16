@@ -167,6 +167,54 @@ For complex layouts, use `SelectBase` with an explicit `Field` + `Control` wrapp
 
 ---
 
+### Combobox
+
+A text field with a list of options under it, built from parts, for a searchable select, a server search, several values or grouped options. You filter the list and keep the value, and a pick calls `onOptionSubmit`. For free text with suggestions, `Autocomplete` is the simpler choice.
+
+```tsx live
+function ComboboxExample() {
+  const fruits = ['Apple', 'Banana', 'Cherry', 'Grape', 'Mango', 'Pear'];
+  const [value, setValue] = useState<string | null>(null);
+  const [query, setQuery] = useState('');
+  const term = query === value ? '' : query.trim().toLowerCase();
+  const matches = fruits.filter(f => f.toLowerCase().includes(term));
+
+  return (
+    <Combobox
+      label="Fruit"
+      onOptionSubmit={picked => {
+        setValue(picked);
+        setQuery(picked);
+      }}
+    >
+      <Combobox.Input
+        placeholder="Pick a fruit"
+        value={query}
+        onChange={e => setQuery(e.target.value)}
+        onBlur={() => setQuery(value ?? '')}
+      />
+      <Combobox.Dropdown>
+        {matches.length > 0 ? (
+          <Combobox.Options>
+            {matches.map(f => (
+              <Combobox.Option key={f} value={f} checked={f === value}>
+                {f}
+              </Combobox.Option>
+            ))}
+          </Combobox.Options>
+        ) : (
+          <Combobox.Empty>No fruit matches</Combobox.Empty>
+        )}
+      </Combobox.Dropdown>
+    </Combobox>
+  );
+}
+```
+
+[View full documentation.](../../api/form/combobox)
+
+---
+
 ### Switch
 
 Toggle switch for on/off states. A styled checkbox that appears as a toggle, commonly used for settings.

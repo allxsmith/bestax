@@ -62,6 +62,33 @@ const PROPS: Record<string, Record<string, unknown>> = {
     actionText: 'Undo',
   },
   Taginput: { value: ['tag-one'] },
+  // Open, sized, with a checked, a highlighted and a disabled option in a
+  // group and an empty message beside the list, so each class the Combobox
+  // family adds is swept.
+  Combobox: {
+    label: 'Produce',
+    size: 'small',
+    defaultOpen: true,
+    autoHighlight: true,
+    children: [
+      <Library.Combobox.Input key="i" iconLeftName="search" />,
+      <Library.Combobox.Dropdown key="d">
+        <Library.Combobox.Options>
+          <Library.Combobox.Group label="Fruit">
+            <Library.Combobox.Option value="apple" checked>
+              Apple
+            </Library.Combobox.Option>
+            <Library.Combobox.Option value="pear" disabled>
+              Pear
+            </Library.Combobox.Option>
+          </Library.Combobox.Group>
+        </Library.Combobox.Options>
+        <Library.Combobox.Empty>Nothing else</Library.Combobox.Empty>
+      </Library.Combobox.Dropdown>,
+    ],
+  },
+  ComboboxOption: { value: 'apple', checked: true, children: 'Apple' },
+  ComboboxGroup: { label: 'Fruit' },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },
   Dialog: { isOpen: true, message: 'Are you sure?' },
