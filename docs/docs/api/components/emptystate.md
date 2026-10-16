@@ -261,35 +261,59 @@ line.
 holds the list: a `Box`, a `Card`, a `Panel`, or a table cell that spans the columns. Pick the
 heading level under the list's own heading, here an `h3`.
 
+Cards side by side in a dashboard should match in height even when one is empty and its
+neighbor isn't. Each column here is a flex column and each card grows to fill it, the
+[Columns guide](../../guides/library/columns.md)'s equal-height recipe, and the card's content
+grows too and centers the empty state in whatever height the row ends up with.
+
 ```tsx live
 <Columns>
-  <Column>
-    <Card header="Invoices">
-      <EmptyState
-        size="small"
-        align="left"
-        color="success"
-        variant="filled"
-        icon="check"
-        title="All paid up"
-        titleAs="h3"
-        description="New invoices show up here when they arrive."
-      />
+  <Column display="flex" flexDirection="column">
+    <Card flexGrow="1" display="flex" flexDirection="column">
+      <Card.Header>
+        <Card.Header.Title>Invoices</Card.Header.Title>
+      </Card.Header>
+      <Card.Content
+        flexGrow="1"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
+      >
+        <EmptyState
+          size="small"
+          color="success"
+          variant="filled"
+          icon="check"
+          title="All paid up"
+          titleAs="h3"
+          description="New invoices show up here when they arrive."
+        />
+      </Card.Content>
     </Card>
   </Column>
-  <Column>
-    <Card header="Files">
-      <EmptyState
-        size="small"
-        icon="cloud-arrow-up"
-        title="Nothing uploaded yet"
-        titleAs="h3"
-        description="Files you add to this project show up here."
+  <Column display="flex" flexDirection="column">
+    <Card flexGrow="1" display="flex" flexDirection="column">
+      <Card.Header>
+        <Card.Header.Title>Files</Card.Header.Title>
+      </Card.Header>
+      <Card.Content
+        flexGrow="1"
+        display="flex"
+        flexDirection="column"
+        justifyContent="center"
       >
-        <Button size="small" color="info">
-          Upload files
-        </Button>
-      </EmptyState>
+        <EmptyState
+          size="small"
+          icon="cloud-arrow-up"
+          title="Nothing uploaded yet"
+          titleAs="h3"
+          description="Files you add to this project show up here."
+        >
+          <Button size="small" color="info">
+            Upload files
+          </Button>
+        </EmptyState>
+      </Card.Content>
     </Card>
   </Column>
 </Columns>
