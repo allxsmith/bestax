@@ -148,18 +148,18 @@ unmatched `for` out of server-rendered HTML.
 
 A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
 ("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so
-leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s
-suggestion list point `aria-labelledby` at the label's `id`, which a label wired by hand has only
-when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their fallback names
-("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in `Field.Label`
-yourself (`references/patterns.md`) names its control through the `for` alone, so label a row
-holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby` you give a
-group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a `Field` on
-its own: its children name it, and a `Field`'s label names one only when you wire it as you would
-any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's `id`. A
-labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio` or `Switch`, an input
-with an `id` of its own, your own markup) drops it once mounted, though server-rendered HTML keeps
-it. `labelProps={{ htmlFor: undefined }}` opts out of the association entirely.
+leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s or
+`Taginput`'s suggestion list point `aria-labelledby` at the label's `id`, which a label wired by
+hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
+fallback names ("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in
+`Field.Label` yourself (`references/patterns.md`) names its control through the `for` alone, so
+label a row holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby`
+you give a group wins over any label, and a `Checkbox`, `Radio` or `Switch` takes nothing from a
+`Field` on its own: its children name it, and a `Field`'s label names one only when you wire it as
+you would any control with an `id` of its own, `labelProps={{ htmlFor }}` plus that control's
+`id`. A labeled `Field` whose `for` nothing takes (a group, a `Checkbox`, `Radio` or `Switch`, an
+input with an `id` of its own, your own markup) drops it once mounted, though server-rendered HTML
+keeps it. `labelProps={{ htmlFor: undefined }}` opts out of the association entirely.
 
 ## Convenience vs composed
 
