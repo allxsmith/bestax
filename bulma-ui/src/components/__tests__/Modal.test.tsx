@@ -492,6 +492,45 @@ describe('Modal', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
 
+    it('leaves an Escape that content inside already used', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+          <button type="button">Done</button>
+        </Modal>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+
+      fireEvent.keyDown(screen.getByText('Done'), { key: 'Escape' });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hears Escape after a document listener added once it was open', () => {
+      // A popup that opens inside the modal adds its listener after the
+      // modal's, and still gets the key first.
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          {latin}
+        </Modal>
+      );
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('tolerates a missing onClose prop on Escape', () => {
       render(<Modal active>{latin}</Modal>);
       expect(() =>
