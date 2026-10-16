@@ -115,7 +115,14 @@ const DEFINE_TIMEOUT_MS = 20000;
 function say(tab, text) {
   if (tab.closed || !tab.document?.body) return;
   tab.document.title = 'CodeSandbox';
-  tab.document.body.textContent = text;
+  // A live region, so a screen reader announces the failure that replaces
+  // the progress line, not only the first line it was given.
+  const { body } = tab.document;
+  const status =
+    body.querySelector('[role="status"]') ??
+    body.appendChild(tab.document.createElement('p'));
+  status.setAttribute('role', 'status');
+  status.textContent = text;
 }
 
 /** Creates the sandbox from its files and resolves to the id CodeSandbox gives it. */

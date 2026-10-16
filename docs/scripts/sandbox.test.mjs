@@ -323,7 +323,9 @@ describe('stackblitzProject', () => {
   });
 
   it('imports the icon stylesheets after the bestax one', () => {
-    const lines = project.files['src/main.tsx'].split('\n');
+    const lines = project.files['src/main.tsx']
+      .split('\n')
+      .map(line => line.trimEnd());
     const at = lines.indexOf("import '@allxsmith/bestax-bulma/bestax.css';");
     assert.ok(at >= 0);
     assert.deepEqual(lines.slice(at + 1, at + 3), [
