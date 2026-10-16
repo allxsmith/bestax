@@ -174,7 +174,7 @@ the children with `gap`. Before writing `style={{ … }}` anywhere, translate ea
 | `textAlign: 'center'`                    | `textAlign="centered"` (also `left`, `right`, `justified`)                                                                                                     |
 | `color: '#…'`                            | `textColor` with the nearest Bulma color: `primary`, `link`, `info`, `success`, `warning`, `danger`, `white`, `black`, `grey` (+ `grey-light`, `grey-dark`, …) |
 | `backgroundColor: '#…'`                  | `bgColor` (same palette)                                                                                                                                       |
-| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest) — for headings use `Title`/`SubTitle` `size`                                                                                |
+| `fontSize: …`                            | `textSize="1"`…`"7"` (`1` largest). On `Title`/`SubTitle`, `as` sets the level and `size` picks it too, so an `<h3>` at size 4 is `as="h3" textSize="4"`       |
 | `fontWeight: …`                          | `textWeight`: `light`, `normal`, `medium`, `semibold`, `bold`                                                                                                  |
 | `textTransform`, italics                 | `textTransform`: `uppercase`, `lowercase`, `capitalized`, `italic`                                                                                             |
 | `display: 'flex'` + flex properties      | same-named props: `display="flex"`, `flexDirection`, `justifyContent`, `alignItems`, `flexWrap`                                                                |

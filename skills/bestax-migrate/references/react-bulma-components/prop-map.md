@@ -46,6 +46,28 @@ href="/x">`) keeps the element and drops the `href`, with a `prop:href` TODO. RB
 `<Button href="/x">` with no `renderAs` goes the same way: bestax's `Button` renders a
 `<button>`. Set `as="a"` to make it a link.
 
+## `Heading` sizes
+
+RBC's `Heading` rendered an `<h1>` at every size, subtitle or not, or the element `renderAs`
+named. bestax's `Title` and `SubTitle` render the heading their `size` names unless `as="p"`, so
+the codemod keeps the element RBC rendered:
+
+| RBC                                        | bestax-bulma                   | renders |
+| ------------------------------------------ | ------------------------------ | ------- |
+| `<Heading size={4}>`                       | `<Title textSize="4">`         | `<h1>`  |
+| `<Heading size={1}>`                       | `<Title size="1">`             | `<h1>`  |
+| `<Heading subtitle size={6}>`              | `<SubTitle textSize="6">`      | `<h1>`  |
+| `<Heading renderAs="h2" size={5}>`         | `<Title as="h2" textSize="5">` | `<h2>`  |
+| `<Heading renderAs="p" subtitle size={5}>` | `<SubTitle as="p" size="5">`   | `<p>`   |
+
+`size` stays only where it renders the same element: a `<p>`, or the heading the size names.
+Everywhere else the size moves to the `textSize` helper, and so does a 7, which bestax's `size`
+does not take. The helper sets the same font size through Bulma's `is-size-4` class rather than the
+title's own `is-4`, so a rule of your own that targets `.title.is-4` needs the new class too.
+`is-size-4` is also `!important`, so a font size your own CSS gives the title, such as
+`.hero .title`, now loses to it where it used to beat `is-4`. A literal outside 1 to 7 keeps `size`
+and gets a `prop:size` TODO.
+
 ## Boolean modifier convention
 
 RBC uses bare booleans (`loading`, `outlined`, `rounded`, `fullwidth`); bestax prefixes

@@ -20,7 +20,7 @@ export const Profile = () => (
       <Title size="1" textWeight="semibold" isSpaced>
         Profile
       </Title>
-      <SubTitle size="4">
+      <SubTitle textSize="4">
         Who you are
       </SubTitle>
       <p className="heading">Stats</p>

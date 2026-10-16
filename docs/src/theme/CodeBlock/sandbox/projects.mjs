@@ -68,6 +68,27 @@ export function iconLibrariesIn(code) {
   return found;
 }
 
+/**
+ * The versions a sandbox installs: a caret range from the library release the
+ * docs build read, so a reader gets that release or a later compatible one,
+ * and each icon package at the range the docs site itself renders with.
+ *
+ * @param {string} bestaxVersion
+ * @param {Record<string, string>} dependencies From docs/package.json.
+ * @returns {Record<string, string>}
+ */
+export function sandboxVersions(bestaxVersion, dependencies) {
+  const icons = Object.values(ICON_LIBRARIES).map(({ package: name }) => {
+    if (!dependencies[name]) {
+      throw new Error(
+        `docs/package.json must declare ${name}, which sandboxes install`
+      );
+    }
+    return [name, dependencies[name]];
+  });
+  return { [LIBRARY]: `^${bestaxVersion}`, ...Object.fromEntries(icons) };
+}
+
 /** The lowest version a range allows, for a CDN URL that wants one. */
 function lowestVersion(range) {
   return range.replace(/^[\s=v^~>]+/, '');
@@ -364,7 +385,8 @@ export function codesandboxFiles({
         }),
         devDependencies: sortKeys({
           ...fromTemplate(['@types/react', '@types/react-dom', 'typescript']),
-          'react-scripts': 'latest',
+          // The Vite template has none to copy, so it is pinned here.
+          'react-scripts': '^5.0.1',
         }),
         scripts: {
           start: 'react-scripts start',

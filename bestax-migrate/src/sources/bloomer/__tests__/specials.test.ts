@@ -876,9 +876,66 @@ describe('bloomer navigation handlers', () => {
 
   it('keeps Subtitle an <h2> unless told otherwise', () => {
     const bare = migrate(dyn('Subtitle', '<Subtitle isSize={4}>x</Subtitle>'));
-    expect(bare.output).toContain('<SubTitle size={4} as="h2">x</SubTitle>');
+    expect(bare.output).toContain(
+      '<SubTitle textSize="4" as="h2">x</SubTitle>'
+    );
     const tagged = migrate(dyn('Subtitle', '<Subtitle tag="p">x</Subtitle>'));
     expect(tagged.output).toContain('<SubTitle as="p">x</SubTitle>');
+  });
+
+  // bestax renders the heading `size` names, so a size the codemod cannot
+  // read cannot be moved to `textSize` either.
+  it('flags a dynamic Title size unless the element is a <p>', () => {
+    const heading = migrate(dyn('Title', '<Title isSize={p.n}>x</Title>'));
+    expect(heading.rules).toEqual(['prop:isSize']);
+    expect(heading.todos[0].message).toContain('textSize');
+    expect(jsx(heading.output)).toContain('<Title size={p.n}>x</Title>');
+    const sub = migrate(dyn('Subtitle', '<Subtitle isSize={p.n}>x</Subtitle>'));
+    expect(sub.rules).toEqual(['prop:isSize']);
+    expect(jsx(sub.output)).toContain(
+      '<SubTitle size={p.n} as="h2">x</SubTitle>'
+    );
+    const para = migrate(dyn('Title', '<Title isSize={p.n} tag="p">x</Title>'));
+    expect(para.rules).toEqual([]);
+    expect(para.output).toContain('<Title size={p.n} as="p">x</Title>');
+  });
+
+  it('moves the size to textSize when it cannot see the element', () => {
+    const tag = migrate(dyn('Title', '<Title isSize={1} tag={p.t}>x</Title>'));
+    expect(tag.rules).toEqual([]);
+    expect(tag.output).toContain('<Title textSize="1" as={p.t}>x</Title>');
+  });
+
+  // A `tag` inside a spread never becomes bestax's `as`, so the element is
+  // the one the written props decide, for the size and for `as` alike.
+  it('reads the element past a spread, which cannot carry `as`', () => {
+    const sized = migrate(
+      dyn('Subtitle', '<Subtitle {...p} isSize={2}>x</Subtitle>')
+    );
+    expect(sized.output).toContain('<SubTitle {...p} size={2}>x</SubTitle>');
+    const bare = migrate(dyn('Subtitle', '<Subtitle {...p}>x</Subtitle>'));
+    expect(bare.output).toContain('<SubTitle {...p} as="h2">x</SubTitle>');
+  });
+
+  // bestax ignores a size outside 1 to 6, so the level is safe and the TODO
+  // is about the class that goes, not about a heading.
+  it('flags a literal size Bulma has no class for', () => {
+    const { output, rules, todos } = migrate(
+      dyn('Title', '<Title isSize={8}>x</Title>')
+    );
+    expect(rules).toEqual(['prop:isSize']);
+    expect(todos[0].message).toContain('renders no size class');
+    expect(todos[0].message).not.toContain('heading');
+    expect(jsx(output)).toContain('<Title size={8}>x</Title>');
+  });
+
+  it('flags a bare isSize, which no size prop takes', () => {
+    const heading = migrate(dyn('Title', '<Title isSize>x</Title>'));
+    expect(heading.rules).toEqual(['prop:isSize']);
+    expect(heading.todos[0].message).toContain('renders no size class');
+    expect(jsx(heading.output)).toContain('<Title size>x</Title>');
+    const para = migrate(dyn('Title', '<Title isSize tag="p">x</Title>'));
+    expect(para.rules).toEqual(['prop:isSize']);
   });
 
   it('keeps a Page it cannot fold as a plain list item', () => {

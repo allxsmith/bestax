@@ -55,6 +55,8 @@ in place:
   `Table.Cell` → `Table.Td`, `PageLoader` → `Loading` (with `isFullPage`), `Navbar.Dropdown` → `Navbar.DropdownMenu` (bestax's `Navbar.Dropdown` is the outer container,
   which `<Navbar.Item dropdown>` becomes), `Level.Item align="right"` →
   `Level.Right`, `Navbar.Segment align="end"` → `Navbar.End`, and `Title subtitle` → `SubTitle`.
+  A `Title` `size` becomes `textSize` wherever bestax's `size`, which picks the heading level,
+  would change the element rbx rendered.
 - **Props** — bare boolean modifiers gain their bestax prefixes (`outlined` → `isOutlined`,
   `rounded` → `isRounded`), `state="loading"` → `isLoading`, and the Bulma v1 spacing helpers
   replace the removed `is-*less` classes (`marginless` → `m="0"`, `radiusless` →

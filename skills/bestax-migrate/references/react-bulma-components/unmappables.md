@@ -142,6 +142,24 @@ bestax `Button` colors are the semantic set + `text`/`ghost`. For shades use
 takes the value. Any other value, or one the codemod can't read, stays as written with a TODO
 that lists the sizes that component takes: use one of them, or drop the prop.
 
+## `prop:size` on `Heading`: a size the codemod cannot carry
+
+RBC's `Heading` rendered an `<h1>` at every size, subtitle or not. bestax's `Title` and
+`SubTitle` render the heading their `size` names unless `as="p"`, so a literal size moves to
+`textSize` to keep the level (see "`Heading` sizes" in the prop map). A dynamic one cannot move,
+because `textSize` takes a string, so it stays `size`. Pass it to `textSize` yourself:
+
+```jsx
+<Heading size={compact ? 5 : 4}>Report</Heading>
+<Title textSize={compact ? '5' : '4'}>Report</Title>
+```
+
+A literal outside 1 to 7 has no Bulma class, and bestax renders none for it either: drop it, or set
+a `textSize` from `'1'` to `'7'`.
+
+The same TODO marks a `Heading` that sets `size` and `textSize` both: drop `size` and let
+`textSize` set the font size.
+
 ## `domRef`
 
 bestax components don't take `domRef`, but many forward a plain `ref` — the form controls, plus
