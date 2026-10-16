@@ -107,8 +107,13 @@ const CODESANDBOX_DEFINE =
 /** How long the tab waits on CodeSandbox before it says so. */
 const DEFINE_TIMEOUT_MS = 20000;
 
-/** Writes a line into the tab the click opened, so the reader sees progress. */
+/**
+ * Writes a line into the tab the click opened, so the reader sees progress.
+ * A reader can close the tab while it waits, and a closed window has no
+ * document, so there is nothing left to write to.
+ */
 function say(tab, text) {
+  if (tab.closed || !tab.document?.body) return;
   tab.document.title = 'CodeSandbox';
   tab.document.body.textContent = text;
 }
@@ -120,7 +125,7 @@ async function defineSandbox(files) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ files }),
     // Bounded, so a reply that never comes cannot leave the tab waiting forever.
-    signal: AbortSignal.timeout(DEFINE_TIMEOUT_MS),
+    signal: AbortSignal.timeout?.(DEFINE_TIMEOUT_MS),
   });
   if (!response.ok) {
     throw new Error(`CodeSandbox answered ${response.status}`);
@@ -158,11 +163,11 @@ export function openInCodeSandbox({ tab, ...options }) {
       tab.location.href = `https://codesandbox.io/s/${id}?file=/src/App.tsx`;
     },
     error => {
+      console.error('Could not open the example in CodeSandbox:', error);
       say(
         tab,
         'CodeSandbox did not open this example. Close this tab and try again.'
       );
-      console.error('Could not open the example in CodeSandbox:', error);
     }
   );
 }

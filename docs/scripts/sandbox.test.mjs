@@ -398,6 +398,25 @@ describe('codesandboxFiles', () => {
     assert.equal(files['src/App.tsx'].content, INPUT.app);
   });
 
+  it('reads a CRLF checkout of the template the same way', () => {
+    // The template comes off disk, so a Windows checkout hands these reads
+    // CRLF lines that the LF fixture never exercises.
+    const crlf = Object.fromEntries(
+      Object.entries(TEMPLATE).map(([path, text]) => [
+        path,
+        text.replace(/\n/g, '\r\n'),
+      ])
+    );
+    const crlfFiles = codesandboxFiles({ ...INPUT, template: crlf });
+    const entry = crlfFiles['src/index.tsx'].content;
+    assert.match(entry, /^import App from '\.\/App';\r?$/m);
+    assert.doesNotMatch(entry, /bestax-bulma\/bestax\.css/);
+    assert.equal(
+      crlfFiles['public/index.html'].content,
+      files['public/index.html'].content
+    );
+  });
+
   it('enters through the template main file, importing App without extension', () => {
     const entry = files['src/index.tsx'].content;
     assert.match(entry, /^import App from '\.\/App';$/m);
