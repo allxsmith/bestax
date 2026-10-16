@@ -71,7 +71,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field.",
+          "description": "The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field. When `Combobox.Input` has an `id` of its own, server markup names the field through `aria-labelledby` until the page hydrates and the label's `for` catches up.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -454,23 +454,23 @@
     },
     {
       "path": "Combobox.Dropdown",
-      "summary": "The floating panel under the field, on screen while the list is open and it has something in it.",
+      "summary": "The floating panel under the field, on screen while the list is open and its children aren't all empty.",
       "component": null,
       "props": [
         {
-          "name": "className",
-          "type": "string",
+          "name": "children",
+          "type": "React.ReactNode",
           "default": null,
-          "description": "Additional CSS classes.",
+          "description": "What the panel shows: `Combobox.Options` while there are options, and `Combobox.Empty` while there aren't. Children that are all `null`, `false` or `''`, or empty Fragments, keep the panel shut, so write the conditional here. A component that renders nothing, or a `Combobox.Options` with no options in it, still counts, and shows an empty panel.",
           "required": false,
           "inherited": false,
           "deprecated": false
         },
         {
-          "name": "children",
-          "type": "React.ReactNode",
+          "name": "className",
+          "type": "string",
           "default": null,
-          "description": "Content rendered inside the component.",
+          "description": "Additional CSS classes.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -572,7 +572,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The heading, which also names the group for assistive tech.",
+          "description": "The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own.",
           "required": false,
           "inherited": false,
           "deprecated": false
