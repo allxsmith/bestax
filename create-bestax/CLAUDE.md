@@ -79,6 +79,14 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   silently dropped at ingest.
 - Templates pin the library's CSS import and icon setup — a change to bulma-ui's published
   exports or flavors (`bestax.css`, `versions/*.css`) may require a template update.
+- `templates/vite-ts` follows the `react-ts` starter that `npm create vite@latest` writes.
+  When Vite or create-vite ships a new major, scaffold that starter, compare its tsconfigs,
+  devDependencies, `vite.config.ts` and `src/main.tsx` with the template's, and catch up
+  (#1049). The App, its assets and the README differ on purpose, and so does lint: the
+  template keeps ESLint with typescript-eslint whatever linter create-vite ships. A file the
+  catch-up adds or removes has to reach the docs sandboxes too, and
+  `docs/scripts/sandbox.test.mjs` fails until the files the sandbox copies, with the ones it
+  names as left out, are exactly the template's.
 - `templates/vite-ts` is also what the docs site's StackBlitz and CodeSandbox buttons build
   from (`docs/src/theme/CodeBlock/sandbox/`, read at docs build time). The builders edit
   `src/main.tsx` by string pattern, so `docs/scripts/sandbox.test.mjs` runs them against the
