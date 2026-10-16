@@ -38,6 +38,12 @@ export interface AutocompleteItem {
 const typedNoMatches = [{ id: 'empty' }];
 const nothingToAnnounce: Array<{ id: string }> = [];
 
+// A press on an option would take focus from the field, since an option
+// can't hold it, and nothing would put it back. Cancelling the press keeps
+// it there, as the ARIA Authoring Practices' combobox does, and the click
+// still picks the option.
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
 /**
  * Props for the Autocomplete component.
  * @extraProp {string} [className] - Additional CSS classes.
@@ -606,6 +612,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   role="listbox"
                   aria-labelledby={listLabelId}
                   aria-label={listLabelId ? undefined : 'Suggestions'}
+                  onMouseDown={keepFocus}
                 >
                   {filteredData.map((item, index) => {
                     const isDisabled =

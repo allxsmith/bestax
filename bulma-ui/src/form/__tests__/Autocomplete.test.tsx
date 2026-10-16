@@ -1983,3 +1983,27 @@ describe('Autocomplete announces when nothing matches (#1066)', () => {
     expect(screen.getAllByText('No results')).toEqual([shown]);
   });
 });
+
+describe('Autocomplete keeps focus in the field on a click (#1078)', () => {
+  it('cancels the press on an option, so the option takes no focus', () => {
+    render(<Autocomplete data={fruits} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    // fireEvent returns false when a handler called preventDefault().
+    const option = screen.getByRole('option', { name: 'Banana' });
+    expect(fireEvent.mouseDown(option)).toBe(false);
+  });
+
+  it('leaves focus in the field after a click picks an option', async () => {
+    const user = userEvent.setup();
+    render(<Autocomplete data={fruits} />);
+    const input = screen.getByRole('combobox');
+
+    await user.type(input, 'a');
+    await user.click(screen.getByRole('option', { name: 'Banana' }));
+
+    expect(input).toHaveValue('Banana');
+    expect(input).toHaveFocus();
+  });
+});
