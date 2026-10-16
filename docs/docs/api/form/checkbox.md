@@ -81,6 +81,39 @@ This example uses the `Checkboxes` component to render a list of checkboxes. Eac
 </Checkboxes>
 ```
 
+### Mixed state
+
+Set `indeterminate` to draw the mixed state, the dash a "Select all" box shows when only some of what it covers is checked. It changes the look and what a screen reader announces, nothing else: `checked` is still the value, and a click still toggles it. So work both out from the list, as here, where a `Checkboxes` group holds the picks.
+
+```tsx live
+function example() {
+  const toppings = ['Cheese', 'Mushrooms', 'Olives'];
+  const [picked, setPicked] = useState(['Cheese']);
+  const allPicked = picked.length === toppings.length;
+
+  return (
+    <Block>
+      <Checkbox
+        checked={allPicked}
+        indeterminate={picked.length > 0 && !allPicked}
+        onChange={() => setPicked(allPicked ? [] : toppings)}
+      >
+        Select all
+      </Checkbox>
+      <Checkboxes value={picked} onChange={setPicked} ml="5">
+        {toppings.map(topping => (
+          <Checkbox key={topping} value={topping}>
+            {topping}
+          </Checkbox>
+        ))}
+      </Checkboxes>
+    </Block>
+  );
+}
+```
+
+There's no HTML attribute for the mixed state, so server-rendered markup shows the box unmixed until the page hydrates.
+
 ### Valid Colors and Sizes
 
 The values `color` and `size` accept are exported as readonly tuples, `checkboxColors` and `checkboxSizes`. The prop types are built from them, so they hold the same values as the Props table below. Map over them to build a color or size picker, or check a value that arrives at runtime (from a CMS or a query string, say) before you pass it in: a value outside the tuple adds no modifier class. Import them from the package root. The [valid value constants](../helpers/valid-values.md#form-control-constants) page covers the typing and validation idioms.
@@ -117,6 +150,7 @@ function example() {
 
 - Each `Checkbox` is rendered as a `<label>` wrapping an `<input type="checkbox">` and the label text, for optimal accessibility.
 - The clickable area includes both box and label by default.
+- Browsers expose a box with `indeterminate` set as mixed, so the component adds no ARIA for it.
 
 ---
 
