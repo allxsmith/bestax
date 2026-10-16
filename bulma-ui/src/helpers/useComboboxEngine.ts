@@ -57,6 +57,12 @@ export interface ComboboxEngineOptions {
   multiple: boolean;
   /** The list is always on screen, so nothing opens or closes it. */
   inline: boolean;
+  /**
+   * The list's panel is portaled, so it has no server markup and shows only
+   * from the commit after hydration. Until it has rendered, an open list
+   * isn't taken to be on the page, so no `aria-controls` names it early.
+   */
+  deferred: boolean;
 }
 
 /** What `useComboboxEngine` hands the parts of a combobox. */
@@ -66,7 +72,8 @@ export interface ComboboxEngine {
   /**
    * The field's `aria-expanded`: open, with a listbox that has an option in
    * it on the page. Until the open list has rendered, it's taken to have
-   * one, so server markup for an open list says it's expanded.
+   * one, so server markup for an open list in place says it's expanded. A
+   * `deferred` list isn't in server markup, so it's taken to have none.
    */
   expanded: boolean;
   /** The highlighted option's value, if any. */
@@ -147,6 +154,7 @@ export function useComboboxEngine({
   autoHighlight,
   multiple,
   inline,
+  deferred,
 }: ComboboxEngineOptions): ComboboxEngine {
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
@@ -189,7 +197,7 @@ export function useComboboxEngine({
     if (typed) setTyped(false);
     if (listShown !== null) setListShown(null);
   }
-  const expanded = open && (listShown ?? true);
+  const expanded = open && (listShown ?? !deferred);
 
   /** The options on the page, in document order, groups included. */
   const shownOptions = useCallback((): ShownOption[] => {

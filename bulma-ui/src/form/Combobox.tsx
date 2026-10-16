@@ -410,6 +410,8 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
       autoHighlight,
       multiple,
       inline,
+      // A portaled panel has no server markup to point at.
+      deferred: appendToBody && !inline,
     });
     const { bulmaHelperClasses, rest } = useBulmaClasses(props);
     const validSize = (validComboboxSizes as readonly string[]).includes(

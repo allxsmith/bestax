@@ -1939,9 +1939,43 @@ describe('Combobox on the server', () => {
     expect(html).toContain('Grace Hopper');
   });
 
-  it('renders no portaled panel, even open', () => {
+  it('renders no portaled panel, even open, and points at none', () => {
     const html = renderToString(<CountrySelect defaultOpen appendToBody />);
     expect(html).not.toContain('role="listbox"');
+    // Collapsed until the panel is on the page, so nothing names a list the
+    // markup doesn't have.
+    expect(html).toContain('aria-expanded="false"');
+    expect(html).not.toContain('aria-controls');
+    const container = document.createElement('div');
+    container.innerHTML = html;
+    document.body.appendChild(container);
+    try {
+      expect(danglingIdRefs(container)).toEqual([]);
+    } finally {
+      container.remove();
+    }
+  });
+
+  it('expands a portaled list once it shows after hydrating', async () => {
+    const ui = <CountrySelect defaultOpen appendToBody />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    document.body.appendChild(container);
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      const input = container.querySelector('input') as HTMLInputElement;
+      const listbox = document.querySelector('[role="listbox"]') as HTMLElement;
+      expect(listbox).not.toBeNull();
+      expect(container.contains(listbox)).toBe(false);
+      expect(input).toHaveAttribute('aria-expanded', 'true');
+      expect(input).toHaveAttribute('aria-controls', listbox.id);
+    } finally {
+      await act(async () => root!.unmount());
+      container.remove();
+    }
   });
 
   it.each([
