@@ -103,7 +103,7 @@ function example() {
 
 ### Active Menu Item
 
-Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section.
+Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section. It also sets `aria-current="page"` on the item's link, so assistive tech knows which one is current too.
 
 ```tsx live
 <Menu>
@@ -191,6 +191,9 @@ function example() {
 ## Accessibility
 
 - The root `Menu` renders as `<aside class="menu">`.
+- `Menu.Item active` sets `aria-current="page"` on the element `as` renders, the link by
+  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of
+  sections on one page can say `"location"`, and `aria-current={false}` turns it off.
 - Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.
 - Ensure each item is focusable and accessible if interactive.
 - `Menu.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
