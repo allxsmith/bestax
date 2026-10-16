@@ -199,6 +199,7 @@ describe('bulma-classes kitchen-sink e2e', () => {
     const rules = (app.todosByFile.get('leftovers.tsx') ?? []).map(t => t.rule);
     expect(rules.sort()).toEqual(
       [
+        'attr:aria-current',
         'attr:color',
         'children:Card',
         'defaults:Delete',
