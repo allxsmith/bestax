@@ -213,29 +213,56 @@ describe('Taginput', () => {
       expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
     });
 
-    it('ignores dropdown selections made after maxTags is reached', () => {
+    // keepOpen (the default) leaves the list open after a selection, and
+    // openOnFocus keeps it filled with the remaining suggestions, so below
+    // the limit it stays on screen. At the limit the input goes, and the
+    // list goes with it (#1087).
+    it('closes the suggestion list when a click adds the last allowed tag', () => {
       const onChange = jest.fn();
-      // keepOpen (the default) leaves the dropdown active after a selection,
-      // so a second item can still be clicked once the input is gone.
       render(
         <Taginput
-          defaultValue={['Tag1']}
-          data={['Vue', 'React']}
+          defaultValue={['React']}
+          data={['React', 'Vue', 'Svelte']}
           maxTags={2}
           openOnFocus
           onChange={onChange}
         />
       );
+      fireEvent.focus(screen.getByRole('combobox'));
+
+      fireEvent.click(screen.getByRole('option', { name: 'Vue' }));
+
+      expect(onChange).toHaveBeenLastCalledWith(['React', 'Vue']);
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      expect(screen.queryByRole('option')).not.toBeInTheDocument();
+    });
+
+    it('closes the suggestion list when Enter adds the last allowed tag', () => {
+      render(<Taginput data={frameworks} maxTags={1} openOnFocus />);
       const input = screen.getByRole('combobox');
       fireEvent.focus(input);
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
 
-      fireEvent.click(screen.getByText('Vue'));
-      expect(onChange).toHaveBeenLastCalledWith(['Tag1', 'Vue']);
+      fireEvent.keyDown(input, { key: 'Enter' });
 
-      // Max reached: the input is unmounted but the dropdown is still open.
+      expect(screen.getByText('React')).toBeInTheDocument();
       expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
-      fireEvent.click(screen.getByText('React'));
-      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    it('closes the suggestion list when a controlled value reaches the limit', () => {
+      const ui = (value: string[]) => (
+        <Taginput data={frameworks} value={value} maxTags={1} openOnFocus />
+      );
+      const { rerender } = render(ui([]));
+      fireEvent.focus(screen.getByRole('combobox'));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      rerender(ui(['React']));
+
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
   });
 
