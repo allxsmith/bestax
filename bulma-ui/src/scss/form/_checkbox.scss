@@ -185,6 +185,17 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
       border-color: Highlight;
     }
 
+    // Forced colors repaints the mixed fill and its dash in the same color,
+    // which leaves an empty box. Draw the dash in system colors that keep it
+    // visible, checked or not.
+    input[type="checkbox"]:indeterminate + .check {
+      background-color: Canvas;
+
+      &::before {
+        background-color: CanvasText;
+      }
+    }
+
     input[type="checkbox"]:focus-visible + .check {
       outline-color: Highlight;
     }
