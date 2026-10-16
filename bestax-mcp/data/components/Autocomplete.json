@@ -161,7 +161,7 @@
           "name": "keepFirst",
           "type": "boolean",
           "default": "false",
-          "description": "Keep the first option highlighted whenever the list opens, Up Arrow and Alt+Down Arrow included, and whenever the text in the field changes. While the list is open on a highlighted option, Enter picks it rather than submitting a form around the field.",
+          "description": "Keep the first option highlighted whenever the list opens, Up Arrow and Alt+Down Arrow included, and whenever the text in the field changes. While the list is open on a highlighted option that isn't disabled, Enter picks it rather than submitting a form around the field.",
           "required": false,
           "inherited": false,
           "deprecated": false
