@@ -112,17 +112,19 @@ const DEFINE_TIMEOUT_MS = 20000;
  * A reader can close the tab while it waits, and a closed window has no
  * document, so there is nothing left to write to.
  */
-function say(tab, text) {
+function say(tab, text, role = 'status') {
   if (tab.closed || !tab.document?.body) return;
+  tab.document.documentElement.lang = 'en';
   tab.document.title = 'CodeSandbox';
-  // A live region, so a screen reader announces the failure that replaces
-  // the progress line, not only the first line it was given.
+  // The line is inserted with its text. A screen reader announces an alert on
+  // insertion, so a failure is not lost when it lands moments after the
+  // progress line, and a polite region is not relied on to catch the swap.
   const { body } = tab.document;
-  const status =
-    body.querySelector('[role="status"]') ??
-    body.appendChild(tab.document.createElement('p'));
-  status.setAttribute('role', 'status');
-  status.textContent = text;
+  body.querySelector('[role="status"], [role="alert"]')?.remove();
+  const line = tab.document.createElement('p');
+  line.setAttribute('role', role);
+  line.textContent = text;
+  body.appendChild(line);
 }
 
 /** Creates the sandbox from its files and resolves to the id CodeSandbox gives it. */
@@ -173,7 +175,8 @@ export function openInCodeSandbox({ tab, ...options }) {
       console.error('Could not open the example in CodeSandbox:', error);
       say(
         tab,
-        'CodeSandbox did not open this example. Close this tab and try again.'
+        'CodeSandbox did not open this example. Close this tab and try again.',
+        'alert'
       );
     }
   );
