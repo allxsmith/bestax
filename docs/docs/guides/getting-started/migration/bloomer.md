@@ -58,8 +58,9 @@ in place:
   `isOutlined`, `isBordered`, …) and pass through; `isActive` becomes `active` where bestax
   names it that way, and `isFullWidth` becomes `isFullwidth` where bestax declares it. The value props
   are renamed per component:
-  `isColor` → `color`, `isSize` → `size` (numbers stay numbers on `Title`/`Subtitle`), `isAlign`
-  → `alignment` / `align` / `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →
+  `isColor` → `color`, `isSize` → `size` (on `Title`/`Subtitle`, `textSize` wherever `size`
+  would change the heading level bloomer rendered), `isAlign` → `alignment` / `align` /
+  `right`, `hasTextAlign` → `textAlign`, `hasTextColor` →
   `textColor`, `isPulled` → `float`, `isMarginless` → `m="0"`, `tag` → `as` where bestax
   declares one, `Button isLink` → `color="link"`, `Field isGrouped` → `grouped`,
   `Control hasIcons` → `hasIconsLeft`/`hasIconsRight`. `Input`, `Select` and `TextArea` become

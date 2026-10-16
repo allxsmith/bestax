@@ -245,6 +245,10 @@ describe('rbx kitchen-sink e2e', () => {
     expect(rules).toContain('prop:target');
     // A group size bestax does not take, or cannot be read, stays a TODO.
     expect(rules).toContain('prop:size');
+    // So does a Title size it cannot read, which bestax would turn into a level.
+    expect(
+      todos.some(t => t.rule === 'prop:size' && t.message.includes('textSize'))
+    ).toBe(true);
     expect(todos.length).toBeGreaterThanOrEqual(10);
     const migrated = fs.readFileSync(
       path.join(tmpDir, 'src', 'leftovers.tsx'),

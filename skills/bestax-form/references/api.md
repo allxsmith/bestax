@@ -19,7 +19,7 @@ Container and layout. Compound parts: `Field.Label`, `Field.Body`.
 | `labelProps`            | label attributes                                  | Props for the `<label>`. An explicit `htmlFor` (even `undefined`) takes over the association; otherwise it is set automatically. For its `id`, see below.                                                                          |
 | `textColor` / `bgColor` | Bulma color                                       | Helper colors for the field.                                                                                                                                                                                                       |
 
-An `id` in `labelProps` is what a group's, a range `Slider`'s and an `Autocomplete` suggestion list's `aria-labelledby` points at. A label wired by hand with `htmlFor` gets no generated id, so give it one, `labelProps={{ htmlFor, id }}`, for a range `Slider` or an `Autocomplete`. No group points at a label wired by hand.
+An `id` in `labelProps` is what a group's, a range `Slider`'s and an `Autocomplete` or `Taginput` suggestion list's `aria-labelledby` points at. A label wired by hand with `htmlFor` gets no generated id, so give it one, `labelProps={{ htmlFor, id }}`, for a range `Slider`, an `Autocomplete` or a `Taginput`. No group points at a label wired by hand.
 
 ## Control — `form/Control.tsx`
 

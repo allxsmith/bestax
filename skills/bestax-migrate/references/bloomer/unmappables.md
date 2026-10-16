@@ -274,6 +274,24 @@ prop conditionally:
 counterpart in bestax (only `isNarrowTouch`) — Bulma keeps the `is-*-touch` classes, so use
 `className`.
 
+## `prop:isSize` on `Title` and `Subtitle`: a size the codemod cannot carry
+
+bloomer's `Title` and `Subtitle` kept their element at every size. bestax's render the heading
+their `size` names, so a literal `isSize` moves to `textSize` to keep the level (see "Title and
+Subtitle sizes" in the prop map). A dynamic one cannot move, because `textSize` takes a string,
+so it becomes `size`. Pass it to `textSize` yourself:
+
+```jsx
+<Subtitle isSize={compact ? 5 : 4}>Report</Subtitle>
+<SubTitle textSize={compact ? '5' : '4'} as="h2">Report</SubTitle>
+```
+
+A literal outside 1 to 7 has no Bulma class, and bestax renders none for it either: drop it, or set
+a `textSize` from `'1'` to `'7'`.
+
+A dynamic size beside `tag="p"` is not flagged, since bestax never turns a `<p>` into a
+heading.
+
 ## `value-reference` — a component used as a value
 
 `const Wrapped = Box` and `{ Subtitle }` are rewritten to the bestax binding (`Hero.Foot`,
