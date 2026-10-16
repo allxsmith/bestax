@@ -186,13 +186,15 @@ bestax's `NxN` form. Set `size` on the migrated `<Image>` by hand.
 rbx's `Title` rendered an `<h1>` at every size, subtitle or not. bestax's `Title` and `SubTitle`
 render the heading their `size` names unless `as="p"`, so a literal size moves to `textSize` to
 keep the level (see "Title sizes" in the prop map). A dynamic one cannot move, because
-`textSize` takes a string, and a literal outside 1 to 7 has no Bulma class to move to. Either
-stays `size` and is flagged. Pass the size to `textSize` yourself:
+`textSize` takes a string, so it stays `size`. Pass it to `textSize` yourself:
 
 ```jsx
 <Title size={compact ? 5 : 4}>Report</Title>
 <Title textSize={compact ? '5' : '4'}>Report</Title>
 ```
+
+A literal outside 1 to 7 has no Bulma class, and bestax renders none for it either: drop it, or set
+a `textSize` from `'1'` to `'7'`.
 
 The same TODO marks a `Title` that sets `size` and `textSize` both: drop `size` and let
 `textSize` set the font size.

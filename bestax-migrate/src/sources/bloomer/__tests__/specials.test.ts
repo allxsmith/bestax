@@ -917,12 +917,25 @@ describe('bloomer navigation handlers', () => {
     expect(bare.output).toContain('<SubTitle {...p} as="h2">x</SubTitle>');
   });
 
+  // bestax ignores a size outside 1 to 6, so the level is safe and the TODO
+  // is about the class that goes, not about a heading.
   it('flags a literal size Bulma has no class for', () => {
-    const { output, rules } = migrate(
+    const { output, rules, todos } = migrate(
       dyn('Title', '<Title isSize={8}>x</Title>')
     );
     expect(rules).toEqual(['prop:isSize']);
+    expect(todos[0].message).toContain('renders no size class');
+    expect(todos[0].message).not.toContain('heading');
     expect(jsx(output)).toContain('<Title size={8}>x</Title>');
+  });
+
+  it('flags a bare isSize, which no size prop takes', () => {
+    const heading = migrate(dyn('Title', '<Title isSize>x</Title>'));
+    expect(heading.rules).toEqual(['prop:isSize']);
+    expect(heading.todos[0].message).toContain('renders no size class');
+    expect(jsx(heading.output)).toContain('<Title size>x</Title>');
+    const para = migrate(dyn('Title', '<Title isSize tag="p">x</Title>'));
+    expect(para.rules).toEqual(['prop:isSize']);
   });
 
   it('keeps a Page it cannot fold as a plain list item', () => {

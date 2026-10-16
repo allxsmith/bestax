@@ -435,7 +435,10 @@ export function keepTitleLevel(
     const textSize = findAttr(element, 'textSize');
     // A size the codemod cannot read is still safe beside a <p>; a literal
     // has to be one bestax's `size` takes, or its class goes.
-    const takes = size === undefined || TITLE_SIZES.includes(size);
+    const takes =
+      size === undefined
+        ? literal.kind === 'expression'
+        : TITLE_SIZES.includes(size);
     if (takes && (rendered === 'p' || rendered === `h${size}`)) {
       // `size` renders this element too, so the prop map carries it as is.
       sizeRendersLevel = true;
@@ -444,15 +447,17 @@ export function keepTitleLevel(
       sizeAttr.value = j.stringLiteral(size);
       handled.push(source.size);
       ctx.dirty = true;
-    } else if (literal.kind !== 'boolean') {
+    } else {
       const level = `bestax's \`${source.target}\` renders the heading its \`size\` names unless \`as="p"\``;
       addTodo(
         ctx,
         path,
         `prop:${source.size}`,
-        textSize
-          ? `\`${source.where}\` sets a size and \`textSize\` both, and ${level}; to keep the level, drop \`size\` and let \`textSize\` set the font size`
-          : `\`${source.where}\` kept its element at every size, but ${level}; to keep the level, carry the size with \`textSize\`, which takes '1' to '7' as strings`
+        !takes
+          ? `bestax's \`${source.target}\` takes a \`size\` from 1 to 6 and renders no size class for this one; drop it, or set a \`textSize\` from '1' to '7' instead`
+          : textSize
+            ? `\`${source.where}\` sets a size and \`textSize\` both, and ${level}; to keep the level, drop \`size\` and let \`textSize\` set the font size`
+            : `\`${source.where}\` kept its element at every size, but ${level}; to keep the level, carry the size with \`textSize\`, which takes '1' to '7' as strings`
       );
       // Written as bestax's prop either way, so the prop map adds nothing.
       sizeAttr.name = j.jsxIdentifier('size');

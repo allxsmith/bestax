@@ -99,8 +99,8 @@ Everywhere else the size moves to the `textSize` helper, and so does a 7, which 
 does not take. The helper sets the same font size through Bulma's `is-size-4` class rather than the
 title's own `is-4`, so a rule of your own that targets `.title.is-4` needs the new class too.
 `is-size-4` is also `!important`, so a font size your own CSS gives the title, such as
-`.hero .title`, now loses to it where it used to beat `is-4`. A size the codemod cannot read, or
-one outside 1 to 7, keeps `size` and gets a `prop:isSize` TODO.
+`.hero .title`, now loses to it where it used to beat `is-4`. A literal outside 1 to 7 keeps `size`
+and gets a `prop:isSize` TODO.
 
 ## Column sizes
 
