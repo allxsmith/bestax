@@ -340,7 +340,7 @@ toast.closeAll();
 - Has `aria-live="polite"` for non-intrusive notifications.
 - The closable button has `aria-label="Close"`.
 - `pauseOnHover` lets users keep the toast visible while reading.
-- `cancelable` (default `true`) supports Escape-key dismiss.
+- `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.
 
 ---
 
@@ -376,7 +376,7 @@ Use the programmatic `toast` API for showing notifications from event handlers o
 | `closable`     | `boolean`                                                                                                   | `false`       | Show an explicit close (X) button. Default: false.                                                                                                                                                                |
 | `rounded`      | `boolean`                                                                                                   | `false`       | Pill-shaped (rounded corners).                                                                                                                                                                                    |
 | `pauseOnHover` | `boolean`                                                                                                   | `false`       | Pause auto-close timer on hover. Default: false.                                                                                                                                                                  |
-| `cancelable`   | `boolean`                                                                                                   | `true`        | Whether the toast can be dismissed with Escape. Default: true.                                                                                                                                                    |
+| `cancelable`   | `boolean`                                                                                                   | `true`        | Whether the toast can be dismissed with Escape. An Escape a popup on the page closed on, by calling `preventDefault()`, leaves it up. Default: true.                                                              |
 | `actionText`   | `string`                                                                                                    | —             | Text for an action button (e.g. "Undo").                                                                                                                                                                          |
 | `cancelText`   | `string`                                                                                                    | —             | Text for a cancel button.                                                                                                                                                                                         |
 | `onAction`     | `() => void`                                                                                                | —             | Callback when the action button is clicked.                                                                                                                                                                       |
