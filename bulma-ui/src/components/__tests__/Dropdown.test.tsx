@@ -1190,6 +1190,22 @@ describe('Dropdown keyboard navigation', () => {
     expect(screen.getByRole('button', { name: /menu/i })).toHaveFocus();
   });
 
+  test('Escape a field in the menu used leaves the menu open', () => {
+    const onActiveChange = jest.fn();
+    render(
+      <Dropdown label="Menu" active onActiveChange={onActiveChange}>
+        <input
+          aria-label="Filter"
+          onKeyDown={e => {
+            if (e.key === 'Escape') e.preventDefault();
+          }}
+        />
+      </Dropdown>
+    );
+    fireEvent.keyDown(screen.getByLabelText('Filter'), { key: 'Escape' });
+    expect(onActiveChange).not.toHaveBeenCalled();
+  });
+
   test('Tab within the menu closes it', () => {
     const onActiveChange = jest.fn();
     render(

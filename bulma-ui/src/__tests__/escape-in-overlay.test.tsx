@@ -5,12 +5,14 @@
  * the key after the popup has, React handler or `document` listener, and it
  * leaves a used Escape alone. The next Escape, with nothing open inside,
  * closes the overlay. Escape with nothing open closes the overlay at once.
- * A picker claims only an Escape pressed in it.
+ * A `Dropdown` menu around a popup, and a `Toast` on the page, leave a used
+ * Escape alone the same way. A picker claims only an Escape pressed in it.
  */
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Modal } from '../components/Modal';
 import { Sidebar } from '../components/Sidebar';
+import { Toast } from '../components/Toast';
 import { Dropdown, DropdownItem } from '../components/Dropdown';
 import { Popover } from '../components/Popover';
 import { Autocomplete } from '../form/Autocomplete';
@@ -326,5 +328,78 @@ describe('Escape in a Modal opened over an open picker', () => {
 
     pressEscape();
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Escape in a popup inside a Dropdown menu', () => {
+  it('closes an Autocomplete list first, and the menu on the next Escape', () => {
+    render(
+      <Dropdown label="Filter" closeOnClick={false}>
+        <Autocomplete label="Fruit" data={fruits} />
+      </Dropdown>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /filter/i }));
+    const root = screen.getByTestId('dropdown-root');
+    expect(root).toHaveClass('is-active');
+    typeInto(screen.getByRole('combobox'), 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    pressEscape();
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(root).toHaveClass('is-active');
+
+    pressEscape();
+    expect(root).not.toHaveClass('is-active');
+  });
+});
+
+describe('Escape with a Toast up', () => {
+  it('leaves the Toast up when the Escape closed a Dropdown menu in a Modal', () => {
+    const onToastClose = jest.fn();
+    const onClose = renderInModal(
+      <>
+        <Toast
+          message="Saved"
+          duration={0}
+          dismissible={false}
+          onClose={onToastClose}
+        />
+        <Dropdown label="Actions">
+          <DropdownItem>Rename</DropdownItem>
+        </Dropdown>
+      </>
+    );
+    const trigger = screen.getByRole('button', { name: /actions/i });
+    act(() => trigger.focus());
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(screen.getByText('Rename')).toHaveFocus();
+
+    pressEscape();
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(onClose).not.toHaveBeenCalled();
+    expect(onToastClose).not.toHaveBeenCalled();
+  });
+
+  it('leaves the Toast up when the Escape closed a picker opened after it', () => {
+    const onToastClose = jest.fn();
+    render(
+      <>
+        <Toast
+          message="Saved"
+          duration={0}
+          dismissible={false}
+          onClose={onToastClose}
+        />
+        <DateInput label="Due" />
+      </>
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
+
+    pressEscape();
+    expect(screen.queryByRole('dialog', { name: 'Choose date' })).toBeNull();
+    expect(onToastClose).not.toHaveBeenCalled();
+
+    pressEscape();
+    expect(onToastClose).toHaveBeenCalledTimes(1);
   });
 });

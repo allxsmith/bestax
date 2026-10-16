@@ -59,7 +59,10 @@ export interface ToastProps
   rounded?: boolean;
   /** Pause auto-close timer on hover. Default: false. */
   pauseOnHover?: boolean;
-  /** Whether the toast can be dismissed with Escape. Default: true. */
+  /**
+   * Whether the toast can be dismissed with Escape. An Escape a popup on the
+   * page closed on, by calling `preventDefault()`, leaves it up. Default: true.
+   */
   cancelable?: boolean;
   /** Text for an action button (e.g. "Undo"). */
   actionText?: string;
@@ -177,17 +180,19 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       };
     }, [dismissible, isVisible, handleClose]);
 
+    // On `window`, as in `Modal`, so a popup on the page has had the key
+    // first, and an Escape it closed on doesn't dismiss the toast as well.
     useEffect(() => {
       if (!cancelable) return undefined;
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' && !e.defaultPrevented) {
           handleClose();
         }
       };
 
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
     }, [cancelable, handleClose]);
 
     const containerClasses = usePrefixedClassNames('toast-container', {

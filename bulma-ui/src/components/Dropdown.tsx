@@ -77,8 +77,9 @@ export interface DropdownProps
  * the menu, so a letter typed on the trigger does nothing. Escape closes the
  * menu and focuses the trigger, and Tab closes it and lets focus move on.
  * Anything focusable in the menu that isn't an item, such as a field, keeps
- * its own keys apart from Escape and Tab. For a panel built around fields,
- * use `Popover`.
+ * its own keys apart from Escape and Tab, though an Escape it calls
+ * `preventDefault()` on stays its own and leaves the menu open. For a panel
+ * built around fields, use `Popover`.
  *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.
@@ -283,8 +284,11 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       // Closing is Dropdown's: Escape and Tab close the menu from anywhere in
       // it, a field included, and an empty or all-disabled menu too. Moving
       // between the items, running them and typeahead are the hook's, which
-      // acts only while focus is on the menu or one of its items.
+      // acts only while focus is on the menu or one of its items. An Escape
+      // something in the menu already used, such as a field's own list
+      // closing on it, leaves the menu open for the next one.
       if (e.key === 'Escape') {
+        if (e.defaultPrevented) return;
         e.preventDefault();
         setActive(false);
         onActiveChange?.(false);

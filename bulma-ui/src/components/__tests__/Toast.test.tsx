@@ -576,6 +576,38 @@ describe('Toast', () => {
       expect(onClose).toHaveBeenCalledTimes(1);
     });
 
+    it('stays up on an Escape that something on the page already used', () => {
+      const onClose = jest.fn();
+      render(
+        <>
+          <Toast message="Test" duration={0} onClose={onClose} />
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+        </>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+
+    it('hears Escape after a document listener added once it showed', () => {
+      // A popup opened while the toast is up adds its listener after this
+      // one, and still gets the key first.
+      const onClose = jest.fn();
+      render(<Toast message="Test" duration={0} onClose={onClose} />);
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('does not close on Escape when cancelable is false', () => {
       const onClose = jest.fn();
       render(
