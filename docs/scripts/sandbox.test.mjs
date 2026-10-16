@@ -22,6 +22,7 @@ import {
   TEMPLATE_FILES,
   codesandboxFiles,
   iconLibrariesIn,
+  sandboxVersions,
   stackblitzProject,
 } from '../src/theme/CodeBlock/sandbox/projects.mjs';
 
@@ -480,26 +481,26 @@ describe('codesandboxFiles', () => {
  * A sandbox has no lockfile, so it installs what its package.json and CDN
  * links name on the day a reader opens it. A dist-tag such as `latest`, or a
  * URL, would change under the reader with nothing changing here. So both
- * projects are built from the versions the site passes, every icon library
- * included, and held to plain semver.
+ * projects are built from the versions open.js passes, through the same
+ * `sandboxVersions` call on the same inputs, every icon library included, and
+ * held to plain semver.
  */
 describe('what a sandbox installs', () => {
   const site = {
     ...INPUT,
     icons: Object.keys(ICON_LIBRARIES),
-    versions: {
-      // open.js passes a caret range from the release the docs build read.
-      '@allxsmith/bestax-bulma': `^${libraryPackage.version}`,
-      ...Object.fromEntries(
-        Object.values(ICON_LIBRARIES).map(({ package: name }) => [
-          name,
-          docsPackage.dependencies[name],
-        ])
-      ),
-    },
+    // The docs build reads the release from bulma-ui's package.json.
+    versions: sandboxVersions(libraryPackage.version, docsPackage.dependencies),
   };
   const stackblitz = stackblitzProject(site);
   const codesandbox = codesandboxFiles(site);
+
+  it('names each icon package docs/package.json must declare', () => {
+    assert.throws(
+      () => sandboxVersions(libraryPackage.version, {}),
+      /docs\/package\.json must declare @fortawesome\/fontawesome-free/
+    );
+  });
 
   it('names a plain semver range for every package either project installs', () => {
     const manifests = {
