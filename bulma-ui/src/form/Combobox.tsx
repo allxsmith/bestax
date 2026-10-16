@@ -153,12 +153,14 @@ export interface ComboboxProps
 /**
  * Props for Combobox.Input, the text field. It renders `Input`, so its icons,
  * `isLoading` and `color` work as they do there. The Field props go on the
- * Combobox, and the size comes from it.
+ * Combobox, and the size comes from it. The field is `autoComplete="off"`,
+ * so the browser's own suggestions don't open over the list, and that isn't
+ * yours to set.
  */
 export type ComboboxInputProps = Omit<
   InputProps,
-  // The Field props, by name, since the docs read only names out of an
-  // Omit. `__typetests__/combobox.tsx` fails if one is missing.
+  // By name, since the docs read only names out of an Omit, and
+  // `__typetests__/combobox.tsx` fails if one goes missing. The Field props:
   | 'label'
   | 'labelSize'
   | 'labelProps'
@@ -166,8 +168,10 @@ export type ComboboxInputProps = Omit<
   | 'message'
   | 'messageColor'
   | 'fieldClassName'
+  // And what the Combobox sets on the field itself:
   | 'size'
   | 'role'
+  | 'autoComplete'
 >;
 
 /** Props for Combobox.Dropdown, the floating panel under the field. */
