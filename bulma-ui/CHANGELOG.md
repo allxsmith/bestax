@@ -1,3 +1,11 @@
+## [5.34.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.1...@allxsmith/bestax-bulma@5.34.2) (2026-10-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** deprecate Autocomplete's unread selected and dropdown props ([#1091](https://github.com/allxsmith/bestax/issues/1091)) ([5a90eba](https://github.com/allxsmith/bestax/commit/5a90eba338355a7c54f1ad6b57a743c9f33278e8)), closes [#1080](https://github.com/allxsmith/bestax/issues/1080)
+* **bulma-ui:** one Escape closes one layer inside a Modal or Sidebar ([#1086](https://github.com/allxsmith/bestax/issues/1086)) ([3ea7ac8](https://github.com/allxsmith/bestax/commit/3ea7ac8a5b1a9e8519e257b8ca3aa6a8bf17c46e)), closes [#1077](https://github.com/allxsmith/bestax/issues/1077) [#1077](https://github.com/allxsmith/bestax/issues/1077)
+
 ## [5.34.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.0...@allxsmith/bestax-bulma@5.34.1) (2026-10-16)
 
 
