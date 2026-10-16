@@ -370,7 +370,7 @@ function example() {
 | `Alt` + `↓` | Open dropdown with nothing highlighted                                                                                                  |
 | `↑`         | Open dropdown on its last enabled option / Move up                                                                                      |
 | `Enter`     | Select highlighted item. With nothing highlighted, close the list and let the form around the field submit, as a native text input does |
-| `Tab`       | Select highlighted and move focus                                                                                                       |
+| `Tab`       | Select the highlighted item if the list is open, then move focus                                                                        |
 | `Escape`    | Close dropdown                                                                                                                          |
 
 The arrows reach disabled options too, so a screen reader user finds them, but Enter doesn't select one. With `keepFirst`, the dropdown opens on its first option whichever key opens it. While an input method editor (IME) is composing text, the keys are left to it, so Enter confirms the composition rather than selecting an option.

@@ -2085,6 +2085,20 @@ describe('Enter submits the form around an Autocomplete unless it picks (#1079)'
     expect(onSelect).not.toHaveBeenCalled();
     expect(input).toHaveValue('ap');
   });
+
+  it('leaves a Tab alone once the list has closed on a highlight', async () => {
+    const user = userEvent.setup();
+    const { input, onSelect } = renderInForm({ keepFirst: true });
+
+    await user.type(input, 'ap');
+    await user.click(document.body);
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.tab();
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
 });
 
 describe('Autocomplete opens on a highlight and leaves keys to an IME (#1081)', () => {

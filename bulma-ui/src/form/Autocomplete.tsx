@@ -436,7 +436,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             setHighlightedIndex(-1);
             break;
           case 'Tab':
-            if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
+            if (
+              isActive &&
+              highlightedIndex >= 0 &&
+              filteredData[highlightedIndex]
+            ) {
               handleSelect(filteredData[highlightedIndex]);
             }
             setIsActive(false);
