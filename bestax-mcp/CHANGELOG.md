@@ -1,3 +1,17 @@
+## [1.15.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.3...bestax-mcp@1.15.4) (2026-10-16)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a title's heading level when its size carries over ([#1071](https://github.com/allxsmith/bestax/issues/1071)) ([7549699](https://github.com/allxsmith/bestax/commit/75496994ac2f3de11fa2fe7b8942d3a34f027145))
+* **bulma-ui:** wire Taginput's suggestions as a combobox ([#1084](https://github.com/allxsmith/bestax/issues/1084)) ([e30c33a](https://github.com/allxsmith/bestax/commit/e30c33a36e12aa2f4074c4a770235cdca07d96ad)), closes [#942](https://github.com/allxsmith/bestax/issues/942) [#998](https://github.com/allxsmith/bestax/issues/998) [#1082](https://github.com/allxsmith/bestax/issues/1082)
+* **docs:** pin react-scripts in CodeSandbox sandboxes and keep the sandbox notes in step ([#1074](https://github.com/allxsmith/bestax/issues/1074)) ([3ac8a65](https://github.com/allxsmith/bestax/commit/3ac8a65fda8bc1795eac465da0f7b8928804c72e))
+
+
+### Features
+
+* **docs:** open live examples in StackBlitz and CodeSandbox ([#1073](https://github.com/allxsmith/bestax/issues/1073)) ([730db1e](https://github.com/allxsmith/bestax/commit/730db1e37633b19f6d47a42272c85d72db51d19c))
+
 ## [1.15.3](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.2...bestax-mcp@1.15.3) (2026-10-15)
 
 
