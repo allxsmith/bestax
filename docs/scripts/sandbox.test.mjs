@@ -521,22 +521,27 @@ describe('what a sandbox installs', () => {
   });
 
   it('names an exact version in every CDN link either project writes', () => {
+    // Every absolute link counts, so one with no version, which jsDelivr
+    // serves as `latest`, or on another host fails instead of going unseen.
     const links = [
       stackblitz.files['index.html'],
       codesandbox['public/index.html'].content,
-    ].flatMap(html => [
-      ...html.matchAll(
-        /https:\/\/cdn\.jsdelivr\.net\/npm\/(?:@[^/]+\/)?[^/@]+@([^/"]+)[^"]*/g
-      ),
-    ]);
+    ].flatMap(html =>
+      [...html.matchAll(/(?:href|src)="((?:https?:)?\/\/[^"]+)"/g)].map(
+        ([, url]) => url
+      )
+    );
     assert.ok(links.length > 0, 'found no CDN links to check');
     assert.deepEqual(
-      links
-        .filter(([, version]) => !/^\d+\.\d+\.\d+$/.test(version))
-        .map(([url]) => url),
+      links.filter(
+        url =>
+          !/^https:\/\/cdn\.jsdelivr\.net\/npm\/(?:@[^/@]+\/)?[^/@]+@\d+\.\d+\.\d+\//.test(
+            url
+          )
+      ),
       [],
-      'A CDN link takes the lowest version its range allows, so the range ' +
-        'must start from a version.'
+      'A CDN link is a jsDelivr URL with the lowest version its range ' +
+        'allows, so the range must start from a version.'
     );
   });
 });
