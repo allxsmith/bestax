@@ -221,7 +221,14 @@ export interface ComboboxGroupProps extends Omit<
 }
 
 /** Props for Combobox.Empty, the message shown in place of the list. */
-export type ComboboxEmptyProps = React.HTMLAttributes<HTMLDivElement>;
+export interface ComboboxEmptyProps extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * The message, such as "No countries match". Its text is announced when
+   * typing brings it on screen and isn't read again while it stays, so a
+   * message that names the query is heard for the first query only.
+   */
+  children?: React.ReactNode;
+}
 
 /** What the Combobox hands its parts. */
 interface ComboboxContextValue {
@@ -892,6 +899,7 @@ ComboboxGroup.displayName = 'ComboboxGroup';
  * @returns {JSX.Element} The message.
  */
 export const ComboboxEmpty: React.FC<ComboboxEmptyProps> = ({
+  children,
   className,
   onMouseDown,
   ...props
@@ -912,7 +920,9 @@ export const ComboboxEmpty: React.FC<ComboboxEmptyProps> = ({
         onMouseDown?.(event);
         engine.keepFocus(event);
       }}
-    />
+    >
+      {children}
+    </div>
   );
 };
 ComboboxEmpty.displayName = 'ComboboxEmpty';
