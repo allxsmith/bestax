@@ -265,6 +265,9 @@ export function useComboboxEngine({
     // Without `autoHighlight`, which moved it above, a highlighted option
     // that left takes the highlight with it.
     else if (next !== null && !values.includes(next)) next = null;
+    // Only a change is set. StrictMode runs this twice on mount, and the
+    // second run, with the landing used up, works out the rendered highlight
+    // again, so it leaves the first run's landing in place.
     if (next !== highlighted) {
       scrollToHighlightRef.current = true;
       setHighlighted(next);

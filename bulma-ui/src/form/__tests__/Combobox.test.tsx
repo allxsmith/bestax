@@ -829,6 +829,56 @@ describe('Combobox', () => {
     });
   });
 
+  describe('StrictMode', () => {
+    // StrictMode runs each layout effect twice on mount, and a list that's
+    // open on its first commit lands its highlight in that mount.
+    it('keeps the opening highlight on the checked option, inline', () => {
+      render(
+        <React.StrictMode>
+          <PeopleList initialValue="Grace Hopper" />
+        </React.StrictMode>
+      );
+      expect(highlighted()).toBe('Grace Hopper');
+    });
+
+    it('keeps the opening highlight with defaultOpen', () => {
+      render(
+        <React.StrictMode>
+          <CountrySelect defaultOpen initialValue="Japan" />
+        </React.StrictMode>
+      );
+      expect(highlighted()).toBe('Japan');
+    });
+
+    it('keeps the opening highlight when open is set from the start', () => {
+      render(
+        <React.StrictMode>
+          <CountrySelect open onOpenChange={() => {}} initialValue="France" />
+        </React.StrictMode>
+      );
+      expect(highlighted()).toBe('France');
+    });
+
+    it('keeps autoHighlight on the first enabled option, inline', () => {
+      render(
+        <React.StrictMode>
+          <PeopleList autoHighlight disabledItems={['Ada Lovelace']} />
+        </React.StrictMode>
+      );
+      expect(highlighted()).toBe('Grace Hopper');
+    });
+
+    it('still moves the highlight with the keys after mounting', () => {
+      render(
+        <React.StrictMode>
+          <PeopleList initialValue="Grace Hopper" />
+        </React.StrictMode>
+      );
+      key('ArrowDown');
+      expect(highlighted()).toBe('Katherine Johnson');
+    });
+  });
+
   describe('autoHighlight', () => {
     it('highlights the first enabled option as the list opens', () => {
       render(<CountrySelect autoHighlight disabledItems={['Canada']} />);
