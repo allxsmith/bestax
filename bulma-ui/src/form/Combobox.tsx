@@ -60,7 +60,10 @@ export interface ComboboxProps
   /**
    * The field's label, which names `Combobox.Input` through `htmlFor`, and
    * the list through `aria-labelledby`. Dropped inside an outer `Field`,
-   * whose label names both instead when it points at the field.
+   * whose label names both instead when it points at the field. When
+   * `Combobox.Input` has an `id` of its own, server markup names the field
+   * through `aria-labelledby` until the page hydrates and the label's `for`
+   * catches up.
    */
   label?: React.ReactNode;
   /**
@@ -239,6 +242,11 @@ interface ComboboxContextValue {
   reportInputId: (id: string | undefined) => void;
   /** The id of the label that names the field, which names the list too. */
   labelId: string | undefined;
+  /**
+   * The id of the label the Combobox renders itself, when it names the field.
+   * The field points at it while its own `id` hasn't reached the label yet.
+   */
+  ownLabelId: string | undefined;
   /** Tells the Combobox the field's `isLoading`, which holds the empty message's announcement. */
   reportLoading: (loading: boolean) => void;
   /** Records the empty message while it's on screen. Returns the function that forgets it. */
@@ -288,6 +296,7 @@ const standalone: ComboboxContextValue = {
   inputId: undefined,
   reportInputId: noop,
   labelId: undefined,
+  ownLabelId: undefined,
   reportLoading: noop,
   reportEmpty: registerNothing,
   onFieldChange: noop,
@@ -507,6 +516,7 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
       inputId: controlId,
       reportInputId: setGivenInputId,
       labelId: listLabelId,
+      ownLabelId: label && ownField ? listLabelId : undefined,
       reportLoading: setInputLoading,
       reportEmpty,
       onFieldChange,
@@ -605,6 +615,16 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
       [inputRef, ref]
     );
     const { expanded, highlighted } = engine;
+    // An `id` of the field's own reaches the label from a layout effect, so
+    // in server markup, and the first render, the label's `for` still names
+    // the generated id. Until then the field points at the label itself,
+    // unless the caller named it.
+    const callerNamed = !!props['aria-label'] || 'aria-labelledby' in props;
+    const labelledBy = callerNamed
+      ? props['aria-labelledby']
+      : id !== undefined && id !== context.inputId
+        ? context.ownLabelId
+        : undefined;
 
     return (
       // The attributes the Combobox owns after the caller's, so a stray
@@ -613,6 +633,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
         {...props}
         ref={inputRefs}
         id={id ?? context.inputId}
+        aria-labelledby={labelledBy}
         isLoading={isLoading}
         size={context.size}
         controlSize={controlSize ?? (insideControl ? undefined : context.size)}

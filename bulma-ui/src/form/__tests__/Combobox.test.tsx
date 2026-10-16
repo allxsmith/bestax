@@ -403,6 +403,15 @@ describe('Combobox', () => {
       expect(listbox()).not.toHaveAttribute('aria-label');
     });
 
+    it('keeps an aria-labelledby the caller put on the field', () => {
+      render(
+        <CountrySelect
+          inputProps={{ id: 'country', 'aria-labelledby': 'elsewhere' }}
+        />
+      );
+      expect(field()).toHaveAttribute('aria-labelledby', 'elsewhere');
+    });
+
     it('follows an id given to the field', () => {
       render(<CountrySelect inputProps={{ id: 'country' }} />);
       expect(field()).toHaveAttribute('id', 'country');
@@ -2045,6 +2054,79 @@ describe('Combobox on the server', () => {
     } finally {
       container.remove();
     }
+  });
+
+  it('names a field with an id of its own in server markup', () => {
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(
+      <CountrySelect inputProps={{ id: 'country' }} />
+    );
+    document.body.appendChild(container);
+    try {
+      const input = container.querySelector('input') as HTMLInputElement;
+      const label = container.querySelector('label') as HTMLLabelElement;
+      expect(input).toHaveAttribute('id', 'country');
+      // The label's `for` hasn't caught up with the field's id yet, so the
+      // field points at the label itself.
+      expect(input).toHaveAttribute('aria-labelledby', label.id);
+      expect(within(container).getByRole('combobox', { name: 'Country' })).toBe(
+        input
+      );
+    } finally {
+      container.remove();
+    }
+  });
+
+  it('hands the name back to the label once the field has hydrated', async () => {
+    const ui = <CountrySelect inputProps={{ id: 'country' }} />;
+    const container = document.createElement('div');
+    container.innerHTML = renderToString(ui);
+    document.body.appendChild(container);
+    const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    let root: ReturnType<typeof hydrateRoot> | undefined;
+    try {
+      await act(async () => {
+        root = hydrateRoot(container, ui);
+      });
+      expect(errorSpy).not.toHaveBeenCalled();
+      const input = container.querySelector('input') as HTMLInputElement;
+      expect(container.querySelector('label')).toHaveAttribute(
+        'for',
+        'country'
+      );
+      expect(input).not.toHaveAttribute('aria-labelledby');
+      expect(within(container).getByRole('combobox', { name: 'Country' })).toBe(
+        input
+      );
+      expect(danglingIdRefs(container)).toEqual([]);
+    } finally {
+      errorSpy.mockRestore();
+      await act(async () => root!.unmount());
+      container.remove();
+    }
+  });
+
+  it('keeps a name the caller gave the field, in server markup too', () => {
+    const html = renderToString(
+      <CountrySelect
+        inputProps={{ id: 'country', 'aria-label': 'Destination country' }}
+      />
+    );
+    expect(html).toContain('aria-label="Destination country"');
+    expect(html).not.toContain('aria-labelledby');
+  });
+
+  it('points at no label a surrounding Field renders', () => {
+    // That label doesn't name a field with an id of its own once the page
+    // hydrates, so it isn't borrowed before then either.
+    const html = renderToString(
+      <Field label="Outer">
+        <Combobox>
+          <Combobox.Input id="own" />
+        </Combobox>
+      </Field>
+    );
+    expect(html).not.toContain('aria-labelledby');
   });
 
   it('expands a portaled list once it shows after hydrating', async () => {
