@@ -63,9 +63,8 @@ export interface AutocompleteProps
   /**
    * Does nothing: Autocomplete doesn't read it.
    *
-   * @deprecated Use `onSelect` instead to hear about a pick, or `Combobox`
-   * for a value your app keeps. It will be removed in the next major
-   * version.
+   * @deprecated Nothing reads it, and `onSelect` is what reports a pick. It
+   * will be removed in the next major version.
    */
   selected?: AutocompleteItem | string | null;
   /** Placeholder text for the input. */

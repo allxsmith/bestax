@@ -23,8 +23,8 @@ export const DEPRECATED_PROPS: Readonly<
       note: 'It will be removed in the next major version, with nothing in its place.',
     },
     selected: {
-      replacement: 'onSelect',
-      note: 'Use `onSelect` instead to hear about a pick, or `Combobox` for a value your app keeps. It will be removed in the next major version.',
+      replacement: null,
+      note: 'Nothing reads it, and `onSelect` is what reports a pick. It will be removed in the next major version.',
     },
   },
   Button: {

@@ -120,7 +120,7 @@
           "required": false,
           "inherited": false,
           "deprecated": true,
-          "deprecationNote": "Use `onSelect` instead to hear about a pick, or `Combobox` for a value your app keeps. It will be removed in the next major version."
+          "deprecationNote": "Nothing reads it, and `onSelect` is what reports a pick. It will be removed in the next major version."
         },
         {
           "name": "placeholder",
