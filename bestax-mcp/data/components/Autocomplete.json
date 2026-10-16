@@ -116,10 +116,11 @@
           "name": "selected",
           "type": "AutocompleteItem | string | null",
           "default": null,
-          "description": "The selected item (controlled).",
+          "description": "Does nothing: Autocomplete doesn't read it.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "Use `onSelect` instead to hear about a pick, or `Combobox` for a value your app keeps. It will be removed in the next major version."
         },
         {
           "name": "placeholder",
@@ -197,10 +198,11 @@
           "name": "dropdown",
           "type": "boolean",
           "default": "false",
-          "description": "Render as dropdown style.",
+          "description": "Does nothing: Autocomplete doesn't read it, and always shows its suggestions in a dropdown.",
           "required": false,
           "inherited": false,
-          "deprecated": false
+          "deprecated": true,
+          "deprecationNote": "It will be removed in the next major version, with nothing in its place."
         },
         {
           "name": "loading",
