@@ -404,7 +404,7 @@ describe('codesandboxFiles', () => {
     const crlf = Object.fromEntries(
       Object.entries(TEMPLATE).map(([path, text]) => [
         path,
-        text.replace(/\n/g, '\r\n'),
+        text.replace(/\r?\n/g, '\r\n'),
       ])
     );
     const crlfFiles = codesandboxFiles({ ...INPUT, template: crlf });
