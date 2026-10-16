@@ -128,7 +128,7 @@ describe('Taginput in a shadow root', () => {
     const { getByRole, queryByRole } = renderInShadowRoot(
       <Taginput data={['React', 'Vue']} onChange={onChange} />
     );
-    fireEvent.change(getByRole('textbox'), { target: { value: 'r' } });
+    fireEvent.change(getByRole('combobox'), { target: { value: 'r' } });
     const option = getByRole('option', { name: 'React' });
 
     fireEvent.mouseDown(option);
@@ -145,7 +145,7 @@ describe('Taginput in a shadow root', () => {
         <button type="button">Elsewhere</button>
       </>
     );
-    fireEvent.change(getByRole('textbox'), { target: { value: 'r' } });
+    fireEvent.change(getByRole('combobox'), { target: { value: 'r' } });
     expect(queryByRole('listbox')).toBeInTheDocument();
 
     fireEvent.mouseDown(getByRole('button', { name: 'Elsewhere' }));

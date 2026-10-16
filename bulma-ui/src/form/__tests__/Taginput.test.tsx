@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Taginput, TagInput } from '../Taginput';
 import { Field } from '../Field';
@@ -98,7 +98,7 @@ describe('Taginput', () => {
     it('does not add an empty suggestion selected from the dropdown', () => {
       const onChange = jest.fn();
       render(<Taginput data={['', 'Vue']} openOnFocus onChange={onChange} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       fireEvent.focus(input);
 
       const options = screen.getAllByRole('option');
@@ -226,14 +226,14 @@ describe('Taginput', () => {
           onChange={onChange}
         />
       );
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       fireEvent.focus(input);
 
       fireEvent.click(screen.getByText('Vue'));
       expect(onChange).toHaveBeenLastCalledWith(['Tag1', 'Vue']);
 
       // Max reached: the input is unmounted but the dropdown is still open.
-      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
       fireEvent.click(screen.getByText('React'));
       expect(onChange).toHaveBeenCalledTimes(1);
     });
@@ -243,7 +243,7 @@ describe('Taginput', () => {
     it('allows new tags by default', () => {
       const onChange = jest.fn();
       render(<Taginput data={frameworks} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'Custom' } });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -256,7 +256,7 @@ describe('Taginput', () => {
       render(
         <Taginput data={frameworks} allowNew={false} onChange={onChange} />
       );
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'Custom' } });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -269,7 +269,7 @@ describe('Taginput', () => {
       render(
         <Taginput data={frameworks} allowNew={false} onChange={onChange} />
       );
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'React' } });
       fireEvent.keyDown(input, { key: 'Enter' });
@@ -282,7 +282,7 @@ describe('Taginput', () => {
       render(
         <Taginput data={frameworks} allowNew={false} onChange={onChange} />
       );
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       // 'react' matches 'React' in data case-insensitively, so it is accepted
       // (the case-sensitive check previously rejected it).
@@ -296,7 +296,7 @@ describe('Taginput', () => {
   describe('Autocomplete', () => {
     it('shows dropdown when typing with data', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'rea' } });
 
@@ -305,7 +305,7 @@ describe('Taginput', () => {
 
     it('filters suggestions based on input', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'rea' } });
 
@@ -318,7 +318,7 @@ describe('Taginput', () => {
     it('adds tag when suggestion is clicked', () => {
       const onChange = jest.fn();
       render(<Taginput data={frameworks} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'rea' } });
       fireEvent.click(screen.getByRole('option', { name: 'React' }));
@@ -328,7 +328,7 @@ describe('Taginput', () => {
 
     it('filters out already added tags from suggestions', () => {
       render(<Taginput data={frameworks} defaultValue={['React']} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'r' } });
 
@@ -339,7 +339,7 @@ describe('Taginput', () => {
 
     it('opens dropdown on focus when openOnFocus is true', () => {
       render(<Taginput data={frameworks} openOnFocus />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.focus(input);
 
@@ -352,7 +352,7 @@ describe('Taginput', () => {
   describe('Keyboard Navigation', () => {
     it('navigates down with ArrowDown', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -363,7 +363,7 @@ describe('Taginput', () => {
 
     it('navigates up with ArrowUp', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -377,7 +377,7 @@ describe('Taginput', () => {
     it('selects highlighted item on Enter', () => {
       const onChange = jest.fn();
       render(<Taginput data={frameworks} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -388,7 +388,7 @@ describe('Taginput', () => {
 
     it('closes dropdown on Escape', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
       expect(screen.getByRole('listbox')).toBeInTheDocument();
@@ -554,7 +554,7 @@ describe('Taginput', () => {
           <button>Outside</button>
         </div>
       );
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'r' } });
       expect(screen.getByRole('listbox')).toBeInTheDocument();
@@ -758,7 +758,7 @@ describe('Taginput', () => {
   describe('Keep First', () => {
     it('auto-highlights first dropdown item when keepFirst is true', () => {
       render(<Taginput data={frameworks} keepFirst />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
 
@@ -768,7 +768,7 @@ describe('Taginput', () => {
 
     it('does not auto-highlight when keepFirst is false', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
 
@@ -826,7 +826,7 @@ describe('Taginput', () => {
     it('closes dropdown after adding a tag when keepOpen is false', async () => {
       const user = userEvent.setup();
       render(<Taginput data={frameworks} keepOpen={false} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       await user.type(input, 'rea');
       expect(screen.getByRole('listbox')).toBeInTheDocument();
@@ -840,7 +840,7 @@ describe('Taginput', () => {
   describe('ArrowDown opens dropdown', () => {
     it('opens dropdown on ArrowDown when closed and data is available', () => {
       const { container } = render(<Taginput data={frameworks} openOnFocus />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       // Dropdown is initially closed (no focus yet)
       expect(container.querySelector('.taginput')).not.toHaveClass('is-active');
@@ -869,7 +869,7 @@ describe('Taginput', () => {
   describe('Dropdown Mouse Enter', () => {
     it('highlights dropdown item on mouse enter', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
 
@@ -976,7 +976,7 @@ describe('Taginput', () => {
 
     it('does not open dropdown on focus when openOnFocus is false', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.focus(input);
 
@@ -985,7 +985,7 @@ describe('Taginput', () => {
 
     it('does not open dropdown on focus when disabled', () => {
       render(<Taginput data={frameworks} openOnFocus disabled />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.focus(input);
 
@@ -1006,7 +1006,7 @@ describe('Taginput', () => {
 
     it('keeps highlight at 0 when ArrowUp is pressed at top of list', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -1019,7 +1019,7 @@ describe('Taginput', () => {
 
     it('keeps highlight at last item when ArrowDown is pressed at end of list', () => {
       render(<Taginput data={['Only']} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'o' } });
       fireEvent.keyDown(input, { key: 'ArrowDown' });
@@ -1032,7 +1032,7 @@ describe('Taginput', () => {
     it('does not handle keys when disabled', () => {
       const onChange = jest.fn();
       render(<Taginput data={frameworks} disabled onChange={onChange} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.keyDown(input, { key: 'ArrowDown' });
       fireEvent.keyDown(input, { key: 'Escape' });
@@ -1056,7 +1056,7 @@ describe('Taginput', () => {
 
     it('does not open dropdown on focus when openOnFocus is true but data is empty', () => {
       render(<Taginput openOnFocus data={[]} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
 
       fireEvent.focus(input);
 
@@ -1113,7 +1113,7 @@ describe('Taginput', () => {
 
     it('click outside container does not close when click is inside container', () => {
       render(<Taginput data={frameworks} />);
-      const input = screen.getByRole('textbox');
+      const input = screen.getByRole('combobox');
       fireEvent.change(input, { target: { value: 'r' } });
       expect(screen.getByRole('listbox')).toBeInTheDocument();
 
@@ -1203,6 +1203,362 @@ describe('Taginput label association (#493)', () => {
     const fieldLabel = container.querySelector('label.label');
     expect(fieldLabel).toHaveTextContent('Tags');
     expect(fieldLabel).not.toHaveAttribute('for');
+  });
+});
+
+describe('Taginput suggestions as a combobox (#1082)', () => {
+  /**
+   * Each id reference under `root` that names no element in the document, as
+   * `attribute=id`, so a reference left pointing at nothing shows up by name.
+   */
+  const danglingIdRefs = (root: HTMLElement): string[] => {
+    const attributes = [
+      'aria-labelledby',
+      'aria-controls',
+      'aria-activedescendant',
+      'for',
+    ];
+    return Array.from(root.querySelectorAll('*')).flatMap(el =>
+      attributes.flatMap(attribute =>
+        (el.getAttribute(attribute) ?? '')
+          .split(/\s+/)
+          .filter(id => id && !document.getElementById(id))
+          .map(id => `${attribute}=${id}`)
+      )
+    );
+  };
+
+  // "e" matches React, Vue and Svelte.
+  const openList = (combobox: HTMLElement) =>
+    fireEvent.change(combobox, { target: { value: 'e' } });
+
+  it('stays a plain text field without data, since it never shows a list', () => {
+    render(<Taginput openOnFocus />);
+    const input = screen.getByRole('textbox', { name: 'Add tag' });
+    fireEvent.focus(input);
+    openList(input);
+    for (const attribute of [
+      'role',
+      'aria-expanded',
+      'aria-controls',
+      'aria-activedescendant',
+      'aria-haspopup',
+      'aria-autocomplete',
+    ]) {
+      expect(input).not.toHaveAttribute(attribute);
+    }
+  });
+
+  it('leaves the label without an id when there is no list to name', () => {
+    const { container } = render(<Taginput label="Tags" />);
+    expect(container.querySelector('label')).not.toHaveAttribute('id');
+  });
+
+  it('is a collapsed combobox with data, keeping its "Add tag" name', () => {
+    render(<Taginput data={frameworks} />);
+    const input = screen.getByRole('combobox', { name: 'Add tag' });
+    expect(input).toHaveAttribute('aria-autocomplete', 'list');
+    expect(input).toHaveAttribute('aria-haspopup', 'listbox');
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-controls');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('stays a collapsed combobox with an empty data array', () => {
+    render(<Taginput data={[]} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    openList(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-controls');
+  });
+
+  it('expands and controls the listbox while it shows suggestions', () => {
+    render(<Taginput data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    openList(input);
+    const listbox = screen.getByRole('listbox');
+    expect(listbox.id).toBeTruthy();
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).toHaveAttribute('aria-controls', listbox.id);
+  });
+
+  it('expands when openOnFocus opens the list', () => {
+    render(<Taginput data={frameworks} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).toHaveAttribute(
+      'aria-controls',
+      screen.getByRole('listbox').id
+    );
+  });
+
+  it('collapses and points at nothing while no suggestion matches', () => {
+    const { container } = render(<Taginput data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    openList(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(input).toHaveAttribute('aria-activedescendant');
+
+    fireEvent.change(input, { target: { value: 'zzz' } });
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-controls');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+    expect(danglingIdRefs(container)).toEqual([]);
+  });
+
+  it('collapses and points at nothing once the list closes', () => {
+    const { container } = render(
+      <>
+        <Taginput data={frameworks} label="Frameworks" />
+        <button type="button">Outside</button>
+      </>
+    );
+    const input = screen.getByRole('combobox', { name: 'Frameworks' });
+    expect(danglingIdRefs(container)).toEqual([]);
+    openList(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(input).toHaveAttribute('aria-activedescendant');
+    expect(danglingIdRefs(container)).toEqual([]);
+
+    fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-controls');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+    expect(danglingIdRefs(container)).toEqual([]);
+  });
+
+  it('points aria-activedescendant at the highlighted option as it moves', () => {
+    render(<Taginput data={frameworks} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    const ids = screen.getAllByRole('option').map(option => option.id);
+    // The highlighted option, and only that one, has aria-selected="true".
+    const expectHighlight = (index: number) => {
+      const options = screen.getAllByRole('option');
+      expect(input).toHaveAttribute('aria-activedescendant', options[index].id);
+      options.forEach((option, i) =>
+        expect(option).toHaveAttribute('aria-selected', String(i === index))
+      );
+    };
+
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expectHighlight(0);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expectHighlight(1);
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+    expectHighlight(0);
+    fireEvent.mouseEnter(screen.getAllByRole('option')[2]);
+    expectHighlight(2);
+    // The ids hold still while the highlight moves.
+    expect(screen.getAllByRole('option').map(option => option.id)).toEqual(ids);
+  });
+
+  it('points aria-activedescendant at the first option under keepFirst', () => {
+    render(<Taginput data={frameworks} keepFirst />);
+    const input = screen.getByRole('combobox');
+    openList(input);
+    const [first] = screen.getAllByRole('option');
+    expect(first).toHaveAttribute('aria-selected', 'true');
+    expect(input).toHaveAttribute('aria-activedescendant', first.id);
+  });
+
+  it('clears aria-activedescendant when adding a suggestion leaves nothing highlighted', () => {
+    render(<Taginput data={frameworks} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(input).toHaveAttribute('aria-activedescendant');
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    // keepOpen leaves the list open on the remaining suggestions.
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'true');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+    screen
+      .getAllByRole('option')
+      .forEach(option =>
+        expect(option).toHaveAttribute('aria-selected', 'false')
+      );
+  });
+
+  it('drops aria-activedescendant when filtering leaves the highlight behind', () => {
+    render(<Taginput data={frameworks} openOnFocus />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    for (let i = 0; i < 4; i++) {
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+    }
+    expect(input).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getAllByRole('option')[3].id
+    );
+    // "vue" leaves one option, so the fourth-place highlight points past it.
+    fireEvent.change(input, { target: { value: 'vue' } });
+    expect(screen.getAllByRole('option')).toHaveLength(1);
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  // Enter adds nothing for a suggestion that's blank once trimmed, so the
+  // combobox never announces one as the current choice, while the highlight
+  // still moves through it on screen as before.
+  it.each([
+    ['empty', ''],
+    ['whitespace-only', '  '],
+  ])('points at no %s suggestion, which Enter cannot add', (_kind, blank) => {
+    const onChange = jest.fn();
+    render(<Taginput data={[blank, 'Vue']} openOnFocus onChange={onChange} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const [first, second] = screen.getAllByRole('option');
+    expect(first).toHaveClass('is-active');
+    expect(first).toHaveAttribute('aria-selected', 'false');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(second).toHaveAttribute('aria-selected', 'true');
+    expect(input).toHaveAttribute('aria-activedescendant', second.id);
+  });
+
+  it('keeps the listbox to options, each with an id', () => {
+    render(<Taginput data={frameworks} openOnFocus />);
+    fireEvent.focus(screen.getByRole('combobox'));
+    const children = Array.from(screen.getByRole('listbox').children);
+    expect(children).toHaveLength(frameworks.length);
+    children.forEach(child => {
+      expect(child).toHaveAttribute('role', 'option');
+      expect(child.id).toBeTruthy();
+    });
+  });
+
+  it('gives each Taginput its own listbox and option ids', () => {
+    render(
+      <>
+        <Taginput data={frameworks} openOnFocus />
+        <Taginput data={frameworks} openOnFocus />
+      </>
+    );
+    const [a, b] = screen.getAllByRole('combobox');
+    fireEvent.focus(a);
+    fireEvent.focus(b);
+    const [listA, listB] = screen.getAllByRole('listbox');
+    expect(listA.id).not.toBe(listB.id);
+    expect(a).toHaveAttribute('aria-controls', listA.id);
+    expect(b).toHaveAttribute('aria-controls', listB.id);
+    const ids = screen.getAllByRole('option').map(option => option.id);
+    expect(ids).toHaveLength(frameworks.length * 2);
+    expect(new Set(ids).size).toBe(ids.length);
+
+    fireEvent.keyDown(b, { key: 'ArrowDown' });
+    expect(b).toHaveAttribute(
+      'aria-activedescendant',
+      within(listB).getAllByRole('option')[0].id
+    );
+    expect(a).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  // The label that names the input names the list too, whichever renders
+  // it. Each builds a Taginput labelled "Frameworks", passing `labelProps`
+  // to whichever renders the label.
+  type LabelledUi = (labelProps?: { id: string }) => React.ReactElement;
+  const labelSources: Array<[string, LabelledUi]> = [
+    [
+      'its own label prop',
+      labelProps => (
+        <Taginput
+          data={frameworks}
+          label="Frameworks"
+          labelProps={labelProps}
+        />
+      ),
+    ],
+    [
+      "a surrounding Field's label",
+      labelProps => (
+        <Field label="Frameworks" labelProps={labelProps}>
+          <Taginput data={frameworks} />
+        </Field>
+      ),
+    ],
+    [
+      "a horizontal Field's label wired by hand into an inner Field",
+      labelProps => (
+        <Field
+          horizontal
+          label="Frameworks"
+          labelProps={{ htmlFor: 'fw', id: 'fw-label', ...labelProps }}
+        >
+          <Field.Body>
+            <Field>
+              <Taginput id="fw" data={frameworks} />
+            </Field>
+          </Field.Body>
+        </Field>
+      ),
+    ],
+  ];
+
+  it.each(labelSources)('names the listbox by %s', (_source, ui) => {
+    const { container } = render(ui());
+    openList(screen.getByRole('combobox', { name: 'Frameworks' }));
+    const listbox = screen.getByRole('listbox');
+    expect(listbox).toHaveAccessibleName('Frameworks');
+    expect(listbox).not.toHaveAttribute('aria-label');
+    const label = document.getElementById(
+      listbox.getAttribute('aria-labelledby') ?? ''
+    );
+    expect(label?.tagName).toBe('LABEL');
+    expect(danglingIdRefs(container)).toEqual([]);
+  });
+
+  it.each(labelSources)(
+    'names the listbox through a labelProps id of your own on %s',
+    (_source, ui) => {
+      render(ui({ id: 'my-label' }));
+      openList(screen.getByRole('combobox', { name: 'Frameworks' }));
+      const listbox = screen.getByRole('listbox');
+      expect(listbox).toHaveAttribute('aria-labelledby', 'my-label');
+      expect(listbox).toHaveAccessibleName('Frameworks');
+    }
+  );
+
+  it.each([
+    ['with no label', <Taginput key="bare" data={frameworks} />, 'Add tag'],
+    [
+      'under its own label wired to another control',
+      <Taginput
+        key="elsewhere"
+        data={frameworks}
+        label="Frameworks"
+        labelProps={{ htmlFor: 'elsewhere' }}
+      />,
+      'Add tag',
+    ],
+    [
+      "under a Field's label wired by hand with no id to point at",
+      <Field key="by-hand" label="Frameworks" labelProps={{ htmlFor: 'fw' }}>
+        <Taginput id="fw" data={frameworks} />
+      </Field>,
+      'Frameworks',
+    ],
+  ])('names the listbox "Suggestions" %s', (_name, ui, inputName) => {
+    render(ui);
+    openList(screen.getByRole('combobox', { name: inputName }));
+    const listbox = screen.getByRole('listbox');
+    expect(listbox).toHaveAccessibleName('Suggestions');
+    expect(listbox).not.toHaveAttribute('aria-labelledby');
   });
 });
 

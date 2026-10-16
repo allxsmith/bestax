@@ -14,9 +14,9 @@ import viteConfig from '!!raw-loader!@site/../create-bestax/templates/vite-ts/vi
 import { docsOnlyNames, reactScopeNames } from '../scope';
 import { toExampleModule } from './example.mjs';
 import {
-  ICON_LIBRARIES,
   codesandboxFiles,
   iconLibrariesIn,
+  sandboxVersions,
   stackblitzProject,
 } from './projects.mjs';
 
@@ -50,21 +50,6 @@ const TEMPLATE = {
  */
 const LIBRARY_EXPORTS = Object.keys(BestaxBulma);
 
-/** The icon packages at the versions the docs site itself renders with. */
-function iconVersions() {
-  const deps = docsPackage.dependencies;
-  return Object.fromEntries(
-    Object.values(ICON_LIBRARIES).map(({ package: name }) => {
-      if (!deps[name]) {
-        throw new Error(
-          `docs/package.json must declare ${name}, which sandboxes install`
-        );
-      }
-      return [name, deps[name]];
-    })
-  );
-}
-
 /**
  * @param {object} options
  * @param {string} options.code The editor's current code.
@@ -84,10 +69,7 @@ function prepare({ code, sourceUrl, bestaxVersion }) {
     app: example.source,
     icons: iconLibrariesIn(code),
     template: TEMPLATE,
-    versions: {
-      '@allxsmith/bestax-bulma': `^${bestaxVersion}`,
-      ...iconVersions(),
-    },
+    versions: sandboxVersions(bestaxVersion, docsPackage.dependencies),
     title: `${pageTitle} example`,
     sourceUrl,
   };

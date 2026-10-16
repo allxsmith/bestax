@@ -273,7 +273,8 @@ const FieldLabelForContext = createContext<FieldLabelFor>({});
  * renders with, if it has one. An unlabeled Field passes both through
  * together, so a control in the inner Field of a horizontal layout can tell
  * the outer label names it, and point at that label by its id, as a range
- * Slider's thumbs (#981) and Autocomplete's suggestion list (#998) do. The
+ * Slider's thumbs (#981) and Autocomplete's and Taginput's suggestion lists
+ * (#998, #1082) do. The
  * `htmlFor` is only ever compared with a control's own id, never adopted, so
  * it hands out no id for a control. It keeps the generated id after the
  * label drops a `for` nothing took (#1004), which no control's id matches

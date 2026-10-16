@@ -41,7 +41,7 @@ export const Leftovers = ({ go }: { go: (p: object) => JSX.Element }) => (
     <Button render={go} color="info">
       Rendered
     </Button>
-    <Title size={3} isFullWidth>
+    <Title textSize="3" isFullWidth>
       Wide
     </Title>
     <Helped isMarginless>helped</Helped>

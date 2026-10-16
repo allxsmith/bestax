@@ -492,6 +492,22 @@ describe('react-bulma-components transform fixtures', () => {
       expect(output).toContain('<SubTitle>x</SubTitle>');
     });
 
+    // RBC rendered an <h1> at every size; bestax renders the heading `size`
+    // names, so a size the codemod cannot read is one TODO, naming textSize.
+    it('flags a dynamic Heading size once, keeping it as size', () => {
+      const source = [
+        "import { Heading } from 'react-bulma-components';",
+        'export const A = ({ n }: { n: 4 }) => <Heading size={n}>x</Heading>;',
+      ].join('\n');
+      const todos: TodoEntry[] = [];
+      const { output } = runTransform(transform, 'heading-size.tsx', source, {
+        add: entry => todos.push(entry),
+      });
+      expect(todos.map(t => t.rule)).toEqual(['prop:size']);
+      expect(todos[0].message).toContain('textSize');
+      expect(output).toContain('<Title size={n}>x</Title>');
+    });
+
     it('flags a Menu.List title it cannot lift to a sibling', () => {
       const source = [
         "import { Menu } from 'react-bulma-components';",

@@ -27,6 +27,7 @@ import { enforcePolymorphicProps } from '../_shared/polymorphic.js';
 import {
   alignTarget,
   dropLinkAttrsForPlainTag,
+  keepTitleLevel,
   makeStripModifierProps,
   mergeClassName,
   applyIconProps,
@@ -253,13 +254,23 @@ const SPECIALS: Record<string, SpecialHandler> = {
       ctx.dirty = true;
     }
 
+    // Dynamic subtitle (attr kept) or no subtitle → conservative Title.
+    let target = 'Title';
     if (subtitleAttr && !subtitleDynamic) {
       removeAttr(element, subtitleAttr);
       ctx.dirty = true;
-      return { target: subtitleTruthy ? 'SubTitle' : 'Title' };
+      if (subtitleTruthy) target = 'SubTitle';
     }
-    // Dynamic subtitle (attr kept) or no subtitle → conservative Title.
-    return { target: 'Title' };
+    // RBC rendered an <h1> (its `renderAs` default) at every `size`; bestax
+    // renders the heading the size names, so the size may move to `textSize`.
+    const handledProps = keepTitleLevel(ctx, path, element, {
+      where: 'Heading',
+      target,
+      size: 'size',
+      tag: 'renderAs',
+      level: 'h1',
+    });
+    return { target, handledProps };
   },
 
   'level-side'(ctx, path, element) {
