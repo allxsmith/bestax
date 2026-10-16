@@ -352,14 +352,13 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       [controlledValue, onChange]
     );
 
-    // Add tag
+    // Add a tag from text typed, pasted or picked from the list. Only
+    // `createTag` turns it into an object.
     const addTag = useCallback(
-      (value: string | TaginputTag) => {
+      (value: string) => {
         if (disabled || readonly) return;
 
-        const tagValue = typeof value === 'string' ? value.trim() : value;
-        const displayValue =
-          typeof tagValue === 'string' ? tagValue : getDisplayValue(tagValue);
+        const displayValue = value.trim();
 
         if (!displayValue) return;
 
@@ -388,7 +387,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         if (beforeAdding && !beforeAdding(displayValue)) return;
 
         // createTag transformation
-        const finalTag = createTag ? createTag(displayValue) : tagValue;
+        const finalTag = createTag ? createTag(displayValue) : displayValue;
 
         const newTags = [...tags, finalTag];
         updateTags(newTags);
