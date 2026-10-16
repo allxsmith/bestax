@@ -2086,3 +2086,102 @@ describe('Enter submits the form around an Autocomplete unless it picks (#1079)'
     expect(input).toHaveValue('ap');
   });
 });
+
+describe('Autocomplete opens on a highlight and leaves keys to an IME (#1081)', () => {
+  // Disabled at both ends, so the first and last enabled options are
+  // second and third.
+  const withDisabled: AutocompleteItem[] = [
+    { value: 'apple', label: 'Apple', disabled: true },
+    { value: 'banana', label: 'Banana' },
+    { value: 'cherry', label: 'Cherry' },
+    { value: 'date', label: 'Date', disabled: true },
+  ];
+  const highlighted = (input: HTMLElement) =>
+    input.getAttribute('aria-activedescendant');
+  const optionId = (name: string) => screen.getByRole('option', { name }).id;
+
+  it('opens a closed list on its first enabled option with Down Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(highlighted(input)).toBe(optionId('Banana'));
+  });
+
+  it('opens a closed list on its last enabled option with Up Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(highlighted(input)).toBe(optionId('Cherry'));
+  });
+
+  it('opens a closed list with nothing highlighted with Alt+Down Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(highlighted(input)).toBeNull();
+  });
+
+  it('opens on the first option whichever key opens it, with keepFirst', () => {
+    render(<Autocomplete data={fruits} keepFirst />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(highlighted(input)).toBe(optionId('Apple'));
+  });
+
+  it('reaches a disabled option with the arrows but never marks it aria-selected', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    const apple = screen.getByRole('option', { name: 'Apple' });
+    expect(highlighted(input)).toBe(apple.id);
+    expect(apple).toHaveClass('is-active');
+    expect(apple).toHaveAttribute('aria-disabled', 'true');
+    expect(apple).toHaveAttribute('aria-selected', 'false');
+  });
+
+  // Chrome and Firefox set isComposing. Safari can send the Enter that ends
+  // a composition with isComposing false, and keyCode 229 says it instead.
+  describe.each([
+    ['isComposing', { isComposing: true }],
+    ['keyCode 229', { keyCode: 229 }],
+  ])('while an IME is composing (%s)', (_, composing) => {
+    it('leaves Enter to it rather than picking the highlighted option', () => {
+      const onSelect = jest.fn();
+      render(<Autocomplete data={fruits} keepFirst onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(highlighted(input)).toBe(optionId('Apple'));
+
+      // fireEvent returns true when nothing called preventDefault().
+      expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(
+        true
+      );
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+
+    it('leaves the arrows to it', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+
+      expect(fireEvent.keyDown(input, { key: 'ArrowDown', ...composing })).toBe(
+        true
+      );
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+  });
+});

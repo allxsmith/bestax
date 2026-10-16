@@ -44,6 +44,17 @@ const nothingToAnnounce: Array<{ id: string }> = [];
 // still picks the option.
 const keepFocus = (e: React.MouseEvent) => e.preventDefault();
 
+// An IME that's composing owns every key: Enter confirms what it composed,
+// and the arrows move through its candidates. Safari can say so with
+// `keyCode` 229 rather than `isComposing`.
+const isComposing = (e: React.KeyboardEvent): boolean =>
+  e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
+
+// Whether an option can be picked. The arrows still reach a disabled one, so
+// a screen reader user finds it.
+const isEnabled = (item: AutocompleteItem | string): boolean =>
+  typeof item === 'string' || !item.disabled;
+
 /**
  * Props for the Autocomplete component.
  * @extraProp {string} [className] - Additional CSS classes.
@@ -82,9 +93,10 @@ export interface AutocompleteProps
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
   /**
-   * Keep the first option highlighted whenever the list opens or the text
-   * in the field changes. While the list is open on a highlighted option,
-   * Enter picks it rather than submitting a form around the field.
+   * Keep the first option highlighted whenever the list opens, Up Arrow and
+   * Alt+Down Arrow included, and whenever the text in the field changes.
+   * While the list is open on a highlighted option, Enter picks it rather
+   * than submitting a form around the field.
    */
   keepFirst?: boolean;
   /** Keep dropdown open after selection. */
@@ -371,13 +383,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // Handle keyboard navigation
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
-        if (disabled) return;
+        if (disabled || isComposing(e)) return;
 
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
             if (!isActive) {
+              // A closed list opens on its first enabled option, as the ARIA
+              // Authoring Practices' combobox does. Alt+Down Arrow opens it
+              // without a highlight.
               setIsActive(true);
+              setHighlightedIndex(
+                e.altKey ? -1 : filteredData.map(isEnabled).indexOf(true)
+              );
             } else {
               setHighlightedIndex(prev =>
                 prev < filteredData.length - 1 ? prev + 1 : prev
@@ -386,7 +404,15 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            if (!isActive) {
+              // And Up Arrow opens it on its last enabled option.
+              setIsActive(true);
+              setHighlightedIndex(
+                filteredData.map(isEnabled).lastIndexOf(true)
+              );
+            } else {
+              setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            }
             break;
           case 'Enter':
             // With the list open on a highlighted option, Enter is that
@@ -653,7 +679,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                           !isDisabled && setHighlightedIndex(index)
                         }
                         role="option"
-                        aria-selected={isHighlighted}
+                        aria-selected={isHighlighted && !isDisabled}
                         aria-disabled={isDisabled}
                       >
                         {itemTemplate

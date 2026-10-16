@@ -364,13 +364,16 @@ function example() {
 
 ## Keyboard Navigation
 
-| Key      | Action                                                                                                                                  |
-| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| `↓`      | Open dropdown / Move down                                                                                                               |
-| `↑`      | Move up                                                                                                                                 |
-| `Enter`  | Select highlighted item. With nothing highlighted, close the list and let the form around the field submit, as a native text input does |
-| `Tab`    | Select highlighted and move focus                                                                                                       |
-| `Escape` | Close dropdown                                                                                                                          |
+| Key         | Action                                                                                                                                  |
+| ----------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `↓`         | Open dropdown on its first enabled option / Move down                                                                                   |
+| `Alt` + `↓` | Open dropdown with nothing highlighted                                                                                                  |
+| `↑`         | Open dropdown on its last enabled option / Move up                                                                                      |
+| `Enter`     | Select highlighted item. With nothing highlighted, close the list and let the form around the field submit, as a native text input does |
+| `Tab`       | Select highlighted and move focus                                                                                                       |
+| `Escape`    | Close dropdown                                                                                                                          |
+
+The arrows reach disabled options too, so a screen reader user finds them, but Enter doesn't select one. With `keepFirst`, the dropdown opens on its first option whichever key opens it. While an input method editor (IME) is composing text, the keys are left to it, so Enter confirms the composition rather than selecting an option.
 
 ---
 
@@ -429,7 +432,7 @@ function AutocompleteFormDemo() {
 - Focusing the field, opening the list with `openOnFocus` or `↓`, or emptying the field announces nothing. Without `empty`, nothing is announced at all, since there's no built-in message to say
 - `empty` is a message, so keep it to text. `Tab` closes the list, so a keyboard user can't reach a link or a button in it
 - Keep that message static, like "No results found". Its text is read when the matches first run out and isn't read again while they stay out, so a message that names the query, like "No results for xyz", is only heard for the query that ran them out
-- Dropdown items use `role="option"` with `aria-selected`
+- Dropdown items use `role="option"`, and the highlighted one is `aria-selected` unless it's disabled
 - Disabled items have `aria-disabled`
 - The `clearable` clear button is a native button named "Clear": `Tab` from the input reaches it, and `Enter` or `Space` clears the input and puts focus back in it
 - Full keyboard navigation support
