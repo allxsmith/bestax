@@ -52,7 +52,11 @@ function example() {
           role="dialog"
           aria-label="Filters"
           tabIndex={-1}
-          onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+          onKeyDown={e => {
+            if (e.key !== 'Escape') return;
+            e.preventDefault();
+            setOpen(false);
+          }}
         >
           <Box mt="3">
             <Input label="Name contains" />
@@ -71,7 +75,7 @@ function example() {
 }
 ```
 
-The trap doesn't close anything. Escape, a click outside and the buttons that dismiss the panel are the component's to handle, as the `onKeyDown` above does.
+The trap doesn't close anything. Escape, a click outside and the buttons that dismiss the panel are the component's to handle, as the `onKeyDown` above does. Its `preventDefault()` marks the Escape used, so a [`Modal`](../components/modal.md) or [`Sidebar`](../components/sidebar.md) around the panel stays open for the next one.
 
 ### Where focus starts
 
@@ -126,7 +130,11 @@ function example() {
               role="dialog"
               aria-label="Share"
               tabIndex={-1}
-              onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+              onKeyDown={e => {
+                if (e.key !== 'Escape') return;
+                e.preventDefault();
+                setOpen(false);
+              }}
             >
               <Box mt="3">
                 <Input label="Email" type="email" />
