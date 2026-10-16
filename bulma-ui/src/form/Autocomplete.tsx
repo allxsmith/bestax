@@ -81,7 +81,11 @@ export interface AutocompleteProps
   clearable?: boolean;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
-  /** Keep first option highlighted. */
+  /**
+   * Keep the first option highlighted whenever the list opens or the text
+   * in the field changes. While the list is open on a highlighted option,
+   * Enter picks it rather than submitting a form around the field.
+   */
   keepFirst?: boolean;
   /** Keep dropdown open after selection. */
   keepOpen?: boolean;
@@ -385,9 +389,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
             break;
           case 'Enter':
-            e.preventDefault();
-            if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
+            // With the list open on a highlighted option, Enter is that
+            // option's, and picks it unless it's disabled. Otherwise it
+            // closes the list and goes on, so a form around the field
+            // submits, as it would from any text field.
+            if (
+              isActive &&
+              highlightedIndex >= 0 &&
+              filteredData[highlightedIndex]
+            ) {
+              e.preventDefault();
               handleSelect(filteredData[highlightedIndex]);
+            } else {
+              setIsActive(false);
             }
             break;
           case 'Escape':

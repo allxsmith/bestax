@@ -364,19 +364,21 @@ function example() {
 
 ## Keyboard Navigation
 
-| Key      | Action                            |
-| -------- | --------------------------------- |
-| `↓`      | Open dropdown / Move down         |
-| `↑`      | Move up                           |
-| `Enter`  | Select highlighted item           |
-| `Tab`    | Select highlighted and move focus |
-| `Escape` | Close dropdown                    |
+| Key      | Action                                                                                                                                  |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| `↓`      | Open dropdown / Move down                                                                                                               |
+| `↑`      | Move up                                                                                                                                 |
+| `Enter`  | Select highlighted item. With nothing highlighted, close the list and let the form around the field submit, as a native text input does |
+| `Tab`    | Select highlighted and move focus                                                                                                       |
+| `Escape` | Close dropdown                                                                                                                          |
 
 ---
 
 ## Form Submission
 
 `Autocomplete` is an HTML form element. Pass a `name` prop and the typed/selected text is forwarded to the inner `<input>` so the value submits with the surrounding form, exactly like a native text input.
+
+Enter in the field submits the form, as it does in a native text input, unless the list is open on a highlighted option, which Enter picks instead. With `keepFirst`, the first option is highlighted whenever the list opens, so Enter picks rather than submits while it's open.
 
 | Prop       | Description                                                  |
 | ---------- | ------------------------------------------------------------ |

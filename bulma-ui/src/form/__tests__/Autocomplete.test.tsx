@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Autocomplete, AutocompleteItem } from '../Autocomplete';
+import {
+  Autocomplete,
+  AutocompleteItem,
+  AutocompleteProps,
+} from '../Autocomplete';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import {
@@ -2005,5 +2009,80 @@ describe('Autocomplete keeps focus in the field on a click (#1078)', () => {
 
     expect(input).toHaveValue('Banana');
     expect(input).toHaveFocus();
+  });
+});
+
+describe('Enter submits the form around an Autocomplete unless it picks (#1079)', () => {
+  // user-event submits the form on an Enter that nothing prevented, the way
+  // a browser does from a text field.
+  const renderInForm = (props: Partial<AutocompleteProps> = {}) => {
+    const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+    const onSelect = jest.fn();
+    render(
+      <form onSubmit={onSubmit}>
+        <Autocomplete
+          name="fruit"
+          data={fruits}
+          onSelect={onSelect}
+          {...props}
+        />
+        <button type="submit">Send</button>
+      </form>
+    );
+    return { input: screen.getByRole('combobox'), onSubmit, onSelect };
+  };
+
+  it('submits with the list closed', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit } = renderInForm();
+
+    // Nothing matches, so no list shows.
+    await user.type(input, 'xyz');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the list and submits with nothing highlighted', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm();
+
+    await user.type(input, 'ap');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+
+  it('picks the highlighted option without submitting', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm();
+
+    await user.type(input, 'ap');
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(onSelect).toHaveBeenCalledWith('Apple');
+    expect(input).toHaveValue('Apple');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('submits rather than picks once the list has closed on a highlight', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm({ keepFirst: true });
+
+    // keepFirst highlights "Apple", and a click away closes the list on it.
+    await user.type(input, 'ap');
+    await user.click(document.body);
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
   });
 });
