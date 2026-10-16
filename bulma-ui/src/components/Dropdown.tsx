@@ -78,8 +78,8 @@ export interface DropdownProps
  * menu and focuses the trigger, and Tab closes it and lets focus move on.
  * Anything focusable in the menu that isn't an item, such as a field, keeps
  * its own keys apart from Escape and Tab, though an Escape it calls
- * `preventDefault()` on stays its own and leaves the menu open. For a panel
- * built around fields, use `Popover`.
+ * `preventDefault()` on in its own `onKeyDown` stays its own and leaves the
+ * menu open. For a panel built around fields, use `Popover`.
  *
  * @function
  * @param {DropdownProps} props - Props for the Dropdown component.

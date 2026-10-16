@@ -276,7 +276,8 @@ out of the box:
   <kbd>Home</kbd>, <kbd>End</kbd> and letters don't move to the items. A field needs
   `closeOnClick={false}`, or a click into it closes the menu. <kbd>Escape</kbd> and
   <kbd>Tab</kbd> still close the menu from any of them, except an <kbd>Escape</kbd> the
-  control used itself by calling `preventDefault()`, such as an Autocomplete closing its list.
+  control used itself by calling `preventDefault()` in its `onKeyDown`, such as an Autocomplete
+  closing its list.
   The next <kbd>Escape</kbd> closes the menu.
 
 ---
