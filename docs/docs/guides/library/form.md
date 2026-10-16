@@ -180,33 +180,40 @@ function ComboboxExample() {
   const matches = fruits.filter(f => f.toLowerCase().includes(term));
 
   return (
-    <Combobox
-      label="Fruit"
-      onOptionSubmit={picked => {
-        setValue(picked);
-        setQuery(picked);
-      }}
-    >
-      <Combobox.Input
-        placeholder="Pick a fruit"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        onBlur={() => setQuery(value ?? '')}
-      />
-      <Combobox.Dropdown>
-        {matches.length > 0 ? (
-          <Combobox.Options>
-            {matches.map(f => (
-              <Combobox.Option key={f} value={f} checked={f === value}>
-                {f}
-              </Combobox.Option>
-            ))}
-          </Combobox.Options>
-        ) : (
-          <Combobox.Empty>No fruit matches</Combobox.Empty>
-        )}
-      </Combobox.Dropdown>
-    </Combobox>
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="Fruit"
+        onOptionSubmit={picked => {
+          setValue(picked);
+          setQuery(picked);
+        }}
+      >
+        <Combobox.Input
+          placeholder="Pick a fruit"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onBlur={() => setQuery(value ?? '')}
+        />
+        <Combobox.Dropdown>
+          {matches.length > 0 ? (
+            <Combobox.Options>
+              {matches.map(f => (
+                <Combobox.Option key={f} value={f} checked={f === value}>
+                  {f}
+                </Combobox.Option>
+              ))}
+            </Combobox.Options>
+          ) : (
+            <Combobox.Empty>No fruit matches</Combobox.Empty>
+          )}
+        </Combobox.Dropdown>
+      </Combobox>
+      <Input label="Quantity" type="number" min={1} defaultValue={1} />
+      <Input label="Deliver on" type="date" />
+      <Button type="submit" color="primary">
+        Add to basket
+      </Button>
+    </form>
   );
 }
 ```

@@ -62,7 +62,9 @@ a Combobox.
 ### A Searchable Select
 
 The value has to be one of the countries, and the field shows it. Type to narrow the list, and
-pick with Enter or a click. Leaving the field without picking puts the value back.
+pick with Enter or a click. Leaving the field without picking puts the value back. Here it starts
+an address form: the open list lies over the fields under it, and Enter with nothing highlighted
+submits the form, the way it does in any text field.
 
 ```tsx live
 function example() {
@@ -87,33 +89,41 @@ function example() {
   const matches = countries.filter(c => c.toLowerCase().includes(term));
 
   return (
-    <Combobox
-      label="Country"
-      onOptionSubmit={picked => {
-        setValue(picked);
-        setQuery(picked);
-      }}
-    >
-      <Combobox.Input
-        placeholder="Pick a country"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        onBlur={() => setQuery(value ?? '')}
-      />
-      <Combobox.Dropdown>
-        {matches.length > 0 ? (
-          <Combobox.Options>
-            {matches.map(c => (
-              <Combobox.Option key={c} value={c} checked={c === value}>
-                {c}
-              </Combobox.Option>
-            ))}
-          </Combobox.Options>
-        ) : (
-          <Combobox.Empty>No countries match</Combobox.Empty>
-        )}
-      </Combobox.Dropdown>
-    </Combobox>
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="Country"
+        onOptionSubmit={picked => {
+          setValue(picked);
+          setQuery(picked);
+        }}
+      >
+        <Combobox.Input
+          placeholder="Pick a country"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onBlur={() => setQuery(value ?? '')}
+        />
+        <Combobox.Dropdown>
+          {matches.length > 0 ? (
+            <Combobox.Options>
+              {matches.map(c => (
+                <Combobox.Option key={c} value={c} checked={c === value}>
+                  {c}
+                </Combobox.Option>
+              ))}
+            </Combobox.Options>
+          ) : (
+            <Combobox.Empty>No countries match</Combobox.Empty>
+          )}
+        </Combobox.Dropdown>
+      </Combobox>
+      <Input label="Street address" />
+      <Input label="City" />
+      <Input label="Postal code" />
+      <Button type="submit" color="primary">
+        Save address
+      </Button>
+    </form>
   );
 }
 ```
@@ -180,45 +190,52 @@ function example() {
   }, [query, city]);
 
   return (
-    <Combobox
-      label="City"
-      onOptionSubmit={id => {
-        const picked = cities.find(c => c.id === id) ?? null;
-        setCity(picked);
-        setQuery(picked?.name ?? '');
-      }}
-    >
-      <Combobox.Input
-        iconLeftName="search"
-        placeholder="Search cities"
-        isLoading={loading}
-        value={query}
-        onChange={e => {
-          const term = e.target.value.trim();
-          setQuery(e.target.value);
-          // A search starts for any text but the picked city's name.
-          setLoading(term !== '' && term !== city?.name);
-          if (!term) setCities([]);
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="City"
+        onOptionSubmit={id => {
+          const picked = cities.find(c => c.id === id) ?? null;
+          setCity(picked);
+          setQuery(picked?.name ?? '');
         }}
-      />
-      <Combobox.Dropdown>
-        {cities.length > 0 ? (
-          <Combobox.Options>
-            {cities.map(c => (
-              <Combobox.Option
-                key={c.id}
-                value={c.id}
-                checked={c.id === city?.id}
-              >
-                {c.name}, {c.country}
-              </Combobox.Option>
-            ))}
-          </Combobox.Options>
-        ) : query.trim() && !loading ? (
-          <Combobox.Empty>No cities match</Combobox.Empty>
-        ) : null}
-      </Combobox.Dropdown>
-    </Combobox>
+      >
+        <Combobox.Input
+          iconLeftName="search"
+          placeholder="Search cities"
+          isLoading={loading}
+          value={query}
+          onChange={e => {
+            const term = e.target.value.trim();
+            setQuery(e.target.value);
+            // A search starts for any text but the picked city's name.
+            setLoading(term !== '' && term !== city?.name);
+            if (!term) setCities([]);
+          }}
+        />
+        <Combobox.Dropdown>
+          {cities.length > 0 ? (
+            <Combobox.Options>
+              {cities.map(c => (
+                <Combobox.Option
+                  key={c.id}
+                  value={c.id}
+                  checked={c.id === city?.id}
+                >
+                  {c.name}, {c.country}
+                </Combobox.Option>
+              ))}
+            </Combobox.Options>
+          ) : query.trim() && !loading ? (
+            <Combobox.Empty>No cities match</Combobox.Empty>
+          ) : null}
+        </Combobox.Dropdown>
+      </Combobox>
+      <Input label="Check-in" type="date" />
+      <Input label="Guests" type="number" min={1} defaultValue={2} />
+      <Button type="submit" color="primary">
+        Find a room
+      </Button>
+    </form>
   );
 }
 ```
@@ -249,26 +266,37 @@ function example() {
     .filter(g => g.items.length > 0);
 
   return (
-    <Combobox label="Produce" autoHighlight onOptionSubmit={setQuery}>
-      <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
-      <Combobox.Dropdown>
-        {shown.length > 0 ? (
-          <Combobox.Options>
-            {shown.map(g => (
-              <Combobox.Group key={g.label} label={g.label}>
-                {g.items.map(i => (
-                  <Combobox.Option key={i} value={i}>
-                    {i}
-                  </Combobox.Option>
-                ))}
-              </Combobox.Group>
-            ))}
-          </Combobox.Options>
-        ) : (
-          <Combobox.Empty>Nothing matches</Combobox.Empty>
-        )}
-      </Combobox.Dropdown>
-    </Combobox>
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox label="Produce" autoHighlight onOptionSubmit={setQuery}>
+        <Combobox.Input
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        <Combobox.Dropdown>
+          {shown.length > 0 ? (
+            <Combobox.Options>
+              {shown.map(g => (
+                <Combobox.Group key={g.label} label={g.label}>
+                  {g.items.map(i => (
+                    <Combobox.Option key={i} value={i}>
+                      {i}
+                    </Combobox.Option>
+                  ))}
+                </Combobox.Group>
+              ))}
+            </Combobox.Options>
+          ) : (
+            <Combobox.Empty>Nothing matches</Combobox.Empty>
+          )}
+        </Combobox.Dropdown>
+      </Combobox>
+      <Input label="Quantity" type="number" min={1} defaultValue={1} />
+      <Input label="Deliver on" type="date" />
+      <Input label="Note for the shopper" />
+      <Button type="submit" color="primary">
+        Add to order
+      </Button>
+    </form>
   );
 }
 ```
@@ -299,7 +327,7 @@ function example() {
   }
 
   return (
-    <>
+    <form onSubmit={e => e.preventDefault()}>
       <Combobox
         label="Labels"
         multiple
@@ -343,7 +371,15 @@ function example() {
           </Tag>
         ))}
       </Tags>
-    </>
+      <Select label="Priority">
+        <option>Low</option>
+        <option>Medium</option>
+        <option>High</option>
+      </Select>
+      <Button type="submit" color="primary">
+        Save issue
+      </Button>
+    </form>
   );
 }
 ```
@@ -374,34 +410,40 @@ function example() {
     !categories.some(c => c.toLowerCase() === term.toLowerCase());
 
   return (
-    <Combobox
-      label="Category"
-      onOptionSubmit={picked => {
-        const next = picked === CREATE ? term : picked;
-        if (picked === CREATE) setCategories(prev => [...prev, term]);
-        setValue(next);
-        setQuery(next);
-      }}
-    >
-      <Combobox.Input
-        placeholder="Pick or create a category"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-        onBlur={() => setQuery(value ?? '')}
-      />
-      <Combobox.Dropdown>
-        <Combobox.Options>
-          {matches.map(c => (
-            <Combobox.Option key={c} value={c} checked={c === value}>
-              {c}
-            </Combobox.Option>
-          ))}
-          {canCreate && (
-            <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>
-          )}
-        </Combobox.Options>
-      </Combobox.Dropdown>
-    </Combobox>
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="Category"
+        onOptionSubmit={picked => {
+          const next = picked === CREATE ? term : picked;
+          if (picked === CREATE) setCategories(prev => [...prev, term]);
+          setValue(next);
+          setQuery(next);
+        }}
+      >
+        <Combobox.Input
+          placeholder="Pick or create a category"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+          onBlur={() => setQuery(value ?? '')}
+        />
+        <Combobox.Dropdown>
+          <Combobox.Options>
+            {matches.map(c => (
+              <Combobox.Option key={c} value={c} checked={c === value}>
+                {c}
+              </Combobox.Option>
+            ))}
+            {canCreate && (
+              <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>
+            )}
+          </Combobox.Options>
+        </Combobox.Dropdown>
+      </Combobox>
+      <Input label="Price" type="number" min={0} step="0.01" />
+      <Button type="submit" color="primary">
+        Save product
+      </Button>
+    </form>
   );
 }
 ```
@@ -411,7 +453,8 @@ needs no `Combobox.Empty`.
 
 ### In a Popover
 
-A searchable select behind a button is an `inline` Combobox in a [`Popover`](../components/popover.md).
+A searchable select behind a button is an `inline` Combobox in a [`Popover`](../components/popover.md),
+here on an issue's "Assign to…" button.
 The Popover moves focus into the field when it opens and back to the button when it closes. An
 inline list is always on screen, so it has nothing to close, and Escape in the field reaches the
 Popover.
@@ -432,47 +475,65 @@ function example() {
   );
 
   return (
-    <Popover
-      open={open}
-      onOpenChange={next => {
-        setOpen(next);
-        if (!next) setQuery('');
-      }}
-      ariaLabel="Assign to"
-      trigger={
-        <Button>{assignee ? `Assignee: ${assignee}` : 'Assign to…'}</Button>
-      }
-    >
-      <Popover.Body>
-        <Combobox
-          inline
-          size="small"
-          onOptionSubmit={name => {
-            setAssignee(name);
-            setOpen(false);
-          }}
-        >
-          <Combobox.Input
-            aria-label="Search people"
-            placeholder="Search people"
-            iconLeftName="search"
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-          />
-          {matches.length > 0 ? (
-            <Combobox.Options aria-label="People">
-              {matches.map(p => (
-                <Combobox.Option key={p} value={p} checked={p === assignee}>
-                  {p}
-                </Combobox.Option>
-              ))}
-            </Combobox.Options>
-          ) : (
-            <Combobox.Empty>Nobody matches</Combobox.Empty>
-          )}
-        </Combobox>
-      </Popover.Body>
-    </Popover>
+    <Box>
+      <Title as="h3" textSize="5">
+        Fix the login redirect
+      </Title>
+      <Popover
+        open={open}
+        onOpenChange={next => {
+          setOpen(next);
+          if (!next) setQuery('');
+        }}
+        ariaLabel="Assign to"
+        trigger={
+          <Button>{assignee ? `Assignee: ${assignee}` : 'Assign to…'}</Button>
+        }
+      >
+        <Popover.Body>
+          <Combobox
+            inline
+            size="small"
+            onOptionSubmit={name => {
+              setAssignee(name);
+              setOpen(false);
+            }}
+          >
+            <Combobox.Input
+              aria-label="Search people"
+              placeholder="Search people"
+              iconLeftName="search"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+            />
+            {matches.length > 0 ? (
+              <Combobox.Options aria-label="People">
+                {matches.map(p => (
+                  <Combobox.Option key={p} value={p} checked={p === assignee}>
+                    {p}
+                  </Combobox.Option>
+                ))}
+              </Combobox.Options>
+            ) : (
+              <Combobox.Empty>Nobody matches</Combobox.Empty>
+            )}
+          </Combobox>
+        </Popover.Body>
+      </Popover>
+      <Paragraph mt="4">
+        People land on the home page after they sign in, instead of the page
+        they started from. Send them back to where they were, query string and
+        all.
+      </Paragraph>
+      <Tags mt="4">
+        <Tag>bug</Tag>
+        <Tag>login</Tag>
+      </Tags>
+      <Buttons>
+        <Button size="small">Comment</Button>
+        <Button size="small">Close issue</Button>
+      </Buttons>
+    </Box>
   );
 }
 ```
@@ -485,7 +546,8 @@ list is named "Suggestions".
 The Combobox announces its empty message and nothing else. It doesn't announce how many options
 there are: a screen reader reads that from the list itself, and a count read out on every keystroke
 talks over the typing. When the count matters on its own, show it in a `role="status"` line beside
-the field, in the page the whole time, so a change to its text is announced.
+the list, in the page the whole time, so a change to its text is announced. This list is `inline`,
+the way a filter panel shows one, with the count under it.
 
 ```tsx live
 function example() {
@@ -497,24 +559,22 @@ function example() {
 
   return (
     <>
-      <Combobox label="Fruit" onOptionSubmit={setQuery}>
+      <Combobox label="Fruit" inline onOptionSubmit={setQuery}>
         <Combobox.Input
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
-        <Combobox.Dropdown>
-          {matches.length > 0 ? (
-            <Combobox.Options>
-              {matches.map(f => (
-                <Combobox.Option key={f} value={f}>
-                  {f}
-                </Combobox.Option>
-              ))}
-            </Combobox.Options>
-          ) : (
-            <Combobox.Empty>No fruit matches</Combobox.Empty>
-          )}
-        </Combobox.Dropdown>
+        {matches.length > 0 ? (
+          <Combobox.Options>
+            {matches.map(f => (
+              <Combobox.Option key={f} value={f}>
+                {f}
+              </Combobox.Option>
+            ))}
+          </Combobox.Options>
+        ) : (
+          <Combobox.Empty>No fruit matches</Combobox.Empty>
+        )}
       </Combobox>
       <Paragraph role="status" aria-atomic="true" textSize="7" mt="2">
         {`${matches.length} of ${fruit.length} fruit`}
@@ -526,33 +586,32 @@ function example() {
 
 ### Sizes
 
-`size` sizes the field and the options together.
+`size` sizes the field and the options together. These four are `inline`, so their options show
+at each size without a click. In a dropdown they're the same size.
 
 ```tsx live
 <Columns>
   {(['small', undefined, 'medium', 'large'] as const).map(size => (
     <Column key={size ?? 'normal'}>
-      <Combobox label={size ?? 'normal'} size={size}>
+      <Combobox label={size ?? 'normal'} size={size} inline>
         <Combobox.Input placeholder="Fruit" />
-        <Combobox.Dropdown>
-          <Combobox.Options>
-            <Combobox.Option value="apple">Apple</Combobox.Option>
-            <Combobox.Option value="banana" checked>
-              Banana
-            </Combobox.Option>
-            <Combobox.Option value="cherry" disabled>
-              Cherry
-            </Combobox.Option>
-          </Combobox.Options>
-        </Combobox.Dropdown>
+        <Combobox.Options>
+          <Combobox.Option value="apple">Apple</Combobox.Option>
+          <Combobox.Option value="banana" checked>
+            Banana
+          </Combobox.Option>
+          <Combobox.Option value="cherry" disabled>
+            Cherry
+          </Combobox.Option>
+        </Combobox.Options>
       </Combobox>
     </Column>
   ))}
 </Columns>
 ```
 
-Click a field to open its list. Cherry is `disabled`: the arrows still reach it, so a screen reader
-user finds it, but it can't be picked.
+Banana is `checked`, so it has the highlight to start with. Cherry is `disabled`: the arrows still
+reach it, so a screen reader user finds it, but it can't be picked.
 
 ### Where the List Opens
 
@@ -620,43 +679,54 @@ function example() {
     .filter(g => g.items.length > 0);
 
   return (
-    <Combobox
-      label="Drink"
-      message={`Your drink: ${picked?.label}`}
-      onOptionSubmit={next => {
-        setValue(next);
-        setQuery('');
-      }}
-    >
-      <Combobox.Input
-        iconLeftName="mug-hot"
-        placeholder="Type to filter"
-        value={query}
-        onChange={e => setQuery(e.target.value)}
-      />
-      <Combobox.Dropdown>
-        {groups.length > 0 ? (
-          <Combobox.Options>
-            {groups.map(g => (
-              <Combobox.Group key={g.label} label={g.label}>
-                {g.items.map(i => (
-                  <Combobox.Option
-                    key={i.value}
-                    value={i.value}
-                    checked={i.value === value}
-                    disabled={i.disabled}
-                  >
-                    {i.label}
-                  </Combobox.Option>
-                ))}
-              </Combobox.Group>
-            ))}
-          </Combobox.Options>
-        ) : (
-          <Combobox.Empty>No drinks match</Combobox.Empty>
-        )}
-      </Combobox.Dropdown>
-    </Combobox>
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="Drink"
+        message={`Your drink: ${picked?.label}`}
+        onOptionSubmit={next => {
+          setValue(next);
+          setQuery('');
+        }}
+      >
+        <Combobox.Input
+          iconLeftName="mug-hot"
+          placeholder="Type to filter"
+          value={query}
+          onChange={e => setQuery(e.target.value)}
+        />
+        <Combobox.Dropdown>
+          {groups.length > 0 ? (
+            <Combobox.Options>
+              {groups.map(g => (
+                <Combobox.Group key={g.label} label={g.label}>
+                  {g.items.map(i => (
+                    <Combobox.Option
+                      key={i.value}
+                      value={i.value}
+                      checked={i.value === value}
+                      disabled={i.disabled}
+                    >
+                      {i.label}
+                    </Combobox.Option>
+                  ))}
+                </Combobox.Group>
+              ))}
+            </Combobox.Options>
+          ) : (
+            <Combobox.Empty>No drinks match</Combobox.Empty>
+          )}
+        </Combobox.Dropdown>
+      </Combobox>
+      <Select label="Size">
+        <option>Small</option>
+        <option>Medium</option>
+        <option>Large</option>
+      </Select>
+      <Input label="Name for the cup" />
+      <Button type="submit" color="primary">
+        Order
+      </Button>
+    </form>
   );
 }
 ```
