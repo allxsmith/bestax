@@ -640,12 +640,13 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // that names the combobox, the one this renders or a surrounding Field's,
     // and keeps a fallback name when no label names it or the one that does
     // has no id to point at. While no suggestion matches there's no listbox,
-    // so the combobox is collapsed and points at nothing.
+    // so the combobox is collapsed and points at nothing. It skips a
+    // highlighted suggestion that's blank once trimmed, since that one can't
+    // become a tag, and the option it points at is the one marked selected.
+    const optionId = (index: number) => `${listboxId}-${index}`;
     const activeOptionId =
-      listOpen &&
-      highlightedIndex >= 0 &&
-      highlightedIndex < filteredData.length
-        ? `${listboxId}-${highlightedIndex}`
+      listOpen && filteredData[highlightedIndex]?.trim()
+        ? optionId(highlightedIndex)
         : undefined;
     const comboboxProps: React.InputHTMLAttributes<HTMLInputElement> = {
       role: 'combobox',
@@ -743,14 +744,14 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
               {filteredData.map((item, index) => (
                 <a
                   key={index}
-                  id={`${listboxId}-${index}`}
+                  id={optionId(index)}
                   className={pcn('dropdown-item', {
                     'is-active': index === highlightedIndex,
                   })}
                   onClick={() => addTag(item)}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
-                  aria-selected={index === highlightedIndex}
+                  aria-selected={optionId(index) === activeOptionId}
                 >
                   {item}
                 </a>

@@ -1407,6 +1407,31 @@ describe('Taginput suggestions as a combobox (#1082)', () => {
     expect(input).not.toHaveAttribute('aria-activedescendant');
   });
 
+  // Enter adds nothing for a suggestion that's blank once trimmed, so the
+  // combobox never announces one as the current choice, while the highlight
+  // still moves through it on screen as before.
+  it.each([
+    ['empty', ''],
+    ['whitespace-only', '  '],
+  ])('points at no %s suggestion, which Enter cannot add', (_kind, blank) => {
+    const onChange = jest.fn();
+    render(<Taginput data={[blank, 'Vue']} openOnFocus onChange={onChange} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    const [first, second] = screen.getAllByRole('option');
+    expect(first).toHaveClass('is-active');
+    expect(first).toHaveAttribute('aria-selected', 'false');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+    expect(onChange).not.toHaveBeenCalled();
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    expect(second).toHaveAttribute('aria-selected', 'true');
+    expect(input).toHaveAttribute('aria-activedescendant', second.id);
+  });
+
   it('keeps the listbox to options, each with an id', () => {
     render(<Taginput data={frameworks} openOnFocus />);
     fireEvent.focus(screen.getByRole('combobox'));
