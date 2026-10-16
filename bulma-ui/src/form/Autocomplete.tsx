@@ -95,8 +95,8 @@ export interface AutocompleteProps
   /**
    * Keep the first option highlighted whenever the list opens, Up Arrow and
    * Alt+Down Arrow included, and whenever the text in the field changes.
-   * While the list is open on a highlighted option, Enter picks it rather
-   * than submitting a form around the field.
+   * While the list is open on a highlighted option that isn't disabled, Enter
+   * picks it rather than submitting a form around the field.
    */
   keepFirst?: boolean;
   /** Keep dropdown open after selection. */
@@ -415,14 +415,15 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             }
             break;
           case 'Enter':
-            // With the list open on a highlighted option, Enter is that
-            // option's, and picks it unless it's disabled. Otherwise it
-            // closes the list and goes on, so a form around the field
-            // submits, as it would from any text field.
+            // With the list open on a highlighted option it can pick, Enter
+            // is that option's. Otherwise it closes the list and goes on, so
+            // a form around the field submits, as it would from any text
+            // field.
             if (
               isActive &&
               highlightedIndex >= 0 &&
-              filteredData[highlightedIndex]
+              filteredData[highlightedIndex] &&
+              isEnabled(filteredData[highlightedIndex])
             ) {
               e.preventDefault();
               handleSelect(filteredData[highlightedIndex]);
@@ -694,7 +695,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   })}
                 </div>
               ) : (
-                <div ref={emptyRef} className={emptyItemClasses}>
+                <div
+                  ref={emptyRef}
+                  className={emptyItemClasses}
+                  onMouseDown={keepFocus}
+                >
                   {empty}
                 </div>
               )}

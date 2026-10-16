@@ -1560,22 +1560,22 @@ describe('Autocomplete', () => {
       expect(() => fireEvent.scroll(dropdown)).not.toThrow();
     });
 
-    it('returns early in handleSelect when item is disabled (via Enter w/ keepFirst)', () => {
+    it('returns early in handleSelect when item is disabled (via Tab w/ keepFirst)', () => {
       const onSelect = jest.fn();
       const data = [
         { value: 'a', label: 'Apple', disabled: true },
         { value: 'b', label: 'Banana' },
       ];
       // keepFirst highlights index 0 even though it's disabled.
-      // Pressing Enter calls handleSelect with the disabled item.
+      // Pressing Tab calls handleSelect with the disabled item.
       render(
         <Autocomplete data={data} field="label" keepFirst onSelect={onSelect} />
       );
       const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
-      // First item (disabled) is highlighted via keepFirst. Press Enter.
-      fireEvent.keyDown(input, { key: 'Enter' });
+      // First item (disabled) is highlighted via keepFirst. Press Tab.
+      fireEvent.keyDown(input, { key: 'Tab' });
 
       // handleSelect returned early -> onSelect not called
       expect(onSelect).not.toHaveBeenCalled();
@@ -2010,6 +2010,16 @@ describe('Autocomplete keeps focus in the field on a click (#1078)', () => {
     expect(input).toHaveValue('Banana');
     expect(input).toHaveFocus();
   });
+
+  it('cancels a press on the empty message too', () => {
+    render(<Autocomplete data={fruits} empty="No results found" />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'xyz' } });
+
+    expect(fireEvent.mouseDown(screen.getByText('No results found'))).toBe(
+      false
+    );
+  });
 });
 
 describe('Enter submits the form around an Autocomplete unless it picks (#1079)', () => {
@@ -2084,6 +2094,26 @@ describe('Enter submits the form around an Autocomplete unless it picks (#1079)'
     expect(onSubmit).toHaveBeenCalledTimes(1);
     expect(onSelect).not.toHaveBeenCalled();
     expect(input).toHaveValue('ap');
+  });
+
+  it('submits when the highlighted option is disabled', async () => {
+    const user = userEvent.setup();
+    // keepFirst pins the highlight to the first match, which can't be picked.
+    const { input, onSubmit, onSelect } = renderInForm({
+      keepFirst: true,
+      data: [
+        { value: 'apple', label: 'Apple', disabled: true },
+        { value: 'avocado', label: 'Avocado' },
+      ],
+    });
+
+    await user.type(input, 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
   });
 
   it('leaves a Tab alone once the list has closed on a highlight', async () => {
