@@ -242,8 +242,9 @@ function example() {
 
 The `value` is the city's `id`, and `onOptionSubmit` looks the record up by it. While `isLoading` is
 on, the "No cities match" announcement waits, and it's made once the search comes back empty. A
-dropdown with nothing in it doesn't show, so the `null` branch keeps the panel shut until there's
-something to say.
+dropdown whose children are all `null` doesn't show, so the `null` branch keeps the panel shut
+until there's something to say. Write that conditional in `Combobox.Dropdown` itself: a component
+of your own that renders nothing still counts as something there, and shows an empty panel.
 
 ### Grouped Options
 
@@ -834,7 +835,7 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 | Prop             | Type                                                                             | Default         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------- | -------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`          | `React.ReactNode`                                                                | —               | The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field.                                                                                                                                                                                                                                                                                                                         |
+| `label`          | `React.ReactNode`                                                                | —               | The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field. When `Combobox.Input` has an `id` of its own, server markup names the field through `aria-labelledby` until the page hydrates and the label's `for` catches up.                                                                                                                                                         |
 | `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —               | Props for the label element. An explicit `htmlFor` takes over the association: give `Combobox.Input` the same `id`, and the list is still named after the label.                                                                                                                                                                                                                                                                                                                                                                |
 | `children`       | `React.ReactNode`                                                                | —               | The parts, in order: `Combobox.Input`, then `Combobox.Dropdown` with `Combobox.Options` and `Combobox.Empty` in it. With `inline`, the `Combobox.Options` and `Combobox.Empty` go straight in. Render `Combobox.Options` while there are options and `Combobox.Empty` while there aren't: the empty message sits beside the list, not in it.                                                                                                                                                                                    |
 | `open`           | `boolean`                                                                        | —               | Controlled open state. When set, opening and closing only report through `onOpenChange`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
@@ -859,7 +860,7 @@ and a click in the field opens the list. A press in the list never takes focus f
 **Subcomponents:**
 
 - `Combobox.Input`: The text field, with the combobox role and the keys, rendered as an `Input`.
-- `Combobox.Dropdown`: The floating panel under the field, on screen while the list is open and it has something in it.
+- `Combobox.Dropdown`: The floating panel under the field, on screen while the list is open and its children aren't all empty.
 - `Combobox.Options`: The list of options, a `listbox` named by the label that names the field.
 - `Combobox.Option`: One choice in the list, with a check mark while it's `checked`.
 - `Combobox.Group`: Options under a heading, a `group` named by it.
@@ -894,11 +895,11 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 ### Combobox.Dropdown
 
-| Prop        | Type                            | Default | Description                            |
-| ----------- | ------------------------------- | ------- | -------------------------------------- |
-| `className` | `string`                        | —       | Additional CSS classes.                |
-| `children`  | `React.ReactNode`               | —       | Content rendered inside the component. |
-| `...`       | All standard `<div>` attributes | —       |                                        |
+| Prop        | Type                            | Default | Description                                                                                                                                                                                                                                                                                                                                                |
+| ----------- | ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `children`  | `React.ReactNode`               | —       | What the panel shows: `Combobox.Options` while there are options, and `Combobox.Empty` while there aren't. Children that are all `null`, `false` or `''`, or empty Fragments, keep the panel shut, so write the conditional here. A component that renders nothing, or a `Combobox.Options` with no options in it, still counts, and shows an empty panel. |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                    |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                            |
 
 ### Combobox.Options
 
@@ -921,12 +922,12 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 ### Combobox.Group
 
-| Prop        | Type                            | Default | Description                                                 |
-| ----------- | ------------------------------- | ------- | ----------------------------------------------------------- |
-| `label`     | `React.ReactNode`               | —       | The heading, which also names the group for assistive tech. |
-| `children`  | `React.ReactNode`               | —       | The group's `Combobox.Option`s.                             |
-| `className` | `string`                        | —       | Additional CSS classes.                                     |
-| `...`       | All standard `<div>` attributes | —       |                                                             |
+| Prop        | Type                            | Default | Description                                                                                                                            |
+| ----------- | ------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`     | `React.ReactNode`               | —       | The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own. |
+| `children`  | `React.ReactNode`               | —       | The group's `Combobox.Option`s.                                                                                                        |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                        |
 
 ### Combobox.Empty
 

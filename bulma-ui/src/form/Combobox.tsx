@@ -175,7 +175,17 @@ export type ComboboxInputProps = Omit<
 >;
 
 /** Props for Combobox.Dropdown, the floating panel under the field. */
-export type ComboboxDropdownProps = React.HTMLAttributes<HTMLDivElement>;
+export interface ComboboxDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
+  /**
+   * What the panel shows: `Combobox.Options` while there are options, and
+   * `Combobox.Empty` while there aren't. Children that are all `null`,
+   * `false` or `''`, or empty Fragments, keep the panel shut, so write the
+   * conditional here. A component that renders nothing, or a
+   * `Combobox.Options` with no options in it, still counts, and shows an
+   * empty panel.
+   */
+  children?: React.ReactNode;
+}
 
 /**
  * Props for Combobox.Options, the list. Its `id` is the one the field's
@@ -678,11 +688,11 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
 ComboboxInput.displayName = 'ComboboxInput';
 
 /**
- * The floating panel under the field, on screen while the list is open and it has something in it.
+ * The floating panel under the field, on screen while the list is open and its children aren't all empty.
  *
  * @function
  * @param {ComboboxDropdownProps} props - Props for the Combobox.Dropdown component.
- * @returns {JSX.Element | null} The panel, or nothing while the list is closed or there's nothing to show.
+ * @returns {JSX.Element | null} The panel, or nothing while the list is closed or its children are all empty.
  */
 export const ComboboxDropdown: React.FC<ComboboxDropdownProps> = ({
   children,
@@ -694,7 +704,8 @@ export const ComboboxDropdown: React.FC<ComboboxDropdownProps> = ({
 }) => {
   const { engine, inline, appendToBody, placement, reportPanel, size } =
     useCombobox();
-  // A conditional that renders nothing leaves no panel, whatever `open` says.
+  // Children that are all `null`, `false` or `''` leave no panel, whatever
+  // `open` says. This reads the elements it's handed, not what they render.
   const hasContent = flattenChildren(children).some(child => child !== '');
   const shown = engine.open && !inline && hasContent;
   // A portaled panel has no server markup, so it only exists from the
