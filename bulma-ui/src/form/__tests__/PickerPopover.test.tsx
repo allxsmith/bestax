@@ -80,6 +80,36 @@ describe('PickerPopover', () => {
     }
   });
 
+  it('closes on an Escape pressed elsewhere, and leaves that key unclaimed', () => {
+    // Focus outside the picker, such as in a Modal opened over it, owns the
+    // key, so the Modal still closes on it.
+    const { getByTestId, queryByTestId } = render(
+      <>
+        <Harness />
+        <button data-testid="elsewhere">elsewhere</button>
+      </>
+    );
+    const escape = createEvent.keyDown(getByTestId('elsewhere'), {
+      key: 'Escape',
+    });
+    act(() => {
+      fireEvent(getByTestId('elsewhere'), escape);
+    });
+    expect(queryByTestId('inside')).toBeNull();
+    expect(escape.defaultPrevented).toBe(false);
+  });
+
+  it('claims an Escape pressed on the field it opens from', () => {
+    const { getByTestId } = render(<Harness />);
+    const escape = createEvent.keyDown(getByTestId('anchor'), {
+      key: 'Escape',
+    });
+    act(() => {
+      fireEvent(getByTestId('anchor'), escape);
+    });
+    expect(escape.defaultPrevented).toBe(true);
+  });
+
   it('does not close on Escape when closeOnEscape=false', () => {
     const { queryByTestId } = render(<Harness closeOnEscape={false} />);
     act(() => {

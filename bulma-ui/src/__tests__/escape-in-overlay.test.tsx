@@ -5,6 +5,7 @@
  * the key after the popup has, React handler or `document` listener, and it
  * leaves a used Escape alone. The next Escape, with nothing open inside,
  * closes the overlay. Escape with nothing open closes the overlay at once.
+ * A picker claims only an Escape pressed in it.
  */
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
@@ -295,6 +296,33 @@ describe('Escape in a popup inside a Sidebar', () => {
     pressEscape();
     expect(screen.queryByRole('dialog', { name: 'Choose date' })).toBeNull();
     expect(onClose).not.toHaveBeenCalled();
+
+    pressEscape();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('Escape in a Modal opened over an open picker', () => {
+  // A dialog that opens on its own, such as a session timeout, or from a
+  // button pressed with the keyboard, which closes nothing on the way.
+  it('closes the Modal, since the key was not pressed in the picker', () => {
+    const onClose = jest.fn();
+    const Page = ({ modal }: { modal: boolean }) => (
+      <>
+        <DateInput label="Due" />
+        <Modal active={modal} onClose={onClose} aria-label="Session">
+          <button type="button">Stay signed in</button>
+        </Modal>
+      </>
+    );
+    const { rerender } = render(<Page modal={false} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
+    expect(screen.getByRole('dialog', { name: 'Choose date' })).toBeTruthy();
+
+    rerender(<Page modal />);
+    expect(
+      screen.getByRole('button', { name: 'Stay signed in' })
+    ).toHaveFocus();
 
     pressEscape();
     expect(onClose).toHaveBeenCalledTimes(1);
