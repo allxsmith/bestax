@@ -385,7 +385,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             }
             break;
           case 'Escape':
-            e.preventDefault();
+            // Only closing the dropdown claims the key. With it closed, the
+            // key goes on to a Modal around the field.
+            if (menuOpen) e.preventDefault();
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
@@ -397,7 +399,14 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             break;
         }
       },
-      [disabled, isActive, highlightedIndex, filteredData, handleSelect]
+      [
+        disabled,
+        isActive,
+        menuOpen,
+        highlightedIndex,
+        filteredData,
+        handleSelect,
+      ]
     );
 
     // Handle dropdown scroll for infinite scroll
