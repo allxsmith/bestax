@@ -1681,18 +1681,23 @@ describe('Autocomplete label association (#493)', () => {
 });
 
 describe('Autocomplete keeps its deprecated selected and dropdown props off the page (#1080)', () => {
-  // One render, since React warns about each attribute name only once.
+  // One render, since React warns about each attribute name only once per
+  // test file: a test earlier in this file that passed `dropdown` would use
+  // up the warning, and the console check here would pass on its own.
   it('puts neither on the wrapper, and logs no warning for dropdown', () => {
     const consoleError = jest.spyOn(console, 'error').mockImplementation();
-    const { container } = render(
-      <Autocomplete data={fruits} selected="Banana" dropdown />
-    );
+    try {
+      const { container } = render(
+        <Autocomplete data={fruits} selected="Banana" dropdown />
+      );
 
-    const wrapper = container.querySelector('.autocomplete') as HTMLElement;
-    expect(wrapper).not.toHaveAttribute('selected');
-    expect(wrapper).not.toHaveAttribute('dropdown');
-    expect(consoleError).not.toHaveBeenCalled();
-    consoleError.mockRestore();
+      const wrapper = container.querySelector('.autocomplete') as HTMLElement;
+      expect(wrapper).not.toHaveAttribute('selected');
+      expect(wrapper).not.toHaveAttribute('dropdown');
+      expect(consoleError).not.toHaveBeenCalled();
+    } finally {
+      consoleError.mockRestore();
+    }
   });
 
   it('does nothing with selected: the field stays empty', () => {
