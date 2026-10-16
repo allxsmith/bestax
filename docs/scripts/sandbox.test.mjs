@@ -7,9 +7,10 @@
  * the repo root.
  */
 import assert from 'node:assert/strict';
-import { readFileSync, readdirSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join, relative, sep } from 'node:path';
+import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
 import { fileURLToPath } from 'node:url';
 import {
@@ -389,16 +390,19 @@ const LEFT_OUT = {
   'src/App.tsx': 'the example is written in its place',
 };
 
-/** Every file in the template, by path in it, as the scaffolder copies it. */
-function templateFiles(dir = TEMPLATE_DIR) {
-  return readdirSync(dir, { withFileTypes: true }).flatMap(entry => {
-    // Finder's .DS_Store and a local install are not part of the template.
-    if (entry.name === '.DS_Store' || entry.name === 'node_modules') return [];
-    const path = join(dir, entry.name);
-    return entry.isDirectory()
-      ? templateFiles(path)
-      : [relative(TEMPLATE_DIR, path).split(sep).join('/')];
-  });
+/**
+ * The files the template tracks, by path in it. Read from git rather than
+ * the disk, so a lockfile or dist/ that an install or build inside the
+ * template leaves behind is not taken for a file the template gained. A
+ * tracked file deleted but not yet staged is gone from the template already.
+ */
+function templateFiles() {
+  return execFileSync('git', ['ls-files', '-z'], {
+    cwd: TEMPLATE_DIR,
+    encoding: 'utf8',
+  })
+    .split('\0')
+    .filter(path => path && existsSync(join(TEMPLATE_DIR, path)));
 }
 
 describe('the template files', () => {
