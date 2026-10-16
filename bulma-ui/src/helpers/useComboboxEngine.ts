@@ -175,6 +175,10 @@ export function useComboboxEngine({
   const landingRef = useRef<Landing | null>(null);
   const wasOpenRef = useRef(false);
   const shownValuesRef = useRef<string[]>([]);
+  // Whether the next highlight change is one to scroll to: a key's or a
+  // landing's. The pointer's isn't, since the pointer is already on that
+  // option, and scrolling would move the list out from under it.
+  const scrollToHighlightRef = useRef(false);
 
   const isControlled = controlledOpen !== undefined;
   const [internalOpen, setInternalOpen] = useState(defaultOpen);
@@ -261,13 +265,18 @@ export function useComboboxEngine({
     // Without `autoHighlight`, which moved it above, a highlighted option
     // that left takes the highlight with it.
     else if (next !== null && !values.includes(next)) next = null;
-    setHighlighted(next);
+    if (next !== highlighted) {
+      scrollToHighlightRef.current = true;
+      setHighlighted(next);
+    }
   });
 
   // A browser scrolls to what has focus, not to an active descendant, so
-  // the highlighted option is brought into view here.
+  // the highlighted option is brought into view here, when a key or a
+  // landing moved it there.
   useClientLayoutEffect(() => {
-    if (highlighted === null) return;
+    if (highlighted === null || !scrollToHighlightRef.current) return;
+    scrollToHighlightRef.current = false;
     const option = shownOptions().find(shown => shown.value === highlighted);
     option?.element.scrollIntoView?.({ block: 'nearest' });
   }, [highlighted, shownOptions]);
@@ -340,6 +349,7 @@ export function useComboboxEngine({
               ? 0
               : options.length - 1
             : (at + step + options.length) % options.length;
+        scrollToHighlightRef.current = true;
         setHighlighted(options[index].value);
         return;
       }
@@ -404,7 +414,10 @@ export function useComboboxEngine({
     close();
   };
 
-  const hover = (value: string) => setHighlighted(value);
+  const hover = (value: string) => {
+    scrollToHighlightRef.current = false;
+    setHighlighted(value);
+  };
 
   const pick = (value: string) => {
     submit(value);

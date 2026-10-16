@@ -1004,6 +1004,47 @@ describe('Combobox', () => {
         delete (Element.prototype as Partial<Element>).scrollIntoView;
       }
     });
+
+    it('leaves the list where it is when the pointer moves the highlight', () => {
+      const scrollIntoView = jest.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      try {
+        render(<CountrySelect />);
+        key('ArrowDown');
+        scrollIntoView.mockClear();
+        // The pointer is already on the option, so the list stays put under it.
+        fireEvent.pointerMove(option('Germany'));
+        expect(highlighted()).toBe('Germany');
+        expect(scrollIntoView).not.toHaveBeenCalled();
+        // A key that moves it on still scrolls, from where the pointer left it.
+        key('ArrowDown');
+        expect(highlighted()).toBe('Japan');
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+        expect(scrollIntoView.mock.contexts[0]).toBe(option('Japan'));
+      } finally {
+        delete (Element.prototype as Partial<Element>).scrollIntoView;
+      }
+    });
+
+    it('scrolls to where a landing puts the highlight', () => {
+      const scrollIntoView = jest.fn();
+      Element.prototype.scrollIntoView = scrollIntoView;
+      try {
+        render(<CountrySelect autoHighlight />);
+        type('n');
+        const { contexts } = scrollIntoView.mock;
+        expect(contexts[contexts.length - 1]).toBe(option('Canada'));
+        scrollIntoView.mockClear();
+        fireEvent.pointerMove(option('France'));
+        // Typing hands the pointer's highlight to autoHighlight, which moves
+        // it to the first match, and that scrolls.
+        type('na');
+        expect(highlighted()).toBe('Canada');
+        expect(scrollIntoView).toHaveBeenCalledTimes(1);
+      } finally {
+        delete (Element.prototype as Partial<Element>).scrollIntoView;
+      }
+    });
   });
 
   describe('Picking with the pointer', () => {
