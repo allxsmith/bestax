@@ -1,4 +1,4 @@
-import type { ComboboxInputProps } from '../form/Combobox';
+import { Combobox, type ComboboxInputProps } from '../form/Combobox';
 import type { FormFieldProps } from '../form/fieldProps';
 
 /**
@@ -16,3 +16,46 @@ type Kept = Extract<
 type None<T> = [T] extends [never] ? true : { KEPT: T };
 
 export const comboboxInput: None<Kept> = true;
+
+/**
+ * Given `data`, the Combobox renders its own parts, so it takes no children,
+ * and built from parts it takes none of what `data` brings. `multiple` decides
+ * the value's type: one value is a `string` or `null`, several an array.
+ */
+const countries = ['Canada', 'France'];
+const one = (value: string | null) => value;
+const several = (value: string[]) => value;
+
+export const dataModes = (
+  <>
+    <Combobox data={countries} value="Canada" onChange={one} />
+    <Combobox data={countries} value={null} defaultValue="France" />
+    <Combobox data={countries} multiple value={['Canada']} onChange={several} />
+    <Combobox
+      data={[{ value: 'ca', label: 'Canada', group: 'Americas' }]}
+      itemTemplate={item => item.label}
+      empty="Nothing matches"
+      name="country"
+      placeholder="Pick one"
+    />
+    <Combobox onSelect={one} multiple>
+      <Combobox.Input />
+    </Combobox>
+    {/* @ts-expect-error data and children don't go together */}
+    <Combobox data={countries}>
+      <Combobox.Input />
+    </Combobox>
+    {/* @ts-expect-error with multiple, the value is an array */}
+    <Combobox data={countries} multiple value="Canada" />
+    {/* @ts-expect-error with one value, it isn't */}
+    <Combobox data={countries} value={['Canada']} />
+    {/* @ts-expect-error with multiple, onChange takes an array */}
+    <Combobox data={countries} multiple onChange={one} />
+    {/* @ts-expect-error built from parts, the app keeps the value */}
+    <Combobox value="Canada">
+      <Combobox.Input />
+    </Combobox>
+    {/* @ts-expect-error built from parts, there's no empty prop */}
+    <Combobox empty="Nothing" />
+  </>
+);

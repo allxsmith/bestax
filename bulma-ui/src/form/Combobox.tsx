@@ -14,6 +14,7 @@ import { Portal } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { flattenChildren } from '../helpers/flattenChildren';
+import { warnOnce } from '../helpers/devWarnings';
 import {
   AnchoredPosition,
   marginGap,
@@ -25,6 +26,9 @@ import {
   useComboboxEngine,
 } from '../helpers/useComboboxEngine';
 import type { PopoverPosition } from '../components/Popover';
+import { Delete } from '../elements/Delete';
+import { Tag } from '../elements/Tag';
+import { Tags } from '../elements/Tags';
 import { Field } from './Field';
 import { Input, InputProps } from './Input';
 import { FormFieldProps } from './fieldProps';
@@ -45,16 +49,37 @@ const typedNoMatches = [{ id: 'empty' }];
 const nothingToAnnounce: Array<{ id: string }> = [];
 
 /**
- * Props for the Combobox component. The helper props, the other attributes
- * and the `ref` land on the `div.combobox` around the field and the list. It
- * renders the `Field` and the label itself, unless an outer `Field` already
- * does.
- *
- * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the `div.combobox` around the field and the list.
+ * One item in a Combobox's `data`. A string there is an item whose label is
+ * its value.
  */
-export interface ComboboxProps
+export interface ComboboxItemData {
+  /**
+   * What `onSelect` and `onChange` hand back, and what `name` posts. Unique
+   * within the Combobox.
+   */
+  value: string;
+  /** What the item shows, and what typing matches. The `value` when it's left out. */
+  label?: string;
+  /**
+   * Can't be picked. The arrows still reach it, so a screen reader user
+   * finds it.
+   */
+  disabled?: boolean;
+  /**
+   * The heading the item goes under. Groups show in the order `data` first
+   * names them, and the items with no group show together where the first of
+   * them is.
+   */
+  group?: string;
+}
+
+/** What a Combobox takes whether it's given `data` or built from parts. */
+interface ComboboxBaseProps
   extends
-    Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'onChange' | 'onSelect'>,
+    Omit<
+      React.HTMLAttributes<HTMLDivElement>,
+      'color' | 'onChange' | 'onSelect' | 'defaultValue'
+    >,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
   /**
@@ -75,14 +100,6 @@ export interface ComboboxProps
     [key: string]: unknown;
   };
   /**
-   * The parts, in order: `Combobox.Input`, then `Combobox.Menu` with
-   * `Combobox.List` and `Combobox.Empty` in it. With `inline`, the
-   * `Combobox.List` and `Combobox.Empty` go straight in. Render
-   * `Combobox.List` while there are items and `Combobox.Empty` while
-   * there aren't: the empty message sits beside the list, not in it.
-   */
-  children?: React.ReactNode;
-  /**
    * Controlled open state. When set, opening and closing only report
    * through `onOpenChange`.
    */
@@ -101,7 +118,8 @@ export interface ComboboxProps
   onOpenChange?: (open: boolean) => void;
   /**
    * Called with an item's `value` when it's picked with Enter or a click.
-   * A disabled item is never picked. The Combobox keeps no value and
+   * A disabled item is never picked. With `data`, `onChange` reports the
+   * value that follows. Built from parts, the Combobox keeps no value and
    * doesn't change the text in the field: update yours here.
    */
   onSelect?: (value: string) => void;
@@ -112,13 +130,6 @@ export interface ComboboxProps
    * @defaultValue false
    */
   keepFirst?: boolean;
-  /**
-   * Several values can be picked. The list stays open after a pick, it's
-   * `aria-multiselectable`, and each item's `checked` is its
-   * `aria-selected`.
-   * @defaultValue false
-   */
-  multiple?: boolean;
   /**
    * The list is always on screen, in the flow under the field, as in a
    * Popover or a page panel. There's no menu, so nothing closes it, and
@@ -149,6 +160,136 @@ export interface ComboboxProps
   /** Sizes the field and the items together. */
   size?: 'small' | 'medium' | 'large';
 }
+
+/** What a Combobox given `data` takes, with one value or several. */
+interface ComboboxDataBaseProps extends ComboboxBaseProps {
+  /** The field's placeholder, with `data`. */
+  placeholder?: string;
+  /**
+   * A form field name, with `data`. A hidden input posts the value, empty
+   * while there's none, and with `multiple` a hidden input posts each value.
+   */
+  name?: string;
+  /**
+   * What the menu shows in place of the list, with `data`, when nothing
+   * matches the typing, such as "No countries match". It's announced the way
+   * `Combobox.Empty` is. Without it, the menu closes while nothing matches.
+   */
+  empty?: React.ReactNode;
+  /**
+   * Renders an item's content, with `data`, in place of its label. It's
+   * handed the item from `data`, a string there arriving as
+   * `{ value, label }`.
+   */
+  itemTemplate?: (item: ComboboxItemData) => React.ReactNode;
+  /** @internal With `data`, the Combobox renders its own parts. */
+  children?: never;
+}
+
+/** Props for a Combobox given `data`, with one value. */
+export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
+  /**
+   * The items, for a Combobox that renders the field, the menu, the list,
+   * the groups and the empty message itself. A string is an item whose label
+   * is its value, and an object is `{ value, label?, disabled?, group? }`.
+   * Typing filters the items by label, ignoring case, and the Combobox keeps
+   * the value. Leave it out to build the Combobox from parts.
+   */
+  data: (string | ComboboxItemData)[];
+  /**
+   * Several values can be picked. The list stays open after a pick, it's
+   * `aria-multiselectable`, and each item's `checked` is its
+   * `aria-selected`. With `data`, the value is an array, and the picks show
+   * as tags under the field, each with a button that takes it off.
+   * @defaultValue false
+   */
+  multiple?: false;
+  /**
+   * The value, controlled, with `data`: the picked item's `value`, or `null`
+   * for none, and with `multiple` an array of them. With one value, the
+   * field shows the picked item's label while you aren't typing in it.
+   */
+  value?: string | null;
+  /** The value to start with when uncontrolled, with `data`. */
+  defaultValue?: string | null;
+  /**
+   * Called with the new value, with `data`, when a pick or a tag's button
+   * changes it: an item's `value`, or with `multiple` the array.
+   */
+  onChange?: (value: string | null) => void;
+}
+
+/** Props for a Combobox given `data`, with several values. */
+export interface ComboboxMultipleDataProps extends ComboboxDataBaseProps {
+  /**
+   * The items, for a Combobox that renders itself. A string is an item whose
+   * label is its value, and an object is `{ value, label?, disabled?, group? }`.
+   */
+  data: (string | ComboboxItemData)[];
+  /**
+   * Several values can be picked: the value is an array, and the picks show
+   * as tags under the field, each with a button that takes it off.
+   */
+  multiple: true;
+  /** The values, controlled: the picked items' `value`s. */
+  value?: string[];
+  /** The values to start with when uncontrolled. */
+  defaultValue?: string[];
+  /** Called with the new array when a pick or a tag's button changes it. */
+  onChange?: (value: string[]) => void;
+}
+
+/** Props for a Combobox given `data`. */
+type ComboboxDataProps = ComboboxSingleDataProps | ComboboxMultipleDataProps;
+
+/** Props for a Combobox built from parts. */
+export interface ComboboxPartsProps extends ComboboxBaseProps {
+  /**
+   * The parts, in order: `Combobox.Input`, then `Combobox.Menu` with
+   * `Combobox.List` and `Combobox.Empty` in it. With `inline`, the
+   * `Combobox.List` and `Combobox.Empty` go straight in. Render
+   * `Combobox.List` while there are items and `Combobox.Empty` while
+   * there aren't: the empty message sits beside the list, not in it. With
+   * `data` there are none to give: children given with it are ignored, with
+   * a warning in development.
+   */
+  children?: React.ReactNode;
+  /**
+   * Several values can be picked. The list stays open after a pick, it's
+   * `aria-multiselectable`, and each item's `checked` is its
+   * `aria-selected`.
+   * @defaultValue false
+   */
+  multiple?: boolean;
+  /** @internal Built from parts, there's no `data`. */
+  data?: never;
+  /** @internal Built from parts, the app keeps the value. */
+  value?: never;
+  /** @internal Built from parts, the app keeps the value. */
+  defaultValue?: never;
+  /** @internal Built from parts, `onSelect` reports a pick. */
+  onChange?: never;
+  /** @internal Built from parts, `Combobox.Input` takes the placeholder. */
+  placeholder?: never;
+  /** @internal Built from parts, the app posts the value. */
+  name?: never;
+  /** @internal Built from parts, `Combobox.Empty` is the empty message. */
+  empty?: never;
+  /** @internal Built from parts, `Combobox.Item` renders its own content. */
+  itemTemplate?: never;
+}
+
+/**
+ * Props for the Combobox component: given `data`, it renders itself and
+ * keeps the value, and without it, it's built from parts. The helper props,
+ * the other attributes and the `ref` land on the `div.combobox` around the
+ * field and the list. It renders the `Field` and the label itself, unless an
+ * outer `Field` already does.
+ *
+ * @extraProp {React.Ref<HTMLDivElement>} [ref] - Ref forwarded to the `div.combobox` around the field and the list.
+ */
+export type ComboboxProps =
+  ComboboxSingleDataProps | ComboboxMultipleDataProps | ComboboxPartsProps;
 
 /**
  * Props for Combobox.Input, the text field. It renders `Input`, so its icons,
@@ -340,52 +481,10 @@ function setRefs<T>(
 }
 
 /**
- * The `Combobox` component builds a text field with a list of options under it, for a searchable select, a server search, a multi-select or grouped options, with the keys and ARIA done and the data left to you.
- *
- * The app owns the data: what's in the list, how it's filtered, and the
- * value. A pick calls `onSelect` with the option's `value`, and the
- * Combobox keeps no value and never changes the text in the field, so the
- * app sets both there. Nothing filters the options for you either, so a
- * server's answer shows as it came. For a free-text field with suggestions,
- * `Autocomplete` is the simpler choice.
- *
- * Focus stays in the field, and the highlighted option is its
- * `aria-activedescendant`. With one value, the highlighted option is the
- * `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and
- * a `checked` option shows a check mark and takes the highlight when the
- * list opens. With `multiple`, `checked` is each option's `aria-selected`.
- * Tab and focus leaving close a dropdown list without picking.
- *
- * When typing leaves `Combobox.Empty` on screen, its text is announced
- * through a polite status region, once, after any loading ends. Result
- * counts aren't announced: a screen reader reads the list's size from the
- * markup, and a count on every keystroke talks over the typing. Show one in
- * a `role="status"` line beside the field when it matters.
- *
- * @function
- * @param {ComboboxProps} props - Props for the Combobox component.
- * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the `div.combobox`.
- * @returns {JSX.Element} The field and its list, in a `Field` with the label unless one is around it.
- *
- * @example
- * <Combobox label="Country" onSelect={pick}>
- *   <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
- *   <Combobox.Menu>
- *     {matches.length > 0 ? (
- *       <Combobox.List>
- *         {matches.map(c => (
- *           <Combobox.Item key={c} value={c} checked={c === value}>
- *             {c}
- *           </Combobox.Item>
- *         ))}
- *       </Combobox.List>
- *     ) : (
- *       <Combobox.Empty>No countries match</Combobox.Empty>
- *     )}
- *   </Combobox.Menu>
- * </Combobox>
+ * The Combobox built from parts: the field, the menu, the list and the
+ * keys, with the data, the filtering and the value left to the app.
  */
-const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
+const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsProps>(
   (
     {
       children,
@@ -589,6 +688,7 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
     );
   }
 );
+ComboboxParts.displayName = 'ComboboxParts';
 
 /**
  * The text field, with the combobox role and the keys, rendered as an `Input`.
@@ -718,15 +818,11 @@ export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
     return mounted && panel ? reportPanel(panel) : undefined;
   }, [mounted, reportPanel]);
 
-  const menuClass = usePrefixedClassNames(
-    'dropdown-menu',
-    'combobox-menu',
-    {
-      [`is-${placement.position}`]: true,
-      'is-portal': appendToBody,
-      [`is-${size}`]: !!size,
-    }
-  );
+  const menuClass = usePrefixedClassNames('dropdown-menu', 'combobox-menu', {
+    [`is-${placement.position}`]: true,
+    'is-portal': appendToBody,
+    [`is-${size}`]: !!size,
+  });
   const contentClass = usePrefixedClassNames('dropdown-content');
 
   // Inline, the list is in the flow already.
@@ -837,15 +933,11 @@ export const ComboboxItem: React.FC<ComboboxItemProps> = ({
     [registerItem, value, disabled, checked]
   );
   const highlighted = engine.highlighted === value;
-  const itemClass = usePrefixedClassNames(
-    'dropdown-item',
-    'combobox-item',
-    {
-      'is-active': highlighted,
-      'is-checked': checked,
-      'is-disabled': disabled,
-    }
-  );
+  const itemClass = usePrefixedClassNames('dropdown-item', 'combobox-item', {
+    'is-active': highlighted,
+    'is-checked': checked,
+    'is-disabled': disabled,
+  });
   const checkClass = usePrefixedClassNames('combobox-check');
   // One value: the highlighted option, as the ARIA Authoring Practices'
   // combobox has it, and no attribute on the rest. Several: each option says
@@ -967,6 +1059,235 @@ export const ComboboxEmpty: React.FC<ComboboxEmptyProps> = ({
   );
 };
 ComboboxEmpty.displayName = 'ComboboxEmpty';
+
+/** An entry in `data` as an item: a string is its own label. */
+const toItem = (entry: string | ComboboxItemData): ComboboxItemData =>
+  typeof entry === 'string' ? { value: entry, label: entry } : entry;
+
+const labelOf = (item: ComboboxItemData): string => item.label ?? item.value;
+
+/** One value or several, as a list: one value is a list of none or one. */
+const asList = (value: string | string[] | null | undefined): string[] =>
+  value == null ? [] : Array.isArray(value) ? value : [value];
+
+/**
+ * The Combobox given `data`. It renders the parts itself, filters the items
+ * by label as the user types, and keeps the value, so a pick goes through
+ * the same parts, keys and ARIA as one built by hand.
+ */
+const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
+  (props, ref) => {
+    const {
+      data,
+      value,
+      defaultValue,
+      // Called below through `props`, which knows which value it takes.
+      onChange: _onChange,
+      multiple = false,
+      placeholder,
+      name,
+      empty,
+      itemTemplate,
+      onSelect,
+      inline = false,
+      children,
+      ...rest
+    } = props;
+    if (flattenChildren(children).length > 0) {
+      warnOnce(
+        'Combobox:data-children',
+        '[bestax-bulma] <Combobox data> renders its own field, menu and ' +
+          'items, so its children are ignored. Give it data or build it ' +
+          'from parts, not both.'
+      );
+    }
+    const items = data.map(toItem);
+    const labelFor = (picked: string) => {
+      const item = items.find(entry => entry.value === picked);
+      return item ? labelOf(item) : picked;
+    };
+
+    const controlled = value !== undefined;
+    const [ownValue, setOwnValue] = useState(() => asList(defaultValue));
+    const picked = controlled ? asList(value) : ownValue;
+    const change = (next: string[]) => {
+      if (!controlled) setOwnValue(next);
+      // With one value, a pick is the only change, so `next` holds it.
+      if (props.multiple === true) props.onChange?.(next);
+      else props.onChange?.(next[0]);
+    };
+
+    // What's typed, or `null` while the field shows the value instead.
+    const [query, setQuery] = useState<string | null>(null);
+    const term = (query ?? '').trim().toLowerCase();
+    const shown = items.filter(item =>
+      labelOf(item).toLowerCase().includes(term)
+    );
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    const select = (pick: string) => {
+      onSelect?.(pick);
+      if (multiple) {
+        change(
+          picked.includes(pick)
+            ? picked.filter(v => v !== pick)
+            : [...picked, pick]
+        );
+      } else {
+        if (picked[0] !== pick) change([pick]);
+        setQuery(null);
+      }
+    };
+    const remove = (pick: string) => {
+      change(picked.filter(v => v !== pick));
+      inputRef.current?.focus();
+    };
+
+    // Each group where `data` first names it, and the items with none
+    // together where the first of them is.
+    const sections = new Map<string, ComboboxItemData[]>();
+    for (const item of shown) {
+      const group = item.group ?? '';
+      sections.set(group, [...(sections.get(group) ?? []), item]);
+    }
+    const renderItem = (item: ComboboxItemData) => (
+      <ComboboxItem
+        key={item.value}
+        value={item.value}
+        disabled={item.disabled}
+        checked={picked.includes(item.value)}
+      >
+        {itemTemplate ? itemTemplate(item) : labelOf(item)}
+      </ComboboxItem>
+    );
+    const list =
+      shown.length > 0 ? (
+        <ComboboxList>
+          {Array.from(sections, ([group, members]) =>
+            group ? (
+              <ComboboxGroup key={group} label={group}>
+                {members.map(renderItem)}
+              </ComboboxGroup>
+            ) : (
+              members.map(renderItem)
+            )
+          )}
+        </ComboboxList>
+      ) : empty ? (
+        <ComboboxEmpty>{empty}</ComboboxEmpty>
+      ) : null;
+
+    return (
+      <>
+        <ComboboxParts
+          {...rest}
+          ref={ref}
+          multiple={multiple}
+          inline={inline}
+          onSelect={select}
+        >
+          <ComboboxInput
+            ref={inputRef}
+            placeholder={placeholder}
+            value={
+              query ??
+              (multiple || picked.length === 0 ? '' : labelFor(picked[0]))
+            }
+            onChange={event => setQuery(event.target.value)}
+            onBlur={() => setQuery(null)}
+          />
+          {inline ? list : <ComboboxMenu>{list}</ComboboxMenu>}
+          {name &&
+            (multiple ? picked : [picked[0] ?? '']).map(v => (
+              <input key={v} type="hidden" name={name} value={v} />
+            ))}
+        </ComboboxParts>
+        {multiple && picked.length > 0 && (
+          <Tags mt="2">
+            {picked.map(v => (
+              <Tag key={v}>
+                {labelFor(v)}
+                <Delete
+                  size="small"
+                  ariaLabel={`Remove ${labelFor(v)}`}
+                  onClick={() => remove(v)}
+                />
+              </Tag>
+            ))}
+          </Tags>
+        )}
+      </>
+    );
+  }
+);
+ComboboxFromData.displayName = 'ComboboxFromData';
+
+/**
+ * The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search: given `data` it does the rest, and built from parts it leaves the data to you.
+ *
+ * Given `data`, it's one element. It renders the field, the menu, the list,
+ * the groups and the empty message, filters the items by label as the user
+ * types, and keeps the value, which `onChange` reports. With `multiple`, the
+ * picks show as tags under the field.
+ *
+ * Built from parts, the app owns the data: what's in the list, how it's
+ * filtered, and the value. A pick calls `onSelect` with the item's `value`,
+ * and the Combobox keeps no value and never changes the text in the field,
+ * so the app sets both there. Nothing filters the items either, so a
+ * server's answer shows as it came. For a free-text field with suggestions,
+ * `Autocomplete` is the simpler choice.
+ *
+ * Either way, focus stays in the field, and the highlighted item is its
+ * `aria-activedescendant`. With one value, the highlighted item is the
+ * `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and
+ * a `checked` item shows a check mark and takes the highlight when the list
+ * opens. With `multiple`, `checked` is each item's `aria-selected`. Tab and
+ * focus leaving close the menu without picking.
+ *
+ * When typing leaves the empty message on screen, its text is announced
+ * through a polite status region, once, after any loading ends. Result
+ * counts aren't announced: a screen reader reads the list's size from the
+ * markup, and a count on every keystroke talks over the typing. Show one in
+ * a `role="status"` line beside the field when it matters.
+ *
+ * @function
+ * @param {ComboboxProps} props - Props for the Combobox component.
+ * @param {React.Ref<HTMLDivElement>} ref - Forwarded ref to the `div.combobox`.
+ * @returns {JSX.Element} The field and its list, in a `Field` with the label unless one is around it.
+ *
+ * @example
+ * <Combobox
+ *   label="Country"
+ *   data={['Canada', 'France', 'Japan']}
+ *   placeholder="Pick a country"
+ *   empty="No countries match"
+ * />
+ *
+ * @example
+ * <Combobox label="Country" onSelect={pick}>
+ *   <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
+ *   <Combobox.Menu>
+ *     {matches.length > 0 ? (
+ *       <Combobox.List>
+ *         {matches.map(c => (
+ *           <Combobox.Item key={c} value={c} checked={c === value}>
+ *             {c}
+ *           </Combobox.Item>
+ *         ))}
+ *       </Combobox.List>
+ *     ) : (
+ *       <Combobox.Empty>No countries match</Combobox.Empty>
+ *     )}
+ *   </Combobox.Menu>
+ * </Combobox>
+ */
+const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>((props, ref) =>
+  props.data === undefined ? (
+    <ComboboxParts {...props} ref={ref} />
+  ) : (
+    <ComboboxFromData {...props} ref={ref} />
+  )
+);
 
 /** Combobox with Input, Menu, List, Item, Group and Empty sub-components. */
 export const Combobox = withSubComponents(

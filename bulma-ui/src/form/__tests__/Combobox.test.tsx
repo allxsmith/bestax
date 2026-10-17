@@ -12,7 +12,7 @@ import {
   ComboboxItem,
   ComboboxList,
   type ComboboxInputProps,
-  type ComboboxProps,
+  type ComboboxPartsProps,
 } from '../Combobox';
 import { Field } from '../Field';
 import { Control } from '../Control';
@@ -27,7 +27,7 @@ import {
 
 const COUNTRIES = ['Canada', 'France', 'Germany', 'Japan', 'Mexico'];
 
-interface CountryProps extends Partial<ComboboxProps> {
+interface CountryProps extends Partial<ComboboxPartsProps> {
   items?: string[];
   disabledItems?: string[];
   initialValue?: string | null;
@@ -313,7 +313,7 @@ describe('Combobox', () => {
 
     it('ignores a size it does not know', () => {
       const { container } = render(
-        <CountrySelect size={'huge' as ComboboxProps['size']} />
+        <CountrySelect size={'huge' as ComboboxPartsProps['size']} />
       );
       expect(container.querySelector('.combobox')?.className).toBe('combobox');
     });
@@ -939,9 +939,7 @@ describe('Combobox', () => {
     });
 
     it('highlights nothing when every option is disabled', () => {
-      render(
-        <CountrySelect keepFirst items={['A']} disabledItems={['A']} />
-      );
+      render(<CountrySelect keepFirst items={['A']} disabledItems={['A']} />);
       type('a');
       expect(highlighted()).toBeNull();
     });
@@ -1130,12 +1128,7 @@ describe('Combobox', () => {
     it('never picks a disabled option', async () => {
       const user = userEvent.setup();
       const onSelect = jest.fn();
-      render(
-        <CountrySelect
-          disabledItems={['Japan']}
-          onSelect={onSelect}
-        />
-      );
+      render(<CountrySelect disabledItems={['Japan']} onSelect={onSelect} />);
       await user.click(field());
       await user.click(option('Japan'));
       expect(onSelect).not.toHaveBeenCalled();
@@ -1794,9 +1787,7 @@ describe('Combobox', () => {
           '.bestax-dropdown-menu.bestax-combobox-menu.bestax-is-bottom-left.bestax-is-small > .bestax-dropdown-content'
         )
       ).not.toBeNull();
-      expect(
-        container.querySelector('.bestax-combobox-list')
-      ).not.toBeNull();
+      expect(container.querySelector('.bestax-combobox-list')).not.toBeNull();
       expect(
         container.querySelector(
           '.bestax-dropdown-item.bestax-combobox-item.bestax-is-checked.bestax-is-active'

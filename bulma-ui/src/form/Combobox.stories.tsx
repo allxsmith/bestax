@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useEffect, useState } from 'react';
 import { expect, userEvent, within } from 'storybook/test';
-import { Combobox, type ComboboxProps } from './Combobox';
+import { Combobox, type ComboboxPartsProps } from './Combobox';
 import { Popover } from '../components/Popover';
 import { Modal } from '../components/Modal';
 import { Columns } from '../columns/Columns';
@@ -40,7 +40,7 @@ const meta: Meta<typeof Combobox> = {
     docs: {
       description: {
         component:
-          'A text field with a list of options under it, built from parts: a searchable select, a server search, a multi-select, grouped options. The keys and the ARIA are done, and the data is yours: you filter the options, keep the value and set the text in the field, and a pick calls onSelect with the option’s value. For a free-text field with suggestions, Autocomplete is the simpler choice.',
+          'A text field with a list to pick from under it. Given data, it renders the field, the menu and the items, filters them by label as you type and keeps the value, with the picks as tags under the field when it takes several. Built from parts, the keys and the ARIA are done and the data is yours: you filter the items, keep the value and set the text in the field, and a pick calls onSelect with the item’s value. For a free-text field with suggestions, Autocomplete is the simpler choice.',
       },
     },
   },
@@ -92,10 +92,47 @@ const meta: Meta<typeof Combobox> = {
       control: 'text',
       description: 'Additional classes for div.combobox',
     },
+    data: {
+      control: 'object',
+      description:
+        'The items, as strings or { value, label, disabled, group }; the Combobox renders them, filters them by label and keeps the value',
+    },
+    value: {
+      control: false,
+      description:
+        'With data, the controlled value: an item’s value or null, or with multiple an array',
+    },
+    defaultValue: {
+      control: false,
+      description: 'With data, the value to start with when uncontrolled',
+    },
+    onChange: {
+      action: 'change',
+      description:
+        'With data, called with the new value when a pick or a tag’s button changes it',
+    },
+    placeholder: {
+      control: 'text',
+      description: 'With data, the field’s placeholder',
+    },
+    name: {
+      control: 'text',
+      description:
+        'With data, a form field name: hidden inputs post the value, one per value with multiple',
+    },
+    empty: {
+      control: 'text',
+      description:
+        'With data, what the menu shows when nothing matches; without it, the menu closes then',
+    },
+    itemTemplate: {
+      control: false,
+      description: 'With data, renders an item’s content in place of its label',
+    },
     children: {
       control: false,
       description:
-        'The parts: Combobox.Input, then Combobox.Menu with Combobox.List or Combobox.Empty in it',
+        'Built from parts: Combobox.Input, then Combobox.Menu with Combobox.List or Combobox.Empty in it',
     },
     open: {
       control: 'boolean',
@@ -167,7 +204,7 @@ const openList = async (canvasElement: HTMLElement, index = 0) => {
  * The filterable select: the value has to be one of the countries, and the
  * field goes back to it when you leave without picking.
  */
-function CountrySelect(props: Partial<ComboboxProps>) {
+function CountrySelect(props: Partial<ComboboxPartsProps>) {
   const [value, setValue] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   // Showing the value isn't a search, so the whole list opens.
@@ -208,11 +245,63 @@ function CountrySelect(props: Partial<ComboboxProps>) {
 }
 
 export const Default: Story = {
-  render: args => <CountrySelect {...args} />,
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Given data, the Combobox is one element: it filters the countries as you type, keeps the pick and shows it in the field.',
+      },
+    },
+  },
+  args: {
+    data: COUNTRIES,
+    placeholder: 'Pick a country',
+    empty: 'No countries match',
+  },
   play: async ({ canvasElement }) => {
     const field = await openList(canvasElement);
     await expect(field).toHaveAttribute('aria-expanded', 'true');
     await expect(field).toHaveAttribute('aria-activedescendant');
+    await userEvent.keyboard('{ArrowDown}{Enter}');
+    await expect(field).toHaveValue('Australia');
+  },
+};
+
+const LABELS = [
+  { value: 'bug', label: 'Bug', group: 'Type' },
+  { value: 'feature', label: 'Feature', group: 'Type' },
+  { value: 'docs', label: 'Docs', group: 'Area' },
+  { value: 'tests', label: 'Tests', group: 'Area' },
+  { value: 'wontfix', label: 'Won’t fix', group: 'Status', disabled: true },
+];
+
+export const MultipleWithTags: Story = {
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Given data with multiple, the picks show as tags under the field, each with a button that takes it off. The groups come from each item’s group, and a disabled item can’t be picked.',
+      },
+    },
+  },
+  args: {
+    label: 'Labels',
+    data: LABELS,
+    multiple: true,
+    defaultValue: ['docs'],
+    placeholder: 'Find a label',
+  },
+  play: async ({ canvasElement }) => {
+    await openList(canvasElement);
+    const canvas = within(canvasElement);
+    await userEvent.click(canvas.getByRole('option', { name: 'Bug' }));
+    await expect(
+      canvas.getByRole('button', { name: 'Remove Bug' })
+    ).toBeInTheDocument();
+    await expect(canvas.getByRole('option', { name: 'Docs' })).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
   },
 };
 
@@ -221,7 +310,7 @@ export const SearchableSelect: Story = {
     docs: {
       description: {
         story:
-          'The value has to be one of the list. Type to filter, pick with Enter or a click, and the field shows the pick. The list opens with the highlight on the checked option.',
+          'The same searchable select built from parts, with the app filtering the list and keeping the value. Type to filter, pick with Enter or a click, and the field shows the pick. The list opens with the highlight on the checked item.',
       },
     },
   },
