@@ -7,19 +7,19 @@
   "examples": [
     {
       "title": "Basic Menu with Nested Lists",
-      "code": "<Menu style={{ maxWidth: 300 }}>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Dashboard</Menu.Item>\n    <Menu.Item>Customers</Menu.Item>\n  </Menu.List>\n  <Menu.Label>Administration</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Team Settings</Menu.Item>\n    <Menu.Item active>\n      Manage Your Team\n      <Menu.List>\n        <Menu.Item>Members</Menu.Item>\n        <Menu.Item>Plugins</Menu.Item>\n        <Menu.Item>Add a member</Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n    <Menu.Item>Invitations</Menu.Item>\n    <Menu.Item>Cloud Storage Environment Settings</Menu.Item>\n    <Menu.Item>Authentication</Menu.Item>\n  </Menu.List>\n  <Menu.Label>Transactions</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Payments</Menu.Item>\n    <Menu.Item>Transfers</Menu.Item>\n    <Menu.Item>Balance</Menu.Item>\n  </Menu.List>\n</Menu>"
+      "code": "<Menu style={{ maxWidth: 300 }}>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item href=\"#dashboard\">Dashboard</Menu.Item>\n    <Menu.Item href=\"#customers\">Customers</Menu.Item>\n  </Menu.List>\n  <Menu.Label>Administration</Menu.Label>\n  <Menu.List>\n    <Menu.Item href=\"#team-settings\">Team Settings</Menu.Item>\n    <Menu.Item active href=\"#manage-your-team\">\n      Manage Your Team\n      <Menu.List>\n        <Menu.Item href=\"#members\">Members</Menu.Item>\n        <Menu.Item href=\"#plugins\">Plugins</Menu.Item>\n        <Menu.Item href=\"#add-a-member\">Add a member</Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n    <Menu.Item href=\"#invitations\">Invitations</Menu.Item>\n    <Menu.Item href=\"#cloud-storage\">\n      Cloud Storage Environment Settings\n    </Menu.Item>\n    <Menu.Item href=\"#authentication\">Authentication</Menu.Item>\n  </Menu.List>\n  <Menu.Label>Transactions</Menu.Label>\n  <Menu.List>\n    <Menu.Item href=\"#payments\">Payments</Menu.Item>\n    <Menu.Item href=\"#transfers\">Transfers</Menu.Item>\n    <Menu.Item href=\"#balance\">Balance</Menu.Item>\n  </Menu.List>\n</Menu>"
     },
     {
       "title": "Custom Link Component",
-      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = (props: { to: string; children?: React.ReactNode }) => (\n    <a>{props.children}</a>\n  );\n  return (\n    <Menu>\n      <Menu.Label>App</Menu.Label>\n      <Menu.List>\n        <Menu.Item as={Link} to=\"/dashboard\">\n          Dashboard\n        </Menu.Item>\n        <Menu.Item as={Link} to=\"/settings\">\n          Settings\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  );\n}"
+      "code": "// import { Link } from 'react-router-dom';\nfunction example() {\n  const Link = (props: { to: string; children?: React.ReactNode }) => (\n    <a href={props.to}>{props.children}</a>\n  );\n  return (\n    <Menu>\n      <Menu.Label>App</Menu.Label>\n      <Menu.List>\n        <Menu.Item as={Link} to=\"/dashboard\">\n          Dashboard\n        </Menu.Item>\n        <Menu.Item as={Link} to=\"/settings\">\n          Settings\n        </Menu.Item>\n      </Menu.List>\n    </Menu>\n  );\n}"
     },
     {
       "title": "Active Menu Item",
-      "code": "<Menu>\n  <Menu.Label>Active Example</Menu.Label>\n  <Menu.List>\n    <Menu.Item>Overview</Menu.Item>\n    <Menu.Item active>Current Page</Menu.Item>\n    <Menu.Item>Other</Menu.Item>\n  </Menu.List>\n</Menu>"
+      "code": "<Menu>\n  <Menu.Label>Active Example</Menu.Label>\n  <Menu.List>\n    <Menu.Item href=\"#overview\">Overview</Menu.Item>\n    <Menu.Item active href=\"#current-page\">\n      Current Page\n    </Menu.Item>\n    <Menu.Item href=\"#other\">Other</Menu.Item>\n  </Menu.List>\n</Menu>"
     },
     {
       "title": "Deeply Nested Menu",
-      "code": "<Menu>\n  <Menu.Label>Levels</Menu.Label>\n  <Menu.List>\n    <Menu.Item>\n      Level 1\n      <Menu.List>\n        <Menu.Item>\n          Level 2\n          <Menu.List>\n            <Menu.Item>Level 3</Menu.Item>\n          </Menu.List>\n        </Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n  </Menu.List>\n</Menu>"
+      "code": "<Menu>\n  <Menu.Label>Levels</Menu.Label>\n  <Menu.List>\n    <Menu.Item href=\"#level-1\">\n      Level 1\n      <Menu.List>\n        <Menu.Item href=\"#level-2\">\n          Level 2\n          <Menu.List>\n            <Menu.Item href=\"#level-3\">Level 3</Menu.Item>\n          </Menu.List>\n        </Menu.Item>\n      </Menu.List>\n    </Menu.Item>\n  </Menu.List>\n</Menu>"
     },
     {
       "title": "Forwarded ref",
@@ -27,7 +27,7 @@
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active>Dashboard</Menu.Item>\n    <Menu.Item>Customers</Menu.Item>\n  </Menu.List>\n</Menu>"
+      "code": "<Menu>\n  <Menu.Label>General</Menu.Label>\n  <Menu.List>\n    <Menu.Item active href=\"#dashboard\">\n      Dashboard\n    </Menu.Item>\n    <Menu.Item href=\"#customers\">Customers</Menu.Item>\n  </Menu.List>\n</Menu>"
     }
   ],
   "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`.\n- `Menu.Item active` sets `aria-current=\"page\"` on the element `as` renders, the link by\n  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of\n  sections on one page can say `\"location\"`, and `aria-current={false}` turns it off.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Ensure each item is focusable and accessible if interactive.\n- `Menu.Item as=\"button\"` defaults to `type=\"button\"`, so a menu item inside a form doesn't\n  submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used instead; any other value\n  renders `type=\"button\"`.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
@@ -124,7 +124,7 @@
     },
     {
       "path": "Menu.Item",
-      "summary": "MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.",
+      "summary": "MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as=\"button\"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.",
       "component": null,
       "props": [
         {
