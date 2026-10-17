@@ -117,6 +117,13 @@ ruleTester.run('no-color-as-surface', rule, {
       errors: [{ messageId: 'ambiguous' }],
     },
     {
+      // Bulma has no `.icon.is-<color>`, so an icon's `color` is a text color
+      // too, and the element where people most expect it to fill something.
+      code: imported('Icon', '<Icon name="star" color="primary" />'),
+      output: imported('Icon', '<Icon name="star" textColor="primary" />'),
+      errors: [{ messageId: 'ambiguous' }],
+    },
+    {
       // The root of a compound whose parts differ from it.
       code: imported('Buttons', '<Buttons color="link" />'),
       output: imported('Buttons', '<Buttons textColor="link" />'),
