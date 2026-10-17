@@ -349,8 +349,8 @@ function example() {
 - Has `aria-modal="true"` to indicate modal behavior — note this does not make background content inert; no `inert` attribute is applied, so background content stays reachable by pointer
 - `title` is wired up as `aria-labelledby` and `message` as `aria-describedby`
 - Focus moves to the confirm (or cancel, with `focusCancel`) button when opened
-- Escape key closes the dialog (when `canCancel` is true) — handled by the underlying [`Modal`](./modal.md), which routes it to the topmost open modal only
-- Tab and Shift+Tab cycle within the dialog while it is open — also from the underlying [`Modal`](./modal.md)
+- Escape key closes the dialog (when `canCancel` is true). The underlying [`Modal`](./modal.md#accessibility) handles it, so one Escape closes the topmost overlay only: a dialog opened over a Modal or a [Sidebar](./sidebar.md) closes first, and the one under it on the next Escape
+- Tab and Shift+Tab cycle within the dialog while it is the topmost overlay, also from the underlying [`Modal`](./modal.md)
 - Body scroll is prevented when dialog is open, through the ref-counted lock shared with `Modal`, `Sidebar` and `Loading`
 - Confirm/cancel buttons are keyboard accessible
 

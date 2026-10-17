@@ -341,6 +341,7 @@ toast.closeAll();
 - The closable button has `aria-label="Close"`.
 - `pauseOnHover` lets users keep the toast visible while reading.
 - `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.
+- A toast is a notification rather than a layer, so while a [Modal](./modal.md), [Dialog](./dialog.md), [Sidebar](./sidebar.md) or full-page [Loading](./loading.md) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.
 
 ---
 
