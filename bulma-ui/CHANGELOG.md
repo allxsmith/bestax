@@ -1,3 +1,10 @@
+## [5.34.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.2...@allxsmith/bestax-bulma@5.34.3) (2026-10-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let Autocomplete's Enter submit, keep focus on a click, and open on a highlight ([#1090](https://github.com/allxsmith/bestax/issues/1090)) ([81f5982](https://github.com/allxsmith/bestax/commit/81f5982d4dd83d76ffeb7603e7ead841224ae51e)), closes [#1078](https://github.com/allxsmith/bestax/issues/1078) [#1089](https://github.com/allxsmith/bestax/issues/1089) [#1079](https://github.com/allxsmith/bestax/issues/1079) [#1081](https://github.com/allxsmith/bestax/issues/1081) [#1081](https://github.com/allxsmith/bestax/issues/1081)
+
 ## [5.34.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.1...@allxsmith/bestax-bulma@5.34.2) (2026-10-16)
 
 
