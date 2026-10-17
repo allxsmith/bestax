@@ -192,7 +192,7 @@ describe.each([
     ]);
   });
 
-  it('builds every color from Bulma’s scheme tokens, so dark mode needs no rules', () => {
+  it('builds its colors from Bulma’s tokens, so dark mode needs no rules', () => {
     const vars = declarations(compile(prefix), ROOT(prefix));
     expect(vars['--bulma-combobox-dropdown-background']).toBe(
       'var(--bulma-scheme-main)'
