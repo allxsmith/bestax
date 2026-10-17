@@ -1746,6 +1746,79 @@ describe('Taginput suggestions as a combobox (#1082)', () => {
   });
 });
 
+// Chrome and Firefox set isComposing. Safari can send the Enter that ends a
+// composition with isComposing false, and keyCode 229 says it instead. In
+// each test, fireEvent returns true when nothing called preventDefault().
+describe.each([
+  ['isComposing', { isComposing: true }],
+  ['keyCode 229', { keyCode: 229 }],
+])('Taginput while an IME is composing (%s) (#1102)', (_, composing) => {
+  it('leaves Enter and the other confirm keys to it', () => {
+    const onAdd = jest.fn();
+    render(<Taginput onAdd={onAdd} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'nihon' } });
+
+    expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(true);
+    expect(fireEvent.keyDown(input, { key: ',', ...composing })).toBe(true);
+
+    expect(onAdd).not.toHaveBeenCalled();
+    expect(input).toHaveValue('nihon');
+  });
+
+  it('adds no highlighted suggestion on the Enter that ends it', () => {
+    const onAdd = jest.fn();
+    render(<Taginput data={frameworks} keepFirst onAdd={onAdd} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'e' } });
+    expect(input).toHaveAttribute('aria-activedescendant');
+
+    expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(true);
+
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it('leaves the arrows and Escape to it, and the list as it was', () => {
+    render(<Taginput data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'e' } });
+
+    for (const key of ['ArrowDown', 'ArrowUp', 'Escape']) {
+      expect(fireEvent.keyDown(input, { key, ...composing })).toBe(true);
+    }
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('leaves Backspace to it, removing no tag', () => {
+    const onRemove = jest.fn();
+    render(<Taginput defaultValue={['React']} onRemove={onRemove} />);
+
+    expect(
+      fireEvent.keyDown(screen.getByRole('textbox'), {
+        key: 'Backspace',
+        ...composing,
+      })
+    ).toBe(true);
+
+    expect(onRemove).not.toHaveBeenCalled();
+  });
+
+  it('takes the keys back once the composition ends', () => {
+    const onAdd = jest.fn();
+    render(<Taginput onAdd={onAdd} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '日本' } });
+    fireEvent.keyDown(input, { key: 'Enter', ...composing });
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onAdd).toHaveBeenCalledWith('日本');
+  });
+});
+
 describe('TagInput deprecated alias', () => {
   it('is the same component as Taginput', () => {
     expect(TagInput).toBe(Taginput);

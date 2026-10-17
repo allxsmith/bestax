@@ -416,6 +416,8 @@ Inside a `Control` with no `Field` around it, `Taginput` renders no `Field` of i
 | `↑`         | Navigate suggestions up            |
 | `Escape`    | Close suggestions dropdown         |
 
+While an input method editor (IME) is composing text, the keys are left to it, so Enter confirms the composition rather than adding a tag.
+
 ---
 
 ## Controlled vs Uncontrolled

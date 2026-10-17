@@ -40,6 +40,12 @@ export type TaginputTag = TaginputItem | string;
 
 type IconLibrary = 'fa' | 'mdi' | 'ion' | 'material-icons' | 'material-symbols';
 
+// An IME that's composing owns every key: Enter confirms what it composed,
+// the arrows move through its candidates, and Escape cancels it. Safari can
+// say so with `keyCode` 229 rather than `isComposing` (#1102).
+const isComposing = (e: React.KeyboardEvent): boolean =>
+  e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
+
 /**
  * Props for the Taginput component.
  * Inside an outer `Field`, or a `Control` with no `Field` around it, it
@@ -522,7 +528,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     // Handle keyboard
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
-        if (disabled || readonly) return;
+        if (disabled || readonly || isComposing(e)) return;
 
         // Handle confirm keys
         if (confirmKeys.includes(e.key)) {
