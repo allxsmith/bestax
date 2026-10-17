@@ -31,7 +31,7 @@
     }
   ],
   "accessibility": "- The root `Menu` renders as `<aside class=\"menu\">`.\n- `Menu.Item active` sets `aria-current=\"page\"` on the element `as` renders, the link by\n  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of\n  sections on one page can say `\"location\"`, and `aria-current={false}` turns it off.\n- Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.\n- Ensure each item is focusable and accessible if interactive.\n- `Menu.Item as=\"button\"` defaults to `type=\"button\"`, so a menu item inside a form doesn't\n  submit it. Pass `type=\"submit\"` or `type=\"reset\"` and yours is used instead; any other value\n  renders `type=\"button\"`.\n\n:::note\nFor router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.\n:::",
-  "related": ["Panel", "Sidebar", "useBulmaClasses"],
+  "related": ["Panel", "Sidebar", "TreeView", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-menu--basic",
   "summary": "The `Menu` component provides Bulma's vertical navigation menu: a simple, accessible sidebar or section menu for your Bulma React UI.",
   "import": "import { Menu } from '@allxsmith/bestax-bulma';",
