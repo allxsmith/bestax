@@ -100,7 +100,7 @@ Enable the `isRounded` prop to give your button fully rounded edges. This style 
 
 ### Loading
 
-Set the `isLoading` prop to display a loading spinner inside the button. This is commonly used while waiting for an asynchronous operation, such as form submission or data fetching, providing user feedback and preventing multiple submissions. The button's content is replaced by the spinner while `isLoading` is active. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn, so the loading state is still visible.
+Set the `isLoading` prop to display a loading spinner inside the button. This is commonly used while waiting for an asynchronous operation, such as form submission or data fetching, providing user feedback and preventing multiple submissions. The button's content is replaced by the spinner while `isLoading` is active. Under `prefers-reduced-motion: reduce` the spinner stops and stays drawn, so the loading state is still visible. In forced colors (Windows' contrast themes), the label stays hidden there too, and the button is drawn in the theme's button colors, with an outline when it has keyboard focus.
 
 ```tsx live
 <Button color="success" isLoading>

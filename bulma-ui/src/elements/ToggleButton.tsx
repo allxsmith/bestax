@@ -84,8 +84,9 @@ export interface ToggleButtonProps
    * `onPressedChange` fires, until it's cleared. Set it while a change is
    * saving. The button carries `aria-busy` and `aria-disabled` meanwhile, and
    * stays focusable, so focus isn't lost mid-save. Under
-   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn (with
-   * bestax's CSS loaded).
+   * `prefers-reduced-motion: reduce` the spinner stops and stays drawn, and
+   * in forced colors (Windows' contrast themes) the label stays hidden behind
+   * it (with bestax's CSS loaded).
    */
   isLoading?: boolean;
   /**
