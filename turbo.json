@@ -109,7 +109,14 @@
     "format:check": {
       "outputs": []
     },
-    "lint": {},
+    "lint": {
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "$TURBO_ROOT$/eslint.config.js",
+        "$TURBO_ROOT$/tsconfig.json",
+        "$TURBO_ROOT$/.prettierrc"
+      ]
+    },
     "storybook": {
       "cache": true
     },

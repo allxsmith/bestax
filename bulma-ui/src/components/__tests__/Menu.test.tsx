@@ -535,3 +535,143 @@ describe('button form', () => {
     expect(div).not.toHaveAttribute('type');
   });
 });
+
+describe('current page', () => {
+  // `active` is how a sidebar marks the page you're on, and a class alone
+  // tells assistive tech nothing (#1093). The attribute goes on the element
+  // `as` renders, the one a screen reader announces, not the wrapping <li>.
+  const inner = (testId: string) =>
+    screen.getByTestId(testId).firstElementChild as HTMLElement;
+
+  it('marks an active item as the current page', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#a" data-testid="plain">
+            Dashboard
+          </Menu.Item>
+          <Menu.Item href="#b" active data-testid="current">
+            Customers
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(inner('current')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByTestId('current')).not.toHaveAttribute('aria-current');
+    expect(inner('plain')).not.toHaveAttribute('aria-current');
+  });
+
+  it('marks a button item and a custom component the same way', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item as="button" active data-testid="button">
+            Filter
+          </Menu.Item>
+          <Menu.Item as={CustomLink} to="/x" active>
+            Custom
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(inner('button')).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByTestId('custom-link')).toHaveAttribute(
+      'aria-current',
+      'page'
+    );
+  });
+
+  it('lets a caller’s own aria-current win', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item
+            href="#intro"
+            active
+            aria-current="location"
+            data-testid="location"
+          >
+            Introduction
+          </Menu.Item>
+          <Menu.Item href="#b" active aria-current={false} data-testid="off">
+            Customers
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(inner('location')).toHaveAttribute('aria-current', 'location');
+    // "false" is how ARIA says not current, which is what turning it off means.
+    expect(inner('off')).toHaveAttribute('aria-current', 'false');
+  });
+
+  it('lets a caller’s aria-current decide even when it’s undefined', () => {
+    // Unlike the button type, nothing goes wrong when the attribute is left
+    // off, so the caller's value decides outright. bestax-migrate converts
+    // `is-active` to `active` only beside an `aria-current` of the element's
+    // own, and a value that is undefined at run time has to render nothing
+    // there, as it did on the <a>.
+    const spread: { 'aria-current'?: 'page' } = {
+      'aria-current': undefined,
+    };
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#b" active data-testid="current" {...spread}>
+            Customers
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(inner('current')).not.toHaveAttribute('aria-current');
+  });
+
+  it('passes a caller’s aria-current through on an item that isn’t active', () => {
+    render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item href="#intro" aria-current="location" data-testid="item">
+            Introduction
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(inner('item')).toHaveAttribute('aria-current', 'location');
+  });
+
+  it('marks one page when the section and a filter are active too, as the TSDoc shows', () => {
+    // `active` can't tell an ancestor or a button from a page, so `active`
+    // on the section and its page would claim two current pages. The
+    // documented overrides leave one.
+    const { container } = render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item
+            href="#team"
+            active
+            aria-current="location"
+            data-testid="section"
+          >
+            Manage Your Team
+            <Menu.List>
+              <Menu.Item href="#members" active data-testid="page">
+                Members
+              </Menu.Item>
+            </Menu.List>
+          </Menu.Item>
+          <Menu.Item
+            as="button"
+            active
+            aria-current={false}
+            data-testid="filter"
+          >
+            Filter
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(container.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    expect(inner('page')).toHaveAttribute('aria-current', 'page');
+    expect(inner('section')).toHaveAttribute('aria-current', 'location');
+    expect(inner('filter')).toHaveAttribute('aria-current', 'false');
+  });
+});

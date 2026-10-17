@@ -1,10 +1,11 @@
-import React, { forwardRef, useCallback } from 'react';
+import React, { forwardRef, useCallback, useRef } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import {
   useBulmaClasses,
   BulmaClassesProps,
   validColors,
 } from '../helpers/useBulmaClasses';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useCheckboxesGroup } from './FormContext';
 
 /**
@@ -66,6 +67,17 @@ export interface CheckboxProps
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Whether the checkbox is disabled. */
   disabled?: boolean;
+  /**
+   * Shows the mixed state, as in a "Select all" box when some of what it
+   * covers is checked. It's a look and an announcement only: `checked` is
+   * still the value, and a click still toggles `checked`. A browser clears
+   * the mixed state on a click, so the component sets it again from this
+   * prop after every click and every render. Left unset, the component
+   * doesn't touch it, and once it has set it, going back to unset clears it
+   * once and hands it back. It has no HTML attribute, so server-rendered
+   * markup can't carry it, and a mixed box renders unmixed until hydration.
+   */
+  indeterminate?: boolean;
   /** Additional CSS classes to apply. */
   className?: string;
   /** The label/content for the checkbox. */
@@ -103,6 +115,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
       value,
       checked,
       defaultChecked,
+      indeterminate,
       onChange,
       ...props
     },
@@ -111,6 +124,36 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     const { bulmaHelperClasses, rest } = useBulmaClasses({
       color: textColor,
       ...props,
+    });
+
+    // The input's own ref, merged with the forwarded one. A callback ref's
+    // return value is handed back, so React 19 still runs a cleanup it
+    // returns, as it did when the ref went straight to the input.
+    const inputRef = useRef<HTMLInputElement | null>(null);
+    const setRefs = useCallback(
+      (node: HTMLInputElement | null) => {
+        inputRef.current = node;
+        if (typeof ref === 'function') return ref(node);
+        if (ref) ref.current = node;
+      },
+      [ref]
+    );
+
+    // `indeterminate` is a DOM property with no attribute, so it's set on the
+    // input rather than rendered. A click clears it, so this runs after every
+    // render, not only when the prop changes. Unset, it's left alone, so a
+    // ref that sets the property itself still works. `ownsIndeterminateRef`
+    // remembers that this component set it, so a prop that goes back to unset
+    // clears the dash once instead of leaving it on.
+    const ownsIndeterminateRef = useRef(false);
+    useClientLayoutEffect(() => {
+      if (indeterminate !== undefined) {
+        ownsIndeterminateRef.current = true;
+        inputRef.current!.indeterminate = indeterminate;
+      } else if (ownsIndeterminateRef.current) {
+        ownsIndeterminateRef.current = false;
+        inputRef.current!.indeterminate = false;
+      }
     });
 
     // Inherit name + selection state from a surrounding <Checkboxes> group.
@@ -131,6 +174,9 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
 
     const handleChange = useCallback(
       (e: React.ChangeEvent<HTMLInputElement>) => {
+        // The click that got here cleared the mixed state. Put it back now,
+        // since a click that changes no state renders nothing to do it.
+        if (indeterminate !== undefined) e.target.indeterminate = indeterminate;
         // Local onChange always fires.
         onChange?.(e);
         // Dispatch to the group additionally — toggle this value's
@@ -146,7 +192,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
           group.onChange(next);
         }
       },
-      [onChange, group, value]
+      [onChange, group, value, indeterminate]
     );
 
     const mainClass = usePrefixedClassNames('styled-checkbox', 'checkbox', {
@@ -160,7 +206,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     return (
       <label className={checkboxClass}>
         <input
-          ref={ref}
+          ref={setRefs}
           type="checkbox"
           disabled={disabled}
           name={effectiveName}

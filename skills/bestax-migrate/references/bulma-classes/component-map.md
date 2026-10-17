@@ -154,7 +154,10 @@ element is a `.menu-list`, a bestax `Menu.List`, or the bare `<ul>` nested in on
 so the `<li>`s a `.map()` renders count too. One handed to any other function doesn't, since that
 function could render it anywhere. `Menu.Item` renders the `<li>` and its `<a>`
 together, so an item converts when its `<li>` holds one `<a>` and at most one bare `<ul>` after
-it, which becomes a `Menu.List`. `is-active` on the `<a>` becomes `active`, and the `<li>`'s own
+it, which becomes a `Menu.List`. `is-active` on the `<a>` becomes `active` beside an
+`aria-current` of the `<a>`'s own, since `active` writes `aria-current="page"` otherwise; without
+one, the item stays markup with an `attr:aria-current` TODO. If the item is the current page, add
+`aria-current="page"` to the `<a>` and re-run. The `<li>`'s own
 classes stay in `className`, which `Menu.Item` puts on the `<li>`. It puts `id`, `title`, `role`,
 `tabIndex`, `style` and `data-testid` there too, and everything else on the `<a>`, so an item
 converts only when its attributes already sit that way. A `.menu-item` gets a
@@ -166,7 +169,7 @@ converts only when its attributes already sit that way. A `.menu-item` gets a
 ```tsx
 <ul className="menu-list">
   <li>
-    <a className="is-active" href="/team">Team</a>
+    <a className="is-active" href="/team" aria-current="page">Team</a>
     <ul>
       <li><a href="/team/members">Members</a></li>
     </ul>
@@ -174,7 +177,7 @@ converts only when its attributes already sit that way. A `.menu-item` gets a
 </ul>
 // becomes
 <Menu.List>
-  <Menu.Item active href="/team">
+  <Menu.Item active href="/team" aria-current="page">
     Team
     <Menu.List>
       <Menu.Item href="/team/members">Members</Menu.Item>

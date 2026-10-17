@@ -26,13 +26,8 @@ import {
 } from '../helpers/shadowDom';
 import { usePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
-
-/**
- * Every currently active modal, in the order they opened. Only the last entry
- * — the topmost modal — reacts to Escape and Tab, so one keypress can't
- * dismiss a whole stack (e.g. a `Dialog` opened on top of a `Modal`).
- */
-const activeModalStack: object[] = [];
+import { useLatestRef } from '../helpers/useLatestRef';
+import { useOverlayStack } from '../helpers/overlayStack';
 
 /**
  * Controls the modal can hand focus to. Disabled and hidden controls are
@@ -88,10 +83,13 @@ export interface ModalProps
   children?: React.ReactNode;
   /**
    * Close the modal when the Escape key is pressed (calls `onClose`). Only the
-   * topmost open modal responds, so Escape closes one layer at a time. A popup
-   * inside it, such as a Dropdown's menu or a date picker's calendar, takes
-   * its own Escape first, and so does content that calls `preventDefault()`
-   * on it.
+   * topmost open overlay responds, whichever Modal, Dialog, Sidebar or
+   * full-page Loading opened last, so Escape closes one layer at a time. The
+   * modal marks the Escape it closes on as used with `preventDefault()`, and
+   * a Toast waits until no overlay is open. Turned off, a modal on top still
+   * keeps Escape from the layers under it. A popup inside it, such as a
+   * Dropdown's menu or a date picker's calendar, takes its own Escape first,
+   * and so does content that calls `preventDefault()` on it.
    * @defaultValue true
    */
   closeOnEscape?: boolean;
@@ -417,8 +415,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   const consumerCleanupRef = useRef<(() => void) | null>(null);
 
   // The forwarded ref and the internal one must both see the node: focus
-  // management, the scroll lock and the topmost-modal check all read
-  // `modalRootRef`, while consumers expect their own ref to resolve.
+  // management and the Tab trap read `modalRootRef`, while consumers expect
+  // their own ref to resolve.
   const combinedRef = useCallback(
     (node: HTMLDivElement | null) => {
       (modalRootRef as React.MutableRefObject<HTMLDivElement | null>).current =
@@ -450,7 +448,6 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
     [ref]
   );
   const previouslyFocusedRef = useRef<HTMLElement | null>(null);
-  const stackTokenRef = useRef<object>({});
   const generatedTitleId = useId();
   // A portal has no server-rendered counterpart, so the server render and the
   // hydrating render have to stay inline and only move into the portal once
@@ -471,37 +468,33 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
   useScrollLock(isModalActive && lockScroll);
 
-  // Record open order so keyboard handling only applies to the topmost modal.
-  useEffect(() => {
-    if (!isModalActive) return undefined;
+  // Read when Escape arrives, so the key listener stays put while `onClose`
+  // changes identity, as an inline one does on every render of the parent.
+  const onCloseRef = useLatestRef(onClose);
 
-    const token = stackTokenRef.current;
-    activeModalStack.push(token);
-    return () => {
-      const index = activeModalStack.indexOf(token);
-      if (index !== -1) activeModalStack.splice(index, 1);
-    };
-  }, [isModalActive]);
+  // Joins the stack of open overlays, so the keyboard handling below only
+  // applies while this modal is the topmost overlay.
+  const isTopmost = useOverlayStack(isModalActive);
 
-  // Escape closes; Tab cycles inside the modal. Both only for the topmost one.
-  // The listener is on `window`, where a keydown arrives last, so everything
-  // inside the modal has had the key first: React's handlers, and `document`
-  // listeners added after this one, such as a date picker's.
+  // Escape closes; Tab cycles inside the modal. Both only for the topmost
+  // overlay. The listener is on `window`, where a keydown arrives last, so
+  // everything inside the modal has had the key first: React's handlers, and
+  // `document` listeners added after this one, such as a date picker's.
   useEffect(() => {
     if (!isModalActive) return undefined;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const node = modalRootRef.current;
-      if (
-        activeModalStack[activeModalStack.length - 1] !== stackTokenRef.current
-      ) {
-        return;
-      }
+      if (!isTopmost()) return;
 
       if (e.key === 'Escape') {
         // Something inside already used this Escape, such as a popup that
-        // closed on it, so the modal waits for the next one.
-        if (closeOnEscape && !e.defaultPrevented) onClose?.();
+        // closed on it, so the modal waits for the next one. One the modal
+        // closes on is marked used, so nothing under it acts on it as well.
+        if (closeOnEscape && onCloseRef.current && !e.defaultPrevented) {
+          e.preventDefault();
+          onCloseRef.current();
+        }
         return;
       }
       // A trap inside the modal, such as a portaled popup's, already moved
@@ -534,7 +527,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalActive, closeOnEscape, onClose]);
+  }, [isModalActive, closeOnEscape, onCloseRef, isTopmost]);
 
   // Move focus into the modal on open, restore it on close
   useEffect(() => {
