@@ -419,7 +419,7 @@ function example() {
 
 **Subcomponents:**
 
-- `Timeline.Item`: One event: a marker on the rail, then its title, its time and anything else about it. Outside a `Timeline` it renders the same, as a record item with an `h2` title.
+- `Timeline.Item`: One event: a marker on the rail, then its title, its time and anything else about it. Outside a `Timeline` it's a record item with an `h2` title, though the styles are registered on `.timeline`, so the rail and the marker need one.
 
 ### Timeline.Item
 
@@ -447,28 +447,29 @@ function example() {
 
 `Timeline` registers these variables on its own `.timeline` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                         | Sass Variable                 | Default                                     |
-| ------------------------------------ | ----------------------------- | ------------------------------------------- |
-| `--bulma-timeline-gap`               | `$timeline-gap`               | `1.5em`                                     |
-| `--bulma-timeline-content-gap`       | `$timeline-content-gap`       | `0.25em`                                    |
-| `--bulma-timeline-rail-size`         | `$timeline-rail-size`         | `2em`                                       |
-| `--bulma-timeline-rail-size-icon`    | `$timeline-rail-size-icon`    | `3em`                                       |
-| `--bulma-timeline-rail-center`       | —                             | `calc(var(--bulma-timeline-rail-size) / 2)` |
-| `--bulma-timeline-line-width`        | `$timeline-line-width`        | `max(2px, 0.125em)`                         |
-| `--bulma-timeline-line-color`        | `$timeline-line-color`        | `var(--bulma-border)`                       |
-| `--bulma-timeline-dot-size`          | `$timeline-dot-size`          | `0.75em`                                    |
-| `--bulma-timeline-marker-size`       | `$timeline-marker-size`       | `2em`                                       |
-| `--bulma-timeline-pending-size`      | `$timeline-pending-size`      | `1em`                                       |
-| `--bulma-timeline-neutral-color`     | `$timeline-neutral-color`     | `var(--bulma-border-hover)`                 |
-| `--bulma-timeline-marker-color`      | —                             | `var(--bulma-timeline-neutral-color)`       |
-| `--bulma-timeline-active-color`      | `$timeline-active-color`      | `var(--bulma-link)`                         |
-| `--bulma-timeline-marker-background` | `$timeline-marker-background` | `var(--bulma-background)`                   |
-| `--bulma-timeline-marker-icon-color` | `$timeline-marker-icon-color` | `var(--bulma-text-weak)`                    |
-| `--bulma-timeline-halo-offset`       | `$timeline-halo-offset`       | `0.1875em`                                  |
-| `--bulma-timeline-pending-duration`  | `$timeline-pending-duration`  | `1s`                                        |
-| `--bulma-timeline-title-color`       | `$timeline-title-color`       | `var(--bulma-text-strong)`                  |
-| `--bulma-timeline-title-weight`      | `$timeline-title-weight`      | `var(--bulma-weight-semibold)`              |
-| `--bulma-timeline-time-color`        | `$timeline-time-color`        | `var(--bulma-text-weak)`                    |
-| `--bulma-timeline-time-size`         | `$timeline-time-size`         | `0.875em`                                   |
+| CSS Variable                              | Sass Variable                      | Default                                     |
+| ----------------------------------------- | ---------------------------------- | ------------------------------------------- |
+| `--bulma-timeline-gap`                    | `$timeline-gap`                    | `1.5em`                                     |
+| `--bulma-timeline-content-gap`            | `$timeline-content-gap`            | `0.25em`                                    |
+| `--bulma-timeline-rail-size`              | `$timeline-rail-size`              | `2em`                                       |
+| `--bulma-timeline-rail-size-icon`         | `$timeline-rail-size-icon`         | `3em`                                       |
+| `--bulma-timeline-rail-center`            | —                                  | `calc(var(--bulma-timeline-rail-size) / 2)` |
+| `--bulma-timeline-line-width`             | `$timeline-line-width`             | `max(2px, 0.125em)`                         |
+| `--bulma-timeline-line-color`             | `$timeline-line-color`             | `var(--bulma-border)`                       |
+| `--bulma-timeline-dot-size`               | `$timeline-dot-size`               | `0.75em`                                    |
+| `--bulma-timeline-marker-size`            | `$timeline-marker-size`            | `2em`                                       |
+| `--bulma-timeline-pending-size`           | `$timeline-pending-size`           | `1em`                                       |
+| `--bulma-timeline-neutral-color`          | `$timeline-neutral-color`          | `var(--bulma-border-hover)`                 |
+| `--bulma-timeline-marker-color`           | —                                  | `var(--bulma-timeline-neutral-color)`       |
+| `--bulma-timeline-active-color`           | `$timeline-active-color`           | `var(--bulma-link)`                         |
+| `--bulma-timeline-marker-background`      | `$timeline-marker-background`      | `var(--bulma-scheme-main)`                  |
+| `--bulma-timeline-marker-icon-background` | `$timeline-marker-icon-background` | `var(--bulma-background)`                   |
+| `--bulma-timeline-marker-icon-color`      | `$timeline-marker-icon-color`      | `var(--bulma-text-weak)`                    |
+| `--bulma-timeline-halo-offset`            | `$timeline-halo-offset`            | `0.1875em`                                  |
+| `--bulma-timeline-pending-duration`       | `$timeline-pending-duration`       | `1s`                                        |
+| `--bulma-timeline-title-color`            | `$timeline-title-color`            | `var(--bulma-text-strong)`                  |
+| `--bulma-timeline-title-weight`           | `$timeline-title-weight`           | `var(--bulma-weight-semibold)`              |
+| `--bulma-timeline-time-color`             | `$timeline-time-color`             | `var(--bulma-text-weak)`                    |
+| `--bulma-timeline-time-size`              | `$timeline-time-size`              | `0.875em`                                   |
 
 <!-- /bestax:generated cssvars -->

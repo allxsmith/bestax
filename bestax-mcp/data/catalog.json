@@ -2509,6 +2509,7 @@
     "--bulma-timeline-line-width": ["Timeline"],
     "--bulma-timeline-marker-background": ["Timeline"],
     "--bulma-timeline-marker-color": ["Timeline"],
+    "--bulma-timeline-marker-icon-background": ["Timeline"],
     "--bulma-timeline-marker-icon-color": ["Timeline"],
     "--bulma-timeline-marker-size": ["Timeline"],
     "--bulma-timeline-neutral-color": ["Timeline"],

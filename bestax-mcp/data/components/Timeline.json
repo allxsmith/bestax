@@ -186,7 +186,7 @@
     },
     {
       "path": "Timeline.Item",
-      "summary": "One event: a marker on the rail, then its title, its time and anything else about it. Outside a `Timeline` it renders the same, as a record item with an `h2` title.",
+      "summary": "One event: a marker on the rail, then its title, its time and anything else about it. Outside a `Timeline` it's a record item with an `h2` title, though the styles are registered on `.timeline`, so the rail and the marker need one.",
       "component": null,
       "props": [
         {
@@ -370,6 +370,12 @@
     {
       "css": "--bulma-timeline-marker-background",
       "sass": "$timeline-marker-background",
+      "default": "var(--bulma-scheme-main)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-marker-icon-background",
+      "sass": "$timeline-marker-icon-background",
       "default": "var(--bulma-background)",
       "scope": "root"
     },
