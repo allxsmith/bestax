@@ -196,6 +196,10 @@ function example() {
 - `Menu.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.
+- In forced colors (Windows' contrast themes), the browser replaces Bulma's fill and text color
+  for the active item along with every other color, so bestax's stylesheet gives an
+  `is-active` or `is-selected` item the system's selection colors there instead. That rule
+  ships in `bestax.css` and `extras.css`, not in Bulma's own stylesheet.
 
 :::note
 For router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.

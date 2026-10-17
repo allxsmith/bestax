@@ -1,0 +1,32 @@
+// Bestax Extras - Menu Styles
+// Bulma draws a menu's active item with a fill and a text color and nothing
+// else, and forced colors (Windows' contrast themes) replaces both, so the
+// active item looks like every other item there. This hands it the system's
+// own selection pair instead, which the user's theme picks, so it stands out
+// in a light contrast theme and a dark one alike. Outside forced colors it
+// changes nothing.
+//
+// It reads the classes Bulma highlights, on the elements Bulma styles as
+// items, so a hand-written `.is-active` link gets it too.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}menu-list {
+    a,
+    button,
+    .#{iv.$class-prefix}menu-item {
+      &.#{iv.$class-prefix}is-active,
+      &.#{iv.$class-prefix}is-selected {
+        // Left on, the browser paints its text backplate in Canvas behind
+        // the item's text, and HighlightText on Canvas can't be read.
+        forced-color-adjust: none;
+        background-color: Highlight;
+        color: HighlightText;
+        // Turned off, it no longer picks the focus ring's color either, and
+        // Bulma's would show, so the ring takes the theme's text color.
+        outline-color: CanvasText;
+      }
+    }
+  }
+}
