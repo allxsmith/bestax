@@ -281,7 +281,8 @@ In a right-to-left page the steps run from the right, and the lines and the labe
 ## Accessibility
 
 - The active step has `aria-current="step"`, on its list item, or on its button when it's clickable
-- A clickable step stays a list item and puts its marker and label in a `<button type="button">` inside it, so the list keeps its items and a screen reader still hears how many steps there are. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click
+- A clickable step stays a list item and puts its marker and label in a `<button type="button">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click
+- The list has `role="list"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out
 - Use descriptive labels for each step
 - The step markers show completion state with checkmarks
 - In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color

@@ -787,6 +787,27 @@ describe('Steps', () => {
       ).toBeInTheDocument();
     });
 
+    it('gives its list role="list", which Safari needs once the markers are hidden', () => {
+      const { container } = render(
+        <Steps
+          role="region"
+          aria-label="Checkout"
+          items={[{ label: 'Step 1' }, { label: 'Step 2' }]}
+        />
+      );
+      const list = container.querySelector('ul.steps-list');
+      expect(list).toHaveAttribute('role', 'list');
+      expect(screen.getByRole('list')).toBe(list);
+      // A role given to Steps lands on its wrapper and leaves the list's be.
+      expect(container.querySelector('.steps')).toHaveAttribute(
+        'role',
+        'region'
+      );
+      expect(
+        within(screen.getByRole('list')).getAllByRole('listitem')
+      ).toHaveLength(2);
+    });
+
     it('active step has aria-current="step"', () => {
       const { container } = render(
         <Steps value={0} items={[{ label: 'Step 1' }]} />

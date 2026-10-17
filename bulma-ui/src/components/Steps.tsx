@@ -330,9 +330,14 @@ const StepsComponent: React.FC<StepsProps> = ({
     return null;
   };
 
+  // role="list" restates the <ul>'s own role, for Safari: WebKit stops
+  // exposing a list as one once its markers are hidden, as they are here,
+  // unless the role is set explicitly.
   return (
     <div className={combinedClasses} {...rest}>
-      <ul className={listClasses}>{renderSteps()}</ul>
+      <ul className={listClasses} role="list">
+        {renderSteps()}
+      </ul>
       {hasNavigation && (
         <div className={stepsNavigationClass}>
           <button
