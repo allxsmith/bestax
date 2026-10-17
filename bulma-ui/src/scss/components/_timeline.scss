@@ -1,0 +1,369 @@
+// Bestax Extras - Timeline Styles
+// A list of events with a marker each on a line down the side. Bulma v1 has
+// no timeline, so this is all that draws one. The class names are the ones
+// the old `bulma-timeline` extension used, where they mean the same thing.
+//
+// Every line, dot, ring and halo is a border or an outline, because forced
+// colors keeps those and replaces background colors with the page's own.
+// Logical properties throughout, so a right-to-left page needs no rules of its
+// own. Everything is in em, so `textSize` on the list scales the text, the
+// markers, the rail and the gaps together.
+//
+// The markers and the line sit on the middle of each item's first line,
+// which is half the title's 1.5 line height: 0.75em.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "bulma/sass/utilities/mixins" as mx;
+
+$timeline-gap: 1.5em !default;
+$timeline-content-gap: 0.25em !default;
+$timeline-rail-size: 2em !default;
+$timeline-rail-size-icon: 3em !default;
+// Floored in px, so a small timeline keeps a line a screen can draw.
+$timeline-line-width: max(2px, 0.125em) !default;
+$timeline-line-color: cv.getVar("border") !default;
+$timeline-dot-size: 0.75em !default;
+$timeline-marker-size: 2em !default;
+// Bulma's loader is 1em across.
+$timeline-pending-size: 1em !default;
+$timeline-neutral-color: cv.getVar("border-hover") !default;
+$timeline-active-color: cv.getVar("link") !default;
+// The fill behind a ring, the loader and an icon, so the line doesn't show
+// through them: the page's own color.
+$timeline-marker-background: cv.getVar("scheme-main") !default;
+// An icon marker's circle in a record, and the icon in it.
+$timeline-marker-icon-background: cv.getVar("background") !default;
+$timeline-marker-icon-color: cv.getVar("text-weak") !default;
+$timeline-halo-offset: 0.1875em !default;
+$timeline-pending-duration: 1s !default;
+$timeline-title-color: cv.getVar("text-strong") !default;
+$timeline-title-weight: cv.getVar("weight-semibold") !default;
+$timeline-time-color: cv.getVar("text-weak") !default;
+$timeline-time-size: 0.875em !default;
+
+.#{iv.$class-prefix}timeline {
+  @include cv.register-vars(
+    (
+      "timeline-gap": #{$timeline-gap},
+      "timeline-content-gap": #{$timeline-content-gap},
+      "timeline-rail-size": #{$timeline-rail-size},
+      "timeline-rail-size-icon": #{$timeline-rail-size-icon},
+      // Where the middle of the rail is, measured from the start of each
+      // item. The layouts set it, so it's not one to theme.
+      "timeline-rail-center": calc(#{cv.getVar("timeline-rail-size")} / 2),
+      "timeline-line-width": #{$timeline-line-width},
+      "timeline-line-color": #{$timeline-line-color},
+      "timeline-dot-size": #{$timeline-dot-size},
+      "timeline-marker-size": #{$timeline-marker-size},
+      "timeline-pending-size": #{$timeline-pending-size},
+      "timeline-neutral-color": #{$timeline-neutral-color},
+      // The color a marker is drawn in. The states and the color classes set it.
+      "timeline-marker-color": #{cv.getVar("timeline-neutral-color")},
+      "timeline-active-color": #{$timeline-active-color},
+      "timeline-marker-background": #{$timeline-marker-background},
+      "timeline-marker-icon-background": #{$timeline-marker-icon-background},
+      "timeline-marker-icon-color": #{$timeline-marker-icon-color},
+      "timeline-halo-offset": #{$timeline-halo-offset},
+      "timeline-pending-duration": #{$timeline-pending-duration},
+      "timeline-title-color": #{$timeline-title-color},
+      "timeline-title-weight": #{$timeline-title-weight},
+      "timeline-time-color": #{$timeline-time-color},
+      "timeline-time-size": #{$timeline-time-size},
+    )
+  );
+}
+
+// ---- Structure: `start`, the rail at the start of the line -----------------
+
+.#{iv.$class-prefix}timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &:not(:last-child) {
+    margin-bottom: cv.getVar("block-spacing");
+  }
+
+  // One icon marker widens the rail for every item, so the text lines up.
+  &:has(> .#{iv.$class-prefix}timeline-item > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon) {
+    @include cv.register-vars(
+      (
+        "timeline-rail-size": #{cv.getVar("timeline-rail-size-icon")},
+      )
+    );
+  }
+}
+
+.#{iv.$class-prefix}timeline-item {
+  padding-inline-start: cv.getVar("timeline-rail-size");
+  position: relative;
+
+  &:not(:last-child) {
+    padding-bottom: cv.getVar("timeline-gap");
+  }
+
+  // The line, from the middle of this marker to the middle of the next one,
+  // behind both. The last item has none.
+  &:not(:last-child)::before {
+    border-inline-start: cv.getVar("timeline-line-width") solid cv.getVar("timeline-line-color");
+    bottom: -0.75em;
+    content: "";
+    inset-inline-start: calc(#{cv.getVar("timeline-rail-center")} - #{cv.getVar("timeline-line-width")} / 2);
+    position: absolute;
+    top: 0.75em;
+  }
+}
+
+// A dot is a box with a border half its width, so it stays a solid dot in
+// forced colors.
+.#{iv.$class-prefix}timeline-marker {
+  align-items: center;
+  border: calc(#{cv.getVar("timeline-dot-size")} / 2) solid cv.getVar("timeline-marker-color");
+  border-radius: cv.getVar("radius-rounded");
+  display: flex;
+  height: cv.getVar("timeline-dot-size");
+  inset-inline-start: calc(#{cv.getVar("timeline-rail-center")} - #{cv.getVar("timeline-dot-size")} / 2);
+  justify-content: center;
+  position: absolute;
+  top: calc(0.75em - #{cv.getVar("timeline-dot-size")} / 2);
+  width: cv.getVar("timeline-dot-size");
+  z-index: 1;
+
+  // An icon in a circle, its fill over the line.
+  &.#{iv.$class-prefix}is-icon {
+    background-color: cv.getVar("timeline-marker-icon-background");
+    border-width: cv.getVar("timeline-line-width");
+    color: cv.getVar("timeline-marker-icon-color");
+    height: cv.getVar("timeline-marker-size");
+    inset-inline-start: calc(#{cv.getVar("timeline-rail-center")} - #{cv.getVar("timeline-marker-size")} / 2);
+    top: calc(0.75em - #{cv.getVar("timeline-marker-size")} / 2);
+    width: cv.getVar("timeline-marker-size");
+
+    // An Icon's box is 1.5rem whatever the glyph is, so it's sized to the
+    // glyph here, and a bare SVG or image is drawn at it too.
+    > .#{iv.$class-prefix}icon,
+    > svg,
+    > img {
+      height: 1em;
+      width: 1em;
+    }
+  }
+}
+
+.#{iv.$class-prefix}timeline-content {
+  display: flex;
+  flex-direction: column;
+  gap: cv.getVar("timeline-content-gap");
+}
+
+.#{iv.$class-prefix}timeline-title {
+  color: cv.getVar("timeline-title-color");
+  font-size: 1em;
+  font-weight: cv.getVar("timeline-title-weight");
+  line-height: 1.5;
+  margin: 0;
+}
+
+.#{iv.$class-prefix}timeline-time {
+  color: cv.getVar("timeline-time-color");
+  display: block;
+  font-size: cv.getVar("timeline-time-size");
+}
+
+// A Notification sets its own text color, and the scheme's text colors don't
+// read on a colored one, so the title and the time take the Notification's,
+// the way Bulma's own titles do there.
+.#{iv.$class-prefix}notification .#{iv.$class-prefix}timeline-title,
+.#{iv.$class-prefix}notification .#{iv.$class-prefix}timeline-time {
+  color: currentColor;
+}
+
+// ---- `end`: the rail at the end of the line ---------------------------------
+
+.#{iv.$class-prefix}timeline.#{iv.$class-prefix}is-end {
+  @include cv.register-vars(
+    (
+      "timeline-rail-center": calc(100% - #{cv.getVar("timeline-rail-size")} / 2),
+    )
+  );
+
+  text-align: end;
+
+  > .#{iv.$class-prefix}timeline-item {
+    padding-inline-end: cv.getVar("timeline-rail-size");
+    padding-inline-start: 0;
+
+    > .#{iv.$class-prefix}timeline-content {
+      align-items: flex-end;
+    }
+  }
+}
+
+// ---- `alternate`: the rail down the middle, the items taking turns ---------
+// From Bulma's tablet breakpoint up. Below it, it's `start`, so a phone gets
+// one column. No item moves up or down: they only move sideways, so the
+// reading order is the order on screen.
+
+@include mx.tablet {
+  .#{iv.$class-prefix}timeline.#{iv.$class-prefix}is-alternate {
+    @include cv.register-vars(
+      (
+        "timeline-rail-center": 50%,
+      )
+    );
+
+    // The first item, and every other one after it, goes on the end side,
+    // with its time across the rail on the start side.
+    > .#{iv.$class-prefix}timeline-item {
+      padding-inline-start: calc(50% + #{cv.getVar("timeline-rail-size")} / 2);
+
+      // Level with the title: a line box the title's 1.5em tall, in the
+      // time's own smaller em.
+      > .#{iv.$class-prefix}timeline-content > .#{iv.$class-prefix}timeline-time {
+        inset-inline-end: calc(50% + #{cv.getVar("timeline-rail-size")} / 2);
+        line-height: calc(1.5em / 0.875);
+        max-width: calc(50% - #{cv.getVar("timeline-rail-size")} / 2);
+        position: absolute;
+        text-align: end;
+        top: 0;
+      }
+
+      &:nth-child(even) {
+        padding-inline-end: calc(50% + #{cv.getVar("timeline-rail-size")} / 2);
+        padding-inline-start: 0;
+        text-align: end;
+
+        > .#{iv.$class-prefix}timeline-content {
+          align-items: flex-end;
+        }
+
+        > .#{iv.$class-prefix}timeline-content > .#{iv.$class-prefix}timeline-time {
+          inset-inline-end: auto;
+          inset-inline-start: calc(50% + #{cv.getVar("timeline-rail-size")} / 2);
+          text-align: start;
+        }
+      }
+    }
+  }
+}
+
+// ---- Progress: completed, current, upcoming, pending -----------------------
+
+.#{iv.$class-prefix}timeline-item {
+  &.#{iv.$class-prefix}is-completed,
+  &.#{iv.$class-prefix}is-active,
+  &.#{iv.$class-prefix}is-pending {
+    @include cv.register-vars(
+      (
+        "timeline-marker-color": #{cv.getVar("timeline-active-color")},
+      )
+    );
+  }
+
+  &.#{iv.$class-prefix}is-upcoming {
+    @include cv.register-vars(
+      (
+        "timeline-marker-color": #{cv.getVar("timeline-neutral-color")},
+      )
+    );
+  }
+
+  // The line is filled up to the current item.
+  &.#{iv.$class-prefix}is-completed::before {
+    border-inline-start-color: cv.getVar("timeline-active-color");
+  }
+
+  // The line into the pending item is dashed: a shape, not just a color.
+  &:has(+ .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending)::before {
+    border-inline-start-style: dashed;
+  }
+}
+
+// Upcoming: an empty ring, not a dot.
+.#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-upcoming > .#{iv.$class-prefix}timeline-marker {
+  background-color: cv.getVar("timeline-marker-background");
+  border-width: cv.getVar("timeline-line-width");
+
+  &.#{iv.$class-prefix}is-icon {
+    color: cv.getVar("text-weak");
+  }
+}
+
+// A reached icon marker is tinted with the progress color, the way the dots
+// are filled with it.
+.#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-completed > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon,
+.#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon {
+  background-color: color-mix(in srgb, #{cv.getVar("timeline-active-color")} 15%, #{cv.getVar("timeline-marker-background")});
+  color: cv.getVar("timeline-active-color");
+}
+
+// Current: the dot with a halo around it, drawn as an outline.
+.#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}timeline-marker {
+  outline: cv.getVar("timeline-line-width") solid cv.getVar("timeline-marker-color");
+  outline-offset: cv.getVar("timeline-halo-offset");
+}
+
+// Pending: Bulma's loader, a ring with two sides open, turning. The open
+// shape is the cue, so it still reads when it stands still. It turns on its
+// own keyframes, as the other extras do, since Bulma's `spinAround` lives in
+// its base, which `extras.css` and a modular build may leave out.
+.#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
+  animation: #{iv.$class-prefix}timeline-spin cv.getVar("timeline-pending-duration") infinite linear;
+  background-color: cv.getVar("timeline-marker-background");
+  border-inline-end-color: transparent;
+  border-top-color: transparent;
+  border-width: cv.getVar("timeline-line-width");
+  height: cv.getVar("timeline-pending-size");
+  inset-inline-start: calc(#{cv.getVar("timeline-rail-center")} - #{cv.getVar("timeline-pending-size")} / 2);
+  top: calc(0.75em - #{cv.getVar("timeline-pending-size")} / 2);
+  width: cv.getVar("timeline-pending-size");
+}
+
+@keyframes #{iv.$class-prefix}timeline-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
+    animation: none;
+  }
+}
+
+// Forced colors paints a `transparent` border in the text color, which would
+// close the ring into an upcoming one. The page's own color keeps the two
+// sides open.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
+    border-inline-end-color: Canvas;
+    border-top-color: Canvas;
+  }
+}
+
+// ---- Colors, after the states, so an item's own color wins -----------------
+
+@each $name in "primary", "link", "info", "success", "warning", "danger" {
+  .#{iv.$class-prefix}timeline.#{iv.$class-prefix}is-#{$name},
+  .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-#{$name} {
+    @include cv.register-vars(
+      (
+        "timeline-marker-color": #{cv.getVar($name)},
+        "timeline-active-color": #{cv.getVar($name)},
+        "timeline-marker-icon-background":
+          hsl(
+            #{cv.getVar($name, "", "-h")},
+            #{cv.getVar($name, "", "-s")},
+            #{cv.getVar("soft-l")}
+          ),
+        "timeline-marker-icon-color":
+          hsl(
+            #{cv.getVar($name, "", "-h")},
+            #{cv.getVar($name, "", "-s")},
+            #{cv.getVar("soft-invert-l")}
+          ),
+      )
+    );
+  }
+}

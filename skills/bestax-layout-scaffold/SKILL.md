@@ -97,6 +97,14 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   "Clear search" put focus back in the field. While data loads show a `Skeleton` or a `Loader`,
   and a failed load is a `Message` or a `Notification`, never an EmptyState. The archetypes
   reference has the full pattern under Card grid.
+- **An order's history, a ticket's activity, a changelog or an activity feed is `Timeline`**,
+  not a hand-built list with a border down the side: `<Timeline titleAs="h3">` with a
+  `<Timeline.Item title="Shipped" time="14 October 2026" dateTime="2026-10-14">` per event, any
+  detail as its children, and the whole date in `time`. `titleAs` is the level under the
+  section's heading, or `"p"` in a busy feed. For something that moves along on its own, like a
+  parcel or a deployment, `active={i}` marks progress and `pending="Out for delivery"` ends it on
+  what's under way, oldest first. A journey the user moves through, like a wizard or a checkout,
+  stays `Steps`.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.

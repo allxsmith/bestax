@@ -141,6 +141,22 @@ function StepsExample() {
 
 ---
 
+### Timeline
+
+A list of events in the order they happened, each with a marker on a line down the side: an order's history, a ticket's activity or a changelog, or with `active`, something moving along on its own, with each state read out as words. [View full documentation.](../../api/components/timeline.md)
+
+```tsx live
+<Timeline titleAs="h3" active={2} pending="Out for delivery">
+  <Timeline.Item title="Order placed" time="12 October" dateTime="2026-10-12" />
+  <Timeline.Item title="Packed" time="13 October" dateTime="2026-10-13" />
+  <Timeline.Item title="Shipped" time="14 October" dateTime="2026-10-14">
+    Left the warehouse in Leeds.
+  </Timeline.Item>
+</Timeline>
+```
+
+---
+
 ### Pagination
 
 A flexible, composable pagination navigation for lists or multi-page content. [View full documentation.](../../api/components/pagination.md)

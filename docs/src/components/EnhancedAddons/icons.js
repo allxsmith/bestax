@@ -171,6 +171,19 @@ function StepsIcon() {
   );
 }
 
+// Dots on a line down the side, each with a line of text beside it
+function TimelineIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M6 7v10" />
+      <circle cx="6" cy="5" r="2" />
+      <circle cx="6" cy="12" r="2" />
+      <circle cx="6" cy="19" r="2" />
+      <path d="M11 5h9M11 12h7M11 19h8" />
+    </svg>
+  );
+}
+
 // Bell — toast notifications
 function ToastIcon() {
   return (
@@ -208,6 +221,7 @@ const ADDON_ICONS = {
   reveal: RevealIcon,
   sidebar: SidebarIcon,
   steps: StepsIcon,
+  timeline: TimelineIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
 };

@@ -97,6 +97,12 @@ const ADDONS = [
     desc: 'Multi-step progress for wizards and checkouts.',
   },
   {
+    name: 'Timeline',
+    icon: 'timeline',
+    link: '/docs/api/components/timeline',
+    desc: 'Events in the order they happened, or progress that is read out as words.',
+  },
+  {
     name: 'Toast',
     icon: 'toast',
     link: '/docs/api/components/toast',
