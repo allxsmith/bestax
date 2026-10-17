@@ -1,0 +1,31 @@
+// Bestax Extras - Menu Styles
+// Bulma draws a menu's active item with a fill and a text color and nothing
+// else, and forced colors (Windows' contrast themes) replaces both, so the
+// active item looks like every other item there. This marks it with a bar in
+// the system's Highlight color along its start edge instead. Outside forced
+// colors it changes nothing.
+//
+// It's a border, like the other partials' forced-colors rules, so the
+// browser keeps adjusting everything else: the item's text, and an icon or a
+// tag inside it, stay in the user's palette. A Highlight fill would need
+// `forced-color-adjust: none` to keep its text readable, and that reaches the
+// whole subtree, leaving a colored icon or tag in its author colors on the
+// fill. The bar also leaves the focus ring alone, which an outline wouldn't.
+//
+// It reads the classes Bulma highlights, on the elements Bulma styles as
+// items, so a hand-written `.is-active` link gets it too.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}menu-list {
+    a,
+    button,
+    .#{iv.$class-prefix}menu-item {
+      &.#{iv.$class-prefix}is-active,
+      &.#{iv.$class-prefix}is-selected {
+        border-inline-start: 0.25em solid Highlight;
+      }
+    }
+  }
+}
