@@ -165,8 +165,8 @@ export interface TimelineItemProps
 /**
  * One event: a marker on the rail, then its title, its time and anything else about it.
  *
- * Outside a `Timeline` it renders the same, as a record item with an `h2`
- * title.
+ * Outside a `Timeline` it's a record item with an `h2` title, though the
+ * styles are registered on `.timeline`, so the rail and the marker need one.
  *
  * @function
  * @param {TimelineItemProps} props - Props for Timeline.Item.

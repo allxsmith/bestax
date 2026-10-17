@@ -198,7 +198,7 @@ describe('Timeline', () => {
       );
     });
 
-    it('renders outside a Timeline the same, as a record item with an h2 title', () => {
+    it('renders outside a Timeline as a record item with an h2 title', () => {
       const { container } = render(
         <ol>
           <TimelineItem title="Alone" time="Today" />
