@@ -169,6 +169,15 @@ test-app-*/
 create-bestax/e2e/test-results/
 create-bestax/e2e/playwright-report/
 
+# The template projects carry no lockfile: StackBlitz installs each one fresh
+# from its package.json, so a lockfile written by a local npm or pnpm install
+# while porting stays out of the commit (templates/CLAUDE.md).
+templates/*/package-lock.json
+templates/*/pnpm-lock.yaml
+templates/*/yarn.lock
+templates/*/bun.lock
+templates/*/bun.lockb
+
 # Written only by the pack-manifest resolver deleted in #436. Kept so a stale
 # backup left on disk by a pre-#436 checkout cannot be committed by a `git add
 # -A` after rebasing. Safe to drop once no working copy predates that change.
