@@ -304,11 +304,12 @@ $timeline-time-size: 0.875em !default;
   outline-offset: cv.getVar("timeline-halo-offset");
 }
 
-// Pending: Bulma's loader, a ring with two sides open, turning on Bulma's
-// `spinAround`. The open shape is the cue, so it still reads when it stands
-// still.
+// Pending: Bulma's loader, a ring with two sides open, turning. The open
+// shape is the cue, so it still reads when it stands still. It turns on its
+// own keyframes, as the other extras do, since Bulma's `spinAround` lives in
+// its base, which `extras.css` and a modular build may leave out.
 .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
-  animation: spinAround cv.getVar("timeline-pending-duration") infinite linear;
+  animation: #{iv.$class-prefix}timeline-spin cv.getVar("timeline-pending-duration") infinite linear;
   background-color: cv.getVar("timeline-marker-background");
   border-inline-end-color: transparent;
   border-top-color: transparent;
@@ -317,6 +318,12 @@ $timeline-time-size: 0.875em !default;
   inset-inline-start: calc(#{cv.getVar("timeline-rail-center")} - #{cv.getVar("timeline-pending-size")} / 2);
   top: calc(0.75em - #{cv.getVar("timeline-pending-size")} / 2);
   width: cv.getVar("timeline-pending-size");
+}
+
+@keyframes #{iv.$class-prefix}timeline-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

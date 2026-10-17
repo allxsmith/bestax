@@ -268,11 +268,37 @@ describe.each([
   it('draws the pending marker as Bulma’s loader, a ring with two sides open', () => {
     const ring = declarations(compile(prefix), pending);
     expect(ring.animation).toBe(
-      'spinAround var(--bulma-timeline-pending-duration) infinite linear'
+      `${prefix}timeline-spin var(--bulma-timeline-pending-duration) infinite linear`
     );
     expect(ring['border-top-color']).toBe('transparent');
     expect(ring['border-inline-end-color']).toBe('transparent');
     expect(ring['border-width']).toBe('var(--bulma-timeline-line-width)');
+  });
+
+  it('turns the pending ring on keyframes of its own, so it needs no Bulma base', () => {
+    // Bulma's `spinAround` is in its base, which `extras.css` and a modular
+    // build can leave out, and an animation naming keyframes that aren't
+    // there just doesn't run. The partial defines the ones it names.
+    const sheet = document.createElement('style');
+    sheet.textContent = compile(prefix).replace(/@charset "UTF-8";/g, '');
+    document.head.appendChild(sheet);
+    try {
+      // jsdom has no CSSKeyframesRule global to test against, so the
+      // rule's own text says what it is.
+      const keyframes = Array.from(
+        (sheet.sheet as CSSStyleSheet).cssRules
+      ).filter(rule =>
+        rule.cssText.startsWith('@keyframes')
+      ) as CSSKeyframesRule[];
+      expect(keyframes.map(rule => rule.name)).toEqual([
+        `${prefix}timeline-spin`,
+      ]);
+      expect(
+        Array.from(keyframes[0].cssRules).map(frame => frame.cssText)
+      ).toEqual([expect.stringMatching(/transform: rotate\(360deg\)/)]);
+    } finally {
+      sheet.remove();
+    }
   });
 
   it('fills the rings, the loader and a reached icon from --bulma-timeline-marker-background', () => {
