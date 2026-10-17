@@ -44,7 +44,12 @@ interface IconBaseProps
   className?: string;
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
-  /** Bulma color modifier for the icon. */
+  /**
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.icon.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
+   */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
@@ -280,7 +285,7 @@ export const Icon: React.FC<IconProps> = ({
   ariaLabel,
   style,
   icon, // Capture and exclude the deprecated 'icon' prop from DOM
-  color: _color, // Exclude 'color' prop if passed directly
+  color,
   containerClassName,
   children,
   ...restProps
@@ -293,7 +298,7 @@ export const Icon: React.FC<IconProps> = ({
    * Note: variant, features, and libraryFeatures are excluded from props spread
    */
   const { bulmaHelperClasses, rest } = useBulmaClasses({
-    color: textColor,
+    color: textColor ?? color,
     backgroundColor: bgColor,
     ...restProps,
   });
