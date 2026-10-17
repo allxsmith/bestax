@@ -244,7 +244,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 - `Menu.Label`: Bulma Menu label component.
 - `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists).
-- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
+- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
 
 ### Menu.Label
 
