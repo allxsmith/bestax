@@ -1,7 +1,11 @@
 import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Autocomplete, AutocompleteItem } from '../Autocomplete';
+import {
+  Autocomplete,
+  AutocompleteItem,
+  AutocompleteProps,
+} from '../Autocomplete';
 import { Field } from '../Field';
 import { Control } from '../Control';
 import {
@@ -1556,22 +1560,22 @@ describe('Autocomplete', () => {
       expect(() => fireEvent.scroll(dropdown)).not.toThrow();
     });
 
-    it('returns early in handleSelect when item is disabled (via Enter w/ keepFirst)', () => {
+    it('returns early in handleSelect when item is disabled (via Tab w/ keepFirst)', () => {
       const onSelect = jest.fn();
       const data = [
         { value: 'a', label: 'Apple', disabled: true },
         { value: 'b', label: 'Banana' },
       ];
       // keepFirst highlights index 0 even though it's disabled.
-      // Pressing Enter calls handleSelect with the disabled item.
+      // Pressing Tab calls handleSelect with the disabled item.
       render(
         <Autocomplete data={data} field="label" keepFirst onSelect={onSelect} />
       );
       const input = screen.getByRole('combobox');
 
       fireEvent.change(input, { target: { value: 'a' } });
-      // First item (disabled) is highlighted via keepFirst. Press Enter.
-      fireEvent.keyDown(input, { key: 'Enter' });
+      // First item (disabled) is highlighted via keepFirst. Press Tab.
+      fireEvent.keyDown(input, { key: 'Tab' });
 
       // handleSelect returned early -> onSelect not called
       expect(onSelect).not.toHaveBeenCalled();
@@ -2008,5 +2012,247 @@ describe('Autocomplete announces when nothing matches (#1066)', () => {
 
     expect(status).toBeEmptyDOMElement();
     expect(screen.getAllByText('No results')).toEqual([shown]);
+  });
+});
+
+describe('Autocomplete keeps focus in the field on a click (#1078)', () => {
+  it('cancels the press on an option, so the option takes no focus', () => {
+    render(<Autocomplete data={fruits} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'a' } });
+
+    // fireEvent returns false when a handler called preventDefault().
+    const option = screen.getByRole('option', { name: 'Banana' });
+    expect(fireEvent.mouseDown(option)).toBe(false);
+  });
+
+  it('leaves focus in the field after a click picks an option', async () => {
+    const user = userEvent.setup();
+    render(<Autocomplete data={fruits} />);
+    const input = screen.getByRole('combobox');
+
+    await user.type(input, 'a');
+    await user.click(screen.getByRole('option', { name: 'Banana' }));
+
+    expect(input).toHaveValue('Banana');
+    expect(input).toHaveFocus();
+  });
+
+  it('cancels a press on the empty message too', () => {
+    render(<Autocomplete data={fruits} empty="No results found" />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'xyz' } });
+
+    expect(fireEvent.mouseDown(screen.getByText('No results found'))).toBe(
+      false
+    );
+  });
+});
+
+describe('Enter submits the form around an Autocomplete unless it picks (#1079)', () => {
+  // user-event submits the form on an Enter that nothing prevented, the way
+  // a browser does from a text field.
+  const renderInForm = (props: Partial<AutocompleteProps> = {}) => {
+    const onSubmit = jest.fn((e: React.FormEvent) => e.preventDefault());
+    const onSelect = jest.fn();
+    render(
+      <form onSubmit={onSubmit}>
+        <Autocomplete
+          name="fruit"
+          data={fruits}
+          onSelect={onSelect}
+          {...props}
+        />
+        <button type="submit">Send</button>
+      </form>
+    );
+    return { input: screen.getByRole('combobox'), onSubmit, onSelect };
+  };
+
+  it('submits with the list closed', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit } = renderInForm();
+
+    // Nothing matches, so no list shows.
+    await user.type(input, 'xyz');
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+  });
+
+  it('closes the list and submits with nothing highlighted', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm();
+
+    await user.type(input, 'ap');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+
+  it('picks the highlighted option without submitting', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm();
+
+    await user.type(input, 'ap');
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(onSelect).toHaveBeenCalledWith('Apple');
+    expect(input).toHaveValue('Apple');
+    expect(onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('submits rather than picks once the list has closed on a highlight', async () => {
+    const user = userEvent.setup();
+    const { input, onSubmit, onSelect } = renderInForm({ keepFirst: true });
+
+    // keepFirst highlights "Apple", and a click away closes the list on it.
+    await user.type(input, 'ap');
+    await user.click(document.body);
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+
+  it('submits when the highlighted option is disabled', async () => {
+    const user = userEvent.setup();
+    // keepFirst pins the highlight to the first match, which can't be picked.
+    const { input, onSubmit, onSelect } = renderInForm({
+      keepFirst: true,
+      data: [
+        { value: 'apple', label: 'Apple', disabled: true },
+        { value: 'avocado', label: 'Avocado' },
+      ],
+    });
+
+    await user.type(input, 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    await user.keyboard('{Enter}');
+
+    expect(onSubmit).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+  });
+
+  it('leaves a Tab alone once the list has closed on a highlight', async () => {
+    const user = userEvent.setup();
+    const { input, onSelect } = renderInForm({ keepFirst: true });
+
+    await user.type(input, 'ap');
+    await user.click(document.body);
+    await user.click(input);
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    await user.tab();
+
+    expect(onSelect).not.toHaveBeenCalled();
+    expect(input).toHaveValue('ap');
+  });
+});
+
+describe('Autocomplete opens on a highlight and leaves keys to an IME (#1081)', () => {
+  // Disabled at both ends, so the first and last enabled options are
+  // second and third.
+  const withDisabled: AutocompleteItem[] = [
+    { value: 'apple', label: 'Apple', disabled: true },
+    { value: 'banana', label: 'Banana' },
+    { value: 'cherry', label: 'Cherry' },
+    { value: 'date', label: 'Date', disabled: true },
+  ];
+  const highlighted = (input: HTMLElement) =>
+    input.getAttribute('aria-activedescendant');
+  const optionId = (name: string) => screen.getByRole('option', { name }).id;
+
+  it('opens a closed list on its first enabled option with Down Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+
+    expect(highlighted(input)).toBe(optionId('Banana'));
+  });
+
+  it('opens a closed list on its last enabled option with Up Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(highlighted(input)).toBe(optionId('Cherry'));
+  });
+
+  it('opens a closed list with nothing highlighted with Alt+Down Arrow', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown', altKey: true });
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(highlighted(input)).toBeNull();
+  });
+
+  it('opens on the first option whichever key opens it, with keepFirst', () => {
+    render(<Autocomplete data={fruits} keepFirst />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(highlighted(input)).toBe(optionId('Apple'));
+  });
+
+  it('reaches a disabled option with the arrows but never marks it aria-selected', () => {
+    render(<Autocomplete data={withDisabled} />);
+    const input = screen.getByRole('combobox');
+
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    const apple = screen.getByRole('option', { name: 'Apple' });
+    expect(highlighted(input)).toBe(apple.id);
+    expect(apple).toHaveClass('is-active');
+    expect(apple).toHaveAttribute('aria-disabled', 'true');
+    expect(apple).toHaveAttribute('aria-selected', 'false');
+  });
+
+  // Chrome and Firefox set isComposing. Safari can send the Enter that ends
+  // a composition with isComposing false, and keyCode 229 says it instead.
+  describe.each([
+    ['isComposing', { isComposing: true }],
+    ['keyCode 229', { keyCode: 229 }],
+  ])('while an IME is composing (%s)', (_, composing) => {
+    it('leaves Enter to it rather than picking the highlighted option', () => {
+      const onSelect = jest.fn();
+      render(<Autocomplete data={fruits} keepFirst onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(highlighted(input)).toBe(optionId('Apple'));
+
+      // fireEvent returns true when nothing called preventDefault().
+      expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(
+        true
+      );
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+
+    it('leaves the arrows to it', () => {
+      render(<Autocomplete data={fruits} />);
+      const input = screen.getByRole('combobox');
+
+      expect(fireEvent.keyDown(input, { key: 'ArrowDown', ...composing })).toBe(
+        true
+      );
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
   });
 });
