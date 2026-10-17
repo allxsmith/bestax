@@ -38,35 +38,37 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Basic Menu with Nested Lists
 
-To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization.
+To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization. Give each item an `href`, a router link through `as`, or `as="button"`: `Menu.Item` renders an `<a>` by default, and an `<a>` with no `href` isn't a link, so Tab skips it and assistive tech doesn't present it as one.
 
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
   <Menu.Label>Administration</Menu.Label>
   <Menu.List>
-    <Menu.Item>Team Settings</Menu.Item>
-    <Menu.Item active>
+    <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+    <Menu.Item active href="#manage-your-team">
       Manage Your Team
       <Menu.List>
-        <Menu.Item>Members</Menu.Item>
-        <Menu.Item>Plugins</Menu.Item>
-        <Menu.Item>Add a member</Menu.Item>
+        <Menu.Item href="#members">Members</Menu.Item>
+        <Menu.Item href="#plugins">Plugins</Menu.Item>
+        <Menu.Item href="#add-a-member">Add a member</Menu.Item>
       </Menu.List>
     </Menu.Item>
-    <Menu.Item>Invitations</Menu.Item>
-    <Menu.Item>Cloud Storage Environment Settings</Menu.Item>
-    <Menu.Item>Authentication</Menu.Item>
+    <Menu.Item href="#invitations">Invitations</Menu.Item>
+    <Menu.Item href="#cloud-storage">
+      Cloud Storage Environment Settings
+    </Menu.Item>
+    <Menu.Item href="#authentication">Authentication</Menu.Item>
   </Menu.List>
   <Menu.Label>Transactions</Menu.Label>
   <Menu.List>
-    <Menu.Item>Payments</Menu.Item>
-    <Menu.Item>Transfers</Menu.Item>
-    <Menu.Item>Balance</Menu.Item>
+    <Menu.Item href="#payments">Payments</Menu.Item>
+    <Menu.Item href="#transfers">Transfers</Menu.Item>
+    <Menu.Item href="#balance">Balance</Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -81,7 +83,7 @@ Use the `as` prop on `Menu.Item` to render a custom link component, such as a ro
 // import { Link } from 'react-router-dom';
 function example() {
   const Link = (props: { to: string; children?: React.ReactNode }) => (
-    <a>{props.children}</a>
+    <a href={props.to}>{props.children}</a>
   );
   return (
     <Menu>
@@ -109,9 +111,11 @@ Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visua
 <Menu>
   <Menu.Label>Active Example</Menu.Label>
   <Menu.List>
-    <Menu.Item>Overview</Menu.Item>
-    <Menu.Item active>Current Page</Menu.Item>
-    <Menu.Item>Other</Menu.Item>
+    <Menu.Item href="#overview">Overview</Menu.Item>
+    <Menu.Item active href="#current-page">
+      Current Page
+    </Menu.Item>
+    <Menu.Item href="#other">Other</Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -126,13 +130,13 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
 <Menu>
   <Menu.Label>Levels</Menu.Label>
   <Menu.List>
-    <Menu.Item>
+    <Menu.Item href="#level-1">
       Level 1
       <Menu.List>
-        <Menu.Item>
+        <Menu.Item href="#level-2">
           Level 2
           <Menu.List>
-            <Menu.Item>Level 3</Menu.Item>
+            <Menu.Item href="#level-3">Level 3</Menu.Item>
           </Menu.List>
         </Menu.Item>
       </Menu.List>
@@ -180,8 +184,10 @@ function example() {
 <Menu>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item active>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item active href="#dashboard">
+      Dashboard
+    </Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
 </Menu>
 ```
