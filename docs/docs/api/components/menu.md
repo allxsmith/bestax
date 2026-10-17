@@ -196,12 +196,17 @@ function example() {
 
 ## Accessibility
 
-- The root `Menu` renders as `<aside class="menu">`.
+- The root `Menu` renders as `<aside class="menu">`. A menu that's navigation is better inside a
+  `<nav>` with an `aria-label`, which gives assistive tech a navigation landmark to jump to.
+- Every `Menu.List` has `role="list"`, nested ones included. That's the role a `<ul>` already has,
+  set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden,
+  as Bulma's reset hides them, unless the role is written out.
 - `Menu.Item active` sets `aria-current="page"` on the element `as` renders, the link by
   default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of
   sections on one page can say `"location"`, and `aria-current={false}` turns it off.
 - Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.
-- Ensure each item is focusable and accessible if interactive.
+- Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can
+  reach it.
 - `Menu.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
   submit it. Pass `type="submit"` or `type="reset"` and yours is used instead; any other value
   renders `type="button"`.

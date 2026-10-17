@@ -1,5 +1,5 @@
 import React, { createRef } from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import { Menu, MenuLabel, MenuList, MenuItem } from '../Menu';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -263,6 +263,47 @@ describe('Menu', () => {
     expect(screen.getByText('Customers')).toBeInTheDocument();
     expect(screen.getByText('Sub A')).toBeInTheDocument();
     expect(screen.getByText('Sub B')).toBeInTheDocument();
+  });
+});
+
+describe('list role', () => {
+  // WebKit stops exposing a <ul> as a list once its markers are hidden, as
+  // Bulma's reset hides them, unless the role is written out.
+  const nestedMenu = (
+    listProps: Partial<React.ComponentProps<typeof MenuList>>
+  ) =>
+    render(
+      <Menu>
+        <MenuList data-testid="top-list" {...listProps}>
+          <MenuItem href="#customers">
+            Customers
+            <MenuList data-testid="nested-list" {...listProps}>
+              <MenuItem href="#sub-a">Sub A</MenuItem>
+              <MenuItem href="#sub-b">Sub B</MenuItem>
+            </MenuList>
+          </MenuItem>
+          <MenuItem href="#dashboard">Dashboard</MenuItem>
+        </MenuList>
+      </Menu>
+    );
+
+  it('gives every list role="list", nested lists included', () => {
+    nestedMenu({});
+    const top = screen.getByTestId('top-list');
+    const nested = screen.getByTestId('nested-list');
+    expect(top).toHaveAttribute('role', 'list');
+    expect(nested).toHaveAttribute('role', 'list');
+    expect(screen.getAllByRole('list')).toEqual([top, nested]);
+    expect(within(nested).getAllByRole('listitem')).toHaveLength(2);
+  });
+
+  it.each([
+    ['another role', { role: 'menu' }],
+    ['a spread carrying an absent role', { role: undefined }],
+  ])('keeps role="list" when the caller passes %s', (_label, listProps) => {
+    nestedMenu(listProps);
+    expect(screen.getByTestId('top-list')).toHaveAttribute('role', 'list');
+    expect(screen.getByTestId('nested-list')).toHaveAttribute('role', 'list');
   });
 });
 
