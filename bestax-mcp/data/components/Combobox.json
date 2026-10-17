@@ -7,46 +7,62 @@
   "examples": [
     {
       "title": "A Searchable Select",
-      "code": "function example() {\n  const countries = [\n    'Argentina',\n    'Australia',\n    'Brazil',\n    'Canada',\n    'France',\n    'Germany',\n    'India',\n    'Japan',\n    'Kenya',\n    'Mexico',\n    'Norway',\n    'Portugal',\n  ];\n  const [value, setValue] = useState<string | null>(null);\n  const [query, setQuery] = useState('');\n  // Showing the value isn't a search, so the whole list opens.\n  const term = query === value ? '' : query.trim().toLowerCase();\n  const matches = countries.filter(c => c.toLowerCase().includes(term));\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Country\"\n        onOptionSubmit={picked => {\n          setValue(picked);\n          setQuery(picked);\n        }}\n      >\n        <Combobox.Input\n          placeholder=\"Pick a country\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n          onBlur={() => setQuery(value ?? '')}\n        />\n        <Combobox.Dropdown>\n          {matches.length > 0 ? (\n            <Combobox.Options>\n              {matches.map(c => (\n                <Combobox.Option key={c} value={c} checked={c === value}>\n                  {c}\n                </Combobox.Option>\n              ))}\n            </Combobox.Options>\n          ) : (\n            <Combobox.Empty>No countries match</Combobox.Empty>\n          )}\n        </Combobox.Dropdown>\n      </Combobox>\n      <Input label=\"Street address\" />\n      <Input label=\"City\" />\n      <Input label=\"Postal code\" />\n      <Button type=\"submit\" color=\"primary\">\n        Save address\n      </Button>\n    </form>\n  );\n}"
+      "code": "<form onSubmit={e => e.preventDefault()}>\n  <Combobox\n    label=\"Country\"\n    placeholder=\"Pick a country\"\n    data={['Canada', 'France', 'Germany', 'Japan', 'Kenya', 'Mexico']}\n    empty=\"No countries match\"\n  />\n  <Input label=\"City\" />\n  <Input label=\"Postal code\" />\n  <Button type=\"submit\" color=\"primary\">\n    Save address\n  </Button>\n</form>"
     },
     {
-      "title": "Server Search",
-      "code": "function example() {\n  type City = { id: string; name: string; country: string };\n  const all: City[] = [\n    { id: 'apple-valley', name: 'Apple Valley', country: 'United States' },\n    { id: 'aplerbeck', name: 'Aplerbeck', country: 'Germany' },\n    { id: 'naples', name: 'Naples', country: 'Italy' },\n    { id: 'nairobi', name: 'Nairobi', country: 'Kenya' },\n    { id: 'osaka', name: 'Osaka', country: 'Japan' },\n    { id: 'oslo', name: 'Oslo', country: 'Norway' },\n    { id: 'paris', name: 'Paris', country: 'France' },\n    { id: 'porto', name: 'Porto', country: 'Portugal' },\n  ];\n  // Stands in for your API: the letters in order, after a delay.\n  function searchCities(term: string): Promise<City[]> {\n    const letters = term.toLowerCase().replace(/\\s+/g, '');\n    const matches = (name: string) => {\n      let at = 0;\n      for (const char of name.toLowerCase()) {\n        if (char === letters[at]) at += 1;\n      }\n      return at === letters.length;\n    };\n    return new Promise(resolve =>\n      setTimeout(() => resolve(all.filter(c => matches(c.name))), 600)\n    );\n  }\n\n  const [query, setQuery] = useState('');\n  const [cities, setCities] = useState<City[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [city, setCity] = useState<City | null>(null);\n\n  useEffect(() => {\n    const term = query.trim();\n    if (!term || term === city?.name) return undefined;\n    let current = true;\n    const timer = setTimeout(() => {\n      searchCities(term).then(found => {\n        if (!current) return;\n        setCities(found);\n        setLoading(false);\n      });\n    }, 250);\n    return () => {\n      current = false;\n      clearTimeout(timer);\n    };\n  }, [query, city]);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"City\"\n        onOptionSubmit={id => {\n          const picked = cities.find(c => c.id === id) ?? null;\n          setCity(picked);\n          setQuery(picked?.name ?? '');\n        }}\n      >\n        <Combobox.Input\n          iconLeftName=\"search\"\n          placeholder=\"Search cities\"\n          isLoading={loading}\n          value={query}\n          onChange={e => {\n            const term = e.target.value.trim();\n            setQuery(e.target.value);\n            // A search starts for any text but the picked city's name.\n            setLoading(term !== '' && term !== city?.name);\n            if (!term) setCities([]);\n          }}\n        />\n        <Combobox.Dropdown>\n          {cities.length > 0 ? (\n            <Combobox.Options>\n              {cities.map(c => (\n                <Combobox.Option\n                  key={c.id}\n                  value={c.id}\n                  checked={c.id === city?.id}\n                >\n                  {c.name}, {c.country}\n                </Combobox.Option>\n              ))}\n            </Combobox.Options>\n          ) : query.trim() && !loading ? (\n            <Combobox.Empty>No cities match</Combobox.Empty>\n          ) : null}\n        </Combobox.Dropdown>\n      </Combobox>\n      <Input label=\"Check-in\" type=\"date\" />\n      <Input label=\"Guests\" type=\"number\" min={1} defaultValue={2} />\n      <Button type=\"submit\" color=\"primary\">\n        Find a room\n      </Button>\n    </form>\n  );\n}"
+      "title": "Groups",
+      "code": "<form onSubmit={e => e.preventDefault()}>\n  <Combobox\n    label=\"Produce\"\n    keepFirst\n    data={[\n      { value: 'Apple', group: 'Fruit' },\n      { value: 'Banana', group: 'Fruit' },\n      { value: 'Cherry', group: 'Fruit' },\n      { value: 'Carrot', group: 'Vegetables' },\n      { value: 'Leek', group: 'Vegetables' },\n      { value: 'Pea', group: 'Vegetables' },\n    ]}\n  />\n  <Input label=\"Quantity\" type=\"number\" min={1} defaultValue={1} />\n  <Input label=\"Deliver on\" type=\"date\" />\n  <Input label=\"Note for the shopper\" />\n  <Button type=\"submit\" color=\"primary\">\n    Add to order\n  </Button>\n</form>"
     },
     {
-      "title": "Grouped Options",
-      "code": "function example() {\n  const groups = {\n    Fruit: ['Apple', 'Banana', 'Cherry'],\n    Vegetables: ['Carrot', 'Leek', 'Pea'],\n  };\n  const [query, setQuery] = useState('');\n  const term = query.trim().toLowerCase();\n  const shown = Object.entries(groups)\n    .map(([label, items]) => ({\n      label,\n      items: items.filter(i => i.toLowerCase().includes(term)),\n    }))\n    .filter(g => g.items.length > 0);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox label=\"Produce\" autoHighlight onOptionSubmit={setQuery}>\n        <Combobox.Input\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        <Combobox.Dropdown>\n          {shown.length > 0 ? (\n            <Combobox.Options>\n              {shown.map(g => (\n                <Combobox.Group key={g.label} label={g.label}>\n                  {g.items.map(i => (\n                    <Combobox.Option key={i} value={i}>\n                      {i}\n                    </Combobox.Option>\n                  ))}\n                </Combobox.Group>\n              ))}\n            </Combobox.Options>\n          ) : (\n            <Combobox.Empty>Nothing matches</Combobox.Empty>\n          )}\n        </Combobox.Dropdown>\n      </Combobox>\n      <Input label=\"Quantity\" type=\"number\" min={1} defaultValue={1} />\n      <Input label=\"Deliver on\" type=\"date\" />\n      <Input label=\"Note for the shopper\" />\n      <Button type=\"submit\" color=\"primary\">\n        Add to order\n      </Button>\n    </form>\n  );\n}"
+      "title": "Disabled Items",
+      "code": "<form onSubmit={e => e.preventDefault()}>\n  <Combobox\n    label=\"Delivery\"\n    defaultValue=\"standard\"\n    data={[\n      { value: 'standard', label: 'Standard, in 3 to 5 days' },\n      { value: 'express', label: 'Express, next day' },\n      { value: 'pickup', label: 'Pick up in store', disabled: true },\n    ]}\n  />\n  <Input label=\"Note for the courier\" />\n  <Button type=\"submit\" color=\"primary\">\n    Place order\n  </Button>\n</form>"
     },
     {
       "title": "Several Values, with Tags",
-      "code": "function example() {\n  // A value no label can be.\n  const CREATE = '\\u0000create';\n  const [labels, setLabels] = useState(['bug', 'docs', 'feature', 'question']);\n  const [picked, setPicked] = useState<string[]>(['docs']);\n  const [query, setQuery] = useState('');\n  const term = query.trim().toLowerCase();\n  const matches = labels.filter(l => l.includes(term));\n  const canCreate = term !== '' && !labels.includes(term);\n\n  function toggle(label: string) {\n    setPicked(prev =>\n      prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]\n    );\n  }\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Labels\"\n        multiple\n        onOptionSubmit={value => {\n          if (value === CREATE) {\n            setLabels(prev => [...prev, term]);\n            toggle(term);\n            setQuery('');\n          } else {\n            toggle(value);\n          }\n        }}\n      >\n        <Combobox.Input\n          placeholder=\"Find or create a label\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        <Combobox.Dropdown>\n          <Combobox.Options>\n            {matches.map(l => (\n              <Combobox.Option key={l} value={l} checked={picked.includes(l)}>\n                {l}\n              </Combobox.Option>\n            ))}\n            {canCreate && (\n              <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>\n            )}\n          </Combobox.Options>\n        </Combobox.Dropdown>\n      </Combobox>\n      <Tags mt=\"2\">\n        {picked.map(l => (\n          <Tag key={l}>\n            {l}\n            <Delete\n              size=\"small\"\n              ariaLabel={`Remove ${l}`}\n              onClick={() => toggle(l)}\n            />\n          </Tag>\n        ))}\n      </Tags>\n      <Select label=\"Priority\">\n        <option>Low</option>\n        <option>Medium</option>\n        <option>High</option>\n      </Select>\n      <Button type=\"submit\" color=\"primary\">\n        Save issue\n      </Button>\n    </form>\n  );\n}"
+      "code": "<form onSubmit={e => e.preventDefault()}>\n  <Combobox\n    label=\"Labels\"\n    multiple\n    placeholder=\"Find a label\"\n    defaultValue={['docs']}\n    data={['bug', 'docs', 'feature', 'question']}\n  />\n  <Select label=\"Priority\">\n    <option>Low</option>\n    <option>Medium</option>\n    <option>High</option>\n  </Select>\n  <Button type=\"submit\" color=\"primary\">\n    Save issue\n  </Button>\n</form>"
     },
     {
-      "title": "A Create Option",
-      "code": "function example() {\n  // A value no category can be.\n  const CREATE = '\\u0000create';\n  const [categories, setCategories] = useState(['Books', 'Games', 'Music']);\n  const [value, setValue] = useState<string | null>(null);\n  const [query, setQuery] = useState('');\n  const term = query === value ? '' : query.trim();\n  const matches = categories.filter(c =>\n    c.toLowerCase().includes(term.toLowerCase())\n  );\n  const canCreate =\n    term !== '' &&\n    !categories.some(c => c.toLowerCase() === term.toLowerCase());\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Category\"\n        onOptionSubmit={picked => {\n          const next = picked === CREATE ? term : picked;\n          if (picked === CREATE) setCategories(prev => [...prev, term]);\n          setValue(next);\n          setQuery(next);\n        }}\n      >\n        <Combobox.Input\n          placeholder=\"Pick or create a category\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n          onBlur={() => setQuery(value ?? '')}\n        />\n        <Combobox.Dropdown>\n          <Combobox.Options>\n            {matches.map(c => (\n              <Combobox.Option key={c} value={c} checked={c === value}>\n                {c}\n              </Combobox.Option>\n            ))}\n            {canCreate && (\n              <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>\n            )}\n          </Combobox.Options>\n        </Combobox.Dropdown>\n      </Combobox>\n      <Input label=\"Price\" type=\"number\" min={0} step=\"0.01\" />\n      <Button type=\"submit\" color=\"primary\">\n        Save product\n      </Button>\n    </form>\n  );\n}"
+      "title": "A Controlled Value",
+      "code": "function example() {\n  const [city, setCity] = useState<string | null>('lisbon');\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"City\"\n        value={city}\n        onChange={setCity}\n        data={[\n          { value: 'lisbon', label: 'Lisbon' },\n          { value: 'osaka', label: 'Osaka' },\n          { value: 'oslo', label: 'Oslo' },\n          { value: 'paris', label: 'Paris' },\n        ]}\n      />\n      <Paragraph mb=\"3\">\n        The value is <Code>{JSON.stringify(city)}</Code>.\n      </Paragraph>\n      <Buttons>\n        <Button onClick={() => setCity('paris')}>Paris</Button>\n        <Button onClick={() => setCity(null)}>Clear</Button>\n      </Buttons>\n      <Input label=\"Postal code\" />\n    </form>\n  );\n}"
     },
     {
-      "title": "In a Popover",
-      "code": "function example() {\n  const people = [\n    'Ada Lovelace',\n    'Grace Hopper',\n    'Katherine Johnson',\n    'Margaret Hamilton',\n  ];\n  const [open, setOpen] = useState(false);\n  const [assignee, setAssignee] = useState<string | null>(null);\n  const [query, setQuery] = useState('');\n  const matches = people.filter(p =>\n    p.toLowerCase().includes(query.trim().toLowerCase())\n  );\n\n  return (\n    <Box>\n      <Title as=\"h3\" textSize=\"5\">\n        Fix the login redirect\n      </Title>\n      <Popover\n        open={open}\n        onOpenChange={next => {\n          setOpen(next);\n          if (!next) setQuery('');\n        }}\n        ariaLabel=\"Assign to\"\n        trigger={\n          <Button>{assignee ? `Assignee: ${assignee}` : 'Assign to…'}</Button>\n        }\n      >\n        <Popover.Body>\n          <Combobox\n            inline\n            size=\"small\"\n            onOptionSubmit={name => {\n              setAssignee(name);\n              setOpen(false);\n            }}\n          >\n            <Combobox.Input\n              aria-label=\"Search people\"\n              placeholder=\"Search people\"\n              iconLeftName=\"search\"\n              value={query}\n              onChange={e => setQuery(e.target.value)}\n            />\n            {matches.length > 0 ? (\n              <Combobox.Options aria-label=\"People\">\n                {matches.map(p => (\n                  <Combobox.Option key={p} value={p} checked={p === assignee}>\n                    {p}\n                  </Combobox.Option>\n                ))}\n              </Combobox.Options>\n            ) : (\n              <Combobox.Empty>Nobody matches</Combobox.Empty>\n            )}\n          </Combobox>\n        </Popover.Body>\n      </Popover>\n      <Paragraph mt=\"4\">\n        People land on the home page after they sign in, instead of the page\n        they started from. Send them back to where they were, query string and\n        all.\n      </Paragraph>\n      <Tags mt=\"4\">\n        <Tag>bug</Tag>\n        <Tag>login</Tag>\n      </Tags>\n      <Buttons>\n        <Button size=\"small\">Comment</Button>\n        <Button size=\"small\">Close issue</Button>\n      </Buttons>\n    </Box>\n  );\n}"
-    },
-    {
-      "title": "A Result Count",
-      "code": "function example() {\n  const fruit = ['Apple', 'Apricot', 'Banana', 'Blueberry', 'Cherry', 'Date'];\n  const [query, setQuery] = useState('');\n  const matches = fruit.filter(f =>\n    f.toLowerCase().includes(query.trim().toLowerCase())\n  );\n\n  return (\n    <>\n      <Combobox label=\"Fruit\" inline onOptionSubmit={setQuery}>\n        <Combobox.Input\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        {matches.length > 0 ? (\n          <Combobox.Options>\n            {matches.map(f => (\n              <Combobox.Option key={f} value={f}>\n                {f}\n              </Combobox.Option>\n            ))}\n          </Combobox.Options>\n        ) : (\n          <Combobox.Empty>No fruit matches</Combobox.Empty>\n        )}\n      </Combobox>\n      <Paragraph role=\"status\" aria-atomic=\"true\" textSize=\"7\" mt=\"2\">\n        {`${matches.length} of ${fruit.length} fruit`}\n      </Paragraph>\n    </>\n  );\n}"
+      "title": "Custom Items",
+      "code": "function example() {\n  const roles: Record<string, string> = {\n    ada: 'Admin',\n    grace: 'Editor',\n    katherine: 'Viewer',\n  };\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Assignee\"\n        data={[\n          { value: 'ada', label: 'Ada Lovelace' },\n          { value: 'grace', label: 'Grace Hopper' },\n          { value: 'katherine', label: 'Katherine Johnson' },\n        ]}\n        itemTemplate={item => (\n          <Block display=\"flex\" justifyContent=\"space-between\">\n            <Span>{item.label}</Span>\n            <Tag color=\"info\" isLight>\n              {roles[item.value]}\n            </Tag>\n          </Block>\n        )}\n      />\n      <Input label=\"Due date\" type=\"date\" />\n      <Button type=\"submit\" color=\"primary\">\n        Assign\n      </Button>\n    </form>\n  );\n}"
     },
     {
       "title": "Sizes",
-      "code": "<Columns>\n  {(['small', undefined, 'medium', 'large'] as const).map(size => (\n    <Column key={size ?? 'normal'}>\n      <Combobox label={size ?? 'normal'} size={size} inline>\n        <Combobox.Input placeholder=\"Fruit\" />\n        <Combobox.Options>\n          <Combobox.Option value=\"apple\">Apple</Combobox.Option>\n          <Combobox.Option value=\"banana\" checked>\n            Banana\n          </Combobox.Option>\n          <Combobox.Option value=\"cherry\" disabled>\n            Cherry\n          </Combobox.Option>\n        </Combobox.Options>\n      </Combobox>\n    </Column>\n  ))}\n</Columns>"
+      "code": "<Columns>\n  {(['small', undefined, 'medium', 'large'] as const).map(size => (\n    <Column key={size ?? 'normal'}>\n      <Combobox\n        label={size ?? 'normal'}\n        size={size}\n        inline\n        defaultValue=\"Banana\"\n        data={['Apple', 'Banana', { value: 'Cherry', disabled: true }]}\n      />\n    </Column>\n  ))}\n</Columns>"
     },
     {
       "title": "Where the List Opens",
-      "code": "<Modal active={active} onClose={close} aria-label=\"Edit shipping\">\n  <Modal.Background onClick={close} />\n  <Modal.Card>\n    <Modal.Card.Body>\n      <ConfigProvider portalContainer={overlay ?? undefined}>\n        <Combobox label=\"Country\" appendToBody position=\"auto\">\n          {/* … */}\n        </Combobox>\n      </ConfigProvider>\n    </Modal.Card.Body>\n  </Modal.Card>\n  {/* In the modal and outside the card, so the card can't clip it. */}\n  <div ref={setOverlay} />\n</Modal>"
+      "code": "<Modal active={active} onClose={close} aria-label=\"Edit shipping\">\n  <Modal.Background onClick={close} />\n  <Modal.Card>\n    <Modal.Card.Body>\n      <ConfigProvider portalContainer={overlay ?? undefined}>\n        <Combobox\n          label=\"Country\"\n          data={countries}\n          appendToBody\n          position=\"auto\"\n        />\n      </ConfigProvider>\n    </Modal.Card.Body>\n  </Modal.Card>\n  {/* In the modal and outside the card, so the card can't clip it. */}\n  <div ref={setOverlay} />\n</Modal>"
+    },
+    {
+      "title": "Building It Yourself",
+      "code": "function example() {\n  const countries = ['Canada', 'France', 'Germany', 'Japan', 'Kenya', 'Mexico'];\n  const [value, setValue] = useState<string | null>(null);\n  const [query, setQuery] = useState('');\n  // Showing the value isn't a search, so the whole list opens.\n  const term = query === value ? '' : query.trim().toLowerCase();\n  const matches = countries.filter(c => c.toLowerCase().includes(term));\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Country\"\n        onSelect={picked => {\n          setValue(picked);\n          setQuery(picked);\n        }}\n      >\n        <Combobox.Input\n          placeholder=\"Pick a country\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n          onBlur={() => setQuery(value ?? '')}\n        />\n        <Combobox.Menu>\n          {matches.length > 0 ? (\n            <Combobox.List>\n              {matches.map(c => (\n                <Combobox.Item key={c} value={c} checked={c === value}>\n                  {c}\n                </Combobox.Item>\n              ))}\n            </Combobox.List>\n          ) : (\n            <Combobox.Empty>No countries match</Combobox.Empty>\n          )}\n        </Combobox.Menu>\n      </Combobox>\n      <Input label=\"City\" />\n      <Input label=\"Postal code\" />\n      <Button type=\"submit\" color=\"primary\">\n        Save address\n      </Button>\n    </form>\n  );\n}"
+    },
+    {
+      "title": "Server Search",
+      "code": "function example() {\n  type City = { id: string; name: string; country: string };\n  const all: City[] = [\n    { id: 'apple-valley', name: 'Apple Valley', country: 'United States' },\n    { id: 'aplerbeck', name: 'Aplerbeck', country: 'Germany' },\n    { id: 'naples', name: 'Naples', country: 'Italy' },\n    { id: 'nairobi', name: 'Nairobi', country: 'Kenya' },\n    { id: 'osaka', name: 'Osaka', country: 'Japan' },\n    { id: 'oslo', name: 'Oslo', country: 'Norway' },\n    { id: 'paris', name: 'Paris', country: 'France' },\n    { id: 'porto', name: 'Porto', country: 'Portugal' },\n  ];\n  // Stands in for your API: the letters in order, after a delay.\n  function searchCities(term: string): Promise<City[]> {\n    const letters = term.toLowerCase().replace(/\\s+/g, '');\n    const matches = (name: string) => {\n      let at = 0;\n      for (const char of name.toLowerCase()) {\n        if (char === letters[at]) at += 1;\n      }\n      return at === letters.length;\n    };\n    return new Promise(resolve =>\n      setTimeout(() => resolve(all.filter(c => matches(c.name))), 600)\n    );\n  }\n\n  const [query, setQuery] = useState('');\n  const [cities, setCities] = useState<City[]>([]);\n  const [loading, setLoading] = useState(false);\n  const [city, setCity] = useState<City | null>(null);\n\n  useEffect(() => {\n    const term = query.trim();\n    if (!term || term === city?.name) return undefined;\n    let current = true;\n    const timer = setTimeout(() => {\n      searchCities(term).then(found => {\n        if (!current) return;\n        setCities(found);\n        setLoading(false);\n      });\n    }, 250);\n    return () => {\n      current = false;\n      clearTimeout(timer);\n    };\n  }, [query, city]);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"City\"\n        onSelect={id => {\n          const picked = cities.find(c => c.id === id) ?? null;\n          setCity(picked);\n          setQuery(picked?.name ?? '');\n        }}\n      >\n        <Combobox.Input\n          iconLeftName=\"search\"\n          placeholder=\"Search cities\"\n          isLoading={loading}\n          value={query}\n          onChange={e => {\n            const term = e.target.value.trim();\n            setQuery(e.target.value);\n            // A search starts for any text but the picked city's name.\n            setLoading(term !== '' && term !== city?.name);\n            if (!term) setCities([]);\n          }}\n        />\n        <Combobox.Menu>\n          {cities.length > 0 ? (\n            <Combobox.List>\n              {cities.map(c => (\n                <Combobox.Item\n                  key={c.id}\n                  value={c.id}\n                  checked={c.id === city?.id}\n                >\n                  {c.name}, {c.country}\n                </Combobox.Item>\n              ))}\n            </Combobox.List>\n          ) : query.trim() && !loading ? (\n            <Combobox.Empty>No cities match</Combobox.Empty>\n          ) : null}\n        </Combobox.Menu>\n      </Combobox>\n      <Input label=\"Check-in\" type=\"date\" />\n      <Input label=\"Guests\" type=\"number\" min={1} defaultValue={2} />\n      <Button type=\"submit\" color=\"primary\">\n        Find a room\n      </Button>\n    </form>\n  );\n}"
+    },
+    {
+      "title": "A Create Item",
+      "code": "function example() {\n  // A value no category can be.\n  const CREATE = '\\u0000create';\n  const [categories, setCategories] = useState(['Books', 'Games', 'Music']);\n  const [value, setValue] = useState<string | null>(null);\n  const [query, setQuery] = useState('');\n  const term = query === value ? '' : query.trim();\n  const matches = categories.filter(c =>\n    c.toLowerCase().includes(term.toLowerCase())\n  );\n  const canCreate =\n    term !== '' &&\n    !categories.some(c => c.toLowerCase() === term.toLowerCase());\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Category\"\n        onSelect={picked => {\n          const next = picked === CREATE ? term : picked;\n          if (picked === CREATE) setCategories(prev => [...prev, term]);\n          setValue(next);\n          setQuery(next);\n        }}\n      >\n        <Combobox.Input\n          placeholder=\"Pick or create a category\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n          onBlur={() => setQuery(value ?? '')}\n        />\n        <Combobox.Menu>\n          <Combobox.List>\n            {matches.map(c => (\n              <Combobox.Item key={c} value={c} checked={c === value}>\n                {c}\n              </Combobox.Item>\n            ))}\n            {canCreate && (\n              <Combobox.Item value={CREATE}>Create “{term}”</Combobox.Item>\n            )}\n          </Combobox.List>\n        </Combobox.Menu>\n      </Combobox>\n      <Input label=\"Price\" type=\"number\" min={0} step=\"0.01\" />\n      <Button type=\"submit\" color=\"primary\">\n        Save product\n      </Button>\n    </form>\n  );\n}"
+    },
+    {
+      "title": "In a Popover",
+      "code": "function example() {\n  const people = [\n    'Ada Lovelace',\n    'Grace Hopper',\n    'Katherine Johnson',\n    'Margaret Hamilton',\n  ];\n  const [open, setOpen] = useState(false);\n  const [assignee, setAssignee] = useState<string | null>(null);\n  const [query, setQuery] = useState('');\n  const matches = people.filter(p =>\n    p.toLowerCase().includes(query.trim().toLowerCase())\n  );\n\n  return (\n    <Box>\n      <Title as=\"h3\" textSize=\"5\">\n        Fix the login redirect\n      </Title>\n      <Popover\n        open={open}\n        onOpenChange={next => {\n          setOpen(next);\n          if (!next) setQuery('');\n        }}\n        ariaLabel=\"Assign to\"\n        trigger={\n          <Button>{assignee ? `Assignee: ${assignee}` : 'Assign to…'}</Button>\n        }\n      >\n        <Popover.Body>\n          <Combobox\n            inline\n            size=\"small\"\n            onSelect={name => {\n              setAssignee(name);\n              setOpen(false);\n            }}\n          >\n            <Combobox.Input\n              aria-label=\"Search people\"\n              placeholder=\"Search people\"\n              iconLeftName=\"search\"\n              value={query}\n              onChange={e => setQuery(e.target.value)}\n            />\n            {matches.length > 0 ? (\n              <Combobox.List aria-label=\"People\">\n                {matches.map(p => (\n                  <Combobox.Item key={p} value={p} checked={p === assignee}>\n                    {p}\n                  </Combobox.Item>\n                ))}\n              </Combobox.List>\n            ) : (\n              <Combobox.Empty>Nobody matches</Combobox.Empty>\n            )}\n          </Combobox>\n        </Popover.Body>\n      </Popover>\n      <Paragraph mt=\"4\">\n        People land on the home page after they sign in, instead of the page\n        they started from. Send them back to where they were, query string and\n        all.\n      </Paragraph>\n      <Tags mt=\"4\">\n        <Tag>bug</Tag>\n        <Tag>login</Tag>\n      </Tags>\n      <Buttons>\n        <Button size=\"small\">Comment</Button>\n        <Button size=\"small\">Close issue</Button>\n      </Buttons>\n    </Box>\n  );\n}"
+    },
+    {
+      "title": "A Result Count",
+      "code": "function example() {\n  const fruit = ['Apple', 'Apricot', 'Banana', 'Blueberry', 'Cherry', 'Date'];\n  const [query, setQuery] = useState('');\n  const matches = fruit.filter(f =>\n    f.toLowerCase().includes(query.trim().toLowerCase())\n  );\n\n  return (\n    <>\n      <Combobox label=\"Fruit\" inline onSelect={setQuery}>\n        <Combobox.Input\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        {matches.length > 0 ? (\n          <Combobox.List>\n            {matches.map(f => (\n              <Combobox.Item key={f} value={f}>\n                {f}\n              </Combobox.Item>\n            ))}\n          </Combobox.List>\n        ) : (\n          <Combobox.Empty>No fruit matches</Combobox.Empty>\n        )}\n      </Combobox>\n      <Paragraph role=\"status\" aria-atomic=\"true\" textSize=\"7\" mt=\"2\">\n        {`${matches.length} of ${fruit.length} fruit`}\n      </Paragraph>\n    </>\n  );\n}"
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "function example() {\n  const drinks: Record<\n    string,\n    { value: string; label: string; disabled?: boolean }[]\n  > = {\n    Hot: [\n      { value: 'coffee', label: 'Coffee' },\n      { value: 'tea', label: 'Tea' },\n    ],\n    Cold: [\n      { value: 'lemonade', label: 'Lemonade' },\n      { value: 'iced-tea', label: 'Iced tea' },\n      { value: 'smoothie', label: 'Smoothie (sold out)', disabled: true },\n    ],\n  };\n  const [query, setQuery] = useState('');\n  const [value, setValue] = useState('tea');\n  const picked = Object.values(drinks)\n    .flat()\n    .find(i => i.value === value);\n  const term = query.trim().toLowerCase();\n  const groups = Object.entries(drinks)\n    .map(([label, items]) => ({\n      label,\n      items: items.filter(i => i.label.toLowerCase().includes(term)),\n    }))\n    .filter(g => g.items.length > 0);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Drink\"\n        message={`Your drink: ${picked?.label}`}\n        onOptionSubmit={next => {\n          setValue(next);\n          setQuery('');\n        }}\n      >\n        <Combobox.Input\n          iconLeftName=\"mug-hot\"\n          placeholder=\"Type to filter\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        <Combobox.Dropdown>\n          {groups.length > 0 ? (\n            <Combobox.Options>\n              {groups.map(g => (\n                <Combobox.Group key={g.label} label={g.label}>\n                  {g.items.map(i => (\n                    <Combobox.Option\n                      key={i.value}\n                      value={i.value}\n                      checked={i.value === value}\n                      disabled={i.disabled}\n                    >\n                      {i.label}\n                    </Combobox.Option>\n                  ))}\n                </Combobox.Group>\n              ))}\n            </Combobox.Options>\n          ) : (\n            <Combobox.Empty>No drinks match</Combobox.Empty>\n          )}\n        </Combobox.Dropdown>\n      </Combobox>\n      <Select label=\"Size\">\n        <option>Small</option>\n        <option>Medium</option>\n        <option>Large</option>\n      </Select>\n      <Input label=\"Name for the cup\" />\n      <Button type=\"submit\" color=\"primary\">\n        Order\n      </Button>\n    </form>\n  );\n}"
+      "code": "function example() {\n  const drinks: Record<\n    string,\n    { value: string; label: string; disabled?: boolean }[]\n  > = {\n    Hot: [\n      { value: 'coffee', label: 'Coffee' },\n      { value: 'tea', label: 'Tea' },\n    ],\n    Cold: [\n      { value: 'lemonade', label: 'Lemonade' },\n      { value: 'iced-tea', label: 'Iced tea' },\n      { value: 'smoothie', label: 'Smoothie (sold out)', disabled: true },\n    ],\n  };\n  const [query, setQuery] = useState('');\n  const [value, setValue] = useState('tea');\n  const picked = Object.values(drinks)\n    .flat()\n    .find(i => i.value === value);\n  const term = query.trim().toLowerCase();\n  const groups = Object.entries(drinks)\n    .map(([label, items]) => ({\n      label,\n      items: items.filter(i => i.label.toLowerCase().includes(term)),\n    }))\n    .filter(g => g.items.length > 0);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Drink\"\n        message={`Your drink: ${picked?.label}`}\n        onSelect={next => {\n          setValue(next);\n          setQuery('');\n        }}\n      >\n        <Combobox.Input\n          iconLeftName=\"mug-hot\"\n          placeholder=\"Type to filter\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        <Combobox.Menu>\n          {groups.length > 0 ? (\n            <Combobox.List>\n              {groups.map(g => (\n                <Combobox.Group key={g.label} label={g.label}>\n                  {g.items.map(i => (\n                    <Combobox.Item\n                      key={i.value}\n                      value={i.value}\n                      checked={i.value === value}\n                      disabled={i.disabled}\n                    >\n                      {i.label}\n                    </Combobox.Item>\n                  ))}\n                </Combobox.Group>\n              ))}\n            </Combobox.List>\n          ) : (\n            <Combobox.Empty>No drinks match</Combobox.Empty>\n          )}\n        </Combobox.Menu>\n      </Combobox>\n      <Select label=\"Size\">\n        <option>Small</option>\n        <option>Medium</option>\n        <option>Large</option>\n      </Select>\n      <Input label=\"Name for the cup\" />\n      <Button type=\"submit\" color=\"primary\">\n        Order\n      </Button>\n    </form>\n  );\n}"
     }
   ],
-  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`. The list is a `listbox` of `option`s, and a group is a `group` named by\n  its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.\n- **Focus stays in the field:** the highlighted option is the field's `aria-activedescendant`.\n  When a key or the list opening moves the highlight, the option is scrolled into view, since a\n  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer\n  is already on that option. A click on an option keeps focus in the field too.\n- **`aria-expanded`** is `true` while a list with an option in it is on screen, and\n  `aria-controls` points at the list then. While the dropdown shows just `Combobox.Empty`, the\n  field says it's collapsed, and so does the server markup for a list rendered with\n  `appendToBody`, which shows only once the page has hydrated.\n- **The list's name** comes from the label that names the field: the Combobox's `label`, or an\n  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.Options` wins, and\n  with none of these the list is named \"Suggestions\".\n- **`aria-selected`, with one value,** is on the highlighted option and nothing else, the way the\n  Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely\n  on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on\n  the chosen option instead.\n- **With `multiple`,** the list is `aria-multiselectable`, and each option's `aria-selected` is its\n  `checked`.\n- **Disabled options** are `aria-disabled` and stay reachable with the arrows, the Authoring\n  Practices' advice for listbox options, so a screen reader user finds them. They're never picked\n  or `aria-selected`, and the opening highlight and `autoHighlight` pass over them.\n- **The empty message** sits beside the list, not in it, so it isn't counted as an option. When\n  your typing brings it on screen, its text is announced through a polite status region that's in\n  the page from the start, once each time the matches run out. Opening the list with it already\n  there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`\n  is around the Combobox, the announcement waits and is made once loading ends. In a dropdown,\n  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.\n  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.\n- **No counts are announced,** for the reasons in [A Result Count](https://bestax.io/docs/api/form/combobox#a-result-count).\n- **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops\n  at the Combobox when it closed a panel that was on screen.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, a disabled option takes the system's color for disabled text, and the\n  check mark and the panel's edge stay visible.\n- **No motion:** nothing animates.",
+  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`. The list is a `listbox` of `option`s, and a group is a `group` named by\n  its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.\n- **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`.\n  When a key or the list opening moves the highlight, the item is scrolled into view, since a\n  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer\n  is already on that item. A click on an item keeps focus in the field too.\n- **`aria-expanded`** is `true` while a list with an item in it is on screen, and\n  `aria-controls` points at the list then. While the menu shows just the empty message, the\n  field says it's collapsed, and so does the server markup for a list rendered with\n  `appendToBody`, which shows only once the page has hydrated.\n- **The list's name** comes from the label that names the field: the Combobox's `label`, or an\n  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.List` wins, and\n  with none of these the list is named \"Suggestions\".\n- **`aria-selected`, with one value,** is on the highlighted item and nothing else, the way the\n  Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely\n  on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on\n  the chosen item instead.\n- **With `multiple`,** the list is `aria-multiselectable`, and each item's `aria-selected` is its\n  `checked`.\n- **Disabled items** are `aria-disabled` and stay reachable with the arrows, the Authoring\n  Practices' advice for listbox options, so a screen reader user finds them. They're never picked\n  or `aria-selected`, and the opening highlight and `keepFirst` pass over them.\n- **The empty message** sits beside the list, not in it, so it isn't counted as an item. When\n  your typing brings it on screen, its text is announced through a polite status region that's in\n  the page from the start, once each time the matches run out. Opening the list with it already\n  there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`\n  is around the Combobox, the announcement waits and is made once loading ends. In a menu,\n  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.\n  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.\n- **Tags,** with `multiple` and `data`: each tag's button is named \"Remove\" and the item's label,\n  and taking a tag off puts focus back in the field.\n- **No counts are announced,** for the reasons in [A Result Count](https://bestax.io/docs/api/form/combobox#a-result-count).\n- **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops\n  at the Combobox when it closed a panel that was on screen.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, a disabled item takes the system's color for disabled text, and the\n  check mark and the panel's edge stay visible.\n- **No motion:** nothing animates.",
   "related": [
     "Autocomplete",
     "Dropdown",
@@ -57,23 +73,113 @@
     "useBulmaClasses"
   ],
   "storybook": "https://bestax.io/storybook/?path=/story/form-combobox--default",
-  "summary": "The `Combobox` component builds a text field with a list of options under it, for a searchable select, a server search, a multi-select or grouped options, with the keys and ARIA done and the data left to you. The app owns the data: what's in the list, how it's filtered, and the value. A pick calls `onOptionSubmit` with the option's `value`, and the Combobox keeps no value and never changes the text in the field, so the app sets both there. Nothing filters the options for you either, so a server's answer shows as it came. For a free-text field with suggestions, `Autocomplete` is the simpler choice. Focus stays in the field, and the highlighted option is its `aria-activedescendant`. With one value, the highlighted option is the `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and a `checked` option shows a check mark and takes the highlight when the list opens. With `multiple`, `checked` is each option's `aria-selected`. Tab and focus leaving close a dropdown list without picking. When typing leaves `Combobox.Empty` on screen, its text is announced through a polite status region, once, after any loading ends. Result counts aren't announced: a screen reader reads the list's size from the markup, and a count on every keystroke talks over the typing. Show one in a `role=\"status\"` line beside the field when it matters.",
+  "summary": "The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search: given `data` it does the rest, and built from parts it leaves the data to you. Given `data`, it's one element. It renders the field, the menu, the list, the groups and the empty message, filters the items by label as the user types, and keeps the value, which `onChange` reports. With `multiple`, the picks show as tags under the field. Built from parts, the app owns the data: what's in the list, how it's filtered, and the value. A pick calls `onSelect` with the item's `value`, and the Combobox keeps no value and never changes the text in the field, so the app sets both there. Nothing filters the items either, so a server's answer shows as it came. For a free-text field with suggestions, `Autocomplete` is the simpler choice. Either way, focus stays in the field, and the highlighted item is its `aria-activedescendant`. With one value, the highlighted item is the `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and a `checked` item shows a check mark and takes the highlight when the list opens. With `multiple`, `checked` is each item's `aria-selected`. Tab and focus leaving close the menu without picking. When typing leaves the empty message on screen, its text is announced through a polite status region, once, after any loading ends. Result counts aren't announced: a screen reader reads the list's size from the markup, and a count on every keystroke talks over the typing. Show one in a `role=\"status\"` line beside the field when it matters.",
   "import": "import { Combobox } from '@allxsmith/bestax-bulma';",
   "sourceFile": "bulma-ui/src/form/Combobox.tsx",
   "rootClass": "combobox",
   "parts": [
     {
       "path": "Combobox",
-      "summary": "The `Combobox` component builds a text field with a list of options under it, for a searchable select, a server search, a multi-select or grouped options, with the keys and ARIA done and the data left to you. The app owns the data: what's in the list, how it's filtered, and the value. A pick calls `onOptionSubmit` with the option's `value`, and the Combobox keeps no value and never changes the text in the field, so the app sets both there. Nothing filters the options for you either, so a server's answer shows as it came. For a free-text field with suggestions, `Autocomplete` is the simpler choice. Focus stays in the field, and the highlighted option is its `aria-activedescendant`. With one value, the highlighted option is the `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and a `checked` option shows a check mark and takes the highlight when the list opens. With `multiple`, `checked` is each option's `aria-selected`. Tab and focus leaving close a dropdown list without picking. When typing leaves `Combobox.Empty` on screen, its text is announced through a polite status region, once, after any loading ends. Result counts aren't announced: a screen reader reads the list's size from the markup, and a count on every keystroke talks over the typing. Show one in a `role=\"status\"` line beside the field when it matters.",
+      "summary": "The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search: given `data` it does the rest, and built from parts it leaves the data to you. Given `data`, it's one element. It renders the field, the menu, the list, the groups and the empty message, filters the items by label as the user types, and keeps the value, which `onChange` reports. With `multiple`, the picks show as tags under the field. Built from parts, the app owns the data: what's in the list, how it's filtered, and the value. A pick calls `onSelect` with the item's `value`, and the Combobox keeps no value and never changes the text in the field, so the app sets both there. Nothing filters the items either, so a server's answer shows as it came. For a free-text field with suggestions, `Autocomplete` is the simpler choice. Either way, focus stays in the field, and the highlighted item is its `aria-activedescendant`. With one value, the highlighted item is the `aria-selected` one, as the ARIA Authoring Practices' combobox does it, and a `checked` item shows a check mark and takes the highlight when the list opens. With `multiple`, `checked` is each item's `aria-selected`. Tab and focus leaving close the menu without picking. When typing leaves the empty message on screen, its text is announced through a polite status region, once, after any loading ends. Result counts aren't announced: a screen reader reads the list's size from the markup, and a count on every keystroke talks over the typing. Show one in a `role=\"status\"` line beside the field when it matters.",
       "component": null,
       "props": [
+        {
+          "name": "data",
+          "type": "(string | ComboboxItemData)[]",
+          "default": null,
+          "description": "The items, for a Combobox that renders the field, the menu, the list, the groups and the empty message itself. A string is an item whose label is its value, and an object is `{ value, label?, disabled?, group? }`. Typing filters the items by label, ignoring case, and the Combobox keeps the value. Leave it out to build the Combobox from parts.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "multiple",
+          "type": "boolean",
+          "default": "false",
+          "description": "Several values can be picked. The list stays open after a pick, it's `aria-multiselectable`, and each item's `checked` is its `aria-selected`. With `data`, the value is an array, and the picks show as tags under the field, each with a button that takes it off.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "value",
+          "type": "string | null | string[]",
+          "default": null,
+          "description": "The value, controlled, with `data`: the picked item's `value`, or `null` for none, and with `multiple` an array of them. With one value, the field shows the picked item's label while you aren't typing in it.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "string | null | string[]",
+          "default": null,
+          "description": "The value to start with when uncontrolled, with `data`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(value: string | null) => void | (value: string[]) => void",
+          "default": null,
+          "description": "Called with the new value, with `data`, when a pick or a tag's button changes it: an item's `value`, or with `multiple` the array.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "The parts, in order: `Combobox.Input`, then `Combobox.Menu` with `Combobox.List` and `Combobox.Empty` in it. With `inline`, the `Combobox.List` and `Combobox.Empty` go straight in. Render `Combobox.List` while there are items and `Combobox.Empty` while there aren't: the empty message sits beside the list, not in it. With `data` there are none to give: children given with it are ignored, with a warning in development.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "The field's placeholder, with `data`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "A form field name, with `data`. A hidden input posts the value, empty while there's none, and with `multiple` a hidden input posts each value.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "empty",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What the menu shows in place of the list, with `data`, when nothing matches the typing, such as \"No countries match\". It's announced the way `Combobox.Empty` is. Without it, the menu closes while nothing matches.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "itemTemplate",
+          "type": "(item: ComboboxItemData) => React.ReactNode",
+          "default": null,
+          "description": "Renders an item's content, with `data`, in place of its label. It's handed the item from `data`, a string there arriving as `{ value, label }`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
         {
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
           "description": "The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field. When `Combobox.Input` has an `id` of its own, server markup names the field through `aria-labelledby` until the page hydrates and the label's `for` catches up.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -82,16 +188,7 @@
           "default": null,
           "description": "Props for the label element. An explicit `htmlFor` takes over the association: give `Combobox.Input` the same `id`, and the list is still named after the label.",
           "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "children",
-          "type": "React.ReactNode",
-          "default": null,
-          "description": "The parts, in order: `Combobox.Input`, then `Combobox.Dropdown` with `Combobox.Options` and `Combobox.Empty` in it. With `inline`, the `Combobox.Options` and `Combobox.Empty` go straight in. Render `Combobox.Options` while there are options and `Combobox.Empty` while there aren't: the empty message sits beside the list, not in it.",
-          "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -100,7 +197,7 @@
           "default": null,
           "description": "Controlled open state. When set, opening and closing only report through `onOpenChange`.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -109,7 +206,7 @@
           "default": "false",
           "description": "Initial open state when uncontrolled.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -118,70 +215,61 @@
           "default": null,
           "description": "Called with the open state asked for: `true` from typing, a click in the field or Down Arrow, and `false` from Escape, Tab, a pick with one value, focus leaving or a press outside. Fires in controlled and uncontrolled use.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
-          "name": "onOptionSubmit",
+          "name": "onSelect",
           "type": "(value: string) => void",
           "default": null,
-          "description": "Called with an option's `value` when it's picked with Enter or a click. A disabled option is never picked. The Combobox keeps no value and doesn't change the text in the field: update yours here.",
+          "description": "Called with an item's `value` when it's picked with Enter or a click. A disabled item is never picked. With `data`, `onChange` reports the value that follows. Built from parts, the Combobox keeps no value and doesn't change the text in the field: update yours here.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
-          "name": "autoHighlight",
+          "name": "keepFirst",
           "type": "boolean",
           "default": "false",
-          "description": "Highlights the first enabled option whenever the list opens or its options change, so Enter picks the top match. It only highlights: leaving the field still picks nothing, and so does Tab.",
+          "description": "Highlights the first enabled item whenever the list opens or its items change, so Enter picks the top match. It only highlights: leaving the field still picks nothing, and so does Tab.",
           "required": false,
-          "inherited": false,
-          "deprecated": false
-        },
-        {
-          "name": "multiple",
-          "type": "boolean",
-          "default": "false",
-          "description": "Several values can be picked. The list stays open after a pick, it's `aria-multiselectable`, and each option's `checked` is its `aria-selected`.",
-          "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
           "name": "inline",
           "type": "boolean",
           "default": "false",
-          "description": "The list is always on screen, in the flow under the field, as in a Popover or a page panel. There's no dropdown, so nothing closes it, and Escape goes to whatever is around it.",
+          "description": "The list is always on screen, in the flow under the field, as in a Popover or a page panel. There's no menu, so nothing closes it, and Escape goes to whatever is around it.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
           "name": "position",
           "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
           "default": "'bottom-left'",
-          "description": "Where the dropdown opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes.",
+          "description": "Where the menu opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
           "name": "appendToBody",
           "type": "boolean",
           "default": "false",
-          "description": "Renders the dropdown through `Portal`, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default, fixed to the viewport at the field, so a container that clips its overflow can't cut it off. It then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor reach it only when the portal's container is inside that ancestor, as with Popover. In a `Modal`, point `portalContainer` inside the modal, so the list stays in the dialog for assistive tech.",
+          "description": "Renders the menu through `Portal`, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default, fixed to the viewport at the field, so a container that clips its overflow can't cut it off. It then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor reach it only when the portal's container is inside that ancestor, as with Popover. In a `Modal`, point `portalContainer` inside the modal, so the list stays in the dialog for assistive tech.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
           "name": "size",
           "type": "'small' | 'medium' | 'large'",
           "default": null,
-          "description": "Sizes the field and the options together.",
+          "description": "Sizes the field and the items together.",
           "required": false,
-          "inherited": false,
+          "inherited": true,
           "deprecated": false
         },
         {
@@ -453,7 +541,7 @@
       "types": []
     },
     {
-      "path": "Combobox.Dropdown",
+      "path": "Combobox.Menu",
       "summary": "The floating panel under the field, on screen while the list is open and its children aren't all empty.",
       "component": null,
       "props": [
@@ -461,7 +549,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "What the panel shows: `Combobox.Options` while there are options, and `Combobox.Empty` while there aren't. Children that are all `null`, `false` or `''`, or empty Fragments, keep the panel shut, so write the conditional here. A component that renders nothing, or a `Combobox.Options` with no options in it, still counts, and shows an empty panel.",
+          "description": "What the panel shows: `Combobox.List` while there are items, and `Combobox.Empty` while there aren't. Children that are all `null`, `false` or `''`, or empty Fragments, keep the panel shut, so write the conditional here. A component that renders nothing, or a `Combobox.List` with no items in it, still counts, and shows an empty panel.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -481,15 +569,15 @@
       "types": []
     },
     {
-      "path": "Combobox.Options",
-      "summary": "The list of options, a `listbox` named by the label that names the field.",
+      "path": "Combobox.List",
+      "summary": "The list of items, a `listbox` named by the label that names the field.",
       "component": null,
       "props": [
         {
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "`Combobox.Option`s and `Combobox.Group`s, in the order they're shown.",
+          "description": "`Combobox.Item`s and `Combobox.Group`s, in the order they're shown.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -509,7 +597,7 @@
       "types": []
     },
     {
-      "path": "Combobox.Option",
+      "path": "Combobox.Item",
       "summary": "One choice in the list, with a check mark while it's `checked`.",
       "component": null,
       "props": [
@@ -517,7 +605,7 @@
           "name": "value",
           "type": "string",
           "default": null,
-          "description": "What `onOptionSubmit` hands back. Unique within the Combobox.",
+          "description": "What `onSelect` hands back. Unique within the Combobox.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -544,7 +632,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "What the option shows: text, or text with an avatar, a tag or a hint.",
+          "description": "What the item shows: text, or text with an avatar, a tag or a hint.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -565,7 +653,7 @@
     },
     {
       "path": "Combobox.Group",
-      "summary": "Options under a heading, a `group` named by it.",
+      "summary": "Items under a heading, a `group` named by it.",
       "component": null,
       "props": [
         {
@@ -581,7 +669,7 @@
           "name": "children",
           "type": "React.ReactNode",
           "default": null,
-          "description": "The group's `Combobox.Option`s.",
+          "description": "The group's `Combobox.Item`s.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -631,8 +719,8 @@
   ],
   "cssVars": [
     {
-      "css": "--bulma-combobox-dropdown-z-index",
-      "sass": "$combobox-dropdown-z-index",
+      "css": "--bulma-combobox-menu-z-index",
+      "sass": "$combobox-menu-z-index",
       "default": "$extras-z-index-dropdown",
       "scope": "compound"
     },
@@ -643,38 +731,38 @@
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-dropdown-offset",
-      "sass": "$combobox-dropdown-offset",
+      "css": "--bulma-combobox-menu-offset",
+      "sass": "$combobox-menu-offset",
       "default": "0.25rem",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-dropdown-background",
-      "sass": "$combobox-dropdown-background",
+      "css": "--bulma-combobox-menu-background",
+      "sass": "$combobox-menu-background",
       "default": "var(--bulma-scheme-main)",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-dropdown-radius",
-      "sass": "$combobox-dropdown-radius",
+      "css": "--bulma-combobox-menu-radius",
+      "sass": "$combobox-menu-radius",
       "default": "var(--bulma-radius)",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-dropdown-shadow",
-      "sass": "$combobox-dropdown-shadow",
+      "css": "--bulma-combobox-menu-shadow",
+      "sass": "$combobox-menu-shadow",
       "default": "var(--bulma-shadow)",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-dropdown-border-color",
-      "sass": "$combobox-dropdown-border-color",
+      "css": "--bulma-combobox-menu-border-color",
+      "sass": "$combobox-menu-border-color",
       "default": "var(--bulma-border-weak)",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-dropdown-padding-y",
-      "sass": "$combobox-dropdown-padding-y",
+      "css": "--bulma-combobox-menu-padding-y",
+      "sass": "$combobox-menu-padding-y",
       "default": "0.5rem",
       "scope": "compound"
     },
@@ -685,32 +773,32 @@
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-option-color",
-      "sass": "$combobox-option-color",
+      "css": "--bulma-combobox-item-color",
+      "sass": "$combobox-item-color",
       "default": "var(--bulma-text-strong)",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-option-size",
-      "sass": "$combobox-option-size",
+      "css": "--bulma-combobox-item-size",
+      "sass": "$combobox-item-size",
       "default": "0.875rem",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-option-padding-y",
-      "sass": "$combobox-option-padding-y",
+      "css": "--bulma-combobox-item-padding-y",
+      "sass": "$combobox-item-padding-y",
       "default": "0.375rem",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-option-padding-x",
-      "sass": "$combobox-option-padding-x",
+      "css": "--bulma-combobox-item-padding-x",
+      "sass": "$combobox-item-padding-x",
       "default": "1rem",
       "scope": "compound"
     },
     {
-      "css": "--bulma-combobox-option-hover-background",
-      "sass": "$combobox-option-hover-background",
+      "css": "--bulma-combobox-item-hover-background",
+      "sass": "$combobox-item-hover-background",
       "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))",
       "scope": "compound"
     },
