@@ -86,6 +86,7 @@ const SETS: Record<string, string[]> = {
     'border-color',
     'border',
   ],
+  'box-sizing': ['box-sizing'],
 };
 
 /** Classes, attributes and pseudo-classes, then elements, as one number. */
@@ -198,6 +199,12 @@ describe.each([
         property: 'border-top-color',
         value: 'Canvas',
       });
+      // The border sits inside the icon's width and height rather than
+      // adding to them, whatever box-sizing an ancestor hands down, so the
+      // spinner keeps its size when a contrast theme comes on.
+      expect(winning(found, icon, 'box-sizing', true)?.value).toBe(
+        'border-box'
+      );
       unmount();
     }
   );

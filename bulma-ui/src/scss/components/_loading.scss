@@ -241,5 +241,8 @@ $loading-animation-duration: 0.75s !default;
     background: none;
     border: cv.getVar("loading-icon-border-width") solid CanvasText;
     border-top-color: Canvas;
+    // Inside the icon's size rather than added to it, whatever an ancestor
+    // hands down through Bulma's `box-sizing: inherit`.
+    box-sizing: border-box;
   }
 }
