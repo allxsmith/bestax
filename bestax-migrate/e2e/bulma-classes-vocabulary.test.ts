@@ -10,54 +10,30 @@
  * stylesheet has (or a Bulma 0.9 class it knows was removed).
  */
 
-import fs from 'node:fs';
-import { createRequire } from 'node:module';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   HELPER_TOKENS,
   LEGACY_09,
   ROOTS,
   passthroughReason,
 } from '../src/sources/bulma-classes/class-map.js';
-
-const packageRoot = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  '..'
-);
+import {
+  bulmaStylesheet,
+  stylesheetRules,
+} from './support/bulma-stylesheet.js';
 
 /** Class names used in the stylesheet's selectors. */
 function stylesheetClasses(): Set<string> {
-  const library = fs.realpathSync(
-    path.join(packageRoot, 'node_modules', '@allxsmith', 'bestax-bulma')
-  );
-  const css = fs.readFileSync(
-    createRequire(path.join(library, 'package.json')).resolve(
-      'bulma/css/bulma.css'
-    ),
-    'utf8'
-  );
   const classes = new Set<string>();
-  // Selectors are the text before each `{` that is not an at-rule; comments
-  // and declaration bodies (which hold URLs like `.svg`) never reach them.
-  let selector = '';
-  for (const char of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
-    if (char === '{') {
-      if (!selector.trim().startsWith('@')) {
-        const bare = selector
-          .replace(/\[[^\]]*\]/g, '')
-          .replace(/"[^"]*"|'[^']*'/g, '');
-        // A name can carry an escaped character (`.is-gap-0\.5`), which the
-        // class itself spells plainly.
-        for (const match of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
-          classes.add(match[1].replace(/\\(.)/g, '$1'));
-        }
-      }
-      selector = '';
-    } else if (char === '}' || char === ';') {
-      selector = '';
-    } else {
-      selector += char;
+  // Only selectors are read, so declaration bodies (which hold URLs like
+  // `.svg`) never reach the match.
+  for (const { selector } of stylesheetRules(bulmaStylesheet())) {
+    const bare = selector
+      .replace(/\[[^\]]*\]/g, '')
+      .replace(/"[^"]*"|'[^']*'/g, '');
+    // A name can carry an escaped character (`.is-gap-0\.5`), which the
+    // class itself spells plainly.
+    for (const match of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
+      classes.add(match[1].replace(/\\(.)/g, '$1'));
     }
   }
   return classes;
