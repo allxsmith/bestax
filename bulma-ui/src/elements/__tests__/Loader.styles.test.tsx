@@ -222,10 +222,13 @@ function rulesOf(css: string): Rule[] {
         // are about those users.
         if (/prefers-reduced-motion:\s*no-preference/.test(media)) continue;
         if (/forced-colors:\s*none/.test(media)) continue;
+        // Anything left is for those users, the boolean form included:
+        // `(forced-colors)` means `active`, as `(prefers-reduced-motion)`
+        // means `reduce`.
         walk(
           rule.cssRules,
-          reducedMotionOnly || /prefers-reduced-motion:\s*reduce/.test(media),
-          forcedColorsOnly || /forced-colors:\s*active/.test(media)
+          reducedMotionOnly || /prefers-reduced-motion/.test(media),
+          forcedColorsOnly || /forced-colors/.test(media)
         );
       } else if (rule instanceof CSSStyleRule) {
         const decl = rule.style;
@@ -626,6 +629,26 @@ describe('the cascade resolver', () => {
       '2px solid red'
     );
   });
+
+  it.each([
+    [
+      '@media (forced-colors) { .x { border-top-color: Canvas; } }',
+      'forcedColorsOnly',
+    ],
+    [
+      '@media (prefers-reduced-motion) { .x { animation: none; } }',
+      'reducedMotionOnly',
+    ],
+  ] as const)(
+    'reads a query in its boolean form as the active one: %s',
+    (css, flag) => {
+      // `(forced-colors)` means `active`, and `(prefers-reduced-motion)`
+      // means `reduce`, so the rule is for those users only.
+      const rules = rulesOf(css);
+      expect(rules).toHaveLength(1);
+      expect(rules[0][flag]).toBe(true);
+    }
+  );
 
   it('refuses a shorthand whose only candidate name is a var()', () => {
     expect(() => rulesOf('.x { animation: var(--x) 1s; }')).toThrow(
