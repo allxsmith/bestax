@@ -30,9 +30,12 @@ export function useOverlayStack(inStack: boolean): () => boolean {
     if (!inStack) return undefined;
     const token = tokenRef.current;
     openOverlays.push(token);
-    // This effect's own push, so it's still there to take out.
+    // Takes out this effect's own push. Should it ever be gone already, the
+    // stack is left as it is: splicing at -1 would take the topmost overlay
+    // instead.
     return () => {
-      openOverlays.splice(openOverlays.indexOf(token), 1);
+      const index = openOverlays.indexOf(token);
+      if (index !== -1) openOverlays.splice(index, 1);
     };
   }, [inStack]);
 
