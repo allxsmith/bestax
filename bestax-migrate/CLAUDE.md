@@ -36,8 +36,11 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `replaceWithPlain`/`collapseOntoChild`), `viewports.ts` (Bulma's viewports → bestax's
   prop suffixes), `css-imports.ts` (the stylesheet-import pass), `bestax-import.ts` (seeding,
   building and merging the bestax-bulma import), `deps-common.ts` (the manifest steps after
-  the source package is handled), and `make-styles-transform.ts` (the whole Bulma 0.9→v1
-  stylesheet transform, parameterised by the source package's own specifiers). What stays
+  the source package is handled), `make-styles-transform.ts` (the whole Bulma 0.9→v1
+  stylesheet transform, parameterised by the source package's own specifiers), and `html/`
+  (HTML to JSX text: parse5 builds the DOM a browser would, `property-information` names the
+  props, whitespace collapses as CSS renders it, and a `display` option is the seam for a
+  library's classes). What stays
   per-source is the data — `mapping.ts`, `specials.ts`, `responsive.ts`, `deps.ts` — plus a
   `transform.ts` that orchestrates them. bloomer's is the plain one: its exports are flat, so it has no
   destructuring pass, no alias registry and no wrapping pass; the rbx and RBC copies still
@@ -143,6 +146,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `react-dom/server` and bestax-bulma from **bulma-ui's** directory, never this package's: the
   workspace can hold two React copies, and a component rendered by the other one fails on its
   first hook.
+- `e2e/html-truth.test.ts` holds the HTML converter to the DOM its page parsed to, through
+  `e2e/support/html-dom.ts`, whose `laidOut` is a second, independent reading of the CSS
+  whitespace rule the converter applies. A converter change that drops or trims a space
+  has to agree with it, with the boxes a script may hide both shown and hidden.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
 - Real-world corpus, one script per source, both fetching a pinned SHA as text only into
