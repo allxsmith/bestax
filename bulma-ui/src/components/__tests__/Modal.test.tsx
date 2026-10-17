@@ -492,6 +492,45 @@ describe('Modal', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
 
+    it('leaves an Escape that content inside already used', () => {
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+          <button type="button">Done</button>
+        </Modal>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(onClose).not.toHaveBeenCalled();
+
+      fireEvent.keyDown(screen.getByText('Done'), { key: 'Escape' });
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hears Escape after a document listener added once it was open', () => {
+      // A popup that opens inside the modal adds its listener after the
+      // modal's, and still gets the key first.
+      const onClose = jest.fn();
+      render(
+        <Modal active onClose={onClose}>
+          {latin}
+        </Modal>
+      );
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(onClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('tolerates a missing onClose prop on Escape', () => {
       render(<Modal active>{latin}</Modal>);
       expect(() =>
@@ -652,6 +691,32 @@ describe('Modal', () => {
       expect(middle).toHaveFocus();
       fireEvent.keyDown(document, { key: 'Tab', shiftKey: true });
       expect(middle).toHaveFocus();
+    });
+
+    it('leaves a Tab that a later trap already used', () => {
+      // A portaled popup's own trap moves focus outside the modal's node and
+      // claims the key; the modal must not pull focus back.
+      const panel = document.createElement('button');
+      document.body.appendChild(panel);
+
+      render(
+        <Modal active>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Modal>
+      );
+      const trap = (e: KeyboardEvent) => {
+        e.preventDefault();
+        panel.focus();
+      };
+      document.addEventListener('keydown', trap);
+      try {
+        fireEvent.keyDown(document, { key: 'Tab' });
+        expect(panel).toHaveFocus();
+      } finally {
+        document.removeEventListener('keydown', trap);
+        document.body.removeChild(panel);
+      }
     });
 
     it('focuses the modal root on Tab when nothing inside is focusable', () => {
