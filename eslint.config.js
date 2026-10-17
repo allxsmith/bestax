@@ -138,6 +138,39 @@ export default [
     },
   },
 
+  // bulma-ui's layout effects go through useClientLayoutEffect, which hands
+  // a server render a plain useEffect. React 18 warns about every
+  // useLayoutEffect a server render meets, and React 19 doesn't, so a test
+  // run on 19 never shows one. This catches it at the import instead.
+  {
+    files: ['bulma-ui/src/**/*.{ts,tsx}'],
+    ignores: ['bulma-ui/src/helpers/useClientLayoutEffect.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react',
+              importNames: ['useLayoutEffect'],
+              message:
+                "Use useClientLayoutEffect from bulma-ui's helpers instead. React 18 warns about useLayoutEffect in a server render.",
+            },
+          ],
+        },
+      ],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'React',
+          property: 'useLayoutEffect',
+          message:
+            "Use useClientLayoutEffect from bulma-ui's helpers instead. React 18 warns about useLayoutEffect in a server render.",
+        },
+      ],
+    },
+  },
+
   // Jest environment for test files
   {
     files: [
