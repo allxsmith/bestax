@@ -60,7 +60,12 @@ export interface AutocompleteProps
   data: AutocompleteItem[] | string[];
   /** The current input value (controlled). */
   value?: string;
-  /** The selected item (controlled). */
+  /**
+   * Does nothing: Autocomplete doesn't read it.
+   *
+   * @deprecated Nothing reads it, and `onSelect` is what reports a pick. It
+   * will be removed in the next major version.
+   */
   selected?: AutocompleteItem | string | null;
   /** Placeholder text for the input. */
   placeholder?: string;
@@ -83,7 +88,13 @@ export interface AutocompleteProps
   selectOnClickOutside?: boolean;
   /** Maximum dropdown height in pixels. */
   maxHeight?: number;
-  /** Render as dropdown style. */
+  /**
+   * Does nothing: Autocomplete doesn't read it, and always shows its
+   * suggestions in a dropdown.
+   *
+   * @deprecated It will be removed in the next major version, with nothing
+   * in its place.
+   */
   dropdown?: boolean;
   /**
    * Show a loading spinner in the input.
@@ -195,6 +206,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       form,
       required,
       id,
+      // Deprecated no-ops, taken here so they stay off the wrapper.
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- deprecated no-op
+      selected,
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars -- deprecated no-op
+      dropdown,
       // Field props
       label,
       labelSize,
@@ -385,7 +401,9 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             }
             break;
           case 'Escape':
-            e.preventDefault();
+            // Only closing the dropdown claims the key. With it closed, the
+            // key goes on to a Modal around the field.
+            if (menuOpen) e.preventDefault();
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
@@ -397,7 +415,14 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             break;
         }
       },
-      [disabled, isActive, highlightedIndex, filteredData, handleSelect]
+      [
+        disabled,
+        isActive,
+        menuOpen,
+        highlightedIndex,
+        filteredData,
+        handleSelect,
+      ]
     );
 
     // Handle dropdown scroll for infinite scroll

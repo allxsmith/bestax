@@ -31,7 +31,11 @@ export interface LoadingProps
   size?: 'small' | 'medium' | 'large';
   /** Color variant for the spinner. Default is light grey. */
   color?: LoadingColor;
-  /** Show a cancel button and allow closing. */
+  /**
+   * Show a cancel button and allow closing, by a click on the overlay or by
+   * Escape. An Escape a popup on the page closed on, by calling
+   * `preventDefault()`, doesn't cancel.
+   */
   canCancel?: boolean;
   /** Callback when cancel is triggered. */
   onCancel?: () => void;
@@ -127,18 +131,19 @@ export const Loading: React.FC<LoadingProps> = ({
     }
   };
 
-  // Handle escape key
+  // Handle escape key. On `window`, as in `Modal`, so a popup on the page has
+  // had the key first, and an Escape it closed on doesn't cancel as well.
   React.useEffect(() => {
     if (!active || !canCancel || !onCancel) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && !e.defaultPrevented) {
         onCancel();
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [active, canCancel, onCancel]);
 
   // Prevent body scroll when full page loading is active. Ref-counted through

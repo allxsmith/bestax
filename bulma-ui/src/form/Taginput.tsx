@@ -542,6 +542,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
             }
             break;
           case 'Escape':
+            // Closing the suggestions claims the key, so a Modal around the
+            // field stays open. With none showing, the key goes on to it.
+            if (isActive && filteredData.length > 0) e.preventDefault();
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
