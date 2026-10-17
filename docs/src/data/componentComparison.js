@@ -89,6 +89,7 @@ const BESTAX = {
   Tabs: 'components/tabs',
   Toast: 'components/toast',
   Tooltip: 'components/tooltip',
+  TreeView: 'components/treeview',
   Autocomplete: 'form/autocomplete',
   Checkbox: 'form/checkbox',
   Checkboxes: 'form/checkboxes',
@@ -1394,7 +1395,7 @@ export const categories = [
       ],
       [
         'Tree view',
-        0,
+        'TreeView',
         'Tree',
         0,
         'SimpleTreeView',
