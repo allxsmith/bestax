@@ -40,7 +40,7 @@ const meta: Meta<typeof Combobox> = {
     docs: {
       description: {
         component:
-          'A text field with a list of options under it, built from parts: a searchable select, a server search, a multi-select, grouped options. The keys and the ARIA are done, and the data is yours: you filter the options, keep the value and set the text in the field, and a pick calls onOptionSubmit with the option’s value. For a free-text field with suggestions, Autocomplete is the simpler choice.',
+          'A text field with a list of options under it, built from parts: a searchable select, a server search, a multi-select, grouped options. The keys and the ARIA are done, and the data is yours: you filter the options, keep the value and set the text in the field, and a pick calls onSelect with the option’s value. For a free-text field with suggestions, Autocomplete is the simpler choice.',
       },
     },
   },
@@ -95,7 +95,7 @@ const meta: Meta<typeof Combobox> = {
     children: {
       control: false,
       description:
-        'The parts: Combobox.Input, then Combobox.Dropdown with Combobox.Options or Combobox.Empty in it',
+        'The parts: Combobox.Input, then Combobox.Menu with Combobox.List or Combobox.Empty in it',
     },
     open: {
       control: 'boolean',
@@ -110,20 +110,20 @@ const meta: Meta<typeof Combobox> = {
       action: 'openChange',
       description: 'Called with the open state asked for',
     },
-    onOptionSubmit: {
-      action: 'optionSubmit',
+    onSelect: {
+      action: 'select',
       description:
-        'Called with the picked option’s value; the Combobox keeps no value and never changes the field',
+        'Called with the picked item’s value; built from parts, the Combobox keeps no value and never changes the field',
     },
-    autoHighlight: {
+    keepFirst: {
       control: 'boolean',
       description:
-        'Highlights the first enabled option when the list opens or its options change, so Enter picks the top match',
+        'Highlights the first enabled item when the list opens or its items change, so Enter picks the top match',
     },
     multiple: {
       control: 'boolean',
       description:
-        'Several values: the list stays open after a pick, and checked is each option’s aria-selected',
+        'Several values: the list stays open after a pick, and checked is each item’s aria-selected',
     },
     inline: {
       control: 'boolean',
@@ -134,17 +134,17 @@ const meta: Meta<typeof Combobox> = {
       control: 'select',
       options: ['bottom-left', 'bottom-right', 'top-left', 'top-right', 'auto'],
       description:
-        'Where the dropdown opens against the field; auto keeps it in the viewport',
+        'Where the menu opens against the field; auto keeps it in the viewport',
     },
     appendToBody: {
       control: 'boolean',
       description:
-        'Portals the dropdown, fixed at the field, out of a container that clips it',
+        'Portals the menu, fixed at the field, out of a container that clips it',
     },
     size: {
       control: 'inline-radio',
       options: [undefined, 'small', 'medium', 'large'],
-      description: 'Sizes the field and the options together',
+      description: 'Sizes the field and the items together',
     },
   },
 };
@@ -178,10 +178,10 @@ function CountrySelect(props: Partial<ComboboxProps>) {
     <Combobox
       label="Country"
       {...props}
-      onOptionSubmit={picked => {
+      onSelect={picked => {
         setValue(picked);
         setQuery(picked);
-        props.onOptionSubmit?.(picked);
+        props.onSelect?.(picked);
       }}
     >
       <Combobox.Input
@@ -190,19 +190,19 @@ function CountrySelect(props: Partial<ComboboxProps>) {
         onChange={e => setQuery(e.target.value)}
         onBlur={() => setQuery(value ?? '')}
       />
-      <Combobox.Dropdown>
+      <Combobox.Menu>
         {matches.length > 0 ? (
-          <Combobox.Options>
+          <Combobox.List>
             {matches.map(c => (
-              <Combobox.Option key={c} value={c} checked={c === value}>
+              <Combobox.Item key={c} value={c} checked={c === value}>
                 {c}
-              </Combobox.Option>
+              </Combobox.Item>
             ))}
-          </Combobox.Options>
+          </Combobox.List>
         ) : (
           <Combobox.Empty>No countries match</Combobox.Empty>
         )}
-      </Combobox.Dropdown>
+      </Combobox.Menu>
     </Combobox>
   );
 }
@@ -300,7 +300,7 @@ function CitySearch() {
   return (
     <Combobox
       label="City"
-      onOptionSubmit={id => {
+      onSelect={id => {
         const picked = cities.find(c => c.id === id) ?? null;
         setCity(picked);
         setQuery(picked?.name ?? '');
@@ -319,23 +319,23 @@ function CitySearch() {
           if (!term) setCities([]);
         }}
       />
-      <Combobox.Dropdown>
+      <Combobox.Menu>
         {cities.length > 0 ? (
-          <Combobox.Options>
+          <Combobox.List>
             {cities.map(c => (
-              <Combobox.Option
+              <Combobox.Item
                 key={c.id}
                 value={c.id}
                 checked={c.id === city?.id}
               >
                 {c.name}, {c.country}
-              </Combobox.Option>
+              </Combobox.Item>
             ))}
-          </Combobox.Options>
+          </Combobox.List>
         ) : query.trim() && !loading ? (
           <Combobox.Empty>No cities match</Combobox.Empty>
         ) : null}
-      </Combobox.Dropdown>
+      </Combobox.Menu>
     </Combobox>
   );
 }
@@ -393,7 +393,7 @@ function AssigneePicker() {
         <Combobox
           inline
           size="small"
-          onOptionSubmit={name => {
+          onSelect={name => {
             setAssignee(name);
             setOpen(false);
           }}
@@ -406,13 +406,13 @@ function AssigneePicker() {
             onChange={e => setQuery(e.target.value)}
           />
           {matches.length > 0 ? (
-            <Combobox.Options aria-label="People">
+            <Combobox.List aria-label="People">
               {matches.map(p => (
-                <Combobox.Option key={p} value={p} checked={p === assignee}>
+                <Combobox.Item key={p} value={p} checked={p === assignee}>
                   {p}
-                </Combobox.Option>
+                </Combobox.Item>
               ))}
-            </Combobox.Options>
+            </Combobox.List>
           ) : (
             <Combobox.Empty>Nobody matches</Combobox.Empty>
           )}
@@ -461,25 +461,25 @@ function Produce() {
     .filter(g => g.items.length > 0);
 
   return (
-    <Combobox label="Produce" autoHighlight onOptionSubmit={setQuery}>
+    <Combobox label="Produce" keepFirst onSelect={setQuery}>
       <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
-      <Combobox.Dropdown>
+      <Combobox.Menu>
         {shown.length > 0 ? (
-          <Combobox.Options>
+          <Combobox.List>
             {shown.map(g => (
               <Combobox.Group key={g.label} label={g.label}>
                 {g.items.map(i => (
-                  <Combobox.Option key={i} value={i}>
+                  <Combobox.Item key={i} value={i}>
                     {i}
-                  </Combobox.Option>
+                  </Combobox.Item>
                 ))}
               </Combobox.Group>
             ))}
-          </Combobox.Options>
+          </Combobox.List>
         ) : (
           <Combobox.Empty>Nothing matches</Combobox.Empty>
         )}
-      </Combobox.Dropdown>
+      </Combobox.Menu>
     </Combobox>
   );
 }
@@ -489,7 +489,7 @@ export const Groups: Story = {
     docs: {
       description: {
         story:
-          'Options under headings, each group named by its heading. With autoHighlight, the top match is highlighted, so Enter picks it.',
+          'Items under headings, each group named by its heading. With keepFirst, the top match is highlighted, so Enter picks it.',
       },
     },
   },
@@ -527,7 +527,7 @@ function LabelPicker() {
       <Combobox
         label="Labels"
         multiple
-        onOptionSubmit={value => {
+        onSelect={value => {
           if (value === CREATE) {
             setLabels(prev => [...prev, term]);
             toggle(term);
@@ -542,18 +542,18 @@ function LabelPicker() {
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
-        <Combobox.Dropdown>
-          <Combobox.Options>
+        <Combobox.Menu>
+          <Combobox.List>
             {matches.map(l => (
-              <Combobox.Option key={l} value={l} checked={picked.includes(l)}>
+              <Combobox.Item key={l} value={l} checked={picked.includes(l)}>
                 {l}
-              </Combobox.Option>
+              </Combobox.Item>
             ))}
             {canCreate && (
-              <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>
+              <Combobox.Item value={CREATE}>Create “{term}”</Combobox.Item>
             )}
-          </Combobox.Options>
-        </Combobox.Dropdown>
+          </Combobox.List>
+        </Combobox.Menu>
       </Combobox>
       <Tags mt="2">
         {picked.map(l => (
@@ -576,7 +576,7 @@ export const MultipleWithCreate: Story = {
     docs: {
       description: {
         story:
-          'Several values, with a way to make a new one. The list stays open after each pick, every option keeps room for the check mark, and the picks show as tags under the field.',
+          'Several values, with a way to make a new one. The list stays open after each pick, every item keeps room for the check mark, and the picks show as tags under the field.',
       },
     },
   },
@@ -624,7 +624,7 @@ function CategoryPicker() {
   return (
     <Combobox
       label="Category"
-      onOptionSubmit={picked => {
+      onSelect={picked => {
         const next = picked === CREATE_CATEGORY ? term : picked;
         if (picked === CREATE_CATEGORY) setCategories(prev => [...prev, term]);
         setValue(next);
@@ -637,30 +637,30 @@ function CategoryPicker() {
         onChange={e => setQuery(e.target.value)}
         onBlur={() => setQuery(value ?? '')}
       />
-      <Combobox.Dropdown>
-        <Combobox.Options>
+      <Combobox.Menu>
+        <Combobox.List>
           {matches.map(c => (
-            <Combobox.Option key={c} value={c} checked={c === value}>
+            <Combobox.Item key={c} value={c} checked={c === value}>
               {c}
-            </Combobox.Option>
+            </Combobox.Item>
           ))}
           {canCreate && (
-            <Combobox.Option value={CREATE_CATEGORY}>
+            <Combobox.Item value={CREATE_CATEGORY}>
               Create “{term}”
-            </Combobox.Option>
+            </Combobox.Item>
           )}
-        </Combobox.Options>
-      </Combobox.Dropdown>
+        </Combobox.List>
+      </Combobox.Menu>
     </Combobox>
   );
 }
 
-export const CreateOption: Story = {
+export const CreateItem: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          'A Create row is one more option, with a value none of yours can be. Its handler makes the new entry and picks it.',
+          'A Create row is one more item, with a value none of yours can be. Its handler makes the new entry and picks it.',
       },
     },
   },
@@ -681,7 +681,7 @@ export const Sizes: Story = {
     docs: {
       description: {
         story:
-          'size sizes the field and the options together. Each list here is open, with a checked option, which has the highlight, and a disabled one.',
+          'size sizes the field and the items together. Each list here is open, with a checked item, which has the highlight, and a disabled one.',
       },
     },
   },
@@ -691,17 +691,17 @@ export const Sizes: Story = {
         <Column key={size ?? 'normal'}>
           <Combobox label={size ?? 'normal'} size={size} defaultOpen>
             <Combobox.Input placeholder="Fruit" />
-            <Combobox.Dropdown>
-              <Combobox.Options>
-                <Combobox.Option value="apple">Apple</Combobox.Option>
-                <Combobox.Option value="banana" checked>
+            <Combobox.Menu>
+              <Combobox.List>
+                <Combobox.Item value="apple">Apple</Combobox.Item>
+                <Combobox.Item value="banana" checked>
                   Banana
-                </Combobox.Option>
-                <Combobox.Option value="cherry" disabled>
+                </Combobox.Item>
+                <Combobox.Item value="cherry" disabled>
                   Cherry
-                </Combobox.Option>
-              </Combobox.Options>
-            </Combobox.Dropdown>
+                </Combobox.Item>
+              </Combobox.List>
+            </Combobox.Menu>
           </Combobox>
         </Column>
       ))}
@@ -709,12 +709,12 @@ export const Sizes: Story = {
   ),
 };
 
-export const DisabledOptions: Story = {
+export const DisabledItems: Story = {
   parameters: {
     docs: {
       description: {
         story:
-          'A disabled option can’t be picked. The arrows still reach it, so a screen reader user finds it, but the opening highlight and autoHighlight pass over it.',
+          'A disabled item can’t be picked. The arrows still reach it, so a screen reader user finds it, but the opening highlight and keepFirst pass over it.',
       },
     },
   },
@@ -722,18 +722,18 @@ export const DisabledOptions: Story = {
     <Block pb="6" mb="6">
       <Combobox label="Plan" defaultOpen>
         <Combobox.Input placeholder="Pick a plan" />
-        <Combobox.Dropdown>
-          <Combobox.Options>
-            <Combobox.Option value="free">Free</Combobox.Option>
-            <Combobox.Option value="team" disabled>
+        <Combobox.Menu>
+          <Combobox.List>
+            <Combobox.Item value="free">Free</Combobox.Item>
+            <Combobox.Item value="team" disabled>
               Team (sold out)
-            </Combobox.Option>
-            <Combobox.Option value="business">Business</Combobox.Option>
-            <Combobox.Option value="enterprise" disabled>
+            </Combobox.Item>
+            <Combobox.Item value="business">Business</Combobox.Item>
+            <Combobox.Item value="enterprise" disabled>
               Enterprise (talk to sales)
-            </Combobox.Option>
-          </Combobox.Options>
-        </Combobox.Dropdown>
+            </Combobox.Item>
+          </Combobox.List>
+        </Combobox.Menu>
       </Combobox>
     </Block>
   ),
@@ -752,7 +752,7 @@ export const EmptyMessage: Story = {
     docs: {
       description: {
         story:
-          'Combobox.Empty sits in the dropdown beside the list, not in it, so the field says it’s collapsed while it shows. Typing that brings it on screen has it announced through a status region.',
+          'Combobox.Empty sits in the menu beside the list, not in it, so the field says it’s collapsed while it shows. Typing that brings it on screen has it announced through a status region.',
       },
     },
   },
@@ -783,20 +783,20 @@ export const Inline: Story = {
     );
     return (
       <Box>
-        <Combobox label="Country" inline onOptionSubmit={setValue}>
+        <Combobox label="Country" inline onSelect={setValue}>
           <Combobox.Input
             placeholder="Filter"
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
           {matches.length > 0 ? (
-            <Combobox.Options>
+            <Combobox.List>
               {matches.map(c => (
-                <Combobox.Option key={c} value={c} checked={c === value}>
+                <Combobox.Item key={c} value={c} checked={c === value}>
                   {c}
-                </Combobox.Option>
+                </Combobox.Item>
               ))}
-            </Combobox.Options>
+            </Combobox.List>
           ) : (
             <Combobox.Empty>No countries match</Combobox.Empty>
           )}
@@ -830,7 +830,7 @@ export const FlipsAbove: Story = {
   ),
   play: async ({ canvasElement }) => {
     await openList(canvasElement);
-    const panel = canvasElement.querySelector('.combobox-dropdown');
+    const panel = canvasElement.querySelector('.combobox-menu');
     await expect(panel).toHaveClass('is-top-left');
   },
 };
@@ -903,7 +903,7 @@ export const CompoundUsage: Story = {
     docs: {
       description: {
         story:
-          'Every part in dot notation: Combobox.Input, Combobox.Dropdown, Combobox.Options, Combobox.Group, Combobox.Option and Combobox.Empty. Each is also exported by name (ComboboxInput and so on).',
+          'Every part in dot notation: Combobox.Input, Combobox.Menu, Combobox.List, Combobox.Group, Combobox.Item and Combobox.Empty. Each is also exported by name (ComboboxInput and so on).',
       },
     },
   },
@@ -939,7 +939,7 @@ export const CompoundUsage: Story = {
         <Combobox
           label="Drink"
           message={`Your drink: ${picked?.label}`}
-          onOptionSubmit={next => {
+          onSelect={next => {
             setValue(next);
             setQuery('');
           }}
@@ -950,28 +950,28 @@ export const CompoundUsage: Story = {
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
-          <Combobox.Dropdown>
+          <Combobox.Menu>
             {groups.length > 0 ? (
-              <Combobox.Options>
+              <Combobox.List>
                 {groups.map(g => (
                   <Combobox.Group key={g.label} label={g.label}>
                     {g.items.map(i => (
-                      <Combobox.Option
+                      <Combobox.Item
                         key={i.value}
                         value={i.value}
                         checked={i.value === value}
                         disabled={i.disabled}
                       >
                         {i.label}
-                      </Combobox.Option>
+                      </Combobox.Item>
                     ))}
                   </Combobox.Group>
                 ))}
-              </Combobox.Options>
+              </Combobox.List>
             ) : (
               <Combobox.Empty>No drinks match</Combobox.Empty>
             )}
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       </Block>
     );

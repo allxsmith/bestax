@@ -69,25 +69,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
     label: 'Produce',
     size: 'small',
     defaultOpen: true,
-    autoHighlight: true,
+    keepFirst: true,
     children: [
       <Library.Combobox.Input key="i" iconLeftName="search" />,
-      <Library.Combobox.Dropdown key="d">
-        <Library.Combobox.Options>
+      <Library.Combobox.Menu key="d">
+        <Library.Combobox.List>
           <Library.Combobox.Group label="Fruit">
-            <Library.Combobox.Option value="apple" checked>
+            <Library.Combobox.Item value="apple" checked>
               Apple
-            </Library.Combobox.Option>
-            <Library.Combobox.Option value="pear" disabled>
+            </Library.Combobox.Item>
+            <Library.Combobox.Item value="pear" disabled>
               Pear
-            </Library.Combobox.Option>
+            </Library.Combobox.Item>
           </Library.Combobox.Group>
-        </Library.Combobox.Options>
+        </Library.Combobox.List>
         <Library.Combobox.Empty>Nothing else</Library.Combobox.Empty>
-      </Library.Combobox.Dropdown>,
+      </Library.Combobox.Menu>,
     ],
   },
-  ComboboxOption: { value: 'apple', checked: true, children: 'Apple' },
+  ComboboxItem: { value: 'apple', checked: true, children: 'Apple' },
   ComboboxGroup: { label: 'Fruit' },
   TagInput: { value: ['tag-one'] },
   Modal: { active: true, children: 'Modal content' },

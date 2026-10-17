@@ -54,7 +54,7 @@ const nothingToAnnounce: Array<{ id: string }> = [];
  */
 export interface ComboboxProps
   extends
-    Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'onChange'>,
+    Omit<React.HTMLAttributes<HTMLDivElement>, 'color' | 'onChange' | 'onSelect'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
   /**
@@ -75,10 +75,10 @@ export interface ComboboxProps
     [key: string]: unknown;
   };
   /**
-   * The parts, in order: `Combobox.Input`, then `Combobox.Dropdown` with
-   * `Combobox.Options` and `Combobox.Empty` in it. With `inline`, the
-   * `Combobox.Options` and `Combobox.Empty` go straight in. Render
-   * `Combobox.Options` while there are options and `Combobox.Empty` while
+   * The parts, in order: `Combobox.Input`, then `Combobox.Menu` with
+   * `Combobox.List` and `Combobox.Empty` in it. With `inline`, the
+   * `Combobox.List` and `Combobox.Empty` go straight in. Render
+   * `Combobox.List` while there are items and `Combobox.Empty` while
    * there aren't: the empty message sits beside the list, not in it.
    */
   children?: React.ReactNode;
@@ -100,34 +100,34 @@ export interface ComboboxProps
    */
   onOpenChange?: (open: boolean) => void;
   /**
-   * Called with an option's `value` when it's picked with Enter or a click.
-   * A disabled option is never picked. The Combobox keeps no value and
+   * Called with an item's `value` when it's picked with Enter or a click.
+   * A disabled item is never picked. The Combobox keeps no value and
    * doesn't change the text in the field: update yours here.
    */
-  onOptionSubmit?: (value: string) => void;
+  onSelect?: (value: string) => void;
   /**
-   * Highlights the first enabled option whenever the list opens or its
-   * options change, so Enter picks the top match. It only highlights:
+   * Highlights the first enabled item whenever the list opens or its
+   * items change, so Enter picks the top match. It only highlights:
    * leaving the field still picks nothing, and so does Tab.
    * @defaultValue false
    */
-  autoHighlight?: boolean;
+  keepFirst?: boolean;
   /**
    * Several values can be picked. The list stays open after a pick, it's
-   * `aria-multiselectable`, and each option's `checked` is its
+   * `aria-multiselectable`, and each item's `checked` is its
    * `aria-selected`.
    * @defaultValue false
    */
   multiple?: boolean;
   /**
    * The list is always on screen, in the flow under the field, as in a
-   * Popover or a page panel. There's no dropdown, so nothing closes it, and
+   * Popover or a page panel. There's no menu, so nothing closes it, and
    * Escape goes to whatever is around it.
    * @defaultValue false
    */
   inline?: boolean;
   /**
-   * Where the dropdown opens against the field: below (`bottom-*`) or above
+   * Where the menu opens against the field: below (`bottom-*`) or above
    * (`top-*`), lined up with its left or right edge. `auto` picks the one
    * that keeps the list in the viewport, preferring below. The same union
    * Popover takes.
@@ -135,7 +135,7 @@ export interface ComboboxProps
    */
   position?: PopoverPosition;
   /**
-   * Renders the dropdown through `Portal`, into the `portalContainer` a
+   * Renders the menu through `Portal`, into the `portalContainer` a
    * `ConfigProvider` sets, `document.body` by default, fixed to the viewport
    * at the field, so a container that clips its overflow can't cut it off.
    * It then shows from the commit after hydration, never in server markup.
@@ -146,7 +146,7 @@ export interface ComboboxProps
    * @defaultValue false
    */
   appendToBody?: boolean;
-  /** Sizes the field and the options together. */
+  /** Sizes the field and the items together. */
   size?: 'small' | 'medium' | 'large';
 }
 
@@ -174,41 +174,41 @@ export type ComboboxInputProps = Omit<
   | 'autoComplete'
 >;
 
-/** Props for Combobox.Dropdown, the floating panel under the field. */
-export interface ComboboxDropdownProps extends React.HTMLAttributes<HTMLDivElement> {
+/** Props for Combobox.Menu, the floating panel under the field. */
+export interface ComboboxMenuProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
-   * What the panel shows: `Combobox.Options` while there are options, and
+   * What the panel shows: `Combobox.List` while there are items, and
    * `Combobox.Empty` while there aren't. Children that are all `null`,
    * `false` or `''`, or empty Fragments, keep the panel shut, so write the
    * conditional here. A component that renders nothing, or a
-   * `Combobox.Options` with no options in it, still counts, and shows an
+   * `Combobox.List` with no items in it, still counts, and shows an
    * empty panel.
    */
   children?: React.ReactNode;
 }
 
 /**
- * Props for Combobox.Options, the list. Its `id` is the one the field's
+ * Props for Combobox.List, the list. Its `id` is the one the field's
  * `aria-controls` names, so it isn't yours to set.
  */
-export interface ComboboxOptionsProps extends Omit<
+export interface ComboboxListProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   'role' | 'id'
 > {
-  /** `Combobox.Option`s and `Combobox.Group`s, in the order they're shown. */
+  /** `Combobox.Item`s and `Combobox.Group`s, in the order they're shown. */
   children?: React.ReactNode;
 }
 
 /**
- * Props for Combobox.Option, one choice in the list. Its `id` follows from
+ * Props for Combobox.Item, one choice in the list. Its `id` follows from
  * its `value`, since the field's `aria-activedescendant` names it, so it
  * isn't yours to set.
  */
-export interface ComboboxOptionProps extends Omit<
+export interface ComboboxItemProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   'role' | 'onSelect' | 'id'
 > {
-  /** What `onOptionSubmit` hands back. Unique within the Combobox. */
+  /** What `onSelect` hands back. Unique within the Combobox. */
   value: string;
   /**
    * Can't be picked. The arrows still reach it, so a screen reader user
@@ -222,11 +222,11 @@ export interface ComboboxOptionProps extends Omit<
    * @defaultValue false
    */
   checked?: boolean;
-  /** What the option shows: text, or text with an avatar, a tag or a hint. */
+  /** What the item shows: text, or text with an avatar, a tag or a hint. */
   children?: React.ReactNode;
 }
 
-/** Props for Combobox.Group, options under a heading. */
+/** Props for Combobox.Group, items under a heading. */
 export interface ComboboxGroupProps extends Omit<
   React.HTMLAttributes<HTMLDivElement>,
   'role'
@@ -236,7 +236,7 @@ export interface ComboboxGroupProps extends Omit<
    * give the group an `aria-label` or `aria-labelledby` of its own.
    */
   label: React.ReactNode;
-  /** The group's `Combobox.Option`s. */
+  /** The group's `Combobox.Item`s. */
   children?: React.ReactNode;
 }
 
@@ -271,7 +271,7 @@ interface ComboboxContextValue {
   /** A change to the field's value, which is the user typing. */
   onFieldChange: (value: string) => void;
   /**
-   * Records the dropdown's panel while it's on screen, so it's placed and
+   * Records the menu's panel while it's on screen, so it's placed and
    * counts as inside. Returns the function that forgets it.
    */
   reportPanel: (element: HTMLElement) => () => void;
@@ -295,12 +295,12 @@ const standalone: ComboboxContextValue = {
     highlighted: null,
     typed: false,
     listboxId: '',
-    optionId: () => '',
+    itemId: () => '',
     rootRef: { current: null },
     inputRef: { current: null },
     listboxRef: { current: null },
     registerPopup: registerNothing,
-    registerOption: registerNothing,
+    registerItem: registerNothing,
     onKeyDown: noop,
     onChange: noop,
     onClick: noop,
@@ -343,7 +343,7 @@ function setRefs<T>(
  * The `Combobox` component builds a text field with a list of options under it, for a searchable select, a server search, a multi-select or grouped options, with the keys and ARIA done and the data left to you.
  *
  * The app owns the data: what's in the list, how it's filtered, and the
- * value. A pick calls `onOptionSubmit` with the option's `value`, and the
+ * value. A pick calls `onSelect` with the option's `value`, and the
  * Combobox keeps no value and never changes the text in the field, so the
  * app sets both there. Nothing filters the options for you either, so a
  * server's answer shows as it came. For a free-text field with suggestions,
@@ -368,21 +368,21 @@ function setRefs<T>(
  * @returns {JSX.Element} The field and its list, in a `Field` with the label unless one is around it.
  *
  * @example
- * <Combobox label="Country" onOptionSubmit={pick}>
+ * <Combobox label="Country" onSelect={pick}>
  *   <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
- *   <Combobox.Dropdown>
+ *   <Combobox.Menu>
  *     {matches.length > 0 ? (
- *       <Combobox.Options>
+ *       <Combobox.List>
  *         {matches.map(c => (
- *           <Combobox.Option key={c} value={c} checked={c === value}>
+ *           <Combobox.Item key={c} value={c} checked={c === value}>
  *             {c}
- *           </Combobox.Option>
+ *           </Combobox.Item>
  *         ))}
- *       </Combobox.Options>
+ *       </Combobox.List>
  *     ) : (
  *       <Combobox.Empty>No countries match</Combobox.Empty>
  *     )}
- *   </Combobox.Dropdown>
+ *   </Combobox.Menu>
  * </Combobox>
  */
 const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
@@ -392,8 +392,8 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
       open,
       defaultOpen = false,
       onOpenChange,
-      onOptionSubmit,
-      autoHighlight = false,
+      onSelect,
+      keepFirst = false,
       multiple = false,
       inline = false,
       position = 'bottom-left',
@@ -439,8 +439,8 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
       open,
       defaultOpen,
       onOpenChange,
-      onOptionSubmit,
-      autoHighlight,
+      onSelect,
+      keepFirst,
       multiple,
       inline,
       // A portaled panel has no server markup to point at.
@@ -492,7 +492,7 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
         setEmptyShown(false);
       };
     }, []);
-    // The dropdown is placed from here rather than from the part, since this
+    // The menu is placed from here rather than from the part, since this
     // is where the field's element is known by the time the panel mounts.
     const panelRef = useRef<HTMLElement | null>(null);
     const [panelShown, setPanelShown] = useState(false);
@@ -500,7 +500,7 @@ const ComboboxRoot = forwardRef<HTMLDivElement, ComboboxProps>(
       active: panelShown,
       position,
       fixed: appendToBody,
-      // The gap comes from `--bulma-combobox-dropdown-offset` as a margin, so
+      // The gap comes from `--bulma-combobox-menu-offset` as a margin, so
       // the coordinates leave it out and `auto` reads it off the panel.
       offset: 0,
       styledGap: marginGap,
@@ -661,7 +661,7 @@ export const ComboboxInput = forwardRef<HTMLInputElement, ComboboxInputProps>(
         aria-controls={expanded ? engine.listboxId : undefined}
         aria-activedescendant={
           expanded && highlighted !== null
-            ? engine.optionId(highlighted)
+            ? engine.itemId(highlighted)
             : undefined
         }
         autoComplete="off"
@@ -691,10 +691,10 @@ ComboboxInput.displayName = 'ComboboxInput';
  * The floating panel under the field, on screen while the list is open and its children aren't all empty.
  *
  * @function
- * @param {ComboboxDropdownProps} props - Props for the Combobox.Dropdown component.
+ * @param {ComboboxMenuProps} props - Props for the Combobox.Menu component.
  * @returns {JSX.Element | null} The panel, or nothing while the list is closed or its children are all empty.
  */
-export const ComboboxDropdown: React.FC<ComboboxDropdownProps> = ({
+export const ComboboxMenu: React.FC<ComboboxMenuProps> = ({
   children,
   className,
   style,
@@ -720,7 +720,7 @@ export const ComboboxDropdown: React.FC<ComboboxDropdownProps> = ({
 
   const menuClass = usePrefixedClassNames(
     'dropdown-menu',
-    'combobox-dropdown',
+    'combobox-menu',
     {
       [`is-${placement.position}`]: true,
       'is-portal': appendToBody,
@@ -764,16 +764,16 @@ export const ComboboxDropdown: React.FC<ComboboxDropdownProps> = ({
     </Portal>
   );
 };
-ComboboxDropdown.displayName = 'ComboboxDropdown';
+ComboboxMenu.displayName = 'ComboboxMenu';
 
 /**
- * The list of options, a `listbox` named by the label that names the field.
+ * The list of items, a `listbox` named by the label that names the field.
  *
  * @function
- * @param {ComboboxOptionsProps} props - Props for the Combobox.Options component.
+ * @param {ComboboxListProps} props - Props for the Combobox.List component.
  * @returns {JSX.Element} The listbox.
  */
-export const ComboboxOptions: React.FC<ComboboxOptionsProps> = ({
+export const ComboboxList: React.FC<ComboboxListProps> = ({
   children,
   className,
   onMouseDown,
@@ -781,7 +781,7 @@ export const ComboboxOptions: React.FC<ComboboxOptionsProps> = ({
 }) => {
   const { engine, labelId, multiple } = useCombobox();
   const { listboxRef, listboxId, keepFocus } = engine;
-  const listClass = usePrefixedClassNames('combobox-options');
+  const listClass = usePrefixedClassNames('combobox-list');
   // A name the caller gave the list wins over the label's.
   const callerNamed = !!props['aria-label'] || 'aria-labelledby' in props;
   return (
@@ -805,16 +805,16 @@ export const ComboboxOptions: React.FC<ComboboxOptionsProps> = ({
     </div>
   );
 };
-ComboboxOptions.displayName = 'ComboboxOptions';
+ComboboxList.displayName = 'ComboboxList';
 
 /**
  * One choice in the list, with a check mark while it's `checked`.
  *
  * @function
- * @param {ComboboxOptionProps} props - Props for the Combobox.Option component.
- * @returns {JSX.Element} The option.
+ * @param {ComboboxItemProps} props - Props for the Combobox.Item component.
+ * @returns {JSX.Element} The item.
  */
-export const ComboboxOption: React.FC<ComboboxOptionProps> = ({
+export const ComboboxItem: React.FC<ComboboxItemProps> = ({
   value,
   disabled = false,
   checked = false,
@@ -825,21 +825,21 @@ export const ComboboxOption: React.FC<ComboboxOptionProps> = ({
   ...props
 }) => {
   const { engine, multiple } = useCombobox();
-  const optionRef = useRef<HTMLDivElement>(null);
-  const { registerOption } = engine;
+  const itemRef = useRef<HTMLDivElement>(null);
+  const { registerItem } = engine;
   useClientLayoutEffect(
     () =>
-      registerOption(optionRef.current as HTMLDivElement, {
+      registerItem(itemRef.current as HTMLDivElement, {
         value,
         disabled,
         checked,
       }),
-    [registerOption, value, disabled, checked]
+    [registerItem, value, disabled, checked]
   );
   const highlighted = engine.highlighted === value;
-  const optionClass = usePrefixedClassNames(
+  const itemClass = usePrefixedClassNames(
     'dropdown-item',
-    'combobox-option',
+    'combobox-item',
     {
       'is-active': highlighted,
       'is-checked': checked,
@@ -858,10 +858,10 @@ export const ComboboxOption: React.FC<ComboboxOptionProps> = ({
 
   return (
     <div
-      className={classNames(optionClass, className)}
+      className={classNames(itemClass, className)}
       {...props}
-      ref={optionRef}
-      id={engine.optionId(value) || undefined}
+      ref={itemRef}
+      id={engine.itemId(value) || undefined}
       role="option"
       aria-selected={selected}
       aria-disabled={disabled || undefined}
@@ -896,10 +896,10 @@ export const ComboboxOption: React.FC<ComboboxOptionProps> = ({
     </div>
   );
 };
-ComboboxOption.displayName = 'ComboboxOption';
+ComboboxItem.displayName = 'ComboboxItem';
 
 /**
- * Options under a heading, a `group` named by it.
+ * Items under a heading, a `group` named by it.
  *
  * @function
  * @param {ComboboxGroupProps} props - Props for the Combobox.Group component.
@@ -968,14 +968,14 @@ export const ComboboxEmpty: React.FC<ComboboxEmptyProps> = ({
 };
 ComboboxEmpty.displayName = 'ComboboxEmpty';
 
-/** Combobox with Input, Dropdown, Options, Option, Group and Empty sub-components. */
+/** Combobox with Input, Menu, List, Item, Group and Empty sub-components. */
 export const Combobox = withSubComponents(
   ComboboxRoot,
   {
     Input: ComboboxInput,
-    Dropdown: ComboboxDropdown,
-    Options: ComboboxOptions,
-    Option: ComboboxOption,
+    Menu: ComboboxMenu,
+    List: ComboboxList,
+    Item: ComboboxItem,
     Group: ComboboxGroup,
     Empty: ComboboxEmpty,
   },

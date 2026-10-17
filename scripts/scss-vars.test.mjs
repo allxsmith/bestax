@@ -213,14 +213,14 @@ ${PREFIX}tooltip {
 
 // --- the root class listed beside a compound ----------------------------------
 
-const COMBOBOX_LIST = `${PREFIX}combobox,\n${PREFIX}combobox-dropdown${PREFIX}is-portal`;
+const COMBOBOX_LIST = `${PREFIX}combobox,\n${PREFIX}combobox-menu${PREFIX}is-portal`;
 
 test('the root class listed beside a compound reads as compound', () => {
   // Combobox's shape: one registration on the root and on its portaled panel,
   // which is outside the root. Neither a value set on `.combobox` nor a lone
   // className class reaches the panel's own 0-2-0 declaration, so the root
   // lead's "override there (or via className)" would do nothing for it.
-  const src = partial(COMBOBOX_LIST, ['combobox-dropdown-background']);
+  const src = partial(COMBOBOX_LIST, ['combobox-menu-background']);
   assert.deepEqual(
     componentVars(src, 'combobox').map(r => r.scope),
     ['compound']
@@ -251,7 +251,7 @@ test('a compound home keeps a key compound beside a root one, in either order', 
   // A root registration upgrades a key's scope, but the compound's own
   // declaration still out-ranks a lone class, so the compound advice is the
   // one that holds wherever the root registration sits.
-  const keys = ['combobox-option-size'];
+  const keys = ['combobox-item-size'];
   for (const order of [
     [`${PREFIX}combobox`, COMBOBOX_LIST],
     [COMBOBOX_LIST, `${PREFIX}combobox`],

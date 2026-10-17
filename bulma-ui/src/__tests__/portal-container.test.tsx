@@ -416,11 +416,11 @@ describe('Combobox', () => {
   const fruit = (props: { appendToBody?: boolean }) => (
     <Combobox label="Fruit" defaultOpen {...props}>
       <Combobox.Input />
-      <Combobox.Dropdown>
-        <Combobox.Options>
-          <Combobox.Option value="Apple">Apple</Combobox.Option>
-        </Combobox.Options>
-      </Combobox.Dropdown>
+      <Combobox.Menu>
+        <Combobox.List>
+          <Combobox.Item value="Apple">Apple</Combobox.Item>
+        </Combobox.List>
+      </Combobox.Menu>
     </Combobox>
   );
 

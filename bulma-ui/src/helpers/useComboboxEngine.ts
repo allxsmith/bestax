@@ -12,7 +12,7 @@ import { useClientLayoutEffect } from './useClientLayoutEffect';
 import { getActiveElementInTree, isEventInside } from './shadowDom';
 
 /** What an option tells the engine about itself. */
-export interface ComboboxOptionState {
+export interface ComboboxItemState {
   /** What a pick hands back. Unique within the combobox. */
   value: string;
   /** Reachable with the arrows, never picked. */
@@ -22,7 +22,7 @@ export interface ComboboxOptionState {
 }
 
 /** An option on the page, with its element. */
-interface ShownOption extends ComboboxOptionState {
+interface ShownOption extends ComboboxItemState {
   element: HTMLElement;
 }
 
@@ -33,8 +33,8 @@ interface ShownOption extends ComboboxOptionState {
  * - `first` and `last` (Down and Up Arrow): the checked option, otherwise the
  *   first or last enabled one;
  * - `open` (a click, or any other way of opening): the checked option,
- *   otherwise the first enabled one with `autoHighlight`, otherwise nothing;
- * - `typed`: the first enabled option with `autoHighlight`, otherwise nothing;
+ *   otherwise the first enabled one with `keepFirst`, otherwise nothing;
+ * - `typed`: the first enabled option with `keepFirst`, otherwise nothing;
  * - `none` (Alt+Down Arrow): nothing.
  *
  * Only an enabled option takes it, so a disabled checked one is passed over.
@@ -50,9 +50,9 @@ export interface ComboboxEngineOptions {
   /** Called with the open state asked for, when it differs from the current one. */
   onOpenChange?: (open: boolean) => void;
   /** Called with an option's `value` when it's picked. */
-  onOptionSubmit?: (value: string) => void;
+  onSelect?: (value: string) => void;
   /** Highlights the first enabled option whenever the list opens or its options change. */
-  autoHighlight: boolean;
+  keepFirst: boolean;
   /** Several values: a pick keeps the list open. */
   multiple: boolean;
   /** The list is always on screen, so nothing opens or closes it. */
@@ -83,7 +83,7 @@ export interface ComboboxEngine {
   /** The listbox's id. */
   listboxId: string;
   /** An option's id, which follows from its value. */
-  optionId: (value: string) => string;
+  itemId: (value: string) => string;
   /** For the element around the field and, unless it's portaled, the list. */
   rootRef: React.MutableRefObject<HTMLDivElement | null>;
   /** For the field. */
@@ -97,9 +97,9 @@ export interface ComboboxEngine {
    */
   registerPopup: (element: HTMLElement) => () => void;
   /** Records an option's element. Returns the function that forgets it. */
-  registerOption: (
+  registerItem: (
     element: HTMLElement,
-    state: ComboboxOptionState
+    state: ComboboxItemState
   ) => () => void;
   /** The field's keys, to run after the caller's own handler. */
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
@@ -140,7 +140,7 @@ const sameValues = (a: string[], b: string[]): boolean =>
  * needed, so options in groups and options that come and go are found, and
  * the highlight is remembered by value, so it survives a re-render. The text
  * in the field and any value are the app's: a pick only calls
- * `onOptionSubmit`.
+ * `onSelect`.
  *
  * @function useComboboxEngine
  * @param options - The open state, the pick callback and the shape.
@@ -150,20 +150,20 @@ export function useComboboxEngine({
   open: controlledOpen,
   defaultOpen,
   onOpenChange,
-  onOptionSubmit,
-  autoHighlight,
+  onSelect,
+  keepFirst,
   multiple,
   inline,
   deferred,
 }: ComboboxEngineOptions): ComboboxEngine {
   const baseId = useId();
   const listboxId = `${baseId}-listbox`;
-  const optionPrefix = `${baseId}-option-`;
+  const itemPrefix = `${baseId}-item-`;
   // The value goes into the id encoded, so a value with a space in it still
   // makes one id, not two.
-  const optionId = useCallback(
-    (value: string) => optionPrefix + encodeURIComponent(value),
-    [optionPrefix]
+  const itemId = useCallback(
+    (value: string) => itemPrefix + encodeURIComponent(value),
+    [itemPrefix]
   );
 
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -171,7 +171,7 @@ export function useComboboxEngine({
   const listboxRef = useRef<HTMLDivElement | null>(null);
   const popupRef = useRef<HTMLElement | null>(null);
   const insidePressRef = useRef<Event | null>(null);
-  const optionsRef = useRef(new Map<HTMLElement, ComboboxOptionState>());
+  const optionsRef = useRef(new Map<HTMLElement, ComboboxItemState>());
   const landingRef = useRef<Landing | null>(null);
   const wasOpenRef = useRef(false);
   const shownValuesRef = useRef<string[]>([]);
@@ -233,7 +233,7 @@ export function useComboboxEngine({
   // After every render, read the list: whether it has options, and where
   // the highlight goes now. A highlighted option that has left takes the
   // highlight with it, or hands it to the first enabled one under
-  // `autoHighlight`, which also moves it there whenever the options change.
+  // `keepFirst`, which also moves it there whenever the options change.
   useClientLayoutEffect(() => {
     const opened = open && !wasOpenRef.current;
     wasOpenRef.current = open;
@@ -258,11 +258,11 @@ export function useComboboxEngine({
     if (landing === 'first') next = checked ?? first;
     else if (landing === 'last') next = checked ?? last;
     else if (landing === 'open')
-      next = checked ?? (autoHighlight ? first : null);
-    else if (landing === 'typed') next = autoHighlight ? first : null;
+      next = checked ?? (keepFirst ? first : null);
+    else if (landing === 'typed') next = keepFirst ? first : null;
     else if (landing === 'none') next = null;
-    else if (autoHighlight && changed) next = first;
-    // Without `autoHighlight`, which moved it above, a highlighted option
+    else if (keepFirst && changed) next = first;
+    // Without `keepFirst`, which moved it above, a highlighted option
     // that left takes the highlight with it.
     else if (next !== null && !values.includes(next)) next = null;
     // Only a change is set. StrictMode runs this twice on mount, and the
@@ -307,10 +307,10 @@ export function useComboboxEngine({
 
   const submit = useCallback(
     (value: string) => {
-      onOptionSubmit?.(value);
+      onSelect?.(value);
       if (!multiple) close();
     },
-    [onOptionSubmit, multiple, close]
+    [onSelect, multiple, close]
   );
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
@@ -445,8 +445,8 @@ export function useComboboxEngine({
     };
   }, []);
 
-  const registerOption = useCallback(
-    (element: HTMLElement, state: ComboboxOptionState) => {
+  const registerItem = useCallback(
+    (element: HTMLElement, state: ComboboxItemState) => {
       const options = optionsRef.current;
       options.set(element, state);
       refresh();
@@ -464,12 +464,12 @@ export function useComboboxEngine({
     highlighted,
     typed,
     listboxId,
-    optionId,
+    itemId,
     rootRef,
     inputRef,
     listboxRef,
     registerPopup,
-    registerOption,
+    registerItem,
     onKeyDown,
     onChange,
     onClick,

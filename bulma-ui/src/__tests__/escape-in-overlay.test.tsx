@@ -84,18 +84,18 @@ const FruitCombobox = ({ inline = false }: { inline?: boolean }) => {
     fruit.toLowerCase().includes(query.toLowerCase())
   );
   const options = matches.length > 0 && (
-    <Combobox.Options>
+    <Combobox.List>
       {matches.map(fruit => (
-        <Combobox.Option key={fruit} value={fruit}>
+        <Combobox.Item key={fruit} value={fruit}>
           {fruit}
-        </Combobox.Option>
+        </Combobox.Item>
       ))}
-    </Combobox.Options>
+    </Combobox.List>
   );
   return (
-    <Combobox label="Fruit" inline={inline} onOptionSubmit={setQuery}>
+    <Combobox label="Fruit" inline={inline} onSelect={setQuery}>
       <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
-      {inline ? options : <Combobox.Dropdown>{options}</Combobox.Dropdown>}
+      {inline ? options : <Combobox.Menu>{options}</Combobox.Menu>}
     </Combobox>
   );
 };

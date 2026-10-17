@@ -5,12 +5,12 @@ import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import {
   Combobox,
-  ComboboxDropdown,
+  ComboboxMenu,
   ComboboxEmpty,
   ComboboxGroup,
   ComboboxInput,
-  ComboboxOption,
-  ComboboxOptions,
+  ComboboxItem,
+  ComboboxList,
   type ComboboxInputProps,
   type ComboboxProps,
 } from '../Combobox';
@@ -43,7 +43,7 @@ function CountrySelect({
   disabledItems = [],
   initialValue = null,
   inputProps,
-  onOptionSubmit,
+  onSelect,
   ...props
 }: CountryProps) {
   const [value, setValue] = useState<string | null>(initialValue);
@@ -53,10 +53,10 @@ function CountrySelect({
   return (
     <Combobox
       label="Country"
-      onOptionSubmit={picked => {
+      onSelect={picked => {
         setValue(picked);
         setQuery(picked);
-        onOptionSubmit?.(picked);
+        onSelect?.(picked);
       }}
       {...props}
     >
@@ -66,24 +66,24 @@ function CountrySelect({
         onChange={e => setQuery(e.target.value)}
         {...inputProps}
       />
-      <Combobox.Dropdown>
+      <Combobox.Menu>
         {matches.length > 0 ? (
-          <Combobox.Options>
+          <Combobox.List>
             {matches.map(c => (
-              <Combobox.Option
+              <Combobox.Item
                 key={c}
                 value={c}
                 checked={c === value}
                 disabled={disabledItems.includes(c)}
               >
                 {c}
-              </Combobox.Option>
+              </Combobox.Item>
             ))}
-          </Combobox.Options>
+          </Combobox.List>
         ) : (
           <Combobox.Empty>No countries match</Combobox.Empty>
         )}
-      </Combobox.Dropdown>
+      </Combobox.Menu>
     </Combobox>
   );
 }
@@ -93,7 +93,7 @@ function PeopleList({
   items = ['Ada Lovelace', 'Grace Hopper', 'Katherine Johnson'],
   disabledItems = [],
   initialValue = null,
-  onOptionSubmit,
+  onSelect,
   ...props
 }: CountryProps) {
   const [value, setValue] = useState<string | null>(initialValue);
@@ -104,9 +104,9 @@ function PeopleList({
   return (
     <Combobox
       inline
-      onOptionSubmit={picked => {
+      onSelect={picked => {
         setValue(picked);
-        onOptionSubmit?.(picked);
+        onSelect?.(picked);
       }}
       {...props}
     >
@@ -116,18 +116,18 @@ function PeopleList({
         onChange={e => setQuery(e.target.value)}
       />
       {matches.length > 0 ? (
-        <Combobox.Options aria-label="People">
+        <Combobox.List aria-label="People">
           {matches.map(p => (
-            <Combobox.Option
+            <Combobox.Item
               key={p}
               value={p}
               checked={p === value}
               disabled={disabledItems.includes(p)}
             >
               {p}
-            </Combobox.Option>
+            </Combobox.Item>
           ))}
-        </Combobox.Options>
+        </Combobox.List>
       ) : (
         <Combobox.Empty>Nobody matches</Combobox.Empty>
       )}
@@ -375,11 +375,11 @@ describe('Combobox', () => {
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              <Combobox.Option value="a">A</Combobox.Option>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="a">A</Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       expect(listbox()).toHaveAttribute('aria-label', 'Suggestions');
@@ -394,9 +394,9 @@ describe('Combobox', () => {
       rerender(
         <Combobox label="Label" inline>
           <Combobox.Input />
-          <Combobox.Options aria-labelledby="elsewhere">
-            <Combobox.Option value="a">A</Combobox.Option>
-          </Combobox.Options>
+          <Combobox.List aria-labelledby="elsewhere">
+            <Combobox.Item value="a">A</Combobox.Item>
+          </Combobox.List>
         </Combobox>
       );
       expect(listbox()).toHaveAttribute('aria-labelledby', 'elsewhere');
@@ -447,7 +447,7 @@ describe('Combobox', () => {
       key('ArrowDown');
       expect(field()).toHaveAttribute('aria-expanded', 'true');
       expect(field()).toHaveAttribute('aria-controls', listbox().id);
-      expect(listbox()).toHaveClass('combobox-options');
+      expect(listbox()).toHaveClass('combobox-list');
       expect(listbox().closest('.dropdown-content')).not.toBeNull();
     });
 
@@ -458,7 +458,7 @@ describe('Combobox', () => {
       expect(new Set(ids).size).toBe(COUNTRIES.length);
       ids.forEach(id => expect(id).toMatch(/\S/));
       options().forEach(o =>
-        expect(o).toHaveClass('dropdown-item', 'combobox-option')
+        expect(o).toHaveClass('dropdown-item', 'combobox-item')
       );
     });
 
@@ -672,22 +672,22 @@ describe('Combobox', () => {
     });
 
     it('picks the highlighted option with Enter, and closes', () => {
-      const onOptionSubmit = jest.fn();
-      render(<CountrySelect onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<CountrySelect onSelect={onSelect} />);
       key('ArrowDown');
       key('ArrowDown');
       expect(key('Enter')).toBe(false);
-      expect(onOptionSubmit).toHaveBeenCalledWith('France');
+      expect(onSelect).toHaveBeenCalledWith('France');
       expect(screen.queryByRole('listbox')).toBeNull();
       expect(field()).toHaveValue('France');
     });
 
     it('does nothing on Enter over a disabled option, and keeps the key', () => {
-      const onOptionSubmit = jest.fn();
+      const onSelect = jest.fn();
       render(
         <CountrySelect
           disabledItems={['Canada']}
-          onOptionSubmit={onOptionSubmit}
+          onSelect={onSelect}
           onOpenChange={jest.fn()}
         />
       );
@@ -695,16 +695,16 @@ describe('Combobox', () => {
       key('ArrowDown');
       expect(highlighted()).toBe('Canada');
       expect(key('Enter')).toBe(false);
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
       expect(listbox()).toBeInTheDocument();
     });
 
     it('closes on Enter with nothing highlighted, and lets the key through', () => {
-      const onOptionSubmit = jest.fn();
-      render(<CountrySelect onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<CountrySelect onSelect={onSelect} />);
       type('a');
       expect(key('Enter')).toBe(true);
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
       expect(screen.queryByRole('listbox')).toBeNull();
     });
 
@@ -731,7 +731,7 @@ describe('Combobox', () => {
       render(
         <Combobox defaultOpen onOpenChange={onOpenChange}>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>{null}</Combobox.Dropdown>
+          <Combobox.Menu>{null}</Combobox.Menu>
         </Combobox>
       );
       expect(document.querySelector('.dropdown-menu')).toBeNull();
@@ -761,11 +761,11 @@ describe('Combobox', () => {
     });
 
     it('closes on Tab and picks nothing', () => {
-      const onOptionSubmit = jest.fn();
-      render(<CountrySelect onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<CountrySelect onSelect={onSelect} />);
       key('ArrowDown');
       expect(key('Tab')).toBe(true);
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
       expect(screen.queryByRole('listbox')).toBeNull();
     });
 
@@ -823,18 +823,18 @@ describe('Combobox', () => {
     });
 
     it('runs none of it while an IME is composing', () => {
-      const onOptionSubmit = jest.fn();
-      render(<CountrySelect onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<CountrySelect onSelect={onSelect} />);
       expect(key('ArrowDown', { isComposing: true })).toBe(true);
       expect(screen.queryByRole('listbox')).toBeNull();
       key('ArrowDown');
       expect(key('Enter', { isComposing: true })).toBe(true);
       expect(key('Enter', { keyCode: 229 })).toBe(true);
       expect(key('Escape', { keyCode: 229 })).toBe(true);
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
       expect(listbox()).toBeInTheDocument();
       key('Enter');
-      expect(onOptionSubmit).toHaveBeenCalledWith('Canada');
+      expect(onSelect).toHaveBeenCalledWith('Canada');
     });
   });
 
@@ -868,10 +868,10 @@ describe('Combobox', () => {
       expect(highlighted()).toBe('France');
     });
 
-    it('keeps autoHighlight on the first enabled option, inline', () => {
+    it('keeps keepFirst on the first enabled option, inline', () => {
       render(
         <React.StrictMode>
-          <PeopleList autoHighlight disabledItems={['Ada Lovelace']} />
+          <PeopleList keepFirst disabledItems={['Ada Lovelace']} />
         </React.StrictMode>
       );
       expect(highlighted()).toBe('Grace Hopper');
@@ -888,21 +888,21 @@ describe('Combobox', () => {
     });
   });
 
-  describe('autoHighlight', () => {
+  describe('keepFirst', () => {
     it('highlights the first enabled option as the list opens', () => {
-      render(<CountrySelect autoHighlight disabledItems={['Canada']} />);
+      render(<CountrySelect keepFirst disabledItems={['Canada']} />);
       type('a');
       expect(highlighted()).toBe('France');
     });
 
     it('highlights the checked option first as the list opens', () => {
-      render(<CountrySelect autoHighlight initialValue="Japan" />);
+      render(<CountrySelect keepFirst initialValue="Japan" />);
       fireEvent.click(field());
       expect(highlighted()).toBe('Japan');
     });
 
     it('moves to the first enabled option when the options change', () => {
-      render(<CountrySelect autoHighlight />);
+      render(<CountrySelect keepFirst />);
       type('a');
       key('ArrowDown');
       expect(highlighted()).toBe('France');
@@ -913,7 +913,7 @@ describe('Combobox', () => {
     });
 
     it('goes back to the first after typing that leaves the options as they were', () => {
-      render(<CountrySelect autoHighlight items={['Apple', 'Grape']} />);
+      render(<CountrySelect keepFirst items={['Apple', 'Grape']} />);
       type('a');
       key('ArrowDown');
       expect(highlighted()).toBe('Grape');
@@ -922,25 +922,25 @@ describe('Combobox', () => {
     });
 
     it('keeps a highlight the arrows moved while the options stay', () => {
-      const { rerender } = render(<CountrySelect autoHighlight defaultOpen />);
+      const { rerender } = render(<CountrySelect keepFirst defaultOpen />);
       key('ArrowDown');
       key('ArrowDown');
-      rerender(<CountrySelect autoHighlight defaultOpen />);
+      rerender(<CountrySelect keepFirst defaultOpen />);
       expect(highlighted()).toBe('Germany');
     });
 
     it('only highlights: Tab still picks nothing', () => {
-      const onOptionSubmit = jest.fn();
-      render(<CountrySelect autoHighlight onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<CountrySelect keepFirst onSelect={onSelect} />);
       type('fr');
       expect(highlighted()).toBe('France');
       key('Tab');
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
     });
 
     it('highlights nothing when every option is disabled', () => {
       render(
-        <CountrySelect autoHighlight items={['A']} disabledItems={['A']} />
+        <CountrySelect keepFirst items={['A']} disabledItems={['A']} />
       );
       type('a');
       expect(highlighted()).toBeNull();
@@ -953,15 +953,15 @@ describe('Combobox', () => {
         return (
           <Combobox defaultOpen>
             <Combobox.Input aria-label="Search" />
-            <Combobox.Dropdown>
-              <Combobox.Options>
+            <Combobox.Menu>
+              <Combobox.List>
                 {items.map(i => (
-                  <Combobox.Option key={i} value={i}>
+                  <Combobox.Item key={i} value={i}>
                     {i}
-                  </Combobox.Option>
+                  </Combobox.Item>
                 ))}
-              </Combobox.Options>
-            </Combobox.Dropdown>
+              </Combobox.List>
+            </Combobox.Menu>
           </Combobox>
         );
       }
@@ -976,20 +976,20 @@ describe('Combobox', () => {
       expect(highlighted()).toBeNull();
     });
 
-    it('hands it to the first enabled option under autoHighlight', () => {
+    it('hands it to the first enabled option under keepFirst', () => {
       function Shrinking({ items }: { items: string[] }) {
         return (
-          <Combobox defaultOpen autoHighlight>
+          <Combobox defaultOpen keepFirst>
             <Combobox.Input aria-label="Search" />
-            <Combobox.Dropdown>
-              <Combobox.Options>
+            <Combobox.Menu>
+              <Combobox.List>
                 {items.map(i => (
-                  <Combobox.Option key={i} value={i} disabled={i === 'a'}>
+                  <Combobox.Item key={i} value={i} disabled={i === 'a'}>
                     {i}
-                  </Combobox.Option>
+                  </Combobox.Item>
                 ))}
-              </Combobox.Options>
-            </Combobox.Dropdown>
+              </Combobox.List>
+            </Combobox.Menu>
           </Combobox>
         );
       }
@@ -1007,19 +1007,19 @@ describe('Combobox', () => {
         return (
           <>
             <button onClick={() => setShown(true)}>More</button>
-            {shown && <Combobox.Option value="late">Late</Combobox.Option>}
+            {shown && <Combobox.Item value="late">Late</Combobox.Item>}
           </>
         );
       }
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              <Combobox.Option value="early">Early</Combobox.Option>
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="early">Early</Combobox.Item>
               <Later />
-            </Combobox.Options>
-          </Combobox.Dropdown>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       fireEvent.click(screen.getByText('More'));
@@ -1028,26 +1028,26 @@ describe('Combobox', () => {
     });
 
     it('passes over an element given the option role by hand', () => {
-      const onOptionSubmit = jest.fn();
+      const onSelect = jest.fn();
       render(
-        <Combobox defaultOpen onOptionSubmit={onOptionSubmit}>
+        <Combobox defaultOpen onSelect={onSelect}>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              <Combobox.Option value="a">A</Combobox.Option>
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="a">A</Combobox.Item>
               <div role="option" aria-selected="false">
                 Not one
               </div>
-              <Combobox.Option value="b">B</Combobox.Option>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+              <Combobox.Item value="b">B</Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       key('ArrowDown');
       key('ArrowDown');
       expect(highlighted()).toBe('B');
       key('Enter');
-      expect(onOptionSubmit).toHaveBeenCalledWith('b');
+      expect(onSelect).toHaveBeenCalledWith('b');
     });
 
     it('brings the highlighted option into view', () => {
@@ -1089,13 +1089,13 @@ describe('Combobox', () => {
       const scrollIntoView = jest.fn();
       Element.prototype.scrollIntoView = scrollIntoView;
       try {
-        render(<CountrySelect autoHighlight />);
+        render(<CountrySelect keepFirst />);
         type('n');
         const { contexts } = scrollIntoView.mock;
         expect(contexts[contexts.length - 1]).toBe(option('Canada'));
         scrollIntoView.mockClear();
         fireEvent.pointerMove(option('France'));
-        // Typing hands the pointer's highlight to autoHighlight, which moves
+        // Typing hands the pointer's highlight to keepFirst, which moves
         // it to the first match, and that scrolls.
         type('na');
         expect(highlighted()).toBe('Canada');
@@ -1109,11 +1109,11 @@ describe('Combobox', () => {
   describe('Picking with the pointer', () => {
     it('picks an option on a click, closes, and keeps focus in the field', async () => {
       const user = userEvent.setup();
-      const onOptionSubmit = jest.fn();
-      render(<CountrySelect onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<CountrySelect onSelect={onSelect} />);
       await user.click(field());
       await user.click(option('Japan'));
-      expect(onOptionSubmit).toHaveBeenCalledWith('Japan');
+      expect(onSelect).toHaveBeenCalledWith('Japan');
       expect(screen.queryByRole('listbox')).toBeNull();
       expect(field()).toHaveFocus();
       expect(field()).toHaveValue('Japan');
@@ -1129,35 +1129,35 @@ describe('Combobox', () => {
 
     it('never picks a disabled option', async () => {
       const user = userEvent.setup();
-      const onOptionSubmit = jest.fn();
+      const onSelect = jest.fn();
       render(
         <CountrySelect
           disabledItems={['Japan']}
-          onOptionSubmit={onOptionSubmit}
+          onSelect={onSelect}
         />
       );
       await user.click(field());
       await user.click(option('Japan'));
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
       expect(listbox()).toBeInTheDocument();
     });
 
     it("lets an option's own onClick keep the pick", () => {
-      const onOptionSubmit = jest.fn();
+      const onSelect = jest.fn();
       render(
-        <Combobox defaultOpen onOptionSubmit={onOptionSubmit}>
+        <Combobox defaultOpen onSelect={onSelect}>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              <Combobox.Option value="a" onClick={e => e.preventDefault()}>
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="a" onClick={e => e.preventDefault()}>
                 A
-              </Combobox.Option>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+              </Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       fireEvent.click(option('A'));
-      expect(onOptionSubmit).not.toHaveBeenCalled();
+      expect(onSelect).not.toHaveBeenCalled();
     });
 
     it('highlights an enabled option the pointer moves over, and not a disabled one', () => {
@@ -1177,13 +1177,13 @@ describe('Combobox', () => {
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              <Combobox.Option value="a" onPointerMove={onPointerMove}>
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="a" onPointerMove={onPointerMove}>
                 A
-              </Combobox.Option>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+              </Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       fireEvent.pointerMove(option('A'));
@@ -1196,14 +1196,14 @@ describe('Combobox', () => {
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown onMouseDown={onMouseDown}>
-            <Combobox.Options onMouseDown={onMouseDown}>
+          <Combobox.Menu onMouseDown={onMouseDown}>
+            <Combobox.List onMouseDown={onMouseDown}>
               <Combobox.Group label="Group">
-                <Combobox.Option value="a">A</Combobox.Option>
+                <Combobox.Item value="a">A</Combobox.Item>
               </Combobox.Group>
-            </Combobox.Options>
+            </Combobox.List>
             <Combobox.Empty onMouseDown={onMouseDown}>Nothing</Combobox.Empty>
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       );
       expect(fireEvent.mouseDown(option('A'))).toBe(false);
@@ -1217,14 +1217,14 @@ describe('Combobox', () => {
   });
 
   describe('multiple', () => {
-    function Labels({ onOptionSubmit }: { onOptionSubmit?: jest.Mock }) {
+    function Labels({ onSelect }: { onSelect?: jest.Mock }) {
       const [picked, setPicked] = useState<string[]>(['docs']);
       return (
         <Combobox
           label="Labels"
           multiple
-          onOptionSubmit={value => {
-            onOptionSubmit?.(value);
+          onSelect={value => {
+            onSelect?.(value);
             setPicked(prev =>
               prev.includes(value)
                 ? prev.filter(l => l !== value)
@@ -1233,20 +1233,20 @@ describe('Combobox', () => {
           }}
         >
           <Combobox.Input />
-          <Combobox.Dropdown>
-            <Combobox.Options>
+          <Combobox.Menu>
+            <Combobox.List>
               {['bug', 'docs', 'feature', 'locked'].map(l => (
-                <Combobox.Option
+                <Combobox.Item
                   key={l}
                   value={l}
                   checked={picked.includes(l) || l === 'locked'}
                   disabled={l === 'locked'}
                 >
                   {l}
-                </Combobox.Option>
+                </Combobox.Item>
               ))}
-            </Combobox.Options>
-          </Combobox.Dropdown>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
     }
@@ -1269,13 +1269,13 @@ describe('Combobox', () => {
     });
 
     it('keeps the list open and its highlight after a pick', () => {
-      const onOptionSubmit = jest.fn();
-      render(<Labels onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<Labels onSelect={onSelect} />);
       key('ArrowDown');
       key('ArrowDown');
       expect(highlighted()).toBe('feature');
       key('Enter');
-      expect(onOptionSubmit).toHaveBeenCalledWith('feature');
+      expect(onSelect).toHaveBeenCalledWith('feature');
       expect(listbox()).toBeInTheDocument();
       expect(highlighted()).toBe('feature');
       expect(option('feature')).toHaveAttribute('aria-selected', 'true');
@@ -1290,17 +1290,17 @@ describe('Combobox', () => {
       return (
         <Combobox label="Produce" defaultOpen>
           <Combobox.Input />
-          <Combobox.Dropdown>
-            <Combobox.Options>
+          <Combobox.Menu>
+            <Combobox.List>
               <Combobox.Group label="Fruit" className="custom">
-                <Combobox.Option value="apple">Apple</Combobox.Option>
-                <Combobox.Option value="banana">Banana</Combobox.Option>
+                <Combobox.Item value="apple">Apple</Combobox.Item>
+                <Combobox.Item value="banana">Banana</Combobox.Item>
               </Combobox.Group>
               <Combobox.Group label="Vegetables">
-                <Combobox.Option value="carrot">Carrot</Combobox.Option>
+                <Combobox.Item value="carrot">Carrot</Combobox.Item>
               </Combobox.Group>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
     }
@@ -1318,17 +1318,17 @@ describe('Combobox', () => {
       render(
         <Combobox label="Produce" defaultOpen>
           <Combobox.Input />
-          <Combobox.Dropdown>
-            <Combobox.Options>
+          <Combobox.Menu>
+            <Combobox.List>
               <Combobox.Group label="Fruit" aria-label="Fresh fruit (2)">
-                <Combobox.Option value="apple">Apple</Combobox.Option>
-                <Combobox.Option value="pear">Pear</Combobox.Option>
+                <Combobox.Item value="apple">Apple</Combobox.Item>
+                <Combobox.Item value="pear">Pear</Combobox.Item>
               </Combobox.Group>
               <Combobox.Group label="Vegetables" aria-labelledby="veg-name">
-                <Combobox.Option value="leek">Leek</Combobox.Option>
+                <Combobox.Item value="leek">Leek</Combobox.Item>
               </Combobox.Group>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       const fruit = screen.getByRole('group', { name: 'Fresh fruit (2)' });
@@ -1427,16 +1427,16 @@ describe('Combobox', () => {
     });
   });
 
-  describe('Combobox.Dropdown', () => {
+  describe('Combobox.Menu', () => {
     it("doesn't show with nothing in it, whatever open says", () => {
       const { container } = render(
         <Combobox open onOpenChange={() => {}}>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
+          <Combobox.Menu>
             {false}
             {''}
             <></>
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       );
       expect(container.querySelector('.dropdown-menu')).toBeNull();
@@ -1448,7 +1448,7 @@ describe('Combobox', () => {
         <CountrySelect defaultOpen position="top-right" />
       );
       const menu = container.querySelector('.dropdown-menu') as HTMLElement;
-      expect(menu).toHaveClass('combobox-dropdown', 'is-top-right');
+      expect(menu).toHaveClass('combobox-menu', 'is-top-right');
       expect(menu).not.toHaveClass('is-portal');
       expect(menu.firstElementChild).toHaveClass('dropdown-content');
       expect(menu.closest('.combobox')).not.toBeNull();
@@ -1469,15 +1469,15 @@ describe('Combobox', () => {
       render(
         <Combobox defaultOpen>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown
+          <Combobox.Menu
             className="custom"
             data-testid="panel"
             style={{ maxWidth: '20rem' }}
           >
-            <Combobox.Options>
-              <Combobox.Option value="a">A</Combobox.Option>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+            <Combobox.List>
+              <Combobox.Item value="a">A</Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       const panel = screen.getByTestId('panel');
@@ -1515,7 +1515,7 @@ describe('Combobox', () => {
         const menu = document.body.querySelector(
           '.dropdown-menu'
         ) as HTMLElement;
-        expect(menu).toHaveClass('combobox-dropdown', 'is-portal');
+        expect(menu).toHaveClass('combobox-menu', 'is-portal');
         expect(menu.style.position).toBe('fixed');
         expect(menu.style.top).toBe('136px');
         expect(menu.style.left).toBe('40px');
@@ -1548,11 +1548,11 @@ describe('Combobox', () => {
         render(
           <Combobox defaultOpen appendToBody>
             <Combobox.Input aria-label="Search" />
-            <Combobox.Dropdown onPointerDownCapture={onPointerDownCapture}>
-              <Combobox.Options>
-                <Combobox.Option value="a">A</Combobox.Option>
-              </Combobox.Options>
-            </Combobox.Dropdown>
+            <Combobox.Menu onPointerDownCapture={onPointerDownCapture}>
+              <Combobox.List>
+                <Combobox.Item value="a">A</Combobox.Item>
+              </Combobox.List>
+            </Combobox.Menu>
           </Combobox>
         );
         fireEvent.pointerDown(option('A'));
@@ -1583,14 +1583,14 @@ describe('Combobox', () => {
     });
 
     it('takes the arrows and Enter as an open list does', () => {
-      const onOptionSubmit = jest.fn();
-      render(<PeopleList onOptionSubmit={onOptionSubmit} />);
+      const onSelect = jest.fn();
+      render(<PeopleList onSelect={onSelect} />);
       expect(key('ArrowDown')).toBe(false);
       expect(highlighted()).toBe('Ada Lovelace');
       key('ArrowUp');
       expect(highlighted()).toBe('Katherine Johnson');
       key('Enter');
-      expect(onOptionSubmit).toHaveBeenCalledWith('Katherine Johnson');
+      expect(onSelect).toHaveBeenCalledWith('Katherine Johnson');
       // Nothing closes it.
       expect(listbox()).toBeInTheDocument();
       expect(option('Katherine Johnson')).toHaveClass('is-checked');
@@ -1619,11 +1619,11 @@ describe('Combobox', () => {
       const { container } = render(
         <Combobox inline>
           <Combobox.Input aria-label="Search" />
-          <Combobox.Dropdown>
-            <Combobox.Options>
-              <Combobox.Option value="a">A</Combobox.Option>
-            </Combobox.Options>
-          </Combobox.Dropdown>
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="a">A</Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
         </Combobox>
       );
       expect(container.querySelector('.dropdown-menu')).toBeNull();
@@ -1764,19 +1764,19 @@ describe('Combobox', () => {
         <ConfigProvider classPrefix="bestax-">
           <Combobox label="Produce" size="small" defaultOpen>
             <Combobox.Input />
-            <Combobox.Dropdown>
-              <Combobox.Options>
+            <Combobox.Menu>
+              <Combobox.List>
                 <Combobox.Group label="Fruit">
-                  <Combobox.Option value="apple" checked>
+                  <Combobox.Item value="apple" checked>
                     Apple
-                  </Combobox.Option>
-                  <Combobox.Option value="pear" disabled>
+                  </Combobox.Item>
+                  <Combobox.Item value="pear" disabled>
                     Pear
-                  </Combobox.Option>
+                  </Combobox.Item>
                 </Combobox.Group>
-              </Combobox.Options>
+              </Combobox.List>
               <Combobox.Empty>Nothing</Combobox.Empty>
-            </Combobox.Dropdown>
+            </Combobox.Menu>
           </Combobox>
           <Combobox inline>
             <Combobox.Input aria-label="Inline" />
@@ -1791,19 +1791,19 @@ describe('Combobox', () => {
       ).not.toBeNull();
       expect(
         container.querySelector(
-          '.bestax-dropdown-menu.bestax-combobox-dropdown.bestax-is-bottom-left.bestax-is-small > .bestax-dropdown-content'
+          '.bestax-dropdown-menu.bestax-combobox-menu.bestax-is-bottom-left.bestax-is-small > .bestax-dropdown-content'
         )
       ).not.toBeNull();
       expect(
-        container.querySelector('.bestax-combobox-options')
+        container.querySelector('.bestax-combobox-list')
       ).not.toBeNull();
       expect(
         container.querySelector(
-          '.bestax-dropdown-item.bestax-combobox-option.bestax-is-checked.bestax-is-active'
+          '.bestax-dropdown-item.bestax-combobox-item.bestax-is-checked.bestax-is-active'
         )
       ).not.toBeNull();
       expect(
-        container.querySelector('.bestax-combobox-option.bestax-is-disabled')
+        container.querySelector('.bestax-combobox-item.bestax-is-disabled')
       ).not.toBeNull();
       expect(container.querySelector('.bestax-combobox-check')).not.toBeNull();
       expect(container.querySelector('.bestax-combobox-group')).not.toBeNull();
@@ -1821,9 +1821,9 @@ describe('Combobox', () => {
   describe('Compound components', () => {
     it('attaches each part as a static, the same component as the named export', () => {
       expect(Combobox.Input).toBe(ComboboxInput);
-      expect(Combobox.Dropdown).toBe(ComboboxDropdown);
-      expect(Combobox.Options).toBe(ComboboxOptions);
-      expect(Combobox.Option).toBe(ComboboxOption);
+      expect(Combobox.Menu).toBe(ComboboxMenu);
+      expect(Combobox.List).toBe(ComboboxList);
+      expect(Combobox.Item).toBe(ComboboxItem);
       expect(Combobox.Group).toBe(ComboboxGroup);
       expect(Combobox.Empty).toBe(ComboboxEmpty);
       expect(Combobox.displayName).toBe('Combobox');
@@ -1833,12 +1833,12 @@ describe('Combobox', () => {
       const { container } = render(
         <>
           <ComboboxInput aria-label="Alone" />
-          <ComboboxDropdown>Nothing shows</ComboboxDropdown>
-          <ComboboxOptions>
-            <ComboboxOption value="a" checked>
+          <ComboboxMenu>Nothing shows</ComboboxMenu>
+          <ComboboxList>
+            <ComboboxItem value="a" checked>
               A
-            </ComboboxOption>
-          </ComboboxOptions>
+            </ComboboxItem>
+          </ComboboxList>
           <ComboboxGroup label="G" />
           <ComboboxEmpty>Empty</ComboboxEmpty>
         </>
@@ -1915,9 +1915,9 @@ describe('Combobox announces its empty message (#1066)', () => {
       return (
         <Combobox label="Nothing">
           <Combobox.Input defaultValue="abc" />
-          <Combobox.Dropdown>
+          <Combobox.Menu>
             <Combobox.Empty>Nothing here</Combobox.Empty>
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       );
     }
@@ -1937,9 +1937,9 @@ describe('Combobox announces its empty message (#1066)', () => {
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
-          <Combobox.Dropdown>
+          <Combobox.Menu>
             <Combobox.Empty>Type to search</Combobox.Empty>
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       );
     }
@@ -1960,11 +1960,11 @@ describe('Combobox announces its empty message (#1066)', () => {
             value={query}
             onChange={e => setQuery(e.target.value)}
           />
-          <Combobox.Dropdown>
+          <Combobox.Menu>
             {query && !loading ? (
               <Combobox.Empty>No cities match</Combobox.Empty>
             ) : null}
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       );
     }
@@ -1982,9 +1982,9 @@ describe('Combobox announces its empty message (#1066)', () => {
       return (
         <Combobox label="City">
           <Combobox.Input isLoading={loading} />
-          <Combobox.Dropdown>
+          <Combobox.Menu>
             <Combobox.Empty>No cities match</Combobox.Empty>
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       );
     }
@@ -2004,9 +2004,9 @@ describe('Combobox announces its empty message (#1066)', () => {
           <Control isLoading={loading}>
             <Combobox>
               <Combobox.Input />
-              <Combobox.Dropdown>
+              <Combobox.Menu>
                 <Combobox.Empty>No cities match</Combobox.Empty>
-              </Combobox.Dropdown>
+              </Combobox.Menu>
             </Combobox>
           </Control>
         </Field>

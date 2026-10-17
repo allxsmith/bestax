@@ -111,14 +111,14 @@ function load(...sheets: string[]) {
 
 /** The selector list the variables are registered on. */
 const ROOT = (prefix: string) =>
-  `.${prefix}combobox, .${prefix}combobox-dropdown.${prefix}is-portal`;
+  `.${prefix}combobox, .${prefix}combobox-menu.${prefix}is-portal`;
 
 /** The classes each part renders, which is all the partial may name. */
 const OWN_CLASSES = [
   'combobox',
-  'combobox-dropdown',
-  'combobox-options',
-  'combobox-option',
+  'combobox-menu',
+  'combobox-list',
+  'combobox-item',
   'combobox-check',
   'combobox-group',
   'combobox-group-label',
@@ -149,22 +149,22 @@ describe.each([
       <ConfigProvider classPrefix={prefix}>
         <Combobox label="Produce" defaultOpen {...props}>
           <Combobox.Input />
-          <Combobox.Dropdown data-testid="panel">
-            <Combobox.Options data-testid="list">
+          <Combobox.Menu data-testid="panel">
+            <Combobox.List data-testid="list">
               <Combobox.Group label="Fruit" data-testid="group">
-                <Combobox.Option value="apple" data-testid="apple">
+                <Combobox.Item value="apple" data-testid="apple">
                   Apple
-                </Combobox.Option>
-                <Combobox.Option value="pear" checked data-testid="pear">
+                </Combobox.Item>
+                <Combobox.Item value="pear" checked data-testid="pear">
                   Pear
-                </Combobox.Option>
-                <Combobox.Option value="plum" disabled data-testid="plum">
+                </Combobox.Item>
+                <Combobox.Item value="plum" disabled data-testid="plum">
                   Plum
-                </Combobox.Option>
+                </Combobox.Item>
               </Combobox.Group>
-            </Combobox.Options>
+            </Combobox.List>
             <Combobox.Empty data-testid="empty">Nothing else</Combobox.Empty>
-          </Combobox.Dropdown>
+          </Combobox.Menu>
         </Combobox>
       </ConfigProvider>
     );
@@ -184,17 +184,17 @@ describe.each([
   it('registers its variables on the Combobox and on a portaled panel, from one map', () => {
     const registering = rulesOf(compile(prefix)).filter(rule =>
       Array.from({ length: rule.style.length }, (_, i) => rule.style[i]).some(
-        name => name === '--bulma-combobox-dropdown-background'
+        name => name === '--bulma-combobox-menu-background'
       )
     );
     expect(registering.map(rule => oneLine(rule.selectorText))).toEqual([
-      `.${prefix}combobox, .${prefix}combobox-dropdown.${prefix}is-portal`,
+      `.${prefix}combobox, .${prefix}combobox-menu.${prefix}is-portal`,
     ]);
   });
 
   it('builds its colors from Bulma’s tokens, so dark mode needs no rules', () => {
     const vars = declarations(compile(prefix), ROOT(prefix));
-    expect(vars['--bulma-combobox-dropdown-background']).toBe(
+    expect(vars['--bulma-combobox-menu-background']).toBe(
       'var(--bulma-scheme-main)'
     );
     expect(vars['--bulma-combobox-highlight-background']).toBe(
@@ -204,7 +204,7 @@ describe.each([
       'var(--bulma-link-invert)'
     );
     expect(vars['--bulma-combobox-check-color']).toBe('currentColor');
-    expect(vars['--bulma-combobox-option-hover-background']).toMatch(
+    expect(vars['--bulma-combobox-item-hover-background']).toMatch(
       /^hsl\(var\(--bulma-scheme-h\), var\(--bulma-scheme-s\), calc\(var\(--bulma-scheme-main-l\) \+ var\(--bulma-hover-background-l-delta\)\)\)$/
     );
     for (const [name, value] of Object.entries(vars)) {
@@ -220,14 +220,14 @@ describe.each([
         rule.selectorText.includes(`.${prefix}is-${size}`)
       );
       expect(rules.map(rule => oneLine(rule.selectorText))).toEqual([
-        `.${prefix}combobox.${prefix}is-${size}, .${prefix}combobox-dropdown.${prefix}is-${size}`,
+        `.${prefix}combobox.${prefix}is-${size}, .${prefix}combobox-menu.${prefix}is-${size}`,
       ]);
       const style = rules[0].style;
       const names = Array.from({ length: style.length }, (_, i) => style[i]);
       expect(names.sort()).toEqual([
-        '--bulma-combobox-option-padding-x',
-        '--bulma-combobox-option-padding-y',
-        '--bulma-combobox-option-size',
+        '--bulma-combobox-item-padding-x',
+        '--bulma-combobox-item-padding-y',
+        '--bulma-combobox-item-size',
       ]);
     }
   );
@@ -248,7 +248,7 @@ describe.each([
       'none',
     ]);
     expect(display(compile(prefix))).toContainEqual([
-      `.${prefix}dropdown-menu.${prefix}combobox-dropdown`,
+      `.${prefix}dropdown-menu.${prefix}combobox-menu`,
       'block',
     ]);
 
@@ -259,14 +259,14 @@ describe.each([
     expect(panel.position).toBe('absolute');
     // It takes no room, so the Field's margin doesn't move as it opens.
     expect(panel.top).toBe('100%');
-    expect(panel.marginTop).toBe('var(--bulma-combobox-dropdown-offset)');
+    expect(panel.marginTop).toBe('var(--bulma-combobox-menu-offset)');
     expect(panel.minWidth).toBe('100%');
-    expect(panel.zIndex).toBe('var(--bulma-combobox-dropdown-z-index)');
+    expect(panel.zIndex).toBe('var(--bulma-combobox-menu-z-index)');
     const content = getComputedStyle(
       getByTestId('panel').firstElementChild as Element
     );
     expect(content.backgroundColor).toBe(
-      'var(--bulma-combobox-dropdown-background)'
+      'var(--bulma-combobox-menu-background)'
     );
     expect(content.maxHeight).toBe('var(--bulma-combobox-list-max-height)');
     expect(content.overflowY).toBe('auto');
@@ -287,11 +287,11 @@ describe.each([
     const { getByTestId } = renderOpen();
     const apple = getComputedStyle(getByTestId('apple'));
     expect(apple.cursor).toBe('pointer');
-    expect(apple.color).toBe('var(--bulma-combobox-option-color)');
+    expect(apple.color).toBe('var(--bulma-combobox-item-color)');
     // Its size comes from the list, which takes the Combobox's.
     expect(apple.fontSize).toBe('inherit');
     expect(getComputedStyle(getByTestId('list')).fontSize).toBe(
-      'var(--bulma-combobox-option-size)'
+      'var(--bulma-combobox-item-size)'
     );
 
     // jsdom has no :hover, so the hover rule is read off the sheet.
@@ -299,15 +299,15 @@ describe.each([
       rule.selectorText.includes(':hover')
     );
     expect(hover?.selectorText).toBe(
-      `.${prefix}dropdown-item.${prefix}combobox-option:hover:not(.${prefix}is-active):not(.${prefix}is-disabled)`
+      `.${prefix}dropdown-item.${prefix}combobox-item:hover:not(.${prefix}is-active):not(.${prefix}is-disabled)`
     );
     expect(hover?.style.getPropertyValue('background-color')).toBe(
-      'var(--bulma-combobox-option-hover-background)'
+      'var(--bulma-combobox-item-hover-background)'
     );
 
     const highlight = declarations(
       compile(prefix),
-      `.${prefix}dropdown-item.${prefix}combobox-option.${prefix}is-active`
+      `.${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-active`
     );
     expect(highlight).toEqual({
       'background-color': 'var(--bulma-combobox-highlight-background)',
@@ -324,10 +324,10 @@ describe.each([
     expect(
       declarations(
         compile(prefix),
-        `.${prefix}dropdown-item.${prefix}combobox-option.${prefix}is-active.${prefix}is-disabled`
+        `.${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-active.${prefix}is-disabled`
       )
     ).toEqual({
-      'background-color': 'var(--bulma-combobox-option-hover-background)',
+      'background-color': 'var(--bulma-combobox-item-hover-background)',
       color: 'var(--bulma-combobox-disabled-color)',
     });
   });
@@ -337,7 +337,7 @@ describe.each([
     // list with a checked one, and on none of a list without.
     load(compile(prefix));
     const { getByTestId } = renderOpen();
-    const room = `calc(var(--bulma-combobox-option-padding-x) + var(--bulma-combobox-check-size) + var(--bulma-combobox-check-gap))`;
+    const room = `calc(var(--bulma-combobox-item-padding-x) + var(--bulma-combobox-check-size) + var(--bulma-combobox-check-gap))`;
     const squash = (s: string) => s.replace(/\s+/g, ' ');
     expect(
       squash(getComputedStyle(getByTestId('apple')).paddingInlineStart)
@@ -352,7 +352,7 @@ describe.each([
       .filter(rule => rule.style.getPropertyValue('padding-inline-start'))
       .map(rule => oneLine(rule.selectorText));
     expect(selectors).toEqual([
-      `.${prefix}combobox-options[aria-multiselectable="true"] .${prefix}combobox-option, .${prefix}combobox-options:has(.${prefix}combobox-option.${prefix}is-checked) .${prefix}combobox-option`,
+      `.${prefix}combobox-list[aria-multiselectable="true"] .${prefix}combobox-item, .${prefix}combobox-list:has(.${prefix}combobox-item.${prefix}is-checked) .${prefix}combobox-item`,
     ]);
   });
 
@@ -370,7 +370,7 @@ describe.each([
       )
     ).toEqual({
       'border-top': '1px solid var(--bulma-combobox-divider-color)',
-      'margin-top': 'var(--bulma-combobox-option-padding-y)',
+      'margin-top': 'var(--bulma-combobox-item-padding-y)',
     });
   });
 
@@ -379,7 +379,7 @@ describe.each([
     const { getByTestId } = renderOpen();
     const empty = getComputedStyle(getByTestId('empty'));
     expect(empty.color).toBe('var(--bulma-combobox-empty-color)');
-    expect(empty.fontSize).toBe('var(--bulma-combobox-option-size)');
+    expect(empty.fontSize).toBe('var(--bulma-combobox-item-size)');
   });
 
   it('puts an inline list in the flow under the field, scrolling past its height', () => {
@@ -387,7 +387,7 @@ describe.each([
     const { getByTestId } = renderOpen({ inline: true });
     const list = getComputedStyle(getByTestId('list'));
     expect(list.position).toBe('');
-    expect(list.marginTop).toBe('var(--bulma-combobox-dropdown-offset)');
+    expect(list.marginTop).toBe('var(--bulma-combobox-menu-offset)');
     expect(list.maxHeight).toBe('var(--bulma-combobox-list-max-height)');
     expect(list.overflowY).toBe('auto');
   });
@@ -395,7 +395,7 @@ describe.each([
   it('fixes a portaled panel to the viewport, above a Modal', () => {
     const portal = declarations(
       compile(prefix),
-      `.${prefix}dropdown-menu.${prefix}combobox-dropdown.${prefix}is-portal`
+      `.${prefix}dropdown-menu.${prefix}combobox-menu.${prefix}is-portal`
     );
     expect(portal).toEqual({
       position: 'fixed',
@@ -407,7 +407,7 @@ describe.each([
     const vars = declarations(compile(prefix), ROOT(prefix));
     // Bulma's Modal is 40.
     expect(Number(vars['--bulma-combobox-portal-z-index'])).toBeGreaterThan(40);
-    expect(Number(vars['--bulma-combobox-dropdown-z-index'])).toBeLessThan(30);
+    expect(Number(vars['--bulma-combobox-menu-z-index'])).toBeLessThan(30);
   });
 
   it('outlines the highlight in forced colors, where its fill is replaced, and greys a disabled option', () => {
@@ -427,12 +427,12 @@ describe.each([
     ).toEqual([
       {
         within: ['@media (forced-colors: active)'],
-        selector: `.${prefix}dropdown-item.${prefix}combobox-option.${prefix}is-active`,
+        selector: `.${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-active`,
         declarations: ['outline: 2px solid Highlight', 'outline-offset: -2px'],
       },
       {
         within: ['@media (forced-colors: active)'],
-        selector: `.${prefix}dropdown-item.${prefix}combobox-option.${prefix}is-disabled, .${prefix}dropdown-item.${prefix}combobox-option.${prefix}is-active.${prefix}is-disabled`,
+        selector: `.${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-disabled, .${prefix}dropdown-item.${prefix}combobox-item.${prefix}is-active.${prefix}is-disabled`,
         declarations: ['color: GrayText'],
       },
     ]);

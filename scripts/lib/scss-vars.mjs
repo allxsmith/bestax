@@ -306,7 +306,7 @@ function compoundClasses(item) {
  * there (a single custom class is 0-1-0 and loses regardless of load order).
  *
  * The root class in a list that also names a compound is 'compound' too.
- * Combobox registers on `.combobox, .combobox-dropdown.is-portal`, and the
+ * Combobox registers on `.combobox, .combobox-menu.is-portal`, and the
  * portaled panel is outside the root, so neither a value set on the root nor
  * a lone `className` class reaches the second home's 0-2-0 declaration.
  */
