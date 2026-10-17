@@ -493,6 +493,18 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       }
     }, [openOnFocus, data.length, disabled]);
 
+    // Reaching the limit dismisses the list the way a click outside does, so
+    // making room later doesn't bring it back unasked. It's an effect, not a
+    // step in addTag, because a click on a suggestion also bubbles to the
+    // container, whose focus on the input reopens the list in that same
+    // event, and because a controlled value can reach the limit too.
+    useEffect(() => {
+      if (isMaxReached) {
+        setIsActive(false);
+        setHighlightedIndex(-1);
+      }
+    }, [isMaxReached]);
+
     // Handle click outside
     useEffect(() => {
       if (!isActive) return undefined;

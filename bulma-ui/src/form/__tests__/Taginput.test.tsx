@@ -251,6 +251,44 @@ describe('Taginput', () => {
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
+    // Reaching the limit with an add dismisses the list, the way a click
+    // outside does. Hidden but still active, it came back the moment a
+    // tag's delete button made room, with focus on the body.
+    it('keeps the list closed when a tag is removed after an add reached the limit', () => {
+      render(
+        <Taginput
+          data={['React', 'Vue', 'Svelte']}
+          maxTags={2}
+          defaultValue={['React']}
+          openOnFocus
+        />
+      );
+      fireEvent.focus(screen.getByRole('combobox'));
+      fireEvent.click(screen.getByRole('option', { name: 'Vue' }));
+
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Vue' }));
+
+      const input = screen.getByRole('combobox');
+      expect(input).toHaveAttribute('aria-expanded', 'false');
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+      // Focusing the input opens it again, as openOnFocus does.
+      fireEvent.focus(input);
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+    });
+
+    it('keeps the list closed when a controlled value drops back below the limit', () => {
+      const ui = (value: string[]) => (
+        <Taginput data={frameworks} value={value} maxTags={1} openOnFocus />
+      );
+      const { rerender } = render(ui([]));
+      fireEvent.focus(screen.getByRole('combobox'));
+      rerender(ui(['React']));
+
+      rerender(ui([]));
+
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
     it('closes the suggestion list when a controlled value reaches the limit', () => {
       const ui = (value: string[]) => (
         <Taginput data={frameworks} value={value} maxTags={1} openOnFocus />
