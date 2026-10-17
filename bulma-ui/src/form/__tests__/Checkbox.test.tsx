@@ -401,6 +401,18 @@ describe('Checkbox', () => {
       expect(input.indeterminate).toBe(false);
     });
 
+    it('clears the mixed state once when the prop goes back to unset', () => {
+      const { rerender } = render(<Checkbox indeterminate>Mixed</Checkbox>);
+      const input = inputOf('Mixed');
+      expect(input.indeterminate).toBe(true);
+      rerender(<Checkbox indeterminate={undefined}>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(false);
+      // Handed back: a ref setting it now keeps what it set.
+      input.indeterminate = true;
+      rerender(<Checkbox>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(true);
+    });
+
     it('still forwards an object ref to the input', () => {
       const ref = createRef<HTMLInputElement>();
       const { unmount } = render(
