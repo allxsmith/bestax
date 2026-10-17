@@ -165,6 +165,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     useEffect(() => {
       if (isOpen) {
         const element = sidebarRef.current;
+        /* istanbul ignore else: the aside renders whenever the sidebar is open, so its ref is set before this runs */
         if (element) {
           // Focus first focusable element or sidebar itself
           const focusable = element.querySelector<HTMLElement>(
