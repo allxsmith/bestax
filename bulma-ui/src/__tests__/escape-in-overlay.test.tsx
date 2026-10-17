@@ -452,6 +452,38 @@ describe('Escape in a popup inside a Dropdown menu', () => {
     pressEscape();
     expect(root).not.toHaveClass('is-active');
   });
+
+  // The menu hears Escape in a React handler, which runs before the picker's
+  // `document` listener, so the picker claims the key in its panel's own
+  // React handler too.
+  it.each([
+    ['with focus in its calendar', false],
+    ['with focus back on its input', true],
+  ])(
+    'closes a DateInput picker first %s, and the menu on the next Escape',
+    (_, onInput) => {
+      render(
+        <Dropdown label="Filter" closeOnClick={false}>
+          <DateInput label="From" />
+        </Dropdown>
+      );
+      fireEvent.click(screen.getByRole('button', { name: /filter/i }));
+      const root = screen.getByTestId('dropdown-root');
+      fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
+      const panel = screen.getByRole('dialog', { name: 'Choose date' });
+      expect(panel).toContainElement(document.activeElement as HTMLElement);
+      if (onInput) {
+        act(() => screen.getByRole('combobox').focus());
+      }
+
+      pressEscape();
+      expect(screen.queryByRole('dialog', { name: 'Choose date' })).toBeNull();
+      expect(root).toHaveClass('is-active');
+
+      pressEscape();
+      expect(root).not.toHaveClass('is-active');
+    }
+  );
 });
 
 describe('Escape with a Toast up', () => {
