@@ -25,7 +25,6 @@ export const TEMPLATE_FILES = [
   'public/bestax.svg',
   'src/index.css',
   'src/main.tsx',
-  'src/vite-env.d.ts',
   'tsconfig.app.json',
   'tsconfig.json',
   'tsconfig.node.json',
