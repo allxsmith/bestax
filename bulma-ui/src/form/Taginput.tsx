@@ -362,8 +362,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
         if (!displayValue) return;
 
-        // No maxTags check: only the input and the list call this, and
-        // neither renders at the limit.
+        // No maxTags check: only the input and the list call this, neither
+        // renders at the limit, and each call adds at most one tag.
 
         // Check duplicates
         if (!allowDuplicates) {
