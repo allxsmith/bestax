@@ -1,0 +1,419 @@
+{
+  "name": "Timeline",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/timeline",
+  "docsUrl": "https://bestax.io/docs/api/components/timeline",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<>\n  <Title as=\"h2\" textSize=\"5\">\n    Order history\n  </Title>\n  <Timeline titleAs=\"h3\">\n    <Timeline.Item\n      title=\"Delivered\"\n      time=\"16 October 2026, 11:40\"\n      dateTime=\"2026-10-16T11:40\"\n      color=\"success\"\n    >\n      Signed for by A. Smith.\n    </Timeline.Item>\n    <Timeline.Item\n      title=\"Shipped\"\n      time=\"14 October 2026, 08:12\"\n      dateTime=\"2026-10-14T08:12\"\n    >\n      <Paragraph>\n        Tracking number <Link href=\"#track\">1Z999AA10123456784</Link>\n      </Paragraph>\n    </Timeline.Item>\n    <Timeline.Item\n      title=\"Order placed\"\n      time=\"12 October 2026, 09:30\"\n      dateTime=\"2026-10-12T09:30\"\n    />\n  </Timeline>\n</>"
+    },
+    {
+      "title": "Progress",
+      "code": "<Timeline titleAs=\"h3\" active={2} pending=\"Out for delivery\">\n  <Timeline.Item\n    title=\"Order placed\"\n    time=\"12 October, 09:30\"\n    dateTime=\"2026-10-12T09:30\"\n  />\n  <Timeline.Item\n    title=\"Packed\"\n    time=\"13 October, 14:05\"\n    dateTime=\"2026-10-13T14:05\"\n  />\n  <Timeline.Item\n    title=\"Shipped\"\n    time=\"14 October, 08:12\"\n    dateTime=\"2026-10-14T08:12\"\n  >\n    Left the warehouse in Leeds.\n  </Timeline.Item>\n</Timeline>"
+    },
+    {
+      "title": "End",
+      "code": "<Timeline titleAs=\"h3\" align=\"end\" active={1} pending=\"Out for delivery\">\n  <Timeline.Item title=\"Order placed\" time=\"12 October\" dateTime=\"2026-10-12\" />\n  <Timeline.Item title=\"Shipped\" time=\"14 October\" dateTime=\"2026-10-14\" />\n</Timeline>"
+    },
+    {
+      "title": "Alternate",
+      "code": "<Timeline titleAs=\"h3\" align=\"alternate\" color=\"primary\">\n  <Timeline.Item\n    title=\"Founded\"\n    time=\"March 2019\"\n    dateTime=\"2019-03\"\n    icon=\"flag\"\n  >\n    Two people and a spare room.\n  </Timeline.Item>\n  <Timeline.Item\n    title=\"First office\"\n    time=\"June 2021\"\n    dateTime=\"2021-06\"\n    icon=\"building\"\n  >\n    Twelve of us, in Leeds.\n  </Timeline.Item>\n  <Timeline.Item\n    title=\"The mobile app\"\n    time=\"October 2026\"\n    dateTime=\"2026-10\"\n    icon={<Icon name=\"mobile\" variant=\"solid\" />}\n    color=\"info\"\n  />\n</Timeline>"
+    },
+    {
+      "title": "Icon Markers",
+      "code": "<Timeline titleAs=\"h3\" active={2}>\n  <Timeline.Item title=\"Order placed\" time=\"12 October\" icon=\"check\" />\n  <Timeline.Item title=\"Packed\" time=\"13 October\" icon=\"box\" />\n  <Timeline.Item title=\"Shipped\" time=\"14 October\" icon=\"truck\" />\n  <Timeline.Item title=\"Delivered\" time=\"Expected 16 October\" icon=\"house\" />\n</Timeline>"
+    },
+    {
+      "title": "Colors",
+      "code": "<Timeline titleAs=\"h3\" color=\"primary\">\n  <Timeline.Item title=\"Deployed\" time=\"10:42\" color=\"success\">\n    All checks passed.\n  </Timeline.Item>\n  <Timeline.Item title=\"Rolled back\" time=\"10:15\" color=\"danger\">\n    The health check failed.\n  </Timeline.Item>\n  <Timeline.Item title=\"Started\" time=\"10:02\" />\n</Timeline>"
+    },
+    {
+      "title": "A Busy Feed",
+      "code": "<Card header=\"Activity\">\n  <Timeline titleAs=\"p\" textSize=\"7\" align=\"end\">\n    <Timeline.Item\n      title=\"Sam merged #42\"\n      time=\"2 minutes ago\"\n      dateTime=\"2026-10-16T14:58Z\"\n    />\n    <Timeline.Item\n      title=\"Ana approved #42\"\n      time=\"1 hour ago\"\n      dateTime=\"2026-10-16T14:00Z\"\n    />\n    <Timeline.Item\n      title=\"Sam opened #42\"\n      time=\"Yesterday\"\n      dateTime=\"2026-10-15T09:12Z\"\n    />\n  </Timeline>\n</Card>"
+    },
+    {
+      "title": "In Your App's Language",
+      "code": "<Timeline\n  titleAs=\"h3\"\n  active={1}\n  pending=\"En livraison\"\n  completedLabel=\"terminé\"\n  upcomingLabel=\"à venir\"\n  pendingLabel=\"en cours\"\n>\n  <Timeline.Item title=\"Commande passée\" />\n  <Timeline.Item title=\"Expédiée\" />\n</Timeline>"
+    },
+    {
+      "title": "A Timeline That Changes",
+      "code": "function example() {\n  const stages = ['Order placed', 'Packed', 'Shipped', 'Delivered'];\n  const [reached, setReached] = useState(1);\n  const done = reached >= stages.length;\n\n  return (\n    <Box>\n      <Title as=\"h2\" textSize=\"5\">\n        Your order\n      </Title>\n      {/* Always in the page, so a change to its text is announced. */}\n      <Paragraph role=\"status\" aria-atomic=\"true\" visibility=\"sr-only\">\n        {done ? 'Delivered' : `Now: ${stages[reached]}`}\n      </Paragraph>\n      <Timeline titleAs=\"h3\" active={reached}>\n        {stages.map(stage => (\n          <Timeline.Item key={stage} title={stage} />\n        ))}\n      </Timeline>\n      <Button\n        onClick={() => setReached(n => Math.min(n + 1, stages.length))}\n        disabled={done}\n      >\n        Next stage\n      </Button>\n    </Box>\n  );\n}"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "function example() {\n  function Stage({\n    name,\n    icon,\n    children,\n  }: {\n    name: string;\n    icon: string;\n    children?: React.ReactNode;\n  }) {\n    return (\n      <Timeline.Item title={name} icon={icon}>\n        {children}\n      </Timeline.Item>\n    );\n  }\n\n  return (\n    <Timeline titleAs=\"h3\" active={1} color=\"success\">\n      <Stage name=\"Build\" icon=\"hammer\">\n        <Paragraph>All tests passed.</Paragraph>\n      </Stage>\n      <Stage name=\"Deploy to staging\" icon=\"server\">\n        <Paragraph>\n          Rolling out. <Link href=\"#logs\">See the logs</Link>\n        </Paragraph>\n      </Stage>\n      <Stage name=\"Deploy to production\" icon=\"globe\" />\n    </Timeline>\n  );\n}"
+    }
+  ],
+  "accessibility": "- **A list:** it's an `<ol>`, since a timeline's order is its meaning, with `role=\"list\"`. Safari\n  stops treating a list as one once its numbers are hidden, and the role keeps it a list there, so\n  a screen reader says how many events there are and where each one is.\n- **Headings:** each title is a heading, `h2` unless `titleAs` says otherwise, so screen reader\n  users can move from event to event. Pick the level under the heading the timeline sits beneath:\n  an `h3` under an `h2`. In a busy feed, `titleAs=\"p\"` makes them plain lines.\n- **States in words and shapes:** the current item has `aria-current=\"step\"`. A completed item's\n  title ends with \"completed\", an upcoming one's with \"upcoming\", and the pending one's with \"in\n  progress\", in visually hidden text, so its heading reads \"Packed completed\". Set the words in\n  your app's language with `completedLabel`, `upcomingLabel` and `pendingLabel`. Each state has a\n  shape of its own as well as a color.\n- **Decoration:** the markers are hidden from assistive tech, an `Icon` with an `ariaLabel`\n  included, and the line is drawn by CSS. Say what a color or an icon means in the title.\n- **The time:** a screen reader mostly reads the text, so the time's words carry the whole date.\n  `dateTime` puts the same moment in a `<time datetime>` for machines, and for the readers that\n  speak it.\n- **Motion:** the pending ring turns, and stands still for users who ask for less motion. Its open\n  shape is the cue either way.\n- **Forced colors:** every line, dot, ring and halo is a border or an outline, so in Windows high\n  contrast mode they keep their shapes, and the pending ring stays open.\n- **Not interactive and not live:** it has no tab stop and no keys, and links or buttons in an\n  item work as they do anywhere. It announces nothing when it changes, so keep a status region\n  beside one that changes on screen, as in [A Timeline That Changes](https://bestax.io/docs/api/components/timeline#a-timeline-that-changes).\n- **A record first:** design systems with user research behind them, the UK's\n  [MOJ](https://design-patterns.service.justice.gov.uk/components/timeline/) and\n  [HMRC](https://design.tax.service.gov.uk/hmrc-design-patterns/timeline/), use a timeline for a\n  record and advise against using one as a progress indicator. That's why a record is the default.\n  `active` is for something that moves on its own and is only reported to the user. For a journey\n  the user moves through, where they may go back, use [`Steps`](https://bestax.io/docs/api/components/steps).",
+  "related": ["Card", "Icon", "Steps", "Title", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-timeline--default",
+  "summary": "The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side. By default it's a record, an order's history, a ticket's activity or a changelog, and it marks nothing. With `active` it marks progress, for something that moves along on its own and is reported to the user: a parcel, a deployment, a claim. That reads oldest first, and `pending` ends it on what's under way. A journey the user moves through themselves, like a wizard or a checkout, is `Steps`. It's an `<ol role=\"list\">`, so it stays a list in Safari with its numbers hidden, and each title is a heading at the level `titleAs` sets. The markers are decoration and hidden from assistive tech, so the states are read as words: `aria-current=\"step\"` on the current item, and \"completed\", \"upcoming\" or \"in progress\" after the other titles, in the language the label props set. Nothing here is a control or a live region, so a timeline that changes on screen keeps a `role=\"status\"` region beside it.",
+  "import": "import { Timeline } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/Timeline.tsx",
+  "rootClass": "timeline",
+  "parts": [
+    {
+      "path": "Timeline",
+      "summary": "The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side. By default it's a record, an order's history, a ticket's activity or a changelog, and it marks nothing. With `active` it marks progress, for something that moves along on its own and is reported to the user: a parcel, a deployment, a claim. That reads oldest first, and `pending` ends it on what's under way. A journey the user moves through themselves, like a wizard or a checkout, is `Steps`. It's an `<ol role=\"list\">`, so it stays a list in Safari with its numbers hidden, and each title is a heading at the level `titleAs` sets. The markers are decoration and hidden from assistive tech, so the states are read as words: `aria-current=\"step\"` on the current item, and \"completed\", \"upcoming\" or \"in progress\" after the other titles, in the language the label props set. Nothing here is a control or a live region, so a timeline that changes on screen keeps a `role=\"status\"` region beside it.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`Timeline.Item`s, in the order they're read: newest first or oldest first for a record, oldest first with `active` or `pending`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "active",
+          "type": "number",
+          "default": null,
+          "description": "Marks progress. The item at this index, counting the children from 0, is current; the ones before it are completed and the ones after it are upcoming. Leave it out for a record, where nothing is marked. `-1` marks every item upcoming, and an index past the last marks them all completed. Each child counts as one item, with Fragments and arrays opened up, so render one item per child. A component of your own around a `Timeline.Item` still gets its state, but one that renders nothing still counts.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "pending",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What's under way, as a last item after the children: its title, read with `pendingLabel`. Write it as words that say so (\"Out for delivery\").",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "align",
+          "type": "'start' | 'end' | 'alternate'",
+          "default": "'start'",
+          "description": "`start`: the rail at the start of the line. `end`: at the end, with the text against it. `alternate`: down the middle, the items taking turns and each time across the rail; below Bulma's tablet breakpoint it's `start`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "titleAs",
+          "type": "'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'p'",
+          "default": "'h2'",
+          "description": "What every item's title renders as: a heading at the level under the heading the timeline sits beneath, or `p` for a busy feed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "The markers' color, and the color of progress with `active`. Neutral without it, and Bulma's `link` for progress. The markers are hidden from assistive tech, so say what a color means in the words too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "completedLabel",
+          "type": "string",
+          "default": "'completed'",
+          "description": "Read after a completed item's title, visually hidden. In your app's language.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "upcomingLabel",
+          "type": "string",
+          "default": "'upcoming'",
+          "description": "Read after an upcoming item's title, visually hidden. In your app's language.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "pendingLabel",
+          "type": "string",
+          "default": "'in progress'",
+          "description": "Read after the pending item's title, visually hidden. In your app's language.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLOListElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<ol>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <ol> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "Timeline.Item",
+      "summary": "One event: a marker on the rail, then its title, its time and anything else about it. Outside a `Timeline` it renders the same, as a record item with an `h2` title.",
+      "component": null,
+      "props": [
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "title",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "What happened, in a line. It renders as the root's `titleAs`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "time",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "When it happened, as the reader sees it: \"14 October 2026\", \"2 hours ago\". Put the whole date in the words, since screen readers mostly read the text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dateTime",
+          "type": "string",
+          "default": null,
+          "description": "The same moment for machines, as HTML's `datetime` takes it: \"2026-10-14\", \"2026-10-14T08:12\", \"2026-10\". With it, `time` renders in a `<time>`. Keep it the same moment as `time`, since some readers speak it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A picture in the marker. A string is an `Icon` name, drawn from the icon library `ConfigProvider` sets, and anything else renders as it is. Without it, the marker is a dot. It's hidden from assistive tech, so what it means goes in the title.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "This item's marker color, over the root's. Say what it means in the words too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "Anything else about the event, under the title and the time, as written.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "textColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Text color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        },
+        {
+          "name": "bgColor",
+          "type": "Bulma color | 'inherit' | 'current'",
+          "default": null,
+          "description": "Background color helper.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false,
+          "valuesRef": "helpers/valid-values"
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLLIElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <li> attributes and Bulma helper props",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-timeline-gap",
+      "sass": "$timeline-gap",
+      "default": "1.5em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-content-gap",
+      "sass": "$timeline-content-gap",
+      "default": "0.25em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-rail-size",
+      "sass": "$timeline-rail-size",
+      "default": "2em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-rail-size-icon",
+      "sass": "$timeline-rail-size-icon",
+      "default": "3em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-rail-center",
+      "sass": null,
+      "default": "calc(var(--bulma-timeline-rail-size) / 2)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-line-width",
+      "sass": "$timeline-line-width",
+      "default": "max(2px, 0.125em)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-line-color",
+      "sass": "$timeline-line-color",
+      "default": "var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-dot-size",
+      "sass": "$timeline-dot-size",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-marker-size",
+      "sass": "$timeline-marker-size",
+      "default": "2em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-pending-size",
+      "sass": "$timeline-pending-size",
+      "default": "1em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-neutral-color",
+      "sass": "$timeline-neutral-color",
+      "default": "var(--bulma-border-hover)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-marker-color",
+      "sass": null,
+      "default": "var(--bulma-timeline-neutral-color)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-active-color",
+      "sass": "$timeline-active-color",
+      "default": "var(--bulma-link)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-marker-background",
+      "sass": "$timeline-marker-background",
+      "default": "var(--bulma-background)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-marker-icon-color",
+      "sass": "$timeline-marker-icon-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-halo-offset",
+      "sass": "$timeline-halo-offset",
+      "default": "0.1875em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-pending-duration",
+      "sass": "$timeline-pending-duration",
+      "default": "1s",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-title-color",
+      "sass": "$timeline-title-color",
+      "default": "var(--bulma-text-strong)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-title-weight",
+      "sass": "$timeline-title-weight",
+      "default": "var(--bulma-weight-semibold)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-time-color",
+      "sass": "$timeline-time-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-timeline-time-size",
+      "sass": "$timeline-time-size",
+      "default": "0.875em",
+      "scope": "root"
+    }
+  ]
+}
