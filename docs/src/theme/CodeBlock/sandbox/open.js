@@ -6,7 +6,6 @@ import packageJson from '!!raw-loader!@site/../create-bestax/templates/vite-ts/p
 import bestaxSvg from '!!raw-loader!@site/../create-bestax/templates/vite-ts/public/bestax.svg';
 import indexCss from '!!raw-loader!@site/../create-bestax/templates/vite-ts/src/index.css';
 import mainTsx from '!!raw-loader!@site/../create-bestax/templates/vite-ts/src/main.tsx';
-import viteEnv from '!!raw-loader!@site/../create-bestax/templates/vite-ts/src/vite-env.d.ts';
 import tsconfigApp from '!!raw-loader!@site/../create-bestax/templates/vite-ts/tsconfig.app.json';
 import tsconfig from '!!raw-loader!@site/../create-bestax/templates/vite-ts/tsconfig.json';
 import tsconfigNode from '!!raw-loader!@site/../create-bestax/templates/vite-ts/tsconfig.node.json';
@@ -36,7 +35,6 @@ const TEMPLATE = {
   'public/bestax.svg': bestaxSvg,
   'src/index.css': indexCss,
   'src/main.tsx': mainTsx,
-  'src/vite-env.d.ts': viteEnv,
   'tsconfig.app.json': tsconfigApp,
   'tsconfig.json': tsconfig,
   'tsconfig.node.json': tsconfigNode,

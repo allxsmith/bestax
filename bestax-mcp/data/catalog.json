@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.34.3"
+    "version": "5.35.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -1001,7 +1001,7 @@
       "import": "import { Steps } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 27,
-      "exampleCount": 9
+      "exampleCount": 10
     },
     {
       "name": "Strong",

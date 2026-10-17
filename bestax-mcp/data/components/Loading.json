@@ -34,7 +34,7 @@
       "code": "function example() {\n  const [isLoading, setIsLoading] = useState(false);\n\n  const handleClick = () => {\n    setIsLoading(true);\n    // Simulate async operation\n    setTimeout(() => setIsLoading(false), 2000);\n  };\n\n  return (\n    <Box relative p=\"5\" style={{ height: '150px' }}>\n      <Loading active={isLoading}>Loading data...</Loading>\n      <Paragraph>Click the button to see the loading overlay.</Paragraph>\n      <Button color=\"primary\" onClick={handleClick} disabled={isLoading} mt=\"3\">\n        Load Data\n      </Button>\n    </Box>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"alert\"` to announce loading state to screen readers\n- Has `aria-busy=\"true\"` to indicate loading status\n- Has `aria-label=\"Loading\"` for the loading container\n- Cancel button has proper `aria-label` for accessibility\n- Escape key support for cancelling (when `canCancel` is true). An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, doesn't cancel",
+  "accessibility": "- Uses `role=\"alert\"` to announce loading state to screen readers\n- Has `aria-busy=\"true\"` to indicate loading status\n- Has `aria-label=\"Loading\"` for the loading container\n- Cancel button has proper `aria-label` for accessibility\n- Escape key support for cancelling (when `canCancel` is true). An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, doesn't cancel\n- A full-page loading takes its turn for Escape with [Modal](https://bestax.io/docs/api/components/modal), [Dialog](https://bestax.io/docs/api/components/dialog) and [Sidebar](https://bestax.io/docs/api/components/sidebar), since it covers them: one Escape goes to whichever opened last. Shown over an open Modal, it cancels on the first Escape and the Modal closes on the next. While it's on top, even when it can't be cancelled, the Modal under it doesn't close on Escape or hold Tab\n- A loading inside a container covers only that container, so it cancels on Escape once no Modal, Dialog, Sidebar or full-page loading is open",
   "related": [],
   "storybook": null,
   "summary": "The `Loading` component provides a loading overlay with a spinner animation.",
@@ -60,7 +60,7 @@
           "name": "isFullPage",
           "type": "boolean",
           "default": "false",
-          "description": "Cover the entire viewport.",
+          "description": "Cover the entire viewport. A full-page loading also takes its turn with Modal and Sidebar for Escape: while it's the topmost open overlay, the Modal or Sidebar under it doesn't answer Escape or hold Tab, whether or not the loading can be cancelled.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -87,7 +87,7 @@
           "name": "canCancel",
           "type": "boolean",
           "default": "false",
-          "description": "Show a cancel button and allow closing, by a click on the overlay or by Escape. An Escape a popup on the page closed on, by calling `preventDefault()`, doesn't cancel.",
+          "description": "Show a cancel button and allow closing, by a click on the overlay or by Escape. With `isFullPage`, the loading is an overlay like Modal and Sidebar: only the topmost open overlay answers Escape, so a full-page loading shown over a Modal cancels first, and the Modal closes on the next Escape. Without it, Escape cancels once no Modal, Dialog, Sidebar or full-page Loading is open. Either way it marks the Escape it cancels on as used with `preventDefault()`. An Escape a popup on the page closed on, by calling `preventDefault()`, doesn't cancel.",
           "required": false,
           "inherited": false,
           "deprecated": false

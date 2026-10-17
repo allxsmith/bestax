@@ -119,7 +119,7 @@ export function Layout() {
           <p className="menu-label">Docs</p>
           <ul className="menu-list">
             <li>
-              <a className="is-active" href="/start">
+              <a className="is-active" href="/start" aria-current="page">
                 Start
               </a>
               <ul>

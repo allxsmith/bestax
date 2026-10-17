@@ -38,35 +38,37 @@ import { Menu } from '@allxsmith/bestax-bulma';
 
 ### Basic Menu with Nested Lists
 
-To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization.
+To create a sidebar or section menu with multiple levels, use the `Menu` component with nested `Menu.Label` and `Menu.List` subcomponents. You can nest `Menu.List` inside a `Menu.Item` to create hierarchical navigation. Use the `active` prop on a `Menu.Item` to highlight the current selection. This pattern is ideal for dashboards, admin panels, or any grouped navigation area, and you can apply Bulma helper props for layout and color customization. Give each item an `href`, a router link through `as`, or `as="button"`: `Menu.Item` renders an `<a>` by default, and an `<a>` with no `href` isn't a link, so Tab skips it and assistive tech doesn't present it as one.
 
 ```tsx live
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
   <Menu.Label>Administration</Menu.Label>
   <Menu.List>
-    <Menu.Item>Team Settings</Menu.Item>
-    <Menu.Item active>
+    <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+    <Menu.Item active href="#manage-your-team">
       Manage Your Team
       <Menu.List>
-        <Menu.Item>Members</Menu.Item>
-        <Menu.Item>Plugins</Menu.Item>
-        <Menu.Item>Add a member</Menu.Item>
+        <Menu.Item href="#members">Members</Menu.Item>
+        <Menu.Item href="#plugins">Plugins</Menu.Item>
+        <Menu.Item href="#add-a-member">Add a member</Menu.Item>
       </Menu.List>
     </Menu.Item>
-    <Menu.Item>Invitations</Menu.Item>
-    <Menu.Item>Cloud Storage Environment Settings</Menu.Item>
-    <Menu.Item>Authentication</Menu.Item>
+    <Menu.Item href="#invitations">Invitations</Menu.Item>
+    <Menu.Item href="#cloud-storage">
+      Cloud Storage Environment Settings
+    </Menu.Item>
+    <Menu.Item href="#authentication">Authentication</Menu.Item>
   </Menu.List>
   <Menu.Label>Transactions</Menu.Label>
   <Menu.List>
-    <Menu.Item>Payments</Menu.Item>
-    <Menu.Item>Transfers</Menu.Item>
-    <Menu.Item>Balance</Menu.Item>
+    <Menu.Item href="#payments">Payments</Menu.Item>
+    <Menu.Item href="#transfers">Transfers</Menu.Item>
+    <Menu.Item href="#balance">Balance</Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -81,7 +83,7 @@ Use the `as` prop on `Menu.Item` to render a custom link component, such as a ro
 // import { Link } from 'react-router-dom';
 function example() {
   const Link = (props: { to: string; children?: React.ReactNode }) => (
-    <a>{props.children}</a>
+    <a href={props.to}>{props.children}</a>
   );
   return (
     <Menu>
@@ -103,15 +105,17 @@ function example() {
 
 ### Active Menu Item
 
-Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section.
+Highlight a menu entry by setting the `active` prop on a `Menu.Item`. This visually indicates the user's current location within the navigation structure, making it easier to orient within the app or section. It also sets `aria-current="page"` on the item's link, so assistive tech knows which one is current too.
 
 ```tsx live
 <Menu>
   <Menu.Label>Active Example</Menu.Label>
   <Menu.List>
-    <Menu.Item>Overview</Menu.Item>
-    <Menu.Item active>Current Page</Menu.Item>
-    <Menu.Item>Other</Menu.Item>
+    <Menu.Item href="#overview">Overview</Menu.Item>
+    <Menu.Item active href="#current-page">
+      Current Page
+    </Menu.Item>
+    <Menu.Item href="#other">Other</Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -126,13 +130,13 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
 <Menu>
   <Menu.Label>Levels</Menu.Label>
   <Menu.List>
-    <Menu.Item>
+    <Menu.Item href="#level-1">
       Level 1
       <Menu.List>
-        <Menu.Item>
+        <Menu.Item href="#level-2">
           Level 2
           <Menu.List>
-            <Menu.Item>Level 3</Menu.Item>
+            <Menu.Item href="#level-3">Level 3</Menu.Item>
           </Menu.List>
         </Menu.Item>
       </Menu.List>
@@ -180,8 +184,10 @@ function example() {
 <Menu>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item active>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item active href="#dashboard">
+      Dashboard
+    </Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
 </Menu>
 ```
@@ -191,6 +197,9 @@ function example() {
 ## Accessibility
 
 - The root `Menu` renders as `<aside class="menu">`.
+- `Menu.Item active` sets `aria-current="page"` on the element `as` renders, the link by
+  default, so the current item isn't only a color. An `aria-current` you pass wins: a menu of
+  sections on one page can say `"location"`, and `aria-current={false}` turns it off.
 - Use semantic nesting (`Menu.List` inside `Menu.Item`) for submenus.
 - Ensure each item is focusable and accessible if interactive.
 - `Menu.Item as="button"` defaults to `type="button"`, so a menu item inside a form doesn't
@@ -240,7 +249,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 - `Menu.Label`: Bulma Menu label component.
 - `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists).
-- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
+- `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
 
 ### Menu.Label
 
@@ -260,20 +269,20 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 ### Menu.Item
 
-| Prop          | Type                                                                                                | Default | Description                                                                                                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `as`          | `React.ElementType`                                                                                 | `'a'`   | Custom link component (e.g. `Link` from router). `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it. |
-| `className`   | `string`                                                                                            | —       | Additional CSS classes for the wrapping `<li>`.                                                                                                                                     |
-| `children`    | `React.ReactNode`                                                                                   | —       | Item content and optional nested MenuList.                                                                                                                                          |
-| `active`      | `boolean`                                                                                           | `false` | Highlight item as active.                                                                                                                                                           |
-| `style`       | `React.CSSProperties`                                                                               | —       | Inline styles for the wrapping `<li>`.                                                                                                                                              |
-| `id`          | `string`                                                                                            | —       | `id` for the wrapping `<li>`.                                                                                                                                                       |
-| `title`       | `string`                                                                                            | —       | `title` for the wrapping `<li>`.                                                                                                                                                    |
-| `role`        | `React.AriaRole`                                                                                    | —       | ARIA role for the wrapping `<li>`.                                                                                                                                                  |
-| `tabIndex`    | `number`                                                                                            | —       | Tab index for the wrapping `<li>`.                                                                                                                                                  |
-| `data-testid` | `string`                                                                                            | —       | Test id for the wrapping `<li>`.                                                                                                                                                    |
-| `ref`         | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.        |
-| `...`         | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                   |
+| Prop          | Type                                                                                                | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| ------------- | --------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`          | `React.ElementType`                                                                                 | `'a'`   | Custom link component (e.g. `Link` from router). `'button'` renders `type="button"` unless you pass `type="submit"` or `type="reset"`, so an item inside a form does not submit it.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `className`   | `string`                                                                                            | —       | Additional CSS classes for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `children`    | `React.ReactNode`                                                                                   | —       | Item content and optional nested MenuList.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| `active`      | `boolean`                                                                                           | `false` | Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current="page"` on the element `as` renders, so assistive tech can tell which item is current too. An `aria-current` you pass wins, even `undefined`: use it to say something else (`"location"` for a section of one page, say), or `aria-current={false}` to turn it off. A menu should mark one page, so when the section above the current page is `active` too, give it `aria-current="location"`, and give an `active` item that isn't navigation, such as an `as="button"` filter, `aria-current={false}`. |
+| `style`       | `React.CSSProperties`                                                                               | —       | Inline styles for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `id`          | `string`                                                                                            | —       | `id` for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `title`       | `string`                                                                                            | —       | `title` for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `role`        | `React.AriaRole`                                                                                    | —       | ARIA role for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `tabIndex`    | `number`                                                                                            | —       | Tab index for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `data-testid` | `string`                                                                                            | —       | Test id for the wrapping `<li>`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `ref`         | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `...`         | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
 <!-- /bestax:generated props -->
 
