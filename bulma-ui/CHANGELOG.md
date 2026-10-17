@@ -1,3 +1,36 @@
+# [5.35.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.3...@allxsmith/bestax-bulma@5.35.0) (2026-10-17)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** convert an active menu link only beside its own aria-current ([c3f68f4](https://github.com/allxsmith/bestax/commit/c3f68f458825a57ef09e003819edcabc16a721ec))
+* **bulma-ui:** clear a Checkbox's mixed state when indeterminate goes unset ([979730f](https://github.com/allxsmith/bestax/commit/979730f99d33305e5fe29e8ce5715849c8457add)), closes [#1092](https://github.com/allxsmith/bestax/issues/1092)
+* **bulma-ui:** close Taginput's suggestion list at the tag limit ([1ea3d42](https://github.com/allxsmith/bestax/commit/1ea3d42980c39d86b6c4ce6fb0041ec97b16cb33)), closes [#1087](https://github.com/allxsmith/bestax/issues/1087)
+* **bulma-ui:** dismiss Taginput's list at the tag limit, not just hide it ([6d6f43a](https://github.com/allxsmith/bestax/commit/6d6f43a340f71336b38d2baa5df46c51fb18d453))
+* **bulma-ui:** draw a custom completed icon in the check mark's color in forced colors ([47792ef](https://github.com/allxsmith/bestax/commit/47792ef26a0861d579600addc3262ed147059c4b)), closes [#1106](https://github.com/allxsmith/bestax/issues/1106)
+* **bulma-ui:** give Steps' list role="list", so Safari keeps it a list ([9063bc7](https://github.com/allxsmith/bestax/commit/9063bc7cea984329c13fdb9bb70b4b668fdfbf31)), closes [#1108](https://github.com/allxsmith/bestax/issues/1108)
+* **bulma-ui:** keep a checked Checkbox's mark readable in forced colors ([42b1b6b](https://github.com/allxsmith/bestax/commit/42b1b6ba647ac634c1e0a909c08bed24b9193092)), closes [#1092](https://github.com/allxsmith/bestax/issues/1092)
+* **bulma-ui:** keep a clickable Steps.Step a list item, with a button inside it ([a4cfbd7](https://github.com/allxsmith/bestax/commit/a4cfbd7cec421dcde39f87eb612a098fb4347f6c)), closes [#1107](https://github.com/allxsmith/bestax/issues/1107)
+* **bulma-ui:** keep a mixed Checkbox's dash in forced colors ([016eb9b](https://github.com/allxsmith/bestax/commit/016eb9b00b76b8a4a4038f01fc194b933cbd738b)), closes [#1092](https://github.com/allxsmith/bestax/issues/1092)
+* **bulma-ui:** keep a Toast's timer and outside-click listener while onClose changes ([5263454](https://github.com/allxsmith/bestax/commit/526345433d70935b8d012af3b8134acf7b76aed7)), closes [#1113](https://github.com/allxsmith/bestax/issues/1113)
+* **bulma-ui:** keep Bulma's loader rings open in forced colors ([5fae568](https://github.com/allxsmith/bestax/commit/5fae568fa1af0585c1a5d23b4c7622db2b904f49)), closes [#1109](https://github.com/allxsmith/bestax/issues/1109)
+* **bulma-ui:** keep each overlay's Escape listener while its callback changes ([9750c67](https://github.com/allxsmith/bestax/commit/9750c6705a1ab52b105dadb21018f51339720b74)), closes [#1088](https://github.com/allxsmith/bestax/issues/1088)
+* **bulma-ui:** keep React 18's useLayoutEffect warning out of server renders ([737cf13](https://github.com/allxsmith/bestax/commit/737cf13006d085bca05035ae1ec0331ff9ab3910)), closes [#1099](https://github.com/allxsmith/bestax/issues/1099)
+* **bulma-ui:** keep Steps' lines and completed fill visible in forced colors ([424f555](https://github.com/allxsmith/bestax/commit/424f55580c9796c8bdaf8dea2a7d5e370d037d28)), closes [#1106](https://github.com/allxsmith/bestax/issues/1106)
+* **bulma-ui:** keep Steps' lines and label gaps on the right side in a right-to-left page ([9b90f1b](https://github.com/allxsmith/bestax/commit/9b90f1b7f31f62e1a4b50910c34b2215a04a26e0)), closes [#1105](https://github.com/allxsmith/bestax/issues/1105)
+* **bulma-ui:** keep the Escape a date picker in a Dropdown menu closes on ([255b69c](https://github.com/allxsmith/bestax/commit/255b69cc2d322f17d750fc5ff08c5de6e6370d29)), closes [#1085](https://github.com/allxsmith/bestax/issues/1085)
+* **bulma-ui:** leave the overlay stack alone when a cleanup finds its place gone ([fc189bb](https://github.com/allxsmith/bestax/commit/fc189bbf6a26156a8fa63075de38729b58f7d3df)), closes [#1085](https://github.com/allxsmith/bestax/issues/1085)
+* **bulma-ui:** let a clickable step's whole box take the click and the pointer ([9082bf4](https://github.com/allxsmith/bestax/commit/9082bf46f17dac4243eb18731181b7599ea2d9e8)), closes [#1107](https://github.com/allxsmith/bestax/issues/1107)
+* **bulma-ui:** mark the active Menu.Item as the current page ([1791660](https://github.com/allxsmith/bestax/commit/1791660db00335f2d1d88033f1730f06fb9ac6a9)), closes [#1093](https://github.com/allxsmith/bestax/issues/1093)
+* **bulma-ui:** one Escape closes only the topmost overlay ([07cbf16](https://github.com/allxsmith/bestax/commit/07cbf164e41cf2942a505e57f558ab990d57f9c8)), closes [#1085](https://github.com/allxsmith/bestax/issues/1085)
+* **bulma-ui:** show how a menu marks one page when more than one item is active ([c9d66d2](https://github.com/allxsmith/bestax/commit/c9d66d28fb9df229a5000a9a575984bea92dcc1a))
+* **create-bestax:** bring the vite-ts tsconfigs up to create-vite 9 ([#1076](https://github.com/allxsmith/bestax/issues/1076)) ([dc6995c](https://github.com/allxsmith/bestax/commit/dc6995ca101c6c3d6092c36f551b84a0d2fbce3c)), closes [#1049](https://github.com/allxsmith/bestax/issues/1049)
+
+
+### Features
+
+* **bulma-ui:** add an indeterminate prop to Checkbox ([21091e8](https://github.com/allxsmith/bestax/commit/21091e8780172ec814dd3cd47971a15d0b944cd4)), closes [#1092](https://github.com/allxsmith/bestax/issues/1092)
+
 ## [5.34.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.2...@allxsmith/bestax-bulma@5.34.3) (2026-10-17)
 
 
