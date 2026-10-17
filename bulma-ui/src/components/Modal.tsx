@@ -26,6 +26,7 @@ import {
 } from '../helpers/shadowDom';
 import { usePortalContainer } from '../helpers/portal';
 import { useIsHydrated } from '../helpers/useIsHydrated';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /**
  * Every currently active modal, in the order they opened. Only the last entry
@@ -471,6 +472,10 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
   useScrollLock(isModalActive && lockScroll);
 
+  // Read when Escape arrives, so the key listener stays put while `onClose`
+  // changes identity, as an inline one does on every render of the parent.
+  const onCloseRef = useLatestRef(onClose);
+
   // Record open order so keyboard handling only applies to the topmost modal.
   useEffect(() => {
     if (!isModalActive) return undefined;
@@ -501,7 +506,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       if (e.key === 'Escape') {
         // Something inside already used this Escape, such as a popup that
         // closed on it, so the modal waits for the next one.
-        if (closeOnEscape && !e.defaultPrevented) onClose?.();
+        if (closeOnEscape && !e.defaultPrevented) onCloseRef.current?.();
         return;
       }
       // A trap inside the modal, such as a portaled popup's, already moved
@@ -534,7 +539,7 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isModalActive, closeOnEscape, onClose]);
+  }, [isModalActive, closeOnEscape, onCloseRef]);
 
   // Move focus into the modal on open, restore it on close
   useEffect(() => {

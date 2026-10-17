@@ -12,6 +12,7 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { usePortalContainer } from '../helpers/portal';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -180,6 +181,11 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       };
     }, [dismissible, isVisible, handleClose]);
 
+    // Read when Escape arrives, so the key listener stays put while
+    // `onClose` changes identity, as an inline one does on every render of
+    // the parent.
+    const handleCloseRef = useLatestRef(handleClose);
+
     // On `window`, as in `Modal`, so a popup on the page has had the key
     // first, and an Escape it closed on doesn't dismiss the toast as well.
     useEffect(() => {
@@ -187,13 +193,13 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape' && !e.defaultPrevented) {
-          handleClose();
+          handleCloseRef.current();
         }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cancelable, isVisible, handleClose]);
+    }, [cancelable, isVisible, handleCloseRef]);
 
     const containerClasses = usePrefixedClassNames('toast-container', {
       [`is-${position}`]: true,

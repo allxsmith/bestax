@@ -2,6 +2,7 @@ import React from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useScrollLock } from '../helpers/scrollLock';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /**
  * Overlay opacity levels for the Loading background.
@@ -131,20 +132,25 @@ export const Loading: React.FC<LoadingProps> = ({
     }
   };
 
+  // Read when Escape arrives, so the key listener stays put while `onCancel`
+  // changes identity, as an inline one does on every render of the parent.
+  const onCancelRef = useLatestRef(onCancel);
+  const hasOnCancel = Boolean(onCancel);
+
   // Handle escape key. On `window`, as in `Modal`, so a popup on the page has
   // had the key first, and an Escape it closed on doesn't cancel as well.
   React.useEffect(() => {
-    if (!active || !canCancel || !onCancel) return;
+    if (!active || !canCancel || !hasOnCancel) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && !e.defaultPrevented) {
-        onCancel();
+        onCancelRef.current?.();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [active, canCancel, onCancel]);
+  }, [active, canCancel, hasOnCancel, onCancelRef]);
 
   // Prevent body scroll when full page loading is active. Ref-counted through
   // the shared helper so an overlapping Modal/Dialog/Sidebar doesn't have its

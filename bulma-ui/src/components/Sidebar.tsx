@@ -7,6 +7,7 @@ import { useScrollLock } from '../helpers/scrollLock';
 import { usePortalContainer } from '../helpers/portal';
 import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -122,6 +123,11 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       }
     }, [overlayClose, handleClose]);
 
+    // Read when Escape arrives, so the key listener stays put while
+    // `onClose` changes identity, as an inline one does on every render of
+    // the parent.
+    const handleCloseRef = useLatestRef(handleClose);
+
     // Handle escape key. On `window`, as in `Modal`, so everything inside the
     // sidebar has had the key first, and an Escape it used is left to it.
     useEffect(() => {
@@ -129,13 +135,13 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 
       const handleKeyDown = (e: KeyboardEvent) => {
         if (e.key === 'Escape' && !e.defaultPrevented) {
-          handleClose();
+          handleCloseRef.current();
         }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, escapeClose, handleClose]);
+    }, [isOpen, escapeClose, handleCloseRef]);
 
     // Prevent body scroll when sidebar is open. Ref-counted through the shared
     // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
