@@ -1,5 +1,5 @@
-// A mixed Checkbox draws its dash from _checkbox.scss, which jsdom never loads
-// on its own. jsdom also evaluates no media query and computes no
+// A Checkbox draws its check mark and its mixed dash from _checkbox.scss,
+// which jsdom never loads on its own. jsdom also evaluates no media query and computes no
 // pseudo-element styles, so these compile the partial, read its rules off the
 // sheet, and resolve which one wins on the markup a Checkbox renders, the way
 // a browser with forced colors on (or off) would.
@@ -61,22 +61,26 @@ const outranks = (a: number[], b: number[]) => {
 };
 
 /**
- * The value `property` gets on `el`, or on its `::before`, from the partial:
- * the most specific matching rule, the later one on a tie. Forced colors adds
- * the rules in its media block and leaves out every other media block.
+ * The value `property` gets on `el`, or on its `pseudo` element, from the
+ * partial: the most specific matching rule, the later one on a tie. Forced
+ * colors adds the rules in its media block and leaves out every other media
+ * block.
  */
 function resolve(
   el: Element,
   property: string,
-  { before = false, forcedColors = false } = {}
+  {
+    pseudo,
+    forcedColors = false,
+  }: { pseudo?: '::before' | '::after'; forcedColors?: boolean } = {}
 ): string | undefined {
   let won: { value: string; rank: number[] } | undefined;
   for (const { selector, style, media } of RULES) {
     if (media && !(forcedColors && media === '(forced-colors: active)')) {
       continue;
     }
-    const target = before
-      ? selector.endsWith('::before') && selector.slice(0, -'::before'.length)
+    const target = pseudo
+      ? selector.endsWith(pseudo) && selector.slice(0, -pseudo.length)
       : !selector.includes('::') && selector;
     if (!target || !el.matches(target)) continue;
     const value = style.getPropertyValue(property);
@@ -96,7 +100,7 @@ describe('a mixed Checkbox', () => {
   it('draws its dash with a background color', () => {
     // Which forced colors repaints, so the dash needs a rule of its own there.
     const check = checkOf({ indeterminate: true });
-    expect(resolve(check, 'background-color', { before: true })).toBe(
+    expect(resolve(check, 'background-color', { pseudo: '::before' })).toBe(
       'var(--bulma-checkbox-check-color)'
     );
     expect(resolve(check, 'background-color')).toBe(
@@ -110,7 +114,10 @@ describe('a mixed Checkbox', () => {
   ])('keeps its dash in forced colors when %s', (_label, checked) => {
     const check = checkOf({ indeterminate: true, checked });
     expect(
-      resolve(check, 'background-color', { before: true, forcedColors: true })
+      resolve(check, 'background-color', {
+        pseudo: '::before',
+        forcedColors: true,
+      })
     ).toBe('CanvasText');
     expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
       'Canvas'
@@ -125,7 +132,43 @@ describe('a checked Checkbox that is not mixed, in forced colors', () => {
       'Highlight'
     );
     expect(
-      resolve(check, 'background-color', { before: true, forcedColors: true })
+      resolve(check, 'background-color', {
+        pseudo: '::before',
+        forcedColors: true,
+      })
     ).toBeUndefined();
+  });
+});
+
+describe('the check mark of a checked Checkbox', () => {
+  const MASK = ['mask-size', 'mask-repeat', 'mask-position'];
+
+  it('is an image with a black stroke', () => {
+    // Forced colors leaves a url() image as it is, so the mark needs a rule
+    // of its own there.
+    const check = checkOf({ checked: true });
+    expect(resolve(check, 'background-image', { pseudo: '::after' })).toContain(
+      "stroke='black'"
+    );
+    expect(resolve(check, 'mask-image', { pseudo: '::after' })).toBeUndefined();
+  });
+
+  it('is the same shape as a mask, painted HighlightText, in forced colors', () => {
+    const check = checkOf({ checked: true });
+    const forced = (property: string) =>
+      resolve(check, property, { pseudo: '::after', forcedColors: true });
+    expect(forced('background-image')).toBe('none');
+    expect(forced('background-color')).toBe('HighlightText');
+    expect(forced('mask-image')).toBe(
+      resolve(check, 'background-image', { pseudo: '::after' })
+    );
+    // Sized and placed the way the image is.
+    expect(MASK.map(forced)).toEqual(
+      MASK.map(property =>
+        resolve(check, property.replace('mask', 'background'), {
+          pseudo: '::after',
+        })
+      )
+    );
   });
 });
