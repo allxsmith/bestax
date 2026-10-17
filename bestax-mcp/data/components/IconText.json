@@ -189,7 +189,7 @@
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
           "default": null,
-          "description": "Bulma color modifier for the icon.",
+          "description": "Sets the icon's text color, rendering `has-text-<color>` the same as `textColor`, which wins when both are set. Bulma has no `.icon.is-<color>` modifier.",
           "required": false,
           "inherited": true,
           "deprecated": false
