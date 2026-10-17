@@ -9,6 +9,7 @@ import TemplateCard from './TemplateCard';
 import styles from './styles.module.css';
 
 const favorites = sortedTemplates.filter(t => t.tags.includes('favorite'));
+const others = sortedTemplates.filter(t => !t.tags.includes('favorite'));
 
 function CardList({ heading, items }) {
   return (
@@ -24,8 +25,9 @@ function CardList({ heading, items }) {
 }
 
 /**
- * Unfiltered, the favorites and then every template; filtered, one list of
- * the matches, or a way back when nothing matches.
+ * Unfiltered, the favorites and then the rest, as the Docusaurus showcase
+ * lists them; filtered, one list of the matches, or a way back when nothing
+ * matches.
  */
 export default function TemplateCards() {
   const filtered = useFilteredTemplates();
@@ -72,14 +74,16 @@ export default function TemplateCards() {
               items={favorites}
             />
           )}
-          <CardList
-            heading={
-              <Heading as="h2" className={styles.sectionHeading}>
-                All templates
-              </Heading>
-            }
-            items={filtered}
-          />
+          {others.length > 0 && (
+            <CardList
+              heading={
+                <Heading as="h2" className={styles.sectionHeading}>
+                  All templates
+                </Heading>
+              }
+              items={others}
+            />
+          )}
         </>
       )}
     </section>
