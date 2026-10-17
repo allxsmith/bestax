@@ -284,6 +284,7 @@ In a right-to-left page the steps run from the right, and the lines and the labe
 - Clickable steps are keyboard navigable with proper focus indicators
 - Use descriptive labels for each step
 - The step markers show completion state with checkmarks
+- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color
 
 ---
 

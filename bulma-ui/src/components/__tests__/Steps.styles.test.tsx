@@ -85,6 +85,57 @@ function load(css: string) {
   removeSheet = () => sheet.remove();
 }
 
+const FORCED = '(forced-colors: active)';
+
+type Pseudo = '' | '::before' | '::after';
+
+/**
+ * Every value the rules matching an element (or its `::before` or `::after`)
+ * give `property`, with or without forced colors on, and whether each is
+ * important. Nothing outside the partial styles a step, so when any of them
+ * is important, the important ones are what win.
+ */
+function candidates(
+  found: Found[],
+  el: Element,
+  pseudo: Pseudo,
+  property: string,
+  forced: boolean
+) {
+  return found
+    .filter(({ media }) => media === '' || (forced && media === FORCED))
+    .filter(({ selector }) => {
+      const at = selector.search(/::(before|after)$/);
+      if ((at === -1 ? '' : selector.slice(at)) !== pseudo) return false;
+      try {
+        return el.matches(at === -1 ? selector : selector.slice(0, at));
+      } catch {
+        // A selector jsdom cannot evaluate (`:focus-visible`) matches no
+        // element at rest.
+        return false;
+      }
+    })
+    .map(({ style }) => ({
+      value: style.getPropertyValue(property).trim(),
+      important: style.getPropertyPriority(property) === 'important',
+    }))
+    .filter(({ value }) => value !== '');
+}
+
+/** The important values among the candidates, which win over the rest. */
+const winners = (list: ReturnType<typeof candidates>) =>
+  list.filter(({ important }) => important).map(({ value }) => value);
+
+const COLORS = [
+  undefined,
+  'primary',
+  'link',
+  'info',
+  'success',
+  'warning',
+  'danger',
+] as const;
+
 const ITEMS = [
   { label: 'Ordered' },
   { label: 'Packed' },
@@ -225,6 +276,110 @@ describe.each([
         'calc(50% + var(--bulma-steps-marker-size) / 2 + 0.25rem)'
       );
       expect(before['text-align']).toBe('end');
+    });
+  });
+
+  // Forced colors paints every background the page's own color and every
+  // border one color, so a line or a fill drawn as a background vanishes and
+  // the markers all look alike. A system color is left as it is.
+  describe('in forced colors', () => {
+    const layouts = COLORS.flatMap(color =>
+      [false, true].map(vertical => ({ color, vertical }))
+    );
+
+    /** Value 2 of four: two completed, the current one, one upcoming. */
+    const stepsOf = (color: StepsProps['color'], vertical: boolean) => {
+      const { container, unmount } = renderSteps({ color, vertical });
+      const segments = Array.from(
+        container.querySelectorAll(p('steps-segment'))
+      );
+      const marker = (li: Element) => li.querySelector(p('steps-marker'))!;
+      return {
+        unmount,
+        lines: segments.slice(0, -1),
+        line: (vertical ? '::after' : '::before') as Pseudo,
+        completed: segments.slice(0, 2).map(marker),
+        current: marker(segments[2]),
+        upcoming: marker(segments[3]),
+      };
+    };
+
+    it('draws every line in CanvasText, whatever the color', () => {
+      const found = rulesOf(compile(prefix));
+      for (const { color, vertical } of layouts) {
+        const { lines, line, unmount } = stepsOf(color, vertical);
+        for (const li of lines) {
+          const normal = candidates(found, li, line, 'background-color', false);
+          // It is a line to begin with, and keeps its color normally.
+          expect(normal.length).toBeGreaterThan(0);
+          expect(normal.map(({ value }) => value)).not.toContain('CanvasText');
+          expect(winners(normal)).toEqual([]);
+          const forced = candidates(found, li, line, 'background-color', true);
+          expect(winners(forced).length).toBeGreaterThan(0);
+          expect(new Set(winners(forced))).toEqual(new Set(['CanvasText']));
+        }
+        unmount();
+      }
+    });
+
+    it('fills a completed marker in CanvasText, with its mark in Canvas', () => {
+      const found = rulesOf(compile(prefix));
+      for (const { color, vertical } of layouts) {
+        const { completed, current, upcoming, unmount } = stepsOf(
+          color,
+          vertical
+        );
+        for (const marker of completed) {
+          // Without the browser's text backplate, which would hide the mark.
+          expect(
+            candidates(found, marker, '', 'forced-color-adjust', true).map(
+              ({ value }) => value
+            )
+          ).toEqual(['none']);
+          for (const [property, system] of [
+            ['background-color', 'CanvasText'],
+            ['border-color', 'CanvasText'],
+            ['color', 'Canvas'],
+          ]) {
+            const normal = candidates(found, marker, '', property, false);
+            expect(winners(normal)).toEqual([]);
+            const forced = candidates(found, marker, '', property, true);
+            expect(winners(forced).length).toBeGreaterThan(0);
+            expect(new Set(winners(forced))).toEqual(new Set([system]));
+          }
+        }
+        // The others stay rings, filled with the page's color.
+        for (const marker of [current, upcoming]) {
+          expect(
+            candidates(found, marker, '', 'background-color', true).map(
+              ({ value }) => value
+            )
+          ).not.toContain('CanvasText');
+        }
+        unmount();
+      }
+    });
+
+    it('rings the current marker, and only it, with an outline', () => {
+      const found = rulesOf(compile(prefix));
+      for (const { color, vertical } of layouts) {
+        const { completed, current, upcoming, unmount } = stepsOf(
+          color,
+          vertical
+        );
+        const outlines = (marker: Element, forced: boolean) =>
+          candidates(found, marker, '', 'outline', forced).map(
+            ({ value }) => value
+          );
+        expect(outlines(current, false)).toEqual([]);
+        expect(outlines(current, true)).toEqual([
+          'var(--bulma-steps-divider-height) solid CanvasText',
+        ]);
+        for (const marker of [...completed, upcoming]) {
+          expect(outlines(marker, true)).toEqual([]);
+        }
+        unmount();
+      }
     });
   });
 });
