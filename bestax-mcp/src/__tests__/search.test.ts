@@ -141,6 +141,11 @@ describe('ranking realistic queries', () => {
     ['a form with a date picker', 'DateInput'],
     // A component named outright outranks one an alias in the same query reaches.
     ['breadcrumbs with separators', 'Breadcrumb'],
+    // A compound name's first part is what sets it apart, so "tree" makes
+    // TreeView the subject, above its own examples, and "view" alone doesn't:
+    // it put TreeView above Reveal for "element that animates into view".
+    ['folder tree', 'TreeView'],
+    ['segmented control for view mode', 'SegmentedControl'],
   ])('"%s" puts %s first', (query, component) => {
     expect(top(query)).toEqual([`component:${component}`]);
   });
