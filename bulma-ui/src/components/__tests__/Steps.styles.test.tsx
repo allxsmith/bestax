@@ -208,19 +208,58 @@ describe.each([
     // a line or a label on the wrong side of its marker there.
     const PHYSICAL =
       /^(left|right|(margin|padding|border)-(left|right)(-[a-z]+)?)$/;
+    // jsdom keeps these whole rather than listing a longhand per side, so a
+    // side written in one is read off its value instead.
+    const SHORTHAND =
+      /^(margin|padding|inset|border-width|border-style|border-color)$/;
+
+    /** A value's top-level parts, keeping `calc(…)` and `var(…)` whole. */
+    const partsOf = (value: string) => {
+      const parts: string[] = [];
+      let depth = 0;
+      let part = '';
+      for (const ch of value) {
+        if (ch === '(') depth++;
+        else if (ch === ')') depth--;
+        if (/\s/.test(ch) && depth === 0) {
+          if (part) parts.push(part);
+          part = '';
+        } else part += ch;
+      }
+      if (part) parts.push(part);
+      return parts;
+    };
+
+    /** Four values give the right and left sides apart: 2nd and 4th. */
+    const sidesDiffer = (value: string) => {
+      const parts = partsOf(value);
+      return parts.length === 4 && parts[1] !== parts[3];
+    };
 
     it('places nothing by a physical side', () => {
       const physical = rulesOf(compile(prefix)).flatMap(({ selector, style }) =>
         Array.from({ length: style.length }, (_, i) => style[i])
-          .filter(
-            name =>
+          .filter(name => {
+            const value = style.getPropertyValue(name).trim();
+            return (
               PHYSICAL.test(name) ||
-              (name === 'text-align' &&
-                /^(left|right)$/.test(style.getPropertyValue(name).trim()))
-          )
+              (SHORTHAND.test(name) && sidesDiffer(value)) ||
+              (name === 'text-align' && /^(left|right)$/.test(value))
+            );
+          })
           .map(name => `${selector} { ${name} }`)
       );
       expect(physical).toEqual([]);
+    });
+
+    it('reads a physical side out of a shorthand, and lets a symmetric one be', () => {
+      expect(sidesDiffer('0 0 0 1rem')).toBe(true);
+      expect(sidesDiffer('0 auto 0 calc(1px + 2px)')).toBe(true);
+      expect(sidesDiffer('0 auto')).toBe(false);
+      expect(sidesDiffer('0 0 var(--bulma-steps-vertical-padding) 0')).toBe(
+        false
+      );
+      expect(sidesDiffer('0 calc(1px + 2px) 1rem calc(1px + 2px)')).toBe(false);
     });
 
     it('runs each horizontal line from its marker toward the next step', () => {
