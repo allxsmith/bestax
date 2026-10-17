@@ -187,6 +187,38 @@ describe('Loading', () => {
       expect(handleCancel).toHaveBeenCalledTimes(1);
     });
 
+    it('leaves an Escape that something on the page already used', () => {
+      const handleCancel = jest.fn();
+      render(
+        <>
+          <Loading active canCancel onCancel={handleCancel} />
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+        </>
+      );
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(handleCancel).not.toHaveBeenCalled();
+    });
+
+    it('hears Escape after a document listener added once it was active', () => {
+      // A popup that opens while it shows adds its listener after this one,
+      // and still gets the key first.
+      const handleCancel = jest.fn();
+      render(<Loading active canCancel onCancel={handleCancel} />);
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(handleCancel).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('does not call onCancel on Escape when canCancel is false', () => {
       const handleCancel = jest.fn();
       render(<Loading active canCancel={false} onCancel={handleCancel} />);

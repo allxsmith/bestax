@@ -202,6 +202,43 @@ describe('Sidebar', () => {
       expect(handleClose).toHaveBeenCalledTimes(1);
     });
 
+    it('leaves an Escape that content inside already used', () => {
+      const handleClose = jest.fn();
+      render(
+        <Sidebar isOpen onClose={handleClose}>
+          <input
+            aria-label="Search"
+            onKeyDown={e => {
+              if (e.key === 'Escape') e.preventDefault();
+            }}
+          />
+        </Sidebar>
+      );
+
+      fireEvent.keyDown(screen.getByLabelText('Search'), { key: 'Escape' });
+      expect(handleClose).not.toHaveBeenCalled();
+
+      fireEvent.keyDown(document.body, { key: 'Escape' });
+      expect(handleClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('hears Escape after a document listener added once it was open', () => {
+      const handleClose = jest.fn();
+      render(
+        <Sidebar isOpen onClose={handleClose}>
+          <div>Content</div>
+        </Sidebar>
+      );
+      const claim = (e: KeyboardEvent) => e.preventDefault();
+      document.addEventListener('keydown', claim);
+      try {
+        fireEvent.keyDown(document.body, { key: 'Escape' });
+        expect(handleClose).not.toHaveBeenCalled();
+      } finally {
+        document.removeEventListener('keydown', claim);
+      }
+    });
+
     it('does not call onClose on Escape when escapeClose is false', () => {
       const handleClose = jest.fn();
       render(
@@ -496,7 +533,7 @@ describe('Sidebar', () => {
     });
 
     it('removes keydown listener on unmount (no leak)', () => {
-      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      const removeSpy = jest.spyOn(window, 'removeEventListener');
       const { unmount } = render(
         <Sidebar isOpen onClose={() => {}}>
           <div>Content</div>

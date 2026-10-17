@@ -1,3 +1,32 @@
+## [5.34.3](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.2...@allxsmith/bestax-bulma@5.34.3) (2026-10-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let Autocomplete's Enter submit, keep focus on a click, and open on a highlight ([#1090](https://github.com/allxsmith/bestax/issues/1090)) ([81f5982](https://github.com/allxsmith/bestax/commit/81f5982d4dd83d76ffeb7603e7ead841224ae51e)), closes [#1078](https://github.com/allxsmith/bestax/issues/1078) [#1089](https://github.com/allxsmith/bestax/issues/1089) [#1079](https://github.com/allxsmith/bestax/issues/1079) [#1081](https://github.com/allxsmith/bestax/issues/1081) [#1081](https://github.com/allxsmith/bestax/issues/1081)
+
+## [5.34.2](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.1...@allxsmith/bestax-bulma@5.34.2) (2026-10-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** deprecate Autocomplete's unread selected and dropdown props ([#1091](https://github.com/allxsmith/bestax/issues/1091)) ([5a90eba](https://github.com/allxsmith/bestax/commit/5a90eba338355a7c54f1ad6b57a743c9f33278e8)), closes [#1080](https://github.com/allxsmith/bestax/issues/1080)
+* **bulma-ui:** one Escape closes one layer inside a Modal or Sidebar ([#1086](https://github.com/allxsmith/bestax/issues/1086)) ([3ea7ac8](https://github.com/allxsmith/bestax/commit/3ea7ac8a5b1a9e8519e257b8ca3aa6a8bf17c46e)), closes [#1077](https://github.com/allxsmith/bestax/issues/1077) [#1077](https://github.com/allxsmith/bestax/issues/1077)
+
+## [5.34.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.34.0...@allxsmith/bestax-bulma@5.34.1) (2026-10-16)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a title's heading level when its size carries over ([#1071](https://github.com/allxsmith/bestax/issues/1071)) ([7549699](https://github.com/allxsmith/bestax/commit/75496994ac2f3de11fa2fe7b8942d3a34f027145))
+* **bulma-ui:** wire Taginput's suggestions as a combobox ([#1084](https://github.com/allxsmith/bestax/issues/1084)) ([e30c33a](https://github.com/allxsmith/bestax/commit/e30c33a36e12aa2f4074c4a770235cdca07d96ad)), closes [#942](https://github.com/allxsmith/bestax/issues/942) [#998](https://github.com/allxsmith/bestax/issues/998) [#1082](https://github.com/allxsmith/bestax/issues/1082)
+* **docs:** pin react-scripts in CodeSandbox sandboxes and keep the sandbox notes in step ([#1074](https://github.com/allxsmith/bestax/issues/1074)) ([3ac8a65](https://github.com/allxsmith/bestax/commit/3ac8a65fda8bc1795eac465da0f7b8928804c72e))
+
+
+### Features
+
+* **docs:** open live examples in StackBlitz and CodeSandbox ([#1073](https://github.com/allxsmith/bestax/issues/1073)) ([730db1e](https://github.com/allxsmith/bestax/commit/730db1e37633b19f6d47a42272c85d72db51d19c))
+
 # [5.34.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.33.1...@allxsmith/bestax-bulma@5.34.0) (2026-10-15)
 
 

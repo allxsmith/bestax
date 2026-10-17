@@ -88,7 +88,10 @@ export interface ModalProps
   children?: React.ReactNode;
   /**
    * Close the modal when the Escape key is pressed (calls `onClose`). Only the
-   * topmost open modal responds, so Escape closes one layer at a time.
+   * topmost open modal responds, so Escape closes one layer at a time. A popup
+   * inside it, such as a Dropdown's menu or a date picker's calendar, takes
+   * its own Escape first, and so does content that calls `preventDefault()`
+   * on it.
    * @defaultValue true
    */
   closeOnEscape?: boolean;
@@ -481,6 +484,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   }, [isModalActive]);
 
   // Escape closes; Tab cycles inside the modal. Both only for the topmost one.
+  // The listener is on `window`, where a keydown arrives last, so everything
+  // inside the modal has had the key first: React's handlers, and `document`
+  // listeners added after this one, such as a date picker's.
   useEffect(() => {
     if (!isModalActive) return undefined;
 
@@ -493,10 +499,14 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       }
 
       if (e.key === 'Escape') {
-        if (closeOnEscape) onClose?.();
+        // Something inside already used this Escape, such as a popup that
+        // closed on it, so the modal waits for the next one.
+        if (closeOnEscape && !e.defaultPrevented) onClose?.();
         return;
       }
-      if (e.key !== 'Tab' || !node) return;
+      // A trap inside the modal, such as a portaled popup's, already moved
+      // focus on this Tab, so the modal leaves it where it went.
+      if (e.key !== 'Tab' || !node || e.defaultPrevented) return;
 
       // Keep Tab within the modal — `aria-modal` hides the rest of the page
       // from assistive technology, so the keyboard order has to agree.
@@ -522,8 +532,8 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isModalActive, closeOnEscape, onClose]);
 
   // Move focus into the modal on open, restore it on close

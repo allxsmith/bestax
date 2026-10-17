@@ -1,3 +1,56 @@
+## [2.25.4](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.3...bestax-migrate@2.25.4) (2026-10-16)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** leave the query behind when a component's own rows answered it ([ec8a2f1](https://github.com/allxsmith/bestax/commit/ec8a2f183072a6a9b20036d5722217f0e798a93c))
+* **bestax-mcp:** say "matching" in the pointer answer only when there is a query ([2d28530](https://github.com/allxsmith/bestax/commit/2d28530b797a9f0fae350f0fcd5a910b0d56c147))
+* **bestax-mcp:** say Button's variables style it for the colors and modifiers it accepts ([2b94042](https://github.com/allxsmith/bestax/commit/2b94042fd80ed0f448de2dcccb5ead13dd463dae))
+* **bestax-migrate:** keep a title's heading level when its size carries over ([#1071](https://github.com/allxsmith/bestax/issues/1071)) ([7549699](https://github.com/allxsmith/bestax/commit/75496994ac2f3de11fa2fe7b8942d3a34f027145))
+* **bulma-ui:** announce Autocomplete's empty content, and keep its listbox to options ([98cfaac](https://github.com/allxsmith/bestax/commit/98cfaac779fa66679b62a94dd8ad2b316773d8dd)), closes [#1066](https://github.com/allxsmith/bestax/issues/1066)
+* **bulma-ui:** describe a Tooltip's trigger with its text for screen readers ([5a7eb99](https://github.com/allxsmith/bestax/commit/5a7eb99e31c0d8176145e0b5cdfe88df1a8f3770)), closes [#1031](https://github.com/allxsmith/bestax/issues/1031)
+* **bulma-ui:** drop a key's fill in forced colors, so only its border draws it ([466ad38](https://github.com/allxsmith/bestax/commit/466ad3800862cdfe0ab0f8d068c2d75a0f93c900)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+* **bulma-ui:** hide a Tooltip with its stylesheet alone, without aria-hidden ([d4cbee4](https://github.com/allxsmith/bestax/commit/d4cbee4ef4501a1ab7063032388722b8f6ddf6a8))
+* **bulma-ui:** hold Autocomplete's empty announcement while results load ([75d8fdf](https://github.com/allxsmith/bestax/commit/75d8fdf75f8b404febe6079a302cd0d2383e0d35))
+* **bulma-ui:** keep a loading ToggleButton from toggling ([cf9f6e8](https://github.com/allxsmith/bestax/commit/cf9f6e81d2325944570aef8bebe0333e1c02909f))
+* **bulma-ui:** keep EmptyState's left room only for an indicator, and follow py ([9a615d6](https://github.com/allxsmith/bestax/commit/9a615d6e6f0c819b43a7ee0df1613fd1dd05a02b)), closes [#1065](https://github.com/allxsmith/bestax/issues/1065)
+* **bulma-ui:** keep SegmentedControl's fallback tab stop on the first segment after a reorder ([b32df32](https://github.com/allxsmith/bestax/commit/b32df32877122a8870e3d450c3d30bb1760777a4))
+* **bulma-ui:** key each key in Kbd.Group by its own React key ([b51c5c8](https://github.com/allxsmith/bestax/commit/b51c5c87e6ca30bf07f820e511c1709fa01397de)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+* **bulma-ui:** leave the keys alone on a SegmentedControl segment outside its row ([f477666](https://github.com/allxsmith/bestax/commit/f47766604a80625d9c78f432b73dbe807885568b))
+* **bulma-ui:** mark a loading ToggleButton aria-disabled as well as aria-busy ([f87425f](https://github.com/allxsmith/bestax/commit/f87425fd981e83b67aeed692293a2bc7a286514f))
+* **bulma-ui:** open Fragments in Kbd.Group before placing its separators ([c595de2](https://github.com/allxsmith/bestax/commit/c595de28b34c6b88cb65d6bdcd2fbe23178c4f04)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+* **bulma-ui:** stop the keys a SegmentedControl takes from reaching listeners above it ([6b9e797](https://github.com/allxsmith/bestax/commit/6b9e7970c8edb3277dac25fe86cf8a84acc75517))
+* **bulma-ui:** warn when Tab can't reach a Tooltip trigger that carries the link ([cfd21c7](https://github.com/allxsmith/bestax/commit/cfd21c7c6302dd7c6ea44669341114d09e4d576e))
+* **bulma-ui:** wire Taginput's suggestions as a combobox ([#1084](https://github.com/allxsmith/bestax/issues/1084)) ([e30c33a](https://github.com/allxsmith/bestax/commit/e30c33a36e12aa2f4074c4a770235cdca07d96ad)), closes [#942](https://github.com/allxsmith/bestax/issues/942) [#998](https://github.com/allxsmith/bestax/issues/998) [#1082](https://github.com/allxsmith/bestax/issues/1082)
+* **docs:** address the deep review of the sandbox builders ([b7338d9](https://github.com/allxsmith/bestax/commit/b7338d994968cc6a8f3ac10922726fe78b277f35))
+* **docs:** close the CodeSandbox tab when its launch fails ([d1e6d1d](https://github.com/allxsmith/bestax/commit/d1e6d1d6df82c2b10922d123d418632bb62c5fc4))
+* **docs:** compare the icon link as a string in the sandbox test ([9ac4737](https://github.com/allxsmith/bestax/commit/9ac4737ca56bc0a0171c56c74870717fa6d7037a))
+* **docs:** darken the live preview surface and follow the library stylesheet import ([363badf](https://github.com/allxsmith/bestax/commit/363badf4a958b5a2973290405b9408a5121fc838))
+* **docs:** draw the CodeSandbox button icon as the cube mark ([8389e18](https://github.com/allxsmith/bestax/commit/8389e1861b5d81f3e39cb5fc708340adb5520c1f))
+* **docs:** give both sandboxes the example window's dark page and padding ([33dfb4a](https://github.com/allxsmith/bestax/commit/33dfb4ae853a1e8e860d9198605efacb17e2c244))
+* **docs:** keep the live preview's spacing outside its dark surface ([7a158e1](https://github.com/allxsmith/bestax/commit/7a158e162d3f702de481d9da254c90da6a567e79))
+* **docs:** keep the live-preview margin off the homepage previews ([f18eed3](https://github.com/allxsmith/bestax/commit/f18eed3f39ea06acba85bc42ee9967513ea736e7))
+* **docs:** load the CodeSandbox stylesheet from the CDN and darken example windows ([253f057](https://github.com/allxsmith/bestax/commit/253f057512274a115f940e8008685d297a971642))
+* **docs:** match the preview's color scheme and keep the copy button on narrow screens ([c4d6d25](https://github.com/allxsmith/bestax/commit/c4d6d25d55a0e7e09c3df9912f96003bddf852da))
+* **docs:** open CodeSandbox through its JSON define API ([6a65276](https://github.com/allxsmith/bestax/commit/6a6527641e649a72384675211a6e3ba3caac307d))
+* **docs:** open the CodeSandbox tab on the click, and skip the sandbox when popups are blocked ([bcc0634](https://github.com/allxsmith/bestax/commit/bcc0634dec98d7acb5835627c643ee359eb08688))
+* **docs:** pin react-scripts in CodeSandbox sandboxes and keep the sandbox notes in step ([#1074](https://github.com/allxsmith/bestax/issues/1074)) ([3ac8a65](https://github.com/allxsmith/bestax/commit/3ac8a65fda8bc1795eac465da0f7b8928804c72e))
+* **docs:** restore the homepage preview margin, and reject a CodeSandbox reply without an id ([9e0991f](https://github.com/allxsmith/bestax/commit/9e0991faef2bdf2817d6490e36dd817156cec538))
+* **docs:** send the copy and sandbox buttons the code the reader typed ([019edf0](https://github.com/allxsmith/bestax/commit/019edf087d22faabb6c1e2232d556ba705b62ac9))
+
+
+### Features
+
+* **bestax-mcp:** name the other component's call in get_component's theming hint ([cbedd5f](https://github.com/allxsmith/bestax/commit/cbedd5f7d27b340f16eac301881e7f13e32d30b5))
+* **bestax-mcp:** point get_css_variables at the component whose element a component renders ([d4be1a8](https://github.com/allxsmith/bestax/commit/d4be1a85b80e033bcb5728a9a0848dada7bfcf1c))
+* **bulma-ui:** add Buttons.ToggleButton ([0c8fb10](https://github.com/allxsmith/bestax/commit/0c8fb10ca8cac5f45e1667c6a0d3885d5a228448))
+* **bulma-ui:** add EmptyState, the block a list shows when it has nothing in it ([c5929d2](https://github.com/allxsmith/bestax/commit/c5929d23d79c4b1836423fe1beb30affd2a0ebf5)), closes [#1065](https://github.com/allxsmith/bestax/issues/1065)
+* **bulma-ui:** add Kbd, a key drawn as a keycap, and Kbd.Group for combinations ([98d1578](https://github.com/allxsmith/bestax/commit/98d1578d07b013c00c09013fcbf86e07fdcb68a2)), closes [#1063](https://github.com/allxsmith/bestax/issues/1063)
+* **bulma-ui:** add SegmentedControl, a row of buttons where only one can be on ([b1be0e8](https://github.com/allxsmith/bestax/commit/b1be0e8997bac7949e3086ca69338105c1a3a311)), closes [#1040](https://github.com/allxsmith/bestax/issues/1040)
+* **bulma-ui:** give Dropdown typeahead ([1bb35bf](https://github.com/allxsmith/bestax/commit/1bb35bf79f43c7ae75f884b284dc58e97b55ffb3)), closes [#1035](https://github.com/allxsmith/bestax/issues/1035)
+* **docs:** open live examples in StackBlitz and CodeSandbox ([654b16c](https://github.com/allxsmith/bestax/commit/654b16c0189def26a3d26b86e135d87c0e333802))
+* **docs:** open live examples in StackBlitz and CodeSandbox ([#1073](https://github.com/allxsmith/bestax/issues/1073)) ([730db1e](https://github.com/allxsmith/bestax/commit/730db1e37633b19f6d47a42272c85d72db51d19c))
+
 ## [2.25.3](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.2...bestax-migrate@2.25.3) (2026-10-12)
 
 
