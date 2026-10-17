@@ -1,6 +1,6 @@
 ---
 name: bestax-form
-description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
+description: Build forms with @allxsmith/bestax-bulma — Field/Control/Label/Help composition, inputs, selects, checkboxes, radios, switches, and advanced controls (Autocomplete, Combobox, Slider, Numberinput, Rate, Taginput, File, date/time). There is no form/validation library; this skill shows the components and the validate-it-yourself error pattern. Use when building a form, wiring inputs to state, or showing validation/error state.
 license: MIT
 ---
 
@@ -89,7 +89,8 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Radio` / `Radios`                                      | Single radio / managed single-select group.                               |
 | `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
 | `File`                                                  | File upload input with label/message.                                     |
-| `Autocomplete`                                          | Input with filtered dropdown suggestions + keyboard nav.                  |
+| `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.            |
+| `Combobox`                                              | A value from a list you filter: select, server search, multi, groups.     |
 | `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.              |
 | `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.           |
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
@@ -99,6 +100,12 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 
 (`NumberInput` and `TagInput` also exist as deprecated aliases of `Numberinput`/`Taginput` —
 same components; prefer the lowercase-second-word spellings.)
+
+**Autocomplete or Combobox?** A field whose text is the value, with suggestions to help type it,
+is `Autocomplete`, which filters its `data` itself. A value picked from a list is `Combobox`: a
+searchable select, a server search whose answer must show unfiltered, several values, grouped
+options or a "Create" row. Combobox keeps no value and never sets the field's text, so you filter
+the options, keep the value and set the text in `onOptionSubmit`.
 
 ## Common props
 
@@ -128,11 +135,13 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 **Labels.** Default to the convenience `label` prop, with `horizontal` for a side-by-side row.
 `Input`, `Select`, `TextArea`, `File`, `Numberinput`, `Slider`, `DateInput`, `TimeInput`,
 `DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
-`htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`);
-an explicit `labelProps={{ htmlFor }}` wins. The group inputs (`Checkboxes`, `Radios`, `Rate`,
-`DateRangeInput`) name their `role="group"`/`"radiogroup"` wrapper through `aria-labelledby`
-instead. Inside a `Field` a convenience input drops its `label`, and an `inline` date/time picker
-or a `Taginput` at `maxTags` has no visible input to wire.
+`htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`); an
+explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
+them to `Combobox.Input`: put an `id` on that, since one on the `Combobox` lands on its wrapper
+`div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
+`role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
+convenience input drops its `label`, and an `inline` date/time picker or a `Taginput` at `maxTags`
+has no visible input to wire.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not
@@ -239,10 +248,10 @@ multi-field form plus the advanced inputs.
 
 ## Reuse the shipped components
 
-bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch,
-File, Autocomplete, Slider, Numberinput, Rate, Taginput, and the date/time inputs (see the
-inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or
-reinvent a control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
+bestax ships the whole form surface — Input, Select, TextArea, Checkbox(es), Radio(s), Switch, File,
+Autocomplete, Combobox, Slider, Numberinput, Rate, Taginput, and the date/time inputs (see the
+inventory above). **Compose these; don't hand-roll raw `<input class="input">` markup or reinvent a
+control.** If you think a control is missing, check `bulma-ui/src/index.ts` and
 `docs/docs/api/form/` first — it's probably already there under a different name.
 
 ## What happens after submit

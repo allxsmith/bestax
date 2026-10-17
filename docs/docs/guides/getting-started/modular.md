@@ -174,6 +174,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 
 // bestax form components
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
+@use '@allxsmith/bestax-bulma/scss/form/combobox';
 @use '@allxsmith/bestax-bulma/scss/form/taginput';
 @use '@allxsmith/bestax-bulma/scss/form/rate';
 @use '@allxsmith/bestax-bulma/scss/form/slider';

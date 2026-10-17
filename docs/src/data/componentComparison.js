@@ -92,6 +92,7 @@ const BESTAX = {
   Autocomplete: 'form/autocomplete',
   Checkbox: 'form/checkbox',
   Checkboxes: 'form/checkboxes',
+  Combobox: 'form/combobox',
   Control: 'form/control',
   Field: 'form/field',
   File: 'form/file',
@@ -833,7 +834,7 @@ export const categories = [
       ],
       [
         'Combobox (headless)',
-        0,
+        'Combobox',
         'Combobox',
         0,
         '~useAutocomplete',

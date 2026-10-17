@@ -304,15 +304,21 @@ function compoundClasses(item) {
  * `.button.link-button` has specificity 0-2-0, so the "override via
  * className" advice that is true for a simple selector silently does nothing
  * there (a single custom class is 0-1-0 and loses regardless of load order).
+ *
+ * The root class in a list that also names a compound is 'compound' too.
+ * Combobox registers on `.combobox, .combobox-dropdown.is-portal`, and the
+ * portaled panel is outside the root, so neither a value set on the root nor
+ * a lone `className` class reaches the second home's 0-2-0 declaration.
  */
 function selectorRootKind(selector, root) {
   if (!root) return null;
-  if (selectorClasses(selector).includes(root)) return 'root';
-  if (
-    splitTopLevel(selector, ',').some(item =>
-      compoundClasses(item).includes(root)
-    )
-  ) {
+  const items = splitTopLevel(selector, ',');
+  if (selectorClasses(selector).includes(root)) {
+    return items.some(item => compoundClasses(item).length)
+      ? 'compound'
+      : 'root';
+  }
+  if (items.some(item => compoundClasses(item).includes(root))) {
     return 'compound';
   }
   // A constituent element (`.tooltip-content`, `.sidebar-background`): the
@@ -525,6 +531,12 @@ function isVariablesHost(selector) {
   );
 }
 
+/**
+ * Which home's scope a key keeps when it registers on more than one, the
+ * higher number winning. A scope not listed never replaces the first one.
+ */
+const SCOPE_RANK = { root: 1, compound: 2 };
+
 export function componentVars(src, root, prefix = root) {
   const defaults = defaultDeclarations(src);
   const rows = [];
@@ -537,15 +549,20 @@ export function componentVars(src, root, prefix = root) {
     // variables nested inside this one (hero.scss's navbar/tabs/title blocks).
     if (chain.length !== 1) continue;
     if (!ownsRegistration(chain[0], root, prefix, key)) continue;
+    const scope = homeScope(chain[0], root, prefix);
     if (byKey.has(key)) {
       // A key can register on more than one home: tooltip's content element
       // lists the full set while the `.tooltip` wrapper re-registers
       // dashed-color for its own underline. The default value is the same
       // $var both times; only the override advice differs, and the root-class
       // home is the actionable one (it IS the element className/style reach),
-      // so a root registration upgrades the scope wherever it appears.
-      if (homeScope(chain[0], root, prefix) === 'root') {
-        byKey.get(key).scope = 'root';
+      // so a root registration upgrades the scope wherever it appears. A
+      // compound one upgrades it again, over root as well: its declaration
+      // out-ranks a lone class wherever the root's sits, so its advice is
+      // the one that holds for every home, whichever comes first.
+      const seen = byKey.get(key);
+      if ((SCOPE_RANK[scope] ?? 0) > (SCOPE_RANK[seen.scope] ?? 0)) {
+        seen.scope = scope;
       }
       continue;
     }
@@ -558,15 +575,15 @@ export function componentVars(src, root, prefix = root) {
     const varRef = inner.match(/^\$([a-zA-Z0-9_-]+)$/);
     const sassVar = varRef && defaults.has(varRef[1]) ? `$${varRef[1]}` : null;
 
-    const scope = homeScope(chain[0], root, prefix);
     const row = {
       cssVar: `--${CSSVARS_PREFIX}${key}`,
       sassVar,
       value: renderValue(sassVar ? defaults.get(varRef[1]) : rawValue),
       // Where the DEFAULT is declared, which the page's lead sentence needs
       // to state correctly: 'root' is the component's own simple selector,
-      // 'compound' a compound carrying it (higher specificity, different
-      // override advice), 'element' a constituent element, 'mixin' the
+      // 'compound' a compound carrying it or listed beside it (higher
+      // specificity, different override advice), 'element' a constituent
+      // element, 'mixin' the
       // component's own mixin (so the element that includes it), and
       // 'global' the variables host (`:root`).
       scope,

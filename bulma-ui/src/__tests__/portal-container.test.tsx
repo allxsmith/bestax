@@ -18,6 +18,7 @@ import { Toast, ToastContainer, toast } from '../components/Toast';
 import { Sidebar } from '../components/Sidebar';
 import { NotificationContainer, notification } from '../elements/Notification';
 import { Button } from '../elements/Button';
+import { Combobox } from '../form/Combobox';
 import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
@@ -408,6 +409,30 @@ describe('NotificationContainer', () => {
     });
     expect(target).toContainElement(screen.getByText('Uploaded'));
     expect(target).toContainElement(screen.getByRole('status'));
+  });
+});
+
+describe('Combobox', () => {
+  const fruit = (props: { appendToBody?: boolean }) => (
+    <Combobox label="Fruit" defaultOpen {...props}>
+      <Combobox.Input />
+      <Combobox.Dropdown>
+        <Combobox.Options>
+          <Combobox.Option value="Apple">Apple</Combobox.Option>
+        </Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
+  );
+
+  it('portals its appendToBody dropdown into the portalContainer', () => {
+    withDefault(fruit({ appendToBody: true }));
+    expect(target).toContainElement(screen.getByRole('listbox'));
+  });
+
+  it('still renders its dropdown in place without appendToBody', () => {
+    const { container } = withDefault(fruit({}));
+    expect(container).toContainElement(screen.getByRole('listbox'));
+    expect(target).toBeEmptyDOMElement();
   });
 });
 

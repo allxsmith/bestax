@@ -15,6 +15,11 @@ export interface AnchoredPosition {
   position: AnchoredCorner;
   top?: number;
   left?: number;
+  /**
+   * With `matchWidth`, the anchor's width, which a fixed panel takes as its
+   * `min-width`.
+   */
+  minWidth?: number;
 }
 
 /**
@@ -47,6 +52,14 @@ export interface UseAnchoredPositionOptions {
    * well; the coordinates don't include it, because the stylesheet applies it.
    */
   styledGap?: (panel: HTMLElement) => number;
+  /**
+   * Whether the panel is at least as wide as the anchor, as a list under its
+   * field is. A panel in place gets that from its stylesheet. A fixed one
+   * can't, so its placement carries the anchor's width as `minWidth` for the
+   * panel to set, and its coordinates and `auto` already allow for it.
+   * @defaultValue false
+   */
+  matchWidth?: boolean;
 }
 
 /**
@@ -80,7 +93,10 @@ function resolveAuto(
 }
 
 const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
-  a.position === b.position && a.top === b.top && a.left === b.left;
+  a.position === b.position &&
+  a.top === b.top &&
+  a.left === b.left &&
+  a.minWidth === b.minWidth;
 
 /**
  * Places a floating panel against its anchor: resolves `auto` to a corner
@@ -102,7 +118,14 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
 export function useAnchoredPosition(
   anchorRef: RefObject<HTMLElement | null>,
   panelRef: RefObject<HTMLElement | null>,
-  { active, position, fixed, offset = 4, styledGap }: UseAnchoredPositionOptions
+  {
+    active,
+    position,
+    fixed,
+    offset = 4,
+    styledGap,
+    matchWidth = false,
+  }: UseAnchoredPositionOptions
 ): AnchoredPosition {
   const [resolved, setResolved] = useState<AnchoredPosition>({
     position: position === 'auto' ? 'bottom-left' : position,
@@ -118,7 +141,12 @@ export function useAnchoredPosition(
       const panel = panelRef.current;
       if (!anchor || !panel) return;
       const rect = anchor.getBoundingClientRect();
-      const { width, height } = panel.getBoundingClientRect();
+      const measured = panel.getBoundingClientRect();
+      // The width the panel has once it's at least as wide as the anchor.
+      const width = matchWidth
+        ? Math.max(measured.width, rect.width)
+        : measured.width;
+      const { height } = measured;
       const corner =
         position === 'auto'
           ? resolveAuto(
@@ -136,6 +164,7 @@ export function useAnchoredPosition(
               ? rect.bottom + offset
               : rect.top - height - offset,
             left: corner.endsWith('left') ? rect.left : rect.right - width,
+            ...(matchWidth ? { minWidth: rect.width } : {}),
           }
         : { position: corner };
       setResolved(prev => (samePosition(prev, next) ? prev : next));
@@ -147,7 +176,16 @@ export function useAnchoredPosition(
       view.removeEventListener('resize', update);
       view.removeEventListener('scroll', update, { capture: true });
     };
-  }, [active, anchorRef, panelRef, position, fixed, offset, styledGap]);
+  }, [
+    active,
+    anchorRef,
+    panelRef,
+    position,
+    fixed,
+    offset,
+    styledGap,
+    matchWidth,
+  ]);
 
   return resolved;
 }

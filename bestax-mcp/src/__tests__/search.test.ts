@@ -119,7 +119,7 @@ describe('ranking realistic queries', () => {
     ['select', 'Select'],
     ['toggle', 'Switch'],
     ['accordion', 'Collapses'],
-    ['combobox', 'Autocomplete'],
+    ['combobox', 'Combobox'],
     ['typeahead', 'Autocomplete'],
     ['star rating', 'Rate'],
     ['chips', 'Taginput'],

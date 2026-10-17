@@ -77,8 +77,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 `toast`, `dialog`, `carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`, `emptystate`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
-`checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
-`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
+`checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `combobox`,
+`taginput`, `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
 `notification`, `progress`, `skeleton`
