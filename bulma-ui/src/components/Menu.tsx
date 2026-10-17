@@ -148,7 +148,16 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
   className?: string;
   /** Item content and optional nested MenuList. */
   children: React.ReactNode;
-  /** Highlight item as active. */
+  /**
+   * Marks the item as the current one. It adds Bulma's `is-active` class, and
+   * `aria-current="page"` on the element `as` renders, so assistive tech can
+   * tell which item is current too. An `aria-current` you pass wins, even
+   * `undefined`: use it to say something else (`"location"` for a section of
+   * one page, say), or `aria-current={false}` to turn it off. A menu should
+   * mark one page, so when the section above the current page is `active` too,
+   * give it `aria-current="location"`, and give an `active` item that isn't
+   * navigation, such as an `as="button"` filter, `aria-current={false}`.
+   */
   active?: boolean;
   /** Inline styles for the wrapping `<li>`. */
   style?: React.CSSProperties;
@@ -277,6 +286,12 @@ export const MenuItem = forwardRef(function MenuItem(
       <Component
         ref={ref}
         className={itemClass || undefined}
+        // The active item is the current page, the way Pagination marks its
+        // page. Before the spread, so an `aria-current` the caller passes
+        // decides, `false` and `undefined` included. bestax-migrate converts
+        // `is-active` to `active` only beside an `aria-current` of the
+        // element's own, and relies on that to render the same markup.
+        aria-current={active ? 'page' : undefined}
         {...linkProps}
         // A menu item inside a form must not submit it, and `<button>` defaults
         // to type="submit". A sidebar menu sitting in a form is ordinary. A

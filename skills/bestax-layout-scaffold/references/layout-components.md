@@ -252,9 +252,9 @@ https://bestax.io/docs/guides/features/routing.
 
 `<Menu>` is a vertical sidebar menu. Subcomponents: `Menu.Label`, `Menu.List`, `Menu.Item`.
 
-| Prop        | Type                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------- |
-| `Menu.Item` | `active?`, `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus |
+| Prop        | Type                                                                                                                                                                                |
+| ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `Menu.Item` | `active?` (the current page: `is-active` plus `aria-current="page"`, so don't add your own), `href?`, `as?` (custom link component); nest a `Menu.List` inside an item for submenus |
 
 ```tsx
 <Menu>
