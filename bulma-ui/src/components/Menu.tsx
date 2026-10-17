@@ -202,6 +202,10 @@ type MenuItemImplProps = MenuItemOwnProps & {
 /**
  * MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link.
  *
+ * Give each item an `href`, a router link through `as`, or `as="button"`, so
+ * the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab
+ * skips it.
+ *
  * @function
  * @param {MenuItemProps} props - Props for the MenuItem component.
  * @param {React.Ref} ref - Forwarded ref to the inner element `as` renders.
