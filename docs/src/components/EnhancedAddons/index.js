@@ -46,7 +46,7 @@ const ADDONS = [
     name: 'Combobox',
     icon: 'combobox',
     link: '/docs/api/form/combobox',
-    desc: 'A field with a list under it, built from parts: a searchable select, a server search, several values or grouped options.',
+    desc: 'A field with a list to pick from: give it your data for a searchable select or tags, or build it from parts for a server search.',
   },
   {
     name: 'ContextMenu',

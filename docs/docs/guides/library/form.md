@@ -169,53 +169,22 @@ For complex layouts, use `SelectBase` with an explicit `Field` + `Control` wrapp
 
 ### Combobox
 
-A text field with a list of options under it, built from parts, for a searchable select, a server search, several values or grouped options. You filter the list and keep the value, and a pick calls `onOptionSubmit`. For free text with suggestions, `Autocomplete` is the simpler choice.
+A text field with a list to pick from under it. Given `data`, it filters the list as you type and keeps the value, with the picks as tags when it takes several. Built from parts, it also covers a server search or a "Create" item, with the data in your hands. For free text with suggestions, `Autocomplete` is the simpler choice.
 
 ```tsx live
-function ComboboxExample() {
-  const fruits = ['Apple', 'Banana', 'Cherry', 'Grape', 'Mango', 'Pear'];
-  const [value, setValue] = useState<string | null>(null);
-  const [query, setQuery] = useState('');
-  const term = query === value ? '' : query.trim().toLowerCase();
-  const matches = fruits.filter(f => f.toLowerCase().includes(term));
-
-  return (
-    <form onSubmit={e => e.preventDefault()}>
-      <Combobox
-        label="Fruit"
-        onOptionSubmit={picked => {
-          setValue(picked);
-          setQuery(picked);
-        }}
-      >
-        <Combobox.Input
-          placeholder="Pick a fruit"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-          onBlur={() => setQuery(value ?? '')}
-        />
-        <Combobox.Dropdown>
-          {matches.length > 0 ? (
-            <Combobox.Options>
-              {matches.map(f => (
-                <Combobox.Option key={f} value={f} checked={f === value}>
-                  {f}
-                </Combobox.Option>
-              ))}
-            </Combobox.Options>
-          ) : (
-            <Combobox.Empty>No fruit matches</Combobox.Empty>
-          )}
-        </Combobox.Dropdown>
-      </Combobox>
-      <Input label="Quantity" type="number" min={1} defaultValue={1} />
-      <Input label="Deliver on" type="date" />
-      <Button type="submit" color="primary">
-        Add to basket
-      </Button>
-    </form>
-  );
-}
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Fruit"
+    placeholder="Pick a fruit"
+    data={['Apple', 'Banana', 'Cherry', 'Grape', 'Mango', 'Pear']}
+    empty="No fruit matches"
+  />
+  <Input label="Quantity" type="number" min={1} defaultValue={1} />
+  <Input label="Deliver on" type="date" />
+  <Button type="submit" color="primary">
+    Add to basket
+  </Button>
+</form>
 ```
 
 [View full documentation.](../../api/form/combobox)

@@ -1,7 +1,7 @@
 ---
 title: Combobox
 sidebar_label: Combobox
-description: The `Combobox` component builds a text field with a list of options under it, for a searchable select, a server search, a multi-select or grouped options, with the keys and ARIA done and the data left to you.
+description: 'The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search: given `data` it does the rest, and built from parts it leaves the data to you.'
 ---
 
 # Combobox
@@ -10,20 +10,21 @@ description: The `Combobox` component builds a text field with a list of options
 
 <!-- bestax:generated overview -->
 
-The `Combobox` component builds a text field with a list of options under it, for a searchable select, a server search, a multi-select or grouped options, with the keys and ARIA done and the data left to you.
+The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search: given `data` it does the rest, and built from parts it leaves the data to you.
 
 <!-- /bestax:generated overview -->
 
-You build it from parts: `Combobox.Input` is the field, `Combobox.Dropdown` is the panel under it,
-and `Combobox.Options`, `Combobox.Option`, `Combobox.Group` and `Combobox.Empty` go in the panel.
-The Combobox handles the keys, the highlight, the open state and the ARIA wiring. You handle the
-data: what's in the list, how it's filtered, and the value.
+Give it `data` and it's one element. It renders the field, the menu and the items, filters them
+by label as the user types, and keeps the value, which `onChange` reports. With `multiple`, the
+picks show as tags under the field.
 
-That split is the whole idea. A pick calls `onOptionSubmit` with the option's `value`, and that's
-it. The Combobox keeps no value and never changes the text in the field, so your handler sets both.
-Nothing filters the options for you either, so a server's answer shows exactly as it came back. In
-return, a searchable select, a server search, a multi-select with tags, grouped options and a
-"Create" row are each a few lines of your own code, as the examples below show.
+When `data` doesn't fit, build it from parts: `Combobox.Input` is the field, `Combobox.Menu` is the
+panel under it, and `Combobox.List`, `Combobox.Item`, `Combobox.Group` and `Combobox.Empty` go in
+the panel. The Combobox then handles the keys, the highlight, the open state and the ARIA wiring,
+and you handle the data: what's in the list, how it's filtered, and the value. A pick calls
+`onSelect` with the item's `value`, and that's it, so a server's answer shows exactly as it came
+back. [Building It Yourself](#building-it-yourself) has the recipes. A Combobox given `data`
+renders those same parts, so the two work and look the same.
 
 :::info
 Bulma has the look of a dropdown but no combobox, so `Combobox` brings its own styles, in
@@ -51,37 +52,269 @@ import { Combobox } from '@allxsmith/bestax-bulma';
 They answer different questions:
 
 - **Free text with suggestions** is [`Autocomplete`](./autocomplete.md). The field's text is the
-  value, the suggestions only help you type it, and Autocomplete filters `data` for you.
-- **A value from a list** is `Combobox`: a searchable select, a server search whose results you
-  pick from, several values, grouped options, or a list with a "Create" row. The list is yours to
-  filter, and the value is yours to keep.
+  value, and the suggestions only help you type it.
+- **A value from a list** is `Combobox`. Given `data`, a searchable select, several values with
+  tags or a list in groups is one element. Built from parts, it also covers a server search whose
+  results you pick from, a list with a "Create" item, and a picker in a Popover.
 
 If you're reaching for Autocomplete props to turn its filtering off or keep a picked value, that's
 a Combobox.
 
 ### A Searchable Select
 
-The value has to be one of the countries, and the field shows it. Type to narrow the list, and
-pick with Enter or a click. Leaving the field without picking puts the value back. Here it starts
-an address form: the open list lies over the fields under it, and Enter with nothing highlighted
-submits the form, the way it does in any text field.
+Type to narrow the list, and pick with Enter or a click. The field shows the pick, and leaving it
+without picking puts the pick back. Enter with nothing highlighted submits the form, the way it
+does in any text field.
+
+```tsx live
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Country"
+    placeholder="Pick a country"
+    data={['Canada', 'France', 'Germany', 'Japan', 'Kenya', 'Mexico']}
+    empty="No countries match"
+  />
+  <Input label="City" />
+  <Input label="Postal code" />
+  <Button type="submit" color="primary">
+    Save address
+  </Button>
+</form>
+```
+
+A string in `data` is both the value and the label. `empty` is what the menu shows when nothing
+matches, and typing that brings it on screen has it announced. Without it, the menu closes then.
+
+### Groups
+
+An item's `group` puts it under that heading, and the groups show in the order `data` first names
+them. With `keepFirst`, the top match is highlighted as you type, so Enter picks it.
+
+```tsx live
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Produce"
+    keepFirst
+    data={[
+      { value: 'Apple', group: 'Fruit' },
+      { value: 'Banana', group: 'Fruit' },
+      { value: 'Cherry', group: 'Fruit' },
+      { value: 'Carrot', group: 'Vegetables' },
+      { value: 'Leek', group: 'Vegetables' },
+      { value: 'Pea', group: 'Vegetables' },
+    ]}
+  />
+  <Input label="Quantity" type="number" min={1} defaultValue={1} />
+  <Input label="Deliver on" type="date" />
+  <Input label="Note for the shopper" />
+  <Button type="submit" color="primary">
+    Add to order
+  </Button>
+</form>
+```
+
+These items have no `label`, so each shows its `value`. `keepFirst` only highlights: leaving the
+field, or pressing Tab, still picks nothing.
+
+### Disabled Items
+
+A `disabled` item can't be picked. The arrows still reach it, so a screen reader user finds it, and
+the opening highlight and `keepFirst` pass over it. `defaultValue` starts the field on a value, and
+the list opens with the highlight there.
+
+```tsx live
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Delivery"
+    defaultValue="standard"
+    data={[
+      { value: 'standard', label: 'Standard, in 3 to 5 days' },
+      { value: 'express', label: 'Express, next day' },
+      { value: 'pickup', label: 'Pick up in store', disabled: true },
+    ]}
+  />
+  <Input label="Note for the courier" />
+  <Button type="submit" color="primary">
+    Place order
+  </Button>
+</form>
+```
+
+### Several Values, with Tags
+
+With `multiple`, the value is an array, and the list stays open after each pick. The picks show as
+tags under the field, each with a button to take it off.
+
+```tsx live
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Labels"
+    multiple
+    placeholder="Find a label"
+    defaultValue={['docs']}
+    data={['bug', 'docs', 'feature', 'question']}
+  />
+  <Select label="Priority">
+    <option>Low</option>
+    <option>Medium</option>
+    <option>High</option>
+  </Select>
+  <Button type="submit" color="primary">
+    Save issue
+  </Button>
+</form>
+```
+
+Each item's check mark is its `aria-selected` here, and the list says it's `aria-multiselectable`,
+so a screen reader reads which labels are on. The tags sit under the field rather than inside it,
+which keeps the field an ordinary text field. For chips inside the field, see
+[`Taginput`](./taginput.md).
+
+### A Controlled Value
+
+`value` and `onChange` keep the value in your state: an item's `value`, or `null` for none, and an
+array with `multiple`. The field shows the label that goes with it.
 
 ```tsx live
 function example() {
-  const countries = [
-    'Argentina',
-    'Australia',
-    'Brazil',
-    'Canada',
-    'France',
-    'Germany',
-    'India',
-    'Japan',
-    'Kenya',
-    'Mexico',
-    'Norway',
-    'Portugal',
-  ];
+  const [city, setCity] = useState<string | null>('lisbon');
+
+  return (
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="City"
+        value={city}
+        onChange={setCity}
+        data={[
+          { value: 'lisbon', label: 'Lisbon' },
+          { value: 'osaka', label: 'Osaka' },
+          { value: 'oslo', label: 'Oslo' },
+          { value: 'paris', label: 'Paris' },
+        ]}
+      />
+      <Paragraph mb="3">
+        The value is <Code>{JSON.stringify(city)}</Code>.
+      </Paragraph>
+      <Buttons>
+        <Button onClick={() => setCity('paris')}>Paris</Button>
+        <Button onClick={() => setCity(null)}>Clear</Button>
+      </Buttons>
+      <Input label="Postal code" />
+    </form>
+  );
+}
+```
+
+`onSelect` also fires on each pick, with the item's `value`, whether or not the value changes.
+
+### Custom Items
+
+`itemTemplate` renders an item's content in place of its label. It's handed the item from `data`,
+so it can look up whatever goes with it. Typing still matches the `label`, and the field shows the
+label once it's picked.
+
+```tsx live
+function example() {
+  const roles: Record<string, string> = {
+    ada: 'Admin',
+    grace: 'Editor',
+    katherine: 'Viewer',
+  };
+
+  return (
+    <form onSubmit={e => e.preventDefault()}>
+      <Combobox
+        label="Assignee"
+        data={[
+          { value: 'ada', label: 'Ada Lovelace' },
+          { value: 'grace', label: 'Grace Hopper' },
+          { value: 'katherine', label: 'Katherine Johnson' },
+        ]}
+        itemTemplate={item => (
+          <Block display="flex" justifyContent="space-between">
+            <Span>{item.label}</Span>
+            <Tag color="info" isLight>
+              {roles[item.value]}
+            </Tag>
+          </Block>
+        )}
+      />
+      <Input label="Due date" type="date" />
+      <Button type="submit" color="primary">
+        Assign
+      </Button>
+    </form>
+  );
+}
+```
+
+### Sizes
+
+`size` sizes the field and the items together. These four are `inline`, so their items show at each
+size without a click. In a menu they're the same size.
+
+```tsx live
+<Columns>
+  {(['small', undefined, 'medium', 'large'] as const).map(size => (
+    <Column key={size ?? 'normal'}>
+      <Combobox
+        label={size ?? 'normal'}
+        size={size}
+        inline
+        defaultValue="Banana"
+        data={['Apple', 'Banana', { value: 'Cherry', disabled: true }]}
+      />
+    </Column>
+  ))}
+</Columns>
+```
+
+Banana is the value, so it has the highlight to start with. Cherry is `disabled`: the arrows still
+reach it, so a screen reader user finds it, but it can't be picked.
+
+### Where the List Opens
+
+The menu opens below the field, lined up on the left. `position` takes the corners Popover takes,
+and `auto` picks the one that keeps the list in the viewport, preferring below.
+
+Inside a container that clips its overflow, such as a Modal card's scrolling body, add
+`appendToBody`. The menu is then portaled, fixed to the viewport at the field and at least as wide
+as it. A portaled menu sits outside the Combobox, so it carries its own copy of the
+`--bulma-combobox-*` defaults, declared on `.combobox-menu.is-portal`: set a theme override there
+as well as on `.combobox`. A lone `.combobox-menu` loses to it on specificity, and
+`.combobox-menu.is-portal` ties, so your rule wins only when it loads after the library styles. In
+a `Modal`, point a `ConfigProvider`'s `portalContainer` at an element inside the modal, so the list
+stays inside the dialog for assistive tech:
+
+```tsx
+<Modal active={active} onClose={close} aria-label="Edit shipping">
+  <Modal.Background onClick={close} />
+  <Modal.Card>
+    <Modal.Card.Body>
+      <ConfigProvider portalContainer={overlay ?? undefined}>
+        <Combobox
+          label="Country"
+          data={countries}
+          appendToBody
+          position="auto"
+        />
+      </ConfigProvider>
+    </Modal.Card.Body>
+  </Modal.Card>
+  {/* In the modal and outside the card, so the card can't clip it. */}
+  <div ref={setOverlay} />
+</Modal>
+```
+
+### Building It Yourself
+
+Leave `data` out and the Combobox is built from parts, with the data in your hands. Here's the
+searchable select from the top of the page that way. Your handler keeps the value and sets the
+text in the field, and your code filters the list.
+
+```tsx live
+function example() {
+  const countries = ['Canada', 'France', 'Germany', 'Japan', 'Kenya', 'Mexico'];
   const [value, setValue] = useState<string | null>(null);
   const [query, setQuery] = useState('');
   // Showing the value isn't a search, so the whole list opens.
@@ -92,7 +325,7 @@ function example() {
     <form onSubmit={e => e.preventDefault()}>
       <Combobox
         label="Country"
-        onOptionSubmit={picked => {
+        onSelect={picked => {
           setValue(picked);
           setQuery(picked);
         }}
@@ -103,21 +336,20 @@ function example() {
           onChange={e => setQuery(e.target.value)}
           onBlur={() => setQuery(value ?? '')}
         />
-        <Combobox.Dropdown>
+        <Combobox.Menu>
           {matches.length > 0 ? (
-            <Combobox.Options>
+            <Combobox.List>
               {matches.map(c => (
-                <Combobox.Option key={c} value={c} checked={c === value}>
+                <Combobox.Item key={c} value={c} checked={c === value}>
                   {c}
-                </Combobox.Option>
+                </Combobox.Item>
               ))}
-            </Combobox.Options>
+            </Combobox.List>
           ) : (
             <Combobox.Empty>No countries match</Combobox.Empty>
           )}
-        </Combobox.Dropdown>
+        </Combobox.Menu>
       </Combobox>
-      <Input label="Street address" />
       <Input label="City" />
       <Input label="Postal code" />
       <Button type="submit" color="primary">
@@ -128,9 +360,9 @@ function example() {
 }
 ```
 
-`checked` marks the value. It shows a check mark, and the list opens with the highlight on it. Render
-`Combobox.Options` while there are options and `Combobox.Empty` while there aren't: the empty message
-goes beside the list, never in it.
+`checked` marks the value. It shows a check mark, and the list opens with the highlight on it.
+Render `Combobox.List` while there are items and `Combobox.Empty` while there aren't: the empty
+message goes beside the list, never in it. The recipes below are built this way.
 
 ### Server Search
 
@@ -193,7 +425,7 @@ function example() {
     <form onSubmit={e => e.preventDefault()}>
       <Combobox
         label="City"
-        onOptionSubmit={id => {
+        onSelect={id => {
           const picked = cities.find(c => c.id === id) ?? null;
           setCity(picked);
           setQuery(picked?.name ?? '');
@@ -212,23 +444,23 @@ function example() {
             if (!term) setCities([]);
           }}
         />
-        <Combobox.Dropdown>
+        <Combobox.Menu>
           {cities.length > 0 ? (
-            <Combobox.Options>
+            <Combobox.List>
               {cities.map(c => (
-                <Combobox.Option
+                <Combobox.Item
                   key={c.id}
                   value={c.id}
                   checked={c.id === city?.id}
                 >
                   {c.name}, {c.country}
-                </Combobox.Option>
+                </Combobox.Item>
               ))}
-            </Combobox.Options>
+            </Combobox.List>
           ) : query.trim() && !loading ? (
             <Combobox.Empty>No cities match</Combobox.Empty>
           ) : null}
-        </Combobox.Dropdown>
+        </Combobox.Menu>
       </Combobox>
       <Input label="Check-in" type="date" />
       <Input label="Guests" type="number" min={1} defaultValue={2} />
@@ -240,159 +472,15 @@ function example() {
 }
 ```
 
-The `value` is the city's `id`, and `onOptionSubmit` looks the record up by it. While `isLoading` is
+The `value` is the city's `id`, and `onSelect` looks the record up by it. While `isLoading` is
 on, the "No cities match" announcement waits, and it's made once the search comes back empty. A
-dropdown whose children are all `null` doesn't show, so the `null` branch keeps the panel shut
-until there's something to say. Write that conditional in `Combobox.Dropdown` itself: a component
+menu whose children are all `null` doesn't show, so the `null` branch keeps the panel shut
+until there's something to say. Write that conditional in `Combobox.Menu` itself: a component
 of your own that renders nothing still counts as something there, and shows an empty panel.
 
-### Grouped Options
+### A Create Item
 
-Put options in `Combobox.Group`s, each named by its `label`. With `autoHighlight` the top match is
-highlighted as you type, so Enter picks it.
-
-```tsx live
-function example() {
-  const groups = {
-    Fruit: ['Apple', 'Banana', 'Cherry'],
-    Vegetables: ['Carrot', 'Leek', 'Pea'],
-  };
-  const [query, setQuery] = useState('');
-  const term = query.trim().toLowerCase();
-  const shown = Object.entries(groups)
-    .map(([label, items]) => ({
-      label,
-      items: items.filter(i => i.toLowerCase().includes(term)),
-    }))
-    .filter(g => g.items.length > 0);
-
-  return (
-    <form onSubmit={e => e.preventDefault()}>
-      <Combobox label="Produce" autoHighlight onOptionSubmit={setQuery}>
-        <Combobox.Input
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-        <Combobox.Dropdown>
-          {shown.length > 0 ? (
-            <Combobox.Options>
-              {shown.map(g => (
-                <Combobox.Group key={g.label} label={g.label}>
-                  {g.items.map(i => (
-                    <Combobox.Option key={i} value={i}>
-                      {i}
-                    </Combobox.Option>
-                  ))}
-                </Combobox.Group>
-              ))}
-            </Combobox.Options>
-          ) : (
-            <Combobox.Empty>Nothing matches</Combobox.Empty>
-          )}
-        </Combobox.Dropdown>
-      </Combobox>
-      <Input label="Quantity" type="number" min={1} defaultValue={1} />
-      <Input label="Deliver on" type="date" />
-      <Input label="Note for the shopper" />
-      <Button type="submit" color="primary">
-        Add to order
-      </Button>
-    </form>
-  );
-}
-```
-
-`autoHighlight` only highlights. Leaving the field, or pressing Tab, still picks nothing.
-
-### Several Values, with Tags
-
-With `multiple`, the list stays open after each pick, and every option keeps room for a check mark.
-The picks show as tags under the field, each with a button to take it off. This one also offers to
-make a label that isn't on the list yet.
-
-```tsx live
-function example() {
-  // A value no label can be.
-  const CREATE = '\u0000create';
-  const [labels, setLabels] = useState(['bug', 'docs', 'feature', 'question']);
-  const [picked, setPicked] = useState<string[]>(['docs']);
-  const [query, setQuery] = useState('');
-  const term = query.trim().toLowerCase();
-  const matches = labels.filter(l => l.includes(term));
-  const canCreate = term !== '' && !labels.includes(term);
-
-  function toggle(label: string) {
-    setPicked(prev =>
-      prev.includes(label) ? prev.filter(l => l !== label) : [...prev, label]
-    );
-  }
-
-  return (
-    <form onSubmit={e => e.preventDefault()}>
-      <Combobox
-        label="Labels"
-        multiple
-        onOptionSubmit={value => {
-          if (value === CREATE) {
-            setLabels(prev => [...prev, term]);
-            toggle(term);
-            setQuery('');
-          } else {
-            toggle(value);
-          }
-        }}
-      >
-        <Combobox.Input
-          placeholder="Find or create a label"
-          value={query}
-          onChange={e => setQuery(e.target.value)}
-        />
-        <Combobox.Dropdown>
-          <Combobox.Options>
-            {matches.map(l => (
-              <Combobox.Option key={l} value={l} checked={picked.includes(l)}>
-                {l}
-              </Combobox.Option>
-            ))}
-            {canCreate && (
-              <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>
-            )}
-          </Combobox.Options>
-        </Combobox.Dropdown>
-      </Combobox>
-      <Tags mt="2">
-        {picked.map(l => (
-          <Tag key={l}>
-            {l}
-            <Delete
-              size="small"
-              ariaLabel={`Remove ${l}`}
-              onClick={() => toggle(l)}
-            />
-          </Tag>
-        ))}
-      </Tags>
-      <Select label="Priority">
-        <option>Low</option>
-        <option>Medium</option>
-        <option>High</option>
-      </Select>
-      <Button type="submit" color="primary">
-        Save issue
-      </Button>
-    </form>
-  );
-}
-```
-
-Each option's `checked` is its `aria-selected` here, and the list says it's `aria-multiselectable`,
-so a screen reader reads which labels are on. The tags sit under the field rather than inside it,
-which keeps the field an ordinary text field. For chips inside the field, see
-[`Taginput`](./taginput.md).
-
-### A Create Option
-
-A "Create" row is one more option, with a `value` none of yours can be. Its handler makes the new
+A "Create" row is one more item, with a `value` none of yours can be. Its handler makes the new
 entry and picks it. Type a category that isn't on the list.
 
 ```tsx live
@@ -414,7 +502,7 @@ function example() {
     <form onSubmit={e => e.preventDefault()}>
       <Combobox
         label="Category"
-        onOptionSubmit={picked => {
+        onSelect={picked => {
           const next = picked === CREATE ? term : picked;
           if (picked === CREATE) setCategories(prev => [...prev, term]);
           setValue(next);
@@ -427,18 +515,18 @@ function example() {
           onChange={e => setQuery(e.target.value)}
           onBlur={() => setQuery(value ?? '')}
         />
-        <Combobox.Dropdown>
-          <Combobox.Options>
+        <Combobox.Menu>
+          <Combobox.List>
             {matches.map(c => (
-              <Combobox.Option key={c} value={c} checked={c === value}>
+              <Combobox.Item key={c} value={c} checked={c === value}>
                 {c}
-              </Combobox.Option>
+              </Combobox.Item>
             ))}
             {canCreate && (
-              <Combobox.Option value={CREATE}>Create “{term}”</Combobox.Option>
+              <Combobox.Item value={CREATE}>Create “{term}”</Combobox.Item>
             )}
-          </Combobox.Options>
-        </Combobox.Dropdown>
+          </Combobox.List>
+        </Combobox.Menu>
       </Combobox>
       <Input label="Price" type="number" min={0} step="0.01" />
       <Button type="submit" color="primary">
@@ -449,7 +537,7 @@ function example() {
 }
 ```
 
-The create row only shows once there's something to create, so the list always has an option and
+The create row only shows once there's something to create, so the list always has an item and
 needs no `Combobox.Empty`.
 
 ### In a Popover
@@ -495,7 +583,7 @@ function example() {
           <Combobox
             inline
             size="small"
-            onOptionSubmit={name => {
+            onSelect={name => {
               setAssignee(name);
               setOpen(false);
             }}
@@ -508,13 +596,13 @@ function example() {
               onChange={e => setQuery(e.target.value)}
             />
             {matches.length > 0 ? (
-              <Combobox.Options aria-label="People">
+              <Combobox.List aria-label="People">
                 {matches.map(p => (
-                  <Combobox.Option key={p} value={p} checked={p === assignee}>
+                  <Combobox.Item key={p} value={p} checked={p === assignee}>
                     {p}
-                  </Combobox.Option>
+                  </Combobox.Item>
                 ))}
-              </Combobox.Options>
+              </Combobox.List>
             ) : (
               <Combobox.Empty>Nobody matches</Combobox.Empty>
             )}
@@ -544,7 +632,7 @@ list is named "Suggestions".
 
 ### A Result Count
 
-The Combobox announces its empty message and nothing else. It doesn't announce how many options
+The Combobox announces its empty message and nothing else. It doesn't announce how many items
 there are: a screen reader reads that from the list itself, and a count read out on every keystroke
 talks over the typing. When the count matters on its own, show it in a `role="status"` line beside
 the list, in the page the whole time, so a change to its text is announced. This list is `inline`,
@@ -560,19 +648,19 @@ function example() {
 
   return (
     <>
-      <Combobox label="Fruit" inline onOptionSubmit={setQuery}>
+      <Combobox label="Fruit" inline onSelect={setQuery}>
         <Combobox.Input
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
         {matches.length > 0 ? (
-          <Combobox.Options>
+          <Combobox.List>
             {matches.map(f => (
-              <Combobox.Option key={f} value={f}>
+              <Combobox.Item key={f} value={f}>
                 {f}
-              </Combobox.Option>
+              </Combobox.Item>
             ))}
-          </Combobox.Options>
+          </Combobox.List>
         ) : (
           <Combobox.Empty>No fruit matches</Combobox.Empty>
         )}
@@ -585,71 +673,11 @@ function example() {
 }
 ```
 
-### Sizes
-
-`size` sizes the field and the options together. These four are `inline`, so their options show
-at each size without a click. In a dropdown they're the same size.
-
-```tsx live
-<Columns>
-  {(['small', undefined, 'medium', 'large'] as const).map(size => (
-    <Column key={size ?? 'normal'}>
-      <Combobox label={size ?? 'normal'} size={size} inline>
-        <Combobox.Input placeholder="Fruit" />
-        <Combobox.Options>
-          <Combobox.Option value="apple">Apple</Combobox.Option>
-          <Combobox.Option value="banana" checked>
-            Banana
-          </Combobox.Option>
-          <Combobox.Option value="cherry" disabled>
-            Cherry
-          </Combobox.Option>
-        </Combobox.Options>
-      </Combobox>
-    </Column>
-  ))}
-</Columns>
-```
-
-Banana is `checked`, so it has the highlight to start with. Cherry is `disabled`: the arrows still
-reach it, so a screen reader user finds it, but it can't be picked.
-
-### Where the List Opens
-
-The dropdown opens below the field, lined up on the left. `position` takes the corners Popover
-takes, and `auto` picks the one that keeps the list in the viewport, preferring below.
-
-Inside a container that clips its overflow, such as a Modal card's scrolling body, add
-`appendToBody`. The dropdown is then portaled, fixed to the viewport at the field and at least as
-wide as it. A portaled panel sits outside the Combobox, so it carries its own copy of the
-`--bulma-combobox-*` defaults, declared on `.combobox-dropdown.is-portal`: set a theme override
-there as well as on `.combobox`. A lone `.combobox-dropdown` loses to it on specificity, and
-`.combobox-dropdown.is-portal` ties, so your rule wins only when it loads after the library styles.
-In a `Modal`, point a `ConfigProvider`'s `portalContainer` at an element inside the modal, so the
-list stays inside the dialog for assistive tech:
-
-```tsx
-<Modal active={active} onClose={close} aria-label="Edit shipping">
-  <Modal.Background onClick={close} />
-  <Modal.Card>
-    <Modal.Card.Body>
-      <ConfigProvider portalContainer={overlay ?? undefined}>
-        <Combobox label="Country" appendToBody position="auto">
-          {/* … */}
-        </Combobox>
-      </ConfigProvider>
-    </Modal.Card.Body>
-  </Modal.Card>
-  {/* In the modal and outside the card, so the card can't clip it. */}
-  <div ref={setOverlay} />
-</Modal>
-```
-
 ### Compound (dot-notation) usage
 
-Every part, in dot notation: `Combobox.Input`, `Combobox.Dropdown`, `Combobox.Options`,
-`Combobox.Group`, `Combobox.Option` and `Combobox.Empty`. Each is also exported by name
-(`ComboboxInput`, `ComboboxDropdown`, `ComboboxOptions`, `ComboboxGroup`, `ComboboxOption` and
+Every part, in dot notation: `Combobox.Input`, `Combobox.Menu`, `Combobox.List`,
+`Combobox.Group`, `Combobox.Item` and `Combobox.Empty`. Each is also exported by name
+(`ComboboxInput`, `ComboboxMenu`, `ComboboxList`, `ComboboxGroup`, `ComboboxItem` and
 `ComboboxEmpty`).
 
 ```tsx live
@@ -686,7 +714,7 @@ function example() {
       <Combobox
         label="Drink"
         message={`Your drink: ${picked?.label}`}
-        onOptionSubmit={next => {
+        onSelect={next => {
           setValue(next);
           setQuery('');
         }}
@@ -697,28 +725,28 @@ function example() {
           value={query}
           onChange={e => setQuery(e.target.value)}
         />
-        <Combobox.Dropdown>
+        <Combobox.Menu>
           {groups.length > 0 ? (
-            <Combobox.Options>
+            <Combobox.List>
               {groups.map(g => (
                 <Combobox.Group key={g.label} label={g.label}>
                   {g.items.map(i => (
-                    <Combobox.Option
+                    <Combobox.Item
                       key={i.value}
                       value={i.value}
                       checked={i.value === value}
                       disabled={i.disabled}
                     >
                       {i.label}
-                    </Combobox.Option>
+                    </Combobox.Item>
                   ))}
                 </Combobox.Group>
               ))}
-            </Combobox.Options>
+            </Combobox.List>
           ) : (
             <Combobox.Empty>No drinks match</Combobox.Empty>
           )}
-        </Combobox.Dropdown>
+        </Combobox.Menu>
       </Combobox>
       <Select label="Size">
         <option>Small</option>
@@ -740,17 +768,17 @@ function example() {
 
 Focus stays in the field the whole time. The keys work on the field like this:
 
-| Key                          | List closed                                                                                   | List open                                                                                                                                            |
-| ---------------------------- | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Down Arrow                   | Opens it, highlighting the checked option if it's showing, otherwise the first enabled option | Highlights the next option, wrapping to the first                                                                                                    |
-| Up Arrow                     | Opens it, highlighting the checked option if it's showing, otherwise the last enabled option  | Highlights the previous option, wrapping to the last                                                                                                 |
-| Alt+Down Arrow               | Opens it without a highlight                                                                  | Nothing                                                                                                                                              |
-| Alt+Up Arrow                 | Nothing                                                                                       | Closes it                                                                                                                                            |
-| Enter                        | Left alone, so a form submits                                                                 | Picks the highlighted option, and on a disabled one picks nothing and keeps the key. With nothing highlighted, closes it and lets the form submit    |
-| Escape                       | Left alone, so it reaches whatever is around the field                                        | Closes it. When a panel was on screen, the key stops there, so a Popover around it stays open                                                        |
-| Tab                          | Left alone                                                                                    | Closes it and picks nothing. Focus moves on                                                                                                          |
-| Home, End, Left, Right       | The field's own                                                                               | The field's own, and the highlight clears                                                                                                            |
-| Typing, Backspace and Delete | The field's own, and a change to the text opens the list                                      | The field's own. When the text changes, the highlight clears, or moves to the first enabled option with `autoHighlight`, and your new options follow |
+| Key                          | List closed                                                                               | List open                                                                                                                                       |
+| ---------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Down Arrow                   | Opens it, highlighting the checked item if it's showing, otherwise the first enabled item | Highlights the next item, wrapping to the first                                                                                                 |
+| Up Arrow                     | Opens it, highlighting the checked item if it's showing, otherwise the last enabled item  | Highlights the previous item, wrapping to the last                                                                                              |
+| Alt+Down Arrow               | Opens it without a highlight                                                              | Nothing                                                                                                                                         |
+| Alt+Up Arrow                 | Nothing                                                                                   | Closes it                                                                                                                                       |
+| Enter                        | Left alone, so a form submits                                                             | Picks the highlighted item, and on a disabled one picks nothing and keeps the key. With nothing highlighted, closes it and lets the form submit |
+| Escape                       | Left alone, so it reaches whatever is around the field                                    | Closes it. When a panel was on screen, the key stops there, so a Popover around it stays open                                                   |
+| Tab                          | Left alone                                                                                | Closes it and picks nothing. Focus moves on                                                                                                     |
+| Home, End, Left, Right       | The field's own                                                                           | The field's own, and the highlight clears                                                                                                       |
+| Typing, Backspace and Delete | The field's own, and a change to the text opens the list                                  | The field's own. When the text changes, the highlight clears, or moves to the first enabled item with `keepFirst`, and the new items follow     |
 
 - **`inline`:** the "List open" column applies the whole time, except that Escape and Alt+Up Arrow
   are left alone, so they reach whatever is around the list, and Tab only moves focus on, since
@@ -759,7 +787,7 @@ Focus stays in the field the whole time. The keys work on the field like this:
 - **Your own `onKeyDown`** on `Combobox.Input` runs first, and one that calls `preventDefault()`
   keeps the Combobox from handling that key.
 
-The pointer works the same way. Moving it over an enabled option highlights it, a click picks it,
+The pointer works the same way. Moving it over an enabled item highlights it, a click picks it,
 and a click in the field opens the list. A press in the list never takes focus from the field.
 
 ---
@@ -769,38 +797,40 @@ and a click in the field opens the list. A press in the list never takes focus f
 - **The roles:** the field is `role="combobox"` with `aria-autocomplete="list"` and
   `aria-haspopup="listbox"`. The list is a `listbox` of `option`s, and a group is a `group` named by
   its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.
-- **Focus stays in the field:** the highlighted option is the field's `aria-activedescendant`.
-  When a key or the list opening moves the highlight, the option is scrolled into view, since a
+- **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`.
+  When a key or the list opening moves the highlight, the item is scrolled into view, since a
   browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer
-  is already on that option. A click on an option keeps focus in the field too.
-- **`aria-expanded`** is `true` while a list with an option in it is on screen, and
-  `aria-controls` points at the list then. While the dropdown shows just `Combobox.Empty`, the
+  is already on that item. A click on an item keeps focus in the field too.
+- **`aria-expanded`** is `true` while a list with an item in it is on screen, and
+  `aria-controls` points at the list then. While the menu shows just the empty message, the
   field says it's collapsed, and so does the server markup for a list rendered with
   `appendToBody`, which shows only once the page has hydrated.
 - **The list's name** comes from the label that names the field: the Combobox's `label`, or an
-  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.Options` wins, and
+  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.List` wins, and
   with none of these the list is named "Suggestions".
-- **`aria-selected`, with one value,** is on the highlighted option and nothing else, the way the
+- **`aria-selected`, with one value,** is on the highlighted item and nothing else, the way the
   Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely
   on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on
-  the chosen option instead.
-- **With `multiple`,** the list is `aria-multiselectable`, and each option's `aria-selected` is its
+  the chosen item instead.
+- **With `multiple`,** the list is `aria-multiselectable`, and each item's `aria-selected` is its
   `checked`.
-- **Disabled options** are `aria-disabled` and stay reachable with the arrows, the Authoring
+- **Disabled items** are `aria-disabled` and stay reachable with the arrows, the Authoring
   Practices' advice for listbox options, so a screen reader user finds them. They're never picked
-  or `aria-selected`, and the opening highlight and `autoHighlight` pass over them.
-- **The empty message** sits beside the list, not in it, so it isn't counted as an option. When
+  or `aria-selected`, and the opening highlight and `keepFirst` pass over them.
+- **The empty message** sits beside the list, not in it, so it isn't counted as an item. When
   your typing brings it on screen, its text is announced through a polite status region that's in
   the page from the start, once each time the matches run out. Opening the list with it already
   there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`
-  is around the Combobox, the announcement waits and is made once loading ends. In a dropdown,
+  is around the Combobox, the announcement waits and is made once loading ends. In a menu,
   keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.
   An `inline` list stays on screen, so a link or a button beside it is in the Tab order.
+- **Tags,** with `multiple` and `data`: each tag's button is named "Remove" and the item's label,
+  and taking a tag off puts focus back in the field.
 - **No counts are announced,** for the reasons in [A Result Count](#a-result-count).
 - **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops
   at the Combobox when it closed a panel that was on screen.
 - **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the
-  system's highlight color, a disabled option takes the system's color for disabled text, and the
+  system's highlight color, a disabled item takes the system's color for disabled text, and the
   check mark and the panel's edge stay visible.
 - **No motion:** nothing animates.
 
@@ -833,37 +863,45 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 <!-- bestax:generated props -->
 
-| Prop             | Type                                                                             | Default         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| ---------------- | -------------------------------------------------------------------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`          | `React.ReactNode`                                                                | —               | The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field. When `Combobox.Input` has an `id` of its own, server markup names the field through `aria-labelledby` until the page hydrates and the label's `for` catches up.                                                                                                                                                         |
-| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —               | Props for the label element. An explicit `htmlFor` takes over the association: give `Combobox.Input` the same `id`, and the list is still named after the label.                                                                                                                                                                                                                                                                                                                                                                |
-| `children`       | `React.ReactNode`                                                                | —               | The parts, in order: `Combobox.Input`, then `Combobox.Dropdown` with `Combobox.Options` and `Combobox.Empty` in it. With `inline`, the `Combobox.Options` and `Combobox.Empty` go straight in. Render `Combobox.Options` while there are options and `Combobox.Empty` while there aren't: the empty message sits beside the list, not in it.                                                                                                                                                                                    |
-| `open`           | `boolean`                                                                        | —               | Controlled open state. When set, opening and closing only report through `onOpenChange`.                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `defaultOpen`    | `boolean`                                                                        | `false`         | Initial open state when uncontrolled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
-| `onOpenChange`   | `(open: boolean) => void`                                                        | —               | Called with the open state asked for: `true` from typing, a click in the field or Down Arrow, and `false` from Escape, Tab, a pick with one value, focus leaving or a press outside. Fires in controlled and uncontrolled use.                                                                                                                                                                                                                                                                                                  |
-| `onOptionSubmit` | `(value: string) => void`                                                        | —               | Called with an option's `value` when it's picked with Enter or a click. A disabled option is never picked. The Combobox keeps no value and doesn't change the text in the field: update yours here.                                                                                                                                                                                                                                                                                                                             |
-| `autoHighlight`  | `boolean`                                                                        | `false`         | Highlights the first enabled option whenever the list opens or its options change, so Enter picks the top match. It only highlights: leaving the field still picks nothing, and so does Tab.                                                                                                                                                                                                                                                                                                                                    |
-| `multiple`       | `boolean`                                                                        | `false`         | Several values can be picked. The list stays open after a pick, it's `aria-multiselectable`, and each option's `checked` is its `aria-selected`.                                                                                                                                                                                                                                                                                                                                                                                |
-| `inline`         | `boolean`                                                                        | `false`         | The list is always on screen, in the flow under the field, as in a Popover or a page panel. There's no dropdown, so nothing closes it, and Escape goes to whatever is around it.                                                                                                                                                                                                                                                                                                                                                |
-| `position`       | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'` | Where the dropdown opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes.                                                                                                                                                                                                                                                                                              |
-| `appendToBody`   | `boolean`                                                                        | `false`         | Renders the dropdown through `Portal`, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default, fixed to the viewport at the field, so a container that clips its overflow can't cut it off. It then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor reach it only when the portal's container is inside that ancestor, as with Popover. In a `Modal`, point `portalContainer` inside the modal, so the list stays in the dialog for assistive tech. |
-| `size`           | `'small'` \| `'medium'` \| `'large'`                                             | —               | Sizes the field and the options together.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
-| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                               | —               | Size for the label (used in horizontal layouts).                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
-| `horizontal`     | `boolean`                                                                        | `false`         | Horizontal field layout.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `message`        | `React.ReactNode`                                                                | —               | Help/validation message below the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —               | Bulma color for the message.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| `fieldClassName` | `string`                                                                         | —               | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| `className`      | `string`                                                                         | —               | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| `ref`            | `React.Ref<HTMLDivElement>`                                                      | —               | Ref forwarded to the `div.combobox` around the field and the list.                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
-| `...`            | All standard `<div>` attributes and Bulma helper props                           | —               | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| Prop             | Type                                                                             | Default         | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| ---------------- | -------------------------------------------------------------------------------- | --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `data`           | `(string \| ComboboxItemData)[]`                                                 | —               | The items, for a Combobox that renders the field, the menu, the list, the groups and the empty message itself. A string is an item whose label is its value, and an object is `{ value, label?, disabled?, group? }`. Typing filters the items by label, ignoring case, and the Combobox keeps the value. Leave it out to build the Combobox from parts.                                                                                                                                                                    |
+| `multiple`       | `boolean`                                                                        | `false`         | Several values can be picked. The list stays open after a pick, it's `aria-multiselectable`, and each item's `checked` is its `aria-selected`. With `data`, the value is an array, and the picks show as tags under the field, each with a button that takes it off.                                                                                                                                                                                                                                                        |
+| `value`          | `string` \| `null` \| `string[]`                                                 | —               | The value, controlled, with `data`: the picked item's `value`, or `null` for none, and with `multiple` an array of them. With one value, the field shows the picked item's label while you aren't typing in it.                                                                                                                                                                                                                                                                                                             |
+| `defaultValue`   | `string` \| `null` \| `string[]`                                                 | —               | The value to start with when uncontrolled, with `data`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `onChange`       | `(value: string \| null) => void` \| `(value: string[]) => void`                 | —               | Called with the new value, with `data`, when a pick or a tag's button changes it: an item's `value`, or with `multiple` the array.                                                                                                                                                                                                                                                                                                                                                                                          |
+| `children`       | `React.ReactNode`                                                                | —               | The parts, in order: `Combobox.Input`, then `Combobox.Menu` with `Combobox.List` and `Combobox.Empty` in it. With `inline`, the `Combobox.List` and `Combobox.Empty` go straight in. Render `Combobox.List` while there are items and `Combobox.Empty` while there aren't: the empty message sits beside the list, not in it. With `data` there are none to give: children given with it are ignored, with a warning in development.                                                                                        |
+| `placeholder`    | `string`                                                                         | —               | The field's placeholder, with `data`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `name`           | `string`                                                                         | —               | A form field name, with `data`. A hidden input posts the value, empty while there's none, and with `multiple` a hidden input posts each value.                                                                                                                                                                                                                                                                                                                                                                              |
+| `empty`          | `React.ReactNode`                                                                | —               | What the menu shows in place of the list, with `data`, when nothing matches the typing, such as "No countries match". It's announced the way `Combobox.Empty` is. Without it, the menu closes while nothing matches.                                                                                                                                                                                                                                                                                                        |
+| `itemTemplate`   | `(item: ComboboxItemData) => React.ReactNode`                                    | —               | Renders an item's content, with `data`, in place of its label. It's handed the item from `data`, a string there arriving as `{ value, label }`.                                                                                                                                                                                                                                                                                                                                                                             |
+| `label`          | `React.ReactNode`                                                                | —               | The field's label, which names `Combobox.Input` through `htmlFor`, and the list through `aria-labelledby`. Dropped inside an outer `Field`, whose label names both instead when it points at the field. When `Combobox.Input` has an `id` of its own, server markup names the field through `aria-labelledby` until the page hydrates and the label's `for` catches up.                                                                                                                                                     |
+| `labelProps`     | `React.LabelHTMLAttributes<HTMLLabelElement> & { [key: string]: unknown; }`      | —               | Props for the label element. An explicit `htmlFor` takes over the association: give `Combobox.Input` the same `id`, and the list is still named after the label.                                                                                                                                                                                                                                                                                                                                                            |
+| `open`           | `boolean`                                                                        | —               | Controlled open state. When set, opening and closing only report through `onOpenChange`.                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `defaultOpen`    | `boolean`                                                                        | `false`         | Initial open state when uncontrolled.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `onOpenChange`   | `(open: boolean) => void`                                                        | —               | Called with the open state asked for: `true` from typing, a click in the field or Down Arrow, and `false` from Escape, Tab, a pick with one value, focus leaving or a press outside. Fires in controlled and uncontrolled use.                                                                                                                                                                                                                                                                                              |
+| `onSelect`       | `(value: string) => void`                                                        | —               | Called with an item's `value` when it's picked with Enter or a click. A disabled item is never picked. With `data`, `onChange` reports the value that follows. Built from parts, the Combobox keeps no value and doesn't change the text in the field: update yours here.                                                                                                                                                                                                                                                   |
+| `keepFirst`      | `boolean`                                                                        | `false`         | Highlights the first enabled item whenever the list opens or its items change, so Enter picks the top match. It only highlights: leaving the field still picks nothing, and so does Tab.                                                                                                                                                                                                                                                                                                                                    |
+| `inline`         | `boolean`                                                                        | `false`         | The list is always on screen, in the flow under the field, as in a Popover or a page panel. There's no menu, so nothing closes it, and Escape goes to whatever is around it.                                                                                                                                                                                                                                                                                                                                                |
+| `position`       | `'bottom-left'` \| `'bottom-right'` \| `'top-left'` \| `'top-right'` \| `'auto'` | `'bottom-left'` | Where the menu opens against the field: below (`bottom-*`) or above (`top-*`), lined up with its left or right edge. `auto` picks the one that keeps the list in the viewport, preferring below. The same union Popover takes.                                                                                                                                                                                                                                                                                              |
+| `appendToBody`   | `boolean`                                                                        | `false`         | Renders the menu through `Portal`, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default, fixed to the viewport at the field, so a container that clips its overflow can't cut it off. It then shows from the commit after hydration, never in server markup. Theming variables set on an ancestor reach it only when the portal's container is inside that ancestor, as with Popover. In a `Modal`, point `portalContainer` inside the modal, so the list stays in the dialog for assistive tech. |
+| `size`           | `'small'` \| `'medium'` \| `'large'`                                             | —               | Sizes the field and the items together.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `labelSize`      | `'small'` \| `'normal'` \| `'medium'` \| `'large'`                               | —               | Size for the label (used in horizontal layouts).                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `horizontal`     | `boolean`                                                                        | `false`         | Horizontal field layout.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `message`        | `React.ReactNode`                                                                | —               | Help/validation message below the input.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| `messageColor`   | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'`  | —               | Bulma color for the message.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| `fieldClassName` | `string`                                                                         | —               | Additional CSS classes for the Field wrapper.                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `className`      | `string`                                                                         | —               | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `ref`            | `React.Ref<HTMLDivElement>`                                                      | —               | Ref forwarded to the `div.combobox` around the field and the list.                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `...`            | All standard `<div>` attributes and Bulma helper props                           | —               | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 
 **Subcomponents:**
 
 - `Combobox.Input`: The text field, with the combobox role and the keys, rendered as an `Input`.
-- `Combobox.Dropdown`: The floating panel under the field, on screen while the list is open and its children aren't all empty.
-- `Combobox.Options`: The list of options, a `listbox` named by the label that names the field.
-- `Combobox.Option`: One choice in the list, with a check mark while it's `checked`.
-- `Combobox.Group`: Options under a heading, a `group` named by it.
+- `Combobox.Menu`: The floating panel under the field, on screen while the list is open and its children aren't all empty.
+- `Combobox.List`: The list of items, a `listbox` named by the label that names the field.
+- `Combobox.Item`: One choice in the list, with a check mark while it's `checked`.
+- `Combobox.Group`: Items under a heading, a `group` named by it.
 - `Combobox.Empty`: The message shown in place of the list when nothing matches, announced when typing brings it on screen.
 
 ### Combobox.Input
@@ -893,30 +931,30 @@ and a click in the field opens the list. A press in the list never takes focus f
 | `ref`              | `React.Ref<HTMLInputElement>`                                                                                                      | —       | Forwarded to the underlying element.                                                                                                                                                                                                                                                    |
 | `...`              | All standard `<input>` attributes and Bulma helper props                                                                           | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                       |
 
-### Combobox.Dropdown
+### Combobox.Menu
 
-| Prop        | Type                            | Default | Description                                                                                                                                                                                                                                                                                                                                                |
-| ----------- | ------------------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `children`  | `React.ReactNode`               | —       | What the panel shows: `Combobox.Options` while there are options, and `Combobox.Empty` while there aren't. Children that are all `null`, `false` or `''`, or empty Fragments, keep the panel shut, so write the conditional here. A component that renders nothing, or a `Combobox.Options` with no options in it, still counts, and shows an empty panel. |
-| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                    |
-| `...`       | All standard `<div>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                            |
+| Prop        | Type                            | Default | Description                                                                                                                                                                                                                                                                                                                                      |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `children`  | `React.ReactNode`               | —       | What the panel shows: `Combobox.List` while there are items, and `Combobox.Empty` while there aren't. Children that are all `null`, `false` or `''`, or empty Fragments, keep the panel shut, so write the conditional here. A component that renders nothing, or a `Combobox.List` with no items in it, still counts, and shows an empty panel. |
+| `className` | `string`                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                          |
+| `...`       | All standard `<div>` attributes | —       |                                                                                                                                                                                                                                                                                                                                                  |
 
-### Combobox.Options
+### Combobox.List
 
-| Prop        | Type                            | Default | Description                                                           |
-| ----------- | ------------------------------- | ------- | --------------------------------------------------------------------- |
-| `children`  | `React.ReactNode`               | —       | `Combobox.Option`s and `Combobox.Group`s, in the order they're shown. |
-| `className` | `string`                        | —       | Additional CSS classes.                                               |
-| `...`       | All standard `<div>` attributes | —       |                                                                       |
+| Prop        | Type                            | Default | Description                                                         |
+| ----------- | ------------------------------- | ------- | ------------------------------------------------------------------- |
+| `children`  | `React.ReactNode`               | —       | `Combobox.Item`s and `Combobox.Group`s, in the order they're shown. |
+| `className` | `string`                        | —       | Additional CSS classes.                                             |
+| `...`       | All standard `<div>` attributes | —       |                                                                     |
 
-### Combobox.Option
+### Combobox.Item
 
 | Prop        | Type                            | Default | Description                                                                                                                                   |
 | ----------- | ------------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| `value`     | `string`                        | —       | What `onOptionSubmit` hands back. Unique within the Combobox.                                                                                 |
+| `value`     | `string`                        | —       | What `onSelect` hands back. Unique within the Combobox.                                                                                       |
 | `disabled`  | `boolean`                       | `false` | Can't be picked. The arrows still reach it, so a screen reader user finds it, and it's never `aria-selected`.                                 |
 | `checked`   | `boolean`                       | `false` | It's the value, or one of them. It shows a check mark, the list opens with the highlight on it, and with `multiple` it's the `aria-selected`. |
-| `children`  | `React.ReactNode`               | —       | What the option shows: text, or text with an avatar, a tag or a hint.                                                                         |
+| `children`  | `React.ReactNode`               | —       | What the item shows: text, or text with an avatar, a tag or a hint.                                                                           |
 | `className` | `string`                        | —       | Additional CSS classes.                                                                                                                       |
 | `...`       | All standard `<div>` attributes | —       |                                                                                                                                               |
 
@@ -925,7 +963,7 @@ and a click in the field opens the list. A press in the list never takes focus f
 | Prop        | Type                            | Default | Description                                                                                                                            |
 | ----------- | ------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `label`     | `React.ReactNode`               | —       | The heading, which also names the group for assistive tech, unless you give the group an `aria-label` or `aria-labelledby` of its own. |
-| `children`  | `React.ReactNode`               | —       | The group's `Combobox.Option`s.                                                                                                        |
+| `children`  | `React.ReactNode`               | —       | The group's `Combobox.Item`s.                                                                                                          |
 | `className` | `string`                        | —       | Additional CSS classes.                                                                                                                |
 | `...`       | All standard `<div>` attributes | —       |                                                                                                                                        |
 
@@ -947,32 +985,32 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 `Combobox` registers these variables on a compound selector (higher specificity than a single class). Override them with inline `style`, or with a selector that exceeds that specificity (one that only matches it must load after the library styles to win by source order) — a lone class via `className` loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
-| CSS Variable                               | Sass Variable                       | Default                                                                                                                       |
-| ------------------------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| `--bulma-combobox-dropdown-z-index`        | `$combobox-dropdown-z-index`        | `$extras-z-index-dropdown`                                                                                                    |
-| `--bulma-combobox-portal-z-index`          | `$combobox-portal-z-index`          | `$extras-z-index-tooltip`                                                                                                     |
-| `--bulma-combobox-dropdown-offset`         | `$combobox-dropdown-offset`         | `0.25rem`                                                                                                                     |
-| `--bulma-combobox-dropdown-background`     | `$combobox-dropdown-background`     | `var(--bulma-scheme-main)`                                                                                                    |
-| `--bulma-combobox-dropdown-radius`         | `$combobox-dropdown-radius`         | `var(--bulma-radius)`                                                                                                         |
-| `--bulma-combobox-dropdown-shadow`         | `$combobox-dropdown-shadow`         | `var(--bulma-shadow)`                                                                                                         |
-| `--bulma-combobox-dropdown-border-color`   | `$combobox-dropdown-border-color`   | `var(--bulma-border-weak)`                                                                                                    |
-| `--bulma-combobox-dropdown-padding-y`      | `$combobox-dropdown-padding-y`      | `0.5rem`                                                                                                                      |
-| `--bulma-combobox-list-max-height`         | `$combobox-list-max-height`         | `15rem`                                                                                                                       |
-| `--bulma-combobox-option-color`            | `$combobox-option-color`            | `var(--bulma-text-strong)`                                                                                                    |
-| `--bulma-combobox-option-size`             | `$combobox-option-size`             | `0.875rem`                                                                                                                    |
-| `--bulma-combobox-option-padding-y`        | `$combobox-option-padding-y`        | `0.375rem`                                                                                                                    |
-| `--bulma-combobox-option-padding-x`        | `$combobox-option-padding-x`        | `1rem`                                                                                                                        |
-| `--bulma-combobox-option-hover-background` | `$combobox-option-hover-background` | `hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))` |
-| `--bulma-combobox-highlight-background`    | `$combobox-highlight-background`    | `var(--bulma-link)`                                                                                                           |
-| `--bulma-combobox-highlight-color`         | `$combobox-highlight-color`         | `var(--bulma-link-invert)`                                                                                                    |
-| `--bulma-combobox-disabled-color`          | `$combobox-disabled-color`          | `var(--bulma-text-weak)`                                                                                                      |
-| `--bulma-combobox-check-color`             | `$combobox-check-color`             | `currentColor`                                                                                                                |
-| `--bulma-combobox-check-size`              | `$combobox-check-size`              | `1em`                                                                                                                         |
-| `--bulma-combobox-check-gap`               | `$combobox-check-gap`               | `0.5em`                                                                                                                       |
-| `--bulma-combobox-group-label-size`        | `$combobox-group-label-size`        | `0.85em`                                                                                                                      |
-| `--bulma-combobox-group-label-weight`      | `$combobox-group-label-weight`      | `var(--bulma-weight-semibold)`                                                                                                |
-| `--bulma-combobox-group-label-color`       | `$combobox-group-label-color`       | `var(--bulma-text-weak)`                                                                                                      |
-| `--bulma-combobox-divider-color`           | `$combobox-divider-color`           | `var(--bulma-border-weak)`                                                                                                    |
-| `--bulma-combobox-empty-color`             | `$combobox-empty-color`             | `var(--bulma-text-weak)`                                                                                                      |
+| CSS Variable                             | Sass Variable                     | Default                                                                                                                       |
+| ---------------------------------------- | --------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-combobox-menu-z-index`          | `$combobox-menu-z-index`          | `$extras-z-index-dropdown`                                                                                                    |
+| `--bulma-combobox-portal-z-index`        | `$combobox-portal-z-index`        | `$extras-z-index-tooltip`                                                                                                     |
+| `--bulma-combobox-menu-offset`           | `$combobox-menu-offset`           | `0.25rem`                                                                                                                     |
+| `--bulma-combobox-menu-background`       | `$combobox-menu-background`       | `var(--bulma-scheme-main)`                                                                                                    |
+| `--bulma-combobox-menu-radius`           | `$combobox-menu-radius`           | `var(--bulma-radius)`                                                                                                         |
+| `--bulma-combobox-menu-shadow`           | `$combobox-menu-shadow`           | `var(--bulma-shadow)`                                                                                                         |
+| `--bulma-combobox-menu-border-color`     | `$combobox-menu-border-color`     | `var(--bulma-border-weak)`                                                                                                    |
+| `--bulma-combobox-menu-padding-y`        | `$combobox-menu-padding-y`        | `0.5rem`                                                                                                                      |
+| `--bulma-combobox-list-max-height`       | `$combobox-list-max-height`       | `15rem`                                                                                                                       |
+| `--bulma-combobox-item-color`            | `$combobox-item-color`            | `var(--bulma-text-strong)`                                                                                                    |
+| `--bulma-combobox-item-size`             | `$combobox-item-size`             | `0.875rem`                                                                                                                    |
+| `--bulma-combobox-item-padding-y`        | `$combobox-item-padding-y`        | `0.375rem`                                                                                                                    |
+| `--bulma-combobox-item-padding-x`        | `$combobox-item-padding-x`        | `1rem`                                                                                                                        |
+| `--bulma-combobox-item-hover-background` | `$combobox-item-hover-background` | `hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))` |
+| `--bulma-combobox-highlight-background`  | `$combobox-highlight-background`  | `var(--bulma-link)`                                                                                                           |
+| `--bulma-combobox-highlight-color`       | `$combobox-highlight-color`       | `var(--bulma-link-invert)`                                                                                                    |
+| `--bulma-combobox-disabled-color`        | `$combobox-disabled-color`        | `var(--bulma-text-weak)`                                                                                                      |
+| `--bulma-combobox-check-color`           | `$combobox-check-color`           | `currentColor`                                                                                                                |
+| `--bulma-combobox-check-size`            | `$combobox-check-size`            | `1em`                                                                                                                         |
+| `--bulma-combobox-check-gap`             | `$combobox-check-gap`             | `0.5em`                                                                                                                       |
+| `--bulma-combobox-group-label-size`      | `$combobox-group-label-size`      | `0.85em`                                                                                                                      |
+| `--bulma-combobox-group-label-weight`    | `$combobox-group-label-weight`    | `var(--bulma-weight-semibold)`                                                                                                |
+| `--bulma-combobox-group-label-color`     | `$combobox-group-label-color`     | `var(--bulma-text-weak)`                                                                                                      |
+| `--bulma-combobox-divider-color`         | `$combobox-divider-color`         | `var(--bulma-border-weak)`                                                                                                    |
+| `--bulma-combobox-empty-color`           | `$combobox-empty-color`           | `var(--bulma-text-weak)`                                                                                                      |
 
 <!-- /bestax:generated cssvars -->
