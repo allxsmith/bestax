@@ -365,7 +365,7 @@ When `canCancel` is true, the sidebar can be closed by:
 - Uses `role="dialog"` for proper screen reader announcement
 - Has `aria-modal="true"` when overlay is shown
 - Focus is trapped within the sidebar when open
-- Escape key closes the sidebar by default
+- Escape key closes the sidebar by default. A popup open inside it, such as a Dropdown menu or a date picker's calendar, takes the first Escape, and the next one closes the sidebar. A popup of your own does the same by calling `preventDefault()` on the Escape it closes on, as the [Modal](./modal.md#accessibility) page explains.
 - Body scroll is prevented when the sidebar is open with an overlay, through the ref-counted lock shared with `Modal`, `Dialog` and `Loading` — so closing one overlay never unlocks the page underneath another that is still open
 
 ---
@@ -391,23 +391,23 @@ Use the Sidebar with a Menu component for building navigation drawers in mobile-
 
 <!-- bestax:generated props -->
 
-| Prop           | Type                                                | Default   | Description                                                                                                              |
-| -------------- | --------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------ |
-| `isOpen`       | `boolean`                                           | —         | Whether the sidebar is open (required).                                                                                  |
-| `onClose`      | `() => void`                                        | —         | Callback when sidebar should close.                                                                                      |
-| `position`     | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'.                                                                    |
-| `width`        | `string`                                            | `'260px'` | Custom width of the sidebar.                                                                                             |
-| `isFullwidth`  | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                                                                 |
-| `fullWidth`    | `boolean`                                           | `false`   | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Sidebar takes full width (mobile-style). |
-| `overlay`      | `boolean`                                           | `true`    | Show overlay behind sidebar. Default: true.                                                                              |
-| `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                    |
-| `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. Default: true.                                                                              |
-| `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                |
-| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                                                                                       |
-| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal.                                                                                |
-| `className`    | `string`                                            | —         | Additional CSS classes.                                                                                                  |
-| `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                    |
-| `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                        |
+| Prop           | Type                                                | Default   | Description                                                                                                                                                                                                |
+| -------------- | --------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `isOpen`       | `boolean`                                           | —         | Whether the sidebar is open (required).                                                                                                                                                                    |
+| `onClose`      | `() => void`                                        | —         | Callback when sidebar should close.                                                                                                                                                                        |
+| `position`     | `'left'` \| `'right'`                               | `'left'`  | Which side the sidebar appears from. Default: 'left'.                                                                                                                                                      |
+| `width`        | `string`                                            | `'260px'` | Custom width of the sidebar.                                                                                                                                                                               |
+| `isFullwidth`  | `boolean`                                           | `false`   | Sidebar takes full width (mobile-style).                                                                                                                                                                   |
+| `fullWidth`    | `boolean`                                           | `false`   | **Deprecated.** Use `isFullwidth` instead — `isFullwidth` wins if both are set. Sidebar takes full width (mobile-style).                                                                                   |
+| `overlay`      | `boolean`                                           | `true`    | Show overlay behind sidebar. Default: true.                                                                                                                                                                |
+| `overlayClose` | `boolean`                                           | `true`    | Close sidebar when overlay is clicked. Default: true.                                                                                                                                                      |
+| `escapeClose`  | `boolean`                                           | `true`    | Close sidebar on Escape key. A popup inside it, such as a Dropdown's menu or a date picker's calendar, takes its own Escape first, and so does content that calls `preventDefault()` on it. Default: true. |
+| `canCancel`    | `boolean`                                           | `true`    | Allow closing the sidebar. Default: true.                                                                                                                                                                  |
+| `children`     | `React.ReactNode`                                   | —         | Content to display in the sidebar.                                                                                                                                                                         |
+| `inline`       | `boolean`                                           | `false`   | Renders inline instead of using a portal.                                                                                                                                                                  |
+| `className`    | `string`                                            | —         | Additional CSS classes.                                                                                                                                                                                    |
+| `ref`          | `React.Ref<HTMLElement>`                            | —         | Ref forwarded to the sidebar element.                                                                                                                                                                      |
+| `...`          | All standard HTML attributes and Bulma helper props | —         | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                          |
 
 **Subcomponents:**
 

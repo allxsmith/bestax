@@ -36,7 +36,11 @@ export interface SidebarProps
   overlay?: boolean;
   /** Close sidebar when overlay is clicked. Default: true. */
   overlayClose?: boolean;
-  /** Close sidebar on Escape key. Default: true. */
+  /**
+   * Close sidebar on Escape key. A popup inside it, such as a Dropdown's menu
+   * or a date picker's calendar, takes its own Escape first, and so does
+   * content that calls `preventDefault()` on it. Default: true.
+   */
   escapeClose?: boolean;
   /** Allow closing the sidebar. Default: true. */
   canCancel?: boolean;
@@ -118,18 +122,19 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       }
     }, [overlayClose, handleClose]);
 
-    // Handle escape key
+    // Handle escape key. On `window`, as in `Modal`, so everything inside the
+    // sidebar has had the key first, and an Escape it used is left to it.
     useEffect(() => {
       if (!isOpen || !escapeClose) return;
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape') {
+        if (e.key === 'Escape' && !e.defaultPrevented) {
           handleClose();
         }
       };
 
-      document.addEventListener('keydown', handleKeyDown);
-      return () => document.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, escapeClose, handleClose]);
 
     // Prevent body scroll when sidebar is open. Ref-counted through the shared

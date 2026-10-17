@@ -164,11 +164,12 @@ anchored panels land against it instead of the viewport.
 focus into `ref` when `active` turns on, wraps Tab at the first and last tab stops (the ones the
 browser visits, so hidden, disabled, inert and `tabIndex={-1}` elements are skipped and a radio
 group counts once) and restores focus when it turns off. It handles Tab only: wire Escape to
-close. Pass the trigger's ref as `restoreFocus` for a panel opened from a button. It looks for
-the container again each time the component calling it renders, so `active` can follow `open`
-alone even when the panel mounts a render later, as portaled content can. The example below
-shows the hook's wiring; for a real filter panel opened from a button, use `Popover`, which does
-all of this.
+close, and call `preventDefault()` on the Escape it closes on, so a `Modal` or `Sidebar` around
+the panel stays open for the next one. Pass the trigger's ref as `restoreFocus` for a panel
+opened from a button. It looks for the container again each time the component calling it
+renders, so `active` can follow `open` alone even when the panel mounts a render later, as
+portaled content can. The example below shows the hook's wiring; for a real filter panel opened
+from a button, use `Popover`, which does all of this.
 
 ```tsx
 function FilterPanel({ children }: { children: React.ReactNode }) {
@@ -193,7 +194,11 @@ function FilterPanel({ children }: { children: React.ReactNode }) {
           role="dialog"
           aria-label="Filters"
           tabIndex={-1}
-          onKeyDown={e => e.key === 'Escape' && setOpen(false)}
+          onKeyDown={e => {
+            if (e.key !== 'Escape') return;
+            e.preventDefault();
+            setOpen(false);
+          }}
         >
           {children}
         </div>

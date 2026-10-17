@@ -17,6 +17,16 @@ export interface Deprecation {
 export const DEPRECATED_PROPS: Readonly<
   Record<string, Readonly<Record<string, Deprecation>>>
 > = {
+  Autocomplete: {
+    dropdown: {
+      replacement: null,
+      note: 'It will be removed in the next major version, with nothing in its place.',
+    },
+    selected: {
+      replacement: null,
+      note: 'Nothing reads it, and `onSelect` is what reports a pick. It will be removed in the next major version.',
+    },
+  },
   Button: {
     isFullWidth: {
       replacement: 'isFullwidth',

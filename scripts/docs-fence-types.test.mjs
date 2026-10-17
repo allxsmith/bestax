@@ -7,10 +7,10 @@
  * setter to a typed callback, and still render. The ESLint pass in
  * eslint-plugin-docs.test.mjs reads the same fences, but it checks the
  * plugin's rules, not the types. This compiles each fence as its own `.tsx`
- * module against the library's build, with the compiler options a new Vite
- * `react-ts` app starts with, and fails on any error. A `jsx` fence compiles
- * as `.tsx` too, since the site renders it the same way, so it is held to the
- * same types.
+ * module against the library's build, with the compiler options of the app
+ * `npm create bestax -t vite-ts` scaffolds, read from that template, and
+ * fails on any error. A `jsx` fence compiles as `.tsx` too, since the site
+ * renders it the same way, so it is held to the same types.
  *
  * Each fence is read the way the site runs it. The live editor drops a live
  * fence's `import` and `export default` lines (`stripModuleLines`, in
@@ -51,6 +51,7 @@ import { dirname, join, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import { fenceSpans, splitLines } from './lib/api-page.mjs';
+import { appCompilerOptions } from './lib/template-tsconfig.mjs';
 import { toExampleModule } from '../docs/src/theme/CodeBlock/sandbox/example.mjs';
 import {
   DOCS_ONLY_NAMES,
@@ -76,32 +77,20 @@ const DOCS_ONLY_MODULE = join(
 const UNUSED = new Set([6133, 6192]);
 
 /**
- * The `compilerOptions` of a new Vite `react-ts` app's `tsconfig.app.json`,
- * with `strict` spelled out (TypeScript 6 turns it on by default; earlier
- * versions do not) and `allowJs` added so the docs-only components bind from
- * their JavaScript sources. `types` is empty because the template's
- * `vite/client` only declares asset imports, and the fences' imports are
- * dropped.
+ * The compiler options the vite-ts template compiles `src/` with, changed
+ * only where this harness is not that app.
  */
-const VITE_REACT_TS = {
-  target: 'es2023',
-  lib: ['ES2023', 'DOM'],
-  module: 'esnext',
-  types: [],
-  skipLibCheck: true,
-  moduleResolution: 'bundler',
-  allowImportingTsExtensions: true,
-  verbatimModuleSyntax: true,
-  moduleDetection: 'force',
-  noEmit: true,
-  jsx: 'react-jsx',
-  strict: true,
-  noUnusedLocals: true,
-  noUnusedParameters: true,
-  erasableSyntaxOnly: true,
-  noFallthroughCasesInSwitch: true,
-  allowJs: true,
-};
+function fenceCompilerOptions() {
+  return {
+    ...appCompilerOptions(),
+    // The template's `vite/client` resolves from a scaffold's own install, not
+    // from the template in this repo, and it declares only asset imports, a
+    // kind of import no fence keeps.
+    types: [],
+    // The docs-only `ProfileCard` the live scope binds is a `.jsx` file.
+    allowJs: true,
+  };
+}
 
 /** The live fences in one markdown source, with their opening line index. */
 export function liveFences(src) {
@@ -173,12 +162,12 @@ function loadTools() {
   const libraryNames = Object.keys(library).filter(name =>
     /^[A-Za-z_$][\w$]*$/.test(name)
   );
-  const { options, errors } = ts.convertCompilerOptionsFromJson(
-    VITE_REACT_TS,
-    LIBRARY_DIR
-  );
-  assert.deepEqual(errors, [], 'the compiler options did not parse');
-  return { ts, options, libraryNames, docsOnlyModule: DOCS_ONLY_MODULE };
+  return {
+    ts,
+    options: fenceCompilerOptions(),
+    libraryNames,
+    docsOnlyModule: DOCS_ONLY_MODULE,
+  };
 }
 
 /**
@@ -493,7 +482,7 @@ describe('the docs live examples type-check', () => {
     assert.deepEqual(
       problems.filter(p => !p.startsWith('fixture/')),
       [],
-      'Fix the example so it compiles in a new Vite react-ts app. One that ' +
+      'Fix the example so it compiles in a new vite-ts scaffold. One that ' +
         `is wrong on purpose takes \`${OPT_OUT}\` in its info string.`
     );
   });

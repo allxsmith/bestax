@@ -7,7 +7,8 @@
  * the repo root.
  */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, join } from 'node:path';
 import { describe, it } from 'node:test';
@@ -377,6 +378,101 @@ describe('stackblitzProject', () => {
     const css = project.files['src/index.css'];
     assert.match(css, /background: #16171d/);
     assert.match(css, /#root \{[^}]*padding: 1\.5rem/);
+  });
+});
+
+/**
+ * The template files a StackBlitz project leaves out, each with the reason.
+ * Every other file is in TEMPLATE_FILES, so a file the template gains when it
+ * catches up with create-vite reaches the sandbox, or fails here, instead of
+ * the sandbox falling a step behind the scaffold. The CodeSandbox project is
+ * a Create React App layout, not a copy of the template, so it has no list of
+ * its own to hold to one.
+ */
+const LEFT_OUT = {
+  _gitignore: 'a sandbox is not a repository',
+  'README.md': 'it describes the starter app, not the example',
+  'eslint.config.js': 'a sandbox runs no lint, and drops its packages too',
+  'public/react.svg': 'only the starter App shows it',
+  'public/vite.svg': 'only the starter App shows it',
+  'src/App.css': 'only the starter App imports it',
+  'src/App.tsx': 'the example is written in its place',
+};
+
+/**
+ * The files the template tracks, by path in it. Read from git rather than
+ * the disk, so a lockfile or dist/ that an install or build inside the
+ * template leaves behind is not taken for a file the template gained. A
+ * tracked file deleted but not yet staged is gone from the template already.
+ */
+function templateFiles() {
+  return execFileSync('git', ['ls-files', '-z'], {
+    cwd: TEMPLATE_DIR,
+    encoding: 'utf8',
+  })
+    .split('\0')
+    .filter(path => path && existsSync(join(TEMPLATE_DIR, path)));
+}
+
+/**
+ * What open.js copies: each key of its TEMPLATE, with the template file the
+ * raw-loader import bound to that key reads. open.js only runs under webpack,
+ * so it is read here as text.
+ */
+function openJsTemplate() {
+  const source = readFileSync(
+    join(DOCS, 'src', 'theme', 'CodeBlock', 'sandbox', 'open.js'),
+    'utf8'
+  );
+  const imports = new Map(
+    [
+      ...source.matchAll(
+        /^import (\w+) from '!!raw-loader!@site\/\.\.\/create-bestax\/templates\/vite-ts\/([^']+)';$/gm
+      ),
+    ].map(([, name, path]) => [name, path])
+  );
+  const body = source.match(/^const TEMPLATE = \{\n([\s\S]*?)\n\};$/m)?.[1];
+  assert.ok(body, 'open.js no longer declares `const TEMPLATE = { … };`');
+  return new Map(
+    [...body.matchAll(/^ {2}'([^']+)': (\w+),$/gm)].map(([, key, name]) => [
+      key,
+      imports.get(name),
+    ])
+  );
+}
+
+describe('the template files', () => {
+  it('each reach the StackBlitz project or are left out for a reason', () => {
+    const files = templateFiles();
+    assert.deepEqual(
+      files.filter(
+        path => !TEMPLATE_FILES.includes(path) && !Object.hasOwn(LEFT_OUT, path)
+      ),
+      [],
+      'Add each file to TEMPLATE_FILES (projects.mjs) and TEMPLATE (open.js), ' +
+        'or to LEFT_OUT here with the reason the sandbox does without it.'
+    );
+    assert.deepEqual(
+      Object.keys(LEFT_OUT).filter(path => !files.includes(path)),
+      [],
+      'LEFT_OUT names a file the template no longer has.'
+    );
+  });
+
+  // A file TEMPLATE_FILES names and open.js leaves out passes the docs build
+  // and the builders' tests, and the button then throws on the reader's click.
+  it("are each copied by open.js's TEMPLATE, from the file of that name", () => {
+    const copied = openJsTemplate();
+    assert.deepEqual(
+      [...copied.keys()].sort(),
+      [...TEMPLATE_FILES].sort(),
+      "open.js's TEMPLATE must hold a key for exactly the files in TEMPLATE_FILES."
+    );
+    assert.deepEqual(
+      TEMPLATE_FILES.filter(path => copied.get(path) !== path),
+      [],
+      "Each key in open.js's TEMPLATE must be bound to the raw-loader import of that file."
+    );
   });
 });
 

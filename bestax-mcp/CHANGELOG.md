@@ -1,3 +1,18 @@
+## [1.15.6](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.5...bestax-mcp@1.15.6) (2026-10-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** let Autocomplete's Enter submit, keep focus on a click, and open on a highlight ([#1090](https://github.com/allxsmith/bestax/issues/1090)) ([81f5982](https://github.com/allxsmith/bestax/commit/81f5982d4dd83d76ffeb7603e7ead841224ae51e)), closes [#1078](https://github.com/allxsmith/bestax/issues/1078) [#1089](https://github.com/allxsmith/bestax/issues/1089) [#1079](https://github.com/allxsmith/bestax/issues/1079) [#1081](https://github.com/allxsmith/bestax/issues/1081) [#1081](https://github.com/allxsmith/bestax/issues/1081)
+
+## [1.15.5](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.4...bestax-mcp@1.15.5) (2026-10-16)
+
+
+### Bug Fixes
+
+* **bulma-ui:** deprecate Autocomplete's unread selected and dropdown props ([#1091](https://github.com/allxsmith/bestax/issues/1091)) ([5a90eba](https://github.com/allxsmith/bestax/commit/5a90eba338355a7c54f1ad6b57a743c9f33278e8)), closes [#1080](https://github.com/allxsmith/bestax/issues/1080)
+* **bulma-ui:** one Escape closes one layer inside a Modal or Sidebar ([#1086](https://github.com/allxsmith/bestax/issues/1086)) ([3ea7ac8](https://github.com/allxsmith/bestax/commit/3ea7ac8a5b1a9e8519e257b8ca3aa6a8bf17c46e)), closes [#1077](https://github.com/allxsmith/bestax/issues/1077) [#1077](https://github.com/allxsmith/bestax/issues/1077)
+
 ## [1.15.4](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.3...bestax-mcp@1.15.4) (2026-10-16)
 
 

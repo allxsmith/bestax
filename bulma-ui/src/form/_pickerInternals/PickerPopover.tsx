@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
 import { usePortalContainer } from '../../helpers/portal';
+import { isEventInside } from '../../helpers/shadowDom';
 import {
   marginGap,
   useAnchoredPosition,
@@ -106,12 +107,21 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
   }, [isOpen, closeOnClickOutside, anchorRef, onClose]);
 
   // Escape closes it, and so does Alt+ArrowUp, the combobox's key for it,
-  // which the calendar and the time wheels inside leave to it.
+  // which the calendar and the time wheels inside leave to it. Escape closes
+  // it from anywhere, but the key is only the picker's when it was pressed in
+  // the panel or the field: then it's marked used, so a Modal or Sidebar
+  // around the picker stays open. From anywhere else, such as a dialog opened
+  // over the picker, the key goes on to whatever has focus.
   useEffect(() => {
     if (!isOpen || !closeOnEscape || !isBrowser) return undefined;
     const handler = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
-        e.stopPropagation();
+        if (
+          isEventInside(e, panelRef.current) ||
+          isEventInside(e, anchorRef.current)
+        ) {
+          e.preventDefault();
+        }
         onClose();
       } else if (e.altKey && e.key === 'ArrowUp') {
         e.preventDefault();
@@ -121,7 +131,7 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, closeOnEscape, onClose]);
+  }, [isOpen, closeOnEscape, anchorRef, onClose]);
 
   useFocusTrap(panelRef, {
     active: isOpen && trapFocus,
