@@ -14,6 +14,9 @@ React component library for **Bulma v1** in TypeScript. pnpm monorepo orchestrat
 - `skills/` — Agent Skills, a **shipped product** bundled into create-bestax (has its own CLAUDE.md)
 - `plugin/`: the hand-written inputs of the `bestax` coding-agent plugin, which is **generated**
   into allxsmith/bestax-skills (see "The bestax plugin" below)
+- `templates/`: free Bulma templates rebuilt as complete create-bestax projects, one folder
+  each, which StackBlitz imports straight from GitHub. Not workspace packages, and each keeps
+  its original author's MIT notice (has its own CLAUDE.md, the porting guide)
 - `telemetry-worker/` — Cloudflare Worker ingesting the CLIs' opt-in telemetry
   (deployed from CI by `deploy-worker.yml` — a merged change under it ships to
   production immediately)

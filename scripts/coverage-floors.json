@@ -34,6 +34,7 @@
   "scripts/lib/skills.mjs": { "lines": 100, "branches": 87, "functions": 100 },
   "scripts/lib/sync-skills.mjs": { "lines": 97, "branches": 87, "functions": 100 },
   "scripts/lib/template-tsconfig.mjs": { "lines": 100, "branches": 82, "functions": 100 },
+  "scripts/lib/templates.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/theme-vars.mjs": { "lines": 100, "branches": 100, "functions": 100 },
   "scripts/lib/version-regression.mjs": { "lines": 99, "branches": 95, "functions": 100 },
   "scripts/mcp-registry-publish.mjs": { "lines": 100, "branches": 95, "functions": 100 },

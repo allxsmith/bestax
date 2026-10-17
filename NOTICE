@@ -3,3 +3,7 @@ This project uses the Bulma CSS framework by Jeremy Thomas (https://bulma.io), l
 Some example and documentation content is adapted from the Bulma website (https://bulma.io), which is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
 
 See https://github.com/jgthms/bulma/blob/main/LICENSE for details.
+
+Templates
+
+The projects in templates/ (https://github.com/allxsmith/bestax/tree/main/templates) are free Bulma templates from aldi's awesome-bulma-templates (https://github.com/aldi/awesome-bulma-templates), rebuilt with bestax components. Each one is its original author's work, licensed under the MIT license, and its own LICENSE file keeps their notice ahead of the one for the port.
