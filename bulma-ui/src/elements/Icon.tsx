@@ -45,8 +45,10 @@ interface IconBaseProps
   /** Text color helper. */
   textColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /**
-   * Sets the icon's text color, rendering `has-text-<color>` the same as `textColor`, which
-   * wins when both are set. Bulma has no `.icon.is-<color>` modifier.
+   * Text color alias: renders `has-text-<color>`, exactly like `textColor`.
+   * Not a filled variant (no `.icon.is-<color>` CSS exists). Prefer
+   * `textColor`, which takes precedence when both are set; use `bgColor` for
+   * a colored surface.
    */
   color?: 'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger';
   /** Background color helper. */
