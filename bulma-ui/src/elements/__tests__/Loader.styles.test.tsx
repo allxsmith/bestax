@@ -124,6 +124,10 @@ type Rule = {
   top: Setting | null;
   /** The `border-right-color` the rule sets, likewise. */
   right: Setting | null;
+  /** The `border-bottom-color` the rule sets, likewise. */
+  bottom: Setting | null;
+  /** The `border-left-color` the rule sets, likewise. */
+  left: Setting | null;
   order: number;
   reducedMotionOnly: boolean;
   forcedColorsOnly: boolean;
@@ -131,6 +135,8 @@ type Rule = {
 
 /** What the user's settings are, for the rules that depend on them. */
 type When = { reducedMotion?: boolean; forcedColors?: boolean };
+
+type Side = 'top' | 'right' | 'bottom' | 'left';
 
 /** Top-level tokens of a value, keeping `var(…)` and other functions whole. */
 const tokensOf = (value: string): string[] => {
@@ -251,7 +257,7 @@ function rulesOf(css: string): Rule[] {
         // Likewise for a side's color: the longhand, then each shorthand
         // that sets it. A shorthand is kept whole, so it never reads as a
         // single color.
-        const side = (name: 'top' | 'right'): Setting | null => {
+        const side = (name: Side): Setting | null => {
           for (const p of [
             `border-${name}-color`,
             `border-${name}`,
@@ -260,6 +266,15 @@ function rulesOf(css: string): Rule[] {
           ]) {
             const value = decl.getPropertyValue(p).trim();
             if (!value) continue;
+            // One color per side would have to be picked out of it by
+            // position, which `colorOf` doesn't do.
+            if (p === 'border-color' && tokensOf(value).length > 1) {
+              throw new Error(
+                `\`border-color: ${value}\` gives the sides different colors, ` +
+                  'which this test does not split. Extend `side` before ' +
+                  'trusting a result.'
+              );
+            }
             return {
               value,
               important: decl.getPropertyPriority(p) === 'important',
@@ -274,6 +289,8 @@ function rulesOf(css: string): Rule[] {
           duration: longhand('duration'),
           top: side('top'),
           right: side('right'),
+          bottom: side('bottom'),
+          left: side('left'),
           order: out.length,
           reducedMotionOnly,
           forcedColorsOnly,
@@ -350,7 +367,7 @@ function winning(
   el: Element,
   pseudo: string,
   when: When,
-  prop: 'name' | 'duration' | 'top' | 'right'
+  prop: 'name' | 'duration' | Side
 ): string | null {
   let best: { rank: number[]; value: string } | null = null;
   for (const rule of rules) {
@@ -458,6 +475,56 @@ function unstopped(rules: Rule[]) {
     if (moves(rules, el, pseudo, true)) stillMoving.push(selector);
   }
   return { checked: outsideReduced.size, idle, stillMoving };
+}
+
+const STYLE =
+  /^(none|hidden|dotted|dashed|solid|double|groove|ridge|inset|outset)$/;
+const WIDTH = /^(thin|medium|thick|[+-]?[\d.]+[a-z%]*|calc\(.*\))$/;
+
+/**
+ * The color in a side's winning value: the value itself for a color
+ * longhand, or the part of a `border` shorthand that is neither a width nor
+ * a style. A side nothing sets, or a shorthand with no color, is
+ * `currentcolor`, as CSS has it.
+ */
+function colorOf(value: string | null): string {
+  if (value === null) return 'currentcolor';
+  const color = tokensOf(value)
+    .filter(token => !STYLE.test(token) && !WIDTH.test(token))
+    .pop();
+  return color ?? 'currentcolor';
+}
+
+/**
+ * Every ring the sheet draws, read off the sheet rather than off a roster:
+ * an element something spins, whose four sides aren't all one color, which
+ * is how a spinner shows it's turning. Forced colors paints every side in
+ * one color, so `closed` holds the rings whose top and right don't come out
+ * Canvas there, and those would turn as a full circle.
+ */
+function unopened(rules: Rule[]) {
+  const spun = new Set<string>();
+  for (const rule of rules) {
+    if ((rule.name?.value ?? 'none') === 'none') continue;
+    if (rule.reducedMotionOnly || rule.forcedColorsOnly) continue;
+    rule.selectors.forEach(selector => spun.add(selector));
+  }
+  const rings: string[] = [];
+  const closed: string[] = [];
+  for (const selector of spun) {
+    const { el, pseudo } = witness(selector);
+    const sides = (['top', 'right', 'bottom', 'left'] as const).map(side =>
+      colorOf(winning(rules, el, pseudo, {}, side))
+    );
+    if (new Set(sides).size < 2) continue;
+    rings.push(selector);
+    const open = (['top', 'right'] as const).every(
+      side =>
+        winning(rules, el, pseudo, { forcedColors: true }, side) === 'Canvas'
+    );
+    if (!open) closed.push(selector);
+  }
+  return { rings, closed };
 }
 
 /**
@@ -650,6 +717,39 @@ describe('the cascade resolver', () => {
     }
   );
 
+  it('finds a ring nobody listed, and lets it pass once its top and right are Canvas', () => {
+    const ring =
+      '.spinner { animation: spin 1s; border: 2px solid var(--x); border-top-color: transparent; }';
+    expect(unopened(rulesOf(ring))).toEqual({
+      rings: ['.spinner'],
+      closed: ['.spinner'],
+    });
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .spinner { border-top-color: Canvas; border-right-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.spinner'], closed: [] });
+  });
+
+  it('takes a spinning box whose sides are all one color for something other than a ring', () => {
+    expect(
+      unopened(
+        rulesOf(
+          '.pulse { animation: pulse 1s; border: 1px solid red; } .bar { animation: sweep 1s; }'
+        )
+      )
+    ).toEqual({ rings: [], closed: [] });
+  });
+
+  it('refuses a border-color that gives the sides different colors', () => {
+    expect(() =>
+      rulesOf('.x { border-color: red transparent red red; }')
+    ).toThrow('Extend `side`');
+  });
+
   it('refuses a shorthand whose only candidate name is a var()', () => {
     expect(() => rulesOf('.x { animation: var(--x) 1s; }')).toThrow(
       'Extend `shorthand`'
@@ -761,6 +861,16 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       }
     }
   );
+
+  it('opens every ring it draws in forced colors', () => {
+    // The roster above only sees the components on it. This reads the
+    // rings off the sheet instead, so one a partial or Bulma adds is
+    // checked without anyone listing it.
+    const { rings, closed } = unopened(rules);
+    // Floor against the read going quietly empty.
+    expect(rings).toContain(`.${prefix}loader`);
+    expect(closed).toEqual([]);
+  });
 
   it('changes nothing but the open sides’ color in forced colors', () => {
     const { container } = render(
