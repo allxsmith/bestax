@@ -97,6 +97,13 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   "Clear search" put focus back in the field. While data loads show a `Skeleton` or a `Loader`,
   and a failed load is a `Message` or a `Notification`, never an EmptyState. The archetypes
   reference has the full pattern under Card grid.
+- **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
+  `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
+  other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
+  picks one, and `selectionMode="checkbox"` with `checked`/`onCheckedChange` draws boxes with
+  mixed parents, where a parent's value checks its whole branch. Map the data with a recursive
+  function, and render an item's children whether it's open or not. Its items aren't links, so
+  the app's sidebar and any list of pages stay on `Menu` with `Menu.Item href`.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.

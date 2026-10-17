@@ -192,6 +192,18 @@ function TooltipIcon() {
   );
 }
 
+// An open parent's chevron and row, with two rows under its guide line
+function TreeViewIcon() {
+  return (
+    <svg {...iconProps}>
+      <path d="M3.5 5l2.5 2.5L8.5 5" />
+      <path d="M11 6.25h9.5" />
+      <path d="M6 11v8.5" />
+      <path d="M10 13h10.5M10 18.5h7" />
+    </svg>
+  );
+}
+
 const ADDON_ICONS = {
   linkbutton: LinkButtonIcon,
   kbd: KbdIcon,
@@ -210,6 +222,7 @@ const ADDON_ICONS = {
   steps: StepsIcon,
   toast: ToastIcon,
   tooltip: TooltipIcon,
+  treeview: TreeViewIcon,
 };
 
 export default ADDON_ICONS;

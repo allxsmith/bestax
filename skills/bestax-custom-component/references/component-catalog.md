@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-100 documented components. Generated from the API docs — every exported
+101 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -106,6 +106,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
 - [Toast](https://bestax.io/docs/api/components/toast) — The `Toast` component provides brief notification messages with optional action and cancel buttons.
 - [Tooltip](https://bestax.io/docs/api/components/tooltip) — The `Tooltip` component displays helpful information when users hover over or focus on an element.
+- [TreeView](https://bestax.io/docs/api/components/treeview) — The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move…
 
 ## Form
 
