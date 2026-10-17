@@ -22,7 +22,11 @@ export interface StepItemProps {
    * @defaultValue '✓'
    */
   completedIcon?: React.ReactNode;
-  /** Whether this step is clickable */
+  /**
+   * Whether this step is clickable. A clickable step puts its marker and
+   * label in a `<button type="button">` inside its list item, which calls
+   * `onStepClick`, and the current step's `aria-current` goes on that button.
+   */
   clickable?: boolean;
   /** Additional CSS classes. */
   className?: string;
@@ -96,7 +100,12 @@ export interface StepProps
   label?: React.ReactNode;
   /** Icon for the step marker */
   icon?: React.ReactNode;
-  /** Whether this step is clickable */
+  /**
+   * Whether this step is clickable. A clickable step puts its marker and
+   * label in a `<button type="button">` inside the `<li>`, which calls
+   * `onClick`, and `aria-current` goes on that button. The `<li>` keeps the
+   * rest of the props.
+   */
   clickable?: boolean;
   /** Click handler */
   onClick?: () => void;
@@ -144,19 +153,6 @@ export const Step: React.FC<StepProps> = ({
   const stepsContentClass = usePrefixedClassNames('steps-content');
   const stepsTitleClass = usePrefixedClassNames('steps-title');
 
-  const handleClick = () => {
-    if (clickable && onClick) {
-      onClick();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (clickable && onClick && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      onClick();
-    }
-  };
-
   const resolvedCompletedIcon =
     completedIcon === undefined ? '\u2713' : completedIcon;
   const markerContent =
@@ -164,22 +160,40 @@ export const Step: React.FC<StepProps> = ({
     (isCompleted && resolvedCompletedIcon
       ? resolvedCompletedIcon
       : (stepNumber ?? null));
+  const title = label || children;
+  const current = isActive ? 'step' : undefined;
+
+  // The step stays a list item, and a real button inside it does the
+  // clicking, so the list keeps its items and the button brings Enter, Space
+  // and focus with it. A button holds only phrasing content, so its parts
+  // are spans.
+  if (clickable) {
+    return (
+      <li className={stepClasses} {...rest}>
+        <button
+          type="button"
+          className={stepsLinkClass}
+          onClick={() => onClick?.()}
+          aria-current={current}
+        >
+          <span className={stepsMarkerClass}>{markerContent}</span>
+          {title && (
+            <span className={stepsContentClass}>
+              <span className={stepsTitleClass}>{title}</span>
+            </span>
+          )}
+        </button>
+      </li>
+    );
+  }
 
   return (
-    <li
-      className={stepClasses}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={clickable ? 0 : undefined}
-      role={clickable ? 'button' : undefined}
-      aria-current={isActive ? 'step' : undefined}
-      {...rest}
-    >
+    <li className={stepClasses} aria-current={current} {...rest}>
       <div className={stepsLinkClass}>
         <span className={stepsMarkerClass}>{markerContent}</span>
-        {(label || children) && (
+        {title && (
           <div className={stepsContentClass}>
-            <p className={stepsTitleClass}>{label || children}</p>
+            <p className={stepsTitleClass}>{title}</p>
           </div>
         )}
       </div>

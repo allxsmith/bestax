@@ -125,17 +125,17 @@ $steps-navigation-margin-top: 1rem !default;
 .#{iv.$class-prefix}steps-segment {
   text-align: center;
   cursor: default;
+}
 
-  &[tabindex="0"] {
-    cursor: pointer;
+// A clickable step's link is a <button> around the marker and the label. It
+// drops the browser's button look and fills its step the way the <div> does,
+// and the focus ring goes around it.
+button.#{iv.$class-prefix}steps-link {
+  @include extras-button-reset;
+  width: 100%;
 
-    &:focus {
-      outline: none;
-    }
-
-    &:focus-visible .#{iv.$class-prefix}steps-marker {
-      @include extras-focus-outline;
-    }
+  &:focus-visible {
+    @include extras-focus-outline;
   }
 }
 
@@ -184,8 +184,10 @@ $steps-navigation-margin-top: 1rem !default;
   text-align: center;
 }
 
-// Step title
+// Step title. A block, so a clickable step's <span> title sets its line
+// height from its own font size, the way a plain step's <p> does.
 .#{iv.$class-prefix}steps-title {
+  display: block;
   font-size: cv.getVar("steps-title-size");
   font-weight: cv.getVar("steps-title-weight");
   color: cv.getVar("steps-title-color");

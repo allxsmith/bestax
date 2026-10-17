@@ -7,7 +7,7 @@
 // compared as written.
 import * as sass from 'sass';
 import path from 'path';
-import { render } from '@testing-library/react';
+import { act, render } from '@testing-library/react';
 import { Steps, type StepsProps } from '../Steps';
 import { ConfigProvider } from '../../helpers/Config';
 
@@ -276,6 +276,59 @@ describe.each([
         'calc(50% + var(--bulma-steps-marker-size) / 2 + 0.25rem)'
       );
       expect(before['text-align']).toBe('end');
+    });
+  });
+
+  describe('a clickable step', () => {
+    const clickable = ITEMS.map(item => ({ ...item, clickable: true }));
+
+    it('fills its step with a button that drops the browser’s button look', () => {
+      // Read off the sheet: jsdom's computed style leaves out `border`.
+      expect(
+        declarations(rulesOf(compile(prefix)), `button${p('steps-link')}`)
+      ).toEqual({
+        appearance: 'none',
+        background: 'none',
+        border: 'none',
+        padding: '0',
+        margin: '0',
+        font: 'inherit',
+        color: 'inherit',
+        cursor: 'pointer',
+        width: '100%',
+      });
+      load(compile(prefix));
+      const { container } = renderSteps({ items: clickable });
+      // Laid out by the same rules as a plain step's <div>.
+      const button = getComputedStyle(container.querySelector('button')!);
+      expect(button.display).toBe('flex');
+      expect(button.flexDirection).toBe('column');
+    });
+
+    it('draws the focus ring around the focused button, not its marker', () => {
+      load(compile(prefix));
+      const { container } = renderSteps({ items: clickable });
+      const button = container.querySelectorAll('button')[1];
+      act(() => button.focus());
+      // jsdom keeps the shorthand whole, since its color reads variables.
+      const ring = getComputedStyle(button);
+      expect(ring.outline).toMatch(/^2px solid hsl\(var\(--bulma-link-h/);
+      expect(ring.outlineOffset).toBe('2px');
+      expect(
+        getComputedStyle(button.querySelector(p('steps-marker'))!).outline
+      ).toBe('');
+      // Only the focused one.
+      expect(
+        getComputedStyle(container.querySelectorAll('button')[0]).outline
+      ).toBe('');
+    });
+
+    it('lays its title out as a block, the way a plain step’s paragraph is', () => {
+      load(compile(prefix));
+      const { container } = renderSteps({ items: clickable });
+      const title = container.querySelector(p('steps-title'))!;
+      expect(title.tagName).toBe('SPAN');
+      expect(getComputedStyle(title).display).toBe('block');
     });
   });
 

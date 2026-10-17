@@ -582,7 +582,9 @@ export const LabelPositions: Story = {
 };
 
 /**
- * Click on any step to jump to it, plus navigation buttons.
+ * Click on any step to jump to it, plus navigation buttons. Each step is a
+ * button inside its list item, so Tab reaches it and Enter or Space presses
+ * it, with the focus ring around the whole step.
  */
 export const Clickable: Story = {
   render: function ClickableStory() {
