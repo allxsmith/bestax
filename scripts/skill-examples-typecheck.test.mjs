@@ -14,9 +14,22 @@
  * would: `react` to React's published types, and each entry in the library's
  * `exports` map to the built declarations it names, which is why the library
  * has to be built first.
+ *
+ * The template projects under templates/ (#1121) are checked here too, since
+ * each one is a vite-ts scaffold whose build starts with the same `tsc -b`.
+ * Each one's `src/` compiles with the options of its own project that
+ * compiles `src/`, read the same way from its own tsconfigs, which are the
+ * scaffold's: that is the program StackBlitz builds. Imports resolve as they
+ * do for the examples, and the template's `vite/client` types, which give
+ * its stylesheet and asset imports their modules, come from bulma-ui's copy
+ * of Vite, since a template in this repo has no install of its own. With no
+ * templates this checks nothing in the tree, so a fixture template in
+ * scripts/fixtures/templates-repo proves it: the fixture compiles, and a
+ * prop its component does not take is reported.
  */
 import assert from 'node:assert/strict';
 import {
+  cpSync,
   existsSync,
   mkdtempSync,
   readdirSync,
@@ -31,10 +44,19 @@ import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import ts from 'typescript';
 import { appCompilerOptions } from './lib/template-tsconfig.mjs';
+import { TEMPLATES_DIR, templateSlugs } from './lib/templates.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const BULMA_UI = join(REPO, 'bulma-ui');
 const LIBRARY_TYPES = join(BULMA_UI, 'dist', 'types', 'index.d.ts');
+const FIXTURE_TEMPLATE = join(
+  REPO,
+  'scripts',
+  'fixtures',
+  'templates-repo',
+  TEMPLATES_DIR,
+  'example'
+);
 
 /**
  * Every TypeScript file anywhere under `skills/`, over the same tree the lint
@@ -174,6 +196,124 @@ describe('skill examples compile in a vite-ts scaffold', () => {
     it(relative(REPO, example), () => {
       const own = diagnostics.filter(d => d.file?.fileName === example);
       assert.equal(ts.formatDiagnostics(own, host), '');
+    });
+  }
+});
+
+/** The ambient types the harness can stand in for, by the name a tsconfig gives. */
+function ambientTypes() {
+  const require = createRequire(join(BULMA_UI, 'package.json'));
+  return {
+    'vite/client': join(
+      dirname(require.resolve('vite/package.json')),
+      'client.d.ts'
+    ),
+  };
+}
+
+/** Every TypeScript file under a template's `src/`, declarations included. */
+function templateSources(template) {
+  return readdirSync(join(template, 'src'), { recursive: true })
+    .filter(path => /\.tsx?$/.test(path))
+    .map(path => join(template, 'src', path))
+    .sort();
+}
+
+/**
+ * Compile a template's `src/` the way its own build would, against the
+ * library's declarations, and return what the compiler reports.
+ */
+function templateDiagnostics(template) {
+  assert.ok(
+    existsSync(LIBRARY_TYPES),
+    'bulma-ui/dist is absent, so the templates cannot be checked against ' +
+      "the library's declarations. Build first, or run `pnpm all`."
+  );
+  const own = appCompilerOptions(template);
+  const ambient = ambientTypes();
+  const unknown = (own.types ?? []).filter(name => !(name in ambient));
+  assert.deepEqual(
+    unknown,
+    [],
+    `${relative(REPO, template)} names types this harness cannot supply. ` +
+      'Add them to ambientTypes() in scripts/skill-examples-typecheck.test.mjs.'
+  );
+  const options = {
+    ...own,
+    incremental: false,
+    tsBuildInfoFile: undefined,
+    // Supplied as files below, since the template has no install to find
+    // them in.
+    types: [],
+    paths: scaffoldPaths(),
+  };
+  const roots = [
+    ...templateSources(template),
+    ...(own.types ?? []).map(name => ambient[name]),
+  ];
+  return ts.getPreEmitDiagnostics(ts.createProgram(roots, options));
+}
+
+describe('template sources compile in their own vite-ts project', () => {
+  const host = {
+    getCanonicalFileName: file => file,
+    getCurrentDirectory: () => REPO,
+    getNewLine: () => '\n',
+  };
+
+  it('compiles the fixture template', () => {
+    assert.ok(templateSources(FIXTURE_TEMPLATE).length > 0);
+    assert.equal(
+      ts.formatDiagnostics(templateDiagnostics(FIXTURE_TEMPLATE), host),
+      ''
+    );
+  });
+
+  it('reports a type error in a template', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'template-types-'));
+    try {
+      cpSync(FIXTURE_TEMPLATE, dir, { recursive: true });
+      // A prop the library's Title does not take, so the error can only come
+      // from the library's own declarations.
+      const hero = join(dir, 'src', 'components', 'Hero.tsx');
+      const source = readFileSync(hero, 'utf8');
+      assert.ok(source.includes('<Title>'));
+      writeFileSync(hero, source.replace('<Title>', '<Title notAProp>'));
+      const reported = ts.formatDiagnostics(templateDiagnostics(dir), host);
+      assert.match(reported, /Hero\.tsx.*TS2322.*notAProp/s);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('refuses ambient types it cannot supply', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'template-types-'));
+    try {
+      cpSync(FIXTURE_TEMPLATE, dir, { recursive: true });
+      const config = join(dir, 'tsconfig.app.json');
+      writeFileSync(
+        config,
+        readFileSync(config, 'utf8').replace(
+          '"types": ["vite/client"]',
+          '"types": ["vite/client", "node"]'
+        )
+      );
+      assert.throws(
+        () => templateDiagnostics(dir),
+        /names types this harness cannot supply/
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  for (const slug of templateSlugs()) {
+    const template = join(REPO, TEMPLATES_DIR, slug);
+    it(`${TEMPLATES_DIR}/${slug}`, () => {
+      assert.equal(
+        ts.formatDiagnostics(templateDiagnostics(template), host),
+        ''
+      );
     });
   }
 });
