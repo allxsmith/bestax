@@ -208,15 +208,15 @@ describe('Taginput', () => {
       expect(onChange).toHaveBeenCalledWith(['Tag1', 'Tag2']);
     });
 
-    it('hides input when maxTags is reached', () => {
+    it('keeps the input read-only when maxTags is reached', () => {
       render(<Taginput defaultValue={['Tag1', 'Tag2']} maxTags={2} />);
-      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
     });
 
     // keepOpen (the default) leaves the list open after a selection, and
     // openOnFocus keeps it filled with the remaining suggestions, so below
-    // the limit it stays on screen. At the limit the input goes, and the
-    // list goes with it (#1087).
+    // the limit it stays on screen. At the limit the list closes, and the
+    // combobox stays, collapsed (#1087).
     it('closes the suggestion list when a click adds the last allowed tag', () => {
       const onChange = jest.fn();
       render(
@@ -233,7 +233,10 @@ describe('Taginput', () => {
       fireEvent.click(screen.getByRole('option', { name: 'Vue' }));
 
       expect(onChange).toHaveBeenLastCalledWith(['React', 'Vue']);
-      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      );
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
       expect(screen.queryByRole('option')).not.toBeInTheDocument();
     });
@@ -247,7 +250,10 @@ describe('Taginput', () => {
       fireEvent.keyDown(input, { key: 'Enter' });
 
       expect(screen.getByText('React')).toBeInTheDocument();
-      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      );
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
@@ -299,7 +305,10 @@ describe('Taginput', () => {
 
       rerender(ui(['React']));
 
-      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      );
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
   });
@@ -1308,14 +1317,12 @@ describe('Taginput', () => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
 
-    it('container click is a no-op when input is not rendered (maxTags reached)', () => {
+    it('container click focuses the read-only input at the tag limit', () => {
       const { container } = render(
         <Taginput defaultValue={['Tag1', 'Tag2']} maxTags={2} />
       );
-      // No input is rendered when maxTags is reached, so inputRef.current is null.
-      // Clicking the container hits the falsy `?.` branch in handleContainerClick.
-      const root = container.querySelector('.taginput')!;
-      expect(() => fireEvent.click(root)).not.toThrow();
+      fireEvent.click(container.querySelector('.taginput')!);
+      expect(screen.getByRole('textbox')).toHaveFocus();
     });
   });
 });
@@ -1379,14 +1386,16 @@ describe('Taginput label association (#493)', () => {
     expect(screen.getByRole('textbox')).not.toHaveAttribute('id');
   });
 
-  it('renders the label unwired when the tag limit is reached', () => {
+  it('keeps the label wired to the read-only input at the tag limit (#1103)', () => {
     const { container } = render(
       <Taginput label="Tags" maxTags={1} value={['one']} />
     );
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    const fieldLabel = container.querySelector('label.label');
-    expect(fieldLabel).toHaveTextContent('Tags');
-    expect(fieldLabel).not.toHaveAttribute('for');
+    const input = screen.getByRole('textbox', { name: 'Tags' });
+    expect(input).toHaveAttribute('readonly');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
   });
 });
 
@@ -1743,6 +1752,121 @@ describe('Taginput suggestions as a combobox (#1082)', () => {
     const listbox = screen.getByRole('listbox');
     expect(listbox).toHaveAccessibleName('Suggestions');
     expect(listbox).not.toHaveAttribute('aria-labelledby');
+  });
+});
+
+// The input used to unmount at the limit, taking focus with it to the body.
+// It stays now, read-only (#1103).
+describe('Taginput at its tag limit (#1103)', () => {
+  it('keeps focus in the input when Enter adds the last allowed tag', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Taginput defaultValue={['React']} maxTags={2} />
+        <button type="button">After</button>
+      </>
+    );
+    const input = screen.getByRole('textbox');
+    await user.click(input);
+
+    await user.type(input, 'Vue{Enter}');
+
+    expect(screen.getByText('Vue')).toBeInTheDocument();
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('readonly');
+  });
+
+  it('takes no typing, opens no list and adds no highlighted suggestion', async () => {
+    const user = userEvent.setup();
+    const onTyping = jest.fn();
+    const onChange = jest.fn();
+    render(
+      <Taginput
+        data={frameworks}
+        defaultValue={['React']}
+        maxTags={1}
+        openOnFocus
+        keepFirst
+        onTyping={onTyping}
+        onChange={onChange}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    await user.type(input, 'vue');
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(input).toHaveValue('');
+    expect(onTyping).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('adds nothing from a paste', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    render(
+      <Taginput defaultValue={['React']} maxTags={1} onChange={onChange} />
+    );
+    const input = screen.getByRole('textbox');
+    await user.click(input);
+
+    await user.paste('Vue,Svelte');
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('');
+  });
+
+  it('lets Backspace remove the last tag, which makes room again', async () => {
+    const user = userEvent.setup();
+    const onRemove = jest.fn();
+    render(
+      <Taginput
+        defaultValue={['React', 'Vue']}
+        maxTags={2}
+        onRemove={onRemove}
+      />
+    );
+    const input = screen.getByRole('textbox');
+    await user.click(input);
+
+    await user.keyboard('{Backspace}');
+
+    expect(onRemove).toHaveBeenCalledWith('Vue', 1);
+    expect(input).toHaveFocus();
+    expect(input).not.toHaveAttribute('readonly');
+    await user.type(input, 'Svelte{Enter}');
+    expect(screen.getByText('Svelte')).toBeInTheDocument();
+  });
+
+  it('leaves Escape to whatever is around it, with no list to close', () => {
+    render(
+      <Taginput
+        data={frameworks}
+        defaultValue={['React']}
+        maxTags={1}
+        openOnFocus
+      />
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+
+    // fireEvent returns true when nothing called preventDefault().
+    expect(fireEvent.keyDown(input, { key: 'Escape' })).toBe(true);
+  });
+
+  it('describes the input by the counter', () => {
+    render(<Taginput defaultValue={['React', 'Vue']} maxTags={2} />);
+    expect(screen.getByRole('textbox')).toHaveAccessibleDescription('2 / 2');
+  });
+
+  it('gives the input no description without a counter', () => {
+    render(<Taginput maxTags={2} hasCounter={false} />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-describedby');
   });
 });
 

@@ -62,7 +62,7 @@ export interface TaginputProps
     Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange' | 'defaultValue'>,
     Omit<BulmaClassesProps, 'color'>,
     FormFieldProps {
-  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Not wired when the tag limit is reached (the input is not rendered). Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback too. With `data`, the label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
+  /** Field label. Automatically associated with the text input via `htmlFor` — uses your `id` when provided, otherwise a generated one. Dropped inside an outer `Field`, whose own label associates instead when that `Field` generates a target id (not `grouped`/`hasAddons`, no explicit `labelProps.htmlFor`) and you set no `id` here; it then replaces the `aria-label="Add tag"` fallback too. With `data`, the label naming the input also names the open suggestion list, through `aria-labelledby`, when it has an id: this label always does, and an outer `Field`'s does unless you wired it by hand without an `id` in its `labelProps`. Otherwise the list is named "Suggestions". */
   label?: React.ReactNode;
   /** Props for the label element. An explicit `htmlFor` here overrides the automatic association (no id is generated then). With `data`, while the label names the input, the suggestion list's `aria-labelledby` points at it, through an `id` here when you give one and a generated one otherwise. */
   labelProps?: React.LabelHTMLAttributes<HTMLLabelElement> & {
@@ -100,9 +100,11 @@ export interface TaginputProps
   /** Attach tags visually. */
   attached?: boolean;
   /**
-   * Maximum number of tags allowed. At the limit the text input isn't
-   * rendered, and neither is the suggestion list, so the field takes no more
-   * tags until one is removed.
+   * Maximum number of tags allowed. At the limit the text input stays but
+   * turns read-only, so focus stays put and the label still names it. It
+   * takes no more tags and the suggestion list stays closed. Backspace (with
+   * `removeOnKeys`) or a tag's remove button makes room again. While the
+   * counter shows, it describes the input.
    */
   maxTags?: number;
   /** Maximum length of input. */
@@ -292,7 +294,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const [inputValue, setInputValue] = useState('');
     const [isActive, setIsActive] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const listboxId = `${useId()}-listbox`;
+    const baseId = useId();
+    const listboxId = `${baseId}-listbox`;
+    const counterId = `${baseId}-counter`;
 
     // With `data` the input offers suggestions, so it's a combobox, even
     // while none match. Without it there's never a list, so it stays a plain
@@ -304,10 +308,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
     const tags = controlledValue !== undefined ? controlledValue : internalTags;
 
     const isMaxReached = maxTags !== undefined && tags.length >= maxTags;
-    // At the tag limit the text input is not rendered, so there is nothing to
-    // wire a label to, its own or a surrounding Field's. The suggestion list
-    // points `aria-labelledby` at the label that names the input, so with
-    // suggestions it needs that label's id.
+    // The suggestion list points `aria-labelledby` at the label that names
+    // the input, so with suggestions it needs that label's id.
     const {
       controlId,
       fieldLabelProps,
@@ -317,8 +319,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       label,
       id,
       labelProps,
-      rendersLabel: ownField && !isMaxReached,
-      hasInput: !isMaxReached,
+      rendersLabel: ownField,
       needsLabelId: hasSuggestions,
     });
 
@@ -340,9 +341,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       const hasInput = inputValue || (openOnFocus && isActive);
       return matchesInput && notAlreadyAdded && hasInput;
     });
-    // At the tag limit the input isn't rendered, so the list isn't either.
-    // Left open it would be a listbox with no combobox, offering tags past
-    // the limit (#1087).
+    // At the tag limit the list stays closed, since it could only offer tags
+    // past the limit (#1087).
     const listOpen = isActive && !isMaxReached && filteredData.length > 0;
 
     // keepFirst: auto-highlight first item when dropdown opens
@@ -374,7 +374,8 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         let next = tags;
         const added: TaginputTag[] = [];
         for (const value of values) {
-          // A paste can bring more tags than there's room for.
+          // A paste can bring more tags than there's room for, and at the
+          // limit the read-only input still takes Enter.
           if (maxTags !== undefined && next.length >= maxTags) break;
 
           const displayValue = value.trim();
@@ -565,7 +566,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           case 'Escape':
             // Closing the suggestions claims the key, so a Modal around the
             // field stays open. With none showing, the key goes on to it.
-            if (isActive && filteredData.length > 0) e.preventDefault();
+            if (listOpen) e.preventDefault();
             setIsActive(false);
             setHighlightedIndex(-1);
             break;
@@ -580,6 +581,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         addTags,
         inputValue,
         isActive,
+        listOpen,
         data.length,
         removeOnKeys,
         tags.length,
@@ -724,29 +726,33 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                 </span>
               );
             })}
-            {!isMaxReached && (
-              <input
-                ref={combinedRef}
-                type="text"
-                className={inputClasses}
-                id={controlId}
-                value={inputValue}
-                placeholder={tags.length === 0 ? placeholder : undefined}
-                disabled={disabled}
-                readOnly={readonly}
-                maxLength={maxlength}
-                onChange={handleInputChange}
-                onFocus={handleFocus}
-                onKeyDown={handleKeyDown}
-                onPaste={handlePaste}
-                {...(hasSuggestions && comboboxProps)}
-                // Fallback name, dropped only when a rendered label actually
-                // targets this input, its own or a surrounding Field's
-                // (aria-label would win otherwise). A label pointing elsewhere
-                // keeps the fallback so the input is never nameless.
-                aria-label={labelled ? undefined : 'Add tag'}
-              />
-            )}
+            <input
+              ref={combinedRef}
+              type="text"
+              className={inputClasses}
+              id={controlId}
+              value={inputValue}
+              placeholder={tags.length === 0 ? placeholder : undefined}
+              disabled={disabled}
+              // Read-only at the tag limit rather than gone, so focus stays
+              // put and a label keeps naming it, and Backspace still makes
+              // room (#1103).
+              readOnly={readonly || isMaxReached}
+              maxLength={maxlength}
+              onChange={handleInputChange}
+              onFocus={handleFocus}
+              onKeyDown={handleKeyDown}
+              onPaste={handlePaste}
+              {...(hasSuggestions && comboboxProps)}
+              // Fallback name, dropped only when a rendered label actually
+              // targets this input, its own or a surrounding Field's
+              // (aria-label would win otherwise). A label pointing elsewhere
+              // keeps the fallback so the input is never nameless.
+              aria-label={labelled ? undefined : 'Add tag'}
+              // The counter, while it shows, describes the input, so at the
+              // limit it says why the field takes no more.
+              aria-describedby={showCounter ? counterId : undefined}
+            />
           </div>
           {loading && (
             <span className={iconRightClass}>
@@ -784,7 +790,11 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           </div>
         )}
 
-        {showCounter && <small className={counterClasses}>{counterText}</small>}
+        {showCounter && (
+          <small id={counterId} className={counterClasses}>
+            {counterText}
+          </small>
+        )}
 
         {name &&
           tags.map((tag, i) => (

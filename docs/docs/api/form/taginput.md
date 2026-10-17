@@ -205,7 +205,7 @@ Tag inputs in different sizes.
 
 ### Maximum Tags
 
-Limit the number of tags allowed.
+Limit the number of tags allowed. At the limit the text input stays but turns read-only, so focus stays in the field. Typing and pasting add nothing, and Backspace removes the last tag to make room again, as a tag's remove button does.
 
 ```tsx live
 import type { TaginputTag } from '@allxsmith/bestax-bulma';
@@ -485,7 +485,8 @@ function TaginputFormDemo() {
 
 - The `label` prop is automatically associated with the inner text input (`htmlFor` plus a generated `id`, or your own `id` if you pass one). While the label is wired it also names the input; without one, the input falls back to `aria-label="Add tag"`. Inside a labeled `Field`, that `Field`'s label names the input the same way and replaces the fallback.
 - A user-supplied `id` is applied to the inner input (the labellable control), not the wrapper div.
-- When `maxTags` is reached the text input is not rendered, so the label renders without a `for` attribute. The suggestion list closes along with it, so no listbox is left behind without its combobox.
+- When `maxTags` is reached the text input turns read-only rather than going away, so keyboard focus stays where it was and the label keeps naming the input. The suggestion list stays closed.
+- While the counter shows, it describes the input through `aria-describedby`, so a screen reader hears the count, like "3 / 3" at the limit.
 - Tags are keyboard navigable
 - Delete buttons have proper `aria-label`
 - With `data`, the input is a `role="combobox"` with `aria-autocomplete="list"` and `aria-haspopup="listbox"`. Its `aria-expanded` is true only while the suggestion list is on screen, and while it is, `aria-controls` points at the list. While no suggestion matches there's no list, so it stays false. Without `data` there's never a list, so the input stays a plain text field
