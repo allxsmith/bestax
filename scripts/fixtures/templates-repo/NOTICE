@@ -1,0 +1,7 @@
+A fixture for scripts/templates.test.mjs, shaped like the root NOTICE.
+
+Templates
+
+The projects in templates/ are free Bulma templates, rebuilt with bestax components.
+
+templates/example is a port of bulma-example-template by Example Author (https://github.com/example/bulma-example-template), licensed under the MIT license.
