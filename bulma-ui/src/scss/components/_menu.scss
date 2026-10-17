@@ -1,10 +1,16 @@
 // Bestax Extras - Menu Styles
 // Bulma draws a menu's active item with a fill and a text color and nothing
 // else, and forced colors (Windows' contrast themes) replaces both, so the
-// active item looks like every other item there. This hands it the system's
-// own selection pair instead, which the user's theme picks, so it stands out
-// in a light contrast theme and a dark one alike. Outside forced colors it
-// changes nothing.
+// active item looks like every other item there. This marks it with a bar in
+// the system's Highlight color along its start edge instead. Outside forced
+// colors it changes nothing.
+//
+// It's a border, like the other partials' forced-colors rules, so the
+// browser keeps adjusting everything else: the item's text, and an icon or a
+// tag inside it, stay in the user's palette. A Highlight fill would need
+// `forced-color-adjust: none` to keep its text readable, and that reaches the
+// whole subtree, leaving a colored icon or tag in its author colors on the
+// fill. The bar also leaves the focus ring alone, which an outline wouldn't.
 //
 // It reads the classes Bulma highlights, on the elements Bulma styles as
 // items, so a hand-written `.is-active` link gets it too.
@@ -18,14 +24,7 @@
     .#{iv.$class-prefix}menu-item {
       &.#{iv.$class-prefix}is-active,
       &.#{iv.$class-prefix}is-selected {
-        // Left on, the browser paints its text backplate in Canvas behind
-        // the item's text, and HighlightText on Canvas can't be read.
-        forced-color-adjust: none;
-        background-color: Highlight;
-        color: HighlightText;
-        // Turned off, it no longer picks the focus ring's color either, and
-        // Bulma's would show, so the ring takes the theme's text color.
-        outline-color: CanvasText;
+        border-inline-start: 0.25em solid Highlight;
       }
     }
   }

@@ -1,6 +1,6 @@
 // Bulma draws a menu's active item with a fill and a text color only, and
-// forced colors replaces both, so `_menu.scss` gives it the system's
-// selection pair there (#1094). jsdom evaluates no media query and never
+// forced colors replaces both, so `_menu.scss` marks it with a bar in the
+// system's Highlight color there (#1094). jsdom evaluates no media query and never
 // loads the partial on its own, so these compile it, with no prefix and
 // under one, read its rules off the sheet, and check their selectors land on
 // the elements Menu.Item renders.
@@ -67,7 +67,7 @@ describe.each([
     ]);
   });
 
-  it('gives an active or selected item the system selection pair', () => {
+  it('marks an active or selected item with a Highlight bar', () => {
     const [{ rule }] = allRulesOf(compile(prefix));
     expect(rule.selectorText.split(/,\s*/)).toEqual(
       ['a', 'button', `.${prefix}menu-item`].flatMap(item =>
@@ -82,14 +82,14 @@ describe.each([
         (_, i) =>
           `${rule.style[i]}: ${rule.style.getPropertyValue(rule.style[i])}`
       )
-    ).toEqual([
-      // Without it the browser's text backplate, in Canvas, sits behind
-      // HighlightText and the label can't be read.
-      'forced-color-adjust: none',
-      'background-color: Highlight',
-      'color: HighlightText',
-      'outline-color: CanvasText',
-    ]);
+    ).toEqual(['border-inline-start: 0.25em solid Highlight']);
+  });
+
+  it('leaves forced colors adjusting the item and everything inside it', () => {
+    // `forced-color-adjust: none` is inherited, so on the item it would
+    // leave a colored icon or tag in the label in its author colors. The
+    // bar needs no opt-out: forced colors keeps a system color on a border.
+    expect(compile(prefix)).not.toMatch(/forced-color-adjust/);
   });
 
   it('matches what Menu.Item renders when active, and nothing else', () => {
