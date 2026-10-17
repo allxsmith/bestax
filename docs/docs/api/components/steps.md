@@ -241,6 +241,29 @@ function example() {
 
 ---
 
+### Right-to-Left
+
+In a right-to-left page the steps run from the right, and the lines and the label gaps follow them. `labelPosition="right"` and `"left"` mean the end and the start of the line, so in this vertical example each label sits to the left of its marker.
+
+```tsx live
+<div dir="rtl" lang="ar">
+  <Steps
+    value={1}
+    color="primary"
+    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}
+  />
+  <Steps
+    value={1}
+    vertical
+    labelPosition="right"
+    color="primary"
+    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}
+  />
+</div>
+```
+
+---
+
 ### Compound (dot-notation) usage
 
 `Step` is also available as `Steps.Step`, so steps can be declared as children from the single `Steps` import — an alternative to the `items` prop.

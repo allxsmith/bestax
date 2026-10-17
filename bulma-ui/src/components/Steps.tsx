@@ -53,7 +53,11 @@ export interface StepsProps
   rounded?: boolean;
   /** Vertical layout. */
   vertical?: boolean;
-  /** Position of labels. */
+  /**
+   * Position of labels. `right` and `left` mean the end and the start of the
+   * line, so in a right-to-left page `right` puts each label to the left of
+   * its marker, and `left` to the right.
+   */
   labelPosition?: 'bottom' | 'right' | 'left';
   /** Mobile display mode. */
   mobileMode?: 'minimal' | 'compact' | 'right';

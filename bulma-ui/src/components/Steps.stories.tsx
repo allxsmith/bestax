@@ -817,6 +817,48 @@ export const VerticalLabelsBottom: Story = {
 };
 
 /**
+ * Both layouts in a right-to-left page. The steps run from the right, and each
+ * line joins its marker to the next one. `labelPosition="right"` means the end
+ * of the line, so here it puts each label to the left of its marker.
+ */
+export const RightToLeft: Story = {
+  render: function RightToLeftStory() {
+    const [step, setStep] = useState(1);
+    const items = [
+      { label: 'الحساب', clickable: true },
+      { label: 'الملف الشخصي', clickable: true },
+      { label: 'الإعدادات', clickable: true },
+      { label: 'تم', clickable: true },
+    ];
+
+    return (
+      <div dir="rtl" lang="ar">
+        <Block>
+          <Title size="6">أفقي</Title>
+          <Steps
+            value={step}
+            onStepClick={setStep}
+            color="primary"
+            items={items}
+          />
+        </Block>
+        <Block>
+          <Title size="6">عمودي</Title>
+          <Steps
+            value={step}
+            onStepClick={setStep}
+            vertical
+            labelPosition="right"
+            color="primary"
+            items={items}
+          />
+        </Block>
+      </div>
+    );
+  },
+};
+
+/**
  * Minimal and compact mobile modes (resize browser to see effect).
  */
 export const MobileMode: Story = {

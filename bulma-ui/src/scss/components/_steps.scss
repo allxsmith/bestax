@@ -66,15 +66,15 @@ $steps-navigation-margin-top: 1rem !default;
 
     &:not(:last-child)::before {
       top: calc(#{$marker-size} - cv.getVar("steps-divider-height") / 2);
-      left: calc(50% + #{$marker-size} / 2);
-      right: calc(-50% + #{$marker-size} / 2);
+      inset-inline-start: calc(50% + #{$marker-size} / 2);
+      inset-inline-end: calc(-50% + #{$marker-size} / 2);
     }
   }
 
   &.#{iv.$class-prefix}is-vertical .#{iv.$class-prefix}steps-segment {
     &:not(:last-child)::after {
       top: $marker-size;
-      left: calc(#{$marker-size} / 2 - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: calc(#{$marker-size} / 2 - cv.getVar("steps-divider-height") / 2);
     }
   }
 }
@@ -99,13 +99,15 @@ $steps-navigation-margin-top: 1rem !default;
         position: relative;
         padding-top: calc(cv.getVar("steps-marker-size") / 2);
 
-        // Horizontal divider line — centered through marker
+        // Horizontal divider line, centered through the marker. It runs from
+        // this marker's edge to the next one's, which is on the left in a
+        // right-to-left page, so it is placed by the inline start and end.
         &:not(:last-child)::before {
           content: '';
           position: absolute;
           top: calc(cv.getVar("steps-marker-size") - cv.getVar("steps-divider-height") / 2);
-          left: calc(50% + cv.getVar("steps-marker-size") / 2);
-          right: calc(-50% + cv.getVar("steps-marker-size") / 2);
+          inset-inline-start: calc(50% + cv.getVar("steps-marker-size") / 2);
+          inset-inline-end: calc(-50% + cv.getVar("steps-marker-size") / 2);
           height: cv.getVar("steps-divider-height");
           background-color: cv.getVar("steps-default-color");
           @include extras-transition(background-color);
@@ -298,7 +300,7 @@ $steps-navigation-margin-top: 1rem !default;
   flex-direction: column;
 
   .#{iv.$class-prefix}steps-segment {
-    text-align: left;
+    text-align: start;
     padding: 0 0 cv.getVar("steps-vertical-padding") 0;
     position: relative;
 
@@ -307,7 +309,7 @@ $steps-navigation-margin-top: 1rem !default;
       content: '';
       position: absolute;
       top: cv.getVar("steps-marker-size");
-      left: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
       width: cv.getVar("steps-divider-height");
       bottom: 0;
       background-color: cv.getVar("steps-default-color");
@@ -330,10 +332,13 @@ $steps-navigation-margin-top: 1rem !default;
     flex-shrink: 0;
   }
 
+  // The gap sits on the label's start side, between it and the marker, so it
+  // moves to the right in a right-to-left page. The variable keeps its
+  // `-left` name, so a theme that sets it still applies.
   .#{iv.$class-prefix}steps-content {
     margin-top: 0;
-    margin-left: cv.getVar("steps-vertical-content-margin-left");
-    text-align: left;
+    margin-inline-start: cv.getVar("steps-vertical-content-margin-left");
+    text-align: start;
     padding-top: 0.25rem;
   }
 }
@@ -341,6 +346,8 @@ $steps-navigation-margin-top: 1rem !default;
 // Label on right / left (horizontal only)
 // The marker stays centered at 50%. The label is absolutely positioned right
 // next to the marker with a background-color + z-index to cover the connector line.
+// "right" is the end of the line and "left" its start, so both follow the
+// page's direction, the way the vertical layout's flex row does.
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-right:not(.#{iv.$class-prefix}is-vertical),
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left:not(.#{iv.$class-prefix}is-vertical) {
   .#{iv.$class-prefix}steps-link {
@@ -361,19 +368,19 @@ $steps-navigation-margin-top: 1rem !default;
 
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-right:not(.#{iv.$class-prefix}is-vertical) {
   .#{iv.$class-prefix}steps-content {
-    left: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
-    text-align: left;
+    inset-inline-start: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
+    text-align: start;
   }
 }
 
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left:not(.#{iv.$class-prefix}is-vertical) {
   .#{iv.$class-prefix}steps-content {
-    right: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
-    text-align: right;
+    inset-inline-end: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
+    text-align: end;
   }
 }
 
-// Vertical + label-left: marker on right, label on left, divider on right
+// Vertical + label-left: label at the start, marker and divider at the end
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left.#{iv.$class-prefix}is-vertical {
   .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical {
     .#{iv.$class-prefix}steps-link {
@@ -381,14 +388,14 @@ $steps-navigation-margin-top: 1rem !default;
     }
 
     .#{iv.$class-prefix}steps-content {
-      margin-left: 0;
-      margin-right: cv.getVar("steps-vertical-content-margin-left");
-      text-align: right;
+      margin-inline-start: 0;
+      margin-inline-end: cv.getVar("steps-vertical-content-margin-left");
+      text-align: end;
     }
 
     .#{iv.$class-prefix}steps-segment:not(:last-child)::after {
-      left: auto;
-      right: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: auto;
+      inset-inline-end: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
     }
   }
 }
@@ -408,7 +415,7 @@ $steps-navigation-margin-top: 1rem !default;
     }
 
     .#{iv.$class-prefix}steps-content {
-      margin-left: 0;
+      margin-inline-start: 0;
       margin-top: cv.getVar("steps-content-margin-top");
       text-align: center;
       background-color: cv.getVar("scheme-main");
@@ -418,7 +425,7 @@ $steps-navigation-margin-top: 1rem !default;
     }
 
     .#{iv.$class-prefix}steps-segment:not(:last-child)::after {
-      left: calc(50% - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: calc(50% - cv.getVar("steps-divider-height") / 2);
     }
   }
 }
