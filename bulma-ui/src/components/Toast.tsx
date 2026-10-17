@@ -142,15 +142,21 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       handleClose();
     }, [onAction, handleClose]);
 
+    // Read when the timer runs out, a click lands outside or Escape arrives,
+    // so the timer and the listeners stay put while `onClose` changes
+    // identity, as an inline one does on every render of the parent. An
+    // inline one from `ToastContainer` changes whenever another toast shows.
+    const handleCloseRef = useLatestRef(handleClose);
+
     useEffect(() => {
       if (indefinite || duration === 0 || isPaused) return undefined;
 
       const timer = setTimeout(() => {
-        handleClose();
+        handleCloseRef.current();
       }, duration);
 
       return () => clearTimeout(timer);
-    }, [duration, indefinite, isPaused, handleClose]);
+    }, [duration, indefinite, isPaused, handleCloseRef]);
 
     const handleMouseEnter = useCallback(() => {
       if (pauseOnHover) {
@@ -171,7 +177,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
       const handleDocumentClick = (e: MouseEvent) => {
         if (toastRef.current && !isEventInside(e, toastRef.current)) {
-          handleClose();
+          handleCloseRef.current();
         }
       };
 
@@ -183,12 +189,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         cancelAnimationFrame(raf);
         document.removeEventListener('click', handleDocumentClick);
       };
-    }, [dismissible, isVisible, handleClose]);
-
-    // Read when Escape arrives, so the key listener stays put while
-    // `onClose` changes identity, as an inline one does on every render of
-    // the parent.
-    const handleCloseRef = useLatestRef(handleClose);
+    }, [dismissible, isVisible, handleCloseRef]);
 
     // A toast is a notification rather than a layer, so it never joins the
     // stack of open overlays. Asking the stack tells it whether one is open:
