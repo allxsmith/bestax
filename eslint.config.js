@@ -66,6 +66,13 @@ export default [
     },
     rules: {
       ...reactHooksPlugin.configs['recommended-latest'].rules,
+      // bulma-ui's useClientLayoutEffect is useLayoutEffect in the browser,
+      // so its dependencies get the same check. set-state-in-effect can't be
+      // taught it: that rule only counts React's own effect hooks.
+      'react-hooks/exhaustive-deps': [
+        'warn',
+        { additionalHooks: '(useClientLayoutEffect)' },
+      ],
     },
   },
 
