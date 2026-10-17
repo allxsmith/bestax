@@ -73,8 +73,9 @@ export interface CheckboxProps
    * still the value, and a click still toggles `checked`. A browser clears
    * the mixed state on a click, so the component sets it again from this
    * prop after every click and every render. Left unset, the component
-   * doesn't touch it. It has no HTML attribute, so server-rendered markup
-   * can't carry it, and a mixed box renders unmixed until hydration.
+   * doesn't touch it, and once it has set it, going back to unset clears it
+   * once and hands it back. It has no HTML attribute, so server-rendered
+   * markup can't carry it, and a mixed box renders unmixed until hydration.
    */
   indeterminate?: boolean;
   /** Additional CSS classes to apply. */
@@ -141,10 +142,17 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     // `indeterminate` is a DOM property with no attribute, so it's set on the
     // input rather than rendered. A click clears it, so this runs after every
     // render, not only when the prop changes. Unset, it's left alone, so a
-    // ref that sets the property itself still works.
+    // ref that sets the property itself still works. `ownsIndeterminateRef`
+    // remembers that this component set it, so a prop that goes back to unset
+    // clears the dash once instead of leaving it on.
+    const ownsIndeterminateRef = useRef(false);
     useClientLayoutEffect(() => {
       if (indeterminate !== undefined) {
+        ownsIndeterminateRef.current = true;
         inputRef.current!.indeterminate = indeterminate;
+      } else if (ownsIndeterminateRef.current) {
+        ownsIndeterminateRef.current = false;
+        inputRef.current!.indeterminate = false;
       }
     });
 
