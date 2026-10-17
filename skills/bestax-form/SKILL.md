@@ -90,7 +90,7 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 | `Switch`                                                | Toggle switch (`isRounded`, `isThin`, `isOutlined`, RTL).                 |
 | `File`                                                  | File upload input with label/message.                                     |
 | `Autocomplete`                                          | Free text with suggestions it filters for you, + keyboard nav.            |
-| `Combobox`                                              | A value from a list you filter: select, server search, multi, groups.     |
+| `Combobox`                                              | A value from a list: `data` for a select, tags or groups, or parts.       |
 | `Slider`                                                | Range slider; single/dual thumbs, steps, tooltips, vertical.              |
 | `Numberinput`                                           | Numeric input with increment/decrement, min/max, step, stepper.           |
 | `Rate`                                                  | Star rating; `max`, `precision` (half/quarter), custom icons, `disabled`. |
@@ -102,10 +102,12 @@ All import from `@allxsmith/bestax-bulma`. Convenience components auto-wrap Fiel
 same components; prefer the lowercase-second-word spellings.)
 
 **Autocomplete or Combobox?** A field whose text is the value, with suggestions to help type it,
-is `Autocomplete`, which filters its `data` itself. A value picked from a list is `Combobox`: a
-searchable select, a server search whose answer must show unfiltered, several values, grouped
-options or a "Create" row. Combobox keeps no value and never sets the field's text, so you filter
-the options, keep the value and set the text in `onOptionSubmit`.
+is `Autocomplete`, which filters its `data` itself. A value picked from a list is `Combobox`. Given
+`data`, it filters by label, keeps the value (`value`/`onChange`) and shows the picks as tags with
+`multiple`, so a searchable select, a multi-select or a grouped list is one element. Build it from
+parts for a server search whose answer must show unfiltered, or a "Create" item: then it keeps no
+value and never sets the field's text, so you filter the items, keep the value and set the text in
+`onSelect`.
 
 ## Common props
 
@@ -137,8 +139,8 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 `DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
 `htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`); an
 explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
-them to `Combobox.Input`: put an `id` on that, since one on the `Combobox` lands on its wrapper
-`div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
+them to its field: built from parts, put an `id` on `Combobox.Input`, since one on the `Combobox`
+lands on its wrapper `div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
 `role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
 convenience input drops its `label`, and an `inline` date/time picker or a `Taginput` at `maxTags`
 has no visible input to wire.

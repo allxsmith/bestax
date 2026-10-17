@@ -210,34 +210,58 @@ const [city, setCity] = useState('');
   openOnFocus
 />;
 
-// Combobox: a value from a list. You filter, keep the value and set the
-// text, and a pick calls onOptionSubmit with the option's value.
-const countries = ['Canada', 'France', 'Japan'];
+// Combobox: a value from a list. Given data, it filters by label, keeps the
+// value and shows its label in the field.
 const [country, setCountry] = useState<string | null>(null);
+<Combobox
+  label="Country"
+  data={['Canada', 'France', 'Japan']}
+  value={country}
+  onChange={setCountry}
+  empty="No countries match"
+/>;
+
+// Several values, shown as tags under the field; groups come from `group`.
+const [labels, setLabels] = useState<string[]>([]);
+<Combobox
+  label="Labels"
+  multiple
+  data={[
+    { value: 'bug', label: 'Bug', group: 'Type' },
+    { value: 'docs', label: 'Docs', group: 'Area' },
+  ]}
+  value={labels}
+  onChange={setLabels}
+/>;
+
+// From parts, when data doesn't fit (a server search, a "Create" item): you
+// filter, keep the value and set the text, and a pick calls onSelect.
+const countries = ['Canada', 'France', 'Japan'];
+const [choice, setChoice] = useState<string | null>(null);
 const [query, setQuery] = useState('');
-const term = query === country ? '' : query.trim().toLowerCase();
+const term = query === choice ? '' : query.trim().toLowerCase();
 const matches = countries.filter(c => c.toLowerCase().includes(term));
 <Combobox
   label="Country"
-  onOptionSubmit={picked => {
-    setCountry(picked);
+  onSelect={picked => {
+    setChoice(picked);
     setQuery(picked);
   }}
 >
   <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
-  <Combobox.Dropdown>
+  <Combobox.Menu>
     {matches.length > 0 ? (
-      <Combobox.Options>
+      <Combobox.List>
         {matches.map(c => (
-          <Combobox.Option key={c} value={c} checked={c === country}>
+          <Combobox.Item key={c} value={c} checked={c === choice}>
             {c}
-          </Combobox.Option>
+          </Combobox.Item>
         ))}
-      </Combobox.Options>
+      </Combobox.List>
     ) : (
       <Combobox.Empty>No countries match</Combobox.Empty>
     )}
-  </Combobox.Dropdown>
+  </Combobox.Menu>
 </Combobox>;
 
 // Slider (single and dual thumb)

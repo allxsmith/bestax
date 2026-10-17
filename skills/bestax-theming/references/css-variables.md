@@ -260,29 +260,27 @@ list it, so set it in your CSS or through a `style` prop.)
 
 ### Combobox
 
-Declared on the root, `.combobox`, and again on a dropdown rendered with `appendToBody`,
-`.combobox-dropdown.is-portal`, outside the root. A dropdown in place inherits the root's, so a
-value set on `.combobox` reaches it; for a portaled one, set it on `.combobox-dropdown.is-portal` as
-well, where they're declared. A lone `.combobox-dropdown` loses to that on specificity, and
-`.combobox-dropdown.is-portal` ties, so your rule wins only when it loads after the library styles.
-Each size class (`.is-small`, `.is-medium`, `.is-large`, on the root and on the dropdown) sets the
-option size and padding, so retune a size on that class. The highlight is the link color and its
-invert, the pair Bulma gives an active dropdown item, and the colors come from Bulma's tokens, so
-the list follows dark mode with no override. The panel reads these rather than Bulma's
-`--bulma-dropdown-*`, which Bulma declares on `.dropdown` alone.
+Declared on the root, `.combobox`, and again on a menu rendered with `appendToBody`,
+`.combobox-menu.is-portal`, outside the root. A menu in place inherits the root's, so a value set on
+`.combobox` reaches it; for a portaled one, set it on `.combobox-menu.is-portal` as well, where
+they're declared. A lone `.combobox-menu` loses to that on specificity, and
+`.combobox-menu.is-portal` ties, so your rule wins only when it loads after the library styles. Each
+size class (`.is-small`, `.is-medium`, `.is-large`, on the root and on the menu) sets the item size
+and padding, so retune a size on that class. The highlight is the link color and its invert, the
+pair Bulma gives an active dropdown item, and the colors come from Bulma's tokens, so the list
+follows dark mode with no override. The menu reads these rather than Bulma's `--bulma-dropdown-*`,
+which Bulma declares on `.dropdown` alone.
 
 `--bulma-combobox-check-color`, `--bulma-combobox-check-gap`, `--bulma-combobox-check-size`,
-`--bulma-combobox-disabled-color`, `--bulma-combobox-divider-color`,
-`--bulma-combobox-dropdown-background`, `--bulma-combobox-dropdown-border-color`,
-`--bulma-combobox-dropdown-offset`, `--bulma-combobox-dropdown-padding-y`,
-`--bulma-combobox-dropdown-radius`, `--bulma-combobox-dropdown-shadow`,
-`--bulma-combobox-dropdown-z-index`, `--bulma-combobox-empty-color`,
+`--bulma-combobox-disabled-color`, `--bulma-combobox-divider-color`, `--bulma-combobox-empty-color`,
 `--bulma-combobox-group-label-color`, `--bulma-combobox-group-label-size`,
 `--bulma-combobox-group-label-weight`, `--bulma-combobox-highlight-background`,
-`--bulma-combobox-highlight-color`, `--bulma-combobox-list-max-height`,
-`--bulma-combobox-option-color`, `--bulma-combobox-option-hover-background`,
-`--bulma-combobox-option-padding-x`, `--bulma-combobox-option-padding-y`,
-`--bulma-combobox-option-size`, `--bulma-combobox-portal-z-index`
+`--bulma-combobox-highlight-color`, `--bulma-combobox-item-color`,
+`--bulma-combobox-item-hover-background`, `--bulma-combobox-item-padding-x`,
+`--bulma-combobox-item-padding-y`, `--bulma-combobox-item-size`, `--bulma-combobox-list-max-height`,
+`--bulma-combobox-menu-background`, `--bulma-combobox-menu-border-color`,
+`--bulma-combobox-menu-offset`, `--bulma-combobox-menu-padding-y`, `--bulma-combobox-menu-radius`,
+`--bulma-combobox-menu-shadow`, `--bulma-combobox-menu-z-index`, `--bulma-combobox-portal-z-index`
 
 ### ContextMenu
 
