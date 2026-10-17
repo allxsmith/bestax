@@ -24,8 +24,21 @@
  *   template's own LICENSE has to carry.
  * - `tags`: keys of `Tags`.
  *
- * Plain data with no imports, since the test reads this file as it is.
+ * No imports, since scripts/templates.test.mjs and
+ * scripts/gen-templates-repo.mjs read this file as it is.
  */
+
+/**
+ * The repository templates/ is published to, which StackBlitz imports a
+ * template from: a small mirror, because importing from the monorepo clones
+ * all of it. scripts/gen-templates-repo.mjs writes its tree, and
+ * CONTRIBUTING.md ("The bestax-templates repository") says how it is kept.
+ */
+export const TEMPLATES_REPO = 'allxsmith/bestax-templates';
+
+/** Where a template opens: its folder in the mirror, in StackBlitz, on App.tsx. */
+export const stackblitzUrl = slug =>
+  `https://stackblitz.com/github/${TEMPLATES_REPO}/tree/main/${slug}?file=src/App.tsx`;
 
 /** The filters, in the order the page shows them. */
 export const Tags = {

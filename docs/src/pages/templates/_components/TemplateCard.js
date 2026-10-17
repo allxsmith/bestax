@@ -3,9 +3,9 @@ import clsx from 'clsx';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 import Heading from '@theme/Heading';
 import IconExternalLink from '@theme/Icon/ExternalLink';
-import { Tags, TagList } from '@site/src/data/templates';
+import { Tags, TagList, stackblitzUrl } from '@site/src/data/templates';
 import shared from '@site/src/components/ComponentComparison/styles.module.css';
-import { codeUrl, stackblitzUrl } from '../_utils';
+import { codeUrl } from '../_utils';
 import styles from './styles.module.css';
 
 /**

@@ -72,10 +72,9 @@ export function useIsFiltered() {
   return tags.length > 0 || name.trim() !== '';
 }
 
-/** Where a card opens: the template's folder in StackBlitz, on App.tsx. */
-export const stackblitzUrl = slug =>
-  `https://stackblitz.com/github/allxsmith/bestax/tree/main/templates/${slug}?file=src/App.tsx`;
-
-/** The template's folder in the repository. */
+/**
+ * The template's folder in this repository, its source. A card opens the
+ * published mirror instead (`stackblitzUrl` in src/data/templates.js).
+ */
 export const codeUrl = slug =>
   `https://github.com/allxsmith/bestax/tree/main/templates/${slug}`;
