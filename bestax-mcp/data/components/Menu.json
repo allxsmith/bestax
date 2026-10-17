@@ -158,7 +158,7 @@
           "name": "active",
           "type": "boolean",
           "default": "false",
-          "description": "Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current=\"page\"` on the element `as` renders, so assistive tech can tell which item is current too. An `aria-current` you pass wins, even `undefined`: use it to say something else (`\"location\"` for a section of one page, say), or `aria-current={false}` to turn it off.",
+          "description": "Marks the item as the current one. It adds Bulma's `is-active` class, and `aria-current=\"page\"` on the element `as` renders, so assistive tech can tell which item is current too. An `aria-current` you pass wins, even `undefined`: use it to say something else (`\"location\"` for a section of one page, say), or `aria-current={false}` to turn it off. A menu should mark one page, so when the section above the current page is `active` too, give it `aria-current=\"location\"`, and give an `active` item that isn't navigation, such as an `as=\"button\"` filter, `aria-current={false}`.",
           "required": false,
           "inherited": false,
           "deprecated": false
