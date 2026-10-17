@@ -172,7 +172,7 @@ export const HELPER_DISPLAY: Readonly<
   ])
 );
 
-interface Rule {
+export interface DisplayRule {
   readonly tag: string | undefined;
   readonly classes: readonly string[];
   readonly without: readonly string[];
@@ -182,12 +182,14 @@ interface Rule {
   readonly weight: number;
 }
 
-function rulesOf(
+/** A display table's selectors, read as the rules the lookup weighs. */
+export function rulesOf(
   table: Readonly<Record<string, BulmaDisplay | VaryingDisplay>>,
   important: boolean
-): Rule[] {
+): DisplayRule[] {
   return Object.entries(table).flatMap(([selector, entry]) => {
-    const tag = /^[a-z]+/.exec(selector)?.[0];
+    // A tag can carry digits (`h1`), so it reads whole.
+    const tag = /^[a-z][a-z0-9]*/.exec(selector)?.[0];
     const without = [...selector.matchAll(/:not\(\.([\w-]+)\)/g)].map(
       match => match[1]
     );
@@ -213,7 +215,7 @@ function rulesOf(
   });
 }
 
-const RULES: readonly Rule[] = [
+const RULES: readonly DisplayRule[] = [
   ...rulesOf(COMPONENT_DISPLAY, false),
   ...rulesOf(HELPER_DISPLAY, true),
 ];

@@ -2,22 +2,37 @@
  * The display tables answer to Bulma's own stylesheet, the copy bestax-bulma
  * depends on, in both directions: every rule an element's own tag and
  * classes decide is in a table with the display it sets, and every entry is
- * such a rule. Every rule that reaches an element some other way is named
- * here with why the tables leave it out, so a Bulma release that adds one
- * fails this until someone decides what it means for the converter.
+ * such a rule. The lookup, asked about the element each of those rules
+ * describes, answers every display the rule gives it. Every rule that
+ * reaches an element some other way is named here with why the tables leave
+ * it out, so a Bulma release that adds one fails this until someone decides
+ * what it means for the converter.
  */
 
 import {
   COMPONENT_DISPLAY,
   HELPER_DISPLAY,
+  bulmaDisplay,
 } from '../src/sources/bulma-classes/display.js';
 import {
   bulmaStylesheet,
   stylesheetRules,
 } from './support/bulma-stylesheet.js';
 
-/** One element: a tag or none, its classes, and any it must not have. */
-const ELEMENT = /^[a-z]*(?:\.[\w-]+)+(?::not\(\.[\w-]+\))*$/;
+/**
+ * One element: a tag or none, its classes, and any it must not have. A tag
+ * can carry digits (`h1`), so it reads whole, as the lookup reads it.
+ */
+const ELEMENT = /^(?:[a-z][a-z0-9]*)?(?:\.[\w-]+)+(?::not\(\.[\w-]+\))*$/;
+
+/** A tag alone. */
+const TAG = /^[a-z][a-z0-9]*$/;
+
+/**
+ * A custom element's name, which no Bulma rule names, so only a selector's
+ * classes decide which rules reach the element it describes.
+ */
+const ANY_TAG = 'x-element';
 
 /**
  * Bulma's reset gives these tags the display the browser already gives
@@ -129,7 +144,7 @@ function readStylesheet() {
         if (rule.conditional) found.media.add(declared.value);
         else found.base = declared.value;
         elements.set(key, found);
-      } else if (/^[a-z]+$/.test(selector) && !rule.conditional) {
+      } else if (TAG.test(selector) && !rule.conditional) {
         tags.set(selector, declared.value);
       } else {
         context.add(selector);
@@ -174,6 +189,23 @@ describe("the display tables answer to Bulma's stylesheet", () => {
 
   it('holds every display helper, at every viewport and at each one', () => {
     expect(HELPER_DISPLAY).toEqual(expectedTable(elements, true));
+  });
+
+  it('answers every display each of those rules gives the element it describes', () => {
+    const misses = [...elements].flatMap(([key, { base, media }]) => {
+      const selector = key.replace(/^!/, '');
+      const tag = /^[a-z][a-z0-9]*/.exec(selector)?.[0] ?? ANY_TAG;
+      const classes = [
+        ...selector.replace(/:not\([^)]*\)/g, '').matchAll(/\.([\w-]+)/g),
+      ].map(match => match[1]);
+      const answered = new Set<string | undefined>(bulmaDisplay(tag, classes));
+      // The answer can hold more than this rule gives, from the other rules
+      // the same classes reach, so it is only asked to hold all of it.
+      return [base, ...media]
+        .filter(display => display !== undefined && !answered.has(display))
+        .map(display => `${selector}: ${display}`);
+    });
+    expect(misses).toEqual([]);
   });
 
   it("restates the browser's display wherever a rule names a tag alone", () => {

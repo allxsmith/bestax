@@ -1,10 +1,11 @@
 /**
  * `bulmaDisplay` reads an element's tag and classes against the display
  * tables the way the cascade would. That the tables say what `bulma.css`
- * says is the stylesheet test's job; this holds how the lookup weighs them.
+ * says is the stylesheet test's job; this holds how the lookup reads and
+ * weighs them.
  */
 
-import { type BulmaDisplay, bulmaDisplay } from '../display.js';
+import { type BulmaDisplay, bulmaDisplay, rulesOf } from '../display.js';
 
 /** The displays an element takes, `undefined` standing for its tag's. */
 const displays = (...values: Array<BulmaDisplay | undefined>) =>
@@ -111,5 +112,30 @@ describe('bulmaDisplay', () => {
 
   it('takes any iterable of classes', () => {
     expect(bulmaDisplay('div', new Set(['box']))).toEqual(displays('block'));
+  });
+});
+
+describe('rulesOf', () => {
+  it('reads a tag whole, digits and all', () => {
+    expect(
+      rulesOf({ 'h1.title': 'block', '.title': 'inline' }, false)
+    ).toMatchObject([
+      { tag: 'h1', classes: ['title'], without: [] },
+      { tag: undefined, classes: ['title'], without: [] },
+    ]);
+  });
+
+  it('reads the classes a rule needs apart from the ones it must not have', () => {
+    expect(
+      rulesOf({ 'div.columns:not(.is-desktop)': { media: 'flex' } }, false)
+    ).toMatchObject([
+      {
+        tag: 'div',
+        classes: ['columns'],
+        without: ['is-desktop'],
+        display: 'flex',
+        media: true,
+      },
+    ]);
   });
 });
