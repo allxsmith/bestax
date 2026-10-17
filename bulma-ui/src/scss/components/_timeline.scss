@@ -29,7 +29,11 @@ $timeline-marker-size: 2em !default;
 $timeline-pending-size: 1em !default;
 $timeline-neutral-color: cv.getVar("border-hover") !default;
 $timeline-active-color: cv.getVar("link") !default;
-$timeline-marker-background: cv.getVar("background") !default;
+// The fill behind a ring, the loader and an icon, so the line doesn't show
+// through them: the page's own color.
+$timeline-marker-background: cv.getVar("scheme-main") !default;
+// An icon marker's circle in a record, and the icon in it.
+$timeline-marker-icon-background: cv.getVar("background") !default;
 $timeline-marker-icon-color: cv.getVar("text-weak") !default;
 $timeline-halo-offset: 0.1875em !default;
 $timeline-pending-duration: 1s !default;
@@ -58,6 +62,7 @@ $timeline-time-size: 0.875em !default;
       "timeline-marker-color": #{cv.getVar("timeline-neutral-color")},
       "timeline-active-color": #{$timeline-active-color},
       "timeline-marker-background": #{$timeline-marker-background},
+      "timeline-marker-icon-background": #{$timeline-marker-icon-background},
       "timeline-marker-icon-color": #{$timeline-marker-icon-color},
       "timeline-halo-offset": #{$timeline-halo-offset},
       "timeline-pending-duration": #{$timeline-pending-duration},
@@ -127,7 +132,7 @@ $timeline-time-size: 0.875em !default;
 
   // An icon in a circle, its fill over the line.
   &.#{iv.$class-prefix}is-icon {
-    background-color: cv.getVar("timeline-marker-background");
+    background-color: cv.getVar("timeline-marker-icon-background");
     border-width: cv.getVar("timeline-line-width");
     color: cv.getVar("timeline-marker-icon-color");
     height: cv.getVar("timeline-marker-size");
@@ -277,7 +282,7 @@ $timeline-time-size: 0.875em !default;
 
 // Upcoming: an empty ring, not a dot.
 .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-upcoming > .#{iv.$class-prefix}timeline-marker {
-  background-color: cv.getVar("scheme-main");
+  background-color: cv.getVar("timeline-marker-background");
   border-width: cv.getVar("timeline-line-width");
 
   &.#{iv.$class-prefix}is-icon {
@@ -289,7 +294,7 @@ $timeline-time-size: 0.875em !default;
 // are filled with it.
 .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-completed > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon,
 .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-active > .#{iv.$class-prefix}timeline-marker.#{iv.$class-prefix}is-icon {
-  background-color: color-mix(in srgb, #{cv.getVar("timeline-active-color")} 15%, #{cv.getVar("scheme-main")});
+  background-color: color-mix(in srgb, #{cv.getVar("timeline-active-color")} 15%, #{cv.getVar("timeline-marker-background")});
   color: cv.getVar("timeline-active-color");
 }
 
@@ -304,7 +309,7 @@ $timeline-time-size: 0.875em !default;
 // still.
 .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
   animation: spinAround cv.getVar("timeline-pending-duration") infinite linear;
-  background-color: cv.getVar("scheme-main");
+  background-color: cv.getVar("timeline-marker-background");
   border-inline-end-color: transparent;
   border-top-color: transparent;
   border-width: cv.getVar("timeline-line-width");
@@ -339,7 +344,7 @@ $timeline-time-size: 0.875em !default;
       (
         "timeline-marker-color": #{cv.getVar($name)},
         "timeline-active-color": #{cv.getVar($name)},
-        "timeline-marker-background":
+        "timeline-marker-icon-background":
           hsl(
             #{cv.getVar($name, "", "-h")},
             #{cv.getVar($name, "", "-s")},

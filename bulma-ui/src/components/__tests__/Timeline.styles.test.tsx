@@ -82,6 +82,37 @@ function declarations(css: string, selector: string) {
   return out;
 }
 
+/**
+ * A simple selector's specificity as one comparable number: classes,
+ * attributes and pseudo-classes in the tens, elements in the ones. Enough for
+ * the selectors here, none of which has an id.
+ */
+function specificity(selector: string) {
+  const classes = (selector.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+/g) ?? [])
+    .length;
+  const elements = (selector.match(/(^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
+  return classes * 10 + elements;
+}
+
+/**
+ * The value `el` gets for `property` from the top-level rules in `css`: the
+ * most specific matching selector wins, and the later rule on a tie. jsdom
+ * resolves no specificity, so this does it for the rules that set `property`.
+ */
+function winning(css: string, el: Element, property: string) {
+  let best = { score: -1, value: '' };
+  for (const { rule, within } of allRulesOf(css)) {
+    const value = rule.style.getPropertyValue(property);
+    if (within.length > 0 || !value) continue;
+    for (const selector of rule.selectorText.split(/\s*,\s*/)) {
+      if (el.matches(selector) && specificity(selector) >= best.score) {
+        best = { score: specificity(selector), value: value.trim() };
+      }
+    }
+  }
+  return best.value;
+}
+
 let removeSheet = () => {};
 afterEach(() => removeSheet());
 
@@ -242,6 +273,50 @@ describe.each([
     expect(ring['border-top-color']).toBe('transparent');
     expect(ring['border-inline-end-color']).toBe('transparent');
     expect(ring['border-width']).toBe('var(--bulma-timeline-line-width)');
+  });
+
+  it('fills the rings, the loader and a reached icon from --bulma-timeline-marker-background', () => {
+    // So setting the variable on the timeline changes all three, and a
+    // record's icon circle keeps its own variable, which the colors set.
+    const css = compile(prefix);
+    expect(declarations(css, p('timeline'))).toMatchObject({
+      '--bulma-timeline-marker-background': 'var(--bulma-scheme-main)',
+      '--bulma-timeline-marker-icon-background': 'var(--bulma-background)',
+    });
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Timeline active={1} pending="Out for delivery">
+          <Timeline.Item title="Order placed" icon="box" />
+          <Timeline.Item title="Shipped" />
+          <Timeline.Item title="Delivered" />
+        </Timeline>
+      </ConfigProvider>
+    );
+    const marker = (state: string) =>
+      container.querySelector(
+        `${p('timeline-item')}${p(state)} > ${p('timeline-marker')}`
+      ) as Element;
+    const fill = 'var(--bulma-timeline-marker-background)';
+    expect(winning(css, marker('is-upcoming'), 'background-color')).toBe(fill);
+    expect(winning(css, marker('is-pending'), 'background-color')).toBe(fill);
+    expect(winning(css, marker('is-completed'), 'background-color')).toBe(
+      `color-mix(in srgb, var(--bulma-timeline-active-color) 15%, ${fill})`
+    );
+
+    const { container: record } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Timeline>
+          <Timeline.Item title="Founded" icon="flag" />
+        </Timeline>
+      </ConfigProvider>
+    );
+    expect(
+      winning(
+        css,
+        record.querySelector(p('timeline-marker')) as Element,
+        'background-color'
+      )
+    ).toBe('var(--bulma-timeline-marker-icon-background)');
   });
 
   it('stands the pending ring still under reduced motion, and keeps it open in forced colors', () => {

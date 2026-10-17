@@ -215,7 +215,9 @@ Bulma's `link`. A color is only seen, so say what it means in the words too.
 
 In a colored `Notification`, the titles and the times take the Notification's own text color, the
 way Bulma's titles do there. The markers keep theirs, so on a background in the progress color,
-give the timeline a `color` that stands out from it.
+give the timeline a `color` that stands out from it. The rings and the pending loader are filled
+with the page's color, from `--bulma-timeline-marker-background`, which you can set on the
+timeline to match what's behind it.
 
 ### A Busy Feed
 
