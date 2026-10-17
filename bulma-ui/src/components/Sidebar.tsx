@@ -8,6 +8,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
+import { useOverlayStack } from '../helpers/overlayStack';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -38,9 +39,14 @@ export interface SidebarProps
   /** Close sidebar when overlay is clicked. Default: true. */
   overlayClose?: boolean;
   /**
-   * Close sidebar on Escape key. A popup inside it, such as a Dropdown's menu
-   * or a date picker's calendar, takes its own Escape first, and so does
-   * content that calls `preventDefault()` on it. Default: true.
+   * Close sidebar on Escape key. Only the topmost open overlay responds,
+   * whichever Modal, Dialog, Sidebar or full-page Loading opened last, so
+   * Escape closes one layer at a time. The sidebar marks the Escape it closes
+   * on as used with `preventDefault()`, and a Toast waits until no overlay is
+   * open. Turned off, a sidebar on top still keeps Escape from the layers
+   * under it. A popup inside it, such as a Dropdown's menu or a date picker's
+   * calendar, takes its own Escape first, and so does content that calls
+   * `preventDefault()` on it. Default: true.
    */
   escapeClose?: boolean;
   /** Allow closing the sidebar. Default: true. */
@@ -128,20 +134,26 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // the parent.
     const handleCloseRef = useLatestRef(handleClose);
 
+    // Joins the stack of open overlays, so the sidebar answers Escape only
+    // while it's the topmost overlay, and keeps it from those under it.
+    const isTopmost = useOverlayStack(isOpen);
+    const closesOnEscape = escapeClose && canCancel && Boolean(onClose);
+
     // Handle escape key. On `window`, as in `Modal`, so everything inside the
-    // sidebar has had the key first, and an Escape it used is left to it.
+    // sidebar has had the key first, and an Escape it used is left to it. One
+    // the sidebar closes on is marked used, so nothing under it acts on it.
     useEffect(() => {
-      if (!isOpen || !escapeClose) return;
+      if (!isOpen || !closesOnEscape) return;
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && !e.defaultPrevented) {
-          handleCloseRef.current();
-        }
+        if (e.key !== 'Escape' || e.defaultPrevented || !isTopmost()) return;
+        e.preventDefault();
+        handleCloseRef.current();
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, escapeClose, handleCloseRef]);
+    }, [isOpen, closesOnEscape, handleCloseRef, isTopmost]);
 
     // Prevent body scroll when sidebar is open. Ref-counted through the shared
     // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
