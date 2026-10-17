@@ -623,9 +623,10 @@ Inside a container that clips its overflow, such as a Modal card's scrolling bod
 `appendToBody`. The dropdown is then portaled, fixed to the viewport at the field and at least as
 wide as it. A portaled panel sits outside the Combobox, so it carries its own copy of the
 `--bulma-combobox-*` defaults, declared on `.combobox-dropdown.is-portal`: set a theme override
-there as well as on `.combobox`. A lone `.combobox-dropdown` loses to it on specificity. In a
-`Modal`, point a `ConfigProvider`'s `portalContainer` at an element inside the
-modal, so the list stays inside the dialog for assistive tech:
+there as well as on `.combobox`. A lone `.combobox-dropdown` loses to it on specificity, and
+`.combobox-dropdown.is-portal` ties, so your rule wins only when it loads after the library styles.
+In a `Modal`, point a `ConfigProvider`'s `portalContainer` at an element inside the modal, so the
+list stays inside the dialog for assistive tech:
 
 ```tsx
 <Modal active={active} onClose={close} aria-label="Edit shipping">

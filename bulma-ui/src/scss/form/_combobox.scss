@@ -7,8 +7,8 @@
 // hover and highlight looks for `a.dropdown-item` and `button.dropdown-item`
 // only, and an option is a `div`, so they're written here.
 //
-// A size is a handful of variables rather than a set of rules. Every color
-// comes from Bulma's scheme tokens, so dark mode needs no rules of its own.
+// A size is a handful of variables rather than a set of rules. Colors come
+// from Bulma's tokens, so dark mode needs no rules of its own.
 
 @use 'sass:map';
 @use 'bulma/sass/utilities/initial-variables' as iv;
@@ -17,8 +17,7 @@
 
 // In place, it stacks like Bulma's dropdown, under a fixed navbar.
 $combobox-dropdown-z-index: $extras-z-index-dropdown !default;
-// Portaled to the end of the page, it has to clear a Modal, as a HoverCard
-// or a ContextMenu does.
+// Portaled, it has to clear a Modal, as a HoverCard or a ContextMenu does.
 $combobox-portal-z-index: $extras-z-index-tooltip !default;
 $combobox-dropdown-offset: 0.25rem !default;
 $combobox-dropdown-background: cv.getVar('scheme-main') !default;
@@ -72,9 +71,9 @@ $combobox-sizes: (
   ),
 ) !default;
 
-// Registered on the Combobox, and on a portaled panel too, which sits at the
-// end of the page outside it. A panel in place inherits the Combobox's, so a
-// theme set on the Combobox reaches it.
+// Registered on the Combobox, and on a portaled panel too, which sits outside
+// it. A panel in place inherits the Combobox's, so a theme set on the Combobox
+// reaches it.
 .#{iv.$class-prefix}combobox,
 .#{iv.$class-prefix}combobox-dropdown.#{iv.$class-prefix}is-portal {
   @include cv.register-vars(
