@@ -1427,13 +1427,16 @@ describe('TreeView', () => {
         <Permissions key="checkbox" defaultChecked={['projects/read']} />,
       ],
     ])('hydrates a %s tree without a mismatch', async (_mode, tree) => {
-      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
       const container = document.createElement('div');
       container.innerHTML = renderToString(tree);
       document.body.appendChild(container);
+      // Only after the server render: under jsdom it runs the client's layout
+      // effect, which React 18's server renderer warns about.
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {
-          hydrateRoot(container, tree);
+          root = hydrateRoot(container, tree);
         });
         expect(error).not.toHaveBeenCalled();
         expect(
@@ -1441,6 +1444,7 @@ describe('TreeView', () => {
         ).toHaveLength(1);
       } finally {
         error.mockRestore();
+        await act(async () => root!.unmount());
         container.remove();
       }
     });
@@ -1450,13 +1454,15 @@ describe('TreeView', () => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(tree);
       document.body.appendChild(container);
+      let root: ReturnType<typeof hydrateRoot> | undefined;
       try {
         await act(async () => {
-          hydrateRoot(container, tree);
+          root = hydrateRoot(container, tree);
         });
         expect(item('Projects')).toHaveAttribute('aria-checked', 'mixed');
         expect(box('Projects').indeterminate).toBe(true);
       } finally {
+        await act(async () => root!.unmount());
         container.remove();
       }
     });
