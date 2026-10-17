@@ -1724,10 +1724,7 @@ describe('Combobox', () => {
       expect(onOpenChange).toHaveBeenCalledWith(false);
     });
 
-    // Modal closes on any Escape today, whether or not something inside it
-    // called preventDefault() first. That's #1077, and this test is to be
-    // turned on with its fix.
-    it.skip('closes the list, not a Modal around it, then the Modal (#1077)', () => {
+    it('closes the list, not a Modal around it, then the Modal', () => {
       const onClose = jest.fn();
       render(
         <Modal active onClose={onClose}>

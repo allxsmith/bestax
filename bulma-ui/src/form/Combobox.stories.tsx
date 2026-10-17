@@ -879,7 +879,7 @@ export const AppendToBodyInModal: Story = {
     docs: {
       description: {
         story:
-          'appendToBody portals the list out of a container that clips it, such as a Modal card’s body, and position="auto" keeps it in the viewport. Point a ConfigProvider’s portalContainer inside the Modal, so the list stays in the dialog for assistive tech.',
+          'appendToBody portals the list out of a container that clips it, such as a Modal card’s body, and position="auto" keeps it in the viewport. Point a ConfigProvider’s portalContainer inside the Modal, so the list stays in the dialog for assistive tech. Escape closes the list first, and the Modal on the next press.',
       },
     },
   },
