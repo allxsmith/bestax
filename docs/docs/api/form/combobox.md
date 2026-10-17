@@ -745,7 +745,7 @@ Focus stays in the field the whole time. The keys work on the field like this:
 | Up Arrow                     | Opens it, highlighting the checked option if it's showing, otherwise the last enabled option  | Highlights the previous option, wrapping to the last                                                                                                 |
 | Alt+Down Arrow               | Opens it without a highlight                                                                  | Nothing                                                                                                                                              |
 | Alt+Up Arrow                 | Nothing                                                                                       | Closes it                                                                                                                                            |
-| Enter                        | Left alone, so a form submits                                                                 | Picks the highlighted option, and does nothing on a disabled one. With nothing highlighted, closes it and lets the form submit                       |
+| Enter                        | Left alone, so a form submits                                                                 | Picks the highlighted option, and on a disabled one picks nothing and keeps the key. With nothing highlighted, closes it and lets the form submit    |
 | Escape                       | Left alone, so it reaches whatever is around the field                                        | Closes it. When a panel was on screen, the key stops there, so a Popover around it stays open                                                        |
 | Tab                          | Left alone                                                                                    | Closes it and picks nothing. Focus moves on                                                                                                          |
 | Home, End, Left, Right       | The field's own                                                                               | The field's own, and the highlight clears                                                                                                            |
@@ -796,9 +796,8 @@ and a click in the field opens the list. A press in the list never takes focus f
   keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.
   An `inline` list stays on screen, so a link or a button beside it is in the Tab order.
 - **No counts are announced,** for the reasons in [A Result Count](#a-result-count).
-- **Enter and Escape** leave a form and the layers around the field alone unless they did
-  something: Enter submits the form when nothing is highlighted, and Escape only stops at the
-  Combobox when it closed a panel that was on screen.
+- **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops
+  at the Combobox when it closed a panel that was on screen.
 - **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the
   system's highlight color, a disabled option takes the system's color for disabled text, and the
   check mark and the panel's edge stay visible.
