@@ -101,9 +101,9 @@ export function useAutoLabelId({
       ? (labelProps?.id ?? `${generatedId}-label`)
       : undefined;
   // Inactive with a label still means an own Field may render it (pickers'
-  // inline mode, Taginput at maxTags) — the explicit `htmlFor: undefined`
-  // tells Field the association is owned here, so it must not generate one
-  // that would dangle (#495 presence semantics).
+  // inline mode). The explicit `htmlFor: undefined` tells Field the
+  // association is owned here, so it must not generate one that would
+  // dangle (#495 presence semantics).
   const fieldLabelProps = active
     ? ownLabelId
       ? { ...ownLabelProps, id: ownLabelId }

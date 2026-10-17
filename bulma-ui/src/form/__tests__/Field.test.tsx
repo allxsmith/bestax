@@ -657,6 +657,13 @@ describe('label names the convenience controls (#939)', () => {
         () => screen.getByRole('combobox'),
       ],
       ['Taginput', () => <Taginput />, () => screen.getByRole('textbox')],
+      // Read-only at its limit rather than gone, so it still takes the id
+      // (#1103).
+      [
+        'a Taginput at its tag limit',
+        () => <Taginput defaultValue={['React']} maxTags={1} />,
+        () => screen.getByRole('textbox'),
+      ],
       [
         'File',
         () => <File />,
@@ -935,10 +942,6 @@ describe('label names the convenience controls (#939)', () => {
     ['an inline DateInput', () => <DateInput inline />],
     ['an inline TimeInput', () => <TimeInput inline />],
     ['an inline DateTimeInput', () => <DateTimeInput inline />],
-    [
-      'a Taginput at its tag limit',
-      () => <Taginput defaultValue={['React']} maxTags={1} />,
-    ],
   ])('leaves %s alone: it has no input to name', (_, element) => {
     const { labelElement, target, takers } = renderInLabeledField(
       'Pick',
