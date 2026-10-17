@@ -85,8 +85,10 @@ react (#1012), so restore them on its PR; when the peer range itself moves, chan
   (#1049). The App, its assets and the README differ on purpose, and so does lint: the
   template keeps ESLint with typescript-eslint whatever linter create-vite ships. A file the
   catch-up adds or removes has to reach the docs sandboxes too, and
-  `docs/scripts/sandbox.test.mjs` fails until the files the sandbox copies, with the ones it
-  names as left out, are exactly the template's.
+  `docs/scripts/sandbox.test.mjs` fails until the files the StackBlitz project copies, with the
+  ones it names as left out, are exactly the template's. The CodeSandbox project is a Create
+  React App layout with files of its own, so a new template file that matters there is a
+  change to its builder, and no test holds it to the template.
 - `templates/vite-ts` is also what the docs site's StackBlitz and CodeSandbox buttons build
   from (`docs/src/theme/CodeBlock/sandbox/`, read at docs build time). The builders edit
   `src/main.tsx` by string pattern, so `docs/scripts/sandbox.test.mjs` runs them against the

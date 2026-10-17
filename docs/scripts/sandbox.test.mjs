@@ -385,7 +385,9 @@ describe('stackblitzProject', () => {
  * The template files a StackBlitz project leaves out, each with the reason.
  * Every other file is in TEMPLATE_FILES, so a file the template gains when it
  * catches up with create-vite reaches the sandbox, or fails here, instead of
- * the sandbox falling a step behind the scaffold.
+ * the sandbox falling a step behind the scaffold. The CodeSandbox project is
+ * a Create React App layout, not a copy of the template, so it has no list of
+ * its own to hold to one.
  */
 const LEFT_OUT = {
   _gitignore: 'a sandbox is not a repository',
