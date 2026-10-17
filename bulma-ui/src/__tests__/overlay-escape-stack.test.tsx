@@ -255,6 +255,38 @@ describe('Tab with a Sidebar opened over a Modal', () => {
   });
 });
 
+describe('Tab in a Dialog rendered inside a Sidebar', () => {
+  // A Dialog renders in place by default, so it sits inside the Sidebar's
+  // DOM, and a Tab in it reaches the Sidebar's element before the Dialog's
+  // own listener on `window`. Anything that holds Tab in the Sidebar (#1114)
+  // has to leave this one to the Dialog on top.
+  it("wraps from the Dialog's last button to its first, not out into the Sidebar", () => {
+    const Page = () => {
+      const [confirm, setConfirm] = useState(false);
+      return (
+        <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+          <button type="button" onClick={() => setConfirm(true)}>
+            Delete all
+          </button>
+          <Dialog
+            isOpen={confirm}
+            message="Delete everything?"
+            onCancel={() => setConfirm(false)}
+            onConfirm={() => setConfirm(false)}
+          />
+        </Sidebar>
+      );
+    };
+    render(<Page />);
+    click('Delete all');
+    const ok = screen.getByRole('button', { name: 'OK' });
+    act(() => ok.focus());
+
+    expect(fireEvent.keyDown(ok, { key: 'Tab' })).toBe(false);
+    expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+  });
+});
+
 describe('Escape with a Loading up', () => {
   /** A Modal with a Save button that shows a cancelable Loading. */
   const Saving = ({
