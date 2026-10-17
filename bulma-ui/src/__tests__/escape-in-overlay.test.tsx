@@ -17,6 +17,7 @@ import { Dropdown, DropdownItem } from '../components/Dropdown';
 import { Popover } from '../components/Popover';
 import { Autocomplete } from '../form/Autocomplete';
 import { Taginput } from '../form/Taginput';
+import { Combobox } from '../form/Combobox';
 import { DateInput } from '../form/DateInput';
 import { TimeInput } from '../form/TimeInput';
 import { DateTimeInput } from '../form/DateTimeInput';
@@ -71,6 +72,32 @@ const renderInModal = (content: React.ReactNode) => {
 const typeInto = (input: HTMLElement, value: string) => {
   act(() => input.focus());
   fireEvent.change(input, { target: { value } });
+};
+
+/**
+ * A Combobox the way an app writes one: it holds the text, filters the
+ * fruits, and renders no list when nothing matches.
+ */
+const FruitCombobox = ({ inline = false }: { inline?: boolean }) => {
+  const [query, setQuery] = React.useState('');
+  const matches = fruits.filter(fruit =>
+    fruit.toLowerCase().includes(query.toLowerCase())
+  );
+  const options = matches.length > 0 && (
+    <Combobox.Options>
+      {matches.map(fruit => (
+        <Combobox.Option key={fruit} value={fruit}>
+          {fruit}
+        </Combobox.Option>
+      ))}
+    </Combobox.Options>
+  );
+  return (
+    <Combobox label="Fruit" inline={inline} onOptionSubmit={setQuery}>
+      <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
+      {inline ? options : <Combobox.Dropdown>{options}</Combobox.Dropdown>}
+    </Combobox>
+  );
 };
 
 describe('Escape in a popup inside a Modal', () => {
@@ -148,6 +175,45 @@ describe('Escape in a popup inside a Modal', () => {
         expect(onClose).toHaveBeenCalledTimes(1);
       }
     );
+  });
+
+  describe('Combobox', () => {
+    it('closes the open list first, and the Modal on the next Escape', () => {
+      const onClose = renderInModal(<FruitCombobox />);
+      typeInto(screen.getByRole('combobox'), 'a');
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      pressEscape();
+      expect(screen.queryByRole('listbox')).toBeNull();
+      expect(onClose).not.toHaveBeenCalled();
+
+      pressEscape();
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it.each([
+      ['never opened', ''],
+      ['typed to no matches', 'zzz'],
+    ])(
+      'leaves the first Escape to the Modal when no list shows: %s',
+      (_, typed) => {
+        const onClose = renderInModal(<FruitCombobox />);
+        typeInto(screen.getByRole('combobox'), typed);
+        expect(screen.queryByRole('listbox')).toBeNull();
+
+        pressEscape();
+        expect(onClose).toHaveBeenCalledTimes(1);
+      }
+    );
+
+    it('hands Escape straight to the Modal when inline', () => {
+      const onClose = renderInModal(<FruitCombobox inline />);
+      act(() => screen.getByRole('combobox').focus());
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      pressEscape();
+      expect(onClose).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Dropdown', () => {
@@ -302,6 +368,19 @@ describe('Escape in a popup inside a Sidebar', () => {
     pressEscape();
     expect(onClose).toHaveBeenCalledTimes(1);
   });
+
+  it('closes a Combobox list first, and the Sidebar on the next Escape', () => {
+    const onClose = renderInSidebar(<FruitCombobox />);
+    typeInto(screen.getByRole('combobox'), 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    pressEscape();
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(onClose).not.toHaveBeenCalled();
+
+    pressEscape();
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe('Escape in a Modal opened over an open picker', () => {
@@ -336,6 +415,26 @@ describe('Escape in a popup inside a Dropdown menu', () => {
     render(
       <Dropdown label="Filter" closeOnClick={false}>
         <Autocomplete label="Fruit" data={fruits} />
+      </Dropdown>
+    );
+    fireEvent.click(screen.getByRole('button', { name: /filter/i }));
+    const root = screen.getByTestId('dropdown-root');
+    expect(root).toHaveClass('is-active');
+    typeInto(screen.getByRole('combobox'), 'a');
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+    pressEscape();
+    expect(screen.queryByRole('listbox')).toBeNull();
+    expect(root).toHaveClass('is-active');
+
+    pressEscape();
+    expect(root).not.toHaveClass('is-active');
+  });
+
+  it('closes a Combobox list first, and the menu on the next Escape', () => {
+    render(
+      <Dropdown label="Filter" closeOnClick={false}>
+        <FruitCombobox />
       </Dropdown>
     );
     fireEvent.click(screen.getByRole('button', { name: /filter/i }));
