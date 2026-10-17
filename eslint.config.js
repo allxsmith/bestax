@@ -66,6 +66,13 @@ export default [
     },
     rules: {
       ...reactHooksPlugin.configs['recommended-latest'].rules,
+      // bulma-ui's useClientLayoutEffect is useLayoutEffect in the browser,
+      // so its dependencies get the same check. set-state-in-effect can't be
+      // taught it: that rule only counts React's own effect hooks.
+      'react-hooks/exhaustive-deps': [
+        'warn',
+        { additionalHooks: '(useClientLayoutEffect)' },
+      ],
     },
   },
 
@@ -128,6 +135,39 @@ export default [
       '@eslint-react/no-children-count': 'off',
       '@eslint-react/no-clone-element': 'off',
       '@eslint-react/use-state': 'off',
+    },
+  },
+
+  // bulma-ui's layout effects go through useClientLayoutEffect, which hands
+  // a server render a plain useEffect. React 18 warns about every
+  // useLayoutEffect a server render meets, and React 19 doesn't, so a test
+  // run on 19 never shows one. This catches it at the import instead.
+  {
+    files: ['bulma-ui/src/**/*.{ts,tsx}'],
+    ignores: ['bulma-ui/src/helpers/useClientLayoutEffect.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: 'react',
+              importNames: ['useLayoutEffect'],
+              message:
+                "Use useClientLayoutEffect from bulma-ui's helpers instead. React 18 warns about useLayoutEffect in a server render.",
+            },
+          ],
+        },
+      ],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'React',
+          property: 'useLayoutEffect',
+          message:
+            "Use useClientLayoutEffect from bulma-ui's helpers instead. React 18 warns about useLayoutEffect in a server render.",
+        },
+      ],
     },
   },
 

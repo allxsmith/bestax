@@ -549,10 +549,12 @@ function SidebarExample() {
           <Menu>
             <Menu.Label>Pages</Menu.Label>
             <Menu.List>
-              <Menu.Item active>Home</Menu.Item>
-              <Menu.Item>Products</Menu.Item>
-              <Menu.Item>Services</Menu.Item>
-              <Menu.Item>Contact</Menu.Item>
+              <Menu.Item active href="#home">
+                Home
+              </Menu.Item>
+              <Menu.Item href="#products">Products</Menu.Item>
+              <Menu.Item href="#services">Services</Menu.Item>
+              <Menu.Item href="#contact">Contact</Menu.Item>
             </Menu.List>
           </Menu>
         </Sidebar.Body>
@@ -613,13 +615,15 @@ A vertical navigation menu for sidebars, dashboards, or grouped navigation. [Vie
 <Menu style={{ maxWidth: 300 }}>
   <Menu.Label>General</Menu.Label>
   <Menu.List>
-    <Menu.Item>Dashboard</Menu.Item>
-    <Menu.Item>Customers</Menu.Item>
+    <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+    <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
   <Menu.Label>Administration</Menu.Label>
   <Menu.List>
-    <Menu.Item>Team Settings</Menu.Item>
-    <Menu.Item active>Manage Your Team</Menu.Item>
+    <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+    <Menu.Item active href="#manage-your-team">
+      Manage Your Team
+    </Menu.Item>
   </Menu.List>
 </Menu>
 ```
