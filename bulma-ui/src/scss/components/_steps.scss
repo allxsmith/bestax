@@ -62,7 +62,9 @@ $steps-navigation-margin-top: 1rem !default;
   }
 
   .#{iv.$class-prefix}steps-list:not(.#{iv.$class-prefix}is-vertical) .#{iv.$class-prefix}steps-segment {
-    padding-top: calc(#{$marker-size} / 2);
+    > .#{iv.$class-prefix}steps-link {
+      padding-top: calc(#{$marker-size} / 2);
+    }
 
     &:not(:last-child)::before {
       top: calc(#{$marker-size} - cv.getVar("steps-divider-height") / 2);
@@ -97,7 +99,13 @@ $steps-navigation-margin-top: 1rem !default;
       .#{iv.$class-prefix}steps-segment {
         flex: 1;
         position: relative;
-        padding-top: calc(cv.getVar("steps-marker-size") / 2);
+
+        // The space above the marker is the link's padding, not the
+        // segment's, so a clickable step's button covers the whole segment
+        // and every part of it takes the click and the pointer.
+        > .#{iv.$class-prefix}steps-link {
+          padding-top: calc(cv.getVar("steps-marker-size") / 2);
+        }
 
         // Horizontal divider line, centered through the marker. It runs from
         // this marker's edge to the next one's, which is on the left in a
@@ -288,7 +296,9 @@ button.#{iv.$class-prefix}steps-link {
   }
 
   .#{iv.$class-prefix}steps-segment {
-    padding-top: 0;
+    > .#{iv.$class-prefix}steps-link {
+      padding-top: 0;
+    }
 
     &:not(:last-child)::before {
       top: 50%;
@@ -303,7 +313,6 @@ button.#{iv.$class-prefix}steps-link {
 
   .#{iv.$class-prefix}steps-segment {
     text-align: start;
-    padding: 0 0 cv.getVar("steps-vertical-padding") 0;
     position: relative;
 
     // Vertical divider line
@@ -323,10 +332,13 @@ button.#{iv.$class-prefix}steps-link {
     }
   }
 
+  // The space below each step is the link's padding, for the same reason as
+  // the horizontal layout's space above the marker.
   .#{iv.$class-prefix}steps-link {
     flex-direction: row;
     justify-content: flex-start;
     align-items: flex-start;
+    padding: 0 0 cv.getVar("steps-vertical-padding") 0;
   }
 
   .#{iv.$class-prefix}steps-marker {
@@ -356,10 +368,10 @@ button.#{iv.$class-prefix}steps-link {
     position: relative;
   }
 
+  // Left at its static position in the block direction, which centers it on
+  // the link's content box, the marker, whatever padding the link has above.
   .#{iv.$class-prefix}steps-content {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     margin-top: 0;
     background-color: cv.getVar("scheme-main");
     z-index: 1;

@@ -126,6 +126,53 @@ function candidates(
 const winners = (list: ReturnType<typeof candidates>) =>
   list.filter(({ important }) => important).map(({ value }) => value);
 
+/**
+ * A selector's specificity as one comparable number: classes, attributes and
+ * pseudo-classes in the tens, elements in the ones. `:not()` counts as its
+ * argument, the way the spec has it. Enough for this partial, which has no
+ * ids.
+ */
+function specificity(selector: string) {
+  const s = selector.replace(/:not\(([^)]*)\)/g, ' $1');
+  const classes = (s.match(/\.[\w-]+|\[[^\]]+\]|:(?!:)[\w-]+/g) ?? []).length;
+  const elements = (s.match(/(^|[\s>+~])[a-z][\w-]*/gi) ?? []).length;
+  return classes * 10 + elements;
+}
+
+/** Rules outside any media query that match the element itself. */
+const matching = (found: Found[], el: Element) =>
+  found.filter(
+    ({ selector, media }) =>
+      media === '' && !selector.includes('::') && el.matches(selector)
+  );
+
+/**
+ * The declaration that wins one side's padding on the element, by
+ * specificity and then source order, which jsdom's computed style doesn't
+ * weigh. Within a rule, the last declaration that sets the side counts.
+ */
+function padding(found: Found[], el: Element, side: 'top' | 'bottom') {
+  let best: { rank: number[]; value: string } | null = null;
+  for (const rule of matching(found, el)) {
+    const names = Array.from(rule.style).filter(
+      name => name === 'padding' || name === `padding-${side}`
+    );
+    if (!names.length) continue;
+    const rank = [specificity(rule.selector), found.indexOf(rule)];
+    if (
+      !best ||
+      rank[0] > best.rank[0] ||
+      (rank[0] === best.rank[0] && rank[1] > best.rank[1])
+    ) {
+      best = {
+        rank,
+        value: rule.style.getPropertyValue(names[names.length - 1]).trim(),
+      };
+    }
+  }
+  return best?.value;
+}
+
 const COLORS = [
   undefined,
   'primary',
@@ -281,6 +328,55 @@ describe.each([
 
   describe('a clickable step', () => {
     const clickable = ITEMS.map(item => ({ ...item, clickable: true }));
+
+    it.each([
+      ['horizontally', {}, 'top', 'calc(var(--bulma-steps-marker-size) / 2)'],
+      [
+        'at a size',
+        { size: 'small' },
+        'top',
+        'calc(var(--bulma-steps-marker-size-small) / 2)',
+      ],
+      [
+        'with labels to the side',
+        { labelPosition: 'right' },
+        'top',
+        'calc(var(--bulma-steps-marker-size) / 2)',
+      ],
+      [
+        'vertically',
+        { vertical: true },
+        'bottom',
+        '0 0 var(--bulma-steps-vertical-padding) 0',
+      ],
+      [
+        'vertically, with labels to the left',
+        { vertical: true, labelPosition: 'left' },
+        'bottom',
+        '0 0 var(--bulma-steps-vertical-padding) 0',
+      ],
+    ] as const)(
+      'covers its whole step %s, since the space by the marker is the button’s padding',
+      (_name, props, side, value) => {
+        const found = rulesOf(compile(prefix));
+        const { container } = renderSteps({ items: clickable, ...props });
+        for (const li of Array.from(
+          container.querySelectorAll(p('steps-segment'))
+        )) {
+          // Nothing pads the list item, so no band of it sits outside the
+          // button, where a click would miss and the cursor would change.
+          expect(
+            matching(found, li)
+              .filter(({ style }) =>
+                Array.from(style).some(name => name.startsWith('padding'))
+              )
+              .map(({ selector }) => selector)
+          ).toEqual([]);
+          // And the button's padding beats the reset that clears it.
+          expect(padding(found, li.querySelector('button')!, side)).toBe(value);
+        }
+      }
+    );
 
     it('fills its step with a button that drops the browser’s button look', () => {
       // Read off the sheet: jsdom's computed style leaves out `border`.
