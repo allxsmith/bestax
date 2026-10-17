@@ -111,7 +111,12 @@ export interface TaginputProps
   ellipsis?: boolean;
   /** Shows a counter of the number of tags. */
   hasCounter?: boolean;
-  /** Characters that split pasted text into tags. */
+  /**
+   * Characters that split pasted text into tags. Each part goes through the
+   * same checks as a typed tag, against the tags before it, the paste's own
+   * included, and adding stops at `maxTags`. `onChange` fires once for the
+   * whole paste, and `onAdd` once for each tag it adds.
+   */
   onPasteSeparators?: string[];
   /** Validation function called before adding a tag. */
   beforeAdding?: (tag: string) => boolean;
@@ -352,46 +357,45 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       [controlledValue, onChange]
     );
 
-    // Add a tag from text typed, pasted or picked from the list. Only
-    // `createTag` turns it into an object.
-    const addTag = useCallback(
-      (value: string) => {
+    // Add tags from text typed, pasted or picked from the list. Each one is
+    // checked against the tags before it, this batch's included, so a paste
+    // of several adds them all in one change (#1101). Only `createTag` turns
+    // text into an object.
+    const addTags = useCallback(
+      (values: string[]) => {
         if (disabled || readonly) return;
 
-        const displayValue = value.trim();
+        let next = tags;
+        const added: TaginputTag[] = [];
+        for (const value of values) {
+          // A paste can bring more tags than there's room for.
+          if (maxTags !== undefined && next.length >= maxTags) break;
 
-        if (!displayValue) return;
+          const displayValue = value.trim();
+          if (!displayValue) continue;
+          const lower = displayValue.toLowerCase();
 
-        // No maxTags check: only the input and the list call this, neither
-        // renders at the limit, and each call adds at most one tag.
+          // Duplicates, data and the dropdown filter all compare
+          // case-insensitively.
+          if (
+            !allowDuplicates &&
+            next.some(tag => getDisplayValue(tag).toLowerCase() === lower)
+          )
+            continue;
 
-        // Check duplicates
-        if (!allowDuplicates) {
-          const exists = tags.some(
-            tag =>
-              getDisplayValue(tag).toLowerCase() === displayValue.toLowerCase()
-          );
-          if (exists) return;
+          // Without allowNew, only a suggestion can become a tag.
+          if (!allowNew && !data.some(d => d.toLowerCase() === lower)) continue;
+
+          if (beforeAdding && !beforeAdding(displayValue)) continue;
+
+          const tag = createTag ? createTag(displayValue) : displayValue;
+          next = [...next, tag];
+          added.push(tag);
         }
+        if (added.length === 0) return;
 
-        // Check if allowed (must be in data if allowNew is false). Compare
-        // case-insensitively, consistent with the dropdown filter and the
-        // duplicate check above.
-        if (
-          !allowNew &&
-          !data.some(d => d.toLowerCase() === displayValue.toLowerCase())
-        )
-          return;
-
-        // beforeAdding validation
-        if (beforeAdding && !beforeAdding(displayValue)) return;
-
-        // createTag transformation
-        const finalTag = createTag ? createTag(displayValue) : displayValue;
-
-        const newTags = [...tags, finalTag];
-        updateTags(newTags);
-        onAdd?.(finalTag);
+        updateTags(next);
+        added.forEach(tag => onAdd?.(tag));
         setInputValue('');
         if (!keepOpen) {
           setIsActive(false);
@@ -402,6 +406,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         disabled,
         readonly,
         tags,
+        maxTags,
         allowDuplicates,
         allowNew,
         data,
@@ -438,7 +443,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         if (confirmKeys.includes(lastChar) && lastChar !== 'Enter') {
           const valueWithoutKey = newValue.slice(0, -1).trim();
           if (valueWithoutKey) {
-            addTag(valueWithoutKey);
+            addTags([valueWithoutKey]);
           }
           return;
         }
@@ -450,7 +455,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
           setIsActive(true);
         }
       },
-      [confirmKeys, addTag, onTyping, data.length]
+      [confirmKeys, addTags, onTyping, data.length]
     );
 
     // Handle paste
@@ -474,16 +479,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         );
         const regex = new RegExp(`[${escapedSeparators.join('')}]`);
 
-        const parts = pastedText
-          .split(regex)
-          .map(s => s.trim())
-          .filter(Boolean);
-
-        for (const part of parts) {
-          addTag(part);
-        }
+        addTags(pastedText.split(regex));
       },
-      [onPasteSeparators, addTag]
+      [onPasteSeparators, addTags]
     );
 
     // Handle focus
@@ -530,9 +528,9 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         if (confirmKeys.includes(e.key)) {
           e.preventDefault();
           if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
-            addTag(filteredData[highlightedIndex]);
+            addTags([filteredData[highlightedIndex]]);
           } else if (inputValue.trim()) {
-            addTag(inputValue);
+            addTags([inputValue]);
           }
           return;
         }
@@ -573,7 +571,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         confirmKeys,
         highlightedIndex,
         filteredData,
-        addTag,
+        addTags,
         inputValue,
         isActive,
         data.length,
@@ -768,7 +766,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
                   className={pcn('dropdown-item', {
                     'is-active': index === highlightedIndex,
                   })}
-                  onClick={() => addTag(item)}
+                  onClick={() => addTags([item])}
                   onMouseEnter={() => setHighlightedIndex(index)}
                   role="option"
                   aria-selected={optionId(index) === activeOptionId}

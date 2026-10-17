@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Taginput, TagInput } from '../Taginput';
+import { Taginput, TagInput, TaginputTag } from '../Taginput';
 import { Field } from '../Field';
 
 const frameworks = ['React', 'Vue', 'Angular', 'Svelte'];
@@ -751,31 +751,150 @@ describe('Taginput', () => {
   });
 
   describe('Paste Separators', () => {
+    const paste = (text: string) =>
+      fireEvent.paste(
+        screen.queryByRole('textbox') ?? screen.getByRole('combobox'),
+        { clipboardData: { getData: () => text } }
+      );
+    const shownTags = () =>
+      Array.from(document.querySelectorAll('.tag')).map(tag => tag.textContent);
+
     it('splits pasted text by comma separator', () => {
       const onChange = jest.fn();
       render(<Taginput onPasteSeparators={[',']} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
 
-      fireEvent.paste(input, {
-        clipboardData: { getData: () => 'React, Vue, Angular' },
-      });
+      paste('React, Vue, Angular');
 
-      // addTag is called for each part
-      expect(onChange).toHaveBeenCalled();
-      const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
-      expect(lastCall[0]).toContain('Angular');
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(['React', 'Vue', 'Angular']);
     });
 
     it('splits pasted text by multiple separators', () => {
       const onChange = jest.fn();
       render(<Taginput onPasteSeparators={[',', ';']} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
 
-      fireEvent.paste(input, {
-        clipboardData: { getData: () => 'React, Vue; Angular' },
-      });
+      paste('React, Vue; Angular');
 
-      expect(onChange).toHaveBeenCalled();
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(['React', 'Vue', 'Angular']);
+    });
+
+    // Each part used to be added against the tags from before the paste, so
+    // the last write won and every check missed the paste's own parts
+    // (#1101).
+    it('adds every part of a paste, in one change', () => {
+      const onChange = jest.fn();
+      const onAdd = jest.fn();
+      render(
+        <Taginput defaultValue={['x']} onChange={onChange} onAdd={onAdd} />
+      );
+
+      paste('a,b,c');
+
+      expect(shownTags()).toEqual(['x', 'a', 'b', 'c']);
+      expect(onChange.mock.calls).toEqual([[['x', 'a', 'b', 'c']]]);
+      expect(onAdd.mock.calls).toEqual([['a'], ['b'], ['c']]);
+    });
+
+    it('checks a pasted part against the parts before it for duplicates', () => {
+      const onAdd = jest.fn();
+      render(<Taginput onAdd={onAdd} />);
+
+      paste('a,A,b,a');
+
+      expect(shownTags()).toEqual(['a', 'b']);
+      expect(onAdd.mock.calls).toEqual([['a'], ['b']]);
+    });
+
+    it('keeps duplicates within a paste under allowDuplicates', () => {
+      const onAdd = jest.fn();
+      render(<Taginput allowDuplicates onAdd={onAdd} />);
+
+      paste('a,a');
+
+      expect(shownTags()).toEqual(['a', 'a']);
+      expect(onAdd).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops adding at maxTags partway through a paste', () => {
+      const onChange = jest.fn();
+      const onAdd = jest.fn();
+      render(
+        <Taginput
+          defaultValue={['x']}
+          maxTags={2}
+          onChange={onChange}
+          onAdd={onAdd}
+        />
+      );
+
+      paste('a,b,c');
+
+      expect(shownTags()).toEqual(['x', 'a']);
+      expect(onChange.mock.calls).toEqual([[['x', 'a']]]);
+      expect(onAdd.mock.calls).toEqual([['a']]);
+    });
+
+    it('keeps a parent that builds its tags from onAdd within maxTags', () => {
+      const Parent = () => {
+        const [tags, setTags] = React.useState<TaginputTag[]>([]);
+        return (
+          <Taginput
+            value={tags}
+            maxTags={2}
+            onAdd={tag => setTags(prev => [...prev, tag])}
+          />
+        );
+      };
+      render(<Parent />);
+
+      paste('a,b,c');
+
+      expect(shownTags()).toEqual(['a', 'b']);
+    });
+
+    it('skips the parts that fail a check and adds the rest', () => {
+      const onAdd = jest.fn();
+      render(
+        <Taginput
+          data={['React', 'Vue', 'Svelte']}
+          allowNew={false}
+          beforeAdding={tag => tag !== 'Vue'}
+          onAdd={onAdd}
+        />
+      );
+
+      paste('react, Nope, Vue, ,Svelte');
+
+      expect(shownTags()).toEqual(['react', 'Svelte']);
+      expect(onAdd.mock.calls).toEqual([['react'], ['Svelte']]);
+    });
+
+    it('changes nothing when no part of a paste can be added', () => {
+      const onChange = jest.fn();
+      const onAdd = jest.fn();
+      render(
+        <Taginput defaultValue={['a']} onChange={onChange} onAdd={onAdd} />
+      );
+
+      paste('a, ,A');
+
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onAdd).not.toHaveBeenCalled();
+    });
+
+    // A paste that fills the last slot dismisses the list, as any other add
+    // that reaches the limit does, so making room doesn't reopen it.
+    it('dismisses the list when a paste fills the last slot', () => {
+      render(<Taginput data={frameworks} maxTags={2} openOnFocus />);
+      fireEvent.focus(screen.getByRole('combobox'));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      paste('Vue,Svelte');
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Svelte' }));
+
+      expect(shownTags()).toEqual(['Vue']);
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
     it('does not split pasted text without matching separator', () => {
