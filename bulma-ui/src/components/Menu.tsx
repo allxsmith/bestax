@@ -153,7 +153,10 @@ export interface MenuItemOwnProps extends BulmaClassesProps {
    * `aria-current="page"` on the element `as` renders, so assistive tech can
    * tell which item is current too. An `aria-current` you pass wins, even
    * `undefined`: use it to say something else (`"location"` for a section of
-   * one page, say), or `aria-current={false}` to turn it off.
+   * one page, say), or `aria-current={false}` to turn it off. A menu should
+   * mark one page, so when the section above the current page is `active` too,
+   * give it `aria-current="location"`, and give an `active` item that isn't
+   * navigation, such as an `as="button"` filter, `aria-current={false}`.
    */
   active?: boolean;
   /** Inline styles for the wrapping `<li>`. */

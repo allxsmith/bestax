@@ -637,4 +637,41 @@ describe('current page', () => {
     );
     expect(inner('item')).toHaveAttribute('aria-current', 'location');
   });
+
+  it('marks one page when the section and a filter are active too, as the TSDoc shows', () => {
+    // `active` can't tell an ancestor or a button from a page, so `active`
+    // on the section and its page would claim two current pages. The
+    // documented overrides leave one.
+    const { container } = render(
+      <Menu>
+        <Menu.List>
+          <Menu.Item
+            href="#team"
+            active
+            aria-current="location"
+            data-testid="section"
+          >
+            Manage Your Team
+            <Menu.List>
+              <Menu.Item href="#members" active data-testid="page">
+                Members
+              </Menu.Item>
+            </Menu.List>
+          </Menu.Item>
+          <Menu.Item
+            as="button"
+            active
+            aria-current={false}
+            data-testid="filter"
+          >
+            Filter
+          </Menu.Item>
+        </Menu.List>
+      </Menu>
+    );
+    expect(container.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    expect(inner('page')).toHaveAttribute('aria-current', 'page');
+    expect(inner('section')).toHaveAttribute('aria-current', 'location');
+    expect(inner('filter')).toHaveAttribute('aria-current', 'false');
+  });
 });
