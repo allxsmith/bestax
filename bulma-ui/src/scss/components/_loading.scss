@@ -245,4 +245,13 @@ $loading-animation-duration: 0.75s !default;
     // hands down through Bulma's `box-sizing: inherit`.
     box-sizing: border-box;
   }
+
+  // The overlay's own opacity survives forced colors, so without this the
+  // page shows through it: the Canvas gap reads as a band rather than a hole,
+  // and the text sits over whatever is beneath. The full-page rule sets its
+  // opacity with a more specific selector, so it's named too.
+  .#{iv.$class-prefix}loading-overlay,
+  .#{iv.$class-prefix}loading.#{iv.$class-prefix}is-full-page .#{iv.$class-prefix}loading-overlay {
+    opacity: 1;
+  }
 }

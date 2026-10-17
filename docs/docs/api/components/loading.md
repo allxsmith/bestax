@@ -274,7 +274,7 @@ When `canCancel` is true, the loading can be cancelled by:
 - Has `aria-label="Loading"` for the loading container
 - Cancel button has proper `aria-label` for accessibility
 - Escape key support for cancelling (when `canCancel` is true). An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, doesn't cancel
-- In forced colors (Windows' contrast themes), the spinner is drawn as a ring in the theme's text color with its top side open, since forced colors drops the gradient it's normally drawn with. A custom `indicator` is your own content, so it's up to you that it shows there too
+- In forced colors (Windows' contrast themes), the spinner is drawn as a ring in the theme's text color with its top side open, since forced colors drops the gradient it's normally drawn with. The overlay turns solid there, whatever `overlay` is set to, so the page beneath doesn't show through behind the ring or the text. A custom `indicator` is your own content, so it's up to you that it shows there too
 
 ---
 

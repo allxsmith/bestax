@@ -87,6 +87,7 @@ const SETS: Record<string, string[]> = {
     'border',
   ],
   'box-sizing': ['box-sizing'],
+  opacity: ['opacity'],
 };
 
 /** Classes, attributes and pseudo-classes, then elements, as one number. */
@@ -204,6 +205,34 @@ describe.each([
       // spinner keeps its size when a contrast theme comes on.
       expect(winning(found, icon, 'box-sizing', true)?.value).toBe(
         'border-box'
+      );
+      unmount();
+    }
+  );
+
+  it.each([
+    ['the default overlay', {}],
+    ['a light overlay', { overlay: 'light' }],
+    ['a dark overlay', { overlay: 'dark' }],
+    ['an opaque overlay', { overlay: 'opaque' }],
+    ['a full-page overlay', { isFullPage: true }],
+    ['a light full-page overlay', { isFullPage: true, overlay: 'light' }],
+  ] as Array<[string, Partial<LoadingProps>]>)(
+    'makes %s opaque in forced colors, and only there',
+    (_name, props) => {
+      const found = rulesOf(compile(prefix));
+      const { container, unmount } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Loading active {...props} />
+        </ConfigProvider>
+      );
+      const overlay = container.querySelector(`.${prefix}loading-overlay`)!;
+      // Forced colors keeps an opacity, so the page would show through: the
+      // ring's Canvas gap would read as a band over it, and the text would
+      // sit over whatever is beneath.
+      expect(winning(found, overlay, 'opacity', true)?.value).toBe('1');
+      expect(winning(found, overlay, 'opacity', false)?.value).toMatch(
+        /^var\(--bulma-loading-overlay-(fullpage-)?opacity\)$/
       );
       unmount();
     }
