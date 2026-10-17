@@ -9,16 +9,15 @@
  * never reads is a TS6133 error there (#951).
  *
  * So each example is type-checked with the options of the template project
- * that compiles `src/`, found by following the template's project references
- * rather than assuming which file holds them. Its imports resolve the way a
- * scaffold's would: `react` to React's published types, and each entry in the
- * library's `exports` map to the built declarations it names, which is why the
- * library has to be built first.
+ * that compiles `src/`, as `appCompilerOptions` in lib/template-tsconfig.mjs
+ * reads them from the template. Its imports resolve the way a scaffold's
+ * would: `react` to React's published types, and each entry in the library's
+ * `exports` map to the built declarations it names, which is why the library
+ * has to be built first.
  */
 import assert from 'node:assert/strict';
 import {
   existsSync,
-  mkdirSync,
   mkdtempSync,
   readdirSync,
   readFileSync,
@@ -27,13 +26,13 @@ import {
 } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
-import { dirname, join, relative, sep } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, it } from 'node:test';
 import ts from 'typescript';
+import { appCompilerOptions } from './lib/template-tsconfig.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
-const TEMPLATE = join(REPO, 'create-bestax', 'templates', 'vite-ts');
 const BULMA_UI = join(REPO, 'bulma-ui');
 const LIBRARY_TYPES = join(BULMA_UI, 'dist', 'types', 'index.d.ts');
 
@@ -57,62 +56,6 @@ function skillExamples() {
   };
   visit(join(REPO, 'skills'));
   return out.sort();
-}
-
-/** A tsconfig, parsed, failing loudly on anything unreadable. */
-function parseConfig(configPath) {
-  const parsed = ts.getParsedCommandLineOfConfigFile(
-    configPath,
-    {},
-    {
-      ...ts.sys,
-      onUnRecoverableConfigFileDiagnostic: diagnostic => {
-        throw new Error(
-          ts.flattenDiagnosticMessageText(diagnostic.messageText, '\n')
-        );
-      },
-    }
-  );
-  assert.ok(parsed, `could not parse ${configPath}`);
-  // Anything short of unreadable lands here and leaves the option it is
-  // about out of `parsed.options`, which would weaken the gate silently.
-  assert.equal(
-    ts.formatDiagnostics(parsed.errors, {
-      getCanonicalFileName: file => file,
-      getCurrentDirectory: () => REPO,
-      getNewLine: () => '\n',
-    }),
-    '',
-    `${configPath} did not parse cleanly, so these are not the template's options`
-  );
-  return parsed;
-}
-
-/**
- * The compiler options of the template project whose files include `src/`,
- * the project an example copied into the app is built by. Followed through
- * project references, so it holds whether the template keeps them in its root
- * tsconfig.json or in a referenced one.
- */
-function appCompilerOptions(template = TEMPLATE) {
-  const src = join(template, 'src') + sep;
-  const queue = [join(template, 'tsconfig.json')];
-  // Each config once: a reference cycle would otherwise grow the queue forever.
-  const seen = new Set(queue);
-  while (queue.length > 0) {
-    const parsed = parseConfig(queue.shift());
-    if (parsed.fileNames.some(file => file.startsWith(src))) {
-      return parsed.options;
-    }
-    for (const ref of parsed.projectReferences ?? []) {
-      const path = ts.resolveProjectReferencePath(ref);
-      if (!seen.has(path)) {
-        seen.add(path);
-        queue.push(path);
-      }
-    }
-  }
-  assert.fail(`no project under ${relative(REPO, template)} compiles src/`);
 }
 
 /**
@@ -233,59 +176,4 @@ describe('skill examples compile in a vite-ts scaffold', () => {
       assert.equal(ts.formatDiagnostics(own, host), '');
     });
   }
-});
-
-// The gate is only as strict as the options it reads, so reading them has to
-// fail on a template it cannot follow, never quietly settle for less.
-describe('reading the template TypeScript config', () => {
-  /** Run `check` against a throwaway template holding `files`. */
-  function withTemplate(files, check) {
-    const dir = mkdtempSync(join(tmpdir(), 'skill-examples-template-'));
-    try {
-      for (const [name, body] of Object.entries(files)) {
-        mkdirSync(dirname(join(dir, name)), { recursive: true });
-        writeFileSync(
-          join(dir, name),
-          typeof body === 'string' ? body : JSON.stringify(body)
-        );
-      }
-      check(dir);
-    } finally {
-      rmSync(dir, { recursive: true, force: true });
-    }
-  }
-
-  // An option TypeScript does not recognise is left out of the parsed
-  // options, so a misspelled `noUnusedLocals` would let #951 back in.
-  it('fails on an option it does not recognise rather than dropping it', () => {
-    withTemplate(
-      {
-        'tsconfig.json': {
-          compilerOptions: { noUnusedLocal: true },
-          include: ['src'],
-        },
-        'src/main.ts': 'export {};\n',
-      },
-      dir =>
-        assert.throws(
-          () => appCompilerOptions(dir),
-          /did not parse cleanly[\s\S]*noUnusedLocal/
-        )
-    );
-  });
-
-  it('fails on a reference cycle rather than following it forever', () => {
-    withTemplate(
-      {
-        'tsconfig.json': { files: [], references: [{ path: './a.json' }] },
-        'a.json': { files: [], references: [{ path: './b.json' }] },
-        'b.json': { files: [], references: [{ path: './a.json' }] },
-      },
-      dir =>
-        assert.throws(
-          () => appCompilerOptions(dir),
-          /no project under .* compiles src\//
-        )
-    );
-  });
 });
