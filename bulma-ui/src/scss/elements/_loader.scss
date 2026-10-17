@@ -4,12 +4,22 @@
 // for users who ask for less motion. Each ring stays drawn, so the loading
 // state is still visible.
 //
+// It also keeps each ring open in forced colors (Windows' contrast themes).
+// Bulma leaves two sides of the ring `transparent`, and forced colors paints
+// those in the text color like any other border, so the ring closes, and a
+// closed ring turning looks like one standing still. `Canvas`, the page's
+// own color, is a system color, which forced colors leaves alone.
+//
 // These rules override stock Bulma, and Bulma's CSS can land on either side
 // of this partial: `versions/bestax-no-dark-mode.scss` emits the extras first,
 // an app can link `extras.css` ahead of its own Bulma, and a component can
 // re-spin a ring with a more specific selector (`.autocomplete .loader`).
 // `!important` is what wins in every one of those cases, whatever the order
 // or specificity, so the override does not depend on where this file lands.
+//
+// Bulma's rings come from its `%loader` placeholder, but a module can't add
+// to what another module's `@extend` reaches, and `extras.css` is built
+// without Bulma at all, so each ring is named here.
 
 @use "bulma/sass/utilities/initial-variables" as iv;
 
@@ -19,5 +29,15 @@
   .#{iv.$class-prefix}control.#{iv.$class-prefix}is-loading::after,
   .#{iv.$class-prefix}select.#{iv.$class-prefix}is-loading::after {
     animation: none !important;
+  }
+}
+
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}loader,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading::after,
+  .#{iv.$class-prefix}control.#{iv.$class-prefix}is-loading::after,
+  .#{iv.$class-prefix}select.#{iv.$class-prefix}is-loading::after {
+    border-top-color: Canvas !important;
+    border-right-color: Canvas !important;
   }
 }

@@ -18,29 +18,31 @@ export const Basic: Story = {
     <Menu style={{ maxWidth: 300 }}>
       <Menu.Label>General</Menu.Label>
       <Menu.List>
-        <Menu.Item>Dashboard</Menu.Item>
-        <Menu.Item>Customers</Menu.Item>
+        <Menu.Item href="#dashboard">Dashboard</Menu.Item>
+        <Menu.Item href="#customers">Customers</Menu.Item>
       </Menu.List>
       <Menu.Label>Administration</Menu.Label>
       <Menu.List>
-        <Menu.Item>Team Settings</Menu.Item>
-        <Menu.Item active>
+        <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+        <Menu.Item active href="#manage-your-team">
           Manage Your Team
           <Menu.List>
-            <Menu.Item>Members</Menu.Item>
-            <Menu.Item>Plugins</Menu.Item>
-            <Menu.Item>Add a member</Menu.Item>
+            <Menu.Item href="#members">Members</Menu.Item>
+            <Menu.Item href="#plugins">Plugins</Menu.Item>
+            <Menu.Item href="#add-a-member">Add a member</Menu.Item>
           </Menu.List>
         </Menu.Item>
-        <Menu.Item>Invitations</Menu.Item>
-        <Menu.Item>Cloud Storage Environment Settings</Menu.Item>
-        <Menu.Item>Authentication</Menu.Item>
+        <Menu.Item href="#invitations">Invitations</Menu.Item>
+        <Menu.Item href="#cloud-storage">
+          Cloud Storage Environment Settings
+        </Menu.Item>
+        <Menu.Item href="#authentication">Authentication</Menu.Item>
       </Menu.List>
       <Menu.Label>Transactions</Menu.Label>
       <Menu.List>
-        <Menu.Item>Payments</Menu.Item>
-        <Menu.Item>Transfers</Menu.Item>
-        <Menu.Item>Balance</Menu.Item>
+        <Menu.Item href="#payments">Payments</Menu.Item>
+        <Menu.Item href="#transfers">Transfers</Menu.Item>
+        <Menu.Item href="#balance">Balance</Menu.Item>
       </Menu.List>
     </Menu>
   ),
@@ -51,13 +53,15 @@ export const CompoundUsage: Story = {
     <Menu>
       <Menu.Label>General</Menu.Label>
       <Menu.List>
-        <Menu.Item active>Dashboard</Menu.Item>
-        <Menu.Item>Customers</Menu.Item>
+        <Menu.Item active href="#dashboard">
+          Dashboard
+        </Menu.Item>
+        <Menu.Item href="#customers">Customers</Menu.Item>
       </Menu.List>
       <Menu.Label>Administration</Menu.Label>
       <Menu.List>
-        <Menu.Item>Team Settings</Menu.Item>
-        <Menu.Item>Invitations</Menu.Item>
+        <Menu.Item href="#team-settings">Team Settings</Menu.Item>
+        <Menu.Item href="#invitations">Invitations</Menu.Item>
       </Menu.List>
     </Menu>
   ),

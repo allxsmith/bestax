@@ -80,6 +80,31 @@ describe('PickerPopover', () => {
     }
   });
 
+  it('claims an Escape pressed in its panel before a React handler around it sees the key', () => {
+    // Such as a Dropdown menu's, which then leaves the Escape to the picker.
+    let seenUsed: boolean | undefined;
+    const { getByTestId } = render(
+      <div
+        onKeyDown={e => {
+          seenUsed = e.defaultPrevented;
+        }}
+      >
+        <Harness />
+      </div>
+    );
+    act(() => {
+      fireEvent.keyDown(getByTestId('inside'), { key: 'Escape' });
+    });
+    expect(seenUsed).toBe(true);
+  });
+
+  it('leaves an Escape pressed in its panel unclaimed under closeOnEscape=false', () => {
+    const { getByTestId } = render(<Harness closeOnEscape={false} />);
+    expect(fireEvent.keyDown(getByTestId('inside'), { key: 'Escape' })).toBe(
+      true
+    );
+  });
+
   it('closes on an Escape pressed elsewhere, and leaves that key unclaimed', () => {
     // Focus outside the picker, such as in a Modal opened over it, owns the
     // key, so the Modal still closes on it.
