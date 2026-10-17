@@ -1,0 +1,485 @@
+name: Templates publish
+
+# Publishes templates/ to allxsmith/bestax-templates, the mirror StackBlitz
+# opens the ported Bulma templates from. That repository's whole tree is
+# generated here by scripts/gen-templates-repo.mjs, from the template folders
+# as git tracks them, the docs data in docs/src/data/templates.js, and the
+# root LICENSE and NOTICE. Each run replaces its tree with fresh output and
+# commits only when something changed. Nobody edits bestax-templates by hand:
+# a fix lands here and this workflow carries it over. The script has a node
+# --test sibling (rule 9), and its header says why the mirror is a
+# repository of its own. This file holds the trust decisions.
+#
+# It is skills-publish.yml's shape without that workflow's release trigger,
+# relay job and version: nothing here follows a package release, and
+# nothing installs a release of the mirror. Where a decision is the same,
+# the comment says so and skills-publish.yml carries the reasoning.
+#
+# Triggers.
+#
+#   push to main, filtered to the generator's inputs and the code it runs:
+#     the common case, a merged template change.
+#   workflow_dispatch: the first publish and a re-run. Dispatch needs write
+#     access, and any ref other than main skips.
+#
+# Two jobs, so the deploy key never shares a job with repository code.
+# `generate` checks out main, runs the generator and hands the tree on as an
+# artifact. It holds no secret and names no environment. `publish` holds the
+# key and checks out nothing. Apart from the pinned actions that harden its
+# runner and download the artifact, and the egress assertion every block
+# job carries, it runs only the shell, git, ssh, tar, find and coreutils, on
+# data that `generate` produced by running main's reviewed code. It checks
+# that data before git reads it.
+#
+# Re-runs. As in skills-publish.yml: the artifact's name carries the run
+# attempt, so re-running `publish` alone fails before the key is used. Re-run
+# the whole run instead.
+#
+# Credential. `publish` runs in the `templates-publish` environment, whose
+# only secret is BESTAX_TEMPLATES_DEPLOY_KEY: an SSH deploy key with write
+# access to allxsmith/bestax-templates and nothing else. The environment
+# admits `main` only, and `main` is behind this repository's ruleset, so only
+# reviewed code reaches the key. Create the environment before this file
+# reaches main: a job naming an environment that does not exist creates it,
+# unprotected. CONTRIBUTING.md ("The bestax-templates repository") has the
+# setup. No required reviewer on the environment, for the reason the header
+# of skills-publish.yml gives.
+
+on:
+  push:
+    branches: [main]
+    # PUBLISH_PATHS in scripts/gen-templates-repo.mjs: all of templates/, the
+    # generator's input files, every local module it imports, and this file.
+    # scripts/gen-templates-repo.test.mjs fails when the list misses one or
+    # names one the generator no longer needs. A run for a code change
+    # publishes only when the tree comes out different.
+    paths:
+      - 'templates/**'
+      - 'docs/src/data/templates.js'
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'scripts/gen-templates-repo.mjs'
+      - 'scripts/gen-skills-repo.mjs'
+      - 'scripts/lib/templates.mjs'
+      - 'scripts/lib/skills.mjs'
+      - 'scripts/lib/api-page.mjs'
+      - 'scripts/lib/fetch-retry.mjs'
+      - 'scripts/lib/main-module.mjs'
+      - 'scripts/lib/version-regression.mjs'
+      - 'scripts/lib/pack-time-protocols.mjs'
+      - 'scripts/consumer-sbom-meta.mjs'
+      - 'scripts/mcp-registry-publish.mjs'
+      - 'scripts/npm-install-retry.mjs'
+      - 'docs/scripts/generated-markers-lib.mjs'
+      - 'docs/src/theme/CodeBlock/sandbox/projects.mjs'
+      - '.github/workflows/templates-publish.yml'
+  workflow_dispatch:
+
+# No workflow-level grants; each job takes exactly what it needs.
+permissions: {}
+
+# One publishing run at a time, never cancelled midway, held for the whole
+# run, for the reasons skills-publish.yml gives. A run joins the shared group
+# on the condition `generate` runs on (the test sibling holds the two equal),
+# and every other run takes a group of its own.
+concurrency:
+  group: ${{ github.repository == 'allxsmith/bestax' && github.ref == 'refs/heads/main' && 'templates-publish' || format('templates-publish-{0}', github.run_id) }}
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    name: Generate the bestax-templates tree
+    # The repository check keeps a fork from trying. The ref check makes a
+    # dispatch from another branch skip. Neither is the boundary: a branch's
+    # own copy of this file can drop them, which is why the environment on
+    # `publish` admits `main` only.
+    if: >-
+      github.repository == 'allxsmith/bestax' &&
+      github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read # checkout of a public repository
+    outputs:
+      source_sha: ${{ steps.source.outputs.sha }}
+    steps:
+      # Rule 10: a new job ships at `block`, asserted in the default position.
+      # REASONED, NOT MEASURED, as no run exists yet: widen from the first
+      # run's report ("Measuring an allowlist" in .github/CLAUDE.md).
+      #
+      #   github.com:443: the checkout of this repository (git over HTTPS, no
+      #     API call), as in skills-publish's `generate`.
+      #
+      # Not listed: api.github.com, as nothing here calls the API; see "What
+      # the agent allows beyond the list" in .github/CLAUDE.md. Nor
+      # registry.npmjs.org or nodejs.org, as the generator asks no registry,
+      # imports node: builtins and local modules only, and runs on the
+      # runner's Node with no install. Nor the hosts upload-artifact reaches,
+      # for the reason skills-publish's `generate` gives.
+      - name: Harden runner
+        timeout-minutes: 2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: block
+          disable-sudo-and-containers: true
+          allowed-endpoints: >
+            github.com:443
+
+      # Copied from the other block jobs, as rule 10 asks. It proves enforcement
+      # was armed at this step, not that it stays armed; rule 10 in
+      # .github/CLAUDE.md carries the mechanism and what to check when a run
+      # looks wrong. Linux-only paths; the runner is ubuntu-latest.
+      #
+      # It also checks that disable-sudo-and-containers took effect (see below).
+      - name: Assert egress policy is enforced
+        timeout-minutes: 2
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      # `ref: main` on every trigger, never a PR, a tag or the event's commit,
+      # so the generator and its inputs are reviewed code behind the ruleset.
+      # No PR runs this workflow, so rule 9's bootstrap gap does not apply.
+      # The default shallow clone is enough: the tree is what git tracks at
+      # main, and the generator counts no history.
+      - name: Checkout main
+        id: checkout
+        timeout-minutes: 5
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          ref: main
+          persist-credentials: false
+
+      # The commit `publish` names in its commit message. It checks the value
+      # again, as it reaches that job as data.
+      - name: Record the source commit
+        id: source
+        timeout-minutes: 1
+        env:
+          SHA: ${{ steps.checkout.outputs.commit }}
+        run: |
+          if [[ ! "$SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::actions/checkout reported no commit for main."
+            exit 1
+          fi
+          echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+
+      # The script checks the tree before and after writing it and fails with
+      # the reasons, including a template folder and a docs entry that do not
+      # match. It always requires a git checkout. Deliberately no setup-node,
+      # as in skills-publish's `generate`: the runner image's Node runs it,
+      # and the version is printed for the record.
+      - name: Generate the bestax-templates tree
+        timeout-minutes: 5
+        run: |
+          node --version
+          node scripts/gen-templates-repo.mjs "$RUNNER_TEMP/bestax-templates-tree"
+
+      # One tar file, because an artifact keeps no file modes and leaves out
+      # hidden paths such as a template's .gitignore by default, and the tree
+      # needs both. Every member is named ./<path>, the shape `publish` checks
+      # for.
+      - name: Pack the tree
+        timeout-minutes: 2
+        run: tar -C "$RUNNER_TEMP/bestax-templates-tree" -cf "$RUNNER_TEMP/bestax-templates-tree.tar" .
+
+      # One day, the shortest retention there is, and the name carries the
+      # attempt, as in skills-publish's `generate`.
+      - name: Upload the tree
+        timeout-minutes: 5
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: bestax-templates-tree-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bestax-templates-tree.tar
+          if-no-files-found: error
+          retention-days: 1
+
+  publish:
+    name: Publish to allxsmith/bestax-templates
+    # No `if:` of its own: a job skips when a job it needs skipped, so this
+    # runs only when `generate` ran and succeeded.
+    needs: generate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: templates-publish
+    # No grants: no checkout and no API call, as in skills-publish's
+    # `publish`.
+    permissions: {}
+    steps:
+      # Rule 10, as in `generate`, and the same REASONED, NOT MEASURED caveat.
+      # This job holds the deploy key.
+      #
+      #   github.com:22: git over SSH to allxsmith/bestax-templates, for the
+      #     ls-remote, the clone and the push. The deploy key works over SSH
+      #     only.
+      #
+      # Not listed: api.github.com, github.com on port 443, or the hosts
+      # download-artifact reaches, for the reasons skills-publish's `publish`
+      # gives.
+      - name: Harden runner
+        timeout-minutes: 2
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
+        with:
+          egress-policy: block
+          disable-sudo-and-containers: true
+          allowed-endpoints: >
+            github.com:22
+
+      # Copied from the other block jobs, as rule 10 asks. See `generate`.
+      - name: Assert egress policy is enforced
+        timeout-minutes: 2
+        run: |
+          set -uo pipefail
+          # harden-runner has several deliberate "install nothing, exit 0" paths
+          # (StepSecurity unavailable, the skip-harden-runner repo property, a
+          # container or slim runner). None of them writes agent.json, so name
+          # that case rather than leaving a bare jq "could not open file".
+          if [ ! -e /home/agent/agent.json ]; then
+            echo "::error::harden-runner installed no agent, so nothing is enforcing egress. Usual causes: a StepSecurity outage (its pre-step returns green without installing), the skip-harden-runner repo property, or a container/slim runner. This job holds a credential and will not run unprotected (#487)."
+            exit 1
+          fi
+          if ! jq -e '.egress_policy == "block"' /home/agent/agent.json; then
+            echo "::error::effective egress policy is not block — harden-runner downgraded it (#487)."
+            exit 1
+          fi
+          if ! jq -e '.disable_sudo_and_containers == true' /home/agent/agent.json; then
+            echo "::error::this job sets disable-sudo-and-containers, but agent.json does not record it, so harden-runner did not take the input."
+            exit 1
+          fi
+          # Poll rather than test once: the pre-step waits only for the file to
+          # EXIST and gives up after ~9s, while the agent resolves every
+          # allow-listed host before writing its status, so a cold resolver or a
+          # long list can leave the file absent or still empty here.
+          for _ in $(seq 1 30); do
+            if grep -q '^Initialized' /home/agent/agent.status 2>/dev/null; then
+              # Proves sudo and docker.sock were closed when this ran. Rule 10 in
+              # .github/CLAUDE.md has what the flag and this check do not prove.
+              if sudo -n true 2>/dev/null; then
+                echo "::error::sudo still works although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              if [ -w /var/run/docker.sock ]; then
+                echo "::error::/var/run/docker.sock is still writable although this job sets disable-sudo-and-containers. See harden-runner's post-step for the agent log."
+                exit 1
+              fi
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "::error::agent.json reads block but the agent never reported Initialized — the firewall is not up. Check the agent log for 'Reverted changes' (usually an unresolvable allow-listed host)."
+          exit 1
+
+      - name: Download the tree
+        timeout-minutes: 5
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: bestax-templates-tree-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/bestax-templates-artifact
+
+      # The tree is data, so it is checked before git reads it, the same
+      # check skills-publish's unpack step makes: every member a regular file
+      # or a directory, named ./<path>, with no empty, `.`, `..` or `.git`
+      # part in any case, the listing checked before anything is written, and
+      # tar run with TAR_OPTIONS unset. This step and the next are the
+      # deliberate exception to rule 9, as there, and
+      # scripts/gen-templates-repo.test.mjs runs both scripts from this file
+      # against good and tampered input.
+      - name: Unpack the tree
+        timeout-minutes: 2
+        env:
+          WORK: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          archive="$WORK/bestax-templates-artifact/bestax-templates-tree.tar"
+          tree="$WORK/bestax-templates-tree"
+          refuse() {
+            echo "::error::The tree from generate is refused: $1"
+            exit 1
+          }
+
+          # tar -tv starts each line with the member's type, as ls -l does.
+          types=$(env -u TAR_OPTIONS LC_ALL=C tar -tvf "$archive" | cut -c1 | LC_ALL=C sort -u | tr -d '\n')
+          if [ "$types" != "-d" ]; then
+            refuse "it must hold regular files and directories only, and holds types '$types'."
+          fi
+          names=$(env -u TAR_OPTIONS tar -tf "$archive")
+          shopt -s nocasematch
+          while IFS= read -r name; do
+            case "$name" in
+              ./) continue ;;
+              ./*) rel=${name#./} ;;
+              *) refuse "$(printf '%q' "$name") is not named ./<path>." ;;
+            esac
+            case "/${rel%/}/" in
+              *//* | */./* | */../* | */.git/*)
+                refuse "$(printf '%q' "$name") has an empty, ., .. or .git part." ;;
+            esac
+          done <<< "$names"
+          shopt -u nocasematch
+
+          mkdir "$tree"
+          env -u TAR_OPTIONS tar --no-same-owner -xf "$archive" -C "$tree"
+          echo "The tree from generate unpacked to $tree."
+
+      # The unpacked files again, independent of how the listing was read,
+      # then the files the mirror's root needs. See the step above for why
+      # this is inline.
+      - name: Check the unpacked tree
+        timeout-minutes: 2
+        env:
+          WORK: ${{ runner.temp }}
+        run: |
+          set -euo pipefail
+          tree="$WORK/bestax-templates-tree"
+          refuse() {
+            echo "::error::The tree from generate is refused: $1"
+            exit 1
+          }
+
+          odd=$(find "$tree" -mindepth 1 \( -iname .git -o ! \( -type f -o -type d \) \) -print)
+          if [ -n "$odd" ]; then
+            refuse "the unpacked tree holds a .git, or an entry that is neither a regular file nor a directory."
+          fi
+          for file in README.md LICENSE NOTICE; do
+            [ -f "$tree/$file" ] || refuse "$file is missing."
+          done
+          echo "The tree from generate passed its checks."
+
+      # The only step that sees the key, and the same step as skills-publish's
+      # push: the key handed on stdin to the script run again under `env -i`,
+      # a fresh HOME, no git config, hooks off, ssh with no config file and
+      # only GitHub's published host keys, and a plain push, never a force
+      # push. That step's comment carries the reasoning, where the host keys
+      # come from, and what an earlier step in the job could still reach.
+      - name: Commit and push to allxsmith/bestax-templates
+        timeout-minutes: 5
+        shell: /usr/bin/bash --noprofile --norc -euo pipefail {0}
+        env:
+          DEPLOY_KEY: ${{ secrets.BESTAX_TEMPLATES_DEPLOY_KEY }}
+          SOURCE_SHA: ${{ needs.generate.outputs.source_sha }}
+          SERVER_URL: ${{ github.server_url }}
+          WORK: ${{ runner.temp }}
+        run: |
+          # The shell the runner started. It checks the key, then runs this
+          # script again under env -i with the key on stdin, so the key is in
+          # neither the new environment nor any command line.
+          if [ "${1:-}" != reset ]; then
+            if [ -z "${DEPLOY_KEY:-}" ]; then
+              echo "::error::BESTAX_TEMPLATES_DEPLOY_KEY is not set in the templates-publish environment. CONTRIBUTING.md, \"The bestax-templates repository\", has the one-time setup."
+              exit 1
+            fi
+            printf '%s\n' "$DEPLOY_KEY" | /usr/bin/env -i \
+              PATH=/usr/bin:/bin \
+              HOME="$WORK/bestax-templates-push/home" \
+              GIT_CONFIG_GLOBAL=/dev/null \
+              GIT_CONFIG_NOSYSTEM=1 \
+              GIT_CEILING_DIRECTORIES="$WORK" \
+              GIT_TERMINAL_PROMPT=0 \
+              WORK="$WORK" \
+              SOURCE_SHA="$SOURCE_SHA" \
+              SERVER_URL="$SERVER_URL" \
+              /usr/bin/bash --noprofile --norc -euo pipefail "$0" reset
+            exit
+          fi
+
+          # From here on, only the variables listed above. The directories
+          # this step makes are new, so mkdir fails on one an earlier step
+          # left in place.
+          if [[ ! "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::generate passed no source commit for main."
+            exit 1
+          fi
+          run="$WORK/bestax-templates-push"
+          tree="$WORK/bestax-templates-tree"
+          repo="$run/repo"
+          ssh_dir="$run/ssh"
+          mkdir -m 700 "$run" "$HOME" "$ssh_dir"
+          trap 'rm -rf -- "$ssh_dir"' EXIT
+          cd "$HOME"
+          (umask 077 && cat > "$ssh_dir/key")
+          cat > "$ssh_dir/known_hosts" <<'EOF'
+          github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
+          github.com ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBEmKSENjQEezOmxkZMy7opKgwFB9nkt5YRrYMjNuG5N87uRgg6CLrbo5wAdT/y6v0mKV0U2w0WZ2YB/++Tpockg=
+          github.com ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCj7ndNxQowgcQnjshcLrqPEiiphnt+VTTvDP6mHBL9j1aNUkY4Ue1gvwnGLVlOhGeYrnZaMgRK6+PKCUXaDbC7qtbW8gIkhL7aGCsOr/C56SJMy/BCZfxd1nWzAOxSDPgVsmerOBYfNqltV9/hWCqBywINIR+5dIg6JTJ72pcEpEjcYgXkE2YEFXV1JHnsKgbLWNlhScqb2UmyRkQyytRLtL+38TGxkxCflmO+5Z8CSSNY7GidjMIZ7Q4zMjA2n1nGrlTDkzwDCsw+wqFPGQA179cnfGWOWRVruj16z6XyvxvjJwbz0wQZ75XK5tKSb7FNyeIEs4TT4jk+S4dhPeAUC5y+bDYirYgM4GC7uEnztnZyaVWQ7B381AK4Qdrwt51ZqExKbQpTUNn+EjqoTwvqNj4kqx5QUCI0ThS/YkOxJCXmPUWZbhjpCg56i+2aB6CmK2JGhn57K5mj0MNdBXA4/WnwH6XoPWJzK5Nyu2zB3nAZp+S5hpQs+p1vN1/wsjk=
+          EOF
+          export GIT_SSH_COMMAND="ssh -F /dev/null -i $ssh_dir/key -o IdentitiesOnly=yes -o IdentityAgent=none -o StrictHostKeyChecking=yes -o UserKnownHostsFile=$ssh_dir/known_hosts -o GlobalKnownHostsFile=/dev/null -o BatchMode=yes"
+          remote=git@github.com:allxsmith/bestax-templates.git
+          gitc() { git -c core.hooksPath=/dev/null "$@"; }
+
+          # Clone main, or start it when bestax-templates has no main yet, as on
+          # the first run against the empty repository. ls-remote exits 2 for
+          # a ref that is not there and 128 for anything else, such as a
+          # missing repository or a refused key.
+          status=0
+          gitc ls-remote --exit-code "$remote" refs/heads/main > /dev/null || status=$?
+          case "$status" in
+            0)
+              gitc clone --quiet --no-checkout --depth 1 --no-tags --branch main "$remote" "$repo"
+              ;;
+            2)
+              echo "allxsmith/bestax-templates has no main yet, so this run creates it."
+              gitc init --quiet --initial-branch=main "$repo"
+              gitc -C "$repo" remote add origin "$remote"
+              ;;
+            *)
+              echo "::error::Could not read allxsmith/bestax-templates (git ls-remote exited $status). Check that the repository exists and that the deploy key is on it."
+              exit 1
+              ;;
+          esac
+
+          # The generated tree, as the work tree, becomes the whole of main:
+          # the clone's index starts empty, so a file the tree no longer has is
+          # staged as deleted. git never stages a path named .git.
+          publish() { gitc --git-dir="$repo/.git" --work-tree="$tree" "$@"; }
+          publish add --all
+          if publish diff --cached --quiet; then
+            echo "allxsmith/bestax-templates already matches allxsmith/bestax@$SOURCE_SHA. Nothing to publish."
+            exit 0
+          fi
+          publish diff --cached --stat
+
+          publish \
+            -c user.name='github-actions[bot]' \
+            -c user.email='41898282+github-actions[bot]@users.noreply.github.com' \
+            commit --quiet \
+            -m "Publish allxsmith/bestax@$SOURCE_SHA" \
+            -m "Generated by .github/workflows/templates-publish.yml from $SERVER_URL/allxsmith/bestax/commit/$SOURCE_SHA. This repository is never edited by hand. Open issues and pull requests in allxsmith/bestax."
+          publish push --quiet origin HEAD:refs/heads/main
+          echo "Published allxsmith/bestax@$SOURCE_SHA to allxsmith/bestax-templates."

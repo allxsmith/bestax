@@ -182,6 +182,11 @@ shipped product (see `skills/CLAUDE.md`); the MCP server serves a generated inde
 `bestax-mcp/CLAUDE.md`). This file is also read by **CodeRabbit** (PR reviews)
 and the **`@claude`** GitHub Action (project instructions), so keep it accurate.
 
+**The templates mirror.** StackBlitz opens the ported templates from allxsmith/bestax-templates,
+whose whole tree `.github/workflows/templates-publish.yml` generates with
+`scripts/gen-templates-repo.mjs` on each change to `templates/` on `main`. Never edit
+bestax-templates. CONTRIBUTING.md ("The bestax-templates repository") has the rest.
+
 **The bestax plugin.** The `bestax` coding-agent plugin, the skills plus the MCP server, installs
 from its own repository, allxsmith/bestax-skills, so an install does not clone this one.
 `.github/workflows/skills-publish.yml` generates that repository's whole tree with
