@@ -59,6 +59,8 @@ const NAMED_INDIVIDUALLY = [
   'Sidebar',
   'Toast',
   'ToggleButton',
+  'TreeView',
+  'TreeView.Item',
 ] as const;
 
 /**

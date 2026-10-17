@@ -172,6 +172,8 @@ const PUBLIC_EXPORTS = [
   'ToggleButton',
   'Tooltip',
   'Tr',
+  'TreeView',
+  'TreeViewItem',
   'UnorderedList',
   'checkboxColors',
   'checkboxSizes',
