@@ -176,8 +176,11 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   from a copy of its folder and captures the preview: our capture of the port, never the
   upstream's image, and a manual step that CI does not run. `scripts/templates.test.mjs` at the
   repo root holds every entry to its folder and its screenshot and back, so a template, its
-  entry and its screenshot land in one PR. A card opens StackBlitz through a plain anchor rather than the SDK the live examples
-  use, so it works without JavaScript, and it never links the upstream's live site. The filters
+  entry and its screenshot land in one PR. A card opens StackBlitz through a plain anchor
+  rather than the SDK the live examples use, so it works without JavaScript, and it never links
+  the upstream's live site. It opens the template from the allxsmith/bestax-templates mirror,
+  named once in the data file; CONTRIBUTING.md ("The bestax-templates repository") covers the
+  mirror. The filters
   live in the URL through `useQueryString` and `useQueryStringList` from
   `@docusaurus/theme-common`, and the page reuses ComponentComparison's stylesheet for its
   chips, search box and panels rather than keeping a copy.

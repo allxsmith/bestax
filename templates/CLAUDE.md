@@ -2,10 +2,11 @@
 
 Each folder here is a free Bulma template from aldi's
 [awesome-bulma-templates](https://github.com/aldi/awesome-bulma-templates), ported to bestax: a
-complete create-bestax `vite-ts` project that StackBlitz opens straight from GitHub
-(`https://stackblitz.com/github/allxsmith/bestax/tree/main/templates/<slug>`). The docs site lists
-them on its Templates page (`docs/src/pages/templates`). #1118 is the epic, with one issue per
-template; #1121 specifies this folder.
+complete create-bestax `vite-ts` project that StackBlitz opens on its own. StackBlitz opens it
+from a generated mirror of this folder rather than from here; CONTRIBUTING.md ("The
+bestax-templates repository") says what the mirror holds and how it is published. The docs site
+lists the templates on its Templates page (`docs/src/pages/templates`). #1118 is the epic, with
+one issue per template; #1121 specifies this folder.
 
 ## What a template folder is
 
