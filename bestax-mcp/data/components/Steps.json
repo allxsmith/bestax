@@ -263,7 +263,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Step label/title",
+          "description": "Step label/title, or pass it as `children`. On a `clickable` step it's rendered inside the step's `<button>`, so it has to be phrasing content, like text, a `<span>` or an icon, with no link, button or other control in it.",
           "required": false,
           "inherited": false,
           "deprecated": false
