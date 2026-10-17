@@ -3,3 +3,7 @@ This project uses the Bulma CSS framework by Jeremy Thomas (https://bulma.io), l
 Some example and documentation content is adapted from the Bulma website (https://bulma.io), which is licensed under Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0).
 
 See https://github.com/jgthms/bulma/blob/main/LICENSE for details.
+
+Templates
+
+The templates under templates/ are ports of free Bulma templates collected in aldi's awesome-bulma-templates (https://github.com/aldi/awesome-bulma-templates), licensed under the MIT license. Each template keeps its upstream copyright notice in its own LICENSE, and its line below names the repository it was ported from.

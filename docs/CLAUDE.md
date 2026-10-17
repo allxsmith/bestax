@@ -167,6 +167,23 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   library comparison page is the one guide that shows dated data, and only through its
   component, which the index strips; its prose follows this rule (see "The State of React" in
   `blog/CLAUDE.md`).
+- **The Templates page** (`/templates`, `src/pages/templates/`, modeled on the Docusaurus
+  showcase) lists the Bulma templates ported into `templates/` at the repo root, whose porting
+  guide is `templates/CLAUDE.md`. Its data is `src/data/templates.js`, plain data with no
+  imports, and the file's header documents each field and the tags. Each card's screenshot is
+  `static/img/templates/<slug>.jpg`, written by
+  `pnpm --filter @allxsmith/bestax-docs screenshot:template <slug>`, which builds the template
+  from a copy of its folder and captures the preview: our capture of the port, never the
+  upstream's image, and a manual step that CI does not run. `scripts/templates.test.mjs` at the
+  repo root holds every entry to its folder and its screenshot and back, so a template, its
+  entry and its screenshot land in one PR. A card opens StackBlitz through a plain anchor
+  rather than the SDK the live examples use, so it works without JavaScript, and it never links
+  the upstream's live site. It opens the template from the allxsmith/bestax-templates mirror,
+  named once in the data file; CONTRIBUTING.md ("The bestax-templates repository") covers the
+  mirror. The filters
+  live in the URL through `useQueryString` and `useQueryStringList` from
+  `@docusaurus/theme-common`, and the page reuses ComponentComparison's stylesheet for its
+  chips, search box and panels rather than keeping a copy.
 - Scripts in `docs/scripts/` are covered by the root `pnpm lint` — run it before pushing even
   a docs-only PR (#471 broke CI on exactly this). Playwright `page.evaluate` callbacks
   execute in the browser, so declare the browser globals each callback actually uses
