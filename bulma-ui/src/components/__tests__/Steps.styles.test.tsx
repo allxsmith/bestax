@@ -509,6 +509,37 @@ describe.each([
       }
     });
 
+    it('draws a custom completed icon in the mark’s Canvas, whatever color it sets', () => {
+      // Forcing is off on the completed marker, and that's inherited, so an
+      // icon that sets its own color would keep it on the CanvasText fill.
+      const found = rulesOf(compile(prefix));
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>
+          <Steps
+            value={1}
+            items={[
+              {
+                label: 'Ordered',
+                completedIcon: (
+                  <span className={`${prefix}has-text-info`}>
+                    <i data-testid="glyph">★</i>
+                  </span>
+                ),
+              },
+              { label: 'Packed' },
+            ]}
+          />
+        </ConfigProvider>
+      );
+      const marker = container.querySelector(p('steps-marker'))!;
+      for (const el of Array.from(marker.querySelectorAll('*'))) {
+        expect(winners(candidates(found, el, '', 'color', true))).toEqual([
+          'inherit',
+        ]);
+        expect(candidates(found, el, '', 'color', false)).toEqual([]);
+      }
+    });
+
     it('rings the current marker, and only it, with an outline', () => {
       const found = rulesOf(compile(prefix));
       for (const { color, vertical } of layouts) {

@@ -500,6 +500,14 @@ button.#{iv.$class-prefix}steps-link {
     background-color: CanvasText !important;
     border-color: CanvasText !important;
     color: Canvas !important;
+
+    // Nothing inside is forced either, since that's inherited, so a custom
+    // `icon` or `completedIcon` that sets its own color would keep it on the
+    // fill. It takes the check mark's Canvas instead. Forcing it back on
+    // would put a CanvasText glyph on the CanvasText fill, behind a backplate.
+    * {
+      color: inherit !important;
+    }
   }
 
   .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active .#{iv.$class-prefix}steps-marker {
