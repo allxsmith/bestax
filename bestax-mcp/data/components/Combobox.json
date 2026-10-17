@@ -46,7 +46,7 @@
       "code": "function example() {\n  const drinks: Record<\n    string,\n    { value: string; label: string; disabled?: boolean }[]\n  > = {\n    Hot: [\n      { value: 'coffee', label: 'Coffee' },\n      { value: 'tea', label: 'Tea' },\n    ],\n    Cold: [\n      { value: 'lemonade', label: 'Lemonade' },\n      { value: 'iced-tea', label: 'Iced tea' },\n      { value: 'smoothie', label: 'Smoothie (sold out)', disabled: true },\n    ],\n  };\n  const [query, setQuery] = useState('');\n  const [value, setValue] = useState('tea');\n  const picked = Object.values(drinks)\n    .flat()\n    .find(i => i.value === value);\n  const term = query.trim().toLowerCase();\n  const groups = Object.entries(drinks)\n    .map(([label, items]) => ({\n      label,\n      items: items.filter(i => i.label.toLowerCase().includes(term)),\n    }))\n    .filter(g => g.items.length > 0);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Drink\"\n        message={`Your drink: ${picked?.label}`}\n        onOptionSubmit={next => {\n          setValue(next);\n          setQuery('');\n        }}\n      >\n        <Combobox.Input\n          iconLeftName=\"mug-hot\"\n          placeholder=\"Type to filter\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        <Combobox.Dropdown>\n          {groups.length > 0 ? (\n            <Combobox.Options>\n              {groups.map(g => (\n                <Combobox.Group key={g.label} label={g.label}>\n                  {g.items.map(i => (\n                    <Combobox.Option\n                      key={i.value}\n                      value={i.value}\n                      checked={i.value === value}\n                      disabled={i.disabled}\n                    >\n                      {i.label}\n                    </Combobox.Option>\n                  ))}\n                </Combobox.Group>\n              ))}\n            </Combobox.Options>\n          ) : (\n            <Combobox.Empty>No drinks match</Combobox.Empty>\n          )}\n        </Combobox.Dropdown>\n      </Combobox>\n      <Select label=\"Size\">\n        <option>Small</option>\n        <option>Medium</option>\n        <option>Large</option>\n      </Select>\n      <Input label=\"Name for the cup\" />\n      <Button type=\"submit\" color=\"primary\">\n        Order\n      </Button>\n    </form>\n  );\n}"
     }
   ],
-  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`. The list is a `listbox` of `option`s, and a group is a `group` named by\n  its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.\n- **Focus stays in the field:** the highlighted option is the field's `aria-activedescendant`.\n  When a key or the list opening moves the highlight, the option is scrolled into view, since a\n  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer\n  is already on that option. A click on an option keeps focus in the field too.\n- **`aria-expanded`** is `true` while a list with an option in it is on screen, and\n  `aria-controls` points at the list then. While the dropdown shows just `Combobox.Empty`, the\n  field says it's collapsed, and so does the server markup for a list rendered with\n  `appendToBody`, which shows only once the page has hydrated.\n- **The list's name** comes from the label that names the field: the Combobox's `label`, or an\n  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.Options` wins, and\n  with none of these the list is named \"Suggestions\".\n- **`aria-selected`, with one value,** is on the highlighted option and nothing else, the way the\n  Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely\n  on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on\n  the chosen option instead.\n- **With `multiple`,** the list is `aria-multiselectable`, and each option's `aria-selected` is its\n  `checked`.\n- **Disabled options** are `aria-disabled` and stay reachable with the arrows, the Authoring\n  Practices' advice for listbox options, so a screen reader user finds them. They're never picked\n  or `aria-selected`, and the opening highlight and `autoHighlight` pass over them.\n- **The empty message** sits beside the list, not in it, so it isn't counted as an option. When\n  your typing brings it on screen, its text is announced through a polite status region that's in\n  the page from the start, once each time the matches run out. Opening the list with it already\n  there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`\n  is around the Combobox, the announcement waits and is made once loading ends. In a dropdown,\n  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.\n  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.\n- **No counts are announced,** for the reasons in [A Result Count](https://bestax.io/docs/api/form/combobox#a-result-count).\n- **Enter and Escape** leave a form and the layers around the field alone unless they did\n  something: Enter submits the form when nothing is highlighted, and Escape only stops at the\n  Combobox when it closed a panel that was on screen.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, a disabled option takes the system's color for disabled text, and the\n  check mark and the panel's edge stay visible.\n- **No motion:** nothing animates.",
+  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`. The list is a `listbox` of `option`s, and a group is a `group` named by\n  its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.\n- **Focus stays in the field:** the highlighted option is the field's `aria-activedescendant`.\n  When a key or the list opening moves the highlight, the option is scrolled into view, since a\n  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer\n  is already on that option. A click on an option keeps focus in the field too.\n- **`aria-expanded`** is `true` while a list with an option in it is on screen, and\n  `aria-controls` points at the list then. While the dropdown shows just `Combobox.Empty`, the\n  field says it's collapsed, and so does the server markup for a list rendered with\n  `appendToBody`, which shows only once the page has hydrated.\n- **The list's name** comes from the label that names the field: the Combobox's `label`, or an\n  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.Options` wins, and\n  with none of these the list is named \"Suggestions\".\n- **`aria-selected`, with one value,** is on the highlighted option and nothing else, the way the\n  Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely\n  on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on\n  the chosen option instead.\n- **With `multiple`,** the list is `aria-multiselectable`, and each option's `aria-selected` is its\n  `checked`.\n- **Disabled options** are `aria-disabled` and stay reachable with the arrows, the Authoring\n  Practices' advice for listbox options, so a screen reader user finds them. They're never picked\n  or `aria-selected`, and the opening highlight and `autoHighlight` pass over them.\n- **The empty message** sits beside the list, not in it, so it isn't counted as an option. When\n  your typing brings it on screen, its text is announced through a polite status region that's in\n  the page from the start, once each time the matches run out. Opening the list with it already\n  there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`\n  is around the Combobox, the announcement waits and is made once loading ends. In a dropdown,\n  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.\n  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.\n- **No counts are announced,** for the reasons in [A Result Count](https://bestax.io/docs/api/form/combobox#a-result-count).\n- **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops\n  at the Combobox when it closed a panel that was on screen.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, a disabled option takes the system's color for disabled text, and the\n  check mark and the panel's edge stay visible.\n- **No motion:** nothing animates.",
   "related": [
     "Autocomplete",
     "Dropdown",
@@ -634,151 +634,151 @@
       "css": "--bulma-combobox-dropdown-z-index",
       "sass": "$combobox-dropdown-z-index",
       "default": "$extras-z-index-dropdown",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-portal-z-index",
       "sass": "$combobox-portal-z-index",
       "default": "$extras-z-index-tooltip",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-dropdown-offset",
       "sass": "$combobox-dropdown-offset",
       "default": "0.25rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-dropdown-background",
       "sass": "$combobox-dropdown-background",
       "default": "var(--bulma-scheme-main)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-dropdown-radius",
       "sass": "$combobox-dropdown-radius",
       "default": "var(--bulma-radius)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-dropdown-shadow",
       "sass": "$combobox-dropdown-shadow",
       "default": "var(--bulma-shadow)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-dropdown-border-color",
       "sass": "$combobox-dropdown-border-color",
       "default": "var(--bulma-border-weak)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-dropdown-padding-y",
       "sass": "$combobox-dropdown-padding-y",
       "default": "0.5rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-list-max-height",
       "sass": "$combobox-list-max-height",
       "default": "15rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-option-color",
       "sass": "$combobox-option-color",
       "default": "var(--bulma-text-strong)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-option-size",
       "sass": "$combobox-option-size",
       "default": "0.875rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-option-padding-y",
       "sass": "$combobox-option-padding-y",
       "default": "0.375rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-option-padding-x",
       "sass": "$combobox-option-padding-x",
       "default": "1rem",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-option-hover-background",
       "sass": "$combobox-option-hover-background",
       "default": "hsl(var(--bulma-scheme-h), var(--bulma-scheme-s), calc(var(--bulma-scheme-main-l) + var(--bulma-hover-background-l-delta)))",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-highlight-background",
       "sass": "$combobox-highlight-background",
       "default": "var(--bulma-link)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-highlight-color",
       "sass": "$combobox-highlight-color",
       "default": "var(--bulma-link-invert)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-disabled-color",
       "sass": "$combobox-disabled-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-check-color",
       "sass": "$combobox-check-color",
       "default": "currentColor",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-check-size",
       "sass": "$combobox-check-size",
       "default": "1em",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-check-gap",
       "sass": "$combobox-check-gap",
       "default": "0.5em",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-group-label-size",
       "sass": "$combobox-group-label-size",
       "default": "0.85em",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-group-label-weight",
       "sass": "$combobox-group-label-weight",
       "default": "var(--bulma-weight-semibold)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-group-label-color",
       "sass": "$combobox-group-label-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-divider-color",
       "sass": "$combobox-divider-color",
       "default": "var(--bulma-border-weak)",
-      "scope": "root"
+      "scope": "compound"
     },
     {
       "css": "--bulma-combobox-empty-color",
       "sass": "$combobox-empty-color",
       "default": "var(--bulma-text-weak)",
-      "scope": "root"
+      "scope": "compound"
     }
   ]
 }

@@ -944,7 +944,7 @@ and a click in the field opens the list. A press in the list never takes focus f
 
 <!-- bestax:generated cssvars -->
 
-`Combobox` registers these variables on its own `.combobox` element. Override them there (or via `className`) — a value set on an ancestor is only inherited, and loses to the component-level declaration. See [Theme](../helpers/theme.md).
+`Combobox` registers these variables on a compound selector (higher specificity than a single class). Override them with inline `style`, or with a selector that exceeds that specificity (one that only matches it must load after the library styles to win by source order) — a lone class via `className` loses to the component-level declaration. See [Theme](../helpers/theme.md).
 
 | CSS Variable                               | Sass Variable                       | Default                                                                                                                       |
 | ------------------------------------------ | ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
