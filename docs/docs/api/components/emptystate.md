@@ -271,7 +271,7 @@ grows too and centers the empty state in whatever height the row ends up with.
   <Column display="flex" flexDirection="column">
     <Card flexGrow="1" display="flex" flexDirection="column">
       <Card.Header>
-        <Card.Header.Title>Invoices</Card.Header.Title>
+        <Card.Header.Title as="h2">Invoices</Card.Header.Title>
       </Card.Header>
       <Card.Content
         flexGrow="1"
@@ -294,7 +294,7 @@ grows too and centers the empty state in whatever height the row ends up with.
   <Column display="flex" flexDirection="column">
     <Card flexGrow="1" display="flex" flexDirection="column">
       <Card.Header>
-        <Card.Header.Title>Files</Card.Header.Title>
+        <Card.Header.Title as="h2">Files</Card.Header.Title>
       </Card.Header>
       <Card.Content
         flexGrow="1"
