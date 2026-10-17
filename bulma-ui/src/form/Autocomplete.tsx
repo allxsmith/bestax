@@ -38,6 +38,23 @@ export interface AutocompleteItem {
 const typedNoMatches = [{ id: 'empty' }];
 const nothingToAnnounce: Array<{ id: string }> = [];
 
+// A press on an option would take focus from the field, since an option
+// can't hold it, and nothing would put it back. Cancelling the press keeps
+// it there, as the ARIA Authoring Practices' combobox does, and the click
+// still picks the option.
+const keepFocus = (e: React.MouseEvent) => e.preventDefault();
+
+// An IME that's composing owns every key: Enter confirms what it composed,
+// and the arrows move through its candidates. Safari can say so with
+// `keyCode` 229 rather than `isComposing`.
+const isComposing = (e: React.KeyboardEvent): boolean =>
+  e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229;
+
+// Whether an option can be picked. The arrows still reach a disabled one, so
+// a screen reader user finds it.
+const isEnabled = (item: AutocompleteItem | string): boolean =>
+  typeof item === 'string' || !item.disabled;
+
 /**
  * Props for the Autocomplete component.
  * @extraProp {string} [className] - Additional CSS classes.
@@ -80,7 +97,12 @@ export interface AutocompleteProps
   clearable?: boolean;
   /** Open dropdown when input is focused. */
   openOnFocus?: boolean;
-  /** Keep first option highlighted. */
+  /**
+   * Keep the first option highlighted whenever the list opens, Up Arrow and
+   * Alt+Down Arrow included, and whenever the text in the field changes.
+   * While the list is open on a highlighted option that isn't disabled, Enter
+   * picks it rather than submitting a form around the field.
+   */
   keepFirst?: boolean;
   /** Keep dropdown open after selection. */
   keepOpen?: boolean;
@@ -377,13 +399,19 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // Handle keyboard navigation
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent) => {
-        if (disabled) return;
+        if (disabled || isComposing(e)) return;
 
         switch (e.key) {
           case 'ArrowDown':
             e.preventDefault();
             if (!isActive) {
+              // A closed list opens on its first enabled option, as the ARIA
+              // Authoring Practices' combobox does. Alt+Down Arrow opens it
+              // without a highlight.
               setIsActive(true);
+              setHighlightedIndex(
+                e.altKey ? -1 : filteredData.map(isEnabled).indexOf(true)
+              );
             } else {
               setHighlightedIndex(prev =>
                 prev < filteredData.length - 1 ? prev + 1 : prev
@@ -392,12 +420,31 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             break;
           case 'ArrowUp':
             e.preventDefault();
-            setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            if (!isActive) {
+              // And Up Arrow opens it on its last enabled option.
+              setIsActive(true);
+              setHighlightedIndex(
+                filteredData.map(isEnabled).lastIndexOf(true)
+              );
+            } else {
+              setHighlightedIndex(prev => (prev > 0 ? prev - 1 : prev));
+            }
             break;
           case 'Enter':
-            e.preventDefault();
-            if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
+            // With the list open on a highlighted option it can pick, Enter
+            // is that option's. Otherwise it closes the list and goes on, so
+            // a form around the field submits, as it would from any text
+            // field.
+            if (
+              isActive &&
+              highlightedIndex >= 0 &&
+              filteredData[highlightedIndex] &&
+              isEnabled(filteredData[highlightedIndex])
+            ) {
+              e.preventDefault();
               handleSelect(filteredData[highlightedIndex]);
+            } else {
+              setIsActive(false);
             }
             break;
           case 'Escape':
@@ -408,7 +455,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
             setHighlightedIndex(-1);
             break;
           case 'Tab':
-            if (highlightedIndex >= 0 && filteredData[highlightedIndex]) {
+            if (
+              isActive &&
+              highlightedIndex >= 0 &&
+              filteredData[highlightedIndex]
+            ) {
               handleSelect(filteredData[highlightedIndex]);
             }
             setIsActive(false);
@@ -631,6 +682,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   role="listbox"
                   aria-labelledby={listLabelId}
                   aria-label={listLabelId ? undefined : 'Suggestions'}
+                  onMouseDown={keepFocus}
                 >
                   {filteredData.map((item, index) => {
                     const isDisabled =
@@ -657,7 +709,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                           !isDisabled && setHighlightedIndex(index)
                         }
                         role="option"
-                        aria-selected={isHighlighted}
+                        aria-selected={isHighlighted && !isDisabled}
                         aria-disabled={isDisabled}
                       >
                         {itemTemplate
@@ -668,7 +720,11 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
                   })}
                 </div>
               ) : (
-                <div ref={emptyRef} className={emptyItemClasses}>
+                <div
+                  ref={emptyRef}
+                  className={emptyItemClasses}
+                  onMouseDown={keepFocus}
+                >
                   {empty}
                 </div>
               )}
