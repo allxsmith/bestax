@@ -40,4 +40,27 @@
     border-top-color: Canvas !important;
     border-right-color: Canvas !important;
   }
+
+  // Bulma hides a loading button's label with a transparent text color, and
+  // forced colors paints that in the theme's text color, so the label would
+  // show through the spinner. With forcing off on the button, the label stays
+  // transparent, and the button names its own colors, all of them system
+  // ones the theme picks. That also stops the browser recoloring the border
+  // to show focus, so a focused one gets an outline. Its ring is handed back
+  // to forcing, so the rule above keeps it open like every other ring.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    forced-color-adjust: none;
+    background-color: ButtonFace !important;
+    border-color: ButtonText !important;
+    color: transparent !important;
+
+    &:focus-visible {
+      outline: 2px solid ButtonText;
+      outline-offset: 2px;
+    }
+
+    &::after {
+      forced-color-adjust: auto;
+    }
+  }
 }

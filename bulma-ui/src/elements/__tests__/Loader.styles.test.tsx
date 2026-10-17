@@ -128,6 +128,8 @@ type Rule = {
   bottom: Setting | null;
   /** The `border-left-color` the rule sets, likewise. */
   left: Setting | null;
+  /** Every declaration the rule makes, by the property it was written with. */
+  values: Record<string, Setting>;
   order: number;
   reducedMotionOnly: boolean;
   forcedColorsOnly: boolean;
@@ -291,6 +293,15 @@ function rulesOf(css: string): Rule[] {
           right: side('right'),
           bottom: side('bottom'),
           left: side('left'),
+          values: Object.fromEntries(
+            properties.map(p => [
+              p,
+              {
+                value: decl.getPropertyValue(p).trim(),
+                important: decl.getPropertyPriority(p) === 'important',
+              },
+            ])
+          ),
           order: out.length,
           reducedMotionOnly,
           forcedColorsOnly,
@@ -379,6 +390,44 @@ function winning(
     ) {
       continue;
     }
+    for (const selector of rule.selectors) {
+      if (!matches(selector, el, pseudo)) continue;
+      const rank = [
+        setting.important ? 1 : 0,
+        ...specificity(selector),
+        rule.order,
+      ];
+      if (!best || beats(rank, best.rank)) {
+        best = { rank, value: setting.value };
+      }
+    }
+  }
+  return best && best.value;
+}
+
+/**
+ * Any property on the element as a browser would resolve it, read from the
+ * first of `names` a rule sets: the longhand, then any shorthand that sets
+ * it, which is kept whole. Ranked the way `winning` ranks the rest.
+ */
+function resolved(
+  rules: Rule[],
+  el: Element,
+  pseudo: string,
+  when: When,
+  names: string[]
+): string | null {
+  let best: { rank: number[]; value: string } | null = null;
+  for (const rule of rules) {
+    const name = names.find(n => rule.values[n]);
+    if (
+      !name ||
+      (rule.reducedMotionOnly && !when.reducedMotion) ||
+      (rule.forcedColorsOnly && !when.forcedColors)
+    ) {
+      continue;
+    }
+    const setting = rule.values[name];
     for (const selector of rule.selectors) {
       if (!matches(selector, el, pseudo)) continue;
       const rank = [
@@ -881,6 +930,10 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       </ConfigProvider>
     );
     const targets = animatedIn(container, rules);
+    // A loading button turns forcing off for its label, and its ring takes
+    // it back with `forced-color-adjust: auto`, the browser's own default.
+    // That's the one other thing a rule here may set on a ring, and only to
+    // that value.
     const extra = rules
       .filter(rule => rule.forcedColorsOnly)
       .filter(rule =>
@@ -888,11 +941,96 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           rule.selectors.some(selector => matches(selector, el, pseudo))
         )
       )
-      .flatMap(rule => rule.properties)
+      .flatMap(rule =>
+        rule.properties.map(
+          property => `${property}: ${rule.values[property].value}`
+        )
+      )
       .filter(
-        property =>
-          property !== 'border-top-color' && property !== 'border-right-color'
+        declaration =>
+          !/^border-(top|right)-color: /.test(declaration) &&
+          declaration !== 'forced-color-adjust: auto'
       );
     expect(extra).toEqual([]);
+  });
+
+  /** The loading buttons on the roster, which draw their ring on `::after`. */
+  const LOADING_BUTTONS = RINGS.filter(([label]) =>
+    /Button isLoading$/.test(label)
+  );
+
+  it('has loading buttons to check', () => {
+    expect(LOADING_BUTTONS.map(([label]) => label)).toEqual([
+      'Button isLoading',
+      'LinkButton isLoading',
+    ]);
+  });
+
+  it.each([
+    ...LOADING_BUTTONS,
+    [
+      'Button color="primary" isLoading',
+      <Button key="x" color="primary" isLoading>
+        Save
+      </Button>,
+    ] as [string, React.ReactElement],
+  ])(
+    '%s hides its label in forced colors, and draws itself in button colors',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const button = container.querySelector(`.${prefix}button`)!;
+      const forced = (names: string[], pseudo = '') =>
+        resolved(rules, button, pseudo, { forcedColors: true }, names);
+      // Forced colors paints any text color in the theme's own, so the label
+      // Bulma hides with `transparent` would show. With forcing off on the
+      // button, it stays transparent, and every other color it shows is a
+      // system one, which the user's theme picks.
+      expect(forced(['forced-color-adjust'])).toBe('none');
+      expect(forced(['color'])).toBe('transparent');
+      expect(forced(['background-color', 'background'])).toBe('ButtonFace');
+      for (const side of ['top', 'right', 'bottom', 'left'] as const) {
+        expect(winning(rules, button, '', { forcedColors: true }, side)).toBe(
+          'ButtonText'
+        );
+      }
+      // Its ring goes back to being forced, so the Canvas rule above keeps
+      // it open the way it keeps every other ring open.
+      expect(forced(['forced-color-adjust'], '::after')).toBe('auto');
+      // None of it reaches anyone not in forced colors.
+      const normally = (names: string[]) =>
+        resolved(rules, button, '', {}, names);
+      expect(normally(['forced-color-adjust'])).toBeNull();
+      expect(normally(['background-color', 'background'])).not.toBe(
+        'ButtonFace'
+      );
+    }
+  );
+
+  it('rings a focused loading button in forced colors, where its border holds still', () => {
+    // The `!important` border above stops the browser recoloring it to show
+    // focus, so the rule draws an outline instead, in `ButtonText`.
+    const focus = rules.filter(
+      rule =>
+        rule.forcedColorsOnly &&
+        rule.selectors.includes(
+          `.${prefix}button.${prefix}is-loading:focus-visible`
+        )
+    );
+    expect(focus.map(rule => rule.values.outline?.value)).toEqual([
+      '2px solid ButtonText',
+    ]);
+    expect(focus[0].values['outline-offset']?.value).toBe('2px');
+    // And nowhere else.
+    expect(
+      rules
+        .filter(rule => !rule.forcedColorsOnly)
+        .some(rule =>
+          Object.values(rule.values).some(({ value }) =>
+            /ButtonText|ButtonFace/.test(value)
+          )
+        )
+    ).toBe(false);
   });
 });
