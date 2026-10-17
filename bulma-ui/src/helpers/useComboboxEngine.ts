@@ -11,7 +11,7 @@ import type React from 'react';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
 import { getActiveElementInTree, isEventInside } from './shadowDom';
 
-/** What an option tells the engine about itself. */
+/** What an item tells the engine about itself. */
 export interface ComboboxItemState {
   /** What a pick hands back. Unique within the combobox. */
   value: string;
@@ -49,9 +49,9 @@ export interface ComboboxEngineOptions {
   defaultOpen: boolean;
   /** Called with the open state asked for, when it differs from the current one. */
   onOpenChange?: (open: boolean) => void;
-  /** Called with an option's `value` when it's picked. */
+  /** Called with an item's `value` when it's picked. */
   onSelect?: (value: string) => void;
-  /** Highlights the first enabled option whenever the list opens or its options change. */
+  /** Highlights the first enabled item whenever the list opens or its items change. */
   keepFirst: boolean;
   /** Several values: a pick keeps the list open. */
   multiple: boolean;
@@ -82,7 +82,7 @@ export interface ComboboxEngine {
   typed: boolean;
   /** The listbox's id. */
   listboxId: string;
-  /** An option's id, which follows from its value. */
+  /** An item's id, which follows from its value. */
   itemId: (value: string) => string;
   /** For the element around the field and, unless it's portaled, the list. */
   rootRef: React.MutableRefObject<HTMLDivElement | null>;
@@ -96,11 +96,8 @@ export interface ComboboxEngine {
    * function that forgets it.
    */
   registerPopup: (element: HTMLElement) => () => void;
-  /** Records an option's element. Returns the function that forgets it. */
-  registerItem: (
-    element: HTMLElement,
-    state: ComboboxItemState
-  ) => () => void;
+  /** Records an item's element. Returns the function that forgets it. */
+  registerItem: (element: HTMLElement, state: ComboboxItemState) => () => void;
   /** The field's keys, to run after the caller's own handler. */
   onKeyDown: (event: React.KeyboardEvent<HTMLInputElement>) => void;
   /** A change to the field's value: the user typed. */
@@ -257,8 +254,7 @@ export function useComboboxEngine({
     let next = highlighted;
     if (landing === 'first') next = checked ?? first;
     else if (landing === 'last') next = checked ?? last;
-    else if (landing === 'open')
-      next = checked ?? (keepFirst ? first : null);
+    else if (landing === 'open') next = checked ?? (keepFirst ? first : null);
     else if (landing === 'typed') next = keepFirst ? first : null;
     else if (landing === 'none') next = null;
     else if (keepFirst && changed) next = first;
