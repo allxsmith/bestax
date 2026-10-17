@@ -62,19 +62,21 @@ $steps-navigation-margin-top: 1rem !default;
   }
 
   .#{iv.$class-prefix}steps-list:not(.#{iv.$class-prefix}is-vertical) .#{iv.$class-prefix}steps-segment {
-    padding-top: calc(#{$marker-size} / 2);
+    > .#{iv.$class-prefix}steps-link {
+      padding-top: calc(#{$marker-size} / 2);
+    }
 
     &:not(:last-child)::before {
       top: calc(#{$marker-size} - cv.getVar("steps-divider-height") / 2);
-      left: calc(50% + #{$marker-size} / 2);
-      right: calc(-50% + #{$marker-size} / 2);
+      inset-inline-start: calc(50% + #{$marker-size} / 2);
+      inset-inline-end: calc(-50% + #{$marker-size} / 2);
     }
   }
 
   &.#{iv.$class-prefix}is-vertical .#{iv.$class-prefix}steps-segment {
     &:not(:last-child)::after {
       top: $marker-size;
-      left: calc(#{$marker-size} / 2 - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: calc(#{$marker-size} / 2 - cv.getVar("steps-divider-height") / 2);
     }
   }
 }
@@ -97,15 +99,23 @@ $steps-navigation-margin-top: 1rem !default;
       .#{iv.$class-prefix}steps-segment {
         flex: 1;
         position: relative;
-        padding-top: calc(cv.getVar("steps-marker-size") / 2);
 
-        // Horizontal divider line — centered through marker
+        // The space above the marker is the link's padding, not the
+        // segment's, so a clickable step's button covers the whole segment
+        // and every part of it takes the click and the pointer.
+        > .#{iv.$class-prefix}steps-link {
+          padding-top: calc(cv.getVar("steps-marker-size") / 2);
+        }
+
+        // Horizontal divider line, centered through the marker. It runs from
+        // this marker's edge to the next one's, which is on the left in a
+        // right-to-left page, so it is placed by the inline start and end.
         &:not(:last-child)::before {
           content: '';
           position: absolute;
           top: calc(cv.getVar("steps-marker-size") - cv.getVar("steps-divider-height") / 2);
-          left: calc(50% + cv.getVar("steps-marker-size") / 2);
-          right: calc(-50% + cv.getVar("steps-marker-size") / 2);
+          inset-inline-start: calc(50% + cv.getVar("steps-marker-size") / 2);
+          inset-inline-end: calc(-50% + cv.getVar("steps-marker-size") / 2);
           height: cv.getVar("steps-divider-height");
           background-color: cv.getVar("steps-default-color");
           @include extras-transition(background-color);
@@ -123,17 +133,17 @@ $steps-navigation-margin-top: 1rem !default;
 .#{iv.$class-prefix}steps-segment {
   text-align: center;
   cursor: default;
+}
 
-  &[tabindex="0"] {
-    cursor: pointer;
+// A clickable step's link is a <button> around the marker and the label. It
+// drops the browser's button look and fills its step the way the <div> does,
+// and the focus ring goes around it.
+button.#{iv.$class-prefix}steps-link {
+  @include extras-button-reset;
+  width: 100%;
 
-    &:focus {
-      outline: none;
-    }
-
-    &:focus-visible .#{iv.$class-prefix}steps-marker {
-      @include extras-focus-outline;
-    }
+  &:focus-visible {
+    @include extras-focus-outline;
   }
 }
 
@@ -182,8 +192,10 @@ $steps-navigation-margin-top: 1rem !default;
   text-align: center;
 }
 
-// Step title
+// Step title. A block, so a clickable step's <span> title sets its line
+// height from its own font size, the way a plain step's <p> does.
 .#{iv.$class-prefix}steps-title {
+  display: block;
   font-size: cv.getVar("steps-title-size");
   font-weight: cv.getVar("steps-title-weight");
   color: cv.getVar("steps-title-color");
@@ -284,7 +296,9 @@ $steps-navigation-margin-top: 1rem !default;
   }
 
   .#{iv.$class-prefix}steps-segment {
-    padding-top: 0;
+    > .#{iv.$class-prefix}steps-link {
+      padding-top: 0;
+    }
 
     &:not(:last-child)::before {
       top: 50%;
@@ -298,8 +312,7 @@ $steps-navigation-margin-top: 1rem !default;
   flex-direction: column;
 
   .#{iv.$class-prefix}steps-segment {
-    text-align: left;
-    padding: 0 0 cv.getVar("steps-vertical-padding") 0;
+    text-align: start;
     position: relative;
 
     // Vertical divider line
@@ -307,7 +320,7 @@ $steps-navigation-margin-top: 1rem !default;
       content: '';
       position: absolute;
       top: cv.getVar("steps-marker-size");
-      left: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
       width: cv.getVar("steps-divider-height");
       bottom: 0;
       background-color: cv.getVar("steps-default-color");
@@ -319,10 +332,13 @@ $steps-navigation-margin-top: 1rem !default;
     }
   }
 
+  // The space below each step is the link's padding, for the same reason as
+  // the horizontal layout's space above the marker.
   .#{iv.$class-prefix}steps-link {
     flex-direction: row;
     justify-content: flex-start;
     align-items: flex-start;
+    padding: 0 0 cv.getVar("steps-vertical-padding") 0;
   }
 
   .#{iv.$class-prefix}steps-marker {
@@ -330,10 +346,13 @@ $steps-navigation-margin-top: 1rem !default;
     flex-shrink: 0;
   }
 
+  // The gap sits on the label's start side, between it and the marker, so it
+  // moves to the right in a right-to-left page. The variable keeps its
+  // `-left` name, so a theme that sets it still applies.
   .#{iv.$class-prefix}steps-content {
     margin-top: 0;
-    margin-left: cv.getVar("steps-vertical-content-margin-left");
-    text-align: left;
+    margin-inline-start: cv.getVar("steps-vertical-content-margin-left");
+    text-align: start;
     padding-top: 0.25rem;
   }
 }
@@ -341,16 +360,18 @@ $steps-navigation-margin-top: 1rem !default;
 // Label on right / left (horizontal only)
 // The marker stays centered at 50%. The label is absolutely positioned right
 // next to the marker with a background-color + z-index to cover the connector line.
+// "right" is the end of the line and "left" its start, so both follow the
+// page's direction, the way the vertical layout's flex row does.
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-right:not(.#{iv.$class-prefix}is-vertical),
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left:not(.#{iv.$class-prefix}is-vertical) {
   .#{iv.$class-prefix}steps-link {
     position: relative;
   }
 
+  // Left at its static position in the block direction, which centers it on
+  // the link's content box, the marker, whatever padding the link has above.
   .#{iv.$class-prefix}steps-content {
     position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
     margin-top: 0;
     background-color: cv.getVar("scheme-main");
     z-index: 1;
@@ -361,19 +382,19 @@ $steps-navigation-margin-top: 1rem !default;
 
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-right:not(.#{iv.$class-prefix}is-vertical) {
   .#{iv.$class-prefix}steps-content {
-    left: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
-    text-align: left;
+    inset-inline-start: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
+    text-align: start;
   }
 }
 
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left:not(.#{iv.$class-prefix}is-vertical) {
   .#{iv.$class-prefix}steps-content {
-    right: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
-    text-align: right;
+    inset-inline-end: calc(50% + cv.getVar("steps-marker-size") / 2 + 0.25rem);
+    text-align: end;
   }
 }
 
-// Vertical + label-left: marker on right, label on left, divider on right
+// Vertical + label-left: label at the start, marker and divider at the end
 .#{iv.$class-prefix}steps.#{iv.$class-prefix}has-label-left.#{iv.$class-prefix}is-vertical {
   .#{iv.$class-prefix}steps-list.#{iv.$class-prefix}is-vertical {
     .#{iv.$class-prefix}steps-link {
@@ -381,14 +402,14 @@ $steps-navigation-margin-top: 1rem !default;
     }
 
     .#{iv.$class-prefix}steps-content {
-      margin-left: 0;
-      margin-right: cv.getVar("steps-vertical-content-margin-left");
-      text-align: right;
+      margin-inline-start: 0;
+      margin-inline-end: cv.getVar("steps-vertical-content-margin-left");
+      text-align: end;
     }
 
     .#{iv.$class-prefix}steps-segment:not(:last-child)::after {
-      left: auto;
-      right: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: auto;
+      inset-inline-end: calc(cv.getVar("steps-marker-size") / 2 - cv.getVar("steps-divider-height") / 2);
     }
   }
 }
@@ -408,7 +429,7 @@ $steps-navigation-margin-top: 1rem !default;
     }
 
     .#{iv.$class-prefix}steps-content {
-      margin-left: 0;
+      margin-inline-start: 0;
       margin-top: cv.getVar("steps-content-margin-top");
       text-align: center;
       background-color: cv.getVar("scheme-main");
@@ -418,7 +439,7 @@ $steps-navigation-margin-top: 1rem !default;
     }
 
     .#{iv.$class-prefix}steps-segment:not(:last-child)::after {
-      left: calc(50% - cv.getVar("steps-divider-height") / 2);
+      inset-inline-start: calc(50% - cv.getVar("steps-divider-height") / 2);
     }
   }
 }
@@ -455,5 +476,42 @@ $steps-navigation-margin-top: 1rem !default;
     .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active .#{iv.$class-prefix}steps-marker {
       transform: none;
     }
+  }
+}
+
+// Forced colors (Windows' contrast themes)
+// The lines and a completed marker's fill are background colors, which forced
+// colors paints in the page's own color, so the lines vanish and every marker
+// looks alike. These paint them in system colors, which forced colors leaves
+// alone, and ring the current marker with an outline. `!important` because the
+// color variants, and a theme's own rules, set the same properties with more
+// specific selectors, and in forced colors this has to win over all of them.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}steps-segment::before,
+  .#{iv.$class-prefix}steps-segment::after {
+    background-color: CanvasText !important;
+  }
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-completed .#{iv.$class-prefix}steps-marker {
+    // Left on, the browser paints its text backplate in Canvas behind the
+    // check mark, and a Canvas mark on it can't be seen. Turned off, the
+    // border is no longer forced either, so it takes the fill's color.
+    forced-color-adjust: none;
+    background-color: CanvasText !important;
+    border-color: CanvasText !important;
+    color: Canvas !important;
+
+    // Nothing inside is forced either, since that's inherited, so a custom
+    // `icon` or `completedIcon` that sets its own color would keep it on the
+    // fill. It takes the check mark's Canvas instead. Forcing it back on
+    // would put a CanvasText glyph on the CanvasText fill, behind a backplate.
+    * {
+      color: inherit !important;
+    }
+  }
+
+  .#{iv.$class-prefix}steps-segment.#{iv.$class-prefix}is-active .#{iv.$class-prefix}steps-marker {
+    outline: cv.getVar("steps-divider-height") solid CanvasText;
+    outline-offset: cv.getVar("steps-divider-height");
   }
 }

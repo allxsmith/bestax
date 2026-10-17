@@ -1550,7 +1550,10 @@ describe('plan', () => {
           item('my-item mt-2', { key: null, tabIndex: '0' }, [
             link({
               tokens: ['is-active'],
-              attributes: new Map([['href', '/team']]),
+              attributes: new Map([
+                ['href', '/team'],
+                ['aria-current', 'page'],
+              ]),
             }),
             nested,
           ]).conversion
@@ -1569,6 +1572,27 @@ describe('plan', () => {
             after: 'Menu.List',
           },
         });
+      });
+
+      it('makes is-active active only beside an aria-current of its own', () => {
+        // `active` writes aria-current="page" on the <a> unless it has one,
+        // and the class can't stay a class on an <a> Menu.Item renders.
+        const active = (attributes: Array<[string, string | null]>) =>
+          item('', {}, [
+            link({ tokens: ['is-active'], attributes: new Map(attributes) }),
+          ]);
+        for (const value of ['page', 'location', null]) {
+          expect(
+            active([['aria-current', value]]).conversion?.absorbs?.props
+          ).toEqual([['active', true]]);
+        }
+        const bare = active([['href', '/team']]);
+        expect(bare.conversion).toBeNull();
+        expect(rules(bare)).toEqual(['attr:aria-current']);
+        // The TODO says how to make it convert.
+        expect(bare.todos[0].message).toContain(
+          'If this is the current page, add `aria-current="page"` to the <a>, then re-run'
+        );
       });
 
       it('keeps it as markup with an empty class, which it would lose', () => {

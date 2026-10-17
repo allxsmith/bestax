@@ -93,7 +93,11 @@ export interface TaginputProps
   closable?: boolean;
   /** Attach tags visually. */
   attached?: boolean;
-  /** Maximum number of tags allowed. */
+  /**
+   * Maximum number of tags allowed. At the limit the text input isn't
+   * rendered, and neither is the suggestion list, so the field takes no more
+   * tags until one is removed.
+   */
   maxTags?: number;
   /** Maximum length of input. */
   maxlength?: number;
@@ -325,7 +329,10 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       const hasInput = inputValue || (openOnFocus && isActive);
       return matchesInput && notAlreadyAdded && hasInput;
     });
-    const listOpen = isActive && filteredData.length > 0;
+    // At the tag limit the input isn't rendered, so the list isn't either.
+    // Left open it would be a listbox with no combobox, offering tags past
+    // the limit (#1087).
+    const listOpen = isActive && !isMaxReached && filteredData.length > 0;
 
     // keepFirst: auto-highlight first item when dropdown opens
     useEffect(() => {
@@ -345,19 +352,18 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
       [controlledValue, onChange]
     );
 
-    // Add tag
+    // Add a tag from text typed, pasted or picked from the list. Only
+    // `createTag` turns it into an object.
     const addTag = useCallback(
-      (value: string | TaginputTag) => {
+      (value: string) => {
         if (disabled || readonly) return;
 
-        const tagValue = typeof value === 'string' ? value.trim() : value;
-        const displayValue =
-          typeof tagValue === 'string' ? tagValue : getDisplayValue(tagValue);
+        const displayValue = value.trim();
 
         if (!displayValue) return;
 
-        // Check max tags
-        if (maxTags && tags.length >= maxTags) return;
+        // No maxTags check: only the input and the list call this, neither
+        // renders at the limit, and each call adds at most one tag.
 
         // Check duplicates
         if (!allowDuplicates) {
@@ -381,7 +387,7 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         if (beforeAdding && !beforeAdding(displayValue)) return;
 
         // createTag transformation
-        const finalTag = createTag ? createTag(displayValue) : tagValue;
+        const finalTag = createTag ? createTag(displayValue) : displayValue;
 
         const newTags = [...tags, finalTag];
         updateTags(newTags);
@@ -396,7 +402,6 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         disabled,
         readonly,
         tags,
-        maxTags,
         allowDuplicates,
         allowNew,
         data,
@@ -487,6 +492,18 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
         setIsActive(true);
       }
     }, [openOnFocus, data.length, disabled]);
+
+    // Reaching the limit dismisses the list the way a click outside does, so
+    // making room later doesn't bring it back unasked. It's an effect, not a
+    // step in addTag, because a click on a suggestion also bubbles to the
+    // container, whose focus on the input reopens the list in that same
+    // event, and because a controlled value can reach the limit too.
+    useEffect(() => {
+      if (isMaxReached) {
+        setIsActive(false);
+        setHighlightedIndex(-1);
+      }
+    }, [isMaxReached]);
 
     // Handle click outside
     useEffect(() => {

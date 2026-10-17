@@ -126,6 +126,11 @@ The ring has a fixed width, so `mx="auto"` centers it. Mark the region that is l
 - **Reduced motion:** under `prefers-reduced-motion: reduce` the ring stops spinning and stays
   drawn, so the loading state is still visible. That rule ships in bestax's stylesheets:
   `bestax.css` and its variants, or `extras.css` next to your own Bulma, in either order.
+- **Forced colors:** Bulma leaves two sides of the ring transparent, and a contrast theme paints
+  those in the text color like any other border, which would close the ring. In forced colors,
+  bestax paints those two sides in `Canvas`, the page's own color, so the ring stays open. That
+  goes for the `isLoading` rings on buttons, controls and selects too, and it ships in the same
+  stylesheets as the reduced-motion rule.
 
 ---
 
