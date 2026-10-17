@@ -356,13 +356,13 @@ Use the `onStepClick` callback with `clickable: true` on items to allow users to
 
 ### StepItemProps
 
-| Prop            | Type              | Default | Description                                                                                                                                               |
-| --------------- | ----------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `label`         | `React.ReactNode` | —       | Step label/title.                                                                                                                                         |
-| `icon`          | `React.ReactNode` | —       | Icon for the step marker.                                                                                                                                 |
-| `clickable`     | `boolean`         | `false` | Whether this step is clickable. A clickable step puts its marker and label in a `<button type="button">` inside its list item, which calls `onStepClick`. |
-| `completedIcon` | `React.ReactNode` | `'✓'`   | Icon shown when the step is completed.                                                                                                                    |
-| `className`     | `string`          | —       | Additional class for this step.                                                                                                                           |
+| Prop            | Type              | Default | Description                                                                                                                                                                                        |
+| --------------- | ----------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`         | `React.ReactNode` | —       | Step label/title. On a clickable step it's rendered inside the step's `<button>`, so it has to be phrasing content, like text, a `<span>` or an icon, with no link, button or other control in it. |
+| `icon`          | `React.ReactNode` | —       | Icon for the step marker.                                                                                                                                                                          |
+| `clickable`     | `boolean`         | `false` | Whether this step is clickable. A clickable step puts its marker and label in a `<button type="button">` inside its list item, which calls `onStepClick`.                                          |
+| `completedIcon` | `React.ReactNode` | `'✓'`   | Icon shown when the step is completed.                                                                                                                                                             |
+| `className`     | `string`          | —       | Additional class for this step.                                                                                                                                                                    |
 
 ---
 

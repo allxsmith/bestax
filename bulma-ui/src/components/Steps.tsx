@@ -13,7 +13,11 @@ export type StepsColor =
  * Props for individual Step items.
  */
 export interface StepItemProps {
-  /** Step label/title */
+  /**
+   * Step label/title. On a `clickable` step it's rendered inside the step's
+   * `<button>`, so it has to be phrasing content, like text, a `<span>` or an
+   * icon, with no link, button or other control in it.
+   */
   label?: React.ReactNode;
   /** Icon for the step marker */
   icon?: React.ReactNode;
@@ -96,7 +100,12 @@ export interface StepProps
   isActive?: boolean;
   /** Whether this step is completed */
   isCompleted?: boolean;
-  /** Step label/title */
+  /**
+   * Step label/title, or pass it as `children`. On a `clickable` step it's
+   * rendered inside the step's `<button>`, so it has to be phrasing content,
+   * like text, a `<span>` or an icon, with no link, button or other control
+   * in it.
+   */
   label?: React.ReactNode;
   /** Icon for the step marker */
   icon?: React.ReactNode;
