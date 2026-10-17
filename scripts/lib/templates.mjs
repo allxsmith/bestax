@@ -4,7 +4,8 @@
  *
  * A template is a Bulma template from aldi's awesome-bulma-templates rebuilt
  * as a create-bestax vite-ts project in `templates/<slug>/`, which StackBlitz
- * imports from GitHub on its own (templates/CLAUDE.md is the porting guide).
+ * opens on its own, from the mirror scripts/gen-templates-repo.mjs writes
+ * (templates/CLAUDE.md is the porting guide).
  * The docs page lists each one from `docs/src/data/templates.js`, with a
  * screenshot at `docs/static/img/templates/<slug>.jpg`. So a template is
  * three things that have to agree: a folder, an entry, and a screenshot.
