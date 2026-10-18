@@ -1,3 +1,11 @@
+## [1.15.10](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.9...bestax-mcp@1.15.10) (2026-10-18)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a .menu-list with a role of its own as markup ([792b8c4](https://github.com/allxsmith/bestax/commit/792b8c484a06cfdf44e051d44820fb130e313444)), closes [#1108](https://github.com/allxsmith/bestax/issues/1108)
+* **bulma-ui:** give Menu's lists role="list", so Safari keeps them lists ([32550c3](https://github.com/allxsmith/bestax/commit/32550c307e60f3b78bf8dad9b00c33af2aa37aaa)), closes [#1095](https://github.com/allxsmith/bestax/issues/1095) [#1108](https://github.com/allxsmith/bestax/issues/1108)
+
 ## [1.15.9](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.8...bestax-mcp@1.15.9) (2026-10-18)
 
 
