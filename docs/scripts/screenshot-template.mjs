@@ -15,9 +15,11 @@
  * first: the same files the checks read and the mirror publishes
  * (`templatePaths` in scripts/lib/templates.mjs), so an image not yet added
  * shows up missing here too. The install and build then leave nothing in
- * the repo: no node_modules, no dist and no lockfile. It installs the way the
- * create-bestax e2e installs a scaffold, `pnpm install --ignore-workspace`,
- * under pnpm's own defaults rather than the monorepo's settings.
+ * the repo: no node_modules, no dist and no lockfile. It installs with npm,
+ * as StackBlitz does and the template's README tells a reader to, so the
+ * capture is of the newest release each range admits, the one a reader
+ * gets. pnpm would not do that here: its release-age cooldown holds a
+ * release published since the cooldown began back to an older one in range.
  *
  * The preview binds a free port on 127.0.0.1, never 3000. A manual step:
  * nothing in CI runs it, since it needs the network and a browser. If
@@ -122,8 +124,8 @@ async function main() {
       mkdirSync(dirname(target), { recursive: true });
       copyFileSync(join(REPO, file.source), target);
     }
-    run('pnpm', ['install', '--ignore-workspace'], work);
-    run('pnpm', ['--ignore-workspace', 'run', 'build'], work);
+    run('npm', ['install', '--no-audit', '--no-fund'], work);
+    run('npm', ['run', 'build'], work);
 
     const port = await freePort();
     const url = `http://127.0.0.1:${port}/`;
