@@ -9,7 +9,8 @@ import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
-import { firstTabStop, wrapTab } from '../helpers/useFocusTrap';
+import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
+import { inertProps } from '../helpers/inertProps';
 import {
   getActiveElementInTree,
   getDeepestActiveElement,
@@ -31,7 +32,10 @@ export interface SidebarProps
    * Whether the sidebar is open (required). Opening moves focus into the
    * sidebar, to its first tab stop or the sidebar itself. Closing hands focus
    * back to whatever had it when the sidebar opened, unless focus has already
-   * left the sidebar, as it does for an overlay opened over it.
+   * left the sidebar, as it does for an overlay opened over it. A closed
+   * sidebar stays in the page, so it can slide out, and is `inert` and
+   * `aria-hidden` there: Tab passes over its content and assistive
+   * technology doesn't read it.
    */
   isOpen: boolean;
   /** Callback when sidebar should close. */
@@ -178,21 +182,16 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // so a Modal or Dialog opened over the sidebar, even one rendered inside
     // it, holds Tab instead until it closes. On `window` for the same reason
     // as Escape: a trap inside, such as a portaled popup's, has had the Tab
-    // first, and one it used is left where it put focus.
+    // first, and one it used is left where it put focus. It's the trap
+    // `useFocusTrap` sets, so a Tab the browser still takes out, as Safari
+    // does past links, is sent back in.
     useEffect(() => {
-      if (!isOpen || !overlay) return undefined;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        const node = sidebarRef.current;
-        if (e.key !== 'Tab' || !node || e.defaultPrevented || !isTopmost()) {
-          return;
-        }
-        wrapTab(e, node);
-      };
-
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isOpen, overlay, isTopmost]);
+      const node = sidebarRef.current;
+      if (!isOpen || !overlay || !node) return undefined;
+      return trapTab(node, window, isTopmost);
+      // A different `defaultTarget`, or switching `inline`, remounts the
+      // aside, so the trap moves to the new node.
+    }, [isOpen, overlay, isTopmost, defaultTarget, inline]);
 
     // Prevent body scroll when sidebar is open. Ref-counted through the shared
     // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
@@ -300,6 +299,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
           role="dialog"
           aria-modal={overlay ? 'true' : undefined}
           aria-hidden={!isOpen}
+          // React commits this before the effect that moves focus in runs, so
+          // an opening sidebar is no longer inert by then.
+          {...inertProps(!isOpen)}
           tabIndex={-1}
           {...rest}
         >

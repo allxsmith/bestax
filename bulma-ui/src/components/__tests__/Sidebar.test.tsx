@@ -1,7 +1,14 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import {
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+  act,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Sidebar } from '../Sidebar';
+import { Loading } from '../Loading';
 import { ConfigProvider } from '../../helpers/Config';
 
 describe('Sidebar', () => {
@@ -581,6 +588,146 @@ describe('Sidebar', () => {
 
       expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
       expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    describe('when a Tab it let through leaves anyway', () => {
+      // A browser can leave out a stop the sidebar has, as Safari leaves out
+      // links when its settings say to, and walk focus out of the sidebar on
+      // a Tab the sidebar left to it. jsdom moves no focus on Tab, so each
+      // test moves it out by hand the way that browser would.
+      let outside: HTMLButtonElement;
+      beforeEach(() => {
+        outside = document.createElement('button');
+        outside.textContent = 'Behind the overlay';
+        document.body.appendChild(outside);
+      });
+      afterEach(() => outside.remove());
+
+      it('sends focus forward to the first stop', () => {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Navigation">
+            <button type="button">Close</button>
+            <a href="#home">Skipped by the browser</a>
+          </Sidebar>
+        );
+        const close = screen.getByText('Close');
+        expect(close).toHaveFocus();
+
+        expect(fireEvent.keyDown(close, { key: 'Tab' })).toBe(true);
+        act(() => outside.focus());
+        expect(close).toHaveFocus();
+      });
+
+      it('sends focus back to the last stop on Shift+Tab', () => {
+        render(
+          <Sidebar isOpen onClose={() => {}} aria-label="Navigation">
+            <a href="#home">Skipped by the browser</a>
+            <button type="button">Close</button>
+          </Sidebar>
+        );
+        const close = screen.getByText('Close');
+        act(() => close.focus());
+
+        expect(fireEvent.keyDown(close, { key: 'Tab', shiftKey: true })).toBe(
+          true
+        );
+        act(() => outside.focus());
+        expect(close).toHaveFocus();
+      });
+
+      it('leaves focus a pointer or a script moves out', () => {
+        render(three());
+        act(() => outside.focus());
+        expect(outside).toHaveFocus();
+      });
+
+      it('leaves it alone under another overlay', () => {
+        // A full-page Loading is in the overlay stack but holds no Tab, so
+        // nothing else moves focus here.
+        const Page = ({ loading }: { loading: boolean }) => (
+          <>
+            {three()}
+            <Loading active={loading} isFullPage />
+          </>
+        );
+        const { rerender } = render(<Page loading={false} />);
+        rerender(<Page loading />);
+        const middle = screen.getByText('Middle');
+        act(() => middle.focus());
+
+        expect(fireEvent.keyDown(middle, { key: 'Tab' })).toBe(true);
+        act(() => outside.focus());
+        expect(outside).toHaveFocus();
+      });
+    });
+  });
+
+  describe('Closed', () => {
+    // jsdom implements neither `inert` nor a tab order, so this applies the
+    // browser's rule itself, as Collapse's tests do: a focusable element
+    // inside an inert subtree can't take focus.
+    const tabbable = () =>
+      Array.from(document.body.querySelectorAll<HTMLElement>('a[href], button'))
+        .filter(el => el.tabIndex >= 0 && !el.closest('[inert]'))
+        .map(el => el.textContent);
+
+    const ui = (isOpen: boolean) => (
+      <Sidebar isOpen={isOpen} onClose={() => {}} aria-label="Navigation">
+        <button type="button">Close</button>
+        <a href="#home">Home</a>
+      </Sidebar>
+    );
+
+    it('is inert, so Tab passes over its content, and open it is not', () => {
+      const { rerender } = render(ui(false));
+      const sidebar = screen.getByRole('dialog', { hidden: true });
+      expect(sidebar).toHaveAttribute('inert');
+      expect(tabbable()).toEqual([]);
+
+      rerender(ui(true));
+      expect(sidebar).not.toHaveAttribute('inert');
+      expect(tabbable()).toEqual(['Close', 'Home']);
+
+      rerender(ui(false));
+      expect(sidebar).toHaveAttribute('inert');
+      expect(tabbable()).toEqual([]);
+    });
+
+    it('stops being inert before focus moves in on open', () => {
+      const focus = HTMLElement.prototype.focus;
+      const inertWhenFocused: boolean[] = [];
+      const spy = jest
+        .spyOn(HTMLElement.prototype, 'focus')
+        .mockImplementation(function (this: HTMLElement, options) {
+          inertWhenFocused.push(this.closest('[inert]') !== null);
+          focus.call(this, options);
+        });
+      try {
+        const { rerender } = render(ui(false));
+        rerender(ui(true));
+      } finally {
+        spy.mockRestore();
+      }
+      expect(screen.getByText('Close')).toHaveFocus();
+      expect(inertWhenFocused).toEqual([false]);
+    });
+
+    it('is inert by the time it hands focus back on close', () => {
+      const opener = document.createElement('button');
+      document.body.appendChild(opener);
+      try {
+        opener.focus();
+        const { rerender } = render(ui(true));
+        expect(screen.getByText('Close')).toHaveFocus();
+
+        rerender(ui(false));
+        expect(screen.getByRole('dialog', { hidden: true })).toHaveAttribute(
+          'inert'
+        );
+        expect(opener).toHaveFocus();
+      } finally {
+        opener.remove();
+      }
     });
   });
 
