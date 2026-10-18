@@ -10,9 +10,11 @@
  */
 
 import {
+  bulmaDisplay,
+  bulmaOutOfFlow,
   COMPONENT_DISPLAY,
   HELPER_DISPLAY,
-  bulmaDisplay,
+  OUT_OF_FLOW,
 } from '../src/sources/bulma-classes/display.js';
 import {
   bulmaStylesheet,
@@ -214,5 +216,39 @@ describe("the display tables answer to Bulma's stylesheet", () => {
 
   it('names every rule that reaches an element some other way', () => {
     expect([...context].sort()).toEqual([...BY_CONTEXT].sort());
+  });
+});
+
+describe("the out-of-flow table answers to Bulma's stylesheet", () => {
+  /**
+   * Every selector an element decides by itself whose rule positions it
+   * absolutely or fixed, at some viewport. What a pseudo-element's rule
+   * positions (`.button.is-loading::after`) is no element of the page's.
+   */
+  function outOfFlowSelectors(): string[] {
+    const found = new Set<string>();
+    for (const rule of stylesheetRules(bulmaStylesheet())) {
+      const position = /(?:^|;)\s*position\s*:\s*(absolute|fixed)\b/.exec(
+        rule.body
+      );
+      if (!position) continue;
+      for (const selector of selectorsOf(rule.selector)) {
+        if (!selector.includes('::') && ELEMENT.test(selector)) {
+          found.add(selector);
+        }
+      }
+    }
+    return [...found].sort();
+  }
+
+  it('holds every rule that takes an element out of the flow, and no other', () => {
+    expect([...OUT_OF_FLOW].sort()).toEqual(outOfFlowSelectors());
+  });
+
+  it('matches on the classes an element has', () => {
+    expect(bulmaOutOfFlow(['modal', 'is-active'])).toBe(true);
+    expect(bulmaOutOfFlow(['navbar', 'is-fixed-top'])).toBe(true);
+    expect(bulmaOutOfFlow(['is-fixed-top'])).toBe(false);
+    expect(bulmaOutOfFlow(['box'])).toBe(false);
   });
 });

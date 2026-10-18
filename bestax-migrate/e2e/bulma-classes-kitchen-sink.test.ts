@@ -19,10 +19,12 @@ import { bulmaClasses } from '../src/sources/bulma-classes/index.js';
 import { runTransform } from '../src/runner.js';
 import type { CssMode, TodoEntry } from '../src/types.js';
 import { compileMigratedScss } from './support/compile-scss.js';
+import { undocumentedRules } from './support/skill-rules.js';
 import {
   loadModules,
   normalizeHtml,
   renderExports,
+  withImplicitListRoles,
 } from './support/render-module.js';
 
 const packageRoot = path.join(
@@ -218,35 +220,9 @@ describe('bulma-classes kitchen-sink e2e', () => {
   });
 
   it('documents every TODO rule it emits in the skill reference', () => {
-    const skillDir = path.join(packageRoot, '..', 'skills', 'bestax-migrate');
-    const refsDir = path.join(skillDir, 'references', 'bulma-classes');
-    const refs = [
-      ...fs
-        .readdirSync(refsDir)
-        .filter(f => f.endsWith('.md'))
-        .map(f => path.join(refsDir, f)),
-      path.join(skillDir, 'SKILL.md'),
-    ]
-      .map(f => fs.readFileSync(f, 'utf8'))
-      .join('\n');
-    const backticked = new Set(
-      [...refs.matchAll(/`([^`\n]+)`/g)].map(match => match[1])
-    );
-    // A rule is documented when the reference names it, or names its kind
-    // with a placeholder (`spread:<Target>`): the kinds are what a reader
-    // looks up, and the suffix is always a Bulma or bestax name.
-    const documented = (rule: string): boolean => {
-      const kind = rule.split(':')[0];
-      return (
-        backticked.has(rule) ||
-        [...backticked].some(text => text.startsWith(`${kind}:<`))
-      );
-    };
-    const emitted = new Set(
-      [...app.todosByFile.values()].flat().map(todo => todo.rule)
-    );
-    expect(emitted.size).toBeGreaterThan(0);
-    expect([...emitted].sort().filter(rule => !documented(rule))).toEqual([]);
+    const emitted = [...app.todosByFile.values()].flat().map(todo => todo.rule);
+    expect(emitted.length).toBeGreaterThan(0);
+    expect(undocumentedRules(emitted)).toEqual([]);
   });
 
   it('renders every component the same before and after', () => {
@@ -254,7 +230,20 @@ describe('bulma-classes kitchen-sink e2e', () => {
     expect(Object.keys(before).sort()).toEqual(
       app.files.map(f => f.replace(/\.tsx?$/, '')).sort()
     );
-    expect(renderAll(srcDir)).toEqual(before);
+    const after = renderAll(srcDir);
+    expect(after).toEqual(
+      Object.fromEntries(
+        Object.entries(before).map(([file, exported]) => [
+          file,
+          Object.fromEntries(
+            Object.entries(exported).map(([name, html]) => [
+              name,
+              withImplicitListRoles(html, after[file]?.[name] ?? ''),
+            ])
+          ),
+        ])
+      )
+    );
   });
 
   it('typechecks the input as plain React', () => {

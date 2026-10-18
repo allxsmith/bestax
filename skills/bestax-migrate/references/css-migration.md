@@ -26,7 +26,11 @@ choice below applies.
   **Visual note**: `bestax.css` ships with `$primary` set to bestax blue (`#1e6b99`),
   not Bulma's stock turquoise — `is-primary` surfaces (hero, navbar, buttons) change
   color. Keep the stock Bulma look with `--css bulma`, or set your own brand color via
-  `--bulma-primary-*` CSS variables / a Sass build.
+  `--bulma-primary-*` CSS variables / a Sass build. Set `--bulma-primary-invert-l` along with
+  `--bulma-primary-h`, `--bulma-primary-s` and `--bulma-primary-l`: it is the lightness of the
+  text on a primary surface, and bestax's build fixes it for its dark blue, so a light primary set
+  through the other three alone keeps white labels. To get stock Bulma's turquoise back on top of
+  `bestax.css`, copy those four from Bulma's own `bulma/css/bulma.css`.
 
 - **SCSS files**: Bulma 0.9's `@import 'bulma/bulma.sass'` (plus preceding
   `$var: value !default;` overrides) became Bulma v1 module syntax, with simple literal

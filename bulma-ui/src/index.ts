@@ -24,6 +24,7 @@ export * from './components/Popover';
 export * from './components/HoverCard';
 export * from './components/ContextMenu';
 export * from './components/Steps';
+export * from './components/Timeline';
 export * from './components/Sidebar';
 export * from './components/Toast';
 export * from './components/Dialog';

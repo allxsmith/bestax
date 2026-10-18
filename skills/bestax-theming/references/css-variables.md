@@ -502,6 +502,28 @@ them. See the constituent-element exception above.
 `--bulma-timeinput-wheel-item-height` is registered but has no effect: the component sets each
 wheel item's height inline.
 
+### Timeline
+
+Declared on the root, `.timeline`. The states and the color classes set
+`--bulma-timeline-marker-color` for each marker, and the layouts set
+`--bulma-timeline-rail-center`, so retheme the markers through `--bulma-timeline-neutral-color`
+and `--bulma-timeline-active-color` rather than those two. `--bulma-timeline-marker-background`
+fills the upcoming rings and the pending loader, and a reached icon marker's tint is mixed into
+it. It's the page's color by default, so it hides the line behind them. A record's icon circles
+take `--bulma-timeline-marker-icon-background`, which the color classes set. Every size is in
+`em`, so `textSize` scales them all.
+
+`--bulma-timeline-active-color`, `--bulma-timeline-content-gap`, `--bulma-timeline-dot-size`,
+`--bulma-timeline-gap`, `--bulma-timeline-halo-offset`, `--bulma-timeline-line-color`,
+`--bulma-timeline-line-width`, `--bulma-timeline-marker-background`,
+`--bulma-timeline-marker-color`, `--bulma-timeline-marker-icon-background`,
+`--bulma-timeline-marker-icon-color`, `--bulma-timeline-marker-size`,
+`--bulma-timeline-neutral-color`, `--bulma-timeline-pending-duration`,
+`--bulma-timeline-pending-size`,
+`--bulma-timeline-rail-center`, `--bulma-timeline-rail-size`, `--bulma-timeline-rail-size-icon`,
+`--bulma-timeline-time-color`, `--bulma-timeline-time-size`, `--bulma-timeline-title-color`,
+`--bulma-timeline-title-weight`
+
 ### Toast
 
 `--bulma-toast-action-hover-opacity`, `--bulma-toast-action-radius`,

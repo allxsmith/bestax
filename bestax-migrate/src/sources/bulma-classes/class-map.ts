@@ -170,6 +170,12 @@ export interface RootEntry {
         readonly on: readonly string[];
         readonly fallback: string;
         readonly keeps: readonly string[];
+        /**
+         * `fallback` is the tag's own implicit role (`Menu.List`'s
+         * `role="list"` on its <ul>), so an element that sets none is the
+         * same list and converts as well; only another value refuses.
+         */
+        readonly implicit?: boolean;
       }
     >
   >;
@@ -1216,6 +1222,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ])
     ),
     adoptsIdFrom: ['Field'],
+    // The <input>'s own attributes, which React's types take as numbers.
+    numberAttrs: ['maxLength', 'minLength'],
     ownProps: [
       'color',
       'size',
@@ -1252,6 +1260,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ])
     ),
     adoptsIdFrom: ['Field'],
+    // The <textarea>'s own attributes, which React's types take as numbers.
+    numberAttrs: ['rows', 'cols', 'maxLength', 'minLength'],
     ownProps: [
       'color',
       'size',
@@ -1912,6 +1922,12 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     tag: 'ul',
     textColor: 'color',
     bgColor: 'backgroundColor',
+    // Written after its props, for Safari, which drops a list's role once its
+    // markers are hidden. A list with no role is the same list; one with
+    // another role would lose it.
+    writesAttr: {
+      role: { on: ['ul'], fallback: 'list', keeps: ['list'], implicit: true },
+    },
     requiresChildren: true,
     topLevelOnly: true,
     ownProps: [],

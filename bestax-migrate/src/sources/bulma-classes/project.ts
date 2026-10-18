@@ -1,8 +1,8 @@
 /**
  * What the bulma-classes transform needs to know about the project and cannot
  * see from one file: which files a Next.js App Router may render as server
- * components, and which packages render JSX through a runtime other than
- * React.
+ * components, which packages render JSX through a runtime other than React,
+ * and which are written in TypeScript, for the module an HTML page becomes.
  *
  * Read once per run, from every package.json the run touches: the nearest one
  * above each target, and every one below it, so a monorepo run from its root
@@ -57,9 +57,17 @@ export interface ServerComponentRoot {
   except: string[];
 }
 
+/** A package, and whether a module it gains should be TypeScript. */
+export interface PackageLanguage {
+  dir: string;
+  /** It has a `tsconfig.json`, or depends on `typescript`. */
+  typescript: boolean;
+}
+
 export interface ProjectFacts {
   serverComponentRoots: ServerComponentRoot[];
   jsxRuntimes: JsxRuntime[];
+  packageLanguages: PackageLanguage[];
 }
 
 function nearestManifest(target: string): string | null {
@@ -194,7 +202,11 @@ export function analyzeProject(targets: string[]): ProjectFacts {
     for (const manifest of below) manifests.add(manifest);
   }
 
-  const facts: ProjectFacts = { serverComponentRoots: [], jsxRuntimes: [] };
+  const facts: ProjectFacts = {
+    serverComponentRoots: [],
+    jsxRuntimes: [],
+    packageLanguages: [],
+  };
   for (const manifest of [...manifests].sort()) {
     let pkg: Record<string, Record<string, string> | undefined>;
     try {
@@ -224,6 +236,25 @@ export function analyzeProject(targets: string[]): ProjectFacts {
     }
     const runtime = runtimeOf(dir, deps);
     if (runtime) facts.jsxRuntimes.push({ dir, runtime });
+    facts.packageLanguages.push({
+      dir,
+      typescript:
+        Boolean(deps.typescript) ||
+        fs.existsSync(path.join(dir, 'tsconfig.json')),
+    });
   }
   return facts;
+}
+
+/**
+ * Whether a new module beside `file` should be TypeScript: what the
+ * innermost package around it says, and no when no package does.
+ */
+export function writesTypeScript(file: string, languages: unknown): boolean {
+  if (!Array.isArray(languages)) return false;
+  const resolved = path.resolve(file);
+  const found = (languages as PackageLanguage[])
+    .filter(entry => resolved.startsWith(`${entry.dir}${path.sep}`))
+    .sort((a, b) => b.dir.length - a.dir.length)[0];
+  return found?.typescript ?? false;
 }

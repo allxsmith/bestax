@@ -104,9 +104,9 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Sidebar](https://bestax.io/docs/api/components/sidebar) — The `Sidebar` component provides a slide-out navigation panel that appears from the left or right side of the screen.
 - [Steps](https://bestax.io/docs/api/components/steps) — The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.
 - [Tabs](https://bestax.io/docs/api/components/tabs) — The `Tabs` component provides flexible and fully-featured Bulma tab navigation for your Bulma React UI.
+- [Timeline](https://bestax.io/docs/api/components/timeline) — The `Timeline` component renders a list of events in the order they happened, each with a marker on a line down the side.
 - [Toast](https://bestax.io/docs/api/components/toast) — The `Toast` component provides brief notification messages with optional action and cancel buttons.
 - [Tooltip](https://bestax.io/docs/api/components/tooltip) — The `Tooltip` component displays helpful information when users hover over or focus on an element.
-- [TreeView](https://bestax.io/docs/api/components/treeview) — The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move…
 
 ## Form
 
