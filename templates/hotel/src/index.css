@@ -1,0 +1,255 @@
+/*
+ * The original's stylesheet, ported. The original was made with Bulma 0.9,
+ * whose primary is turquoise, and bestax builds Bulma with a blue one, so
+ * :root sets Bulma's own primary back, with values from bulma/css/bulma.css.
+ * The invert is the label on a primary button, which bestax's build fixes for
+ * its blue. The page is light only: index.html pins Bulma's light scheme.
+ * Margins and paddings the original set with Bulma 0.9's is-marginless and
+ * is-paddingless, which Bulma 1 dropped, are helper props now. bulma-carousel
+ * styled the gallery's images; the rule for them is here.
+ */
+
+:root {
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+}
+
+/* Bulma 0.9's weights: Bulma 1 sets headings extrabold and buttons medium. */
+.title {
+  --bulma-title-weight: var(--bulma-weight-semibold);
+}
+
+.content {
+  --bulma-content-heading-weight: var(--bulma-weight-semibold);
+}
+
+.button {
+  --bulma-button-weight: var(--bulma-weight-normal);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-family: 'Helvetica', 'Roboto', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background-color: #f0f0f0;
+}
+
+.main-hero {
+  background-image: url('/media/background.webp');
+  background-size: cover;
+}
+
+a {
+  color: #fff;
+  text-decoration: none;
+}
+
+img {
+  max-width: 100%;
+}
+
+.navbar {
+  --bulma-navbar-burger-color: #484848;
+  box-shadow: none;
+}
+
+.navbar-item {
+  color: #484848;
+}
+
+/* Bulma 0.9 marked the current item with darker text, not a fill. */
+.navbar a.navbar-item.is-active {
+  --bulma-navbar-item-background-a: 0;
+  color: #0a0a0a;
+}
+
+.main-text {
+  color: white;
+  text-shadow: 4px 4px 12px #29211b;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(60px);
+  }
+}
+
+.scroll-wheel {
+  animation: scroll ease 2s infinite;
+}
+
+/* Rooms */
+.rooms {
+  background-color: #fff;
+  padding: 1em;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.button.room-button {
+  background-color: #03b2e3;
+  border: 1px solid #03b2e3;
+  font-size: 14px;
+}
+
+.button.room-button:hover {
+  background-color: transparent;
+  color: #000;
+}
+
+.room-modal {
+  background-color: #fff;
+  padding: 2em;
+  border-radius: 5px;
+}
+
+/* About */
+.reception-image img {
+  background-color: #fff;
+  padding: 10px;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.reception-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 70%;
+  margin: 0 auto;
+  padding: 1em 2em;
+  background-color: #fff;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.reception-item a {
+  color: #000;
+}
+
+.reception-item .button {
+  border: 1px solid #03b2e3;
+  width: 50px;
+  font-size: 14px;
+}
+
+.reception-item .button:hover {
+  background-color: #03b2e3;
+  color: #fff;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media only screen and (max-width: 769px) {
+  .reception-item {
+    width: 100%;
+    padding: 1em;
+  }
+  .mobile-only {
+    display: block;
+  }
+}
+
+@media only screen and (max-width: 350px) {
+  .mobile-only {
+    display: none;
+  }
+}
+
+/*
+ * Gallery. The arrows are the original slider's white circles. Each photo
+ * fills its 16:9 frame, cropped, as bulma-carousel's is-covered did; the
+ * height also wins over the carousel's own rule for images in a slide.
+ */
+.gallery-carousel {
+  --bulma-carousel-arrow-size: 42px;
+  --bulma-carousel-arrow-size-mobile: 42px;
+  --bulma-carousel-arrow-offset: 0;
+  --bulma-carousel-arrow-offset-mobile: 0;
+  --bulma-carousel-arrow-radius: var(--bulma-radius-rounded);
+  --bulma-carousel-arrow-background: #fff;
+  --bulma-carousel-arrow-background-hover: #fff;
+}
+
+.gallery-card {
+  --bulma-card-radius: 0.25rem;
+}
+
+.image.gallery-photo img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/*
+ * Contact. The original's box was its columns too, so it reached past the
+ * container by a column gap on each side.
+ */
+.contact-box {
+  --bulma-box-radius: 6px;
+  margin: calc(-1 * var(--bulma-column-gap));
+}
+
+.contact-map {
+  border: 0;
+  box-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.12),
+    0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+/* Footer */
+.site-footer {
+  background-color: #344157;
+  border-top: 3px solid #03b2e3;
+  color: #fff !important;
+}
+
+.newsletter-form {
+  display: flex;
+}
+
+.newsletter-form input {
+  width: 100%;
+  height: 40px;
+  border: 0;
+  outline: none;
+  padding: 0 15px;
+  font-size: 14px;
+  background-color: #5c677b;
+  color: #fff;
+}
+
+.newsletter-form input::placeholder {
+  color: #fff;
+}
+
+.newsletter-form :focus-visible {
+  outline: 2px solid #03b2e3;
+  outline-offset: 2px;
+}
+
+.newsletter-form button {
+  width: 50px;
+  height: 40px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #d77b5d;
+  outline: none;
+  border: 0;
+}
