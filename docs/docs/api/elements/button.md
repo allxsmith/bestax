@@ -78,6 +78,23 @@ The `size` prop lets you adjust the button’s scale for various contexts. Suppo
 </Buttons>
 ```
 
+### With an Icon
+
+Put an [`Icon`](./icon.md) and the text side by side inside the `Button`, with the text in a `<span>` of its own. Bulma spaces an icon by where it sits among the button's elements, and a bare text node isn't an element, so without the `<span>` the icon gets the margins of an icon-only button and the text sits flush against it. Put the `Icon` first for a leading icon, or last for a trailing one, such as the arrow on a call to action. Leave the `Icon` unnamed, since the text already names the button.
+
+```tsx live
+<Buttons>
+  <Button color="primary">
+    <Icon name="download" aria-hidden="true" />
+    <span>Download</span>
+  </Button>
+  <Button color="link" isOutlined>
+    <span>Get started</span>
+    <Icon name="arrow-right" aria-hidden="true" />
+  </Button>
+</Buttons>
+```
+
 ### Light Variant
 
 Create a softer, pastel version of your button by adding the `isLight` prop. When combined with a `color`, such as `primary`, this produces a much lighter shade. This is useful for secondary actions or when you want your button to coordinate with your theme color without drawing too much attention.
@@ -313,6 +330,7 @@ function example() {
 ## Accessibility
 
 - **Labeling:** Always provide descriptive content for buttons for screen readers.
+- **Icons beside text:** Leave the `Icon` without an `ariaLabel`, so the text alone names the button. An `Icon` with no `ariaLabel` already renders `aria-hidden="true"`, and the `aria-hidden` in the example only writes that out. A named icon joins the button's name instead, so `ariaLabel="Download"` on the icon of a Download button makes a screen reader announce "Download Download".
 - **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.
 - **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.
 - **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.
