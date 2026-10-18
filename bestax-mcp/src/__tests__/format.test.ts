@@ -14,11 +14,15 @@ import { loadComponent } from '../data.js';
 import {
   attributed,
   attributedLinks,
+  importOf,
+  partLists,
   referenceOf,
   referencePointer,
   renderComponent,
   renderCssVarsAnswer,
   renderHelperApi,
+  renderPart,
+  standaloneLine,
 } from '../format.js';
 
 describe('attributed', () => {
@@ -316,6 +320,67 @@ describe('renderComponent on code', () => {
       ['examples']
     );
     expect(out).toContain('```tsx\n' + code + '\n```');
+  });
+});
+
+describe('parts that are exports of their own', () => {
+  it("imports a base on its own, and a companion through the record's import", async () => {
+    const input = await loadComponent('Input');
+    const base = input.parts.find(p => p.path === 'InputBase')!;
+    expect(importOf(input, base)).toBe(
+      "import { InputBase } from '@allxsmith/bestax-bulma';"
+    );
+    expect(importOf(input, null)).toBe(input.import);
+    const carousel = await loadComponent('Carousel');
+    const item = carousel.parts.find(p => p.path === 'CarouselItem')!;
+    expect(importOf(carousel, item)).toBe(carousel.import);
+  });
+
+  it('says what the export is to the component, by its role', async () => {
+    const input = await loadComponent('Input');
+    const carousel = await loadComponent('Carousel');
+    expect(
+      standaloneLine(
+        input.parts.find(p => p.standalone)!,
+        'Input'
+      )
+    ).toBe(
+      '`InputBase` is exported on its own and documented with `Input`, which renders it.'
+    );
+    expect(
+      standaloneLine(
+        carousel.parts.find(p => p.standalone)!,
+        'Carousel'
+      )
+    ).toBe(
+      '`CarouselItem` is exported on its own and documented with `Carousel`.'
+    );
+  });
+
+  it('lists them apart from the subcomponents', async () => {
+    expect(partLists(await loadComponent('Carousel'))).toEqual([
+      '**Documented here too:** `CarouselItem`. Call `get_props` with that name for its table.',
+    ]);
+    const [subs] = partLists(await loadComponent('Navbar'));
+    expect(subs).toMatch(/^\*\*Subcomponents:\*\* `Navbar\.Brand`/);
+    const many = await loadComponent('Carousel');
+    const twice = {
+      ...many,
+      parts: [...many.parts, { ...many.parts[1], path: 'Other' }],
+    };
+    expect(partLists(twice)[0]).toContain(
+      '`CarouselItem`; `Other`. Call `get_props` with one of those names'
+    );
+  });
+
+  it('points at a standalone name only where it has an entry of its own', async () => {
+    const thead = (await loadComponent('Table')).parts.find(
+      p => p.path === 'Table.Thead'
+    )!;
+    expect(renderPart(thead)).toContain('call `get_props` with that name');
+    expect(renderPart(thead, { hasEntry: () => false })).toContain(
+      'the same component, so this is its table'
+    );
   });
 });
 

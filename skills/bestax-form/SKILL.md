@@ -65,13 +65,17 @@ using context (`useInsideField` / `useInsideControl`) to detect their surroundin
 ```tsx
 <Field hasAddons>
   <Control isExpanded>
-    <InputBase placeholder="Search" />
+    <InputBase placeholder="Search" aria-label="Search" />
   </Control>
   <Control>
     <Button color="primary">Go</Button>
   </Control>
 </Field>
 ```
+
+A `grouped` or `hasAddons` Field names none of its controls, and a placeholder disappears once
+the user types, so give each input in the row an `aria-label`, or a visible label on an outer
+`Field` (`references/patterns.md`, "Grouped controls and addons").
 
 ## Component inventory
 

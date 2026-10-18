@@ -11,6 +11,8 @@ import { isPreV1 } from './semver-range.js';
 
 const BESTAX_RANGE = '^5';
 export const BULMA_RANGE = '^1.0.4';
+/** bestax-bulma's optional peer range for Font Awesome. */
+export const FONT_AWESOME_PEER_RANGE = '^6.7.2 || ^7.0.0';
 // Bulma v1's sass tree uses `color.channel(…)` — needs dart-sass ≥ 1.79.
 const SASS_RANGE = '^1.79.0';
 
@@ -155,7 +157,7 @@ export function reportPeerRanges(manifest: Manifest): void {
     if (range && /^[~^]?[0-5](?:[.x]|$)/.test(range.trim())) {
       manifest.report(
         'peer-deps',
-        `@fortawesome/fontawesome-free ${range} predates bestax-bulma's optional peer range (^6.7.2 || ^7.0.0) — upgrade it, or install with \`npm install --legacy-peer-deps\``
+        `@fortawesome/fontawesome-free ${range} predates bestax-bulma's optional peer range (${FONT_AWESOME_PEER_RANGE}) — upgrade it, or install with \`npm install --legacy-peer-deps\``
       );
     }
   }

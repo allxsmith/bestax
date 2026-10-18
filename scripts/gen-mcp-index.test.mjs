@@ -20,7 +20,7 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   absoluteLinks,
@@ -30,9 +30,11 @@ import {
   proseComponentInfo,
   readSkills,
   reportFailure,
+  standaloneTables,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
+import { barrelExports } from './lib/props-extract.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -879,6 +881,195 @@ test('output is deterministic and code-point sorted', () => {
       `${cat.id} members are not sorted`
     );
   }
+});
+
+test('exports documented with a component reach the index as its parts (#1150, #1174)', () => {
+  const part = (component, path) =>
+    components.get(component).parts.find(p => p.path === path);
+  // The base a convenience component renders, which the class lookup names.
+  for (const name of ['Input', 'Select', 'TextArea', 'DateInput']) {
+    const base = part(name, `${name}Base`);
+    assert.equal(base?.standalone, 'base', `${name}Base is not in ${name}`);
+    assert.ok(base.props.length > 3, `${name}Base has no table`);
+  }
+  // What a page imports beside its component, which its import line names.
+  assert.equal(part('Carousel', 'CarouselItem')?.standalone, 'companion');
+  assert.deepEqual(
+    part('Toast', 'ToastContainer').props.map(p => [p.name, p.default]),
+    [['position', "'top-right'"]]
+  );
+  assert.equal(part('Dialog', 'DialogContainer').noProps, true);
+  // A name with a page of its own, or a part already, is no extra.
+  for (const name of ['Dropdown', 'Table', 'Columns']) {
+    assert.ok(
+      components.get(name).parts.every(p => !p.standalone),
+      `${name} grew a standalone part`
+    );
+  }
+  // Neither makes a component compound.
+  const entry = name => catalog.components.find(c => c.name === name);
+  assert.equal(entry('Input').compound, false);
+  assert.equal(entry('Table').compound, true);
+});
+
+test('every export documented with a component is found by its name', () => {
+  const { documentedWith } = catalog;
+  assert.deepEqual(documentedWith.InputBase, {
+    component: 'Input',
+    path: 'InputBase',
+    purpose: documentedWith.InputBase.purpose,
+    standalone: 'base',
+  });
+  assert.equal(documentedWith.CarouselItem.component, 'Carousel');
+  // A sub exported standalone is its part, and a borrowed one goes to the
+  // component that declares it.
+  assert.deepEqual(
+    [documentedWith.Thead.component, documentedWith.Thead.path],
+    ['Table', 'Table.Thead']
+  );
+  assert.deepEqual(
+    [documentedWith.DropdownItem.component, documentedWith.DropdownItem.path],
+    ['Dropdown', 'Dropdown.Item']
+  );
+  // So is one declared beside its parent, which no part names, and one that
+  // is a compound itself, by the constant composing it.
+  for (const [name, component, path] of [
+    ['TreeViewItem', 'TreeView', 'TreeView.Item'],
+    ['NavbarItem', 'Navbar', 'Navbar.Item'],
+    ['MenuItem', 'Menu', 'Menu.Item'],
+    ['TabsContent', 'Tabs', 'Tabs.Content'],
+  ]) {
+    assert.deepEqual(
+      [documentedWith[name]?.component, documentedWith[name]?.path],
+      [component, path],
+      name
+    );
+  }
+  const titles = new Set(catalog.components.map(c => c.name));
+  for (const [name, { component, path }] of Object.entries(documentedWith)) {
+    assert.ok(!titles.has(name), `${name} has a catalog entry of its own`);
+    assert.ok(
+      components.get(component).parts.some(p => p.path === path),
+      `${name}: ${component} has no part ${path}`
+    );
+  }
+  const keys = Object.keys(documentedWith);
+  assert.deepEqual(
+    [...keys].sort((a, b) => (a < b ? -1 : 1)),
+    keys
+  );
+});
+
+test('every component the barrel exports is a catalog entry or documented with one', () => {
+  // In any letter case, as the server resolves names.
+  const known = new Set(
+    [
+      ...catalog.components.map(c => c.name),
+      ...Object.keys(catalog.documentedWith),
+    ].map(name => name.toLowerCase())
+  );
+  const unanswered = [...barrelExports()].filter(
+    name => /^[A-Z]/.test(name) && !known.has(name.toLowerCase())
+  );
+  assert.deepEqual(unanswered, []);
+});
+
+test('a base its component does not render stops the build', () => {
+  const exported = new Map([
+    ['WidgetBase', { cat: 'form', mod: 'WidgetBase' }],
+  ]);
+  assert.throws(
+    () =>
+      standaloneTables(
+        'Widget',
+        { sourceFile: 'Widget.tsx', tables: [] },
+        new Set(),
+        {
+          exported,
+          source: () => 'export const Widget = () => <input />;',
+          extract: () => assert.fail('extracted a base it cannot document'),
+        }
+      ),
+    /Widget does not render <WidgetBase>/
+  );
+  const table = { path: 'WidgetBase', rows: [] };
+  assert.deepEqual(
+    standaloneTables(
+      'Widget',
+      { sourceFile: 'Widget.tsx', tables: [] },
+      new Set(),
+      {
+        exported,
+        source: () => 'export const Widget = () => <WidgetBase />;',
+        extract: () => ({ tables: [table] }),
+      }
+    ),
+    [{ table, role: 'base' }]
+  );
+});
+
+test('a part that takes no props at all says so, apart from one with an inline DOM type', () => {
+  const part = (component, path) =>
+    components.get(component).parts.find(p => p.path === path);
+  assert.equal(part('Dropdown', 'Dropdown.Divider').noProps, true);
+  assert.equal(part('ContextMenu', 'ContextMenu.Divider').noProps, true);
+  assert.equal(part('Navbar', 'Navbar.Divider').noProps, undefined);
+});
+
+test("the class table carries Bulma v1's classes and the 0.9 ones v1 removed (#1174)", () => {
+  const { vocabulary, removed } = bulmaClasses;
+  const v1 = new Set(vocabulary);
+  for (const token of [
+    'button',
+    'has-text-centered',
+    'is-128x128',
+    'is-gap-0.5',
+    'marginless',
+  ]) {
+    assert.ok(v1.has(token), `${token} is missing`);
+  }
+  for (const token of ['is-marginless', 'is-256x256', 'has-text-green']) {
+    assert.ok(!v1.has(token), `${token} reads as a v1 class`);
+  }
+  assert.ok(removed.includes('is-paddingless') && removed.includes('tile'));
+  assert.deepEqual(
+    removed.filter(token => v1.has(token)),
+    []
+  );
+  for (const list of [vocabulary, removed]) {
+    assert.deepEqual(
+      [...list].sort((a, b) => (a < b ? -1 : 1)),
+      list
+    );
+  }
+});
+
+test('the stylesheet walk the index shares reads the classes in selectors, and only there', async () => {
+  // bestax-migrate's vocabulary test reads Bulma with this walk too.
+  const { stylesheetClasses } = await import(
+    pathToFileURL(
+      join(REPO, 'bestax-migrate', 'e2e', 'support', 'bulma-stylesheet.ts')
+    ).href
+  );
+  const css = [
+    '@charset "UTF-8";',
+    '/* .commented { } */',
+    '.a, .b > .c:not(.d) { background: url("x.svg"); }',
+    '[data-x=".e"] .f { }',
+    '.is-gap-0\\.5 { gap: 0.5rem; }',
+    '@media screen and (min-width: 769px) { .g.h { color: red; } }',
+    '@font-face { font-family: "x"; }',
+  ].join('\n');
+  assert.deepEqual([...stylesheetClasses(css)].sort(), [
+    'a',
+    'b',
+    'c',
+    'd',
+    'f',
+    'g',
+    'h',
+    'is-gap-0.5',
+  ]);
 });
 
 test("the bulma-classes table is bestax-migrate's own, whole", () => {

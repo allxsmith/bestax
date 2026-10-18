@@ -19,7 +19,8 @@
  *   bestax-mcp/data/skills.json           skill manifest (bodies are synced at
  *                                         build time, see bestax-mcp/scripts)
  *   bestax-mcp/data/bulma-classes.json    the bestax-migrate bulma-classes
- *                                         table, for lookup_bulma_classes
+ *                                         table, for lookup_bulma_classes, with
+ *                                         Bulma v1's own class names
  *
  * Split three ways on purpose: a stdio server pays the parse cost on every
  * client launch, so startup reads only the catalog and pulls a component file
@@ -38,7 +39,7 @@
  * Regenerate with `pnpm gen:mcp` (or `pnpm gen`, which runs all three).
  */
 import { readFile, writeFile, mkdir, rm } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join, relative, dirname, extname, posix } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
@@ -66,7 +67,12 @@ import {
   readApiPages,
 } from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
-import { extractComponent, varRootCandidates } from './lib/props-extract.mjs';
+import {
+  barrelExports,
+  exportedModules,
+  extractComponent,
+  varRootCandidates,
+} from './lib/props-extract.mjs';
 import { componentVars } from './lib/scss-vars.mjs';
 import {
   SCSS_SOURCES,
@@ -89,6 +95,18 @@ const CLASS_MAP = join(
   'sources',
   'bulma-classes',
   'class-map.ts'
+);
+/**
+ * The walk bestax-migrate's vocabulary test reads Bulma's stylesheet with,
+ * which the index's class names come from too, so the two cannot disagree
+ * about which classes Bulma 1 has.
+ */
+const STYLESHEET_READER = join(
+  REPO,
+  'bestax-migrate',
+  'e2e',
+  'support',
+  'bulma-stylesheet.ts'
 );
 
 const PACKAGE = '@allxsmith/bestax-bulma';
@@ -480,6 +498,138 @@ function withoutFrontmatter(src) {
   return src.replace(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/, '').trimStart();
 }
 
+/**
+ * One extractor table as a record's part. `standalone` marks a part that is no
+ * sub-component but an export of its own documented with this component (see
+ * `standaloneTables`), and `noProps` one that takes no props at all, not even
+ * its element's attributes (`Dropdown.Divider`).
+ */
+function partOf(t, standalone = null) {
+  return {
+    path: t.path,
+    summary: collapse(t.summary),
+    // A sub-component re-exported standalone has its own page; naming
+    // it lets the server point there instead of restating the table.
+    component: t.component ?? null,
+    // A sub with an inline DOM props type rather than a named
+    // `*Props` interface (`Navbar.Divider`) has no table at all — it
+    // still belongs in the list, with an empty one.
+    props: (t.rows ?? []).map(propRow),
+    extraProps: (t.extraProps ?? []).map(propRow),
+    catchAll: t.catchAll?.text ?? null,
+    types: (t.types ?? []).map(a => ({
+      name: a.name,
+      expansion: a.expansion,
+      summary: collapse(a.summary),
+    })),
+    ...(t.noProps ? { noProps: true } : {}),
+    ...(standalone ? { standalone } : {}),
+  };
+}
+
+/**
+ * The exports documented with a component rather than on a page of their own,
+ * as extractor tables for its record: the bare control a convenience component
+ * renders (`InputBase`, for `Input`), and what its page imports beside it
+ * (`CarouselItem`, for `Carousel`, by its `## Import`). Both are names the
+ * server hands out, in a lookup's answer and an import line, and neither has a
+ * page for the index to read, so `get_props` could not answer for either
+ * (#1150, #1174).
+ *
+ * A base goes with the component its name continues (`InputBase`, `Input`),
+ * which must render it: the server says so. A name with a page of its own, or
+ * one this component's parts already carry (`Table`'s `Thead`), is no extra.
+ * `extract`, `exported` and `source` are test seams.
+ */
+export function standaloneTables(
+  name,
+  info,
+  titles,
+  {
+    extract = extractComponent,
+    exported = exportedModules(),
+    source = file => readFileSync(file, 'utf8'),
+  } = {}
+) {
+  const out = [];
+  const base = `${name}Base`;
+  if (exported.has(base)) {
+    if (!source(info.sourceFile).includes(`<${base}`)) {
+      throw new Error(
+        `[gen-mcp-index] ${name} does not render <${base}>, and the index ` +
+          `documents ${base} with ${name} as the control ${name} renders. Give ` +
+          `${base} an API page of its own, or rename whichever of the two ` +
+          `no longer belongs with the other.`
+      );
+    }
+    out.push({
+      table: extract(base, { markdown: false }).tables[0],
+      role: 'base',
+    });
+  }
+  const carried = new Set(
+    info.tables.flatMap(t => [t.path, t.impl, t.component].filter(Boolean))
+  );
+  for (const companion of IMPORT_COMPANIONS[name] ?? []) {
+    if (!COMPONENT_NAME.test(companion) || companion === name) continue;
+    if (titles.has(companion) || carried.has(companion)) continue;
+    out.push({
+      table: extract(companion, { markdown: false }).tables[0],
+      role: 'companion',
+    });
+  }
+  return out;
+}
+
+/**
+ * Each export with no catalog entry of its own that a record documents, with
+ * the record and the part that is its table: the standalone parts above, which
+ * keep their `standalone` role, and a sub-component the barrel exports by name
+ * too. That is one declared in a module of its own (`Thead`, as `Table.Thead`),
+ * and one declared beside its parent (`NavbarItem`, as `Navbar.Item`), which no
+ * part names, so only the barrel says it is exported (#1174). A sub that
+ * another component borrows (ContextMenu's `DropdownItem`) goes to the one that
+ * declares it (`Dropdown.Item`), whose part is the same component. `subs` maps
+ * an implementation name to the part that declares it, and `exported` is every
+ * value name the barrel exports.
+ */
+export function documentedWith(components, titles, subs, exported) {
+  const out = {};
+  const purposeOf = summary =>
+    summary ? clipAtWord(firstSentence(summary)) : '';
+  const claim = (name, component, path) => {
+    if (titles.has(name) || Object.hasOwn(out, name)) return;
+    const part = components.get(component).parts.find(p => p.path === path);
+    out[name] = {
+      component,
+      path,
+      purpose: purposeOf(part.summary),
+      ...(part.standalone ? { standalone: part.standalone } : {}),
+    };
+  };
+  for (const [name, record] of components) {
+    for (const part of record.parts) {
+      if (part.standalone) claim(part.path, name, part.path);
+    }
+  }
+  for (const [name, record] of components) {
+    for (const part of record.parts) {
+      if (!part.component || titles.has(part.component)) continue;
+      const home = subs.get(part.component) ?? {
+        component: name,
+        path: part.path,
+      };
+      claim(part.component, home.component, home.path);
+    }
+  }
+  for (const [impl, home] of subs) {
+    if (exported.has(impl)) claim(impl, home.component, home.path);
+  }
+  return Object.fromEntries(
+    Object.entries(out).sort((a, b) => byCodePoint(a[0], b[0]))
+  );
+}
+
 function propRow(r) {
   return {
     name: r.name,
@@ -632,17 +782,22 @@ function itemsOf(placed, token) {
   };
 }
 
-export async function bulmaClassTable() {
-  let map;
+/** A TypeScript module of bestax-migrate's, loaded with node's type stripping. */
+async function importStripped(file) {
   try {
-    map = await import(pathToFileURL(CLASS_MAP).href);
+    return await import(pathToFileURL(file).href);
   } catch (err) {
     throw new Error(
-      `could not import ${relative(REPO, CLASS_MAP)}: ${err.message}. ` +
+      `could not import ${relative(REPO, file)}: ${err.message}. ` +
         `It is loaded with node's type stripping, which needs Node 22.18 or later.`,
       { cause: err }
     );
   }
+}
+
+export async function bulmaClassTable() {
+  const map = await importStripped(CLASS_MAP);
+  const { stylesheetClasses } = await importStripped(STYLESHEET_READER);
   const roots = Object.fromEntries(
     Object.entries(map.ROOTS).map(([token, entry]) => [
       token,
@@ -683,10 +838,20 @@ export async function bulmaClassTable() {
     wrappers: map.WRAPPERS,
     helpers: Object.fromEntries(map.HELPER_TOKENS),
     legacy: map.LEGACY_09,
+    removed: [...map.REMOVED_IN_V1].sort(byCodePoint),
     passthrough: map.PASSTHROUGH.map(group => ({
       why: group.why,
       match: group.match.source,
     })),
+    // What tells a v1 class with no prop from one Bulma 1 has no rule for: a
+    // passthrough pattern reaches past the stylesheet (`is-\d+x\d+` takes a
+    // page's own `is-256x256` for an `.image` size), and a class nothing in
+    // the table names fell to one note for both (#1174).
+    vocabulary: [
+      ...stylesheetClasses(
+        await readFile(bulmaSassPath('css/bulma.css'), 'utf8')
+      ),
+    ].sort(byCodePoint),
   };
 }
 
@@ -709,6 +874,12 @@ export async function build() {
   const components = new Map();
   const cssVarIndex = {};
   const categoryList = [];
+  const subs = new Map();
+  // Every name with a page of its own, which is a catalog entry.
+  const titles = new Set(
+    categories.flatMap(({ pages }) => pages.map(({ fm }) => fm.title))
+  );
+  const exported = exportedModules();
 
   for (const { dir, label, pages } of categories) {
     const members = [];
@@ -782,6 +953,17 @@ export async function build() {
           cssVars: [],
         };
       } else {
+        // The sub-components this component declares itself, by their
+        // implementation's name and, for one that is a compound too, the
+        // name of the constant composing it, for `documentedWith`.
+        for (const t of info.tables.slice(1)) {
+          if (!t.component && t.impl) {
+            subs.set(t.impl, { component: name, path: t.path });
+          }
+        }
+        for (const [path, constant] of info.compoundNames ?? []) {
+          subs.set(constant, { component: name, path });
+        }
         const cssVars = await cssVarsFor(info);
         for (const v of cssVars) (cssVarIndex[v.css] ??= []).push(name);
         record = {
@@ -797,24 +979,12 @@ export async function build() {
               )} } from '${PACKAGE}';`,
           sourceFile: relative(REPO, info.sourceFile).split('\\').join('/'),
           rootClass: info.rootClass ?? null,
-          parts: info.tables.map(t => ({
-            path: t.path,
-            summary: collapse(t.summary),
-            // A sub-component re-exported standalone has its own page; naming
-            // it lets the server point there instead of restating the table.
-            component: t.component ?? null,
-            // A sub with an inline DOM props type rather than a named
-            // `*Props` interface (`Navbar.Divider`) has no table at all — it
-            // still belongs in the list, with an empty one.
-            props: (t.rows ?? []).map(propRow),
-            extraProps: (t.extraProps ?? []).map(propRow),
-            catchAll: t.catchAll?.text ?? null,
-            types: (t.types ?? []).map(a => ({
-              name: a.name,
-              expansion: a.expansion,
-              summary: collapse(a.summary),
-            })),
-          })),
+          parts: [
+            ...info.tables.map(t => partOf(t)),
+            ...standaloneTables(name, info, titles, { exported }).map(
+              ({ table, role }) => partOf(table, role)
+            ),
+          ],
           cssVars,
           // The component whose element this one renders, so its variables
           // style this one too, for the colors and modifiers it accepts. Present
@@ -830,6 +1000,9 @@ export async function build() {
       record = withAbsoluteLinks(record, relPath);
       components.set(name, record);
       members.push(name);
+      // A family is its root and its sub-components. The exports documented
+      // beside it (`InputBase`) are not, and `Input` is no compound for them.
+      const family = record.parts.filter(p => !p.standalone);
       catalogEntries.push({
         name,
         kind: record.kind,
@@ -837,8 +1010,8 @@ export async function build() {
         purpose,
         slug,
         import: record.import,
-        compound: record.parts.length > 1,
-        propCount: record.parts.reduce((n, p) => n + p.props.length, 0),
+        compound: family.length > 1,
+        propCount: family.reduce((n, p) => n + p.props.length, 0),
         exampleCount: record.examples.length,
       });
     }
@@ -866,6 +1039,7 @@ export async function build() {
         .sort((a, b) => byCodePoint(a[0], b[0]))
         .map(([css, names]) => [css, orderDeclarers(css, names)])
     ),
+    documentedWith: documentedWith(components, titles, subs, barrelExports()),
   };
 
   return {

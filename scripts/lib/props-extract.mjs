@@ -187,6 +187,31 @@ function starExportedModule(ts, program, checker, name) {
   return m ? { cat: m[1], mod: m[2] } : null;
 }
 
+/**
+ * Every value name the barrel exports, `export *` ones included, as the checker
+ * reads them. `exportedModules` keys an `export *` by its module, so it knows
+ * `Navbar` and not the `NavbarItem` beside it in the same file.
+ */
+export function barrelExports() {
+  const { ts, program, checker } = createProgram();
+  const index = join(REPO, 'bulma-ui', 'src', 'index.ts').replace(/\\/g, '/');
+  const sf = program.getSourceFiles().find(f => f.fileName === index);
+  const barrel = sf && checker.getSymbolAtLocation(sf);
+  if (!barrel) throw new Error(`cannot read the exports of ${index}`);
+  return new Set(
+    checker
+      .getExportsOfModule(barrel)
+      .filter(symbol => {
+        const target =
+          symbol.flags & ts.SymbolFlags.Alias
+            ? checker.getAliasedSymbol(symbol)
+            : symbol;
+        return Boolean(target.flags & ts.SymbolFlags.Value);
+      })
+      .map(symbol => String(symbol.escapedName))
+  );
+}
+
 function sourceFileFor(program, cat, mod) {
   const want = join(REPO, 'bulma-ui', 'src', cat, `${mod}.tsx`).replace(
     /\\/g,
@@ -394,6 +419,22 @@ function propsInterfaceName(ts, inits, name) {
     }
   }
   return null;
+}
+
+/**
+ * The type literal a component declares its props with inline, or null:
+ * `const ToastContainer: React.FC<{ position?: ToastPosition }>`. Its members
+ * are the props, and they read the way an interface's do. Taken as a name,
+ * the literal's text found no interface, so the table came back empty and the
+ * component read as taking no props of its own.
+ */
+function inlinePropsLiteral(ts, init) {
+  const type = init?.parent?.type;
+  const arg =
+    type && ts.isTypeReferenceNode(type) && type.typeArguments?.length === 1
+      ? type.typeArguments[0]
+      : null;
+  return arg && ts.isTypeLiteralNode(arg) ? arg : null;
 }
 
 /** The arrow/function whose first parameter destructures the props. */
@@ -1644,9 +1685,14 @@ export function extractComponent(
   // Resolve the root implementation and the compound sub-component tree.
   const rootInit = inits.get(name);
   const paths = [];
+  // A sub that is itself a compound (`Tabs.Content`) is the constant that
+  // composes it (`TabsContent`), while its table is read off that constant's
+  // base (`TabsContentComponent`), so the name it is exported by is kept here.
+  const compoundNames = new Map();
   const visit = (implName, dotPath) => {
     const init = inits.get(implName);
     if (isWithSubComponents(ts, init)) {
+      if (dotPath !== name) compoundNames.set(dotPath, implName);
       const base = init.arguments[0];
       const subs = init.arguments[1];
       if (ts.isIdentifier(base)) visit(base.text, dotPath);
@@ -1671,7 +1717,8 @@ export function extractComponent(
   const tables = [];
   for (const { path, impl } of paths) {
     const ifaceName = propsInterfaceName(ts, inits, impl);
-    const decl = ifaceName && interfaces.get(ifaceName);
+    const literal = inlinePropsLiteral(ts, inits.get(impl));
+    const decl = literal ?? (ifaceName && interfaces.get(ifaceName));
     // A component whose props type could not be named at all. Falling through
     // is silent where it hurts most: `gen-api-docs` skips a `listOnly` SUB
     // outright, so `Navbar.Item` would simply vanish from navbar.md, and the
@@ -1727,11 +1774,17 @@ export function extractComponent(
         // but dropping it outright left `Navbar.Divider` and
         // `Pagination.Ellipsis` off the Subcomponents list entirely, which is
         // why both pages still carried a hand-written duplicate of it.
+        //
+        // `noProps` tells those apart from a component that names no props
+        // type at all (`DropdownDivider: React.FC = () => …`, which got past
+        // the guard above, so it declares no parameter): that one takes
+        // nothing, not even its element's attributes.
         tables.push({
           path,
           impl,
           rows: [],
           listOnly: true,
+          ...(ifaceName ? {} : { noProps: true }),
           summary:
             jsdocText(ts, inits.get(impl)) ||
             jsdocText(ts, componentFunction(ts, inits.get(impl))),
@@ -1970,7 +2023,7 @@ export function extractComponent(
       path,
       impl,
       types,
-      interfaceName: ifaceName,
+      interfaceName: literal ? null : ifaceName,
       // The sub-component's own TSDoc summary, which becomes its line in the
       // `**Subcomponents:**` list. The hand-written pages described each sub
       // there ("Top bar for navigation or branding"), so dropping to a bare
@@ -2020,6 +2073,7 @@ export function extractComponent(
     varPrefix: VAR_PREFIX_OVERRIDES[name] ?? rootClass,
     rootClassCandidates: candidates,
     tables,
+    compoundNames,
     sourceFile: sf.fileName,
   };
 }

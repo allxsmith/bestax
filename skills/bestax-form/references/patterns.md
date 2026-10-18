@@ -131,7 +131,7 @@ Notes:
 // Search box: input + button attached.
 <Field hasAddons>
   <Control isExpanded>
-    <InputBase placeholder="Search" />
+    <InputBase placeholder="Search" aria-label="Search" />
   </Control>
   <Control>
     <Button color="primary">Search</Button>
@@ -141,13 +141,17 @@ Notes:
 // Two controls on one row.
 <Field grouped>
   <Control>
-    <InputBase placeholder="First" />
+    <InputBase placeholder="First" aria-label="First name" />
   </Control>
   <Control>
-    <InputBase placeholder="Last" />
+    <InputBase placeholder="Last" aria-label="Last name" />
   </Control>
 </Field>
 ```
+
+A `grouped` or `hasAddons` Field names none of the controls it holds, and a placeholder
+disappears once the user types, so each input above carries an `aria-label`. For a visible
+label instead, see the last item below.
 
 Recipes built on addons, each written out in full in the docs:
 

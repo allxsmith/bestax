@@ -6,6 +6,8 @@ path (`-y` + flags, no TTY) must never hang or regress (#192).
 
 The one question `-y` does not answer is whether to delete a non-empty target directory: only
 `--overwrite` or a yes at the prompt does, and without either the run stops and changes nothing.
+Neither empties the working directory or a folder holding it (#310). The project directory can
+be a path (#1154), so that is judged where the path resolves, not by how it is spelled.
 Every flag is validated before anything on disk changes, and the directory is emptied only after
 the last prompt, so a typo or a Ctrl+C never costs the user their files (#945).
 

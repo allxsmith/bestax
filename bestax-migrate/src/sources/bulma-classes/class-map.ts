@@ -2468,6 +2468,28 @@ export const WRAPPER_OWN_PROPS: Readonly<Record<string, readonly string[]>> = {
   Figure: ['textColor', 'bgColor'],
 };
 
+/**
+ * Every class Bulma 0.9.4's compiled stylesheet has and v1's does not, read
+ * off the two with the class walk `e2e/bulma-classes-vocabulary.test.ts`
+ * uses. Under v1 these style nothing: the tiles, `.columns.is-variable`,
+ * `.heading`, `.number`, `is-marginless` and `is-paddingless` (v1 spells the
+ * last two `marginless` and `paddingless`). That test holds each one absent
+ * from the v1 stylesheet bestax depends on; the 0.9 half was read from its
+ * published package, which nothing here installs.
+ */
+export const REMOVED_IN_V1: readonly string[] = [
+  'heading',
+  'is-ancestor',
+  'is-child',
+  'is-marginless',
+  'is-paddingless',
+  'is-parent',
+  'is-variable',
+  'is-vertical',
+  'number',
+  'tile',
+];
+
 /** Bulma 0.9 classes v1 dropped, with what replaced them. */
 export const LEGACY_09: Readonly<Record<string, string>> = {
   tile: 'Bulma v1 removed tiles; rebuild the layout with `Grid` and `Cell` (see the Bulma 0.9 to 1 guide)',

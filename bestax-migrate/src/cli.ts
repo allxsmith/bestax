@@ -277,7 +277,7 @@ function migrateFiles(
     const collector = reporter.startFile();
     const extension = extensionOf(file);
     if (source.transformHtml && source.htmlExtensions?.includes(extension)) {
-      const changed = migrateHtmlPage(
+      const written = migrateHtmlPage(
         source.transformHtml,
         file,
         sourceText,
@@ -285,7 +285,12 @@ function migrateFiles(
         io,
         { ...options, project }
       );
-      reporter.finishFile(file, changed, collector.entries);
+      // The module is what the app will import from, as a JSX file's output
+      // is: one that imports bulma/… needs `bulma` declared.
+      if (written !== null && /['"](?:~?bulma\/)/.test(written)) {
+        bulmaReferenced = true;
+      }
+      reporter.finishFile(file, written !== null, collector.entries);
       continue;
     }
     let output: string | null;
@@ -331,7 +336,8 @@ function migrateFiles(
 
 /**
  * One HTML page: its module is written beside it (never over a file already
- * there; the source checks), and the page itself is left as it was.
+ * there; the source checks), and the page itself is left as it was. Returns
+ * the module, or null when there is none to write.
  */
 function migrateHtmlPage(
   transformHtml: HtmlTransform,
@@ -340,7 +346,7 @@ function migrateHtmlPage(
   collector: TodoCollector,
   io: CliIo,
   options: RunOptions & { project: object }
-): boolean {
+): string | null {
   let result: HtmlResult;
   try {
     result = transformHtml(file, sourceText, collector, {
@@ -349,9 +355,9 @@ function migrateHtmlPage(
     });
   } catch (error) {
     io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
-    return false;
+    return null;
   }
-  if (result.output === null) return false;
+  if (result.output === null) return null;
   if (options.print) io.log(result.output);
   if (options.dry) {
     io.log(chalk.yellow(`Would write ${result.outputPath} from ${file}.`));
@@ -359,7 +365,7 @@ function migrateHtmlPage(
     fs.writeFileSync(result.outputPath, result.output);
     io.log(chalk.green(`Wrote ${result.outputPath} from ${file}.`));
   }
-  return true;
+  return result.output;
 }
 
 /**
