@@ -403,6 +403,8 @@ function CitySearch() {
         const picked = cities.find(c => c.id === id) ?? null;
         setCity(picked);
         setQuery(picked?.name ?? '');
+        // A pick ends any search that's still out.
+        setLoading(false);
       }}
     >
       <Combobox.Input
