@@ -231,6 +231,7 @@ export function useComboboxEngine({
   // the highlight goes now. A highlighted option that has left takes the
   // highlight with it, or hands it to the first enabled one under
   // `keepFirst`, which also moves it there whenever the options change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose
   useClientLayoutEffect(() => {
     const opened = open && !wasOpenRef.current;
     wasOpenRef.current = open;
