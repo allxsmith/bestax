@@ -69,9 +69,11 @@ import {
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const SCSS = 'bulma-ui/src/scss';
+const SKILL = 'skills/bestax-optimize/SKILL.md';
 const REFERENCE = 'skills/bestax-optimize/references/modular-build.md';
 const INVENTORY = 'Authoritative bestax extras inventory';
 const GUIDE = 'docs/docs/guides/getting-started/modular.md';
+const SKILL_PAGE = 'docs/docs/skills/optimize.mdx';
 const BULMA_UI = join(REPO, 'bulma-ui');
 const LIBRARY = '@allxsmith/bestax-bulma';
 
@@ -88,7 +90,7 @@ const PAGES = [
     .map(name => `skills/bestax-optimize/${name.split(sep).join('/')}`)
     .filter(rel => rel.endsWith('.md')),
   GUIDE,
-  'docs/docs/skills/optimize.mdx',
+  SKILL_PAGE,
 ];
 
 /** The folders of `bulma-ui/src/scss` that have an `_index.scss`. */
@@ -262,8 +264,12 @@ describe('the optimize skill’s extras inventory', () => {
 });
 
 describe('the scss fences in the modular build pages', () => {
-  it('finds fences in the skill reference and the Modular guide', () => {
-    for (const page of [REFERENCE, GUIDE]) {
+  it('finds fences in each page that shows a modular build', () => {
+    // A fence this file stops finding (one nested deeper in a list, say)
+    // yields no case below rather than a failing one, so each page that
+    // shows one is named here. A page PAGES picks up later is not held to
+    // having one.
+    for (const page of [SKILL, REFERENCE, GUIDE, SKILL_PAGE]) {
       assert.ok(scssFences(page).length > 0, `no scss fence found in ${page}`);
     }
   });
