@@ -588,6 +588,7 @@ function example() {
             size="small"
             onSelect={name => {
               setAssignee(name);
+              setQuery('');
               setOpen(false);
             }}
           >
