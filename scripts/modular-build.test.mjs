@@ -26,19 +26,40 @@
  * Bulma module it extends needs an `as` when the two end in the same name.
  * The skill's worked example had none.
  *
- * Sass and Bulma are the ones bulma-ui declares, and `@allxsmith/bestax-bulma`
- * resolves through bulma-ui's `exports`, the way an app's bundler finds it, so
- * a fence naming a path the package does not export fails here as it would
- * there. Bulma's own deprecation warnings are silenced: a compile error is
- * what this is about, and bulma-ui's `scss-deprecations` test holds the
- * library's sources to the warnings.
+ * A fence compiles in a throwaway app with bulma-ui and the Bulma it declares
+ * linked into its `node_modules`, with the Sass bulma-ui declares. A package
+ * URL in it (`bulma/sass/base`, `@allxsmith/bestax-bulma/scss/...`) goes to
+ * Node's own resolver, asked from inside that app, and Sass then finds the
+ * partial or index file at the path Node answers with. So the library's
+ * `exports` are read the way an app reads them, by Node and not by a copy of
+ * its rules here, and a path they leave out fails as it does in an app. Sass's
+ * own package importer is no substitute, since it reads only `pkg:` URLs and
+ * the pages write none. Node resolves with its own conditions rather than the
+ * stylesheet ones (`sass`, `style`) a Sass loader asks for, so the two agree
+ * only while the library's `scss` exports name no condition but `default`,
+ * which a test below holds.
+ *
+ * Bulma's own deprecation warnings are silenced: a compile error is what this
+ * is about, and bulma-ui's `scss-deprecations` test holds the library's
+ * sources to the warnings.
  */
 import assert from 'node:assert/strict';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readdirSync,
+  readFileSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join, sep } from 'node:path';
+import { tmpdir } from 'node:os';
+import { basename, dirname, join, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { describe, it } from 'node:test';
+import { after, describe, it } from 'node:test';
 import {
   fenceSpans,
   sectionBody,
@@ -56,8 +77,7 @@ const LIBRARY = '@allxsmith/bestax-bulma';
 
 const uiRequire = createRequire(join(BULMA_UI, 'package.json'));
 const sass = uiRequire('sass');
-/** The folder Bulma is installed in, so `bulma/sass/...` loads from it. */
-const BULMA_PARENT = dirname(dirname(uiRequire.resolve('bulma/package.json')));
+const BULMA = dirname(uiRequire.resolve('bulma/package.json'));
 const { exports: EXPORTS } = JSON.parse(
   readFileSync(join(BULMA_UI, 'package.json'), 'utf8')
 );
@@ -116,45 +136,65 @@ function inventory() {
 }
 
 /**
- * The file an `exports` key sends a subpath of the library to: an exact key,
- * or else the `*` pattern with the longest prefix, as Node resolves them.
+ * `href` with the links in its folder followed. Node follows them for a file
+ * it finds and not for a path it only maps, so without this a file could load
+ * under two URLs, and Sass keys a module by its URL.
  */
-function exportTarget(subpath) {
-  const pick = value => (typeof value === 'string' ? value : value?.default);
-  if (subpath in EXPORTS) return pick(EXPORTS[subpath]);
-  const [key] = Object.keys(EXPORTS)
-    .filter(k => {
-      const [prefix, suffix] = k.split('*');
-      return (
-        suffix !== undefined &&
-        subpath.length >= prefix.length + suffix.length &&
-        subpath.startsWith(prefix) &&
-        subpath.endsWith(suffix)
-      );
-    })
-    .sort((a, b) => b.indexOf('*') - a.indexOf('*'));
-  if (key === undefined) return undefined;
-  const [prefix, suffix] = key.split('*');
-  const star = subpath.slice(prefix.length, subpath.length - suffix.length);
-  return pick(EXPORTS[key])?.replace('*', star);
+function realHref(href) {
+  const path = fileURLToPath(href);
+  const folder = dirname(path);
+  return existsSync(folder)
+    ? pathToFileURL(join(realpathSync(folder), basename(path)))
+    : new URL(href);
 }
 
-/** Loads `@allxsmith/bestax-bulma` and its subpaths from bulma-ui. */
-const libraryImporter = {
-  findFileUrl(url) {
-    if (url !== LIBRARY && !url.startsWith(`${LIBRARY}/`)) return null;
-    const target = exportTarget(`.${url.slice(LIBRARY.length)}`);
-    return target === undefined ? null : pathToFileURL(join(BULMA_UI, target));
-  },
-};
+/**
+ * A throwaway app with `links` (package name to folder) in its
+ * `node_modules`, and a `compile` for SCSS written in it. `import.meta.resolve`
+ * in the app's own module answers for a package URL; it gives the path a
+ * specifier maps to even when no file is there, which is what lets Sass then
+ * look for the partial. The caller removes `dir`.
+ */
+async function appWith(links) {
+  const dir = mkdtempSync(join(tmpdir(), 'bestax-modular-build-'));
+  for (const [name, target] of Object.entries(links)) {
+    const link = join(dir, 'node_modules', ...name.split('/'));
+    mkdirSync(dirname(link), { recursive: true });
+    symlinkSync(target, link, 'junction');
+  }
+  const resolver = join(dir, 'resolve.mjs');
+  writeFileSync(
+    resolver,
+    'export const resolve = specifier => import.meta.resolve(specifier);\n'
+  );
+  const { resolve } = await import(pathToFileURL(resolver).href);
+  const packages = {
+    findFileUrl(url) {
+      // A URL with a scheme, or a relative one, is not a package's.
+      if (/^[a-z][\w+.-]*:|^[./]/i.test(url)) return null;
+      return realHref(resolve(url));
+    },
+  };
+  const compile = code =>
+    sass.compileString(code, {
+      importers: [packages],
+      logger: sass.Logger.silent,
+    }).css;
+  return { dir, compile };
+}
 
-/** Compile SCSS the way an app that installed Bulma and the library would. */
-function compile(code) {
-  return sass.compileString(code, {
-    loadPaths: [BULMA_PARENT],
-    importers: [libraryImporter],
-    logger: sass.Logger.silent,
-  }).css;
+const app = await appWith({ [LIBRARY]: BULMA_UI, bulma: BULMA });
+after(() => rmSync(app.dir, { recursive: true, force: true }));
+const { compile } = app;
+
+/** Every condition an `exports` target names, at any depth. */
+function conditionsOf(target) {
+  if (target === null || typeof target === 'string') return [];
+  if (Array.isArray(target)) return target.flatMap(conditionsOf);
+  return Object.entries(target).flatMap(([condition, value]) => [
+    condition,
+    ...conditionsOf(value),
+  ]);
 }
 
 /** A page's `scss` fences, each with the line its opening fence is on. */
@@ -215,6 +255,48 @@ describe('the scss fences in the modular build pages', () => {
       /forced-colors/
     );
     assert.ok(compile(`@use '${LIBRARY}/scss';`).length > 0);
+  });
+
+  it('refuses a path the library does not export', () => {
+    assert.throws(
+      () => compile(`@use '${LIBRARY}/src/scss/components/menu';`),
+      /not defined by "exports"/
+    );
+  });
+
+  it('puts the match in place of every * in an exports target', async t => {
+    // Node's rule. A target can name the match more than once, which a
+    // hand-written copy of the rule in this file once missed.
+    const fixture = await appWith({});
+    t.after(() => rmSync(fixture.dir, { recursive: true, force: true }));
+    const pkg = join(fixture.dir, 'node_modules', '@fixture', 'stars');
+    mkdirSync(join(pkg, 'src', 'dark'), { recursive: true });
+    writeFileSync(
+      join(pkg, 'package.json'),
+      JSON.stringify({
+        name: '@fixture/stars',
+        exports: { './themes/*': './src/*/_*.scss' },
+      })
+    );
+    writeFileSync(join(pkg, 'src', 'dark', '_dark.scss'), '.dark { a: b; }');
+    assert.match(
+      fixture.compile(`@use '@fixture/stars/themes/dark';`),
+      /\.dark/
+    );
+  });
+
+  it('gives the library’s scss exports no condition but default', () => {
+    const conditions = Object.entries(EXPORTS)
+      .filter(([key]) => key === './scss' || key.startsWith('./scss/'))
+      .flatMap(([, target]) => conditionsOf(target));
+    assert.deepEqual(
+      conditions.filter(condition => condition !== 'default'),
+      [],
+      'Node, which resolves these here, and a Sass loader in an app take ' +
+        'different conditions, so a scss export that names a condition ' +
+        'other than default can land on a different file in an app than ' +
+        'it does in this test'
+    );
   });
 
   it('fails on a bestax partial that clashes with its Bulma module', () => {
