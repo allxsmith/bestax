@@ -150,8 +150,8 @@ original made for stock Bulma's turquoise sets it back on `:root`:
 
 - `--bulma-primary-h`, `-s` and `-l`, with `--bulma-primary-invert-l` (the bestax-migrate skill's
   `references/css-migration.md` says why the invert goes with them).
-- `--bulma-primary-on-scheme-l`, which bestax's build also fixes for its blue, so the trio alone
-  leaves the on-scheme shade too light to read. Text the original colors with
+- `--bulma-primary-on-scheme-l`, which Bulma's Sass build computes from the primary it is given,
+  bestax's blue, so changing the trio alone does not recompute it. Text the original colors with
   `has-text-primary` takes that shade with `colorShade="on-scheme"` beside `textColor="primary"`.
 
 Copy the values from stock Bulma v1's own `bulma.css` (the `bulma` package's `css/bulma.css`,
