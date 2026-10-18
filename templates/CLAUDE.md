@@ -71,6 +71,13 @@ fix.
    what `index.html` keeps of the upstream head (web fonts, the favicon, its meta tags) into the
    scaffold's, leaving out the Bulma and plugin `<link>` and `<script>` tags.
 
+   bestax's stylesheet builds Bulma with a blue primary, so an original made for stock Bulma's
+   turquoise needs its primary set back in `src/index.css`: the `--bulma-primary-h`, `-s` and
+   `-l` trio, and `--bulma-primary-invert-l` with it, because the invert lightness is fixed when
+   the stylesheet is built and the trio alone keeps white labels on the turquoise.
+   `templates/rent/src/index.css` is the worked example. The parity check (**Check parity**,
+   below) catches a primary left blue, so compare the primary-colored parts there.
+
 4. **Resolve every `TODO(bestax-migrate)`** with the skills (bestax-migrate,
    bestax-layout-scaffold, bestax-form, bestax-icons, bestax-theming) and the bestax MCP server
    (`lookup_bulma_classes`, `get_props`, `get_examples`).
