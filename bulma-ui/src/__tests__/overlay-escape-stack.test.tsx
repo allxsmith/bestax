@@ -6,6 +6,8 @@
  * container stay out of the stack and wait until no overlay is open. Modal
  * and a Sidebar with an overlay hold Tab by the same stack (#1114), so the
  * one on top holds it and the one under it stands aside until it closes.
+ * Only modal overlays count for Tab (#1191): a Sidebar without an overlay
+ * over a Modal takes Escape first but leaves the Modal holding Tab.
  */
 import { StrictMode, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -333,6 +335,123 @@ describe('Tab in a Dialog rendered inside a Sidebar', () => {
     expect(deleteAll).toHaveFocus();
     expect(fireEvent.keyDown(deleteAll, { key: 'Tab' })).toBe(false);
     expect(deleteAll).toHaveFocus();
+  });
+});
+
+describe('Tab with a Sidebar without an overlay opened over a modal one', () => {
+  // A sidebar without an overlay isn't modal: it takes its turn for Escape,
+  // but the modal overlay under it keeps holding Tab (#1191).
+  it('keeps Tab in a Modal under it, and Escape closes the Sidebar first', () => {
+    const closed: string[] = [];
+    const Page = () => {
+      const [sidebar, setSidebar] = useState(false);
+      const [modal, setModal] = useState(true);
+      return (
+        <>
+          <Modal
+            active={modal}
+            onClose={() => {
+              closed.push('modal');
+              setModal(false);
+            }}
+            aria-label="Edit item"
+          >
+            <Modal.Content>
+              <button type="button" onClick={() => setSidebar(true)}>
+                Tips
+              </button>
+              <button type="button">Save</button>
+            </Modal.Content>
+          </Modal>
+          <Sidebar
+            isOpen={sidebar}
+            overlay={false}
+            onClose={() => {
+              closed.push('sidebar');
+              setSidebar(false);
+            }}
+            aria-label="Tips"
+          >
+            <button type="button">Next tip</button>
+          </Sidebar>
+        </>
+      );
+    };
+    render(<Page />);
+    const tips = screen.getByRole('button', { name: 'Tips' });
+    const save = screen.getByRole('button', { name: 'Save' });
+    expect(tips).toHaveFocus();
+    click('Tips');
+    const nextTip = screen.getByRole('button', { name: 'Next tip' });
+    expect(nextTip).toHaveFocus();
+
+    // The Modal wraps from its last stop to its first, and a Tab from the
+    // sidebar, outside it, comes back in.
+    act(() => save.focus());
+    expect(fireEvent.keyDown(save, { key: 'Tab' })).toBe(false);
+    expect(tips).toHaveFocus();
+    act(() => nextTip.focus());
+    expect(fireEvent.keyDown(nextTip, { key: 'Tab', shiftKey: true })).toBe(
+      false
+    );
+    expect(save).toHaveFocus();
+
+    // Escape is still the sidebar's first, as the overlay on top.
+    pressEscape();
+    expect(closed).toEqual(['sidebar']);
+    pressEscape();
+    expect(closed).toEqual(['sidebar', 'modal']);
+  });
+
+  it('keeps Tab in a Sidebar with an overlay under it', () => {
+    const Page = ({ tips }: { tips: boolean }) => (
+      <>
+        <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+          <button type="button">Edit</button>
+          <button type="button">Reset</button>
+        </Sidebar>
+        <Sidebar
+          isOpen={tips}
+          overlay={false}
+          onClose={() => {}}
+          aria-label="Tips"
+        >
+          <button type="button">Next tip</button>
+        </Sidebar>
+      </>
+    );
+    const { rerender } = render(<Page tips={false} />);
+    rerender(<Page tips />);
+    const reset = screen.getByRole('button', { name: 'Reset' });
+    act(() => reset.focus());
+
+    expect(fireEvent.keyDown(reset, { key: 'Tab' })).toBe(false);
+    expect(screen.getByRole('button', { name: 'Edit' })).toHaveFocus();
+  });
+});
+
+describe('Tab with a full-page Loading over a Modal', () => {
+  // A full-page Loading is modal: it makes the page under it inert, Modal
+  // included, so the Modal leaves Tab alone while it's up.
+  it('leaves Tab alone in the Modal under it, and holds it again once it is gone', () => {
+    const Page = ({ saving }: { saving: boolean }) => (
+      <>
+        <Modal active aria-label="Edit item">
+          <Modal.Content>
+            <button type="button">Save</button>
+          </Modal.Content>
+        </Modal>
+        <Loading active={saving} isFullPage />
+      </>
+    );
+    const { rerender } = render(<Page saving={false} />);
+    rerender(<Page saving />);
+    const save = screen.getByRole('button', { name: 'Save' });
+
+    expect(fireEvent.keyDown(save, { key: 'Tab' })).toBe(true);
+
+    rerender(<Page saving={false} />);
+    expect(fireEvent.keyDown(save, { key: 'Tab' })).toBe(false);
   });
 });
 

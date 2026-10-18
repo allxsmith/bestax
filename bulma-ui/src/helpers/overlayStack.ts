@@ -1,13 +1,23 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import { useCallback, useEffect, useRef } from 'react';
 
+/** An open overlay's place in the stack. */
+interface OpenOverlay {
+  /**
+   * Whether it shuts off the page under it, as a Modal does, so it holds Tab
+   * rather than leaving it to an overlay under it. A Sidebar without an
+   * overlay doesn't.
+   */
+  modal: boolean;
+}
+
 /**
  * The open overlays that take part, in the order they opened. Only the last
- * one answers Escape, so one keypress closes one layer. It's touched in
- * effects and key handlers, never while rendering, so a server render leaves
- * it alone.
+ * one answers Escape, so one keypress closes one layer, and only the last
+ * modal one holds Tab. It's touched in effects and key handlers, never while
+ * rendering, so a server render leaves it alone.
  */
-const openOverlays: object[] = [];
+const openOverlays: OpenOverlay[] = [];
 
 /**
  * Holds this overlay's place in the stack of open overlays while `inStack`
@@ -17,14 +27,27 @@ const openOverlays: object[] = [];
  * Returns a check for whether nothing in the stack sits above this overlay,
  * to call when a key arrives. For an overlay in the stack, that's whether it
  * is the topmost one. For one that isn't, such as a Toast, it's whether no
- * overlay is open at all.
+ * overlay is open at all. Asked about `'modal'` overlays, it counts only the
+ * modal ones, which is the check for Tab: a modal overlay keeps holding Tab
+ * with one that isn't modal open over it, while that one takes Escape.
  *
  * @function useOverlayStack
  * @param inStack - Whether this overlay is open and takes part.
- * @returns A check for whether nothing in the stack is above this overlay.
+ * @param modal - Whether this overlay is modal, which it is unless it says
+ * otherwise: a Sidebar passes whether it has an overlay. It can change while
+ * the overlay is open, and its place stays where it is.
+ * @returns A check for whether nothing in the stack, or no modal overlay, is
+ * above this overlay.
  */
-export function useOverlayStack(inStack: boolean): () => boolean {
-  const tokenRef = useRef<object>({});
+export function useOverlayStack(
+  inStack: boolean,
+  modal = true
+): (among?: 'modal') => boolean {
+  const tokenRef = useRef<OpenOverlay>({ modal });
+
+  useEffect(() => {
+    tokenRef.current.modal = modal;
+  }, [modal]);
 
   useEffect(() => {
     if (!inStack) return undefined;
@@ -39,8 +62,11 @@ export function useOverlayStack(inStack: boolean): () => boolean {
     };
   }, [inStack]);
 
-  return useCallback(() => {
-    const top = openOverlays[openOverlays.length - 1];
-    return top === undefined || top === tokenRef.current;
+  return useCallback((among?: 'modal') => {
+    // Everything above this overlay, or the whole stack for one not in it.
+    const above = openOverlays.slice(
+      openOverlays.indexOf(tokenRef.current) + 1
+    );
+    return !above.some(overlay => among !== 'modal' || overlay.modal);
   }, []);
 }
