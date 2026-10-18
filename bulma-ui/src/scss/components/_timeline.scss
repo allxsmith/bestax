@@ -305,13 +305,15 @@ $timeline-time-size: 0.875em !default;
 }
 
 // Pending: Bulma's loader, a ring with two sides open, turning. The open
-// shape is the cue, so it still reads when it stands still. It turns on its
+// shape is the cue, so it still reads when it stands still. It opens the
+// physical top and right, as Bulma's loader does, since a turning ring reads
+// the same mirrored, and the forced-colors check on rings reads those sides. It turns on its
 // own keyframes, as the other extras do, since Bulma's `spinAround` lives in
 // its base, which `extras.css` and a modular build may leave out.
 .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
   animation: #{iv.$class-prefix}timeline-spin cv.getVar("timeline-pending-duration") infinite linear;
   background-color: cv.getVar("timeline-marker-background");
-  border-inline-end-color: transparent;
+  border-right-color: transparent;
   border-top-color: transparent;
   border-width: cv.getVar("timeline-line-width");
   height: cv.getVar("timeline-pending-size");
@@ -337,7 +339,7 @@ $timeline-time-size: 0.875em !default;
 // sides open.
 @media (forced-colors: active) {
   .#{iv.$class-prefix}timeline-item.#{iv.$class-prefix}is-pending > .#{iv.$class-prefix}timeline-marker {
-    border-inline-end-color: Canvas;
+    border-right-color: Canvas;
     border-top-color: Canvas;
   }
 }
