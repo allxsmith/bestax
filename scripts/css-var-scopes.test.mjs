@@ -262,6 +262,23 @@ describe('API pages say where each Bulma variable can be set', () => {
     assert.deepEqual(wrong, []);
   });
 
+  it("say both of Combobox's homes, each with its own rule", () => {
+    // `.combobox` ties with a lone className class, and the portaled
+    // `.combobox-menu.is-portal` takes nothing from it, so the lead names
+    // both and doesn't say a lone class loses, as the compound lead does.
+    const { rootClass, rows } = pages.find(p =>
+      p.page.endsWith('/form/combobox.md')
+    );
+    assert.ok(rows.every(r => r.scope === 'root-and-element'));
+    const out = renderCssVarRows({ name: 'Combobox', rootClass }, rows, 'x');
+    const [lead] = out.trim().split('\n');
+    assert.match(lead, /on its own `\.combobox` element/);
+    assert.match(lead, /again on `\.combobox-menu\.is-portal`/);
+    assert.match(lead, /takes nothing from it/);
+    assert.doesNotMatch(lead, /lone class via `className` loses/);
+    assert.doesNotMatch(out, /‖/);
+  });
+
   it("give Delete's mixin-declared variables their own scope", () => {
     const rows = pages.find(p => p.page.endsWith('/delete.md'))?.rows ?? [];
     assert.ok(rows.length > 0, 'Delete has no CSS variable rows');
@@ -416,6 +433,20 @@ describe('a CSS variable table', () => {
         }),
       /mixin \(no place in the order\)/
     );
+  });
+
+  it('names every element a both-homes row is declared on again', () => {
+    const out = renderCssVarRows(
+      { name: 'Thing', rootClass: 'thing' },
+      [
+        { ...row('root-and-element', 'a'), alsoOn: ['.thing-a.is-x'] },
+        { ...row('root-and-element', 'b'), alsoOn: ['.thing-b.is-y'] },
+      ],
+      'theme.md'
+    );
+    assert.match(out, /again on `\.thing-a\.is-x` and `\.thing-b\.is-y`/);
+    const bare = renderCssVarRows(info, [row('root-and-element', 'a')], 'x');
+    assert.match(bare, /again on a constituent element/);
   });
 
   it('tells a reader to set mixin-declared variables on the element', () => {
