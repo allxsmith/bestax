@@ -1,0 +1,773 @@
+/*
+ * The original's stylesheet, ported. Font Awesome comes from its npm package
+ * and the Inter font from Google Fonts in index.html.
+ *
+ * The page has a dark and a light scheme. index.html's script puts
+ * `data-theme` on <html> before the first paint, and Theme keeps it there
+ * from then on, always "light" or "dark", so the colors below follow the
+ * attribute and always agree with Bulma's scheme. The dark ones are also
+ * the default, as in the original.
+ */
+
+:root {
+  --bg: #0f0f13;
+  --text: #fff;
+  --text-muted: #ffffffd1;
+  --accent: #c9a84c;
+  --on-accent: #0f0f13;
+  --panel-bg: #ffffff0d;
+  --panel-border: #c9a84c40;
+}
+
+:root[data-theme='light'] {
+  --bg: #f0ede8;
+  --text: #111118;
+  --text-muted: #111118d1;
+  --accent: #7a5c10;
+  --on-accent: #fff;
+  --panel-bg: #fff8eba6;
+  --panel-border: #7a5c1047;
+}
+
+/* The browser's own scrollbars and controls follow the scheme too. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+html {
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease;
+}
+
+html *:not(img):not(svg):not(video),
+html *:not(img):not(svg):not(video)::before,
+html *:not(img):not(svg):not(video)::after {
+  transition:
+    background-color 0.35s ease,
+    color 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease,
+    opacity 0.35s ease;
+}
+
+html,
+body {
+  font-family: 'Inter', sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}
+
+.hero.is-dark {
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+}
+
+/* The drifting lights behind the page. */
+.bokeh {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/*
+ * The animations below set each light's opacity as it drifts. This is the
+ * opacity it holds still at under reduced motion, which turns them off; the
+ * original has none, so its lights show at full strength there.
+ */
+.bokeh span {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  opacity: 0.16;
+  will-change: transform, opacity;
+}
+
+.bokeh span:nth-child(1) {
+  width: 220px;
+  height: 220px;
+  top: 8%;
+  left: 3%;
+  animation: drift1 16s ease-in-out -2s infinite;
+}
+
+.bokeh span:nth-child(2) {
+  width: 140px;
+  height: 140px;
+  top: 58%;
+  left: 12%;
+  animation: drift2 12s ease-in-out -4s infinite;
+}
+
+.bokeh span:nth-child(3) {
+  width: 180px;
+  height: 180px;
+  top: 22%;
+  left: 52%;
+  animation: drift3 18s ease-in-out -7s infinite;
+}
+
+.bokeh span:nth-child(4) {
+  width: 100px;
+  height: 100px;
+  top: 68%;
+  left: 72%;
+  animation: drift4 13s ease-in-out -1s infinite;
+}
+
+.bokeh span:nth-child(5) {
+  width: 260px;
+  height: 260px;
+  top: 3%;
+  left: 78%;
+  animation: drift5 20s ease-in-out -9s infinite;
+}
+
+.bokeh span:nth-child(6) {
+  width: 90px;
+  height: 90px;
+  top: 42%;
+  left: 38%;
+  animation: drift6 11s ease-in-out -3s infinite;
+}
+
+.bokeh span:nth-child(7) {
+  width: 160px;
+  height: 160px;
+  top: 78%;
+  left: 48%;
+  animation: drift7 15s ease-in-out -6s infinite;
+}
+
+.bokeh span:nth-child(8) {
+  width: 120px;
+  height: 120px;
+  top: 12%;
+  left: 32%;
+  animation: drift8 17s ease-in-out -5s infinite;
+}
+
+.bokeh span:nth-child(9) {
+  width: 200px;
+  height: 200px;
+  top: 48%;
+  left: 82%;
+  animation: drift9 14s ease-in-out -8s infinite;
+}
+
+.bokeh span:nth-child(10) {
+  width: 80px;
+  height: 80px;
+  top: 32%;
+  left: 18%;
+  animation: drift10 10s ease-in-out -2s infinite;
+}
+
+.bokeh span:nth-child(11) {
+  width: 150px;
+  height: 150px;
+  top: 88%;
+  left: 28%;
+  animation: drift11 19s ease-in-out -4s infinite;
+}
+
+.bokeh span:nth-child(12) {
+  width: 110px;
+  height: 110px;
+  top: 3%;
+  left: 48%;
+  animation: drift12 13s ease-in-out -7s infinite;
+}
+
+@keyframes drift1 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.12;
+  }
+
+  33% {
+    transform: translate(40px, -80px);
+    opacity: 0.22;
+  }
+
+  66% {
+    transform: translate(-30px, -40px);
+    opacity: 0.08;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.12;
+  }
+}
+
+@keyframes drift2 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+
+  33% {
+    transform: translate(-50px, -60px);
+    opacity: 0.1;
+  }
+
+  66% {
+    transform: translate(30px, -100px);
+    opacity: 0.26;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.2;
+  }
+}
+
+@keyframes drift3 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.16;
+  }
+
+  33% {
+    transform: translate(60px, -50px);
+    opacity: 0.24;
+  }
+
+  66% {
+    transform: translate(-40px, -90px);
+    opacity: 0.1;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.16;
+  }
+}
+
+@keyframes drift4 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.22;
+  }
+
+  33% {
+    transform: translate(-35px, -70px);
+    opacity: 0.12;
+  }
+
+  66% {
+    transform: translate(45px, -30px);
+    opacity: 0.28;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.22;
+  }
+}
+
+@keyframes drift5 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.1;
+  }
+
+  33% {
+    transform: translate(30px, -60px);
+    opacity: 0.18;
+  }
+
+  66% {
+    transform: translate(-50px, -110px);
+    opacity: 0.06;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.1;
+  }
+}
+
+@keyframes drift6 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.25;
+  }
+
+  33% {
+    transform: translate(-40px, -50px);
+    opacity: 0.15;
+  }
+
+  66% {
+    transform: translate(55px, -80px);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.25;
+  }
+}
+
+@keyframes drift7 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.14;
+  }
+
+  33% {
+    transform: translate(50px, -90px);
+    opacity: 0.22;
+  }
+
+  66% {
+    transform: translate(-25px, -50px);
+    opacity: 0.08;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.14;
+  }
+}
+
+@keyframes drift8 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.18;
+  }
+
+  33% {
+    transform: translate(-45px, -70px);
+    opacity: 0.26;
+  }
+
+  66% {
+    transform: translate(35px, -120px);
+    opacity: 0.1;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.18;
+  }
+}
+
+@keyframes drift9 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.12;
+  }
+
+  33% {
+    transform: translate(55px, -40px);
+    opacity: 0.2;
+  }
+
+  66% {
+    transform: translate(-30px, -80px);
+    opacity: 0.06;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.12;
+  }
+}
+
+@keyframes drift10 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.28;
+  }
+
+  33% {
+    transform: translate(-35px, -60px);
+    opacity: 0.16;
+  }
+
+  66% {
+    transform: translate(40px, -30px);
+    opacity: 0.32;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.28;
+  }
+}
+
+@keyframes drift11 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.12;
+  }
+
+  33% {
+    transform: translate(45px, -100px);
+    opacity: 0.2;
+  }
+
+  66% {
+    transform: translate(-55px, -50px);
+    opacity: 0.06;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.12;
+  }
+}
+
+@keyframes drift12 {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0.22;
+  }
+
+  33% {
+    transform: translate(-50px, -80px);
+    opacity: 0.12;
+  }
+
+  66% {
+    transform: translate(30px, -60px);
+    opacity: 0.28;
+  }
+
+  100% {
+    transform: translate(0, 0);
+    opacity: 0.22;
+  }
+}
+
+.hero-body {
+  padding: 3rem 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.hero-foot {
+  position: relative;
+  z-index: 1;
+}
+
+.theme-toggle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  background: var(--panel-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--panel-border);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.15rem;
+  line-height: 1;
+  transition: opacity 0.2s ease;
+}
+
+.theme-toggle:hover {
+  opacity: 0.75;
+  text-decoration: none !important;
+}
+
+.theme-toggle .fa-moon {
+  color: #000;
+}
+
+.theme-toggle .fa-sun {
+  color: #ffa500;
+}
+
+/* The page's parts fade in one after another. */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-body main > * {
+  animation: fadeInUp 0.5s ease both;
+}
+
+.hero-body main > *:nth-child(1) {
+  animation-delay: 0.05s;
+}
+
+.hero-body main > *:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.hero-body main > *:nth-child(3) {
+  animation-delay: 0.19s;
+}
+
+.hero-body main > *:nth-child(4) {
+  animation-delay: 0.26s;
+}
+
+.hero-body main > *:nth-child(5) {
+  animation-delay: 0.33s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+h1.title {
+  color: var(--text) !important;
+  letter-spacing: -0.02em;
+  font-weight: 700;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+h2.subtitle {
+  color: var(--accent) !important;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.85rem !important;
+}
+
+p {
+  color: var(--text-muted);
+}
+
+p strong,
+a strong {
+  color: var(--accent);
+}
+
+a strong:hover {
+  color: color-mix(in srgb, var(--accent), #000 18%);
+}
+
+.is-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* The program: a frosted panel holding the talks table. */
+.panel {
+  background: var(--panel-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--panel-border);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow:
+    0 8px 40px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+}
+
+.panel-heading {
+  background: transparent;
+  color: var(--accent) !important;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  border-bottom: 1px solid var(--panel-border);
+  padding: 0.85em 1.25em;
+}
+
+.table {
+  margin-bottom: 0;
+  background: transparent;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.table thead th {
+  background: transparent;
+  color: var(--accent) !important;
+  font-weight: 600;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-bottom: 1px solid var(--panel-border);
+}
+
+.table th,
+.table td {
+  padding: 0.85em 1em;
+  text-align: center !important;
+}
+
+.table tbody tr {
+  transition: background-color 0.18s ease;
+}
+
+.table tbody tr:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--accent) 7%,
+    transparent
+  ) !important;
+}
+
+.table td {
+  border-color: color-mix(in srgb, var(--text) 8%, transparent);
+  color: var(--text-muted);
+  vertical-align: middle;
+}
+
+.table th:nth-child(1),
+.table td:nth-child(1) {
+  width: 8rem;
+}
+
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  width: 8rem;
+  text-align: center !important;
+}
+
+/*
+ * At phone width the two 8rem columns leave the talk's title a word to a
+ * line, so they narrow to what they hold.
+ */
+@media screen and (max-width: 768px) {
+  .table th:nth-child(1),
+  .table td:nth-child(1),
+  .table th:nth-child(3),
+  .table td:nth-child(3) {
+    width: 5.5rem;
+  }
+}
+
+tr:nth-child(odd) {
+  background-color: rgba(128, 128, 128, 0.03);
+}
+
+.is-icon {
+  text-align: center !important;
+}
+
+/*
+ * The talk boxes are bestax's Checkbox, which draws its own box where the
+ * original styled the browser's: these variables give it the original's
+ * border, corners and gold fill, which the "Select All" box's mixed state
+ * takes too.
+ */
+.table .styled-checkbox {
+  --bulma-checkbox-radius: 4px;
+  --bulma-checkbox-border-color: color-mix(
+    in srgb,
+    var(--text) 30%,
+    transparent
+  );
+  --bulma-checkbox-active-color: var(--accent);
+  --bulma-checkbox-indeterminate-color: var(--accent);
+  --bulma-checkbox-check-color: var(--on-accent);
+}
+
+/*
+ * Checkbox draws its tick as a black image, which its check color does not
+ * reach, so the tick is painted through it as a mask instead, in the
+ * original's color: white on the light scheme's dark gold.
+ */
+.table .styled-checkbox input:checked + .check::after {
+  background: var(--on-accent);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+button,
+.button {
+  touch-action: manipulation;
+}
+
+/* The confirm button: a gold fill in place of Bulma's outline. */
+.button.is-info.is-outlined {
+  background: linear-gradient(
+    135deg,
+    #c9a84c,
+    color-mix(in srgb, #c9a84c, #000 18%)
+  ) !important;
+  color: #0f0f13 !important;
+  border-color: transparent !important;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  box-shadow:
+    0 0 20px color-mix(in srgb, #c9a84c 30%, transparent),
+    0 4px 16px rgba(0, 0, 0, 0.4);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.button.is-info.is-outlined:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 32px color-mix(in srgb, #c9a84c 30%, transparent),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.button.is-info.is-outlined:active {
+  transform: translateY(0);
+}
+
+:root[data-theme='light'] .button.is-info.is-outlined {
+  background: linear-gradient(135deg, #f1cf62, #e2b93f) !important;
+  color: #3a2a06 !important;
+  box-shadow:
+    0 0 18px color-mix(in srgb, #f1cf62 34%, transparent),
+    0 6px 18px rgba(112, 82, 15, 0.2);
+}
+
+:root[data-theme='light'] .button.is-info.is-outlined:hover {
+  box-shadow:
+    0 0 28px color-mix(in srgb, #f1cf62 42%, transparent),
+    0 10px 24px rgba(112, 82, 15, 0.24);
+}
+
+.columns.is-vcentered {
+  margin-top: 5px;
+}
+
+.image.is-96x96 {
+  margin-bottom: 0.5rem;
+}
+
+.footer-text {
+  font-size: 0.95rem;
+}
+
+.footer-text a {
+  color: var(--text-muted);
+  transition: color 0.2s ease;
+}
+
+/* The original turns the link black, which vanishes on the dark scheme. */
+.footer-text a:hover {
+  color: var(--text) !important;
+}
+
+.footer-heart {
+  font-size: 10px;
+  color: #d7263d;
+}

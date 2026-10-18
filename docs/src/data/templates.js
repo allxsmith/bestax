@@ -95,6 +95,19 @@ export const TagList = Object.keys(Tags);
 /** The templates. */
 export const templates = [
   {
+    slug: 'event-participation',
+    title: 'Event Participation',
+    description:
+      'An event invitation on a dark and gold page, with a program of talks to pick from and a light and dark toggle.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-event-participation-template',
+    sourceSha: '836934566b51c595b76c0c7d7ef524edf593e46d',
+    demo: 'https://aldi.github.io/bulma-event-participation-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['event', 'form', 'darkmode'],
+  },
+  {
     slug: 'login',
     title: 'Login',
     description:
