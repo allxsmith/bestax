@@ -401,7 +401,13 @@ neither, so load what the app still needs once for the whole app, from its entry
     `--css bestax` a page with a primary color class (`is-primary`, `has-text-primary`) changes
     color, since `bestax.css` builds Bulma with bestax's own primary. To keep it, set the
     `--bulma-primary-*` variables as [css-migration.md](../css-migration.md) says, or use
-    `--css bulma`. A Bulma 1 page with no primary class gets the import and no TODO.
+    `--css bulma`. A Bulma 1 page with no primary class gets the import and no TODO. A TypeScript
+    build resolves the import through the bundler's CSS types (Vite's `vite/client`), as it does
+    every stylesheet import.
+  - No import is written in a Next.js app, whose Pages Router takes a global stylesheet only in
+    `pages/_app`, nor for a link with a media query (`media="print"`), since an import applies to
+    every medium. The TODO says where it goes instead: the root layout or `pages/_app`, or a
+    `<link>` with the same `media` in `index.html`.
   - One of Bulma's other builds (`bulma-no-dark-mode`, `bulma-prefixed`, 0.9's `bulma-rtl`) is
     reported in every mode, since the codemod imports only the standard one. bestax's own builds,
     Bulma with its extras, are under `@allxsmith/bestax-bulma/versions/`.
@@ -468,16 +474,20 @@ neither, so load what the app still needs once for the whole app, from its entry
   the entry. Google's Material Icons and Material Symbols are icon fonts, which `Icon` writes with
   `library="material-icons"` or `library="material-symbols"`; keep the link, or install the
   `material-icons` or `material-symbols` package.
-- **`html-asset:stylesheet`**: any other stylesheet. The page's own, beside it, is imported once
-  for the app in the order the page loads it, so its rules still win over Bulma's where they did
-  (a module beside the page imports `css/styles.css` as `./css/styles.css`), or its rules move into
-  the app's stylesheet. One that isn't beside the page never loaded there: drop it, or load the one
-  it meant.
+- **`html-asset:stylesheet`**: any other stylesheet. The page's own, beside it (in its folder or
+  one below), is imported once for the app in the order the page loads it, so its rules still win
+  over Bulma's where they did (a module beside the page imports `css/styles.css` as
+  `./css/styles.css`), or its rules move into the app's stylesheet. For one that isn't in the
+  page's folder, the TODO says only that: the page's `<base href>`, if it has one, may have loaded
+  it from somewhere else, so find the one it meant, or drop it.
 - **`html-asset:script`**: any other script. The component runs none: load a library the app still
   needs in `index.html` (or install it), and port what the page's own scripts did into the
   component. A script of the page's own, beside it, is read the way an inline script is, so one
   that toggles the burger, drives a carousel or switches the theme gets that `html-script:<pattern>`
-  TODO instead, quoting the file; one that isn't beside the page never ran.
+  TODO instead, quoting the file. One a `../` reaches outside the page's folder isn't read. A
+  `<script src>` of a type a browser loads nothing for (`text/template`, `application/json`) isn't
+  code: it gets the `html-script` TODO for data (`html-script:json-ld` for JSON-LD), naming its
+  file.
 
 ### Inline scripts: `html-script:<pattern>`
 
