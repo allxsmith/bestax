@@ -112,16 +112,16 @@ In `recommended` — each reports code that does not do what it says:
 
 Opt-in — these report code that works, and buy explicitness instead:
 
-| Rule                       | Fixable | What it asks for                                                                                            |
-| -------------------------- | ------- | ----------------------------------------------------------------------------------------------------------- |
-| `no-color-as-surface`      | yes     | `textColor` instead of the `color` alias, where `color` cannot mean a surface                               |
-| `no-bulma-component-class` | —       | The bestax component instead of a plain element styled with its Bulma class (`<button className="button">`) |
+| Rule                       | Fixable | What it asks for                                                                                                                                          |
+| -------------------------- | ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `no-color-as-surface`      | yes     | `textColor` instead of the `color` alias, where `color` cannot mean a surface                                                                             |
+| `no-bulma-component-class` | —       | The bestax component instead of its Bulma class, on a plain element (`<button className="button">`) or on another component (`<Columns className="box">`) |
 
 The rules that judge bestax elements resolve them through the import and
 through scope, so neither your own `<Box>` nor a local shadowing the imported
 one is linted against Bulma's rules, and each skips a value it cannot read as a
-literal. `no-bulma-component-class` reads plain HTML elements instead, and
-leaves components, custom elements and anything inside `<svg>` alone.
+literal. `no-bulma-component-class` reads plain HTML elements as well, and
+leaves custom elements and anything inside `<svg>` alone.
 
 A spread is handled by what it can change: `no-color-as-surface` and
 `no-inert-flex-props` go silent, since a spread may carry the prop that makes
@@ -195,21 +195,28 @@ code.
 ### no-bulma-component-class
 
 Off by default. It reports a plain element styled with a Bulma class that
-bestax has a component for, and names the component. Turn it on in an app that
-has moved onto bestax, with `bestax-migrate bulma-classes` or by hand, to keep
-raw Bulma markup from coming back.
+bestax has a component for, and names the component. It also reports that
+class in the `className` of a bestax component that renders another one, which
+is where `bestax-migrate bulma-classes` leaves the second of two such classes
+(`columns box`). Turn it on in an app that has moved onto bestax, with the
+codemod or by hand, to keep raw Bulma markup from coming back.
 
 ```jsx
 <button className="button is-primary" /> // ✗ bestax renders .button as Button
 <div className="dropdown" />             // ✗ bestax has Dropdown, converted by hand
+<Columns className="box" />              // ✗ bestax renders .box as Box
 <div className="has-text-centered mt-4" /> // ✓ helper classes are left alone
 <p className="help" />                   // ✓ bestax renders .help inside its form controls
+<Columns className="columns is-mobile" /> // ✓ its own classes
 ```
 
 It reads the classes a `className` spells out, including the strings in a
 ternary, a template, or a call to `clsx`, `classnames` or `tailwind-merge`
 (however the file imports or requires it), and reports one class per element:
-the one the codemod would decide by. A function your app defines, a `cn` in `lib/utils`
+the one the codemod would decide by, a family's first and then one whose
+component renders the element's tag. It reads `className` only on the components
+the codemod writes, whose own classes it knows, so `<Input className="box">` is
+left alone. A function your app defines, a `cn` in `lib/utils`
 included, is one it cannot see into, so it reads nothing there. It only reports. Whether an element converts
 depends on its tag, attributes and children, and `bestax-migrate bulma-classes`
 is the one place that judges that.

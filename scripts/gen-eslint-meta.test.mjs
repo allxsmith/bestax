@@ -391,6 +391,56 @@ describe('the Bulma component class table', () => {
     );
   });
 
+  it('gives each converted root its tags, and its advice when it has some', async () => {
+    const { entries } = await bulmaComponentClasses(
+      classMap({
+        image: {
+          status: 'mapped',
+          target: 'Image',
+          tag: 'div',
+          as: ['div', 'figure'],
+        },
+        button: {
+          status: 'mapped',
+          target: 'Button',
+          tag: 'button',
+          as: 'any',
+        },
+        container: {
+          status: 'mapped',
+          target: 'Container',
+          tag: 'div',
+          onAnother: 'center it',
+        },
+        dropdown: { status: 'todo', target: 'Dropdown', why: 'by hand' },
+      })
+    );
+    assert.deepEqual(Object.fromEntries(entries), {
+      dropdown: { component: 'Dropdown', converts: false },
+      image: { component: 'Image', converts: true, tags: ['div', 'figure'] },
+      button: { component: 'Button', converts: true, tags: 'any' },
+      container: {
+        component: 'Container',
+        converts: true,
+        tags: ['div'],
+        onAnother: 'center it',
+      },
+    });
+    const text = render({
+      deprecated: new Map(),
+      textAlias: new Set(),
+      classes: entries,
+    });
+    assert.match(
+      text,
+      /\["container", \{ component: "Container", converts: true, tags: \["div"\], onAnother: "center it" \}\],/
+    );
+    assert.match(
+      text,
+      /\["dropdown", \{ component: "Dropdown", converts: false \}\],/
+    );
+  });
+
   it('says where it failed when the table will not import', async () => {
     await assert.rejects(
       bulmaComponentClasses(async () => {
