@@ -685,6 +685,149 @@ describe('the stylesheets and scripts it loads', () => {
       expect.stringContaining('no `css/gone.css` in its folder'),
     ]);
   });
+
+  it("claims nothing about what a page under a <base href> loaded from a path that isn't beside it", () => {
+    const { entries } = convert(
+      page(
+        `<base href="/">\n${link('css/site.css')}\n<script src="js/site.js"></script>`
+      )
+    );
+    expect(entries.map(entry => entry.rule)).toEqual([
+      'html-head:base',
+      'html-asset:stylesheet',
+      'html-asset:script',
+    ]);
+    for (const { message } of entries.slice(1)) {
+      expect(message).toContain("isn't beside the page");
+      expect(message).not.toMatch(/never/);
+    }
+  });
+
+  it("reads a script of a type a browser loads no src for as the page's text, not its code", () => {
+    const dir = tempDir();
+    fs.writeFileSync(
+      path.join(dir, 'nav.html'),
+      '<a class="navbar-burger"></a>\n'
+    );
+    const { entries } = convert(
+      page(
+        '<script type="text/template" src="nav.html"></script>\n<script type="application/ld+json" src="org.json"></script>'
+      ),
+      {},
+      path.join(dir, 'home.html')
+    );
+    expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
+      '2:html-script',
+      '3:html-script:json-ld',
+    ]);
+    expect(entries[0].message).toContain('it is in `nav.html`');
+    expect(entries[1].message).toContain('the JSON is in `org.json`');
+  });
+
+  it("reads nothing a `../` takes out of the page's folder", () => {
+    const dir = tempDir();
+    fs.mkdirSync(path.join(dir, 'site'));
+    fs.writeFileSync(
+      path.join(dir, 'outside.js'),
+      "document.querySelector('.navbar-burger');\n"
+    );
+    fs.writeFileSync(path.join(dir, 'shared.css'), '');
+    const { entries } = convert(
+      page(
+        `${link('../shared.css')}\n<script src="../outside.js"></script>\n<script src="js/../../outside.js"></script>`
+      ),
+      {},
+      path.join(dir, 'site', 'home.html')
+    );
+    expect(entries.map(entry => entry.rule)).toEqual([
+      'html-asset:stylesheet',
+      'html-asset:script',
+      'html-asset:script',
+    ]);
+    expect(entries[0].message).toContain(
+      'load it once for the app, from its entry'
+    );
+    expect(entries[0].message).not.toContain('beside');
+    for (const { message } of entries.slice(1)) {
+      expect(message).toContain('load it in the app if the app still needs it');
+    }
+  });
+
+  it("reports a path it can't search without failing the page", () => {
+    const dir = tempDir();
+    const locked = path.join(dir, 'locked');
+    fs.mkdirSync(locked);
+    fs.writeFileSync(path.join(locked, 'a.css'), '');
+    fs.chmodSync(locked, 0o000);
+    let searchable = true;
+    try {
+      fs.statSync(path.join(locked, 'a.css'));
+    } catch {
+      searchable = false;
+    }
+    try {
+      const { entries, output } = convert(
+        page(link('locked/a.css')),
+        {},
+        path.join(dir, 'home.html')
+      );
+      expect(output).not.toBeNull();
+      expect(entries[0].rule).toBe('html-asset:stylesheet');
+      // Root searches any folder, so the folder is only locked without it.
+      expect(entries[0].message).toContain(
+        searchable ? 'is beside it' : 'load it once for the app, from its entry'
+      );
+    } finally {
+      fs.chmodSync(locked, 0o755);
+    }
+  });
+
+  it('imports no stylesheet in a Next.js app, and says where it goes', () => {
+    const dir = tempDir();
+    const { entries, output } = convert(
+      page(bulma1),
+      {
+        cssMode: 'bestax',
+        packageLanguages: [{ dir, typescript: true, nextjs: true }],
+      },
+      path.join(dir, 'home.html')
+    );
+    expect(imports(output)).toEqual([
+      'import { Box } from "@allxsmith/bestax-bulma";',
+    ]);
+    expect(entries).toEqual([
+      expect.objectContaining({
+        rule: 'html-asset:bulma',
+        message: expect.stringContaining('`pages/_app`'),
+      }),
+    ]);
+  });
+
+  it('imports no stylesheet for a link with a media query, which an import applies past', () => {
+    const print = convert(
+      page(
+        '<link rel="stylesheet" media="print" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">'
+      ),
+      { cssMode: 'bestax' }
+    );
+    expect(imports(print.output)).toHaveLength(1);
+    expect(print.entries).toEqual([
+      expect.objectContaining({
+        rule: 'html-asset:bulma',
+        message: expect.stringContaining('for `media="print"` only'),
+      }),
+    ]);
+    // Every medium is no query at all.
+    const all = convert(
+      page(
+        '<link rel="stylesheet" media="all" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">'
+      ),
+      { cssMode: 'bestax' }
+    );
+    expect(imports(all.output)[0]).toBe(
+      'import "@allxsmith/bestax-bulma/bestax.css";'
+    );
+  });
 });
 
 describe('the file-level gates, read from where the module goes', () => {

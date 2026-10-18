@@ -138,6 +138,8 @@ export interface BulmaFacts {
   css: CssMode;
   /** Whether the page's markup has a primary color class. */
   usesPrimary: boolean;
+  /** Whether the page's module goes into a Next.js app. */
+  nextjs?: boolean;
 }
 
 /**
@@ -146,10 +148,12 @@ export interface BulmaFacts {
  * the stylesheet in its place, so what is left is the move to Bulma 1 (for a
  * page made for an older one, or one whose URL doesn't say) and, under
  * `bestax`, its primary color: nothing at all for a Bulma 1 page with no
- * primary class, which then has no note.
+ * primary class, which then has no note. A Next.js app is the exception: its
+ * Pages Router takes a global stylesheet only in `pages/_app`, so there the
+ * module imports none, and the note says where it goes.
  */
 export function bulmaStylesheetMessage(facts: BulmaFacts): string | null {
-  const { quoted, version, css, usesPrimary } = facts;
+  const { quoted, version, css, usesPrimary, nextjs = false } = facts;
   const named = version === null ? 'Bulma' : `Bulma ${version}`;
   if (css === 'keep') {
     return `the page loads ${named} from \`${quoted}\`, and a component doesn't: load Bulma once for the app, from its entry (\`import 'bulma/css/bulma.min.css'\`, with \`bulma${version === null ? '' : `@${version}`}\` installed) or a \`<link>\` in its index.html`;
@@ -169,12 +173,35 @@ export function bulmaStylesheetMessage(facts: BulmaFacts): string | null {
       "bestax's bundle builds Bulma with bestax blue as its primary, so the page's primary colors (`is-primary` and its kind) turn from Bulma's turquoise to blue: to keep them, set the `--bulma-primary-*` variables, `--bulma-primary-invert-l` among them (the bestax-migrate skill's `references/css-migration.md` says which), or use `--css bulma`"
     );
   }
+  if (nextjs) {
+    const target =
+      css === 'bestax'
+        ? "`import '@allxsmith/bestax-bulma/bestax.css'`"
+        : "`import 'bulma/css/bulma.min.css'` (with `bulma` in package.json) and `import '@allxsmith/bestax-bulma/extras.css'`";
+    return [
+      `the page loads ${named} from \`${quoted}\`, and in a Next.js app a global stylesheet is imported once, from the root layout (App Router) or \`pages/_app\` (Pages Router, which takes one nowhere else), so the module imports none: write ${target} there`,
+      ...said,
+    ].join('; and ');
+  }
   if (said.length === 0) return null;
   const imported =
     css === 'bestax'
       ? "the module imports bestax's bundle in its place (`@allxsmith/bestax-bulma/bestax.css`), which is Bulma 1 with bestax's extras"
       : "the module imports Bulma's stylesheet in its place (`bulma/css/bulma.min.css`, with bestax's `extras.css`), and `--css bulma` moves the app to Bulma 1";
   return `the page loaded ${named} from \`${quoted}\`, and ${imported}: ${said.join('; and ')}`;
+}
+
+/**
+ * A link to Bulma's stylesheet for some media only (`print`), which an
+ * import, applying to every medium, can't stand for.
+ */
+export function bulmaMediaMessage(
+  quoted: string,
+  version: string | null,
+  media: string
+): string {
+  const named = version === null ? 'Bulma' : `Bulma ${version}`;
+  return `the page loads ${named} from \`${quoted}\` for \`media="${media}"\` only, and a component doesn't: load it once for the app from a \`<link>\` in its index.html with the same \`media\`; the codemod writes an import only for a link with no media query, since an import applies to every medium`;
 }
 
 /** One of Bulma's other builds, which no `--css` mode imports for the page. */
@@ -287,13 +314,14 @@ export function stylesheetMessage(
   target: string
 ): string {
   if (place === 'beside') {
-    const specifier = target.startsWith('../')
-      ? target
-      : `./${target.replace(/^(?:\.\/)+/, '')}`;
+    // Beside the page is inside its folder, so this never climbs out of it.
+    const specifier = `./${target.replace(/^(?:\.\/)+/, '')}`;
     return `the page's own stylesheet \`${quoted}\` is beside it, and a component doesn't load it: import it once for the app, in the order the page loads it, so its rules still win over Bulma's where they did (a module beside the page imports it as \`${specifier}\`), or move its rules into the app's stylesheet`;
   }
+  // Only what the page's folder shows: a `<base href>` may have sent the
+  // browser somewhere else, so nothing here says the page never loaded it.
   if (place === 'missing') {
-    return `the page loads the stylesheet \`${quoted}\`, which isn't beside the page (no \`${target}\` in its folder), so the page never had its rules: load the stylesheet it meant once for the app, or drop it`;
+    return `the page loads the stylesheet \`${quoted}\`, which isn't beside the page (no \`${target}\` in its folder): load the stylesheet it meant once for the app, or drop it`;
   }
   return `the page loads the stylesheet \`${quoted}\`, and a component doesn't: load it once for the app, from its entry or a \`<link>\` in its index.html`;
 }
@@ -307,7 +335,7 @@ export function scriptMessage(
     return `the page's own script \`${quoted}\` is beside it, and a component runs no page scripts: port what it does into the component (state, effects, event handlers); its code is still in \`${target}\``;
   }
   if (place === 'missing') {
-    return `the page loads the script \`${quoted}\`, which isn't beside the page (no \`${target}\` in its folder), so it never ran: nothing to port, unless the page meant another file`;
+    return `the page loads the script \`${quoted}\`, which isn't beside the page (no \`${target}\` in its folder): find the one it meant and port what it does into the component, or drop it`;
   }
   return `the page loads the script \`${quoted}\`, and a component runs no page scripts: load it in the app if the app still needs it, or replace what it does with React code`;
 }

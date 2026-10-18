@@ -6,7 +6,12 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { analyzeProject, runtimeOf, writesTypeScript } from '../project.js';
+import {
+  analyzeProject,
+  inNextApp,
+  runtimeOf,
+  writesTypeScript,
+} from '../project.js';
 
 const dirs: string[] = [];
 afterAll(() => {
@@ -143,5 +148,25 @@ describe('writesTypeScript', () => {
     ).toBe(false);
     expect(writesTypeScript(path.join(dir, 'a.html'), undefined)).toBe(false);
     expect(writesTypeScript(path.join(os.tmpdir(), 'x.html'), [])).toBe(false);
+  });
+});
+
+describe('inNextApp', () => {
+  it('says yes inside the innermost package that depends on next', () => {
+    const dir = pkg({
+      'package.json': JSON.stringify({
+        name: 'web',
+        dependencies: { next: '^15.0.0', react: '^19.0.0' },
+      }),
+      'legacy/package.json': JSON.stringify({ name: 'legacy' }),
+    });
+    const { packageLanguages } = analyzeProject([dir]);
+    expect(inNextApp(path.join(dir, 'pages', 'a.html'), packageLanguages)).toBe(
+      true
+    );
+    expect(
+      inNextApp(path.join(dir, 'legacy', 'a.html'), packageLanguages)
+    ).toBe(false);
+    expect(inNextApp(path.join(dir, 'a.html'), undefined)).toBe(false);
   });
 });

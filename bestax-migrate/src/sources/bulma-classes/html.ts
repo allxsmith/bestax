@@ -63,6 +63,7 @@ import { flaggableRoot } from './class-map.js';
 import { bulmaDisplay, bulmaOutOfFlow, HELPER_DISPLAY } from './display.js';
 import {
   bulmaBuildMessage,
+  bulmaMediaMessage,
   bulmaStylesheetMessage,
   classifyAsset,
   extensionMessage,
@@ -81,7 +82,7 @@ import {
   NAVBAR_FIXED_CLASSES,
   THEME_CLASSES,
 } from './html-rules.js';
-import { writesTypeScript } from './project.js';
+import { inNextApp, writesTypeScript } from './project.js';
 import transform from './transform.js';
 
 const HTML_NS = 'http://www.w3.org/1999/xhtml';
@@ -334,6 +335,8 @@ interface AssetLoad {
   url: string;
   loads: Loads;
   line: number | null;
+  /** A stylesheet's `media`, when it names one. */
+  media?: string;
 }
 
 /** What the page's notes are read against. */
@@ -341,8 +344,16 @@ interface PageContext {
   /** The page's folder. */
   dir: string;
   css: CssMode;
+  /** Whether its module goes into a Next.js app. */
+  nextjs: boolean;
   /** The `<link>` and `<script src>` tags, in the page's order. */
   loads: AssetLoad[];
+}
+
+/** A `media` an import can't stand for: anything but every medium. */
+function forSomeMedia(media: string | undefined): boolean {
+  const query = media?.trim().toLowerCase() ?? '';
+  return query !== '' && query !== 'all';
 }
 
 function scriptNotes(script: Element, page: PageContext): Note[] {
@@ -350,16 +361,19 @@ function scriptNotes(script: Element, page: PageContext): Note[] {
   const line = location?.startLine ?? null;
   const endLine = location?.endLine;
   const src = attributeOf(script, 'src');
-  if (src !== undefined) {
+  const type = (attributeOf(script, 'type') ?? '').trim().toLowerCase();
+  // A browser loads a `src` only for a script of a JavaScript type; one of
+  // any other type (a template, data) is the page's own text, not code.
+  if (src !== undefined && JAVASCRIPT_TYPES.test(type)) {
     page.loads.push({ url: src, loads: 'script', line });
     return [];
   }
-  const type = (attributeOf(script, 'type') ?? '').trim().toLowerCase();
+  const kept = src === undefined ? 'still in the page' : `in \`${quote(src)}\``;
   if (type === 'application/ld+json') {
     return [
       {
         rule: htmlRuleId('html-script', 'json-ld'),
-        message: `structured data for search engines (JSON-LD) was dropped with the page's scripts: render it where the app sets each page's head, as \`<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />\`; the JSON is still in the page`,
+        message: `structured data for search engines (JSON-LD) was dropped with the page's scripts: render it where the app sets each page's head, as \`<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />\`; the JSON is ${kept}`,
         line,
         endLine,
       },
@@ -369,7 +383,7 @@ function scriptNotes(script: Element, page: PageContext): Note[] {
     return [
       {
         rule: htmlRuleId('html-script'),
-        message: `a \`<script type="${quote(type, 40)}">\` was dropped with the page's scripts: if the page's code reads it (a template, data), move what it holds into the component; it is still in the page`,
+        message: `a \`<script type="${quote(type, 40)}">\` was dropped with the page's scripts: if the page's code reads it (a template, data), move what it holds into the component; it is ${kept}`,
         line,
         endLine,
       },
@@ -422,13 +436,24 @@ export const BULMA_IMPORT = 'import "bulma/css/bulma.min.css";';
 
 /**
  * Where a relative URL points, read beside the page: a file there, nothing
- * there, or (for any other URL) somewhere the page's folder can't say.
+ * there, or somewhere the page's folder can't say: any other URL, one a
+ * `../` takes out of the page's folder (which isn't beside it, and isn't
+ * the codemod's to open), and one whose path can't be read.
  */
 function placeOf(url: string, dir: string): { place: Place; target: string } {
-  if (!isRelative(url)) return { place: 'elsewhere', target: url };
+  const elsewhere = { place: 'elsewhere' as const, target: url };
+  if (!isRelative(url)) return elsewhere;
   const target = urlPath(url);
   const file = path.resolve(dir, target);
-  return fs.statSync(file, { throwIfNoEntry: false })?.isFile()
+  if (path.relative(dir, file).split(/[/\\]/)[0] === '..') return elsewhere;
+  let stat: fs.Stats | undefined;
+  try {
+    stat = fs.statSync(file, { throwIfNoEntry: false });
+  } catch {
+    // A folder on the way that can't be searched (`EACCES`), say.
+    return elsewhere;
+  }
+  return stat?.isFile()
     ? { place: 'beside', target }
     : { place: 'missing', target };
 }
@@ -479,7 +504,9 @@ function usesPrimary(root: ParentNode): boolean {
  * thing to replace. Under `--css bestax` or `--css bulma`, Bulma's standard
  * stylesheet becomes an import in the module (`importsBulma`), which the
  * transform then retargets as it would the same import in a JSX file, and is
- * noted only for what that leaves to do.
+ * noted only for what that leaves to do. Not for a link with a media query,
+ * which an import can't stand for, nor in a Next.js app, which takes a
+ * global stylesheet only in its root layout or `pages/_app`.
  */
 function assetNotes(
   page: PageContext,
@@ -492,6 +519,18 @@ function assetNotes(
   for (const load of page.loads) {
     const asset = classifyAsset(load.url, load.loads);
     const quoted = quote(load.url);
+    if (
+      asset.kind === 'bulma' &&
+      asset.build === null &&
+      forSomeMedia(load.media)
+    ) {
+      note(
+        htmlRuleId('html-asset', 'bulma'),
+        bulmaMediaMessage(quoted, asset.version, quote(load.media!, 40)),
+        load.line
+      );
+      continue;
+    }
     const key =
       asset.kind === 'bulma-extension'
         ? `extension:${asset.name.toLowerCase()}`
@@ -572,12 +611,13 @@ function assetNotes(
     let rule: string;
     if (asset.kind === 'bulma') {
       rule = htmlRuleId('html-asset', 'bulma');
-      importsBulma = page.css !== 'keep';
+      importsBulma = page.css !== 'keep' && !page.nextjs;
       message = bulmaStylesheetMessage({
         quoted: quoted[0],
         version: asset.version,
         css: page.css,
         usesPrimary: usesPrimary(root),
+        nextjs: page.nextjs,
       });
     } else {
       rule = htmlRuleId('html-asset', 'bulma-extension');
@@ -639,7 +679,12 @@ function headNotes(head: ChildNode[], notes: Note[], page: PageContext): void {
         const rel = (attributeOf(node, 'rel') ?? '').toLowerCase().split(/\s+/);
         const href = attributeOf(node, 'href');
         if (rel.includes('stylesheet') && href !== undefined) {
-          page.loads.push({ url: href, loads: 'stylesheet', line });
+          page.loads.push({
+            url: href,
+            loads: 'stylesheet',
+            line,
+            media: attributeOf(node, 'media'),
+          });
         } else {
           links.push(node);
         }
@@ -1235,6 +1280,7 @@ export function convertPage(
   const context: PageContext = {
     dir: path.dirname(file),
     css: options.cssMode ?? 'keep',
+    nextjs: inNextApp(file, options.packageLanguages),
     loads: [],
   };
   parseNotes(parsed, notes.document);

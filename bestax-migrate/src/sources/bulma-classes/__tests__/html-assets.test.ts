@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 import { FONT_AWESOME_PEER_RANGE } from '../../_shared/deps-common.js';
 import {
   bulmaBuildMessage,
+  bulmaMediaMessage,
   bulmaStylesheetMessage,
   classifyAsset,
   EXTENSION_COMPONENTS,
@@ -394,9 +395,6 @@ describe('web fonts, stylesheets and scripts', () => {
     expect(stylesheetMessage('./css/a.css', 'beside', './css/a.css')).toContain(
       'imports it as `./css/a.css`'
     );
-    expect(
-      stylesheetMessage('../css/a.css', 'beside', '../css/a.css')
-    ).toContain('imports it as `../css/a.css`');
     expect(stylesheetMessage('css/a.css', 'missing', 'css/a.css')).toContain(
       "isn't beside the page"
     );
@@ -407,10 +405,54 @@ describe('web fonts, stylesheets and scripts', () => {
       'its code is still in `js/a.js`'
     );
     expect(scriptMessage('js/a.js', 'missing', 'js/a.js')).toContain(
-      'so it never ran'
+      'find the one it meant'
     );
     expect(scriptMessage('https://x/a.js', 'elsewhere', '')).toContain(
       'replace what it does with React code'
+    );
+  });
+
+  it("says only what the page's folder shows about a file that isn't there", () => {
+    // A `<base href>` may have sent the browser somewhere else for it.
+    for (const message of [
+      stylesheetMessage('css/a.css', 'missing', 'css/a.css'),
+      scriptMessage('js/a.js', 'missing', 'js/a.js'),
+    ]) {
+      expect(message).toContain("isn't beside the page");
+      expect(message).not.toMatch(/never/);
+    }
+  });
+});
+
+describe('a Bulma link an import cannot stand for', () => {
+  const facts = {
+    quoted: 'https://cdn/bulma@1.0.4/css/bulma.min.css',
+    version: '1.0.4',
+    usesPrimary: false,
+    nextjs: true,
+  };
+
+  it("names a Next.js app's root layout and pages/_app, in every mode but keep", () => {
+    const bestax = bulmaStylesheetMessage({ ...facts, css: 'bestax' });
+    expect(bestax).toContain('`pages/_app`');
+    expect(bestax).toContain(
+      "write `import '@allxsmith/bestax-bulma/bestax.css'` there"
+    );
+    const older = bulmaStylesheetMessage({
+      ...facts,
+      css: 'bulma',
+      version: '0.9.4',
+    });
+    expect(older).toContain('(with `bulma` in package.json)');
+    expect(older).toContain(GUIDE_0_9_TO_1);
+    expect(bulmaStylesheetMessage({ ...facts, css: 'keep' })).not.toContain(
+      'Next.js'
+    );
+  });
+
+  it('names the media query a link was for', () => {
+    expect(bulmaMediaMessage('css/bulma.css', null, 'print')).toContain(
+      'for `media="print"` only'
     );
   });
 });

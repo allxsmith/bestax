@@ -117,8 +117,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, which render JSX through a runtime other than React, and which are TypeScript, for
-  the extension of the module an HTML page becomes, read once per run from every package.json
-  the run touches) and `transform.ts` (finds the elements, reads a
+  the extension of the module an HTML page becomes, and which depend on Next.js, where that
+  module imports no stylesheet, read once per run from every package.json the run touches) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
@@ -142,6 +142,9 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `<link>` becomes `import 'bulma/css/bulma.min.css'` in the module before the transform runs,
   so the shared stylesheet pass retargets it exactly as in a JSX file, and the CLI reads the
   module for `bulmaReferenced` as it reads a JSX file's output, so the manifest step agrees.
+  Not in a Next.js app (its Pages Router takes a global stylesheet only in `pages/_app`), and
+  not for a `<link media>`, which an import can't stand for. A local file is read only inside
+  the page's folder, and a `<script src>` only when its type is JavaScript.
   `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`, both tables and
   the out-of-flow list.
 - `src/sources/_shared/html/` turns HTML into JSX source, library-agnostic: `parse.ts` (parse5,
