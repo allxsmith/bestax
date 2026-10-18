@@ -435,15 +435,18 @@ neither, so load what the app still needs once for the whole app, from its entry
     reported in every mode, since the codemod imports only the standard one. bestax's own builds,
     Bulma with its extras, are under `@allxsmith/bestax-bulma/versions/`.
 - **`html-asset:font-awesome`**: Font Awesome, with the major its URL names. bestax's `Icon`
-  writes its classes (`fas fa-<name>`) and loads no font of its own, so keep loading it, from the
+  writes its classes (`fas fa-<name>`, or the style its `variant` names) and loads no font of its
+  own, so keep loading it, from the
   `<link>` in `index.html` or from npm: bestax-bulma's optional peer range for
   `@fortawesome/fontawesome-free` is `^6.7.2 || ^7.0.0`, and an older one fails `npm install`
   with `ERESOLVE`.
   - 6 and 7: keep it as it is, or install it and import its `css/all.min.css` from the entry.
   - 5: the CDN link keeps working, since 5 reads the classes `Icon` writes. From npm, take 6 or 7,
     which still read 5's names.
-  - 4: its classes are `fa fa-<name>`, and `Icon` writes `fas fa-<name>`, which 4 doesn't style.
-    Install 6 or 7 with `css/all.min.css`, then either import `css/v4-shims.min.css` beside it so
+  - 4: its classes are `fa fa-<name>`. The codemod keeps that `fa` on each icon it converts
+    (`variant="fa"`), which 4 styles, but an `Icon` given no `variant` writes `fas fa-<name>`,
+    which 4 doesn't, so for the icons written from here on, install 6 or 7 with
+    `css/all.min.css`, then either import `css/v4-shims.min.css` beside it so
     the page's 4 names keep working, or move them to the current names (`fa-envelope-o` is
     `envelope` with `variant="regular"`).
   - A kit (`kit.fontawesome.com`): keep loading it from `index.html`, or install Font Awesome from
