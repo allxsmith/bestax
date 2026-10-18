@@ -22,6 +22,10 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   it by following that source's planner class by class, and
   `src/__tests__/bulma-classes-agree.test.ts` imports the planner itself to hold
   the two together, so a change to either side of that table shows up here.
+  Beside the table it carries every class in Bulma v1's compiled stylesheet,
+  read from `node_modules/bulma`, so a lookup can tell a v1 class with no prop
+  from a 0.9 one v1 removed (`REMOVED_IN_V1` in the class map) and from one
+  that was never Bulma's.
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is

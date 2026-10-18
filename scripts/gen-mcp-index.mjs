@@ -19,7 +19,8 @@
  *   bestax-mcp/data/skills.json           skill manifest (bodies are synced at
  *                                         build time, see bestax-mcp/scripts)
  *   bestax-mcp/data/bulma-classes.json    the bestax-migrate bulma-classes
- *                                         table, for lookup_bulma_classes
+ *                                         table, for lookup_bulma_classes, with
+ *                                         Bulma v1's own class names
  *
  * Split three ways on purpose: a stdio server pays the parse cost on every
  * client launch, so startup reads only the catalog and pulls a component file
@@ -813,11 +814,57 @@ export async function bulmaClassTable() {
     wrappers: map.WRAPPERS,
     helpers: Object.fromEntries(map.HELPER_TOKENS),
     legacy: map.LEGACY_09,
+    removed: [...map.REMOVED_IN_V1].sort(byCodePoint),
     passthrough: map.PASSTHROUGH.map(group => ({
       why: group.why,
       match: group.match.source,
     })),
+    // What tells a v1 class with no prop from one that was never Bulma's: a
+    // passthrough pattern reaches past the stylesheet (`is-\d+x\d+` takes a
+    // page's own `is-256x256` for an `.image` size), and a class nothing in
+    // the table names fell to one note for both (#1174).
+    vocabulary: [
+      ...stylesheetClasses(
+        await readFile(bulmaSassPath('css/bulma.css'), 'utf8')
+      ),
+    ].sort(byCodePoint),
   };
+}
+
+/**
+ * The class names in a compiled stylesheet's selectors, read the way
+ * bestax-migrate's `e2e/bulma-classes-vocabulary.test.ts` reads Bulma's: only
+ * selectors, with attribute selectors and strings out, and an escaped
+ * character (`.is-gap-0\.5`) spelled plainly. A compiled stylesheet nests
+ * nothing but rules inside at-rules, so a walk over the braces finds them.
+ */
+export function stylesheetClasses(css) {
+  const classes = new Set();
+  const open = [];
+  let text = '';
+  const selector = prelude => {
+    if (prelude.startsWith('@')) return;
+    const bare = prelude
+      .replace(/\[[^\]]*\]/g, '')
+      .replace(/"[^"]*"|'[^']*'/g, '');
+    for (const m of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
+      classes.add(m[1].replace(/\\(.)/g, '$1'));
+    }
+  };
+  for (const char of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
+    if (char === '{') {
+      open.push(text.trim());
+      text = '';
+    } else if (char === '}') {
+      selector(open.pop() ?? '');
+      text = '';
+    } else if (char === ';' && open.length === 0) {
+      text = '';
+    } else {
+      text += char;
+    }
+  }
+  return classes;
 }
 
 export async function build() {

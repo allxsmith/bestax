@@ -1847,6 +1847,51 @@ describe('every component or part name an answer hands out', () => {
   });
 });
 
+// The three kinds of class no Bulma v1 rule matches each need their own advice, and
+// they used to share "not a Bulma class bestax has a prop for" (#1174).
+describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
+  const lookup = async (classes: string) =>
+    text(await call('lookup_bulma_classes', { classes }));
+  const REMOVED = 'a Bulma 0.9 class that v1 removed';
+  const NOT_BULMA = "not a Bulma class: Bulma's stylesheet has no rule for it";
+
+  it('says a Bulma 0.9 class v1 removed was removed', async () => {
+    expect(await lookup('section is-paddingless')).toContain(
+      `| \`is-paddingless\` | stays in \`className\` | ${REMOVED}`
+    );
+    // Beside a family converted by hand too, rather than "converted with it".
+    expect(await lookup('message is-marginless')).toContain(
+      `| \`is-marginless\` | stays in \`className\` | ${REMOVED}`
+    );
+  });
+
+  it("says a class that was never Bulma's, or is the page's own, is neither", async () => {
+    for (const [classes, token] of [
+      ['has-text-green', 'has-text-green'],
+      // Bulma's `.image` sizes stop at 128x128, so this one is no modifier of it.
+      ['image is-256x256', 'is-256x256'],
+    ]) {
+      const out = await lookup(classes);
+      expect(out).toContain(
+        `| \`${token}\` | stays in \`className\` | ${NOT_BULMA}`
+      );
+      expect(out).toContain("If the project's own CSS");
+      expect(out).not.toContain('an `.image` modifier');
+    }
+  });
+
+  it('still names the family of a v1 class away from its root', async () => {
+    expect(await lookup('is-128x128')).toContain('an `.image` modifier');
+    expect(await lookup('is-primary')).toContain(
+      'a Bulma modifier, which converts only beside the class it modifies: ' +
+        '`.button`, `.hero`, `.navbar` or another'
+    );
+    expect(await lookup('is-vcentered')).toContain(
+      'a Bulma modifier, which converts only beside the class it modifies: `.columns`'
+    );
+  });
+});
+
 // A client that starts the server outside the project used to get answers checked
 // against nothing, and no word of it (#935).
 describe('with no installed library to check against', () => {

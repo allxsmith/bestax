@@ -31,6 +31,7 @@ import {
   readSkills,
   reportFailure,
   standaloneTables,
+  stylesheetClasses,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
@@ -979,6 +980,55 @@ test('a part that takes no props at all says so, apart from one with an inline D
   assert.equal(part('Dropdown', 'Dropdown.Divider').noProps, true);
   assert.equal(part('ContextMenu', 'ContextMenu.Divider').noProps, true);
   assert.equal(part('Navbar', 'Navbar.Divider').noProps, undefined);
+});
+
+test("the class table carries Bulma v1's classes and the 0.9 ones v1 removed (#1174)", () => {
+  const { vocabulary, removed } = bulmaClasses;
+  const v1 = new Set(vocabulary);
+  for (const token of [
+    'button',
+    'has-text-centered',
+    'is-128x128',
+    'marginless',
+  ]) {
+    assert.ok(v1.has(token), `${token} is missing`);
+  }
+  for (const token of ['is-marginless', 'is-256x256', 'has-text-green']) {
+    assert.ok(!v1.has(token), `${token} reads as a v1 class`);
+  }
+  assert.ok(removed.includes('is-paddingless') && removed.includes('tile'));
+  assert.deepEqual(
+    removed.filter(token => v1.has(token)),
+    []
+  );
+  for (const list of [vocabulary, removed]) {
+    assert.deepEqual(
+      [...list].sort((a, b) => (a < b ? -1 : 1)),
+      list
+    );
+  }
+});
+
+test('stylesheetClasses reads the classes in selectors, and only there', () => {
+  const css = [
+    '@charset "UTF-8";',
+    '/* .commented { } */',
+    '.a, .b > .c:not(.d) { background: url("x.svg"); }',
+    '[data-x=".e"] .f { }',
+    '.is-gap-0\\.5 { gap: 0.5rem; }',
+    '@media screen and (min-width: 769px) { .g.h { color: red; } }',
+    '@font-face { font-family: "x"; }',
+  ].join('\n');
+  assert.deepEqual([...stylesheetClasses(css)].sort(), [
+    'a',
+    'b',
+    'c',
+    'd',
+    'f',
+    'g',
+    'h',
+    'is-gap-0.5',
+  ]);
 });
 
 test("the bulma-classes table is bestax-migrate's own, whole", () => {
