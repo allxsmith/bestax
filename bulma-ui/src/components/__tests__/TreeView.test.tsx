@@ -368,6 +368,17 @@ describe('TreeView', () => {
       expect(item('src')).toHaveAttribute('aria-expanded', 'true');
       expect(container.querySelector('[aria-selected]')).toBeNull();
     });
+
+    it.each(['toString', 'constructor', 'hasOwnProperty'])(
+      'treats %s, a name every object has, as a mode it doesn’t know',
+      mode => {
+        render(<Files selectionMode={mode as TreeViewSelectionMode} />);
+        press(item('src'), 'Enter');
+        expect(item('src')).toHaveAttribute('aria-expanded', 'true');
+        fireEvent.click(row('src'));
+        expect(item('src')).toHaveAttribute('aria-expanded', 'false');
+      }
+    );
   });
 
   describe('selectionMode="single"', () => {

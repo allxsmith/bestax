@@ -257,7 +257,11 @@ export interface TreeViewEngine {
  * @returns The state and handlers the root and its items wire up.
  */
 export function useTreeView(options: TreeViewOptions): TreeViewEngine {
-  const mode = MODES[options.mode] ? options.mode : 'none';
+  // An own key only, so a name every object inherits, like `toString`, is a
+  // mode the tree doesn't know too.
+  const mode = Object.prototype.hasOwnProperty.call(MODES, options.mode)
+    ? options.mode
+    : 'none';
   const actions = MODES[mode];
 
   const [expanded, setExpanded] = useControlled(
