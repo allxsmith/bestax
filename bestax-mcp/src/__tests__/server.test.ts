@@ -1931,13 +1931,25 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
     "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
 
   it('says a Bulma 0.9 class v1 removed was removed', async () => {
-    expect(await lookup('section is-paddingless')).toContain(
-      `| \`is-paddingless\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('columns is-variable is-2')).toContain(
+      `| \`is-variable\` | stays in \`className\` | ${REMOVED}`
     );
     // Beside a family converted by hand too, rather than "converted with it".
-    expect(await lookup('message is-marginless')).toContain(
-      `| \`is-marginless\` | stays in \`className\` | ${REMOVED}`
+    expect(await lookup('message heading')).toContain(
+      `| \`heading\` | stays in \`className\` | ${REMOVED}`
     );
+  });
+
+  it('converts a removed helper as the v1 one, and says what replaced it where it stays', async () => {
+    expect(await lookup('section is-paddingless')).toContain(
+      '| `is-paddingless` | `p="0"` | Bulma 1 removed `is-paddingless`, so this renders its v1 class, `p-0`, in its place |'
+    );
+    // Beside a family, and beside a class that already wrote the prop.
+    for (const classes of ['message is-marginless', 'box m-2 is-marginless']) {
+      expect(await lookup(classes)).toContain(
+        '| `is-marginless` | stays in `className` | Bulma v1 removed `is-marginless`'
+      );
+    }
   });
 
   it('says a class Bulma 1 has no rule for is none of its, and claims nothing of 0.9', async () => {

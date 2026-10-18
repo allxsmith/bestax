@@ -54,11 +54,30 @@ describe('the note on a class nothing converts', () => {
   it('says a removed class was removed, or what replaced it', () => {
     expect(table.removed.length).toBeGreaterThan(0);
     for (const token of table.removed) {
+      if (Object.hasOwn(table.replaced, token)) continue;
       expect(noteOf(token)).toEqual(
         Object.hasOwn(table.legacy, token)
           ? table.legacy[token]
           : expect.stringContaining(REMOVED)
       );
+    }
+  });
+
+  it('converts a removed helper as the v1 one that replaced it, and says so where it stays', () => {
+    const replaced = Object.entries(table.replaced);
+    expect(replaced.length).toBeGreaterThan(0);
+    for (const [token, v1] of replaced) {
+      expect(table.removed).toContain(token);
+      // On a component, the prop of the v1 helper.
+      const [{ verdict }] = lookupClasses(table, token, 'p').rows;
+      expect(verdict).toEqual({
+        kind: 'prop',
+        writes: [table.helpers[v1].write],
+        condition: expect.stringContaining(`its v1 class, \`${v1}\``),
+      });
+      // On a tag bestax has no component for, what to write instead.
+      const [{ verdict: stays }] = lookupClasses(table, token, 'div').rows;
+      expect(stays).toEqual({ kind: 'class', why: table.legacy[token] });
     }
   });
 });

@@ -289,6 +289,8 @@ const others = [
   'box',
   'column',
   'is-disabled',
+  'marginless',
+  'is-64x64',
   'has-text-primary-dark',
   'is-12-touch',
   'toString',
