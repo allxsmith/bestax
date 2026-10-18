@@ -221,7 +221,7 @@
       "import": "import { Button } from '@allxsmith/bestax-bulma';",
       "compound": false,
       "propCount": 19,
-      "exampleCount": 25
+      "exampleCount": 26
     },
     {
       "name": "Buttons",
@@ -518,7 +518,7 @@
       "import": "import { Field } from '@allxsmith/bestax-bulma';",
       "compound": true,
       "propCount": 41,
-      "exampleCount": 20
+      "exampleCount": 23
     },
     {
       "name": "Figure",
