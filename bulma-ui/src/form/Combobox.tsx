@@ -747,7 +747,15 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       ) : (
         <div>
           {comboboxElement}
-          {below}
+          {/* Part of the Combobox, as the menu is: a press here keeps focus
+              in the field and doesn't count as outside, so the list and the
+              search stay put. */}
+          <div
+            onPointerDownCapture={engine.markInside}
+            onMouseDown={engine.keepFocus}
+          >
+            {below}
+          </div>
         </div>
       );
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;

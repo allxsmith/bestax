@@ -6,6 +6,7 @@
  */
 import React, { createRef, useState } from 'react';
 import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
 import { Combobox, type ComboboxItemData } from '../Combobox';
@@ -448,7 +449,7 @@ describe('Combobox with data', () => {
       expect(option('Tea')).toHaveAttribute('aria-selected', 'false');
 
       const tags = container.querySelector(
-        '.field .combobox + .tags'
+        '.field .combobox + div > .tags'
       ) as HTMLElement;
       expect(tags).toHaveClass('mt-2');
       expect(
@@ -477,6 +478,28 @@ describe('Combobox with data', () => {
       expect(onChange).toHaveBeenCalledWith(['milk']);
       expect(screen.queryByRole('button', { name: 'Remove Tea' })).toBeNull();
       expect(field()).toHaveFocus();
+    });
+
+    it('keeps the list open and the search typed when a tag is taken off with a press', async () => {
+      // user-event moves focus on a press, as a browser does, unless the
+      // press is cancelled.
+      const user = userEvent.setup();
+      render(
+        <Combobox
+          label="Drinks"
+          data={DRINKS}
+          multiple
+          defaultValue={['tea']}
+        />
+      );
+      await user.click(field());
+      await user.keyboard('te');
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'Remove Tea' }));
+      expect(screen.queryByRole('button', { name: 'Remove Tea' })).toBeNull();
+      expect(field()).toHaveFocus();
+      expect(field()).toHaveValue('te');
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
 
     it('shows no tags while nothing is picked', () => {
@@ -939,7 +962,7 @@ describe('Combobox with data', () => {
         ':scope > div:not(.combobox)'
       ) as HTMLElement;
       expect(wrapper.children[0]).toHaveClass('combobox');
-      expect(wrapper.children[1]).toHaveClass('tags');
+      expect(wrapper.children[1].firstElementChild).toHaveClass('tags');
       expect(wrapper.nextElementSibling).toHaveClass('help');
     });
 
