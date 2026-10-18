@@ -23,7 +23,7 @@ const numeric: PropAction = { numberToString: true };
 
 /**
  * `as` is universal in rbx — `forwardRefAs` puts it on every component — but
- * bestax declares it on only ~16 components, several of them constrained to a
+ * bestax declares it on only some components, several of them constrained to a
  * narrow literal union (`Footer` is `'footer' | 'div'`). So the default is a
  * TODO, and the components that really do accept `as` opt in with `AS_OK` in
  * their own prop map, which runs first and wins.
@@ -42,7 +42,7 @@ const AS_TODO: PropAction = {
  * `'footer' | 'div'`, `Control` is `'div'`), so an `as={SomeComponent}` still
  * surfaces — as a type error the user can see, rather than a silent rewrite.
  */
-const AS_OK: PropAction = {};
+export const AS_OK: PropAction = {};
 
 /**
  * Helper props rbx mixes into every component via `HelpersProps`. Applied
@@ -199,6 +199,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Container',
     props: {
+      as: AS_OK,
       fluid: {},
       // bestax's ContainerBreakpoint is 'tablet' | 'desktop' | 'widescreen';
       // rbx accepts all six, so the other three are type errors if passed on.
@@ -751,10 +752,14 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Panel: {
     status: 'mapped',
     target: 'Panel',
-    props: { color: {} },
+    props: { as: AS_OK, color: {} },
     subs: {
       Heading: { status: 'mapped', target: 'Panel.Heading' },
-      Block: { status: 'mapped', target: 'Panel.Block', props: { active: {} } },
+      Block: {
+        status: 'mapped',
+        target: 'Panel.Block',
+        props: { active: {}, as: AS_OK },
+      },
       Icon: { status: 'partial', target: 'Panel.Icon', special: 'icon' },
       Tab: {
         status: 'mapped',
@@ -843,6 +848,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Hero',
     props: {
+      as: AS_OK,
       color: {},
       // rbx's five sizes are bestax's five, `fullheight-with-navbar`
       // included, and both render the one `is-<size>` class.
@@ -853,8 +859,8 @@ export const MAPPING: Record<string, ComponentMapping> = {
     },
     subs: {
       Body: { status: 'mapped', target: 'Hero.Body' },
-      Foot: { status: 'mapped', target: 'Hero.Foot' },
-      Head: { status: 'mapped', target: 'Hero.Head' },
+      Foot: { status: 'mapped', target: 'Hero.Foot', props: { as: AS_OK } },
+      Head: { status: 'mapped', target: 'Hero.Head', props: { as: AS_OK } },
     },
   },
   Section: { status: 'mapped', target: 'Section', props: { size: {} } },

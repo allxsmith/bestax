@@ -209,6 +209,95 @@ describe('Hero', () => {
   });
 });
 
+describe('Hero as', () => {
+  it('renders a <section> by default, and its parts <div>s', () => {
+    const { container } = render(
+      <Hero>
+        <Hero.Head>Head</Hero.Head>
+        <Hero.Body>Body</Hero.Body>
+        <Hero.Foot>Foot</Hero.Foot>
+      </Hero>
+    );
+    expect(container.querySelector('.hero')?.tagName).toBe('SECTION');
+    expect(container.querySelector('.hero-head')?.tagName).toBe('DIV');
+    expect(container.querySelector('.hero-foot')?.tagName).toBe('DIV');
+  });
+
+  it.each([
+    'section',
+    'div',
+    'main',
+    'header',
+    'footer',
+    'article',
+    'aside',
+  ] as const)('renders the hero as a <%s>', tag => {
+    const { container } = render(
+      <Hero
+        as={tag}
+        color="primary"
+        size="small"
+        bgColor="scheme-main"
+        m="2"
+        style={{ minHeight: '1px' }}
+        aria-label="Welcome"
+      >
+        Content
+      </Hero>
+    );
+    const hero = container.firstElementChild as HTMLElement;
+    expect(hero.tagName).toBe(tag.toUpperCase());
+    expect(hero).toHaveClass('hero', 'is-primary', 'is-small', 'm-2');
+    expect(hero).toHaveAttribute('aria-label', 'Welcome');
+    expect(hero.style.backgroundColor).toBe('var(--bulma-scheme-main)');
+    expect(hero.style.minHeight).toBe('1px');
+    expect(hero).not.toHaveAttribute('as');
+  });
+
+  it.each(['div', 'header', 'nav'] as const)(
+    'renders Hero.Head as a <%s>',
+    tag => {
+      const { getByTestId } = render(
+        <Hero.Head as={tag} textColor="white" data-testid="head">
+          Head
+        </Hero.Head>
+      );
+      const head = getByTestId('head');
+      expect(head.tagName).toBe(tag.toUpperCase());
+      expect(head).toHaveClass('hero-head', 'has-text-white');
+      expect(head).not.toHaveAttribute('as');
+    }
+  );
+
+  it.each(['div', 'footer', 'nav'] as const)(
+    'renders Hero.Foot as a <%s>',
+    tag => {
+      const { getByTestId } = render(
+        <Hero.Foot as={tag} bgColor="dark" data-testid="foot">
+          Foot
+        </Hero.Foot>
+      );
+      const foot = getByTestId('foot');
+      expect(foot.tagName).toBe(tag.toUpperCase());
+      expect(foot).toHaveClass('hero-foot', 'has-background-dark');
+      expect(foot).not.toHaveAttribute('as');
+    }
+  );
+
+  it('keeps the prefixed classes on another tag', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix="bestax-">
+        <Hero as="main" color="info">
+          <Hero.Foot as="footer">Foot</Hero.Foot>
+        </Hero>
+      </ConfigProvider>
+    );
+    const hero = container.querySelector('main');
+    expect(hero).toHaveClass('bestax-hero', 'bestax-is-info');
+    expect(container.querySelector('footer')).toHaveClass('bestax-hero-foot');
+  });
+});
+
 describe('Compound components', () => {
   it('statics are the separately exported components', () => {
     expect(Hero.Head).toBe(HeroHead);

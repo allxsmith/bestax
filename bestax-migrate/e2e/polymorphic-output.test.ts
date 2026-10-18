@@ -75,6 +75,16 @@ const BLOOMER: Case[] = [
   // must not be forced. `literalValueOf` calls them expressions.
   ['Button', '<Button href={null} tag="span">x</Button>'],
   ['Button', '<Button href={undefined} tag="span">x</Button>'],
+  // The landmark tags, a tag outside them, and a block with no `href` on
+  // each tag `Panel.Block` renders and one it does not.
+  ['Hero', '<Hero tag="main">x</Hero>'],
+  ['HeroHeader', '<HeroHeader tag="nav">x</HeroHeader>'],
+  ['HeroFooter', '<HeroFooter tag="span">x</HeroFooter>'],
+  ['Container', '<Container tag="footer">x</Container>'],
+  ['Panel', '<Panel tag="section">x</Panel>'],
+  ['PanelBlock', '<PanelBlock tag="label">x</PanelBlock>'],
+  ['PanelBlock', '<PanelBlock>x</PanelBlock>'],
+  ['PanelBlock', '<PanelBlock tag="span">x</PanelBlock>'],
 ];
 
 const RBX: Case[] = [
@@ -131,6 +141,19 @@ const RBX: Case[] = [
     '<Menu.List.Item as="span" href="/x" rel="noopener">x</Menu.List.Item>',
   ],
   ['Button', '<Button as="area" href="/x">x</Button>'],
+  // The landmark tags `Hero`, `Container` and `Panel` take, and a block's
+  // `a`, `div` and `label`, each with a tag outside them.
+  ['Hero', '<Hero as="main">x</Hero>'],
+  ['Hero', '<Hero as="nav">x</Hero>'],
+  ['Hero', '<Hero.Foot as="footer">x</Hero.Foot>'],
+  ['Hero', '<Hero.Head as="span">x</Hero.Head>'],
+  ['Container', '<Container as="main">x</Container>'],
+  ['Container', '<Container as="span">x</Container>'],
+  ['Panel', '<Panel as="section">x</Panel>'],
+  ['Panel', '<Panel as="ul">x</Panel>'],
+  ['Panel', '<Panel.Block as="label">x</Panel.Block>'],
+  ['Panel', '<Panel.Block as="div" href="/x">x</Panel.Block>'],
+  ['Panel', '<Panel.Block as="span" href="/x">x</Panel.Block>'],
 ];
 
 const RBC: Case[] = [
@@ -158,6 +181,12 @@ const RBC: Case[] = [
   ['Image', '<Image renderAs="div" src="/a.png" />'],
   ['Form', '<Form.Control renderAs="span">x</Form.Control>'],
   ['Card', '<Card.Image renderAs="span" src="/a.png" />'],
+  ['Hero', '<Hero renderAs="main">x</Hero>'],
+  ['Hero', '<Hero.Header renderAs="header">x</Hero.Header>'],
+  ['Hero', '<Hero.Footer renderAs="span">x</Hero.Footer>'],
+  ['Container', '<Container renderAs="footer">x</Container>'],
+  ['Panel', '<Panel renderAs="article">x</Panel>'],
+  ['Panel', '<Panel.Block renderAs="div" href="/x">x</Panel.Block>'],
 ];
 
 const SOURCES: Array<[MigrationSource, string, Case[]]> = [
@@ -212,20 +241,31 @@ describe('migrated output typechecks where `as` and `href` collide', () => {
     expect({ status, diagnostics }).toEqual({ status: 0, diagnostics: '' });
   });
 
+  it("keeps a block's href when the `as` it is dropped for is not a tag it renders", () => {
+    // `Panel.Block` takes `a`, `div` or `label`, so a <span> goes and the
+    // block renders its default <a>, which keeps the `href`.
+    const panel = migrate(rbx, 'rbx', [
+      'Panel',
+      '<Panel.Block as="span" href="/x">x</Panel.Block>',
+    ]);
+    expect(codeOf(panel)).not.toContain('as=');
+    expect(panel).toContain('href="/x"');
+  });
+
   it('keeps what the target does accept, and every live expression', () => {
     // Two shapes that cannot join the compile matrix above, because something
     // else in the output still does not typecheck — but the part this pass
     // owns has to be right, and both were wrong.
     //
-    // `Panel.Block` takes a bare `href` and declares no `as` at all, so the
-    // `as="span"` here is an earlier pass's TODO marker, not the element. A
-    // rule that reads it deletes the prop that compiles and keeps the one
+    // `Pagination.Link` takes a bare `href` and declares no `as` at all, so
+    // the `as="span"` here is an earlier pass's TODO marker, not the element.
+    // A rule that reads it deletes the prop that compiles and keeps the one
     // that does not.
-    const panel = migrate(rbx, 'rbx', [
-      'Panel',
-      '<Panel.Block as="span" href="/x">x</Panel.Block>',
+    const pageLink = migrate(rbx, 'rbx', [
+      'Pagination',
+      '<Pagination.Link as="span" href="/x">1</Pagination.Link>',
     ]);
-    expect(panel).toContain('href="/x"');
+    expect(pageLink).toContain('href="/x"');
 
     // bloomer took no `as`, so one in the source is the author's own
     // component riding along — and on a target generic over `as` it takes the

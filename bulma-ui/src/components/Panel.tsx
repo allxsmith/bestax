@@ -3,6 +3,12 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { withSubComponents } from '../helpers/withSubComponents';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import {
+  ANCHOR_ONLY_ATTRS,
+  type AnchorOnlyAttributes,
+  omitAttrs,
+} from '../helpers/anchorAttrs';
+import type { ConstrainedPolymorphicComponentWithoutRef } from '../helpers/polymorphic';
+import {
   Icon,
   IconChildrenProps,
   IconDeprecatedProps,
@@ -16,6 +22,14 @@ export interface PanelProps
   extends
     React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `nav`). A `nav` is a `navigation`
+   * landmark, which suits a panel of links; a panel that is not navigation
+   * takes another tag. Bulma's own colored panels use `article`. A `section`
+   * is a `region` landmark only once it has an accessible name, such as
+   * `aria-labelledby` pointing at the `id` of its `Panel.Heading`.
+   */
+  as?: 'nav' | 'article' | 'section' | 'aside' | 'div';
   /** Bulma color modifier for the panel. */
   color?:
     | 'primary'
@@ -55,9 +69,49 @@ export interface PanelTabsProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Props for the PanelBlock component.
+ * What `<label>` adds over the attributes every element has (`htmlFor` and
+ * `form`), subtracted from React's types the way `AnchorOnlyAttributes` is, so
+ * it grows when React's does.
  */
-export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+type LabelOnlyAttributes = Omit<
+  React.LabelHTMLAttributes<HTMLLabelElement>,
+  keyof React.HTMLAttributes<HTMLLabelElement>
+>;
+
+/**
+ * The set withheld from a non-label `Panel.Block`, keyed so it stops compiling
+ * until a label attribute React adds is named here.
+ */
+const STRIP_FROM_NON_LABEL: Readonly<Record<keyof LabelOnlyAttributes, true>> =
+  {
+    form: true,
+    htmlFor: true,
+  };
+
+/**
+ * The set withheld from a non-anchor `Panel.Block`: the derived anchor-only
+ * attributes plus `rel`, which React declares on every element, withheld the
+ * way `Level.Item` and `Card.FooterItem` withhold it.
+ */
+const STRIP_FROM_NON_ANCHOR: Readonly<
+  Record<keyof AnchorOnlyAttributes | 'rel', true>
+> = { ...ANCHOR_ONLY_ATTRS, rel: true };
+
+/** A `<div>` block takes neither set. */
+const STRIP_FROM_DIV: Readonly<
+  Record<keyof AnchorOnlyAttributes | 'rel' | keyof LabelOnlyAttributes, true>
+> = { ...STRIP_FROM_NON_ANCHOR, ...STRIP_FROM_NON_LABEL };
+
+/**
+ * The elements a panel block may render as: the tags Bulma's panel markup
+ * puts `.panel-block` on.
+ */
+export type PanelBlockElement = 'a' | 'div' | 'label';
+
+/**
+ * The PanelBlock component's own props.
+ */
+export interface PanelBlockOwnProps {
   /** Additional CSS classes. */
   className?: string;
   /** Whether the block is active. */
@@ -65,6 +119,43 @@ export interface PanelBlockProps extends React.AnchorHTMLAttributes<HTMLAnchorEl
   /** Block content. */
   children?: React.ReactNode;
 }
+
+/**
+ * Props for the PanelBlock component. Everything the block does not own
+ * follows `as`: the anchor's attributes and an `HTMLAnchorElement`
+ * `currentTarget` under the default `'a'`, `htmlFor` under `'label'`, and the
+ * shared HTML attributes under any of them.
+ *
+ * The type parameter defaults to `'a'`, the element a block renders with no
+ * `as`, rather than to the whole union the way `DropdownItemProps` does. Before
+ * `as` existed this type was the anchor's attributes, so bare
+ * `PanelBlockProps` stays exactly that, `href` and anchor-typed handlers
+ * included. Write `PanelBlockProps<'div'>` or `PanelBlockProps<'label'>` for
+ * the others.
+ */
+export type PanelBlockProps<T extends PanelBlockElement = 'a'> =
+  PanelBlockOwnProps &
+    Omit<React.ComponentPropsWithoutRef<T>, keyof PanelBlockOwnProps | 'as'> & {
+      /**
+       * HTML element to render (default: `a`). Bulma styles a `label` block
+       * as clickable, like an `a`, and a `div` block as static content, such
+       * as a table. The props follow the tag, so the anchor attributes
+       * (`href`, `target`, `download` and the rest) are typed only on an `a`
+       * and `htmlFor` only on a `label`; at runtime the block also drops them,
+       * and `rel`, on the other tags. `Panel.CheckboxBlock`,
+       * `Panel.InputBlock` and `Panel.ButtonBlock` render the usual `label`
+       * and `div` blocks with their contents.
+       */
+      as?: T;
+    };
+
+/**
+ * The shape the implementation destructures. The public contract is the
+ * generic `PanelBlockProps<T>` above, which the body cannot see through.
+ */
+type PanelBlockImplProps = PanelBlockOwnProps & {
+  as?: PanelBlockElement;
+};
 
 /**
  * Props for the PanelIcon component.
@@ -124,6 +215,7 @@ export interface PanelButtonBlockProps extends React.ButtonHTMLAttributes<HTMLBu
  * @see {@link https://bulma.io/documentation/components/panel/ | Bulma Panel documentation}
  */
 const PanelComponent: React.FC<PanelProps> = ({
+  as: Tag = 'nav',
   color,
   className,
   children,
@@ -142,9 +234,9 @@ const PanelComponent: React.FC<PanelProps> = ({
   const panelClasses = classNames(bulmaClasses, bulmaHelperClasses, className);
 
   return (
-    <nav className={panelClasses} {...rest}>
+    <Tag className={panelClasses} {...rest}>
       {children}
-    </nav>
+    </Tag>
   );
 };
 
@@ -189,28 +281,44 @@ export const PanelTabs: React.FC<PanelTabsProps> = ({
 );
 
 /**
- * Individual panel block (renders as `<a class="panel-block">`)
+ * Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise)
  *
  * @function
  * @param {PanelBlockProps} props - Props for the PanelBlock component.
  * @returns {JSX.Element} The rendered panel block.
  */
-export const PanelBlock: React.FC<PanelBlockProps> = ({
-  className,
-  active,
-  children,
-  ...props
-}) => (
-  <a
-    className={classNames(
-      usePrefixedClassNames('panel-block', { 'is-active': active }),
-      className
-    )}
-    {...props}
-  >
-    {children}
-  </a>
-);
+export const PanelBlock = ((blockProps: PanelBlockProps) => {
+  const {
+    as: Tag = 'a',
+    className,
+    active,
+    children,
+    ...props
+  } = blockProps as PanelBlockImplProps;
+  const blockClasses = classNames(
+    usePrefixedClassNames('panel-block', { 'is-active': active }),
+    className
+  );
+  // The anchor's own attributes reach an `<a>` and nothing else, and the
+  // label's a `<label>`; the sets above say which those are. The type already
+  // keeps them off the other tags, so this is for a plain-JS caller, a loose
+  // `{...props}` spread, and the genericity a wrapping HOC erases.
+  const forwarded =
+    Tag === 'a'
+      ? omitAttrs(props, STRIP_FROM_NON_LABEL)
+      : Tag === 'label'
+        ? omitAttrs(props, STRIP_FROM_NON_ANCHOR)
+        : omitAttrs(props, STRIP_FROM_DIV);
+  return (
+    <Tag className={blockClasses} {...forwarded}>
+      {children}
+    </Tag>
+  );
+}) as ConstrainedPolymorphicComponentWithoutRef<
+  PanelBlockOwnProps,
+  PanelBlockElement,
+  'a'
+>;
 
 /**
  * Icon wrapper with panel styling (renders as `<span class="panel-icon">`, containing an

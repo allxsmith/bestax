@@ -1,4 +1,4 @@
-import { Panel } from "@allxsmith/bestax-bulma";
+import { Panel, Table } from "@allxsmith/bestax-bulma";
 export function Repositories() {
   // TODO(bestax-migrate): `.panel-icon` stays as markup: bestax `Panel.Icon` renders through `Icon`, which always writes an `aria-label`
   return (
@@ -17,10 +17,33 @@ export function Repositories() {
       <Panel.Block href="/marksheet">
         marksheet
       </Panel.Block>
-      <label className="panel-block">
+      <Panel.Block as="label">
         <input type="checkbox" />
         remember me
-      </label>
+      </Panel.Block>
+    </Panel>
+  );
+}
+
+export function Program() {
+  return (
+    <Panel as="section" className="is-info" aria-labelledby="program">
+      <Panel.Heading id="program">
+        Program
+      </Panel.Heading>
+      <Panel.Block as="div">
+        <Table isFullwidth>
+          <tbody>
+            <tr>
+              <td>9:00</td>
+              <td>Grand Opening</td>
+            </tr>
+          </tbody>
+        </Table>
+      </Panel.Block>
+      <Panel.Block as="label" htmlFor="remember">
+        Remember me
+      </Panel.Block>
     </Panel>
   );
 }
