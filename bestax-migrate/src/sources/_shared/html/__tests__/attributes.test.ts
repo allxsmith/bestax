@@ -196,9 +196,11 @@ describe('convertAttributes', () => {
     ]);
   });
 
-  it('writes a style as an object, and reports what it leaves out', () => {
+  it('writes a style as an object, and reports what it changes', () => {
     const div = '<div style="margin-top: 1rem; color: red !important">x</div>';
-    expect(props(div, 'div')).toEqual(['style={{ marginTop: "1rem" }}']);
+    expect(props(div, 'div')).toEqual([
+      'style={{ marginTop: "1rem", color: "red" }}',
+    ]);
     expect(issues(div, 'div')).toEqual([
       {
         kind: 'style-important',
@@ -207,15 +209,10 @@ describe('convertAttributes', () => {
         detail: 'color: red !important',
       },
     ]);
-    const broken = '<div style="color: red; background: url(x">x</div>';
-    expect(props(broken, 'div')).toEqual([]);
-    expect(issues(broken, 'div')).toEqual([
-      {
-        kind: 'style',
-        token: 'style',
-        attribute: 'style',
-        detail: 'color: red; background: url(x',
-      },
+    const hack = '<div style="display: none; *zoom: 1">x</div>';
+    expect(props(hack, 'div')).toEqual(['style={{ display: "none" }}']);
+    expect(issues(hack, 'div')).toEqual([
+      { kind: 'style', token: 'style', attribute: 'style', detail: '*zoom: 1' },
     ]);
     expect(props('<div style="">x</div>', 'div')).toEqual([]);
   });
@@ -264,6 +261,37 @@ describe('convertAttributes', () => {
 
   it('gives a select with nothing selected no default', () => {
     expect(props('<select><option>a</option></select>', 'select')).toEqual([]);
+  });
+
+  it('converts a built-in extended with is as the built-in', () => {
+    expect(
+      props(
+        '<button is="fancy-button" class="a" disabled tabindex="0">x</button>',
+        'button'
+      )
+    ).toEqual([
+      'is="fancy-button"',
+      'className="a"',
+      'disabled',
+      'tabIndex="0"',
+    ]);
+    expect(props('<textarea is="x-area">Hello</textarea>', 'textarea')).toEqual(
+      ['is="x-area"', 'defaultValue="Hello"']
+    );
+    expect(props('<input is="x-input" value="v">', 'input')).toEqual([
+      'is="x-input"',
+      'defaultValue="v"',
+    ]);
+  });
+
+  it('moves selected onto the select that lists the option, is or not', () => {
+    const select =
+      '<select is="x-select"><option is="x-option" selected>a</option><option>b</option></select>';
+    expect(props(select, 'select')).toEqual([
+      'is="x-select"',
+      'defaultValue="a"',
+    ]);
+    expect(props(select, 'option')).toEqual(['is="x-option"']);
   });
 
   it('keeps selected on an option outside a select', () => {
@@ -357,13 +385,13 @@ describe('printProp', () => {
 });
 
 describe('isCustomElement', () => {
-  it('is a tag with a dash, or a built-in extended with is', () => {
+  it('is an HTML tag with a dash, and not a built-in extended with is', () => {
     expect(isCustomElement(elementIn('<my-el></my-el>', 'my-el'))).toBe(true);
     expect(
       isCustomElement(
         elementIn('<button is="fancy-button"></button>', 'button')
       )
-    ).toBe(true);
+    ).toBe(false);
     expect(isCustomElement(elementIn('<button></button>', 'button'))).toBe(
       false
     );

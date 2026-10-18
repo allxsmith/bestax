@@ -110,6 +110,25 @@ describe('layoutWhitespace', () => {
     ).toBe('<table><tbody><tr><td>1</td><td>2</td></tr></tbody></table>');
   });
 
+  it('drops a run between the parts of a CSS table, not between its inline content', () => {
+    expect(
+      shape('<div style="display: table"><span>a</span> <span>b</span></div>')
+    ).toBe('<div><span>a</span>_<span>b</span></div>');
+    expect(
+      shape(
+        '<div style="display: table-row">\n  <span style="display: table-cell">a</span>\n  <span style="display: table-cell">b</span>\n</div>'
+      )
+    ).toBe('<div><span>a</span><span>b</span></div>');
+    expect(
+      shape(
+        '<div style="display: table"> x <i>y</i> <div style="display: table-cell">c</div> z </div>'
+      )
+    ).toBe('<div>x_<i>y</i><div>c</div>z</div>');
+    expect(
+      shape('<p>a <span style="display: inline-table"> b </span> c</p>')
+    ).toBe('<p>a_<span>b</span>_c</p>');
+  });
+
   it("drops a select's whitespace, and trims its options", () => {
     expect(
       shape(
@@ -139,6 +158,17 @@ describe('layoutWhitespace', () => {
     expect(shape('<style>\n  a { color: red }\n</style>')).toBe(
       '<style>"\\n  a { color: red }\\n"</style>'
     );
+  });
+
+  it('reads a display past a declaration CSS skips, and by its priority', () => {
+    expect(
+      shape('<p>a <span style="display: none; *zoom: 1">x</span> b</p>')
+    ).toBe('<p>a_<span>x</span>b</p>');
+    expect(
+      shape(
+        '<p>a <span style="display: none !important; display: inline">x</span> b</p>'
+      )
+    ).toBe('<p>a_<span>x</span>b</p>');
   });
 
   it('looks past comments and hidden elements, which render nothing', () => {

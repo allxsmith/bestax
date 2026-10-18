@@ -47,10 +47,10 @@ export interface Prop {
 
 /**
  * Something the converter can't carry over as written, for the caller to
- * report. Emitted: `unknown-attribute`, `javascript-url`, and the element
- * kinds. Not emitted: `attribute-name`, `event-handler`, `style`,
- * `style-important`, `element-name` (its children are), and a
- * `conditional-comment`.
+ * report. Emitted: `unknown-attribute`, `javascript-url`, `style-important`
+ * (without its priority), and the element kinds. Not emitted:
+ * `attribute-name`, `event-handler`, `style` (the one declaration it
+ * quotes), `element-name` (its children are), and a `conditional-comment`.
  */
 export interface HtmlIssue {
   kind:
@@ -182,12 +182,18 @@ function attributeOf(element: Element, name: string): string | undefined {
   return element.attrs.find(attr => attr.name === name && !attr.prefix)?.value;
 }
 
-/** Whether React treats it as a custom element: a dash, or `is`. */
+/**
+ * Whether React renders it as a custom element, passing its attributes
+ * through as written: an HTML tag with a dash. A built-in extended with
+ * `is` is not one to React's server renderer, which gives it a built-in's
+ * props (a bare `disabled`, a textarea's `defaultValue`), and those are the
+ * DOM properties React's client sets on it too.
+ */
 export function isCustomElement(element: Element): boolean {
   return (
     element.namespaceURI !== SVG &&
     element.namespaceURI !== MATHML &&
-    (element.tagName.includes('-') || attributeOf(element, 'is') !== undefined)
+    element.tagName.includes('-')
   );
 }
 
@@ -210,18 +216,22 @@ function optionsOf(select: Element): Element[] {
   });
 }
 
-/** The `<select>` an option is one of, if any. */
+/**
+ * The `<select>` that lists an option, if any: the one whose `defaultValue`
+ * carries the option's `selected`. It is found through `optionsOf`, which
+ * is what that default reads, so the option never drops a `selected` the
+ * select doesn't take.
+ */
 function selectOf(option: Element): Element | undefined {
   const parent = option.parentNode;
-  if (!parent || !isElement(parent)) return undefined;
-  if (parent.tagName === 'select') return parent;
-  const grand = parent.parentNode;
-  return parent.tagName === 'optgroup' &&
-    grand &&
-    isElement(grand) &&
-    grand.tagName === 'select'
-    ? grand
-    : undefined;
+  const grand = parent && isElement(parent) ? parent.parentNode : null;
+  return [parent, grand].find(
+    (node): node is Element =>
+      !!node &&
+      isElement(node) &&
+      node.tagName === 'select' &&
+      optionsOf(node).includes(option)
+  );
 }
 
 /** An option's value: its `value`, else its text, stripped and collapsed. */
@@ -352,11 +362,9 @@ export function convertAttributes(element: Element): {
   }
 
   const selected = tag === 'select' ? selectDefault(element) : undefined;
-  if (selected !== undefined && !custom) {
-    add('defaultValue', selected, 'selected');
-  }
+  if (selected !== undefined) add('defaultValue', selected, 'selected');
   const text = tag === 'textarea' ? textContent(element) : '';
-  if (text !== '' && !custom) add('defaultValue', text, 'textarea');
+  if (text !== '') add('defaultValue', text, 'textarea');
   return { props, issues };
 }
 

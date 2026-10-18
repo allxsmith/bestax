@@ -24,7 +24,7 @@ import {
   type Element,
   type ParentNode,
 } from '../src/sources/_shared/html/parse.js';
-import { readStyle } from '../src/sources/_shared/html/style.js';
+import { applied, readStyle } from '../src/sources/_shared/html/style.js';
 import { layoutWhitespace } from '../src/sources/_shared/html/whitespace.js';
 import { loadModules, renderExports } from './support/render-module.js';
 
@@ -58,14 +58,15 @@ function attributes(element: Element): string[] {
         .sort()
         .join(' ');
     } else if (name === 'style') {
-      const declarations = new Map<string, string>();
-      for (const { property, value: given } of readStyle(value) ?? []) {
-        declarations.delete(property);
-        declarations.set(property, given);
-      }
-      if (declarations.size === 0) continue;
-      value = [...declarations]
-        .map(([property, given]) => `${property}: ${given}`)
+      // A priority is kept, so a page that has one fails here: the converter
+      // hands that back rather than writing it.
+      const declarations = [...applied(readStyle(value).declarations).values()];
+      if (declarations.length === 0) continue;
+      value = declarations
+        .map(
+          ({ property, value: given, important }) =>
+            `${property}: ${given}${important ? ' !important' : ''}`
+        )
         .sort()
         .join('; ');
     } else {
@@ -345,6 +346,15 @@ two leading newlines</pre>
   <span>x</span><!-- after inline --> <span>y</span>
 </div>`,
 
+  // A dropped conditional comment leaves a space that renders right before
+  // a line break, which JSX would trim.
+  'spaces beside a dropped conditional comment': `<p><b>a <!--[if lt IE 9]>x<![endif]-->
+</b>c</p>
+<p><b>a <!--[if IE]>x<![endif]-->
+<i>c</i></b></p>
+<p><i>a</i> <!--[if IE]>x<![endif]-->
+<i>b</i></p>`,
+
   'booleans and numbers': `<div hidden>hidden</div>
 <details open><summary>More</summary>Body</details>
 <video controls autoplay muted loop playsinline poster="p.jpg" width="320" height="240"><source src="v.mp4" type="video/mp4"><track default kind="captions" src="c.vtt"></video>
@@ -362,7 +372,8 @@ two leading newlines</pre>
 
   styles: `<div style="margin-top: 1rem; COLOR: Red; -webkit-transition: opacity .3s; -ms-transform: none; --gap: 2px; background: url('a;b.png') no-repeat /* c */; font-family: 'Fira  Code', monospace">x</div>
 <span style="display:inline-block;width:10px">y</span>
-<div style="">empty</div>`,
+<div style="">empty</div>
+<p>a <span style="display: none; *zoom: 1">hidden</span> b <span style="_height: ; color: red">c</span></p>`,
 
   whitespace: `<div class="buttons">
   <a class="button">One</a>
@@ -388,13 +399,23 @@ two leading newlines</pre>
 </ul>
 <span>x <b> y </b> z</span>
 <p><span>a</span><b>
-  starts with a space</b></p>`,
+  starts with a space</b></p>
+<div style="display: table"><span>inline</span> <span>content</span>
+  <div style="display: table-row">
+    <div style="display: table-cell">a cell</div>
+    <div style="display: table-cell">another</div>
+  </div>
+</div>`,
 
   'custom, template and obsolete elements': `<my-widget class="x y" some-prop="1" disabled></my-widget>
 <template id="row"><tr><td>cell</td></tr></template>
 <center>Centered</center>
 <font color="red" size="3">old</font>
-<marquee>moving</marquee>`,
+<marquee>moving</marquee>
+<button is="fancy-button" class="button" disabled tabindex="0">Fancy</button>
+<textarea is="x-area" rows="2">Kept
+text</textarea>
+<select is="x-select"><option is="x-option">a</option><option selected>b</option></select>`,
 
   'text at the top level': `Hello <b>world</b>, and <i>more</i>.`,
 };
