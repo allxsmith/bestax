@@ -1892,6 +1892,20 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
   });
 });
 
+// The scaffold's global stylesheet is `src/index.css`. Its `src/App.css` is the starter
+// page's, which a port that replaces the page drops, so a class written there loads
+// nowhere (#1174).
+describe('get_helper_props on where a named class goes', () => {
+  it("names the stylesheet a create-bestax app has, not the starter's alone", async () => {
+    // The skill's prose, served as it wraps.
+    const out = text(
+      await call('get_helper_props', { group: 'spacing' })
+    ).replace(/\s+/g, ' ');
+    expect(out).toContain('In a create-bestax app that is `src/index.css`');
+    expect(out).not.toContain('(`src/App.css` in a scaffolded app)');
+  });
+});
+
 // A client that starts the server outside the project used to get answers checked
 // against nothing, and no word of it (#935).
 describe('with no installed library to check against', () => {
