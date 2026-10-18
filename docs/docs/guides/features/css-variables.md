@@ -106,14 +106,14 @@ function ScopedTheming() {
     <div>
       <Title>Standard Theme</Title>
 
-      <Theme primaryH="120" primaryS="100%" primaryL="40%">
+      <Theme primaryH="120" primaryS="100%" primaryL="25%">
         <Box p="4" mt="3">
           <Title size="4">Green Section</Title>
           <Button color="primary">Green Button</Button>
         </Box>
       </Theme>
 
-      <Theme primaryH="15" primaryS="85%" primaryL="55%">
+      <Theme primaryH="15" primaryS="85%" primaryL="40%">
         <Box p="4" mt="3">
           <Title size="4">Orange Section</Title>
           <Button color="primary">Orange Button</Button>
@@ -179,6 +179,19 @@ Bulma v1 provides its CSS variables organized by category. Here are the key cate
 | `--bulma-success-h` | Success color hue        | `153`         |
 | `--bulma-warning-h` | Warning color hue        | `42`          |
 | `--bulma-danger-h`  | Danger color hue         | `348`         |
+
+#### Label and Text Lightnesses
+
+The trio recolors the color itself. The label on a solid color (`--bulma-<color>-invert-l`) and
+the color's text on the page (`--bulma-<color>-on-scheme-l`, which for `link` is every link on
+the page) keep lightnesses Bulma's Sass build picked by contrast with the color it was built
+with. bestax's stylesheet builds its primary from a dark blue, so a light primary set through the
+trio alone keeps white labels it can't carry. A color that reads lighter or darker than the built
+one sets both in your CSS too, since `Theme` and `bulmaVars` don't take them. The bestax-theming
+skill's
+[CSS variables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/references/css-variables.md)
+says what reads each one, how to pick the values, and why the on-scheme lightness takes one per
+scheme.
 
 ### Typography Variables
 
@@ -281,12 +294,16 @@ For full control you can instead override the scheme variables yourself via `bul
 
 ### Color Palette Generator
 
+At the same lightness, some hues read much lighter than others: a yellow is far lighter than a
+blue. So this example holds the primary's lightness low enough for its white button labels to
+read at every hue (see [Label and Text Lightnesses](#label-and-text-lightnesses)).
+
 ```tsx
 function ColorPaletteApp() {
   const [hue, setHue] = useState(171);
 
   return (
-    <Theme primaryH={hue.toString()} isRoot>
+    <Theme primaryH={hue.toString()} primaryS="67%" primaryL="28%" isRoot>
       <Box p="4">
         <Title>Dynamic Color Palette</Title>
         <input
