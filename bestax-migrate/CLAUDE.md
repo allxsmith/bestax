@@ -117,8 +117,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, which render JSX through a runtime other than React, and which are TypeScript, for
-  the extension of the module an HTML page becomes, read once per run from every package.json
-  the run touches) and `transform.ts` (finds the elements, reads a
+  the extension of the module an HTML page becomes, and which depend on Next.js, where that
+  module imports no stylesheet, read once per run from every package.json the run touches) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
@@ -136,8 +136,17 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `html-*` rules in `html-rules.ts`, kept apart from `rules.ts` because none of it is about a
   Bulma class; an id carries only a fixed name, never the page's text, and falls back to the
   bare kind. Report entries name the page and its line, the planner's mapped back through the
-  emitter's line map. `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`,
-  both tables and the out-of-flow list.
+  emitter's line map. `html-assets.ts` says what each stylesheet and script the page loads is,
+  from its URL, and each extension's message names the bestax component only where reading it
+  showed one does the extension's job. Under `--css bestax` or `--css bulma` the page's Bulma
+  `<link>` becomes `import 'bulma/css/bulma.min.css'` in the module before the transform runs,
+  so the shared stylesheet pass retargets it exactly as in a JSX file, and the CLI reads the
+  module for `bulmaReferenced` as it reads a JSX file's output, so the manifest step agrees.
+  Not in a Next.js app (its Pages Router takes a global stylesheet only in `pages/_app`), and
+  not for a `<link media>`, which an import can't stand for. A local file is read only inside
+  the page's folder, and a `<script src>` only when its type is JavaScript.
+  `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`, both tables and
+  the out-of-flow list.
 - `src/sources/_shared/html/` turns HTML into JSX source, library-agnostic: `parse.ts` (parse5,
   as a document or a fragment), `attributes.ts` (attribute to prop by `property-information`,
   plus what React needs written by hand; numbers stay strings for the planner, and
@@ -172,9 +181,9 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   given the converter's own display hook. `e2e/bulma-classes-html-kitchen-sink.test.ts` converts
   `fixtures/bulma-classes-html/` under `--css keep` and `--css bestax`, asserts each page's rules
   exactly, typechecks the output (`pages/leftovers.html` holds every pattern a component can't
-  carry, and its module stays out of the typecheck), and wants `html-file:exists` alone on a
-  second run. Both kitchen sinks hold every rule they emit to the skill's references through
-  `e2e/support/skill-rules.ts`.
+  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck),
+  and wants `html-file:exists` alone on a second run. Both kitchen sinks hold every rule they
+  emit to the skill's references through `e2e/support/skill-rules.ts`.
 - Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a
   `mkdtemp`'d dir under `.e2e-tmp/`, migrates it, and runs `tsc --noEmit` on the output
   against the built bulma-ui (`turbo` orders the build; see `bestax-migrate#test` in root

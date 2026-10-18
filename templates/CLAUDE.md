@@ -67,7 +67,10 @@ fix.
 
    `--css bestax` matters because `bulma-classes` defaults to `--css keep`, which leaves an app on
    its own Bulma and has the stylesheet TODO tell you to keep loading it, while a template loads
-   bestax's stylesheet and declares no `bulma`. The module it writes beside the page is the
+   bestax's stylesheet and declares no `bulma`. Under `--css bestax` the module imports
+   `@allxsmith/bestax-bulma/bestax.css` in place of the page's Bulma `<link>`, which the
+   scaffold's `src/main.tsx` already does, so that import goes when the module moves into
+   `src/App.tsx`. The module it writes beside the page is the
    converted markup, with a `TODO(bestax-migrate)` for whatever it left. The `html-*` ones say
    where the page's head, stylesheets and scripts go, with a recipe for each in the bestax-migrate
    skill's `references/bulma-classes/unmappables.md`. Move the module into `src/App.tsx` and

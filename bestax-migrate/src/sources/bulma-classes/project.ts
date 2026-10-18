@@ -2,7 +2,8 @@
  * What the bulma-classes transform needs to know about the project and cannot
  * see from one file: which files a Next.js App Router may render as server
  * components, which packages render JSX through a runtime other than React,
- * and which are written in TypeScript, for the module an HTML page becomes.
+ * and, for the module an HTML page becomes, which are written in TypeScript
+ * and which are Next.js apps, where that module imports no stylesheet.
  *
  * Read once per run, from every package.json the run touches: the nearest one
  * above each target, and every one below it, so a monorepo run from its root
@@ -57,11 +58,16 @@ export interface ServerComponentRoot {
   except: string[];
 }
 
-/** A package, and whether a module it gains should be TypeScript. */
+/** A package, and what a module it gains should be written for. */
 export interface PackageLanguage {
   dir: string;
   /** It has a `tsconfig.json`, or depends on `typescript`. */
   typescript: boolean;
+  /**
+   * It depends on `next`, whose Pages Router takes a global stylesheet only
+   * in `pages/_app`, so a page's module imports none there.
+   */
+  nextjs?: boolean;
 }
 
 export interface ProjectFacts {
@@ -241,9 +247,22 @@ export function analyzeProject(targets: string[]): ProjectFacts {
       typescript:
         Boolean(deps.typescript) ||
         fs.existsSync(path.join(dir, 'tsconfig.json')),
+      nextjs: Boolean(deps.next),
     });
   }
   return facts;
+}
+
+/** The innermost package around `file` of those the run read, if any. */
+function packageAround(
+  file: string,
+  languages: unknown
+): PackageLanguage | undefined {
+  if (!Array.isArray(languages)) return undefined;
+  const resolved = path.resolve(file);
+  return (languages as PackageLanguage[])
+    .filter(entry => resolved.startsWith(`${entry.dir}${path.sep}`))
+    .sort((a, b) => b.dir.length - a.dir.length)[0];
 }
 
 /**
@@ -251,10 +270,10 @@ export function analyzeProject(targets: string[]): ProjectFacts {
  * innermost package around it says, and no when no package does.
  */
 export function writesTypeScript(file: string, languages: unknown): boolean {
-  if (!Array.isArray(languages)) return false;
-  const resolved = path.resolve(file);
-  const found = (languages as PackageLanguage[])
-    .filter(entry => resolved.startsWith(`${entry.dir}${path.sep}`))
-    .sort((a, b) => b.dir.length - a.dir.length)[0];
-  return found?.typescript ?? false;
+  return packageAround(file, languages)?.typescript ?? false;
+}
+
+/** Whether the innermost package around `file` is a Next.js app. */
+export function inNextApp(file: string, languages: unknown): boolean {
+  return packageAround(file, languages)?.nextjs ?? false;
 }

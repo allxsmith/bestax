@@ -13,8 +13,9 @@
  * one and a React prop spelled in HTML's lowercase (`defaultvalue`) are kept
  * as written, and TypeScript rejects each of them.
  *
- * Run under the default `--css keep` and under `--css bestax`, which changes
- * only what the Bulma stylesheet's TODO says: no stylesheet import is written.
+ * Run under the default `--css keep` and under `--css bestax`, which writes
+ * bestax's stylesheet import in place of each page's Bulma `<link>` and
+ * notes it only for what is left to do.
  */
 
 import { spawnSync } from 'node:child_process';
@@ -80,6 +81,9 @@ function copySite(prefix: string): string {
 }
 
 function typecheck(dir: string, files: string[]) {
+  // A stylesheet import resolves through the app's bundler, whose types
+  // declare it (Vite's `vite/client`), as the JSX kitchen sink's do.
+  fs.writeFileSync(path.join(dir, 'global.d.ts'), "declare module '*.css';\n");
   fs.writeFileSync(
     path.join(dir, 'tsconfig.json'),
     JSON.stringify({
@@ -93,7 +97,7 @@ function typecheck(dir: string, files: string[]) {
         lib: ['ES2022', 'DOM', 'DOM.Iterable'],
         skipLibCheck: true,
       },
-      files,
+      files: ['global.d.ts', ...files],
     })
   );
   const result = spawnSync('pnpm', ['exec', 'tsc', '-p', dir], {
@@ -109,9 +113,12 @@ function typecheck(dir: string, files: string[]) {
 const rulesOf = (entries: TodoEntry[] = []) =>
   entries.map(entry => entry.rule).sort();
 
-/** What the page's head, `<html>` and `<body>` hold, in every mode. */
+/**
+ * What the page's head, `<html>` and `<body>` hold, in every mode: its
+ * Bulma is reported under `keep`, and under `bestax` for its primary color.
+ */
 const LANDING_RULES = [
-  'html-asset',
+  'html-asset:bulma',
   'html-document:lang',
   'html-head:meta',
   'html-head:title',
@@ -120,10 +127,12 @@ const LANDING_RULES = [
 const LEFTOVER_RULES = [
   'family:modal',
   'family:navbar-burger',
-  'html-asset',
-  'html-asset',
-  'html-asset',
-  'html-asset',
+  'html-asset:bulma',
+  'html-asset:bulma-extension',
+  'html-asset:font-awesome',
+  'html-asset:jquery',
+  'html-asset:stylesheet',
+  'html-asset:webfont',
   'html-attr:important',
   'html-attr:name',
   'html-attr:style',
@@ -150,6 +159,7 @@ const LEFTOVER_RULES = [
   'html-parse:duplicate-attribute',
   'html-script',
   'html-script',
+  'html-script:burger',
   'html-script:burger',
   'html-script:carousel',
   'html-script:dismiss',
@@ -233,7 +243,7 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
     const lines = (site.todos.get('pages/leftovers.html') ?? [])
       .filter(entry => entry.rule === 'html-event:onclick')
       .map(entry => entry.line);
-    expect(lines).toEqual([40]);
+    expect(lines).toEqual([43]);
   });
 
   it('documents every TODO rule it emits in the skill reference', () => {
@@ -281,18 +291,31 @@ describe('bulma-classes HTML kitchen-sink e2e, --css bestax', () => {
     }
   });
 
-  it("points the Bulma stylesheet's TODO at bestax's bundle, and writes no import", () => {
+  it("imports bestax's bundle in place of the page's Bulma link, and notes its primary", () => {
     const landing = site.todos.get('pages/landing.html') ?? [];
     expect(rulesOf(landing)).toEqual(LANDING_RULES);
-    const message = landing.find(entry => entry.rule === 'html-asset')?.message;
-    expect(message).toContain("import '@allxsmith/bestax-bulma/bestax.css'");
+    const message = landing.find(
+      entry => entry.rule === 'html-asset:bulma'
+    )?.message;
+    expect(message).toContain(
+      "the module imports bestax's bundle in its place"
+    );
     // A page made for stock Bulma's primary changes color under bestax's.
     expect(message).toContain('--bulma-primary-invert-l');
     const module = fs.readFileSync(
       path.join(site.dir, 'pages', 'landing.tsx'),
       'utf8'
     );
-    expect(module).not.toMatch(/^import ['"]/m);
+    expect(module.split('\n')[0]).toBe(
+      'import "@allxsmith/bestax-bulma/bestax.css";'
+    );
+    // The partial loads no Bulma, so its module imports no stylesheet.
+    expect(
+      fs.readFileSync(
+        path.join(site.dir, 'pages', 'partials', 'pricing.tsx'),
+        'utf8'
+      )
+    ).not.toMatch(/^import ['"]/m);
   });
 
   it('converts the same, and typechecks', () => {
