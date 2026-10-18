@@ -1222,6 +1222,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ])
     ),
     adoptsIdFrom: ['Field'],
+    // The <input>'s own attributes, which React's types take as numbers.
+    numberAttrs: ['maxLength', 'minLength'],
     ownProps: [
       'color',
       'size',
@@ -1258,6 +1260,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ])
     ),
     adoptsIdFrom: ['Field'],
+    // The <textarea>'s own attributes, which React's types take as numbers.
+    numberAttrs: ['rows', 'cols', 'maxLength', 'minLength'],
     ownProps: [
       'color',
       'size',

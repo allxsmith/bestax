@@ -243,26 +243,33 @@ const DISPLAY_KEYWORDS =
   /^(?:none|contents|block|inline|run-in|flow|flow-root|table|flex|grid|ruby|list-item|inline-(?:block|table|flex|grid|list-item)|table-(?:row-group|header-group|footer-group|row|cell|column-group|column|caption)|ruby-(?:base|text|base-container|text-container))$/;
 
 /**
- * An inline `display`, when it is one CSS reads (otherwise the declaration
- * is ignored), else the UA stylesheet's.
+ * An element's inline `display`, when it is one CSS reads; undefined when it
+ * sets none, or one CSS ignores.
  */
-export const defaultDisplayOf: DisplayOf = element => {
+export function validInlineDisplay(element: Element): string | undefined {
   const inline = inlineStyleDisplay(element);
   const valid =
     inline !== undefined &&
     inline.split(/\s+/).every(word => DISPLAY_KEYWORDS.test(word));
-  return valid ? inline : uaDisplay(element);
-};
+  return valid ? inline : undefined;
+}
+
+/**
+ * An inline `display`, when it is one CSS reads (otherwise the declaration
+ * is ignored), else the UA stylesheet's.
+ */
+export const defaultDisplayOf: DisplayOf = element =>
+  validInlineDisplay(element) ?? uaDisplay(element);
 
 /** How a box sits among its siblings. */
-type Outer = 'none' | 'block' | 'inline';
+export type Outer = 'none' | 'block' | 'inline';
 
 /**
  * How a box's content flows: on in its parent's lines (`inline`), in lines
  * of its own (`block`), or as boxes of its own, each child its own block
  * (`boxes`).
  */
-type Inner = 'inline' | 'block' | 'boxes';
+export type Inner = 'inline' | 'block' | 'boxes';
 
 interface Box {
   outer: Outer;
@@ -270,7 +277,8 @@ interface Box {
   exact: boolean;
 }
 
-function boxOfDisplay(display: string | undefined): Omit<Box, 'exact'> {
+/** What a `display` value means for whitespace: how it sits, how it flows. */
+export function boxOfDisplay(display: string | undefined): Omit<Box, 'exact'> {
   const words = (display ?? 'inline').trim().split(/\s+/);
   const has = (...names: string[]) => names.some(name => words.includes(name));
   if (has('none')) return { outer: 'none', inner: 'block' };

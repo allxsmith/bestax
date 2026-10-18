@@ -19,6 +19,7 @@ Currently supported sources:
 | [`rbx`](https://github.com/dfee/rbx) (v2)                                        | ✅ Full export surface mapped (a few patterns are flagged as TODOs)                  |
 | [`bloomer`](https://github.com/AlgusDark/bloomer) (0.6)                          | ✅ All 108 exports mapped (Font Awesome 4 icons and Bulma 0.4's `Nav` are flagged)   |
 | `bulma-classes`: Bulma's classes on plain JSX, no library                        | ✅ Converts an element only when bestax renders the same markup; the rest is flagged |
+| `bulma-classes` on HTML: static pages and templates styled with Bulma            | ✅ Writes a React component beside each page; its head and scripts are flagged       |
 
 Pass the source as the first argument: `bestax-migrate <source> <paths…>`.
 
@@ -40,6 +41,10 @@ pnpm dlx bestax-migrate rbx src/ --dry
 pnpm dlx bestax-migrate bloomer src/ --dry
 # …or, for an app that writes Bulma's classes on plain JSX
 pnpm dlx bestax-migrate bulma-classes src/ --dry
+# …or, for static HTML pages styled with Bulma: name a page, or walk a folder with -e html
+# (-e html,htm takes .htm pages too)
+pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
+pnpm dlx bestax-migrate bulma-classes -e html src/pages/ --dry
 
 # Apply the migration
 pnpm dlx bestax-migrate react-bulma-components src/
@@ -54,6 +59,7 @@ The codemod uses [jscodeshift](https://github.com/facebook/jscodeshift) to:
 - convert props (`renderAs` → `as`, `loading` → `isLoading`, numeric spacing/text sizes → string unions, `textAlign="center"` → `textAlign="centered"`, …)
 - flatten responsive breakpoint objects (`mobile={{ size: 4 }}` → `sizeMobile={4}`) and bloomer's `isDisplay`/`isHidden` strings, arrays and objects (`isHidden="touch"` → `visibilityTouch="hidden"`)
 - for `bulma-classes`, turn raw Bulma markup into components and props (`<a className="button is-primary">` → `<Button as="a" color="primary">`, `<p className="has-text-centered mt-4">` → `<Paragraph textAlign="centered" mt="4">`), converting an element only when bestax renders exactly the same markup
+- for `bulma-classes` on an HTML page, write a React module beside it (`index.html` → `index.tsx`, or `.jsx` when the package isn't TypeScript) whose default export is the page's body as a component (`LoginPage`), converted as the same markup written as JSX would be. The page is never changed and an existing module is never overwritten; the head, the `<html>` and `<body>` attributes, scripts and inline handlers are left as `html-*` TODOs
 - restructure patterns bestax models differently (`Table.Container`, Navbar dropdowns, `Form.Help`, icon-font children → `<Icon name=…>`)
 - migrate stylesheets: CSS imports converge on `@allxsmith/bestax-bulma/bestax.css`, and SCSS files move from Bulma 0.9's `@import` + `$var !default` overrides to `@use 'bulma/sass' with (…)` plus `@use '@allxsmith/bestax-bulma/scss/extras'`
 - update `package.json`: remove the source library, add `@allxsmith/bestax-bulma`, raise a declared pre-1.0 `bulma` to `^1` (adding it only when your sources import `bulma/…` directly — otherwise it arrives transitively), and swap the dead `node-sass` for dart `sass` (no install is ever run). Migrating **rbx** is what frees an app from Bulma 0.7.5: rbx pinned it as a _direct_ dependency, so the app could not choose its own Bulma version at all. The four Bulma extensions rbx also pulled in (`bulma-badge`, `bulma-divider`, `bulma-pageloader`, `bulma-tooltip`) are **reported rather than removed** — bestax replaces all four, but a manifest entry is a deliberate declaration and your own Sass may import them. A **bloomer** app declared its own Bulma 0.6, which is what gets bumped. For **bulma-classes** there is no library to remove, and by default (`--css keep`) the app's Bulma version, Sass and stylesheet imports all stay: its own Bulma already styles every class a converted element renders. `--css bestax` or `--css bulma` moves it to Bulma v1 like the other sources
@@ -83,7 +89,7 @@ Run it from your app root. `--param paths="src lib"` (default `src`) and `--para
 | -------------------- | ---------------------------------------------------------------------------------------------- |
 | `--dry`, `-d`        | Report what would change without writing files                                                 |
 | `--print`, `-p`      | Print transformed sources to stdout                                                            |
-| `--extensions`, `-e` | File extensions to include (default `js,jsx,ts,tsx,scss,sass`)                                 |
+| `--extensions`, `-e` | File extensions to include in a folder (default `js,jsx,ts,tsx,scss,sass`; `html` for pages)   |
 | `--css <mode>`       | Stylesheet target: `bestax`, `bulma`, or `keep` (default `bestax`; `keep` for `bulma-classes`) |
 | `--no-deps`          | Skip updating package.json dependencies                                                        |
 
