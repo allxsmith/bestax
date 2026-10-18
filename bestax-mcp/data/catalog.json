@@ -362,7 +362,7 @@
       "slug": "form/combobox",
       "import": "import { Combobox } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 62,
+      "propCount": 68,
       "exampleCount": 14
     },
     {

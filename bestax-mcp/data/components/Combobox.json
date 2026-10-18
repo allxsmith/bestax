@@ -62,7 +62,7 @@
       "code": "function example() {\n  const drinks: Record<\n    string,\n    { value: string; label: string; disabled?: boolean }[]\n  > = {\n    Hot: [\n      { value: 'coffee', label: 'Coffee' },\n      { value: 'tea', label: 'Tea' },\n    ],\n    Cold: [\n      { value: 'lemonade', label: 'Lemonade' },\n      { value: 'iced-tea', label: 'Iced tea' },\n      { value: 'smoothie', label: 'Smoothie (sold out)', disabled: true },\n    ],\n  };\n  const [query, setQuery] = useState('');\n  const [value, setValue] = useState('tea');\n  const picked = Object.values(drinks)\n    .flat()\n    .find(i => i.value === value);\n  const term = query.trim().toLowerCase();\n  const groups = Object.entries(drinks)\n    .map(([label, items]) => ({\n      label,\n      items: items.filter(i => i.label.toLowerCase().includes(term)),\n    }))\n    .filter(g => g.items.length > 0);\n\n  return (\n    <form onSubmit={e => e.preventDefault()}>\n      <Combobox\n        label=\"Drink\"\n        message={`Your drink: ${picked?.label}`}\n        onSelect={next => {\n          setValue(next);\n          setQuery('');\n        }}\n      >\n        <Combobox.Input\n          iconLeftName=\"mug-hot\"\n          placeholder=\"Type to filter\"\n          value={query}\n          onChange={e => setQuery(e.target.value)}\n        />\n        <Combobox.Menu>\n          {groups.length > 0 ? (\n            <Combobox.List>\n              {groups.map(g => (\n                <Combobox.Group key={g.label} label={g.label}>\n                  {g.items.map(i => (\n                    <Combobox.Item\n                      key={i.value}\n                      value={i.value}\n                      checked={i.value === value}\n                      disabled={i.disabled}\n                    >\n                      {i.label}\n                    </Combobox.Item>\n                  ))}\n                </Combobox.Group>\n              ))}\n            </Combobox.List>\n          ) : (\n            <Combobox.Empty>No drinks match</Combobox.Empty>\n          )}\n        </Combobox.Menu>\n      </Combobox>\n      <Select label=\"Size\">\n        <option>Small</option>\n        <option>Medium</option>\n        <option>Large</option>\n      </Select>\n      <Input label=\"Name for the cup\" />\n      <Button type=\"submit\" color=\"primary\">\n        Order\n      </Button>\n    </form>\n  );\n}"
     }
   ],
-  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`. The list is a `listbox` of `option`s, and a group is a `group` named by\n  its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.\n- **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`.\n  When a key or the list opening moves the highlight, the item is scrolled into view, since a\n  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer\n  is already on that item. A click on an item keeps focus in the field too.\n- **`aria-expanded`** is `true` while a list with an item in it is on screen, and\n  `aria-controls` points at the list then. While the menu shows just the empty message, the\n  field says it's collapsed, and so does the server markup for a list rendered with\n  `appendToBody`, which shows only once the page has hydrated.\n- **The list's name** comes from the label that names the field: the Combobox's `label`, or an\n  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.List` wins, and\n  with none of these the list is named \"Suggestions\".\n- **`aria-selected`, with one value,** is on the highlighted item and nothing else, the way the\n  Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely\n  on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on\n  the chosen item instead.\n- **With `multiple`,** the list is `aria-multiselectable`, and each item's `aria-selected` is its\n  `checked`.\n- **Disabled items** are `aria-disabled` and stay reachable with the arrows, the Authoring\n  Practices' advice for listbox options, so a screen reader user finds them. They're never picked\n  or `aria-selected`, and the opening highlight and `keepFirst` pass over them.\n- **The empty message** sits beside the list, not in it, so it isn't counted as an item. When\n  your typing brings it on screen, its text is announced through a polite status region that's in\n  the page from the start, once each time the matches run out. Opening the list with it already\n  there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`\n  is around the Combobox, the announcement waits and is made once loading ends. In a menu,\n  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.\n  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.\n- **Tags,** with `multiple` and `data`: each tag's button is named \"Remove\" and the item's label,\n  and taking a tag off puts focus back in the field.\n- **No counts are announced,** for the reasons in [A Result Count](https://bestax.io/docs/api/form/combobox#a-result-count).\n- **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops\n  at the Combobox when it closed a panel that was on screen.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, a disabled item takes the system's color for disabled text, and the\n  check mark and the panel's edge stay visible.\n- **No motion:** nothing animates.",
+  "accessibility": "- **The roles:** the field is `role=\"combobox\"` with `aria-autocomplete=\"list\"` and\n  `aria-haspopup=\"listbox\"`. The list is a `listbox` of `option`s, and a group is a `group` named by\n  its heading. This is the ARIA 1.2 combobox the ARIA Authoring Practices describe.\n- **Focus stays in the field:** the highlighted item is the field's `aria-activedescendant`.\n  When a key or the list opening moves the highlight, the item is scrolled into view, since a\n  browser only scrolls to what has focus. The pointer moves it without scrolling, since the pointer\n  is already on that item. A click on an item keeps focus in the field too.\n- **`aria-expanded`** is `true` while a list with an item in it is on screen, and\n  `aria-controls` points at the list then. While the menu shows just the empty message, the\n  field says it's collapsed, and so does the server markup for a list rendered with\n  `appendToBody`, which shows only once the page has hydrated.\n- **The list's name** comes from the label that names the field: the Combobox's `label`, or an\n  outer `Field`'s. An `aria-label` or `aria-labelledby` you put on `Combobox.List` wins, and\n  with none of these the list is named \"Suggestions\". Given `data`, an `aria-label` or\n  `aria-labelledby` on the Combobox names the field and the list, so it needs no `label`.\n- **`aria-selected`, with one value,** is on the highlighted item and nothing else, the way the\n  Authoring Practices' combobox examples do it. The value shows as a check mark, which doesn't rely\n  on color, and the list opens with the highlight on it. Several libraries put `aria-selected` on\n  the chosen item instead.\n- **With `multiple`,** the list is `aria-multiselectable`, and each item's `aria-selected` is its\n  `checked`.\n- **Disabled items** are `aria-disabled` and stay reachable with the arrows, the Authoring\n  Practices' advice for listbox options, so a screen reader user finds them. They're never picked\n  or `aria-selected`, and the opening highlight and `keepFirst` pass over them.\n- **The empty message** sits beside the list, not in it, so it isn't counted as an item. When\n  your typing brings it on screen, its text is announced through a polite status region that's in\n  the page from the start, once each time the matches run out. Opening the list with it already\n  there, or emptying the field, announces nothing. While `isLoading` is on, or a loading `Control`\n  is around the Combobox, the announcement waits and is made once loading ends. In a menu,\n  keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.\n  An `inline` list stays on screen, so a link or a button beside it is in the Tab order.\n- **Tags,** with `multiple` and `data`: each tag's button is named \"Remove\" and the item's label,\n  and taking a tag off puts focus back in the field.\n- **No counts are announced,** for the reasons in [A Result Count](https://bestax.io/docs/api/form/combobox#a-result-count).\n- **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops\n  at the Combobox when it closed a panel that was on screen.\n- **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the\n  system's highlight color, a disabled item takes the system's color for disabled text, and the\n  check mark and the panel's edge stay visible.\n- **No motion:** nothing animates.",
   "related": [
     "Autocomplete",
     "Dropdown",
@@ -169,6 +169,60 @@
           "type": "(item: ComboboxItemData) => React.ReactNode",
           "default": null,
           "description": "Renders an item's content, with `data`, in place of its label. It's handed the item from `data`, a string there arriving as `{ value, label }`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "The field can't be used, with `data`: it can't be focused or typed in, its items can't be picked, its tags lose their buttons, and its hidden inputs don't post, the way a disabled field's value doesn't.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "A value is needed, with `data`. The field is `required` while nothing is picked, so the browser's own check stops the form the way it does for Autocomplete's field, and it's `aria-required` the whole time. The check reads the field's text, so typing without picking passes it until leaving the field puts the text back.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "The id of the form the value posts with, with `data`, for a field outside it. It goes on the hidden inputs, and on the field so that form checks `required` too.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "The field's `id`, with `data`, which the label then points at, and so can a label of your own. Built from parts, it lands on `div.combobox`, so give `Combobox.Input` the `id` instead.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the field and the list, with `data`, in place of a `label`. Built from parts, it lands on `div.combobox`, so put it on `Combobox.Input`.",
+          "required": false,
+          "inherited": true,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The ids of what names the field and the list, with `data`, in place of a `label`. Built from parts, it lands on `div.combobox`, so put it on `Combobox.Input`.",
           "required": false,
           "inherited": true,
           "deprecated": false
