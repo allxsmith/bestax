@@ -46,6 +46,12 @@ export interface Modifier {
    * so the element stays markup instead.
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
+  /**
+   * The tag the target renders with this class's prop and no `as`, in place
+   * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
+   * converts with `as` only on another tag.
+   */
+  readonly rendersTag?: string;
 }
 
 /**
@@ -1834,48 +1840,51 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ownProps: ['textColor', 'bgColor', 'color', 'iconProps', 'items'],
   },
   // `Image` renders `.image` and the `<img>` inside it together, from `src`
-  // and `alt`. A ratio stays a class: as `size`, it adds `has-ratio` too.
+  // and `alt`. A ratio as `size` puts it on a <figure> unless `as` says
+  // otherwise.
   image: {
     ...BASE,
     target: 'Image',
     tag: 'div',
     as: ['div', 'figure', 'p'],
-    modifiers: tokens(
-      'is-',
-      [
-        '16x16',
-        '24x24',
-        '32x32',
-        '48x48',
-        '64x64',
-        '96x96',
-        '128x128',
-        'square',
-      ],
-      'size'
-    ),
-    omits: Object.fromEntries(
-      [
-        '1by1',
-        '5by4',
-        '4by3',
-        '3by2',
-        '5by3',
-        '16by9',
-        '2by1',
-        '3by1',
-        '4by5',
-        '3by4',
-        '2by3',
-        '3by5',
-        '9by16',
-        '1by2',
-        '1by3',
-      ].map(ratio => [
-        `is-${ratio}`,
-        '`size` renders `has-ratio` beside it as well',
-      ])
-    ),
+    modifiers: {
+      ...tokens(
+        'is-',
+        [
+          '16x16',
+          '24x24',
+          '32x32',
+          '48x48',
+          '64x64',
+          '96x96',
+          '128x128',
+          'square',
+        ],
+        'size'
+      ),
+      ...Object.fromEntries(
+        [
+          '1by1',
+          '5by4',
+          '4by3',
+          '3by2',
+          '5by3',
+          '16by9',
+          '2by1',
+          '3by1',
+          '4by5',
+          '3by4',
+          '2by3',
+          '3by5',
+          '9by16',
+          '1by2',
+          '1by3',
+        ].map(ratio => [
+          `is-${ratio}`,
+          { ...set('size', ratio), rendersTag: 'figure' },
+        ])
+      ),
+    },
     absorbs: {
       tag: 'img',
       attributesOn: 'element',

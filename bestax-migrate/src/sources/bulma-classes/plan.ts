@@ -762,6 +762,10 @@ export function plan(facts: ElementFacts): Plan {
   if (entry.sizeDrivesTag && tag !== 'p' && writes.has('size')) {
     renders = `h${writes.get('size')}`;
   }
+  for (const token of converted) {
+    const retagged = modifierFor(entry, token)?.rendersTag;
+    if (retagged) renders = retagged;
+  }
   let as: string | undefined;
   if (renders !== tag) {
     const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);

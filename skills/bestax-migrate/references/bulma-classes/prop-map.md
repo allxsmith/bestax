@@ -103,7 +103,8 @@ renders the same `<h2>`.
 | the `<select>` inside `.select`                                              | `is-hovered`, `is-focused`                                                                                                                       | `isHovered`, `isFocused`                                                                          |
 | `.hero` → `Hero`                                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-light`, `is-dark`                       | `color`                                                                                           |
 | `.hero` → `Hero`                                                             | `is-small`, `is-medium`, `is-large`, `is-fullheight`, `is-fullheight-with-navbar`                                                                | `size`                                                                                            |
-| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size` (a ratio such as `is-4by3` stays a class, since `size` would add `has-ratio`)              |
+| `.image` → `Image`                                                           | `is-16x16`, `is-24x24`, `is-32x32`, `is-48x48`, `is-64x64`, `is-96x96`, `is-128x128`, `is-square`                                                | `size`                                                                                            |
+| `.image` → `Image`                                                           | `is-{ratio}`, for each ratio listed under Helper classes                                                                                         | `size`, on the `<figure>` it renders for a ratio with no `as`                                     |
 | the `<img>` inside `.image`                                                  | `is-rounded`                                                                                                                                     | `isRounded`                                                                                       |
 | `.icon` → `Icon`                                                             | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.tabs` → `Tabs`                                                             | `is-centered`, `is-right`, `is-left`                                                                                                             | `align`                                                                                           |
@@ -225,6 +226,6 @@ Some classes stay put because of how bestax renders them:
 ## Classes that stay classes
 
 Color shades (`has-text-primary-65`), the `-touch` and `-only` breakpoints of text size and
-alignment, Grid and `.image` modifiers away from their own element, an `.image` ratio, and the
+alignment, Grid and `.image` modifiers away from their own element, and the
 Bulma helpers bestax has no prop for (`is-display-*`, `is-visibility-*`, `is-float-*`,
 `is-clear-*`, …) stay in `className`. They render exactly as before.

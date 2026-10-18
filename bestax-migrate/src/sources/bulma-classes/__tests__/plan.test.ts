@@ -847,10 +847,82 @@ describe('plan', () => {
       ]);
       // An <iframe> is the same: it stays as written.
       const iframe = { ...img({ src: 'v' }), tag: 'iframe' };
+      const framed = plan(
+        facts('figure', 'image is-16by9', {}, { soleChild: iframe })
+      ).conversion;
+      expect(framed?.absorbs).toBeUndefined();
+      expect(framed?.props).toEqual([['size', '16by9']]);
+      expect(framed?.className).toBeNull();
+    });
+
+    it('writes a ratio as `size`, with `as` only off the <figure> it renders', () => {
+      const ratio = (tag: string) =>
+        plan(facts(tag, 'image is-4by3', {}, { soleChild: img({ src: 'a' }) }))
+          .conversion;
+      expect(ratio('figure')).toMatchObject({
+        target: 'Image',
+        props: [['size', '4by3']],
+        className: null,
+      });
+      expect(ratio('figure')?.absorbs).toBeDefined();
+      expect(ratio('div')?.props).toEqual([
+        ['as', 'div'],
+        ['size', '4by3'],
+      ]);
+      expect(ratio('p')?.props).toEqual([
+        ['as', 'p'],
+        ['size', '4by3'],
+      ]);
+      // A fixed size renders the root's own <div>, so a <figure> keeps `as`.
       expect(
-        plan(facts('figure', 'image is-16by9', {}, { soleChild: iframe }))
-          .conversion?.className
-      ).toBe('is-16by9');
+        plan(
+          facts(
+            'figure',
+            'image is-square',
+            {},
+            { soleChild: img({ src: 'a' }) }
+          )
+        ).conversion?.props
+      ).toEqual([
+        ['as', 'figure'],
+        ['size', 'square'],
+      ]);
+    });
+
+    it('keeps a second size as a class, and the tag the first one renders', () => {
+      const both = plan(
+        facts(
+          'div',
+          'image is-128x128 is-16by9',
+          {},
+          { soleChild: img({ src: 'a' }) }
+        )
+      ).conversion;
+      expect(both?.props).toEqual([['size', '128x128']]);
+      expect(both?.className).toBe('is-16by9');
+      const ratioFirst = plan(
+        facts(
+          'figure',
+          'image is-16by9 is-128x128',
+          {},
+          { soleChild: img({ src: 'a' }) }
+        )
+      ).conversion;
+      expect(ratioFirst?.props).toEqual([['size', '16by9']]);
+      expect(ratioFirst?.className).toBe('is-128x128');
+    });
+
+    it('leaves a ratio a condition adds in the joiner, on the tag written out', () => {
+      const { conversion } = plan(
+        facts(
+          'figure',
+          'image',
+          {},
+          { soleChild: img({ src: 'a' }), conditional: [['is-16by9']] }
+        )
+      );
+      expect(conversion?.props).toEqual([['as', 'figure']]);
+      expect(conversion?.conditional).toBeUndefined();
     });
 
     it("keeps it as markup around children it can't tell are never empty", () => {
