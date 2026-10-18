@@ -21,6 +21,7 @@ import {
   keepingMost,
   outputPathFor,
   pageDisplayOf,
+  pagesBeside,
   transformHtml,
 } from '../html.js';
 import { HTML_KINDS, htmlRuleId, inHtmlVocabulary } from '../html-rules.js';
@@ -151,6 +152,42 @@ describe('naming and placing the module', () => {
     expect(componentName(file)).toBe(name);
   });
 
+  it("names an index.html with pages beside it the site's home page", () => {
+    const index = path.join('scratch', 'index.html');
+    expect(componentName(index, ['about.html', 'contact.htm'])).toBe(
+      'HomePage'
+    );
+    // Unless a page beside it is named that already.
+    expect(componentName(index, ['about.html', 'home.html'])).toBe(
+      'ScratchPage'
+    );
+    // The pages beside it name only an index.html.
+    expect(componentName('about.html', ['index.html'])).toBe('AboutPage');
+  });
+
+  it('reads the other pages in the folder, and names the module from them', () => {
+    const dir = tempDir();
+    const site = path.join(dir, 'convert');
+    fs.mkdirSync(path.join(site, 'fruits.html'), { recursive: true });
+    fs.symlinkSync(
+      path.join(dir, 'nowhere.html'),
+      path.join(site, 'broken.html')
+    );
+    const index = path.join(site, 'index.html');
+    // A folder named like a page is no page, and neither is a broken link.
+    expect(pagesBeside(index)).toEqual([]);
+    expect(convert(box, {}, index).output).toContain(
+      'export default function ConvertPage() {'
+    );
+    fs.writeFileSync(path.join(site, 'services.html'), box);
+    fs.writeFileSync(path.join(site, 'style.css'), '');
+    expect(pagesBeside(index)).toEqual(['services.html']);
+    expect(convert(box, {}, index).output).toContain(
+      'export default function HomePage() {'
+    );
+    expect(pagesBeside(path.join(dir, 'gone', 'index.html'))).toEqual([]);
+  });
+
   it('writes beside the page, .tsx only when the package says TypeScript', () => {
     const dir = tempDir();
     const page = path.join(dir, 'pages', 'hero.html');
@@ -271,6 +308,104 @@ describe('the report', () => {
       { line: 3, rule: 'html-head:link' },
       { line: 4, rule: 'html-head' },
     ]);
+  });
+
+  it('gives a Content Security Policy an entry of its own, apart from the other metas', () => {
+    const page = [
+      '<!DOCTYPE html><html><head>',
+      '<meta charset="utf-8">',
+      `<meta http-equiv="Content-Security-Policy" content="default-src 'self'">`,
+      '<meta http-equiv="refresh" content="30">',
+      `</head><body>${box}</body></html>`,
+    ].join('\n');
+    const { entries, output } = convert(page);
+    expect(entries.map(({ line, rule }) => ({ line, rule }))).toEqual([
+      { line: 2, rule: 'html-head:meta' },
+      { line: 3, rule: 'html-head:csp' },
+    ]);
+    expect(entries[0].message).toContain('(charset, refresh)');
+    expect(entries[1].message).toContain(
+      "it can block what the app loads instead (a Vite dev server runs an inline script for React's fast refresh"
+    );
+    expect(output).toMatch(/Content Security Policy.*\(case\.html:3\)$/m);
+  });
+
+  it("puts JSON-LD for the whole site in the app's index.html, and a page's own where its head is set", () => {
+    const { entries } = convert(
+      `${box}<script type="application/ld+json">{"@type": "Person"}</script>\n`
+    );
+    expect(entries).toEqual([
+      expect.objectContaining({
+        rule: 'html-script:json-ld',
+        message: expect.stringContaining(
+          "goes in the app's index.html as it is, where a crawler that runs no JavaScript still reads it, and data that differs from page to page goes where the app sets each page's head"
+        ),
+      }),
+    ]);
+  });
+
+  it("puts a page's scheme on <html> first, and gives a toggle the head script and Theme", () => {
+    const { entries } = convert(
+      `<!DOCTYPE html><html data-theme="light"><body class="theme-dark">${box}</body></html>`
+    );
+    expect(entries.map(entry => entry.rule)).toEqual([
+      'html-document:data-theme',
+      'html-document:theme-dark',
+    ]);
+    for (const { message } of entries) {
+      expect(message).toContain(
+        "put it on the `<html>` in the app's index.html, where the first paint has it; for a scheme the visitor switches, write `data-theme` there from an inline `<head>` script before that paint, and drive the toggle with bestax's `Theme colorMode`"
+      );
+      expect(message).toContain("the bestax-theming skill's dark-mode example");
+      expect(message).not.toContain('<Theme colorMode');
+    }
+  });
+
+  it("says a stray character in a tag is one, rather than a framework's directive", () => {
+    const { entries, output } = convert(
+      `${box}<figure class="image is-64x64" \\><img src="https://example.com/a.png" alt=""></figure>\n<div @click="go" class="box">y</div>\n`
+    );
+    expect(entries.map(({ line, rule }) => ({ line, rule }))).toEqual([
+      { line: 2, rule: 'html-attr:stray' },
+      { line: 3, rule: 'html-attr:name' },
+    ]);
+    expect(entries[0].message).toMatch(
+      /^`\\` in the tag is a stray character, a typo/
+    );
+    expect(entries[0].message).not.toContain('directive');
+    expect(entries[1].message).toContain('directive');
+    expect(output).toContain('<Image as="figure" size="64x64"');
+  });
+
+  it("leaves out a textarea's type, which the browser ignores and React's types reject", () => {
+    const { entries, output } = convert(
+      `<div class="field"><div class="control"><textarea class="textarea" type="text" id="m"></textarea></div></div>\n`
+    );
+    expect(entries).toEqual([
+      expect.objectContaining({
+        line: 1,
+        rule: 'html-attr:ignored',
+        message: expect.stringMatching(
+          /^`type` was left out: HTML gives a `<textarea>` no `type` attribute/
+        ),
+      }),
+    ]);
+    expect(output).toContain('<TextAreaBase id="m" />');
+  });
+
+  it('writes the page lines on a planner TODO that several elements share', () => {
+    const { entries, output } = convert(
+      `${box}<span class="icon"><i class="fas fa-home"></i></span>\n<span class="icon"><i class="fas fa-user"></i></span>\n<span class="box">z</span>\n`
+    );
+    expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
+      '2:defaults:Icon',
+      '3:defaults:Icon',
+      '4:tag:Box',
+    ]);
+    const todos = output!.match(/^ {2}\/\/ TODO\(bestax-migrate\).*$/gm);
+    expect(todos).toHaveLength(2);
+    expect(todos![0]).toMatch(/`Icon`.*\(case\.html:2, 3\)$/);
+    expect(todos![1]).toMatch(/`Box`.*\(case\.html:4\)$/);
   });
 
   it('reports what <html> and <body> carry', () => {

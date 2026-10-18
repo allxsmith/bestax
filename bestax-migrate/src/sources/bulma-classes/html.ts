@@ -182,17 +182,8 @@ export const pageDisplayOf: DisplayOf = element => {
 
 // ---- Naming and placing the module -----------------------------------------
 
-/**
- * The component a page becomes: its file's name in PascalCase (its folder's
- * for an `index.html`) and `Page`, so `hero.html` can't shadow bestax's
- * `Hero`. A name starting with a digit starts with `Page` instead
- * (`404.html` is `Page404`), and one with nothing to go by is `Page`.
- */
-export function componentName(file: string): string {
-  const stem = path.basename(file, path.extname(file));
-  const named = /^index$/i.test(stem)
-    ? path.basename(path.dirname(path.resolve(file)))
-    : stem;
+/** A page's name with nothing but its words, as a component's name. */
+function pageName(named: string): string {
   const words = named.split(/[^\p{L}\p{Nd}]+/u).filter(Boolean);
   const pascal = words
     .map(word => {
@@ -205,6 +196,57 @@ export function componentName(file: string): string {
   else if (pascal.endsWith('Page')) name = pascal;
   else name = `${pascal}Page`;
   return /^[\p{ID_Start}$_][\p{ID_Continue}$]*$/u.test(name) ? name : 'Page';
+}
+
+const HOME = 'HomePage';
+
+/**
+ * The component a page becomes: its file's name in PascalCase and `Page`, so
+ * `hero.html` can't shadow bestax's `Hero`. A name starting with a digit
+ * starts with `Page` instead (`404.html` is `Page404`), and one with nothing
+ * to go by is `Page`. An `index.html` is named after its folder, unless other
+ * pages sit beside it (`siblings`, their file names, read from its folder
+ * when not given): then it is the site's home page, `HomePage`, as long as
+ * none of them is named that already.
+ */
+export function componentName(
+  file: string,
+  siblings?: readonly string[]
+): string {
+  const stem = path.basename(file, path.extname(file));
+  if (!/^index$/i.test(stem)) return pageName(stem);
+  const beside = siblings ?? pagesBeside(file);
+  const home =
+    beside.length > 0 &&
+    beside.every(
+      sibling =>
+        pageName(path.basename(sibling, path.extname(sibling))) !== HOME
+    );
+  return home
+    ? HOME
+    : pageName(path.basename(path.dirname(path.resolve(file))));
+}
+
+/** The other HTML pages in a page's folder, by file name. */
+export function pagesBeside(file: string): string[] {
+  const dir = path.dirname(path.resolve(file));
+  let names: string[];
+  try {
+    names = fs.readdirSync(dir);
+  } catch {
+    return [];
+  }
+  const own = path.basename(file);
+  const isPage = (name: string) => {
+    try {
+      return fs.statSync(path.join(dir, name)).isFile();
+    } catch {
+      return false;
+    }
+  };
+  return names
+    .filter(name => name !== own && /\.html?$/i.test(name) && isPage(name))
+    .sort();
 }
 
 /**
@@ -312,7 +354,7 @@ const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'theme',
     /data-theme|dataset\.theme|theme-(?:dark|light)|prefers-color-scheme/,
-    "switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state, saved in `localStorage`, and pass it; `Theme` writes the attribute from an effect, after the first paint, so for a saved choice to paint first, keep a small inline script in the `<head>` of the app's index.html that reads it (or the OS's, with none saved) and writes `data-theme` before the app loads, and start the state from what that script wrote",
+    "switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state, saved in `localStorage`, and pass it; `Theme` writes the attribute from an effect, after the first paint, so for a saved choice to paint first, keep a small inline script in the `<head>` of the app's index.html that reads it (or the OS's, with none saved) and writes `data-theme` before the app loads, and start the state from what that script wrote (the bestax-theming skill's dark-mode example has both)",
   ],
 ];
 
@@ -373,7 +415,7 @@ function scriptNotes(script: Element, page: PageContext): Note[] {
     return [
       {
         rule: htmlRuleId('html-script', 'json-ld'),
-        message: `structured data for search engines (JSON-LD) was dropped with the page's scripts: render it where the app sets each page's head, as \`<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />\`; the JSON is ${kept}`,
+        message: `structured data for search engines (JSON-LD) was dropped with the page's scripts: data about the whole site, or about a single-page app's one page, goes in the app's index.html as it is, where a crawler that runs no JavaScript still reads it, and data that differs from page to page goes where the app sets each page's head, as \`<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />\`; the JSON is ${kept}`,
         line,
         endLine,
       },
@@ -639,6 +681,14 @@ function assetNotes(
   return { notes, importsBulma };
 }
 
+/** A `<meta http-equiv>` that sets the page's Content Security Policy. */
+function isCsp(meta: Element): boolean {
+  return (
+    (attributeOf(meta, 'http-equiv') ?? '').trim().toLowerCase() ===
+    'content-security-policy'
+  );
+}
+
 /** What a `<meta>` is for: its `name`, `property`, `http-equiv` or charset. */
 function metaKind(meta: Element): string {
   if (attributeOf(meta, 'charset') !== undefined) return 'charset';
@@ -673,7 +723,17 @@ function headNotes(head: ChildNode[], notes: Note[], page: PageContext): void {
         });
         break;
       case 'meta':
-        metas.push(node);
+        if (isCsp(node)) {
+          notes.push({
+            rule: htmlRuleId('html-head', 'csp'),
+            message:
+              "the page's `<head>` sets a Content Security Policy in a `<meta http-equiv>`, which a component can't carry: it was written for what this page loads, and copied into the app's index.html as it is, it can block what the app loads instead (a Vite dev server runs an inline script for React's fast refresh and opens a socket for hot reloading, and the build serves the app's own scripts, styles and fonts), so write the app's own policy, best sent as a response header, and try it under both the dev server and the build",
+            line,
+            endLine,
+          });
+        } else {
+          metas.push(node);
+        }
         break;
       case 'link': {
         const rel = (attributeOf(node, 'rel') ?? '').toLowerCase().split(/\s+/);
@@ -738,6 +798,15 @@ function headNotes(head: ChildNode[], notes: Note[], page: PageContext): void {
 /** Bulma's light and dark schemes, by `data-theme` value. */
 const SCHEMES = new Set(['light', 'dark']);
 
+/**
+ * Where a page's scheme goes in the app: on its `<html>`, which the first
+ * paint reads, since `Theme` writes the attribute from an effect, after it.
+ */
+const SCHEME_ON_HTML =
+  "put it on the `<html>` in the app's index.html, where the first paint has it";
+const SCHEME_TOGGLE =
+  "for a scheme the visitor switches, write `data-theme` there from an inline `<head>` script before that paint, and drive the toggle with bestax's `Theme colorMode`, which on its own writes from an effect, after a first frame in the OS's scheme (the bestax-theming skill's dark-mode example has both)";
+
 function documentAttributeNotes(
   where: 'html' | 'body',
   element: Element | undefined,
@@ -771,7 +840,7 @@ function documentAttributeNotes(
         } else if (THEME_CLASSES.includes(token)) {
           notes.push({
             rule: htmlRuleId('html-document', token),
-            message: `the page's \`<${where}>\` has \`${token}\`, which sets Bulma's ${token.slice(6)} scheme: put it on the \`<html>\` in the app's index.html, or render bestax's \`<Theme colorMode="${token.slice(6)}">\`, which writes \`data-theme\` on \`<html>\``,
+            message: `the page's \`<${where}>\` has \`${token}\`, which sets Bulma's ${token.slice(6)} scheme: ${SCHEME_ON_HTML}; ${SCHEME_TOGGLE}`,
             line,
           });
         } else {
@@ -791,10 +860,8 @@ function documentAttributeNotes(
       const scheme = value.trim().toLowerCase();
       notes.push({
         rule: htmlRuleId('html-document', name),
-        message: `the page's \`<${where}>\` has \`data-theme="${quote(value)}"\`, which sets Bulma's color scheme: put it on the \`<html>\` in the app's index.html${
-          SCHEMES.has(scheme)
-            ? `, or render bestax's \`<Theme colorMode="${scheme}">\`, which writes it on \`<html>\``
-            : ''
+        message: `the page's \`<${where}>\` has \`data-theme="${quote(value)}"\`, which sets Bulma's color scheme: ${SCHEME_ON_HTML}${
+          SCHEMES.has(scheme) ? `; ${SCHEME_TOGGLE}` : ''
         }`,
         line,
       });
@@ -887,9 +954,24 @@ function convertedNote(issue: Reported): Note {
         line,
       };
     case 'attribute-name':
+      // A name with no letter or digit in it is no directive: it is a stray
+      // character the browser read as an attribute (`<figure … \>`).
+      if (!/[\p{L}\p{N}]/u.test(token)) {
+        return {
+          rule: htmlRuleId('html-attr', 'stray'),
+          message: `\`${quote(token, 20)}\` in the tag is a stray character, a typo (such as \`\\>\` meant as \`/>\`) that the browser read as the name of an empty attribute: it was left out, so there is nothing to port, and it can go from the page too`,
+          line,
+        };
+      }
       return {
         rule: htmlRuleId('html-attr', 'name'),
         message: `the attribute \`${token}\` was left out, since JSX can't write that name (a framework's directive, such as \`@click\` or \`:class\`, is code to port into the component), or the element already has it under another spelling`,
+        line,
+      };
+    case 'ignored-attribute':
+      return {
+        rule: htmlRuleId('html-attr', 'ignored'),
+        message: `\`${token}\` was left out: HTML gives a \`<${issue.detail}>\` no \`${token}\` attribute, so the browser ignored it, and React's types reject it there; there is nothing to port, unless a stylesheet or script of the page's selects on it`,
         line,
       };
     case 'unknown-attribute':
@@ -1115,7 +1197,7 @@ function outsideCommentLines(comments: CommentNode[]): string[] {
 }
 
 function todoLine(note: Note, page: string): string {
-  const message = note.message.replace(/[\r\n\u2028\u2029]+/g, ' ').trim();
+  const message = todoText(note.message);
   const at =
     note.line === null
       ? ''
@@ -1336,16 +1418,19 @@ export function convertPage(
   }
   // The transform reads the module's path, so the gates for a server
   // component or another JSX runtime apply to it; its report names the page.
+  const planned = new Map<string, number[]>();
   const onPage: TodoCollector = {
-    add: entry =>
-      collector?.add({
-        ...entry,
-        file,
-        line:
-          entry.line === null || entry.line < jsxStart
-            ? null
-            : emitted.htmlLineOf(entry.line - jsxStart + 1),
-      }),
+    add: entry => {
+      const line =
+        entry.line === null || entry.line < jsxStart
+          ? null
+          : emitted.htmlLineOf(entry.line - jsxStart + 1);
+      if (line !== null) {
+        const text = todoText(entry.message);
+        planned.set(text, [...(planned.get(text) ?? []), line]);
+      }
+      collector?.add({ ...entry, file, line });
+    },
   };
   const { output } = runTransform(transform, outputPath, intermediate, onPage, {
     ...options,
@@ -1353,9 +1438,39 @@ export function convertPage(
   });
   return {
     outputPath,
-    output: finishModule(output ?? intermediate),
+    output: finishModule(withPageLines(output ?? intermediate, planned, page)),
     intermediate,
   };
+}
+
+/** A TODO's message as its comment writes it, on one line. */
+function todoText(message: string): string {
+  return message.replace(/[\r\n\u2028\u2029]+/g, ' ').trim();
+}
+
+/**
+ * The planner's TODO lines, each with the page's lines it is about. The
+ * transform writes one line for each message, however many elements share
+ * it (five `.icon`s missing the same attribute), above the `return`, so the
+ * lines go on after, the way the page's own notes carry theirs. Nothing from
+ * the `return` on is read, since the page's text is there.
+ */
+function withPageLines(
+  code: string,
+  planned: ReadonlyMap<string, readonly number[]>,
+  page: string
+): string {
+  if (planned.size === 0) return code;
+  const lines = code.split('\n');
+  for (let i = 0; i < lines.length; i++) {
+    if (/^\s*return\b/.test(lines[i])) break;
+    const todo = /^\s*\/\/ TODO\(bestax-migrate\): (.*)$/.exec(lines[i]);
+    const on = todo ? planned.get(todo[1]) : undefined;
+    if (!on) continue;
+    const at = [...new Set(on)].sort((a, b) => a - b).join(', ');
+    lines[i] = `${lines[i]} (${page}:${at})`;
+  }
+  return lines.join('\n');
 }
 
 /** The `transformHtml` the CLI calls. */

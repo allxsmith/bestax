@@ -133,8 +133,10 @@ const LEFTOVER_RULES = [
   'html-asset:jquery',
   'html-asset:stylesheet',
   'html-asset:webfont',
+  'html-attr:ignored',
   'html-attr:important',
   'html-attr:name',
+  'html-attr:stray',
   'html-attr:style',
   'html-attr:unknown',
   'html-attr:unknown',
@@ -152,6 +154,7 @@ const LEFTOVER_RULES = [
   'html-event:onload',
   'html-head',
   'html-head:base',
+  'html-head:csp',
   'html-head:link',
   'html-head:meta',
   'html-head:style',
@@ -243,7 +246,7 @@ describe('bulma-classes HTML kitchen-sink e2e', () => {
     const lines = (site.todos.get('pages/leftovers.html') ?? [])
       .filter(entry => entry.rule === 'html-event:onclick')
       .map(entry => entry.line);
-    expect(lines).toEqual([43]);
+    expect(lines).toEqual([44]);
   });
 
   it('documents every TODO rule it emits in the skill reference', () => {
