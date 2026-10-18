@@ -1496,6 +1496,22 @@ describe('plan', () => {
       );
     });
 
+    it('keeps a list with a role of its own as markup, since Menu.List writes role="list"', () => {
+      // Written after its props, for Safari. No role, or `list`, is the same
+      // list; any other role would be lost.
+      const list = (attributes: Record<string, string | null>) =>
+        plan(facts('ul', 'menu-list', attributes));
+      expect(list({ role: 'list' }).conversion?.target).toBe('Menu.List');
+      for (const role of ['menu', 'note', null]) {
+        const { conversion, todos } = list({ role });
+        expect(conversion).toBeNull();
+        expect(todos.map(todo => todo.rule)).toEqual(['attr:role']);
+      }
+      expect(list({ role: 'menu' }).todos[0].message).toBe(
+        'bestax `Menu.List` keeps a <ul>\'s `role` only as `list`, and writes `role="list"` in place of anything else, so this one converts only with no `role` or as one of those; keep this element as markup'
+      );
+    });
+
     it('keeps a list inside another as markup, since Menu.List drops the class there', () => {
       for (const around of [
         { classesAround: ['menu-list'] },

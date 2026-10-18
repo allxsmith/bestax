@@ -143,8 +143,7 @@ them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go
 built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
 `div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
 `role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
-convenience input drops its `label`, and an `inline` date/time picker or a `Taginput` at `maxTags`
-has no visible input to wire.
+convenience input drops its `label`, and an `inline` date/time picker has no visible input to wire.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not

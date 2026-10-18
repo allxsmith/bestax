@@ -189,7 +189,7 @@ value is flagged. The same conversion covers the modifiers bestax has no prop fo
 bloomer forwarded no refs. bestax forwards a ref from the form controls, plus `Avatar`, `Button`,
 `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`, `Kbd.Group`, `Link`,
 `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast` and
+`Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Timeline`, `Timeline.Item`, `Toast` and
 `ToggleButton` — pass `ref` directly on those. "The form controls" means the inputs themselves: the
 `Field`, `Field.Label`, `Field.Body`, `Checkboxes` and `Radios` wrappers around them forward
 nothing.

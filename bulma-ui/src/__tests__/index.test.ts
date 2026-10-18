@@ -173,6 +173,8 @@ const PUBLIC_EXPORTS = [
   'Theme',
   'TimeInput',
   'TimeInputBase',
+  'Timeline',
+  'TimelineItem',
   'Title',
   'Toast',
   'ToastContainer',

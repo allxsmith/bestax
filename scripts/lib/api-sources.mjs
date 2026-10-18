@@ -273,6 +273,9 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/form/_timeinput.scss' },
     { pkg: 'bulma', path: 'sass/form/shared.scss' },
   ],
+  Timeline: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_timeline.scss' },
+  ],
   Title: [{ pkg: 'bulma', path: 'sass/elements/title.scss' }],
   Toast: [{ pkg: 'repo', path: 'bulma-ui/src/scss/components/_toast.scss' }],
   ToggleButton: [],

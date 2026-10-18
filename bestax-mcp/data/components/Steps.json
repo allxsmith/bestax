@@ -47,7 +47,7 @@
     }
   ],
   "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color",
-  "related": ["Progress"],
+  "related": ["Progress", "Timeline"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
   "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
   "import": "import { Steps } from '@allxsmith/bestax-bulma';",

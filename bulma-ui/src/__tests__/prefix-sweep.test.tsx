@@ -164,6 +164,25 @@ const PROPS: Record<string, Record<string, unknown>> = {
   EmptyStateDescription: { children: 'Projects you create show up here.' },
   EmptyStateIndicator: { children: <Library.Icon name="folder-open" /> },
   EmptyStateTitle: { children: 'No projects yet' },
+  // Progress, a pending item, a color, an icon marker and the alternate
+  // layout, so each class the Timeline family adds is swept.
+  Timeline: {
+    active: 0,
+    pending: 'Out for delivery',
+    align: 'alternate',
+    color: 'success',
+    children: [
+      <Library.Timeline.Item
+        key="placed"
+        title="Order placed"
+        time="12 October"
+        icon="box"
+        color="info"
+      />,
+      <Library.Timeline.Item key="shipped" title="Shipped" />,
+    ],
+  },
+  TimelineItem: { title: 'Shipped', time: '14 October', icon: 'truck' },
   // A symbol with a label, so its two spans are swept, and in a group with a
   // second key, so the separator is too.
   Kbd: { label: 'Command', children: '⌘' },

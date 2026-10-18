@@ -183,7 +183,7 @@ An existing `ref` is passed through untouched — which is safe only where the b
 one. rbx forwards a ref on every component; bestax does so on the form controls, plus `Avatar`,
 `Button`, `Carousel`, `CarouselItem`, `Dialog`, `Dropdown`, `EmptyState`, `Kbd`, `Kbd.Group`,
 `Link`, `LinkButton`, `Loader`, `Menu.Item`, `Modal`, `Navbar`, `Navbar.Burger`, `Navbar.Dropdown`,
-`Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Toast` and
+`Navbar.Item`, `Navbar.Link`, `SegmentedControl`, `SegmentedControl.Segment`, `Sidebar`, `Timeline`, `Timeline.Item`, `Toast` and
 `ToggleButton`. "The form controls" there means the inputs themselves: the `Field`, `Field.Label`,
 `Field.Body`, `Checkboxes` and `Radios` wrappers around them forward nothing, and `Field` is a
 target this codemod emits.
