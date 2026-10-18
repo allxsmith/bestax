@@ -612,8 +612,8 @@ function SidebarExample() {
 
 Full-page or container loading overlay with spinner. Supports cancel functionality and custom messages. [View full documentation.](../../api/components/loading.md)
 
-:::tip Live Preview Only
-The wrapper `<div>` with positioning styles is only needed to display this component within the docs preview. **Do not copy it** — in your app, `Loading` renders as a full-page overlay automatically.
+:::tip
+The wrapper `<div>` is the positioned container the overlay covers. In your app, render `Loading` directly inside the element it should cover and give that element `position: relative`, or pass `isFullPage` to cover the whole page.
 :::
 
 ```tsx live
