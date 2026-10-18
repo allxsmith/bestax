@@ -40,8 +40,10 @@ class strings you have to remember. The `bulma-classes` codemod moves that marku
 
 bestax renders Bulma's own classes, so the page renders the same. The codemod converts an
 element only when the component renders **the markup the element did**: same tag, same
-classes, same attributes, with only the order of the classes free to change. Everything else
-stays as you wrote it, with a `TODO(bestax-migrate)` comment when there's a decision to make.
+classes, same attributes, with only the order of the classes free to change. One exception is
+deliberate: Font Awesome's own `<i aria-hidden="true">` in a `.icon` becomes `Icon`, which puts
+that attribute on the `.icon` instead, and the glyph is hidden either way. Everything else stays
+as you wrote it, with a `TODO(bestax-migrate)` comment when there's a decision to make.
 
 ## Run the codemod
 
@@ -127,9 +129,9 @@ A couple of results look odd until you see why:
 - A `.icon` around a bare Font Awesome or Material Design Icons `<i>` becomes
   `<Icon library="fa" name="home" />`, the `<i>`'s style and other classes read as `variant` and
   `features`. `Icon` hides a decorative icon with `aria-hidden="true"` on the `.icon` itself, so
-  an icon with none there stays markup (`defaults:Icon`), and that includes Font Awesome's own
-  markup, which puts it on the `<i>`. The TODO says what to do for each: move the attribute up,
-  or add it to an icon whose link or button is named by its label, then re-run.
+  Font Awesome's own `aria-hidden` on the `<i>` moves up there. An icon hidden nowhere stays
+  markup (`defaults:Icon`), and the TODO says what to do: add the attribute to an icon whose link
+  or button is named by its label, or name an icon-only link first, then re-run.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
@@ -172,7 +174,7 @@ rule. The ones you'll see most:
 | `family:<class>`         | Rebuild that block from the component's docs page, parts and all                                       |
 | `tag:<Target>`           | Change the tag if you want the component, or keep the markup                                           |
 | `defaults:Delete`        | Add `type="button"` and a real `aria-label` to the `.delete` button, then re-run                       |
-| `defaults:Icon`          | Put `aria-hidden="true"` on a decorative `.icon`, not on its `<i>`, then re-run                        |
+| `defaults:Icon`          | Put `aria-hidden="true"` on a decorative `.icon`, naming an icon-only link first, then re-run          |
 | `ref:<Target>`           | Keep the element; the component won't pass the ref through                                             |
 | `rsc`                    | Add `'use client'` if the file can be a client component, then re-run                                  |
 | `legacy:tile`            | Rebuild tiles with [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |
