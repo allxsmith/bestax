@@ -381,35 +381,125 @@ A component renders into the `<body>` of the app's own document, so nothing in t
 - **`html-head`**: anything else in the head (a `<noscript>`, a `<template>`). Move it into
   `index.html` if the app needs it.
 
-### Stylesheets and scripts it loads: `html-asset`
+### Stylesheets and scripts it loads: `html-asset:<kind>`
 
-Each `<link rel="stylesheet">` and `<script src>`. A component loads neither, so load each one
-once for the whole app, from its entry module or `index.html`.
+Each `<link rel="stylesheet">` and `<script src>`, by what its URL says it is. A component loads
+neither, so load what the app still needs once for the whole app, from its entry module or
+`index.html`. The TODO quotes the URL.
 
-- **Bulma's own stylesheet** keeps the classes styled. The codemod writes no import for it.
-  Under the default `--css keep`, keep loading Bulma (`import 'bulma/css/bulma.min.css'` in the
-  entry, with `bulma` installed, or the CDN `<link>` in `index.html`). Under `--css bestax`, import
-  `@allxsmith/bestax-bulma/bestax.css` instead, and under `--css bulma`, Bulma's stylesheet and
-  `@allxsmith/bestax-bulma/extras.css`. `bestax.css` builds Bulma with bestax's own primary, so a
-  page made for stock Bulma changes color under `--css bestax`; to keep it, set the
-  `--bulma-primary-*` variables as [css-migration.md](../css-migration.md) says, or use
-  `--css bulma`.
-- **An icon font** (Font Awesome): keep loading it. bestax's `Icon` writes the font's classes and
-  loads no font of its own.
-- **Web fonts and the site's own CSS**: load them once, the same way.
-- **A script**: the component runs none. Load a library the app still needs in `index.html` (or
-  install it), and replace what the page's own scripts did with React code; `html-script:<pattern>`
-  names the usual ones.
+- **`html-asset:bulma`**: Bulma's own stylesheet, with the version its URL names
+  (`bulma@0.9.4`, or none for a copy of the page's own).
+  - Under the default `--css keep` it is only reported: keep loading Bulma
+    (`import 'bulma/css/bulma.min.css'` in the entry, with that version of `bulma` installed, or the
+    CDN `<link>` in `index.html`).
+  - Under `--css bestax` the module imports `@allxsmith/bestax-bulma/bestax.css` in the link's
+    place, and under `--css bulma` it imports `bulma/css/bulma.min.css` and
+    `@allxsmith/bestax-bulma/extras.css`, the way the same import in a JSX file is retargeted, so the
+    package.json step sees the module's `bulma` import too. One import from each page module is
+    fine, since the bundler loads it once. What is left gets the TODO: a page made for Bulma 0.9, or
+    one whose URL doesn't say, moves to Bulma 1 (the docs' Bulma 0.9 to 1 guide), and under
+    `--css bestax` a page with a primary color class (`is-primary`, `has-text-primary`) changes
+    color, since `bestax.css` builds Bulma with bestax's own primary. To keep it, set the
+    `--bulma-primary-*` variables as [css-migration.md](../css-migration.md) says, or use
+    `--css bulma`. A Bulma 1 page with no primary class gets the import and no TODO. A TypeScript
+    build resolves the import through the bundler's CSS types (Vite's `vite/client`), as it does
+    every stylesheet import.
+  - No import is written in a Next.js app, whose Pages Router takes a global stylesheet only in
+    `pages/_app`, nor for a link with a media query (`media="print"`), since an import applies to
+    every medium. The TODO says where it goes instead: the root layout or `pages/_app`, or a
+    `<link>` with the same `media` in `index.html`.
+  - One of Bulma's other builds (`bulma-no-dark-mode`, `bulma-prefixed`, 0.9's `bulma-rtl`) is
+    reported in every mode, since the codemod imports only the standard one. bestax's own builds,
+    Bulma with its extras, are under `@allxsmith/bestax-bulma/versions/`.
+- **`html-asset:font-awesome`**: Font Awesome, with the major its URL names. bestax's `Icon`
+  writes its classes (`fas fa-<name>`) and loads no font of its own, so keep loading it, from the
+  `<link>` in `index.html` or from npm: bestax-bulma's optional peer range for
+  `@fortawesome/fontawesome-free` is `^6.7.2 || ^7.0.0`, and an older one fails `npm install`
+  with `ERESOLVE`.
+  - 6 and 7: keep it as it is, or install it and import its `css/all.min.css` from the entry.
+  - 5: the CDN link keeps working, since 5 reads the classes `Icon` writes. From npm, take 6 or 7,
+    which still read 5's names.
+  - 4: its classes are `fa fa-<name>`, and `Icon` writes `fas fa-<name>`, which 4 doesn't style.
+    Install 6 or 7 with `css/all.min.css`, then either import `css/v4-shims.min.css` beside it so
+    the page's 4 names keep working, or move them to the current names (`fa-envelope-o` is
+    `envelope` with `variant="regular"`).
+  - A kit (`kit.fontawesome.com`): keep loading it from `index.html`, or install Font Awesome from
+    npm instead. A URL with no version: the same, with the v4 shims beside it if the page's names
+    are 4's (`fa fa-<name>`).
+- **`html-asset:bulma-extension`**: a `bulma-*` package (or `@creativebulma/bulma-*`). An
+  extension's stylesheet and script are one TODO, with both lines. Where bestax has a component
+  for what it does, the TODO names it; render that in place of the extension's markup and script,
+  whose styles ship in `extras.css` and `bestax.css`, and stop loading the extension once nothing
+  the app keeps uses its classes:
+
+  | Extension                                               | bestax                                                          |
+  | ------------------------------------------------------- | --------------------------------------------------------------- |
+  | `bulma-carousel`                                        | `Carousel`, with a `CarouselItem` for each slide                |
+  | `bulma-slider`                                          | `Slider`                                                        |
+  | `bulma-switch`                                          | `Switch`                                                        |
+  | `bulma-checkradio`                                      | `Checkbox` and `Radio`, which draw their own box                |
+  | `bulma-tooltip`, `@creativebulma/bulma-tooltip`         | `Tooltip`                                                       |
+  | `bulma-badge`, `@creativebulma/bulma-badge`             | `Badge`                                                         |
+  | `bulma-steps`                                           | `Steps`                                                         |
+  | `bulma-timeline`                                        | `Timeline`                                                      |
+  | `bulma-tagsinput`, `@creativebulma/bulma-tagsinput`     | `Taginput`                                                      |
+  | `bulma-calendar`                                        | `DateInput`, `TimeInput`, `DateTimeInput` and `DateRangeInput`  |
+  | `bulma-accordion`                                       | `Collapses`, with a `Collapse` for each item                    |
+  | `bulma-collapsible`, `@creativebulma/bulma-collapsible` | `Collapse` (`Collapses` for an accordion)                       |
+  | `bulma-pageloader`                                      | `Loading`, `isFullPage` for one over the whole page             |
+  | `bulma-quickview`                                       | `Sidebar`                                                       |
+  | `bulma-toast`                                           | `Toast`: `toast.show()` from code, with a `ToastContainer` once |
+
+  `bulma-extensions`, the bundle, holds several of these: replace the ones in the table, and keep
+  loading the bundle only for the rest. **bulma-social** has no bestax component: keep loading it,
+  since its classes (`is-twitter`, `is-github`) style Bulma's `.button`, which `Button` renders,
+  so they go on `Button` through `className`:
+
+  ```tsx
+  <Button as="a" className="is-github" href="https://github.com/example">
+    <Icon name="github" variant="brands" />
+  </Button>
+  ```
+
+  Any other extension: keep loading it while the page's markup uses its classes, which go on
+  bestax's components through `className`, and under `--css bestax` or `--css bulma` check it
+  works with Bulma 1, which an extension can predate.
+
+- **`html-asset:jquery`**: jQuery itself (a plugin such as jQuery UI is `html-asset:script`).
+  React renders the page now, so what the page's scripts did with jQuery (toggling classes,
+  handlers, showing and hiding) becomes state and event props; load jQuery only if a library the
+  app keeps still needs it.
+- **`html-asset:webfont`**: a web font's stylesheet (Google Fonts, Bunny Fonts, Adobe Fonts).
+  Keep the `<link>` in `index.html` with its preconnects, or self-host the font and import it from
+  the entry. Google's Material Icons and Material Symbols are icon fonts, which `Icon` writes with
+  `library="material-icons"` or `library="material-symbols"`; keep the link, or install the
+  `material-icons` or `material-symbols` package.
+- **`html-asset:stylesheet`**: any other stylesheet. The page's own, beside it (in its folder or
+  one below), is imported once for the app in the order the page loads it, so its rules still win
+  over Bulma's where they did (a module beside the page imports `css/styles.css` as
+  `./css/styles.css`), or its rules move into the app's stylesheet. For one that isn't in the
+  page's folder, the TODO says only that: the page's `<base href>`, if it has one, may have loaded
+  it from somewhere else, so find the one it meant, or drop it.
+- **`html-asset:script`**: any other script. The component runs none: load a library the app still
+  needs in `index.html` (or install it), and port what the page's own scripts did into the
+  component. A script of the page's own, beside it, is read the way an inline script is, so one
+  that toggles the burger, drives a carousel or switches the theme gets that `html-script:<pattern>`
+  TODO instead, quoting the file. One a `../` reaches outside the page's folder isn't read. A
+  `<script src>` of a type a browser loads nothing for (`text/template`, `application/json`) isn't
+  code: it gets the `html-script` TODO for data (`html-script:json-ld` for JSON-LD), naming its
+  file.
 
 ### Inline scripts: `html-script:<pattern>`
 
 Every inline `<script>` is dropped, and its TODO gives the lines in the page where its code still
 is. One that does something bestax has a component for gets that pattern's rule, and a script
-can get more than one:
+can get more than one. A script of the page's own, beside it (`<script src="js/scripts.js">`), is
+read for the burger, a carousel and a theme toggle too, and its TODO names the file:
 
-- **`html-script:burger`** toggles the navbar burger. Keep the open state in `useState` and pass
-  it to `Navbar.Burger` and `Navbar.Menu` (the `family:navbar-burger` TODO on the burger says
-  why the markup stays):
+- **`html-script:burger`** toggles the navbar burger (`.navbar-burger`, or the `.burger` class
+  Bulma 0.x's docs put beside it). Keep the open state in `useState` and pass it to
+  `Navbar.Burger` and `Navbar.Menu` (the `family:navbar-burger` TODO on the burger says why the
+  markup stays):
 
   ```tsx
   function SiteNavbar() {
@@ -443,11 +533,15 @@ can get more than one:
 - **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
   children and renders its own arrows and indicators (`autoplay` for a timed one). Its styles ship
   in bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet.
-- **`html-script:theme`** switches Bulma's light and dark schemes. `Theme` writes `data-theme` on
-  `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state and
-  pass it. It writes it after the first paint, so a page that remembers the choice also writes
-  it from an inline `<head>` script before then: the bestax-theming skill's
-  `examples/dark-mode.tsx` has the script and the app's side.
+- **`html-script:theme`** switches Bulma's light and dark schemes. The toggle is `Theme`'s: it
+  writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the
+  choice in state, save it in `localStorage`, and pass it. The first paint is `index.html`'s:
+  `Theme` writes from an effect, after the first paint, so a visitor whose saved choice differs
+  from their OS sees the OS's scheme first. A small inline script in the `<head>` of `index.html`
+  that reads the saved choice (or the OS's, with none saved) and writes `data-theme` before the
+  app loads paints the right one, and the toggle's state starts from what it wrote. The
+  bestax-theming skill covers `Theme` and `colorMode`, and its `examples/dark-mode.tsx` has the
+  script and the app's side.
 - **`html-script:json-ld`** is structured data for search engines. Render it where the app sets
   each page's head, as
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.

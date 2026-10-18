@@ -28,6 +28,7 @@ import { z } from 'zod';
 
 import { classTokens, lookupClasses, renderLookup } from './bulma-classes.js';
 import {
+  documentedExport,
   dotPath,
   loadBulmaClasses,
   loadCatalog,
@@ -42,6 +43,7 @@ import {
 import {
   errorResult,
   HELPER_PROPS_PAGE,
+  partLists,
   renderCatalog,
   renderComponent,
   renderCssVarsAnswer,
@@ -61,7 +63,7 @@ import {
   renderHelperGroup,
   resolveGroup,
 } from './helper-props.js';
-import { searchAll, suggest, type HitKind } from './search.js';
+import { searchAll, suggest, usesExport, type HitKind } from './search.js';
 import {
   missingInstallNote,
   resolveVersions,
@@ -145,9 +147,21 @@ const THEME = 'Theme';
 const notFoundError = (message: string) =>
   new McpError(ErrorCode.InvalidParams, message);
 
-/** What a dot-path names in a record: the part, or null when it names none. */
-function partFocus(record: ComponentRecord, input: string): PartFocus | null {
-  const wanted = dotPath(input);
+/**
+ * The part a name asks for: one a dot-path names, or the one an export documented
+ * with this record is (`InputBase`, `Thead` for `Table.Thead`). Null for the record
+ * itself.
+ */
+async function wantedPath(input: string): Promise<string | null> {
+  return dotPath(input) ?? (await documentedExport(input))?.entry.path ?? null;
+}
+
+/** What a name names in a record: the part, or null when it names none. */
+async function partFocus(
+  record: ComponentRecord,
+  input: string
+): Promise<PartFocus | null> {
+  const wanted = await wantedPath(input);
   if (!wanted) return null;
   const part =
     record.parts.find(p => p.path === wanted) ??
@@ -172,6 +186,8 @@ export async function createServer(
 ): Promise<McpServer> {
   const catalog = await loadCatalog();
   const skills = await loadSkills();
+  const entries = new Set(catalog.components.map(c => c.name));
+  const hasEntry = (name: string) => entries.has(name);
   const versions: VersionInfo = await resolveVersions(
     catalog.generatedFrom.version,
     options.cwd
@@ -473,7 +489,8 @@ export async function createServer(
         renderComponent(
           record,
           include ?? ['props'],
-          partFocus(record, name) ?? undefined
+          (await partFocus(record, name)) ?? undefined,
+          { hasEntry }
         ),
         note()
       );
@@ -515,16 +532,16 @@ export async function createServer(
         );
       }
 
-      // A dot-path given as `path`, or folded into `component` ("Navbar.Brand").
-      const wanted = path ?? (component.includes('.') ? component : null);
+      // A dot-path given as `path`, or folded into `component` ("Navbar.Brand"), or
+      // the part an export documented with this record is ("InputBase").
+      const wanted =
+        path ??
+        (component.includes('.') ? component : await wantedPath(component));
       if (!wanted) {
-        const [root, ...subs] = record.parts;
-        const body = [renderPart(root, { heading: false })];
-        if (subs.length) {
-          body.push(
-            `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}.`
-          );
-        }
+        const body = [
+          renderPart(record.parts[0], { heading: false }),
+          ...partLists(record),
+        ];
         if (record.doc) body.push(referencePointer(record));
         return textResult(`# ${record.name}\n\n${body.join('\n\n')}`, note());
       }
@@ -537,6 +554,14 @@ export async function createServer(
         // answer listed the parts without saying a prop is the wrong thing to pass.
         const subs = record.parts.slice(1).map(p => p.path);
         const [nearPart] = suggest(wanted, subs, 1);
+        // `Carousel.Item` for `CarouselItem`: no dot-path names a separate export.
+        if (record.parts.find(p => p.path === nearPart)?.standalone) {
+          return errorResult(
+            `${record.name} has no "${wanted}". Did you mean "${nearPart}"? It is ` +
+              `a separate export, not a dot-path, so it is written <${nearPart}>, ` +
+              `and its props are in get_props({ component: "${nearPart}" }).`
+          );
+        }
         const tail = wanted.split('.').pop() ?? wanted;
         const [prop] = suggest(
           tail,
@@ -556,7 +581,10 @@ export async function createServer(
               : `Its props are in get_props({ component: "${record.name}" }).`)
         );
       }
-      return textResult(renderPart(part), note());
+      return textResult(
+        renderPart(part, { owner: record.name, hasEntry }),
+        note()
+      );
     }
   );
 
@@ -582,30 +610,51 @@ export async function createServer(
       const resolved = await resolveName(component);
       if (!resolved) return notFound(component);
       const record = await loadComponent(resolved);
+      // An export documented with this record has the page's examples that use
+      // it, and none when no example does (`InputBase`, beside `Input`'s).
+      const documented = await documentedExport(component);
+      const name = documented?.name ?? record.name;
+      const examples = documented
+        ? record.examples.filter(e =>
+            usesExport(e.code, documented.name, documented.entry.path)
+          )
+        : record.examples;
+      if (documented && !examples.length) {
+        return textResult(
+          `\`${name}\` has no examples of its own. It is documented with ` +
+            `\`${record.name}\`` +
+            (documented.entry.standalone === 'base'
+              ? ', which renders it'
+              : '') +
+            `, and \`get_examples({ component: "${record.name}" })\` has ` +
+            `${record.name}'s.`,
+          note()
+        );
+      }
       const q = query?.toLowerCase();
       const matches = q
-        ? record.examples.filter(
+        ? examples.filter(
             e =>
               e.title.toLowerCase().includes(q) ||
               e.code.toLowerCase().includes(q)
           )
-        : record.examples;
+        : examples;
 
       if (!matches.length) {
         return textResult(
           query
-            ? `No ${record.name} examples match "${query}". It has ` +
-                `${record.examples.length}: ${record.examples
-                  .map(e => e.title)
-                  .join(', ')}.`
+            ? `No ${name} examples match "${query}". It has ` +
+                `${examples.length}: ${examples.map(e => e.title).join(', ')}.`
             : `${record.name} has no examples on its documentation page.`,
           note()
         );
       }
       return textResult(
-        `# ${record.name} examples\n\n${renderExamples(
-          matches.slice(0, limit ?? 8)
-        )}`,
+        `# ${name} examples\n\n` +
+          (documented
+            ? `From \`${record.name}\`'s documentation page, the ones that use it.\n\n`
+            : '') +
+          renderExamples(matches.slice(0, limit ?? 8)),
         note()
       );
     }
@@ -662,7 +711,14 @@ export async function createServer(
             note()
           );
         }
-        return textResult(renderCssVarsAnswer(record, vars, query), note());
+        const documented = await documentedExport(component);
+        return textResult(
+          (documented
+            ? `\`${documented.name}\` is documented with \`${record.name}\`, ` +
+              `whose variables these are.\n\n`
+            : '') + renderCssVarsAnswer(record, vars, query),
+          note()
+        );
       }
 
       if (!query) {
@@ -758,7 +814,7 @@ export async function createServer(
         );
       }
       const lookup = lookupClasses(await loadBulmaClasses(), classes, tag);
-      return textResult(renderLookup(lookup), note());
+      return textResult(renderLookup(lookup, catalog.documentedWith), note());
     }
   );
 
@@ -882,7 +938,8 @@ export async function createServer(
             text: renderComponent(
               record,
               RESOURCE_INCLUDES,
-              partFocus(record, String(name)) ?? undefined
+              (await partFocus(record, String(name))) ?? undefined,
+              { hasEntry }
             ),
           },
         ],

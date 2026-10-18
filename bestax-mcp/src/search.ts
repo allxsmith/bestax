@@ -24,7 +24,24 @@ export interface Hit {
 }
 
 const norm = (s: string) => s.toLowerCase();
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * `s` as a RegExp source that matches it literally: every character a pattern
+ * reads specially is escaped, the backslash included.
+ */
+export const escapeRegExp = (s: string) =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Whether an example's code uses an export: by its name, or by the dot-path its
+ * part is (`<Dropdown.Item>` for `DropdownItem`). Each is matched as written,
+ * whatever characters it holds, and not as the start or end of a longer name.
+ */
+export function usesExport(code: string, name: string, path: string): boolean {
+  const named = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`);
+  const dotted = new RegExp(`<${escapeRegExp(path)}(?![\\w$.])`);
+  return named.test(code) || (path.includes('.') && dotted.test(code));
+}
 
 /**
  * A prefix of a term that survives common English inflection.
@@ -60,7 +77,7 @@ function wordInitialRe(stemmed: string): RegExp {
   let re = STEM_RE_CACHE.get(stemmed);
   if (!re) {
     if (STEM_RE_CACHE.size >= STEM_RE_CACHE_MAX) STEM_RE_CACHE.clear();
-    re = new RegExp(`\\b${escapeRe(stemmed)}`);
+    re = new RegExp(`\\b${escapeRegExp(stemmed)}`);
     STEM_RE_CACHE.set(stemmed, re);
   }
   return re;
@@ -342,11 +359,36 @@ export function searchAll(
         });
       }
     }
+    // An export documented with another component (`InputBase`, `Thead`) is a
+    // component a query can name too, with none of the bonus, and below the
+    // component it is documented with whenever the query reaches that one as
+    // well: that component is usually what the query is about, and a sub's
+    // name repeats its words ("navbar with a dropdown menu" is about Navbar,
+    // not NavbarDropdownMenu).
+    const owners = new Map(hits.map(h => [h.name, h.score]));
+    for (const [name, entry] of Object.entries(catalog.documentedWith)) {
+      const owner = owners.get(entry.component);
+      const raw = score(`${name} ${entry.purpose}`, name, terms, q);
+      const s = owner === undefined ? raw : Math.min(raw, owner - 1);
+      if (s > 0) {
+        hits.push({
+          kind: 'component',
+          name,
+          detail:
+            `documented with ${entry.component}` +
+            (entry.purpose ? ` — ${attributedLinks(entry.purpose)}` : ''),
+          next: `get_component({ name: "${name}" })`,
+          score: s,
+        });
+      }
+    }
   }
 
   for (const record of components) {
     if (want('prop')) {
-      for (const part of record.parts) {
+      // A base's props are the ones its convenience component takes, which
+      // already answer for them.
+      for (const part of record.parts.filter(p => p.standalone !== 'base')) {
         for (const p of part.props) {
           const s = score(`${p.name} ${p.description}`, p.name, terms, q);
           if (s > 20) {

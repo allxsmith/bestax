@@ -11,10 +11,16 @@
  * What a component can't carry becomes a `TODO(bestax-migrate)` line and a
  * report entry under the `html-*` rules (`html-rules.ts`): the head, the
  * `<html>` and `<body>` attributes, scripts (dropped, since a component runs
- * none; their code stays in the page), and what the converter couldn't write
- * as it was. Document-level ones sit above the component, the rest above its
- * `return`, where the planner's own go. A report entry names the page and
- * its line, never the module's.
+ * none; their code stays in the page), the stylesheets and scripts it loads
+ * (`html-assets.ts` says what each is), and what the converter couldn't
+ * write as it was. Document-level ones sit above the component, the rest
+ * above its `return`, where the planner's own go. A report entry names the
+ * page and its line, never the module's.
+ *
+ * Under `--css bestax` or `--css bulma` the page's link to Bulma's stylesheet
+ * becomes `import 'bulma/css/bulma.min.css'` at the top of the module, which
+ * the transform's stylesheet pass then retargets exactly as it would in a JSX
+ * file, so the CLI's manifest step reads the module the same way too.
  *
  * Nothing is ever overwritten: a module already beside the page stops it
  * (`html-file:exists`), so a second run changes nothing, and the page itself
@@ -56,11 +62,27 @@ import {
 import { flaggableRoot } from './class-map.js';
 import { bulmaDisplay, bulmaOutOfFlow, HELPER_DISPLAY } from './display.js';
 import {
+  bulmaBuildMessage,
+  bulmaMediaMessage,
+  bulmaStylesheetMessage,
+  classifyAsset,
+  extensionMessage,
+  fontAwesomeMessage,
+  jqueryMessage,
+  PRIMARY_CLASS,
+  scriptMessage,
+  stylesheetMessage,
+  webfontMessage,
+  type Asset,
+  type Loads,
+  type Place,
+} from './html-assets.js';
+import {
   htmlRuleId,
   NAVBAR_FIXED_CLASSES,
   THEME_CLASSES,
 } from './html-rules.js';
-import { writesTypeScript } from './project.js';
+import { inNextApp, writesTypeScript } from './project.js';
 import transform from './transform.js';
 
 const HTML_NS = 'http://www.w3.org/1999/xhtml';
@@ -248,6 +270,8 @@ interface Note {
   line: number | null;
   /** The last line of what it is about, for a range in the TODO line. */
   endLine?: number;
+  /** Every line it is about, when there are several apart. */
+  lines?: number[];
   /** A relative URL's value; those share one TODO line (`contentLines`). */
   url?: string;
 }
@@ -266,7 +290,8 @@ const JAVASCRIPT_TYPES =
 const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'burger',
-    /navbar-burger/,
+    // Bulma 0.x's docs gave the burger a `burger` class beside its own.
+    /navbar-burger|['"`][^'"`\n]*\.burger\b/,
     "toggles the navbar burger: bestax's `Navbar.Burger` takes `active` and `onClick`, and `Navbar.Menu` the same `active`, so keep the open state in `useState` and pass it to both",
   ],
   [
@@ -287,33 +312,68 @@ const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'theme',
     /data-theme|dataset\.theme|theme-(?:dark|light)|prefers-color-scheme/,
-    "switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state and pass it",
+    "switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state, saved in `localStorage`, and pass it; `Theme` writes the attribute from an effect, after the first paint, so for a saved choice to paint first, keep a small inline script in the `<head>` of the app's index.html that reads it (or the OS's, with none saved) and writes `data-theme` before the app loads, and start the state from what that script wrote",
   ],
 ];
+
+/**
+ * The patterns a script beside the page is looked over for. A whole file is
+ * more than one inline script, so only the ones that name what they drive.
+ */
+const LOCAL_SCRIPT_PATTERNS = SCRIPT_PATTERNS.filter(([token]) =>
+  ['burger', 'carousel', 'theme'].includes(token)
+);
+
+/** Larger than this, a script beside the page is a bundle, not the page's. */
+const LOCAL_SCRIPT_LIMIT = 256 * 1024;
 
 const SCRIPT_KEPT =
   "it was dropped, since a component doesn't run a page's scripts, and its code is still in the page";
 
-function scriptNotes(script: Element): Note[] {
+/** A stylesheet or script the page loads, before it becomes a note. */
+interface AssetLoad {
+  url: string;
+  loads: Loads;
+  line: number | null;
+  /** A stylesheet's `media`, when it names one. */
+  media?: string;
+}
+
+/** What the page's notes are read against. */
+interface PageContext {
+  /** The page's folder. */
+  dir: string;
+  css: CssMode;
+  /** Whether its module goes into a Next.js app. */
+  nextjs: boolean;
+  /** The `<link>` and `<script src>` tags, in the page's order. */
+  loads: AssetLoad[];
+}
+
+/** A `media` an import can't stand for: anything but every medium. */
+function forSomeMedia(media: string | undefined): boolean {
+  const query = media?.trim().toLowerCase() ?? '';
+  return query !== '' && query !== 'all';
+}
+
+function scriptNotes(script: Element, page: PageContext): Note[] {
   const location = script.sourceCodeLocation;
   const line = location?.startLine ?? null;
   const endLine = location?.endLine;
   const src = attributeOf(script, 'src');
-  if (src !== undefined) {
-    return [
-      {
-        rule: htmlRuleId('html-asset'),
-        message: `the page loads the script \`${quote(src)}\`, and a component runs no page scripts: load it in the app if the app still needs it, or replace what it does with React code`,
-        line,
-      },
-    ];
-  }
   const type = (attributeOf(script, 'type') ?? '').trim().toLowerCase();
+  // A browser loads a `src` only for a script of a JavaScript type; one of
+  // any other type (a template, data) is the page's own text, not code.
+  if (src !== undefined && JAVASCRIPT_TYPES.test(type)) {
+    page.loads.push({ url: src, loads: 'script', line });
+    return [];
+  }
+  const kept = src === undefined ? 'still in the page' : `in \`${quote(src)}\``;
   if (type === 'application/ld+json') {
     return [
       {
         rule: htmlRuleId('html-script', 'json-ld'),
-        message: `structured data for search engines (JSON-LD) was dropped with the page's scripts: render it where the app sets each page's head, as \`<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />\`; the JSON is still in the page`,
+        message: `structured data for search engines (JSON-LD) was dropped with the page's scripts: render it where the app sets each page's head, as \`<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />\`; the JSON is ${kept}`,
         line,
         endLine,
       },
@@ -323,7 +383,7 @@ function scriptNotes(script: Element): Note[] {
     return [
       {
         rule: htmlRuleId('html-script'),
-        message: `a \`<script type="${quote(type, 40)}">\` was dropped with the page's scripts: if the page's code reads it (a template, data), move what it holds into the component; it is still in the page`,
+        message: `a \`<script type="${quote(type, 40)}">\` was dropped with the page's scripts: if the page's code reads it (a template, data), move what it holds into the component; it is ${kept}`,
         line,
         endLine,
       },
@@ -350,45 +410,233 @@ function scriptNotes(script: Element): Note[] {
 }
 
 /** Remove every `<script>` from the content, with a note for each. */
-function dropScripts(parent: ParentNode, notes: Note[]): void {
+function dropScripts(
+  parent: ParentNode,
+  notes: Note[],
+  page: PageContext
+): void {
   const nodes = childrenOf(parent);
   for (let i = 0; i < nodes.length; i++) {
     const node = nodes[i];
     if (!isElement(node)) continue;
     if (node.tagName === 'script' && node.namespaceURI === HTML_NS) {
-      notes.push(...scriptNotes(node));
+      notes.push(...scriptNotes(node, page));
       nodes.splice(i, 1);
       i--;
     } else if (node.tagName !== 'template') {
-      dropScripts(node, notes);
+      dropScripts(node, notes, page);
     }
   }
 }
 
-/** Bulma's stylesheet, by its file name. */
-const BULMA_STYLESHEET = /(?:^|[/\\])bulma(?:\.min)?\.css(?:$|[?#])/i;
+// ---- Stylesheets and scripts it loads --------------------------------------
 
-function stylesheetNote(href: string, line: number | null, css: CssMode): Note {
-  const rule = htmlRuleId('html-asset');
-  if (!BULMA_STYLESHEET.test(href)) {
-    return {
-      rule,
-      message: `the page loads the stylesheet \`${quote(href)}\`, and a component doesn't: load it once for the app, from its entry or a \`<link>\` in its index.html`,
-      line,
-    };
+/** The import a page's Bulma `<link>` becomes, before `--css` retargets it. */
+export const BULMA_IMPORT = 'import "bulma/css/bulma.min.css";';
+
+/**
+ * Where a relative URL points, read beside the page: a file there, nothing
+ * there, or somewhere the page's folder can't say: any other URL, one a
+ * `../` takes out of the page's folder (which isn't beside it, and isn't
+ * the codemod's to open), and one whose path can't be read.
+ */
+function placeOf(url: string, dir: string): { place: Place; target: string } {
+  const elsewhere = { place: 'elsewhere' as const, target: url };
+  if (!isRelative(url)) return elsewhere;
+  const target = urlPath(url);
+  const file = path.resolve(dir, target);
+  if (path.relative(dir, file).split(/[/\\]/)[0] === '..') return elsewhere;
+  let stat: fs.Stats | undefined;
+  try {
+    stat = fs.statSync(file, { throwIfNoEntry: false });
+  } catch {
+    // A folder on the way that can't be searched (`EACCES`), say.
+    return elsewhere;
   }
-  const load = {
-    keep: "load Bulma once for the app, from its entry (`import 'bulma/css/bulma.min.css'`, with `bulma` installed) or a `<link>` in its index.html",
-    bestax:
-      "under `--css bestax` the app loads bestax's bundle instead, once, from its entry: `import '@allxsmith/bestax-bulma/bestax.css'`. That bundle builds Bulma with bestax blue as its primary, so `is-primary` turns from Bulma's turquoise to blue; to keep the page's color, set the `--bulma-primary-*` variables, `--bulma-primary-invert-l` among them (the bestax-migrate skill's `references/css-migration.md` says which), or use `--css bulma`",
-    bulma:
-      "under `--css bulma` the app loads Bulma and bestax's extras once, from its entry: `import 'bulma/css/bulma.min.css'` and `import '@allxsmith/bestax-bulma/extras.css'`",
-  }[css];
-  return {
-    rule,
-    message: `the page loads Bulma's stylesheet from \`${quote(href)}\`, and a component doesn't: ${load}`,
+  return stat?.isFile()
+    ? { place: 'beside', target }
+    : { place: 'missing', target };
+}
+
+/**
+ * A script beside the page, looked over the way an inline script is, for
+ * the patterns that name what they drive. Null when it can't be read, is too
+ * large to be the page's own, or shows none of them.
+ */
+function localScriptNotes(
+  quoted: string,
+  target: string,
+  dir: string,
+  line: number | null
+): Note[] | null {
+  let code: string;
+  try {
+    const file = path.resolve(dir, target);
+    if (fs.statSync(file).size > LOCAL_SCRIPT_LIMIT) return null;
+    code = fs.readFileSync(file, 'utf8');
+  } catch {
+    return null;
+  }
+  const found = LOCAL_SCRIPT_PATTERNS.filter(([, pattern]) =>
+    pattern.test(code)
+  );
+  if (found.length === 0) return null;
+  return found.map(([token, , recipe]) => ({
+    rule: htmlRuleId('html-script', token),
+    message: `the page's script \`${quoted}\` ${recipe}; a component doesn't load it, and its code is still in \`${target}\``,
     line,
-  };
+  }));
+}
+
+/** Whether the page's markup has a primary color class. */
+function usesPrimary(root: ParentNode): boolean {
+  return childrenOf(root).some(
+    child =>
+      isElement(child) &&
+      (classesOf(child).some(token => PRIMARY_CLASS.test(token)) ||
+        usesPrimary(child))
+  );
+}
+
+/**
+ * The stylesheets and scripts the page loads, as notes: one for each, but
+ * one for an extension's stylesheet and script together, since they are one
+ * thing to replace. Under `--css bestax` or `--css bulma`, Bulma's standard
+ * stylesheet becomes an import in the module (`importsBulma`), which the
+ * transform then retargets as it would the same import in a JSX file, and is
+ * noted only for what that leaves to do. Not for a link with a media query,
+ * which an import can't stand for, nor in a Next.js app, which takes a
+ * global stylesheet only in its root layout or `pages/_app`.
+ */
+function assetNotes(
+  page: PageContext,
+  root: ParentNode
+): { notes: Note[]; importsBulma: boolean } {
+  const notes: Note[] = [];
+  const shared = new Map<string, { asset: Asset; loads: AssetLoad[] }>();
+  const note = (rule: string, message: string, line: number | null) =>
+    notes.push({ rule, message, line });
+  for (const load of page.loads) {
+    const asset = classifyAsset(load.url, load.loads);
+    const quoted = quote(load.url);
+    if (
+      asset.kind === 'bulma' &&
+      asset.build === null &&
+      forSomeMedia(load.media)
+    ) {
+      note(
+        htmlRuleId('html-asset', 'bulma'),
+        bulmaMediaMessage(quoted, asset.version, quote(load.media!, 40)),
+        load.line
+      );
+      continue;
+    }
+    const key =
+      asset.kind === 'bulma-extension'
+        ? `extension:${asset.name.toLowerCase()}`
+        : asset.kind === 'bulma' && asset.build === null
+          ? 'bulma'
+          : null;
+    if (key !== null) {
+      const group = shared.get(key);
+      if (group) group.loads.push(load);
+      else shared.set(key, { asset, loads: [load] });
+      continue;
+    }
+    switch (asset.kind) {
+      case 'bulma':
+        note(
+          htmlRuleId('html-asset', 'bulma'),
+          bulmaBuildMessage(asset.build!, quoted),
+          load.line
+        );
+        break;
+      case 'font-awesome':
+        note(
+          htmlRuleId('html-asset', 'font-awesome'),
+          fontAwesomeMessage(asset, quoted),
+          load.line
+        );
+        break;
+      case 'jquery':
+        note(
+          htmlRuleId('html-asset', 'jquery'),
+          jqueryMessage(quoted),
+          load.line
+        );
+        break;
+      case 'webfont':
+        note(
+          htmlRuleId('html-asset', 'webfont'),
+          webfontMessage(asset, quoted),
+          load.line
+        );
+        break;
+      case 'stylesheet': {
+        const { place, target } = placeOf(load.url, page.dir);
+        note(
+          htmlRuleId('html-asset', 'stylesheet'),
+          stylesheetMessage(quoted, place, quote(target)),
+          load.line
+        );
+        break;
+      }
+      case 'script': {
+        const { place, target } = placeOf(load.url, page.dir);
+        const local =
+          place === 'beside'
+            ? localScriptNotes(quoted, target, page.dir, load.line)
+            : null;
+        if (local) notes.push(...local);
+        else {
+          note(
+            htmlRuleId('html-asset', 'script'),
+            scriptMessage(quoted, place, quote(target)),
+            load.line
+          );
+        }
+        break;
+      }
+    }
+  }
+  let importsBulma = false;
+  for (const { asset, loads } of shared.values()) {
+    const lines = [
+      ...new Set(
+        loads.flatMap(load => (load.line === null ? [] : [load.line]))
+      ),
+    ];
+    const quoted = [...new Set(loads.map(load => quote(load.url)))];
+    let message: string | null;
+    let rule: string;
+    if (asset.kind === 'bulma') {
+      rule = htmlRuleId('html-asset', 'bulma');
+      importsBulma = page.css !== 'keep' && !page.nextjs;
+      message = bulmaStylesheetMessage({
+        quoted: quoted[0],
+        version: asset.version,
+        css: page.css,
+        usesPrimary: usesPrimary(root),
+        nextjs: page.nextjs,
+      });
+    } else {
+      rule = htmlRuleId('html-asset', 'bulma-extension');
+      message = extensionMessage(
+        (asset as Extract<Asset, { kind: 'bulma-extension' }>).name,
+        quoted,
+        new Set(loads.map(load => load.loads)),
+        page.css
+      );
+    }
+    if (message === null) continue;
+    notes.push({
+      rule,
+      message,
+      line: loads[0].line,
+      ...(lines.length > 1 ? { lines } : {}),
+    });
+  }
+  return { notes, importsBulma };
 }
 
 /** What a `<meta>` is for: its `name`, `property`, `http-equiv` or charset. */
@@ -409,7 +657,7 @@ function listed(values: string[]): string {
   return unique.length > 6 ? `${shown}, …` : shown;
 }
 
-function headNotes(head: ChildNode[], css: CssMode, notes: Note[]): void {
+function headNotes(head: ChildNode[], notes: Note[], page: PageContext): void {
   const metas: Element[] = [];
   const links: Element[] = [];
   for (const node of head) {
@@ -431,7 +679,12 @@ function headNotes(head: ChildNode[], css: CssMode, notes: Note[]): void {
         const rel = (attributeOf(node, 'rel') ?? '').toLowerCase().split(/\s+/);
         const href = attributeOf(node, 'href');
         if (rel.includes('stylesheet') && href !== undefined) {
-          notes.push(stylesheetNote(href, line, css));
+          page.loads.push({
+            url: href,
+            loads: 'stylesheet',
+            line,
+            media: attributeOf(node, 'media'),
+          });
         } else {
           links.push(node);
         }
@@ -447,7 +700,7 @@ function headNotes(head: ChildNode[], css: CssMode, notes: Note[]): void {
         });
         break;
       case 'script':
-        notes.push(...scriptNotes(node));
+        notes.push(...scriptNotes(node, page));
         break;
       case 'base':
         notes.push({
@@ -866,11 +1119,13 @@ function todoLine(note: Note, page: string): string {
   const at =
     note.line === null
       ? ''
-      : ` (${page}:${note.line}${
-          note.endLine !== undefined && note.endLine > note.line
-            ? `-${note.endLine}`
-            : ''
-        })`;
+      : note.lines !== undefined
+        ? ` (${page}:${note.lines.join(', ')})`
+        : ` (${page}:${note.line}${
+            note.endLine !== undefined && note.endLine > note.line
+              ? `-${note.endLine}`
+              : ''
+          })`;
   return `// TODO(bestax-migrate): ${message}${at}`;
 }
 
@@ -1022,8 +1277,14 @@ export function convertPage(
   }
 
   const notes: Notes = { document: [], content: [] };
+  const context: PageContext = {
+    dir: path.dirname(file),
+    css: options.cssMode ?? 'keep',
+    nextjs: inNextApp(file, options.packageLanguages),
+    loads: [],
+  };
   parseNotes(parsed, notes.document);
-  headNotes(parsed.head, options.cssMode ?? 'keep', notes.document);
+  headNotes(parsed.head, notes.document, context);
   const body = parsed.kind === 'document' ? (parsed.root as Element) : null;
   documentAttributeNotes(
     'html',
@@ -1033,7 +1294,9 @@ export function convertPage(
     notes.document
   );
   documentAttributeNotes('body', body ?? undefined, notes.document);
-  dropScripts(parsed.root, notes.document);
+  dropScripts(parsed.root, notes.document, context);
+  const assets = assetNotes(context, parsed.root);
+  notes.document.push(...assets.notes);
 
   const emitted = emitJsx(parsed.root, {
     displayOf: pageDisplayOf,
@@ -1053,6 +1316,8 @@ export function convertPage(
   const lines = [
     ...header,
     ...(header.length > 0 ? [''] : []),
+    // The transform retargets it under `--css`, as it would in a JSX file.
+    ...(assets.importsBulma ? [BULMA_IMPORT] : []),
     ...notes.document.map(note => todoLine(note, page)),
     `export default function ${componentName(file)}() {`,
     ...contentLines(notes.content, page).map(line => `  ${line}`),

@@ -278,6 +278,143 @@
       "extraProps": [],
       "catchAll": "All standard <textarea> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "TextAreaBase",
+      "summary": "Bulma TextArea component with full Bulma helper class support.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds the `is-rounded` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea's corners don't change.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds the `is-static` class to the `<textarea>`. Bulma styles it on `.input` only, so the textarea keeps its border, background and padding.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Accepted and ignored: `TextAreaBase` renders no loading state. The spinner belongs to the wrapping `Control`, so set `isLoading` on that `Control`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isActive",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies Bulma's is-active modifier.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasFixedSize",
+          "type": "boolean",
+          "default": "false",
+          "description": "Fixed textarea size (no resize).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disables the textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only textarea.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "rows",
+          "type": "number",
+          "default": null,
+          "description": "Number of visible text lines.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLTextAreaElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <textarea> attributes and Bulma helper props",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [

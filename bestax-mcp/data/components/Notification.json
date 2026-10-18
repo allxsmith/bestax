@@ -116,6 +116,26 @@
       "extraProps": [],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "NotificationContainer",
+      "summary": "Container component for rendering programmatic notifications. Place once at your app root to enable the notification API. A notification shown with a `position` appears there, and one shown without goes to the container's `position`, so the container renders a stack for each position in use. It keeps a visually hidden `role=\"status\"` live region in the page from the moment it mounts, even while nothing is showing, and announces every notification other than `danger` and `warning` through it, a moment after the notification appears. Those notifications carry no `role=\"status\"` of their own, so `getByRole('status')` finds the region, not the notification. The text stays in the region briefly, even if the notification closes in the meantime, and while both are up the page holds two copies of it. A polite notification that closes before its announcement is written, a moment after it appears, isn't announced at all. `danger` and `warning` notifications announce themselves as assertive alerts. The region is hidden with inline styles, so it needs no stylesheet.",
+      "component": null,
+      "props": [
+        {
+          "name": "position",
+          "type": "'top-left' | 'top' | 'top-right' | 'bottom-left' | 'bottom' | 'bottom-right'",
+          "default": "'top-right'",
+          "description": "Where a notification shown without a `position` of its own appears. Default: 'top-right'. When it changes, those notifications move without remounting, but one shown with its own `position` equal to the old or new value remounts and starts over as if it had just been shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": null,
+      "types": [],
+      "standalone": "companion"
     }
   ],
   "cssVars": [

@@ -15,6 +15,7 @@ jest.unstable_mockModule('fs-extra', () => ({
     existsSync: jest.fn(),
     readdirSync: jest.fn(),
     statSync: jest.fn(),
+    realpathSync: jest.fn(),
     emptyDir: jest.fn(),
     ensureDir: jest.fn(),
     copy: jest.fn(),
@@ -27,6 +28,7 @@ jest.unstable_mockModule('fs-extra', () => ({
   existsSync: jest.fn(),
   readdirSync: jest.fn(),
   statSync: jest.fn(),
+  realpathSync: jest.fn(),
   emptyDir: jest.fn(),
   ensureDir: jest.fn(),
   copy: jest.fn(),
@@ -42,7 +44,8 @@ const {
   checkDirectoryExists,
   isDirectoryEmpty,
   listDirectoryEntries,
-  existsAsNonDirectory,
+  findNonDirectoryInPath,
+  realPath,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -141,33 +144,82 @@ describe('file-system', () => {
     });
   });
 
-  describe('existsAsNonDirectory', () => {
+  describe('findNonDirectoryInPath', () => {
     const statSync = fs.default.statSync as jest.MockedFunction<
       typeof fs.statSync
     >;
+    type Stat = ReturnType<typeof fs.statSync>;
+    const directory = { isDirectory: () => true } as unknown as Stat;
+    const file = { isDirectory: () => false } as unknown as Stat;
 
-    it('is false when nothing is there', async () => {
-      statSync.mockReturnValue(
-        undefined as unknown as ReturnType<typeof fs.statSync>
+    /** Stats only the given entries; everything else is missing. */
+    function entries(found: Record<string, Stat>): void {
+      statSync.mockImplementation(
+        (p => found[String(p)]) as unknown as typeof fs.statSync
       );
-      expect(await existsAsNonDirectory('/test/path')).toBe(false);
-      expect(statSync).toHaveBeenCalledWith('/test/path', {
+    }
+
+    it('is null when the nearest existing entry is a directory', async () => {
+      entries({ '/test': directory });
+      expect(await findNonDirectoryInPath('/test/path/login')).toBeNull();
+      expect(statSync).toHaveBeenCalledWith('/test/path/login', {
         throwIfNoEntry: false,
       });
     });
 
-    it('is false for a directory', async () => {
-      statSync.mockReturnValue({
-        isDirectory: () => true,
-      } as unknown as ReturnType<typeof fs.statSync>);
-      expect(await existsAsNonDirectory('/test/path')).toBe(false);
+    it('is null for an existing directory', async () => {
+      entries({ '/test/path': directory });
+      expect(await findNonDirectoryInPath('/test/path')).toBeNull();
     });
 
-    it('is true for a file', async () => {
-      statSync.mockReturnValue({
-        isDirectory: () => false,
-      } as unknown as ReturnType<typeof fs.statSync>);
-      expect(await existsAsNonDirectory('/test/notes.txt')).toBe(true);
+    it('names a file at the target itself', async () => {
+      entries({ '/test/notes.txt': file });
+      expect(await findNonDirectoryInPath('/test/notes.txt')).toBe(
+        '/test/notes.txt'
+      );
+    });
+
+    it('names a file where a parent folder should be (#1154)', async () => {
+      entries({ '/test/notes.txt': file });
+      expect(await findNonDirectoryInPath('/test/notes.txt/a/login')).toBe(
+        '/test/notes.txt'
+      );
+    });
+
+    it('moves past a stat that throws ENOTDIR to the file causing it', async () => {
+      statSync.mockImplementation((p => {
+        if (String(p) === '/test/notes.txt') return file;
+        throw Object.assign(new Error('ENOTDIR: not a directory'), {
+          code: 'ENOTDIR',
+        });
+      }) as unknown as typeof fs.statSync);
+      expect(await findNonDirectoryInPath('/test/notes.txt/login')).toBe(
+        '/test/notes.txt'
+      );
+    });
+
+    it('is null when nothing exists up to the root', async () => {
+      entries({});
+      expect(await findNonDirectoryInPath('/test/path')).toBeNull();
+      expect(statSync).toHaveBeenLastCalledWith(path.parse('/test').root, {
+        throwIfNoEntry: false,
+      });
+    });
+  });
+
+  describe('realPath', () => {
+    const realpathSync = fs.default.realpathSync as unknown as jest.Mock;
+
+    it('resolves symbolic links', async () => {
+      realpathSync.mockReturnValue('/private/tmp/app');
+      expect(await realPath('/tmp/app')).toBe('/private/tmp/app');
+    });
+
+    it('gives the path back resolved when it cannot be read', async () => {
+      realpathSync.mockImplementation(() => {
+        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      });
+      expect(await realPath('missing/app')).toBe(path.resolve('missing/app'));
     });
   });
 

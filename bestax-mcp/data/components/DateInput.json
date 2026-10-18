@@ -714,6 +714,350 @@
       ],
       "catchAll": "All standard <input> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "DateInputBase",
+      "summary": "Raw DateInput — input + popover calendar without Field/Control wrapping. Use `DateInput` for the convenience wrapper.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "Date | null",
+          "default": null,
+          "description": "Controlled selected date.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "Date | null",
+          "default": null,
+          "description": "Initial date for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(d: Date | null) => void",
+          "default": null,
+          "description": "Fired when the value changes. A day picked in the calendar, by click or by key, arrives at local midnight.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable date. A `min` before year 1 is raised to 1 January of year 1, where the range starts without one too: HTML's date and month inputs hold no earlier year, so the calendar and typing stop there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable date.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make the input read-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "granularity",
+          "type": "'day' | 'month' | 'year'",
+          "default": "'day'",
+          "description": "What the calendar shows and what a selection means: `'day'` shows the day grid, `'month'` a grid of the focused year's months whose header steps a year at a time, and `'year'` the year list. A month or year value is the first day of that period at local midnight, so `onChange` gets `new Date(2026, 5, 1)` for June 2026. A `value` elsewhere in the period shows as that period and stays as given until the user picks a period or types a different one. `min`, `max`, `shouldDisableDate` and `unselectableDates` judge whole periods: a month or year can be picked while any day in it can, so a `min` of 15 June still allows June, and June commits as 1 June, earlier than that `min`. The default `format` follows the granularity (`'YYYY-MM'`, `'YYYY'`); a custom `format` with finer tokens still renders them, but typing skips them. `firstDayOfWeek`, `dayNames` and `nearbyMonthDays` only affect the day grid, and an `inline` calendar's hidden form value is `YYYY-MM` or `YYYY`. The `labels` keys `chooseMonth` / `chooseYear` name the launcher and popover, and `prevYear` / `nextYear` the month grid's header buttons.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "'YYYY-MM-DD'",
+          "description": "Token format string or `Intl.DateTimeFormat` options. Defaults to `'YYYY-MM-DD'`, or to `'YYYY-MM'` / `'YYYY'` when `granularity` is `'month'` / `'year'`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). Enter and leaving the field call it only if the user changed the text, so focus passing through commits nothing and the value keeps what the format leaves out, such as the time of day.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the calendar inline (no popover).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use `<input type=\"date\">` on coarse-pointer + small-viewport devices. At `'month'` granularity it uses `<input type=\"month\">` where the browser implements one, as Chromium browsers, Safari on iOS and Firefox for Android do, and the calendar where it doesn't, as in desktop Firefox. Desktop Safari accepts the type but draws no month control, so forcing `true` there shows a plain text box. HTML has no year input, so `'year'` granularity always renders the calendar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in the input (type the date directly, auto-advancing across segments). `false` makes the field picker-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the calendar popover exists. `false` makes the field input-only (segmented typing, no popover).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when the input is focused. Focus that a closing popover hands back to the input leaves it closed. Dismissing it commits nothing: an empty field stays empty, and leaving afterwards commits only what was typed since. With it off, the launcher or Alt+ArrowDown opens it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the popover after a date is selected.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Popover anchor position relative to the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the input, also carried by the calendar, where it colors the selected date. Today's date and the keyboard focus ring take the color's `-on-scheme` variant, which Bulma adjusts to contrast with the background, so pale colors stay readable. Unset, the calendar uses its `--bulma-dateinput-*` variables, which follow `primary` the same way by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the input with rounded corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate to disable specific dates (e.g. weekends). Blocked dates are also rejected during manual typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day and also rejected during manual typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 12 month-name labels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show dimmed dates from adjacent months in the grid.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a `Control` it sits in shows its `isLoading` spinner, which shares that right edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides (ARIA labels, button text).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [
