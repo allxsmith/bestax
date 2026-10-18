@@ -665,6 +665,8 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       offset: 0,
       styledGap: marginGap,
       matchWidth: true,
+      // The list filters as the user types, so the menu's height changes.
+      followContent: true,
     });
     const { registerPopup } = engine;
     const reportPanel = useCallback(

@@ -179,6 +179,72 @@ describe('useAnchoredPosition with matchWidth', () => {
   });
 });
 
+describe('followContent', () => {
+  /** A fixed panel above an anchor at 500 to 520px, as tall as its `data-height`. */
+  const Above = ({
+    height,
+    followContent,
+  }: {
+    height: number;
+    followContent?: boolean;
+  }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    const panelRef = useRef<HTMLDivElement>(null);
+    const resolved = useAnchoredPosition(anchorRef, panelRef, {
+      active: true,
+      position: 'top-left',
+      fixed: true,
+      offset: 0,
+      followContent,
+    });
+    return (
+      <>
+        <button ref={anchorRef}>anchor</button>
+        <div ref={panelRef} data-height={height} />
+        <output>{resolved.top}</output>
+      </>
+    );
+  };
+
+  beforeEach(() => {
+    jest
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const button = this.tagName === 'BUTTON';
+        const height = button ? 20 : Number(this.dataset.height);
+        return {
+          top: button ? 500 : 0,
+          bottom: button ? 520 : height,
+          left: 0,
+          right: 100,
+          width: 100,
+          height,
+          x: 0,
+          y: 0,
+          toJSON: () => ({}),
+        } as DOMRect;
+      });
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  it('places a panel above again when its height changes after it opened', () => {
+    const { rerender } = render(<Above height={200} followContent />);
+    expect(screen.getByRole('status')).toHaveTextContent('300');
+    rerender(<Above height={80} followContent />);
+    expect(screen.getByRole('status')).toHaveTextContent('420');
+  });
+
+  it('keeps the placement it opened with by default', () => {
+    const { rerender } = render(<Above height={200} />);
+    expect(screen.getByRole('status')).toHaveTextContent('300');
+    rerender(<Above height={80} />);
+    expect(screen.getByRole('status')).toHaveTextContent('300');
+  });
+});
+
 describe('marginGap', () => {
   const panel = (style: Partial<CSSStyleDeclaration>) => {
     const el = document.createElement('div');

@@ -1528,6 +1528,36 @@ describe('Combobox', () => {
         expect(menu.style.left).toBe('40px');
       });
 
+      it('places a portaled menu above the field again as filtering changes its height', () => {
+        // The field at 400 to 436px, and the menu 30px for each item in it.
+        rects.mockImplementation(function (this: HTMLElement) {
+          const root = this.classList.contains('combobox');
+          const height = root
+            ? 36
+            : this.querySelectorAll('[role="option"]').length * 30;
+          return {
+            top: root ? 400 : 0,
+            bottom: root ? 436 : height,
+            left: 40,
+            right: 340,
+            width: 300,
+            height,
+            x: 0,
+            y: 0,
+            toJSON: () => ({}),
+          } as DOMRect;
+        });
+        render(<CountrySelect defaultOpen appendToBody position="top-left" />);
+        const menu = () =>
+          document.body.querySelector('.combobox-menu') as HTMLElement;
+        expect(options()).toHaveLength(COUNTRIES.length);
+        expect(menu().style.top).toBe(`${400 - COUNTRIES.length * 30}px`);
+        type('an');
+        expect(options()).toHaveLength(4);
+        // Its bottom stays at the field's top.
+        expect(menu().style.top).toBe(`${400 - 4 * 30}px`);
+      });
+
       it('counts a press in the portaled list as inside', () => {
         render(<CountrySelect defaultOpen appendToBody />);
         fireEvent.pointerDown(option('France'));
