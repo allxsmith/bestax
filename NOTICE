@@ -9,3 +9,4 @@ Templates
 The templates under templates/ are ports of free Bulma templates collected in aldi's awesome-bulma-templates (https://github.com/aldi/awesome-bulma-templates). Each template is under its upstream's license and keeps the upstream copyright notice in its own LICENSE, and its line below names the repository it was ported from and that license.
 
 templates/login: aldi's Bulma Login Template (https://github.com/aldi/bulma-login-template), MIT license.
+templates/rent: aldi's Bulma Rent Template (https://github.com/aldi/bulma-rent-template), MIT license.

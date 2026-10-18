@@ -107,6 +107,19 @@ export const templates = [
     copyright: 'Copyright (c) 2026 - github.com/aldi',
     tags: ['favorite', 'form'],
   },
+  {
+    slug: 'rent',
+    title: 'Rent',
+    description:
+      'A landing page for a rental listings site, with a search box, listing cards and city links.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-rent-template',
+    sourceSha: '3d6bff06730d7274ab11f29f9b1c663819125dab',
+    demo: 'https://aldi.github.io/bulma-rent-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2020 aldi (aldi)',
+    tags: ['landing', 'business'],
+  },
 ];
 
 /** Favorites first, then by title. */
