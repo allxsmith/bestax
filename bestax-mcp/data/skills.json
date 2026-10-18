@@ -64,7 +64,7 @@
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 15821
+          "bytes": 16712
         }
       ],
       "examples": [
@@ -88,12 +88,12 @@
         {
           "id": "bloomer-component-map",
           "file": "references/bloomer/component-map.md",
-          "bytes": 12033
+          "bytes": 12031
         },
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26344
+          "bytes": 26536
         },
         {
           "id": "bloomer-unmappables",
@@ -103,7 +103,7 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 25101
+          "bytes": 27782
         },
         {
           "id": "bulma-classes-prop-map",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 45532
+          "bytes": 45592
         },
         {
           "id": "css-migration",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 13972
+          "bytes": 15503
         },
         {
           "id": "rbx-unmappables",
@@ -143,7 +143,7 @@
         {
           "id": "react-bulma-components-prop-map",
           "file": "references/react-bulma-components/prop-map.md",
-          "bytes": 8820
+          "bytes": 8367
         },
         {
           "id": "react-bulma-components-unmappables",

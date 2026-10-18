@@ -2818,7 +2818,7 @@
     "PanelBlock": {
       "component": "Panel",
       "path": "Panel.Block",
-      "purpose": "Individual panel block (renders as `<a class=\"panel-block\">`)"
+      "purpose": "Individual panel block (renders as `<a class=\"panel-block\">` unless `as` says otherwise)"
     },
     "PanelButtonBlock": {
       "component": "Panel",
