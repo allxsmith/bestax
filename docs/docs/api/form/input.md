@@ -260,12 +260,14 @@ Pair `color` and `messageColor` to produce success and danger validation states 
 
 For multi-control rows like input + button, drop down to manual `Field` + `Control` composition. Use `<Field hasAddons>` with multiple `<Control>` children. Use `<Control isExpanded>` on the input so it fills the available space.
 
+A `hasAddons` Field names none of the controls it holds, and a placeholder disappears once the reader starts typing, so give each input a name of its own: an `aria-label`, as these examples do, or a visible label on an outer `Field`, as [Password Reveal](#password-reveal) does.
+
 #### Input + Button
 
 ```tsx live
 <Field hasAddons>
   <Control isExpanded>
-    <Input placeholder="Find a repository" />
+    <Input placeholder="Find a repository" aria-label="Find a repository" />
   </Control>
   <Control>
     <Button color="info">Search</Button>
@@ -280,7 +282,7 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
 ```tsx live
 <Field hasAddons>
   <Control isExpanded>
-    <Input placeholder="Your email" />
+    <Input placeholder="Your email" aria-label="Email username" />
   </Control>
   <Control>
     <Button isStatic>@gmail.com</Button>
@@ -300,7 +302,11 @@ A static button is non-interactive — useful for fixed prefixes/suffixes such a
     </Select>
   </Control>
   <Control isExpanded>
-    <Input type="tel" placeholder="Your phone number" />
+    <Input
+      type="tel"
+      placeholder="Your phone number"
+      aria-label="Phone number"
+    />
   </Control>
   <Control>
     <Button color="primary">Call</Button>
@@ -495,7 +501,7 @@ Use `<Field grouped>` to lay multiple controls out on a single row with consiste
 ```tsx live
 <Field grouped>
   <Control isExpanded>
-    <Input placeholder="Find a repository" />
+    <Input placeholder="Find a repository" aria-label="Find a repository" />
   </Control>
   <Control>
     <Button color="info">Search</Button>

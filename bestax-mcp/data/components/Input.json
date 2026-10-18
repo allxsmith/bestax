@@ -51,15 +51,15 @@
     },
     {
       "title": "Form Addons",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" aria-label=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons",
-      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Country code\">\n      <option>+1</option>\n      <option>+44</option>\n      <option>+33</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"tel\" placeholder=\"Your phone number\" />\n  </Control>\n  <Control>\n    <Button color=\"primary\">Call</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Country code\">\n      <option>+1</option>\n      <option>+44</option>\n      <option>+33</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input\n      type=\"tel\"\n      placeholder=\"Your phone number\"\n      aria-label=\"Phone number\"\n    />\n  </Control>\n  <Control>\n    <Button color=\"primary\">Call</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons",
@@ -91,7 +91,7 @@
     },
     {
       "title": "Form Group",
-      "code": "<Field grouped>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+      "code": "<Field grouped>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" aria-label=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Group",
