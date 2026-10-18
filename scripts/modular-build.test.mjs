@@ -239,6 +239,25 @@ describe('the optimize skill’s extras inventory', () => {
           'not register (extra)'
       );
     });
+
+    it(`serves each ${folder} partial it lists at the path it gives`, () => {
+      // An app writes this `@use` for each name, and it reaches the partial
+      // only through the library's exports, which the line above never reads.
+      const broken = [];
+      for (const name of listed.get(folder) ?? []) {
+        try {
+          compile(`@use '${LIBRARY}/scss/${folder}/${name}';`);
+        } catch (error) {
+          broken.push(`${name}: ${error.message.split('\n')[0]}`);
+        }
+      }
+      assert.deepEqual(
+        broken,
+        [],
+        `the ${folder} line in ${REFERENCE} names partials an app cannot ` +
+          `load as ${LIBRARY}/scss/${folder}/<name>`
+      );
+    });
   }
 });
 
