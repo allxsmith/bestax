@@ -14,9 +14,12 @@ one issue per template; #1121 specifies this folder.
   section components) and the upstream's images in `public/`.
 - **Not a workspace package.** It stays out of `pnpm-workspace.yaml`, carries no lockfile, and its
   `package.json` takes registry ranges only, because StackBlitz imports the folder and nothing
-  else. To run one inside this repo, `pnpm install --ignore-workspace` in its folder, and delete
-  the `pnpm-lock.yaml` that writes before you commit; the checks refuse it.
-- **`LICENSE`:** the upstream MIT notice verbatim, followed by the notice for the bestax port.
+  else. To run one inside this repo, `pnpm install --ignore-workspace` in its folder, and leave
+  the `pnpm-lock.yaml` that writes out of your commit; the checks refuse a tracked one.
+- **What git tracks.** A template is the files git tracks in its folder, which is what the
+  checks read and the mirror publishes, so an image you have not added yet is missing from both.
+- **`LICENSE`:** the upstream license notice verbatim, followed by the notice for the bestax
+  port. The docs entry's `license` names that upstream license.
 - **`README.md`:** who made the original and where it lives, the upstream commit it was ported
   from, a mention of awesome-bulma-templates, how to run it (`npm install && npm run dev`), and
   any upstream bug the port fixed.
@@ -73,9 +76,12 @@ what publishes it.
 ## The checks
 
 - **`scripts/templates.test.mjs`**, in `pnpm test:scripts`: the folder, the entry and the
-  screenshot, each against the others.
+  screenshot, each against the others, and the manifest against every package the template
+  imports or its scripts run, since StackBlitz installs from the manifest alone.
 - **`scripts/skill-examples-typecheck.test.mjs`**: every template's `src/` compiles under the
-  `vite-ts` template's compiler options against the built library, as it does in StackBlitz.
+  `vite-ts` template's compiler options against the built library. It resolves React and the
+  library from this repo's install, so it holds the code, and the templates test holds the
+  manifest.
 - **`pnpm lint`** lints `templates/*/src` with `templates/eslint.config.js`: the root rules plus
   the bestax ESLint plugin, with `no-bulma-component-class` at error so no raw Bulma component
   class ships in a port. It loads the plugin's build, so build first.

@@ -4,24 +4,40 @@
  * screenshot, and every entry and screenshot has its template (#1120, #1121).
  *
  * The checks live in lib/templates.mjs and take a root, so most of this file
- * builds a small fixture tree and breaks one thing at a time. The first test
- * runs them over the repo, which passes with no template in it.
+ * builds a small fixture repository and breaks one thing at a time. A
+ * template is what git tracks, as it is for the mirror's generator, so each
+ * fixture is a git repository with its files staged, which is all
+ * `git ls-files` reads. The first test runs the checks over the repo, which
+ * passes with no template in it.
  */
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import {
+  mkdirSync,
+  mkdtempSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterEach, describe, it } from 'node:test';
 import {
-  caretAdmits,
+  LICENSES,
+  bestaxRangeProblem,
   checkTemplates,
   contrast,
   entryProblems,
+  importSpecifiers,
+  importedPackage,
   isHttpsUrl,
   isRegistrySpecifier,
+  scriptCommands,
   tagProblems,
+  templatePaths,
   templatesProblems,
+  trackedTemplates,
 } from './lib/templates.mjs';
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -63,9 +79,42 @@ const PACKAGE = {
   },
   devDependencies: {
     '@types/react': '^19.2.17',
+    '@vitejs/plugin-react': '^6.0.3',
     typescript: '^6.0.3',
     vite: '^8.1.0',
   },
+};
+
+/** What a scaffold's sources import, so the dependency check has work. */
+const SOURCES = {
+  'src/main.tsx': [
+    "import { StrictMode } from 'react';",
+    "import { createRoot } from 'react-dom/client';",
+    "import '@allxsmith/bestax-bulma/bestax.css';",
+    "import '@fortawesome/fontawesome-free/css/all.min.css';",
+    "import './index.css';",
+    "import App from './App.tsx';",
+    '',
+  ].join('\n'),
+  'src/App.tsx': [
+    'import {',
+    '  Button,',
+    '  Section,',
+    "} from '@allxsmith/bestax-bulma';",
+    '',
+    '/* Not an import: import x from "commented-out"; */',
+    'export default function App() {',
+    '  return null;',
+    '}',
+    '',
+  ].join('\n'),
+  'src/index.css': '',
+  'vite.config.ts': [
+    "import { defineConfig } from 'vite';",
+    "import react from '@vitejs/plugin-react';",
+    'export default defineConfig({ plugins: [react()] });',
+    '',
+  ].join('\n'),
 };
 
 const roots = [];
@@ -81,6 +130,15 @@ function write(root, path, content) {
   writeFileSync(file, content);
 }
 
+const git = (root, ...args) =>
+  execFileSync('git', ['-c', 'init.defaultBranch=main', '-C', root, ...args], {
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  });
+
+/** Stage every addition and deletion, as `git add` vets a file. */
+const stage = root => git(root, 'add', '--all');
+
 /** A template folder that passes, for `entry`, with `pkg` as its manifest. */
 function writeTemplate(root, entry = ENTRY, pkg = PACKAGE) {
   const dir = `templates/${entry.slug}`;
@@ -89,12 +147,12 @@ function writeTemplate(root, entry = ENTRY, pkg = PACKAGE) {
     'tsconfig.json',
     'tsconfig.app.json',
     'tsconfig.node.json',
-    'vite.config.ts',
-    'src/App.tsx',
-    'src/main.tsx',
     'public/bestax.svg',
   ]) {
     write(root, `${dir}/${file}`, '');
+  }
+  for (const [file, content] of Object.entries(SOURCES)) {
+    write(root, `${dir}/${file}`, content);
   }
   write(root, `${dir}/package.json`, JSON.stringify(pkg));
   write(
@@ -111,8 +169,9 @@ function writeTemplate(root, entry = ENTRY, pkg = PACKAGE) {
 }
 
 /**
- * A tree laid out like the repo: the data file, bulma-ui's manifest, and a
- * passing template folder and screenshot per entry unless `folders` is false.
+ * A repository laid out like this one: the data file, bulma-ui's manifest,
+ * and a passing template folder and screenshot per entry unless `folders` is
+ * false, all staged.
  */
 function tree({
   templates = [ENTRY],
@@ -122,6 +181,7 @@ function tree({
 } = {}) {
   const root = mkdtempSync(join(tmpdir(), 'templates-'));
   roots.push(root);
+  git(root, 'init', '--quiet');
   write(root, 'bulma-ui/package.json', JSON.stringify({ version }));
   write(
     root,
@@ -132,6 +192,7 @@ function tree({
   if (folders) {
     for (const entry of templates) writeTemplate(root, entry);
   }
+  stage(root);
   return root;
 }
 
@@ -141,6 +202,7 @@ const problemsOf = (root, overrides = {}) =>
     tags: TAGS,
     templates: [ENTRY],
     bestaxVersion: VERSION,
+    tracked: trackedTemplates(root),
     ...overrides,
   });
 
@@ -168,12 +230,13 @@ describe('a tree of templates', () => {
   it('reports an entry with no folder', () => {
     const root = tree({ folders: false });
     write(root, 'docs/static/img/templates/login.jpg', '');
-    assertOne(problemsOf(root), /no templates\/login\/ folder/);
+    assertOne(problemsOf(root), /no templates\/login\/ folder that git tracks/);
   });
 
   it('reports a folder with no entry', () => {
     const root = tree();
     writeTemplate(root, { ...ENTRY, slug: 'stray' });
+    stage(root);
     const problems = problemsOf(root);
     assert.ok(
       problems.some(p => /templates\/stray\/ has no entry/.test(p)),
@@ -201,6 +264,7 @@ describe('a tree of templates', () => {
   it('reports a malformed slug once, by its entry', () => {
     const root = tree({ folders: false });
     writeTemplate(root, { ...ENTRY, slug: '_sample' });
+    stage(root);
     assertOne(
       problemsOf(root, { templates: [{ ...ENTRY, slug: '_sample' }] }),
       /`slug` must be lowercase words/
@@ -211,10 +275,32 @@ describe('a tree of templates', () => {
     assertOne(problemsOf(tree(), { templates: {} }), /must be an array/);
   });
 
-  it('skips hidden folders', () => {
+  it('reads what git tracks, as the mirror does, and nothing else', () => {
     const root = tree();
-    mkdirSync(join(root, 'templates/.cache'));
+    // None of this is tracked, so none of it is a template's yet: a folder
+    // being drafted, a local install's lockfile, an image not yet added.
+    writeTemplate(root, { ...ENTRY, slug: 'draft' });
+    rmSync(join(root, 'docs/static/img/templates/draft.jpg'));
+    write(root, 'templates/login/package-lock.json', '{}');
+    write(root, 'templates/login/public/hero.jpg', '');
     assert.deepEqual(problemsOf(root), []);
+  });
+
+  it('splits the listing into templates the way the generator does', () => {
+    const { slugs, files } = templatePaths([
+      'templates/CLAUDE.md',
+      'templates/eslint.config.js',
+      'templates/login/src/App.tsx',
+      'templates/hotel/index.html',
+    ]);
+    assert.deepEqual(slugs, ['hotel', 'login']);
+    assert.deepEqual(
+      files.map(f => [f.path, f.source]),
+      [
+        ['hotel/index.html', 'templates/hotel/index.html'],
+        ['login/src/App.tsx', 'templates/login/src/App.tsx'],
+      ]
+    );
   });
 });
 
@@ -222,23 +308,40 @@ describe('a template folder', () => {
   const withPackage = pkg => {
     const root = tree({ folders: false });
     writeTemplate(root, ENTRY, pkg);
+    stage(root);
     return problemsOf(root);
   };
 
-  it('needs every project file', () => {
+  it('needs every project file, as git tracks it', () => {
     const root = tree();
     rmSync(join(root, 'templates/login/vite.config.ts'));
     rmSync(join(root, 'templates/login/public'), { recursive: true });
+    stage(root);
     const problems = problemsOf(root);
     assert.equal(problems.length, 2, problems.join('\n'));
-    assert.match(problems[0], /missing public\//);
-    assert.match(problems[1], /missing vite\.config\.ts/);
+    assert.match(problems[0], /missing public\/, as git tracks it/);
+    assert.match(problems[1], /missing vite\.config\.ts, as git tracks it/);
   });
 
-  it('refuses a lockfile and an ESLint config', () => {
+  it('refuses a tracked file that is gone, a link, or a directory', () => {
+    const root = tree();
+    symlinkSync('/etc/hosts', join(root, 'templates/login/public/hosts'));
+    stage(root);
+    rmSync(join(root, 'templates/login/index.html'));
+    rmSync(join(root, 'templates/login/src/index.css'));
+    mkdirSync(join(root, 'templates/login/src/index.css'));
+    const problems = problemsOf(root);
+    assert.equal(problems.length, 3, problems.join('\n'));
+    assert.match(problems[0], /index\.html is tracked but missing on disk/);
+    assert.match(problems[1], /public\/hosts is a symbolic link/);
+    assert.match(problems[2], /src\/index\.css is tracked but not a regular/);
+  });
+
+  it('refuses a tracked lockfile and ESLint config', () => {
     const root = tree();
     write(root, 'templates/login/package-lock.json', '{}');
     write(root, 'templates/login/eslint.config.js', '');
+    stage(root);
     const problems = problemsOf(root);
     assert.equal(problems.length, 2, problems.join('\n'));
     assert.ok(problems.some(p => /eslint\.config\.js; ESLint/.test(p)));
@@ -299,24 +402,30 @@ describe('a template folder', () => {
     );
   });
 
-  it('depends on a bestax range the current release satisfies', () => {
+  it('depends on a bestax range that installs a published release', () => {
     const rest = Object.fromEntries(
       Object.entries(PACKAGE.dependencies).filter(
         ([name]) => name !== '@allxsmith/bestax-bulma'
       )
     );
-    assertOne(
-      withPackage({ ...PACKAGE, dependencies: rest }),
-      /must depend on @allxsmith\/bestax-bulma/
+    // Its import is what the dependency check sees too.
+    const missing = withPackage({ ...PACKAGE, dependencies: rest });
+    assert.ok(
+      missing.some(p => /must depend on @allxsmith\/bestax-bulma/.test(p)),
+      missing.join('\n')
     );
-    for (const range of ['^4.0.0', '^5.99.0', '5.0.0', '~5.0.0']) {
-      assertOne(
-        withPackage({
-          ...PACKAGE,
-          dependencies: { ...rest, '@allxsmith/bestax-bulma': range },
-        }),
-        /which 5\.34\.3 does not satisfy; .* \^5\.34\.3/
-      );
+    const withRange = range =>
+      withPackage({
+        ...PACKAGE,
+        dependencies: { ...rest, '@allxsmith/bestax-bulma': range },
+      });
+    for (const range of ['^5.34.3', '^5.0.0', '^4.0.0']) {
+      assert.deepEqual(withRange(range), [], range);
+    }
+    assertOne(withRange('^5.99.0'), /newer than 5\.34\.3/);
+    assertOne(withRange('^3.0.0'), /two or more majors behind 5\.34\.3/);
+    for (const range of ['5.0.0', '~5.0.0']) {
+      assertOne(withRange(range), /give it a caret range, \^5\.34\.3/);
     }
   });
 
@@ -329,6 +438,104 @@ describe('a template folder', () => {
     assert.match(problems[0], /LICENSE does not carry .*Aldi Duzha/);
     assert.match(problems[1], /does not name the upstream repository/);
     assert.match(problems[2], /does not name the upstream commit/);
+  });
+});
+
+describe('the packages a template needs', () => {
+  const without = (section, name) => ({
+    ...PACKAGE,
+    [section]: Object.fromEntries(
+      Object.entries(PACKAGE[section]).filter(([key]) => key !== name)
+    ),
+  });
+  const withPackage = pkg => {
+    const root = tree({ folders: false });
+    writeTemplate(root, ENTRY, pkg);
+    stage(root);
+    return problemsOf(root);
+  };
+
+  it('include a runtime package its sources import', () => {
+    assertOne(
+      withPackage(without('dependencies', 'react')),
+      /does not declare react, and templates\/login\/src\/main\.tsx imports 'react'/
+    );
+  });
+
+  it('include a package only a stylesheet import names', () => {
+    assertOne(
+      withPackage(without('dependencies', '@fortawesome/fontawesome-free')),
+      /does not declare @fortawesome\/fontawesome-free, and .*'@fortawesome\/fontawesome-free\/css\/all\.min\.css'/
+    );
+  });
+
+  it('include the build tools its scripts run', () => {
+    assertOne(
+      withPackage(without('devDependencies', 'typescript')),
+      /does not declare typescript, and the "build" script runs tsc/
+    );
+  });
+
+  it('include the plugin vite.config.ts imports', () => {
+    assertOne(
+      withPackage(without('devDependencies', '@vitejs/plugin-react')),
+      /does not declare @vitejs\/plugin-react, and templates\/login\/vite\.config\.ts imports/
+    );
+  });
+
+  it('refuse a command no row maps to a package', () => {
+    assertOne(
+      withPackage({
+        ...PACKAGE,
+        scripts: { ...PACKAGE.scripts, dev: 'npx vite' },
+      }),
+      /"dev" script runs npx, which no row in SCRIPT_BINARIES/
+    );
+  });
+
+  it('are read from imports, without comments, paths or builtins', () => {
+    assert.deepEqual(
+      importSpecifiers(
+        [
+          "import a from 'a';",
+          'import {',
+          '  b,',
+          "} from '@scope/b/sub';",
+          "import './side.css';",
+          "import type { C } from 'c';",
+          "export * from 'd';",
+          "export { e } from 'e/deep';",
+          "const f = await import('f');",
+          "/* import g from 'g'; */",
+          'const notAnImport = \'import h from "h"\';',
+        ].join('\n')
+      ),
+      ['a', '@scope/b/sub', './side.css', 'c', 'd', 'e/deep', 'f']
+    );
+    assert.equal(importedPackage('@scope/b/sub'), '@scope/b');
+    assert.equal(importedPackage('e/deep'), 'e');
+    for (const specifier of [
+      './x',
+      '/vite.svg',
+      'node:fs',
+      'fs',
+      'virtual:x',
+    ]) {
+      assert.equal(importedPackage(specifier), null, specifier);
+    }
+  });
+
+  it('are read from scripts command by command', () => {
+    assert.deepEqual(scriptCommands('tsc -b && vite build'), ['tsc', 'vite']);
+    assert.deepEqual(scriptCommands('NODE_ENV=production vite build'), [
+      'vite',
+    ]);
+    assert.deepEqual(scriptCommands('vite; tsc || vite | vite'), [
+      'vite',
+      'tsc',
+      'vite',
+      'vite',
+    ]);
   });
 });
 
@@ -352,10 +559,22 @@ describe('an entry', () => {
 
   it('needs its text fields', () => {
     const problems = entryProblems(
-      { ...ENTRY, title: '', description: ' ', license: undefined },
+      { ...ENTRY, title: '', description: ' ' },
       TAGS
     );
-    assert.equal(problems.length, 3, problems.join('\n'));
+    assert.equal(problems.length, 2, problems.join('\n'));
+  });
+
+  it("names the upstream's license from the allowlist", () => {
+    for (const license of LICENSES) {
+      assert.deepEqual(entryProblems({ ...ENTRY, license }, TAGS), [], license);
+    }
+    for (const license of ['mit', 'Apache 2', 'GPL-3.0', 'TODO', undefined]) {
+      assertOne(
+        entryProblems({ ...ENTRY, license }, TAGS),
+        /`license` must be the upstream's SPDX identifier, one of MIT/
+      );
+    }
   });
 
   it('needs an author with a name and an https URL', () => {
@@ -431,26 +650,34 @@ describe('the tags', () => {
   });
 });
 
-describe('caretAdmits', () => {
-  it('admits the same major at or above the floor', () => {
-    assert.ok(caretAdmits('^5.0.0', '5.34.3'));
-    assert.ok(caretAdmits('^5.34.3', '5.34.3'));
-    assert.ok(!caretAdmits('^5.34.4', '5.34.3'));
-    assert.ok(!caretAdmits('^4.0.0', '5.34.3'));
+describe('bestaxRangeProblem', () => {
+  it('takes a floor at or below the current release, in its major', () => {
+    assert.equal(bestaxRangeProblem('^5.0.0', '5.34.3'), null);
+    assert.equal(bestaxRangeProblem('^5.34.3', '5.34.3'), null);
   });
 
-  it('holds the minor under 1.0.0, and the patch under 0.1.0', () => {
-    assert.ok(caretAdmits('^0.2.0', '0.2.5'));
-    assert.ok(!caretAdmits('^0.2.0', '0.3.0'));
-    assert.ok(caretAdmits('^0.0.3', '0.0.3'));
-    assert.ok(!caretAdmits('^0.0.3', '0.0.4'));
+  it('refuses a floor newer than the current release', () => {
+    assert.match(bestaxRangeProblem('^5.34.4', '5.34.3'), /newer than/);
+    assert.match(bestaxRangeProblem('^6.0.0', '5.34.3'), /newer than/);
   });
 
-  it('reads only a plain caret range and a plain version', () => {
-    assert.ok(!caretAdmits('~5.0.0', '5.0.0'));
-    assert.ok(!caretAdmits('^5', '5.0.0'));
-    assert.ok(!caretAdmits('^5.0.0', '5.1.0-beta.1'));
-    assert.ok(!caretAdmits(undefined, '5.0.0'));
+  it('tolerates one major behind, and refuses two or more', () => {
+    // The release commit that raises the major is gated by no PR, so the
+    // templates sweep onto it in a later change rather than all going red.
+    assert.equal(bestaxRangeProblem('^5.34.3', '6.0.0'), null);
+    assert.equal(bestaxRangeProblem('^5.0.0', '6.2.1'), null);
+    assert.match(bestaxRangeProblem('^4.9.9', '6.0.0'), /two or more majors/);
+    assert.match(bestaxRangeProblem('^1.0.0', '6.0.0'), /two or more majors/);
+  });
+
+  it('reads only a caret range', () => {
+    for (const range of ['~5.0.0', '5.0.0', '^5', '>=5', undefined]) {
+      assert.match(
+        bestaxRangeProblem(range, '5.34.3'),
+        /give it a caret range, \^5\.34\.3/,
+        String(range)
+      );
+    }
   });
 });
 

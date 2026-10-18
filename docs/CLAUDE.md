@@ -173,7 +173,8 @@ it, so a novel non-standard `package.json` key and extra release churn weren't w
   imports, and the file's header documents each field and the tags. Each card's screenshot is
   `static/img/templates/<slug>.jpg`, written by
   `pnpm --filter @allxsmith/bestax-docs screenshot:template <slug>`, which builds the template
-  from a copy of its folder and captures the preview: our capture of the port, never the
+  from a copy of the files git tracks in its folder and captures the preview: our capture of
+  the port, never the
   upstream's image, and a manual step that CI does not run. `scripts/templates.test.mjs` at the
   repo root holds every entry to its folder and its screenshot and back, so a template, its
   entry and its screenshot land in one PR. A card opens StackBlitz through a plain anchor

@@ -11,9 +11,11 @@
  *   pnpm --filter @allxsmith/bestax-docs screenshot:template <slug>
  *   node docs/scripts/screenshot-template.mjs <slug>
  *
- * The folder is copied to a temporary directory first, so the install and
- * build leave nothing in the repo: no node_modules, no dist, and no lockfile
- * for scripts/templates.test.mjs to refuse. It installs the way the
+ * The files git tracks in the folder are copied to a temporary directory
+ * first: the same files the checks read and the mirror publishes
+ * (`templatePaths` in scripts/lib/templates.mjs), so an image not yet added
+ * shows up missing here too. The install and build then leave nothing in
+ * the repo: no node_modules, no dist and no lockfile. It installs the way the
  * create-bestax e2e installs a scaffold, `pnpm install --ignore-workspace`,
  * under pnpm's own defaults rather than the monorepo's settings.
  *
@@ -24,11 +26,15 @@
  */
 /* global document -- page.evaluate() callbacks execute in the browser */
 import { spawn, spawnSync } from 'node:child_process';
-import { cpSync, existsSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
-import { basename, dirname, join, relative } from 'node:path';
+import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import {
+  templatePaths,
+  trackedTemplates,
+} from '../../scripts/lib/templates.mjs';
 
 const DOCS = dirname(dirname(fileURLToPath(import.meta.url)));
 const REPO = dirname(DOCS);
@@ -86,8 +92,14 @@ async function main() {
     fail('usage: screenshot-template.mjs <slug>, a folder under templates/');
   }
   const source = join(REPO, 'templates', slug);
-  if (!existsSync(join(source, 'package.json'))) {
-    fail(`no template at ${relative(REPO, source)}`);
+  const files = templatePaths(trackedTemplates(REPO)).files.filter(file =>
+    file.path.startsWith(`${slug}/`)
+  );
+  if (!files.some(file => file.path === `${slug}/package.json`)) {
+    fail(
+      `git tracks no package.json under ${relative(REPO, source)}; ` +
+        '`git add` the template first'
+    );
   }
   const out = join(DOCS, 'static', 'img', 'templates', `${slug}.jpg`);
 
@@ -105,10 +117,11 @@ async function main() {
   let preview;
   let browser;
   try {
-    cpSync(source, work, {
-      recursive: true,
-      filter: path => !['node_modules', 'dist'].includes(basename(path)),
-    });
+    for (const file of files) {
+      const target = join(work, file.path.slice(slug.length + 1));
+      mkdirSync(dirname(target), { recursive: true });
+      copyFileSync(join(REPO, file.source), target);
+    }
     run('pnpm', ['install', '--ignore-workspace'], work);
     run('pnpm', ['--ignore-workspace', 'run', 'build'], work);
 

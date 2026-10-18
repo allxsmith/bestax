@@ -14,12 +14,20 @@
  * scripts/templates.test.mjs runs the same checks over a fixture tree and
  * over the repo. With no template anywhere the repo passes, having nothing to
  * hold.
+ *
+ * A template is what git tracks under its folder, the same listing
+ * scripts/gen-templates-repo.mjs publishes (`templatePaths`), so the two
+ * agree on what a template holds: an untracked file, such as a local
+ * install's lockfile or an image not yet added, is neither checked here nor
+ * published there. `root` must therefore be a git checkout.
  */
-import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { existsSync, lstatSync, readdirSync, readFileSync } from 'node:fs';
+import { builtinModules } from 'node:module';
+import { join } from 'node:path';
 import { isLintPackage } from '../../docs/src/theme/CodeBlock/sandbox/projects.mjs';
 import { compareVersions } from './version-regression.mjs';
 import { DEP_SECTIONS } from './pack-time-protocols.mjs';
+import { byCodePoint, trackedRepoPaths } from './skills.mjs';
 
 export const LIBRARY = '@allxsmith/bestax-bulma';
 
@@ -57,6 +65,29 @@ export const LOCKFILES = [
  * what docs/scripts/screenshot-template.mjs runs.
  */
 export const REQUIRED_SCRIPTS = ['dev', 'build', 'preview'];
+
+/**
+ * The package each command a template's scripts may run comes from. A script
+ * that runs a command not listed here is refused until it is added, so a new
+ * tool cannot ship without its package declared.
+ */
+export const SCRIPT_BINARIES = { vite: 'vite', tsc: 'typescript' };
+
+/** Where a template's code imports packages from: its sources and its Vite config. */
+const SOURCE_FILE = /\.(?:[cm]?[jt]sx?)$/;
+
+/**
+ * Upstream licenses a port can keep: permissive ones whose notice the
+ * template's LICENSE carries beside the notice for the port. Anything else
+ * fails until someone has read what it asks of a port and added it here.
+ */
+export const LICENSES = [
+  'MIT',
+  'ISC',
+  'BSD-2-Clause',
+  'BSD-3-Clause',
+  'Apache-2.0',
+];
 
 /** The fields of an entry in docs/src/data/templates.js. */
 export const ENTRY_FIELDS = [
@@ -110,19 +141,85 @@ export const isRegistrySpecifier = spec =>
   nonEmpty(spec) && !spec.includes(':') && !spec.includes('/');
 
 /**
- * Whether a caret range admits `version`: the same leftmost non-zero part,
- * and no lower. Plain `X.Y.Z` versions only, which is what a release is.
+ * Why a template's bestax range would not install a working release, given
+ * `current`, bulma-ui's version in this checkout, or null when it would.
+ *
+ * The range is a caret range, and what StackBlitz needs is that npm finds a
+ * published release in it. So its floor must not be newer than `current`,
+ * which would ask for a release that does not exist yet. A floor one major
+ * behind still installs that major's latest release, which works, so it
+ * passes: semantic-release raises bulma-ui's version in a release commit no
+ * PR gates, and failing on the first new major would turn every template red
+ * on main and on every open PR at once. Two or more majors behind fails,
+ * since by then the template is two breaking releases from the library its
+ * docs describe.
  */
-export function caretAdmits(range, version) {
-  const floor = /^\^(\d+)\.(\d+)\.(\d+)$/.exec(range ?? '');
-  const actual = /^(\d+)\.(\d+)\.(\d+)$/.exec(version ?? '');
-  if (!floor || !actual) return false;
-  const lead = floor.slice(1).findIndex(part => Number(part) !== 0);
-  const fixed = lead === -1 ? 3 : lead + 1;
-  for (let i = 1; i <= fixed; i += 1) {
-    if (Number(floor[i]) !== Number(actual[i])) return false;
+export function bestaxRangeProblem(range, current) {
+  const floor = /^\^((\d+)\.\d+\.\d+)$/.exec(range ?? '');
+  if (!floor) {
+    return `is "${range}"; give it a caret range, ^${current}`;
   }
-  return compareVersions(version, range.slice(1)) >= 0;
+  if (compareVersions(floor[1], current) > 0) {
+    return (
+      `is "${range}", newer than ${current}, the release in this ` +
+      `checkout, so npm would find nothing to install; give it ^${current}`
+    );
+  }
+  const behind = Number(current.split('.')[0]) - Number(floor[2]);
+  if (behind >= 2) {
+    return (
+      `is "${range}", two or more majors behind ${current}; give it ` +
+      `^${current}`
+    );
+  }
+  return null;
+}
+
+/**
+ * The package a bare import specifier names (`@scope/name/sub` is
+ * `@scope/name`, `name/sub` is `name`), or null for one npm installs
+ * nothing for: a relative or absolute path, a protocol such as `node:` or
+ * `virtual:`, or a Node builtin.
+ */
+export function importedPackage(specifier) {
+  if (/^[./]/.test(specifier) || specifier.includes(':')) return null;
+  const parts = specifier.split('/');
+  const name = specifier.startsWith('@')
+    ? parts.slice(0, 2).join('/')
+    : parts[0];
+  return builtinModules.includes(name) ? null : name;
+}
+
+/**
+ * Every module specifier `source` imports: static imports, side-effect
+ * imports such as a stylesheet's, re-exports and dynamic `import()`. Read
+ * with patterns rather than a parser, so the generator's job needs no
+ * install; block comments are dropped first so an example in one is not
+ * read as an import.
+ */
+export function importSpecifiers(source) {
+  const code = source.replace(/\/\*[\s\S]*?\*\//g, '');
+  const found = [];
+  for (const re of [
+    /^\s*import\s+(?:[^'";]*?\s+from\s+)?['"]([^'"]+)['"]/gm,
+    /^\s*export\s+[^'";]*?\s+from\s+['"]([^'"]+)['"]/gm,
+    /\bimport\s*\(\s*['"]([^'"]+)['"]\s*\)/g,
+  ]) {
+    for (const match of code.matchAll(re)) found.push(match[1]);
+  }
+  return found;
+}
+
+/**
+ * The commands a package.json script runs: the first word of each command
+ * between `&&`, `||`, `;` and `|`, past any `NAME=value` assignment.
+ */
+export function scriptCommands(script) {
+  return script
+    .split(/&&|\|\||[;|]/)
+    .map(part => part.trim().split(/\s+/).filter(Boolean))
+    .map(words => words.find(word => !/^\w+=/.test(word)))
+    .filter(Boolean);
 }
 
 /** WCAG contrast ratio between two `#rrggbb` colors. */
@@ -190,8 +287,15 @@ export function entryProblems(entry, tags) {
         'name of its folder under templates/'
     );
   }
-  for (const key of ['title', 'description', 'license']) {
+  for (const key of ['title', 'description']) {
     if (!nonEmpty(entry[key])) problems.push(`${at} needs a \`${key}\``);
+  }
+  if (!LICENSES.includes(entry.license)) {
+    problems.push(
+      `${at}: \`license\` must be the upstream's SPDX identifier, one of ` +
+        `${LICENSES.join(', ')}; a license not listed needs reading first, ` +
+        'then a row in LICENSES in scripts/lib/templates.mjs'
+    );
   }
   if (!isObject(entry.author) || !nonEmpty(entry.author.name)) {
     problems.push(`${at} needs an \`author.name\`, the original's author`);
@@ -232,20 +336,103 @@ export function entryProblems(entry, tags) {
   return problems;
 }
 
-/** Problems with one template folder, read against its entry. */
-export function folderProblems(root, entry, bestaxVersion) {
-  const dir = join(root, 'templates', entry.slug);
-  const at = relative(root, dir).split('\\').join('/');
+/** The packages a manifest installs: what npm puts in node_modules. */
+const INSTALLED_SECTIONS = [
+  'dependencies',
+  'devDependencies',
+  'optionalDependencies',
+];
+
+/**
+ * Problems with the packages a template needs and its manifest leaves out.
+ * A template needs every package its scripts run (SCRIPT_BINARIES) and every
+ * package its sources and its Vite config import, stylesheets included, and
+ * StackBlitz installs only what the manifest declares. The monorepo's gates
+ * cannot see a gap: the type-check resolves React and the library from
+ * bulma-ui's install, and vite/client's `declare module '*.css'` stands in
+ * for any stylesheet, so this is the check that reads the manifest.
+ */
+export function undeclaredProblems(at, pkg, sources) {
+  const declared = new Set(
+    INSTALLED_SECTIONS.flatMap(section => Object.keys(pkg[section] ?? {}))
+  );
   const problems = [];
+  const needs = new Map();
+  const need = (name, why) => {
+    if (!needs.has(name)) needs.set(name, why);
+  };
+  for (const [name, script] of Object.entries(pkg.scripts ?? {})) {
+    // The lint script is refused on its own, with its packages.
+    if (name === 'lint' || typeof script !== 'string') continue;
+    for (const command of scriptCommands(script)) {
+      if (Object.hasOwn(SCRIPT_BINARIES, command)) {
+        need(SCRIPT_BINARIES[command], `the "${name}" script runs ${command}`);
+      } else {
+        problems.push(
+          `${at}/package.json: the "${name}" script runs ${command}, which ` +
+            'no row in SCRIPT_BINARIES in scripts/lib/templates.mjs maps to ' +
+            'a package; add one, so the check can hold the manifest to it'
+        );
+      }
+    }
+  }
+  for (const [file, source] of sources) {
+    for (const specifier of importSpecifiers(source)) {
+      const name = importedPackage(specifier);
+      if (name) need(name, `${file} imports '${specifier}'`);
+    }
+  }
+  for (const [name, why] of needs) {
+    if (!declared.has(name)) {
+      problems.push(
+        `${at}/package.json does not declare ${name}, and ${why}; ` +
+          'StackBlitz installs from this manifest alone'
+      );
+    }
+  }
+  return problems;
+}
+
+/** lstat, or null for a path that is not there. */
+function lstatOrNull(path) {
+  try {
+    return lstatSync(path);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Problems with one template folder, read against its entry. `files` are the
+ * paths git tracks in the folder, relative to it.
+ */
+export function folderProblems(root, entry, bestaxVersion, files = []) {
+  const dir = join(root, 'templates', entry.slug);
+  const at = `templates/${entry.slug}`;
+  const problems = [];
+  const tracked = new Set(files);
+
+  // Each tracked file as the generator reads it: a regular file on disk.
+  const readable = new Set();
+  for (const file of files) {
+    const info = lstatOrNull(join(dir, file));
+    if (!info) problems.push(`${at}/${file} is tracked but missing on disk`);
+    else if (info.isSymbolicLink()) {
+      problems.push(`${at}/${file} is a symbolic link; commit a regular file`);
+    } else if (!info.isFile()) {
+      problems.push(`${at}/${file} is tracked but not a regular file`);
+    } else readable.add(file);
+  }
+  const read = file =>
+    readable.has(file) ? readFileSync(join(dir, file), 'utf8') : undefined;
 
   for (const file of REQUIRED_FILES) {
-    const path = join(dir, file);
     const ok = file.endsWith('/')
-      ? existsSync(path) && statSync(path).isDirectory()
-      : existsSync(path) && statSync(path).isFile();
-    if (!ok) problems.push(`${at} is missing ${file}`);
+      ? files.some(f => f.startsWith(file))
+      : tracked.has(file);
+    if (!ok) problems.push(`${at} is missing ${file}, as git tracks it`);
   }
-  for (const name of readdirSync(dir)) {
+  for (const name of files.filter(file => !file.includes('/'))) {
     if (LOCKFILES.includes(name)) {
       problems.push(
         `${at} carries ${name}; a template is installed from its ranges ` +
@@ -261,10 +448,10 @@ export function folderProblems(root, entry, bestaxVersion) {
   }
 
   let pkg;
-  const manifest = join(dir, 'package.json');
-  if (existsSync(manifest)) {
+  const manifest = read('package.json');
+  if (manifest !== undefined) {
     try {
-      pkg = JSON.parse(readFileSync(manifest, 'utf8'));
+      pkg = JSON.parse(manifest);
     } catch {
       problems.push(`${at}/package.json is not valid JSON`);
     }
@@ -313,27 +500,32 @@ export function folderProblems(root, entry, bestaxVersion) {
     const range = pkg.dependencies?.[LIBRARY];
     if (range === undefined) {
       problems.push(`${at}/package.json must depend on ${LIBRARY}`);
-    } else if (!caretAdmits(range, bestaxVersion)) {
-      problems.push(
-        `${at}/package.json: ${LIBRARY} is "${range}", which ` +
-          `${bestaxVersion} does not satisfy; give it the current release's ` +
-          `caret range, ^${bestaxVersion}`
-      );
+    } else {
+      const problem = bestaxRangeProblem(range, bestaxVersion);
+      if (problem) problems.push(`${at}/package.json: ${LIBRARY} ${problem}`);
     }
+    const sources = files
+      .filter(
+        file =>
+          (file.startsWith('src/') && SOURCE_FILE.test(file)) ||
+          /^vite\.config\.[cm]?[jt]s$/.test(file)
+      )
+      .filter(file => readable.has(file))
+      .map(file => [`${at}/${file}`, read(file)]);
+    problems.push(...undeclaredProblems(at, pkg, sources));
   }
 
-  const license = join(dir, 'LICENSE');
-  if (nonEmpty(entry.copyright) && existsSync(license)) {
-    if (!readFileSync(license, 'utf8').includes(entry.copyright)) {
+  const license = read('LICENSE');
+  if (nonEmpty(entry.copyright) && license !== undefined) {
+    if (!license.includes(entry.copyright)) {
       problems.push(
         `${at}/LICENSE does not carry the upstream notice's line ` +
-          `"${entry.copyright}"; keep the upstream MIT notice verbatim`
+          `"${entry.copyright}"; keep the upstream license notice verbatim`
       );
     }
   }
-  const readme = join(dir, 'README.md');
-  if (existsSync(readme)) {
-    const text = readFileSync(readme, 'utf8');
+  const text = read('README.md');
+  if (text !== undefined) {
     for (const [what, value] of [
       ['upstream repository', entry.source],
       ['upstream commit', entry.sourceSha],
@@ -346,19 +538,32 @@ export function folderProblems(root, entry, bestaxVersion) {
   return problems;
 }
 
-/** The template folders under `templates/`, by slug. */
-export function templateFolders(root) {
-  const dir = join(root, 'templates');
-  if (!existsSync(dir)) return [];
-  return readdirSync(dir, { withFileTypes: true })
-    .filter(
-      entry =>
-        entry.isDirectory() &&
-        !entry.name.startsWith('.') &&
-        entry.name !== 'node_modules'
-    )
-    .map(entry => entry.name)
-    .sort();
+/**
+ * The tracked files of each template, from a `git ls-files` listing of the
+ * repo: `{ slugs, files }`, where `files` are `{ path, source }` with `path`
+ * relative to templates/ (`<slug>/<rest>`) and `source` relative to the
+ * repo. A tracked file at the top of templates/, such as its CLAUDE.md, is
+ * not a template's and is left out. scripts/gen-templates-repo.mjs publishes
+ * exactly these files, and the checks here read exactly these.
+ */
+export function templatePaths(tracked) {
+  const slugs = new Set();
+  const files = [];
+  for (const source of tracked) {
+    const match = /^templates\/([^/]+)\/(.+)$/.exec(source);
+    if (!match) continue;
+    slugs.add(match[1]);
+    files.push({ path: `${match[1]}/${match[2]}`, source });
+  }
+  return {
+    slugs: [...slugs].sort(byCodePoint),
+    files: files.sort((a, b) => byCodePoint(a.path, b.path)),
+  };
+}
+
+/** What git tracks under templates/ in the checkout at `root`. */
+export function trackedTemplates(root) {
+  return trackedRepoPaths(root, ['templates'], { requireCheckout: true });
 }
 
 /** The screenshots under `docs/static/img/templates/`, by file name. */
@@ -385,15 +590,26 @@ export async function loadTemplatesData(root) {
 /**
  * Every problem with the templates under `root`: the data's shape, each
  * entry against its folder and screenshot, and each folder and screenshot
- * against an entry.
+ * against an entry. `tracked` is what git tracks under templates/, as
+ * trackedTemplates lists it.
  */
-export function templatesProblems({ root, tags, templates, bestaxVersion }) {
+export function templatesProblems({
+  root,
+  tags,
+  templates,
+  bestaxVersion,
+  tracked,
+}) {
   const problems = [...tagProblems(tags)];
   if (!Array.isArray(templates)) {
     return [...problems, '`templates` must be an array'];
   }
   const slugs = [];
-  const folders = templateFolders(root);
+  const { slugs: folders, files } = templatePaths(tracked);
+  const filesOf = slug =>
+    files
+      .filter(file => file.path.startsWith(`${slug}/`))
+      .map(file => file.path.slice(slug.length + 1));
   const shots = screenshots(root);
   // Any slug an entry names, well-formed or not, so a malformed one is
   // reported once, by its entry, rather than again from its folder.
@@ -408,10 +624,13 @@ export function templatesProblems({ root, tags, templates, bestaxVersion }) {
     slugs.push(entry.slug);
     if (!folders.includes(entry.slug)) {
       problems.push(
-        `template "${entry.slug}" has no templates/${entry.slug}/ folder`
+        `template "${entry.slug}" has no templates/${entry.slug}/ folder ` +
+          'that git tracks'
       );
     } else {
-      problems.push(...folderProblems(root, entry, bestaxVersion));
+      problems.push(
+        ...folderProblems(root, entry, bestaxVersion, filesOf(entry.slug))
+      );
     }
     if (!shots.includes(`${entry.slug}.jpg`)) {
       problems.push(
@@ -450,5 +669,6 @@ export async function checkTemplates(root) {
     tags: Tags,
     templates,
     bestaxVersion: version,
+    tracked: trackedTemplates(root),
   });
 }
