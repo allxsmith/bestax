@@ -171,6 +171,15 @@ describe('emitJsx', () => {
     ]);
   });
 
+  it('gives a line break the space a dropped comment left beside it', () => {
+    expect(code('<p><b>a <!--[if lt IE 9]>x<![endif]-->\n</b>c</p>')).toBe(
+      lines('<p><b>', '    a{" "}', '  </b>c</p>')
+    );
+    expect(code('<p><i>a</i> <!--[if IE]>x<![endif]-->\n<i>b</i></p>')).toBe(
+      lines('<p>', '  <i>a</i>{" "}', '  <i>b</i>', '</p>')
+    );
+  });
+
   it('escapes text the way JSX reads it', () => {
     expect(code('<p>a &lt; b &amp;&amp; {c} &gt; d&nbsp;&amp;copy;</p>')).toBe(
       '<p>a &lt; b && {"{"}c{"}"} &gt; d&nbsp;&amp;copy;</p>'
@@ -255,6 +264,10 @@ describe('emitJsx', () => {
     expect(emitted.reported).toEqual([
       { kind: 'element-name', token: 'foo.bar', line: 1 },
     ]);
+    // Its children join the text around it, a space before them included.
+    expect(code('<p>a <foo.bar>\nb</foo.bar></p>')).toBe(
+      lines('<p>', '  a', '  b', '</p>')
+    );
   });
 
   it('reports an attribute on the line it is on', () => {

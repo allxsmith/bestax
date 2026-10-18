@@ -1,4 +1,4 @@
-import { readStyle, styleKey, styleObject } from '../style.js';
+import { applied, readStyle, styleKey, styleObject } from '../style.js';
 
 describe('styleKey', () => {
   it.each([
@@ -65,11 +65,13 @@ describe('styleObject', () => {
     expect(styleObject('  ;  ')).toEqual({ code: null, issues: [] });
   });
 
-  it('reports a declaration React would drop its priority from', () => {
+  it('writes a priority it reports as dropped, which still wins its property', () => {
     expect(
-      styleObject('color: red !important; margin: 0 ! IMPORTANT; top: 0')
+      styleObject(
+        'color: red !important; margin: 0 ! IMPORTANT; color: blue; top: 0'
+      )
     ).toEqual({
-      code: '{ top: "0" }',
+      code: '{ color: "red", margin: "0", top: "0" }',
       issues: [
         {
           kind: 'style-important',
@@ -83,47 +85,90 @@ describe('styleObject', () => {
         },
       ],
     });
-    expect(styleObject('color: red !important').code).toBeNull();
   });
 
   it.each([
     'color: "red',
     'background: url(a.png',
     'color: red)',
-    'color: red /* open',
     'color red',
     'color:',
     ': red',
     '1color: red',
     'col or: red',
+    '*zoom: 1',
     'color: !important',
-  ])('reports %j as unreadable, and writes none of it', text => {
-    expect(styleObject(text)).toEqual({
-      code: null,
-      issues: [{ kind: 'style', detail: text }],
+  ])('skips %j and keeps the declarations beside it', declaration => {
+    expect(styleObject(`top: 0; ${declaration}`)).toEqual({
+      code: '{ top: "0" }',
+      issues: [{ kind: 'style', detail: declaration }],
     });
+  });
+
+  it('keeps reading after a skipped declaration, as CSS does', () => {
+    expect(styleObject('*zoom: 1; display: none; _height: ; left: 0')).toEqual({
+      code: '{ display: "none", left: "0" }',
+      issues: [
+        { kind: 'style', detail: '*zoom: 1' },
+        { kind: 'style', detail: '_height:' },
+      ],
+    });
+  });
+
+  it('lets a string or parenthesis left open take the rest of the style', () => {
+    expect(styleObject('top: 0; background: url(a.png; color: red')).toEqual({
+      code: '{ top: "0" }',
+      issues: [{ kind: 'style', detail: 'background: url(a.png; color: red' }],
+    });
+  });
+
+  it('reads up to a comment left open, which runs to the end', () => {
+    expect(styleObject('color: red /* open; top: 0')).toEqual({
+      code: '{ color: "red" }',
+      issues: [],
+    });
+  });
+
+  it('writes nothing when nothing could be read', () => {
+    expect(styleObject('*zoom: 1').code).toBeNull();
   });
 });
 
 describe('readStyle', () => {
   it('reads declarations with their priority, properties lowercased', () => {
-    expect(readStyle('DISPLAY: Flex; --X: 1 !important')).toEqual([
-      {
-        property: 'display',
-        value: 'Flex',
-        important: false,
-        text: 'DISPLAY: Flex',
-      },
-      {
-        property: '--X',
-        value: '1',
-        important: true,
-        text: '--X: 1 !important',
-      },
-    ]);
+    expect(readStyle('DISPLAY: Flex; --X: 1 !important; color')).toEqual({
+      declarations: [
+        {
+          property: 'display',
+          value: 'Flex',
+          important: false,
+          text: 'DISPLAY: Flex',
+        },
+        {
+          property: '--X',
+          value: '1',
+          important: true,
+          text: '--X: 1 !important',
+        },
+      ],
+      skipped: ['color'],
+    });
   });
+});
 
-  it('is null for a style it cannot read', () => {
-    expect(readStyle('color')).toBeNull();
+describe('applied', () => {
+  it('picks an important declaration over any other, else the last', () => {
+    const { declarations } = readStyle(
+      'display: none !important; color: red; display: block; color: blue'
+    );
+    expect(
+      [...applied(declarations)].map(([property, { value }]) => [
+        property,
+        value,
+      ])
+    ).toEqual([
+      ['display', 'none'],
+      ['color', 'blue'],
+    ]);
   });
 });

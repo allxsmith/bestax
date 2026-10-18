@@ -12,10 +12,15 @@
  *   - at the start or end of a line: the start or end of a block container,
  *     or beside a block-level box or a `<br>`, seen through inline elements;
  *   - right after another space, which it collapses into;
- *   - inside a flex or grid container, a table's rows and groups, a
- *     `<select>`, `<head>` or `<html>`, where text is never a line of its own
- *     (every child is a box there, so a text's edges are line edges too);
+ *   - inside a flex or grid container, a `<select>`, `<head>` or `<html>`,
+ *     where every child is a box of its own, so a text's edges are line
+ *     edges too;
  *   - between the shapes of an SVG or MathML drawing, outside its text.
+ *
+ * A table, its rows, groups, cells and captions are block-level boxes and
+ * block containers, so a run between two of them renders nothing (the first
+ * rule). Inline content in a table, which only CSS can put there, sits in an
+ * anonymous cell, and a run inside it renders as it does in any block.
  *
  * Comments and `display: none` boxes render nothing, so a run is judged by
  * what is beside them. An element's display comes from `displayOf`; the
@@ -34,7 +39,7 @@ import {
   type ParentNode,
   type TextNode,
 } from './parse.js';
-import { readStyle } from './style.js';
+import { applied, readStyle } from './style.js';
 
 /** An element's CSS `display`, or undefined when the hook can't tell. */
 export type DisplayOf = (element: Element) => string | undefined;
@@ -191,13 +196,15 @@ function attribute(element: Element, name: string): string | undefined {
   return element.attrs.find(attr => attr.name === name && !attr.prefix)?.value;
 }
 
-/** The last value an element's inline `style` gives a property. */
+/**
+ * The value an element's inline `style` gives a property, picked as the
+ * written style object picks it (`style.ts`), so the two never disagree.
+ */
 function inlineStyle(element: Element, property: string): string | undefined {
   const style = attribute(element, 'style');
-  const read = style === undefined ? null : readStyle(style);
-  return read
-    ?.filter(declaration => declaration.property === property)
-    .pop()
+  if (style === undefined) return undefined;
+  return applied(readStyle(style).declarations)
+    .get(property)
     ?.value.toLowerCase();
 }
 
@@ -269,17 +276,18 @@ function boxOfDisplay(display: string | undefined): Omit<Box, 'exact'> {
   if (has('none')) return { outer: 'none', inner: 'block' };
   const inline =
     has('inline') || words.some(word => word.startsWith('inline-'));
-  const boxes = words.some(word => /(?:^|-)(?:flex|grid|table)$/.test(word));
-  const tableInternal = words.some(word =>
-    /^table-(?:row|column|header|footer)/.test(word)
-  );
+  const boxes = words.some(word => /(?:^|-)(?:flex|grid)$/.test(word));
+  // A table and every part of one is a block among its siblings, and holds
+  // its content in lines of its own.
+  const table = words.some(word => /^(?:inline-)?table(?:-|$)/.test(word));
   const block =
     boxes ||
-    has('block', 'flow-root', 'list-item', 'table-cell', 'table-caption') ||
+    table ||
+    has('block', 'flow-root', 'list-item') ||
     words.some(word => word.startsWith('inline-'));
   return {
-    outer: inline ? 'inline' : block || tableInternal ? 'block' : 'inline',
-    inner: boxes || tableInternal ? 'boxes' : block ? 'block' : 'inline',
+    outer: inline ? 'inline' : block ? 'block' : 'inline',
+    inner: boxes ? 'boxes' : block ? 'block' : 'inline',
   };
 }
 

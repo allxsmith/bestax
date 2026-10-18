@@ -182,22 +182,35 @@ type Item =
  * Pieces as items: words and the spaces between them on one line joined
  * into texts, a run with a line break in it as a break, and a run that
  * renders nothing on one line dropped.
+ *
+ * Two runs meet only where a dropped comment was between them, and then a
+ * space that renders can end up beside a line break, where JSX would trim
+ * it. Such a space is the break's to write, so a text never starts or ends
+ * with a space next to a break.
  */
 function itemsOf(pieces: Piece[]): Item[] {
   const items: Item[] = [];
   for (const piece of pieces) {
-    const last = items[items.length - 1];
+    let last = items[items.length - 1];
     if (piece.kind === 'node') {
       items.push({ kind: 'node', node: piece.node });
     } else if (piece.kind === 'space' && piece.newlines > 0) {
+      let kept = piece.kept;
+      if (last?.kind === 'text' && last.text.endsWith(' ')) {
+        kept = true;
+        last.text = last.text.slice(0, -1);
+        if (last.text === '') items.pop();
+        last = items[items.length - 1];
+      }
       const blank = piece.newlines > 1;
-      // Two runs meet where a dropped comment was between them.
       if (last?.kind === 'break') {
-        last.kept ||= piece.kept;
+        last.kept ||= kept;
         last.blank ||= blank;
       } else {
-        items.push({ kind: 'break', kept: piece.kept, blank });
+        items.push({ kind: 'break', kept, blank });
       }
+    } else if (piece.kind === 'space' && piece.kept && last?.kind === 'break') {
+      last.kept = true;
     } else if (piece.kind !== 'space' || piece.kept) {
       const text = piece.kind === 'space' ? ' ' : piece.text;
       if (last?.kind === 'text') last.text += text;
@@ -245,16 +258,24 @@ export function emitJsx(root: ParentNode, options: EmitOptions = {}): Emitted {
     reported.push({ ...issue, line });
   };
 
-  /** A parent's pieces, minus (and reporting) the comments no browser reads. */
+  /**
+   * A parent's pieces as they are written, reporting what changes: a
+   * comment no browser reads goes, and an element JSX can't name gives way
+   * to its children, which join the text around them.
+   */
   const piecesOf = (parent: ParentNode): Piece[] =>
-    (layout.get(parent) ?? []).filter(piece => {
-      if (piece.kind !== 'node' || !isComment(piece.node)) return true;
-      if (!isConditionalComment(piece.node.data)) return true;
-      report(
-        { kind: 'conditional-comment', token: 'comment' },
-        piece.node.sourceCodeLocation?.startLine ?? null
-      );
-      return false;
+    (layout.get(parent) ?? []).flatMap(piece => {
+      if (piece.kind !== 'node') return [piece];
+      const node = piece.node;
+      const line = node.sourceCodeLocation?.startLine ?? null;
+      if (isComment(node)) {
+        if (!isConditionalComment(node.data)) return [piece];
+        report({ kind: 'conditional-comment', token: 'comment' }, line);
+        return [];
+      }
+      if (JSX_TAG.test(node.tagName)) return [piece];
+      report({ kind: 'element-name', token: node.tagName }, line);
+      return piecesOf(node);
     });
 
   const comment = (node: CommentNode, depth: number) => {
@@ -312,7 +333,7 @@ export function emitJsx(root: ParentNode, options: EmitOptions = {}): Emitted {
     const tag = node.tagName;
     if (tag === 'template') {
       report({ kind: 'template', token: tag }, line);
-    } else if (tag.includes('-') && isCustomElement(node)) {
+    } else if (isCustomElement(node)) {
       report({ kind: 'custom-element', token: tag }, line);
     } else if (OBSOLETE.has(tag)) {
       report({ kind: 'obsolete-element', token: tag }, line);
@@ -325,20 +346,14 @@ export function emitJsx(root: ParentNode, options: EmitOptions = {}): Emitted {
     const tag = node.tagName;
     const location = node.sourceCodeLocation;
     const line = location?.startLine ?? null;
-    const pieces = piecesOf(node);
-    if (!JSX_TAG.test(tag)) {
-      // Nothing can name it, so its children are written in its place.
-      report({ kind: 'element-name', token: tag }, line);
-      flow(itemsOf(pieces), depth - 1);
-      return;
-    }
     reportElement(node, line);
-
     const { props, issues } = convertAttributes(node);
     for (const issue of issues) {
       const at = issue.attribute && location?.attrs?.[issue.attribute];
       report(issue, at ? at.startLine : line);
     }
+
+    const pieces = piecesOf(node);
     const preformatted = pieces.some(piece => piece.kind === 'exact');
     const items = preformatted ? [] : framed(itemsOf(pieces));
     const empty =
