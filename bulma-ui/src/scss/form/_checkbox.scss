@@ -58,7 +58,7 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
     height: 0;
 
     // Checked state
-    &:checked + .check {
+    &:checked + .#{iv.$class-prefix}check {
       background-color: cv.getVar("checkbox-active-color");
       border-color: cv.getVar("checkbox-active-color");
 
@@ -70,7 +70,7 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
     }
 
     // Indeterminate state
-    &:indeterminate + .check {
+    &:indeterminate + .#{iv.$class-prefix}check {
       background-color: cv.getVar("checkbox-indeterminate-color");
       border-color: cv.getVar("checkbox-indeterminate-color");
 
@@ -92,25 +92,25 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
     }
 
     // Focus-visible state (keyboard only)
-    &:focus-visible + .check {
+    &:focus-visible + .#{iv.$class-prefix}check {
       outline: 2px solid cv.getVar("checkbox-active-color");
       outline-offset: 2px;
     }
 
     // Disabled state
-    &:disabled + .check {
+    &:disabled + .#{iv.$class-prefix}check {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    &:disabled ~ .control-label {
+    &:disabled ~ .#{iv.$class-prefix}control-label {
       opacity: 0.5;
       cursor: not-allowed;
     }
   }
 
   // Custom check indicator
-  .check {
+  .#{iv.$class-prefix}check {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -146,7 +146,7 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
   }
 
   // Label text
-  .control-label {
+  .#{iv.$class-prefix}control-label {
     margin-left: cv.getVar("checkbox-label-gap");
     line-height: 1.5;
   }
@@ -180,11 +180,11 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
 // High Contrast Mode support
 @media (forced-colors: active) {
   .#{iv.$class-prefix}styled-checkbox {
-    .check {
+    .#{iv.$class-prefix}check {
       border-color: ButtonText;
     }
 
-    input[type="checkbox"]:checked + .check {
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
       background-color: Highlight;
       border-color: Highlight;
 
@@ -204,7 +204,7 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
     // Forced colors repaints the mixed fill and its dash in the same color,
     // which leaves an empty box. Draw the dash in system colors that keep it
     // visible, checked or not.
-    input[type="checkbox"]:indeterminate + .check {
+    input[type="checkbox"]:indeterminate + .#{iv.$class-prefix}check {
       background-color: Canvas;
 
       &::before {
@@ -212,11 +212,11 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
       }
     }
 
-    input[type="checkbox"]:focus-visible + .check {
+    input[type="checkbox"]:focus-visible + .#{iv.$class-prefix}check {
       outline-color: Highlight;
     }
 
-    input[type="checkbox"]:disabled + .check {
+    input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
     }
   }
@@ -225,8 +225,8 @@ $-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' 
 // Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}styled-checkbox {
-    .check,
-    .check::after {
+    .#{iv.$class-prefix}check,
+    .#{iv.$class-prefix}check::after {
       transition: none;
     }
   }

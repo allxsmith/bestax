@@ -60,7 +60,7 @@ $switch-thin-circle-size: 1.25em !default;
     height: 0;
 
     // Checked state
-    &:checked + .check {
+    &:checked + .#{iv.$class-prefix}check {
       background-color: cv.getVar("switch-active-color");
       border-color: cv.getVar("switch-active-color");
 
@@ -72,30 +72,30 @@ $switch-thin-circle-size: 1.25em !default;
     }
 
     // Focus-visible state (keyboard only)
-    &:focus-visible + .check {
+    &:focus-visible + .#{iv.$class-prefix}check {
       outline: 2px solid cv.getVar("switch-active-color");
       outline-offset: 2px;
     }
 
     // Legacy focus state for older browsers
-    &:focus + .check {
+    &:focus + .#{iv.$class-prefix}check {
       box-shadow: cv.getVar("switch-focus-shadow");
     }
 
     // Disabled state
-    &:disabled + .check {
+    &:disabled + .#{iv.$class-prefix}check {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    &:disabled ~ .control-label {
+    &:disabled ~ .#{iv.$class-prefix}control-label {
       opacity: 0.5;
       cursor: not-allowed;
     }
   }
 
   // Track (the pill-shaped background)
-  .check {
+  .#{iv.$class-prefix}check {
     display: inline-block;
     position: relative;
     width: cv.getVar("switch-width");
@@ -132,7 +132,7 @@ $switch-thin-circle-size: 1.25em !default;
   }
 
   // Label text
-  .control-label {
+  .#{iv.$class-prefix}control-label {
     margin-left: cv.getVar("switch-label-gap");
     line-height: cv.getVar("switch-height");
   }
@@ -141,7 +141,7 @@ $switch-thin-circle-size: 1.25em !default;
   &.#{iv.$class-prefix}is-rtl {
     flex-direction: row-reverse;
 
-    .control-label {
+    .#{iv.$class-prefix}control-label {
       margin-left: 0;
       margin-right: cv.getVar("switch-label-gap");
     }
@@ -163,7 +163,7 @@ $switch-thin-circle-size: 1.25em !default;
 
 // Rounded variant (already rounded by default, but explicit class for consistency)
 .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-rounded {
-  .check {
+  .#{iv.$class-prefix}check {
     border-radius: cv.getVar("switch-radius");
 
     &::before {
@@ -174,7 +174,7 @@ $switch-thin-circle-size: 1.25em !default;
 
 // Thin variant — MUI-style: colored circle, muted track
 .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-thin {
-  .check {
+  .#{iv.$class-prefix}check {
     height: cv.getVar("switch-thin-height");
     background-color: color-mix(
       in srgb,
@@ -196,7 +196,7 @@ $switch-thin-circle-size: 1.25em !default;
   }
 
   // Checked: circle becomes active color, track becomes muted active color
-  input[type="checkbox"]:checked + .check {
+  input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
     background-color: color-mix(
       in srgb,
       cv.getVar("switch-active-color") 50%,
@@ -218,7 +218,7 @@ $switch-thin-circle-size: 1.25em !default;
 
 // Outlined variant
 .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-outlined {
-  .check {
+  .#{iv.$class-prefix}check {
     background-color: transparent;
     border-color: cv.getVar("switch-background");
 
@@ -227,7 +227,7 @@ $switch-thin-circle-size: 1.25em !default;
     }
   }
 
-  input[type="checkbox"]:checked + .check {
+  input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
     background-color: transparent;
     border-color: cv.getVar("switch-active-color");
 
@@ -251,14 +251,14 @@ $switch-thin-circle-size: 1.25em !default;
 // Passive type variants (unchecked state color)
 @each $name in "primary", "link", "info", "success", "warning", "danger" {
   .#{iv.$class-prefix}switch.#{iv.$class-prefix}is-#{$name}-passive {
-    .check {
+    .#{iv.$class-prefix}check {
       background-color: cv.getVar($name);
       border-color: cv.getVar($name);
     }
 
     // Outlined passive: transparent background, colored border and circle
     &.#{iv.$class-prefix}is-outlined {
-      .check {
+      .#{iv.$class-prefix}check {
         background-color: transparent;
         border-color: cv.getVar($name);
 
@@ -284,20 +284,20 @@ $switch-thin-circle-size: 1.25em !default;
 // High Contrast Mode support
 @media (forced-colors: active) {
   .#{iv.$class-prefix}switch {
-    .check {
+    .#{iv.$class-prefix}check {
       border-color: ButtonText;
     }
 
-    input[type="checkbox"]:checked + .check {
+    input[type="checkbox"]:checked + .#{iv.$class-prefix}check {
       background-color: Highlight;
       border-color: Highlight;
     }
 
-    input[type="checkbox"]:focus-visible + .check {
+    input[type="checkbox"]:focus-visible + .#{iv.$class-prefix}check {
       outline-color: Highlight;
     }
 
-    input[type="checkbox"]:disabled + .check {
+    input[type="checkbox"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
     }
   }
@@ -306,8 +306,8 @@ $switch-thin-circle-size: 1.25em !default;
 // Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}switch {
-    .check,
-    .check::before {
+    .#{iv.$class-prefix}check,
+    .#{iv.$class-prefix}check::before {
       transition: none;
     }
   }
