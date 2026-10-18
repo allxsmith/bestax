@@ -439,6 +439,16 @@ describe('TreeView', () => {
       expect(focused()).toBe('src');
     });
 
+    it('selects a leaf with a click in the space a chevron would take', () => {
+      const onSelectedChange = jest.fn();
+      render(
+        <Files selectionMode="single" onSelectedChange={onSelectedChange} />
+      );
+      fireEvent.click(item('package.json').querySelector('.tree-view-toggle')!);
+      expect(onSelectedChange).toHaveBeenCalledWith('package');
+      expect(item('package.json')).toHaveAttribute('aria-selected', 'true');
+    });
+
     it('does nothing when the selected item is picked again', () => {
       const onSelectedChange = jest.fn();
       render(
@@ -558,6 +568,14 @@ describe('TreeView', () => {
       onCheckedChange.mockClear();
       press(item('View invoices'), 'Enter');
       expect(onCheckedChange).not.toHaveBeenCalled();
+    });
+
+    it('checks a leaf with a click in the space a chevron would take', () => {
+      const onCheckedChange = jest.fn();
+      render(<Permissions onCheckedChange={onCheckedChange} />);
+      fireEvent.click(item('Write').querySelector('.tree-view-toggle')!);
+      expect(lastList(onCheckedChange)).toEqual(['projects/write']);
+      expect(item('Write')).toHaveAttribute('aria-checked', 'true');
     });
 
     it('toggles once for a click on the box’s input or its label, and leaves focus on the item', () => {

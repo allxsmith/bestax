@@ -398,7 +398,9 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
           onClick?.(event);
           // A click in its row is its own, and so is one on the item itself,
           // as a test's click on the treeitem is. One in its group belongs
-          // to the item inside it, or to nothing.
+          // to the item inside it, or to nothing. The chevron's box is on
+          // every row, but it's a chevron only on a parent: on a leaf it's
+          // more of the row.
           const target = event.target as Node;
           if (
             target === event.currentTarget ||
@@ -407,7 +409,7 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
             tree.onClick(
               event.currentTarget,
               info,
-              toggleRef.current!.contains(target)
+              isParent && toggleRef.current!.contains(target)
             );
           }
         }}
