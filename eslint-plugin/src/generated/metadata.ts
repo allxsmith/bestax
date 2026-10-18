@@ -195,8 +195,11 @@ export const TEXT_ALIAS_COLOR_ELEMENTS: readonly string[] = [
   'Content',
   'Delete',
   'EmptyState.Actions',
+  'Icon',
   'IconText',
+  'IconText.Icon',
   'Image',
+  'Panel.Icon',
 ];
 
 /** A Bulma class that names a bestax component. */

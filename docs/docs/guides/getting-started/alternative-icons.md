@@ -265,14 +265,18 @@ function MaterialIconStyles() {
   return (
     <Columns isVCentered>
       <Column isNarrow>
-        <Icon library="material-icons" name="account_circle" color="danger" />
+        <Icon
+          library="material-icons"
+          name="account_circle"
+          textColor="danger"
+        />
       </Column>
       <Column isNarrow>
         <Icon
           library="material-icons"
           name="account_circle"
           variant="outlined"
-          color="danger"
+          textColor="danger"
         />
       </Column>
       <Column isNarrow>
@@ -280,7 +284,7 @@ function MaterialIconStyles() {
           library="material-icons"
           name="account_circle"
           variant="round"
-          color="danger"
+          textColor="danger"
         />
       </Column>
       <Column isNarrow>
@@ -288,7 +292,7 @@ function MaterialIconStyles() {
           library="material-icons"
           name="account_circle"
           variant="sharp"
-          color="danger"
+          textColor="danger"
         />
       </Column>
     </Columns>
