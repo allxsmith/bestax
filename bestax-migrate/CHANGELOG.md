@@ -1,3 +1,10 @@
+# [2.26.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.7...bestax-migrate@2.26.0) (2026-10-18)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma HTML pages with the bulma-classes source ([#1160](https://github.com/allxsmith/bestax/issues/1160)) ([56335a1](https://github.com/allxsmith/bestax/commit/56335a1295a60d6427e87e8651b521c5908e8f7a))
+
 ## [2.25.7](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.6...bestax-migrate@2.25.7) (2026-10-18)
 
 
