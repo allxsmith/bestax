@@ -788,6 +788,19 @@ describe('Taginput', () => {
       expect(onChange).toHaveBeenCalledWith(['React', 'Vue', 'Angular']);
     });
 
+    // Between two other separators an unescaped `-` made a range, so `,-;`
+    // also split on `.`, `/`, the digits and `:`.
+    it('splits on a hyphen separator as itself, not as a range', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput onPasteSeparators={[',', '-', ';']} onChange={onChange} />
+      );
+
+      paste('v1.2-beta;rc:1');
+
+      expect(onChange).toHaveBeenCalledWith(['v1.2', 'beta', 'rc:1']);
+    });
+
     // Each part used to be added against the tags from before the paste, so
     // the last write won and every check missed the paste's own parts
     // (#1101).

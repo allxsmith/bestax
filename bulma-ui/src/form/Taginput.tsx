@@ -480,9 +480,10 @@ export const Taginput = forwardRef<HTMLInputElement, TaginputProps>(
 
         e.preventDefault();
 
-        // Build a regex from all separators
+        // Build a character class from all separators. A `-` is escaped
+        // too, since between two others it would make a range.
         const escapedSeparators = onPasteSeparators.map(s =>
-          s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+          s.replace(/[-.*+?^${}()|[\]\\]/g, '\\$&')
         );
         const regex = new RegExp(`[${escapedSeparators.join('')}]`);
 
