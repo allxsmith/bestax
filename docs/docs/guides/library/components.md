@@ -380,6 +380,27 @@ Groups `Collapse` items into an accordion that keeps one item open at a time, or
 
 ---
 
+### TreeView
+
+A tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, Right and Left to open and close, and one item picked or any number checked. It's for data with folders in it, not site navigation, which is `Menu`'s job. [View full documentation.](../../api/components/treeview.md)
+
+```tsx live
+<TreeView
+  aria-label="Files"
+  selectionMode="single"
+  defaultSelected="src/index.ts"
+  defaultExpanded={['src']}
+>
+  <TreeView.Item value="src" label="src" icon="folder">
+    <TreeView.Item value="src/index.ts" label="index.ts" icon="file" />
+    <TreeView.Item value="src/App.tsx" label="App.tsx" icon="file" />
+  </TreeView.Item>
+  <TreeView.Item value="package.json" label="package.json" icon="file" />
+</TreeView>
+```
+
+---
+
 ### Reveal
 
 Animates content into view as it scrolls onto screen, powered by IntersectionObserver. Supports cascading children and respects `prefers-reduced-motion`. [View full documentation.](../../api/components/reveal.md)

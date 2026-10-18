@@ -2,7 +2,7 @@
   "schemaVersion": 2,
   "generatedFrom": {
     "package": "@allxsmith/bestax-bulma",
-    "version": "5.36.1"
+    "version": "5.37.0"
   },
   "docsBase": "https://bestax.io/docs",
   "categories": [
@@ -77,7 +77,8 @@
         "Tabs",
         "Timeline",
         "Toast",
-        "Tooltip"
+        "Tooltip",
+        "TreeView"
       ]
     },
     {
@@ -1190,6 +1191,17 @@
       "compound": false,
       "propCount": 14,
       "exampleCount": 11
+    },
+    {
+      "name": "TreeView",
+      "kind": "component",
+      "category": "components",
+      "purpose": "The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, and Right and…",
+      "slug": "components/treeview",
+      "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 20,
+      "exampleCount": 8
     },
     {
       "name": "UnorderedList",
@@ -2593,6 +2605,28 @@
     "--bulma-tooltip-multiline-width": ["Tooltip"],
     "--bulma-tooltip-padding": ["Tooltip"],
     "--bulma-tooltip-radius": ["Tooltip"],
-    "--bulma-tooltip-z-index": ["Tooltip"]
+    "--bulma-tooltip-z-index": ["Tooltip"],
+    "--bulma-tree-view-gap": ["TreeView"],
+    "--bulma-tree-view-group-border": ["TreeView"],
+    "--bulma-tree-view-group-margin": ["TreeView"],
+    "--bulma-tree-view-group-padding": ["TreeView"],
+    "--bulma-tree-view-item-active-background-l-delta": ["TreeView"],
+    "--bulma-tree-view-item-background-l": ["TreeView"],
+    "--bulma-tree-view-item-background-l-delta": ["TreeView"],
+    "--bulma-tree-view-item-color-l": ["TreeView"],
+    "--bulma-tree-view-item-disabled-color": ["TreeView"],
+    "--bulma-tree-view-item-h": ["TreeView"],
+    "--bulma-tree-view-item-hover-background-l-delta": ["TreeView"],
+    "--bulma-tree-view-item-padding": ["TreeView"],
+    "--bulma-tree-view-item-radius": ["TreeView"],
+    "--bulma-tree-view-item-s": ["TreeView"],
+    "--bulma-tree-view-item-selected-background-l": ["TreeView"],
+    "--bulma-tree-view-item-selected-color-l": ["TreeView"],
+    "--bulma-tree-view-item-selected-h": ["TreeView"],
+    "--bulma-tree-view-item-selected-s": ["TreeView"],
+    "--bulma-tree-view-line-height": ["TreeView"],
+    "--bulma-tree-view-toggle-color": ["TreeView"],
+    "--bulma-tree-view-toggle-duration": ["TreeView"],
+    "--bulma-tree-view-toggle-size": ["TreeView"]
   }
 }

@@ -120,6 +120,12 @@ const ADDONS = [
     link: '/docs/api/components/tooltip',
     desc: 'Hover hints in any direction and color.',
   },
+  {
+    name: 'TreeView',
+    icon: 'treeview',
+    link: '/docs/api/components/treeview',
+    desc: 'A tree of items you browse and pick from, like a file explorer, with checkboxes and mixed parents if you want them.',
+  },
 ];
 
 function FadeIn({ children, index }) {

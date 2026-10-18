@@ -214,6 +214,22 @@ const PROPS: Record<string, Record<string, unknown>> = {
     marks: [{ value: 50, label: '50' }],
     tooltip: 'always',
   },
+  // A checkbox tree, sized and open, with an icon, a disabled item and a
+  // checked one, so the box, the group and the modifiers are swept. An item
+  // renders nothing outside a tree, so TreeViewItem's classes are swept here.
+  TreeView: {
+    'aria-label': 'Files',
+    selectionMode: 'checkbox',
+    size: 'small',
+    defaultExpanded: ['src'],
+    defaultChecked: ['src/index.ts'],
+    children: (
+      <Library.TreeView.Item value="src" label="src" icon="folder">
+        <Library.TreeView.Item value="src/index.ts" label="index.ts" />
+        <Library.TreeView.Item value="src/old.ts" label="old.ts" disabled />
+      </Library.TreeView.Item>
+    ),
+  },
 };
 
 describe('classPrefix sweep', () => {
