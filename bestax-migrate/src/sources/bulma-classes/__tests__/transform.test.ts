@@ -1379,11 +1379,23 @@ describe('an element whose component renders a glyph from props', () => {
     }
     const [inControl] = messages(
       page(
-        '<div className="control has-icons-left"><input className="input" /><span className="icon is-left"><i className="fas fa-envelope" aria-hidden="true"></i></span></div>'
+        '<div className="control has-icons-left"><input className="input" /><span className="icon is-left"><i className="fas fa-envelope"></i></span></div>'
       )
     );
     expect(inControl).toMatch(
       /`iconLeft=\{\{ library: "fa", name: "envelope" \}\}`/
+    );
+  });
+
+  it("moves Font Awesome's own aria-hidden up, writing no attribute of its own", () => {
+    const { output, rules } = migrate(
+      page(
+        '<span className="icon is-small"><i className="fab fa-github" aria-hidden="true"></i></span>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<Icon library="fa" name="github" variant="brands" size="small" />'
     );
   });
 

@@ -762,23 +762,65 @@ describe('plan', () => {
         };
         const control = { parentTokens: ['control', 'has-icons-left'] };
 
-        it("says to move up the aria-hidden Font Awesome's own markup puts on the <i>", () => {
+        it("moves up the aria-hidden Font Awesome's own markup puts on a bare <i>", () => {
           const fa = glyph(['fa-solid', 'fa-envelope'], hidden);
-          expect(todo('icon', fa)).toBe(
-            'bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can\'t render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="envelope" variant="fa-solid"`'
+          const moved = plan(
+            facts(
+              'span',
+              'icon is-medium is-left',
+              {},
+              {
+                soleChild: fa,
+                ...control,
+              }
+            )
           );
-          // In a `.control` with icons on its side, it names the prop too.
-          expect(todo('icon is-medium is-left', fa, control)).toBe(
-            'bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can\'t render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="envelope" variant="fa-solid"`; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "envelope", variant: "fa-solid", size: "medium" }}`, which it renders after its children as a `.icon.is-left` around the glyph\'s <i>, hidden the way `Icon` hides it'
-          );
-          // An <i> that carries more keeps it, so no glyph is promised.
+          expect(moved).toEqual({
+            conversion: {
+              target: 'Icon',
+              props: [['size', 'medium']],
+              className: 'is-left',
+              drop: [],
+              numbers: [],
+              rendersChildren: true,
+              glyph: { library: 'fa', name: 'envelope', variant: 'fa-solid' },
+              movesHidden: true,
+            },
+            todos: [],
+          });
+          // So does JSX's own spelling of it.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                {},
+                {
+                  soleChild: {
+                    ...fa,
+                    attributes: new Map([['aria-hidden', true]]),
+                  },
+                }
+              )
+            ).conversion?.movesHidden
+          ).toBe(true);
+        });
+
+        it('says to move it up by hand off any other <i>', () => {
+          // One that carries more stays the icon's child, so no glyph is
+          // promised.
           expect(
             todo('icon', glyph(['fas', 'fa-moon'], { ...hidden, id: 'x' }))
-          ).toMatch(/move it up onto the `\.icon`, then re-run$/);
+          ).toBe(
+            'bestax `Icon` writes `aria-hidden="true"` on the `.icon`, and takes it from the <i> inside only when that <i> is empty, carries nothing else and names a glyph it renders from props, which this one doesn\'t; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run'
+          );
+          expect(todo('icon', glyph(['material-icons'], hidden))).toMatch(
+            /which this one doesn't; .* move it up onto the `\.icon`/
+          );
         });
 
         it('names Control’s prop only for a bare icon on the side its .control has icons', () => {
-          const fa = glyph(['fas', 'fa-check'], hidden);
+          const fa = glyph(['fas', 'fa-check']);
           expect(
             todo('icon is-small is-right', fa, {
               parentTokens: ['control', 'has-icons-right'],
@@ -790,7 +832,7 @@ describe('plan', () => {
           expect(
             todo(
               'icon is-left is-clearfix',
-              glyph(['fas', 'fa-spinner', 'fa-spin', 'fa-fw'], hidden),
+              glyph(['fas', 'fa-spinner', 'fa-spin', 'fa-fw']),
               control
             )
           ).toMatch(

@@ -13,6 +13,12 @@
  * A planner refusal is always safe (the markup stays as written), so the
  * tests assert only that what DOES convert is identical, plus that every
  * table entry converts somewhere, so no row is dead.
+ *
+ * One conversion is compared another way, on purpose: Font Awesome's own
+ * `<i aria-hidden="true">` alone in an unnamed `.icon` becomes `Icon`, which
+ * writes the attribute on the `.icon` instead. Where the planner says so
+ * (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
+ * moves it up in exactly that shape and leaves every other one as it is.
  */
 
 import { execFileSync } from 'node:child_process';
@@ -42,6 +48,7 @@ import {
   rawFrom,
   type FileTree,
 } from './support/file-tree.js';
+import { moveGlyphHidden } from './support/hidden-glyph.js';
 import {
   GLYPHS,
   iconChild,
@@ -125,7 +132,10 @@ function rawChild(child: ChildFacts): unknown {
       ...Object.fromEntries(child.attributes),
     },
     child.soleChild
-      ? createElement('i', { className: child.soleChild.tokens!.join(' ') })
+      ? createElement('i', {
+          className: child.soleChild.tokens!.join(' '),
+          ...Object.fromEntries(child.soleChild.attributes),
+        })
       : child.text
   );
 }
@@ -291,7 +301,18 @@ function renderBoth(
       )
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
-  return { raw: withImplicitListRoles(raw, html), converted: html };
+  // The one difference a conversion makes on purpose, compared as it is
+  // meant: only where the planner says the `aria-hidden` moved up, for the
+  // element or for an icon it builds.
+  const moves =
+    result.conversion.movesHidden ||
+    facts.childElements?.some(child => child.becomes?.movesHidden);
+  const compared = (markup: string) =>
+    moves ? moveGlyphHidden(markup) : markup;
+  return {
+    raw: compared(withImplicitListRoles(raw, html)),
+    converted: compared(html),
+  };
 }
 
 /**
@@ -1139,6 +1160,19 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
       }
     });
 
+    it('renders an icon whose <i> Font Awesome hid the same, with it moved up', () => {
+      const fa = (glyph: string[]) =>
+        iconChild(glyph, [], {}, { 'aria-hidden': 'true' });
+      for (const glyph of GLYPHS) {
+        same(`${glyph.join(' ')}, hidden on the <i>`, [fa(glyph), textChild()]);
+      }
+      same('beside one hidden on the .icon', [
+        fa(['fas', 'fa-home']),
+        textChild('a'),
+        iconChild(['far', 'fa-bell']),
+      ]);
+    });
+
     it("renders an icon's own classes and attributes the same", () => {
       for (const token of [
         'is-small',
@@ -1295,8 +1329,146 @@ describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
         });
       }
     });
+
+    it("moves Font Awesome's aria-hidden up off a bare <i>, and renders the same with it moved", () => {
+      const moved = (
+        label: string,
+        tokens: string[],
+        classes: string[] = [],
+        attributes: Attributes = {}
+      ) => {
+        const conversion = render(
+          label,
+          glyph(tokens, hidden),
+          classes,
+          attributes
+        );
+        expect({
+          label,
+          glyph: conversion.glyph !== undefined,
+          moves: conversion.movesHidden,
+        }).toEqual({ label, glyph: true, moves: true });
+      };
+      for (const tokens of GLYPHS) moved(tokens.join(' '), tokens);
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        'is-left',
+        'has-text-info',
+        'my-icon',
+      ]) {
+        moved(token, ['fas', 'fa-home'], [token]);
+      }
+      for (const [name, value] of Object.entries({
+        id: 'x',
+        title: 'hint',
+        'aria-describedby': 'y',
+      })) {
+        moved(name, ['fas', 'fa-home'], [], { [name]: value });
+      }
+    });
+
+    it('moves it up only off that one shape', () => {
+      const fa = ['fas', 'fa-home'];
+      // Each converts another way, compared with nothing moved.
+      for (const [label, [inner, attributes]] of Object.entries({
+        'the .icon hidden too': [glyph(fa, hidden), hidden],
+        'a name on the .icon': [
+          glyph(fa, hidden),
+          { 'aria-label': 'Home', role: 'img' },
+        ],
+        'a role of its own': [glyph(fa, hidden), { role: 'note' }],
+        'a tabIndex of its own': [glyph(fa, hidden), { tabIndex: '0' }],
+      } satisfies Record<string, [ChildFacts, Attributes]>)) {
+        const conversion = render(label, inner, [], attributes);
+        expect({ label, moves: conversion.movesHidden }).toEqual({
+          label,
+          moves: undefined,
+        });
+      }
+      // Each stays markup.
+      for (const [label, [inner, attributes]] of Object.entries({
+        'the <i> carrying more': [glyph(fa, { ...hidden, id: 'x' }), {}],
+        'the <i> not hidden': [glyph(fa, { 'aria-hidden': 'false' }), {}],
+        'the <i> naming no glyph': [glyph(['material-icons'], hidden), {}],
+        'the <i> holding text': [{ ...glyph(fa, hidden), isEmpty: false }, {}],
+        'an empty name on the .icon': [glyph(fa, hidden), { 'aria-label': '' }],
+      } satisfies Record<string, [ChildFacts, Attributes]>)) {
+        const result = plan({
+          ...factsFor(entry.tag!, [root], attributes),
+          soleChild: inner,
+        });
+        expect({ label, conversion: result.conversion }).toEqual({
+          label,
+          conversion: null,
+        });
+      }
+    });
   }
 );
+
+/**
+ * The one normalization the render tests make, which lets Font Awesome's
+ * own `aria-hidden` move up off the `<i>` onto its `.icon` and nothing else:
+ * every other shape compares as it is.
+ */
+describe('the normalization for a moved aria-hidden', () => {
+  const html = (markup: string) => normalizeHtml(markup);
+
+  it('moves it off a bare, empty <i> alone in an unnamed .icon', () => {
+    expect(
+      moveGlyphHidden(
+        html(
+          '<p><span class="icon is-small" id="x"><i class="fas fa-home" aria-hidden="true"></i></span> <span class="icon"><i aria-hidden="true"></i></span></p>'
+        )
+      )
+    ).toBe(
+      html(
+        '<p><span class="icon is-small" id="x" aria-hidden="true"><i class="fas fa-home"></i></span> <span class="icon" aria-hidden="true"><i></i></span></p>'
+      )
+    );
+  });
+
+  it.each(
+    Object.entries({
+      'an <i> with text':
+        '<span class="icon"><i class="x" aria-hidden="true">home</i></span>',
+      'an <i> holding an element':
+        '<span class="icon"><i class="x" aria-hidden="true"><b></b></i></span>',
+      'a second child':
+        '<span class="icon"><i class="x" aria-hidden="true"></i><b></b></span>',
+      'a text beside it':
+        '<span class="icon"><i class="x" aria-hidden="true"></i> </span>',
+      'the attribute on a <b>':
+        '<span class="icon"><b class="x" aria-hidden="true"></b></span>',
+      'the attribute on an <svg>':
+        '<span class="icon"><svg aria-hidden="true"></svg></span>',
+      'an <i> carrying more':
+        '<span class="icon"><i class="x" id="y" aria-hidden="true"></i></span>',
+      'an <i> not hidden':
+        '<span class="icon"><i class="x" aria-hidden="false"></i></span>',
+      'an <i> deeper down':
+        '<span class="icon"><span><i class="x" aria-hidden="true"></i></span></span>',
+      'a parent that is no .icon':
+        '<span class="tag"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon that is no <span>':
+        '<div class="icon"><i class="x" aria-hidden="true"></i></div>',
+      'a .icon hidden itself':
+        '<span class="icon" aria-hidden="true"><i class="x" aria-hidden="true"></i></span>',
+      'a named .icon':
+        '<span class="icon" role="img" aria-label="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with an empty name':
+        '<span class="icon" aria-label=""><i class="x" aria-hidden="true"></i></span>',
+      'a .icon labelled elsewhere':
+        '<span class="icon" aria-labelledby="y"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with a role':
+        '<span class="icon" role="note"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon that takes focus':
+        '<span class="icon" tabindex="0"><i class="x" aria-hidden="true"></i></span>',
+    })
+  )('leaves %s as it is', (_label, markup) => {
+    expect(moveGlyphHidden(html(markup))).toBe(html(markup));
+  });
+});
 
 /**
  * An element whose target renders its whole tree from props, around each
@@ -1881,13 +2053,18 @@ describe('a seeded fuzz through the planner', () => {
       }
       const deduped = [...new Set(tokens)];
       const child = childFor(entry);
-      const facts = factsFor(tag, deduped, attributes, child);
       // Every other one that renders a glyph holds one it reads, by turns
-      // and with no draw, so the other cases stay as they were.
-      if (entry.readsGlyph && i % 2 === 0) {
+      // and with no draw, so the other cases stay as they were; one in four
+      // holds it as Font Awesome writes it, hidden on the <i> instead.
+      const glyph = entry.readsGlyph && i % 2 === 0;
+      const hiddenOnI = glyph && i % 4 === 0;
+      if (hiddenOnI) delete attributes['aria-hidden'];
+      const facts = factsFor(tag, deduped, attributes, child);
+      if (glyph) {
         facts.soleChild = {
           ...bare('i'),
           tokens: GLYPHS[(i / 2) % GLYPHS.length],
+          ...(hiddenOnI && { attributes: new Map([['aria-hidden', 'true']]) }),
         };
       }
       const both = renderBoth(facts, attributes, child);

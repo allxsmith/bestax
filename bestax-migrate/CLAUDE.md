@@ -125,7 +125,13 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
-  what it renders.
+  what it renders. One exception is deliberate (#1148): Font Awesome's own
+  `<i aria-hidden="true">`, alone in a `.icon` nothing names, converts to `Icon`, which writes
+  that attribute on the `.icon` instead, because the glyph is hidden either way. The planner
+  marks it `movesHidden`, and the render tests compare it through `e2e/support/hidden-glyph.ts`,
+  which moves the attribute up in that one shape and leaves every other difference to fail.
+  Widen it only with the same care: a new exception is a claim that the page is unchanged for
+  everyone who reads it, which identical markup proves and a normalization only asserts.
 - The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
   (each a report), emit its body as JSX with `pageDisplayOf` (an element's inline display, else
   the displays `display.ts` says Bulma's classes give it across viewports, else its tag's; a

@@ -1,8 +1,7 @@
 import { Button, Buttons, Control, Field, Icon, InputBase } from "@allxsmith/bestax-bulma";
 export function Icons() {
-  // TODO(bestax-migrate): bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can't render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="envelope"`; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "envelope", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph's <i>, hidden the way `Icon` hides it
+  // TODO(bestax-migrate): bestax `Icon` writes `aria-hidden="true"` on the `.icon`, and takes it from the <i> inside only when that <i> is empty, carries nothing else and names a glyph it renders from props, which this one doesn't; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run
   // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run, and this converts to `Icon` with `library="fa" name="check"`; or, since the `.control` around it has `has-icons-right`, drop this `.icon` and give that `Control` `iconRight={{ library: "fa", name: "check", size: "small" }}`, which it renders after its children as a `.icon.is-right` around the glyph's <i>, hidden the way `Icon` hides it
-  // TODO(bestax-migrate): bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can't render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="bell" variant="regular"`
   // TODO(bestax-migrate): this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="github" variant="brands" features="fa-lg"`
   // TODO(bestax-migrate): this `.icon` sits in a <button> that its own text names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="paper-plane"`
   // TODO(bestax-migrate): nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <a> an `aria-label` that says what it does, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts to `Icon` with `library="fa" name="twitter" variant="brands"`
@@ -25,23 +24,23 @@ export function Icons() {
       <Icon aria-hidden="true">
         <i className="fas fa-moon" id="theme-icon"></i>
       </Icon>
+      {/* So it keeps its own aria-hidden, which only a bare <i> moves up. */}
+      <span className="icon">
+        <i className="fas fa-sun" id="sun-icon" aria-hidden="true"></i>
+      </span>
       <form>
         <Field>
           <Control hasIconsLeft hasIconsRight>
             <InputBase type="email" placeholder="Email" />
             {/* Font Awesome's own markup hides the <i>. */}
-            <span className="icon is-small is-left">
-              <i className="fas fa-envelope" aria-hidden="true"></i>
-            </span>
+            <Icon library="fa" name="envelope" size="small" className="is-left" />
             <span className="icon is-small is-right">
               <i className="fas fa-check"></i>
             </span>
           </Control>
         </Field>
         <Button color="info" type="submit">
-          <span className="icon">
-            <i className="far fa-bell" aria-hidden="true"></i>
-          </span>
+          <Icon library="fa" name="bell" variant="regular" />
           <span>Notify me</span>
         </Button>
       </form>

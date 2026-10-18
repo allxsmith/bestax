@@ -6,7 +6,10 @@
  * Every conversion this table allows must render exactly the HTML the raw
  * element rendered. That is a claim about bestax, and the render tests hold
  * it: each root, modifier and helper here is rendered through the built
- * library and compared with the raw markup it replaces.
+ * library and compared with the raw markup it replaces. One exception, on
+ * purpose: Font Awesome's own `<i aria-hidden="true">` alone in an unnamed
+ * `.icon` converts to `Icon`, which writes the attribute on the `.icon`
+ * instead, since the glyph is hidden either way (see `readsGlyph`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
  * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
@@ -279,7 +282,10 @@ export interface RootEntry {
    * from `library` and `name`): when the element's only child is one bare,
    * empty `<i>` whose classes `glyph.ts` reads, its classes become those
    * props, the `<i>` goes and the element closes itself. Around anything
-   * else, the target renders its children as given.
+   * else, the target renders its children as given. An `<i>` that carries
+   * the `aria-hidden` the target writes, as Font Awesome's own markup does,
+   * reads too when nothing names the element: the attribute moves up onto
+   * it, the one difference in markup a conversion makes.
    */
   readonly readsGlyph?: boolean;
   /**

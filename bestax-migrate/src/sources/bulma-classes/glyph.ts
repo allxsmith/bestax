@@ -143,6 +143,22 @@ export function readGlyph(glyph: ChildFacts | undefined): Glyph | undefined {
 }
 
 /**
+ * The glyph of Font Awesome's own markup, `<i class="fas fa-home"
+ * aria-hidden="true">`: an `<i>` that carries that attribute and nothing
+ * else, and that `readGlyph` reads once it's set aside. Undefined for any
+ * other `<i>`, one that `readGlyph` reads as it is included.
+ */
+export function readHiddenGlyph(
+  glyph: ChildFacts | undefined
+): Glyph | undefined {
+  const hidden = glyph?.attributes.get('aria-hidden');
+  if (glyph?.attributes.size !== 1 || (hidden !== 'true' && hidden !== true)) {
+    return undefined;
+  }
+  return readGlyph({ ...glyph, attributes: new Map() });
+}
+
+/**
  * A glyph as the props `Icon` is given, in the order they're written: one
  * feature as a string, and more than one as a list.
  */

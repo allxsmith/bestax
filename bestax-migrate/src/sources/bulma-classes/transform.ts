@@ -4,7 +4,8 @@
  * Unlike the library sources there is no import to anchor on: a file is in
  * scope when a lowercase JSX element carries a `className` with a Bulma class
  * `class-map.ts` knows. Each such element goes through `plan()`, which
- * converts it only when the component renders exactly the same markup.
+ * converts it only when the component renders exactly the same markup, but
+ * for the one exception it states (Font Awesome's hidden `<i>`).
  *
  * Passes, in order:
  *   1. the shared stylesheet-import pass (a no-op under the default `keep`)

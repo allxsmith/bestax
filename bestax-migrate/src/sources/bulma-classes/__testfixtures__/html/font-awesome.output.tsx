@@ -1,7 +1,6 @@
 import { Button, Buttons, Control, Field, Icon, InputBase } from "@allxsmith/bestax-bulma";
 
 export default function FontAwesomePage() {
-  // TODO(bestax-migrate): bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can't render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="envelope"`; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "envelope", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph's <i>, hidden the way `Icon` hides it
   // TODO(bestax-migrate): this `.icon` holds the <svg> Font Awesome's script draws in place of an <i>, and bestax `Icon` writes `aria-hidden="true"` on the `.icon`, which this one doesn't carry; add it, then re-run, and this converts to `Icon` around the <svg> as it is; or write `Icon` with `library="fa" name="search"` in its place, which renders the <i> the script draws from, and shows only where Font Awesome's stylesheet or script is loaded; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "search", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph's <i>, hidden the way `Icon` hides it
   // TODO(bestax-migrate): this `.icon` sits in a <button> that its own text names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="bell" variant="regular"`
   // TODO(bestax-migrate): this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="x-twitter" variant="fa-brands" features="fa-lg"`
@@ -12,9 +11,7 @@ export default function FontAwesomePage() {
         <Field>
           <Control hasIconsLeft>
             <InputBase type="email" placeholder="Email" />{" "}
-            <span className="icon is-small is-left">
-              <i className="fas fa-envelope" aria-hidden="true" />
-            </span>
+            <Icon library="fa" name="envelope" size="small" className="is-left" />
           </Control>
         </Field>
         <Field>

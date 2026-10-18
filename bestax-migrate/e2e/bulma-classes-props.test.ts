@@ -383,6 +383,9 @@ describe('every bulma-classes conversion typechecks', () => {
       if (entry.buildsIcons) {
         const icons: ChildFacts[] = [
           ...GLYPHS.map(glyph => iconChild(glyph)),
+          ...GLYPHS.map(glyph =>
+            iconChild(glyph, [], {}, { 'aria-hidden': 'true' })
+          ),
           ...['is-small', 'is-medium', 'is-large', 'has-text-info', 'mt-2'].map(
             token => iconChild(['fas', 'fa-home'], [token])
           ),
@@ -419,6 +422,13 @@ describe('every bulma-classes conversion typechecks', () => {
         const glyph = (tokens: string[]): Inner => ({ tokens, attributes: [] });
         for (const tokens of GLYPHS) {
           add(converted(entry.tag!, [root], hidden, glyph(tokens)));
+          // Hidden on the <i>, as Font Awesome writes it, it moves up.
+          add(
+            converted(entry.tag!, [root], [], {
+              tokens,
+              attributes: [['aria-hidden', 'true']],
+            })
+          );
         }
         const home = glyph(['fas', 'fa-home']);
         for (const token of [

@@ -17,6 +17,10 @@ export function Icons() {
       <span className="icon" aria-hidden="true">
         <i className="fas fa-moon" id="theme-icon"></i>
       </span>
+      {/* So it keeps its own aria-hidden, which only a bare <i> moves up. */}
+      <span className="icon">
+        <i className="fas fa-sun" id="sun-icon" aria-hidden="true"></i>
+      </span>
       <form>
         <div className="field">
           <div className="control has-icons-left has-icons-right">

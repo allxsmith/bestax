@@ -5,7 +5,12 @@
  * the advice for Font Awesome's script-drawn `<svg>` reads from it.
  */
 
-import { glyphProps, readDrawnGlyph, readGlyph } from '../glyph.js';
+import {
+  glyphProps,
+  readDrawnGlyph,
+  readGlyph,
+  readHiddenGlyph,
+} from '../glyph.js';
 import type { ChildFacts } from '../plan.js';
 
 const glyph = (
@@ -92,6 +97,40 @@ describe('readGlyph', () => {
     ];
     for (const [label, facts] of refused) {
       expect({ label, glyph: readGlyph(facts) }).toEqual({
+        label,
+        glyph: undefined,
+      });
+    }
+  });
+});
+
+describe('readHiddenGlyph', () => {
+  const hidden = (value: string | true = 'true', extra = {}) =>
+    glyph(['fas', 'fa-home'], {
+      attributes: new Map<string, string | true>([
+        ['aria-hidden', value],
+        ...Object.entries(extra as Record<string, string>),
+      ]),
+    });
+
+  it("reads Font Awesome's own hidden <i>, either spelling", () => {
+    expect(readHiddenGlyph(hidden())).toEqual({ library: 'fa', name: 'home' });
+    expect(readHiddenGlyph(hidden(true))).toEqual({
+      library: 'fa',
+      name: 'home',
+    });
+  });
+
+  it('reads no other <i>', () => {
+    for (const [label, facts] of Object.entries({
+      'no glyph': undefined,
+      'a bare <i>': glyph(['fas', 'fa-home']),
+      'not hidden': hidden('false'),
+      'carrying more': hidden('true', { id: 'x' }),
+      'holding content': { ...hidden(), isEmpty: false },
+      'naming no glyph': { ...hidden(), tokens: ['material-icons'] },
+    })) {
+      expect({ label, glyph: readHiddenGlyph(facts) }).toEqual({
         label,
         glyph: undefined,
       });

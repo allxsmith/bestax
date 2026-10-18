@@ -7,7 +7,10 @@
  * renders exactly the markup the element did. Anything that would change the
  * markup is either left in `className` (a class with no prop here) or refuses
  * the whole element with a TODO (an attribute or tag the component would
- * render differently).
+ * render differently). One exception, on purpose: Font Awesome's own
+ * `<i aria-hidden="true">` alone in an unnamed `.icon` converts to `Icon`,
+ * which writes that attribute on the `.icon` instead (`movesHidden`), since
+ * the glyph is hidden either way.
  */
 
 import {
@@ -25,7 +28,13 @@ import {
   wrapperFor,
   type RootEntry,
 } from './class-map.js';
-import { glyphProps, readDrawnGlyph, readGlyph, type Glyph } from './glyph.js';
+import {
+  glyphProps,
+  readDrawnGlyph,
+  readGlyph,
+  readHiddenGlyph,
+  type Glyph,
+} from './glyph.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -226,6 +235,14 @@ export interface Conversion {
    * as `rendersChildren`, which is set beside it, says.
    */
   glyph?: Glyph;
+  /**
+   * That child carried the `aria-hidden` the target writes on the element
+   * (Font Awesome's own `<i aria-hidden="true">`), so it moves up: the one
+   * way a conversion's markup differs from the element's, on purpose, since
+   * the glyph is hidden either way. The render tests compare it with the
+   * attribute moved up, and nothing else.
+   */
+  movesHidden?: true;
   /**
    * The target renders the bare element around this one too: the component
    * takes that element's place, with its `key`.
@@ -589,8 +606,21 @@ export function plan(facts: ElementFacts): Plan {
       : naming === 'unsure'
         ? { ...unnamed, ...entry.namedDefaults!.defaults }
         : unnamed;
+  // Font Awesome's own markup hides the <i> rather than the element around
+  // it, and a target that renders the glyph from props writes the same
+  // `aria-hidden` on the element in its place: it moves up, and the glyph is
+  // hidden either way. The one difference in markup a conversion makes, on
+  // purpose; the render tests compare it with the attribute moved up.
+  // Only off an element nothing names, not even with an empty name.
+  const moved =
+    entry.readsGlyph &&
+    defaults['aria-hidden'] === 'true' &&
+    !attributes.has('aria-hidden') &&
+    !entry.namedDefaults?.by.some(name => attributes.has(name))
+      ? readHiddenGlyph(facts.soleChild)
+      : undefined;
   const missing = [...Object.entries(defaults), ...written].filter(
-    ([name]) => !attributes.has(name)
+    ([name]) => !attributes.has(name) && !(moved && name === 'aria-hidden')
   );
   const drop: string[] = [];
   for (const name of entry.untypedAttrs ?? []) {
@@ -896,7 +926,8 @@ export function plan(facts: ElementFacts): Plan {
     );
   }
   // A glyph the target renders from props takes the place of the only child.
-  const glyph = entry.readsGlyph ? readGlyph(facts.soleChild) : undefined;
+  const glyph =
+    moved ?? (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);
   return {
     conversion: {
       target,
@@ -909,6 +940,7 @@ export function plan(facts: ElementFacts): Plan {
         ? { rendersChildren: true as const }
         : {}),
       ...(glyph ? { glyph } : {}),
+      ...(moved ? { movesHidden: true as const } : {}),
       ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
       ...(icons ? { icons } : {}),
@@ -1042,8 +1074,8 @@ function hiddenAdvice(
 ): string {
   const sole = facts.soleChild;
   // Font Awesome's own markup hides the <i>, not the `.icon` around it.
-  const hiddenFont =
-    sole?.tag === 'i' && sole.attributes.get('aria-hidden') === 'true';
+  const flag = sole?.attributes.get('aria-hidden');
+  const hiddenFont = sole?.tag === 'i' && (flag === 'true' || flag === true);
   const drawn = readDrawnGlyph(sole);
   // The element as a re-run would find it, the attribute in place (moved up
   // off the <i> that carries it): the planner says what that converts to.
@@ -1069,7 +1101,8 @@ function hiddenAdvice(
       : '';
   const hint = controlHint(facts, retry, retry?.glyph ?? drawn);
   if (hiddenFont) {
-    return `bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\` and renders the <i> inside it bare, so it can't render this markup, where the <i> carries it; the \`.icon\` holds nothing else, so the attribute hides the same glyph there: move it up onto the \`.icon\`, then re-run${outcome}${hint}`;
+    // A bare <i> naming a glyph moves it up by itself, so this one isn't.
+    return `bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\`, and takes it from the <i> inside only when that <i> is empty, carries nothing else and names a glyph it renders from props, which this one doesn't; the \`.icon\` holds nothing else, so the attribute hides the same glyph there: move it up onto the \`.icon\`, then re-run${outcome}${hint}`;
   }
   if (drawn) {
     return `this \`.icon\` holds the <svg> Font Awesome's script draws in place of an <i>, and bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\`, which this one doesn't carry; add it, then re-run${outcome}; or write \`${target}\` with ${jsxProps(glyphProps(drawn))} in its place, which renders the <i> the script draws from, and shows only where Font Awesome's stylesheet or script is loaded${hint}`;
