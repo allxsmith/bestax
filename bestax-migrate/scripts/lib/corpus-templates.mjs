@@ -115,6 +115,35 @@ export function isPage(file) {
   return /\.html?$/i.test(file);
 }
 
+/**
+ * What must be built before a run, one line per build missing, under the repo
+ * root `root`: this package's `dist/`, which converts the pages, and
+ * bestax-bulma's types, which tsc reads for every module's import of it.
+ * Without the second, each module gets a TS2307 from the setup rather than
+ * from the codemod, and tsc diagnostics are listed rather than failed on, so
+ * the run would pass with its tsc column inflated. The script runs outside
+ * turbo, so nothing builds the library for it.
+ */
+export function missingBuilds(root) {
+  const missing = [];
+  if (!fs.existsSync(path.join(root, 'bestax-migrate', 'dist', 'index.js'))) {
+    missing.push(
+      'bestax-migrate/dist is not built: run `pnpm --filter bestax-migrate build`'
+    );
+  }
+  const library = path.join(root, 'bulma-ui');
+  const { types } = JSON.parse(
+    fs.readFileSync(path.join(library, 'package.json'), 'utf8')
+  );
+  if (typeof types !== 'string' || !fs.existsSync(path.join(library, types))) {
+    missing.push(
+      `bulma-ui/${types ?? 'dist'} is not built, and every module imports @allxsmith/bestax-bulma: ` +
+        'run `pnpm --filter @allxsmith/bestax-bulma build`'
+    );
+  }
+  return missing;
+}
+
 // ---- The scratch package ----------------------------------------------------
 
 /**
@@ -174,12 +203,9 @@ export function prepareScratchPackage(from, to, name) {
  * The scratch package's ambient types, which `scratchTsconfig` lists. A
  * create-bestax app has its stylesheet imports typed by `vite/client` (the
  * vite-ts template's `types`), and TypeScript rejects an untyped side-effect
- * import, so without this every module importing a stylesheet would fail to
- * type-check because of the scratch setup rather than the codemod. Vite is not
- * a dependency here, so this is Vite's own declaration for `.css`, as written
- * in its `client.d.ts`, and a stylesheet import type-checks as it does in the
- * app. It is written after the copy, so it replaces an upstream file of the
- * same name.
+ * import. Vite is not a dependency here, so this is Vite's own declaration for
+ * `.css`, as written in its `client.d.ts`. It is written after the copy, so it
+ * replaces an upstream file of the same name.
  */
 export const AMBIENT_TYPES = 'global.d.ts';
 const AMBIENT_DECLARATIONS = "declare module '*.css' {}\n";
@@ -470,8 +496,13 @@ export const PAGE_STATUSES = Object.freeze([
 
 function pageReport(page) {
   const marked = sortedRecord(page.marked);
-  // A page that wrote no module converted nothing: every class is still markup.
-  const left = page.module === null ? marked : sortedRecord(page.left);
+  // A page that wrote no module converted nothing, and one whose module could
+  // not be read (`left` null) is not known to have converted anything: either
+  // way every class counts as still markup, never as converted.
+  const left =
+    page.module === null || page.left == null
+      ? marked
+      : sortedRecord(page.left);
   const checked = page.module !== null && page.typechecked === true;
   const diagnostics = [...(page.tsc ?? [])].sort(
     (a, b) =>
@@ -561,8 +592,9 @@ function totals(parts) {
  * paths). `run.templates` is what the script measured per template:
  * `{ slug, repo, sha, pages: [{ page, module, status, todos: [rule ids],
  * marked, left, typechecked, tsc }] }`, where `marked` is the page's count and
- * `left` the module's, `status` is one of `PAGE_STATUSES`, and `typechecked`
- * says tsc read the module. `run.failures` is
+ * `left` the module's (null when the module could not be read), `status` is
+ * one of `PAGE_STATUSES`, and `typechecked` says tsc read the module.
+ * `run.failures` is
  * `[{ template, page, kind, message }]`.
  */
 export function buildReport(run) {

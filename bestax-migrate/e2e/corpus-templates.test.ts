@@ -21,6 +21,7 @@ import {
   buildReport,
   componentClassCounts,
   isPage,
+  missingBuilds,
   pageClassCounts,
   parseModule,
   pinViolations,
@@ -109,6 +110,43 @@ describe('the pin list', () => {
     );
     expect(['a.html', 'b/c.HTM', 'd.htm'].every(isPage)).toBe(true);
     expect(['a.html.bak', 'b.tsx', 'html'].some(isPage)).toBe(false);
+  });
+});
+
+describe('before a run', () => {
+  let root: string;
+
+  beforeAll(() => {
+    const tmpRoot = path.join(packageRoot, '.e2e-tmp');
+    fs.mkdirSync(tmpRoot, { recursive: true });
+    root = fs.mkdtempSync(path.join(tmpRoot, 'corpus-builds-'));
+    fs.mkdirSync(path.join(root, 'bulma-ui'));
+    fs.writeFileSync(
+      path.join(root, 'bulma-ui', 'package.json'),
+      '{"types":"dist/types/index.d.ts"}'
+    );
+  });
+
+  afterAll(() => {
+    if (!process.env.BESTAX_E2E_KEEP) {
+      fs.rmSync(root, { recursive: true, force: true });
+    }
+  });
+
+  const build = (rel: string) => {
+    fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true });
+    fs.writeFileSync(path.join(root, rel), '');
+  };
+
+  it('wants this package and the library built, the library by its types entry', () => {
+    expect(missingBuilds(root)).toEqual([
+      'bestax-migrate/dist is not built: run `pnpm --filter bestax-migrate build`',
+      'bulma-ui/dist/types/index.d.ts is not built, and every module imports @allxsmith/bestax-bulma: run `pnpm --filter @allxsmith/bestax-bulma build`',
+    ]);
+    build('bestax-migrate/dist/index.js');
+    expect(missingBuilds(root)).toHaveLength(1);
+    build('bulma-ui/dist/types/index.d.ts');
+    expect(missingBuilds(root)).toEqual([]);
   });
 });
 
@@ -481,7 +519,7 @@ interface PageInput {
   status: string;
   todos: string[];
   marked: Record<string, number>;
-  left: Record<string, number>;
+  left: Record<string, number> | null;
   typechecked: boolean;
   tsc: Array<{
     line: number | null;
@@ -645,6 +683,21 @@ describe('the report', () => {
       refused: 1,
       components: { marked: 8, converted: 3, left: 5 },
     });
+  });
+
+  it('counts nothing as converted in a module the run could not read', () => {
+    const report = buildReport(run([page({ left: null, typechecked: false })]));
+    expect(report.templates[0].pages[0]).toMatchObject({
+      module: 'index.tsx',
+      components: {
+        marked: 4,
+        converted: 0,
+        left: 4,
+        leftByClass: { button: 3, hero: 1 },
+      },
+      tsc: { checked: false },
+    });
+    expect(report.templates[0].total.tsc.unchecked).toBe(1);
   });
 
   it('keeps a module tsc did not read apart from one with no errors', () => {

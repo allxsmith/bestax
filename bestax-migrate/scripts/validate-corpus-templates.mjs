@@ -39,6 +39,7 @@ import {
   buildReport,
   componentClassCounts,
   isPage,
+  missingBuilds,
   pageClassCounts,
   parseModule,
   pinViolations,
@@ -68,9 +69,8 @@ function fail(message) {
   process.exit(1);
 }
 
-if (!fs.existsSync(path.join(dist, 'index.js'))) {
-  fail('dist/ not built — run `pnpm --filter bestax-migrate build` first');
-}
+const unbuilt = missingBuilds(repoRoot);
+if (unbuilt.length > 0) fail(`not built yet:\n  ${unbuilt.join('\n  ')}`);
 const problems = pinViolations(TEMPLATES);
 if (problems.length > 0) fail(`bad pin list:\n  ${problems.join('\n  ')}`);
 
@@ -170,7 +170,8 @@ function measure(pin, failures) {
       // The page's own classes, read from its DOM, so a page that wrote no
       // module is counted all the same.
       marked: pageClassCounts(parseHtml(source).root, BULMA_COMPONENT_CLASSES),
-      left: {},
+      // Set only once the module the CLI wrote has been read.
+      left: null,
       typechecked: false,
       tsc: [],
     };
