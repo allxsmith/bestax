@@ -35,14 +35,15 @@ export interface LoadingProps
    * reachable. Only what's there when it turns on is made inert, and an
    * element that was inert already is left as it was. A control under it
    * that had focus loses it, and gets it back when the loading goes away,
-   * unless focus has moved on in the meantime.
+   * unless focus has moved on in the meantime. Show one at a time over the
+   * same content: two that cover each other, such as two in one container
+   * or two full-page ones, make each other inert, cancel buttons and all.
    */
   active?: boolean;
   /**
    * Cover the entire viewport. While it's active, the rest of the page is
    * inert, as it is under a modal, rather than only the element it's
-   * rendered in. So show one at a time: two side by side make each other
-   * inert, cancel buttons and all. A full-page loading also takes its turn with
+   * rendered in. A full-page loading also takes its turn with
    * Modal and Sidebar for Escape: while it's the topmost open overlay, the
    * Modal or Sidebar under it doesn't answer Escape or hold Tab, whether or
    * not the loading can be cancelled.

@@ -150,7 +150,10 @@ describe('useInertSiblings', () => {
   });
 
   it('keeps an element inert until the last caller holding it lets go', () => {
-    // Two loadings in one container: each covers the content beside both.
+    // Two loadings in one container: each covers the content beside both,
+    // and each other, so neither one's cancel button is reachable. That's
+    // the limit `Loading`'s TSDoc on `active` records: one at a time over
+    // the same content.
     const { first, second, content } = page(
       '<div id="content"></div><div id="first"></div><div id="second"></div>'
     );
@@ -161,6 +164,7 @@ describe('useInertSiblings', () => {
       useInertSiblings({ current: second }, true, false)
     );
     expect(inert(content)).toEqual([true]);
+    expect(inert(first, second)).toEqual([true, true]);
 
     a.unmount();
     expect(inert(content)).toEqual([true]);
