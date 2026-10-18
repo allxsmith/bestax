@@ -690,9 +690,12 @@ A prefixed flavor reads `data-bestax-theme`, so with one, `index.html` and the s
 attribute as well.
 
 Because the script always writes an attribute, custom dark-mode CSS keyed on `[data-theme='dark']`
-reaches every visitor. To offer the OS preference as a third choice, save it like the others and
-have the script write nothing for it: with no attribute, Bulma's `prefers-color-scheme` rules
-apply from the first frame, and custom tokens then need both dark-mode paths (below).
+reaches every visitor. To offer the OS preference as a third choice, both sides change. The script
+writes no attribute for a saved `'system'`. The app adds `'system'` to its `ColorMode` and to what
+it reads back from storage, so it passes `colorMode="system"`, which keeps the attribute off, and
+its toggle becomes a choice of three, such as a `SegmentedControl`. With no attribute, Bulma's
+`prefers-color-scheme` rules apply from the first frame and follow the OS when it changes, and
+custom tokens then need both dark-mode paths (below).
 
 ### The single-mode contrast trap
 
