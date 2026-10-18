@@ -828,6 +828,7 @@ export async function bulmaClassTable() {
         parent: entry.parent ?? null,
         rendersText: entry.rendersText ?? null,
         classNameReplaces: entry.classNameReplaces ?? false,
+        onAnother: entry.onAnother ?? null,
       },
     ])
   );

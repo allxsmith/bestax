@@ -1091,6 +1091,9 @@ test("the bulma-classes table is bestax-migrate's own, whole", () => {
   // And a component that converts only beside one of its parts says which.
   assert.ok(roots.card.wrapsChildren.unless.includes('Card.Content'));
   assert.equal(roots.button.wrapsChildren, null);
+  // And a class with its own advice for an element another root converts.
+  assert.match(roots.container.onAnother, /mx="auto"/);
+  assert.equal(roots.box.onAnother, null);
   assert.deepEqual(helpers['mt-4'], {
     group: 'spacing',
     write: { prop: 'mt', value: '4' },

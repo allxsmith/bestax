@@ -375,6 +375,33 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     );
   });
 
+  it("on each root beside another root, on each one's tags", () => {
+    const seconds = ['box', 'content', 'container', 'columns', 'image'];
+    const cases = mapped.flatMap(([root, entry]) =>
+      seconds
+        // The planner is given one element inside, so not two that render
+        // the element inside them.
+        .filter(
+          second =>
+            second !== root && !(entry.absorbs && table.roots[second].absorbs)
+        )
+        .flatMap(second => {
+          const other = table.roots[second];
+          const tags = new Set([
+            entry.tag!,
+            other.tag!,
+            ...(Array.isArray(other.as) ? other.as : []),
+          ]);
+          return [...tags].flatMap(tag => [
+            [tag, [root, second]] as [string, string[]],
+            [tag, [second, root]] as [string, string[]],
+          ]);
+        })
+    );
+    expect(cases.length).toBeGreaterThan(400);
+    expect(compare(cases)).toEqual([]);
+  });
+
   // With no tag, the lookup answers for the tag the component renders on its
   // own. The planner needs a tag, so it runs on that one: a heading's on <p>,
   // where its size is exact, and classes with no root on <p>, whose
