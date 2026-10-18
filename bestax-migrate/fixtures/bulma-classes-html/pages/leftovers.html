@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<!-- Template by Example, MIT licence -->
+<html lang="en" class="has-navbar-fixed-top" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Every pattern a component can't carry">
+  <title>Leftovers</title>
+  <base href="/site/">
+  <link rel="icon" href="/favicon.ico">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+  <link rel="stylesheet" href="css/site.css">
+  <style>
+    .hero { min-height: 50vh; }
+  </style>
+  <noscript><link rel="stylesheet" href="css/noscript.css"></noscript>
+  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+  <script>
+    document.documentElement.dataset.theme =
+      localStorage.getItem('theme') || 'dark';
+  </script>
+  <script type="application/ld+json">
+    { "@context": "https://schema.org", "@type": "Organization", "name": "Example" }
+  </script>
+</head>
+<body class="page-leftovers" onload="init()">
+  <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/"><img src="img/logo.png" alt="Example"></a>
+      <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </a>
+    </div>
+  </nav>
+
+  <section class="section">
+    <div class="container">
+      <button class="button is-primary" type="button" onclick="openModal()">Open</button>
+      <a href="javascript:void(0)" class="button">Nowhere</a>
+      <div class="box" @click="open = !open">Alpine</div>
+      <div class="box" class="duplicate">Twice</div>
+      <div class="notification is-info" style="color">Unreadable style</div>
+      <div class="notification is-danger" style="margin-top: 1rem; color: white !important">Important</div>
+      <table class="table"><tr><td valign="top">Old cell</td></tr></table>
+      <my-widget class="box" mode="compact"></my-widget>
+      <center class="title">Centered</center>
+      <foo class="subtitle">Unknown</foo>
+      <template id="row"><div class="box">Cloned</div></template>
+      <o:p class="tag">Word</o:p>
+      <!--[if lt IE 9]><p class="notification">Upgrade your browser</p><![endif]-->
+      <script type="text/template" id="tpl"><div class="box">{name}</div></script>
+    </div>
+  </section>
+
+  <div class="modal" id="modal">
+    <div class="modal-background"></div>
+    <div class="modal-content"><div class="box">Hello</div></div>
+    <button class="modal-close is-large" aria-label="close"></button>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script>
+    document.querySelectorAll('.navbar-burger').forEach(burger => {
+      burger.addEventListener('click', () => burger.classList.toggle('is-active'));
+    });
+  </script>
+  <script>
+    function openModal() {
+      document.getElementById('modal').classList.add('is-active');
+    }
+    document.querySelectorAll('.notification .delete').forEach(button => {
+      button.addEventListener('click', () => button.parentNode.remove());
+    });
+  </script>
+  <script>
+    bulmaCarousel.attach('#slides', { autoplay: true });
+  </script>
+  <script>
+    window.analytics = [];
+  </script>
+</body>
+</html>

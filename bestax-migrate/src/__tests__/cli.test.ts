@@ -171,6 +171,16 @@ describe('collectFiles', () => {
       /no such file or directory/
     );
   });
+
+  it('takes a named file of an extension it is told to, wherever a walk would not', () => {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-collect-'));
+    tempDirs.push(dir);
+    fs.writeFileSync(path.join(dir, 'a.html'), '');
+    fs.writeFileSync(path.join(dir, 'b.html'), '');
+    const named = path.join(dir, 'a.html');
+    expect(collectFiles([named, dir], ['tsx'], ['html'])).toEqual([named]);
+    expect(collectFiles([named], ['tsx'])).toEqual([]);
+  });
 });
 
 describe('findPackageJsons', () => {
@@ -413,6 +423,180 @@ describe('the bulma-classes source', () => {
       expect(pkg.devDependencies).not.toHaveProperty('node-sass');
       expect(pkg.devDependencies).toHaveProperty('sass');
     });
+  });
+});
+
+describe('HTML pages', () => {
+  const page = (body: string) =>
+    `<!DOCTYPE html>\n<html lang="en">\n<head><title>T</title></head>\n<body>\n${body}\n</body>\n</html>\n`;
+  const bulmaPage = page(
+    '  <section class="section"><div class="box">x</div></section>'
+  );
+  // Vite's shell: no Bulma component class, so nothing to convert.
+  const shell = page('  <div id="root"></div>');
+
+  function site(files: Record<string, string>): string {
+    const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'bestax-migrate-html-'));
+    tempDirs.push(dir);
+    for (const [file, content] of Object.entries(files)) {
+      fs.mkdirSync(path.dirname(path.join(dir, file)), { recursive: true });
+      fs.writeFileSync(path.join(dir, file), content);
+    }
+    return dir;
+  }
+
+  async function failingCli(args: string[]): Promise<string[]> {
+    const errors: string[] = [];
+    const program = createCLI({ log: () => {}, error: m => errors.push(m) });
+    program.exitOverride();
+    await expect(
+      program.parseAsync(['node', 'bestax-migrate', ...args])
+    ).rejects.toThrow();
+    return errors;
+  }
+
+  it('converts a named page into a module beside it, and leaves the page alone', async () => {
+    const dir = site({ 'pages/about.html': bulmaPage });
+    const named = path.join(dir, 'pages', 'about.html');
+    const { logs } = await runCli(['bulma-classes', named, '--no-deps']);
+    const written = fs.readFileSync(
+      path.join(dir, 'pages', 'about.jsx'),
+      'utf8'
+    );
+    expect(written).toContain('export default function AboutPage() {');
+    expect(written).toContain('<Section>');
+    expect(fs.readFileSync(named, 'utf8')).toBe(bulmaPage);
+    const text = logs.join('\n');
+    expect(text).toContain(`Wrote ${path.join(dir, 'pages', 'about.jsx')}`);
+    // The report names the page and its line.
+    expect(text).toContain(`${named}:2`);
+    expect(text).toContain('html-document:lang');
+    expect(text).toMatch(/1 transformed/);
+  });
+
+  it('writes .tsx where the package says TypeScript', async () => {
+    const dir = site({
+      'package.json': JSON.stringify({
+        name: 'a',
+        devDependencies: { typescript: '^5.0.0' },
+      }),
+      'index.html': bulmaPage,
+    });
+    await runCli(['bulma-classes', path.join(dir, 'index.html'), '--no-deps']);
+    expect(fs.existsSync(path.join(dir, 'index.tsx'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'index.jsx'))).toBe(false);
+  });
+
+  it('walks pages only under -e html, and says so for the Bulma ones it skipped', async () => {
+    const dir = site({
+      'pages/home.html': bulmaPage,
+      'pages/legacy.htm': bulmaPage,
+      'index.html': shell,
+    });
+    const { logs } = await runCli(['bulma-classes', dir, '--no-deps']);
+    const text = logs.join('\n');
+    expect(text).toContain('html-file:not-included (2)');
+    expect(text).toContain(`${path.join(dir, 'pages', 'home.html')}:5`);
+    expect(text).not.toContain(path.join(dir, 'index.html'));
+    expect(fs.existsSync(path.join(dir, 'pages', 'home.jsx'))).toBe(false);
+
+    const walked = await runCli([
+      'bulma-classes',
+      '-e',
+      'html,htm',
+      dir,
+      '--no-deps',
+    ]);
+    expect(walked.logs.join('\n')).not.toContain('not-included');
+    expect(fs.existsSync(path.join(dir, 'pages', 'home.jsx'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'pages', 'legacy.jsx'))).toBe(true);
+    // Vite's shell has no Bulma component class, so nothing is written.
+    expect(fs.existsSync(path.join(dir, 'index.jsx'))).toBe(false);
+  });
+
+  it('never writes over a module already there, so a second run changes nothing', async () => {
+    const dir = site({ 'home.html': bulmaPage });
+    const named = path.join(dir, 'home.html');
+    await runCli(['bulma-classes', named, '--no-deps']);
+    const first = fs.readFileSync(path.join(dir, 'home.jsx'), 'utf8');
+    const { logs } = await runCli(['bulma-classes', named, '--no-deps']);
+    const text = logs.join('\n');
+    expect(text).toContain('html-file:exists');
+    expect(text).toMatch(/0 transformed/);
+    expect(fs.readFileSync(path.join(dir, 'home.jsx'), 'utf8')).toBe(first);
+  });
+
+  it('says what it would write under --dry, and prints the module under --print', async () => {
+    const dir = site({ 'home.html': bulmaPage });
+    const named = path.join(dir, 'home.html');
+    const { logs } = await runCli([
+      'bulma-classes',
+      named,
+      '--dry',
+      '--print',
+      '--no-deps',
+    ]);
+    const text = logs.join('\n');
+    expect(text).toContain('export default function HomePage() {');
+    expect(text).toContain(`Would write ${path.join(dir, 'home.jsx')}`);
+    expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
+  });
+
+  it('refuses a server template', async () => {
+    const dir = site({
+      'home.html': page('<div class="box">{{ name }}</div>'),
+    });
+    const { logs } = await runCli([
+      'bulma-classes',
+      path.join(dir, 'home.html'),
+      '--no-deps',
+    ]);
+    expect(logs.join('\n')).toContain('html-file:template-syntax');
+    expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
+  });
+
+  it('reports a page that fails to convert and carries on', async () => {
+    const pages: MigrationSource = {
+      name: 'fake-pages',
+      label: 'Fake pages',
+      packageName: null,
+      transform: () => undefined,
+      htmlExtensions: ['html'],
+      transformHtml: file => {
+        if (file.endsWith('a.html')) throw new Error('cannot read it');
+        return { outputPath: file.replace(/html$/, 'jsx'), output: 'x\n' };
+      },
+    };
+    SOURCES[pages.name] = pages;
+    try {
+      const dir = site({ 'a.html': bulmaPage, 'b.html': bulmaPage });
+      const errors: string[] = [];
+      const program = createCLI({ log: () => {}, error: m => errors.push(m) });
+      program.exitOverride();
+      await program.parseAsync([
+        'node',
+        'bestax-migrate',
+        'fake-pages',
+        path.join(dir, 'a.html'),
+        path.join(dir, 'b.html'),
+      ]);
+      expect(errors.join('\n')).toContain('a.html: cannot read it');
+      expect(fs.readFileSync(path.join(dir, 'b.jsx'), 'utf8')).toBe('x\n');
+    } finally {
+      delete SOURCES[pages.name];
+    }
+  });
+
+  it('refuses a page, or -e html, for a source that reads no HTML', async () => {
+    const dir = site({ 'home.html': bulmaPage });
+    const named = await failingCli([
+      'react-bulma-components',
+      path.join(dir, 'home.html'),
+    ]);
+    expect(named.join('\n')).toMatch(/reads no HTML pages[\s\S]*bulma-classes/);
+    const walked = await failingCli(['rbx', '-e', 'tsx,html', dir]);
+    expect(walked.join('\n')).toContain('reads no HTML pages (html)');
+    expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
   });
 });
 

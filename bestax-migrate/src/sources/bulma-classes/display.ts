@@ -172,6 +172,44 @@ export const HELPER_DISPLAY: Readonly<
   ])
 );
 
+/**
+ * Bulma's rules that take an element out of the flow (`position: absolute`
+ * or `fixed`), at some viewport or all of them, by the same kind of selector
+ * as the display tables. A box out of the flow ends no line, so a run beside
+ * one is beside whatever is past it, whatever its display.
+ */
+export const OUT_OF_FLOW: readonly string[] = [
+  '.dropdown-menu',
+  '.file-input',
+  '.hero-video',
+  '.is-overlay',
+  '.is-position-absolute',
+  '.is-position-fixed',
+  '.is-sr-only',
+  '.modal',
+  '.modal-background',
+  '.modal-close',
+  '.navbar-dropdown',
+  '.navbar.is-fixed-bottom',
+  '.navbar.is-fixed-bottom-desktop',
+  '.navbar.is-fixed-bottom-touch',
+  '.navbar.is-fixed-top',
+  '.navbar.is-fixed-top-desktop',
+  '.navbar.is-fixed-top-touch',
+];
+
+const OUT_OF_FLOW_CLASSES: readonly (readonly string[])[] = OUT_OF_FLOW.map(
+  selector => [...selector.matchAll(/\.([\w-]+)/g)].map(match => match[1])
+);
+
+/** Whether a Bulma rule takes an element out of the flow at some viewport. */
+export function bulmaOutOfFlow(classes: Iterable<string>): boolean {
+  const own = new Set(classes);
+  return OUT_OF_FLOW_CLASSES.some(needed =>
+    needed.every(token => own.has(token))
+  );
+}
+
 export interface DisplayRule {
   readonly tag: string | undefined;
   readonly classes: readonly string[];
@@ -240,7 +278,8 @@ const RULES: readonly DisplayRule[] = [
  * `none` is no box at all (`.modal` until it is active), so a run beside one
  * is beside whatever is past it. And these are displays alone: a box a rule
  * also takes out of the flow (`.modal`'s `position: fixed`) still reads as
- * its display here, though a run beside it is beside its neighbours.
+ * its display here, though a run beside it is beside its neighbours, which
+ * is what `OUT_OF_FLOW` is for.
  */
 export function bulmaDisplay(
   tag: string,

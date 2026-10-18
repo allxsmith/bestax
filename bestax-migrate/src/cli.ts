@@ -6,7 +6,8 @@
  *                  [--telemetry|--no-telemetry]
  *
  * Walks the given files/directories, routes each file by type (JS/TSX →
- * jscodeshift transform, .scss/.sass → the source's stylesheet transform),
+ * jscodeshift transform, .scss/.sass → the source's stylesheet transform,
+ * .html/.htm → a new module beside the page, for a source that reads HTML),
  * updates the nearest package.json (unless --no-deps), writes results back
  * (unless --dry), and prints the run report. TODO annotations are expected
  * output — the exit code is 0 whenever the run itself succeeds.
@@ -22,7 +23,13 @@ import { Reporter } from './report.js';
 import { runTransform } from './runner.js';
 import { getSource, sourceNames } from './sources/registry.js';
 import { reportMigrateRun, type MigrateRunStats } from './telemetry.js';
-import type { CssMode, MigrationSource } from './types.js';
+import type {
+  CssMode,
+  HtmlResult,
+  HtmlTransform,
+  MigrationSource,
+  TodoCollector,
+} from './types.js';
 
 const SKIP_DIRS = new Set([
   'node_modules',
@@ -36,18 +43,32 @@ const SKIP_DIRS = new Set([
 const STYLE_EXTENSIONS = new Set(['scss', 'sass']);
 const CSS_MODES: CssMode[] = ['bestax', 'bulma', 'keep'];
 
+/** HTML pages, which only a source with `htmlExtensions` reads. */
+const HTML_EXTENSIONS = ['html', 'htm'];
+
 /**
  * Component formats the codemod cannot parse (no jscodeshift grammar) but
  * that can still import the source library — flagged, never rewritten.
  */
 const UNSUPPORTED_EXTENSIONS = ['astro', 'vue', 'svelte', 'mdx'];
 
+function extensionOf(file: string): string {
+  return path.extname(file).replace(/^\./, '');
+}
+
+/**
+ * The files to migrate: those with one of `extensions` in the folders walked,
+ * and every file named, whose extension is one of those or of `named`. A
+ * named HTML page is the only use there is for naming one, while a walk meets
+ * HTML nobody wants converted (Vite's `index.html`, `public/`).
+ */
 export function collectFiles(
   targets: string[],
-  extensions: string[]
+  extensions: string[],
+  named: readonly string[] = []
 ): string[] {
   const files: string[] = [];
-  const visit = (target: string) => {
+  const visit = (target: string, isNamed: boolean) => {
     const stat = fs.statSync(target, { throwIfNoEntry: false });
     if (!stat) {
       throw new Error(`no such file or directory: ${target}`);
@@ -55,13 +76,19 @@ export function collectFiles(
     if (stat.isDirectory()) {
       if (SKIP_DIRS.has(path.basename(target))) return;
       for (const entry of fs.readdirSync(target).sort()) {
-        visit(path.join(target, entry));
+        visit(path.join(target, entry), false);
       }
-    } else if (extensions.includes(path.extname(target).replace(/^\./, ''))) {
+      return;
+    }
+    const extension = extensionOf(target);
+    if (
+      extensions.includes(extension) ||
+      (isNamed && named.includes(extension))
+    ) {
       files.push(target);
     }
   };
-  for (const target of targets) visit(target);
+  for (const target of targets) visit(target, true);
   return files;
 }
 
@@ -248,7 +275,19 @@ function migrateFiles(
   for (const file of files) {
     const sourceText = fs.readFileSync(file, 'utf8');
     const collector = reporter.startFile();
-    const extension = path.extname(file).replace(/^\./, '');
+    const extension = extensionOf(file);
+    if (source.transformHtml && source.htmlExtensions?.includes(extension)) {
+      const changed = migrateHtmlPage(
+        source.transformHtml,
+        file,
+        sourceText,
+        collector,
+        io,
+        { ...options, project }
+      );
+      reporter.finishFile(file, changed, collector.entries);
+      continue;
+    }
     let output: string | null;
     try {
       if (STYLE_EXTENSIONS.has(extension)) {
@@ -288,6 +327,67 @@ function migrateFiles(
     reporter.finishFile(file, output !== null, collector.entries);
   }
   return { bulmaReferenced, sourceStillImported };
+}
+
+/**
+ * One HTML page: its module is written beside it (never over a file already
+ * there; the source checks), and the page itself is left as it was.
+ */
+function migrateHtmlPage(
+  transformHtml: HtmlTransform,
+  file: string,
+  sourceText: string,
+  collector: TodoCollector,
+  io: CliIo,
+  options: RunOptions & { project: object }
+): boolean {
+  let result: HtmlResult;
+  try {
+    result = transformHtml(file, sourceText, collector, {
+      ...options.project,
+      cssMode: options.cssMode,
+    });
+  } catch (error) {
+    io.error(chalk.red(`✖ ${file}: ${(error as Error).message}`));
+    return false;
+  }
+  if (result.output === null) return false;
+  if (options.print) io.log(result.output);
+  if (options.dry) {
+    io.log(chalk.yellow(`Would write ${result.outputPath} from ${file}.`));
+  } else {
+    fs.writeFileSync(result.outputPath, result.output);
+    io.log(chalk.green(`Wrote ${result.outputPath} from ${file}.`));
+  }
+  return true;
+}
+
+/**
+ * HTML pages a folder walk found but `--extensions` left out, reported when
+ * they carry what the source would convert, so a run over a folder of pages
+ * without `-e html` doesn't just say nothing happened.
+ */
+function reportExcludedHtml(
+  source: MigrationSource,
+  targets: string[],
+  reporter: Reporter,
+  extensions: string[]
+): void {
+  const left = (source.htmlExtensions ?? []).filter(
+    ext => !extensions.includes(ext)
+  );
+  const find = source.excludedHtml;
+  if (left.length === 0 || !find) return;
+  const folders = targets.filter(target =>
+    fs.statSync(target, { throwIfNoEntry: false })?.isDirectory()
+  );
+  for (const file of collectFiles(folders, left)) {
+    const entry = find(file, fs.readFileSync(file, 'utf8'));
+    if (!entry) continue;
+    const collector = reporter.startFile();
+    collector.add(entry);
+    reporter.finishFile(file, false, collector.entries);
+  }
 }
 
 /**
@@ -521,7 +621,7 @@ export function createCLI(
     .option('-p, --print', 'print transformed sources to stdout', false)
     .option(
       '-e, --extensions <list>',
-      'comma-separated file extensions to include',
+      'comma-separated file extensions to include in a folder (html for HTML pages)',
       'js,jsx,ts,tsx,scss,sass'
     )
     .option(
@@ -557,9 +657,29 @@ export function createCLI(
         .map(ext => ext.trim())
         .filter(Boolean);
 
+      const htmlExtensions = source.htmlExtensions ?? [];
+      if (htmlExtensions.length === 0) {
+        const asked = [
+          ...extensions.filter(ext => HTML_EXTENSIONS.includes(ext)),
+          ...targets.filter(target =>
+            HTML_EXTENSIONS.includes(extensionOf(target))
+          ),
+        ];
+        if (asked.length > 0) {
+          const readers = sourceNames().filter(
+            name => (getSource(name)?.htmlExtensions?.length ?? 0) > 0
+          );
+          io.error(
+            `${chalk.red('The ' + source.name + ' source reads no HTML pages')} (${asked.join(', ')}). HTML pages convert with: ${readers.join(', ')}`
+          );
+          program.error('', { exitCode: 1 });
+          return;
+        }
+      }
+
       let files: string[];
       try {
-        files = collectFiles(targets, extensions);
+        files = collectFiles(targets, extensions, htmlExtensions);
       } catch (error) {
         io.error(chalk.red((error as Error).message));
         program.error('', { exitCode: 1 });
@@ -583,6 +703,7 @@ export function createCLI(
         runOptions,
         project
       );
+      reportExcludedHtml(source, targets, reporter, extensions);
       const unsupportedImports = reportUnsupportedFiles(
         source,
         targets,
