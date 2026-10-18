@@ -45,7 +45,12 @@ export const MESSAGES = {
   DIRECTORY_NOT_EMPTY: (dir: string, entries: string[]) =>
     `Directory ${chalk.yellow(dir)} is not empty (${listEntries(entries)}). Remove existing files and continue?`,
   NOT_A_DIRECTORY: (dir: string) =>
-    `${dir} already exists and is not a directory, so nothing was written. Choose another project name.`,
+    `${dir} already exists and is not a directory, so nothing was written. Choose another project name or path.`,
+  // #310: the working directory, or a folder holding it, under another
+  // spelling than "." or "..", such as "../<its name>" or its absolute path.
+  DIRECTORY_HOLDS_CWD: (dir: string) =>
+    `Directory ${dir} is or holds the current directory, so it is never emptied, even with --overwrite, and nothing was written.\n` +
+    '  Choose a new or empty directory.',
   // Shown instead of the question above when it cannot be asked: under -y, or
   // without a terminal. -y never answers it (#945), so this must not suggest -y.
   DIRECTORY_NOT_EMPTY_REFUSED: (dir: string, entries: string[]) =>

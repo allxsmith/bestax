@@ -103,7 +103,8 @@ with or without it.
   directory under `-y` alone, so a script that relied on that now needs `--overwrite`.
 
 - `--overwrite` - Remove existing files if the target directory is not empty, without asking.
-  Every other flag is checked first, so a typo stops the run before anything is deleted.
+  Every other flag is checked first, so a typo stops the run before anything is deleted. It
+  never empties the current directory or a folder that holds it, however the path is written.
 
 **Example:**
 

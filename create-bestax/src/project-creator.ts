@@ -5,7 +5,8 @@ import fs from 'fs-extra';
 import {
   checkDirectoryExists,
   listDirectoryEntries,
-  existsAsNonDirectory,
+  findNonDirectoryInPath,
+  realPath,
   emptyDirectory,
   ensureDirectory,
   copyDirectory,
@@ -107,21 +108,34 @@ export class ProjectCreator {
    * question leaves the user's files where they were (#945). Only --overwrite
    * or a yes at the prompt removes files. -y never does, and neither -y nor a
    * missing terminal can ask, so both stop at a non-empty directory instead.
-   * A file at the target path stops the run too, whatever the flags say.
+   * Whatever the flags say, the run stops at a file on the target path or in
+   * place of one of its parents, and before emptying the working directory or
+   * one that holds it (#310), however the path spells it. create() calls this
+   * straight after the project name, so neither waits for the other prompts.
    */
   async checkExistingDirectory(
     targetPath: string,
     targetDir: string,
     options?: CLIOptions
   ): Promise<ExistingDirectoryPlan> {
-    if (await existsAsNonDirectory(targetPath)) {
-      displayError(MESSAGES.NOT_A_DIRECTORY(targetDir));
+    const blocker = await findNonDirectoryInPath(targetPath);
+    if (blocker !== null) {
+      displayError(
+        MESSAGES.NOT_A_DIRECTORY(
+          blocker === path.resolve(targetPath) ? targetDir : blocker
+        )
+      );
       return 'stop';
     }
 
     const entries = await listDirectoryEntries(targetPath);
     if (entries.length === 0) {
       return 'empty';
+    }
+
+    if (await this.holdsWorkingDirectory(targetPath)) {
+      displayError(MESSAGES.DIRECTORY_HOLDS_CWD(targetDir));
+      return 'stop';
     }
 
     if (options?.overwrite) {
@@ -138,6 +152,26 @@ export class ProjectCreator {
       return 'stop';
     }
     return 'overwrite';
+  }
+
+  /**
+   * Whether targetPath is the working directory or one of its ancestors, with
+   * symbolic links resolved on both sides. Emptying either deletes the folder
+   * the user is standing in, which the leading-dot rule refuses for "." and
+   * "..", and a path such as "../<its name>" or its absolute spelling reaches
+   * the same folder (#310, #1154).
+   */
+  private async holdsWorkingDirectory(targetPath: string): Promise<boolean> {
+    const relative = path.relative(
+      await realPath(targetPath),
+      await realPath(process.cwd())
+    );
+    return (
+      relative === '' ||
+      (!path.isAbsolute(relative) &&
+        relative !== '..' &&
+        !relative.startsWith(`..${path.sep}`))
+    );
   }
 
   /**

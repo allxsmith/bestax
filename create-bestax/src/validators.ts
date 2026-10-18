@@ -16,7 +16,9 @@ export function validateProjectName(value: string): boolean | string {
 
   // The regex below allows dots, so "." and ".." would pass and resolve to
   // the current/parent directory — which --overwrite would then empty. Rejecting
-  // every leading-dot name closes that hole ("/" and "\" are already blocked).
+  // every leading-dot name closes that hole for these spellings ("/" and "\" are
+  // already blocked). A path reaching the same directory another way, such as
+  // "../<its name>", is refused where it resolves, in checkExistingDirectory.
   if (value.startsWith('.')) {
     return MESSAGES.PROJECT_NAME_DOT;
   }

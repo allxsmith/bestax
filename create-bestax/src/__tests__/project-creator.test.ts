@@ -45,7 +45,8 @@ jest.unstable_mockModule('../file-system.js', () => ({
   checkDirectoryExists: jest.fn(),
   isDirectoryEmpty: jest.fn(),
   listDirectoryEntries: jest.fn(async () => []),
-  existsAsNonDirectory: jest.fn(async () => false),
+  findNonDirectoryInPath: jest.fn(async () => null),
+  realPath: jest.fn(async (p: string) => p),
   emptyDirectory: jest.fn(),
   ensureDirectory: jest.fn(),
   copyDirectory: jest.fn(),
@@ -66,6 +67,13 @@ const listDirectoryEntries =
   fileSystem.listDirectoryEntries as jest.MockedFunction<
     typeof fileSystem.listDirectoryEntries
   >;
+const findNonDirectoryInPath =
+  fileSystem.findNonDirectoryInPath as jest.MockedFunction<
+    typeof fileSystem.findNonDirectoryInPath
+  >;
+const realPath = fileSystem.realPath as jest.MockedFunction<
+  typeof fileSystem.realPath
+>;
 const { ICON_LIBRARIES: _ICON_LIBRARIES, BULMA_FLAVORS: _BULMA_FLAVORS } =
   await import('../constants.js');
 
@@ -123,6 +131,9 @@ beforeEach(() => {
   // A target directory is missing or empty unless a test says otherwise; reset
   // here because clearAllMocks keeps a previous test's implementation.
   listDirectoryEntries.mockResolvedValue([]);
+  // Nothing on the path is a file, and no path is a symbolic link.
+  findNonDirectoryInPath.mockResolvedValue(null);
+  realPath.mockImplementation(async p => p);
 });
 
 afterEach(() => {
@@ -277,11 +288,7 @@ describe('ProjectCreator', () => {
     });
 
     it('stops with a plain message when the path is a file, not a directory', async () => {
-      (
-        fileSystem.existsAsNonDirectory as jest.MockedFunction<
-          typeof fileSystem.existsAsNonDirectory
-        >
-      ).mockResolvedValueOnce(true);
+      findNonDirectoryInPath.mockResolvedValueOnce('/path/to/notes.txt');
 
       const result = await projectCreator.checkExistingDirectory(
         '/path/to/notes.txt',
@@ -294,6 +301,116 @@ describe('ProjectCreator', () => {
       expect(errorOutput()).toContain(
         'notes.txt already exists and is not a directory'
       );
+    });
+
+    it('names a file standing where a parent folder should be (#1154)', async () => {
+      findNonDirectoryInPath.mockResolvedValueOnce('/path/to/notes.txt');
+
+      const result = await projectCreator.checkExistingDirectory(
+        '/path/to/notes.txt/login',
+        'to/notes.txt/login',
+        { yes: true, overwrite: true }
+      );
+
+      expect(result).toBe('stop');
+      expect(findNonDirectoryInPath).toHaveBeenCalledWith(
+        '/path/to/notes.txt/login'
+      );
+      expect(listDirectoryEntries).not.toHaveBeenCalled();
+      expect(errorOutput()).toContain(
+        '/path/to/notes.txt already exists and is not a directory'
+      );
+    });
+
+    describe('the working directory, under any spelling (#310, #1154)', () => {
+      const cwd = process.cwd();
+      const holdsCwd = 'is or holds the current directory';
+
+      beforeEach(() => {
+        listDirectoryEntries.mockResolvedValue(['package.json', 'src']);
+      });
+
+      it.each([
+        ['"../<its name>"', `../${path.basename(cwd)}`],
+        ['its absolute path', cwd],
+        ['its absolute path with a trailing slash', `${cwd}/`],
+        ['its parent', path.dirname(cwd)],
+        ['an ancestor further up', path.dirname(path.dirname(cwd))],
+      ])(
+        'is never emptied when the path is %s, even with --overwrite',
+        async (_label, dir) => {
+          const result = await projectCreator.checkExistingDirectory(
+            path.resolve(cwd, dir),
+            dir,
+            { yes: true, overwrite: true }
+          );
+
+          expect(result).toBe('stop');
+          expect(errorOutput()).toContain(`${dir} ${holdsCwd}`);
+        }
+      );
+
+      it('is not offered for emptying at the prompt either', async () => {
+        const result = await projectCreator.checkExistingDirectory(
+          cwd,
+          cwd,
+          {}
+        );
+
+        expect(result).toBe('stop');
+        expect(confirm).not.toHaveBeenCalled();
+        expect(errorOutput()).toContain(holdsCwd);
+      });
+
+      it('is matched through a symbolic link', async () => {
+        realPath.mockImplementation(async p => (p === '/alias' ? cwd : p));
+
+        const result = await projectCreator.checkExistingDirectory(
+          '/alias',
+          '/alias',
+          { overwrite: true }
+        );
+
+        expect(result).toBe('stop');
+        expect(errorOutput()).toContain(holdsCwd);
+      });
+
+      it('is still scaffolded into when it is empty, since nothing is removed', async () => {
+        listDirectoryEntries.mockResolvedValue([]);
+
+        expect(
+          await projectCreator.checkExistingDirectory(cwd, cwd, {
+            overwrite: true,
+          })
+        ).toBe('empty');
+      });
+
+      it.each([
+        ['a folder inside it', path.join(cwd, 'apps', 'login')],
+        ['a sibling of it', path.join(path.dirname(cwd), 'other-app')],
+        [
+          'a folder inside it whose name starts with ".."',
+          path.join(cwd, '..login'),
+        ],
+      ])('leaves %s to --overwrite as before', async (_label, dir) => {
+        expect(
+          await projectCreator.checkExistingDirectory(dir, dir, {
+            overwrite: true,
+          })
+        ).toBe('overwrite');
+      });
+
+      it('still finds it when its own name starts with ".."', async () => {
+        realPath.mockImplementation(async p =>
+          p === cwd ? '/work/..login' : p
+        );
+
+        expect(
+          await projectCreator.checkExistingDirectory('/work', '/work', {
+            overwrite: true,
+          })
+        ).toBe('stop');
+      });
     });
 
     it('lists a long directory by its first entries and a count', async () => {
@@ -2386,6 +2503,35 @@ describe('ProjectCreator', () => {
         expect(fileSystem.ensureDirectory).not.toHaveBeenCalled();
       }
     );
+
+    it('stops at a file in place of a parent folder before any other prompt', async () => {
+      const file = path.resolve(process.cwd(), 'notes.txt');
+      findNonDirectoryInPath.mockResolvedValue(file);
+
+      await expect(
+        projectCreator.create('notes.txt/login', {})
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(prompts).not.toHaveBeenCalled();
+      expect(fileSystem.ensureDirectory).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining(`${file} already exists and is not a directory`)
+      );
+    });
+
+    it('never empties the working directory reached as "../<its name>"', async () => {
+      listDirectoryEntries.mockResolvedValue(['package.json']);
+      const dir = `../${path.basename(process.cwd())}`;
+
+      await expect(
+        projectCreator.create(dir, { yes: true, overwrite: true })
+      ).rejects.toThrow('process.exit called');
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+    });
 
     it('-y leaves a non-empty directory at the path untouched', async () => {
       listDirectoryEntries.mockResolvedValue(['notes.txt']);
