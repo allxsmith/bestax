@@ -1,0 +1,234 @@
+/*
+ * The original's stylesheet, ported. Font Awesome comes from its npm package
+ * (imported in main.tsx), and the photo from public/media. The page has a
+ * light and a dark scheme, which index.html and the toggle write on
+ * <html data-theme>; its colors are Bulma's own, which follow that
+ * attribute, so nothing here holds a color to one scheme.
+ */
+
+html,
+body {
+  font-family: Quicksand, sans-serif;
+  transition:
+    background-color 0.4s ease,
+    color 0.4s ease;
+}
+
+/* The browser's own scrollbars and controls follow the scheme too. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
+/*
+ * Bulma's columns reach past their parent by their gap, for a padded
+ * container the page doesn't have, so the original scrolled sideways by that
+ * much. Clipping keeps its layout without the scroll, and unlike `hidden`
+ * leaves the photo's sticky position working.
+ */
+main {
+  overflow-x: clip;
+}
+
+h1,
+h2,
+p,
+span,
+.title,
+.subtitle,
+.content {
+  transition: color 0.4s ease;
+}
+
+/*
+ * The top padding clears the toggle, which sits 1.5rem down and is 2.5rem
+ * tall, by 1rem. The original's 7% alone put it over the heading on narrow
+ * screens.
+ */
+.left {
+  padding: 7%;
+  padding-top: max(7%, 5rem);
+  position: relative;
+}
+
+.theme-toggle-btn {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  animation-name: slide-down;
+  animation-duration: 1s;
+  animation-delay: 50ms;
+  animation-fill-mode: both;
+}
+
+.theme-toggle-btn:hover {
+  text-decoration: none !important;
+}
+
+.theme-toggle-btn .fa-moon {
+  color: #000;
+}
+
+.theme-toggle-btn .fa-sun {
+  color: #ffa500;
+}
+
+.right {
+  background-image: url('/media/background.webp');
+  background-position: center;
+  background-size: cover;
+  height: 400px;
+  position: relative;
+  width: 100%;
+}
+
+@media (width >= 769px) {
+  .right {
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+}
+
+.hr {
+  background-color: #ff470f;
+  border: none;
+  content: '';
+  height: 1px;
+  margin-bottom: 1.5rem;
+  margin-top: 1.5rem;
+  transform-origin: center left;
+  width: 4rem;
+  animation-name: fill-up;
+  animation-delay: 300ms;
+}
+
+.name,
+.hr,
+.job,
+.description {
+  animation-duration: 1s;
+  animation-timing-function: cubic-bezier(0, 0.5, 0, 1);
+  animation-fill-mode: both;
+}
+
+.job,
+.text {
+  animation-name: slide-up;
+  animation-duration: 1s;
+  animation-fill-mode: both;
+}
+
+/*
+ * The original put these on every `.button`, which also overrode the
+ * toggle's own slide-down above; they are for the social buttons.
+ */
+.social-button {
+  animation-name: slide-up;
+  animation-duration: 500ms;
+  animation-timing-function: cubic-bezier(0.5, 0, 0.5, 1.5);
+  animation-fill-mode: both;
+  min-height: 48px;
+  min-width: 48px;
+}
+
+@keyframes slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(1rem);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fill-up {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.name {
+  animation-name: slide-down;
+  animation-delay: 100ms;
+}
+
+.job {
+  animation-name: slide-up;
+  animation-delay: 200ms;
+}
+
+.text {
+  animation-name: slide-up;
+}
+
+.text:nth-child(1) {
+  animation-delay: 450ms;
+}
+
+.text:nth-child(2) {
+  animation-delay: 550ms;
+}
+
+.text:nth-child(3) {
+  animation-delay: 650ms;
+}
+
+.social-button:nth-child(1) {
+  animation-delay: 900ms;
+}
+
+.social-button:nth-child(2) {
+  animation-delay: 1s;
+}
+
+.social-button:nth-child(3) {
+  animation-delay: 1.1s;
+}
+
+.social-button:nth-child(4) {
+  animation-delay: 1.2s;
+}
+
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 0;
+  background: #ff470f;
+  color: white;
+  padding: 8px;
+  z-index: 100;
+  transition: top 0.3s;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
