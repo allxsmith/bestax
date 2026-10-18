@@ -40,9 +40,9 @@ import { useState } from 'react';
 import {
   Theme,
   Box,
-  Button,
   Title,
   Notification,
+  ToggleButton,
 } from '@allxsmith/bestax-bulma';
 
 export type ColorMode = 'light' | 'dark';
@@ -95,10 +95,9 @@ export function saveColorMode(mode: ColorMode) {
 
 export function DarkModeToggle() {
   const [mode, setMode] = useState<ColorMode>(initialColorMode);
-  const isDark = mode === 'dark';
 
-  const toggle = () => {
-    const next = isDark ? 'light' : 'dark';
+  const setDark = (dark: boolean) => {
+    const next = dark ? 'dark' : 'light';
     setMode(next);
     saveColorMode(next);
   };
@@ -111,11 +110,11 @@ export function DarkModeToggle() {
         <Notification color="info">
           Components below follow the current Bulma color scheme.
         </Notification>
-        {/* One setting and its state: the name stays "Dark mode", and
-            aria-pressed says whether it is on. */}
-        <Button aria-pressed={isDark} onClick={toggle}>
+        {/* One setting and its state: the label stays "Dark mode", and
+            ToggleButton says whether it is on through aria-pressed. */}
+        <ToggleButton pressed={mode === 'dark'} onPressedChange={setDark}>
           Dark mode
-        </Button>
+        </ToggleButton>
       </Box>
     </Theme>
   );
