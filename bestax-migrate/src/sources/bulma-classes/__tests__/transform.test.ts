@@ -642,6 +642,19 @@ describe('an element a component renders inside itself', () => {
     expect(rules).toEqual(['children:SelectBase']);
   });
 
+  it.each([
+    ['on lines of their own', '\n    '],
+    ['with a space between', '{" "}'],
+  ])('sends a label beside the child, %s, to Select', (_, between) => {
+    const { output, rules } = migrate(
+      `export const A = () => (\n  <div className="select is-small">\n    <label htmlFor="lang" className="sr-only">Language</label>${between}<select id="lang">\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+    );
+    expect(rules).toEqual(['children:SelectBase']);
+    expect(output).toContain(
+      "the <label> beside it goes on bestax's `Select` instead, which renders `.select` inside a `Field` and a `Control`: the label's text as `label`, its classes as `labelProps={{ className: 'sr-only' }}`"
+    );
+  });
+
   it('keeps each comment in the tags, once', () => {
     const { output, rules } = migrate(
       'export const A = () => (\n  // above\n  <div /* outer */ className="select">\n    <select /* inner */ name="n" /* last */>\n      <option>x</option>\n    </select /* close */>\n  </div /* outer close */>\n);\n'

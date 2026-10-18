@@ -46,6 +46,13 @@ export interface Modifier {
    * so the element stays markup instead.
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
+  /**
+   * Off the tags in `tagIn`, where the class stays a class, the prop that
+   * sizes the element the same without picking its tag (`textSize`, whose
+   * `is-size-4` Bulma sizes as it does `Title`'s `is-4`), for the TODO there
+   * and the MCP lookup. The codemod writes it nowhere: its class differs.
+   */
+  readonly offTag?: PropWrite;
 }
 
 /**
@@ -118,6 +125,13 @@ export interface Absorbs {
   readonly renames?: Readonly<
     Record<string, { readonly to: string; readonly beside: string }>
   >;
+  /**
+   * The bestax component that takes a `<label>` beside the child as its own
+   * `label` (`Select`, which renders a `Field` and a `Control` around the
+   * target), for the TODO on an element holding one: the target renders no
+   * label, so the element stays markup.
+   */
+  readonly label?: string;
 }
 
 export interface RootEntry {
@@ -618,6 +632,24 @@ function perViewport(
 function flags(map: Record<string, string>): Record<string, Modifier> {
   return Object.fromEntries(
     Object.entries(map).map(([token, prop]) => [token, flag(prop)])
+  );
+}
+
+/**
+ * `Title`'s and `SubTitle`'s `is-1` to `is-6`: `size`, exact only on the
+ * heading it names (or a <p>), since the size picks the heading. On any
+ * other tag the class stays, and `textSize` sizes it the same.
+ */
+function headingSizes(): Record<string, Modifier> {
+  return Object.fromEntries(
+    ['1', '2', '3', '4', '5', '6'].map(n => [
+      `is-${n}`,
+      {
+        writes: [{ prop: 'size', value: n }],
+        tagIn: [`h${n}`, 'p'],
+        offTag: { prop: 'textSize', value: n },
+      },
+    ])
   );
 }
 
@@ -1308,6 +1340,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       }),
       pairs: { multiple: 'is-multiple' },
       renames: { size: { to: 'multipleSize', beside: 'multiple' } },
+      label: 'Select',
     },
     numberAttrs: ['multipleSize'],
     adoptsIdFrom: ['Field'],
@@ -1560,12 +1593,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     as: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
     sizeDrivesTag: true,
     modifiers: {
-      ...Object.fromEntries(
-        ['1', '2', '3', '4', '5', '6'].map(n => [
-          `is-${n}`,
-          { writes: [{ prop: 'size', value: n }], tagIn: [`h${n}`, 'p'] },
-        ])
-      ),
+      ...headingSizes(),
       ...flags({ 'has-skeleton': 'hasSkeleton' }),
     },
     ownProps: ['size', 'as', 'hasSkeleton', 'textColor', 'bgColor'],
@@ -1649,12 +1677,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     as: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
     sizeDrivesTag: true,
     modifiers: {
-      ...Object.fromEntries(
-        ['1', '2', '3', '4', '5', '6'].map(n => [
-          `is-${n}`,
-          { writes: [{ prop: 'size', value: n }], tagIn: [`h${n}`, 'p'] },
-        ])
-      ),
+      ...headingSizes(),
       ...flags({ 'is-spaced': 'isSpaced', 'has-skeleton': 'hasSkeleton' }),
     },
     ownProps: ['size', 'isSpaced', 'as', 'hasSkeleton', 'textColor', 'bgColor'],

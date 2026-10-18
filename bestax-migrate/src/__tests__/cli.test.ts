@@ -744,6 +744,21 @@ describe('CLI', () => {
     expect(logs.join('\n')).toContain('(dry run)');
   });
 
+  it('still writes under --print without --dry, as its help says', async () => {
+    const dir = makeTempProject();
+    const before = fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8');
+    const { logs } = await runCli([
+      'react-bulma-components',
+      path.join(dir, 'src'),
+      '--print',
+    ]);
+    const after = fs.readFileSync(path.join(dir, 'src', 'App.tsx'), 'utf8');
+    expect(after).not.toBe(before);
+    expect(logs.join('\n')).toContain(after.trim());
+    const print = createCLI().options.find(option => option.long === '--print');
+    expect(print?.description).toContain('still writes them unless --dry');
+  });
+
   it('reports files that fail to parse and continues', async () => {
     const dir = makeTempProject();
     fs.writeFileSync(path.join(dir, 'src', 'broken.tsx'), 'const = <<>;\n');

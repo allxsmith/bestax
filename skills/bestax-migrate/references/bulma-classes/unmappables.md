@@ -151,6 +151,24 @@ or when what's inside is an expression or text, since `Image` renders an `<img>`
 its children come out empty. Keep it as markup, or write the `Image` by hand if the expression
 never is.
 
+A `<label>` beside the `<select>` in a `.select` (a visually hidden one, say) is that case too,
+since `SelectBase` renders no label. bestax's convenience `Select` takes it: the label's text as
+`label` and its classes in `labelProps`, and it points the label at the `<select>`'s `id` itself.
+It renders the `.select` inside a `Field` and a `Control`, so convert the two by hand and check
+the layout:
+
+```tsx
+<Select
+  id="language"
+  size="small"
+  label="Select language"
+  labelProps={{ className: 'is-sr-only' }}
+>
+  <option>English</option>
+  <option>French</option>
+</Select>
+```
+
 A menu item is the same from the `<li>`'s side: `Menu.Item` renders the `<a>` inside it, and a
 `Menu.List` after that, so an item converts only when its `<li>` holds one `<a>` and at most one
 `<ul>` after it, with nothing else beside them. Text or a comment beside the `<a>` keeps it as

@@ -1725,6 +1725,48 @@ describe('plan', () => {
       ]);
       expect(input([]).conversion?.target).toBe('InputBase');
     });
+
+    it('sends a label beside the <select> to the convenience Select', () => {
+      const child = (
+        tag: string,
+        tokens?: string[],
+        attributes: Record<string, string> = {}
+      ): ChildFacts => ({
+        tag,
+        ...(tokens ? { tokens } : {}),
+        attributes: new Map(Object.entries(attributes)),
+        hasSpread: false,
+        isEmpty: false,
+      });
+      const select = (childElements: ChildFacts[]) =>
+        plan(facts('div', 'select is-small', {}, { childElements })).todos;
+      const label = child('label', ['is-sr-only'], { htmlFor: 'lang' });
+      const own = child('select', undefined, { id: 'lang' });
+      expect(select([label, own])).toEqual([
+        {
+          rule: 'children:SelectBase',
+          message:
+            "bestax `SelectBase` renders the <select> inside `.select` itself, so this element converts only around a single <select>, with nothing else beside it; the <label> beside it goes on bestax's `Select` instead, which renders `.select` inside a `Field` and a `Control`: the label's text as `label`, its classes as `labelProps={{ className: 'is-sr-only' }}`, and `Select` points the label at the <select>'s `id` itself, so convert the two by hand",
+        },
+      ]);
+      // A label with no class has none to pass, and one after the select counts.
+      expect(select([own, child('label')])[0].message).toContain(
+        "the label's text as `label`, and `Select` points"
+      );
+      // So does one with a space rendered between them.
+      expect(
+        plan(facts('div', 'select', {}, { spacedElements: [label, own] }))
+          .todos[0].message
+      ).toContain("goes on bestax's `Select` instead");
+      // Anything else beside the select is just in the way.
+      for (const children of [
+        [child('span'), own],
+        [label, child('label'), own],
+        [label, child('span')],
+      ]) {
+        expect(select(children)[0].message).toMatch(/nothing else beside it$/);
+      }
+    });
   });
 
   describe('wrappers a component renders', () => {

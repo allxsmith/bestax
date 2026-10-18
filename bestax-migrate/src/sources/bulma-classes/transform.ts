@@ -781,18 +781,31 @@ function childFacts(child: any): ChildFacts | undefined {
   };
 }
 
+/** A space React renders between elements: blank text, or `{" "}`. */
+function space(child: any): boolean {
+  const blank = (text: string) => /^[ \t\n\r]*$/.test(text);
+  if (child.type === 'JSXText') return blank(child.value);
+  return (
+    child.type === 'JSXExpressionContainer' &&
+    child.expression?.type === 'StringLiteral' &&
+    blank(child.expression.value)
+  );
+}
+
 /**
  * An element's children as plain HTML elements, when that is every one
- * React renders; undefined when one is anything else. `more` adds what else
- * is known of each.
+ * React renders but what `skip` passes over (whitespace React drops);
+ * undefined when one is anything else. `more` adds what else is known of
+ * each.
  */
 function childElementsOf(
   element: any,
-  more: (child: any) => Partial<ChildFacts> = () => ({})
+  more: (child: any) => Partial<ChildFacts> = () => ({}),
+  skip: (child: any) => boolean = dropped
 ): ChildFacts[] | undefined {
   const children: ChildFacts[] = [];
   for (const child of element.children ?? []) {
-    if (dropped(child)) continue;
+    if (skip(child)) continue;
     const found = child.type === 'JSXElement' ? childFacts(child) : undefined;
     if (!found) return undefined;
     children.push({ ...found, ...more(child) });
@@ -1225,6 +1238,10 @@ export default function transform(
     const className = classAttr ? staticClassName(classAttr) : '';
     const surrounding = around(elementPath);
     const sole = soleChild(element);
+    const childElements = childElementsOf(element, readChild);
+    const spaced = childElements
+      ? undefined
+      : childElementsOf(element, undefined, space);
     const facts: ElementFacts = {
       tag: name.name,
       tokens:
@@ -1238,7 +1255,8 @@ export default function transform(
       childTargets: childTargets(elementPath),
       soleChildTarget: planned.get(sole)?.conversion?.target,
       soleChild: sole && childFacts(sole),
-      childElements: childElementsOf(element, readChild),
+      childElements,
+      ...(spaced && { spacedElements: spaced }),
       bestaxInside: bestaxInside.get(element) ?? [],
       bestaxAround: surrounding.bestax,
       componentsAround: surrounding.other,

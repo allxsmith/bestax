@@ -88,7 +88,7 @@ Run it from your app root. `--param paths="src lib"` (default `src`) and `--para
 | Flag                 | Description                                                                                    |
 | -------------------- | ---------------------------------------------------------------------------------------------- |
 | `--dry`, `-d`        | Report what would change without writing files                                                 |
-| `--print`, `-p`      | Print transformed sources to stdout                                                            |
+| `--print`, `-p`      | Print transformed sources to stdout, still writing them unless `--dry` is set                  |
 | `--extensions`, `-e` | File extensions to include in a folder (default `js,jsx,ts,tsx,scss,sass`; `html` for pages)   |
 | `--css <mode>`       | Stylesheet target: `bestax`, `bulma`, or `keep` (default `bestax`; `keep` for `bulma-classes`) |
 | `--no-deps`          | Skip updating package.json dependencies                                                        |
