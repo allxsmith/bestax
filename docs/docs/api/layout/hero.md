@@ -267,7 +267,7 @@ This example shows a comprehensive usage of the `Hero` component with all its su
 
 ### Landmark Tags
 
-Bulma pages often put the hero classes on landmarks: `<main class="hero">` for a page that is all hero, or `<footer class="hero-foot">`. The `as` prop on `Hero`, `Hero.Head` and `Hero.Foot` (and on the `Container` inside) renders those tags directly. A `header` or `footer` is the page's banner or footer landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so this hero renders as a `div` to let its head and foot be landmarks.
+Bulma pages often put the hero classes on landmarks: `<main class="hero">` for a page that is all hero, or `<footer class="hero-foot">`. The `as` prop on `Hero`, `Hero.Head` and `Hero.Foot` (and on the `Container` inside) renders those tags directly. A `header` or `footer` is the page's banner or footer landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so this hero renders as a `div` to let its head and foot be landmarks. Its `Container` is a named `section` rather than a `main`, since the page around the example already has its `main`.
 
 ```tsx live
 <Hero as="div" color="primary">
@@ -277,9 +277,9 @@ Bulma pages often put the hero classes on landmarks: `<main class="hero">` for a
     </Container>
   </Hero.Head>
   <Hero.Body>
-    <Container as="main" textAlign="centered">
+    <Container as="section" textAlign="centered" aria-label="Welcome">
       <Title>Hero as="div"</Title>
-      <SubTitle>Container as="main"</SubTitle>
+      <SubTitle>Container as="section"</SubTitle>
     </Container>
   </Hero.Body>
   <Hero.Foot as="footer">

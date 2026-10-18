@@ -35,7 +35,7 @@
     },
     {
       "title": "Landmark Tags",
-      "code": "<Container as=\"main\">\n  <Notification color=\"primary\">\n    This container renders as <code>{'<main class=\"container\">'}</code>.\n  </Notification>\n</Container>"
+      "code": "<Container as=\"section\" aria-label=\"Plans\">\n  <Notification color=\"primary\">\n    This container renders as <code>{'<section class=\"container\">'}</code>, a\n    region landmark named by its <code>aria-label</code>.\n  </Notification>\n</Container>"
     }
   ],
   "accessibility": "- The container renders as a `<div>` by default, which adds nothing to the page's landmarks.\n- With `as`, it becomes the element you name, landmark role and all: keep one visible `main` per page, and give a `section` an accessible name (`aria-label`, or `aria-labelledby` pointing at its heading) if it should be a region.\n- Use semantic HTML and accessible children within the container for best practices.",

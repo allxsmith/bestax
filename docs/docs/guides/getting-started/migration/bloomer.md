@@ -76,7 +76,7 @@ in place:
   literal `<li>` bloomer's docs put around a `MenuLink`, the literal `<ul>` inside a `Breadcrumb`,
   `TabLink` into a plain `<a>` inside `Tabs.Item`. `Help`, `Label`, `Heading`, `BreadcrumbItem`,
   `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered, and so does a
-  `PanelBlock` without `href` on a `tag` other than `div` or `label`. Icon-font classes the
+  `PanelBlock` without `href` on a `tag` other than `a`, `div` or `label`. Icon-font classes the
   codemod can read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers
   included as `features`. Where bloomer rendered a `<div>` and bestax defaults to an `<a>`
   (`NavbarItem`, `DropdownItem`, `PanelBlock`), the codemod adds `as="div"`.

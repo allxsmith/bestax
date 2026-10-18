@@ -148,12 +148,13 @@ The `fluid` prop makes the container expand to the full width of the screen, wit
 
 ### Landmark Tags
 
-Bulma pages often put the container class on a landmark, such as `<main class="container">` or `<footer class="container">`. The `as` prop renders the container as `main`, `section`, `article`, `aside`, `header`, `footer` or `nav` instead of a `div`, so the page needs no extra wrapper.
+Bulma pages often put the container class on a landmark, such as `<main class="container">` or `<footer class="container">`. The `as` prop renders the container as `main`, `section`, `article`, `aside`, `header`, `footer` or `nav` instead of a `div`, so the page needs no extra wrapper. Use `as="main"` for the page's main content; this example renders a `section` instead, since the page around it already has its `main`.
 
 ```tsx live
-<Container as="main">
+<Container as="section" aria-label="Plans">
   <Notification color="primary">
-    This container renders as <code>{'<main class="container">'}</code>.
+    This container renders as <code>{'<section class="container">'}</code>, a
+    region landmark named by its <code>aria-label</code>.
   </Notification>
 </Container>
 ```

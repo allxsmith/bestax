@@ -27,7 +27,7 @@
     },
     {
       "title": "Landmark Tags",
-      "code": "<Hero as=\"div\" color=\"primary\">\n  <Hero.Head as=\"header\">\n    <Container textAlign=\"centered\" pt=\"4\">\n      <SubTitle size=\"6\">Hero.Head as=\"header\"</SubTitle>\n    </Container>\n  </Hero.Head>\n  <Hero.Body>\n    <Container as=\"main\" textAlign=\"centered\">\n      <Title>Hero as=\"div\"</Title>\n      <SubTitle>Container as=\"main\"</SubTitle>\n    </Container>\n  </Hero.Body>\n  <Hero.Foot as=\"footer\">\n    <Container textAlign=\"centered\" pb=\"4\">\n      <SubTitle size=\"6\">Hero.Foot as=\"footer\"</SubTitle>\n    </Container>\n  </Hero.Foot>\n</Hero>"
+      "code": "<Hero as=\"div\" color=\"primary\">\n  <Hero.Head as=\"header\">\n    <Container textAlign=\"centered\" pt=\"4\">\n      <SubTitle size=\"6\">Hero.Head as=\"header\"</SubTitle>\n    </Container>\n  </Hero.Head>\n  <Hero.Body>\n    <Container as=\"section\" textAlign=\"centered\" aria-label=\"Welcome\">\n      <Title>Hero as=\"div\"</Title>\n      <SubTitle>Container as=\"section\"</SubTitle>\n    </Container>\n  </Hero.Body>\n  <Hero.Foot as=\"footer\">\n    <Container textAlign=\"centered\" pb=\"4\">\n      <SubTitle size=\"6\">Hero.Foot as=\"footer\"</SubTitle>\n    </Container>\n  </Hero.Foot>\n</Hero>"
     },
     {
       "title": "Compound (dot-notation) usage",

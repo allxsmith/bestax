@@ -150,8 +150,10 @@ stays — each of those takes the anchor's props under its default `as`. A `Navb
 and `Dropdown.Item` default to an `<a>`. An empty or false `href` selected nothing in bloomer
 and is dropped. bestax's `Panel.Block` is an `<a>` by default and a `<div>` or a `<label>`
 through `as`, so a `PanelBlock` with no `href` becomes `<Panel.Block as="div">`, or
-`as="label"` for `tag="label"`. One on any other `tag`, or a dynamic one, stays the plain
-`<span class="panel-block">` (or whatever the tag was) that bloomer rendered.
+`as="label"` for `tag="label"`, and one with `tag="a"` a bare `<Panel.Block>`. One on any
+other `tag` stays the plain block, on that tag, that bloomer rendered. A dynamic `tag` becomes
+a plain `<div class="panel-block">` with a `prop:tag` TODO, since the codemod can't tell which
+tag it names.
 
 A dynamic `href={expr}` was a runtime decision bloomer made and bestax's `as` is one element or
 the other. It resolves to the anchor, which is the branch the `href` is there for, and the
