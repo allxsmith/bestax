@@ -733,8 +733,15 @@ export function plan(facts: ElementFacts): Plan {
       );
     }
   }
+  // Only on a tag the target renders: on any other, the tag check below is
+  // the refusal, and a `drops` one would call an attribute inert that may not
+  // be (`type` on a <button>) and promise a conversion a re-run still refuses.
+  const tagReached =
+    tag === entry.tag ||
+    entry.as === 'any' ||
+    (entry.as?.includes(tag) ?? false);
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
-    if (attributes.has(name) && inTagSet(tags, tag)) {
+    if (tagReached && attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
       const visible = name === 'disabled' && target === 'Button';

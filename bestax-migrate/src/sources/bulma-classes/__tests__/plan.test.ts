@@ -833,6 +833,21 @@ describe('plan', () => {
         expect(todo.message).toContain('remove it, then re-run');
       }
     });
+
+    it('refuses a tag it does not render before any attribute it drops', () => {
+      // On a <button>, `type` picks submit or button, and removing it would
+      // not unlock a conversion: the tag is the reason, and the only one.
+      expect(
+        plan(facts('button', 'panel-block', { type: 'submit' })).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Panel.Block']);
+      expect(
+        plan(facts('span', 'level-item', { href: '#' })).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Level.Item']);
+    });
   });
 
   describe('Hero and Container', () => {
