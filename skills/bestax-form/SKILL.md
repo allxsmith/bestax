@@ -139,8 +139,9 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 `DateTimeInput`, `Autocomplete` and `Taginput` then render the `Field` and the label and wire
 `htmlFor`/`id`, to your `id` when you pass one (`<Input label="Email" id="email" horizontal />`); an
 explicit `labelProps={{ htmlFor }}` wins. `Combobox` renders its `Field` and label too, and wires
-them to its field: built from parts, put an `id` on `Combobox.Input`, since one on the `Combobox`
-lands on its wrapper `div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
+them to its field. Given `data`, its `id`, `aria-label` and `aria-labelledby` go to the field;
+built from parts, put them on `Combobox.Input`, since on the `Combobox` they land on its wrapper
+`div`. The group inputs (`Checkboxes`, `Radios`, `Rate`, `DateRangeInput`) name their
 `role="group"`/`"radiogroup"` wrapper through `aria-labelledby` instead. Inside a `Field` a
 convenience input drops its `label`, and an `inline` date/time picker or a `Taginput` at `maxTags`
 has no visible input to wire.
