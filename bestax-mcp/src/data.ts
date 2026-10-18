@@ -36,8 +36,18 @@ export interface TypeDef {
   summary: string;
 }
 
+/**
+ * What an export documented with another component is to it: the bare control
+ * it renders (`InputBase`, for `Input`), or one its page imports beside it
+ * (`CarouselItem`, for `Carousel`).
+ */
+export type Standalone = 'base' | 'companion';
+
 export interface Part {
-  /** Dot-path: `Navbar`, `Navbar.Brand`. */
+  /**
+   * Dot-path: `Navbar`, `Navbar.Brand`. A standalone part is named as it is
+   * exported: `InputBase`.
+   */
   path: string;
   summary: string;
   /** Set when the sub-component is also exported standalone. */
@@ -46,6 +56,26 @@ export interface Part {
   extraProps: PropRow[];
   catchAll: string | null;
   types: TypeDef[];
+  /** It takes no props at all, not even its element's attributes. */
+  noProps?: boolean;
+  /** Set on an export of its own that the record documents; see `Standalone`. */
+  standalone?: Standalone;
+}
+
+/**
+ * An export with no catalog entry of its own, and where its table is: a part of
+ * another record, a standalone one (`InputBase`) or a sub-component that is also
+ * exported on its own (`Thead`, as `Table.Thead`).
+ */
+export interface DocumentedWith {
+  /** The record that documents it. */
+  component: string;
+  /** Its part in that record. */
+  path: string;
+  /** Its one-line purpose, for search. */
+  purpose: string;
+  /** Set when the part is a standalone one. */
+  standalone?: Standalone;
 }
 
 export interface CssVar {
@@ -124,6 +154,12 @@ export interface Catalog {
    * DateTimeInput declares it too), and the rest follow in code-point order.
    */
   cssVarIndex: Record<string, string[]>;
+  /**
+   * The exports a record documents that have no entry here, so a name an answer
+   * hands out (an import line's `CarouselItem`, a lookup's `InputBase`) is a name
+   * the tools answer for.
+   */
+  documentedWith: Record<string, DocumentedWith>;
 }
 
 export interface SkillFile {
@@ -202,7 +238,39 @@ export async function resolveName(input: string): Promise<string | null> {
   if (exact) return exact.name;
   const lower = root.toLowerCase();
   const ci = catalog.components.find(c => c.name.toLowerCase() === lower);
-  return ci ? ci.name : null;
+  if (ci) return ci.name;
+  return documentedEntry(catalog, root)?.entry.component ?? null;
+}
+
+/**
+ * An export documented with another record, by its name as asked, exactly or in
+ * any letter case, with the name as the index spells it.
+ */
+function documentedEntry(
+  catalog: Catalog,
+  name: string
+): { name: string; entry: DocumentedWith } | null {
+  const { documentedWith } = catalog;
+  if (Object.hasOwn(documentedWith, name)) {
+    return { name, entry: documentedWith[name] };
+  }
+  const lower = name.toLowerCase();
+  const key = Object.keys(documentedWith).find(k => k.toLowerCase() === lower);
+  return key ? { name: key, entry: documentedWith[key] } : null;
+}
+
+/**
+ * The export a name asks for when it is documented with another record
+ * (`InputBase`, `Thead`), as the index spells it, with the part that is its
+ * table. Null for a dot-path and for a component with an entry of its own,
+ * which the generator never lists there.
+ */
+export async function documentedExport(
+  input: string
+): Promise<{ name: string; entry: DocumentedWith } | null> {
+  const cleaned = cleanName(input);
+  if (cleaned.includes('.')) return null;
+  return documentedEntry(await loadCatalog(), cleaned);
 }
 
 /**

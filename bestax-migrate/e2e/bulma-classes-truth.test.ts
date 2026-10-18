@@ -15,10 +15,9 @@
  * table entry converts somewhere, so no row is dead.
  */
 
-import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
@@ -1669,36 +1668,8 @@ describe("the table's claims about the library", () => {
         ([target, props]): [string, string[]] => [target, [...props]]
       ),
     ]);
-    // A public component with no API page of its own (`InputBase`) is not in
-    // the index, so read its props the way the index would.
-    const unindexed = [...classified.keys()].filter(
-      target => !declared.has(target)
-    );
-    if (unindexed.length > 0) {
-      const extractor = pathToFileURL(
-        path.join(repoRoot, 'scripts', 'lib', 'props-extract.mjs')
-      ).href;
-      const script = `
-        const { extractComponent } = await import(${JSON.stringify(extractor)});
-        const out = {};
-        for (const name of ${JSON.stringify(unindexed)}) {
-          for (const table of extractComponent(name, { markdown: false }).tables) {
-            out[table.path] = table.rows.map(row => row.name);
-          }
-        }
-        console.log(JSON.stringify(out));`;
-      const extracted: Record<string, string[]> = JSON.parse(
-        execFileSync(process.execPath, ['--input-type=module', '-e', script], {
-          encoding: 'utf8',
-        })
-      );
-      for (const [target, props] of Object.entries(extracted)) {
-        declared.set(
-          target,
-          props.filter(name => !['className', 'children'].includes(name))
-        );
-      }
-    }
+    // A target with no API page of its own (`InputBase`) is a part of the
+    // component documenting it, so its table is in the index too.
     for (const [target, props] of classified) {
       expect({ target, props: [...props].sort() }).toEqual({
         target,

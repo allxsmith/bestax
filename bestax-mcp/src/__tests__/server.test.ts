@@ -15,9 +15,13 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import ts from 'typescript';
 
 import { DATA_DIR, loadCatalog, loadComponent } from '../data.js';
 import { createServer } from '../server.js';
+
+/** The repository, which the export sweep reads the library's barrel from. */
+const REPO_ROOT = join(DATA_DIR, '..', '..');
 
 type TextResult = {
   isError?: boolean;
@@ -1623,6 +1627,369 @@ describe('rough edges', () => {
       context: { arguments: { name: 'bestax-theming' } },
     });
     expect(ref.completion.values).toEqual(['dark-mode']);
+  });
+});
+
+// Exports with no page of their own, which answers named while the tools refused
+// them: a lookup's `InputBase` (#1150), an import line's `CarouselItem` and a part's
+// `Thead` (#1174).
+describe('exports documented with another component', () => {
+  it('answers get_props for the base a class lookup names', async () => {
+    for (const [base, wrapper, prop] of [
+      ['InputBase', 'Input', 'isStatic'],
+      ['SelectBase', 'Select', 'multipleSize'],
+      ['TextAreaBase', 'TextArea', 'hasFixedSize'],
+    ]) {
+      const res = await call('get_props', { component: base });
+      expect(failed(res)).toBe(false);
+      const out = text(res);
+      expect(out).toContain(`### ${base}`);
+      expect(out).toContain(
+        `\`${base}\` is exported on its own and documented with \`${wrapper}\`, which renders it.`
+      );
+      expect(out).toContain(`| \`${prop}\` |`);
+    }
+  });
+
+  it("lists them on the component's own answer, apart from its subcomponents", async () => {
+    const out = text(await call('get_props', { component: 'Input' }));
+    expect(out).toContain(
+      '**Documented here too:** `InputBase`, which it renders.'
+    );
+    expect(out).not.toContain('**Subcomponents:**');
+    // Not a compound for it, either.
+    const listing = text(await call('list_components', { category: 'form' }));
+    expect(listing).toMatch(/- \*\*Input\*\* —/);
+  });
+
+  it('answers for a companion the import line names, and its own import', async () => {
+    const props = text(await call('get_props', { component: 'CarouselItem' }));
+    expect(props).toContain('### CarouselItem');
+    expect(props).toContain('| `active` |');
+    const page = text(await call('get_component', { name: 'CarouselItem' }));
+    expect(page).toContain('# CarouselItem');
+    expect(page).toContain(
+      "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';"
+    );
+    // A base is left out of its wrapper's import, so it gets one of its own.
+    const base = text(await call('get_component', { name: 'inputbase' }));
+    expect(base).toContain(
+      "import { InputBase } from '@allxsmith/bestax-bulma';"
+    );
+    expect(base).toContain("examples, CSS variables and notes are `Input`'s");
+  });
+
+  it('says a companion is no dot-path when asked for one', async () => {
+    const res = await call('get_props', {
+      component: 'Carousel',
+      path: 'Carousel.Item',
+    });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('Did you mean "CarouselItem"?');
+    expect(text(res)).toContain(
+      'not a dot-path, so it is written <CarouselItem>'
+    );
+  });
+
+  it('answers a sub exported standalone with its table, not a pointer back to itself', async () => {
+    const out = text(await call('get_props', { component: 'Thead' }));
+    expect(out).toContain('### Table.Thead');
+    expect(out).toContain(
+      'Also exported standalone as `Thead`, the same component, so this is its table.'
+    );
+    // A borrowed sub goes to the component that declares it.
+    expect(
+      text(await call('get_props', { component: 'DropdownItem' }))
+    ).toContain('### Dropdown.Item');
+  });
+
+  it("reads a container's inline props, and says when one takes none", async () => {
+    const toast = text(
+      await call('get_props', { component: 'ToastContainer' })
+    );
+    expect(toast).toContain('| `position` |');
+    expect(toast).toContain("`'top-right'`");
+    expect(
+      text(await call('get_props', { component: 'DialogContainer' }))
+    ).toContain('Takes no props, not even the standard HTML attributes.');
+    expect(
+      text(
+        await call('get_props', {
+          component: 'Dropdown',
+          path: 'Dropdown.Divider',
+        })
+      )
+    ).toContain('Takes no props');
+  });
+
+  it('serves the examples that use one, and points a base at its wrapper', async () => {
+    const items = text(
+      await call('get_examples', { component: 'CarouselItem' })
+    );
+    expect(items).toContain('# CarouselItem examples');
+    expect(items).toContain("From `Carousel`'s documentation page");
+    expect(items).toContain('<CarouselItem>');
+    expect(
+      text(await call('get_examples', { component: 'DropdownItem', limit: 1 }))
+    ).toContain('<Dropdown.Item');
+    const base = text(await call('get_examples', { component: 'InputBase' }));
+    expect(base).toContain('`InputBase` has no examples of its own.');
+    expect(base).toContain('get_examples({ component: "Input" })');
+    expect(
+      text(
+        await call('get_examples', { component: 'CarouselItem', query: '!!!' })
+      )
+    ).toContain('No CarouselItem examples match "!!!"');
+  });
+
+  it('names the component whose variables they are', async () => {
+    expect(
+      text(await call('get_css_variables', { component: 'InputBase' }))
+    ).toContain(
+      '`InputBase` is documented with `Input`, whose variables these are.'
+    );
+  });
+
+  it('finds one by name in search_bestax', async () => {
+    const out = text(await call('search_bestax', { query: 'InputBase' }));
+    expect(out.split('\n')[2]).toContain(
+      '| component | InputBase | documented with Input'
+    );
+    expect(out).toContain('`get_component({ name: "InputBase" })`');
+  });
+
+  it('answers a sub exported by name beside its parent, which no part names', async () => {
+    for (const [name, path] of [
+      ['TreeViewItem', 'TreeView.Item'],
+      ['NavbarItem', 'Navbar.Item'],
+      ['MenuItem', 'Menu.Item'],
+      // A sub that is a compound itself is exported by the constant composing it.
+      ['TabsContent', 'Tabs.Content'],
+    ]) {
+      const res = await call('get_props', { component: name });
+      expect(failed(res)).toBe(false);
+      expect(text(res)).toContain(`### ${path}`);
+    }
+    expect(
+      text(await call('search_bestax', { query: 'TreeViewItem' })).split(
+        '\n'
+      )[2]
+    ).toContain('| component | TreeViewItem | documented with TreeView');
+  });
+
+  it("sends a lookup for a base's examples to the component that renders it", async () => {
+    const lookup = async (classes: string) =>
+      text(await call('lookup_bulma_classes', { classes }));
+    expect(await lookup('input is-rounded')).toContain(
+      '**Next:** `get_props({ component: "InputBase" })` for its other props · ' +
+        '`get_examples({ component: "Input" })` for examples of `Input`, which renders it.'
+    );
+    expect(await lookup('button')).toContain(
+      '**Next:** `get_props({ component: "Button" })` for its other props.'
+    );
+  });
+});
+
+// A name the server hands out that its own tools refuse sends an agent nowhere, which
+// is what #1150 and #1174 were. This walks list_components, the import line, the parts
+// and the exports a record documents, its related components and the one whose
+// variables style it, the CSS variable index, and what lookup_bulma_classes answers
+// for every class it has a root or a hint for. Example code and skill bodies name
+// components too, and are not walked.
+describe('every component or part name an answer hands out', () => {
+  const NAME = /^[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)?$/;
+  const handed = new Map<string, string>();
+  const examples = new Map<string, string>();
+  const hand = (name: string, where: string) => {
+    if (NAME.test(name) && !handed.has(name)) handed.set(name, where);
+  };
+
+  beforeAll(async () => {
+    const catalog = await loadCatalog();
+    for (const { name } of catalog.components) hand(name, 'list_components');
+    for (const name of Object.keys(catalog.documentedWith)) {
+      hand(name, 'search_bestax');
+    }
+    for (const declarers of Object.values(catalog.cssVarIndex)) {
+      for (const name of declarers) hand(name, 'get_css_variables');
+    }
+    for (const { name } of catalog.components) {
+      const record = await loadComponent(name);
+      const imported = record.import.match(/\{([^}]*)\}/)?.[1] ?? '';
+      for (const id of imported.split(',')) hand(id.trim(), `${name}'s import`);
+      for (const part of record.parts) {
+        hand(part.path, `${name}'s parts`);
+        if (part.component) hand(part.component, part.path);
+      }
+      for (const related of record.related) hand(related, `${name}'s related`);
+      if (record.cssVarsFrom) hand(record.cssVarsFrom, `${name}'s cssVarsFrom`);
+    }
+    const classTable = JSON.parse(
+      await readFile(join(DATA_DIR, 'bulma-classes.json'), 'utf8')
+    );
+    for (const name of Object.values<string>(classTable.wrappers)) {
+      hand(name, 'lookup_bulma_classes on a plain tag');
+    }
+    const tokens = [
+      ...Object.keys(classTable.roots),
+      ...Object.keys(classTable.legacy),
+    ];
+    for (const token of tokens) {
+      const out = text(await call('lookup_bulma_classes', { classes: token }));
+      for (const m of out.matchAll(/`([A-Z][\w.]*)`/g)) {
+        hand(m[1], `lookup of ${token}`);
+      }
+      for (const m of out.matchAll(/get_props\(\{ component: "([^"]+)"/g)) {
+        hand(m[1], `lookup of ${token}`);
+      }
+      for (const m of out.matchAll(/get_examples\(\{ component: "([^"]+)"/g)) {
+        examples.set(m[1], `lookup of ${token}`);
+      }
+    }
+  });
+
+  it('resolves in get_props', async () => {
+    expect(handed.size).toBeGreaterThan(150);
+    const refused: string[] = [];
+    for (const [name, where] of handed) {
+      if (failed(await call('get_props', { component: name }))) {
+        refused.push(`${name} (from ${where})`);
+      }
+    }
+    expect(refused).toEqual([]);
+  });
+
+  it('resolves in get_examples where an answer sends it there', async () => {
+    expect(examples.size).toBeGreaterThan(0);
+    const refused: string[] = [];
+    for (const [name, where] of examples) {
+      if (failed(await call('get_examples', { component: name }))) {
+        refused.push(`${name} (from ${where})`);
+      }
+    }
+    expect(refused).toEqual([]);
+  });
+
+  // The names above are the ones today's answers print. An agent learns others from
+  // the docs and from the library's types: `TreeViewItem` beside `TreeView.Item`,
+  // `NavbarItem` beside `Navbar.Item`. So every component the library's barrel
+  // exports has to resolve too, read from the barrel itself rather than the index.
+  it("resolves every component the library's index.ts exports", async () => {
+    const exports = barrelComponents();
+    expect(exports).toEqual(
+      expect.arrayContaining(['TreeViewItem', 'NavbarItem', 'MenuItem'])
+    );
+    const refused: string[] = [];
+    for (const name of exports) {
+      if (failed(await call('get_props', { component: name }))) {
+        refused.push(name);
+      }
+    }
+    expect(refused).toEqual([]);
+  });
+});
+
+/**
+ * Every capitalised value `bulma-ui/src/index.ts` exports, `export *` ones
+ * included, read with TypeScript's binder the way a consumer's import sees them.
+ */
+function barrelComponents(): string[] {
+  const index = join(REPO_ROOT, 'bulma-ui', 'src', 'index.ts');
+  const program = ts.createProgram([index], {
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    jsx: ts.JsxEmit.ReactJSX,
+    noEmit: true,
+    skipLibCheck: true,
+    types: [],
+  });
+  const checker = program.getTypeChecker();
+  const source = program.getSourceFile(index);
+  const barrel = source && checker.getSymbolAtLocation(source);
+  if (!barrel) throw new Error(`cannot read the exports of ${index}`);
+  return checker
+    .getExportsOfModule(barrel)
+    .filter(symbol => {
+      const target =
+        symbol.flags & ts.SymbolFlags.Alias
+          ? checker.getAliasedSymbol(symbol)
+          : symbol;
+      return Boolean(target.flags & ts.SymbolFlags.Value);
+    })
+    .map(symbol => String(symbol.escapedName))
+    .filter(name => /^[A-Z]/.test(name))
+    .sort();
+}
+
+// The three kinds of class no Bulma v1 rule matches each need their own advice, and
+// they used to share "not a Bulma class bestax has a prop for" (#1174).
+describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
+  const lookup = async (classes: string) =>
+    text(await call('lookup_bulma_classes', { classes }));
+  const REMOVED = 'a Bulma 0.9 class that v1 removed';
+  const NOT_BULMA =
+    "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
+
+  it('says a Bulma 0.9 class v1 removed was removed', async () => {
+    expect(await lookup('section is-paddingless')).toContain(
+      `| \`is-paddingless\` | stays in \`className\` | ${REMOVED}`
+    );
+    // Beside a family converted by hand too, rather than "converted with it".
+    expect(await lookup('message is-marginless')).toContain(
+      `| \`is-marginless\` | stays in \`className\` | ${REMOVED}`
+    );
+  });
+
+  it('says a class Bulma 1 has no rule for is none of its, and claims nothing of 0.9', async () => {
+    for (const [classes, token] of [
+      ['has-text-green', 'has-text-green'],
+      // Bulma's `.image` sizes stop at 128x128, so this one is no modifier of it.
+      ['image is-256x256', 'is-256x256'],
+    ]) {
+      const out = await lookup(classes);
+      expect(out).toContain(
+        `| \`${token}\` | stays in \`className\` | ${NOT_BULMA}`
+      );
+      expect(out).toContain("If the project's own CSS");
+      expect(out).not.toContain('an `.image` modifier');
+      // Nothing here holds a class to 0.9's stylesheet but the removed list.
+      expect(out).not.toContain('0.9');
+    }
+  });
+
+  it('still names the family of a v1 class away from its root', async () => {
+    expect(await lookup('is-128x128')).toContain('an `.image` modifier');
+    expect(await lookup('is-primary')).toContain(
+      'a Bulma modifier, which bestax converts only beside ' +
+        '`.button`, `.hero`, `.navbar` or another'
+    );
+    // Bulma styles a `.table` cell's `is-vcentered` too, which bestax does not
+    // convert, so the note names where bestax converts it, not what it modifies.
+    expect(
+      await call('lookup_bulma_classes', { classes: 'is-vcentered', tag: 'td' })
+    ).toMatchObject({
+      content: [
+        {
+          text: expect.stringContaining(
+            'a Bulma modifier, which bestax converts only beside `.columns`'
+          ),
+        },
+      ],
+    });
+  });
+});
+
+// The scaffold's global stylesheet is `src/index.css`. Its `src/App.css` is the starter
+// page's, which a port that replaces the page drops, so a class written there loads
+// nowhere (#1174).
+describe('get_helper_props on where a named class goes', () => {
+  it("names the stylesheet a create-bestax app has, not the starter's alone", async () => {
+    // The skill's prose, served as it wraps.
+    const out = text(
+      await call('get_helper_props', { group: 'spacing' })
+    ).replace(/\s+/g, ' ');
+    expect(out).toContain('In a create-bestax app that is `src/index.css`');
+    expect(out).not.toContain('(`src/App.css` in a scaffolded app)');
   });
 });
 

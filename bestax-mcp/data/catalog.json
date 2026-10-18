@@ -2591,5 +2591,378 @@
     "--bulma-tree-view-toggle-color": ["TreeView"],
     "--bulma-tree-view-toggle-duration": ["TreeView"],
     "--bulma-tree-view-toggle-size": ["TreeView"]
+  },
+  "documentedWith": {
+    "CarouselItem": {
+      "component": "Carousel",
+      "path": "CarouselItem",
+      "purpose": "Individual carousel item/slide.",
+      "standalone": "companion"
+    },
+    "DateInputBase": {
+      "component": "DateInput",
+      "path": "DateInputBase",
+      "purpose": "Raw DateInput — input + popover calendar without Field/Control wrapping.",
+      "standalone": "base"
+    },
+    "DateRangeInputBase": {
+      "component": "DateRangeInput",
+      "path": "DateRangeInputBase",
+      "purpose": "Raw DateRangeInput: the two inputs and the popover calendar without Field/Control wrapping.",
+      "standalone": "base"
+    },
+    "DateTimeInputBase": {
+      "component": "DateTimeInput",
+      "path": "DateTimeInputBase",
+      "purpose": "Raw DateTimeInput — combined input + calendar + time spinner without Field/Control wrapping.",
+      "standalone": "base"
+    },
+    "DialogContainer": {
+      "component": "Dialog",
+      "path": "DialogContainer",
+      "purpose": "DialogContainer component to render programmatic dialogs.",
+      "standalone": "companion"
+    },
+    "DropdownDivider": {
+      "component": "Dropdown",
+      "path": "Dropdown.Divider",
+      "purpose": "Bulma Dropdown divider."
+    },
+    "DropdownItem": {
+      "component": "Dropdown",
+      "path": "Dropdown.Item",
+      "purpose": "Bulma Dropdown item."
+    },
+    "EmptyStateActions": {
+      "component": "EmptyState",
+      "path": "EmptyState.Actions",
+      "purpose": "A row of buttons, centered under the text or at the start of the line beside the indicator."
+    },
+    "EmptyStateDescription": {
+      "component": "EmptyState",
+      "path": "EmptyState.Description",
+      "purpose": "A sentence or two under the title, in the color of the text around it."
+    },
+    "EmptyStateIndicator": {
+      "component": "EmptyState",
+      "path": "EmptyState.Indicator",
+      "purpose": "The circle the picture sits in, hidden from assistive tech whatever is in it."
+    },
+    "EmptyStateTitle": {
+      "component": "EmptyState",
+      "path": "EmptyState.Title",
+      "purpose": "The heading, a Bulma `Title` at the level `as` sets, `h2` by default, and at the EmptyState's size."
+    },
+    "FieldBody": {
+      "component": "Field",
+      "path": "Field.Body",
+      "purpose": "FieldBody component for rendering Bulma field body."
+    },
+    "FieldLabel": {
+      "component": "Field",
+      "path": "Field.Label",
+      "purpose": "FieldLabel component for rendering a Bulma field label."
+    },
+    "HeroBody": {
+      "component": "Hero",
+      "path": "Hero.Body",
+      "purpose": "Main content area, vertically centered by default."
+    },
+    "HeroFoot": {
+      "component": "Hero",
+      "path": "Hero.Foot",
+      "purpose": "Bottom bar for tabs or actions."
+    },
+    "HeroHead": {
+      "component": "Hero",
+      "path": "Hero.Head",
+      "purpose": "Top bar for navigation or branding."
+    },
+    "InputBase": {
+      "component": "Input",
+      "path": "InputBase",
+      "purpose": "Bulma Input component with full Bulma helper class support.",
+      "standalone": "base"
+    },
+    "KbdGroup": {
+      "component": "Kbd",
+      "path": "Kbd.Group",
+      "purpose": "Keys pressed together or one after another, in the outer `<kbd>` HTML gives a combination, with the separator between each pair as text."
+    },
+    "LevelItem": {
+      "component": "Level",
+      "path": "Level.Item",
+      "purpose": "Individual item, can be rendered as `div`, `p`, or `a`."
+    },
+    "LevelLeft": {
+      "component": "Level",
+      "path": "Level.Left",
+      "purpose": "Left-aligned content."
+    },
+    "LevelRight": {
+      "component": "Level",
+      "path": "Level.Right",
+      "purpose": "Right-aligned content."
+    },
+    "MediaContent": {
+      "component": "Media",
+      "path": "Media.Content",
+      "purpose": "Main content (renders as `div`)"
+    },
+    "MediaLeft": {
+      "component": "Media",
+      "path": "Media.Left",
+      "purpose": "For avatars, thumbnails, icons (renders as `figure` or `div`)"
+    },
+    "MediaRight": {
+      "component": "Media",
+      "path": "Media.Right",
+      "purpose": "Actions or controls (renders as `div`)"
+    },
+    "MenuItem": {
+      "component": "Menu",
+      "path": "Menu.Item",
+      "purpose": "MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link."
+    },
+    "MenuLabel": {
+      "component": "Menu",
+      "path": "Menu.Label",
+      "purpose": "Bulma Menu label component."
+    },
+    "MenuList": {
+      "component": "Menu",
+      "path": "Menu.List",
+      "purpose": "MenuList applies `menu-list` class only at the top level (not for nested lists)."
+    },
+    "NavbarBrand": {
+      "component": "Navbar",
+      "path": "Navbar.Brand",
+      "purpose": "For logo and branding (left side)"
+    },
+    "NavbarBurger": {
+      "component": "Navbar",
+      "path": "Navbar.Burger",
+      "purpose": "Responsive menu toggle (mobile)"
+    },
+    "NavbarDivider": {
+      "component": "Navbar",
+      "path": "Navbar.Divider",
+      "purpose": "Divider in dropdown menus."
+    },
+    "NavbarDropdown": {
+      "component": "Navbar",
+      "path": "Navbar.Dropdown",
+      "purpose": "Dropdown parent (with options for hover, up, right, active)"
+    },
+    "NavbarDropdownMenu": {
+      "component": "Navbar",
+      "path": "Navbar.DropdownMenu",
+      "purpose": "Dropdown menu container"
+    },
+    "NavbarEnd": {
+      "component": "Navbar",
+      "path": "Navbar.End",
+      "purpose": "Right-aligned menu area"
+    },
+    "NavbarItem": {
+      "component": "Navbar",
+      "path": "Navbar.Item",
+      "purpose": "Navigation links, buttons, or custom content"
+    },
+    "NavbarLink": {
+      "component": "Navbar",
+      "path": "Navbar.Link",
+      "purpose": "Dropdown trigger with arrow indicator (use as first child of `Navbar.Dropdown`)"
+    },
+    "NavbarMenu": {
+      "component": "Navbar",
+      "path": "Navbar.Menu",
+      "purpose": "Collapsible content (contains `Navbar.Start` and `Navbar.End`)"
+    },
+    "NavbarStart": {
+      "component": "Navbar",
+      "path": "Navbar.Start",
+      "purpose": "Left-aligned menu area"
+    },
+    "NotificationContainer": {
+      "component": "Notification",
+      "path": "NotificationContainer",
+      "purpose": "Container component for rendering programmatic notifications.",
+      "standalone": "companion"
+    },
+    "PaginationEllipsis": {
+      "component": "Pagination",
+      "path": "Pagination.Ellipsis",
+      "purpose": "Ellipsis separator."
+    },
+    "PaginationLink": {
+      "component": "Pagination",
+      "path": "Pagination.Link",
+      "purpose": "Page number or navigation link."
+    },
+    "PaginationList": {
+      "component": "Pagination",
+      "path": "Pagination.List",
+      "purpose": "Container for page links and ellipsis."
+    },
+    "PaginationNext": {
+      "component": "Pagination",
+      "path": "Pagination.Next",
+      "purpose": "\"Next\" navigation button."
+    },
+    "PaginationPrevious": {
+      "component": "Pagination",
+      "path": "Pagination.Previous",
+      "purpose": "\"Previous\" navigation button."
+    },
+    "PanelBlock": {
+      "component": "Panel",
+      "path": "Panel.Block",
+      "purpose": "Individual panel block (renders as `<a class=\"panel-block\">`)"
+    },
+    "PanelButtonBlock": {
+      "component": "Panel",
+      "path": "Panel.ButtonBlock",
+      "purpose": "Call-to-action button (renders as `<div class=\"panel-block\"><button /></div>`)"
+    },
+    "PanelCheckboxBlock": {
+      "component": "Panel",
+      "path": "Panel.CheckboxBlock",
+      "purpose": "Checkbox block (renders as `<label class=\"panel-block\">`)"
+    },
+    "PanelHeading": {
+      "component": "Panel",
+      "path": "Panel.Heading",
+      "purpose": "Main heading (renders as `<p class=\"panel-heading\">`)"
+    },
+    "PanelIcon": {
+      "component": "Panel",
+      "path": "Panel.Icon",
+      "purpose": "Icon wrapper with panel styling (renders as `<span class=\"panel-icon\">`, containing an `<i/>` when a `name` is given, or the custom node passed as `children`)."
+    },
+    "PanelInputBlock": {
+      "component": "Panel",
+      "path": "Panel.InputBlock",
+      "purpose": "Search input with icon (renders as `<div class=\"panel-block\">`)"
+    },
+    "PanelTabs": {
+      "component": "Panel",
+      "path": "Panel.Tabs",
+      "purpose": "Panel tabs (renders as `<p class=\"panel-tabs\">`)"
+    },
+    "PopoverBody": {
+      "component": "Popover",
+      "path": "Popover.Body",
+      "purpose": "The popover's main content area."
+    },
+    "PopoverClose": {
+      "component": "Popover",
+      "path": "Popover.Close",
+      "purpose": "A `Button` that closes the popover, handing focus back to the trigger."
+    },
+    "PopoverFooter": {
+      "component": "Popover",
+      "path": "Popover.Footer",
+      "purpose": "A row of actions along the bottom of the popover, aligned to the end."
+    },
+    "PopoverHeader": {
+      "component": "Popover",
+      "path": "Popover.Header",
+      "purpose": "The popover's title, which names the panel for assistive technology."
+    },
+    "SelectBase": {
+      "component": "Select",
+      "path": "SelectBase",
+      "purpose": "Bulma Select component with full Bulma helper class support.",
+      "standalone": "base"
+    },
+    "Step": {
+      "component": "Steps",
+      "path": "Steps.Step",
+      "purpose": "Individual Step component for use inside Steps."
+    },
+    "Tab": {
+      "component": "Tabs",
+      "path": "Tabs.Tab",
+      "purpose": "Individual tab button. Consumes Tabs context for active state management. Renders `<a>` internally — consumers provide only the label text/children. Inside a…"
+    },
+    "TabContentItem": {
+      "component": "Tabs",
+      "path": "Tabs.Content.Item",
+      "purpose": "Individual content panel. Shows/hides based on active tab from context."
+    },
+    "TabItem": {
+      "component": "Tabs",
+      "path": "Tabs.Item",
+      "purpose": "Each tab; accepts `active`, `onClick`, etc."
+    },
+    "TabList": {
+      "component": "Tabs",
+      "path": "Tabs.List",
+      "purpose": "The `<ul>` container for tab items."
+    },
+    "TabsContent": {
+      "component": "Tabs",
+      "path": "Tabs.Content",
+      "purpose": "Container for tab content panels. No custom props beyond `children` and standard `<div>` HTML attributes. Applies the `.tabs-content` class."
+    },
+    "Tbody": {
+      "component": "Table",
+      "path": "Table.Tbody",
+      "purpose": "Tbody component for rendering a styled Bulma table body."
+    },
+    "Td": {
+      "component": "Table",
+      "path": "Table.Td",
+      "purpose": "Td component for rendering a styled Bulma table cell."
+    },
+    "TextAreaBase": {
+      "component": "TextArea",
+      "path": "TextAreaBase",
+      "purpose": "Bulma TextArea component with full Bulma helper class support.",
+      "standalone": "base"
+    },
+    "Tfoot": {
+      "component": "Table",
+      "path": "Table.Tfoot",
+      "purpose": "Tfoot component for rendering a styled Bulma table footer."
+    },
+    "Th": {
+      "component": "Table",
+      "path": "Table.Th",
+      "purpose": "Th component for rendering a styled Bulma table header cell."
+    },
+    "Thead": {
+      "component": "Table",
+      "path": "Table.Thead",
+      "purpose": "Thead component for rendering a styled Bulma table header."
+    },
+    "TimeInputBase": {
+      "component": "TimeInput",
+      "path": "TimeInputBase",
+      "purpose": "Raw TimeInput — input + popover spinner without Field/Control wrapping.",
+      "standalone": "base"
+    },
+    "TimelineItem": {
+      "component": "Timeline",
+      "path": "Timeline.Item",
+      "purpose": "One event: a marker on the rail, then its title, its time and anything else about it."
+    },
+    "ToastContainer": {
+      "component": "Toast",
+      "path": "ToastContainer",
+      "purpose": "Container component for rendering programmatic toasts.",
+      "standalone": "companion"
+    },
+    "Tr": {
+      "component": "Table",
+      "path": "Table.Tr",
+      "purpose": "Tr component for rendering a styled Bulma table row."
+    },
+    "TreeViewItem": {
+      "component": "TreeView",
+      "path": "TreeView.Item",
+      "purpose": "One item in the tree: a row with its chevron, its box, its icon and its label, and, while it's open, a group of the items under it."
+    }
   }
 }
