@@ -69,25 +69,32 @@ const outranks = (a: number[], b: number[]) => {
 };
 
 /**
- * The value `property` gets on `el` from the rules: the most specific
- * matching rule, the later one on a tie. Forced colors adds the rules in its
- * media block and leaves out every other media block.
+ * The value `property` gets on `el`, or on its `::before` (the knob), from
+ * the rules: the most specific matching rule, the later one on a tie. Forced
+ * colors adds the rules in its media block and leaves out every other media
+ * block.
  */
 function resolveIn(
   rules: Rule[],
   el: Element,
   property: string,
-  forcedColors = false
+  {
+    pseudo,
+    forcedColors = false,
+  }: { pseudo?: '::before'; forcedColors?: boolean } = {}
 ): string | undefined {
   let won: { value: string; rank: number[] } | undefined;
   for (const { selector, style, media } of rules) {
     if (media && !(forcedColors && media === '(forced-colors: active)')) {
       continue;
     }
-    if (selector.includes('::') || !el.matches(selector)) continue;
+    const target = pseudo
+      ? selector.endsWith(pseudo) && selector.slice(0, -pseudo.length)
+      : !selector.includes('::') && selector;
+    if (!target || !el.matches(target)) continue;
     const value = style.getPropertyValue(property);
     if (!value) continue;
-    const rank = specificity(selector);
+    const rank = specificity(target);
     if (!won || outranks(rank, won.rank)) won = { value, rank };
   }
   return won?.value;
@@ -98,8 +105,13 @@ describe.each([
   ['a class prefix', 'bestax-'],
 ])('the Switch partial with %s', (_label, prefix) => {
   const RULES = rulesOf(compile(prefix));
-  const resolve = (el: Element, property: string, forcedColors?: boolean) =>
-    resolveIn(RULES, el, property, forcedColors);
+  const resolve = (
+    el: Element,
+    property: string,
+    options?: Parameters<typeof resolveIn>[3]
+  ) => resolveIn(RULES, el, property, options);
+  const knob = (el: Element, property: string) =>
+    resolve(el, property, { pseudo: '::before' });
 
   const renderSwitch = (props: SwitchProps) =>
     render(
@@ -167,12 +179,64 @@ describe.each([
   });
 
   it('draws the track in system colors in forced colors', () => {
-    expect(resolve(trackOf({}), 'border-color', true)).toBe('ButtonText');
-    expect(resolve(trackOf({ checked: true }), 'background-color', true)).toBe(
-      'Highlight'
-    );
-    expect(resolve(trackOf({ disabled: true }), 'border-color', true)).toBe(
+    const forced = { forcedColors: true };
+    expect(resolve(trackOf({}), 'border-color', forced)).toBe('ButtonText');
+    expect(
+      resolve(trackOf({ checked: true }), 'background-color', forced)
+    ).toBe('Highlight');
+    expect(resolve(trackOf({ disabled: true }), 'border-color', forced)).toBe(
       'GrayText'
     );
+  });
+
+  describe('the knob', () => {
+    it('draws a round knob at the start of the track', () => {
+      const track = trackOf({});
+      expect(knob(track, 'content')).toBe('""');
+      expect(knob(track, 'border-radius')).toBe('50%');
+      expect(knob(track, 'top')).toBe('var(--bulma-switch-padding)');
+      expect(knob(track, 'left')).toBe('var(--bulma-switch-padding)');
+      expect(knob(track, 'background-color')).toBe(
+        'var(--bulma-switch-circle-color)'
+      );
+      expect(knob(track, 'transform')).toBeUndefined();
+    });
+
+    it('moves the knob to the end when checked', () => {
+      expect(knob(trackOf({ checked: true }), 'transform')).toBe(
+        'translateX(calc(var(--bulma-switch-width) - var(--bulma-switch-height)))'
+      );
+    });
+
+    it('draws the thin knob, and colors and moves it when checked', () => {
+      const thin = trackOf({ isThin: true });
+      expect(knob(thin, 'width')).toBe('var(--bulma-switch-thin-circle-size)');
+      expect(knob(thin, 'background-color')).toBe(
+        'var(--bulma-switch-background)'
+      );
+      const checked = trackOf({ isThin: true, checked: true });
+      expect(knob(checked, 'background-color')).toBe(
+        'var(--bulma-switch-active-color)'
+      );
+      expect(knob(checked, 'transform')).toBe(
+        'translateX(calc(var(--bulma-switch-width) - var(--bulma-switch-thin-circle-size) - var(--bulma-switch-padding) * 2))'
+      );
+    });
+
+    it('colors the outlined and passive knobs', () => {
+      expect(knob(trackOf({ isOutlined: true }), 'background-color')).toBe(
+        'var(--bulma-switch-background)'
+      );
+      expect(
+        knob(trackOf({ isOutlined: true, checked: true }), 'background-color')
+      ).toBe('var(--bulma-switch-active-color)');
+      expect(
+        knob(
+          trackOf({ isOutlined: true, passiveType: 'danger' }),
+          'background-color'
+        )
+      ).toBe('var(--bulma-danger)');
+      expect(knob(trackOf({ isRounded: true }), 'border-radius')).toBe('50%');
+    });
   });
 });
