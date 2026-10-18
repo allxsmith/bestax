@@ -7,14 +7,16 @@
 
 /*
  * The original is built on Bulma's stock turquoise, where bestax's stylesheet
- * ships a blue. The label color is Bulma v1's own for turquoise, a dark shade
- * of it: the bestax blue's white would barely read on it.
+ * ships a blue. The label and on-scheme lightnesses are stock Bulma v1's for
+ * turquoise in its light scheme: the bestax blue's white label would barely
+ * read on it, and its on-scheme shade is too light for text on the page.
  */
 :root {
   --bulma-primary-h: 171deg;
   --bulma-primary-s: 100%;
   --bulma-primary-l: 41%;
   --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
 }
 
 h1,

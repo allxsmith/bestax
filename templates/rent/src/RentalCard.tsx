@@ -1,8 +1,11 @@
 import type { ReactNode } from 'react';
 import { Card, Image } from '@allxsmith/bestax-bulma';
 
-/** The original's stand-in photo, until the listings have their own. */
-const PLACEHOLDER = 'https://via.placeholder.com/640x360';
+/**
+ * A grey stand-in photo like the original's, kept in public/ so the page
+ * needs no placeholder service, until the listings have photos of their own.
+ */
+const PLACEHOLDER = '/media/placeholder.svg';
 
 interface RentalCardProps {
   /** Describes the photo. */

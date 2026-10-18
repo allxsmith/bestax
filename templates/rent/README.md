@@ -26,8 +26,8 @@ treats the folder as a project of its own.
   `SiteNavbar.tsx`), `RentalListings.tsx`, `Marketplaces.tsx`, `BrowseRentals.tsx`,
   `LandlordsCta.tsx` and `SiteFooter.tsx`. `RentalCard.tsx` is the listing card they share.
 - `src/index.css` is the original's stylesheet, ported, and `public/media/` holds its
-  illustrations. The listing photos are the original's placeholders, still loaded from
-  via.placeholder.com.
+  illustrations and `placeholder.svg`, the grey stand-in every listing card shows until you
+  pass `RentalCard` a photo of your own.
 - Icons are Font Awesome, from its npm package, and the Montserrat font loads from Google Fonts
   in `index.html`.
 
@@ -51,9 +51,13 @@ treats the folder as a project of its own.
   `onSubmit` in `src/SearchHero.tsx`.
 - The stylesheet sets Montserrat on headings and buttons but never loaded it, so most visitors
   saw a fallback font. `index.html` loads it now.
+- The listing photos hot-linked a placeholder service. They are a local grey placeholder in
+  `public/media/` now, drawn like the service's, so the page loads nothing from it.
 - bestax's stylesheet ships a blue primary color, and `src/index.css` sets Bulma's turquoise
   back. Bulma v1 writes the labels on turquoise and green in a dark shade where 0.8 wrote
-  white, which reads far more clearly, and the port keeps that.
+  white, which reads far more clearly, and the port keeps that. The footer links take Bulma's
+  darker turquoise for text on the page in place of the full turquoise, which barely reads on
+  the light footer.
 - The original's spacing classes (`m-t-50` and the like) are bestax's spacing props, on the
   nearest step of Bulma's scale, and each card's doubled `card-image` wrapper is a single one.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.

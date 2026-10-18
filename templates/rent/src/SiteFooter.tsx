@@ -11,7 +11,11 @@ import {
 
 const links = ['About us', 'Our story', 'Post a listing', 'Contact us'];
 
-/** The footer, with the original's credit kept where it was. */
+/**
+ * The footer, with the original's credit kept where it was. Its links take
+ * the primary's on-scheme shade, the darker turquoise Bulma keeps for text on
+ * the page, where the original's full turquoise barely reads.
+ */
 function SiteFooter() {
   return (
     <footer>
@@ -32,7 +36,11 @@ function SiteFooter() {
                   <Span textColor="grey-light">
                     {links.map(link => (
                       <Fragment key={link}>
-                        <Link href="#" textColor="primary">
+                        <Link
+                          href="#"
+                          textColor="primary"
+                          colorShade="on-scheme"
+                        >
                           {link}
                         </Link>{' '}
                         &bull;{' '}
@@ -52,15 +60,15 @@ function SiteFooter() {
             >
               Rent Template 2020 &copy; aldi
               <br />
-              <Link href="#" textColor="primary">
+              <Link href="#" textColor="primary" colorShade="on-scheme">
                 Terms of use
               </Link>{' '}
               and{' '}
-              <Link href="#" textColor="primary">
+              <Link href="#" textColor="primary" colorShade="on-scheme">
                 Privacy policy
               </Link>
               .{' '}
-              <Link href="#" textColor="primary">
+              <Link href="#" textColor="primary" colorShade="on-scheme">
                 Fair Housing
               </Link>
             </Paragraph>
