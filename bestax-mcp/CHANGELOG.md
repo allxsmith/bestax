@@ -1,3 +1,10 @@
+## [1.15.8](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.7...bestax-mcp@1.15.8) (2026-10-17)
+
+
+### Bug Fixes
+
+* **bulma-ui:** read Icon's color prop as a text color, with textColor winning ([#1137](https://github.com/allxsmith/bestax/issues/1137)) ([c493fa9](https://github.com/allxsmith/bestax/commit/c493fa9636678f5af365b83613ddf61a7821d3c3))
+
 ## [1.15.7](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.6...bestax-mcp@1.15.7) (2026-10-17)
 
 
