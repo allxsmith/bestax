@@ -38,6 +38,7 @@ import {
   Control,
   DateInput,
   DateTimeInput,
+  Icon,
   Input,
   LinkButton,
   Loader,
@@ -544,12 +545,92 @@ function colorOf(value: string | null): string {
   return color ?? 'currentcolor';
 }
 
+/** The CSS system colors: the colors a forced-colors theme picks. */
+const SYSTEM =
+  /^(Canvas|CanvasText|LinkText|VisitedText|ActiveText|ButtonFace|ButtonText|ButtonBorder|Field|FieldText|Highlight|HighlightText|SelectedItem|SelectedItemText|Mark|MarkText|GrayText|AccentColor|AccentColorText)$/;
+
+/**
+ * An inherited property on the element, or on its `::after` or `::before`,
+ * in forced colors: read off the first of them, going up the tree, that a
+ * rule sets it on.
+ */
+function inherited(
+  rules: Rule[],
+  el: Element,
+  pseudo: string,
+  property: string
+): string | null {
+  const own = (node: Element, p: string) =>
+    resolved(rules, node, p, { forcedColors: true }, [property]);
+  if (pseudo) {
+    const value = own(el, pseudo);
+    if (value) return value;
+  }
+  for (let node: Element | null = el; node; node = node.parentElement) {
+    const value = own(node, '');
+    if (value) return value;
+  }
+  return null;
+}
+
+/** The `forced-color-adjust` in effect, which is inherited. */
+const forcing = (rules: Rule[], el: Element, pseudo: string) =>
+  inherited(rules, el, pseudo, 'forced-color-adjust') ?? 'auto';
+
+/**
+ * Why a ring wouldn't read as an open ring in forced colors, or null when it
+ * would. Where forcing paints it, the drawn sides come out in a text color,
+ * so the open sides have to be Canvas, the page's own color, and the drawn
+ * ones mustn't be. Where forcing is off, as it is on a loading button,
+ * nothing is painted for it: the open sides have to be transparent, and the
+ * drawn ones a system color the theme picks, since an author color comes
+ * with no contrast promised. `inherit` reads the side off the element the
+ * pseudo-element is on.
+ */
+function ringProblem(
+  rules: Rule[],
+  el: Element,
+  pseudo: string
+): string | null {
+  const side = (name: Side) => {
+    const value = winning(rules, el, pseudo, { forcedColors: true }, name);
+    return value === 'inherit' && pseudo
+      ? winning(rules, el, '', { forcedColors: true }, name)
+      : value;
+  };
+  const [top, right, bottom, left] = (
+    ['top', 'right', 'bottom', 'left'] as const
+  ).map(name => colorOf(side(name)));
+  if (forcing(rules, el, pseudo) === 'none') {
+    if (top !== 'transparent' || right !== 'transparent') {
+      return `forcing is off and its open sides are ${top} and ${right}`;
+    }
+    if (!SYSTEM.test(bottom) || !SYSTEM.test(left)) {
+      return `forcing is off and it's drawn in ${bottom} and ${left}`;
+    }
+    return null;
+  }
+  if (top !== 'Canvas' || right !== 'Canvas') {
+    return `its open sides are ${top} and ${right}`;
+  }
+  // Firefox paints a forced border in the element's text color and keeps a
+  // transparent one transparent, so on an element whose text is hidden, as a
+  // loading button's is, a forced ring doesn't show there at all.
+  if (inherited(rules, el, pseudo, 'color') === 'transparent') {
+    return 'forcing paints it in a transparent text color, which Firefox keeps';
+  }
+  if (bottom === 'Canvas' || left === 'Canvas') {
+    return "it's drawn in Canvas, the page's own color";
+  }
+  return null;
+}
+
 /**
  * Every ring the sheet draws, read off the sheet rather than off a roster:
  * an element something spins, whose four sides aren't all one color, which
  * is how a spinner shows it's turning. Forced colors paints every side in
- * one color, so `closed` holds the rings whose top and right don't come out
- * Canvas there, and those would turn as a full circle.
+ * one color, so `closed` holds the rings `ringProblem` finds fault with
+ * there, which would turn as a full circle or not show at all.
  */
 function unopened(rules: Rule[]) {
   const spun = new Set<string>();
@@ -567,11 +648,7 @@ function unopened(rules: Rule[]) {
     );
     if (new Set(sides).size < 2) continue;
     rings.push(selector);
-    const open = (['top', 'right'] as const).every(
-      side =>
-        winning(rules, el, pseudo, { forcedColors: true }, side) === 'Canvas'
-    );
-    if (!open) closed.push(selector);
+    if (ringProblem(rules, el, pseudo) !== null) closed.push(selector);
   }
   return { rings, closed };
 }
@@ -783,6 +860,50 @@ describe('the cascade resolver', () => {
     ).toEqual({ rings: ['.spinner'], closed: [] });
   });
 
+  it('lets a ring out of forcing pass only with transparent open sides and system-color drawn ones', () => {
+    const ring =
+      '.b::after { animation: spin 1s; border: 2px solid red; border-top-color: transparent; border-right-color: transparent; }';
+    // Forcing off, and the ring still in its author color.
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .b { forced-color-adjust: none; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
+    // Forcing off, Canvas open sides, which can differ from the surface.
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .b { forced-color-adjust: none; border-color: ButtonText; } .b::after { border-color: inherit; border-top-color: Canvas; border-right-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
+    // Forcing off, drawn in the button's system color, open onto its surface.
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .b { forced-color-adjust: none; border-color: ButtonText; } .b::after { border-color: inherit; border-top-color: transparent; border-right-color: transparent; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: [] });
+  });
+
+  it('fails a forced ring on an element whose text is transparent, which Firefox keeps', () => {
+    expect(
+      unopened(
+        rulesOf(
+          '.b { color: transparent; } ' +
+            '.b::after { animation: spin 1s; border: 2px solid red; border-top-color: transparent; } ' +
+            '@media (forced-colors: active) { .b::after { border-top-color: Canvas; border-right-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
+  });
+
   it('takes a spinning box whose sides are all one color for something other than a ring', () => {
     expect(
       unopened(
@@ -894,13 +1015,17 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           top: winning(rules, el, pseudo, when, 'top'),
           right: winning(rules, el, pseudo, when, 'right'),
         }));
-      // Canvas is the page's own color, which forced colors leaves alone,
-      // so those two sides stay open where Bulma left them transparent.
-      expect(sides({ forcedColors: true })).toEqual(
+      // Its open sides stay open: Canvas, the page's own color, which forced
+      // colors leaves alone, or transparent where forcing is off.
+      expect(
         rings.map(({ el, pseudo }) => ({
           ring: describeEl(el, pseudo),
-          top: 'Canvas',
-          right: 'Canvas',
+          problem: ringProblem(rules, el, pseudo),
+        }))
+      ).toEqual(
+        rings.map(({ el, pseudo }) => ({
+          ring: describeEl(el, pseudo),
+          problem: null,
         }))
       );
       // Anywhere else, the ring keeps the sides it had.
@@ -921,7 +1046,7 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     expect(closed).toEqual([]);
   });
 
-  it('changes nothing but the open sides’ color in forced colors', () => {
+  it('changes nothing but a ring’s border colors in forced colors', () => {
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>
         {RINGS.map(([label, element]) => (
@@ -930,10 +1055,10 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       </ConfigProvider>
     );
     const targets = animatedIn(container, rules);
-    // A loading button turns forcing off for its label, and its ring takes
-    // it back with `forced-color-adjust: auto`, the browser's own default.
-    // That's the one other thing a rule here may set on a ring, and only to
-    // that value.
+    // Each ring has to stay drawn as it was, so a rule here may set its
+    // border colors and nothing else: Canvas for the open sides where
+    // forcing paints it, and transparent and `inherit` for a loading
+    // button's, where it doesn't. `ringProblem` checks what they add up to.
     const extra = rules
       .filter(rule => rule.forcedColorsOnly)
       .filter(rule =>
@@ -948,8 +1073,9 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       )
       .filter(
         declaration =>
-          !/^border-(top|right)-color: /.test(declaration) &&
-          declaration !== 'forced-color-adjust: auto'
+          !/^border(-(top|right|bottom|left))?-color: (Canvas|transparent|inherit)$/.test(
+            declaration
+          )
       );
     expect(extra).toEqual([]);
   });
@@ -995,9 +1121,16 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           'ButtonText'
         );
       }
-      // Its ring goes back to being forced, so the Canvas rule above keeps
-      // it open the way it keeps every other ring open.
-      expect(forced(['forced-color-adjust'], '::after')).toBe('auto');
+      // Its ring stays out of forcing with it, drawn in the button's border
+      // color and open onto its surface.
+      expect(forcing(rules, button, '::after')).toBe('none');
+      expect(ringProblem(rules, button, '::after')).toBeNull();
+      expect(
+        winning(rules, button, '::after', { forcedColors: true }, 'top')
+      ).toBe('transparent');
+      expect(
+        winning(rules, button, '::after', { forcedColors: true }, 'bottom')
+      ).toBe('inherit');
       // None of it reaches anyone not in forced colors.
       const normally = (names: string[]) =>
         resolved(rules, button, '', {}, names);
@@ -1007,6 +1140,81 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       );
     }
   );
+
+  it.each([
+    [
+      'Button as="a" isLoading',
+      <Button key="x" as="a" href="#" isLoading>
+        Save
+      </Button>,
+    ],
+    [
+      'LinkButton as="a" isLoading',
+      <LinkButton key="x" as="a" href="#" isLoading>
+        Save
+      </LinkButton>,
+    ],
+  ] as Array<[string, React.ReactElement]>)(
+    '%s keeps a link’s colors in forced colors, the ones it has when idle',
+    (_label, element) => {
+      const { container } = render(
+        <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+      );
+      const link = container.querySelector(`a.${prefix}button`)!;
+      expect(link).not.toBeNull();
+      const forced = (names: string[]) =>
+        resolved(rules, link, '', { forcedColors: true }, names);
+      // Forced colors draws an `<a>` as a link, Canvas behind and LinkText
+      // for its border and text, so a loading one keeps those rather than
+      // turning into a button while it loads.
+      expect(forced(['forced-color-adjust'])).toBe('none');
+      expect(forced(['color'])).toBe('transparent');
+      expect(forced(['background-color', 'background'])).toBe('Canvas');
+      for (const side of ['top', 'right', 'bottom', 'left'] as const) {
+        expect(winning(rules, link, '', { forcedColors: true }, side)).toBe(
+          'LinkText'
+        );
+      }
+      // Its ring follows, in LinkText and open onto Canvas.
+      expect(ringProblem(rules, link, '::after')).toBeNull();
+      expect(winning(rules, link, '', { forcedColors: true }, 'bottom')).toBe(
+        'LinkText'
+      );
+      expect(
+        rules
+          .filter(
+            rule =>
+              rule.forcedColorsOnly &&
+              rule.selectors.includes(
+                `a.${prefix}button.${prefix}is-loading:focus-visible`
+              )
+          )
+          .map(rule => rule.values['outline-color']?.value)
+      ).toEqual(['LinkText']);
+    }
+  );
+
+  it('hides everything inside a loading button in forced colors, a child with its own color included', () => {
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>
+        <Button isLoading>
+          <Icon name="floppy-disk" textColor="danger" />
+          <span>Save</span>
+        </Button>
+      </ConfigProvider>
+    );
+    const inside = Array.from(container.querySelectorAll(`.${prefix}button *`));
+    // The icon, its glyph and the label's span.
+    expect(inside.length).toBeGreaterThanOrEqual(3);
+    // Forcing is off inside the button too, so a text color of its own,
+    // which Bulma's helpers give `!important`, would show in that color.
+    for (const el of inside) {
+      expect(resolved(rules, el, '', { forcedColors: true }, ['color'])).toBe(
+        'transparent'
+      );
+      expect(resolved(rules, el, '', {}, ['color'])).not.toBe('transparent');
+    }
+  });
 
   it('rings a focused loading button in forced colors, where its border holds still', () => {
     // The `!important` border above stops the browser recoloring it to show
