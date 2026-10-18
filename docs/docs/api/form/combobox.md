@@ -167,9 +167,9 @@ tags under the field, each with a button to take it off.
 ```
 
 Each item's check mark is its `aria-selected` here, and the list says it's `aria-multiselectable`,
-so a screen reader reads which labels are on, and the field's description lists them while the
-list is shut. The tags sit under the field rather than inside it, which keeps the field an ordinary
-text field. For chips inside the field, see [`Taginput`](./taginput.md).
+so a screen reader reads which labels are on, and the field's description lists them. The tags sit
+under the field rather than inside it, which keeps the field an ordinary text field. For chips
+inside the field, see [`Taginput`](./taginput.md).
 
 ### A Controlled Value
 
@@ -830,15 +830,14 @@ and a click in the field opens the list. A press in the list never takes focus f
   An `inline` list stays on screen, so a link or a button beside it is in the Tab order.
 - **Tags,** with `multiple` and `data`: the field's `aria-describedby` points at the tags' labels,
   since its own text is the search, so focusing it reads the picks. Each tag's button is named
-  "Remove" and the item's label, and taking a tag off puts focus back in the field, which then
-  reads the picks that are left.
+  "Remove" and the item's label, or `ariaCloseLabel` with the label as its description, and
+  taking a tag off puts focus back in the field, which then reads the picks that are left.
 - **No counts are announced,** for the reasons in [A Result Count](#a-result-count).
 - **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops
   at the Combobox when it closed a panel that was on screen.
 - **Forced colors:** in Windows high contrast mode the highlight is drawn as an outline in the
   system's highlight color, a disabled item takes the system's color for disabled text, and the
   check mark and the panel's edge stay visible.
-- **No motion:** nothing animates.
 
 ---
 
