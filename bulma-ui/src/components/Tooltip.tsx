@@ -6,13 +6,13 @@ import React, {
   useId,
   useState,
   useRef,
-  useLayoutEffect,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { chain, useHoverOpen } from '../helpers/useHoverOpen';
 import { isTabbableKind } from '../helpers/useFocusTrap';
 import { isDev, warnOnce } from '../helpers/devWarnings';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 
 /** Screen positions for the tooltip. */
 export type TooltipPosition = 'top' | 'bottom' | 'left' | 'right' | 'auto';
@@ -253,11 +253,10 @@ export const Tooltip: React.FC<TooltipProps> = ({
   });
 
   // Auto-placement and overflow correction
-  useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     const isAuto = position === 'auto';
 
     if (!isAuto) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- layout measurement effect resolves placement
       setResolvedPosition(position);
     }
 

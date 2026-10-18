@@ -43,6 +43,13 @@ export function Leftovers() {
         <span aria-hidden="true" />
         <span aria-hidden="true" />
       </a>
+      <ul className="menu-list">
+        <li>
+          <a className="is-active" href="/here">
+            An active item that doesn't say it's the current page
+          </a>
+        </li>
+      </ul>
       <div className="dropdown">A family converted later</div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
     </div>

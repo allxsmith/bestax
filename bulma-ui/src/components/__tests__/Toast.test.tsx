@@ -903,6 +903,47 @@ describe('ToastContainer', () => {
     toast.closeAll();
   });
 
+  // The container hands each toast an inline `onClose`, and it renders
+  // whenever another toast shows, so a toast mustn't start over because its
+  // `onClose` changed (#1113).
+  it("keeps a toast's own clock when another one shows", () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'First', duration: 2000 });
+    });
+    act(() => {
+      jest.advanceTimersByTime(1500);
+    });
+    act(() => {
+      toast.show({ message: 'Second', duration: 10000 });
+    });
+    act(() => {
+      jest.advanceTimersByTime(1000);
+    });
+
+    expect(screen.queryByText('First')).toBeNull();
+    expect(screen.getByText('Second')).toBeInTheDocument();
+  });
+
+  it('dismisses a toast on a click outside right after another one shows', () => {
+    render(<ToastContainer />);
+    act(() => {
+      toast.show({ message: 'First', duration: 0 });
+    });
+    // Its outside-click listener goes on a frame after it shows.
+    act(() => {
+      jest.advanceTimersByTime(20);
+    });
+    act(() => {
+      toast.show({ message: 'Second', duration: 0 });
+    });
+
+    fireEvent.click(document.body);
+    expect(screen.queryByText('First')).toBeNull();
+    // The second one's listener isn't on yet, so that click didn't count.
+    expect(screen.getByText('Second')).toBeInTheDocument();
+  });
+
   it('renders toasts from programmatic API', () => {
     render(<ToastContainer />);
 

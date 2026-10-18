@@ -582,7 +582,9 @@ export const LabelPositions: Story = {
 };
 
 /**
- * Click on any step to jump to it, plus navigation buttons.
+ * Click on any step to jump to it, plus navigation buttons. Each step is a
+ * button inside its list item, so Tab reaches it and Enter or Space presses
+ * it, with the focus ring around the whole step.
  */
 export const Clickable: Story = {
   render: function ClickableStory() {
@@ -812,6 +814,48 @@ export const VerticalLabelsBottom: Story = {
           </Buttons>
         </Column>
       </Columns>
+    );
+  },
+};
+
+/**
+ * Both layouts in a right-to-left page. The steps run from the right, and each
+ * line joins its marker to the next one. `labelPosition="right"` means the end
+ * of the line, so here it puts each label to the left of its marker.
+ */
+export const RightToLeft: Story = {
+  render: function RightToLeftStory() {
+    const [step, setStep] = useState(1);
+    const items = [
+      { label: 'الحساب', clickable: true },
+      { label: 'الملف الشخصي', clickable: true },
+      { label: 'الإعدادات', clickable: true },
+      { label: 'تم', clickable: true },
+    ];
+
+    return (
+      <div dir="rtl" lang="ar">
+        <Block>
+          <Title size="6">أفقي</Title>
+          <Steps
+            value={step}
+            onStepClick={setStep}
+            color="primary"
+            items={items}
+          />
+        </Block>
+        <Block>
+          <Title size="6">عمودي</Title>
+          <Steps
+            value={step}
+            onStepClick={setStep}
+            vertical
+            labelPosition="right"
+            color="primary"
+            items={items}
+          />
+        </Block>
+      </div>
     );
   },
 };

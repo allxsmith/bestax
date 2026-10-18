@@ -38,12 +38,16 @@
       "code": "function example() {\n  const [step, setStep] = useState(0);\n  const steps = ['Cart', 'Shipping', 'Payment', 'Confirm'];\n\n  return (\n    <Block>\n      <Steps\n        value={step}\n        items={steps.map((label, i) => ({ label, clickable: i <= step }))}\n        onStepClick={s => s <= step && setStep(s)}\n        color=\"primary\"\n      />\n      <Box mt=\"4\" p=\"4\">\n        <Title size=\"5\">{steps[step]}</Title>\n        <Paragraph>Content for the {steps[step]} step goes here.</Paragraph>\n      </Box>\n      <Buttons mt=\"4\">\n        <Button\n          onClick={() => setStep(Math.max(0, step - 1))}\n          disabled={step === 0}\n        >\n          Previous\n        </Button>\n        <Button\n          color=\"primary\"\n          onClick={() => setStep(Math.min(3, step + 1))}\n          disabled={step === 3}\n        >\n          {step === 2 ? 'Place Order' : 'Next'}\n        </Button>\n      </Buttons>\n    </Block>\n  );\n}"
     },
     {
+      "title": "Right-to-Left",
+      "code": "<div dir=\"rtl\" lang=\"ar\">\n  <Steps\n    value={1}\n    color=\"primary\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n  <Steps\n    value={1}\n    vertical\n    labelPosition=\"right\"\n    color=\"primary\"\n    items={[{ label: 'الحساب' }, { label: 'الملف الشخصي' }, { label: 'تم' }]}\n  />\n</div>"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Steps value={1}>\n  <Steps.Step label=\"Account\" />\n  <Steps.Step label=\"Profile\" />\n  <Steps.Step label=\"Complete\" />\n</Steps>"
     }
   ],
-  "accessibility": "- Steps use `aria-current=\"step\"` on the active step\n- Clickable steps are keyboard navigable with proper focus indicators\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks",
-  "related": ["Progress", "Timeline"],
+  "accessibility": "- The active step has `aria-current=\"step\"`, on its list item, or on its button when it's clickable\n- A clickable step stays a list item and puts its marker and label in a `<button type=\"button\">` inside it, so the list keeps its list items and assistive technology can count them. The button takes Tab, Enter and Space, and the focus ring goes around the whole step, which is what you can click\n- The list has `role=\"list\"`. That's the role a `<ul>` already has, set again for Safari, whose WebKit stops exposing a `<ul>` as a list once its markers are hidden, as they are here, unless the role is written out\n- Use descriptive labels for each step\n- The step markers show completion state with checkmarks\n- In forced colors (Windows' contrast themes), the lines and a completed step's fill are drawn in the theme's text color, and the current step's marker gets an outline, so completed, current and upcoming steps still look different without color",
+  "related": ["Progress"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-steps",
   "summary": "The `Steps` component provides a multi-step progress indicator for wizard flows, checkout processes, or any multi-step workflow.",
   "import": "import { Steps } from '@allxsmith/bestax-bulma';",
@@ -131,7 +135,7 @@
           "name": "labelPosition",
           "type": "'bottom' | 'right' | 'left'",
           "default": "'bottom'",
-          "description": "Position of labels.",
+          "description": "Position of labels. `right` and `left` mean the end and the start of the line, so in a right-to-left page `right` puts each label to the left of its marker, and `left` to the right.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -259,7 +263,7 @@
           "name": "label",
           "type": "React.ReactNode",
           "default": null,
-          "description": "Step label/title",
+          "description": "Step label/title, or pass it as `children`. On a `clickable` step it's rendered inside the step's `<button>`, so it has to be phrasing content, like text, a `<span>` or an icon, with no link, button or other control in it.",
           "required": false,
           "inherited": false,
           "deprecated": false
@@ -277,7 +281,7 @@
           "name": "clickable",
           "type": "boolean",
           "default": "false",
-          "description": "Whether this step is clickable",
+          "description": "Whether this step is clickable. A clickable step puts its marker and label in a `<button type=\"button\">` inside the `<li>`, which calls `onClick`, and `aria-current` goes on that button. The `<li>` keeps the rest of the props.",
           "required": false,
           "inherited": false,
           "deprecated": false

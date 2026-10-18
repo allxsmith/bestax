@@ -18,6 +18,10 @@ $checkbox-focus-shadow-size: 0 0 0 0.125em !default;
 $checkbox-transition-duration: cv.getVar("duration") !default;
 $checkbox-indeterminate-color: cv.getVar("primary") !default;
 
+// The check mark, drawn as an image normally and used as a mask in forced
+// colors. Private, since it's the shape rather than a themable value.
+$-check-mark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+
 // Register CSS custom properties
 .#{iv.$class-prefix}styled-checkbox {
   @include cv.register-vars(
@@ -134,7 +138,7 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
       transition-property: opacity, transform;
       transition-duration: cv.getVar("checkbox-transition-duration");
       transition-timing-function: ease;
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+      background-image: $-check-mark;
       background-size: contain;
       background-repeat: no-repeat;
       background-position: center;
@@ -183,6 +187,29 @@ $checkbox-indeterminate-color: cv.getVar("primary") !default;
     input[type="checkbox"]:checked + .check {
       background-color: Highlight;
       border-color: Highlight;
+
+      // The mark's image has a black stroke, which forced colors leaves as
+      // it is, black on the Highlight fill. Use its shape as a mask instead
+      // and paint it in HighlightText, the color made to read on Highlight.
+      &::after {
+        background-image: none;
+        background-color: HighlightText;
+        mask-image: $-check-mark;
+        mask-size: contain;
+        mask-repeat: no-repeat;
+        mask-position: center;
+      }
+    }
+
+    // Forced colors repaints the mixed fill and its dash in the same color,
+    // which leaves an empty box. Draw the dash in system colors that keep it
+    // visible, checked or not.
+    input[type="checkbox"]:indeterminate + .check {
+      background-color: Canvas;
+
+      &::before {
+        background-color: CanvasText;
+      }
     }
 
     input[type="checkbox"]:focus-visible + .check {
