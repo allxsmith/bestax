@@ -67,6 +67,11 @@ empty one, keeps the item as markup too, and so does an empty `className` on the
 nothing is left to render its `class=""`. Move the attribute to where `Menu.Item` puts it if
 that's what you want, then re-run.
 
+`attr:role` on a `.menu-list` is a `role` other than `list`. `Menu.List` writes `role="list"` on
+its `<ul>` whatever it's given, for Safari, which stops treating a list as one once its markers are
+hidden, so that role would be lost. Keep the list as markup. One with no `role`, or `role="list"`,
+converts, since that's the role a `<ul>` already has.
+
 `attr:aria-current` is the `<a>`'s `is-active` with no `aria-current` beside it. `Menu.Item`'s
 `active` writes `aria-current="page"` on the `<a>` unless it has one of its own, so the item would
 gain it. If the item marks the page you're on, which is what `is-active` usually means in a menu,

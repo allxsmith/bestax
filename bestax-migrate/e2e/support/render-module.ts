@@ -151,8 +151,15 @@ export function renderExports(
 /**
  * Make two renders comparable: attributes in name order, class tokens in
  * order and once each (a class list is a set to CSS, and bestax dedupes it),
- * and React's `<!-- -->` text separators gone. Nothing else changes, so any
- * remaining difference is a real difference in the markup.
+ * React's `<!-- -->` text separators gone, and `role="list"` gone from a
+ * `<ul>` or `<ol>`. Nothing else changes, so any remaining difference is a
+ * real difference in the markup.
+ *
+ * `role="list"` is a list's own implicit role, written out. `Menu.List`
+ * writes it because WebKit stops exposing a list as one once its markers are
+ * hidden (#1108), and the raw `<ul class="menu-list">` it replaces is the
+ * same list, so the codemod converts one to the other. Only that role on
+ * those two tags: any other role, or `list` on another tag, is a difference.
  */
 export function normalizeHtml(html: string): string {
   return html
@@ -160,16 +167,20 @@ export function normalizeHtml(html: string): string {
     .replace(
       /<([a-zA-Z][\w-]*)((?:\s+[^\s=>/]+(?:="[^"]*")?)*)\s*(\/?)>/g,
       (_match, tag: string, attrs: string, selfClosing: string) => {
-        const parsed = [
-          ...attrs.matchAll(/\s+([^\s=>/]+)(?:="([^"]*)")?/g),
-        ].map(([, name, value]) => {
-          if (name === 'class' && value !== undefined) {
-            value = [...new Set(value.split(/\s+/).filter(Boolean))]
-              .sort()
-              .join(' ');
-          }
-          return value === undefined ? name : `${name}="${value}"`;
-        });
+        const isList = tag === 'ul' || tag === 'ol';
+        const parsed = [...attrs.matchAll(/\s+([^\s=>/]+)(?:="([^"]*)")?/g)]
+          .filter(
+            ([, name, value]) =>
+              !(isList && name === 'role' && value === 'list')
+          )
+          .map(([, name, value]) => {
+            if (name === 'class' && value !== undefined) {
+              value = [...new Set(value.split(/\s+/).filter(Boolean))]
+                .sort()
+                .join(' ');
+            }
+            return value === undefined ? name : `${name}="${value}"`;
+          });
         parsed.sort();
         return `<${tag}${parsed.map(a => ` ${a}`).join('')}${selfClosing ? '/' : ''}>`;
       }

@@ -648,7 +648,23 @@ describe.each(writing)(
               ...factsFor(tag, [root]),
               attributes: new Map(Object.entries(attributes)),
             }).todos.map(todo => todo.rule);
-          expect(rules(without)).toContain(`defaults:${entry.target}`);
+          if (rule.implicit) {
+            // The tag's own role: with none, it's the same element, and
+            // converts (`normalizeHtml` reads the role written out as none).
+            const both = renderBoth(factsFor(tag, [root], without), without);
+            expect({ tag, without: name, converts: both !== null }).toEqual({
+              tag,
+              without: name,
+              converts: true,
+            });
+            expect({ tag, without: name, html: both!.converted }).toEqual({
+              tag,
+              without: name,
+              html: both!.raw,
+            });
+          } else {
+            expect(rules(without)).toContain(`defaults:${entry.target}`);
+          }
           expect(rules({ ...without, [name]: 'text/html' })).toContain(
             `attr:${name}`
           );

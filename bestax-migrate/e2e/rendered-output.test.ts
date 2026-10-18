@@ -134,4 +134,33 @@ describe('normalizeHtml', () => {
       expect(normalizeHtml(other)).not.toBe(normalizeHtml(base));
     }
   });
+
+  it('reads role="list" on a <ul> or <ol> as the list it already is', () => {
+    // Menu.List writes it for Safari (#1108); it's the list's implicit role.
+    for (const tag of ['ul', 'ol']) {
+      expect(
+        normalizeHtml(
+          `<${tag} role="list" class="menu-list"><li>x</li></${tag}>`
+        )
+      ).toBe(normalizeHtml(`<${tag} class="menu-list"><li>x</li></${tag}>`));
+    }
+  });
+
+  it('keeps any other role, and role="list" on any other tag', () => {
+    const base = '<ul class="menu-list"><li>x</li></ul>';
+    for (const other of [
+      '<ul class="menu-list" role="menu"><li>x</li></ul>',
+      '<ul class="menu-list" role="none"><li>x</li></ul>',
+      '<ul class="menu-list" role="List"><li>x</li></ul>',
+      '<ul class="menu-list" role=""><li>x</li></ul>',
+    ]) {
+      expect(normalizeHtml(other)).not.toBe(normalizeHtml(base));
+    }
+    expect(normalizeHtml('<div role="list">x</div>')).not.toBe(
+      normalizeHtml('<div>x</div>')
+    );
+    expect(normalizeHtml('<ul><li role="list">x</li></ul>')).not.toBe(
+      normalizeHtml('<ul><li>x</li></ul>')
+    );
+  });
 });
