@@ -61,6 +61,8 @@ const NAMED_INDIVIDUALLY = [
   'Timeline.Item',
   'Toast',
   'ToggleButton',
+  'TreeView',
+  'TreeView.Item',
 ] as const;
 
 /**

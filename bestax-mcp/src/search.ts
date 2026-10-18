@@ -140,6 +140,23 @@ const isName = (word: string, lowerName: string) =>
   word === lowerName || word === `${lowerName}s`;
 
 /**
+ * Whether a query names what sets a component apart: its whole name, or the
+ * first camelCase part of it. In a compound name the last part is the generic
+ * head noun and the first is the distinguishing word: TreeView is a tree kind
+ * of view, DateInput a date input, HoverCard a hover card. So "tree" or "date"
+ * makes the component the subject, and "view" or "input" alone doesn't: that
+ * "view" put TreeView above Reveal for "element that animates into view". For
+ * a one-part name, the first part is the whole name.
+ */
+function namesSubject(terms: string[], name: string): boolean {
+  const lowerName = norm(name);
+  const first = norm(name.split(/(?=[A-Z])/)[0]);
+  return terms.some(
+    t => isName(t, lowerName) || (t.length >= 3 && termHit(first, t) > 0)
+  );
+}
+
+/**
  * Score a haystack against the query terms.
  *
  * Whole-phrase and exact-name matches dominate; term coverage breaks ties. A
@@ -318,18 +335,15 @@ export function searchAll(
       const hay = `${c.name} ${c.purpose} ${c.category}`;
       const alias = aliased.get(c.name) ?? 0;
       const matched = score(hay, c.name, terms, q) + alias;
-      // The bonus is for a component the query is about: one it names, or one whose
-      // summary has most of its words. A summary that shares one word of two ("at a
-      // time" for "time picker") is the same passing mention a prop's description is,
-      // and one that misses a single word of a sentence ("spacing", where Block says
-      // "margin") is not.
-      const lowerName = norm(c.name);
+      // The bonus is for a component the query is about: one whose distinguishing
+      // word it names, or one whose summary has most of its words. A summary that
+      // shares one word of two ("at a time" for "time picker") is the same passing
+      // mention a prop's description is, and one that misses a single word of a
+      // sentence ("spacing", where Block says "margin") is not.
       const lowerHay = norm(hay);
       const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
       const about =
-        alias > 0 ||
-        terms.some(t => t.length >= 3 && termHit(lowerName, t) > 0) ||
-        covered * 2 > terms.length;
+        alias > 0 || namesSubject(terms, c.name) || covered * 2 > terms.length;
       const s = matched > 0 && about ? matched + COMPONENT_BONUS : matched;
       if (s > 0) {
         hits.push({

@@ -547,6 +547,27 @@ trigger and the tooltip past what the pointer can cross on its own, so give the 
 `--bulma-tooltip-multiline-width`, `--bulma-tooltip-padding`, `--bulma-tooltip-radius`,
 `--bulma-tooltip-z-index`
 
+### TreeView
+
+Declared on the root, `.tree-view`. A tree looks like Bulma's menu, but the menu's variables
+don't reach it: `--bulma-menu-*` is registered on `.menu` alone, so retheme a tree through these.
+Each default is the base token the matching menu variable defaults to (`scheme-h`, `text-l`,
+`link-l`, `radius-small`, `border` and so on), so a theme's base tokens move the tree and the menu
+together. A selected row swaps in the `item-selected-*` values on its own row, and a row's hover
+and press tints change `--bulma-tree-view-item-background-l-delta` there. A checkbox tree's boxes
+are `Checkbox`'s, themed through `--bulma-checkbox-*`.
+
+`--bulma-tree-view-gap`, `--bulma-tree-view-group-border`, `--bulma-tree-view-group-margin`,
+`--bulma-tree-view-group-padding`, `--bulma-tree-view-item-active-background-l-delta`,
+`--bulma-tree-view-item-background-l`, `--bulma-tree-view-item-background-l-delta`,
+`--bulma-tree-view-item-color-l`, `--bulma-tree-view-item-disabled-color`,
+`--bulma-tree-view-item-h`, `--bulma-tree-view-item-hover-background-l-delta`,
+`--bulma-tree-view-item-padding`, `--bulma-tree-view-item-radius`, `--bulma-tree-view-item-s`,
+`--bulma-tree-view-item-selected-background-l`, `--bulma-tree-view-item-selected-color-l`,
+`--bulma-tree-view-item-selected-h`, `--bulma-tree-view-item-selected-s`,
+`--bulma-tree-view-line-height`, `--bulma-tree-view-toggle-color`,
+`--bulma-tree-view-toggle-duration`, `--bulma-tree-view-toggle-size`
+
 ## Dark mode (`Theme colorMode`)
 
 Drive the light/dark scheme with the `Theme` component's **`colorMode`** prop —
