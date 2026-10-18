@@ -34,22 +34,43 @@ fix.
 1. **Get the original.** Clone the upstream repo into a scratch folder outside this repo and check
    out the commit you port from. Its full SHA goes in the README and the docs entry.
 2. **Scaffold, outside the workspace.** From a build of create-bestax, or `npm create bestax@latest`
-   with the same flags:
+   with the same arguments. It takes the project's name rather than a path, so run it from the
+   scratch folder:
 
    ```bash
-   node create-bestax/dist/index.js <scratch>/<slug> -t vite-ts -i fontawesome -y --no-skills --no-telemetry
+   cd <scratch>
+   node <repo>/create-bestax/dist/index.js <slug> -t vite-ts -i fontawesome -y --no-skills --no-telemetry
    ```
 
    Then strip the lint setup: delete `eslint.config.js`, the `lint` script and the lint
    devDependencies, the same packages the docs StackBlitz builder drops (`isLintPackage` in
-   `docs/src/theme/CodeBlock/sandbox/projects.mjs`). Give `@allxsmith/bestax-bulma` the current
-   release's caret range, and copy the result into `templates/<slug>/` without `node_modules`.
+   `docs/src/theme/CodeBlock/sandbox/projects.mjs`). Drop the starter page the port replaces too:
+   `src/App.css` and the logos in `public/`, with the favicon link that names one. Give
+   `@allxsmith/bestax-bulma` the caret range of bulma-ui's version in this checkout
+   (`bulma-ui/package.json`), since the templates test refuses a floor newer than that; npm still
+   installs the newest release in the range. Copy the result into `templates/<slug>/` without
+   `node_modules`.
 
-3. **Convert.** `bestax-migrate bulma-classes <upstream>/index.html` turns the markup into bestax
-   components. Reading HTML is #1119, so until that lands this step is the intended command, and
-   the conversion goes by hand along the bestax-migrate skill's `bulma-classes` references. Move
-   the output into `src/` and split it into section components. Port the upstream stylesheet into
-   `src/index.css`, and drop the Bulma and plugin `<link>` and `<script>` tags from `index.html`.
+3. **Convert.** Copy the upstream page into a scratch folder of its own, beside a `package.json`
+   that depends on `typescript` or a `tsconfig.json`: the codemod writes a TypeScript module only
+   for a TypeScript package, and a `.jsx` one otherwise. Then run it from a build of
+   bestax-migrate, or `npx bestax-migrate@latest` with the same arguments, with `--dry` first and
+   then without, and keep the report:
+
+   ```bash
+   node <repo>/bestax-migrate/dist/index.js bulma-classes <scratch>/index.html --css bestax
+   ```
+
+   `--css bestax` matters because `bulma-classes` defaults to `--css keep`, which leaves an app on
+   its own Bulma and has the stylesheet TODO tell you to keep loading it, while a template loads
+   bestax's stylesheet and declares no `bulma`. The module it writes beside the page is the
+   converted markup, with a `TODO(bestax-migrate)` for whatever it left. The `html-*` ones say
+   where the page's head, stylesheets and scripts go, with a recipe for each in the bestax-migrate
+   skill's `references/bulma-classes/unmappables.md`. Move the module into `src/App.tsx` and
+   split it into section components, port the upstream stylesheet into `src/index.css`, and put
+   what `index.html` keeps of the upstream head (web fonts, the favicon, its meta tags) into the
+   scaffold's, leaving out the Bulma and plugin `<link>` and `<script>` tags.
+
 4. **Resolve every `TODO(bestax-migrate)`** with the skills (bestax-migrate,
    bestax-layout-scaffold, bestax-form, bestax-icons, bestax-theming) and the bestax MCP server
    (`lookup_bulma_classes`, `get_props`, `get_examples`).
@@ -59,9 +80,16 @@ fix.
    - bulma-social stays only where bestax has nothing equivalent.
    - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at
-   phone and desktop widths, and check that the burger, modals, forms and theme toggles work. Fix
+   phone and desktop widths, in light and dark (`prefers-color-scheme`), and check that the
+   burger, modals, forms and theme toggles work. Bulma follows the visitor's color scheme, and
+   an original built for one scheme often looks the same in both, holding its colors with
+   overrides of its own. When it does, pin the scheme it was built for on the `<html>` in
+   `index.html` (`data-theme="light"` for a light-only original), so the first paint has it too,
+   and leave those overrides out (the bestax-theming skill's contrast rules say why). Fix
    upstream bugs minimally and note each one in the README.
 6. **Finish up.**
+   - `git add` the folder first. The screenshot builds what git tracks, as the checks read it
+     (**What git tracks**, above).
    - Take the card's screenshot, which also proves the template installs and builds from its
      folder alone: `pnpm --filter @allxsmith/bestax-docs screenshot:template <slug>`.
    - Add the entry to `docs/src/data/templates.js` and the template's line to the Templates
