@@ -251,7 +251,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 **Subcomponents:**
 
 - `Menu.Label`: Bulma Menu label component.
-- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists).
+- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, and a `role` you pass doesn't replace it. Safari needs it: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
 - `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
 
 ### Menu.Label
