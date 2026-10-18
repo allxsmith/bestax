@@ -495,6 +495,17 @@ export function renderCssVars(vars: CssVar[]): string {
         'is only inherited and loses to the component-level declaration.'
     );
   }
+  if (scopes.has('root-and-element')) {
+    notes.push(
+      "Variables scoped `root-and-element` are declared on the component's " +
+        'own element and again on one of its elements that takes nothing from ' +
+        "it, such as Combobox's portaled `.combobox-menu.is-portal`. Override " +
+        'them on the component with inline `style` or a `className` class ' +
+        'loaded after the library styles, and on that element too, with a ' +
+        'selector that matches it loaded after the library styles, or one ' +
+        'that exceeds it.'
+    );
+  }
   if (scopes.has('compound')) {
     notes.push(
       'Variables scoped `compound` are declared on a compound selector ' +

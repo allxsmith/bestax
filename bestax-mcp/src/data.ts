@@ -57,11 +57,14 @@ export interface CssVar {
    * `root` — the component's own class (override there or via className);
    * `compound` — a compound selector like `.button.link-button` (a lone
    * className class loses at 0-1-0 vs 0-2-0);
+   * `root-and-element`: the component's own class and, listed with it, one
+   * of its elements that declares them again and takes nothing from it
+   * (Combobox's portaled `.combobox-menu.is-portal`), so both need setting;
    * `element` — a constituent element like `.tooltip-content` (className and
    * the style prop are only inherited and lose);
    * `global` — `:root`, so the theme owns it.
    */
-  scope: 'root' | 'compound' | 'element' | 'global';
+  scope: 'root' | 'root-and-element' | 'compound' | 'element' | 'global';
 }
 
 export interface Example {

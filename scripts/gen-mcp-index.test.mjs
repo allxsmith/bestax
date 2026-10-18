@@ -378,7 +378,11 @@ test('CSS variables are indexed back to their component', () => {
   assert.deepEqual(catalog.cssVarIndex['--bulma-button-h'], ['Button']);
   for (const v of button.cssVars) {
     assert.match(v.css, /^--/);
-    assert.ok(['root', 'compound', 'element', 'global'].includes(v.scope));
+    assert.ok(
+      ['root', 'root-and-element', 'compound', 'element', 'global'].includes(
+        v.scope
+      )
+    );
   }
 });
 
@@ -411,7 +415,9 @@ test('every CSS variable scope is one the server has advice for', () => {
   for (const [name, record] of components) {
     for (const v of record.cssVars) {
       assert.ok(
-        ['root', 'compound', 'element', 'global'].includes(v.scope),
+        ['root', 'root-and-element', 'compound', 'element', 'global'].includes(
+          v.scope
+        ),
         `${name}: ${v.css} has scope ${v.scope}`
       );
     }
