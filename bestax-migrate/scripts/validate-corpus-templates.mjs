@@ -5,21 +5,24 @@
  * Each template repo is fetched as TEXT at the commit pinned in
  * `lib/corpus-templates.mjs` into the gitignored `.e2e-tmp/`; its pages are
  * never executed and never committed. The checkout is copied whole into a
- * scratch package with a TypeScript `package.json` (whole, so a relative URL
- * resolves beside its page the way it did upstream), and the CLI converts
- * every `.html`/`.htm` in it with `--css bestax`. Deliberately NOT wired into
- * CI, since it needs the network; run it before and after a change to the HTML
+ * scratch TypeScript package (whole, so a relative URL resolves beside its
+ * page the way it did upstream; any upstream `package.json` or `tsconfig.json`
+ * is renamed, so every page becomes `.tsx`), and the CLI converts every
+ * `.html`/`.htm` in it with `--css bestax`. Deliberately NOT wired into CI,
+ * since it needs the network; run it before and after a change to the HTML
  * input or the class table and compare the reports:
  *
  *   pnpm --filter bestax-migrate validate:corpus:templates
  *
- * Exit 1 on a crash, on a module that no longer parses, on a rule id outside
- * the vocabulary, or on a CLI run that disagrees with `convertPage` about what
- * it wrote. The modules are type-checked and the `tsc` diagnostics listed,
- * never failed on. Lands in `.e2e-tmp/corpus-templates/`: `report.json` and
- * `report.md` (the same report, deterministic, so two runs diff line by line),
- * `review/<template>/` with each page's `.before.html` and `.after.tsx`, and
- * `packages/<template>/`, the scratch package as the CLI left it.
+ * Exit 1 on a crash, on a module that no longer parses, on a module tsc could
+ * not read, on a rule the bestax-migrate skill's references don't document
+ * (the kitchen sinks' check), or on a CLI run that disagrees with
+ * `convertPage` about what it wrote. The modules' `tsc` diagnostics are
+ * listed, never failed on. Lands in `.e2e-tmp/corpus-templates/`:
+ * `report.json` and `report.md` (the same report, deterministic, so two runs
+ * diff line by line), `review/<template>/` with each page's `.before.html` and
+ * `.after.tsx`, and `packages/<template>/`, the scratch package as the CLI
+ * left it.
  *
  * Telemetry: the CLI runs under DO_NOT_TRACK, which sends nothing and writes
  * no decision. `--no-telemetry` would also send nothing, but it saves "off"
@@ -36,14 +39,16 @@ import {
   buildReport,
   componentClassCounts,
   isPage,
-  outsideVocabulary,
+  pageClassCounts,
   parseModule,
   pinViolations,
+  prepareScratchPackage,
   readCliOutput,
   readTscOutput,
   renderMarkdown,
   repoUrl,
   summaryTable,
+  undocumentedRuleFailures,
 } from './lib/corpus-templates.mjs';
 
 const CSS_MODE = 'bestax';
@@ -71,27 +76,21 @@ if (problems.length > 0) fail(`bad pin list:\n  ${problems.join('\n  ')}`);
 const load = rel => import(pathToFileURL(path.join(dist, rel)).href);
 const { bulmaClasses } = await load('sources/bulma-classes/index.js');
 const { convertPage } = await load('sources/bulma-classes/html.js');
-const { KINDS, inVocabulary } = await load('sources/bulma-classes/rules.js');
-const { HTML_KINDS, inHtmlVocabulary } = await load(
-  'sources/bulma-classes/html-rules.js'
+const { parseHtml } = await load('sources/_shared/html/parse.js');
+// Two TypeScript files, read as they are: Node strips their types, which
+// needs Node 22.18 or later. The ESLint rule's own table, committed and kept
+// fresh by gen:eslint-meta:check, and the kitchen sinks' skill check.
+const typeStripped = rel =>
+  import(pathToFileURL(path.join(repoRoot, rel)).href);
+const { BULMA_COMPONENT_CLASSES } = await typeStripped(
+  'eslint-plugin/src/generated/metadata.ts'
 );
-// The ESLint rule's own table, committed and kept fresh by
-// gen:eslint-meta:check. Node strips its types, which needs Node 22.18 or later.
-const { BULMA_COMPONENT_CLASSES } = await import(
-  pathToFileURL(
-    path.join(repoRoot, 'eslint-plugin', 'src', 'generated', 'metadata.ts')
-  ).href
+const { undocumentedRules } = await typeStripped(
+  'bestax-migrate/e2e/support/skill-rules.ts'
 );
 const tscBin = createRequire(path.join(packageRoot, 'package.json')).resolve(
   'typescript/bin/tsc'
 );
-
-const vocabulary = {
-  kinds: KINDS,
-  inVocabulary,
-  htmlKinds: HTML_KINDS,
-  inHtmlVocabulary,
-};
 
 // ---- fetch each template (text only) at its pinned commit -------------------
 function git(cwd, args) {
@@ -132,29 +131,20 @@ function walk(dir, base = dir) {
     .sort();
 }
 
+const posix = file => file.split(path.sep).join('/');
+
 // ---- one template -----------------------------------------------------------
 function measure(pin, failures) {
-  const from = checkout(pin);
   const pkg = path.join(outDir, 'packages', pin.slug);
   const review = path.join(outDir, 'review', pin.slug);
-  fs.cpSync(from, pkg, {
-    recursive: true,
-    filter: source => path.basename(source) !== '.git',
-  });
-  // TypeScript, so each page becomes a .tsx; an upstream manifest at the root
-  // would be replaced, since the pages are what is measured.
-  fs.writeFileSync(
-    path.join(pkg, 'package.json'),
-    `${JSON.stringify(
-      {
-        name: `corpus-${pin.slug}`,
-        private: true,
-        devDependencies: { typescript: '*' },
-      },
-      null,
-      2
-    )}\n`
+  const renamed = prepareScratchPackage(
+    checkout(pin),
+    pkg,
+    `corpus-${pin.slug}`
   );
+  for (const file of renamed) {
+    console.log(`  ${pin.slug}: kept upstream ${file} out of the way`);
+  }
   const pages = walk(pkg).filter(isPage);
   const failure = (page, kind, message) =>
     failures.push({ template: pin.slug, page, kind, message });
@@ -169,17 +159,39 @@ function measure(pin, failures) {
   const expected = new Map();
   for (const page of pages) {
     const file = path.join(pkg, page);
+    const source = fs.readFileSync(file, 'utf8');
     const entries = [];
+    const result = {
+      page,
+      module: null,
+      status: 'crashed',
+      todos: [],
+      // The page's own classes, read from its DOM, so a page that wrote no
+      // module is counted all the same.
+      marked: pageClassCounts(parseHtml(source).root, BULMA_COMPONENT_CLASSES),
+      left: {},
+      typechecked: false,
+      tsc: [],
+    };
     try {
       const converted = convertPage(
         file,
-        fs.readFileSync(file, 'utf8'),
+        source,
         { add: entry => entries.push(entry) },
         { ...project, cssMode: CSS_MODE }
       );
-      expected.set(page, { ...converted, entries });
+      result.todos = entries.map(entry => entry.rule);
+      result.status =
+        converted.output !== null
+          ? 'converted'
+          : result.todos.some(rule => rule.startsWith('html-file'))
+            ? 'refused'
+            : 'empty';
+      expected.set(page, { ...converted, entries, result });
     } catch (error) {
       failure(page, 'crash', error.message);
+      result.todos = entries.map(entry => entry.rule);
+      expected.set(page, { output: null, entries, result });
     }
   }
 
@@ -207,52 +219,33 @@ function measure(pin, failures) {
   for (const crash of printed.crashes) {
     failure(crash.file, 'crash', `in the CLI: ${crash.message}`);
   }
-  const expectedTodos = [...expected.values()].reduce(
-    (count, page) => count + page.entries.length,
-    0
-  );
-  const expectedModules = [...expected.values()].filter(
-    page => page.output !== null
-  ).length;
-  if (
-    printed.summary === null ||
-    printed.summary.scanned !== pages.length ||
-    printed.summary.transformed !== expectedModules ||
-    printed.summary.todos !== expectedTodos
-  ) {
+  const wanted = [...expected.values()];
+  const expectedSummary = {
+    scanned: pages.length,
+    transformed: wanted.filter(page => page.output !== null).length,
+    todos: wanted.reduce((count, page) => count + page.entries.length, 0),
+  };
+  if (JSON.stringify(printed.summary) !== JSON.stringify(expectedSummary)) {
     failure(
       null,
       'cli',
       `the CLI reported ${JSON.stringify(printed.summary)}, and convertPage ` +
-        `${JSON.stringify({ scanned: pages.length, transformed: expectedModules, todos: expectedTodos })}`
+        JSON.stringify(expectedSummary)
     );
   }
 
-  const measured = [];
   const modules = [];
   for (const page of pages) {
     const want = expected.get(page);
-    // A page that crashed keeps its row, empty, so the report keeps its shape.
-    const result = {
-      page,
-      module: null,
-      todos: want ? want.entries.map(entry => entry.rule) : [],
-      marked: {},
-      left: {},
-      tsc: [],
-    };
-    measured.push(result);
+    const { result } = want;
     const target = path.join(review, page);
     fs.mkdirSync(path.dirname(target), { recursive: true });
     fs.copyFileSync(
       path.join(pkg, page),
       target.replace(/\.html?$/i, '.before.html')
     );
-    if (!want || want.output === null) continue;
-    const moduleRel = path
-      .relative(pkg, want.outputPath)
-      .split(path.sep)
-      .join('/');
+    if (want.output === null) continue;
+    const moduleRel = posix(path.relative(pkg, want.outputPath));
     result.module = moduleRel;
     if (!fs.existsSync(want.outputPath)) {
       failure(page, 'cli', `the CLI wrote no ${moduleRel}`);
@@ -275,31 +268,43 @@ function measure(pin, failures) {
       failure(page, 'unparseable', `${moduleRel}: ${error.message}`);
       continue;
     }
+    // "Converted" is the page's count less the module's, so the converter
+    // must have written every element the page has.
     try {
-      result.marked = componentClassCounts(
+      const asJsx = componentClassCounts(
         parseModule(want.intermediate),
         BULMA_COMPONENT_CLASSES
       );
+      if (JSON.stringify(asJsx) !== JSON.stringify(result.marked)) {
+        failure(
+          page,
+          'count',
+          `the page as JSX carries ${JSON.stringify(asJsx)}, and the page ${JSON.stringify(result.marked)}`
+        );
+      }
     } catch (error) {
       failure(page, 'unparseable', `the page as JSX: ${error.message}`);
     }
-    if (moduleRel.endsWith('.tsx')) modules.push(moduleRel);
+    if (moduleRel.endsWith('.tsx')) modules.push(result);
+    else {
+      failure(
+        page,
+        'tsc',
+        `${moduleRel} is not TypeScript, so tsc did not read it`
+      );
+    }
   }
 
-  for (const rule of outsideVocabulary(
-    measured.flatMap(page => page.todos),
-    vocabulary
-  )) {
-    const pagesWith = measured.filter(page => page.todos.includes(rule));
-    for (const page of pagesWith) failure(page.page, 'rule-vocabulary', rule);
-  }
-
-  if (modules.length > 0) typecheck(pkg, modules, measured, failure);
+  const measured = wanted.map(({ result }) => result);
+  failures.push(
+    ...undocumentedRuleFailures(pin.slug, measured, undocumentedRules)
+  );
+  if (modules.length > 0) typecheck(pkg, modules, failure);
   return { slug: pin.slug, repo: pin.repo, sha: pin.sha, pages: measured };
 }
 
 /** `tsc --noEmit` over the modules, the way the HTML kitchen sink checks them. */
-function typecheck(pkg, modules, measured, failure) {
+function typecheck(pkg, modules, failure) {
   fs.writeFileSync(
     path.join(pkg, 'tsconfig.json'),
     `${JSON.stringify(
@@ -314,7 +319,7 @@ function typecheck(pkg, modules, measured, failure) {
           lib: ['ES2022', 'DOM', 'DOM.Iterable'],
           skipLibCheck: true,
         },
-        files: modules,
+        files: modules.map(page => page.module),
       },
       null,
       2
@@ -332,20 +337,15 @@ function typecheck(pkg, modules, measured, failure) {
   if (result.status !== 0 && diagnostics.length === 0) {
     const why = result.error?.message ?? output.trim().split('\n')[0];
     failure(null, 'tsc', `tsc exited ${result.status}: ${why}`);
+    return;
   }
-  const byModule = new Map(
-    measured
-      .filter(page => page.module !== null)
-      .map(page => [page.module, page])
-  );
+  const byModule = new Map(modules.map(page => [page.module, page]));
+  for (const page of modules) page.typechecked = true;
   for (const diagnostic of diagnostics) {
     const rel =
       diagnostic.file === null
         ? null
-        : path
-            .relative(pkg, path.resolve(pkg, diagnostic.file))
-            .split(path.sep)
-            .join('/');
+        : posix(path.relative(pkg, path.resolve(pkg, diagnostic.file)));
     const page = byModule.get(rel);
     if (page) page.tsc.push(diagnostic);
     else {

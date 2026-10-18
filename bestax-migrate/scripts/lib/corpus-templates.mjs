@@ -1,13 +1,17 @@
 /**
- * The pure half of `validate-corpus-templates.mjs`: the upstream templates and
- * the commits they are pinned at, the vocabulary a rule id is held to, the
- * count of Bulma component classes in a module, readers for what the CLI and
+ * The offline half of `validate-corpus-templates.mjs`: the upstream templates
+ * and the commits they are pinned at, the scratch package a template is
+ * converted in, the count of Bulma component classes in a page and in a
+ * module, the gate on the rules a run emits, readers for what the CLI and
  * `tsc` print, and the report built from one run.
  *
- * Nothing here reads the network or the disk, so `e2e/corpus-templates.test.ts`
- * runs all of it with the ordinary suite.
+ * Nothing here touches the network, so `e2e/corpus-templates.test.ts` runs all
+ * of it with the ordinary suite. Everything but `prepareScratchPackage` is
+ * pure; that one copies a checkout to where it is told.
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
 import { parse } from '@babel/parser';
 
 // ---- The corpus -------------------------------------------------------------
@@ -16,7 +20,9 @@ import { parse } from '@babel/parser';
  * The awesome-bulma-templates repos the corpus runs over, each at the commit
  * its port issue under #1118 names. This is the one home of those pins. Move a
  * pin on purpose only: a new commit changes the pages, so a report from before
- * it no longer compares with one from after.
+ * it no longer compares with one from after. Nothing checks a pin against its
+ * issue, which an offline test cannot read, so compare the two by hand when a
+ * pin moves.
  */
 export const TEMPLATES = Object.freeze(
   [
@@ -71,7 +77,10 @@ export const TEMPLATES = Object.freeze(
   ].map(pin => Object.freeze(pin))
 );
 
-/** What is wrong with a pin list, as one line per problem. */
+/**
+ * What is wrong with the shape of a pin list, as one line per problem: a slug,
+ * an `owner/name` repo, a full commit SHA and an issue number.
+ */
 export function pinViolations(pins) {
   const problems = [];
   const seen = new Set();
@@ -106,45 +115,80 @@ export function isPage(file) {
   return /\.html?$/i.test(file);
 }
 
+// ---- The scratch package ----------------------------------------------------
+
+/**
+ * Files that make a folder its own project. The innermost manifest decides
+ * whether a page becomes `.tsx` or `.jsx`, so one nested in a template would
+ * outrank the scratch package's for the pages under it, and a `.jsx` module is
+ * one the type-check cannot read.
+ */
+const PROJECT_FILES = new Set([
+  'package.json',
+  'tsconfig.json',
+  'jsconfig.json',
+]);
+
+/** Where an upstream project file is kept: `package.json` → `package.upstream.json`. */
+export function upstreamName(file) {
+  return file.replace(/\.json$/, '.upstream.json');
+}
+
+/**
+ * Copy a checkout into `to` as a TypeScript package named `name`: everything
+ * but `.git`, so a relative URL resolves beside its page the way it did
+ * upstream, with each upstream project file renamed by `upstreamName`, so the
+ * scratch package's own manifest is the only one and every page becomes
+ * `.tsx`. Returns the renamed files, relative to `to`, sorted.
+ */
+export function prepareScratchPackage(from, to, name) {
+  fs.cpSync(from, to, {
+    recursive: true,
+    filter: source => path.basename(source) !== '.git',
+  });
+  const renamed = [];
+  const visit = dir => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) visit(full);
+      else if (PROJECT_FILES.has(entry.name)) {
+        fs.renameSync(full, upstreamName(full));
+        renamed.push(path.relative(to, full).split(path.sep).join('/'));
+      }
+    }
+  };
+  visit(to);
+  fs.writeFileSync(
+    path.join(to, 'package.json'),
+    `${JSON.stringify(
+      { name, private: true, devDependencies: { typescript: '*' } },
+      null,
+      2
+    )}\n`
+  );
+  return renamed.sort(byCodePoint);
+}
+
 // ---- Rule ids ---------------------------------------------------------------
 
 /**
- * The ids a bulma-classes run emits without a `kind:token` shape: the
- * transform's file-level gates (`rules.test.ts` holds that list to the
- * transform), the stylesheet-import pass's, the manifest pass's, and the CLI's
- * own report of a file it cannot parse.
+ * A failure for each rule a page's TODOs carry that the bestax-migrate skill's
+ * references don't document, once per page and rule. An agent finishing a
+ * migration looks a rule up there, and a new rule's recipe lands there in the
+ * same change, so an undocumented one is a dead end. `undocumented` is the
+ * kitchen sinks' `undocumentedRules` (`e2e/support/skill-rules.ts`), passed in
+ * so this stays pure.
  */
-export const BARE_RULES = Object.freeze([
-  'css',
-  'deps',
-  'imports',
-  'jsx-runtime',
-  'peer-deps',
-  'rsc',
-  'styled-jsx',
-  'unsupported-file',
-]);
-
-/**
- * The rule ids that are outside the vocabulary, sorted and once each. An id is
- * in it when it is a bare rule, or a planner or HTML kind with no token or a
- * token that kind's vocabulary holds: what `ruleId` and `htmlRuleId` can
- * build. `vocabulary` is those modules' exports, passed in so this stays pure.
- */
-export function outsideVocabulary(rules, vocabulary) {
-  const { kinds, inVocabulary, htmlKinds, inHtmlVocabulary } = vocabulary;
-  const inside = rule => {
-    if (BARE_RULES.includes(rule)) return true;
-    const colon = rule.indexOf(':');
-    const kind = colon === -1 ? rule : rule.slice(0, colon);
-    const token = colon === -1 ? undefined : rule.slice(colon + 1);
-    if (htmlKinds.has(kind)) {
-      return token === undefined || inHtmlVocabulary(kind, token);
-    }
-    if (kinds.has(kind)) return token === undefined || inVocabulary(token);
-    return false;
-  };
-  return sortedUnique([...rules].filter(rule => !inside(rule)));
+export function undocumentedRuleFailures(template, pages, undocumented) {
+  const missing = new Set(undocumented(pages.flatMap(page => page.todos)));
+  return pages.flatMap(page =>
+    sortedUnique(page.todos.filter(rule => missing.has(rule))).map(rule => ({
+      template,
+      page: page.page,
+      kind: 'undocumented-rule',
+      message: `${rule} is not in skills/bestax-migrate's references`,
+    }))
+  );
 }
 
 // ---- Component classes ------------------------------------------------------
@@ -200,11 +244,23 @@ function classTokens(opening) {
 }
 
 /**
- * How many plain elements carry each Bulma component class, keyed by class in
- * code-point order. `classes` is the ESLint plugin's `BULMA_COMPONENT_CLASSES`,
- * and an element counts once, for the class `no-bulma-component-class`
- * reports it by: the first family class it carries, else the converted class
- * the table ranks first. Like that rule it reads lowercase tags outside
+ * The class `no-bulma-component-class` reports an element by: the first
+ * family class it carries, else the converted class the table ranks first.
+ * `classes` is the ESLint plugin's `BULMA_COMPONENT_CLASSES`.
+ */
+function componentClassOf(tokens, classes) {
+  const family = tokens.find(token => classes.get(token)?.converts === false);
+  return family ?? [...classes.keys()].find(key => tokens.includes(key));
+}
+
+function bump(counts, cls) {
+  if (cls !== undefined) counts.set(cls, (counts.get(cls) ?? 0) + 1);
+}
+
+/**
+ * How many plain elements in a module carry each Bulma component class, keyed
+ * by class in code-point order, one per element, for the class
+ * `componentClassOf` picks. Like that rule it reads lowercase tags outside
  * `<svg>` and `<math>` only. It reads a `className` written as a string, which
  * is every one the HTML converter writes; one built at runtime is not counted.
  */
@@ -223,20 +279,45 @@ export function componentClassCounts(ast, classes) {
       if (tag !== null && FOREIGN.has(tag)) inside = true;
       const tokens =
         tag === null || inside ? null : classTokens(node.openingElement);
-      if (tokens !== null) {
-        const family = tokens.find(
-          token => classes.get(token)?.converts === false
-        );
-        const cls =
-          family ?? [...classes.keys()].find(key => tokens.includes(key));
-        if (cls !== undefined) counts.set(cls, (counts.get(cls) ?? 0) + 1);
-      }
+      if (tokens !== null) bump(counts, componentClassOf(tokens, classes));
     }
     for (const [key, child] of Object.entries(node)) {
       if (!SKIPPED_KEYS.has(key)) visit(child, inside);
     }
   };
   visit(ast.program ?? ast, false);
+  return sortedRecord(counts);
+}
+
+const HTML_NAMESPACE = 'http://www.w3.org/1999/xhtml';
+
+/**
+ * The same count over a page's content as parse5 builds it (the `root` the
+ * HTML input's `parseHtml` returns), so a page that writes no module, a
+ * refused one included, is still counted. It reads what the converter writes
+ * as JSX: the children of the body or the fragment, a `<template>`'s content,
+ * no `<script>` (the converter drops them), and nothing in another namespace,
+ * which is `<svg>` and `<math>` and everything inside them.
+ */
+export function pageClassCounts(root, classes) {
+  const counts = new Map();
+  const visit = node => {
+    const children =
+      node.nodeName === 'template' ? node.content.childNodes : node.childNodes;
+    for (const child of children ?? []) {
+      if (!('tagName' in child) || child.namespaceURI !== HTML_NAMESPACE) {
+        continue;
+      }
+      if (child.tagName === 'script') continue;
+      if (INTRINSIC.test(child.tagName)) {
+        const attr = child.attrs.find(a => a.name === 'class' && !a.prefix);
+        const tokens = (attr?.value ?? '').split(/\s+/).filter(Boolean);
+        bump(counts, componentClassOf(tokens, classes));
+      }
+      visit(child);
+    }
+  };
+  visit(root);
   return sortedRecord(counts);
 }
 
@@ -339,9 +420,23 @@ function tally(values) {
 
 const sum = record => Object.values(record).reduce((a, b) => a + b, 0);
 
+/**
+ * What became of a page: `converted` (a module was written), `refused` (an
+ * `html-file` refusal, such as a module already beside it or server-template
+ * syntax), `empty` (no class the HTML input converts) or `crashed`.
+ */
+export const PAGE_STATUSES = Object.freeze([
+  'converted',
+  'refused',
+  'empty',
+  'crashed',
+]);
+
 function pageReport(page) {
   const marked = sortedRecord(page.marked);
-  const left = sortedRecord(page.left);
+  // A page that wrote no module converted nothing: every class is still markup.
+  const left = page.module === null ? marked : sortedRecord(page.left);
+  const checked = page.module !== null && page.typechecked === true;
   const diagnostics = [...(page.tsc ?? [])].sort(
     (a, b) =>
       (a.line ?? 0) - (b.line ?? 0) ||
@@ -352,6 +447,7 @@ function pageReport(page) {
   return {
     page: page.page,
     module: page.module ?? null,
+    status: page.status ?? (page.module === null ? 'empty' : 'converted'),
     todos: page.todos.length,
     rules: tally(page.todos),
     components: {
@@ -362,6 +458,7 @@ function pageReport(page) {
       leftByClass: left,
     },
     tsc: {
+      checked,
       errors: diagnostics.length,
       codes: tally(diagnostics.map(d => d.code)),
       diagnostics: diagnostics.map(({ line, column, code, message }) => ({
@@ -374,7 +471,7 @@ function pageReport(page) {
   };
 }
 
-/** Totals over pages (or over templates' totals, which have the same shape). */
+/** Totals over pages, or over templates' totals. */
 function totals(parts) {
   const rules = new Map();
   const marked = new Map();
@@ -382,13 +479,21 @@ function totals(parts) {
   const codes = new Map();
   let pages = 0;
   let modules = 0;
+  let refused = 0;
   let todos = 0;
   let errors = 0;
+  let unchecked = 0;
   for (const part of parts) {
-    pages += part.pages ?? 1;
-    modules += part.modules ?? (part.module === null ? 0 : 1);
+    // A part is one page's report, or a template's totals.
+    const one = part.pages === undefined;
+    pages += one ? 1 : part.pages;
+    modules += one ? Number(part.module !== null) : part.modules;
+    refused += one ? Number(part.status === 'refused') : part.refused;
     todos += part.todos;
     errors += part.tsc.errors;
+    unchecked += one
+      ? Number(part.module !== null && !part.tsc.checked)
+      : part.tsc.unchecked;
     addCounts(rules, part.rules);
     addCounts(marked, part.components.markedByClass);
     addCounts(left, part.components.leftByClass);
@@ -399,6 +504,7 @@ function totals(parts) {
   return {
     pages,
     modules,
+    refused,
     todos,
     rules: sortedRecord(rules),
     components: {
@@ -408,7 +514,7 @@ function totals(parts) {
       markedByClass,
       leftByClass,
     },
-    tsc: { errors, codes: sortedRecord(codes) },
+    tsc: { errors, unchecked, codes: sortedRecord(codes) },
   };
 }
 
@@ -417,8 +523,11 @@ function totals(parts) {
  * order, pages by path, every keyed count in code-point key order, and nothing
  * that changes between two runs of the same code (no times, no absolute
  * paths). `run.templates` is what the script measured per template:
- * `{ slug, repo, sha, pages: [{ page, module, todos: [rule ids], marked,
- * left, tsc }] }`, and `run.failures` is `[{ template, page, kind, message }]`.
+ * `{ slug, repo, sha, pages: [{ page, module, status, todos: [rule ids],
+ * marked, left, typechecked, tsc }] }`, where `marked` is the page's count and
+ * `left` the module's, `status` is one of `PAGE_STATUSES`, and `typechecked`
+ * says tsc read the module. `run.failures` is
+ * `[{ template, page, kind, message }]`.
  */
 export function buildReport(run) {
   const order = new Map(TEMPLATES.map((pin, index) => [pin.slug, index]));
@@ -511,6 +620,7 @@ const number = label => ({
 const SUMMARY_HEADINGS = [
   'Pages',
   'Modules',
+  'Refused',
   'TODOs',
   'Classes',
   'Converted',
@@ -518,10 +628,16 @@ const SUMMARY_HEADINGS = [
   'tsc errors',
 ];
 
+/** The headings a page's row shares with the summary: TODOs onwards. */
+const PAGE_HEADINGS = SUMMARY_HEADINGS.slice(SUMMARY_HEADINGS.indexOf('TODOs'));
+
+const STATUS_WIDTH = Math.max(...PAGE_STATUSES.map(status => status.length));
+
 function summaryCells(total) {
   return [
     total.pages,
     total.modules,
+    total.refused,
     total.todos,
     total.components.marked,
     total.components.converted,
@@ -601,8 +717,10 @@ export function renderMarkdown(report, classes) {
     '',
     `bestax-migrate \`${report.source}\` over the ${report.corpus} pages, with \`--css ${report.css}\`. ` +
       '"Classes" counts the plain elements in a page styled with a Bulma class bestax has a component for, ' +
-      "one per element, the way the ESLint plugin's `no-bulma-component-class` counts them; " +
-      '"Left" is how many of those are still plain elements in the module.',
+      "one per element, the way the ESLint plugin's `no-bulma-component-class` counts them, " +
+      'whether or not the page wrote a module; "Left" is how many of those are still plain elements in the module, ' +
+      'which is all of them for a page that wrote none. A refused page is one the HTML input declined (an `html-file` TODO says why). ' +
+      'A module tsc did not read shows `-` for its tsc errors, and fails the run.',
     '',
     '## Pins',
     '',
@@ -645,16 +763,18 @@ export function renderMarkdown(report, classes) {
       [
         text('Page', pageWidth),
         text('Module', moduleWidth),
-        ...SUMMARY_HEADINGS.slice(2).map(number),
+        text('Status', STATUS_WIDTH),
+        ...PAGE_HEADINGS.map(number),
       ],
       pages.map(p => [
         p.label,
         p.module ?? '',
+        p.status,
         p.todos,
         p.components.marked,
         p.components.converted,
         p.components.left,
-        p.tsc.errors,
+        p.tsc.checked ? p.tsc.errors : '-',
       ])
     ),
     '',

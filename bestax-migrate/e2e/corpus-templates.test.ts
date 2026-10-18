@@ -1,42 +1,47 @@
 /**
- * The pure half of `scripts/validate-corpus-templates.mjs`, without the
- * network: the pin list, the vocabulary a rule id is held to, the component
- * class count, the readers for what the CLI and tsc print, and the report.
- * The report is the measuring stick for a round of fixes, so what is tested
- * hardest is that it is the same bytes for the same run, and that a change in
- * one count changes only the rows that hold it.
+ * The offline half of `scripts/validate-corpus-templates.mjs`, without the
+ * network: the pin list, the scratch package, the gate on the rules a run
+ * emits, the component class counts, the readers for what the CLI and tsc
+ * print, and the report. The report is the measuring stick for a round of
+ * fixes, so what is tested hardest is that it is the same bytes for the same
+ * run, that a change in one count changes only the rows that hold it, and
+ * that a page or module the run could not measure says so instead of reading
+ * as zero.
  */
 
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BULMA_COMPONENT_CLASSES } from '../../eslint-plugin/src/generated/metadata.js';
 import {
-  BARE_RULES,
   TEMPLATES,
   buildReport,
   componentClassCounts,
   isPage,
-  outsideVocabulary,
+  pageClassCounts,
   parseModule,
   pinViolations,
+  prepareScratchPackage,
   readCliOutput,
   readTscOutput,
   renderMarkdown,
   repoUrl,
   summaryTable,
+  undocumentedRuleFailures,
+  upstreamName,
 } from '../scripts/lib/corpus-templates.mjs';
+import { parseHtml } from '../src/sources/_shared/html/parse.js';
 import {
-  HTML_KINDS,
-  inHtmlVocabulary,
-} from '../src/sources/bulma-classes/html-rules.js';
-import { KINDS, inVocabulary } from '../src/sources/bulma-classes/rules.js';
+  convertPage,
+  outputPathFor,
+} from '../src/sources/bulma-classes/html.js';
+import { analyzeProject } from '../src/sources/bulma-classes/project.js';
+import { undocumentedRules } from './support/skill-rules.js';
 
-const vocabulary = {
-  kinds: KINDS,
-  inVocabulary,
-  htmlKinds: HTML_KINDS,
-  inHtmlVocabulary,
-};
+const packageRoot = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '..'
+);
 
 /** A slice of the ESLint plugin's table, in its order: families first. */
 const CLASSES = new Map([
@@ -51,6 +56,8 @@ const CLASSES = new Map([
 
 const counts = (code: string) =>
   componentClassCounts(parseModule(code), CLASSES);
+const pageCounts = (html: string) =>
+  pageClassCounts(parseHtml(html).root, CLASSES);
 
 describe('the pin list', () => {
   it('pins every template to a full commit, once', () => {
@@ -59,7 +66,7 @@ describe('the pin list', () => {
     expect(TEMPLATES.every(pin => Object.isFrozen(pin))).toBe(true);
   });
 
-  it('names what is wrong with a pin', () => {
+  it('names what is wrong with the shape of a pin', () => {
     const good = {
       slug: 'login',
       repo: 'aldi/bulma-login-template',
@@ -100,67 +107,146 @@ describe('the pin list', () => {
   });
 });
 
-describe('the rule vocabulary', () => {
-  it('takes what ruleId and htmlRuleId build', () => {
+describe('the scratch package', () => {
+  const tmpRoot = path.join(packageRoot, '.e2e-tmp');
+  let dir: string;
+
+  beforeAll(() => {
+    fs.mkdirSync(tmpRoot, { recursive: true });
+    // Per process, never a shared path (see kitchen-sink.test.ts).
+    dir = fs.mkdtempSync(path.join(tmpRoot, 'corpus-templates-'));
+    const from = path.join(dir, 'upstream');
+    const write = (rel: string, text: string) => {
+      fs.mkdirSync(path.dirname(path.join(from, rel)), { recursive: true });
+      fs.writeFileSync(path.join(from, rel), text);
+    };
+    write('.git/HEAD', 'ref: refs/heads/main\n');
+    write('index.html', '<a class="button">Go</a>');
+    write('package.json', '{"name":"upstream"}');
+    write('tsconfig.json', '{"compilerOptions":{"jsxImportSource":"preact"}}');
+    // A nested manifest with no TypeScript and no tsconfig beside it, which
+    // would outrank the scratch package's for the page under it.
+    write('docs/package.json', '{"name":"docs"}');
+    write('docs/page.html', '<a class="button">Go</a>');
+  });
+
+  afterAll(() => {
+    if (!process.env.BESTAX_E2E_KEEP) {
+      fs.rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  const extensions = (pkg: string) => {
+    const pages = ['index.html', 'docs/page.html'].map(page =>
+      path.join(pkg, page)
+    );
+    const project = analyzeProject(pages);
+    return pages.map(page => path.extname(outputPathFor(page, project)));
+  };
+
+  it('would write .jsx, on another runtime, with the upstream files left', () => {
+    const control = path.join(dir, 'control');
+    fs.cpSync(path.join(dir, 'upstream'), control, { recursive: true });
+    fs.writeFileSync(
+      path.join(control, 'package.json'),
+      '{"devDependencies":{"typescript":"*"}}'
+    );
+    expect(extensions(control)).toEqual(['.tsx', '.jsx']);
     expect(
-      outsideVocabulary(
-        [
-          'html-asset',
-          'html-head:title',
-          'html-parse:duplicate-attribute',
-          'html-event:onclick',
-          'family:modal',
-          'tag:Title',
-          'defaults:Icon',
-          'context',
-          ...BARE_RULES,
-        ],
-        vocabulary
-      )
+      analyzeProject([path.join(control, 'index.html')]).jsxRuntimes
+    ).toEqual([{ dir: control, runtime: 'preact' }]);
+  });
+
+  it('keeps upstream project files out of the way, so every page is .tsx', () => {
+    const pkg = path.join(dir, 'scratch');
+    expect(
+      prepareScratchPackage(path.join(dir, 'upstream'), pkg, 'corpus-test')
+    ).toEqual(['docs/package.json', 'package.json', 'tsconfig.json']);
+    expect(extensions(pkg)).toEqual(['.tsx', '.tsx']);
+    expect(fs.existsSync(path.join(pkg, '.git'))).toBe(false);
+    expect(
+      [
+        'docs/package.json',
+        'docs/package.upstream.json',
+        'tsconfig.json',
+        'tsconfig.upstream.json',
+      ].map(rel => fs.existsSync(path.join(pkg, rel)))
+    ).toEqual([false, true, false, true]);
+    // The upstream tsconfig would have put the pages on another JSX runtime.
+    expect(analyzeProject([path.join(pkg, 'index.html')]).jsxRuntimes).toEqual(
+      []
+    );
+    expect(
+      JSON.parse(fs.readFileSync(path.join(pkg, 'package.json'), 'utf8'))
+    ).toEqual({
+      name: 'corpus-test',
+      private: true,
+      devDependencies: { typescript: '*' },
+    });
+    expect(
+      fs.readFileSync(path.join(pkg, 'package.upstream.json'), 'utf8')
+    ).toBe('{"name":"upstream"}');
+  });
+
+  it('names an upstream file beside where it was', () => {
+    expect(upstreamName('docs/tsconfig.json')).toBe(
+      'docs/tsconfig.upstream.json'
+    );
+  });
+});
+
+describe('the rule gate', () => {
+  const failures = (pages: Array<{ page: string; todos: string[] }>) =>
+    undocumentedRuleFailures('login', pages, undocumentedRules);
+
+  it("passes the rules the skill's references document", () => {
+    expect(
+      failures([
+        {
+          page: 'index.html',
+          todos: [
+            'html-asset',
+            'html-head:title',
+            'html-parse:duplicate-attribute',
+            'family:modal',
+            'tag:Title',
+            'defaults:Icon',
+          ],
+        },
+      ])
     ).toEqual([]);
   });
 
-  it('names each id outside it once, sorted', () => {
+  it('fails a rule they do not, once per page that carries it', () => {
     expect(
-      outsideVocabulary(
-        [
-          'html-head:script',
-          'family:not-a-bulma-class',
-          'bogus',
-          'html-url:https://example.com',
-          'bogus',
-          'tag:Title:extra',
-        ],
-        vocabulary
-      )
+      failures([
+        {
+          page: 'a.html',
+          todos: ['html-asset', 'nope:thing', 'nope:thing', 'bogus'],
+        },
+        { page: 'b.html', todos: ['nope:thing'] },
+        { page: 'c.html', todos: ['family:modal'] },
+      ])
     ).toEqual([
-      'bogus',
-      'family:not-a-bulma-class',
-      'html-head:script',
-      'html-url:https://example.com',
-      'tag:Title:extra',
+      {
+        template: 'login',
+        page: 'a.html',
+        kind: 'undocumented-rule',
+        message: "bogus is not in skills/bestax-migrate's references",
+      },
+      {
+        template: 'login',
+        page: 'a.html',
+        kind: 'undocumented-rule',
+        message: "nope:thing is not in skills/bestax-migrate's references",
+      },
+      {
+        template: 'login',
+        page: 'b.html',
+        kind: 'undocumented-rule',
+        message: "nope:thing is not in skills/bestax-migrate's references",
+      },
     ]);
-  });
-
-  it("holds the transform's file-level gates as bare rules", () => {
-    const transform = fs.readFileSync(
-      path.join(
-        path.dirname(fileURLToPath(import.meta.url)),
-        '..',
-        'src',
-        'sources',
-        'bulma-classes',
-        'transform.ts'
-      ),
-      'utf8'
-    );
-    const gates = [
-      ...transform.matchAll(
-        /(?:addTodo\(\s*ctx,\s*[^,]+,|\bblock\()\s*'([^']+)'/g
-      ),
-    ].map(match => match[1]);
-    expect(gates.length).toBeGreaterThan(0);
-    expect(gates.filter(gate => !BARE_RULES.includes(gate))).toEqual([]);
   });
 });
 
@@ -220,6 +306,74 @@ describe('the component class count', () => {
 
   it('refuses a module that does not parse', () => {
     expect(() => parseModule('<div>')).toThrow();
+  });
+
+  it("counts a page's content from its DOM the same way", () => {
+    expect(
+      pageCounts(`<!doctype html>
+        <html class="modal"><body class="modal">
+          <a class="button is-primary">Go</a>
+          <div class="buttons"><button class="button">A</button></div>
+          <a class="navbar-burger button" role="button"></a>
+          <div class="columns is-modal">x</div>
+          <template><span class="icon"></span></template>
+        </body></html>`)
+    ).toEqual({
+      button: 2,
+      buttons: 1,
+      columns: 1,
+      icon: 1,
+      'navbar-burger': 1,
+    });
+  });
+
+  it('reads only what the converter writes as plain HTML', () => {
+    expect(
+      pageCounts(`<div>
+        <my-card class="button"><span class="icon"></span></my-card>
+        <svg class="icon"><g class="button"></g>
+          <foreignObject><div class="button"></div></foreignObject></svg>
+        <math><mi class="icon"></mi></math>
+        <script class="button">go()</script>
+        <a class="is-primary">helpers</a>
+      </div>`)
+    ).toEqual({ icon: 1 });
+  });
+
+  it('agrees with the module count on the HTML kitchen sink', () => {
+    const pages = path.join(
+      packageRoot,
+      'fixtures',
+      'bulma-classes-html',
+      'pages'
+    );
+    for (const page of [
+      'landing.html',
+      'partials/pricing.html',
+      'leftovers.html',
+    ]) {
+      const source = fs.readFileSync(path.join(pages, page), 'utf8');
+      // Converted where no module is beside it, so nothing refuses it.
+      const { intermediate } = convertPage(
+        path.join(packageRoot, '.e2e-tmp', 'no-such-dir', page),
+        source,
+        undefined,
+        { cssMode: 'keep' }
+      );
+      expect({
+        page,
+        counts: pageClassCounts(
+          parseHtml(source).root,
+          BULMA_COMPONENT_CLASSES
+        ),
+      }).toEqual({
+        page,
+        counts: componentClassCounts(
+          parseModule(intermediate!),
+          BULMA_COMPONENT_CLASSES
+        ),
+      });
+    }
   });
 });
 
@@ -281,9 +435,11 @@ describe('reading what the CLI and tsc print', () => {
 interface PageInput {
   page: string;
   module: string | null;
+  status: string;
   todos: string[];
   marked: Record<string, number>;
   left: Record<string, number>;
+  typechecked: boolean;
   tsc: Array<{
     line: number | null;
     column: number | null;
@@ -301,13 +457,24 @@ function page(overrides: Partial<PageInput> = {}): PageInput {
   return {
     page: 'index.html',
     module: 'index.tsx',
+    status: 'converted',
     todos: ['html-asset', 'tag:Hero', 'html-asset'],
     marked: { button: 3, hero: 1 },
     left: { hero: 1 },
+    typechecked: true,
     tsc: [],
     ...overrides,
   };
 }
+
+/** A page that wrote no module because the HTML input declined it. */
+const refused = page({
+  module: null,
+  status: 'refused',
+  todos: ['html-file:template-syntax'],
+  left: {},
+  typechecked: false,
+});
 
 function run(loginPages: PageInput[] = [page()]) {
   return {
@@ -323,9 +490,11 @@ function run(loginPages: PageInput[] = [page()]) {
           page({
             page: 'a.html',
             module: null,
+            status: 'empty',
             todos: [],
             marked: {},
             left: {},
+            typechecked: false,
           }),
         ],
       },
@@ -354,6 +523,7 @@ describe('the report', () => {
     expect(report.templates[0].pages[0]).toEqual({
       page: 'index.html',
       module: 'index.tsx',
+      status: 'converted',
       todos: 3,
       rules: { 'html-asset': 2, 'tag:Hero': 1 },
       components: {
@@ -363,7 +533,7 @@ describe('the report', () => {
         markedByClass: { button: 3, hero: 1 },
         leftByClass: { hero: 1 },
       },
-      tsc: { errors: 0, codes: {}, diagnostics: [] },
+      tsc: { checked: true, errors: 0, codes: {}, diagnostics: [] },
     });
     expect(report.failures).toEqual([
       {
@@ -386,6 +556,7 @@ describe('the report', () => {
     expect(report.templates[1].total).toEqual({
       pages: 2,
       modules: 1,
+      refused: 0,
       todos: 1,
       rules: { 'family:modal': 1 },
       components: {
@@ -395,15 +566,54 @@ describe('the report', () => {
         markedByClass: { button: 3, hero: 1 },
         leftByClass: { hero: 1 },
       },
-      tsc: { errors: 0, codes: {} },
+      tsc: { errors: 0, unchecked: 0, codes: {} },
     });
     expect(report.total).toMatchObject({
       pages: 3,
       modules: 2,
+      refused: 0,
       todos: 4,
       rules: { 'family:modal': 1, 'html-asset': 2, 'tag:Hero': 1 },
       components: { marked: 8, converted: 6, left: 2 },
     });
+  });
+
+  it("counts a refused page's classes, all of them left", () => {
+    const report = buildReport(run([refused]));
+    expect(report.templates[0].pages[0]).toMatchObject({
+      module: null,
+      status: 'refused',
+      components: {
+        marked: 4,
+        converted: 0,
+        left: 4,
+        leftByClass: { button: 3, hero: 1 },
+      },
+      tsc: { checked: false, errors: 0 },
+    });
+    expect(report.templates[0].total).toMatchObject({
+      pages: 1,
+      modules: 0,
+      refused: 1,
+      components: { marked: 4, converted: 0, left: 4 },
+      tsc: { unchecked: 0 },
+    });
+    expect(report.total).toMatchObject({
+      refused: 1,
+      components: { marked: 8, converted: 3, left: 5 },
+    });
+  });
+
+  it('keeps a module tsc did not read apart from one with no errors', () => {
+    const report = buildReport(run([page({ typechecked: false })]));
+    expect(report.templates[0].pages[0].tsc).toEqual({
+      checked: false,
+      errors: 0,
+      codes: {},
+      diagnostics: [],
+    });
+    expect(report.templates[0].total.tsc.unchecked).toBe(1);
+    expect(report.total.tsc.unchecked).toBe(1);
   });
 
   it('sorts tsc diagnostics by position and tallies their codes', () => {
@@ -424,6 +634,7 @@ describe('the report', () => {
     expect(tsc.diagnostics.map(d => d.message)).toEqual(['c', 'a', 'b']);
     expect(report.total.tsc).toEqual({
       errors: 3,
+      unchecked: 0,
       codes: { TS2322: 2, TS2741: 1 },
     });
   });
@@ -450,6 +661,13 @@ describe('the report', () => {
 describe('the report as Markdown', () => {
   const markdown = renderMarkdown(buildReport(run()), CLASSES);
   const lines = markdown.split('\n');
+  /** The first row for `label` under `heading`, with login's pages. */
+  const rowUnder = (heading: string, pages: PageInput[], label: string) => {
+    const all = renderMarkdown(buildReport(run(pages)), CLASSES).split('\n');
+    return all
+      .slice(all.indexOf(heading))
+      .find(line => line.startsWith(`| ${label} `));
+  };
 
   it('has the summary, the rules, the classes left, the pages and the failures', () => {
     for (const heading of [
@@ -485,11 +703,11 @@ describe('the report as Markdown', () => {
   it('prints the summary table it opens with', () => {
     const summary = summaryTable(buildReport(run()));
     expect(summary).toEqual([
-      '| Template | Pages | Modules | TODOs | Classes | Converted | Left  | tsc errors |',
-      '| -------- | ----: | ------: | ----: | ------: | --------: | ----: | ---------: |',
-      '| login    |     1 |       1 |     3 |       4 |         3 |     1 |          0 |',
-      '| cv       |     2 |       1 |     1 |       4 |         3 |     1 |          0 |',
-      '| Total    |     3 |       2 |     4 |       8 |         6 |     2 |          0 |',
+      '| Template | Pages | Modules | Refused | TODOs | Classes | Converted | Left  | tsc errors |',
+      '| -------- | ----: | ------: | ------: | ----: | ------: | --------: | ----: | ---------: |',
+      '| login    |     1 |       1 |       0 |     3 |       4 |         3 |     1 |          0 |',
+      '| cv       |     2 |       1 |       0 |     1 |       4 |         3 |     1 |          0 |',
+      '| Total    |     3 |       2 |       0 |     4 |       8 |         6 |     2 |          0 |',
     ]);
     expect(markdown).toContain(summary.join('\n'));
   });
@@ -507,12 +725,26 @@ describe('the report as Markdown', () => {
     expect(after).toHaveLength(before.length);
     const changed = after.filter((line, index) => line !== before[index]);
     expect(changed).toEqual([
-      '| login    |     1 |       1 |    10 |       4 |         3 |     1 |          0 |',
-      '| Total    |     3 |       2 |    11 |       8 |         6 |     2 |          0 |',
+      '| login    |     1 |       1 |       0 |    10 |       4 |         3 |     1 |          0 |',
+      '| Total    |     3 |       2 |       0 |    11 |       8 |         6 |     2 |          0 |',
       `| html-asset${' '.repeat(30)} |    10 |     0 |    10 |`,
-      `| login/index.html | index.tsx  |    10 |       4 |         3 |     1 |          0 |`,
+      '| login/index.html | index.tsx  | converted |    10 |       4 |         3 |     1 |          0 |',
       `| login/index.html | html-asset${' '.repeat(30)} |    10 |`,
     ]);
+  });
+
+  it('shows a refused page as refused, and an unread module as -', () => {
+    expect(rowUnder('## Pages', [refused], 'login/index.html')).toBe(
+      `| login/index.html | ${' '.repeat('index.html'.length)} | refused   |     1 |       4 |         0 |     4 |          - |`
+    );
+    expect(
+      rowUnder('## Pages', [page({ typechecked: false })], 'login/index.html')
+    ).toBe(
+      '| login/index.html | index.tsx  | converted |     3 |       4 |         3 |     1 |          - |'
+    );
+    expect(rowUnder('## Summary', [refused], 'login')).toBe(
+      '| login    |     1 |       0 |       1 |     1 |       4 |         0 |     4 |          0 |'
+    );
   });
 
   it('lists tsc diagnostics, and says None where there is nothing', () => {

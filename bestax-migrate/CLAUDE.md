@@ -211,13 +211,16 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
     Output lands in `.e2e-tmp/corpus-out-bulma-classes/`.
   - `validate:corpus:templates` — the HTML input over the awesome-bulma-templates repos, each
     fetched at the commit pinned in `scripts/lib/corpus-templates.mjs` (the one home of those
-    pins) and converted by the CLI with `--css bestax`. It needs the network, which is why it
-    stays out of CI with the others. It also fails on a module that no longer parses and on a
-    rule id outside the vocabulary, and it lists the modules' `tsc` diagnostics without failing
-    on them. `report.md` and `report.json` in `.e2e-tmp/corpus-templates/` are deterministic, so
-    the reports from before and after a change to the HTML input or the class table diff line
-    by line: that diff is how such a change is measured. `e2e/corpus-templates.test.ts` tests
-    the script's pure half offline.
+    pins, checked for shape only, so a moved pin is compared with its port issue by hand) and
+    converted by the CLI with `--css bestax` in a scratch package where every page becomes
+    `.tsx`. It needs the network, which is why it stays out of CI with the others. It also
+    fails on a module that no longer parses, on one tsc could not read, and on a rule the
+    skill's references don't document (the kitchen sinks' check), and it lists the modules'
+    `tsc` diagnostics without failing on them. `report.md` and `report.json` in
+    `.e2e-tmp/corpus-templates/` are deterministic, so the reports from before and after a
+    change to the HTML input or the class table diff line by line: that diff is how such a
+    change is measured. A page's classes are counted from its DOM, so a refused page keeps
+    its count. `e2e/corpus-templates.test.ts` tests the script's offline half.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
