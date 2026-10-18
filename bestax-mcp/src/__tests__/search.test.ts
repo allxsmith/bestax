@@ -16,7 +16,14 @@ import {
   type ComponentRecord,
   type Skill,
 } from '../data.js';
-import { ALIASES, searchAll, suggest, type HitKind } from '../search.js';
+import {
+  ALIASES,
+  escapeRegExp,
+  searchAll,
+  suggest,
+  usesExport,
+  type HitKind,
+} from '../search.js';
 
 const ALL: HitKind[] = ['component', 'prop', 'example', 'css-var', 'skill'];
 
@@ -141,6 +148,11 @@ describe('ranking realistic queries', () => {
     ['a form with a date picker', 'DateInput'],
     // A component named outright outranks one an alias in the same query reaches.
     ['breadcrumbs with separators', 'Breadcrumb'],
+    // A compound name's first part is what sets it apart, so "tree" makes
+    // TreeView the subject, above its own examples, and "view" alone doesn't:
+    // it put TreeView above Reveal for "element that animates into view".
+    ['folder tree', 'TreeView'],
+    ['segmented control for view mode', 'SegmentedControl'],
   ])('"%s" puts %s first', (query, component) => {
     expect(top(query)).toEqual([`component:${component}`]);
   });
@@ -195,6 +207,85 @@ describe('ranking realistic queries', () => {
     for (const targets of Object.values(ALIASES)) {
       for (const name of targets) expect(names).toContain(name);
     }
+  });
+
+  it('finds an export documented with another component, below that component', () => {
+    expect(top('CarouselItem')).toEqual(['component:CarouselItem']);
+    const hits = searchAll('carousel', catalog, all, skills, ALL);
+    expect(hits[0].name).toBe('Carousel');
+    expect(hits.find(h => h.name === 'CarouselItem')).toMatchObject({
+      kind: 'component',
+      detail: expect.stringContaining('documented with Carousel'),
+      next: 'get_component({ name: "CarouselItem" })',
+    });
+    // A sub whose name repeats the query's words stays below its parent.
+    const names = searchAll('navbar item', catalog, all, skills, ALL).map(
+      h => h.name
+    );
+    expect(names.indexOf('Navbar')).toBeGreaterThanOrEqual(0);
+    expect(names.indexOf('NavbarItem')).toBeGreaterThan(
+      names.indexOf('Navbar')
+    );
+    expect(top('TreeViewItem')).toEqual(['component:TreeViewItem']);
+  });
+
+  it("leaves a base's props to the component that takes them too", () => {
+    const props = searchAll('isStatic', catalog, all, skills, ['prop']).map(
+      h => h.name
+    );
+    expect(props).toContain('Input.isStatic');
+    expect(props).not.toContain('InputBase.isStatic');
+  });
+});
+
+describe('escapeRegExp', () => {
+  it('matches what it escapes literally, a backslash included', () => {
+    for (const input of ['a\\b', 'a\\.b', 'Navbar.Brand', '[x](y)*+?^$|{1}']) {
+      const re = new RegExp(`^${escapeRegExp(input)}$`);
+      expect(re.test(input)).toBe(true);
+    }
+    // Unescaped, `\b` is a word boundary and `.` any character.
+    expect(new RegExp(`^${escapeRegExp('a\\b')}$`).test('ab')).toBe(false);
+    expect(new RegExp(`^${escapeRegExp('a.b')}$`).test('axb')).toBe(false);
+  });
+});
+
+describe('usesExport', () => {
+  it('finds an export by its name or its dot-path, and not inside another name', () => {
+    expect(
+      usesExport(
+        '<CarouselItem>x</CarouselItem>',
+        'CarouselItem',
+        'CarouselItem'
+      )
+    ).toBe(true);
+    expect(
+      usesExport('<CarouselItems />', 'CarouselItem', 'CarouselItem')
+    ).toBe(false);
+    expect(
+      usesExport('<Foo.CarouselItem />', 'CarouselItem', 'CarouselItem')
+    ).toBe(false);
+    expect(
+      usesExport(
+        '<Dropdown.Item>a</Dropdown.Item>',
+        'DropdownItem',
+        'Dropdown.Item'
+      )
+    ).toBe(true);
+    expect(
+      usesExport('<Dropdown.Items />', 'DropdownItem', 'Dropdown.Item')
+    ).toBe(false);
+    // The dot in a path is a dot, not any character.
+    expect(usesExport('<DropdownxItem />', 'Other', 'Dropdown.Item')).toBe(
+      false
+    );
+  });
+
+  it('reads a backslash in a name as a backslash', () => {
+    expect(usesExport('<A\\B />', 'A\\B', 'A\\B')).toBe(true);
+    expect(usesExport('<AB />', 'A\\B', 'A\\B')).toBe(false);
+    expect(usesExport('<A.B\\C />', 'X', 'A.B\\C')).toBe(true);
+    expect(usesExport('<A.BC />', 'X', 'A.B\\C')).toBe(false);
   });
 });
 

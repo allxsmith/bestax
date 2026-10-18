@@ -5,6 +5,7 @@ import { describe, expect, it } from '@jest/globals';
 
 import {
   assertSchema,
+  documentedExport,
   loadCatalog,
   loadComponent,
   loadSkillFile,
@@ -65,12 +66,43 @@ describe('resolveName', () => {
     // A dot-path resolves to its root; the part is selected downstream.
     ['Navbar.Brand', 'Navbar'],
     ['navbar.brand', 'Navbar'],
+    // An export with no entry of its own resolves to the record documenting it.
+    ['InputBase', 'Input'],
+    ['<carouselitem />', 'Carousel'],
+    ['Thead', 'Table'],
   ])('resolves %s to %s', async (input, expected) => {
     expect(await resolveName(input)).toBe(expected);
   });
 
   it('returns null for something that is not a component', async () => {
     expect(await resolveName('NotAThing')).toBeNull();
+  });
+});
+
+describe('documentedExport', () => {
+  it('names the part an export documented elsewhere is, spelled as the index spells it', async () => {
+    expect(await documentedExport('inputbase')).toMatchObject({
+      name: 'InputBase',
+      entry: { component: 'Input', path: 'InputBase', standalone: 'base' },
+    });
+    expect(await documentedExport('Thead')).toMatchObject({
+      entry: { component: 'Table', path: 'Table.Thead' },
+    });
+  });
+
+  it('is null for a component with an entry of its own, and for a dot-path', async () => {
+    expect(await documentedExport('Input')).toBeNull();
+    expect(await documentedExport('Table.Thead')).toBeNull();
+  });
+
+  it('never shadows a catalog entry', async () => {
+    const catalog = await loadCatalog();
+    const names = new Set(catalog.components.map(c => c.name.toLowerCase()));
+    expect(
+      Object.keys(catalog.documentedWith).filter(n =>
+        names.has(n.toLowerCase())
+      )
+    ).toEqual([]);
   });
 });
 

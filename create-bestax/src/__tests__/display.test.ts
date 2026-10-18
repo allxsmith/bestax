@@ -6,6 +6,7 @@ import {
   beforeEach,
   afterEach,
 } from '@jest/globals';
+import { execFileSync } from 'node:child_process';
 
 // Mock chalk
 jest.unstable_mockModule('chalk', () => ({
@@ -40,6 +41,7 @@ const {
   displayError,
   displayInfo,
   displayCancelled,
+  quoteShellArgument,
 } = await import('../display.js');
 
 // Mock console methods
@@ -87,6 +89,48 @@ describe('display', () => {
     });
   });
 
+  describe('quoteShellArgument (#1154)', () => {
+    const unsafe: Array<[string, string, string]> = [
+      ['a space', '/tmp/My Projects/login', `'/tmp/My Projects/login'`],
+      ['an apostrophe', "/tmp/Alex's/login", `'/tmp/Alex'\\''s/login'`],
+      ['a $', '/tmp/$HOME/login', `'/tmp/$HOME/login'`],
+      ['backticks', '/tmp/a`b`/login', "'/tmp/a`b`/login'"],
+      ['a leading ~', '~/login', `'~/login'`],
+    ];
+
+    it('leaves a path of plain characters bare', () => {
+      for (const dir of ['login', '../apps/my-app', '/tmp/a_b/v1.0/login']) {
+        expect(quoteShellArgument(dir, 'linux')).toBe(dir);
+      }
+    });
+
+    it.each(unsafe)(
+      'single-quotes a path holding %s for POSIX shells',
+      (_label, dir, quoted) => {
+        expect(quoteShellArgument(dir, 'darwin')).toBe(quoted);
+      }
+    );
+
+    // The proof that matters: a POSIX shell reads each one back unchanged.
+    (process.platform === 'win32' ? it.skip : it).each(unsafe)(
+      'gives back a path holding %s when sh reads it',
+      (_label, dir) => {
+        const echoed = execFileSync('/bin/sh', [
+          '-c',
+          `printf '%s' ${quoteShellArgument(dir, 'linux')}`,
+        ]).toString();
+        expect(echoed).toBe(dir);
+      }
+    );
+
+    it('double-quotes for Windows, where backslashes need no quoting', () => {
+      expect(quoteShellArgument('apps\\login', 'win32')).toBe('apps\\login');
+      expect(quoteShellArgument('C:\\My Projects\\login', 'win32')).toBe(
+        '"C:\\My Projects\\login"'
+      );
+    });
+  });
+
   describe('displaySuccess', () => {
     it('should display success message with next steps', () => {
       displaySuccess('my-app');
@@ -106,6 +150,19 @@ describe('display', () => {
         .mock.calls;
       const output = calls.map(call => call.join(' ')).join('\n');
       expect(output).toContain(projectName);
+    });
+
+    it('quotes a path with a space in its cd line, and leaves others bare (#1154)', () => {
+      displaySuccess('/tmp/My Projects/login');
+      displaySuccess('/tmp/projects/login');
+
+      const lines = (
+        console.log as jest.MockedFunction<typeof console.log>
+      ).mock.calls.map(call => call.join(' '));
+      expect(lines).toContain(
+        `  cd ${quoteShellArgument('/tmp/My Projects/login')}`
+      );
+      expect(lines).toContain('  cd /tmp/projects/login');
     });
 
     describe('next-steps package manager', () => {

@@ -7,31 +7,31 @@
   "examples": [
     {
       "title": "Single Icon + Text",
-      "code": "<IconText iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}>\n  Star\n</IconText>"
+      "code": "<IconText iconProps={{ library: 'fa', name: 'star' }}>Star</IconText>"
     },
     {
       "title": "With Text Color",
-      "code": "<IconText\n  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}\n  textColor=\"primary\"\n>\n  Star\n</IconText>"
+      "code": "<IconText iconProps={{ library: 'fa', name: 'star' }} textColor=\"primary\">\n  Star\n</IconText>"
     },
     {
       "title": "With Margin",
-      "code": "<IconText\n  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}\n  m=\"2\"\n>\n  Star\n</IconText>"
+      "code": "<IconText iconProps={{ library: 'fa', name: 'star' }} m=\"2\">\n  Star\n</IconText>"
     },
     {
       "title": "In a Button",
-      "code": "<Button color=\"primary\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'check',\n      ariaLabel: 'Check icon',\n    }}\n  >\n    Click Me\n  </IconText>\n</Button>"
+      "code": "<Button color=\"primary\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'check',\n    }}\n  >\n    Click Me\n  </IconText>\n</Button>"
     },
     {
       "title": "In a Notification",
-      "code": "<Notification color=\"info\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'info-circle',\n      ariaLabel: 'Info icon',\n      textColor: 'dark',\n    }}\n    m=\"1\"\n  >\n    Info Notification\n  </IconText>\n</Notification>"
+      "code": "<Notification color=\"info\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'info-circle',\n      textColor: 'dark',\n    }}\n    m=\"1\"\n  >\n    Info Notification\n  </IconText>\n</Notification>"
     },
     {
       "title": "In a Tag",
-      "code": "<Tag color=\"success\" size=\"medium\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'check',\n      ariaLabel: 'Check icon',\n    }}\n  >\n    Success\n  </IconText>\n</Tag>"
+      "code": "<Tag color=\"success\" size=\"medium\">\n  <IconText\n    iconProps={{\n      library: 'fa',\n      name: 'check',\n    }}\n  >\n    Success\n  </IconText>\n</Tag>"
     },
     {
       "title": "Multiple Icons and Text",
-      "code": "<IconText\n  items={[\n    {\n      iconProps: { library: 'fa', name: 'train', ariaLabel: 'Train icon' },\n      text: 'Paris',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'Arrow right icon',\n      },\n      text: 'Budapest',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'Arrow right icon',\n      },\n      text: 'Bucharest',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'Arrow right icon',\n      },\n      text: 'Istanbul',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'flag-checkered',\n        ariaLabel: 'Finish icon',\n      },\n    },\n  ]}\n  mx=\"1\"\n/>"
+      "code": "<IconText\n  items={[\n    {\n      iconProps: { library: 'fa', name: 'train', ariaLabel: 'Train' },\n      text: 'Paris',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'to',\n      },\n      text: 'Budapest',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'to',\n      },\n      text: 'Bucharest',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'arrow-right',\n        ariaLabel: 'to',\n      },\n      text: 'Istanbul',\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'flag-checkered',\n        ariaLabel: 'End of route',\n      },\n    },\n  ]}\n  mx=\"1\"\n/>"
     },
     {
       "title": "Star Rating Example",
@@ -39,18 +39,18 @@
     },
     {
       "title": "Star Rating Example",
-      "code": "<IconText\n  items={[\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        ariaLabel: 'Star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        ariaLabel: 'Star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        ariaLabel: 'Star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star-half-alt',\n        ariaLabel: 'Half star icon',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        variant: 'regular',\n        ariaLabel: 'Empty star icon',\n      },\n      text: '3.5/5',\n    },\n  ]}\n  textColor=\"warning\"\n  mx=\"1\"\n/>"
+      "code": "<IconText\n  items={[\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star-half-alt',\n      },\n    },\n    {\n      iconProps: {\n        library: 'fa',\n        name: 'star',\n        variant: 'regular',\n      },\n      text: '3.5/5',\n    },\n  ]}\n  textColor=\"warning\"\n  mx=\"1\"\n/>"
     },
     {
       "title": "With Flex",
-      "code": "<IconText\n  iconProps={{\n    library: 'fa',\n    name: 'info-circle',\n    ariaLabel: 'Info icon',\n    textColor: 'info',\n  }}\n  display=\"flex\"\n>\n  Information\n</IconText>"
+      "code": "<IconText\n  iconProps={{\n    library: 'fa',\n    name: 'info-circle',\n    textColor: 'info',\n  }}\n  display=\"flex\"\n>\n  Information\n</IconText>"
     },
     {
       "title": "Compound (dot-notation) usage",
-      "code": "<IconText>\n  <IconText.Icon name=\"star\" ariaLabel=\"star icon\" />\n  <span>Starred</span>\n</IconText>"
+      "code": "<IconText>\n  <IconText.Icon name=\"star\" />\n  <span>Starred</span>\n</IconText>"
     }
   ],
-  "accessibility": "- **ARIA labels:** Always set an `ariaLabel` for icons for screen readers.\n- **Order:** The icon is visually before the text by default.\n- **Keyboard:** If used in a button or link, keyboard accessibility is handled by the parent.\n\n:::info\nFor star ratings or icon lists, use `items` with `iconProps` and optional `text`.\n:::",
+  "accessibility": "- **Icons beside text:** Leave an icon that repeats the text beside it unnamed. The unnamed icons on this page pass no `ariaLabel`, `aria-label` or `aria-labelledby` and no `role` or `tabIndex`, so each renders `aria-hidden=\"true\"`, and a screen reader reads only the text, which also names a `Button` or link the `IconText` sits in. A named icon is read as well, so `ariaLabel: 'Check icon'` beside \"Click Me\" makes a button announce \"Check icon Click Me\".\n- **Icons with meaning of their own:** Set `ariaLabel` on an icon that conveys information the text doesn't, such as the arrows and the finishing flag of a route, and write it as what the icon means rather than what it shows. Standing alone is not the test: the stars of the rating have no text beside them, but they show the score the text gives, so they stay unnamed.\n- **Order:** The icon is visually before the text by default.\n- **Keyboard:** If used in a button or link, keyboard accessibility is handled by the parent.\n\n:::info\nFor star ratings or icon lists, use `items` with `iconProps` and optional `text`.\n:::",
   "related": ["Button", "Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/elements-icontext--default",
   "summary": "The `IconText` component provides a Bulma-styled horizontal arrangement of one or more `Icon` components and optional text.",

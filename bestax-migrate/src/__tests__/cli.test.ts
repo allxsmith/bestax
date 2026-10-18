@@ -565,6 +565,46 @@ describe('HTML pages', () => {
     expect(fs.existsSync(path.join(dir, 'home.jsx'))).toBe(false);
   });
 
+  it("reads the module's stylesheet import for the manifest, as it reads a JSX file's", async () => {
+    const linked = (css: string) => {
+      const dir = site({
+        'package.json': JSON.stringify({
+          name: 'a',
+          dependencies: { react: '^18.2.0' },
+        }),
+        'home.html': bulmaPage.replace(
+          '</head>',
+          '<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css"></head>'
+        ),
+      });
+      return { dir, css };
+    };
+    const run = async ({ dir, css }: { dir: string; css: string }) => {
+      await runCli([
+        'bulma-classes',
+        path.join(dir, 'home.html'),
+        '--css',
+        css,
+      ]);
+      return {
+        module: fs.readFileSync(path.join(dir, 'home.jsx'), 'utf8'),
+        deps: JSON.parse(
+          fs.readFileSync(path.join(dir, 'package.json'), 'utf8')
+        ).dependencies,
+      };
+    };
+    // The module imports bulma/…, so the app declares `bulma`.
+    const bulma = await run(linked('bulma'));
+    expect(bulma.module).toContain('import "bulma/css/bulma.min.css";');
+    expect(bulma.deps.bulma).toMatch(/^\^1\./);
+    // bestax's bundle arrives with bestax-bulma, so no `bulma` is added.
+    const bestax = await run(linked('bestax'));
+    expect(bestax.module).toContain(
+      'import "@allxsmith/bestax-bulma/bestax.css";'
+    );
+    expect(bestax.deps).not.toHaveProperty('bulma');
+  });
+
   it('refuses a server template', async () => {
     const dir = site({
       'home.html': page('<div class="box">{{ name }}</div>'),

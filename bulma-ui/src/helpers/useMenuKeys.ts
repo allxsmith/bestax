@@ -1,7 +1,10 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useEffect, useMemo, useRef } from 'react';
+import { useMemo } from 'react';
 import type { KeyboardEvent } from 'react';
 import { getActiveElementInTree } from './shadowDom';
+import { typeaheadMatch, useTypeahead } from './typeahead';
+
+export { TYPEAHEAD_TIMEOUT } from './typeahead';
 
 /**
  * Every menu-item role, so an item a caller gives `menuitemcheckbox` or
@@ -32,9 +35,6 @@ export function enabledMenuItems(menu: Element): HTMLElement[] {
   ).filter(isEnabledMenuItem);
 }
 
-/** How long typed characters keep adding up to one search, in milliseconds. */
-export const TYPEAHEAD_TIMEOUT = 500;
-
 /**
  * Whether the browser activates `item` on this key by itself: a `<button>`
  * answers Enter and Space, and a link with an `href` answers Enter.
@@ -42,49 +42,6 @@ export const TYPEAHEAD_TIMEOUT = 500;
 function activatesItself(item: HTMLElement, key: string): boolean {
   if (item.tagName === 'BUTTON') return true;
   return key === 'Enter' && item.tagName === 'A' && item.hasAttribute('href');
-}
-
-/**
- * The text typing finds an item by: what it says, without what's hidden from
- * assistive technology, such as an icon whose glyph is a ligature's name.
- */
-function label(item: Element): string {
-  let text = '';
-  const read = (node: Node) => {
-    node.childNodes.forEach(child => {
-      if (child.nodeType === 3) text += child.textContent;
-      else if (
-        child.nodeType === 1 &&
-        (child as Element).getAttribute('aria-hidden') !== 'true'
-      ) {
-        read(child);
-      }
-    });
-  };
-  read(item);
-  return text.trim().toLowerCase();
-}
-
-/**
- * The item typing `search` moves to, or none. A single character looks from
- * the item after the focused one, so typing the same letter again cycles
- * through the items that start with it, and so does a run of one letter
- * ("dd"). A longer search looks from the focused item, so typing more of
- * its own text keeps it.
- */
-function typeaheadMatch(
-  items: HTMLElement[],
-  search: string,
-  current: number
-): HTMLElement | undefined {
-  const repeated = Array.from(search).every(char => char === search[0]);
-  const wanted = repeated ? search[0] : search;
-  const start = current < 0 ? 0 : current + (wanted.length === 1 ? 1 : 0);
-  for (let i = 0; i < items.length; i += 1) {
-    const item = items[(start + i) % items.length];
-    if (label(item).startsWith(wanted)) return item;
-  }
-  return undefined;
 }
 
 /** What `useMenuKeys` returns. */
@@ -130,22 +87,9 @@ export interface MenuKeys {
  * what has been typed.
  */
 export function useMenuKeys(): MenuKeys {
-  const typedRef = useRef<{
-    text: string;
-    timer?: ReturnType<typeof setTimeout>;
-  }>({ text: '' });
-
-  useEffect(() => {
-    const typed = typedRef.current;
-    return () => clearTimeout(typed.timer);
-  }, []);
+  const typeahead = useTypeahead();
 
   return useMemo<MenuKeys>(() => {
-    const reset = () => {
-      const typed = typedRef.current;
-      clearTimeout(typed.timer);
-      typed.text = '';
-    };
     const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
       const menu = event.currentTarget;
       const focused = getActiveElementInTree(menu);
@@ -204,12 +148,8 @@ export function useMenuKeys(): MenuKeys {
         return;
       }
       event.preventDefault();
-      const typed = typedRef.current;
-      typed.text += event.key.toLowerCase();
-      clearTimeout(typed.timer);
-      typed.timer = setTimeout(reset, TYPEAHEAD_TIMEOUT);
-      typeaheadMatch(items, typed.text, current)?.focus();
+      typeaheadMatch(items, typeahead.type(event.key), current)?.focus();
     };
-    return { onKeyDown, reset };
-  }, []);
+    return { onKeyDown, reset: typeahead.reset };
+  }, [typeahead]);
 }

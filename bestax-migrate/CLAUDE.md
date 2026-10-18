@@ -117,8 +117,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   vocabulary, since the input is the app's own class strings and telemetry must never carry
   them), `project.ts` (what one file cannot show: which packages are Next.js App Router
   projects, which render JSX through a runtime other than React, and which are TypeScript, for
-  the extension of the module an HTML page becomes, read once per run from every package.json
-  the run touches) and `transform.ts` (finds the elements, reads a
+  the extension of the module an HTML page becomes, and which depend on Next.js, where that
+  module imports no stylesheet, read once per run from every package.json the run touches) and `transform.ts` (finds the elements, reads a
   `className` a `clsx` or `classnames` call builds when it can read every argument, applies the
   plans, writes the import after the file's last one). The fixture render test runs the real
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
@@ -136,8 +136,17 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `html-*` rules in `html-rules.ts`, kept apart from `rules.ts` because none of it is about a
   Bulma class; an id carries only a fixed name, never the page's text, and falls back to the
   bare kind. Report entries name the page and its line, the planner's mapped back through the
-  emitter's line map. `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`,
-  both tables and the out-of-flow list.
+  emitter's line map. `html-assets.ts` says what each stylesheet and script the page loads is,
+  from its URL, and each extension's message names the bestax component only where reading it
+  showed one does the extension's job. Under `--css bestax` or `--css bulma` the page's Bulma
+  `<link>` becomes `import 'bulma/css/bulma.min.css'` in the module before the transform runs,
+  so the shared stylesheet pass retargets it exactly as in a JSX file, and the CLI reads the
+  module for `bulmaReferenced` as it reads a JSX file's output, so the manifest step agrees.
+  Not in a Next.js app (its Pages Router takes a global stylesheet only in `pages/_app`), and
+  not for a `<link media>`, which an import can't stand for. A local file is read only inside
+  the page's folder, and a `<script src>` only when its type is JavaScript.
+  `display.ts` is held to `bulma.css` by `e2e/bulma-classes-display.test.ts`, both tables and
+  the out-of-flow list.
 - `src/sources/_shared/html/` turns HTML into JSX source, library-agnostic: `parse.ts` (parse5,
   as a document or a fragment), `attributes.ts` (attribute to prop by `property-information`,
   plus what React needs written by hand; numbers stay strings for the planner, and
@@ -172,9 +181,9 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   given the converter's own display hook. `e2e/bulma-classes-html-kitchen-sink.test.ts` converts
   `fixtures/bulma-classes-html/` under `--css keep` and `--css bestax`, asserts each page's rules
   exactly, typechecks the output (`pages/leftovers.html` holds every pattern a component can't
-  carry, and its module stays out of the typecheck), and wants `html-file:exists` alone on a
-  second run. Both kitchen sinks hold every rule they emit to the skill's references through
-  `e2e/support/skill-rules.ts`.
+  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck),
+  and wants `html-file:exists` alone on a second run. Both kitchen sinks hold every rule they
+  emit to the skill's references through `e2e/support/skill-rules.ts`.
 - Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a
   `mkdtemp`'d dir under `.e2e-tmp/`, migrates it, and runs `tsc --noEmit` on the output
   against the built bulma-ui (`turbo` orders the build; see `bestax-migrate#test` in root
@@ -192,10 +201,11 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   first hook.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
-- Real-world corpus, one script per source, both fetching a pinned SHA as text only into
-  `.e2e-tmp/` and failing on any crash or unknown-component TODO. Deliberately NOT in CI
-  (no third-party fetches in the pipeline); run them before releases and after mapping
-  changes, and eyeball the before/after diffs they write:
+- Real-world corpus scripts. The ones that fetch read a pinned SHA as text only into
+  `.e2e-tmp/`; all of them fail on any crash, and the library sources' on an
+  unknown-component TODO too. Deliberately NOT in CI (no third-party fetches in the
+  pipeline); run them before releases and after mapping changes, and eyeball the
+  before/after diffs they write:
   - `validate:corpus` — react-bulma-components' own MIT Storybook stories →
     `.e2e-tmp/corpus-out/`.
   - `validate:corpus:rbx` — rbx's own MIT docs. rbx used **docz**, not Storybook, so the
@@ -208,6 +218,19 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   - `validate:corpus:bulma-classes` — this repo's own stories, which mix components with raw
     Bulma markup; `--dir <path>` points it at any app's source instead. Nothing is fetched.
     Output lands in `.e2e-tmp/corpus-out-bulma-classes/`.
+  - `validate:corpus:templates` — the HTML input over the awesome-bulma-templates repos, each
+    fetched at the commit pinned in `scripts/lib/corpus-templates.mjs` (the one home of those
+    pins, checked for shape only, so a moved pin is compared with its port issue by hand) and
+    converted by the CLI with `--css bestax` in a scratch package where every page becomes
+    `.tsx`. It needs the network, which is why it stays out of CI with the others, and it
+    refuses to start until bestax-bulma is built, since tsc reads it for every module. It
+    also fails on a module that no longer parses, on one tsc could not read, and on a rule the
+    skill's references don't document (the kitchen sinks' check), and it lists the modules'
+    `tsc` diagnostics without failing on them. `report.md` and `report.json` in
+    `.e2e-tmp/corpus-templates/` are deterministic, so the reports from before and after a
+    change to the HTML input or the class table diff line by line: that diff is how such a
+    change is measured. A page's classes are counted from its DOM, so a refused page keeps
+    its count. `e2e/corpus-templates.test.ts` tests the script's offline half.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught

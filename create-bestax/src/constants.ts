@@ -32,6 +32,8 @@ export const MESSAGES = {
     'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
   PROJECT_NAME_NO_PACKAGE_NAME:
     'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")',
+  PROJECT_NAME_FROM_PATH: (message: string, name: string) =>
+    `${message} (the project name is "${name}", the last part of the path)`,
   PACKAGE_NAME_NORMALIZED: (name: string) =>
     `  package.json name: ${name} (npm package names are lower-case and cannot start with "_")`,
   OPERATION_CANCELLED: '✖ Operation cancelled',
@@ -43,7 +45,12 @@ export const MESSAGES = {
   DIRECTORY_NOT_EMPTY: (dir: string, entries: string[]) =>
     `Directory ${chalk.yellow(dir)} is not empty (${listEntries(entries)}). Remove existing files and continue?`,
   NOT_A_DIRECTORY: (dir: string) =>
-    `${dir} already exists and is not a directory, so nothing was written. Choose another project name.`,
+    `${dir} already exists and is not a directory, so nothing was written. Choose another project name or path.`,
+  // #310: the working directory, or a folder holding it, under another
+  // spelling than "." or "..", such as "../<its name>" or its absolute path.
+  DIRECTORY_HOLDS_CWD: (dir: string) =>
+    `Directory ${dir} is or holds the current directory, so it is never emptied, even with --overwrite, and nothing was written.\n` +
+    '  Choose a new or empty directory.',
   // Shown instead of the question above when it cannot be asked: under -y, or
   // without a terminal. -y never answers it (#945), so this must not suggest -y.
   DIRECTORY_NOT_EMPTY_REFUSED: (dir: string, entries: string[]) =>

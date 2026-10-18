@@ -24,7 +24,24 @@ export interface Hit {
 }
 
 const norm = (s: string) => s.toLowerCase();
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * `s` as a RegExp source that matches it literally: every character a pattern
+ * reads specially is escaped, the backslash included.
+ */
+export const escapeRegExp = (s: string) =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Whether an example's code uses an export: by its name, or by the dot-path its
+ * part is (`<Dropdown.Item>` for `DropdownItem`). Each is matched as written,
+ * whatever characters it holds, and not as the start or end of a longer name.
+ */
+export function usesExport(code: string, name: string, path: string): boolean {
+  const named = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`);
+  const dotted = new RegExp(`<${escapeRegExp(path)}(?![\\w$.])`);
+  return named.test(code) || (path.includes('.') && dotted.test(code));
+}
 
 /**
  * A prefix of a term that survives common English inflection.
@@ -60,7 +77,7 @@ function wordInitialRe(stemmed: string): RegExp {
   let re = STEM_RE_CACHE.get(stemmed);
   if (!re) {
     if (STEM_RE_CACHE.size >= STEM_RE_CACHE_MAX) STEM_RE_CACHE.clear();
-    re = new RegExp(`\\b${escapeRe(stemmed)}`);
+    re = new RegExp(`\\b${escapeRegExp(stemmed)}`);
     STEM_RE_CACHE.set(stemmed, re);
   }
   return re;
@@ -121,6 +138,23 @@ const NAME_WORD_SCORE = 30;
 /** Whether a query word is a name, as written or with a plural `s`. */
 const isName = (word: string, lowerName: string) =>
   word === lowerName || word === `${lowerName}s`;
+
+/**
+ * Whether a query names what sets a component apart: its whole name, or the
+ * first camelCase part of it. In a compound name the last part is the generic
+ * head noun and the first is the distinguishing word: TreeView is a tree kind
+ * of view, DateInput a date input, HoverCard a hover card. So "tree" or "date"
+ * makes the component the subject, and "view" or "input" alone doesn't: that
+ * "view" put TreeView above Reveal for "element that animates into view". For
+ * a one-part name, the first part is the whole name.
+ */
+function namesSubject(terms: string[], name: string): boolean {
+  const lowerName = norm(name);
+  const first = norm(name.split(/(?=[A-Z])/)[0]);
+  return terms.some(
+    t => isName(t, lowerName) || (t.length >= 3 && termHit(first, t) > 0)
+  );
+}
 
 /**
  * Score a haystack against the query terms.
@@ -301,18 +335,15 @@ export function searchAll(
       const hay = `${c.name} ${c.purpose} ${c.category}`;
       const alias = aliased.get(c.name) ?? 0;
       const matched = score(hay, c.name, terms, q) + alias;
-      // The bonus is for a component the query is about: one it names, or one whose
-      // summary has most of its words. A summary that shares one word of two ("at a
-      // time" for "time picker") is the same passing mention a prop's description is,
-      // and one that misses a single word of a sentence ("spacing", where Block says
-      // "margin") is not.
-      const lowerName = norm(c.name);
+      // The bonus is for a component the query is about: one whose distinguishing
+      // word it names, or one whose summary has most of its words. A summary that
+      // shares one word of two ("at a time" for "time picker") is the same passing
+      // mention a prop's description is, and one that misses a single word of a
+      // sentence ("spacing", where Block says "margin") is not.
       const lowerHay = norm(hay);
       const covered = terms.filter(t => termHit(lowerHay, t) > 0).length;
       const about =
-        alias > 0 ||
-        terms.some(t => t.length >= 3 && termHit(lowerName, t) > 0) ||
-        covered * 2 > terms.length;
+        alias > 0 || namesSubject(terms, c.name) || covered * 2 > terms.length;
       const s = matched > 0 && about ? matched + COMPONENT_BONUS : matched;
       if (s > 0) {
         hits.push({
@@ -328,11 +359,36 @@ export function searchAll(
         });
       }
     }
+    // An export documented with another component (`InputBase`, `Thead`) is a
+    // component a query can name too, with none of the bonus, and below the
+    // component it is documented with whenever the query reaches that one as
+    // well: that component is usually what the query is about, and a sub's
+    // name repeats its words ("navbar with a dropdown menu" is about Navbar,
+    // not NavbarDropdownMenu).
+    const owners = new Map(hits.map(h => [h.name, h.score]));
+    for (const [name, entry] of Object.entries(catalog.documentedWith)) {
+      const owner = owners.get(entry.component);
+      const raw = score(`${name} ${entry.purpose}`, name, terms, q);
+      const s = owner === undefined ? raw : Math.min(raw, owner - 1);
+      if (s > 0) {
+        hits.push({
+          kind: 'component',
+          name,
+          detail:
+            `documented with ${entry.component}` +
+            (entry.purpose ? ` — ${attributedLinks(entry.purpose)}` : ''),
+          next: `get_component({ name: "${name}" })`,
+          score: s,
+        });
+      }
+    }
   }
 
   for (const record of components) {
     if (want('prop')) {
-      for (const part of record.parts) {
+      // A base's props are the ones its convenience component takes, which
+      // already answer for them.
+      for (const part of record.parts.filter(p => p.standalone !== 'base')) {
         for (const p of part.props) {
           const s = score(`${p.name} ${p.description}`, p.name, terms, q);
           if (s > 20) {

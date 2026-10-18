@@ -10,7 +10,7 @@
         {
           "id": "component-catalog",
           "file": "references/component-catalog.md",
-          "bytes": 20172
+          "bytes": 20383
         },
         {
           "id": "library-contributor",
@@ -30,7 +30,7 @@
       "dir": "bestax-form",
       "references": [
         { "id": "api", "file": "references/api.md", "bytes": 13258 },
-        { "id": "patterns", "file": "references/patterns.md", "bytes": 7525 }
+        { "id": "patterns", "file": "references/patterns.md", "bytes": 7812 }
       ],
       "examples": []
     },
@@ -93,7 +93,7 @@
         {
           "id": "bloomer-prop-map",
           "file": "references/bloomer/prop-map.md",
-          "bytes": 26315
+          "bytes": 26344
         },
         {
           "id": "bloomer-unmappables",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 37323
+          "bytes": 45532
         },
         {
           "id": "css-migration",
@@ -128,7 +128,7 @@
         {
           "id": "rbx-prop-map",
           "file": "references/rbx/prop-map.md",
-          "bytes": 13943
+          "bytes": 13972
         },
         {
           "id": "rbx-unmappables",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 13093
+          "bytes": 13122
         }
       ],
       "examples": []
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 10452
+          "bytes": 10407
         }
       ],
       "examples": []
@@ -176,12 +176,12 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 35849
+          "bytes": 37312
         },
         {
           "id": "themeable-components",
           "file": "references/themeable-components.md",
-          "bytes": 23838
+          "bytes": 24259
         }
       ],
       "examples": [
