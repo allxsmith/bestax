@@ -1,10 +1,11 @@
 /**
  * `readGlyph` reads a `.icon`'s `<i>` as the props `Icon` builds it from.
  * That those props render the same `<i>` is the render truth test's job;
- * this holds which glyphs read, and as what.
+ * this holds which glyphs read, and as what, how they're written, and what
+ * the advice for Font Awesome's script-drawn `<svg>` reads from it.
  */
 
-import { readGlyph } from '../glyph.js';
+import { glyphProps, readDrawnGlyph, readGlyph } from '../glyph.js';
 import type { ChildFacts } from '../plan.js';
 
 const glyph = (
@@ -34,6 +35,7 @@ describe('readGlyph', () => {
       ['fa', 'fa'],
       ['fa-solid', 'fa-solid'],
       ['fa-regular', 'fa-regular'],
+      ['fa-brands', 'fa-brands'],
     ]) {
       expect(readGlyph(glyph([style, 'fa-bell']))).toEqual({
         library: 'fa',
@@ -90,6 +92,111 @@ describe('readGlyph', () => {
     ];
     for (const [label, facts] of refused) {
       expect({ label, glyph: readGlyph(facts) }).toEqual({
+        label,
+        glyph: undefined,
+      });
+    }
+  });
+});
+
+describe('glyphProps', () => {
+  it('writes a glyph as Icon is given it, one feature as a string and more as a list', () => {
+    expect(glyphProps({ library: 'fa', name: 'home' })).toEqual([
+      ['library', 'fa'],
+      ['name', 'home'],
+    ]);
+    expect(
+      glyphProps({
+        library: 'fa',
+        name: 'bell',
+        variant: 'regular',
+        features: ['fa-lg'],
+      })
+    ).toEqual([
+      ['library', 'fa'],
+      ['name', 'bell'],
+      ['variant', 'regular'],
+      ['features', 'fa-lg'],
+    ]);
+    expect(
+      glyphProps({ library: 'mdi', name: 'home', features: ['a', 'b'] })
+    ).toEqual([
+      ['library', 'mdi'],
+      ['name', 'home'],
+      ['features', ['a', 'b']],
+    ]);
+  });
+});
+
+describe('readDrawnGlyph', () => {
+  const svg = (
+    tokens: string[] | null | undefined,
+    attributes: Record<string, string | null> = {}
+  ): ChildFacts => ({
+    ...glyph(tokens),
+    tag: 'svg',
+    attributes: new Map(Object.entries(attributes)),
+    isEmpty: false,
+  });
+
+  it('reads the <i> Font Awesome drew an <svg> for, from its data attributes', () => {
+    expect(
+      readDrawnGlyph(
+        svg(['svg-inline--fa', 'fa-search', 'fa-w-16'], {
+          'data-prefix': 'fas',
+          'data-icon': 'search',
+          'aria-hidden': 'true',
+        })
+      )
+    ).toEqual({ library: 'fa', name: 'search' });
+    expect(
+      readDrawnGlyph(
+        svg(['svg-inline--fa', 'fa-github', 'fa-lg'], {
+          'data-prefix': 'fab',
+          'data-icon': 'github',
+        })
+      )
+    ).toEqual({
+      library: 'fa',
+      name: 'github',
+      variant: 'brands',
+      features: ['fa-lg'],
+    });
+    // Font Awesome 4's `fa`, which the script keeps as it was written.
+    expect(
+      readDrawnGlyph(
+        svg(['svg-inline--fa', 'fa-search'], {
+          'data-prefix': 'fa',
+          'data-icon': 'search',
+        })
+      )
+    ).toEqual({ library: 'fa', name: 'search', variant: 'fa' });
+  });
+
+  it('falls back to its one class naming a glyph, in the default style', () => {
+    expect(
+      readDrawnGlyph(
+        svg(['svg-inline--fa', 'fa-search', 'fa-fw'], { 'data-icon': null })
+      )
+    ).toEqual({ library: 'fa', name: 'search', features: ['fa-fw'] });
+    expect(
+      readDrawnGlyph(
+        svg(['svg-inline--fa', 'fa-search'], { 'data-prefix': 'nope' })
+      )
+    ).toEqual({ library: 'fa', name: 'search' });
+  });
+
+  it('reads nothing from any other <svg> or element', () => {
+    for (const [label, facts] of Object.entries({
+      'no svg': undefined,
+      'an <i>': glyph(['svg-inline--fa', 'fa-search']),
+      'another <svg>': svg(['my-icon', 'fa-search']),
+      'a computed class': svg(null),
+      'no class': svg(undefined),
+      'no name': svg(['svg-inline--fa', 'fa-w-16']),
+      'two names': svg(['svg-inline--fa', 'fa-search', 'fa-home']),
+    })) {
+      expect({ label, glyph: readDrawnGlyph(facts) }).toEqual({
         label,
         glyph: undefined,
       });

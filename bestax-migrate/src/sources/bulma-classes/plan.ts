@@ -25,7 +25,7 @@ import {
   wrapperFor,
   type RootEntry,
 } from './class-map.js';
-import { readGlyph } from './glyph.js';
+import { glyphProps, readDrawnGlyph, readGlyph, type Glyph } from './glyph.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -121,6 +121,26 @@ export interface ElementFacts {
    * The string the element's content renders, when it is one static text.
    */
   text?: string;
+  /**
+   * The classes the element directly around this one renders: its static
+   * ones, or for a bestax component already in the file, its root class and
+   * the flags written out as `true`, so a re-run reads the same. What an
+   * entry that `readsGlyph` reads to point at `Control`'s icon props.
+   */
+  parentTokens?: readonly string[];
+  /**
+   * The nearest <a> or <button> around this element, a bestax component that
+   * renders one included, and what names it: its own `aria-label` or
+   * `aria-labelledby`, written out, text in it outside every icon, or `none`
+   * when nothing does. `label` is left out when it can't be told from here (a
+   * name or content written as an expression, or a component the codemod
+   * doesn't know inside). What an entry that `readsGlyph` reads to say
+   * whether an icon is decoration there.
+   */
+  clickableAround?: {
+    tag: string;
+    label?: 'aria-label' | 'aria-labelledby' | 'text' | 'none';
+  };
 }
 
 export interface ChildFacts {
@@ -200,6 +220,12 @@ export interface Conversion {
    * they go, and the element closes itself.
    */
   rendersChildren?: true;
+  /**
+   * The glyph the target renders from props in place of the element's only
+   * child (`Icon`'s `<i>`), written before the props above. The child goes,
+   * as `rendersChildren`, which is set beside it, says.
+   */
+  glyph?: Glyph;
   /**
    * The target renders the bare element around this one too: the component
    * takes that element's place, with its `key`.
@@ -716,10 +742,13 @@ export function plan(facts: ElementFacts): Plan {
   }
   if (missing.length > 0) {
     const list = missing.map(([name, value]) => `\`${name}="${value}"\``);
+    const usual = `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`;
     return refuse(
       'defaults',
       target,
-      `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`
+      entry.readsGlyph && naming === 'unnamed'
+        ? hiddenAdvice(facts, target, usual)
+        : usual
     );
   }
   for (const [name, rule] of Object.entries(entry.writesAttr ?? {})) {
@@ -866,6 +895,8 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
     );
   }
+  // A glyph the target renders from props takes the place of the only child.
+  const glyph = entry.readsGlyph ? readGlyph(facts.soleChild) : undefined;
   return {
     conversion: {
       target,
@@ -874,9 +905,10 @@ export function plan(facts: ElementFacts): Plan {
       drop,
       numbers,
       ...(absorbed ? { absorbs: absorbed } : {}),
-      ...(counts || entry.rendersText !== undefined
+      ...(counts || entry.rendersText !== undefined || glyph
         ? { rendersChildren: true as const }
         : {}),
+      ...(glyph ? { glyph } : {}),
       ...(parent ? { replacesParent: true as const } : {}),
       ...(conditional.length > 0 ? { conditional } : {}),
       ...(icons ? { icons } : {}),
@@ -994,6 +1026,135 @@ function namingOf(
 }
 
 /**
+ * What to do about an unnamed element whose target hides it with an
+ * `aria-hidden` it doesn't carry, and that renders a glyph from props
+ * (`Icon`), for its `defaults` TODO: from what it holds (Font Awesome's own
+ * `<i aria-hidden>`, the `<svg>` its script draws) and where it sits (a
+ * link or button its label names, or one nothing names). Each says what a
+ * re-run converts it to once the attribute is in place, when that's sure,
+ * and inside a `.control` with icons, the `Control` prop that renders it.
+ * `usual` is the message for anything else.
+ */
+function hiddenAdvice(
+  facts: ElementFacts,
+  target: string,
+  usual: string
+): string {
+  const sole = facts.soleChild;
+  // Font Awesome's own markup hides the <i>, not the `.icon` around it.
+  const hiddenFont =
+    sole?.tag === 'i' && sole.attributes.get('aria-hidden') === 'true';
+  const drawn = readDrawnGlyph(sole);
+  // The element as a re-run would find it, the attribute in place (moved up
+  // off the <i> that carries it): the planner says what that converts to.
+  const attributes = new Map(facts.attributes).set('aria-hidden', 'true');
+  const retry = plan({
+    ...facts,
+    attributes,
+    ...(hiddenFont && {
+      soleChild: {
+        ...sole,
+        attributes: new Map(
+          [...sole.attributes].filter(([name]) => name !== 'aria-hidden')
+        ),
+      },
+    }),
+  }).conversion;
+  // Only where nothing in it converts on its own, which would change what a
+  // re-run finds: an <i> the glyph takes the place of, or an <svg>.
+  const outcome = retry?.glyph
+    ? `, and this converts to \`${target}\` with ${jsxProps(glyphProps(retry.glyph))}`
+    : retry && sole?.tag === 'svg'
+      ? `, and this converts to \`${target}\` around the <svg> as it is`
+      : '';
+  const hint = controlHint(facts, retry, retry?.glyph ?? drawn);
+  if (hiddenFont) {
+    return `bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\` and renders the <i> inside it bare, so it can't render this markup, where the <i> carries it; the \`.icon\` holds nothing else, so the attribute hides the same glyph there: move it up onto the \`.icon\`, then re-run${outcome}${hint}`;
+  }
+  if (drawn) {
+    return `this \`.icon\` holds the <svg> Font Awesome's script draws in place of an <i>, and bestax \`${target}\` writes \`aria-hidden="true"\` on the \`.icon\`, which this one doesn't carry; add it, then re-run${outcome}; or write \`${target}\` with ${jsxProps(glyphProps(drawn))} in its place, which renders the <i> the script draws from, and shows only where Font Awesome's stylesheet or script is loaded${hint}`;
+  }
+  const around = facts.clickableAround;
+  const label = around?.label;
+  const tag =
+    around && `${/^[aeiou]/.test(around.tag) ? 'an' : 'a'} <${around.tag}>`;
+  if (label && label !== 'none') {
+    const by = label === 'text' ? 'its own text' : `its \`${label}\``;
+    return `this \`.icon\` sits in ${tag} that ${by} names, so the icon is decoration there, and bestax \`${target}\` writes \`aria-hidden="true"\` on an icon with no name of its own, which this one doesn't carry; add it, then re-run${outcome}${hint}`;
+  }
+  if (label === 'none' && readGlyph(sole)) {
+    return `nothing names the <${around!.tag}> around this \`.icon\`: it has no \`aria-label\` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <${around!.tag}> an \`aria-label\` that says what it does, then add \`aria-hidden="true"\` here, which bestax \`${target}\` writes on an icon with no name of its own, and re-run${outcome}${hint}`;
+  }
+  return `${usual}${outcome}${hint}`;
+}
+
+/**
+ * Inside a `.control` with icons on this element's side, the `Control` prop
+ * that renders the element once it's hidden as `converted` is: given the
+ * glyph, the props its classes write and nothing else, since `Control`
+ * writes the side's own class over any `className` it's given. Empty when
+ * the element carries anything more: another class, an attribute of its own
+ * or a class a condition adds.
+ */
+function controlHint(
+  facts: ElementFacts,
+  converted: Conversion | null | undefined,
+  glyph: Glyph | undefined
+): string {
+  const side =
+    converted?.className === 'is-left'
+      ? 'Left'
+      : converted?.className === 'is-right'
+        ? 'Right'
+        : undefined;
+  const has = `has-icons-${side?.toLowerCase()}`;
+  if (
+    !glyph ||
+    !side ||
+    facts.conditional?.length ||
+    !facts.parentTokens?.includes('control') ||
+    !facts.parentTokens.includes(has) ||
+    facts.attributes.size > 0
+  ) {
+    return '';
+  }
+  const object = [...glyphProps(glyph), ...converted!.props]
+    .map(
+      ([name, value]) =>
+        `${name}: ${
+          value === true
+            ? 'true'
+            : converted!.numbers.includes(name)
+              ? String(Number(value))
+              : valueText(value)
+        }`
+    )
+    .join(', ');
+  return `; or, since the \`.control\` around it has \`${has}\`, drop this \`.icon\` and give that \`Control\` \`icon${side}={{ ${object} }}\`, which it renders after its children as a \`.icon.is-${side.toLowerCase()}\` around the glyph's <i>, hidden the way \`Icon\` hides it`;
+}
+
+/** A glyph's props as JSX attributes, for a message. */
+function jsxProps(
+  props: ReadonlyArray<readonly [string, string | readonly string[]]>
+): string {
+  const text = props
+    .map(([name, value]) =>
+      typeof value === 'string'
+        ? `${name}="${value}"`
+        : `${name}={${valueText(value)}}`
+    )
+    .join(' ');
+  return `\`${text}\``;
+}
+
+/** A prop's value as code, for a message: a list as an array of strings. */
+function valueText(value: string | readonly string[]): string {
+  return typeof value === 'string'
+    ? JSON.stringify(value)
+    : `[${value.map(item => JSON.stringify(item)).join(', ')}]`;
+}
+
+/**
  * The icons a target that `buildsIcons` builds from an element's children:
  * each `.icon` that converts to `Icon` on its own and holds a glyph `Icon`
  * can build, with the bare `<span>` of text after it, if any.
@@ -1027,23 +1188,12 @@ function buildIcons(
           name === 'ref' ||
           (name.includes('-') && !name.startsWith('aria-'))
       );
-      const glyph = readGlyph(child.soleChild);
+      // The `.icon` read its glyph itself when it converted on its own.
+      const glyph = icon.glyph;
       if (!glyph || loose) return { why: shape };
-      const props: BuiltIcon['props'] = [
-        ['library', glyph.library],
-        ['name', glyph.name],
-      ];
-      if (glyph.variant) props.push(['variant', glyph.variant]);
-      const { features } = glyph;
-      if (features) {
-        props.push([
-          'features',
-          features.length === 1 ? features[0] : features,
-        ]);
-      }
       icons.push({
         index,
-        props: [...props, ...icon.props],
+        props: [...glyphProps(glyph), ...icon.props],
         className: icon.className,
         drop: icon.drop,
         numbers: icon.numbers,

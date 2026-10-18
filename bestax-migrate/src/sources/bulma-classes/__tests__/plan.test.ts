@@ -691,6 +691,194 @@ describe('plan', () => {
       ).toEqual(['children:Icon']);
     });
 
+    describe('.icon around a glyph', () => {
+      const glyph = (
+        tokens: string[],
+        attributes: Record<string, string> = {}
+      ) => ({
+        tag: 'i',
+        tokens,
+        attributes: new Map(Object.entries(attributes)),
+        hasSpread: false,
+        isEmpty: true,
+      });
+      const hidden = { 'aria-hidden': 'true' };
+
+      it('writes the glyph it reads as props, in place of the <i>', () => {
+        expect(
+          plan(
+            facts('span', 'icon is-small is-left', hidden, {
+              soleChild: glyph(['fab', 'fa-github', 'fa-lg']),
+            })
+          ).conversion
+        ).toEqual({
+          target: 'Icon',
+          props: [['size', 'small']],
+          className: 'is-left',
+          drop: [],
+          numbers: [],
+          rendersChildren: true,
+          glyph: {
+            library: 'fa',
+            name: 'github',
+            variant: 'brands',
+            features: ['fa-lg'],
+          },
+        });
+        // Font Awesome 4's `fa` reads as itself, which `Icon` renders as
+        // written.
+        expect(
+          plan(
+            facts('span', 'icon', hidden, {
+              soleChild: glyph(['fa', 'fa-envelope']),
+            })
+          ).conversion?.glyph
+        ).toEqual({ library: 'fa', name: 'envelope', variant: 'fa' });
+      });
+
+      it('keeps an <i> it reads no glyph from as its child', () => {
+        const kept = plan(
+          facts('span', 'icon', hidden, {
+            soleChild: glyph(['fas', 'fa-home'], { id: 'x' }),
+          })
+        ).conversion;
+        expect(kept?.target).toBe('Icon');
+        expect(kept?.glyph).toBeUndefined();
+        expect(kept?.rendersChildren).toBeUndefined();
+      });
+
+      describe('the TODO an unhidden one gets', () => {
+        const todo = (
+          className: string,
+          inner: ReturnType<typeof glyph>,
+          extra: Partial<ElementFacts> = {},
+          attributes: Record<string, string> = {}
+        ) => {
+          const { todos } = plan(
+            facts('span', className, attributes, { soleChild: inner, ...extra })
+          );
+          expect(todos.map(t => t.rule)).toEqual(['defaults:Icon']);
+          return todos[0].message;
+        };
+        const control = { parentTokens: ['control', 'has-icons-left'] };
+
+        it("says to move up the aria-hidden Font Awesome's own markup puts on the <i>", () => {
+          const fa = glyph(['fa-solid', 'fa-envelope'], hidden);
+          expect(todo('icon', fa)).toBe(
+            'bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can\'t render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="envelope" variant="fa-solid"`'
+          );
+          // In a `.control` with icons on its side, it names the prop too.
+          expect(todo('icon is-medium is-left', fa, control)).toBe(
+            'bestax `Icon` writes `aria-hidden="true"` on the `.icon` and renders the <i> inside it bare, so it can\'t render this markup, where the <i> carries it; the `.icon` holds nothing else, so the attribute hides the same glyph there: move it up onto the `.icon`, then re-run, and this converts to `Icon` with `library="fa" name="envelope" variant="fa-solid"`; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "envelope", variant: "fa-solid", size: "medium" }}`, which it renders after its children as a `.icon.is-left` around the glyph\'s <i>, hidden the way `Icon` hides it'
+          );
+          // An <i> that carries more keeps it, so no glyph is promised.
+          expect(
+            todo('icon', glyph(['fas', 'fa-moon'], { ...hidden, id: 'x' }))
+          ).toMatch(/move it up onto the `\.icon`, then re-run$/);
+        });
+
+        it('names Control’s prop only for a bare icon on the side its .control has icons', () => {
+          const fa = glyph(['fas', 'fa-check'], hidden);
+          expect(
+            todo('icon is-small is-right', fa, {
+              parentTokens: ['control', 'has-icons-right'],
+            })
+          ).toMatch(
+            /give that `Control` `iconRight=\{\{ library: "fa", name: "check", size: "small" \}\}`/
+          );
+          // Its flags and features, as an object holds them.
+          expect(
+            todo(
+              'icon is-left is-clearfix',
+              glyph(['fas', 'fa-spinner', 'fa-spin', 'fa-fw'], hidden),
+              control
+            )
+          ).toMatch(
+            /`Icon` with `library="fa" name="spinner" features=\{\["fa-spin", "fa-fw"\]\}`; .*`iconLeft=\{\{ library: "fa", name: "spinner", features: \["fa-spin", "fa-fw"\], clearfix: true \}\}`/
+          );
+          const none = [
+            todo('icon is-left', fa, {
+              parentTokens: ['control', 'has-icons-right'],
+            }),
+            todo('icon is-left', fa, { parentTokens: ['has-icons-left'] }),
+            todo('icon is-left', fa),
+            todo('icon is-left my-icon', fa, control),
+            todo('icon is-left', fa, control, { id: 'x' }),
+            todo('icon', fa, { ...control, conditional: [['is-left']] }),
+          ];
+          for (const message of none) expect(message).not.toMatch(/Control/);
+        });
+
+        it("points Font Awesome's script-drawn <svg> at the <i> it was drawn from", () => {
+          const svg = {
+            tag: 'svg',
+            tokens: ['svg-inline--fa', 'fa-search', 'fa-w-16'],
+            attributes: new Map([
+              ['aria-hidden', 'true'],
+              ['data-prefix', 'fa'],
+              ['data-icon', 'search'],
+            ]),
+            hasSpread: false,
+            isEmpty: false,
+          };
+          expect(todo('icon is-small is-left', svg, control)).toBe(
+            'this `.icon` holds the <svg> Font Awesome\'s script draws in place of an <i>, and bestax `Icon` writes `aria-hidden="true"` on the `.icon`, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` around the <svg> as it is; or write `Icon` with `library="fa" name="search" variant="fa"` in its place, which renders the <i> the script draws from, and shows only where Font Awesome\'s stylesheet or script is loaded; or, since the `.control` around it has `has-icons-left`, drop this `.icon` and give that `Control` `iconLeft={{ library: "fa", name: "search", variant: "fa", size: "small" }}`, which it renders after its children as a `.icon.is-left` around the glyph\'s <i>, hidden the way `Icon` hides it'
+          );
+        });
+
+        it('calls an icon in a link or button its label names decoration', () => {
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'aria-label' },
+            })
+          ).toBe(
+            'this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn\'t carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="github" variant="brands" features="fa-lg"`'
+          );
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'button', label: 'text' },
+            })
+          ).toMatch(
+            /^this `\.icon` sits in a <button> that its own text names/
+          );
+          expect(
+            todo('icon', fa, {
+              clickableAround: { tag: 'a', label: 'aria-labelledby' },
+            })
+          ).toMatch(/^this `\.icon` sits in an <a> that its `aria-labelledby`/);
+        });
+
+        it('says to name a link or button its icons alone fill', () => {
+          const fa = glyph(['fab', 'fa-twitter', 'fa-lg']);
+          expect(
+            todo('icon', fa, { clickableAround: { tag: 'a', label: 'none' } })
+          ).toBe(
+            'nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon\'s glyph is no name a screen reader can read; give the <a> an `aria-label` that says what it does, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts to `Icon` with `library="fa" name="twitter" variant="brands" features="fa-lg"`'
+          );
+        });
+
+        it('says what a re-run converts to anywhere else', () => {
+          const fa = glyph(['fas', 'fa-user']);
+          const usual =
+            'bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run';
+          expect(todo('icon', fa)).toBe(
+            `${usual}, and this converts to \`Icon\` with \`library="fa" name="user"\``
+          );
+          // A link or button whose label can't be told from here.
+          expect(todo('icon', fa, { clickableAround: { tag: 'a' } })).toBe(
+            `${usual}, and this converts to \`Icon\` with \`library="fa" name="user"\``
+          );
+          // An <i> it reads no glyph from: no promise.
+          expect(
+            todo('icon', glyph(['fas', 'fa-user'], { id: 'x' }), {
+              clickableAround: { tag: 'a', label: 'none' },
+            })
+          ).toBe(usual);
+        });
+      });
+    });
+
     describe('.icon with a name', () => {
       const i = {
         tag: 'i',

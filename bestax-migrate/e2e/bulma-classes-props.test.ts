@@ -17,6 +17,7 @@ import {
   WRAPPERS,
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
+import { glyphProps } from '../src/sources/bulma-classes/glyph.js';
 import { plan, type ChildFacts } from '../src/sources/bulma-classes/plan.js';
 import { fileChildren, type FileTree } from './support/file-tree.js';
 import {
@@ -129,13 +130,15 @@ function converted(
           isEmpty: true,
         },
       }),
-    // One that needs element children holds one.
+    // One that needs element children holds one: an <i>, with the classes
+    // given for a glyph.
     ...(root?.status === 'mapped' &&
       root.needsElementChildren &&
       !absorbs && {
         soleChild: {
           tag: 'i',
-          attributes: new Map(),
+          ...(child && child.tokens.length > 0 && { tokens: child.tokens }),
+          attributes: new Map(child?.attributes ?? []),
           hasSpread: false,
           isEmpty: true,
         },
@@ -188,6 +191,14 @@ function converted(
       ]),
   ];
   const attrs = [
+    // A glyph the target renders from props goes first, as the transform
+    // writes it.
+    ...(conversion.glyph ? glyphProps(conversion.glyph) : []).map(
+      ([name, value]) =>
+        typeof value === 'string'
+          ? jsxAttr(name, value)
+          : `${name}={${JSON.stringify(value)}}`
+    ),
     ...conversion.props.map(([name, value]) =>
       conversion.numbers.includes(name)
         ? `${name}={${Number(value)}}`
@@ -399,6 +410,38 @@ describe('every bulma-classes conversion typechecks', () => {
             icons[2],
             textChild('b'),
           ])
+        );
+      }
+      // The glyph it renders from props: each one, beside each modifier, a
+      // class it keeps, each common attribute and a name.
+      if (entry.readsGlyph) {
+        const hidden: Array<[string, string]> = [['aria-hidden', 'true']];
+        const glyph = (tokens: string[]): Inner => ({ tokens, attributes: [] });
+        for (const tokens of GLYPHS) {
+          add(converted(entry.tag!, [root], hidden, glyph(tokens)));
+        }
+        const home = glyph(['fas', 'fa-home']);
+        for (const token of [
+          ...Object.keys(entry.modifiers ?? {}),
+          'is-left',
+          'has-text-info',
+          'mt-2',
+        ]) {
+          add(converted(entry.tag!, [root, token], hidden, home));
+        }
+        for (const attribute of COMMON) {
+          add(converted(entry.tag!, [root], [...hidden, attribute], home));
+        }
+        add(
+          converted(
+            entry.tag!,
+            [root],
+            [
+              ['aria-label', 'Home'],
+              ['role', 'img'],
+            ],
+            home
+          )
         );
       }
       // The tree it renders from props: the <input>'s attributes it takes as

@@ -1279,6 +1279,187 @@ describe('an element whose component builds its icons from props', () => {
   });
 });
 
+describe('an element whose component renders a glyph from props', () => {
+  const page = (jsx: string) =>
+    `export const A = (on: boolean) => (\n  <div>\n    ${jsx}\n  </div>\n);\n`;
+  const messages = (source: string): string[] => {
+    const todos: TodoEntry[] = [];
+    runTransform(transform, 'case.tsx', source, {
+      add: entry => todos.push(entry),
+    });
+    return todos.map(todo => todo.message);
+  };
+
+  it('writes the glyph first, a list of features as an array, and closes itself', () => {
+    const { output, rules } = migrate(
+      page(
+        '<span id="x" className="icon is-small has-text-info" aria-hidden="true"><i className="fas fa-spinner fa-spin fa-fw"></i></span>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<Icon\n      id="x"\n      library="fa"\n      name="spinner"\n      features={["fa-spin", "fa-fw"]}\n      size="small"\n      textColor="info"\n      aria-hidden="true" />'
+    );
+    expect(output).not.toContain('<i ');
+  });
+
+  it('writes the glyph beside a class joiner it converts', () => {
+    const source = `import clsx from 'clsx';\n${page(
+      '<span className={clsx("icon", on && "is-small")} aria-hidden="true"><i className="far fa-bell"></i></span>'
+    )}`;
+    const { output, rules } = migrate(source);
+    expect(rules).toEqual([]);
+    expect(output).toMatch(
+      /<Icon\s+library="fa"\s+name="bell"\s+variant="regular"\s+className=\{clsx\(on && "is-small"\)\}\s+aria-hidden="true" \/>/
+    );
+  });
+
+  it("moves the <i>'s comments to the name that stays", () => {
+    const { output } = migrate(
+      page(
+        '<span className="icon" aria-hidden="true"><i /* bell */ className="far fa-bell"></i></span>'
+      )
+    );
+    expect(output).toMatch(/<Icon \/\* bell \*\/ library="fa"/);
+  });
+
+  it('takes the <i> with it, so nothing on the <i> converts on its own', () => {
+    // `.button` would make the <i> a `Button`; in the glyph it stays a class.
+    const { output, rules } = migrate(
+      page(
+        '<span className="icon" aria-hidden="true"><i className="fas fa-home button"></i></span>'
+      )
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain('features="button"');
+    expect(output).not.toContain('<Button');
+    expect(migrate(output!).output).toBeNull();
+  });
+
+  it('reads the .control around it and the label of the link or button it sits in', () => {
+    const icon =
+      '<span className="icon"><i className="fab fa-github"></i></span>';
+    const [labelled] = messages(
+      page(`<a href="/gh" aria-label="GitHub">${icon}</a>`)
+    );
+    expect(labelled).toMatch(/sits in an <a> that its `aria-label` names/);
+    const [byText] = messages(
+      page(`<button>${icon}<span>GitHub <b>profile</b></span></button>`)
+    );
+    expect(byText).toMatch(/sits in a <button> that its own text names/);
+    const [nested] = messages(
+      page(`<a href="/gh"><span><span>${icon}</span></span></a>`)
+    );
+    expect(nested).toMatch(/^nothing names the <a> around this `\.icon`/);
+    // Text in another `.icon`, or hidden, names nothing.
+    const [besideIcons] = messages(
+      page(
+        `<a href="/gh">${icon}<span className="icon" aria-hidden="true"><i className="material-icons">home</i></span><span aria-hidden="true">x</span></a>`
+      )
+    );
+    expect(besideIcons).toMatch(/^nothing names the <a>/);
+    // An empty name is none.
+    const [empty] = messages(page(`<a href="/gh" aria-label="">${icon}</a>`));
+    expect(empty).toMatch(/^nothing names the <a>/);
+    const usual = /^bestax `Icon` renders `aria-hidden="true"` when/;
+    for (const unsure of [
+      `<a href="/gh" aria-label={on ? "a" : "b"}>${icon}</a>`,
+      `<a href="/gh" title="GitHub">${icon}</a>`,
+      `<a href="/gh">${icon}{on}</a>`,
+      `<a href="/gh">${icon}<Label /></a>`,
+      `<a href="/gh">${icon}<img src="/x.png" alt="GitHub" /></a>`,
+      `<a href="/gh">${icon}<svg /></a>`,
+      `<a href="/gh">${icon}<span className={on ? "a" : "b"} /></a>`,
+      // A component between could render anything around it.
+      `<a href="/gh"><Wrap>${icon}<b /></Wrap></a>`,
+      // Not in a link or button at all.
+      `<p>${icon}</p>`,
+    ]) {
+      expect(messages(page(unsure))[0]).toMatch(usual);
+    }
+    const [inControl] = messages(
+      page(
+        '<div className="control has-icons-left"><input className="input" /><span className="icon is-left"><i className="fas fa-envelope" aria-hidden="true"></i></span></div>'
+      )
+    );
+    expect(inControl).toMatch(
+      /`iconLeft=\{\{ library: "fa", name: "envelope" \}\}`/
+    );
+  });
+
+  it('reads a bestax component around it as the markup it renders, so a re-run says the same', () => {
+    const icon =
+      '<span className="icon is-left"><i className="fab fa-github"></i></span>';
+    const bestax = (jsx: string) =>
+      `import { Button, Control, Tag } from "@allxsmith/bestax-bulma";\n${page(jsx)}`;
+    const [link] = messages(
+      bestax(`<Button as="a" href="/gh" aria-label="GitHub">${icon}</Button>`)
+    );
+    expect(link).toMatch(/sits in an <a> that its `aria-label` names/);
+    const [button] = messages(
+      bestax(`<Button>${icon}<Tag>GitHub</Tag></Button>`)
+    );
+    expect(button).toMatch(/sits in a <button> that its own text names/);
+    const [control] = messages(
+      bestax(`<Control hasIconsLeft><input />${icon}</Control>`)
+    );
+    expect(control).toMatch(/give that `Control` `iconLeft=\{\{ library: "fa"/);
+    // A flag given as an expression may be off.
+    const [maybe] = messages(
+      bestax(`<Control hasIconsLeft={on}><input />${icon}</Control>`)
+    );
+    expect(maybe).not.toMatch(/Control/);
+    // An `as` given as an expression may be anything.
+    const [unknown] = messages(
+      bestax(
+        `<Button as={on ? "a" : "button"} aria-label="GitHub">${icon}<b /></Button>`
+      )
+    );
+    expect(unknown).toMatch(/^bestax `Icon` renders `aria-hidden="true"` when/);
+  });
+
+  it('reads through what it can, and is unsure of the rest', () => {
+    const icon =
+      '<span className="icon"><i className="fab fa-github"></i></span>';
+    const bestax = (jsx: string) =>
+      `import { Block, ConfigProvider, IconText, Link } from "@allxsmith/bestax-bulma";\n${page(jsx)}`;
+    const first = (source: string) => messages(source)[0];
+    const usual = /^bestax `Icon` renders `aria-hidden="true"` when/;
+    // A bestax wrapper renders its own tag, and one the table gives no tag
+    // renders what it's given.
+    expect(first(bestax(`<Link href="/gh">${icon}GitHub</Link>`))).toMatch(
+      /sits in an <a> that its own text names/
+    );
+    expect(
+      first(
+        bestax(
+          `<a href="/gh"><ConfigProvider>${icon}<b>GitHub</b></ConfigProvider></a>`
+        )
+      )
+    ).toMatch(/sits in an <a> that its own text names/);
+    // Text in a fragment counts; a comment names nothing.
+    expect(first(page(`<a href="/gh">${icon}<>GitHub</></a>`))).toMatch(
+      /its own text names/
+    );
+    expect(first(page(`<a href="/gh">${icon}{/* GitHub */}</a>`))).toMatch(
+      /^nothing names the <a>/
+    );
+    // A bestax component with no flags of its own, around it.
+    expect(first(bestax(`<Block>${icon}<b /></Block>`))).toMatch(usual);
+    // Not inside any element.
+    expect(first(page(`<>${icon}<b /></>`))).toMatch(usual);
+    // What builds its content from props may hold a name it doesn't read.
+    for (const beside of [
+      '<span className="icon-text"><span className="icon" aria-hidden="true"><i className="fas fa-home"></i></span><span>Home</span></span>',
+      '<IconText iconProps={{ name: "home" }} />',
+    ]) {
+      expect(first(bestax(`<a href="/gh">${icon}${beside}</a>`))).toMatch(
+        usual
+      );
+    }
+  });
+});
+
 describe('an element whose component renders its whole tree from props', () => {
   const tree = (
     cta: string,

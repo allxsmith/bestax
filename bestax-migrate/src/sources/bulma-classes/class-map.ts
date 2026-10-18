@@ -275,6 +275,14 @@ export interface RootEntry {
    */
   readonly buildsIcons?: boolean;
   /**
+   * The target renders a glyph from props in place of its children (`Icon`,
+   * from `library` and `name`): when the element's only child is one bare,
+   * empty `<i>` whose classes `glyph.ts` reads, its classes become those
+   * props, the `<i>` goes and the element closes itself. Around anything
+   * else, the target renders its children as given.
+   */
+  readonly readsGlyph?: boolean;
+  /**
    * The target renders the whole `.file` tree from props (`File`): its
    * `<input>`, button text, icons and file name. The element converts only
    * when its tree is exactly that one, and only inside a `Field`, since
@@ -1791,13 +1799,15 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  // With children, `Icon` renders `.icon` around them as given. It hides an
-  // icon with no name, no `role` and no `tabIndex`, and makes one named by
-  // `aria-label` or `aria-labelledby` an image.
+  // `Icon` renders a bare `<i>` from `library` and `name`, and with children,
+  // `.icon` around them as given. It hides an icon with no name, no `role`
+  // and no `tabIndex`, writing `aria-hidden` on the `.icon` and never on the
+  // `<i>`, and makes one named by `aria-label` or `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
     tag: 'span',
+    readsGlyph: true,
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {

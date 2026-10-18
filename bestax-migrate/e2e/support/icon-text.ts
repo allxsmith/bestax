@@ -14,8 +14,9 @@ import {
 export type Attributes = Record<string, string | true>;
 
 /**
- * Glyphs as written: each Font Awesome style, the classes that modify one,
- * and Material Design Icons.
+ * Glyphs as written: each Font Awesome style, short (Font Awesome 5) and
+ * long (6 and 7), Font Awesome 4's `fa`, the classes that modify one, and
+ * Material Design Icons.
  */
 export const GLYPHS: string[][] = [
   ['fas', 'fa-home'],
@@ -25,8 +26,12 @@ export const GLYPHS: string[][] = [
   ['fad', 'fa-bell'],
   ['fat', 'fa-bell'],
   ['fa', 'fa-home'],
+  ['fa', 'fa-lg', 'fa-envelope-o'],
   ['fa-solid', 'fa-house'],
   ['fa-regular', 'fa-bell'],
+  ['fa-brands', 'fa-github', 'fa-lg'],
+  ['fa-sharp', 'fa-solid', 'fa-house'],
+  ['fa-solid', 'fa-house', 'fa-width-auto'],
   ['fas', 'fa-home', 'fa-lg'],
   ['fa-lg', 'fas', 'fa-spinner', 'fa-spin', 'fa-fw'],
   ['fas', 'fa-home', 'my-glyph'],

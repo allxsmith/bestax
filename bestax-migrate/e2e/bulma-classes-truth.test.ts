@@ -29,6 +29,7 @@ import {
   WRAPPER_OWN_PROPS,
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
+import { glyphProps } from '../src/sources/bulma-classes/glyph.js';
 import {
   plan,
   type BuiltIcon,
@@ -172,7 +173,9 @@ function renderBoth(
   );
   const children = VOID.has(facts.tag) ? undefined : 'x';
   const sole = facts.soleChild;
-  const soleChildren = sole && !VOID.has(sole.tag) ? 'x' : undefined;
+  // A glyph is read only off an empty <i>.
+  const soleChildren =
+    sole && !VOID.has(sole.tag) && !result.conversion.glyph ? 'x' : undefined;
   const soleAttributes = Object.fromEntries(sole?.attributes ?? []) as Record<
     string,
     string | true
@@ -261,13 +264,17 @@ function renderBoth(
       : {}),
     ...(icons && builtProps(icons, facts.childElements!)),
     ...(file && fileProps(file, facts.childElements!, numbers)),
+    // A glyph it renders from props, in place of the <i>.
+    ...(result.conversion.glyph &&
+      Object.fromEntries(glyphProps(result.conversion.glyph))),
   };
-  // A target that couldn't absorb the child renders it as given.
+  // A target that couldn't absorb the child renders it as given; one that
+  // renders the children itself is given none.
   const convertedChildren = icons
     ? icons.length === 1
       ? icons[0].text
       : undefined
-    : counted || file
+    : result.conversion.rendersChildren || file
       ? undefined
       : sole
         ? absorbs
@@ -1190,6 +1197,108 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
 );
 
 /**
+ * An element whose target renders a glyph from props, around each glyph it
+ * reads, with each class and attribute it may carry: the markup and the
+ * component given the glyph's props in place of the <i> render the same.
+ * Around an <i> it doesn't read, the <i> stays its child, and that renders
+ * the same too.
+ */
+describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
+  'the glyph `.%s` reads',
+  (root, entry) => {
+    const hidden: Attributes = { 'aria-hidden': 'true' };
+    const glyph = (tokens: string[], attributes: Attributes = {}) => ({
+      ...bare('i'),
+      tokens,
+      attributes: new Map(Object.entries(attributes)),
+    });
+    const render = (
+      label: string,
+      inner: ChildFacts,
+      tokens: string[] = [],
+      attributes: Attributes = hidden
+    ) => {
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root, ...tokens], attributes),
+        soleChild: inner,
+      };
+      const found = renderBoth(facts, attributes);
+      expect({ label, converts: found !== null }).toEqual({
+        label,
+        converts: true,
+      });
+      expect({ label, html: found!.converted }).toEqual({
+        label,
+        html: found!.raw,
+      });
+      return plan(facts).conversion!;
+    };
+    const same = (
+      label: string,
+      tokens: string[],
+      classes: string[] = [],
+      attributes?: Attributes
+    ) => {
+      const conversion = render(label, glyph(tokens), classes, attributes);
+      expect({ label, glyph: conversion.glyph !== undefined }).toEqual({
+        label,
+        glyph: true,
+      });
+    };
+
+    it('renders each glyph the same', () => {
+      for (const tokens of GLYPHS) same(tokens.join(' '), tokens);
+    });
+
+    it('renders each class beside a glyph the same', () => {
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        ...HELPER_TOKENS.keys(),
+        // `Control` puts its icons' sides on them, and an app its own class.
+        'is-left',
+        'is-right',
+        'my-icon',
+      ]) {
+        same(token, ['fas', 'fa-home'], [token]);
+      }
+    });
+
+    it('renders each attribute beside a glyph the same', () => {
+      for (const [label, attributes] of Object.entries({
+        'an id': { ...hidden, id: 'x' },
+        'a title': { ...hidden, title: 'hint' },
+        'a description': { ...hidden, 'aria-describedby': 'y' },
+        'a name': { 'aria-label': 'Home', role: 'img' },
+        'a name by reference': { 'aria-labelledby': 'x', role: 'img' },
+        'an empty name': { 'aria-label': '', ...hidden },
+        'no name but a role of its own': { role: 'note' },
+        'no name but a tabIndex of its own': { tabIndex: '0' },
+      })) {
+        same(label, ['fas', 'fa-home'], [], attributes);
+      }
+    });
+
+    it('keeps an <i> it reads no glyph from as its child, and renders the same', () => {
+      for (const [label, inner] of Object.entries({
+        'hidden itself': glyph(['fas', 'fa-home'], hidden),
+        'with an id': glyph(['fas', 'fa-home'], { id: 'x' }),
+        'naming two glyphs': glyph(['fas', 'fa-home', 'fa-bell']),
+        'in two styles': glyph(['fas', 'far', 'fa-home']),
+        'in two libraries': glyph(['fas', 'mdi', 'fa-home']),
+        'of another font': glyph(['material-icons']),
+        'with no class': bare('i'),
+      })) {
+        const conversion = render(label, inner);
+        expect({ label, glyph: conversion.glyph }).toEqual({
+          label,
+          glyph: undefined,
+        });
+      }
+    });
+  }
+);
+
+/**
  * An element whose target renders its whole tree from props, around each
  * shape of tree it reads, inside a `.field`: the markup and the component
  * given what it builds, inside a `Field`, render the same.
@@ -1772,11 +1881,16 @@ describe('a seeded fuzz through the planner', () => {
       }
       const deduped = [...new Set(tokens)];
       const child = childFor(entry);
-      const both = renderBoth(
-        factsFor(tag, deduped, attributes, child),
-        attributes,
-        child
-      );
+      const facts = factsFor(tag, deduped, attributes, child);
+      // Every other one that renders a glyph holds one it reads, by turns
+      // and with no draw, so the other cases stay as they were.
+      if (entry.readsGlyph && i % 2 === 0) {
+        facts.soleChild = {
+          ...bare('i'),
+          tokens: GLYPHS[(i / 2) % GLYPHS.length],
+        };
+      }
+      const both = renderBoth(facts, attributes, child);
       if (!both) continue;
       conversions += 1;
       expect({
