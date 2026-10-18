@@ -360,10 +360,16 @@ export function searchAll(
       }
     }
     // An export documented with another component (`InputBase`, `Thead`) is a
-    // component a query can name too, with none of the bonus: the component it
-    // is documented with is usually what the query is about.
+    // component a query can name too, with none of the bonus, and below the
+    // component it is documented with whenever the query reaches that one as
+    // well: that component is usually what the query is about, and a sub's
+    // name repeats its words ("navbar with a dropdown menu" is about Navbar,
+    // not NavbarDropdownMenu).
+    const owners = new Map(hits.map(h => [h.name, h.score]));
     for (const [name, entry] of Object.entries(catalog.documentedWith)) {
-      const s = score(`${name} ${entry.purpose}`, name, terms, q);
+      const owner = owners.get(entry.component);
+      const raw = score(`${name} ${entry.purpose}`, name, terms, q);
+      const s = owner === undefined ? raw : Math.min(raw, owner - 1);
       if (s > 0) {
         hits.push({
           kind: 'component',

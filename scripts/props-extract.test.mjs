@@ -19,6 +19,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  barrelExports,
   createProgram,
   extractComponent,
   topLevelInitializers,
@@ -153,6 +154,30 @@ test('props declared inline on the component are read as its props (#1174)', () 
   assert.match(toast.rows[0].description, /shown without a `position`/);
   // It takes nothing else, not even its element's attributes.
   assert.equal(toast.catchAll, null);
+});
+
+test('the barrel exports read every value name, an `export *` one included', () => {
+  const names = barrelExports();
+  // Named outright, and re-exported from a module named after something else.
+  for (const name of ['InputBase', 'Navbar', 'NavbarItem', 'TreeViewItem']) {
+    assert.ok(names.has(name), `${name} is missing`);
+  }
+  // Types are not values.
+  assert.equal(names.has('InputBaseProps'), false);
+});
+
+test('a sub that is a compound itself keeps the name of the constant composing it', () => {
+  const { compoundNames, tables } = extractComponent('Tabs', {
+    markdown: false,
+  });
+  assert.equal(compoundNames.get('Tabs.Content'), 'TabsContent');
+  assert.equal(
+    tables.find(t => t.path === 'Tabs.Content').impl,
+    'TabsContentComponent'
+  );
+  // The root is no sub, and a plain sub has its implementation's name already.
+  assert.equal(compoundNames.has('Tabs'), false);
+  assert.equal(compoundNames.has('Tabs.Tab'), false);
 });
 
 test('a component that names no props type says it takes none', () => {

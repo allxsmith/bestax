@@ -15,9 +15,13 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { mkdtemp, readFile, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import ts from 'typescript';
 
 import { DATA_DIR, loadCatalog, loadComponent } from '../data.js';
 import { createServer } from '../server.js';
+
+/** The repository, which the export sweep reads the library's barrel from. */
+const REPO_ROOT = join(DATA_DIR, '..', '..');
 
 type TextResult = {
   isError?: boolean;
@@ -1754,6 +1758,25 @@ describe('exports documented with another component', () => {
     expect(out).toContain('`get_component({ name: "InputBase" })`');
   });
 
+  it('answers a sub exported by name beside its parent, which no part names', async () => {
+    for (const [name, path] of [
+      ['TreeViewItem', 'TreeView.Item'],
+      ['NavbarItem', 'Navbar.Item'],
+      ['MenuItem', 'Menu.Item'],
+      // A sub that is a compound itself is exported by the constant composing it.
+      ['TabsContent', 'Tabs.Content'],
+    ]) {
+      const res = await call('get_props', { component: name });
+      expect(failed(res)).toBe(false);
+      expect(text(res)).toContain(`### ${path}`);
+    }
+    expect(
+      text(await call('search_bestax', { query: 'TreeViewItem' })).split(
+        '\n'
+      )[2]
+    ).toContain('| component | TreeViewItem | documented with TreeView');
+  });
+
   it("sends a lookup for a base's examples to the component that renders it", async () => {
     const lookup = async (classes: string) =>
       text(await call('lookup_bulma_classes', { classes }));
@@ -1846,7 +1869,57 @@ describe('every component or part name an answer hands out', () => {
     }
     expect(refused).toEqual([]);
   });
+
+  // The names above are the ones today's answers print. An agent learns others from
+  // the docs and from the library's types: `TreeViewItem` beside `TreeView.Item`,
+  // `NavbarItem` beside `Navbar.Item`. So every component the library's barrel
+  // exports has to resolve too, read from the barrel itself rather than the index.
+  it("resolves every component the library's index.ts exports", async () => {
+    const exports = barrelComponents();
+    expect(exports).toEqual(
+      expect.arrayContaining(['TreeViewItem', 'NavbarItem', 'MenuItem'])
+    );
+    const refused: string[] = [];
+    for (const name of exports) {
+      if (failed(await call('get_props', { component: name }))) {
+        refused.push(name);
+      }
+    }
+    expect(refused).toEqual([]);
+  });
 });
+
+/**
+ * Every capitalised value `bulma-ui/src/index.ts` exports, `export *` ones
+ * included, read with TypeScript's binder the way a consumer's import sees them.
+ */
+function barrelComponents(): string[] {
+  const index = join(REPO_ROOT, 'bulma-ui', 'src', 'index.ts');
+  const program = ts.createProgram([index], {
+    module: ts.ModuleKind.ESNext,
+    moduleResolution: ts.ModuleResolutionKind.Bundler,
+    jsx: ts.JsxEmit.ReactJSX,
+    noEmit: true,
+    skipLibCheck: true,
+    types: [],
+  });
+  const checker = program.getTypeChecker();
+  const source = program.getSourceFile(index);
+  const barrel = source && checker.getSymbolAtLocation(source);
+  if (!barrel) throw new Error(`cannot read the exports of ${index}`);
+  return checker
+    .getExportsOfModule(barrel)
+    .filter(symbol => {
+      const target =
+        symbol.flags & ts.SymbolFlags.Alias
+          ? checker.getAliasedSymbol(symbol)
+          : symbol;
+      return Boolean(target.flags & ts.SymbolFlags.Value);
+    })
+    .map(symbol => String(symbol.escapedName))
+    .filter(name => /^[A-Z]/.test(name))
+    .sort();
+}
 
 // The three kinds of class no Bulma v1 rule matches each need their own advice, and
 // they used to share "not a Bulma class bestax has a prop for" (#1174).

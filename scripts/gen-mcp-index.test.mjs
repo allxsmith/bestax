@@ -34,6 +34,7 @@ import {
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
+import { barrelExports } from './lib/props-extract.mjs';
 import { failureText, skillRefusal, skillSlug } from './lib/skills.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -924,6 +925,20 @@ test('every export documented with a component is found by its name', () => {
     [documentedWith.DropdownItem.component, documentedWith.DropdownItem.path],
     ['Dropdown', 'Dropdown.Item']
   );
+  // So is one declared beside its parent, which no part names, and one that
+  // is a compound itself, by the constant composing it.
+  for (const [name, component, path] of [
+    ['TreeViewItem', 'TreeView', 'TreeView.Item'],
+    ['NavbarItem', 'Navbar', 'Navbar.Item'],
+    ['MenuItem', 'Menu', 'Menu.Item'],
+    ['TabsContent', 'Tabs', 'Tabs.Content'],
+  ]) {
+    assert.deepEqual(
+      [documentedWith[name]?.component, documentedWith[name]?.path],
+      [component, path],
+      name
+    );
+  }
   const titles = new Set(catalog.components.map(c => c.name));
   for (const [name, { component, path }] of Object.entries(documentedWith)) {
     assert.ok(!titles.has(name), `${name} has a catalog entry of its own`);
@@ -937,6 +952,20 @@ test('every export documented with a component is found by its name', () => {
     [...keys].sort((a, b) => (a < b ? -1 : 1)),
     keys
   );
+});
+
+test('every component the barrel exports is a catalog entry or documented with one', () => {
+  // In any letter case, as the server resolves names.
+  const known = new Set(
+    [
+      ...catalog.components.map(c => c.name),
+      ...Object.keys(catalog.documentedWith),
+    ].map(name => name.toLowerCase())
+  );
+  const unanswered = [...barrelExports()].filter(
+    name => /^[A-Z]/.test(name) && !known.has(name.toLowerCase())
+  );
+  assert.deepEqual(unanswered, []);
 });
 
 test('a base its component does not render stops the build', () => {

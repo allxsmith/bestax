@@ -68,6 +68,7 @@ import {
 } from './lib/api-catalog.mjs';
 import { docsRoute } from './lib/docs-url.mjs';
 import {
+  barrelExports,
   exportedModules,
   extractComponent,
   varRootCandidates,
@@ -583,13 +584,16 @@ export function standaloneTables(
 /**
  * Each export with no catalog entry of its own that a record documents, with
  * the record and the part that is its table: the standalone parts above, which
- * keep their `standalone` role, and a sub-component exported standalone too
- * (`Thead`, as `Table.Thead`). A sub that another component borrows
- * (ContextMenu's `DropdownItem`) goes to the one that declares it
- * (`Dropdown.Item`), whose part is the same component. `subs` maps an
- * implementation name to the part that declares it.
+ * keep their `standalone` role, and a sub-component the barrel exports by name
+ * too. That is one declared in a module of its own (`Thead`, as `Table.Thead`),
+ * and one declared beside its parent (`NavbarItem`, as `Navbar.Item`), which no
+ * part names, so only the barrel says it is exported (#1174). A sub that
+ * another component borrows (ContextMenu's `DropdownItem`) goes to the one that
+ * declares it (`Dropdown.Item`), whose part is the same component. `subs` maps
+ * an implementation name to the part that declares it, and `exported` is every
+ * value name the barrel exports.
  */
-export function documentedWith(components, titles, subs) {
+export function documentedWith(components, titles, subs, exported) {
   const out = {};
   const purposeOf = summary =>
     summary ? clipAtWord(firstSentence(summary)) : '';
@@ -617,6 +621,9 @@ export function documentedWith(components, titles, subs) {
       };
       claim(part.component, home.component, home.path);
     }
+  }
+  for (const [impl, home] of subs) {
+    if (exported.has(impl)) claim(impl, home.component, home.path);
   }
   return Object.fromEntries(
     Object.entries(out).sort((a, b) => byCodePoint(a[0], b[0]))
@@ -947,11 +954,15 @@ export async function build() {
         };
       } else {
         // The sub-components this component declares itself, by their
-        // implementation's name, for `documentedWith`.
+        // implementation's name and, for one that is a compound too, the
+        // name of the constant composing it, for `documentedWith`.
         for (const t of info.tables.slice(1)) {
           if (!t.component && t.impl) {
             subs.set(t.impl, { component: name, path: t.path });
           }
+        }
+        for (const [path, constant] of info.compoundNames ?? []) {
+          subs.set(constant, { component: name, path });
         }
         const cssVars = await cssVarsFor(info);
         for (const v of cssVars) (cssVarIndex[v.css] ??= []).push(name);
@@ -1028,7 +1039,7 @@ export async function build() {
         .sort((a, b) => byCodePoint(a[0], b[0]))
         .map(([css, names]) => [css, orderDeclarers(css, names)])
     ),
-    documentedWith: documentedWith(components, titles, subs),
+    documentedWith: documentedWith(components, titles, subs, barrelExports()),
   };
 
   return {

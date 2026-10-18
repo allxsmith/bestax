@@ -81,11 +81,14 @@ the API pages and the skill catalog.
 - **Every name an answer hands out is one the tools answer for.** An export
   with no page of its own is a part of the record that documents it: the bare
   control a convenience component renders (`InputBase` in `Input`), what a page
-  imports beside its component (`CarouselItem` in `Carousel`), and a sub that is
-  exported standalone too (`Thead`, as `Table.Thead`). The catalog's
-  `documentedWith` resolves each name to its part. A sweep in
-  `src/__tests__/server.test.ts` fails on a name from the catalog, a record or
-  `lookup_bulma_classes` that `get_props` refuses (#1150, #1174).
+  imports beside its component (`CarouselItem` in `Carousel`), and a sub the
+  barrel exports by name too, from a module of its own (`Thead`, as
+  `Table.Thead`) or beside its parent (`NavbarItem`, as `Navbar.Item`). The
+  catalog's `documentedWith` resolves each name to its part. A sweep in
+  `src/__tests__/server.test.ts` fails on a name from the catalog, a record,
+  `lookup_bulma_classes` or the library's `index.ts` that `get_props` refuses
+  (#1150, #1174). It reads that barrel from `bulma-ui/src`, so `turbo.json`
+  lists the library's source among this package's test inputs.
 
 ## Dependencies
 

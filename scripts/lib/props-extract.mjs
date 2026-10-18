@@ -187,6 +187,31 @@ function starExportedModule(ts, program, checker, name) {
   return m ? { cat: m[1], mod: m[2] } : null;
 }
 
+/**
+ * Every value name the barrel exports, `export *` ones included, as the checker
+ * reads them. `exportedModules` keys an `export *` by its module, so it knows
+ * `Navbar` and not the `NavbarItem` beside it in the same file.
+ */
+export function barrelExports() {
+  const { ts, program, checker } = createProgram();
+  const index = join(REPO, 'bulma-ui', 'src', 'index.ts').replace(/\\/g, '/');
+  const sf = program.getSourceFiles().find(f => f.fileName === index);
+  const barrel = sf && checker.getSymbolAtLocation(sf);
+  if (!barrel) throw new Error(`cannot read the exports of ${index}`);
+  return new Set(
+    checker
+      .getExportsOfModule(barrel)
+      .filter(symbol => {
+        const target =
+          symbol.flags & ts.SymbolFlags.Alias
+            ? checker.getAliasedSymbol(symbol)
+            : symbol;
+        return Boolean(target.flags & ts.SymbolFlags.Value);
+      })
+      .map(symbol => String(symbol.escapedName))
+  );
+}
+
 function sourceFileFor(program, cat, mod) {
   const want = join(REPO, 'bulma-ui', 'src', cat, `${mod}.tsx`).replace(
     /\\/g,
@@ -1660,9 +1685,14 @@ export function extractComponent(
   // Resolve the root implementation and the compound sub-component tree.
   const rootInit = inits.get(name);
   const paths = [];
+  // A sub that is itself a compound (`Tabs.Content`) is the constant that
+  // composes it (`TabsContent`), while its table is read off that constant's
+  // base (`TabsContentComponent`), so the name it is exported by is kept here.
+  const compoundNames = new Map();
   const visit = (implName, dotPath) => {
     const init = inits.get(implName);
     if (isWithSubComponents(ts, init)) {
+      if (dotPath !== name) compoundNames.set(dotPath, implName);
       const base = init.arguments[0];
       const subs = init.arguments[1];
       if (ts.isIdentifier(base)) visit(base.text, dotPath);
@@ -2044,6 +2074,7 @@ export function extractComponent(
     varPrefix: VAR_PREFIX_OVERRIDES[name] ?? rootClass,
     rootClassCandidates: candidates,
     tables,
+    compoundNames,
     sourceFile: sf.fileName,
   };
 }

@@ -218,6 +218,15 @@ describe('ranking realistic queries', () => {
       detail: expect.stringContaining('documented with Carousel'),
       next: 'get_component({ name: "CarouselItem" })',
     });
+    // A sub whose name repeats the query's words stays below its parent.
+    const names = searchAll('navbar item', catalog, all, skills, ALL).map(
+      h => h.name
+    );
+    expect(names.indexOf('Navbar')).toBeGreaterThanOrEqual(0);
+    expect(names.indexOf('NavbarItem')).toBeGreaterThan(
+      names.indexOf('Navbar')
+    );
+    expect(top('TreeViewItem')).toEqual(['component:TreeViewItem']);
   });
 
   it("leaves a base's props to the component that takes them too", () => {
