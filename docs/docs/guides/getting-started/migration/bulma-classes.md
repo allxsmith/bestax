@@ -205,6 +205,119 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
    `no-bulma-component-class` rule reports a plain element styled with a Bulma class bestax
    has a component for, which keeps raw Bulma markup from creeping back in.
 
+## From an HTML page
+
+A lot of Bulma lives in plain HTML: a template, a static site you're moving into React, a
+page someone mocked up. The same source converts those pages too:
+
+```bash
+# One page
+pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
+
+# Every page in a folder
+pnpm dlx bestax-migrate bulma-classes -e html src/pages/
+```
+
+A page you name always converts. A folder walk takes HTML only with `-e html`, because most
+`.html` files in a React project aren't pages to convert (Vite's `index.html`, `public/`), and
+a walk without it lists the Bulma pages it skipped (`html-file:not-included`) so the run doesn't
+look like it did nothing.
+
+### What it writes
+
+Each page becomes a React module beside it: `login/index.html` writes `login/index.tsx`, or
+`.jsx` when the package has no `tsconfig.json` and doesn't depend on TypeScript. The module's
+default export is a component named after the file, or after its folder for an `index.html`,
+with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. This page:
+
+```html
+<section class="hero is-fullheight">
+  <div class="hero-body">
+    <div class="container">
+      <div class="columns is-centered">
+        <div class="column is-4">
+          <div class="box">
+            <h1 class="title has-text-centered">Please log in</h1>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+```
+
+becomes:
+
+```tsx
+import {
+  Box,
+  Column,
+  Columns,
+  Container,
+  Hero,
+  Title,
+} from '@allxsmith/bestax-bulma';
+
+export default function LoginPage() {
+  return (
+    <Hero size="fullheight">
+      <Hero.Body>
+        <Container>
+          <Columns isCentered>
+            <Column size="4">
+              <Box>
+                <Title textAlign="centered">Please log in</Title>
+              </Box>
+            </Column>
+          </Columns>
+        </Container>
+      </Hero.Body>
+    </Hero>
+  );
+}
+```
+
+The page's `<body>` is read the way a browser builds it, written as JSX (`class` as
+`className`, `for` as `htmlFor`, a `style` string as an object, comments as JSX comments), and
+then converted exactly as the same markup written by hand would be, with every rule above. The
+page itself is never changed, and an existing module is never overwritten
+(`html-file:exists`), so running it again changes nothing. A page with no Bulma component class
+writes nothing, and a server template (`{{`, `{%`, `<?php`, `<%`) is refused
+(`html-file:template-syntax`) rather than read as HTML. `--dry` says what it would write, and
+`--print` prints the module.
+
+### What a component can't carry
+
+A component renders into the app's own document, so the page's `<head>` doesn't come with it,
+and neither do its scripts. Each of those becomes a `TODO(bestax-migrate)` line, the ones about
+the whole page above the component and the rest above its `return`, and every report entry
+names the `.html` file and the line it came from:
+
+| Rule                                      | What it covers                                                                                                        | What to do                                                                                             |
+| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `html-head:<tag>`                         | `<title>`, `<meta>`, `<link>`, `<style>`, `<base>`                                                                    | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head           |
+| `html-asset`                              | each stylesheet and script the page loads, Bulma's own included                                                       | Load it once for the app, from its entry or `index.html`; the codemod writes no stylesheet import here |
+| `html-script:<pattern>`                   | inline scripts, which are dropped: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest | Port the code into the component; the TODO names the bestax component for the usual patterns           |
+| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`              | Put them on the app's own `<html>`; `Theme colorMode` writes `data-theme` for you                      |
+| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                        | Port the code into the handler the TODO names (`onClick`)                                              |
+| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React's types don't list, styles React can't apply        | Replace them with current markup, or declare a custom element for TypeScript                           |
+| `html-url:<kind>`                         | `javascript:` URLs, and relative URLs, which resolve against the address a component renders at                       | Move the code into a handler; make the URL absolute from the site root, or import the file             |
+| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                   | Check that part of the page renders as meant                                                           |
+
+The page's `.html` stays as it was, so a dropped script's code is still there to port, and the
+TODO gives its lines. Every rule, with a recipe, is in the skill's
+[unmappables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-migrate/references/bulma-classes/unmappables.md).
+
+### Whitespace
+
+JSX keeps a space only where it's written, so the converter decides which whitespace in the page
+renders and writes `{" "}` where it does. Whitespace beside a block, flex or grid box renders
+nothing and is dropped, which is also what lets a wrapper fold into the component inside it. A
+box's display comes from its tag, its inline `style`, and the display Bulma's own classes give it.
+The limit is the page's own CSS: a class of yours that turns a block into an inline box (or the
+reverse) is something the converter can't see, so check a spot where words now run together or
+gain a space.
+
 ## Coming from a library instead?
 
 If the app imports `react-bulma-components`, `rbx` or `bloomer`, use that source instead:
