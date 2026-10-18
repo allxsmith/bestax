@@ -96,6 +96,7 @@ export const MenuLabel: React.FC<MenuLabelProps> = ({
 
 /**
  * Props for the MenuList component.
+ * @extraProp {React.AriaRole} [role] - Ignored: every level renders `role="list"` in its place, so a menu or tree role can't go here.
  */
 export interface MenuListProps
   extends
@@ -109,6 +110,10 @@ export interface MenuListProps
 
 /**
  * MenuList applies `menu-list` class only at the top level (not for nested lists).
+ *
+ * Every level renders `role="list"`, which Safari needs: WebKit stops
+ * exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset
+ * hides them.
  *
  * @function
  * @param {MenuListProps} props - Props for the MenuList component.
@@ -126,10 +131,13 @@ export const MenuList: React.FC<MenuListProps> = ({
     [usePrefixedClassNames('menu-list')]: level === 0,
   });
 
-  // Increment level for nested MenuLists
+  // Increment level for nested MenuLists. role="list" restates the <ul>'s
+  // own role, for Safari: WebKit stops exposing a list as one once its
+  // markers are hidden, as Bulma's reset hides them, unless the role is set
+  // explicitly. After the spread, so a caller's role can't take it away.
   return (
     <MenuListLevelContext.Provider value={level + 1}>
-      <ul className={ulClass || undefined} {...rest}>
+      <ul className={ulClass || undefined} {...rest} role="list">
         {children}
       </ul>
     </MenuListLevelContext.Provider>

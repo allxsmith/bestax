@@ -1030,6 +1030,25 @@ describe('an element that takes the place of the one around it', () => {
 });
 
 describe('form context', () => {
+  it("writes an input's and a textarea's number attributes as numbers", () => {
+    const { output, rules } = migrate(
+      'export const A = () => (\n  <>\n    <input id="a" className="input" maxLength="40" minLength="2" />\n    <textarea id="b" className="textarea" rows="4" cols="20" maxLength="500" />\n  </>\n);\n'
+    );
+    expect(rules).toEqual([]);
+    expect(output).toContain(
+      '<InputBase id="a" maxLength={40} minLength={2} />'
+    );
+    expect(output).toContain(
+      '<TextAreaBase id="b" rows={4} cols={20} maxLength={500} />'
+    );
+    // One that isn't a number spelled the way it renders stays markup.
+    expect(
+      migrate(
+        'export const A = () => <textarea id="c" className="textarea" rows="04" />;\n'
+      ).rules
+    ).toEqual(['attr:rows']);
+  });
+
   it('keeps a field or control around a bestax form control as markup', () => {
     const { output, rules } = migrate(
       'import { Input } from "@allxsmith/bestax-bulma";\nexport const A = () => (\n  <div className="field">\n    <div className="control">\n      <Input />\n    </div>\n  </div>\n);\n'

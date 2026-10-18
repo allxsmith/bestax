@@ -36,9 +36,10 @@ color. Rename or drop the attribute, then re-run.
 
 It also covers an attribute the component's props type rejects. `Delete` takes no `type`
 (`type="button"` is the one value that converts, because `Delete` renders it anyway), and
-`Progress` types `value` and `max` as numbers, so `value="half"` stays. Every component types
-`tabIndex` as a number too, so `tabIndex="0"` converts as `tabIndex={0}`. A number converts only
-when it is spelled the way it renders (`value="40"`, not `value="040"`).
+`Progress` types `value` and `max` as numbers, so `value="half"` stays. `InputBase` and
+`TextAreaBase` type `maxLength` and `minLength` as numbers, and `TextAreaBase` `rows` and `cols`
+too. Every component types `tabIndex` as a number, so `tabIndex="0"` converts as `tabIndex={0}`.
+A number converts only when it is spelled the way it renders (`value="40"`, not `value="040"`).
 
 `attr:dangerouslySetInnerHTML` is the same kind of refusal: the element sets its own content,
 and some bestax components render content of their own beside `children`, which React
@@ -66,6 +67,11 @@ an item converts only when its attributes already sit that way: an `onClick` on 
 empty one, keeps the item as markup too, and so does an empty `className` on the `<li>`, since
 nothing is left to render its `class=""`. Move the attribute to where `Menu.Item` puts it if
 that's what you want, then re-run.
+
+`attr:role` on a `.menu-list` is a `role` other than `list`. `Menu.List` writes `role="list"` on
+its `<ul>` whatever it's given, for Safari, which stops treating a list as one once its markers are
+hidden, so that role would be lost. Keep the list as markup. One with no `role`, or `role="list"`,
+converts, since that's the role a `<ul>` already has.
 
 `attr:aria-current` is the `<a>`'s `is-active` with no `aria-current` beside it. `Menu.Item`'s
 `active` writes `aria-current="page"` on the `<a>` unless it has one of its own, so the item would
@@ -345,6 +351,210 @@ alone: every other TODO names a React component to use.
 - **`jsx-runtime`**: the file's JSX isn't React's: a `@jsx` pragma or `@jsxImportSource` naming
   another runtime (Preact, Solid), or a package that sets one in its tsconfig or depends on one
   instead of React. bestax-bulma components are React components.
+
+## A page converted from HTML: `html-*`
+
+Run on an HTML page (`bestax-migrate bulma-classes page.html`, or a folder with `-e html`, or
+`-e html,htm` to take `.htm` pages too), the
+codemod writes a module beside the page and runs everything above on it, so a page gets the same
+TODOs its markup would as JSX. What a component can't carry gets an `html-*` rule. TODOs about the
+whole page sit above the component, the rest above its `return`, and each ends with the page and
+the line it came from (`(index.html:42)`). The page itself stays as it was, so the code a TODO
+points at is still there to read. A rule names only a tag, an attribute or a fixed word, never
+anything the page says.
+
+### The page's head: `html-head:<tag>`
+
+A component renders into the `<body>` of the app's own document, so nothing in the page's
+`<head>` comes with it.
+
+- **`html-head:title`**: set the title where the app sets each page's title (its router's or
+  framework's head API). Under React 19 the component can render `<title>` itself and React moves
+  it into the head; React 18 leaves it in the body, so use `document.title` in an effect there.
+- **`html-head:meta`**: `charset` and `viewport` go once in the app's `index.html`. A page's own
+  (a description, Open Graph tags) go where the app sets each page's head.
+- **`html-head:link`**: icons, preconnects and preloads are app-wide, so keep them in
+  `index.html`; a `canonical` is per page.
+- **`html-head:style`**: the `<style>` block was dropped. Move its rules into the app's stylesheet.
+- **`html-head:base`**: `<base href>` changed how the page's relative URLs resolved, and the app
+  has one document for every route. Make those URLs absolute instead (see `html-url:relative`).
+- **`html-head`**: anything else in the head (a `<noscript>`, a `<template>`). Move it into
+  `index.html` if the app needs it.
+
+### Stylesheets and scripts it loads: `html-asset`
+
+Each `<link rel="stylesheet">` and `<script src>`. A component loads neither, so load each one
+once for the whole app, from its entry module or `index.html`.
+
+- **Bulma's own stylesheet** keeps the classes styled. The codemod writes no import for it.
+  Under the default `--css keep`, keep loading Bulma (`import 'bulma/css/bulma.min.css'` in the
+  entry, with `bulma` installed, or the CDN `<link>` in `index.html`). Under `--css bestax`, import
+  `@allxsmith/bestax-bulma/bestax.css` instead, and under `--css bulma`, Bulma's stylesheet and
+  `@allxsmith/bestax-bulma/extras.css`. `bestax.css` builds Bulma with bestax's own primary, so a
+  page made for stock Bulma changes color under `--css bestax`; to keep it, set the
+  `--bulma-primary-*` variables as [css-migration.md](../css-migration.md) says, or use
+  `--css bulma`.
+- **An icon font** (Font Awesome): keep loading it. bestax's `Icon` writes the font's classes and
+  loads no font of its own.
+- **Web fonts and the site's own CSS**: load them once, the same way.
+- **A script**: the component runs none. Load a library the app still needs in `index.html` (or
+  install it), and replace what the page's own scripts did with React code; `html-script:<pattern>`
+  names the usual ones.
+
+### Inline scripts: `html-script:<pattern>`
+
+Every inline `<script>` is dropped, and its TODO gives the lines in the page where its code still
+is. One that does something bestax has a component for gets that pattern's rule, and a script
+can get more than one:
+
+- **`html-script:burger`** toggles the navbar burger. Keep the open state in `useState` and pass
+  it to `Navbar.Burger` and `Navbar.Menu` (the `family:navbar-burger` TODO on the burger says
+  why the markup stays):
+
+  ```tsx
+  function SiteNavbar() {
+    const [open, setOpen] = useState(false);
+    return (
+      <Navbar role="navigation" aria-label="main navigation">
+        <Navbar.Brand>
+          <Navbar.Item href="/">Home</Navbar.Item>
+          <Navbar.Burger
+            active={open}
+            onClick={() => setOpen(!open)}
+            aria-label="menu"
+          />
+        </Navbar.Brand>
+        <Navbar.Menu active={open}>
+          <Navbar.Start>
+            <Navbar.Item href="/docs">Docs</Navbar.Item>
+          </Navbar.Start>
+        </Navbar.Menu>
+      </Navbar>
+    );
+  }
+  ```
+
+- **`html-script:modal`** opens or closes a modal. `Modal` shows while `active` is true and calls
+  `onClose` from its background, its close button and Escape, so keep the open state in
+  `useState` (the `family:modal` TODO covers rebuilding the markup).
+- **`html-script:dismiss`** removes an element when its `.delete` is clicked. `Notification`
+  takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`; render
+  the element only while it's in state.
+- **`html-script:carousel`** drives a carousel. `Carousel` takes its slides as `CarouselItem`
+  children and renders its own arrows and indicators (`autoplay` for a timed one). Its styles ship
+  in bestax's `extras.css` and `bestax.css`, not in Bulma's stylesheet.
+- **`html-script:theme`** switches Bulma's light and dark schemes. `Theme` writes `data-theme` on
+  `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state and
+  pass it.
+- **`html-script:json-ld`** is structured data for search engines. Render it where the app sets
+  each page's head, as
+  `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
+- **`html-script`**: any other inline script, or a `<script type>` that isn't code (a template,
+  JSON data). Port what it does into the component as state, effects and event handlers.
+
+### `<html>` and `<body>`: `html-document:<name>`
+
+The app's document has its own `<html>` and `<body>`, which a component can't reach.
+
+- **`html-document:has-navbar-fixed-top`**, and the same for `has-navbar-fixed-bottom`,
+  `has-navbar-fixed-top-desktop`, `has-navbar-fixed-top-touch`, `has-navbar-fixed-bottom-desktop`,
+  `has-navbar-fixed-bottom-touch`, `has-spaced-navbar-fixed-top` and
+  `has-spaced-navbar-fixed-bottom` (`html-document:has-navbar-fixed-bottom` and so on): Bulma
+  pads the page for a fixed navbar from it. Put the class on the `<html>` in `index.html`, since
+  bestax's `Navbar` adds none there, whatever its `fixed` says.
+- **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
+  the page's color scheme. Put it on the `<html>` in `index.html`, or render
+  `<Theme colorMode="dark">`, which writes `data-theme` on `<html>`.
+- **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
+- **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
+  app's own `<body>` (or `<html>`), or on an element around the page's content if the styles
+  allow it.
+- **`html-document:id`**, **`html-document:style`**, **`html-document`**: any other attribute
+  there, which moves the same way.
+
+### Event handlers: `html-event:<attribute>`
+
+An `onclick="…"` and its kind, on any element or on `<body>` (`onload`). React takes a function,
+not code in a string, so the attribute was dropped; the TODO quotes the code and names the prop
+that takes it (`onClick`). Port the code into a handler, reading the element from the event rather
+than `this`. A `<body onload>` becomes an effect.
+
+### Elements: `html-element:<kind>`
+
+- **`html-element:custom`**: a custom element (`<my-widget>`) renders as written, but the script
+  that defines it isn't loaded by the module: import its definition in the app. A TypeScript
+  build also needs the tag declared in `JSX.IntrinsicElements`.
+- **`html-element:obsolete`**: `<center>`, `<font>`, `<marquee>` and their kind still render, but
+  React's types list few of them. Replace each with current markup (`has-text-centered` for
+  `<center>`, a class for `<font>`).
+- **`html-element:unknown`**: a tag that isn't HTML renders as an unknown inline element, and
+  TypeScript rejects it. Replace it with the element it stands for.
+- **`html-element:template`**: `<template>` holds markup for a script to clone. Render that
+  markup from the component where the script used it.
+- **`html-element:name`**: a tag JSX can't write (`<o:p>`, from Word), so its children were
+  written in its place. Put back the element it stood for, if it mattered.
+- **`html-element:conditional-comment`**: an Internet Explorer conditional comment was dropped;
+  no browser React supports reads one.
+
+### URLs: `html-url:<kind>`
+
+- **`html-url:javascript`**: a `javascript:` URL won't run (React 19 replaces it with one that
+  throws, and React 18 warns). Move the code into an `onClick` handler.
+- **`html-url:relative`**: `img/logo.png` resolved against the page's folder, and in the app it
+  resolves against the address the component renders at. The file is there beside the page, so
+  copy it into the app's `public/` folder and point at it from the site root (`/img/logo.png`), or
+  import it. A link to another page beside this one should point at the route that page becomes.
+  Each relative URL in a `srcset` is its own entry, quoted as itself (`` `hero@2x.png` in `srcset` ``).
+  Several of these share one TODO line, and each is its own report entry.
+- **`html-url:missing`**: a relative URL whose target isn't beside the page, read the way the
+  browser read it, so it was a dead link or a missing file already. Point it somewhere real, or
+  drop it.
+
+### Attributes: `html-attr:<kind>`
+
+- **`html-attr:name`**: an attribute JSX can't write (`@click`, `:class`, `x-on:click`), or one the
+  element already had under another spelling, was left out. A framework's directive is code to port
+  into the component.
+- **`html-attr:unknown`**: an attribute React has no prop for by that name, written as it was.
+  React renders it. Whether a TypeScript build takes it depends on the element (React's types
+  list `valign` on a `<td>` and not on a `<th>`), so the TODO doesn't say; what to do depends on
+  the attribute, and the TODO says which:
+  - React's own prop in the wrong case (`defaultvalue`, `defaultchecked`), which the page never
+    read since it isn't HTML: rename it to the prop (`defaultValue`), or drop it if it isn't
+    meant.
+  - An obsolete presentational attribute (`valign`, `bgcolor`, `nowrap`), which CSS replaced:
+    write it as CSS or a class.
+  - Anything else: drop it if nothing reads it, make it a `data-` attribute if a script of the
+    page's reads it, and if React's types don't list it on that element, declare it for a
+    TypeScript build.
+- **`html-attr:style`**: a `style` declaration a browser can't read (`*zoom: 1`) was left out, as a
+  browser leaves it out. Delete it, or rewrite it if it meant something.
+- **`html-attr:important`**: React sets a style without a priority, so the declaration is written
+  without its `!important`. If a stylesheet rule beats it now, move it into a class in the app's
+  stylesheet.
+
+### Parse errors: `html-parse:<code>`
+
+The HTML has an error the browser repaired (`html-parse:duplicate-attribute`,
+`html-parse:end-tag-without-matching-open-element`), reported once for each kind, with how many
+more there are. The module follows the DOM the browser builds from it, which may not be what the
+markup meant, so check that part of the page. A code too long for a rule id is reported as the bare
+`html-parse`.
+
+### The page itself: `html-file:<case>`
+
+- **`html-file:exists`**: the module beside the page is already there, and the codemod never
+  writes over a file. That makes a second run change nothing. Move or delete the module to convert
+  the page again.
+- **`html-file:not-included`**: a folder walk found the page, and it has Bulma classes, but a walk
+  takes a page only when `--extensions` lists its extension, since most `.html` files in a React
+  project aren't pages to convert (Vite's `index.html`, `public/`). `-e` matches an extension
+  exactly, as it does for every file, so `-e html` takes no `.htm` page; the TODO names the one
+  the page needs. Name the page, or add its extension to `--extensions` (`-e html,htm` for both).
+- **`html-file:template-syntax`**: the page is a server template (`{{`, `{%`, `<?php`, `<%`), which
+  isn't HTML a browser reads as written. Convert the HTML it renders, or the template by hand.
+
+A page with no Bulma component class writes nothing and reports nothing.
 
 ## Things that get no TODO
 

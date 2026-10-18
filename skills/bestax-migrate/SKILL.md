@@ -1,6 +1,6 @@
 ---
 name: bestax-migrate
-description: Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className="button is-primary") or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.
+description: Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className="button is-primary") or in static HTML pages and templates styled with Bulma, or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when static HTML pages or templates styled with Bulma should become React components, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.
 license: MIT
 ---
 
@@ -21,6 +21,7 @@ The codemod's first argument names the library you are migrating _from_. Check t
 | `rbx` v2 (abandoned 2019, pins Bulma **0.7.5** plus four extensions)             | `rbx`                    | [`references/rbx/`](references/rbx/component-map.md)                                       |
 | `bloomer` 0.6 (archived 2018, Bulma 0.6 era, React 16 + `create-react-class`)    | `bloomer`                | [`references/bloomer/`](references/bloomer/component-map.md)                               |
 | Raw Bulma classes on plain JSX (`<div className="box">`), no React Bulma library | `bulma-classes`          | [`references/bulma-classes/`](references/bulma-classes/component-map.md)                   |
+| Static HTML pages or templates styled with Bulma (`<div class="box">`)           | `bulma-classes`          | [`references/bulma-classes/`](references/bulma-classes/unmappables.md)                     |
 
 Everything below is written as `<source>`; substitute the argument from that table. The
 reference paths follow the same split — `references/<source>/component-map.md`,
@@ -37,6 +38,23 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    ```sh
    pnpm dlx bestax-migrate <source> src/ --dry
    ```
+
+   For HTML pages, name a page, or walk a folder with `-e html` (`-e html,htm` for `.htm` pages
+   too; a plain walk skips them,
+   since most of it in a React project isn't a page to convert, and reports the Bulma pages it
+   skipped as `html-file:not-included`):
+
+   ```sh
+   pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
+   pnpm dlx bestax-migrate bulma-classes -e html src/pages/ --dry
+   ```
+
+   Each page becomes a module beside it (`index.tsx`, or `.jsx` when the package isn't
+   TypeScript) whose default export is `<Name>Page`, named from the file (its folder's for an
+   `index.html`). The page stays as it was, and the codemod never writes over a module that's
+   already there, so a re-run writes nothing. Its head, its `<html>` and `<body>` attributes and
+   its scripts become `html-*` TODOs: put the app-wide parts in the app's `index.html` and
+   entry, and port each script's work into the component.
 
 2. **Apply it** (same command without `--dry`), then run the project's formatter — the
    codemod preserves surrounding formatting but doesn't prettify what it rewrites.
@@ -121,7 +139,9 @@ code per the references, or deliberately keep the old markup with `className` st
   App Router may render as server components are left alone (`rsc`), and the manifest gains
   `@allxsmith/bestax-bulma` while the app's Bulma and stylesheets stay (the default
   `--css keep`). Its rules are `kind:<name>` shaped; see
-  `references/bulma-classes/unmappables.md`.
+  `references/bulma-classes/unmappables.md`. An HTML page converts the same way once it is JSX,
+  and what a component can't carry (the head, scripts, inline handlers, `<html>` and `<body>`
+  classes such as `has-navbar-fixed-top`) gets an `html-*` rule with its recipe there.
 - **bloomer**: every export is a flat name and most become dotted bestax compounds
   (`CardHeaderTitle` → `Card.Header.Title`). Most of its `is*` booleans already are bestax's
   (`isActive` becomes `active` where bestax names it so; `isFullWidth` becomes `isFullwidth`

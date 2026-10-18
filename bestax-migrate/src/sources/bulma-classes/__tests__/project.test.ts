@@ -6,7 +6,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { analyzeProject, runtimeOf } from '../project.js';
+import { analyzeProject, runtimeOf, writesTypeScript } from '../project.js';
 
 const dirs: string[] = [];
 afterAll(() => {
@@ -107,5 +107,41 @@ describe('analyzeProject', () => {
     expect(analyzeProject([dir]).jsxRuntimes).toEqual([
       { dir, runtime: 'preact' },
     ]);
+  });
+});
+
+describe('writesTypeScript', () => {
+  const manifest = (body: object) => JSON.stringify({ name: 'p', ...body });
+
+  it('says yes for a package with a tsconfig, or that depends on typescript', () => {
+    const configured = pkg({
+      'package.json': manifest({}),
+      'tsconfig.json': '{}',
+    });
+    const depending = pkg({
+      'package.json': manifest({ devDependencies: { typescript: '^5.0.0' } }),
+    });
+    for (const dir of [configured, depending]) {
+      const { packageLanguages } = analyzeProject([dir]);
+      expect(
+        writesTypeScript(path.join(dir, 'pages', 'a.html'), packageLanguages)
+      ).toBe(true);
+    }
+  });
+
+  it('follows the innermost package, and says no when nothing says TypeScript', () => {
+    const dir = pkg({
+      'package.json': manifest({ devDependencies: { typescript: '^5.0.0' } }),
+      'site/package.json': manifest({}),
+    });
+    const { packageLanguages } = analyzeProject([dir]);
+    expect(writesTypeScript(path.join(dir, 'a.html'), packageLanguages)).toBe(
+      true
+    );
+    expect(
+      writesTypeScript(path.join(dir, 'site', 'a.html'), packageLanguages)
+    ).toBe(false);
+    expect(writesTypeScript(path.join(dir, 'a.html'), undefined)).toBe(false);
+    expect(writesTypeScript(path.join(os.tmpdir(), 'x.html'), [])).toBe(false);
   });
 });

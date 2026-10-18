@@ -55,6 +55,10 @@ names and counts. The `bulma-classes` source reads your own class strings, so
 its rule names are built only from Bulma's class names, bestax's component and
 prop names, and a fixed set of attribute names (`family:card`, `tag:Section`,
 `attr:dangerouslySetInnerHTML`); a class your app defines never appears in one.
+The rules for an HTML page it converts are built the same way, from fixed names
+only: a tag or an event attribute the HTML spec defines, a parse error's code,
+or a word of the codemod's own (`html-head:title`, `html-event:onclick`,
+`html-url:relative`). A page's URLs, titles, text and code never appear in one.
 
 ## What we never collect
 

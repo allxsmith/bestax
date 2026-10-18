@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Acme &mdash; Ship faster</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css">
+</head>
+<body>
+  <nav class="navbar is-white" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">
+        <img src="/logo.png" width="112" height="28" alt="Acme">
+      </a>
+    </div>
+    <div class="navbar-menu">
+      <div class="navbar-start">
+        <a class="navbar-item is-active" href="/">Home</a>
+        <a class="navbar-item" href="/pricing">Pricing</a>
+      </div>
+      <div class="navbar-end">
+        <div class="navbar-item">
+          <div class="buttons">
+            <a class="button is-primary" href="/signup"><strong>Sign up</strong></a>
+            <a class="button is-light" href="/login">Log in</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main id="content" tabindex="-1">
+    <section class="hero is-primary is-medium">
+      <div class="hero-body">
+        <div class="container has-text-centered">
+          <h1 class="title is-1">Ship faster</h1>
+          <p class="subtitle">Everything a small team needs, &amp; nothing it doesn't.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <div class="container">
+        <div class="columns is-multiline">
+          <div class="column is-one-third">
+            <div class="box">
+              <span class="icon has-text-primary" aria-hidden="true"><i class="fas fa-bolt"></i></span>
+              <h2 class="title is-4">Fast</h2>
+              <p>Pages load in <em>milliseconds</em>, on every device.</p>
+            </div>
+          </div>
+          <div class="column is-one-third">
+            <div class="box">
+              <h2 class="title is-4">Simple</h2>
+              <div class="tags">
+                <span class="tag is-info">No setup</span>
+                <span class="tag is-success is-light">Free tier</span>
+              </div>
+            </div>
+          </div>
+          <div class="column is-one-third">
+            <div class="notification is-warning is-light">
+              Beta: features may change before <strong>1.0</strong>.
+            </div>
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="table is-striped is-fullwidth">
+            <thead>
+              <tr><th>Plan</th><th colspan="2">Price</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Starter</td><td>Free</td><td>forever</td></tr>
+              <tr><td>Team</td><td>$12</td><td>a month</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <form action="/subscribe" method="post">
+          <div class="field">
+            <label class="label" for="email">Email</label>
+            <div class="control">
+              <input class="input" id="email" name="email" type="email" placeholder="you@example.com" maxlength="80" required>
+            </div>
+          </div>
+          <div class="field">
+            <div class="control">
+              <button class="button is-link" type="submit">Subscribe</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="content has-text-centered">
+      <p>&copy; Acme. Built with <a href="https://bulma.io">Bulma</a>.</p>
+    </div>
+  </footer>
+</body>
+</html>

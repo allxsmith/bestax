@@ -81,7 +81,7 @@
     },
     {
       "name": "bestax-migrate",
-      "description": "Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className=\"button is-primary\") or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.",
+      "description": "Migrate an existing React app to @allxsmith/bestax-bulma on Bulma v1, from raw Bulma CSS classes on plain JSX (className=\"button is-primary\") or in static HTML pages and templates styled with Bulma, or from an unmaintained React Bulma library (react-bulma-components v4, rbx v2, bloomer 0.6). Run the bestax-migrate codemod, then resolve every TODO(bestax-migrate) comment it leaves using the per-source mapping references. Use when a React app styles its markup with Bulma classes and wants bestax components instead, when static HTML pages or templates styled with Bulma should become React components, when a repo imports react-bulma-components, rbx or bloomer, when TODO(bestax-migrate) comments are present in a codebase, or when asked to convert Bulma classNames to bestax-bulma.",
       "promptName": "migrate",
       "dir": "bestax-migrate",
       "references": [
@@ -103,7 +103,7 @@
         {
           "id": "bulma-classes-component-map",
           "file": "references/bulma-classes/component-map.md",
-          "bytes": 24905
+          "bytes": 25101
         },
         {
           "id": "bulma-classes-prop-map",
@@ -113,12 +113,12 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 24545
+          "bytes": 37323
         },
         {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 9122
+          "bytes": 9528
         },
         {
           "id": "rbx-component-map",

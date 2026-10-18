@@ -1,0 +1,7 @@
+{
+  "name": "bulma-html-site",
+  "private": true,
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}

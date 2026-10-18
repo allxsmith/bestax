@@ -1,3 +1,42 @@
+## [5.36.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.36.0...@allxsmith/bestax-bulma@5.36.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a .menu-list with a role of its own as markup ([792b8c4](https://github.com/allxsmith/bestax/commit/792b8c484a06cfdf44e051d44820fb130e313444)), closes [#1108](https://github.com/allxsmith/bestax/issues/1108)
+* **bulma-ui:** give Menu's lists role="list", so Safari keeps them lists ([32550c3](https://github.com/allxsmith/bestax/commit/32550c307e60f3b78bf8dad9b00c33af2aa37aaa)), closes [#1095](https://github.com/allxsmith/bestax/issues/1095) [#1108](https://github.com/allxsmith/bestax/issues/1108)
+
+# [5.36.0](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.35.1...@allxsmith/bestax-bulma@5.36.0) (2026-10-18)
+
+
+### Bug Fixes
+
+* **bulma-ui:** add every part of a paste to Taginput in one change ([67f61bc](https://github.com/allxsmith/bestax/commit/67f61bc54787994f4e260424e7a85f72212811a8)), closes [#1101](https://github.com/allxsmith/bestax/issues/1101)
+* **bulma-ui:** count a fractional Timeline active as the item it has reached ([aad1c6a](https://github.com/allxsmith/bestax/commit/aad1c6a8709ae9a50a00e0d22e28d5280203032c)), closes [#1110](https://github.com/allxsmith/bestax/issues/1110)
+* **bulma-ui:** draw Checkbox's and Radio's box under a class prefix ([072c229](https://github.com/allxsmith/bestax/commit/072c229ad46226fee61386dffe484e8cdf10aae2)), closes [#1100](https://github.com/allxsmith/bestax/issues/1100)
+* **bulma-ui:** draw Switch's track under a class prefix ([969954d](https://github.com/allxsmith/bestax/commit/969954d4b53e871164dbfb046e4e6715dd7428cb)), closes [#1100](https://github.com/allxsmith/bestax/issues/1100) [#1100](https://github.com/allxsmith/bestax/issues/1100)
+* **bulma-ui:** fill Timeline's rings and loader from --bulma-timeline-marker-background ([4b250ae](https://github.com/allxsmith/bestax/commit/4b250ae5b5b2c9bc6d4a5a7a16f6e0ef88ce9e33)), closes [#1110](https://github.com/allxsmith/bestax/issues/1110)
+* **bulma-ui:** keep Loading's spinner visible in forced colors ([#1136](https://github.com/allxsmith/bestax/issues/1136)) ([d1ca3c7](https://github.com/allxsmith/bestax/commit/d1ca3c781e86a81dbf35a438ef8fac530cf991dc))
+* **bulma-ui:** keep Taginput's input at the tag limit, read-only ([099b734](https://github.com/allxsmith/bestax/commit/099b7345db3ec5c54ca4afbc8d31cc1063797d40)), closes [#1103](https://github.com/allxsmith/bestax/issues/1103)
+* **bulma-ui:** keep the active Menu item distinct in forced colors ([b1556c5](https://github.com/allxsmith/bestax/commit/b1556c57758229858ff674098e79c3ee1a08acb4)), closes [#1094](https://github.com/allxsmith/bestax/issues/1094)
+* **bulma-ui:** keep the active Menu item's label in line in forced colors ([35b9770](https://github.com/allxsmith/bestax/commit/35b9770c9aae757bd6f362615bdb65f43564d405))
+* **bulma-ui:** leave Taginput's keys to an IME that's composing ([d92ee61](https://github.com/allxsmith/bestax/commit/d92ee61236626e6dfc6a12f33cae186fc7949930)), closes [#1102](https://github.com/allxsmith/bestax/issues/1102)
+* **bulma-ui:** mark the active Menu item with a bar in forced colors, not a fill ([491308e](https://github.com/allxsmith/bestax/commit/491308e550690348d3ebdd0915a6f8dd3ee48965))
+* **bulma-ui:** open Timeline's pending ring on its inline end again ([148352b](https://github.com/allxsmith/bestax/commit/148352bad240442d093a168a226997da2d6f8da3)), closes [#1110](https://github.com/allxsmith/bestax/issues/1110) [#1110](https://github.com/allxsmith/bestax/issues/1110)
+* **bulma-ui:** open Timeline's pending ring on the right, as Bulma's loader does ([071be82](https://github.com/allxsmith/bestax/commit/071be82887b482b340cb2189c33058f0596358ae))
+* **bulma-ui:** split Taginput pastes on a hyphen separator as itself ([457d262](https://github.com/allxsmith/bestax/commit/457d2627d607fbb1a0e543fa5a9111d3a57742a5))
+* **bulma-ui:** turn Timeline's pending ring on keyframes of its own ([af1831e](https://github.com/allxsmith/bestax/commit/af1831ebc9c694c34e2c423eeefa84ed70f35d78)), closes [#1110](https://github.com/allxsmith/bestax/issues/1110)
+
+
+### Features
+
+* **bulma-ui:** add Timeline, a list of events in time order ([2fa8e1b](https://github.com/allxsmith/bestax/commit/2fa8e1bc2b49f1a60734c2835fb54f40660be864)), closes [#1110](https://github.com/allxsmith/bestax/issues/1110)
+* **docs:** add the Login template, ported from aldi's bulma-login-template ([0ddf9fe](https://github.com/allxsmith/bestax/commit/0ddf9fe2014283a9b17b6978987374cc47efbcb4))
+* **docs:** add the Templates page with search and tag filters ([37dd668](https://github.com/allxsmith/bestax/commit/37dd6689fac4bafebe4520143eb155ca5ad78257))
+* **docs:** hold each template to its docs entry and screenshot ([ec70700](https://github.com/allxsmith/bestax/commit/ec707007d65094198765c2b5ecbe4e78a3a915fb)), closes [#1120](https://github.com/allxsmith/bestax/issues/1120)
+* **docs:** list only the other templates under All templates ([fba94ba](https://github.com/allxsmith/bestax/commit/fba94ba045ac03f7d375e84e91af9490c386a4a5))
+* **docs:** open templates in StackBlitz from the bestax-templates mirror ([85a61fd](https://github.com/allxsmith/bestax/commit/85a61fd9cc3f784fbb3ccef0588395270eb6078e))
+
 ## [5.35.1](https://github.com/allxsmith/bestax/compare/@allxsmith/bestax-bulma@5.35.0...@allxsmith/bestax-bulma@5.35.1) (2026-10-17)
 
 
