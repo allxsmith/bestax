@@ -95,8 +95,15 @@ Notes:
 
 - The extras partial name is the component name lowercased (`Dialog` →
   `scss/components/dialog`; `NumberInput` → `scss/form/numberinput`).
-- Extras `Tabs` **extends** stock Bulma tabs (vertical variant) — an app using `Tabs` needs
-  both `bulma/sass/components/tabs` and `@allxsmith/bestax-bulma/scss/components/tabs`.
+- Sass names a `@use` after the last part of its URL and refuses two with the same name in one
+  file. A partial that extends a stock component often shares that name with the component's
+  Bulma module (`components/tabs`, `elements/notification`), so give the bestax line a name of
+  its own with `as`, the way the notes below do:
+  `@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;`. The name changes
+  nothing in the compiled CSS.
+- Extras `Tabs` **extends** stock Bulma tabs (vertical variant), so an app using `Tabs` needs
+  both `@use 'bulma/sass/components/tabs';` and
+  `@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;`.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
@@ -107,17 +114,19 @@ Notes:
 - `Loader` is stock Bulma styled by `bulma/sass/elements/loader`, and the `isLoading`
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce` and keeps each ring open in forced
-  colors (Windows' contrast themes), so include it next to the Bulma modules in any build that
-  shows one. Its rules are `!important`, so the order of the two
+  colors (Windows' contrast themes), so include it (`as bestax-loader`) next to the Bulma
+  modules in any build that shows one. Its rules are `!important`, so the order of the two
   `@use` lines does not matter.
 - `Progress` and the skeletons are stock Bulma too (`bulma/sass/elements/progress`,
-  `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials stop the
-  indeterminate bar's sweep and the skeleton pulse (`Skeleton`, the `skeleton` prop,
-  `hasSkeleton`) under `prefers-reduced-motion: reduce`, the same way and in either order.
+  `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
+  (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
+  skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
+  `prefers-reduced-motion: reduce`, the same way and in either order.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
-  so its text clears the button, so include it next to the Bulma module in any build that shows
-  a dismissible notification. It doesn't depend on the order of the two `@use` lines either.
+  so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
+  module in any build that shows a dismissible notification. It doesn't depend on the order of
+  the two `@use` lines either.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.
@@ -199,7 +208,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
-@use '@allxsmith/bestax-bulma/scss/elements/notification'; // text clears the close button
+@use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```
 
 ```tsx

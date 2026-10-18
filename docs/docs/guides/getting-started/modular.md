@@ -170,7 +170,7 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/sidebar';
 @use '@allxsmith/bestax-bulma/scss/components/toast';
 @use '@allxsmith/bestax-bulma/scss/components/steps';
-@use '@allxsmith/bestax-bulma/scss/components/tabs';
+@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
 @use '@allxsmith/bestax-bulma/scss/components/emptystate';
 @use '@allxsmith/bestax-bulma/scss/components/timeline';
 @use '@allxsmith/bestax-bulma/scss/components/treeview';
@@ -188,15 +188,15 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/kbd';
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
-@use '@allxsmith/bestax-bulma/scss/elements/loader';
-@use '@allxsmith/bestax-bulma/scss/elements/notification';
-@use '@allxsmith/bestax-bulma/scss/elements/progress';
-@use '@allxsmith/bestax-bulma/scss/elements/skeleton';
+@use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;
+@use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification;
+@use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
+@use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 ```
 
-Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too.
+Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
 
 :::info Shortcuts
 
