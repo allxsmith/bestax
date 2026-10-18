@@ -14,7 +14,7 @@
     "typecheck:tests": "turbo run typecheck:tests",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,mjs,md,mdx}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mjs,md,mdx}\"",
-    "lint": "turbo run lint && eslint scripts docs/scripts docs/src/theme/CodeBlock/sandbox",
+    "lint": "turbo run lint && eslint scripts docs/scripts docs/src/theme/CodeBlock/sandbox && eslint --no-error-on-unmatched-pattern \"templates/*/src/**\"",
     "check:conformance": "node scripts/check-conformance.mjs",
     "check:urls": "node scripts/check-pointer-urls.mjs",
     "gen:api-sources": "node scripts/gen-api-sources.mjs",

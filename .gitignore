@@ -169,6 +169,16 @@ test-app-*/
 create-bestax/e2e/test-results/
 create-bestax/e2e/playwright-report/
 
+# What a local install writes into a ported template (templates/CLAUDE.md):
+# its lockfile, and for pnpm a pnpm-workspace.yaml. Ignored here rather than
+# in the template's own .gitignore, which ships to the mirror's users.
+# LOCAL_INSTALL_FILES in scripts/lib/templates.mjs is the list, and the check
+# refuses one that is tracked anyway.
+templates/*/package-lock.json
+templates/*/pnpm-lock.yaml
+templates/*/yarn.lock
+templates/*/pnpm-workspace.yaml
+
 # Written only by the pack-manifest resolver deleted in #436. Kept so a stale
 # backup left on disk by a pre-#436 checkout cannot be committed by a `git add
 # -A` after rebasing. Safe to drop once no working copy predates that change.

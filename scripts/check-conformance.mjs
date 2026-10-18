@@ -773,8 +773,8 @@ async function checkScssConformance() {
         const code = line.replace(/\/\/.*$/, '');
 
         // 2. Top-level class selectors must carry the ConfigProvider prefix.
-        //    (Nested selectors may legitimately target internal structural
-        //    classes or third-party icon classes like `.fa-solid`.)
+        //    Nested ones are bulma-ui's `src/__tests__/scss-prefix.test.ts`,
+        //    which compiles each partial and allows only icon-library classes.
         if (/^\.(?!#\{)[a-zA-Z]/.test(code) && /[,{]\s*$/.test(code)) {
           violations.push(
             `${loc} has an unprefixed top-level class selector — the ` +
