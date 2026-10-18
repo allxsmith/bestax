@@ -83,8 +83,8 @@ is **more complete** than the docs page's Option C example, which omits several)
 `emptystate`, `timeline`, `treeview`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
-`checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
-`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`, `file`
+`checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `combobox`,
+`taginput`, `picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`, `file`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
 `notification`, `progress`, `skeleton`

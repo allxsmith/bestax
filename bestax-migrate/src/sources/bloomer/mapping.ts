@@ -766,7 +766,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   },
 
   // ---- panel --------------------------------------------------------------
-  Panel: { status: 'mapped', target: 'Panel' },
+  Panel: { status: 'mapped', target: 'Panel', props: { tag: TAG_AS } },
   PanelHeading: { status: 'mapped', target: 'Panel.Heading' },
   PanelTabs: { status: 'mapped', target: 'Panel.Tabs' },
   PanelTab: { status: 'mapped', special: 'panel-tab' },
@@ -815,7 +815,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Container: {
     status: 'mapped',
     target: 'Container',
-    props: { hasTextColor: TEXT_COLOR_OK, isFluid: { rename: 'fluid' } },
+    props: {
+      hasTextColor: TEXT_COLOR_OK,
+      isFluid: { rename: 'fluid' },
+      tag: TAG_AS,
+    },
   },
   Footer: {
     status: 'mapped',
@@ -836,12 +840,13 @@ export const MAPPING: Record<string, ComponentMapping> = {
       isFullHeight: { booleanToProp: { name: 'size', value: 'fullheight' } },
       isHalfHeight: { toClass: 'is-halfheight' },
       isBold: { toClass: 'is-bold' },
+      tag: TAG_AS,
     },
   },
   HeroHeader: {
     status: 'mapped',
     target: 'Hero.Head',
-    props: { hasTextColor: TEXT_COLOR_OK },
+    props: { hasTextColor: TEXT_COLOR_OK, tag: TAG_AS },
   },
   HeroBody: {
     status: 'mapped',
@@ -852,7 +857,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   HeroFooter: {
     status: 'mapped',
     target: 'Hero.Foot',
-    props: { hasTextColor: TEXT_COLOR_OK },
+    props: { hasTextColor: TEXT_COLOR_OK, tag: TAG_AS },
   },
 
   // ---- the helper HOC -----------------------------------------------------

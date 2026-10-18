@@ -74,6 +74,8 @@ const NAMED_INDIVIDUALLY = [
 const SUMMARISED_AS_FORM_CONTROLS = [
   'Autocomplete',
   'Checkbox',
+  'Combobox',
+  'ComboboxInput',
   'Control',
   'DateInput',
   'DateInputBase',

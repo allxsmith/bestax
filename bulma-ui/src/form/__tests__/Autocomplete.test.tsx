@@ -621,6 +621,146 @@ describe('Autocomplete', () => {
     });
   });
 
+  // The outside-click listener reads what to select, and the latest
+  // `onSelect`, when a click arrives, so it stays put while the list is
+  // open: arrowing through suggestions, or a parent that renders with an
+  // inline `onSelect`, doesn't take it off and put it back. React can render
+  // between two listeners for one event, and the browser runs neither a
+  // listener taken off mid-event nor one added mid-event (#1186).
+  describe('Click Outside while the list changes', () => {
+    const Page = ({
+      onSelect,
+    }: {
+      onSelect: (item: AutocompleteItem | string | null) => void;
+    }) => (
+      <div>
+        <Autocomplete
+          data={fruits}
+          selectOnClickOutside
+          onSelect={item => onSelect(item)}
+        />
+        <button>Outside</button>
+      </div>
+    );
+
+    const mousedownCalls = (spy: jest.SpyInstance) =>
+      spy.mock.calls.filter(([type]) => type === 'mousedown');
+
+    it('keeps its listener while the user arrows through suggestions and the parent renders', () => {
+      const onSelect = jest.fn();
+      const { rerender } = render(<Page onSelect={onSelect} />);
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+      const addSpy = jest.spyOn(document, 'addEventListener');
+      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      try {
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+        fireEvent.keyDown(input, { key: 'ArrowDown' });
+        rerender(<Page onSelect={onSelect} />);
+        expect(mousedownCalls(addSpy)).toHaveLength(0);
+        expect(mousedownCalls(removeSpy)).toHaveLength(0);
+      } finally {
+        addSpy.mockRestore();
+        removeSpy.mockRestore();
+      }
+    });
+
+    it('selects the suggestion highlighted last, through the onSelect of the latest render', () => {
+      const first = jest.fn();
+      const latest = jest.fn();
+      const { rerender } = render(<Page onSelect={first} />);
+      const input = screen.getByRole('combobox');
+      // Apple, Banana and Date.
+      fireEvent.change(input, { target: { value: 'a' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      rerender(<Page onSelect={latest} />);
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(latest).toHaveBeenCalledWith('Banana');
+      expect(first).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+
+    // Typing leaves the highlight where it was, so a list that narrows or
+    // empties can leave it past the last suggestion. There's nothing there to
+    // select, and the click still closes the dropdown.
+    it.each([
+      ['narrows to before the highlight', 3, 'ap'],
+      ['empties', 1, 'azz'],
+    ])(
+      'selects nothing on a click outside once the list %s, and closes',
+      (_, arrows, typed) => {
+        const onSelect = jest.fn();
+        const onError = jest.fn((e: ErrorEvent) => e.preventDefault());
+        window.addEventListener('error', onError);
+        try {
+          render(
+            <div>
+              <Autocomplete
+                data={fruits}
+                selectOnClickOutside
+                onSelect={onSelect}
+                empty="Nothing matches"
+              />
+              <button>Outside</button>
+            </div>
+          );
+          const input = screen.getByRole('combobox');
+          // Apple, Banana and Date.
+          fireEvent.change(input, { target: { value: 'a' } });
+          for (let i = 0; i < arrows; i += 1) {
+            fireEvent.keyDown(input, { key: 'ArrowDown' });
+          }
+          fireEvent.change(input, { target: { value: typed } });
+
+          fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+          expect(onError).not.toHaveBeenCalled();
+          expect(onSelect).not.toHaveBeenCalled();
+          expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+          expect(screen.queryByText('Nothing matches')).not.toBeInTheDocument();
+        } finally {
+          window.removeEventListener('error', onError);
+        }
+      }
+    );
+
+    // A disabled suggestion can't be picked, so a click outside with one
+    // highlighted only closes the dropdown, as Enter on it does.
+    it('selects nothing on a click outside with a disabled suggestion highlighted', () => {
+      const onSelect = jest.fn();
+      render(
+        <div>
+          <Autocomplete
+            data={[
+              { value: 'banana', label: 'Banana' },
+              { value: 'blueberry', label: 'Blueberry', disabled: true },
+            ]}
+            field="label"
+            selectOnClickOutside
+            onSelect={onSelect}
+          />
+          <button>Outside</button>
+        </div>
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'b' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(screen.getByRole('option', { name: 'Blueberry' })).toHaveClass(
+        'is-active'
+      );
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
+  });
+
   describe('Controlled Value', () => {
     it('uses controlled value', () => {
       render(<Autocomplete data={fruits} value="Test" />);
@@ -1178,6 +1318,41 @@ describe('Autocomplete', () => {
       fireEvent.keyDown(input, { key: 'Escape' });
 
       expect(onActiveChange).toHaveBeenLastCalledWith(false);
+    });
+
+    // It reports the dropdown opening or closing, not the parent rendering
+    // with a new inline callback.
+    it('reports each change once, to the onActiveChange of the latest render', () => {
+      const Page = ({
+        onActiveChange,
+      }: {
+        onActiveChange: (active: boolean) => void;
+      }) => (
+        <Autocomplete
+          data={fruits}
+          onActiveChange={active => onActiveChange(active)}
+        />
+      );
+      const first = jest.fn();
+      const latest = jest.fn();
+      const { rerender } = render(<Page onActiveChange={first} />);
+      // Where it starts, as it mounts.
+      expect(first).toHaveBeenCalledTimes(1);
+      expect(first).toHaveBeenCalledWith(false);
+
+      rerender(<Page onActiveChange={latest} />);
+      rerender(<Page onActiveChange={latest} />);
+      expect(latest).not.toHaveBeenCalled();
+
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(latest).toHaveBeenCalledTimes(1);
+      expect(latest).toHaveBeenLastCalledWith(true);
+
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(latest).toHaveBeenCalledTimes(2);
+      expect(latest).toHaveBeenLastCalledWith(false);
+      expect(first).toHaveBeenCalledTimes(1);
     });
   });
 

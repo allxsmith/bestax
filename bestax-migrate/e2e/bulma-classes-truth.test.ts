@@ -21,6 +21,7 @@ import { fileURLToPath } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
+  inTagSet,
   numberAttrsOf,
   PLACED,
   ROOTS,
@@ -1677,6 +1678,66 @@ describe("the table's claims about the library", () => {
       });
     }
   });
+
+  it('drops an attribute exactly on the tags a dropsAttr row names', () => {
+    // A row mirrors by hand a set bulma-ui derives from React's types (the
+    // anchor's, the label's, the button's), and a missing one is a silent
+    // markup change rather than a refusal: the element converts, and the
+    // component discards the attribute. So every root with rows renders each
+    // attribute those sets hold, on every tag it reaches, and the attribute
+    // must reach the DOM exactly where no row drops it.
+    const VALUES: Record<string, string | true> = {
+      href: '/x',
+      target: '_blank',
+      download: true,
+      hrefLang: 'en',
+      ping: '/p',
+      referrerPolicy: 'no-referrer',
+      media: 'print',
+      type: 'text/html',
+      rel: 'noopener',
+      htmlFor: 'x',
+      form: 'f',
+      formAction: '/submit',
+      formEncType: 'text/plain',
+      formMethod: 'post',
+      formNoValidate: true,
+      formTarget: '_self',
+      name: 'n',
+      value: 'v',
+    };
+    // React writes `htmlFor` as `for` and keeps the rest as spelled
+    // (`hrefLang`), which HTML reads without regard to case.
+    const htmlName = (name: string): string =>
+      name === 'htmlFor' ? 'for' : name;
+    const withRows = mapped.filter(
+      ([root, entry]) => entry.dropsAttr && root !== 'button'
+    );
+    expect(withRows.map(([root]) => root).sort()).toEqual([
+      'card-footer-item',
+      'level-item',
+      'panel-block',
+    ]);
+    for (const [root, entry] of withRows) {
+      for (const tag of tagsFor(entry)) {
+        for (const [name, value] of Object.entries(VALUES)) {
+          const as = tag === entry.tag ? {} : { as: tag };
+          const html = renderElement(entry.target!, { ...as, [name]: value });
+          const open = /^<[a-z]+[^>]*>/.exec(html)?.[0] ?? '';
+          const reaches = new RegExp(`\\s${htmlName(name)}[=\\s>/]`, 'i').test(
+            open
+          );
+          const row = entry.dropsAttr![name];
+          expect({ root, tag, name, reaches }).toEqual({
+            root,
+            tag,
+            name,
+            reaches: !(row && inTagSet(row, tag)),
+          });
+        }
+      }
+    }
+  });
 });
 
 describe('a seeded fuzz through the planner', () => {
@@ -1706,6 +1767,12 @@ describe('a seeded fuzz through the planner', () => {
     ['target', '_blank'],
     ['rel', 'noopener'],
     ['download', true],
+    ['htmlFor', 'remember'],
+    ['form', 'f'],
+    ['hrefLang', 'en'],
+    ['ping', '/p'],
+    ['referrerPolicy', 'no-referrer'],
+    ['media', 'print'],
     ['value', '40'],
     ['tabIndex', '0'],
     ['tabIndex', '-1'],

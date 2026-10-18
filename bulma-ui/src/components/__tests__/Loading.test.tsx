@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { Loading } from '../Loading';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { Loading, LoadingProps } from '../Loading';
+import { inertProps } from '../../helpers/inertProps';
 
 describe('Loading', () => {
   describe('rendering', () => {
@@ -279,6 +281,120 @@ describe('Loading', () => {
         'aria-label',
         'Cancel loading'
       );
+    });
+  });
+
+  describe('what it covers', () => {
+    // jsdom implements neither `inert` nor a tab order, so this applies the
+    // browser's rule itself, as Collapse's tests do: an element inside an
+    // inert subtree can't take focus. Named by label, else by text.
+    const tabStops = () =>
+      Array.from(
+        document.body.querySelectorAll<HTMLElement>(
+          'a[href], button, input, select, textarea, [tabindex]'
+        )
+      )
+        .filter(el => el.tabIndex >= 0 && !el.closest('[inert]'))
+        .map(el => el.getAttribute('aria-label') ?? el.textContent);
+
+    // The issue's reproduction: a control in a container the loading covers,
+    // with something to Tab from before it and to after it.
+    const Orders = (props: LoadingProps) => (
+      <>
+        <a href="#top">Before</a>
+        <div className="orders">
+          <button type="button">Edit order</button>
+          <Loading overlay="opaque" {...props}>
+            Loading orders
+          </Loading>
+        </div>
+        <a href="#next">After</a>
+      </>
+    );
+
+    it('takes the rest of its container out of the tab order', () => {
+      render(<Orders active />);
+      expect(tabStops()).toEqual(['Before', 'After']);
+    });
+
+    it('keeps its cancel button in the tab order', () => {
+      render(<Orders active canCancel />);
+      expect(tabStops()).toEqual(['Before', 'Cancel loading', 'After']);
+    });
+
+    it('with isFullPage, takes the rest of the page out, all but its cancel button', () => {
+      render(<Orders active isFullPage canCancel />);
+      expect(tabStops()).toEqual(['Cancel loading']);
+    });
+
+    it.each([
+      ['in a container', false],
+      ['over the whole page', true],
+    ])(
+      '%s, puts it all back when it goes inactive and on unmount',
+      (_, isFullPage) => {
+        const everything = ['Before', 'Edit order', 'After'];
+        const { rerender, unmount } = render(
+          <Orders active isFullPage={isFullPage} />
+        );
+        expect(tabStops()).not.toContain('Edit order');
+
+        rerender(<Orders active={false} isFullPage={isFullPage} />);
+        expect(tabStops()).toEqual(everything);
+
+        rerender(<Orders active isFullPage={isFullPage} />);
+        expect(tabStops()).not.toContain('Edit order');
+
+        unmount();
+        expect(document.querySelectorAll('[inert]')).toHaveLength(0);
+      }
+    );
+
+    it('leaves content that was inert already inert', () => {
+      const Page = ({ loading }: { loading: boolean }) => (
+        <div>
+          <div {...inertProps(true)}>
+            <button type="button">Archived</button>
+          </div>
+          {loading && <Loading active />}
+        </div>
+      );
+      const { rerender } = render(<Page loading />);
+      const archived = screen.getByText('Archived').parentElement!;
+      expect(archived).toHaveAttribute('inert');
+
+      rerender(<Page loading={false} />);
+      expect(archived).toHaveAttribute('inert');
+    });
+
+    it('gives focus back to a covered control once it goes away', () => {
+      const { rerender } = render(<Orders active={false} />);
+      const edit = screen.getByText('Edit order');
+      edit.focus();
+
+      rerender(<Orders active />);
+      // jsdom leaves focus on an inert element; a browser moves it to <body>.
+      edit.blur();
+      rerender(<Orders active={false} />);
+      expect(edit).toHaveFocus();
+    });
+
+    it('leaves focus it never took alone, as after a click on the overlay', () => {
+      const { rerender } = render(<Orders active={false} canCancel />);
+      const after = screen.getByText('After');
+      after.focus();
+
+      rerender(<Orders active canCancel />);
+      // A mousedown on the overlay, which can't take focus, leaves it on
+      // <body>, and the loading goes away from there.
+      after.blur();
+      rerender(<Orders active={false} canCancel />);
+      expect(document.body).toHaveFocus();
+    });
+
+    it('renders the same markup on the server, with nothing inert', () => {
+      const html = renderToStaticMarkup(<Orders active isFullPage canCancel />);
+      expect(html).not.toContain('inert');
     });
   });
 

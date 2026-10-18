@@ -75,7 +75,9 @@ stock stylesheet.
   but its close button, `pagination` and its list, links and ellipses, `panel` and its
   heading, tabs and blocks, `tabs`, `icon`, `icon-text`, `file` inside a `field`, `delete`, `progress`, `skeleton-block`, `footer` and
   `table` become their bestax components, with their modifier classes as props (`is-primary` →
-  `color="primary"`, `is-half` → `size="half"`).
+  `color="primary"`, `is-half` → `size="half"`). A component whose `as` takes the element's tag
+  converts on it, so `<main className="hero">` becomes `<Hero as="main">` and
+  `<section className="panel">` becomes `<Panel as="section">`.
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`, `is-position-sticky` → `pos="sticky"`), and on
   the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
