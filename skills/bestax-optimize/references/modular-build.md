@@ -98,20 +98,32 @@ Notes:
 - Sass names a `@use` after the last part of its URL and refuses two with the same name in one
   file. A partial that extends a stock component often shares that name with the component's
   Bulma module (`components/tabs`, `elements/notification`), so give the bestax line a name of
-  its own with `as`, the way the notes below do:
-  `@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;`. The name changes
-  nothing in the compiled CSS.
+  its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
 - Extras `Tabs` **extends** stock Bulma tabs (vertical variant), so an app using `Tabs` needs
-  both `@use 'bulma/sass/components/tabs';` and
-  `@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;`.
+  both:
+
+  ```scss
+  @use 'bulma/sass/components/tabs';
+  @use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
+  ```
+
 - The `menu` partial **extends** stock Bulma menu (it keeps the active item marked in forced
   colors, Windows' contrast themes), so an app using `Menu` needs both, in either order:
-  `@use 'bulma/sass/components/menu';` and
-  `@use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;`.
+
+  ```scss
+  @use 'bulma/sass/components/menu';
+  @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
+  ```
+
 - The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
   corners of a boxed `hasName` File with no name to show), so an app using `File` needs both, in
-  either order: `@use 'bulma/sass/form/file';` and
-  `@use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;`.
+  either order:
+
+  ```scss
+  @use 'bulma/sass/form/file';
+  @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
+  ```
+
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
