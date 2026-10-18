@@ -433,6 +433,86 @@ describe('Combobox', () => {
       expect(screen.getByRole('listbox', { name: 'Country' })).toBe(listbox());
     });
 
+    describe("an outer Field's label wired by hand", () => {
+      const Parts = () => (
+        <Combobox defaultOpen>
+          <Combobox.Input id="country" />
+          <Combobox.Menu>
+            <Combobox.List>
+              <Combobox.Item value="ca">Canada</Combobox.Item>
+            </Combobox.List>
+          </Combobox.Menu>
+        </Combobox>
+      );
+
+      it('names the field through its for, and leaves the list its fallback name without an id', () => {
+        render(
+          <Field label="Country" labelProps={{ htmlFor: 'country' }}>
+            <Parts />
+          </Field>
+        );
+        expect(screen.getByRole('combobox', { name: 'Country' })).toBe(field());
+        expect(listbox()).toHaveAttribute('aria-label', 'Suggestions');
+      });
+
+      it.each([
+        ['a plain Field', {}],
+        ['a grouped Field', { grouped: true }],
+      ])('names the list too with an id, in %s', (_, fieldProps) => {
+        render(
+          <Field
+            label="Country"
+            labelProps={{ htmlFor: 'country', id: 'country-label' }}
+            {...fieldProps}
+          >
+            <Parts />
+          </Field>
+        );
+        expect(screen.getByRole('combobox', { name: 'Country' })).toBe(field());
+        expect(listbox()).toHaveAttribute('aria-labelledby', 'country-label');
+      });
+
+      it('names the list with an id given data, whose id is the field', () => {
+        render(
+          <Field
+            label="Country"
+            labelProps={{ htmlFor: 'country', id: 'country-label' }}
+          >
+            <Combobox data={['Canada']} id="country" defaultOpen />
+          </Field>
+        );
+        expect(screen.getByRole('combobox', { name: 'Country' })).toBe(field());
+        expect(listbox()).toHaveAttribute('aria-labelledby', 'country-label');
+      });
+
+      it('names only the field from a label of your own in Field.Label', () => {
+        render(
+          <Field horizontal>
+            <Field.Label>
+              <label htmlFor="country" id="country-label">
+                Country
+              </label>
+            </Field.Label>
+            <Field.Body>
+              <Parts />
+            </Field.Body>
+          </Field>
+        );
+        expect(screen.getByRole('combobox', { name: 'Country' })).toBe(field());
+        expect(listbox()).toHaveAttribute('aria-label', 'Suggestions');
+      });
+    });
+
+    it('is named by an outer Field given data, and names its list after it', () => {
+      render(
+        <Field label="Country">
+          <Combobox data={['Canada']} defaultOpen />
+        </Field>
+      );
+      expect(screen.getByRole('combobox', { name: 'Country' })).toBe(field());
+      expect(screen.getByRole('listbox', { name: 'Country' })).toBe(listbox());
+    });
+
     it('leaves no reference dangling, open or closed', () => {
       const { container } = render(<CountrySelect initialValue="France" />);
       expect(danglingIdRefs(container)).toEqual([]);

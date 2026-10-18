@@ -159,9 +159,9 @@ unmatched `for` out of server-rendered HTML.
 
 A `range` `Slider` points the `for` at its low thumb and starts both thumbs' names with the label
 ("Price range Minimum value"); its `ariaLabel={[low, high]}` replaces those names outright, so
-leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s or
-`Taginput`'s suggestion list point `aria-labelledby` at the label's `id`, which a label wired by
-hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
+leave it off when a label already names the Slider. Those thumbs and an `Autocomplete`'s, a
+`Combobox`'s or a `Taginput`'s list point `aria-labelledby` at the label's `id`, which a label
+wired by hand has only when you pass one, `labelProps={{ htmlFor, id }}`; without it they keep their
 fallback names ("Minimum value"/"Maximum value", "Suggestions"). A `<label htmlFor>` you put in
 `Field.Label` yourself (`references/patterns.md`) names its control through the `for` alone, so
 label a row holding either with the `Field`'s `label` prop. An `aria-label` or `aria-labelledby`
