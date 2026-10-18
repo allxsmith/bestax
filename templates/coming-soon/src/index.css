@@ -1,0 +1,202 @@
+/*
+ * The original's stylesheet, ported. Font Awesome's fonts come from its npm
+ * package (imported in main.tsx), and the Inter font from Google Fonts in
+ * index.html. The page is light only: index.html pins Bulma's light scheme
+ * with data-theme="light", as the original looks the same in either.
+ */
+
+html,
+body {
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: #2d3748;
+}
+
+html {
+  background-color: #c8ccd8;
+  background-image: url('/media/background.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+/*
+ * The original keeps the title on one line at a 2.8rem floor, which is
+ * wider than a phone, so the page scrolls sideways there. Below that floor
+ * the size follows the viewport instead, and wider screens get the
+ * original's sizes.
+ */
+.title.is-1 {
+  font-size: clamp(min(2.8rem, 9.5vw), 5vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: #1a202c;
+  text-shadow: 0 1px 3px rgba(255, 255, 255, 0.5);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+
+p.subtitle {
+  padding-top: 0.5rem;
+  color: #4a5568;
+  font-weight: 300;
+  line-height: 1.8;
+  font-size: 1.05rem;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+a {
+  color: #4a5568;
+  transition: color 0.25s ease;
+}
+
+a:hover {
+  color: #1a202c;
+}
+
+.buttons .button.is-medium {
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.buttons .button.is-medium:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.field .control .input.is-medium {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  color: #1a202c;
+  border-radius: 10px 0 0 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.field .control .input.is-medium::placeholder {
+  color: #a0aec0;
+}
+
+.field .control .input.is-medium:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.field .control .icon {
+  color: #a0aec0;
+}
+
+.button.is-info.is-medium {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: #ffffff;
+  font-weight: 600;
+  border-radius: 0 10px 10px 0;
+  box-shadow: 0 4px 14px rgba(102, 126, 234, 0.35);
+  transition: all 0.3s ease;
+  letter-spacing: 0.02em;
+}
+
+.button.is-info.is-medium:hover {
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+  transform: translateY(-1px);
+}
+
+.footer-text {
+  font-size: 0.85rem;
+  letter-spacing: 0.02em;
+}
+
+.footer-text a {
+  color: rgba(255, 255, 255, 0.85);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+  transition: all 0.25s ease;
+}
+
+.footer-text a:hover {
+  color: #ffffff;
+  text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+}
+
+.heart {
+  font-size: 11px;
+  color: #e53e3e;
+  margin: 0 4px;
+}
+
+.title {
+  opacity: 0;
+  animation: fadeSlideUp 1s 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.area-center {
+  opacity: 0;
+  animation: fadeSlideUp 1s 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.subtitle {
+  opacity: 0;
+  animation: fadeSlideUp 1s 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+form {
+  opacity: 0;
+  animation: fadeSlideUp 1s 1.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .title,
+  .area-center,
+  .subtitle,
+  form {
+    opacity: 1;
+  }
+}
+
+a,
+button,
+input[type='submit'],
+input[type='button'],
+input[type='reset'] {
+  touch-action: manipulation;
+}
+
+:focus-visible {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
