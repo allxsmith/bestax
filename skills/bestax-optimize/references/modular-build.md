@@ -49,6 +49,11 @@ extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Compo
 are pure stock Bulma (Button, Box, Card, Navbar, Modal, Hero, …) have **no** extras partial —
 Bulma's own module is all they need.
 
+Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
+are `bulma/sass/form/input-textarea`, `Checkbox`, `Checkboxes`, `Radio` and `Radios` are
+`bulma/sass/form/checkbox-radio`, and `Field` and `Control` are `bulma/sass/form/tools`.
+`Select` and `File` follow the rule.
+
 Stock Bulma examples:
 
 ```scss
@@ -56,7 +61,7 @@ Stock Bulma examples:
 @use 'bulma/sass/elements/box'; // Box
 @use 'bulma/sass/elements/notification'; // Notification
 @use 'bulma/sass/elements/title'; // Title, SubTitle
-@use 'bulma/sass/form/input'; // Input
+@use 'bulma/sass/form/input-textarea'; // Input, TextArea
 @use 'bulma/sass/form/select'; // Select
 @use 'bulma/sass/components/card'; // Card
 @use 'bulma/sass/components/modal'; // Modal
@@ -74,12 +79,12 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`, `emptystate`,
-`timeline`, `treeview`
+`toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
+`emptystate`, `timeline`, `treeview`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
-`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
+`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`, `file`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
 `notification`, `progress`, `skeleton`
@@ -90,8 +95,35 @@ Notes:
 
 - The extras partial name is the component name lowercased (`Dialog` →
   `scss/components/dialog`; `NumberInput` → `scss/form/numberinput`).
-- Extras `Tabs` **extends** stock Bulma tabs (vertical variant) — an app using `Tabs` needs
-  both `bulma/sass/components/tabs` and `@allxsmith/bestax-bulma/scss/components/tabs`.
+- Sass names a `@use` after the last part of its URL and refuses two with the same name in one
+  file. A partial that extends a stock component often shares that name with the component's
+  Bulma module (`components/tabs`, `elements/notification`), so give the bestax line a name of
+  its own with `as`, the way the notes below do. The name changes nothing in the compiled CSS.
+- Extras `Tabs` **extends** stock Bulma tabs (vertical variant), so an app using `Tabs` needs
+  both:
+
+  ```scss
+  @use 'bulma/sass/components/tabs';
+  @use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
+  ```
+
+- The `menu` partial **extends** stock Bulma menu (it keeps the active item marked in forced
+  colors, Windows' contrast themes), so an app using `Menu` needs both, in either order:
+
+  ```scss
+  @use 'bulma/sass/components/menu';
+  @use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;
+  ```
+
+- The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
+  corners of a boxed `hasName` File with no name to show), so an app using `File` needs both, in
+  either order:
+
+  ```scss
+  @use 'bulma/sass/form/file';
+  @use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;
+  ```
+
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
@@ -103,16 +135,18 @@ Notes:
   spinners on `Button`, `Control` and `Select` are Bulma's too. The `loader` extras partial
   stops all of them under `prefers-reduced-motion: reduce`, keeps each ring open in forced
   colors (Windows' contrast themes), and keeps a loading button's label hidden there, so
-  include it next to the Bulma modules in any build that shows one. Its rules win over
-  Bulma's either way, so the order of the two `@use` lines does not matter.
+  include it (`as bestax-loader`) next to the Bulma modules in any build that shows one. Its
+  rules win over Bulma's either way, so the order of the two `@use` lines does not matter.
 - `Progress` and the skeletons are stock Bulma too (`bulma/sass/elements/progress`,
-  `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials stop the
-  indeterminate bar's sweep and the skeleton pulse (`Skeleton`, the `skeleton` prop,
-  `hasSkeleton`) under `prefers-reduced-motion: reduce`, the same way and in either order.
+  `bulma/sass/base/skeleton`). The `progress` and `skeleton` extras partials
+  (`as bestax-progress`, `as bestax-skeleton`) stop the indeterminate bar's sweep and the
+  skeleton pulse (`Skeleton`, the `skeleton` prop, `hasSkeleton`) under
+  `prefers-reduced-motion: reduce`, the same way and in either order.
 - `Notification` is stock Bulma too (`bulma/sass/elements/notification`). The `notification`
   extras partial pads the end of one with a close button (`hasDelete`, or a `Delete` passed in)
-  so its text clears the button, so include it next to the Bulma module in any build that shows
-  a dismissible notification. It doesn't depend on the order of the two `@use` lines either.
+  so its text clears the button, so include it (`as bestax-notification`) next to the Bulma
+  module in any build that shows a dismissible notification. It doesn't depend on the order of
+  the two `@use` lines either.
 - Stock-Bulma form controls still need their Bulma module (`bulma/sass/form/…`); the extras
   form partials above style only the bestax-specific behavior.
 - Bulma component modules pull their own internal sub-elements — e.g.
@@ -194,7 +228,7 @@ Scaffolded with an icon library, the starter also needs `bulma/sass/elements/ico
 @use 'bulma/sass/helpers/flexbox'; // flexGrow
 @use 'bulma/sass/helpers/typography'; // textAlign
 
-@use '@allxsmith/bestax-bulma/scss/elements/notification'; // text clears the close button
+@use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification; // text clears the close button
 ```
 
 ```tsx

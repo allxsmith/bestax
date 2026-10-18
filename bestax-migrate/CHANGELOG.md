@@ -1,3 +1,19 @@
+# [2.27.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.26.0...bestax-migrate@2.27.0) (2026-10-18)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** answer for every name an answer hands out, and tell non-Bulma classes apart ([#1177](https://github.com/allxsmith/bestax/issues/1177)) ([3a7c1f7](https://github.com/allxsmith/bestax/commit/3a7c1f79b37a1bc930b3baa7528113e77a41dab1))
+* **create-bestax:** accept a path as the project directory ([6460134](https://github.com/allxsmith/bestax/commit/64601341abaca0242fd15e6e47eae63fc4ffb298)), closes [#1154](https://github.com/allxsmith/bestax/issues/1154)
+* **create-bestax:** quote the next-steps cd path for any shell-special character ([880bcf7](https://github.com/allxsmith/bestax/commit/880bcf78fb055f22e529ce1d05c9a2a159377558))
+* **create-bestax:** stop cleanly at a file in the path, and never empty the working directory ([73f06e1](https://github.com/allxsmith/bestax/commit/73f06e188797b67401e50ee355ad03fccffae0da)), closes [#310](https://github.com/allxsmith/bestax/issues/310)
+
+
+### Features
+
+* **bestax-migrate:** carry an HTML page's Bulma stylesheet over and say what each asset is ([#1178](https://github.com/allxsmith/bestax/issues/1178)) ([41fac5d](https://github.com/allxsmith/bestax/commit/41fac5def368f50117e9173a496390cd5ce4823e))
+* **bulma-ui:** add TreeView, a tree of items you browse and pick from ([#1140](https://github.com/allxsmith/bestax/issues/1140)) ([f111c8d](https://github.com/allxsmith/bestax/commit/f111c8da2b4a1cb74da8b2713c5e469c8d51dca3))
+
 # [2.26.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.7...bestax-migrate@2.26.0) (2026-10-18)
 
 
