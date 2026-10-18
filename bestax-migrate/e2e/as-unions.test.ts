@@ -57,7 +57,7 @@ const importRoots = [...new Set(TARGETS.map(t => t.split('.')[0]))].sort();
  * is the stronger check of the two -- `Exact` reads one declaration, this one
  * puts every tag through the component's own call signature.
  */
-const AS_BY_USE = new Set(['Dropdown.Item']);
+const AS_BY_USE = new Set(['Dropdown.Item', 'Panel.Block']);
 
 function buildSource(): string {
   const rows: string[] = [];

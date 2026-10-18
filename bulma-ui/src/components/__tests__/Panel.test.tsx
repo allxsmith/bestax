@@ -232,9 +232,13 @@ describe('Panel.Block', () => {
     expect(block).toHaveAttribute('download', 'f');
   });
 
+  // The types keep each element's own attributes to it, so the tests below
+  // hand the others over through a loose spread, the way a plain-JS caller or
+  // an untyped props bag still can.
   it('drops the label attributes from an <a>', () => {
+    const loose: object = { htmlFor: 'x', form: 'f' };
     render(
-      <Panel.Block htmlFor="x" form="f" data-testid="block">
+      <Panel.Block {...loose} data-testid="block">
         Docs
       </Panel.Block>
     );
@@ -244,16 +248,19 @@ describe('Panel.Block', () => {
   });
 
   it('renders a <div> without the anchor or label attributes', () => {
+    const loose: object = {
+      href: '/docs',
+      target: '_blank',
+      type: 'text/html',
+      htmlFor: 'x',
+      form: 'f',
+    };
     render(
       <Panel.Block
         as="div"
         active
-        href="/docs"
-        target="_blank"
+        {...loose}
         rel="noopener"
-        type="text/html"
-        htmlFor="x"
-        form="f"
         className="custom-block"
         aria-label="Program"
         data-testid="block"
@@ -272,11 +279,12 @@ describe('Panel.Block', () => {
   });
 
   it('renders a <label> with its own attributes but not the anchor ones', () => {
+    const loose: object = { href: '/docs' };
     render(
       <Panel.Block
         as="label"
         htmlFor="remember"
-        href="/docs"
+        {...loose}
         rel="noopener"
         data-testid="block"
       >
