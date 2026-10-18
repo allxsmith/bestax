@@ -91,9 +91,12 @@ fix.
    - bulma-carousel becomes `Carousel`, and jQuery goes away.
    - Bulma 0.x markup moves to v1.
    - bulma-social stays only where bestax has nothing equivalent.
-   - Some classes stay in `className` with no TODO, so look for them too:
+   - Some classes get no TODO, so look for them too:
      - Bulma 0.x's `is-marginless` and `is-paddingless`, which v1 removed, become `m="0"` and
        `p="0"` (`m-0` and `p-0` on a plain element).
+     - v1's `marginless` and `paddingless` still style, but on an element with no component class
+       beside them they keep it from converting at all. Drop the class and convert the element,
+       with `m="0"` or `p="0"` if the spacing matters.
      - An `.image` size class (`is-64x64`) on an element without `.image` sizes nothing, so
        drop it.
      - A second component class on a converted element (`box` on a `Notification`) needs its
@@ -147,10 +150,9 @@ original made for stock Bulma's turquoise sets it back on `:root`:
 
 - `--bulma-primary-h`, `-s` and `-l`, with `--bulma-primary-invert-l` (the bestax-migrate skill's
   `references/css-migration.md` says why the invert goes with them).
-- `--bulma-primary-on-scheme-l`, the shade Bulma keeps for primary text, which bestax's build
-  also fixes for its blue, so the trio alone leaves a shade too light to read. Text the original
-  colors with `has-text-primary` takes that shade with `colorShade="on-scheme"` beside
-  `textColor="primary"`.
+- `--bulma-primary-on-scheme-l`, which bestax's build also fixes for its blue, so the trio alone
+  leaves the on-scheme shade too light to read. Text the original colors with
+  `has-text-primary` takes that shade with `colorShade="on-scheme"` beside `textColor="primary"`.
 
 Copy the values from stock Bulma v1's own `bulma.css` (the `bulma` package's `css/bulma.css`,
 which bulma-ui installs), from the scheme the original is built for, since the on-scheme
@@ -176,7 +178,7 @@ stylesheet:
   `--bulma-label-weight` changes nothing.
 - **On `.box` and `.card`:** the radius and shadow, `--bulma-box-radius` and `--bulma-box-shadow`,
   `--bulma-card-radius` and `--bulma-card-shadow`.
-- **On `.hero`:** a medium hero's side padding, `--bulma-hero-body-padding-medium`.
+- **On `.hero`:** a medium hero's padding, `--bulma-hero-body-padding-medium`.
 - **On `.navbar`:** the burger's color, `--bulma-navbar-burger-color`.
 - **On `.navbar a.navbar-item.is-active`:** v1 fills the active item, and switches the fill on
   at `a.navbar-item.is-active`, so a less specific selector can't take it off. The fill is
