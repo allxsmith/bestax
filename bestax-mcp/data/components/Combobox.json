@@ -195,7 +195,7 @@
           "name": "required",
           "type": "boolean",
           "default": "false",
-          "description": "A value is needed, with `data`. The field is `required` while nothing is picked, so the browser's own check stops the form the way it does for Autocomplete's field, and it's `aria-required` the whole time. The check reads the field's text, which the list closing, Enter's included, puts back to the pick. An `inline` list never closes, so there it's leaving the field that does.",
+          "description": "A value is needed, with `data`. The field is `required` while nothing is picked, so the browser's own check stops the form the way it does for Autocomplete's field, and it's `aria-required` the whole time. The check reads the field's text, which Enter, the list closing or leaving the field puts back to the pick.",
           "required": false,
           "inherited": true,
           "deprecated": false
