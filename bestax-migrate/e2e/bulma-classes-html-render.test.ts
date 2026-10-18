@@ -29,7 +29,11 @@ import {
   pageDisplayOf,
 } from '../src/sources/bulma-classes/html.js';
 import { canonical, dropPreloads } from './support/dom-canonical.js';
-import { loadModules, renderExports } from './support/render-module.js';
+import {
+  loadModules,
+  renderExports,
+  withImplicitListRoles,
+} from './support/render-module.js';
 
 const packageRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -55,8 +59,11 @@ function withoutScripts(parent: ParentNode): void {
   }
 }
 
-function rendered(module: string, document: boolean): string {
-  const markup = renderExports(loadModules({ page: module }).page).default;
+function markupOf(module: string): string {
+  return renderExports(loadModules({ page: module }).page).default;
+}
+
+function canonicalOf(markup: string, document: boolean): string {
   const again = parseHtml(document ? `<!DOCTYPE html><body>${markup}` : markup);
   dropPreloads(again.root);
   return canonical(again.root, pageDisplayOf);
@@ -70,10 +77,16 @@ function threeWays(file: string, source: string) {
     throw new Error(`${file} wrote nothing`);
   }
   const document = parsed.kind === 'document';
+  const before = markupOf(intermediate);
+  const after = markupOf(output);
   return {
     page: canonical(parsed.root, pageDisplayOf),
-    intermediate: rendered(intermediate, document),
-    migrated: rendered(output, document),
+    intermediate: canonicalOf(before, document),
+    // `Menu.List` writes the `role="list"` a `.menu-list` only implies
+    // (#1108), so the migrated page is held to the intermediate one with
+    // that role restated where the migrated list carries it.
+    restated: canonicalOf(withImplicitListRoles(before, after), document),
+    migrated: canonicalOf(after, document),
     output,
   };
 }
@@ -205,24 +218,24 @@ describe('an HTML page renders the same as the module it becomes', () => {
       path.join(fixturesDir, `${name}.input.html`),
       'utf8'
     );
-    const { page, intermediate, migrated } = threeWays(file, source);
+    const { page, intermediate, restated, migrated } = threeWays(file, source);
     expect(page).not.toBe('');
     expect(intermediate).toBe(page);
-    expect(migrated).toBe(intermediate);
+    expect(migrated).toBe(restated);
   });
 
   test.each(sinkPages)('kitchen sink %s', page => {
     const file = path.join(sinkDir, page);
     const ways = threeWays(file, fs.readFileSync(file, 'utf8'));
     expect(ways.intermediate).toBe(ways.page);
-    expect(ways.migrated).toBe(ways.intermediate);
+    expect(ways.migrated).toBe(ways.restated);
   });
 
   test.each(Object.keys(PAGES))('%s', name => {
     const file = path.join(fixturesDir, 'page.html');
     const ways = threeWays(file, PAGES[name]);
     expect(ways.intermediate).toBe(ways.page);
-    expect(ways.migrated).toBe(ways.intermediate);
+    expect(ways.migrated).toBe(ways.restated);
     // The planner converted something, so the second equality says more
     // than the first.
     expect(ways.output).toContain('@allxsmith/bestax-bulma');
