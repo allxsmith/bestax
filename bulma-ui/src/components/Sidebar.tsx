@@ -9,6 +9,11 @@ import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
+import { firstTabStop, wrapTab } from '../helpers/useFocusTrap';
+import {
+  getActiveElementInTree,
+  getDeepestActiveElement,
+} from '../helpers/shadowDom';
 
 /** Position of the sidebar relative to the viewport. */
 export type SidebarPosition = 'left' | 'right';
@@ -22,7 +27,12 @@ export interface SidebarProps
   extends
     Omit<React.HTMLAttributes<HTMLElement>, 'children' | 'color'>,
     BulmaClassesProps {
-  /** Whether the sidebar is open (required). */
+  /**
+   * Whether the sidebar is open (required). Opening moves focus into the
+   * sidebar, to its first tab stop or the sidebar itself. Closing hands focus
+   * back to whatever had it when the sidebar opened, unless focus has already
+   * left the sidebar, as it does for an overlay opened over it.
+   */
   isOpen: boolean;
   /** Callback when sidebar should close. */
   onClose?: () => void;
@@ -34,7 +44,14 @@ export interface SidebarProps
   isFullwidth?: boolean;
   /** Sidebar takes full width (mobile-style). @deprecated Use `isFullwidth` instead — `isFullwidth` wins if both are set. */
   fullWidth?: boolean;
-  /** Show overlay behind sidebar. Default: true. */
+  /**
+   * Show an overlay behind the sidebar, which makes it modal: it gets
+   * `aria-modal="true"`, locks body scroll, and keeps Tab and Shift+Tab
+   * inside it while it is the topmost overlay. A Modal or Dialog opened over
+   * it, even one rendered inside it, holds Tab until it closes. Without an
+   * overlay the sidebar isn't modal, and Tab moves in and out of it freely.
+   * Default: true.
+   */
   overlay?: boolean;
   /** Close sidebar when overlay is clicked. Default: true. */
   overlayClose?: boolean;
@@ -155,29 +172,59 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       return () => window.removeEventListener('keydown', handleKeyDown);
     }, [isOpen, closesOnEscape, handleCloseRef, isTopmost]);
 
+    // Keep Tab inside while there's an overlay, as `Modal` does:
+    // `aria-modal` hides the rest of the page from assistive technology, so
+    // the keyboard order has to agree. Only while it's the topmost overlay,
+    // so a Modal or Dialog opened over the sidebar, even one rendered inside
+    // it, holds Tab instead until it closes. On `window` for the same reason
+    // as Escape: a trap inside, such as a portaled popup's, has had the Tab
+    // first, and one it used is left where it put focus.
+    useEffect(() => {
+      if (!isOpen || !overlay) return undefined;
+
+      const handleKeyDown = (e: KeyboardEvent) => {
+        const node = sidebarRef.current;
+        if (e.key !== 'Tab' || !node || e.defaultPrevented || !isTopmost()) {
+          return;
+        }
+        wrapTab(e, node);
+      };
+
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [isOpen, overlay, isTopmost]);
+
     // Prevent body scroll when sidebar is open. Ref-counted through the shared
     // helper so an overlapping Modal/Dialog/Loading doesn't unlock underneath.
     useScrollLock(isOpen && overlay);
 
-    // Focus trap (basic - focus sidebar when opened). A different
-    // `defaultTarget` remounts the portaled sidebar, so it focuses the new
-    // nodes then too.
+    // Move focus into the sidebar on open, to the first stop Tab wraps to or
+    // the sidebar itself, and hand it back on close, as `Modal` does. A
+    // different `defaultTarget` remounts the portaled sidebar: the cleanup
+    // hands focus back from the old nodes, which left it on <body>, and the
+    // re-run records the same opener and focuses the new nodes.
     useEffect(() => {
-      if (isOpen) {
-        const element = sidebarRef.current;
-        /* istanbul ignore else: the aside renders whenever the sidebar is open, so its ref is set before this runs */
-        if (element) {
-          // Focus first focusable element or sidebar itself
-          const focusable = element.querySelector<HTMLElement>(
-            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-          );
-          if (focusable) {
-            focusable.focus();
-          } else {
-            element.focus();
-          }
+      if (!isOpen) return undefined;
+      const element = sidebarRef.current;
+      /* istanbul ignore if: the aside renders whenever the sidebar is open, so its ref is set before this runs */
+      if (!element) return undefined;
+
+      // The element that had focus, wherever it sits: a portaled sidebar
+      // renders under `document.body` while its opener can be inside a
+      // shadow root.
+      const opener = getDeepestActiveElement() as HTMLElement | null;
+      (firstTabStop(element) ?? element).focus();
+
+      return () => {
+        // Only while the sidebar still holds focus: closing one under another
+        // overlay mustn't pull focus out of the one on top, and focus moved
+        // out to the page stays there. A removed subtree leaves focus on
+        // <body>, which still counts as held.
+        const active = getActiveElementInTree(element);
+        if (active === document.body || element.contains(active)) {
+          opener?.focus();
         }
-      }
+      };
     }, [isOpen, defaultTarget]);
 
     // Use combined ref

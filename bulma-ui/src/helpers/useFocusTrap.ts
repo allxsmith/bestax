@@ -331,8 +331,8 @@ function findTabStops(container: HTMLElement): TabStops | null {
 /**
  * The first tab stop inside `container`, found the way the trap finds it, or
  * `null` when there is none. For a component that moves focus into a panel
- * without trapping it there. `src/index.ts` names its exports from this
- * module, so this one stays internal.
+ * itself rather than through the hook. `src/index.ts` names its exports from
+ * this module, so this one stays internal.
  */
 export function firstTabStop(container: HTMLElement): HTMLElement | null {
   return findTabStops(container)?.first ?? null;
@@ -348,6 +348,48 @@ export function firstTabStop(container: HTMLElement): HTMLElement | null {
  */
 const focusedElement = (doc: Document): Element =>
   getDeepestActiveElement(doc) ?? doc.body;
+
+/**
+ * Handles a Tab for a trap on `container`. When the browser has no tab stop
+ * left in that direction inside the container, focus goes to the stop at the
+ * other end and the key is marked used, and with no stops at all the
+ * container takes focus. Focus outside the container goes in at that end
+ * too. Otherwise the browser moves focus, and this returns the end to send it
+ * to should that Tab take it out anyway.
+ *
+ * Internal like `firstTabStop`. It's for an overlay that holds Tab from a key
+ * handler of its own, so it can check the overlay stack first and stand aside
+ * while another overlay is open over it, which a trap on the container can't.
+ */
+export function wrapTab(
+  e: KeyboardEvent,
+  container: HTMLElement
+): HTMLElement | null {
+  const stops = findTabStops(container);
+  if (!stops) {
+    e.preventDefault();
+    container.focus();
+    return null;
+  }
+  const focused = focusedElement(container.ownerDocument);
+  const current = stops.stopFor(focused);
+  const end = e.shiftKey ? stops.last : stops.first;
+  // Wrap whenever the browser has no stop left in that direction inside the
+  // container. Comparing positions rather than testing `=== first` also
+  // covers focus resting on the container or on an element outside the tab
+  // order, which the browser would otherwise walk straight out of.
+  if (
+    !inside(container, focused) ||
+    (e.shiftKey
+      ? !follows(container, stops.first, current)
+      : !follows(container, current, stops.last))
+  ) {
+    e.preventDefault();
+    end.focus();
+    return null;
+  }
+  return end;
+}
 
 /**
  * Options for `useFocusTrap`.
@@ -475,27 +517,9 @@ export function useFocusTrap(
     const handleKeyDown = (e: KeyboardEvent) => {
       // A trap nested inside this one has already wrapped focus.
       if (e.key !== 'Tab' || e.defaultPrevented) return;
-      const stops = findTabStops(container);
-      if (!stops) {
-        e.preventDefault();
-        container.focus();
-        return;
-      }
-      const current = stops.stopFor(focusedElement(doc));
-      // Wrap whenever the browser has no stop left in that direction inside
-      // the container. Comparing positions rather than testing `=== first`
-      // also covers focus resting on the container or on an element outside
-      // the tab order, which the browser would otherwise walk straight out of.
-      if (
-        e.shiftKey
-          ? !follows(container, stops.first, current)
-          : !follows(container, current, stops.last)
-      ) {
-        e.preventDefault();
-        (e.shiftKey ? stops.last : stops.first).focus();
-        return;
-      }
-      wrapTo = e.shiftKey ? stops.last : stops.first;
+      const end = wrapTab(e, container);
+      if (!end) return;
+      wrapTo = end;
       clearTimeout(wrapTimer);
       wrapTimer = setTimeout(() => {
         wrapTo = null;

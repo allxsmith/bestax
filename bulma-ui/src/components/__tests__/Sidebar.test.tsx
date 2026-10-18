@@ -343,6 +343,245 @@ describe('Sidebar', () => {
         expect(document.activeElement).toBe(screen.getByRole('dialog'));
       });
     });
+
+    it('moves focus past a control Tab would skip', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}}>
+          <button type="button" disabled>
+            Disabled
+          </button>
+          <a href="#skip" tabIndex={-1}>
+            Not tabbable
+          </a>
+          <button type="button">Enabled</button>
+        </Sidebar>
+      );
+      expect(screen.getByText('Enabled')).toHaveFocus();
+    });
+
+    describe('when it closes', () => {
+      let opener: HTMLButtonElement;
+      beforeEach(() => {
+        opener = document.createElement('button');
+        opener.textContent = 'Open filters';
+        document.body.appendChild(opener);
+        opener.focus();
+      });
+      afterEach(() => opener.remove());
+
+      const ui = (isOpen: boolean, overlay = true) => (
+        <Sidebar isOpen={isOpen} onClose={() => {}} overlay={overlay}>
+          <button type="button">Inside</button>
+        </Sidebar>
+      );
+
+      it('hands focus back to the element that had it when it opened', () => {
+        const { rerender } = render(ui(true));
+        expect(screen.getByText('Inside')).toHaveFocus();
+
+        rerender(ui(false));
+        expect(opener).toHaveFocus();
+      });
+
+      it('hands focus back when it unmounts while open', () => {
+        const { unmount } = render(ui(true));
+        unmount();
+        expect(opener).toHaveFocus();
+      });
+
+      it('leaves focus that moved out to the page where it is', () => {
+        const elsewhere = document.createElement('button');
+        document.body.appendChild(elsewhere);
+        try {
+          const { rerender } = render(ui(true, false));
+          elsewhere.focus();
+
+          rerender(ui(false, false));
+          expect(elsewhere).toHaveFocus();
+        } finally {
+          elsewhere.remove();
+        }
+      });
+
+      it('does not pull focus out of a sidebar still open on top', () => {
+        const stack = (backgroundOpen: boolean) => (
+          <>
+            <Sidebar isOpen={backgroundOpen} onClose={() => {}}>
+              <button type="button">Background</button>
+            </Sidebar>
+            <Sidebar isOpen onClose={() => {}}>
+              <button type="button">Top</button>
+            </Sidebar>
+          </>
+        );
+        const { rerender } = render(stack(true));
+        expect(screen.getByText('Top')).toHaveFocus();
+
+        rerender(stack(false));
+        expect(screen.getByText('Top')).toHaveFocus();
+      });
+    });
+  });
+
+  describe('Focus containment', () => {
+    const three = (
+      props: Partial<React.ComponentProps<typeof Sidebar>> = {}
+    ) => (
+      <Sidebar isOpen onClose={() => {}} aria-label="Filters" {...props}>
+        <button type="button">First</button>
+        <button type="button">Middle</button>
+        <button type="button">Last</button>
+      </Sidebar>
+    );
+
+    it('wraps Tab from the last tab stop to the first', () => {
+      render(three());
+      const last = screen.getByText('Last');
+      last.focus();
+
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('wraps Shift+Tab from the first tab stop to the last', () => {
+      render(three());
+      const first = screen.getByText('First');
+      expect(first).toHaveFocus();
+
+      expect(fireEvent.keyDown(first, { key: 'Tab', shiftKey: true })).toBe(
+        false
+      );
+      expect(screen.getByText('Last')).toHaveFocus();
+    });
+
+    it('leaves Tab to the browser between the ends', () => {
+      render(three());
+      const middle = screen.getByText('Middle');
+      middle.focus();
+
+      expect(fireEvent.keyDown(middle, { key: 'Tab' })).toBe(true);
+      expect(fireEvent.keyDown(middle, { key: 'Tab', shiftKey: true })).toBe(
+        true
+      );
+      expect(middle).toHaveFocus();
+    });
+
+    it('wraps at the stops Tab visits, past a disabled control and a radio group', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+          <button type="button">First</button>
+          <input type="radio" name="rating" aria-label="4 stars" />
+          <input type="radio" name="rating" aria-label="3 stars" />
+          <button type="button" disabled>
+            Apply
+          </button>
+        </Sidebar>
+      );
+      // A radio group is one stop, its first button while none is checked.
+      const group = screen.getByLabelText('4 stars');
+      group.focus();
+
+      expect(fireEvent.keyDown(group, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
+    it('pulls focus back in when Tab is pressed from outside the sidebar', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(three());
+
+        outside.focus();
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(false);
+        expect(screen.getByText('First')).toHaveFocus();
+
+        outside.focus();
+        expect(fireEvent.keyDown(outside, { key: 'Tab', shiftKey: true })).toBe(
+          false
+        );
+        expect(screen.getByText('Last')).toHaveFocus();
+      } finally {
+        outside.remove();
+      }
+    });
+
+    it('holds focus on the sidebar when nothing inside can take it', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} aria-label="Filters">
+          <p>Nothing to focus</p>
+        </Sidebar>
+      );
+      const sidebar = screen.getByRole('dialog');
+      sidebar.blur();
+
+      expect(fireEvent.keyDown(document.body, { key: 'Tab' })).toBe(false);
+      expect(sidebar).toHaveFocus();
+    });
+
+    it('leaves a Tab that a trap inside already used', () => {
+      // A portaled popup's own trap moves focus outside the sidebar's node and
+      // claims the key; the sidebar must not pull focus back.
+      const panel = document.createElement('button');
+      document.body.appendChild(panel);
+      const trap = (e: KeyboardEvent) => {
+        e.preventDefault();
+        panel.focus();
+      };
+      render(three());
+      document.addEventListener('keydown', trap);
+      try {
+        fireEvent.keyDown(screen.getByText('Last'), { key: 'Tab' });
+        expect(panel).toHaveFocus();
+      } finally {
+        document.removeEventListener('keydown', trap);
+        panel.remove();
+      }
+    });
+
+    it('leaves Tab alone without an overlay, which is not modal', () => {
+      const outside = document.createElement('button');
+      document.body.appendChild(outside);
+      try {
+        render(three({ overlay: false }));
+        const last = screen.getByText('Last');
+        last.focus();
+
+        expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(true);
+        expect(last).toHaveFocus();
+
+        outside.focus();
+        expect(fireEvent.keyDown(outside, { key: 'Tab' })).toBe(true);
+        expect(outside).toHaveFocus();
+      } finally {
+        outside.remove();
+      }
+    });
+
+    it('lets go of Tab once it closes', () => {
+      const { rerender } = render(three());
+      rerender(three({ isOpen: false }));
+      const last = screen.getByText('Last');
+      last.focus();
+
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(true);
+      expect(last).toHaveFocus();
+    });
+
+    it('holds Tab in the topmost sidebar only', () => {
+      render(
+        <>
+          <Sidebar isOpen onClose={() => {}} aria-label="Menu">
+            <button type="button">Under</button>
+          </Sidebar>
+          {three()}
+        </>
+      );
+      const last = screen.getByText('Last');
+      last.focus();
+
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
   });
 
   describe('Accessibility', () => {
