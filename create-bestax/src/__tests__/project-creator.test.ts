@@ -7,6 +7,8 @@ import {
   afterEach,
 } from '@jest/globals';
 import { readFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { TEMPLATES } from '../constants.js';
 
 // Mock fs-extra
@@ -158,6 +160,20 @@ describe('ProjectCreator', () => {
           expect.stringContaining('Project name cannot start with a dot')
         );
       }
+    });
+
+    it('returns a path as typed when its last part is a valid name (#1154)', async () => {
+      for (const dir of ['scratch/login', '/tmp/a/b/login', 'login/']) {
+        expect(await projectCreator.getProjectName(dir)).toBe(dir);
+      }
+    });
+
+    it('rejects a path whose last part is invalid, naming that part (#1154)', async () => {
+      const result = await projectCreator.getProjectName('/tmp/My App');
+      expect(result).toBeNull();
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('the project name is "My App"')
+      );
     });
 
     it('should prompt for project name when not provided', async () => {
@@ -2284,6 +2300,120 @@ describe('ProjectCreator', () => {
       );
       expect(console.log).not.toHaveBeenCalledWith(
         expect.stringContaining('package.json name')
+      );
+    });
+  });
+
+  describe('create, from a path (#1154)', () => {
+    const scratch = path.join(os.tmpdir(), 'bestax-1154');
+    let mockExit: ReturnType<typeof jest.spyOn>;
+
+    beforeEach(() => {
+      mockExit = jest.spyOn(process, 'exit').mockImplementation(() => {
+        throw new Error('process.exit called');
+      });
+      (
+        fs.default.existsSync as jest.MockedFunction<typeof fs.existsSync>
+      ).mockImplementation(p => String(p).endsWith('index.html'));
+      (
+        fs.default.readFile as jest.MockedFunction<typeof fs.readFile>
+      ).mockResolvedValue(
+        '<head><title>Bestax + Vite + React</title></head>' as unknown
+      );
+    });
+
+    afterEach(() => {
+      mockExit.mockRestore();
+    });
+
+    function writtenTitle(): string | undefined {
+      const call = (
+        fs.default.writeFile as unknown as jest.Mock
+      ).mock.calls.find(([p]) => String(p).endsWith('index.html'));
+      return String(call?.[1]).match(/<title>([^<]*)<\/title>/)?.[1];
+    }
+
+    it.each([
+      ['an absolute path', path.join(scratch, 'a', 'b', 'login')],
+      ['an absolute path with a trailing slash', `${scratch}/login/`],
+      ['a relative path', 'scratch/a/b/login'],
+      ['a relative path through the parent', '../scratch/login'],
+    ])(
+      'scaffolds %s where it points, named after its last part',
+      async (_label, dir) => {
+        const targetPath = path.resolve(process.cwd(), dir);
+
+        await projectCreator.create(dir, { yes: true, skills: false });
+
+        // ensureDirectory is fs.ensureDir, which creates missing parents too.
+        expect(fileSystem.ensureDirectory).toHaveBeenCalledWith(targetPath);
+        expect(fileSystem.copyDirectory).toHaveBeenCalledWith(
+          expect.any(String),
+          targetPath,
+          expect.anything()
+        );
+        expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
+          targetPath,
+          'login'
+        );
+        expect(writtenTitle()).toBe('login');
+        expect(prompts).not.toHaveBeenCalled();
+      }
+    );
+
+    it('lower-cases a capitalised last part for the package, as for a name', async () => {
+      await projectCreator.create(path.join(scratch, 'MyApp'), {
+        yes: true,
+        skills: false,
+      });
+
+      expect(fileSystem.updatePackageJson).toHaveBeenCalledWith(
+        path.join(scratch, 'MyApp'),
+        'myapp'
+      );
+      expect(writtenTitle()).toBe('MyApp');
+    });
+
+    it.each(['.', '..', `${scratch}/..`, `${scratch}/My App`])(
+      'stops at %s before touching anything',
+      async dir => {
+        await expect(
+          projectCreator.create(dir, { yes: true, overwrite: true })
+        ).rejects.toThrow('process.exit called');
+
+        expect(mockExit).toHaveBeenCalledWith(1);
+        expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+        expect(fileSystem.ensureDirectory).not.toHaveBeenCalled();
+      }
+    );
+
+    it('-y leaves a non-empty directory at the path untouched', async () => {
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+      const dir = path.join(scratch, 'login');
+
+      await expect(projectCreator.create(dir, { yes: true })).rejects.toThrow(
+        'process.exit called'
+      );
+
+      expect(mockExit).toHaveBeenCalledWith(1);
+      expect(fileSystem.emptyDirectory).not.toHaveBeenCalled();
+      expect(fileSystem.copyDirectory).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining(`${dir} is not empty`)
+      );
+    });
+
+    it('--overwrite empties the directory the path resolves to', async () => {
+      listDirectoryEntries.mockResolvedValue(['notes.txt']);
+
+      await projectCreator.create('scratch/login', {
+        yes: true,
+        overwrite: true,
+        skills: false,
+      });
+
+      expect(fileSystem.emptyDirectory).toHaveBeenCalledWith(
+        path.resolve(process.cwd(), 'scratch/login')
       );
     });
   });

@@ -57,7 +57,7 @@ const {
 const { ProjectCreator: _ProjectCreator } =
   await import('../project-creator.js');
 
-const { validateProjectName } = await import('../validators.js');
+const { validateProjectDirectory } = await import('../validators.js');
 const {
   TEMPLATES: _TEMPLATES,
   BULMA_FLAVORS,
@@ -156,8 +156,20 @@ describe('prompts', () => {
         name: 'projectName',
         message: 'Project name:',
         initial: 'my-bestax-app',
-        validate: validateProjectName,
+        validate: validateProjectDirectory,
       });
+    });
+
+    it('takes a path, as the project-directory argument does (#1154)', async () => {
+      (prompts as jest.MockedFunction<typeof prompts>).mockResolvedValue({
+        projectName: 'scratch/login',
+      });
+      expect(await promptProjectName()).toBe('scratch/login');
+
+      const [question] = (prompts as jest.MockedFunction<typeof prompts>).mock
+        .calls[0] as [{ validate: (value: string) => boolean | string }];
+      expect(question.validate('scratch/login')).toBe(true);
+      expect(question.validate('scratch/My App')).toContain('"My App"');
     });
 
     it('should return null when prompt is cancelled', async () => {

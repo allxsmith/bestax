@@ -20,7 +20,10 @@ export function displaySuccess(targetDir: string): void {
   // Mirror the package manager that invoked the CLI — `<pm> install` and
   // `<pm> run dev` are valid for all four supported PMs.
   const pm = detectPackageManager();
-  console.log(chalk.cyan(`  cd ${targetDir}`));
+  // The project name cannot hold a space, but a parent folder in a path can,
+  // so quote it as create-vite does for the line to work when pasted.
+  const cdTarget = /\s/.test(targetDir) ? `"${targetDir}"` : targetDir;
+  console.log(chalk.cyan(`  cd ${cdTarget}`));
   console.log(chalk.cyan(`  ${pm} install`));
   console.log(chalk.cyan(`  ${pm} run dev`));
   console.log();

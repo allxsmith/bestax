@@ -32,6 +32,8 @@ export const MESSAGES = {
     'Project name cannot start with a dot (names like "." or ".." would scaffold outside a new directory) — pass a directory name',
   PROJECT_NAME_NO_PACKAGE_NAME:
     'Project name must contain a letter, number or dash (npm package names cannot start with "_" or ".")',
+  PROJECT_NAME_FROM_PATH: (message: string, name: string) =>
+    `${message} (the project name is "${name}", the last part of the path)`,
   PACKAGE_NAME_NORMALIZED: (name: string) =>
     `  package.json name: ${name} (npm package names are lower-case and cannot start with "_")`,
   OPERATION_CANCELLED: '✖ Operation cancelled',

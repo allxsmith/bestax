@@ -108,6 +108,17 @@ describe('display', () => {
       expect(output).toContain(projectName);
     });
 
+    it('quotes a path with a space in its cd line, and leaves others bare (#1154)', () => {
+      displaySuccess('/tmp/My Projects/login');
+      displaySuccess('/tmp/projects/login');
+
+      const lines = (
+        console.log as jest.MockedFunction<typeof console.log>
+      ).mock.calls.map(call => call.join(' '));
+      expect(lines).toContain('  cd "/tmp/My Projects/login"');
+      expect(lines).toContain('  cd /tmp/projects/login');
+    });
+
     describe('next-steps package manager', () => {
       const originalUserAgent = process.env.npm_config_user_agent;
 

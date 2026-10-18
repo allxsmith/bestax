@@ -41,8 +41,8 @@ npm create bestax@latest
 
 You'll be asked to:
 
-1. Enter a project name (and, if that directory already holds files, confirm removing them;
-   nothing is removed until you have answered the last question)
+1. Enter a project name or path (and, if that directory already holds files, confirm removing
+   them; nothing is removed until you have answered the last question)
 2. Select a framework (Vite or Vite + TypeScript)
 3. Choose a Bulma CSS flavor (the `--bulma` options below)
 4. Select an icon library (Font Awesome, Material Icons, etc.)
@@ -62,8 +62,12 @@ with or without it.
 
 **Arguments:**
 
-- `[project-directory]` - Optional project directory name. It also becomes the `package.json`
-  name, lower-cased the way `npm init` does and without a leading `_`, since npm rejects both.
+- `[project-directory]` - Optional project directory: a name such as `my-app`, or a path,
+  absolute or relative, such as `../apps/my-app`, whose missing folders are created. Its last
+  part is the project name, held to the same rules as a bare name. It becomes the page title as
+  typed, and the `package.json` name lower-cased the way `npm init` does and without a leading
+  `_`, since npm rejects both. A path ending in `.` or `..` is refused, like a bare `.` or `..`,
+  so name the directory you want.
 
 **Options:**
 
@@ -109,6 +113,9 @@ npm create bestax@latest my-app -- -t vite-ts -i fontawesome -b complete
 
 # Use all defaults (skip prompts)
 npm create bestax@latest my-app -- -y
+
+# Scaffold into a path; the package is named my-app
+npm create bestax@latest ../apps/my-app -- -y
 
 # The same with bun
 bun create bestax@latest my-app -- -y

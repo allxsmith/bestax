@@ -27,7 +27,7 @@ import {
   displayError,
   displayCancelled,
 } from './display.js';
-import { validateProjectName, toValidPackageName } from './validators.js';
+import { validateProjectDirectory, toValidPackageName } from './validators.js';
 import {
   MESSAGES,
   TEMPLATES,
@@ -84,9 +84,13 @@ export class ProjectCreator {
     this.templatesDir = templatesDir || path.resolve(__dirname, '../templates');
   }
 
+  /**
+   * The project directory, as typed or answered: a name or a path, absolute
+   * or relative, whose last segment must be a valid project name (#1154).
+   */
   async getProjectName(projectDir?: string): Promise<string | null> {
     if (projectDir) {
-      const validation = validateProjectName(projectDir);
+      const validation = validateProjectDirectory(projectDir);
       if (validation !== true) {
         console.log(chalk.red(`✖ ${validation}`));
         return null;
@@ -615,6 +619,9 @@ export class ProjectCreator {
       return; // TypeScript flow control
     }
 
+    // An absolute path is used as it is and a relative one from the working
+    // directory. Its last segment names the package and the page title, and
+    // copyTemplate creates it and any missing parent after the last prompt.
     const targetPath = path.resolve(process.cwd(), targetDir);
     const projectName = path.basename(targetPath);
 
