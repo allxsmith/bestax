@@ -18,6 +18,7 @@ import {
   loadModules,
   normalizeHtml,
   renderExports,
+  withImplicitListRoles,
 } from './support/render-module.js';
 
 const fixturesRoot = path.join(
@@ -132,6 +133,65 @@ describe('normalizeHtml', () => {
       '<button class="button" type="button">Go!</button>',
     ]) {
       expect(normalizeHtml(other)).not.toBe(normalizeHtml(base));
+    }
+  });
+
+  it('keeps role="list", even on a list', () => {
+    expect(normalizeHtml('<ul role="list"><li>x</li></ul>')).not.toBe(
+      normalizeHtml('<ul><li>x</li></ul>')
+    );
+  });
+});
+
+describe('withImplicitListRoles', () => {
+  // Menu.List writes role="list" for Safari (#1108). It's a list's own role.
+  const same = (raw: string, converted: string) =>
+    withImplicitListRoles(raw, normalizeHtml(converted)) ===
+    normalizeHtml(converted);
+
+  it('lets a role="list" the conversion writes stand for a raw list with none', () => {
+    for (const tag of ['ul', 'ol']) {
+      expect(
+        same(
+          `<${tag} class="menu-list"><li>x</li></${tag}>`,
+          `<${tag} role="list" class="menu-list"><li>x</li></${tag}>`
+        )
+      ).toBe(true);
+    }
+    // Nested lists too, each paired with the list in the same place.
+    expect(
+      same(
+        '<ul class="menu-list"><li><a>x</a><ul><li>y</li></ul></li></ul>',
+        '<ul role="list" class="menu-list"><li><a>x</a><ul role="list"><li>y</li></ul></li></ul>'
+      )
+    ).toBe(true);
+    expect(
+      same(
+        '<ul><li>x</li></ul><ul><li>y</li></ul>',
+        '<ul><li>x</li></ul><ul role="list"><li>y</li></ul>'
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that drops or changes a role', () => {
+    for (const [raw, converted] of [
+      // Drops the raw list's own role="list".
+      ['<ul role="list"><li>x</li></ul>', '<ul><li>x</li></ul>'],
+      ['<ol role="list"><li>x</li></ol>', '<ol><li>x</li></ol>'],
+      // Writes role="list" over the raw list's own role.
+      ['<ul role="menu"><li>x</li></ul>', '<ul role="list"><li>x</li></ul>'],
+      ['<ul role="none"><li>x</li></ul>', '<ul role="list"><li>x</li></ul>'],
+      // Writes a role that isn't `list`, or `list` on a tag that isn't a list.
+      ['<ul><li>x</li></ul>', '<ul role="menu"><li>x</li></ul>'],
+      ['<ul><li>x</li></ul>', '<ul role="List"><li>x</li></ul>'],
+      ['<div>x</div>', '<div role="list">x</div>'],
+      ['<ul><li>x</li></ul>', '<ul><li role="list">x</li></ul>'],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
     }
   });
 });

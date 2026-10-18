@@ -544,9 +544,10 @@ export function plan(facts: ElementFacts): Plan {
       );
     }
   }
-  // An attribute the target writes on this tag counts as one of its defaults.
+  // An attribute the target writes on this tag counts as one of its defaults,
+  // unless what it writes is the tag's own implicit role.
   const written = Object.entries(entry.writesAttr ?? {})
-    .filter(([, rule]) => rule.on.includes(tag))
+    .filter(([, rule]) => rule.on.includes(tag) && !rule.implicit)
     .map(([name, rule]): [string, string] => [name, rule.fallback]);
   const naming = namingOf(entry, attributes);
   // An attribute written out that stops the target's defaults, such as
@@ -728,7 +729,7 @@ export function plan(facts: ElementFacts): Plan {
       return refuse(
         'attr',
         name,
-        `bestax \`${target}\` keeps a <${tag}>'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only as one of those, written out; keep this element as markup`
+        `bestax \`${target}\` keeps a <${tag}>'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only ${rule.implicit ? `with no \`${name}\` or as one of those` : 'as one of those, written out'}; keep this element as markup`
       );
     }
   }
