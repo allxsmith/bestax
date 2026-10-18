@@ -221,27 +221,6 @@ describe('the report', () => {
     expect(output).toContain('(case.html:2)');
   });
 
-  it.each([
-    ['keep', "import 'bulma/css/bulma.min.css'"],
-    ['bestax', "import '@allxsmith/bestax-bulma/bestax.css'"],
-    ['bulma', "import '@allxsmith/bestax-bulma/extras.css'"],
-  ])("says how to load Bulma's stylesheet under --css %s", (cssMode, hint) => {
-    const page = `<!DOCTYPE html><html><head><link rel="stylesheet" href="css/bulma.min.css?v=1"></head><body>${box}</body></html>`;
-    const { entries, output } = convert(page, { cssMode });
-    expect(entries).toEqual([
-      expect.objectContaining({
-        rule: 'html-asset',
-        message: expect.stringContaining(hint),
-      }),
-    ]);
-    // Reported only: the module imports no stylesheet.
-    expect(output).not.toMatch(/^import ['"]/m);
-    // bestax's bundle builds Bulma with its own primary.
-    expect(entries[0].message.includes('--bulma-primary-invert-l')).toBe(
-      cssMode === 'bestax'
-    );
-  });
-
   it('reads the inline script patterns and leaves an unknown type alone', () => {
     const script = (body: string, type = '') =>
       `<script${type}>${body}</script>\n`;
@@ -258,6 +237,24 @@ describe('the report', () => {
       'html-script',
       'html-script',
     ]);
+  });
+
+  it("reads Bulma 0.x's `burger` class as the burger, and says how a saved scheme paints first", () => {
+    const { entries } = convert(
+      `${box}<script>document.querySelector('.burger').onclick = () => {};\nlocalStorage.getItem('theme') === 'dark' && document.documentElement.setAttribute('data-theme', 'dark');</script>\n`
+    );
+    expect(entries.map(entry => entry.rule)).toEqual([
+      'html-script:burger',
+      'html-script:theme',
+    ]);
+    expect(entries[1].message).toContain('`localStorage`');
+    expect(entries[1].message).toContain(
+      "a small inline script in the `<head>` of the app's index.html"
+    );
+    // A word that only ends in `burger` is not the class.
+    expect(
+      convert(`${box}<script>const hamburger = 1;</script>\n`).rules
+    ).toEqual(['html-script']);
   });
 
   it('reports what the head holds, grouped by tag', () => {
@@ -450,6 +447,246 @@ describe('the report', () => {
   });
 });
 
+describe('the stylesheets and scripts it loads', () => {
+  const page = (head: string, body = box) =>
+    `<!DOCTYPE html><html><head>\n${head}\n</head><body>\n${body}</body></html>`;
+  const link = (href: string) => `<link rel="stylesheet" href="${href}">`;
+  const bulma09 = link(
+    'https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css'
+  );
+  const bulma1 = link(
+    'https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/bulma.min.css'
+  );
+  const imports = (output: string | null) =>
+    (output ?? '').split('\n').filter(line => line.startsWith('import '));
+
+  it.each([
+    [bulma09, 'html-asset:bulma'],
+    [
+      link(
+        'https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7/css/all.min.css'
+      ),
+      'html-asset:font-awesome',
+    ],
+    [
+      link('https://cdn.jsdelivr.net/npm/bulma-social@3/css/all.min.css'),
+      'html-asset:bulma-extension',
+    ],
+    [
+      '<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>',
+      'html-asset:jquery',
+    ],
+    [
+      link('https://fonts.googleapis.com/css2?family=Inter&display=swap'),
+      'html-asset:webfont',
+    ],
+    [link('https://example.com/site.css'), 'html-asset:stylesheet'],
+    ['<script src="https://example.com/app.js"></script>', 'html-asset:script'],
+  ])('reports %s as %s', (tag, rule) => {
+    expect(convert(page(tag)).rules).toEqual([rule]);
+  });
+
+  it("reports Bulma's stylesheet under --css keep, and imports nothing", () => {
+    const { entries, output } = convert(page(bulma09));
+    expect(entries).toEqual([
+      expect.objectContaining({
+        line: 2,
+        rule: 'html-asset:bulma',
+        message: expect.stringContaining(
+          "(`import 'bulma/css/bulma.min.css'`, with `bulma@0.9.4` installed)"
+        ),
+      }),
+    ]);
+    expect(imports(output)).toEqual([
+      'import { Box } from "@allxsmith/bestax-bulma";',
+    ]);
+  });
+
+  it("imports bestax's bundle in place of Bulma's link under --css bestax, and notes only what is left", () => {
+    const v1 = convert(page(bulma1), { cssMode: 'bestax' });
+    expect(v1.entries).toEqual([]);
+    expect(imports(v1.output)).toEqual([
+      'import "@allxsmith/bestax-bulma/bestax.css";',
+      'import { Box } from "@allxsmith/bestax-bulma";',
+    ]);
+    // A primary color class changes with bestax's primary.
+    const primary = convert(
+      page(bulma1, `<div class="box has-text-primary">x</div>\n`),
+      { cssMode: 'bestax' }
+    );
+    expect(primary.rules).toEqual(['html-asset:bulma']);
+    expect(primary.entries[0].message).toContain('--bulma-primary-invert-l');
+    // A page made for Bulma 0.9 has the move to 1 left.
+    const older = convert(page(bulma09), { cssMode: 'bestax' });
+    expect(older.entries).toEqual([
+      expect.objectContaining({
+        rule: 'html-asset:bulma',
+        message: expect.stringContaining('the page was made for Bulma 0.9.4'),
+      }),
+    ]);
+    expect(imports(older.output)[0]).toBe(
+      'import "@allxsmith/bestax-bulma/bestax.css";'
+    );
+  });
+
+  it("imports Bulma and bestax's extras under --css bulma", () => {
+    const { entries, output } = convert(page(bulma1), { cssMode: 'bulma' });
+    expect(entries).toEqual([]);
+    expect(imports(output)).toEqual([
+      'import "bulma/css/bulma.min.css";',
+      'import "@allxsmith/bestax-bulma/extras.css";',
+      'import { Box } from "@allxsmith/bestax-bulma";',
+    ]);
+  });
+
+  it('writes one import, and one note, for a page that links Bulma twice', () => {
+    const { entries, output } = convert(
+      page(`${bulma09}\n${link('css/bulma.css')}`),
+      { cssMode: 'bestax' }
+    );
+    expect(imports(output)).toHaveLength(2);
+    expect(entries).toEqual([
+      expect.objectContaining({ line: 2, rule: 'html-asset:bulma' }),
+    ]);
+    expect(output).toMatch(/\(case\.html:2, 3\)$/m);
+  });
+
+  it("keeps a page's credit above the import", () => {
+    const { output } = convert(
+      `<!-- Template by Example -->\n${page(bulma1)}`,
+      { cssMode: 'bestax' }
+    );
+    expect(output!.split('\n').slice(0, 3)).toEqual([
+      '// Template by Example',
+      '',
+      'import "@allxsmith/bestax-bulma/bestax.css";',
+    ]);
+  });
+
+  it("imports nothing for one of Bulma's other builds", () => {
+    const { entries, output } = convert(
+      page(
+        link(
+          'https://cdn.jsdelivr.net/npm/bulma@1.0.4/css/versions/bulma-no-dark-mode.min.css'
+        )
+      ),
+      { cssMode: 'bestax' }
+    );
+    expect(entries).toEqual([
+      expect.objectContaining({
+        rule: 'html-asset:bulma',
+        message: expect.stringContaining("Bulma's `no-dark-mode` build"),
+      }),
+    ]);
+    expect(imports(output)).toHaveLength(1);
+  });
+
+  it("notes an extension's stylesheet and script once, with both lines", () => {
+    const { entries, output } = convert(
+      page(
+        link(
+          'https://cdn.jsdelivr.net/npm/bulma-carousel@4.0.4/dist/css/bulma-carousel.min.css'
+        ),
+        `${box}<script src="https://cdn.jsdelivr.net/npm/bulma-carousel@4.0.4/dist/js/bulma-carousel.min.js"></script>\n`
+      )
+    );
+    expect(entries).toEqual([
+      expect.objectContaining({
+        line: 2,
+        rule: 'html-asset:bulma-extension',
+        message: expect.stringContaining('`Carousel`'),
+      }),
+    ]);
+    expect(output).toMatch(/markup and script, .*\(case\.html:2, 5\)$/m);
+  });
+
+  it('reads a script beside the page for the burger, a carousel and a theme toggle, but not a modal', () => {
+    const dir = tempDir();
+    fs.mkdirSync(path.join(dir, 'js'));
+    fs.writeFileSync(
+      path.join(dir, 'js', 'scripts.js'),
+      "bulmaCarousel.attach('#slider');\ndocument.querySelector('.navbar-burger');\n"
+    );
+    fs.writeFileSync(
+      path.join(dir, 'js', 'modal.js'),
+      "document.querySelector('.modal').classList.add('is-active');\n"
+    );
+    const { entries } = convert(
+      page(
+        '<script defer src="js/scripts.js"></script>\n<script src="js/modal.js"></script>\n<script src="js/gone.js"></script>'
+      ),
+      {},
+      path.join(dir, 'home.html')
+    );
+    expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
+      '2:html-script:burger',
+      '2:html-script:carousel',
+      '3:html-asset:script',
+      '4:html-asset:script',
+    ]);
+    expect(entries[0].message).toMatch(
+      /^the page's script `js\/scripts\.js` toggles the navbar burger/
+    );
+    expect(entries[0].message).toContain(
+      'its code is still in `js/scripts.js`'
+    );
+    expect(entries[2].message).toContain(
+      "the page's own script `js/modal.js` is beside it"
+    );
+    expect(entries[3].message).toContain("isn't beside the page");
+  });
+
+  it('leaves a script beside the page alone when it is too large to be its own, or unreadable', () => {
+    const dir = tempDir();
+    fs.writeFileSync(
+      path.join(dir, 'vendor.js'),
+      `/* navbar-burger */${' '.repeat(300 * 1024)}`
+    );
+    const locked = path.join(dir, 'locked.js');
+    fs.writeFileSync(locked, '/* navbar-burger */');
+    fs.chmodSync(locked, 0o000);
+    let unreadable = false;
+    try {
+      fs.readFileSync(locked);
+    } catch {
+      unreadable = true;
+    }
+    const { entries } = convert(
+      page(
+        '<script src="vendor.js"></script>\n<script src="locked.js"></script>'
+      ),
+      {},
+      path.join(dir, 'home.html')
+    );
+    fs.chmodSync(locked, 0o644);
+    expect(entries[0]).toEqual(
+      expect.objectContaining({
+        rule: 'html-asset:script',
+        message: expect.stringContaining('is beside it'),
+      })
+    );
+    // Root reads any file, so the locked one is only unreadable without it.
+    expect(entries[1].rule).toBe(
+      unreadable ? 'html-asset:script' : 'html-script:burger'
+    );
+  });
+
+  it('reads whether a stylesheet of the page is beside it', () => {
+    const dir = tempDir();
+    fs.mkdirSync(path.join(dir, 'css'));
+    fs.writeFileSync(path.join(dir, 'css', 'styles.css'), '');
+    const { entries } = convert(
+      page(`${link('css/styles.css?v=3')}\n${link('css/gone.css')}`),
+      {},
+      path.join(dir, 'home.html')
+    );
+    expect(entries.map(entry => entry.message)).toEqual([
+      expect.stringContaining('imports it as `./css/styles.css`'),
+      expect.stringContaining('no `css/gone.css` in its folder'),
+    ]);
+  });
+});
+
 describe('the file-level gates, read from where the module goes', () => {
   it('leaves the JSX alone for a package whose JSX is not React', () => {
     const dir = tempDir();
@@ -594,7 +831,8 @@ describe('the HTML rule ids', () => {
   it('carries only a token from its kind', () => {
     expect(htmlRuleId('html-head', 'title')).toBe('html-head:title');
     expect(htmlRuleId('html-head', 'my-title')).toBe('html-head');
-    expect(htmlRuleId('html-asset', 'bulma')).toBe('html-asset');
+    expect(htmlRuleId('html-asset', 'bulma')).toBe('html-asset:bulma');
+    expect(htmlRuleId('html-asset', 'bulma-carousel')).toBe('html-asset');
     expect(htmlRuleId('html-event', 'onclick')).toBe('html-event:onclick');
     expect(htmlRuleId('html-event', 'onfrobnicate')).toBe('html-event');
     expect(htmlRuleId('html-document')).toBe('html-document');
