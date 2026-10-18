@@ -50,7 +50,11 @@ export function SiteNavbar() {
 
 export function DarkNavbar() {
   return (
-    <nav className="navbar is-dark" role="navigation" aria-label="main navigation">
+    <nav
+      className="navbar is-dark is-spaced has-shadow"
+      role="navigation"
+      aria-label="main navigation"
+    >
       <div className="navbar-menu has-text-light">
         <div className="navbar-start has-text-weight-bold">
           <div className="navbar-item has-dropdown is-hoverable">
