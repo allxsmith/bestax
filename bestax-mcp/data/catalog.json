@@ -88,6 +88,7 @@
         "Autocomplete",
         "Checkbox",
         "Checkboxes",
+        "Combobox",
         "Control",
         "DateInput",
         "DateRangeInput",
@@ -354,6 +355,17 @@
       "compound": true,
       "propCount": 47,
       "exampleCount": 16
+    },
+    {
+      "name": "Combobox",
+      "kind": "component",
+      "category": "form",
+      "purpose": "The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server…",
+      "slug": "form/combobox",
+      "import": "import { Combobox } from '@allxsmith/bestax-bulma';",
+      "compound": true,
+      "propCount": 69,
+      "exampleCount": 14
     },
     {
       "name": "ConfigProvider",
@@ -1440,6 +1452,31 @@
     "--bulma-collapse-trigger-icon-margin": ["Collapse"],
     "--bulma-collapse-trigger-icon-size": ["Collapse"],
     "--bulma-column-gap": ["Column"],
+    "--bulma-combobox-check-color": ["Combobox"],
+    "--bulma-combobox-check-gap": ["Combobox"],
+    "--bulma-combobox-check-size": ["Combobox"],
+    "--bulma-combobox-disabled-color": ["Combobox"],
+    "--bulma-combobox-divider-color": ["Combobox"],
+    "--bulma-combobox-empty-color": ["Combobox"],
+    "--bulma-combobox-group-label-color": ["Combobox"],
+    "--bulma-combobox-group-label-size": ["Combobox"],
+    "--bulma-combobox-group-label-weight": ["Combobox"],
+    "--bulma-combobox-highlight-background": ["Combobox"],
+    "--bulma-combobox-highlight-color": ["Combobox"],
+    "--bulma-combobox-item-color": ["Combobox"],
+    "--bulma-combobox-item-hover-background": ["Combobox"],
+    "--bulma-combobox-item-padding-x": ["Combobox"],
+    "--bulma-combobox-item-padding-y": ["Combobox"],
+    "--bulma-combobox-item-size": ["Combobox"],
+    "--bulma-combobox-list-max-height": ["Combobox"],
+    "--bulma-combobox-menu-background": ["Combobox"],
+    "--bulma-combobox-menu-border-color": ["Combobox"],
+    "--bulma-combobox-menu-offset": ["Combobox"],
+    "--bulma-combobox-menu-padding-y": ["Combobox"],
+    "--bulma-combobox-menu-radius": ["Combobox"],
+    "--bulma-combobox-menu-shadow": ["Combobox"],
+    "--bulma-combobox-menu-z-index": ["Combobox"],
+    "--bulma-combobox-portal-z-index": ["Combobox"],
     "--bulma-content-block-margin-bottom": ["Content"],
     "--bulma-content-blockquote-background-color": ["Content"],
     "--bulma-content-blockquote-border-left": ["Content"],
@@ -2598,6 +2635,36 @@
       "path": "CarouselItem",
       "purpose": "Individual carousel item/slide.",
       "standalone": "companion"
+    },
+    "ComboboxEmpty": {
+      "component": "Combobox",
+      "path": "Combobox.Empty",
+      "purpose": "The message shown in place of the list when nothing matches, announced when typing brings it on screen."
+    },
+    "ComboboxGroup": {
+      "component": "Combobox",
+      "path": "Combobox.Group",
+      "purpose": "Items under a heading, a `group` named by it."
+    },
+    "ComboboxInput": {
+      "component": "Combobox",
+      "path": "Combobox.Input",
+      "purpose": "The text field, with the combobox role and the keys, rendered as an `Input`."
+    },
+    "ComboboxItem": {
+      "component": "Combobox",
+      "path": "Combobox.Item",
+      "purpose": "One choice in the list, with a check mark while it's `checked`."
+    },
+    "ComboboxList": {
+      "component": "Combobox",
+      "path": "Combobox.List",
+      "purpose": "The list of items, a `listbox` named by the label that names the field."
+    },
+    "ComboboxMenu": {
+      "component": "Combobox",
+      "path": "Combobox.Menu",
+      "purpose": "The floating panel under the field, on screen while the list is open and its children aren't all empty."
     },
     "DateInputBase": {
       "component": "DateInput",
