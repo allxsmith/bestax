@@ -222,16 +222,20 @@ function lineAt(source: string, index: number): number {
   return source.slice(0, index).split('\n').length;
 }
 
-/** For a page a folder walk found but left out: whether to say so. */
+/**
+ * For a page a folder walk found but left out: whether to say so. `-e`
+ * matches an extension exactly, as it does for every other file, so the
+ * advice names the page's own (`-e html` takes no `.htm` page).
+ */
 export function excludedHtml(file: string, source: string): TodoEntry | null {
   const element = firstBulmaElement(parseHtml(source).root);
   if (!element) return null;
+  const extension = path.extname(file).replace(/^\./, '');
   return {
     file,
     line: element.sourceCodeLocation?.startLine ?? null,
     rule: htmlRuleId('html-file', 'not-included'),
-    message:
-      'this page has Bulma classes the bulma-classes source converts, but a folder walk reads HTML pages only under `-e html`: name the page, or run over its folder with `-e html`',
+    message: `this page has Bulma classes the bulma-classes source converts, but a folder walk takes a page only when \`--extensions\` lists its extension, and it doesn't list \`${extension}\`: name the page, or add \`${extension}\` to \`--extensions\` (\`-e ${extension}\` for the pages alone)`,
   };
 }
 
@@ -592,17 +596,17 @@ const PRESENTATIONAL: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * What to do about an attribute React's types don't list: rename one that
- * is a React prop in the wrong case (`defaultvalue`, which HTML never
- * read), move a presentational one into CSS, and otherwise drop it or say
- * what reads it.
+ * What to do about an attribute React has no prop for by that name: rename
+ * one that is a React prop in the wrong case (`defaultvalue`, which HTML
+ * never read), move a presentational one into CSS, and otherwise drop it or
+ * say what reads it. Whether TypeScript takes it depends on the element
+ * (React's types list `valign` on a `<td>` and not on a `<th>`), which a
+ * report can't see, so no message claims either way.
  */
 function unknownAttribute(token: string): { message: string } {
   const prop = REACT_PROPS.find(
     name => name.toLowerCase() === token.toLowerCase()
   );
-  const rejected =
-    "React renders it as written, but React's types don't list it, so a TypeScript build rejects it";
   if (prop) {
     return {
       message: `\`${token}\` isn't an HTML attribute, so the page never read it, and it reads as React's \`${prop}\` in the wrong case: rename it to \`${prop}\`, or drop it if it isn't meant`,
@@ -610,11 +614,11 @@ function unknownAttribute(token: string): { message: string } {
   }
   if (PRESENTATIONAL.has(token.toLowerCase())) {
     return {
-      message: `\`${token}\` is an old presentational attribute, and ${rejected}: replace it with CSS or a class`,
+      message: `\`${token}\` is an obsolete presentational attribute, which CSS replaced: write it as CSS or a class`,
     };
   }
   return {
-    message: `\`${token}\` is written as it was, and ${rejected}: drop it if nothing reads it, make it a \`data-\` attribute if a script of the page's does, or declare it for TypeScript if the browser does`,
+    message: `\`${token}\` is written as it was, which React renders under that name: drop it if nothing reads it, make it a \`data-\` attribute if a script of the page's does, and if React's types don't list it on this element, declare it for a TypeScript build`,
   };
 }
 
@@ -741,10 +745,14 @@ function relativeUrlNote(
   name: string,
   url: string,
   dir: string,
-  line: number | null
+  line: number | null,
+  candidate: boolean
 ): Note {
   const target = urlPath(url);
-  const written = `\`${name}="${quote(url)}"\``;
+  // A srcset holds several URLs, so one is quoted as itself, in it.
+  const written = candidate
+    ? `\`${quote(url)}\` in \`${name}\``
+    : `\`${name}="${quote(url)}"\``;
   if (!fs.existsSync(path.resolve(dir, target))) {
     return {
       rule: htmlRuleId('html-url', 'missing'),
@@ -779,24 +787,19 @@ function relativeUrlNotes(root: ParentNode, dir: string, notes: Note[]): void {
     for (const attr of child.attrs) {
       const name = attr.prefix ? `${attr.prefix}:${attr.name}` : attr.name;
       if (name === 'data' && child.tagName !== 'object') continue;
-      const urls =
-        name === 'srcset' || name === 'imagesrcset'
-          ? attr.value
-              .split(',')
-              .map(candidate => candidate.trim().split(/\s+/)[0] ?? '')
-          : URL_ATTRIBUTES.has(name)
-            ? [attr.value]
-            : [];
-      const relative = urls.find(isRelative);
-      if (relative === undefined) continue;
-      notes.push(
-        relativeUrlNote(
-          name,
-          relative,
-          dir,
-          location?.attrs?.[name]?.startLine ?? location?.startLine ?? null
-        )
-      );
+      const candidates = name === 'srcset' || name === 'imagesrcset';
+      const urls = candidates
+        ? attr.value
+            .split(',')
+            .map(candidate => candidate.trim().split(/\s+/)[0] ?? '')
+        : URL_ATTRIBUTES.has(name)
+          ? [attr.value]
+          : [];
+      const line =
+        location?.attrs?.[name]?.startLine ?? location?.startLine ?? null;
+      for (const url of new Set(urls.filter(isRelative))) {
+        notes.push(relativeUrlNote(name, url, dir, line, candidates));
+      }
     }
     relativeUrlNotes(child, dir, notes);
   }
@@ -821,11 +824,26 @@ function parseNotes(parsed: ParsedHtml, notes: Note[]): void {
 
 // ---- Writing the module ----------------------------------------------------
 
-/** Comments outside the body (a credit, a licence) as line comments. */
+/**
+ * Comments outside the body (a credit, a licence) as line comments, split on
+ * every line terminator JavaScript knows: a U+2028 or U+2029 ends a `//`
+ * line too, and what follows it would be code.
+ */
 function outsideCommentLines(comments: CommentNode[]): string[] {
   return comments.flatMap(comment => {
-    const lines = comment.data.split(/\r\n|\r|\n/).map(line => line.trimEnd());
-    while (lines.length > 0 && lines[0].trim() === '') lines.shift();
+    const lines = comment.data
+      .split(/\r\n|[\r\n\u2028\u2029]/)
+      .map(line => line.trimEnd());
+    // Text on the `<!--` line is set off from it, not indented, so it
+    // takes no part in the margin the lines below it share.
+    const opening = lines[0].trim() === '' ? undefined : lines.shift()!.trim();
+    while (
+      opening === undefined &&
+      lines.length > 0 &&
+      lines[0].trim() === ''
+    ) {
+      lines.shift();
+    }
     while (lines.length > 0 && lines[lines.length - 1].trim() === '') {
       lines.pop();
     }
@@ -834,9 +852,12 @@ function outsideCommentLines(comments: CommentNode[]): string[] {
         .filter(line => line.trim() !== '')
         .map(line => line.match(/^[ \t]*/)![0].length)
     );
-    return lines.map(line =>
-      line.trim() === '' ? '//' : `// ${line.slice(margin)}`
-    );
+    return [
+      ...(opening === undefined ? [] : [`// ${opening}`]),
+      ...lines.map(line =>
+        line.trim() === '' ? '//' : `// ${line.slice(margin)}`
+      ),
+    ];
   });
 }
 

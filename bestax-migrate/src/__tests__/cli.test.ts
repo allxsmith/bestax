@@ -514,6 +514,29 @@ describe('HTML pages', () => {
     expect(fs.existsSync(path.join(dir, 'index.jsx'))).toBe(false);
   });
 
+  it('tells a .htm page left out of an -e html walk the extension it needs', async () => {
+    const dir = site({
+      'pages/home.html': bulmaPage,
+      'pages/legacy.htm': bulmaPage,
+    });
+    const { logs } = await runCli([
+      'bulma-classes',
+      '-e',
+      'html',
+      dir,
+      '--no-deps',
+    ]);
+    const text = logs.join('\n');
+    // `-e` matches an extension exactly: html took home.html, not legacy.htm.
+    expect(fs.existsSync(path.join(dir, 'pages', 'home.jsx'))).toBe(true);
+    expect(fs.existsSync(path.join(dir, 'pages', 'legacy.jsx'))).toBe(false);
+    expect(text).toContain('html-file:not-included (1)');
+    expect(text).toContain(`${path.join(dir, 'pages', 'legacy.htm')}:5`);
+    expect(text).toContain("it doesn't list `htm`");
+    expect(text).toContain('(`-e htm` for the pages alone)');
+    expect(text).not.toContain('`-e html`');
+  });
+
   it('never writes over a module already there, so a second run changes nothing', async () => {
     const dir = site({ 'home.html': bulmaPage });
     const named = path.join(dir, 'home.html');

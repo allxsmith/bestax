@@ -365,7 +365,7 @@ function migrateHtmlPage(
 /**
  * HTML pages a folder walk found but `--extensions` left out, reported when
  * they carry what the source would convert, so a run over a folder of pages
- * without `-e html` doesn't just say nothing happened.
+ * that `--extensions` leaves out doesn't just say nothing happened.
  */
 function reportExcludedHtml(
   source: MigrationSource,

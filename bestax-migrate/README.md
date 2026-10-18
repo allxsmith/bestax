@@ -42,6 +42,7 @@ pnpm dlx bestax-migrate bloomer src/ --dry
 # …or, for an app that writes Bulma's classes on plain JSX
 pnpm dlx bestax-migrate bulma-classes src/ --dry
 # …or, for static HTML pages styled with Bulma: name a page, or walk a folder with -e html
+# (-e html,htm takes .htm pages too)
 pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
 pnpm dlx bestax-migrate bulma-classes -e html src/pages/ --dry
 

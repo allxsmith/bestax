@@ -219,7 +219,8 @@ pnpm dlx bestax-migrate bulma-classes src/pages/login/index.html --dry
 pnpm dlx bestax-migrate bulma-classes -e html src/pages/
 ```
 
-A page you name always converts. A folder walk takes HTML only with `-e html`, because most
+A page you name always converts. A folder walk takes a page only when `-e` lists its extension
+(`-e html`, or `-e html,htm` for `.htm` pages too), because most
 `.html` files in a React project aren't pages to convert (Vite's `index.html`, `public/`), and
 a walk without it lists the Bulma pages it skipped (`html-file:not-included`) so the run doesn't
 look like it did nothing.
@@ -301,7 +302,7 @@ names the `.html` file and the line it came from:
 | `html-script:<pattern>`                   | inline scripts, which are dropped: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest                    | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
 | `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                 | Put them on the app's own `<html>`; `Theme colorMode` writes `data-theme` for you                                                  |
 | `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                           | Port the code into the handler the TODO names (`onClick`)                                                                          |
-| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React's types don't list, styles React can't apply                           | Replace them with current markup, or declare a custom element for TypeScript                                                       |
+| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React has no prop for, styles React can't apply                              | Replace them with current markup, or declare a custom element for TypeScript                                                       |
 | `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
 | `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                                      | Check that part of the page renders as meant                                                                                       |
 

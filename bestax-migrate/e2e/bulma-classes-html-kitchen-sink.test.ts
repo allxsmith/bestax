@@ -10,8 +10,8 @@
  *
  * `pages/leftovers.html` holds every pattern a component can't carry, and is
  * the one module left out of the typecheck: a custom element, an obsolete
- * one and an attribute React's types don't list are kept as written, and
- * rejected by TypeScript, which their TODOs say.
+ * one and a React prop spelled in HTML's lowercase (`defaultvalue`) are kept
+ * as written, and TypeScript rejects each of them.
  *
  * Run under the default `--css keep` and under `--css bestax`, which changes
  * only what the Bulma stylesheet's TODO says: no stylesheet import is written.

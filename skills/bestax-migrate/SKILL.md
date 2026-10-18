@@ -39,7 +39,8 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    pnpm dlx bestax-migrate <source> src/ --dry
    ```
 
-   For HTML pages, name a page, or walk a folder with `-e html` (a plain walk skips `.html`,
+   For HTML pages, name a page, or walk a folder with `-e html` (`-e html,htm` for `.htm` pages
+   too; a plain walk skips them,
    since most of it in a React project isn't a page to convert, and reports the Bulma pages it
    skipped as `html-file:not-included`):
 

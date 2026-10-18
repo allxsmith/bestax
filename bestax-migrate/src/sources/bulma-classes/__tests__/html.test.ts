@@ -306,6 +306,28 @@ describe('the report', () => {
     ]);
   });
 
+  it('reports every relative candidate in a srcset, each quoted as itself', () => {
+    const dir = tempDir();
+    fs.writeFileSync(path.join(dir, 'hero.png'), '');
+    const { entries } = convert(
+      `${box}<img src="/hero.png" srcset="hero.png 1x, hero@2x.png 2x, /hero@3x.png 3x, hero.png 4x" alt="">\n`,
+      {},
+      path.join(dir, 'case.html')
+    );
+    expect(entries.map(({ line, rule }) => ({ line, rule }))).toEqual([
+      { line: 2, rule: 'html-url:relative' },
+      { line: 2, rule: 'html-url:missing' },
+    ]);
+    expect(entries[0].message).toMatch(/^`hero\.png` in `srcset` is relative/);
+    expect(entries[1].message).toMatch(
+      /^`hero@2x\.png` in `srcset` points at nothing beside the page/
+    );
+    // A single URL is still quoted as the attribute it is.
+    expect(
+      convert(`${box}<img src="logo.png" alt="">\n`).entries[0].message
+    ).toMatch(/^`src="logo\.png"` points at nothing/);
+  });
+
   it('reads a relative URL beside the page: a file, another page, or nothing', () => {
     const dir = tempDir();
     fs.mkdirSync(path.join(dir, 'img'));
@@ -367,24 +389,54 @@ describe('the report', () => {
   });
 
   it.each([
-    ['defaultvalue', 'rename it to `defaultValue`, or drop it'],
-    ['defaultchecked', 'rename it to `defaultChecked`'],
-    ['valign', 'old presentational attribute'],
-    ['bgcolor', 'replace it with CSS or a class'],
-    ['frobnicate', 'make it a `data-` attribute'],
+    [
+      'a React prop in the wrong case',
+      '<input id="q" defaultvalue="x">',
+      "`defaultvalue` isn't an HTML attribute, so the page never read it, and it reads as React's `defaultValue` in the wrong case: rename it to `defaultValue`, or drop it if it isn't meant",
+    ],
+    [
+      'a presentational attribute React types on this element',
+      '<table><tr><td valign="top">x</td></tr></table>',
+      '`valign` is an obsolete presentational attribute, which CSS replaced: write it as CSS or a class',
+    ],
+    [
+      'a presentational attribute React types nowhere',
+      '<table><tr><td nowrap>x</td></tr></table>',
+      '`nowrap` is an obsolete presentational attribute, which CSS replaced: write it as CSS or a class',
+    ],
+    [
+      'any other',
+      '<p frobnicate="x">t</p>',
+      "`frobnicate` is written as it was, which React renders under that name: drop it if nothing reads it, make it a `data-` attribute if a script of the page's does, and if React's types don't list it on this element, declare it for a TypeScript build",
+    ],
   ])(
-    "says what to do about %s, an attribute React's types don't list",
-    (attribute, advice) => {
-      const { entries } = convert(`${box}<p ${attribute}="x">t</p>\n`);
+    'says what to do about %s, and nothing about whether TypeScript takes it',
+    (_, html, message) => {
+      const { entries } = convert(`${box}${html}\n`);
       expect(entries).toEqual([
         expect.objectContaining({
           rule: 'html-attr:unknown',
-          message: expect.stringContaining(advice),
+          line: 2,
+          message,
         }),
       ]);
-      if (attribute !== 'valign' && attribute !== 'bgcolor') {
-        expect(entries[0].message).not.toContain('CSS');
-      }
+    }
+  );
+
+  it.each([
+    ['U+2028', '\u2028'],
+    ['U+2029', '\u2029'],
+    ['CR', '\r'],
+  ])(
+    'ends a line of a comment outside the body at a %s, so its text stays a comment',
+    (_, separator) => {
+      const { output, entries } = convert(
+        `<!DOCTYPE html>\n<!-- Credit${separator}globalThis.leaked = 1 -->\n<html><body>${box}</body></html>\n`
+      );
+      expect(entries).toEqual([]);
+      expect(output).toContain('// Credit\n// globalThis.leaked = 1\n');
+      expect(output).not.toMatch(/^globalThis/m);
+      expect(output).not.toMatch(/[\u2028\u2029]/);
     }
   );
 
@@ -437,6 +489,15 @@ describe('the source', () => {
     );
     expect(excludedHtml('b.html', '<div id="root"></div>')).toBeNull();
   });
+
+  it.each(['html', 'htm'])(
+    'names the extension a walk needs for a .%s page, since -e matches one exactly',
+    extension => {
+      expect(excludedHtml(`a.${extension}`, box)?.message).toBe(
+        `this page has Bulma classes the bulma-classes source converts, but a folder walk takes a page only when \`--extensions\` lists its extension, and it doesn't list \`${extension}\`: name the page, or add \`${extension}\` to \`--extensions\` (\`-e ${extension}\` for the pages alone)`
+      );
+    }
+  );
 });
 
 function element(html: string): Element {

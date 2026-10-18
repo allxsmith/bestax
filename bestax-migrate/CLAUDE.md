@@ -83,11 +83,13 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `packageName` (defaulting to its `name`) as the import to look for; `null` means the source
   has no package, so no file is ever "still importing" it.
   A source with `htmlExtensions` (bulma-classes) also reads HTML pages: a page named on the
-  command line always, a folder walk's only under `-e html` (React repos are full of `.html`
+  command line always, a folder walk's only when `-e` lists its extension, exactly as for every
+  other file (`html`, `htm`; React repos are full of `.html`
   nobody wants converted), and a walk without it hands each page it skipped to the source's
   `excludedHtml`, which reports the Bulma ones. `transformHtml` returns the module and where
   it goes; the CLI writes it there and never touches the page. A source without HTML support
-  refuses a named page or `-e html` rather than parsing HTML as JavaScript.
+  refuses a named page or an `-e` that lists `html` or `htm` rather than parsing HTML as
+  JavaScript.
 - `src/sources/react-bulma-components/` (and `rbx/`, same shape): `transform.ts`
   (orchestration: imports + css → per-element special/rename/responsive/props → import
   rewrite), `mapping.ts` (data), `specials.ts` (structural handlers), `responsive.ts`

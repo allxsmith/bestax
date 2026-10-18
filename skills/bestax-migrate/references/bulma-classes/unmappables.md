@@ -349,7 +349,8 @@ alone: every other TODO names a React component to use.
 
 ## A page converted from HTML: `html-*`
 
-Run on an HTML page (`bestax-migrate bulma-classes page.html`, or a folder with `-e html`), the
+Run on an HTML page (`bestax-migrate bulma-classes page.html`, or a folder with `-e html`, or
+`-e html,htm` to take `.htm` pages too), the
 codemod writes a module beside the page and runs everything above on it, so a page gets the same
 TODOs its markup would as JSX. What a component can't carry gets an `html-*` rule. TODOs about the
 whole page sit above the component, the rest above its `return`, and each ends with the page and
@@ -498,6 +499,7 @@ than `this`. A `<body onload>` becomes an effect.
   resolves against the address the component renders at. The file is there beside the page, so
   copy it into the app's `public/` folder and point at it from the site root (`/img/logo.png`), or
   import it. A link to another page beside this one should point at the route that page becomes.
+  Each relative URL in a `srcset` is its own entry, quoted as itself (`` `hero@2x.png` in `srcset` ``).
   Several of these share one TODO line, and each is its own report entry.
 - **`html-url:missing`**: a relative URL whose target isn't beside the page, read the way the
   browser read it, so it was a dead link or a missing file already. Point it somewhere real, or
@@ -508,15 +510,18 @@ than `this`. A `<body onload>` becomes an effect.
 - **`html-attr:name`**: an attribute JSX can't write (`@click`, `:class`, `x-on:click`), or one the
   element already had under another spelling, was left out. A framework's directive is code to port
   into the component.
-- **`html-attr:unknown`**: an attribute React renders but its types don't list, so a TypeScript
-  build rejects it. What to do depends on the attribute, and the TODO says which:
+- **`html-attr:unknown`**: an attribute React has no prop for by that name, written as it was.
+  React renders it. Whether a TypeScript build takes it depends on the element (React's types
+  list `valign` on a `<td>` and not on a `<th>`), so the TODO doesn't say; what to do depends on
+  the attribute, and the TODO says which:
   - React's own prop in the wrong case (`defaultvalue`, `defaultchecked`), which the page never
     read since it isn't HTML: rename it to the prop (`defaultValue`), or drop it if it isn't
     meant.
-  - An old presentational attribute (`valign`, `bgcolor`, `nowrap`): replace it with CSS or a
-    class.
+  - An obsolete presentational attribute (`valign`, `bgcolor`, `nowrap`), which CSS replaced:
+    write it as CSS or a class.
   - Anything else: drop it if nothing reads it, make it a `data-` attribute if a script of the
-    page's reads it, or declare it for TypeScript if the browser does.
+    page's reads it, and if React's types don't list it on that element, declare it for a
+    TypeScript build.
 - **`html-attr:style`**: a `style` declaration a browser can't read (`*zoom: 1`) was left out, as a
   browser leaves it out. Delete it, or rewrite it if it meant something.
 - **`html-attr:important`**: React sets a style without a priority, so the declaration is written
@@ -537,9 +542,10 @@ markup meant, so check that part of the page. A code too long for a rule id is r
   writes over a file. That makes a second run change nothing. Move or delete the module to convert
   the page again.
 - **`html-file:not-included`**: a folder walk found the page, and it has Bulma classes, but a walk
-  reads HTML pages only under `-e html`, since most `.html` files in a React project aren't pages
-  to convert (Vite's `index.html`, `public/`). Name the page, or run over its folder with
-  `-e html`.
+  takes a page only when `--extensions` lists its extension, since most `.html` files in a React
+  project aren't pages to convert (Vite's `index.html`, `public/`). `-e` matches an extension
+  exactly, as it does for every file, so `-e html` takes no `.htm` page; the TODO names the one
+  the page needs. Name the page, or add its extension to `--extensions` (`-e html,htm` for both).
 - **`html-file:template-syntax`**: the page is a server template (`{{`, `{%`, `<?php`, `<%`), which
   isn't HTML a browser reads as written. Convert the HTML it renders, or the template by hand.
 
