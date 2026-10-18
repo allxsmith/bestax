@@ -373,8 +373,8 @@
       "slug": "layout/container",
       "import": "import { Container } from '@allxsmith/bestax-bulma';",
       "compound": false,
-      "propCount": 10,
-      "exampleCount": 7
+      "propCount": 11,
+      "exampleCount": 8
     },
     {
       "name": "Content",
@@ -571,8 +571,8 @@
       "slug": "layout/hero",
       "import": "import { Hero } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 21,
-      "exampleCount": 6
+      "propCount": 24,
+      "exampleCount": 7
     },
     {
       "name": "HoverCard",
@@ -813,8 +813,8 @@
       "slug": "components/panel",
       "import": "import { Panel } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 35,
-      "exampleCount": 3
+      "propCount": 37,
+      "exampleCount": 4
     },
     {
       "name": "Paragraph",

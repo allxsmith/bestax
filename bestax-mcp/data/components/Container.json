@@ -32,9 +32,13 @@
     {
       "title": "Fluid Container",
       "code": "<Container fluid>\n  <Notification color=\"primary\">\n    If the container has <code>fluid</code> it will expand to the full width of\n    the screen, with a small 32px gap on each side.\n  </Notification>\n</Container>"
+    },
+    {
+      "title": "Landmark Tags",
+      "code": "<Container as=\"main\">\n  <Notification color=\"primary\">\n    This container renders as <code>{'<main class=\"container\">'}</code>.\n  </Notification>\n</Container>"
     }
   ],
-  "accessibility": "- The container renders as a semantic `<div>` by default.\n- Use semantic HTML and accessible children within the container for best practices.",
+  "accessibility": "- The container renders as a `<div>` by default, which adds nothing to the page's landmarks.\n- With `as`, it becomes the element you name, landmark role and all: keep one visible `main` per page, and give a `section` an accessible name (`aria-label`, or `aria-labelledby` pointing at its heading) if it should be a region.\n- Use semantic HTML and accessible children within the container for best practices.",
   "related": ["Notification", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/layout-container--default",
   "summary": "The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.",
@@ -47,6 +51,15 @@
       "summary": "The `Container` component provides a responsive and flexible layout wrapper for your Bulma React UI.",
       "component": null,
       "props": [
+        {
+          "name": "as",
+          "type": "'div' | 'main' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav'",
+          "default": "'div'",
+          "description": "HTML element to render (default: `div`). Bulma pages often put the container on a landmark, such as `<main class=\"container\">` or `<footer class=\"container\">`. A page has only one visible `main`, and a `section` is a `region` landmark only once it has an accessible name (`aria-label`, or `aria-labelledby` pointing at its heading).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -141,7 +154,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     }
   ],

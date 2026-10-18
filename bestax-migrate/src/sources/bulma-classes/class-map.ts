@@ -1052,6 +1052,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
     },
     ownProps: [
+      'as',
       'textColor',
       'color',
       'bgColor',
@@ -1348,13 +1349,13 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'size'
       ),
     },
-    ownProps: ['color', 'size', 'bgColor', 'fullheightWithNavbar'],
+    ownProps: ['as', 'color', 'size', 'bgColor', 'fullheightWithNavbar'],
   },
   'hero-head': {
     ...BASE,
     target: 'Hero.Head',
     tag: 'div',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   'hero-body': {
     ...BASE,
@@ -1366,7 +1367,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero.Foot',
     tag: 'div',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   level: {
     ...BASE,
@@ -2148,7 +2149,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         '`color` renders `has-text-<color>` on the panel as well',
       ])
     ),
-    ownProps: ['color'],
+    ownProps: ['as', 'color'],
   },
   'panel-heading': {
     status: 'mapped',
@@ -2180,7 +2181,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       tags: ['label', 'div'],
       why: 'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
     },
-    ownProps: ['active'],
+    ownProps: ['as', 'active'],
   },
   'panel-icon': todo(
     'Panel.Icon',

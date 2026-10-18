@@ -27,6 +27,7 @@ import {
   type DropdownItemProps,
 } from '../components/Dropdown';
 import { Menu } from '../components/Menu';
+import { Panel, type PanelBlockProps } from '../components/Panel';
 import type { PolymorphicProps } from '../helpers/polymorphic';
 import { Navbar } from '../components/Navbar';
 import { Reveal } from '../components/Reveal';
@@ -517,6 +518,22 @@ type LevelItemDerived = React.ComponentProps<typeof Level.Item>;
 export const levelItemKey: keyof LevelItemDerived = 'href';
 export const levelItemIndexed: LevelItemDerived['href'] = '/x';
 export const levelItemDerivedTag: LevelItemDerived = { as: 'p' };
+
+// `Panel.Block` takes the same shape as `Level.Item`, with a `<label>`'s own
+// attributes beside the anchor's: each set is typed at every `as` and
+// forwarded only to its own tag.
+export const panelBlockShapes = (
+  <>
+    <Panel.Block href="/x" download="f" referrerPolicy="no-referrer" />
+    <Panel.Block as="label" htmlFor="remember" />
+    <Panel.Block as="div" aria-label="Program" />
+    {/* @ts-expect-error Bulma's panel block is an a, a label or a div */}
+    <Panel.Block as="span" />
+  </>
+);
+export const panelBlockHandler: PanelBlockProps = {
+  onClick: event => void event.currentTarget,
+};
 
 // And a memo wrapper keeps every tag.
 const MemoLevelItem = React.memo(Level.Item);

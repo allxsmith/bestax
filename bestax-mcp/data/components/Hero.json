@@ -26,11 +26,15 @@
       "code": "<Hero color=\"primary\" size=\"medium\">\n  <Hero.Head>\n    <Navbar>\n      <Container>\n        <Navbar.Brand>\n          <Navbar.Item as=\"a\">\n            <Image src=\"/img/bestax-type-white.svg\" alt=\"Bestax\" mx=\"2\" />\n          </Navbar.Item>\n          <Navbar.Burger />\n        </Navbar.Brand>\n        <Navbar.Menu id=\"navbarMenuHeroA\">\n          <Navbar.End>\n            <Navbar.Item as=\"a\" active>\n              Getting Started\n            </Navbar.Item>\n            <Navbar.Item as=\"a\">APIs</Navbar.Item>\n            <Navbar.Item as=\"a\">Blog</Navbar.Item>\n            <Navbar.Item as=\"span\">\n              <Button color=\"primary\" isInverted as=\"a\" mx=\"2\">\n                <Icon\n                  library=\"fa\"\n                  name=\"github\"\n                  variant=\"brands\"\n                  ariaLabel=\"github\"\n                />\n                <Span>Github</Span>\n              </Button>\n            </Navbar.Item>\n          </Navbar.End>\n        </Navbar.Menu>\n      </Container>\n    </Navbar>\n  </Hero.Head>\n\n  <Hero.Body>\n    <Container textAlign=\"centered\">\n      <Title>Bestax</Title>\n      <SubTitle>A Bulma Component Library</SubTitle>\n    </Container>\n  </Hero.Body>\n\n  <Hero.Foot>\n    <Tabs>\n      <Container>\n        <Tabs.List>\n          <Tabs.Item>\n            <a>Elements</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Components</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Columns</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Grid</a>\n          </Tabs.Item>\n          <Tabs.Item>\n            <a>Layout</a>\n          </Tabs.Item>\n        </Tabs.List>\n      </Container>\n    </Tabs>\n  </Hero.Foot>\n</Hero>"
     },
     {
+      "title": "Landmark Tags",
+      "code": "<Hero as=\"div\" color=\"primary\">\n  <Hero.Head as=\"header\">\n    <Container textAlign=\"centered\" pt=\"4\">\n      <SubTitle size=\"6\">Hero.Head as=\"header\"</SubTitle>\n    </Container>\n  </Hero.Head>\n  <Hero.Body>\n    <Container as=\"main\" textAlign=\"centered\">\n      <Title>Hero as=\"div\"</Title>\n      <SubTitle>Container as=\"main\"</SubTitle>\n    </Container>\n  </Hero.Body>\n  <Hero.Foot as=\"footer\">\n    <Container textAlign=\"centered\" pb=\"4\">\n      <SubTitle size=\"6\">Hero.Foot as=\"footer\"</SubTitle>\n    </Container>\n  </Hero.Foot>\n</Hero>"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Hero color=\"info\">\n  <Hero.Head>\n    <Container textAlign=\"centered\" pt=\"4\">\n      <Title size=\"6\">Hero head via dot notation</Title>\n    </Container>\n  </Hero.Head>\n  <Hero.Body>\n    <Container textAlign=\"centered\">\n      <Title>Hero title</Title>\n      <SubTitle>Hero subtitle</SubTitle>\n    </Container>\n  </Hero.Body>\n  <Hero.Foot>\n    <Container textAlign=\"centered\" pb=\"4\">\n      <SubTitle size=\"6\">Hero foot via dot notation</SubTitle>\n    </Container>\n  </Hero.Foot>\n</Hero>"
     }
   ],
-  "accessibility": "- The hero renders as a semantic `<section>` by default.\n- Subcomponents use semantic `<div>` for layout but you can use accessible children/content.\n- Use headings (`<Title>`, `<SubTitle>`) for best screen reader support.\n\n:::note\nWhen using fullheight or fullheight-with-navbar, ensure your layout remains keyboard navigable and visually accessible.\n:::",
+  "accessibility": "- The hero renders as a semantic `<section>` by default. A `<section>` is a region landmark only once it has an accessible name, so give it an `aria-label` or `aria-labelledby` if it should be one.\n- `as` renders the hero as `div`, `main`, `header`, `footer`, `article` or `aside` instead, and `Hero.Head` and `Hero.Foot` as `header`, `footer` or `nav`; each takes that element's landmark role. Keep one visible `main` per page, and don't put a `header` or `footer` inside another one.\n- `Hero.Body` renders a `<div>` for layout; use accessible children/content.\n- Use headings (`<Title>`, `<SubTitle>`) for best screen reader support.\n\n:::note\nWhen using fullheight or fullheight-with-navbar, ensure your layout remains keyboard navigable and visually accessible.\n:::",
   "related": [
     "Button",
     "Container",
@@ -51,6 +55,15 @@
       "summary": "The `Hero` component provides a responsive, flexible, and visually striking section for your Bulma React UI.",
       "component": null,
       "props": [
+        {
+          "name": "as",
+          "type": "'section' | 'div' | 'main' | 'header' | 'footer' | 'article' | 'aside'",
+          "default": "'section'",
+          "description": "HTML element to render (default: `section`). Bulma pages often put the hero on a landmark: `main` when the hero is the page's main content, `header` for a banner above it, `footer` for one below it. A page has only one visible `main`, and a `section` is a `region` landmark only once it has an accessible name (`aria-label`, or `aria-labelledby` pointing at its heading).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -118,6 +131,15 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "'div' | 'header' | 'nav'",
+          "default": "'div'",
+          "description": "HTML element to render (default: `div`). `nav` suits a head that holds only the site's navigation. A `header` is a `banner` landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so inside the default `<section>` hero it is not one: render the hero as a `div` for that. A `header` may not sit inside another `header` or a `footer`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
@@ -167,7 +189,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     },
     {
@@ -234,6 +256,15 @@
       "component": null,
       "props": [
         {
+          "name": "as",
+          "type": "'div' | 'footer' | 'nav'",
+          "default": "'div'",
+          "description": "HTML element to render (default: `div`). `nav` suits a foot that holds tabs or links. A `footer` is a `contentinfo` landmark only when no `section`, `article`, `aside`, `nav` or `main` is around it, so inside the default `<section>` hero it is not one: render the hero as a `div` for that. A `footer` may not sit inside another `footer` or a `header`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
           "name": "className",
           "type": "string",
           "default": null,
@@ -283,7 +314,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "catchAll": "All standard HTML attributes and Bulma helper props",
       "types": []
     }
   ],
