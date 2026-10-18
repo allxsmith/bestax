@@ -85,8 +85,13 @@ fix.
    an original built for one scheme often looks the same in both, holding its colors with
    overrides of its own. When it does, pin the scheme it was built for on the `<html>` in
    `index.html` (`data-theme="light"` for a light-only original), so the first paint has it too,
-   and leave those overrides out (the bestax-theming skill's contrast rules say why). Fix
-   upstream bugs minimally and note each one in the README.
+   and leave those overrides out (the bestax-theming skill's contrast rules say why). A Bulma 0.x
+   original differs from Bulma v1 in more than its primary: v1 sets heavier heading and button
+   weights, fills the active navbar item with the link color, and colors the burger with it too.
+   Bulma declares those variables on `.title`, `.content`, `.button` and `.navbar` rather than
+   `:root`, and turns the active item's fill on at `a.navbar-item.is-active`, so set the
+   original's values on those selectors; `templates/hotel/src/index.css` is the worked example.
+   Fix upstream bugs minimally and note each one in the README.
 6. **Finish up.**
    - `git add` the folder first. The screenshot builds what git tracks, as the checks read it
      (**What git tracks**, above).
