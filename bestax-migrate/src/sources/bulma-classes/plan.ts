@@ -20,6 +20,7 @@ import {
   numberAttrsOf,
   placedFor,
   PRECEDENCE,
+  reachesTag,
   rootFor,
   WRAPPER_OWN_PROPS,
   wrapperFor,
@@ -328,6 +329,43 @@ function tagsItReaches(entry: RootEntry): string {
   return `only <${entry.tag}>`;
 }
 
+/**
+ * A TODO for each other component class on an element that converts
+ * (`columns box`). The class stays in `className`, which renders the same,
+ * but on a bestax component it is raw Bulma markup the lint rule reports, so
+ * each says which root won and why, and how to keep what the class does.
+ */
+function secondComponents(
+  carried: readonly string[],
+  root: string | undefined,
+  target: string,
+  tag: string
+): Todo[] {
+  return carried.flatMap(token => {
+    const other = rootFor(token);
+    if (token === root || other?.status !== 'mapped') return [];
+    const name = other.target!;
+    if (name === target) return [];
+    const why =
+      root === undefined
+        ? 'since an item of a list converts by where it sits'
+        : !reachesTag(other, tag)
+          ? `since \`${name}\` renders ${tagsItReaches(other)}, not a <${tag}>`
+          : precedence(root) < precedence(token)
+            ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+            : `since \`.${root}\` comes first on the element`;
+    const advice =
+      other.onAnother ??
+      `to use \`${name}\`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one`;
+    return [
+      {
+        rule: ruleId('second-component', name),
+        message: `\`.${token}\` is bestax \`${name}\`'s class too, and an element converts to one component: \`${target}\` here, ${why}, so \`.${token}\` stays in its \`className\`, which renders the same; ${advice}`,
+      },
+    ];
+  });
+}
+
 export function plan(facts: ElementFacts): Plan {
   const todos: Todo[] = [];
   const { tag, tokens } = facts;
@@ -366,11 +404,15 @@ export function plan(facts: ElementFacts): Plan {
     : tokens.find(token => rootFor(token)?.status === 'fold');
   if (wrapper) return planFold(facts, wrapper, todos);
 
-  const root = placed
-    ? undefined
+  // Of two roots, one whose target renders the element's tag wins, and the
+  // table's precedence decides between the rest.
+  const roots = placed
+    ? []
     : tokens
         .filter(token => rootFor(token)?.status === 'mapped')
-        .sort((a, b) => precedence(a) - precedence(b))[0];
+        .sort((a, b) => precedence(a) - precedence(b));
+  const root =
+    roots.find(token => reachesTag(rootFor(token)!, tag)) ?? roots[0];
 
   let entry: RootEntry | null;
   if (placed) {
@@ -866,6 +908,7 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
     );
   }
+  todos.push(...secondComponents(carried, root, target, tag));
   return {
     conversion: {
       target,

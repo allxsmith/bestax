@@ -107,8 +107,10 @@ a `<label>` or `<div>` `.panel-block` stays markup with no TODO, since bestax re
 | `.panel-block`         | `Panel.Block`         | `<a>` only                                                     |
 | `.tabs`                | `Tabs`                | `<div>` only                                                   |
 
-An element with two of these (`<div className="column box">`) becomes the layout one
-(`Column`), and the other class stays in `className`.
+An element with two of these (`<div className="column box">`) becomes one whose component
+renders its tag, the layout one when both do (`Column`), and the other class stays in
+`className` with a `second-component:<Target>` TODO. So `<figure className="image container">`
+becomes an `Image`, since `Container` renders only a `<div>`.
 
 `Card` renders its children inside a `.card-content` of its own unless one of them is one of
 its parts, and `Card.Header` its children inside a `.card-header-title` unless one of them is a

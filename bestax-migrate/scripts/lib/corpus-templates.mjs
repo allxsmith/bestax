@@ -307,12 +307,18 @@ function classTokens(opening) {
 
 /**
  * The class `no-bulma-component-class` reports an element by: the first
- * family class it carries, else the converted class the table ranks first.
+ * family class it carries, else the first converted class in the table's
+ * order whose component renders its tag, else the first.
  * `classes` is the ESLint plugin's `BULMA_COMPONENT_CLASSES`.
  */
-function componentClassOf(tokens, classes) {
+function componentClassOf(tokens, tag, classes) {
   const family = tokens.find(token => classes.get(token)?.converts === false);
-  return family ?? [...classes.keys()].find(key => tokens.includes(key));
+  if (family !== undefined) return family;
+  const carried = [...classes].filter(([key]) => tokens.includes(key));
+  const fits = carried.find(
+    ([, entry]) => entry.tags === 'any' || entry.tags?.includes(tag)
+  );
+  return (fits ?? carried[0])?.[0];
 }
 
 function bump(counts, cls) {
@@ -341,7 +347,7 @@ export function componentClassCounts(ast, classes) {
       if (tag !== null && FOREIGN.has(tag)) inside = true;
       const tokens =
         tag === null || inside ? null : classTokens(node.openingElement);
-      if (tokens !== null) bump(counts, componentClassOf(tokens, classes));
+      if (tokens !== null) bump(counts, componentClassOf(tokens, tag, classes));
     }
     for (const [key, child] of Object.entries(node)) {
       if (!SKIPPED_KEYS.has(key)) visit(child, inside);
@@ -374,7 +380,7 @@ export function pageClassCounts(root, classes) {
       if (INTRINSIC.test(child.tagName)) {
         const attr = child.attrs.find(a => a.name === 'class' && !a.prefix);
         const tokens = (attr?.value ?? '').split(/\s+/).filter(Boolean);
-        bump(counts, componentClassOf(tokens, classes));
+        bump(counts, componentClassOf(tokens, child.tagName, classes));
       }
       visit(child);
     }

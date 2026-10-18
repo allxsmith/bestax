@@ -427,6 +427,79 @@ describe('plan', () => {
       });
     });
 
+    it('says the other root stays a class, which one won and why', () => {
+      expect(plan(facts('div', 'columns box')).todos).toEqual([
+        {
+          rule: 'second-component:Box',
+          message:
+            "`.box` is bestax `Box`'s class too, and an element converts to one component: `Columns` here, since the codemod ranks `.columns` first, putting layout and parts ahead of surfaces, so `.box` stays in its `className`, which renders the same; to use `Box`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one",
+        },
+      ]);
+      // One for each, and for one a condition adds, which stays in the call.
+      expect(
+        plan({ ...facts('div', 'columns content box'), conditional: [['box']] })
+          .todos
+      ).toEqual([
+        { rule: 'second-component:Content', message: expect.any(String) },
+        { rule: 'second-component:Box', message: expect.any(String) },
+      ]);
+      // Between two roots the table doesn't rank, the first on the element.
+      const both = plan(facts('p', 'panel-heading menu-label'));
+      expect(both.conversion?.target).toBe('Panel.Heading');
+      expect(both.todos).toEqual([
+        {
+          rule: 'second-component:Menu.Label',
+          message: expect.stringContaining(
+            'since `.panel-heading` comes first on the element'
+          ),
+        },
+      ]);
+    });
+
+    it('picks a root whose target renders the tag over one ranked ahead of it', () => {
+      // Around an element written out, which Image renders as given.
+      const inside = {
+        tag: 'iframe',
+        attributes: new Map(),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const result = plan(
+        facts('figure', 'image is-128x128 container', {}, { soleChild: inside })
+      );
+      expect(result.conversion).toEqual({
+        target: 'Image',
+        props: [
+          ['as', 'figure'],
+          ['size', '128x128'],
+        ],
+        className: 'container',
+        drop: [],
+        numbers: [],
+      });
+      // `.container` gets its own advice: on a sized image it centers it.
+      expect(result.todos).toEqual([
+        {
+          rule: 'second-component:Container',
+          message: expect.stringContaining(
+            '`Image` here, since `Container` renders only <div>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`'
+          ),
+        },
+      ]);
+      // On a tag both render, the table's ranking decides as before.
+      expect(
+        plan(
+          facts('div', 'image is-128x128 container', {}, { soleChild: inside })
+        ).conversion?.target
+      ).toBe('Container');
+    });
+
+    it('leaves the second root to a refusal when none renders the tag', () => {
+      expect(plan(facts('section', 'container box')).todos).toEqual([
+        { rule: 'tag:Container', message: expect.any(String) },
+      ]);
+    });
+
     it('flags the outermost class of a family it does not convert', () => {
       expect(plan(facts('div', 'dropdown'))).toEqual({
         conversion: null,
@@ -1560,6 +1633,17 @@ describe('plan', () => {
         );
       const rules = (result: ReturnType<typeof plan>) =>
         result.todos.map(todo => todo.rule);
+
+      it('says a component class on the <li> stays a class', () => {
+        expect(item('box', {}, [link()]).todos).toEqual([
+          {
+            rule: 'second-component:Box',
+            message: expect.stringContaining(
+              '`Menu.Item` here, since an item of a list converts by where it sits'
+            ),
+          },
+        ]);
+      });
 
       it('converts the <li> and its <a> together, with a nested list after', () => {
         expect(

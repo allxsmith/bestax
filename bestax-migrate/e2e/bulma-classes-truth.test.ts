@@ -23,6 +23,8 @@ import {
   HELPER_TOKENS,
   numberAttrsOf,
   PLACED,
+  PRECEDENCE,
+  reachesTag,
   ROOTS,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
@@ -1676,6 +1678,71 @@ describe("the table's claims about the library", () => {
         props: [...(declared.get(target) ?? ['<not in the MCP index>'])].sort(),
       });
     }
+  });
+});
+
+describe('an element carrying a second root', () => {
+  // The roots an element most often carries beside another one.
+  const seconds = [
+    'box',
+    'block',
+    'content',
+    'notification',
+    'container',
+    'section',
+    'columns',
+    'column',
+    'image',
+  ];
+
+  it('converts to a root that renders its tag when either does, and renders the same', () => {
+    const lostOnTag: string[] = [];
+    let conversions = 0;
+    for (const [root, entry] of mapped) {
+      for (const second of seconds) {
+        if (second === root) continue;
+        const other = ROOTS[second];
+        const child = childFor(entry);
+        // An element holds the child one of them renders itself, or the part
+        // one of them wraps its children unless it holds, never both, and a
+        // void one holds nothing.
+        if (other.absorbs && (entry.absorbs || child)) continue;
+        // Each one's own tag, and the ones the second reaches through `as`.
+        const tags = new Set([entry.tag!, ...tagsFor(other)]);
+        for (const tag of tags) {
+          if (VOID.has(tag)) continue;
+          const given = {
+            ...defaultsFor(other, tag),
+            ...defaultsFor(entry, tag),
+          };
+          // The order decides only between two roots the table doesn't rank.
+          for (const tokens of PRECEDENCE.includes(root)
+            ? [[root, second]]
+            : [
+                [root, second],
+                [second, root],
+              ]) {
+            const facts = factsFor(tag, tokens, given, child);
+            const refused = plan(facts).todos.some(todo =>
+              todo.rule.startsWith('tag:')
+            );
+            if (refused && (reachesTag(entry, tag) || reachesTag(other, tag))) {
+              lostOnTag.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            const both = renderBoth(facts, given, child);
+            if (!both) continue;
+            conversions += 1;
+            expect({ tag, tokens, html: both.converted }).toEqual({
+              tag,
+              tokens,
+              html: both.raw,
+            });
+          }
+        }
+      }
+    }
+    expect(lostOnTag).toEqual([]);
+    expect(conversions).toBeGreaterThan(500);
   });
 });
 

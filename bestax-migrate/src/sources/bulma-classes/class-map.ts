@@ -327,6 +327,22 @@ export interface RootEntry {
    * no prop for them.
    */
   readonly omits?: Readonly<Record<string, string>>;
+  /**
+   * How to keep this class on an element another root converts, where
+   * wrapping or nesting its component is not the answer: `.container` there
+   * mostly centers the element, which `mx="auto"` does. For that element's
+   * TODO and the MCP lookup, which otherwise say to wrap or nest it.
+   */
+  readonly onAnother?: string;
+}
+
+/**
+ * Whether a root's target renders this tag, as its own or through `as`. A
+ * root that doesn't loses to one that does on the same element.
+ */
+export function reachesTag(entry: RootEntry, tag: string): boolean {
+  if (entry.tag === tag || entry.as === 'any') return true;
+  return entry.as?.includes(tag) ?? false;
 }
 
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
@@ -1061,6 +1077,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'breakpoint',
       'isMax',
     ],
+    // `.container` is `margin: 0 auto` and a `max-width`, so on an element
+    // with a width of its own (`.image.is-128x128`) it only centers it.
+    onAnother:
+      'where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
   },
   content: {
     ...BASE,
@@ -2348,9 +2368,13 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
 };
 
 /**
- * Which root wins when an element carries two (`column box`): layout before
- * surface, so the element keeps the role that decides where it sits. The
- * other root stays in `className`, which renders the same either way.
+ * Which root wins when an element carries two (`column box`) whose targets
+ * both render its tag: layout before surface, so the element keeps the role
+ * that decides where it sits. A root whose target renders the tag beats one
+ * whose doesn't, whatever this says (`reachesTag`: `Image` takes a
+ * `<figure className="image container">`, which `Container` can't render).
+ * The other root stays in `className`, which renders the same either way,
+ * and the element gets a TODO naming its component.
  */
 export const PRECEDENCE: readonly string[] = [
   'columns',

@@ -355,6 +355,35 @@ describe('the component class count', () => {
     });
   });
 
+  it("picks a class whose component renders the element's tag, as the rule does", () => {
+    const tagged = new Map([
+      ['container', { component: 'Container', converts: true, tags: ['div'] }],
+      [
+        'image',
+        { component: 'Image', converts: true, tags: ['div', 'figure', 'p'] },
+      ],
+    ]);
+    const module = parseModule(`
+      const page = (
+        <>
+          <figure className="image container" />
+          <div className="image container" />
+          <section className="container image" />
+        </>
+      );
+    `);
+    expect(componentClassCounts(module, tagged)).toEqual({
+      container: 2,
+      image: 1,
+    });
+    expect(
+      pageClassCounts(
+        parseHtml('<figure class="image container"></figure>').root,
+        tagged
+      )
+    ).toEqual({ image: 1 });
+  });
+
   it('reads plain HTML only, the way the rule does', () => {
     expect(
       counts(`
