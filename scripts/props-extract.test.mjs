@@ -138,6 +138,31 @@ test('a sub-component imported from a module named something else keeps its tabl
   assert.equal(divider.component, 'DropdownDivider');
 });
 
+test('props declared inline on the component are read as its props (#1174)', () => {
+  // `ToastContainer: React.FC<{ position?: ToastPosition }>`: the literal's
+  // text named no interface, so the table came back empty.
+  const [toast] = extractComponent('ToastContainer', {
+    markdown: false,
+  }).tables;
+  assert.equal(toast.listOnly, undefined);
+  assert.equal(toast.interfaceName, null);
+  assert.deepEqual(
+    toast.rows.map(r => [r.name, r.default, r.inherited]),
+    [['position', "'top-right'", false]]
+  );
+  assert.match(toast.rows[0].description, /shown without a `position`/);
+  // It takes nothing else, not even its element's attributes.
+  assert.equal(toast.catchAll, null);
+});
+
+test('a component that names no props type says it takes none', () => {
+  // Apart from one whose props are an inline DOM type, which takes those.
+  assert.equal(table('Dropdown', 'Dropdown.Divider').noProps, true);
+  assert.equal(table('ContextMenu', 'ContextMenu.Divider').noProps, true);
+  assert.equal(table('Navbar', 'Navbar.Divider').noProps, undefined);
+  assert.equal(extractComponent('DialogContainer').tables[0].noProps, true);
+});
+
 test('a polymorphic component still resolves its props type', () => {
   // The cast defeats every existing path in `propsInterfaceName`. A miss is
   // near-silent: `gen-api-docs` skips a `listOnly` SUB outright, so Navbar.Item

@@ -1626,6 +1626,227 @@ describe('rough edges', () => {
   });
 });
 
+// Exports with no page of their own, which answers named while the tools refused
+// them: a lookup's `InputBase` (#1150), an import line's `CarouselItem` and a part's
+// `Thead` (#1174).
+describe('exports documented with another component', () => {
+  it('answers get_props for the base a class lookup names', async () => {
+    for (const [base, wrapper, prop] of [
+      ['InputBase', 'Input', 'isStatic'],
+      ['SelectBase', 'Select', 'multipleSize'],
+      ['TextAreaBase', 'TextArea', 'hasFixedSize'],
+    ]) {
+      const res = await call('get_props', { component: base });
+      expect(failed(res)).toBe(false);
+      const out = text(res);
+      expect(out).toContain(`### ${base}`);
+      expect(out).toContain(
+        `\`${base}\` is exported on its own and documented with \`${wrapper}\`, which renders it.`
+      );
+      expect(out).toContain(`| \`${prop}\` |`);
+    }
+  });
+
+  it("lists them on the component's own answer, apart from its subcomponents", async () => {
+    const out = text(await call('get_props', { component: 'Input' }));
+    expect(out).toContain(
+      '**Documented here too:** `InputBase`, which it renders.'
+    );
+    expect(out).not.toContain('**Subcomponents:**');
+    // Not a compound for it, either.
+    const listing = text(await call('list_components', { category: 'form' }));
+    expect(listing).toMatch(/- \*\*Input\*\* —/);
+  });
+
+  it('answers for a companion the import line names, and its own import', async () => {
+    const props = text(await call('get_props', { component: 'CarouselItem' }));
+    expect(props).toContain('### CarouselItem');
+    expect(props).toContain('| `active` |');
+    const page = text(await call('get_component', { name: 'CarouselItem' }));
+    expect(page).toContain('# CarouselItem');
+    expect(page).toContain(
+      "import { Carousel, CarouselItem } from '@allxsmith/bestax-bulma';"
+    );
+    // A base is left out of its wrapper's import, so it gets one of its own.
+    const base = text(await call('get_component', { name: 'inputbase' }));
+    expect(base).toContain(
+      "import { InputBase } from '@allxsmith/bestax-bulma';"
+    );
+    expect(base).toContain("examples, CSS variables and notes are `Input`'s");
+  });
+
+  it('says a companion is no dot-path when asked for one', async () => {
+    const res = await call('get_props', {
+      component: 'Carousel',
+      path: 'Carousel.Item',
+    });
+    expect(failed(res)).toBe(true);
+    expect(text(res)).toContain('Did you mean "CarouselItem"?');
+    expect(text(res)).toContain(
+      'not a dot-path, so it is written <CarouselItem>'
+    );
+  });
+
+  it('answers a sub exported standalone with its table, not a pointer back to itself', async () => {
+    const out = text(await call('get_props', { component: 'Thead' }));
+    expect(out).toContain('### Table.Thead');
+    expect(out).toContain(
+      'Also exported standalone as `Thead`, the same component, so this is its table.'
+    );
+    // A borrowed sub goes to the component that declares it.
+    expect(
+      text(await call('get_props', { component: 'DropdownItem' }))
+    ).toContain('### Dropdown.Item');
+  });
+
+  it("reads a container's inline props, and says when one takes none", async () => {
+    const toast = text(
+      await call('get_props', { component: 'ToastContainer' })
+    );
+    expect(toast).toContain('| `position` |');
+    expect(toast).toContain("`'top-right'`");
+    expect(
+      text(await call('get_props', { component: 'DialogContainer' }))
+    ).toContain('Takes no props, not even the standard HTML attributes.');
+    expect(
+      text(
+        await call('get_props', {
+          component: 'Dropdown',
+          path: 'Dropdown.Divider',
+        })
+      )
+    ).toContain('Takes no props');
+  });
+
+  it('serves the examples that use one, and points a base at its wrapper', async () => {
+    const items = text(
+      await call('get_examples', { component: 'CarouselItem' })
+    );
+    expect(items).toContain('# CarouselItem examples');
+    expect(items).toContain("From `Carousel`'s documentation page");
+    expect(items).toContain('<CarouselItem>');
+    expect(
+      text(await call('get_examples', { component: 'DropdownItem', limit: 1 }))
+    ).toContain('<Dropdown.Item');
+    const base = text(await call('get_examples', { component: 'InputBase' }));
+    expect(base).toContain('`InputBase` has no examples of its own.');
+    expect(base).toContain('get_examples({ component: "Input" })');
+    expect(
+      text(
+        await call('get_examples', { component: 'CarouselItem', query: '!!!' })
+      )
+    ).toContain('No CarouselItem examples match "!!!"');
+  });
+
+  it('names the component whose variables they are', async () => {
+    expect(
+      text(await call('get_css_variables', { component: 'InputBase' }))
+    ).toContain(
+      '`InputBase` is documented with `Input`, whose variables these are.'
+    );
+  });
+
+  it('finds one by name in search_bestax', async () => {
+    const out = text(await call('search_bestax', { query: 'InputBase' }));
+    expect(out.split('\n')[2]).toContain(
+      '| component | InputBase | documented with Input'
+    );
+    expect(out).toContain('`get_component({ name: "InputBase" })`');
+  });
+
+  it("sends a lookup for a base's examples to the component that renders it", async () => {
+    const lookup = async (classes: string) =>
+      text(await call('lookup_bulma_classes', { classes }));
+    expect(await lookup('input is-rounded')).toContain(
+      '**Next:** `get_props({ component: "InputBase" })` for its other props · ' +
+        '`get_examples({ component: "Input" })` for examples of `Input`, which renders it.'
+    );
+    expect(await lookup('button')).toContain(
+      '**Next:** `get_props({ component: "Button" })` for its other props.'
+    );
+  });
+});
+
+// A name the server hands out that its own tools refuse sends an agent nowhere, which
+// is what #1150 and #1174 were. This walks every source of one an answer prints:
+// list_components, the import line, the parts and the exports a record documents, its
+// related components and the one whose variables style it, the CSS variable index,
+// and what lookup_bulma_classes answers for every class it has a root for.
+describe('every component or part name an answer hands out', () => {
+  const NAME = /^[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)?$/;
+  const handed = new Map<string, string>();
+  const examples = new Map<string, string>();
+  const hand = (name: string, where: string) => {
+    if (NAME.test(name) && !handed.has(name)) handed.set(name, where);
+  };
+
+  beforeAll(async () => {
+    const catalog = await loadCatalog();
+    for (const { name } of catalog.components) hand(name, 'list_components');
+    for (const name of Object.keys(catalog.documentedWith)) {
+      hand(name, 'search_bestax');
+    }
+    for (const declarers of Object.values(catalog.cssVarIndex)) {
+      for (const name of declarers) hand(name, 'get_css_variables');
+    }
+    for (const { name } of catalog.components) {
+      const record = await loadComponent(name);
+      const imported = record.import.match(/\{([^}]*)\}/)?.[1] ?? '';
+      for (const id of imported.split(',')) hand(id.trim(), `${name}'s import`);
+      for (const part of record.parts) {
+        hand(part.path, `${name}'s parts`);
+        if (part.component) hand(part.component, part.path);
+      }
+      for (const related of record.related) hand(related, `${name}'s related`);
+      if (record.cssVarsFrom) hand(record.cssVarsFrom, `${name}'s cssVarsFrom`);
+    }
+    const classTable = JSON.parse(
+      await readFile(join(DATA_DIR, 'bulma-classes.json'), 'utf8')
+    );
+    for (const name of Object.values<string>(classTable.wrappers)) {
+      hand(name, 'lookup_bulma_classes on a plain tag');
+    }
+    const tokens = [
+      ...Object.keys(classTable.roots),
+      ...Object.keys(classTable.legacy),
+    ];
+    for (const token of tokens) {
+      const out = text(await call('lookup_bulma_classes', { classes: token }));
+      for (const m of out.matchAll(/`([A-Z][\w.]*)`/g)) {
+        hand(m[1], `lookup of ${token}`);
+      }
+      for (const m of out.matchAll(/get_props\(\{ component: "([^"]+)"/g)) {
+        hand(m[1], `lookup of ${token}`);
+      }
+      for (const m of out.matchAll(/get_examples\(\{ component: "([^"]+)"/g)) {
+        examples.set(m[1], `lookup of ${token}`);
+      }
+    }
+  });
+
+  it('resolves in get_props', async () => {
+    expect(handed.size).toBeGreaterThan(150);
+    const refused: string[] = [];
+    for (const [name, where] of handed) {
+      if (failed(await call('get_props', { component: name }))) {
+        refused.push(`${name} (from ${where})`);
+      }
+    }
+    expect(refused).toEqual([]);
+  });
+
+  it('resolves in get_examples where an answer sends it there', async () => {
+    expect(examples.size).toBeGreaterThan(0);
+    const refused: string[] = [];
+    for (const [name, where] of examples) {
+      if (failed(await call('get_examples', { component: name }))) {
+        refused.push(`${name} (from ${where})`);
+      }
+    }
+    expect(refused).toEqual([]);
+  });
+});
+
 // A client that starts the server outside the project used to get answers checked
 // against nothing, and no word of it (#935).
 describe('with no installed library to check against', () => {

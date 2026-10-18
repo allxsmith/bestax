@@ -613,6 +613,404 @@
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "DateRangeInputBase",
+      "summary": "Raw DateRangeInput: the two inputs and the popover calendar without Field/Control wrapping. Use `DateRangeInput` for the convenience wrapper. Composed in a labeled `Field`, its `role=\"group\"` root points `aria-labelledby` at that `Field`'s label, `inline` too, as the wrapper's does, and each input keeps its own name. An `aria-label` or `aria-labelledby` you give it wins over the label, and an `aria-labelledby` key counts even when undefined, since it is spread over the group's own.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "DateRangeValue",
+          "default": null,
+          "description": "Controlled range, start first. Either end may be `null`, and `[null, null]` is empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultValue",
+          "type": "DateRangeValue",
+          "default": null,
+          "description": "Initial range for uncontrolled usage.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onChange",
+          "type": "(range: DateRangeValue) => void",
+          "default": null,
+          "description": "Fired when the range changes, with the start first. Typing commits one end at a time, so a range half typed arrives as `[start, null]`. The calendar commits only a finished range: its first pick marks the start inside the calendar and its second commits both ends in one call. The range stays ordered, so the end is never before the start.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onOpen",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onClose",
+          "type": "() => void",
+          "default": null,
+          "description": "Fired when the popover closes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "min",
+          "type": "Date",
+          "default": null,
+          "description": "Earliest selectable date, for either end. A `min` before year 1 is raised to 1 January of year 1, where the range starts without one too.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "max",
+          "type": "Date",
+          "default": null,
+          "description": "Latest selectable date, for either end.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disable both inputs and the launcher.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Make both inputs read-only and keep the popover closed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "placeholder",
+          "type": "string",
+          "default": null,
+          "description": "Placeholder text, shown in both inputs while they are empty.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "format",
+          "type": "Intl.DateTimeFormatOptions | string",
+          "default": "'YYYY-MM-DD'",
+          "description": "Token format string or `Intl.DateTimeFormat` options, used by both inputs.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "parse",
+          "type": "(s: string) => Date | null",
+          "default": null,
+          "description": "Custom parser (use when `format` is `Intl.DateTimeFormatOptions`). Enter and leaving an input call it only if the user changed its text.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "locale",
+          "type": "string",
+          "default": null,
+          "description": "BCP-47 locale tag for day/month names and Intl formatting.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "inline",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the calendar inline, with no inputs and no popover. The hidden form inputs still carry the range.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "mobileNative",
+          "type": "boolean | 'auto'",
+          "default": "'auto'",
+          "description": "Use two native `<input type=\"date\">`s on coarse-pointer, small-viewport devices (`'auto'`), always (`true`) or never (`false`). The end input's `min` follows the start, and a change goes through the same rules as typing.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "default": "true",
+          "description": "Allow segmented keyboard typing in both inputs. `false` makes the field picker-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "popover",
+          "type": "boolean",
+          "default": "true",
+          "description": "Whether the calendar popover exists. `false` makes the field input-only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "openOnFocus",
+          "type": "boolean",
+          "default": "true",
+          "description": "Open the popover when focus arrives in the field. Moving focus between the two inputs, or back from the launcher, leaves it closed, and so does the focus a closing popover hands back. A click on either input opens it. With it off, the launcher or Alt+ArrowDown opens it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "closeOnSelect",
+          "type": "boolean",
+          "default": "true",
+          "description": "Close the popover once the range is picked. The first pick, which only marks the start, never closes it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "position",
+          "type": "'bottom-left' | 'bottom-right' | 'top-left' | 'top-right' | 'auto'",
+          "default": "'bottom-left'",
+          "description": "Popover anchor position relative to the field.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "appendToBody",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the popover through a portal, into the `portalContainer` a `ConfigProvider` sets, `document.body` by default.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger'",
+          "default": null,
+          "description": "Bulma color modifier for the field, also carried by the calendar, where it colors the range's ends and the band between them.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size variant.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Render the field with rounded corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "shouldDisableDate",
+          "type": "(d: Date) => boolean",
+          "default": null,
+          "description": "Predicate to disable specific dates (e.g. weekends). A disabled day can be neither end, typing rejects it, and a range can't include one unless `allowDisabledInRange` is set.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "unselectableDates",
+          "type": "Date[]",
+          "default": null,
+          "description": "Convenience array of disabled dates; merged with `shouldDisableDate`. Matched by calendar day.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "allowDisabledInRange",
+          "type": "boolean",
+          "default": "false",
+          "description": "Let a range include days that `shouldDisableDate` or `unselectableDates` disable, such as a stay over a night with no check-ins. Its ends still can't be such days. Off, a pick in the calendar past a disabled day starts a new range there, typing refuses an end past one, and a start typed with one before the end clears the end. Finding one walks the days between, so off, a span too long to walk is refused as well.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "firstDayOfWeek",
+          "type": "0 | 1 | 2 | 3 | 4 | 5 | 6",
+          "default": "0",
+          "description": "Day the week starts on (0 = Sunday).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "dayNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 7 day-name labels (in calendar order, post-rotation).",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "monthNames",
+          "type": "string[]",
+          "default": null,
+          "description": "Override the 12 month-name labels.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "nearbyMonthDays",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show dimmed dates from adjacent months in the grid.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "iconLeftName",
+          "type": "string",
+          "default": null,
+          "description": "Decorative left icon glyph for the wrapping `Control` (shown by default). Set `''` to hide.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIcon",
+          "type": "boolean",
+          "default": "true",
+          "description": "Show a clickable launcher button on the right that toggles the popover. Hidden by default while a `Control` it sits in shows its `isLoading` spinner, which shares that right edge.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "triggerIconName",
+          "type": "string",
+          "default": "'chevron-down'",
+          "description": "Glyph for the right launcher button.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "labels",
+          "type": "PickerLabels",
+          "default": null,
+          "description": "Optional translatable string overrides. `rangeStart` and `rangeEnd` name the two inputs and the range's ends in the calendar, `rangePreviewEnd` describes the day a pending range would end on, `rangeSeparator` sits between the inputs, and `chooseDateRange` names the launcher and the popover.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "default": null,
+          "description": "Form field name. Two hidden inputs submit the range as `YYYY-MM-DD`, named `name[start]` and `name[end]`, in every mode. The visible inputs carry no name.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "startName",
+          "type": "string",
+          "default": null,
+          "description": "Name of the hidden input carrying the start, in place of `name[start]`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "endName",
+          "type": "string",
+          "default": null,
+          "description": "Name of the hidden input carrying the end, in place of `name[end]`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "form",
+          "type": "string",
+          "default": null,
+          "description": "Form id the hidden inputs belong to.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "required",
+          "type": "boolean",
+          "default": "false",
+          "description": "Mark both visible inputs required, so a form won't submit with either end empty. An `inline` calendar has no visible input, so it is not checked there.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "default": null,
+          "description": "Id of the start input. The end input takes `${id}-end`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <div> attributes and Bulma helper props",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [

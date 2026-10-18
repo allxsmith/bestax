@@ -328,11 +328,30 @@ export function searchAll(
         });
       }
     }
+    // An export documented with another component (`InputBase`, `Thead`) is a
+    // component a query can name too, with none of the bonus: the component it
+    // is documented with is usually what the query is about.
+    for (const [name, entry] of Object.entries(catalog.documentedWith)) {
+      const s = score(`${name} ${entry.purpose}`, name, terms, q);
+      if (s > 0) {
+        hits.push({
+          kind: 'component',
+          name,
+          detail:
+            `documented with ${entry.component}` +
+            (entry.purpose ? ` — ${attributedLinks(entry.purpose)}` : ''),
+          next: `get_component({ name: "${name}" })`,
+          score: s,
+        });
+      }
+    }
   }
 
   for (const record of components) {
     if (want('prop')) {
-      for (const part of record.parts) {
+      // A base's props are the ones its convenience component takes, which
+      // already answer for them.
+      for (const part of record.parts.filter(p => p.standalone !== 'base')) {
         for (const p of part.props) {
           const s = score(`${p.name} ${p.description}`, p.name, terms, q);
           if (s > 20) {

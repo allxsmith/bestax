@@ -196,6 +196,25 @@ describe('ranking realistic queries', () => {
       for (const name of targets) expect(names).toContain(name);
     }
   });
+
+  it('finds an export documented with another component, below that component', () => {
+    expect(top('CarouselItem')).toEqual(['component:CarouselItem']);
+    const hits = searchAll('carousel', catalog, all, skills, ALL);
+    expect(hits[0].name).toBe('Carousel');
+    expect(hits.find(h => h.name === 'CarouselItem')).toMatchObject({
+      kind: 'component',
+      detail: expect.stringContaining('documented with Carousel'),
+      next: 'get_component({ name: "CarouselItem" })',
+    });
+  });
+
+  it("leaves a base's props to the component that takes them too", () => {
+    const props = searchAll('isStatic', catalog, all, skills, ['prop']).map(
+      h => h.name
+    );
+    expect(props).toContain('Input.isStatic');
+    expect(props).not.toContain('InputBase.isStatic');
+  });
 });
 
 describe('suggest', () => {

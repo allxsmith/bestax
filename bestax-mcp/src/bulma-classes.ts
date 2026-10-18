@@ -15,6 +15,7 @@
  * `__tests__/bulma-classes-agree.test.ts` runs the planner beside it.
  */
 
+import type { DocumentedWith } from './data.js';
 import { table } from './format.js';
 
 export interface PropWrite {
@@ -810,7 +811,33 @@ const MIGRATE_NOTE =
   '`get_skill({ name: "bestax-migrate", reference: "bulma-classes-unmappables" })` ' +
   'has a recipe for each.';
 
-export function renderLookup(lookup: Lookup): string {
+/**
+ * Where the examples are for a component documented with another: `InputBase`
+ * has no page, so its examples are the ones of `Input`, which renders it.
+ * Suggesting `get_examples` for the base itself sent an agent to a call that
+ * could not answer (#1150). Empty for a component with a page of its own.
+ */
+function examplesElsewhere(
+  target: string,
+  documented: Readonly<Record<string, DocumentedWith>>
+): string {
+  const home = Object.hasOwn(documented, target)
+    ? documented[target]
+    : undefined;
+  if (!home) return '';
+  return (
+    ` · \`get_examples({ component: "${home.component}" })\` for examples ` +
+    `of \`${home.component}\`, ` +
+    (home.standalone === 'base'
+      ? 'which renders it'
+      : 'which it is documented with')
+  );
+}
+
+export function renderLookup(
+  lookup: Lookup,
+  documented: Readonly<Record<string, DocumentedWith>> = {}
+): string {
   const { element } = lookup;
   const out: string[] = [];
   switch (element.kind) {
@@ -940,7 +967,7 @@ export function renderLookup(lookup: Lookup): string {
   ) {
     out.push(
       `**Next:** \`get_props({ component: "${element.target}" })\` for its ` +
-        `other props.`
+        `other props${examplesElsewhere(element.target, documented)}.`
     );
   }
   out.push(MIGRATE_NOTE);

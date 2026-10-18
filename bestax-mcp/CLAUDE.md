@@ -73,6 +73,14 @@ the API pages and the skill catalog.
   element (`RENDERS_ELEMENT_OF` in `scripts/lib/api-sources.mjs`) names that
   component's `get_css_variables` call too, since "none" alone reads as "can't
   be themed".
+- **Every name an answer hands out is one the tools answer for.** An export
+  with no page of its own is a part of the record that documents it: the bare
+  control a convenience component renders (`InputBase` in `Input`), what a page
+  imports beside its component (`CarouselItem` in `Carousel`), and a sub that is
+  exported standalone too (`Thead`, as `Table.Thead`). The catalog's
+  `documentedWith` resolves each name to its part. A sweep in
+  `src/__tests__/server.test.ts` walks every place an answer gets a name from
+  and fails on one `get_props` refuses (#1150, #1174).
 
 ## Dependencies
 
