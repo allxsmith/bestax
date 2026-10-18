@@ -3,7 +3,10 @@
 // partial redraws the spinner as a border there. jsdom evaluates no media
 // query, so these compile the partial, with no prefix and under one, read its
 // rules off the sheet, and resolve which one wins on the icon Loading renders,
-// the way a browser would: by specificity, then source order.
+// the way a browser would: by importance, then specificity, then source
+// order. A rule the walk cannot place fails the test rather than dropping out,
+// as in `Loader.styles.test.tsx`, since the negative checks below are only as
+// good as the walk is complete.
 import * as sass from 'sass';
 import path from 'path';
 import { render } from '@testing-library/react';
@@ -54,6 +57,19 @@ function rulesOf(css: string): Found[] {
         for (const selector of rule.selectorText.split(/\s*,\s*/)) {
           out.push({ selector, media, style: rule.style, order });
         }
+      } else if (
+        'cssRules' in rule &&
+        !/^@(-\w+-)?keyframes\b/.test(rule.cssText) &&
+        /loading/.test(rule.cssText)
+      ) {
+        // `@supports`, `@layer`, `@container` and the like change when or in
+        // what order their rules apply, which this test does not model, so a
+        // Loading rule inside one has to fail rather than go unread.
+        // Keyframes hold no style rules.
+        throw new Error(
+          `${rule.cssText.split('{')[0].trim()} styles Loading in rules this ` +
+            'test does not walk. Extend `rulesOf` before trusting a result.'
+        );
       }
     }
   };
@@ -98,12 +114,19 @@ function specificity(selector: string) {
   return classes * 10 + elements;
 }
 
+/** Whether rank `a` outranks `b`, comparing them part by part. */
+const beats = (a: number[], b: number[]) => {
+  for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return a[i] > b[i];
+  return false;
+};
+
 /**
  * The declaration that wins `longhand` on the element, with forced colors on
  * or off, as the property it was written with and its value, or null when
- * the partial sets nothing there. Within a rule, the last declaration that
- * sets the longhand is the one that counts. A shorthand is kept whole, so a
- * border written as one reads as the whole border.
+ * the partial sets nothing there. It's ranked by importance, specificity and
+ * source order. Within a rule, the last declaration that sets the longhand is
+ * the one that counts. A shorthand is kept whole, so a border written as one
+ * reads as the whole border.
  */
 function winning(
   found: Found[],
@@ -120,12 +143,12 @@ function winning(
     );
     const property = names[names.length - 1];
     if (!property) continue;
-    const rank = [specificity(rule.selector), rule.order];
-    if (
-      !best ||
-      rank[0] > best.rank[0] ||
-      (rank[0] === best.rank[0] && rank[1] > best.rank[1])
-    ) {
+    const rank = [
+      rule.style.getPropertyPriority(property) === 'important' ? 1 : 0,
+      specificity(rule.selector),
+      rule.order,
+    ];
+    if (!best || beats(rank, best.rank)) {
       best = {
         rank,
         property,
@@ -135,6 +158,40 @@ function winning(
   }
   return best && { property: best.property, value: best.value };
 }
+
+// The checks below are only as good as the walk and the ranking, so what they
+// would misread has to fail, or come out the way a browser has it.
+describe('the cascade resolver', () => {
+  it.each([
+    '@supports (border: 1px solid CanvasText) { .loading-icon { border: 1px solid red; } }',
+    '@layer base { .loading-overlay { opacity: 0.5; } }',
+    '@container (min-width: 1px) { .bestax-loading-icon { background: none; } }',
+  ])('refuses a Loading rule it cannot place: %s', css => {
+    expect(() => rulesOf(css)).toThrow('Extend `rulesOf`');
+  });
+
+  it('passes over a rule it does not walk when nothing in it is Loading’s', () => {
+    expect(
+      rulesOf('@container (min-width: 1px) { .x { color: red; } }')
+    ).toEqual([]);
+    expect(
+      rulesOf('@keyframes spin { to { transform: rotate(1turn); } }')
+    ).toEqual([]);
+  });
+
+  it('lets an important declaration win over a later, more specific one', () => {
+    const found = rulesOf(
+      '.loading-icon { background: red !important; } ' +
+        '@media (forced-colors: active) { div.loading-icon.x { background: none; } }'
+    );
+    const el = document.createElement('div');
+    el.className = 'loading-icon x';
+    expect(winning(found, el, 'background-image', true)).toEqual({
+      property: 'background',
+      value: 'red',
+    });
+  });
+});
 
 const VARIANTS: Array<[string, Partial<LoadingProps>]> = [
   ['the default spinner', {}],
