@@ -379,6 +379,19 @@ describe('Loading', () => {
       expect(edit).toHaveFocus();
     });
 
+    it('leaves focus it never took alone, as after a click on the overlay', () => {
+      const { rerender } = render(<Orders active={false} canCancel />);
+      const after = screen.getByText('After');
+      after.focus();
+
+      rerender(<Orders active canCancel />);
+      // A mousedown on the overlay, which can't take focus, leaves it on
+      // <body>, and the loading goes away from there.
+      after.blur();
+      rerender(<Orders active={false} canCancel />);
+      expect(document.body).toHaveFocus();
+    });
+
     it('renders the same markup on the server, with nothing inert', () => {
       const html = renderToStaticMarkup(<Orders active isFullPage canCancel />);
       expect(html).not.toContain('inert');

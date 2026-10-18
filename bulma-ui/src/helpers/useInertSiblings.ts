@@ -1,7 +1,7 @@
 // INTERNAL: deliberately not exported from src/index.ts.
 import { useEffect } from 'react';
 import type { RefObject } from 'react';
-import { getDeepestActiveElement } from './shadowDom';
+import { getActiveElementInTree, getDeepestActiveElement } from './shadowDom';
 
 /**
  * How many callers hold each element inert. Shared across callers, the way
@@ -70,9 +70,10 @@ const above = (el: Element): Element | undefined =>
  * its own, stays as it is.
  *
  * Focus on an element that turns inert is lost: the browser moves it to
- * `<body>`. So if focus is still on `<body>` when this lets go, it goes back
- * to the element that had it when this turned on. Focus the user or the app
- * has put somewhere else meanwhile stays there.
+ * `<body>`. So when focus was inside what this made inert, and is still on
+ * `<body>` when this lets go, it goes back to the element that had it. Focus
+ * this never took isn't handed anywhere, and focus the user or the app has
+ * put somewhere else meanwhile stays there.
  *
  * @function useInertSiblings
  * @param ref - Ref to the element that stays reachable.
@@ -89,7 +90,6 @@ export function useInertSiblings(
     const el = ref.current;
     if (!active || !el) return undefined;
     const doc = el.ownerDocument;
-    const opener = getDeepestActiveElement(doc) as HTMLElement | null;
 
     const held: Element[] = [];
     for (
@@ -100,9 +100,18 @@ export function useInertSiblings(
       held.push(...siblingsOf(node).filter(hold));
     }
 
+    // Focus this takes away, to hand back later. It's looked up as `el`'s
+    // tree sees it, where focus inside a nested shadow root reads as its
+    // host, so it compares with what's held. What gets focused again is the
+    // element that really had focus, inside that shadow root.
+    const focused = getActiveElementInTree(el);
+    const taken = held.some(other => other.contains(focused))
+      ? (getDeepestActiveElement(doc) as HTMLElement | null)
+      : null;
+
     return () => {
       held.forEach(release);
-      if (doc.activeElement === doc.body) opener?.focus();
+      if (doc.activeElement === doc.body) taken?.focus();
     };
   }, [ref, active, wholePage]);
 }

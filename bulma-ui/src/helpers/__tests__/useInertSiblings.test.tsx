@@ -235,6 +235,43 @@ describe('useInertSiblings', () => {
       expect(document.activeElement).toBe(link);
     });
 
+    it("doesn't hand back focus it never took", () => {
+      // Focus outside what's covered, then on <body> by the time the loading
+      // goes away, as a click on the overlay leaves it.
+      const { loading, link } = page(`
+        <div><button>Save</button><div id="loading"></div></div>
+        <a id="link" href="#next">Next</a>
+      `);
+      link.focus();
+      const { rerender } = renderHook(
+        ({ active }) => useInertSiblings({ current: loading }, active, false),
+        { initialProps: { active: true } }
+      );
+      link.blur();
+
+      rerender({ active: false });
+      expect(document.activeElement).toBe(document.body);
+    });
+
+    it('gives focus back inside a shadow root under what it covered', () => {
+      const { loading, host } = page(
+        '<div id="host"></div><div id="loading"></div>'
+      );
+      const shadow = host.attachShadow({ mode: 'open' });
+      shadow.innerHTML = '<button id="inner">Save</button>';
+      const inner = shadow.getElementById('inner')!;
+      inner.focus();
+      const { rerender } = renderHook(
+        ({ active }) => useInertSiblings({ current: loading }, active, false),
+        { initialProps: { active: true } }
+      );
+      inner.blur();
+      expect(document.activeElement).toBe(document.body);
+
+      rerender({ active: false });
+      expect(shadow.activeElement).toBe(inner);
+    });
+
     it('copes with a document where nothing has focus', () => {
       const { loading, before } = page(
         '<div id="before"></div><div id="loading"></div>'
