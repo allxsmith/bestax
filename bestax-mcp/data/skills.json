@@ -59,7 +59,7 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 10240
+          "bytes": 10260
         },
         {
           "id": "layout-components",
@@ -113,7 +113,7 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 37323
+          "bytes": 37678
         },
         {
           "id": "css-migration",
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 40824
+          "bytes": 42630
         },
         {
           "id": "themeable-components",
@@ -185,7 +185,7 @@
         }
       ],
       "examples": [
-        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 1242 },
+        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 3807 },
         {
           "id": "theme-config",
           "file": "examples/theme-config.tsx",

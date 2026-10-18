@@ -268,6 +268,14 @@ function DarkModeApp() {
 }
 ```
 
+`colorMode` writes the attribute from an effect, so a page rendered in the browser paints its
+first frame with whatever `<html>` already has: the OS scheme, when nothing set one. A toggle
+that remembers the visitor's choice writes it before that frame, from an inline script in
+`index.html`'s `<head>`, and starts its state from the attribute the script wrote. The
+`bestax-theming` skill's
+[dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
+has the script and the app's side.
+
 For full control you can instead override the scheme variables yourself via `bulmaVars` (e.g.
 `--bulma-scheme-h`, `--bulma-light-l`, `--bulma-dark-l`), but `colorMode` covers the common case.
 
@@ -349,13 +357,10 @@ white text on cream, unreadable, and invisible to you unless your own OS is in d
 Apply exactly one of these rules:
 
 **Rule 1 — single-mode design: lock the scheme.** If the design is light-only (or dark-only),
-pin it at the app root so an OS preference can never invert text out from under your palette:
-
-```tsx
-<Theme isRoot colorMode="light">
-  <App />
-</Theme>
-```
+pin it on the `<html>` in your `index.html`, `<html lang="en" data-theme="light">`, so an OS
+preference can never invert text out from under your palette, the first paint included.
+`<Theme isRoot colorMode="light">` pins it as well, but from an effect, so a page rendered in the
+browser shows the OS scheme for its first frame.
 
 **Rule 2 — both modes: never expose a fixed token to the flip.** Derive your tokens from
 Bulma's scheme variables, or provide the dark-mode pair yourself:

@@ -659,22 +659,44 @@ custom dark-mode CSS keyed off `[data-theme='dark']` still matches, because `col
 Under dark mode Bulma flips the scheme/text/border/background lightness variables (e.g.
 `--bulma-scheme-main-l` 100% → 9%, `--bulma-text-l` 29% → 71%). Your brand color overrides from
 `Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness
-channels directly.
+channels directly. Each color's on-scheme lightness is the exception: Bulma gives dark mode its
+own, so a new color sets one per scheme (see "The lightnesses Bulma's build picks for contrast").
+
+### The scheme of the first paint
+
+`Theme` writes the attribute from an effect, and a client-rendered app (the create-bestax
+scaffold, for one) paints before its effects run. That first frame takes whatever `<html>`
+already carries: with nothing there, the visitor's OS scheme, which then flips. So the scheme
+for that frame comes from `index.html`:
+
+- **A scheme that never changes** goes on the `<html>` itself,
+  `<html lang="en" data-theme="light">`, and needs no `colorMode`.
+- **A scheme the visitor picks** is written by an inline script in `<head>`, from the saved
+  choice or else the OS preference, before anything renders. `examples/dark-mode.tsx` has the
+  script and the app's side: the app starts from the attribute the script wrote, passes its
+  state to `Theme colorMode` for the toggle, and saves each choice in `localStorage` under the
+  key the script reads. Keep it a plain inline script: one with `type="module"`, like the app's
+  own, waits until the whole page is parsed, which can be after the first paint.
+
+A prefixed flavor reads `data-bestax-theme`, so with one, `index.html` and the script write that
+attribute as well.
+
+Because the script always writes an attribute, custom dark-mode CSS keyed on `[data-theme='dark']`
+reaches every visitor. To offer the OS preference as a third choice, save it like the others and
+have the script write nothing for it: with no attribute, Bulma's `prefers-color-scheme` rules
+apply from the first frame, and custom tokens then need both dark-mode paths (below).
 
 ### The single-mode contrast trap
 
-Because the OS preference applies whenever no `data-theme` attribute is set — the default state
-of every app that never configured `colorMode` — a light-only design silently breaks for any
-dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light —
+Because the OS preference applies whenever no `data-theme` attribute is set, which is the
+default state of every app that never sets one, a light-only design silently breaks for any
+dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light,
 white text on cream. The failure is invisible unless the author's own OS is in dark mode.
 
-**If the design is single-mode, pin the scheme** so text can't flip out from under the palette:
-
-```tsx
-<Theme isRoot colorMode="light">
-  <App />
-</Theme>
-```
+**If the design is single-mode, pin the scheme** on the `<html>` in `index.html`
+(`<html lang="en" data-theme="light">`, as above), so text can't flip out from under the palette.
+`<Theme isRoot colorMode="light">` pins it too, but only from its effect on, after the first
+paint.
 
 **If both modes are supported, never expose a fixed custom token to the flip** — derive it from
 scheme variables, or flip it yourself:
