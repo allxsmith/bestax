@@ -192,9 +192,8 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * A value is needed, with `data`. The field is `required` while nothing is
    * picked, so the browser's own check stops the form the way it does for
    * Autocomplete's field, and it's `aria-required` the whole time. The check
-   * reads the field's text, which the list closing, Enter's included, puts
-   * back to the pick. An `inline` list never closes, so there it's leaving
-   * the field that does.
+   * reads the field's text, which Enter, the list closing or leaving the
+   * field puts back to the pick.
    */
   required?: boolean;
   /**
@@ -550,6 +549,12 @@ interface ComboboxPartsRootProps extends ComboboxPartsProps {
    * they stay together in a horizontal Field's body.
    */
   below?: React.ReactNode;
+  /**
+   * Called when Enter goes on to the form with nothing to pick, so the
+   * Combobox given `data` can put the field's text back first, `inline`
+   * included, where nothing closes.
+   */
+  onSettle?: () => void;
 }
 
 const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
@@ -557,6 +562,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
     {
       children,
       below,
+      onSettle,
       open,
       defaultOpen = false,
       onOpenChange,
@@ -608,6 +614,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
       defaultOpen,
       onOpenChange,
       onSelect,
+      onSettle,
       keepFirst,
       multiple,
       inline,
@@ -1300,6 +1307,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
         multiple={multiple}
         inline={inline}
         onSelect={select}
+        onSettle={settle}
         onOpenChange={next => {
           if (!next) settle();
           onOpenChange?.(next);

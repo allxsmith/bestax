@@ -51,6 +51,13 @@ export interface ComboboxEngineOptions {
   onOpenChange?: (open: boolean) => void;
   /** Called with an item's `value` when it's picked. */
   onSelect?: (value: string) => void;
+  /**
+   * Called when Enter goes on to the form with nothing to pick, before the
+   * list closes, so an owner that shows something other than the typing can
+   * put it back before the form reads the field. An `inline` list doesn't
+   * close, so this is the one word it gets.
+   */
+  onSettle?: () => void;
   /** Highlights the first enabled item whenever the list opens or its items change. */
   keepFirst: boolean;
   /** Several values: a pick keeps the list open. */
@@ -148,6 +155,7 @@ export function useComboboxEngine({
   defaultOpen,
   onOpenChange,
   onSelect,
+  onSettle,
   keepFirst,
   multiple,
   inline,
@@ -363,6 +371,7 @@ export function useComboboxEngine({
           return;
         }
         // Nothing to pick: the key goes on, so a form submits.
+        onSettle?.();
         close();
         return;
       }

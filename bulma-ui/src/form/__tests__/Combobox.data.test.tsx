@@ -750,40 +750,59 @@ describe('Combobox with data', () => {
       expect(onOpenChange).toHaveBeenLastCalledWith(false);
     });
 
-    it('puts the text back on Enter, so required checks the pick and not the typing', () => {
-      const { container } = render(
-        <form>
-          <Combobox label="Country" data={COUNTRIES} name="country" required />
-        </form>
-      );
-      const form = container.querySelector('form') as HTMLFormElement;
-      type('zzz');
-      expect(form.checkValidity()).toBe(true);
-      // Nothing is highlighted, so the key goes on to submit the form.
-      expect(key('Enter')).toBe(true);
-      expect(field()).toHaveValue('');
-      expect(form.checkValidity()).toBe(false);
-    });
+    // An inline list never closes, so Enter is the only word it gets.
+    const layouts = [
+      ['in a menu', false],
+      ['inline', true],
+    ] as const;
 
-    it('keeps a pick that typing on Enter would have hidden', () => {
-      const { container } = render(
-        <form>
-          <Combobox
-            label="Country"
-            data={COUNTRIES}
-            name="country"
-            required
-            defaultValue="Japan"
-          />
-        </form>
-      );
-      const form = container.querySelector('form') as HTMLFormElement;
-      type('zzz');
-      key('Enter');
-      expect(field()).toHaveValue('Japan');
-      expect(form.checkValidity()).toBe(true);
-      expect(new FormData(form).getAll('country')).toEqual(['Japan']);
-    });
+    it.each(layouts)(
+      'puts the text back on Enter, so required checks the pick and not the typing, %s',
+      (_, inline) => {
+        const { container } = render(
+          <form>
+            <Combobox
+              label="Country"
+              data={COUNTRIES}
+              name="country"
+              required
+              inline={inline}
+            />
+          </form>
+        );
+        const form = container.querySelector('form') as HTMLFormElement;
+        type('zzz');
+        expect(form.checkValidity()).toBe(true);
+        // Nothing is highlighted, so the key goes on to submit the form.
+        expect(key('Enter')).toBe(true);
+        expect(field()).toHaveValue('');
+        expect(form.checkValidity()).toBe(false);
+      }
+    );
+
+    it.each(layouts)(
+      'keeps a pick that typing on Enter would have hidden, %s',
+      (_, inline) => {
+        const { container } = render(
+          <form>
+            <Combobox
+              label="Country"
+              data={COUNTRIES}
+              name="country"
+              required
+              inline={inline}
+              defaultValue="Japan"
+            />
+          </form>
+        );
+        const form = container.querySelector('form') as HTMLFormElement;
+        type('zzz');
+        key('Enter');
+        expect(field()).toHaveValue('Japan');
+        expect(form.checkValidity()).toBe(true);
+        expect(new FormData(form).getAll('country')).toEqual(['Japan']);
+      }
+    );
   });
 
   describe('Clearing one value', () => {
@@ -809,6 +828,30 @@ describe('Combobox with data', () => {
       const form = container.querySelector('form') as HTMLFormElement;
       expect(new FormData(form).getAll('country')).toEqual(['']);
     });
+
+    it.each([
+      ['in a menu', false],
+      ['inline', true],
+    ] as const)(
+      'clears it once when Enter takes an empty field to the form, %s',
+      (_, inline) => {
+        const onChange = jest.fn();
+        render(
+          <Combobox
+            label="Country"
+            data={COUNTRIES}
+            defaultValue="France"
+            inline={inline}
+            onChange={onChange}
+          />
+        );
+        type('');
+        expect(key('Enter')).toBe(true);
+        expect(onChange).toHaveBeenCalledTimes(1);
+        expect(onChange).toHaveBeenCalledWith(null);
+        expect(field()).toHaveValue('');
+      }
+    );
 
     it('clears it once when Tab closes the list and then leaves the field', () => {
       const onChange = jest.fn();
