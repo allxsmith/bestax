@@ -155,8 +155,10 @@ original made for stock Bulma's turquoise sets it back on `:root`:
   `has-text-primary` takes that shade with `colorShade="on-scheme"` beside `textColor="primary"`.
 
 Copy the values from stock Bulma v1's own `bulma.css` (the `bulma` package's `css/bulma.css`,
-which bulma-ui installs), from the scheme the original is built for, since the on-scheme
-lightness differs between light and dark.
+which bulma-ui installs). The on-scheme lightness differs between light and dark, and a `:root`
+rule in `src/index.css` pins whatever it sets in both. A single-scheme original takes its own
+scheme's value on `:root`; an original with a light/dark toggle sets each scheme's value under
+`[data-theme='light']` and `[data-theme='dark']` instead.
 
 ### A Bulma 0.x original
 
