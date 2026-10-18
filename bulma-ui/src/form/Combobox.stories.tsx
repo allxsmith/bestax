@@ -129,6 +129,16 @@ const meta: Meta<typeof Combobox> = {
       control: false,
       description: 'With data, renders an item’s content in place of its label',
     },
+    disabled: {
+      control: 'boolean',
+      description:
+        'With data, the field, its items and its tag buttons can’t be used, and the value doesn’t post',
+    },
+    required: {
+      control: 'boolean',
+      description:
+        'With data, the field is required while nothing is picked, so the form’s own check needs a pick',
+    },
     children: {
       control: false,
       description:

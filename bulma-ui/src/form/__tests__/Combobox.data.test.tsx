@@ -564,6 +564,146 @@ describe('Combobox with data', () => {
     });
   });
 
+  describe('Form basics', () => {
+    it('disables the field, the items, the tag buttons and the hidden inputs', () => {
+      const onChange = jest.fn();
+      const { container } = render(
+        <form>
+          <Combobox
+            label="Drinks"
+            data={DRINKS}
+            name="drinks"
+            multiple
+            inline
+            disabled
+            defaultValue={['tea']}
+            onChange={onChange}
+          />
+        </form>
+      );
+      expect(field()).toBeDisabled();
+      expect(option('Coffee')).toHaveAttribute('aria-disabled', 'true');
+      fireEvent.click(option('Coffee'));
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByText('Tea', { selector: '.tag' })).toBeTruthy();
+      expect(screen.queryByRole('button', { name: 'Remove Tea' })).toBeNull();
+      const form = container.querySelector('form') as HTMLFormElement;
+      expect(new FormData(form).getAll('drinks')).toEqual([]);
+    });
+
+    it('makes the field required while nothing is picked', () => {
+      const { container } = render(
+        <form>
+          <Combobox label="Country" data={COUNTRIES} name="country" required />
+        </form>
+      );
+      const form = container.querySelector('form') as HTMLFormElement;
+      expect(field()).toHaveAttribute('required');
+      expect(field()).toHaveAttribute('aria-required', 'true');
+      expect(form.checkValidity()).toBe(false);
+      open();
+      pick('Japan');
+      expect(field()).not.toHaveAttribute('required');
+      expect(field()).toHaveAttribute('aria-required', 'true');
+      expect(form.checkValidity()).toBe(true);
+    });
+
+    it('with several values, needs a pick rather than text in the field', () => {
+      const { container } = render(
+        <form>
+          <Combobox
+            label="Drinks"
+            data={DRINKS}
+            multiple
+            required
+            defaultValue={['tea']}
+          />
+        </form>
+      );
+      const form = container.querySelector('form') as HTMLFormElement;
+      expect(field()).toHaveValue('');
+      expect(field()).not.toHaveAttribute('required');
+      expect(form.checkValidity()).toBe(true);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tea' }));
+      expect(field()).toHaveAttribute('required');
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('posts with a form it sits outside, through form', () => {
+      const { container } = render(
+        <>
+          <form id="order" />
+          <Combobox
+            label="Drinks"
+            data={DRINKS}
+            name="drinks"
+            form="order"
+            multiple
+            required
+            defaultValue={['tea', 'milk']}
+          />
+        </>
+      );
+      const form = container.querySelector('form') as HTMLFormElement;
+      expect(field()).toHaveAttribute('form', 'order');
+      expect(new FormData(form).getAll('drinks')).toEqual(['tea', 'milk']);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tea' }));
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Milk' }));
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('puts its id on the field, so a label of your own names it', () => {
+      const { container } = render(
+        <>
+          <label htmlFor="drink">Drink</label>
+          <Combobox data={DRINKS} id="drink" />
+        </>
+      );
+      expect(field()).toHaveAttribute('id', 'drink');
+      expect(screen.getByLabelText('Drink')).toBe(field());
+      expect(container.querySelector('.combobox')).not.toHaveAttribute('id');
+    });
+
+    it('takes the id of a field it labels itself', () => {
+      render(<Combobox label="Drink" data={DRINKS} id="drink" />);
+      expect(field()).toHaveAttribute('id', 'drink');
+      expect(screen.getByLabelText('Drink')).toBe(field());
+    });
+
+    it('names the field and the list with aria-label, not the wrapper', () => {
+      const { container } = render(
+        <Combobox data={DRINKS} aria-label="Drink" inline />
+      );
+      expect(screen.getByRole('combobox', { name: 'Drink' })).toBe(field());
+      expect(screen.getByRole('listbox', { name: 'Drink' })).toBeTruthy();
+      expect(container.querySelector('.combobox')).not.toHaveAttribute(
+        'aria-label'
+      );
+    });
+
+    it('names the field and the list with aria-labelledby, not the wrapper', () => {
+      const { container } = render(
+        <>
+          <h2 id="drink-heading">Your drink</h2>
+          <Combobox data={DRINKS} aria-labelledby="drink-heading" inline />
+        </>
+      );
+      expect(screen.getByRole('combobox', { name: 'Your drink' })).toBe(
+        field()
+      );
+      expect(screen.getByRole('listbox', { name: 'Your drink' })).toBeTruthy();
+      expect(container.querySelector('.combobox')).not.toHaveAttribute(
+        'aria-labelledby'
+      );
+    });
+
+    it('keeps the label naming the field when no name is given', () => {
+      render(<Combobox label="Drink" data={DRINKS} id="drink" inline />);
+      expect(screen.getByRole('combobox', { name: 'Drink' })).toBe(field());
+      expect(screen.getByRole('listbox', { name: 'Drink' })).toBeTruthy();
+    });
+  });
+
   describe('children', () => {
     it('ignores children given with data, and warns once in development', () => {
       const warn = jest.spyOn(console, 'warn').mockImplementation(() => {});

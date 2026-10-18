@@ -20,7 +20,9 @@ export const comboboxInput: None<Kept> = true;
 /**
  * Given `data`, the Combobox renders its own parts, so it takes no children,
  * and built from parts it takes none of what `data` brings. `multiple` decides
- * the value's type: one value is a `string` or `null`, several an array.
+ * the value's type: one value is a `string` or `null`, several an array. The
+ * form props are the field's given `data`, and `Combobox.Input`'s built from
+ * parts, where an `id` or a name on the Combobox is its wrapper's.
  */
 const countries = ['Canada', 'France'];
 const one = (value: string | null) => value;
@@ -38,8 +40,20 @@ export const dataModes = (
       name="country"
       placeholder="Pick one"
     />
+    <Combobox
+      data={countries}
+      disabled
+      required
+      form="order"
+      id="country"
+      aria-label="Country"
+      aria-labelledby="country-heading"
+    />
     <Combobox onSelect={one} multiple>
       <Combobox.Input />
+    </Combobox>
+    <Combobox id="wrapper" aria-label="Wrapper">
+      <Combobox.Input disabled required form="order" />
     </Combobox>
     {/* @ts-expect-error data and children don't go together */}
     <Combobox data={countries}>
@@ -57,5 +71,11 @@ export const dataModes = (
     </Combobox>
     {/* @ts-expect-error built from parts, there's no empty prop */}
     <Combobox empty="Nothing" />
+    {/* @ts-expect-error built from parts, Combobox.Input takes disabled */}
+    <Combobox disabled />
+    {/* @ts-expect-error built from parts, Combobox.Input takes required */}
+    <Combobox required />
+    {/* @ts-expect-error built from parts, the app posts the value */}
+    <Combobox form="order" />
   </>
 );

@@ -182,6 +182,43 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * `{ value, label }`.
    */
   itemTemplate?: (item: ComboboxItemData) => React.ReactNode;
+  /**
+   * The field can't be used, with `data`: it can't be focused or typed in,
+   * its items can't be picked, its tags lose their buttons, and its hidden
+   * inputs don't post, the way a disabled field's value doesn't.
+   */
+  disabled?: boolean;
+  /**
+   * A value is needed, with `data`. The field is `required` while nothing is
+   * picked, so the browser's own check stops the form the way it does for
+   * Autocomplete's field, and it's `aria-required` the whole time. The check
+   * reads the field's text, so typing without picking passes it until
+   * leaving the field puts the text back.
+   */
+  required?: boolean;
+  /**
+   * The id of the form the value posts with, with `data`, for a field
+   * outside it. It goes on the hidden inputs, and on the field so that form
+   * checks `required` too.
+   */
+  form?: string;
+  /**
+   * The field's `id`, with `data`, which the label then points at, and so
+   * can a label of your own. Built from parts, it lands on `div.combobox`, so
+   * give `Combobox.Input` the `id` instead.
+   */
+  id?: string;
+  /**
+   * Names the field and the list, with `data`, in place of a `label`. Built
+   * from parts, it lands on `div.combobox`, so put it on `Combobox.Input`.
+   */
+  'aria-label'?: string;
+  /**
+   * The ids of what names the field and the list, with `data`, in place of
+   * a `label`. Built from parts, it lands on `div.combobox`, so put it on
+   * `Combobox.Input`.
+   */
+  'aria-labelledby'?: string;
   /** @internal With `data`, the Combobox renders its own parts. */
   children?: never;
 }
@@ -277,6 +314,12 @@ export interface ComboboxPartsProps extends ComboboxBaseProps {
   empty?: never;
   /** @internal Built from parts, `Combobox.Item` renders its own content. */
   itemTemplate?: never;
+  /** @internal Built from parts, `Combobox.Input` takes `disabled`. */
+  disabled?: never;
+  /** @internal Built from parts, `Combobox.Input` takes `required`. */
+  required?: never;
+  /** @internal Built from parts, the app posts the value. */
+  form?: never;
 }
 
 /**
@@ -1090,9 +1133,25 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       itemTemplate,
       onSelect,
       inline = false,
+      disabled = false,
+      required = false,
+      form,
+      id,
+      'aria-label': ariaLabel,
+      'aria-labelledby': ariaLabelledBy,
       children,
       ...rest
     } = props;
+    // A name given in place of a label is the field's and the list's, not
+    // the wrapper's. Only the ones given are passed, since an
+    // `aria-labelledby` that's there at all, even undefined, keeps the
+    // label's name off the field.
+    const named = {
+      ...(ariaLabel !== undefined && { 'aria-label': ariaLabel }),
+      ...(ariaLabelledBy !== undefined && {
+        'aria-labelledby': ariaLabelledBy,
+      }),
+    };
     if (flattenChildren(children).length > 0) {
       warnOnce(
         'Combobox:data-children',
@@ -1154,7 +1213,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       <ComboboxItem
         key={item.value}
         value={item.value}
-        disabled={item.disabled}
+        disabled={disabled || item.disabled}
         checked={picked.includes(item.value)}
       >
         {itemTemplate ? itemTemplate(item) : labelOf(item)}
@@ -1162,7 +1221,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
     );
     const list =
       shown.length > 0 ? (
-        <ComboboxList>
+        <ComboboxList {...named}>
           {Array.from(sections, ([group, members]) =>
             group ? (
               <ComboboxGroup key={group} label={group}>
@@ -1187,7 +1246,15 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           onSelect={select}
         >
           <ComboboxInput
+            {...named}
             ref={inputRef}
+            id={id}
+            disabled={disabled}
+            // The browser's check reads the field's text, and only a pick
+            // fills it for good, so it's required until there is one.
+            required={required && picked.length === 0}
+            aria-required={required || undefined}
+            form={form}
             placeholder={placeholder}
             value={
               query ??
@@ -1199,7 +1266,14 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
           {inline ? list : <ComboboxMenu>{list}</ComboboxMenu>}
           {name &&
             (multiple ? picked : [picked[0] ?? '']).map(v => (
-              <input key={v} type="hidden" name={name} value={v} />
+              <input
+                key={v}
+                type="hidden"
+                name={name}
+                value={v}
+                form={form}
+                disabled={disabled}
+              />
             ))}
         </ComboboxParts>
         {multiple && picked.length > 0 && (
@@ -1207,11 +1281,13 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
             {picked.map(v => (
               <Tag key={v}>
                 {labelFor(v)}
-                <Delete
-                  size="small"
-                  ariaLabel={`Remove ${labelFor(v)}`}
-                  onClick={() => remove(v)}
-                />
+                {!disabled && (
+                  <Delete
+                    size="small"
+                    ariaLabel={`Remove ${labelFor(v)}`}
+                    onClick={() => remove(v)}
+                  />
+                )}
               </Tag>
             ))}
           </Tags>
