@@ -42,7 +42,7 @@ const AS_TODO: PropAction = {
  * `'footer' | 'div'`, `Control` is `'div'`), so an `as={SomeComponent}` still
  * surfaces — as a type error the user can see, rather than a silent rewrite.
  */
-const AS_OK: PropAction = {};
+export const AS_OK: PropAction = {};
 
 /**
  * Helper props rbx mixes into every component via `HelpersProps`. Applied
