@@ -92,8 +92,22 @@ export const Tags = {
 
 export const TagList = Object.keys(Tags);
 
-/** The templates. The first one lands with its own port. */
-export const templates = [];
+/** The templates. */
+export const templates = [
+  {
+    slug: 'login',
+    title: 'Login',
+    description:
+      'A sign-in page on a frosted glass card, with social login buttons and a language picker.',
+    author: { name: 'aldi', url: 'https://github.com/aldi' },
+    source: 'https://github.com/aldi/bulma-login-template',
+    sourceSha: '4f6c09947e045152ce73bc6a184d22f42f8493e9',
+    demo: 'https://aldi.github.io/bulma-login-template/',
+    license: 'MIT',
+    copyright: 'Copyright (c) 2026 - github.com/aldi',
+    tags: ['favorite', 'form'],
+  },
+];
 
 /** Favorites first, then by title. */
 function sortTemplates(list) {
