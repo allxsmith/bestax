@@ -73,8 +73,9 @@ fix.
 
    bestax's stylesheet builds Bulma with a blue primary, so an original made for stock Bulma's
    turquoise needs its primary set back in `src/index.css`: the `--bulma-primary-h`, `-s` and
-   `-l` trio, and `--bulma-primary-invert-l` with it, because the invert lightness is fixed when
-   the stylesheet is built and the trio alone keeps white labels on the turquoise.
+   `-l` trio, with `--bulma-primary-invert-l` and `--bulma-primary-on-scheme-l`, since both are
+   fixed when the stylesheet is built and the trio alone keeps white labels on the turquoise and
+   a text shade too light to read. Primary text takes that shade with `colorShade="on-scheme"`.
    `templates/rent/src/index.css` is the worked example. The parity check (**Check parity**,
    below) catches a primary left blue, so compare the primary-colored parts there.
 
