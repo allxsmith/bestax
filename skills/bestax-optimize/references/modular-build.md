@@ -79,12 +79,12 @@ is **more complete** than the docs page's Option C example, which omits several)
 
 **Components** (`@allxsmith/bestax-bulma/scss/components/<name>`):
 `loading`, `collapse`, `tooltip`, `popover`, `hovercard`, `contextmenu`, `steps`, `sidebar`,
-`toast`, `dialog`, `carousel`, `tabs`, `reveal`, `avatar`, `avatars`, `badge`, `emptystate`,
-`timeline`, `treeview`
+`toast`, `dialog`, `carousel`, `tabs`, `menu`, `reveal`, `avatar`, `avatars`, `badge`,
+`emptystate`, `timeline`, `treeview`
 
 **Form** (`@allxsmith/bestax-bulma/scss/form/<name>`):
 `checkbox`, `radio`, `switch`, `slider`, `numberinput`, `rate`, `autocomplete`, `taginput`,
-`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`
+`picker-popover`, `dateinput`, `timeinput`, `datetimeinput`, `daterangeinput`, `file`
 
 **Elements** (`@allxsmith/bestax-bulma/scss/elements/<name>`): `kbd`, `linkbutton`, `loader`,
 `notification`, `progress`, `skeleton`
@@ -104,6 +104,14 @@ Notes:
 - Extras `Tabs` **extends** stock Bulma tabs (vertical variant), so an app using `Tabs` needs
   both `@use 'bulma/sass/components/tabs';` and
   `@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;`.
+- The `menu` partial **extends** stock Bulma menu (it keeps the active item marked in forced
+  colors, Windows' contrast themes), so an app using `Menu` needs both, in either order:
+  `@use 'bulma/sass/components/menu';` and
+  `@use '@allxsmith/bestax-bulma/scss/components/menu' as bestax-menu;`.
+- The `file` partial **extends** stock Bulma file (File's keyboard focus ring, and the rounded
+  corners of a boxed `hasName` File with no name to show), so an app using `File` needs both, in
+  either order: `@use 'bulma/sass/form/file';` and
+  `@use '@allxsmith/bestax-bulma/scss/form/file' as bestax-file;`.
 - `DateInput`/`TimeInput`/`DateTimeInput` also need `picker-popover`.
 - `DateRangeInput` needs `daterangeinput` for its field and `dateinput` for its calendar, and
   `picker-popover` too.
