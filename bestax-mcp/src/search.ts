@@ -24,7 +24,24 @@ export interface Hit {
 }
 
 const norm = (s: string) => s.toLowerCase();
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * `s` as a RegExp source that matches it literally: every character a pattern
+ * reads specially is escaped, the backslash included.
+ */
+export const escapeRegExp = (s: string) =>
+  s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * Whether an example's code uses an export: by its name, or by the dot-path its
+ * part is (`<Dropdown.Item>` for `DropdownItem`). Each is matched as written,
+ * whatever characters it holds, and not as the start or end of a longer name.
+ */
+export function usesExport(code: string, name: string, path: string): boolean {
+  const named = new RegExp(`(?<![\\w$.])${escapeRegExp(name)}(?![\\w$])`);
+  const dotted = new RegExp(`<${escapeRegExp(path)}(?![\\w$.])`);
+  return named.test(code) || (path.includes('.') && dotted.test(code));
+}
 
 /**
  * A prefix of a term that survives common English inflection.
@@ -60,7 +77,7 @@ function wordInitialRe(stemmed: string): RegExp {
   let re = STEM_RE_CACHE.get(stemmed);
   if (!re) {
     if (STEM_RE_CACHE.size >= STEM_RE_CACHE_MAX) STEM_RE_CACHE.clear();
-    re = new RegExp(`\\b${escapeRe(stemmed)}`);
+    re = new RegExp(`\\b${escapeRegExp(stemmed)}`);
     STEM_RE_CACHE.set(stemmed, re);
   }
   return re;

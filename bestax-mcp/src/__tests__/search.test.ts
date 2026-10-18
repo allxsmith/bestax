@@ -16,7 +16,14 @@ import {
   type ComponentRecord,
   type Skill,
 } from '../data.js';
-import { ALIASES, searchAll, suggest, type HitKind } from '../search.js';
+import {
+  ALIASES,
+  escapeRegExp,
+  searchAll,
+  suggest,
+  usesExport,
+  type HitKind,
+} from '../search.js';
 
 const ALL: HitKind[] = ['component', 'prop', 'example', 'css-var', 'skill'];
 
@@ -214,6 +221,57 @@ describe('ranking realistic queries', () => {
     );
     expect(props).toContain('Input.isStatic');
     expect(props).not.toContain('InputBase.isStatic');
+  });
+});
+
+describe('escapeRegExp', () => {
+  it('matches what it escapes literally, a backslash included', () => {
+    for (const input of ['a\\b', 'a\\.b', 'Navbar.Brand', '[x](y)*+?^$|{1}']) {
+      const re = new RegExp(`^${escapeRegExp(input)}$`);
+      expect(re.test(input)).toBe(true);
+    }
+    // Unescaped, `\b` is a word boundary and `.` any character.
+    expect(new RegExp(`^${escapeRegExp('a\\b')}$`).test('ab')).toBe(false);
+    expect(new RegExp(`^${escapeRegExp('a.b')}$`).test('axb')).toBe(false);
+  });
+});
+
+describe('usesExport', () => {
+  it('finds an export by its name or its dot-path, and not inside another name', () => {
+    expect(
+      usesExport(
+        '<CarouselItem>x</CarouselItem>',
+        'CarouselItem',
+        'CarouselItem'
+      )
+    ).toBe(true);
+    expect(
+      usesExport('<CarouselItems />', 'CarouselItem', 'CarouselItem')
+    ).toBe(false);
+    expect(
+      usesExport('<Foo.CarouselItem />', 'CarouselItem', 'CarouselItem')
+    ).toBe(false);
+    expect(
+      usesExport(
+        '<Dropdown.Item>a</Dropdown.Item>',
+        'DropdownItem',
+        'Dropdown.Item'
+      )
+    ).toBe(true);
+    expect(
+      usesExport('<Dropdown.Items />', 'DropdownItem', 'Dropdown.Item')
+    ).toBe(false);
+    // The dot in a path is a dot, not any character.
+    expect(usesExport('<DropdownxItem />', 'Other', 'Dropdown.Item')).toBe(
+      false
+    );
+  });
+
+  it('reads a backslash in a name as a backslash', () => {
+    expect(usesExport('<A\\B />', 'A\\B', 'A\\B')).toBe(true);
+    expect(usesExport('<AB />', 'A\\B', 'A\\B')).toBe(false);
+    expect(usesExport('<A.B\\C />', 'X', 'A.B\\C')).toBe(true);
+    expect(usesExport('<A.BC />', 'X', 'A.B\\C')).toBe(false);
   });
 });
 

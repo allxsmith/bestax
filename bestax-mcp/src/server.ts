@@ -38,7 +38,6 @@ import {
   loadSkillFile,
   resolveName,
   type ComponentRecord,
-  type Example,
   type Skill,
 } from './data.js';
 import {
@@ -64,7 +63,7 @@ import {
   renderHelperGroup,
   resolveGroup,
 } from './helper-props.js';
-import { searchAll, suggest, type HitKind } from './search.js';
+import { searchAll, suggest, usesExport, type HitKind } from './search.js';
 import {
   missingInstallNote,
   resolveVersions,
@@ -169,19 +168,6 @@ async function partFocus(
     record.parts.find(p => p.path.toLowerCase() === wanted.toLowerCase()) ??
     null;
   return { wanted, part };
-}
-
-/**
- * Whether an example uses an export: by its name, or by the dot-path its part
- * is (`<Dropdown.Item>` for `DropdownItem`).
- */
-function usesExport(example: Example, name: string, path: string): boolean {
-  const named = new RegExp(`(?<![\\w$.])${name}\\b`);
-  const dotted = new RegExp(`<${path.replace(/\./g, '\\.')}\\b`);
-  return (
-    named.test(example.code) ||
-    (path.includes('.') && dotted.test(example.code))
-  );
 }
 
 /** Load every component record. Only `search_bestax` needs this much. */
@@ -630,7 +616,7 @@ export async function createServer(
       const name = documented?.name ?? record.name;
       const examples = documented
         ? record.examples.filter(e =>
-            usesExport(e, documented.name, documented.entry.path)
+            usesExport(e.code, documented.name, documented.entry.path)
           )
         : record.examples;
       if (documented && !examples.length) {
