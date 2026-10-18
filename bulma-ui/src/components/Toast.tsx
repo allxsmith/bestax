@@ -12,6 +12,8 @@ import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { usePortalContainer } from '../helpers/portal';
 import { groupIntoPositionStacks } from '../helpers/positionStacks';
+import { useLatestRef } from '../helpers/useLatestRef';
+import { useOverlayStack } from '../helpers/overlayStack';
 
 /** Color/style type presets for toast messages. */
 export type ToastType =
@@ -60,8 +62,11 @@ export interface ToastProps
   /** Pause auto-close timer on hover. Default: false. */
   pauseOnHover?: boolean;
   /**
-   * Whether the toast can be dismissed with Escape. An Escape a popup on the
-   * page closed on, by calling `preventDefault()`, leaves it up. Default: true.
+   * Whether the toast can be dismissed with Escape. While a Modal, Dialog,
+   * Sidebar or full-page Loading is open, Escape goes to that overlay and the
+   * toast stays up, so Escape dismisses the toast once none is open. An
+   * Escape a popup on the page closed on, by calling `preventDefault()`,
+   * leaves it up too. Default: true.
    */
   cancelable?: boolean;
   /** Text for an action button (e.g. "Undo"). */
@@ -137,15 +142,21 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       handleClose();
     }, [onAction, handleClose]);
 
+    // Read when the timer runs out, a click lands outside or Escape arrives,
+    // so the timer and the listeners stay put while `onClose` changes
+    // identity, as an inline one does on every render of the parent. An
+    // inline one from `ToastContainer` changes whenever another toast shows.
+    const handleCloseRef = useLatestRef(handleClose);
+
     useEffect(() => {
       if (indefinite || duration === 0 || isPaused) return undefined;
 
       const timer = setTimeout(() => {
-        handleClose();
+        handleCloseRef.current();
       }, duration);
 
       return () => clearTimeout(timer);
-    }, [duration, indefinite, isPaused, handleClose]);
+    }, [duration, indefinite, isPaused, handleCloseRef]);
 
     const handleMouseEnter = useCallback(() => {
       if (pauseOnHover) {
@@ -166,7 +177,7 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
 
       const handleDocumentClick = (e: MouseEvent) => {
         if (toastRef.current && !isEventInside(e, toastRef.current)) {
-          handleClose();
+          handleCloseRef.current();
         }
       };
 
@@ -178,7 +189,12 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
         cancelAnimationFrame(raf);
         document.removeEventListener('click', handleDocumentClick);
       };
-    }, [dismissible, isVisible, handleClose]);
+    }, [dismissible, isVisible, handleCloseRef]);
+
+    // A toast is a notification rather than a layer, so it never joins the
+    // stack of open overlays. Asking the stack tells it whether one is open:
+    // an Escape while one is belongs to the overlay, and the toast waits.
+    const isTopmost = useOverlayStack(false);
 
     // On `window`, as in `Modal`, so a popup on the page has had the key
     // first, and an Escape it closed on doesn't dismiss the toast as well.
@@ -186,14 +202,14 @@ export const Toast = forwardRef<HTMLDivElement, ToastProps>(
       if (!cancelable || !isVisible) return undefined;
 
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === 'Escape' && !e.defaultPrevented) {
-          handleClose();
+        if (e.key === 'Escape' && !e.defaultPrevented && isTopmost()) {
+          handleCloseRef.current();
         }
       };
 
       window.addEventListener('keydown', handleKeyDown);
       return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [cancelable, isVisible, handleClose]);
+    }, [cancelable, isVisible, handleCloseRef, isTopmost]);
 
     const containerClasses = usePrefixedClassNames('toast-container', {
       [`is-${position}`]: true,

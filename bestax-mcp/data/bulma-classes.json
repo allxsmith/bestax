@@ -3736,7 +3736,12 @@
           "style",
           "data-testid"
         ],
-        "modifiers": { "is-active": { "writes": [{ "prop": "active" }] } },
+        "modifiers": {
+          "is-active": {
+            "writes": [{ "prop": "active" }],
+            "needsAttr": { "name": "aria-current", "value": "page" }
+          }
+        },
         "after": { "tag": "ul", "target": "Menu.List" }
       },
       "parent": null,

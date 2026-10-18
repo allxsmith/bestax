@@ -216,6 +216,11 @@ describe('every refusal the planner can produce', () => {
       collect(item([], [child({ tokens: null })]));
       collect(item([], [child({ tokens: [] })]));
       collect(item([], [child({ tokens: ['box'] })]));
+      // Each class the child may carry, bare, so one that converts only
+      // beside an attribute is refused without it.
+      for (const token of Object.keys(spec.modifiers ?? {})) {
+        collect(item([], [child({ tokens: [token] })]));
+      }
       collect(item([], [child()], { hasSpread: true }));
       collect(item([], [child()], { emptyClass: true }));
       collect(item([['ref', null]], [child()], { hasRef: true }));

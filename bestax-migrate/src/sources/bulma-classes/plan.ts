@@ -1273,6 +1273,17 @@ function absorb(
         `${itself}, with no class on it${allowed.length > 0 ? ` but ${orList(allowed)}` : ''}, so its \`${token}\` would be lost; keep this element as markup`
       );
     }
+    // The prop writes an attribute too, unless the child has its own, and
+    // the class can't stay a class on a child the target renders itself.
+    const needs = modifier.needsAttr;
+    if (needs && !child.attributes.has(needs.name)) {
+      const attr = `\`${needs.name}="${needs.value}"\``;
+      return refuse(
+        'attr',
+        needs.name,
+        `${itself}, and the ${andList(modifier.writes.map(write => write.prop))} its \`${token}\` becomes renders ${attr} on it too, so it converts only beside an \`${needs.name}\` of its own. If this is the current ${needs.value}, add ${attr} to the <${spec.tag}>, then re-run; if not, keep this element as markup`
+      );
+    }
     for (const write of modifier.writes) {
       props.push([write.prop, write.value ?? true]);
     }

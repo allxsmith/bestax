@@ -1,6 +1,11 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { Steps, Step } from '../Steps';
+
+/** The button a clickable step puts its marker and label in. */
+const buttonIn = (segment: Element) =>
+  segment.querySelector('button') as HTMLButtonElement;
 
 describe('Steps', () => {
   describe('rendering', () => {
@@ -482,7 +487,7 @@ describe('Steps', () => {
         </Steps>
       );
       const segments = container.querySelectorAll('.steps-segment');
-      fireEvent.click(segments[1]);
+      fireEvent.click(buttonIn(segments[1]));
       expect(handleClick).toHaveBeenCalledWith(1);
     });
 
@@ -495,7 +500,7 @@ describe('Steps', () => {
         </Steps>
       );
       // Child has clickable=true, so it should use the steps onStepClick (called with index 0)
-      fireEvent.click(container.querySelector('.steps-segment')!);
+      fireEvent.click(buttonIn(container.querySelector('.steps-segment')!));
       expect(stepsHandler).toHaveBeenCalledWith(0);
     });
 
@@ -507,7 +512,7 @@ describe('Steps', () => {
         </Steps>
       );
       // No onStepClick on Steps, so the child.props.onClick is used
-      fireEvent.click(container.querySelector('.steps-segment')!);
+      fireEvent.click(buttonIn(container.querySelector('.steps-segment')!));
       expect(childHandler).toHaveBeenCalled();
     });
 
@@ -540,7 +545,7 @@ describe('Steps', () => {
       );
 
       const segments = container.querySelectorAll('.steps-segment');
-      fireEvent.click(segments[1]);
+      fireEvent.click(buttonIn(segments[1]));
       expect(handleClick).toHaveBeenCalledWith(1);
     });
 
@@ -562,7 +567,47 @@ describe('Steps', () => {
       expect(handleClick).not.toHaveBeenCalled();
     });
 
-    it('applies tabIndex to clickable steps', () => {
+    it('keeps each clickable step a list item, with a button inside it', () => {
+      render(
+        <Steps
+          value={1}
+          onStepClick={() => {}}
+          items={[
+            { label: 'Ordered', clickable: true },
+            { label: 'Packed', clickable: true },
+            { label: 'Shipped', clickable: true },
+          ]}
+        />
+      );
+      const list = screen.getByRole('list');
+      const items = within(list).getAllByRole('listitem');
+      expect(items).toHaveLength(3);
+      // What axe's `list` rule asks: the list owns list items and nothing else.
+      for (const child of Array.from(list.children)) {
+        expect(child.tagName).toBe('LI');
+        expect(child).not.toHaveAttribute('role');
+        expect(child).not.toHaveAttribute('tabindex');
+      }
+      items.forEach((item, i) => {
+        const button = within(item).getByRole('button');
+        expect(button).toHaveAttribute('type', 'button');
+        expect(button).toHaveClass('steps-link');
+        expect(button).toHaveTextContent(['Ordered', 'Packed', 'Shipped'][i]);
+        // A button holds only phrasing content.
+        expect(button.querySelector('div, p')).toBeNull();
+      });
+      // The current step is marked on its button, not on its list item.
+      expect(items[1]).not.toHaveAttribute('aria-current');
+      expect(within(items[1]).getByRole('button')).toHaveAttribute(
+        'aria-current',
+        'step'
+      );
+      expect(within(items[0]).getByRole('button')).not.toHaveAttribute(
+        'aria-current'
+      );
+    });
+
+    it('leaves a step that is not clickable without a button', () => {
       const { container } = render(
         <Steps
           items={[
@@ -571,42 +616,51 @@ describe('Steps', () => {
           ]}
         />
       );
-
       const segments = container.querySelectorAll('.steps-segment');
-      expect(segments[0]).toHaveAttribute('tabIndex', '0');
-      expect(segments[1]).not.toHaveAttribute('tabIndex');
+      expect(buttonIn(segments[0])).not.toBeNull();
+      expect(buttonIn(segments[1])).toBeNull();
+      expect(segments[1].querySelector('div.steps-link')).not.toBeNull();
+      expect(segments[1].querySelector('p.steps-title')).toHaveTextContent(
+        'Step 2'
+      );
     });
 
-    it('handles keyboard navigation on clickable steps', () => {
+    it('presses a clickable step with Enter and with Space', async () => {
+      const user = userEvent.setup();
       const handleClick = jest.fn();
-      const { container } = render(
+      render(
+        <Steps
+          value={0}
+          onStepClick={handleClick}
+          items={[
+            { label: 'Step 1', clickable: true },
+            { label: 'Step 2', clickable: true },
+          ]}
+        />
+      );
+      await user.tab();
+      expect(screen.getByRole('button', { name: /Step 1/ })).toHaveFocus();
+      await user.keyboard('{Enter}');
+      expect(handleClick).toHaveBeenLastCalledWith(0);
+      await user.tab();
+      expect(screen.getByRole('button', { name: /Step 2/ })).toHaveFocus();
+      await user.keyboard(' ');
+      expect(handleClick).toHaveBeenLastCalledWith(1);
+      expect(handleClick).toHaveBeenCalledTimes(2);
+    });
+
+    it('does nothing on other keys', async () => {
+      const user = userEvent.setup();
+      const handleClick = jest.fn();
+      render(
         <Steps
           value={0}
           onStepClick={handleClick}
           items={[{ label: 'Step 1', clickable: true }]}
         />
       );
-
-      const segment = container.querySelector('.steps-segment')!;
-      fireEvent.keyDown(segment, { key: 'Enter' });
-      expect(handleClick).toHaveBeenCalledWith(0);
-
-      handleClick.mockClear();
-      fireEvent.keyDown(segment, { key: ' ' });
-      expect(handleClick).toHaveBeenCalledWith(0);
-    });
-
-    it('does nothing on non-Enter/Space keypress for clickable step (covers if-false branch)', () => {
-      const handleClick = jest.fn();
-      const { container } = render(
-        <Steps
-          value={0}
-          onStepClick={handleClick}
-          items={[{ label: 'Step 1', clickable: true }]}
-        />
-      );
-      const segment = container.querySelector('.steps-segment')!;
-      fireEvent.keyDown(segment, { key: 'a' });
+      await user.tab();
+      await user.keyboard('a');
       expect(handleClick).not.toHaveBeenCalled();
     });
   });
@@ -724,14 +778,34 @@ describe('Steps', () => {
   });
 
   describe('accessibility', () => {
-    it('clickable steps have role="button"', () => {
+    it('clickable steps are buttons inside their list items', () => {
+      render(<Steps items={[{ label: 'Step 1', clickable: true }]} />);
+      expect(
+        within(screen.getByRole('listitem')).getByRole('button', {
+          name: /Step 1/,
+        })
+      ).toBeInTheDocument();
+    });
+
+    it('gives its list role="list", which Safari needs once the markers are hidden', () => {
       const { container } = render(
-        <Steps items={[{ label: 'Step 1', clickable: true }]} />
+        <Steps
+          role="region"
+          aria-label="Checkout"
+          items={[{ label: 'Step 1' }, { label: 'Step 2' }]}
+        />
       );
-      expect(container.querySelector('.steps-segment')).toHaveAttribute(
+      const list = container.querySelector('ul.steps-list');
+      expect(list).toHaveAttribute('role', 'list');
+      expect(screen.getByRole('list')).toBe(list);
+      // A role given to Steps lands on its wrapper and leaves the list's be.
+      expect(container.querySelector('.steps')).toHaveAttribute(
         'role',
-        'button'
+        'region'
       );
+      expect(
+        within(screen.getByRole('list')).getAllByRole('listitem')
+      ).toHaveLength(2);
     });
 
     it('active step has aria-current="step"', () => {
@@ -798,11 +872,26 @@ describe('Step subcomponent', () => {
 
   it('calls onClick when clickable and clicked', () => {
     const handleClick = jest.fn();
+    render(<Step clickable onClick={handleClick} label="Test" />);
+    fireEvent.click(screen.getByRole('button', { name: /Test/ }));
+    expect(handleClick).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders a clickable step with no onClick as a button that does nothing', () => {
+    render(<Step clickable label="Test" />);
+    expect(() =>
+      fireEvent.click(screen.getByRole('button', { name: /Test/ }))
+    ).not.toThrow();
+  });
+
+  it('keeps the rest of its props on the list item', () => {
     const { container } = render(
-      <Step clickable onClick={handleClick} label="Test" />
+      <Step clickable isActive label="Test" data-testid="step" mt="2" />
     );
-    fireEvent.click(container.querySelector('.steps-segment')!);
-    expect(handleClick).toHaveBeenCalled();
+    const li = container.querySelector('li')!;
+    expect(li).toHaveAttribute('data-testid', 'step');
+    expect(li).toHaveClass('steps-segment', 'is-active', 'mt-2');
+    expect(screen.getByRole('button')).not.toHaveAttribute('data-testid');
   });
 });
 
