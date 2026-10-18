@@ -22,6 +22,11 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   it by following that source's planner class by class, and
   `src/__tests__/bulma-classes-agree.test.ts` imports the planner itself to hold
   the two together, so a change to either side of that table shows up here.
+  Beside the table it carries every class in Bulma v1's compiled stylesheet,
+  read from `node_modules/bulma` with the walk bestax-migrate's vocabulary test
+  uses (`e2e/support/bulma-stylesheet.ts`), so a lookup can tell a v1 class with
+  no prop from a 0.9 one v1 removed (`REMOVED_IN_V1` in the class map) and from
+  one v1 has no rule for.
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
@@ -73,6 +78,17 @@ the API pages and the skill catalog.
   element (`RENDERS_ELEMENT_OF` in `scripts/lib/api-sources.mjs`) names that
   component's `get_css_variables` call too, since "none" alone reads as "can't
   be themed".
+- **Every name an answer hands out is one the tools answer for.** An export
+  with no page of its own is a part of the record that documents it: the bare
+  control a convenience component renders (`InputBase` in `Input`), what a page
+  imports beside its component (`CarouselItem` in `Carousel`), and a sub the
+  barrel exports by name too, from a module of its own (`Thead`, as
+  `Table.Thead`) or beside its parent (`NavbarItem`, as `Navbar.Item`). The
+  catalog's `documentedWith` resolves each name to its part. A sweep in
+  `src/__tests__/server.test.ts` fails on a name from the catalog, a record,
+  `lookup_bulma_classes` or the library's `index.ts` that `get_props` refuses
+  (#1150, #1174). It reads that barrel from `bulma-ui/src`, so `turbo.json`
+  lists the library's source among this package's test inputs.
 
 ## Dependencies
 

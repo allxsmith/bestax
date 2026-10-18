@@ -223,6 +223,26 @@
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "ToastContainer",
+      "summary": "Container component for rendering programmatic toasts. Place once at your app root to enable the toast API. A toast shown with a `position` appears there, and one shown without goes to the container's `position`.",
+      "component": null,
+      "props": [
+        {
+          "name": "position",
+          "type": "'top-left' | 'top-center' | 'top-right' | 'bottom-left' | 'bottom-center' | 'bottom-right'",
+          "default": "'top-right'",
+          "description": "Where a toast shown without a `position` of its own appears. Default: 'top-right'. When it changes, those toasts move without remounting, but one shown with its own `position` equal to the old or new value remounts and starts over as if it had just been shown.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": null,
+      "types": [],
+      "standalone": "companion"
     }
   ],
   "cssVars": [

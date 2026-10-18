@@ -43,6 +43,20 @@ export const SCRIPT_PATTERNS: readonly string[] = [
   'theme',
 ];
 
+/**
+ * What a stylesheet or script the page loads is: Bulma's own stylesheet,
+ * Font Awesome, a Bulma extension, jQuery, a web font, or any other.
+ */
+export const ASSET_KINDS: readonly string[] = [
+  'bulma',
+  'bulma-extension',
+  'font-awesome',
+  'jquery',
+  'script',
+  'stylesheet',
+  'webfont',
+];
+
 /** Every HTML event-handler attribute, as written (`onclick`). */
 const EVENT_ATTRIBUTES: readonly string[] = Object.values(html.property)
   .map(info => info.attribute)
@@ -50,8 +64,7 @@ const EVENT_ATTRIBUTES: readonly string[] = Object.values(html.property)
 
 const VOCABULARY: Readonly<Record<string, ReadonlySet<string>>> = {
   'html-head': new Set(['title', 'meta', 'link', 'style', 'base']),
-  // Reported at the kind level until the asset vocabulary lands.
-  'html-asset': new Set(),
+  'html-asset': new Set(ASSET_KINDS),
   'html-script': new Set(SCRIPT_PATTERNS),
   'html-document': new Set([
     ...NAVBAR_FIXED_CLASSES,

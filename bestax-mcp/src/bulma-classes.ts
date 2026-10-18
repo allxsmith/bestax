@@ -15,6 +15,7 @@
  * `__tests__/bulma-classes-agree.test.ts` runs the planner beside it.
  */
 
+import type { DocumentedWith } from './data.js';
 import { table } from './format.js';
 
 export interface PropWrite {
@@ -162,7 +163,11 @@ export interface BulmaClassTable {
   wrappers: Record<string, string>;
   helpers: Record<string, HelperRecord>;
   legacy: Record<string, string>;
+  /** Classes Bulma 0.9's stylesheet has and v1's does not. */
+  removed: string[];
   passthrough: { why: string; match: string }[];
+  /** Every class in Bulma v1's stylesheet. */
+  vocabulary: string[];
 }
 
 export type Verdict =
@@ -223,23 +228,69 @@ function own<T>(record: Record<string, T>, key: string): T | undefined {
   return Object.hasOwn(record, key) ? record[key] : undefined;
 }
 
-const compiled = new WeakMap<BulmaClassTable, RegExp[]>();
+/** What the table knows about a class beyond its own entries, read once. */
+interface Known {
+  patterns: RegExp[];
+  vocabulary: ReadonlySet<string>;
+  removed: ReadonlySet<string>;
+  /** The roots that take each class as a modifier. */
+  modifierOf: ReadonlyMap<string, string[]>;
+}
+
+const known = new WeakMap<BulmaClassTable, Known>();
+
+function knownOf(table: BulmaClassTable): Known {
+  let facts = known.get(table);
+  if (!facts) {
+    const modifierOf = new Map<string, string[]>();
+    for (const [root, entry] of Object.entries(table.roots)) {
+      for (const token of Object.keys(entry.modifiers)) {
+        modifierOf.set(token, [...(modifierOf.get(token) ?? []), root]);
+      }
+    }
+    facts = {
+      patterns: table.passthrough.map(group => new RegExp(group.match)),
+      vocabulary: new Set(table.vocabulary),
+      removed: new Set(table.removed),
+      modifierOf,
+    };
+    known.set(table, facts);
+  }
+  return facts;
+}
 
 function passthroughReason(
   table: BulmaClassTable,
   token: string
 ): string | undefined {
-  let patterns = compiled.get(table);
-  if (!patterns) {
-    patterns = table.passthrough.map(group => new RegExp(group.match));
-    compiled.set(table, patterns);
-  }
-  const index = patterns.findIndex(pattern => pattern.test(token));
+  const index = knownOf(table).patterns.findIndex(pattern =>
+    pattern.test(token)
+  );
   return index === -1 ? undefined : table.passthrough[index].why;
 }
 
 const PART =
   'a part of a Bulma family bestax converts as a whole; its outermost class says how';
+
+/**
+ * The kinds of class no Bulma v1 rule matches, each with its own advice
+ * (#1174). A class the table has a hint for (`tile`) says what replaced it.
+ * Only a class on the removed list is said to be 0.9's: the index carries v1's
+ * stylesheet and not 0.9's, so of any other it can say only what v1 lacks.
+ */
+const REMOVED =
+  'a Bulma 0.9 class that v1 removed, so no v1 rule matches it and it styles nothing now';
+const NOT_BULMA =
+  "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it. If the " +
+  "project's own CSS, or a Bulma extension's, defines it, keep it with that " +
+  'rule; if nothing does, it styles nothing';
+
+/** A class that keeps the note of its own, whatever else is on the element. */
+function speaksForItself(table: BulmaClassTable, token: string): boolean {
+  return (
+    own(table.legacy, token) !== undefined || knownOf(table).removed.has(token)
+  );
+}
 
 /** Why a class nothing converts stays in `className`. */
 function leftoverReason(table: BulmaClassTable, token: string): string {
@@ -251,8 +302,25 @@ function leftoverReason(table: BulmaClassTable, token: string): string {
   }
   if (root?.part) return PART;
   if (root?.why) return root.why;
+  const facts = knownOf(table);
+  if (facts.removed.has(token)) return REMOVED;
+  // Checked before the patterns, which reach past the stylesheet: `is-\d+x\d+`
+  // took a page's own `is-256x256` for an `.image` size.
+  if (!facts.vocabulary.has(token)) return NOT_BULMA;
+  const passthrough = passthroughReason(table, token);
+  if (passthrough) return passthrough;
+  // The roots bestax converts it beside, which can be fewer than Bulma styles
+  // it with (`is-vcentered` on a `.table` cell), so the note claims no more.
+  const roots = facts.modifierOf.get(token)?.map(root => `.${root}`);
+  if (!roots) return 'a Bulma class bestax has no prop for';
   return (
-    passthroughReason(table, token) ?? 'not a Bulma class bestax has a prop for'
+    'a Bulma modifier, which bestax converts only beside ' +
+    (roots.length > 3
+      ? `${roots
+          .slice(0, 3)
+          .map(root => `\`${root}\``)
+          .join(', ')} or another`
+      : orList(roots))
   );
 }
 
@@ -350,7 +418,7 @@ export function lookupClasses(
     const why = rootOf(family)!.why ?? PART;
     verdicts.set(family, { kind: 'family', why });
     for (const token of tokens) {
-      if (token !== family && !own(table.legacy, token)) {
+      if (token !== family && !speaksForItself(table, token)) {
         stays(token, `converted with the \`.${family}\` markup, by hand`);
       }
     }
@@ -412,7 +480,7 @@ export function lookupClasses(
       // A root nothing converts keeps its element as markup, helpers and all.
       const why = leftoverReason(table, other);
       for (const token of tokens) {
-        if (token !== other && !own(table.legacy, token)) {
+        if (token !== other && !speaksForItself(table, token)) {
           stays(token, `the element stays \`.${other}\``);
         }
       }
@@ -804,7 +872,33 @@ const MIGRATE_NOTE =
   '`get_skill({ name: "bestax-migrate", reference: "bulma-classes-unmappables" })` ' +
   'has a recipe for each.';
 
-export function renderLookup(lookup: Lookup): string {
+/**
+ * Where the examples are for a component documented with another: `InputBase`
+ * has no page, so its examples are the ones of `Input`, which renders it.
+ * Suggesting `get_examples` for the base itself sent an agent to a call that
+ * could not answer (#1150). Empty for a component with a page of its own.
+ */
+function examplesElsewhere(
+  target: string,
+  documented: Readonly<Record<string, DocumentedWith>>
+): string {
+  const home = Object.hasOwn(documented, target)
+    ? documented[target]
+    : undefined;
+  if (!home) return '';
+  return (
+    ` · \`get_examples({ component: "${home.component}" })\` for examples ` +
+    `of \`${home.component}\`, ` +
+    (home.standalone === 'base'
+      ? 'which renders it'
+      : 'which it is documented with')
+  );
+}
+
+export function renderLookup(
+  lookup: Lookup,
+  documented: Readonly<Record<string, DocumentedWith>> = {}
+): string {
   const { element } = lookup;
   const out: string[] = [];
   switch (element.kind) {
@@ -934,7 +1028,7 @@ export function renderLookup(lookup: Lookup): string {
   ) {
     out.push(
       `**Next:** \`get_props({ component: "${element.target}" })\` for its ` +
-        `other props.`
+        `other props${examplesElsewhere(element.target, documented)}.`
     );
   }
   out.push(MIGRATE_NOTE);

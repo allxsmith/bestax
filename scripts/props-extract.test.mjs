@@ -19,6 +19,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  barrelExports,
   createProgram,
   extractComponent,
   topLevelInitializers,
@@ -136,6 +137,55 @@ test('a sub-component imported from a module named something else keeps its tabl
   const divider = table('ContextMenu', 'ContextMenu.Divider');
   assert.ok(divider?.listOnly, 'ContextMenu.Divider is not listed');
   assert.equal(divider.component, 'DropdownDivider');
+});
+
+test('props declared inline on the component are read as its props (#1174)', () => {
+  // `ToastContainer: React.FC<{ position?: ToastPosition }>`: the literal's
+  // text named no interface, so the table came back empty.
+  const [toast] = extractComponent('ToastContainer', {
+    markdown: false,
+  }).tables;
+  assert.equal(toast.listOnly, undefined);
+  assert.equal(toast.interfaceName, null);
+  assert.deepEqual(
+    toast.rows.map(r => [r.name, r.default, r.inherited]),
+    [['position', "'top-right'", false]]
+  );
+  assert.match(toast.rows[0].description, /shown without a `position`/);
+  // It takes nothing else, not even its element's attributes.
+  assert.equal(toast.catchAll, null);
+});
+
+test('the barrel exports read every value name, an `export *` one included', () => {
+  const names = barrelExports();
+  // Named outright, and re-exported from a module named after something else.
+  for (const name of ['InputBase', 'Navbar', 'NavbarItem', 'TreeViewItem']) {
+    assert.ok(names.has(name), `${name} is missing`);
+  }
+  // Types are not values.
+  assert.equal(names.has('InputBaseProps'), false);
+});
+
+test('a sub that is a compound itself keeps the name of the constant composing it', () => {
+  const { compoundNames, tables } = extractComponent('Tabs', {
+    markdown: false,
+  });
+  assert.equal(compoundNames.get('Tabs.Content'), 'TabsContent');
+  assert.equal(
+    tables.find(t => t.path === 'Tabs.Content').impl,
+    'TabsContentComponent'
+  );
+  // The root is no sub, and a plain sub has its implementation's name already.
+  assert.equal(compoundNames.has('Tabs'), false);
+  assert.equal(compoundNames.has('Tabs.Tab'), false);
+});
+
+test('a component that names no props type says it takes none', () => {
+  // Apart from one whose props are an inline DOM type, which takes those.
+  assert.equal(table('Dropdown', 'Dropdown.Divider').noProps, true);
+  assert.equal(table('ContextMenu', 'ContextMenu.Divider').noProps, true);
+  assert.equal(table('Navbar', 'Navbar.Divider').noProps, undefined);
+  assert.equal(extractComponent('DialogContainer').tables[0].noProps, true);
 });
 
 test('a polymorphic component still resolves its props type', () => {

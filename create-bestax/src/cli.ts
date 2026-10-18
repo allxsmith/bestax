@@ -91,7 +91,10 @@ export function createCLI(): Command {
     .name('create-bestax')
     .description('Create a new bestax-bulma project')
     .version(getPackageVersion())
-    .argument('[project-directory]', 'project directory to create')
+    .argument(
+      '[project-directory]',
+      'project directory to create, a name or a path (its last part names the package)'
+    )
     .option('-t, --template <template>', 'template to use (vite, vite-ts)')
     .option(
       '-b, --bulma <flavor>',

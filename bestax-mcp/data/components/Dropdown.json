@@ -240,7 +240,8 @@
       "props": [],
       "extraProps": [],
       "catchAll": null,
-      "types": []
+      "types": [],
+      "noProps": true
     }
   ],
   "cssVars": [

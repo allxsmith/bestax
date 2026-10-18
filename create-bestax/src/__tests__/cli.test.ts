@@ -184,6 +184,16 @@ describe('cli', () => {
       expect(program.opts().overwrite).toBe(true);
     });
 
+    it('should take a path as the project directory and say so (#1154)', () => {
+      const program = createCLI();
+      const [projectDirectory] = program.registeredArguments;
+      expect(projectDirectory.name()).toBe('project-directory');
+      expect(projectDirectory.description).toContain('a name or a path');
+
+      program.parse(['/tmp/a/b/login', '-y'], { from: 'user' });
+      expect(program.args).toEqual(['/tmp/a/b/login']);
+    });
+
     it('should leave telemetry undefined when neither flag is given', () => {
       const program = createCLI();
       program.parse(['my-app', '-y'], { from: 'user' });
