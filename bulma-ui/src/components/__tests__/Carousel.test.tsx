@@ -897,4 +897,95 @@ describe('Carousel', () => {
     expect(cleanup).toHaveBeenCalledTimes(1);
     expect(calls).toHaveLength(1);
   });
+
+  // The key listener and the autoplay timer read the latest navigation, which
+  // is built on `onChange`, when a key or a tick arrives. So a parent that
+  // renders with an inline `onChange` neither takes the listener off and
+  // puts it back, which can lose a key React renders in the middle of, nor
+  // starts the timer over, which a parent rendering more often than the
+  // interval would do forever (#1186).
+  describe('while onChange changes', () => {
+    const Page = ({
+      onChange,
+      autoplay,
+    }: {
+      onChange: (value: number) => void;
+      autoplay?: boolean;
+    }) => (
+      <TestCarousel
+        autoplay={autoplay}
+        interval={1000}
+        onChange={value => onChange(value)}
+      />
+    );
+
+    const keydownCalls = (spy: jest.SpyInstance) =>
+      spy.mock.calls.filter(([type]) => type === 'keydown');
+
+    it('keeps its key listener when the parent renders again', () => {
+      const onChange = jest.fn();
+      const { rerender } = render(<Page onChange={onChange} />);
+      const addSpy = jest.spyOn(document, 'addEventListener');
+      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      try {
+        rerender(<Page onChange={onChange} />);
+        expect(keydownCalls(addSpy)).toHaveLength(0);
+        expect(keydownCalls(removeSpy)).toHaveLength(0);
+      } finally {
+        addSpy.mockRestore();
+        removeSpy.mockRestore();
+      }
+    });
+
+    it('moves through the onChange of the latest render on an arrow key', () => {
+      const first = jest.fn();
+      const latest = jest.fn();
+      const { rerender } = render(<Page onChange={first} />);
+      rerender(<Page onChange={latest} />);
+      screen.getByLabelText('Next slide').focus();
+
+      fireEvent.keyDown(document, { key: 'ArrowRight' });
+
+      expect(latest).toHaveBeenCalledWith(1);
+      expect(first).not.toHaveBeenCalled();
+    });
+
+    it('keeps its autoplay timer running when the parent renders again', () => {
+      const first = jest.fn();
+      const latest = jest.fn();
+      const { rerender } = render(<Page autoplay onChange={first} />);
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+      rerender(<Page autoplay onChange={latest} />);
+      act(() => {
+        jest.advanceTimersByTime(400);
+      });
+
+      expect(latest).toHaveBeenCalledTimes(1);
+      expect(latest).toHaveBeenCalledWith(1);
+      expect(first).not.toHaveBeenCalled();
+    });
+
+    it('still gives a slide the whole interval after the user moves to it', () => {
+      const onChange = jest.fn();
+      render(<Page autoplay onChange={onChange} />);
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+      fireEvent.click(screen.getByLabelText('Next slide'));
+      expect(onChange).toHaveBeenLastCalledWith(1);
+
+      act(() => {
+        jest.advanceTimersByTime(400);
+      });
+      expect(onChange).toHaveBeenCalledTimes(1);
+
+      act(() => {
+        jest.advanceTimersByTime(600);
+      });
+      expect(onChange).toHaveBeenCalledTimes(2);
+      expect(onChange).toHaveBeenLastCalledWith(2);
+    });
+  });
 });
