@@ -35,6 +35,42 @@ describe('Panel', () => {
     expect(screen.getByTestId('child')).toBeInTheDocument();
   });
 
+  it('renders a <nav> by default', () => {
+    render(<Panel data-testid="panel" />);
+    expect(screen.getByTestId('panel').tagName).toBe('NAV');
+  });
+
+  it.each(['nav', 'article', 'section', 'aside', 'div'] as const)(
+    'renders a <%s>',
+    tag => {
+      render(
+        <Panel
+          as={tag}
+          color="info"
+          m="2"
+          aria-labelledby="panel-heading"
+          data-testid="panel"
+        />
+      );
+      const panel = screen.getByTestId('panel');
+      expect(panel.tagName).toBe(tag.toUpperCase());
+      expect(panel).toHaveClass('panel', 'is-info', 'm-2');
+      expect(panel).toHaveAttribute('aria-labelledby', 'panel-heading');
+      expect(panel).not.toHaveAttribute('as');
+    }
+  );
+
+  it('names a <section> panel by its heading', () => {
+    render(
+      <Panel as="section" aria-labelledby="program">
+        <Panel.Heading id="program">Program</Panel.Heading>
+      </Panel>
+    );
+    expect(screen.getByRole('region', { name: 'Program' })).toHaveClass(
+      'panel'
+    );
+  });
+
   it('applies classPrefix when provided via ConfigProvider', () => {
     render(
       <ConfigProvider classPrefix="bulma-">
@@ -174,6 +210,105 @@ describe('Panel.Block', () => {
     );
     fireEvent.click(screen.getByTestId('block'));
     expect(handleClick).toHaveBeenCalled();
+  });
+
+  it('renders an <a> by default, with its anchor attributes', () => {
+    render(
+      <Panel.Block
+        href="/docs"
+        target="_blank"
+        rel="noopener"
+        download="f"
+        data-testid="block"
+      >
+        Docs
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block.tagName).toBe('A');
+    expect(block).toHaveAttribute('href', '/docs');
+    expect(block).toHaveAttribute('target', '_blank');
+    expect(block).toHaveAttribute('rel', 'noopener');
+    expect(block).toHaveAttribute('download', 'f');
+  });
+
+  // The types keep each element's own attributes to it, so the tests below
+  // hand the others over through a loose spread, the way a plain-JS caller or
+  // an untyped props bag still can.
+  it('drops the label attributes from an <a>', () => {
+    const loose: object = { htmlFor: 'x', form: 'f' };
+    render(
+      <Panel.Block {...loose} data-testid="block">
+        Docs
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block).not.toHaveAttribute('for');
+    expect(block).not.toHaveAttribute('form');
+  });
+
+  it('renders a <div> without the anchor or label attributes', () => {
+    const loose: object = {
+      href: '/docs',
+      target: '_blank',
+      type: 'text/html',
+      htmlFor: 'x',
+      form: 'f',
+    };
+    render(
+      <Panel.Block
+        as="div"
+        active
+        {...loose}
+        rel="noopener"
+        className="custom-block"
+        aria-label="Program"
+        data-testid="block"
+      >
+        <table />
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block.tagName).toBe('DIV');
+    expect(block).toHaveClass('panel-block', 'is-active', 'custom-block');
+    expect(block).toHaveAttribute('aria-label', 'Program');
+    for (const attr of ['href', 'target', 'rel', 'type', 'for', 'form', 'as']) {
+      expect(block).not.toHaveAttribute(attr);
+    }
+    expect(block.querySelector('table')).toBeInTheDocument();
+  });
+
+  it('renders a <label> with its own attributes but not the anchor ones', () => {
+    const loose: object = { href: '/docs' };
+    render(
+      <Panel.Block
+        as="label"
+        htmlFor="remember"
+        {...loose}
+        rel="noopener"
+        data-testid="block"
+      >
+        Remember me
+      </Panel.Block>
+    );
+    const block = screen.getByTestId('block');
+    expect(block.tagName).toBe('LABEL');
+    expect(block).toHaveClass('panel-block');
+    expect(block).toHaveAttribute('for', 'remember');
+    expect(block).not.toHaveAttribute('href');
+    expect(block).not.toHaveAttribute('rel');
+  });
+
+  it('keeps the prefixed classes on another tag', () => {
+    render(
+      <ConfigProvider classPrefix="bestax-">
+        <Panel.Block as="div" active data-testid="block" />
+      </ConfigProvider>
+    );
+    expect(screen.getByTestId('block')).toHaveClass(
+      'bestax-panel-block',
+      'bestax-is-active'
+    );
   });
 });
 

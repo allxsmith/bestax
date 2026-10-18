@@ -14,11 +14,15 @@
       "code": "<>\n  {(\n    [\n      'primary',\n      'link',\n      'info',\n      'success',\n      'warning',\n      'danger',\n      'black',\n      'dark',\n      'light',\n      'white',\n    ] as const\n  ).map(color => (\n    <Panel key={color} color={color}>\n      <Panel.Heading>\n        {color.charAt(0).toUpperCase() + color.slice(1)} Panel\n      </Panel.Heading>\n      <Panel.InputBlock placeholder=\"Search\" />\n      <Panel.Block active>\n        <Panel.Icon name=\"user\" variant=\"solid\" />\n        George Washington\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"user\" variant=\"solid\" />\n        Marquis de Lafayette\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"user\" variant=\"solid\" />\n        Nathanael Greene\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"flag\" variant=\"solid\" />\n        Battle of Trenton\n      </Panel.Block>\n      <Panel.Block>\n        <Panel.Icon name=\"flag\" variant=\"solid\" />\n        Yorktown\n      </Panel.Block>\n      <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>\n    </Panel>\n  ))}\n</>"
     },
     {
+      "title": "A Panel That Is Not Navigation",
+      "code": "<Panel as=\"section\" color=\"info\" aria-labelledby=\"panel-sessions\">\n  <Panel.Heading id=\"panel-sessions\">Congress Sessions</Panel.Heading>\n  <Panel.Block as=\"div\">\n    <Table isFullwidth>\n      <Table.Thead>\n        <Table.Tr>\n          <Table.Th>Date</Table.Th>\n          <Table.Th>Session</Table.Th>\n        </Table.Tr>\n      </Table.Thead>\n      <Table.Tbody>\n        <Table.Tr>\n          <Table.Td>1774</Table.Td>\n          <Table.Td>First Continental Congress</Table.Td>\n        </Table.Tr>\n        <Table.Tr>\n          <Table.Td>1775</Table.Td>\n          <Table.Td>Second Continental Congress</Table.Td>\n        </Table.Tr>\n      </Table.Tbody>\n    </Table>\n  </Panel.Block>\n  <Panel.Block href=\"#delegates\">\n    <Panel.Icon name=\"user\" variant=\"solid\" />\n    All delegates\n  </Panel.Block>\n</Panel>"
+    },
+    {
       "title": "Compound (dot-notation) usage",
       "code": "<Panel>\n  <Panel.Heading>Founding Documents</Panel.Heading>\n  <Panel.Block active>\n    <Panel.Icon name=\"file\" variant=\"solid\" />\n    Declaration of Independence\n  </Panel.Block>\n  <Panel.Block>\n    <Panel.Icon name=\"file\" variant=\"solid\" />\n    Articles of Confederation\n  </Panel.Block>\n  <Panel.ButtonBlock>Reset all filters</Panel.ButtonBlock>\n</Panel>"
     }
   ],
-  "accessibility": "- The root panel renders as a semantic `<nav>` for navigation/landmark.\n- Use headings, links, and buttons with appropriate labels for best accessibility.\n- The `Panel.Block` by default renders as an anchor `<a>`, but can be customized for interactive blocks.\n\n:::note\nFor keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.\n:::",
+  "accessibility": "- The root panel renders as a semantic `<nav>`, a navigation landmark, by default. For a panel that is not navigation, set `as` to `article`, `section`, `aside` or `div`, and give a `section` an accessible name (for example `aria-labelledby` pointing at the `Panel.Heading`'s `id`) if it should be a region.\n- Use headings, links, and buttons with appropriate labels for best accessibility.\n- The `Panel.Block` by default renders as an anchor `<a>`. Its props follow `as`: only an `a` takes the anchor attributes (`href`, `target`, `download` and the rest), and only a `label` takes `htmlFor` and `form`. A block on another tag drops them, and `rel`, at runtime too.\n\n:::note\nFor keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.\n:::",
   "related": ["Icon", "useBulmaClasses"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-panel--revolutionary-war",
   "summary": "The `Panel` component implements Bulma's versatile panel block for React.",
@@ -31,6 +35,15 @@
       "summary": "The `Panel` component implements Bulma's versatile panel block for React.",
       "component": null,
       "props": [
+        {
+          "name": "as",
+          "type": "'nav' | 'article' | 'section' | 'aside' | 'div'",
+          "default": "'nav'",
+          "description": "HTML element to render (default: `nav`). A `nav` is a `navigation` landmark, which suits a panel of links; a panel that is not navigation takes another tag. Bulma's own colored panels use `article`. A `section` is a `region` landmark only once it has an accessible name, such as `aria-labelledby` pointing at the `id` of its `Panel.Heading`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "color",
           "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
@@ -121,9 +134,18 @@
     },
     {
       "path": "Panel.Block",
-      "summary": "Individual panel block (renders as `<a class=\"panel-block\">`)",
+      "summary": "Individual panel block (renders as `<a class=\"panel-block\">` unless `as` says otherwise)",
       "component": null,
       "props": [
+        {
+          "name": "as",
+          "type": "'a' | 'div' | 'label'",
+          "default": "'a'",
+          "description": "HTML element to render (default: `a`). Bulma styles a `label` block as clickable, like an `a`, and a `div` block as static content, such as a table. The props follow the tag, so the anchor attributes (`href`, `target`, `download` and the rest) are typed only on an `a` and `htmlFor` only on a `label`; at runtime the block also drops them, and `rel`, on the other tags. `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock` render the usual `label` and `div` blocks with their contents.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
         {
           "name": "className",
           "type": "string",
@@ -153,7 +175,7 @@
         }
       ],
       "extraProps": [],
-      "catchAll": "All standard <a> attributes",
+      "catchAll": "Remaining props of the element selected by as (default <a>)",
       "types": []
     },
     {

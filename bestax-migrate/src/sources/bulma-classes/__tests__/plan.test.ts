@@ -1062,11 +1062,25 @@ describe('plan', () => {
       ).toMatchObject({ target: 'Panel.Block', props: [['active', true]] });
     });
 
-    it('leaves a block on another tag as markup with no TODO', () => {
-      // bestax renders those as Panel.CheckboxBlock, InputBlock or ButtonBlock.
+    it('converts the root and a block on the tags their `as` takes', () => {
+      for (const tag of ['article', 'section', 'aside', 'div']) {
+        expect(plan(facts(tag, 'panel')).conversion).toMatchObject({
+          target: 'Panel',
+          props: [['as', tag]],
+        });
+      }
       for (const tag of ['label', 'div']) {
-        expect(plan(facts(tag, 'panel-block'))).toEqual({
-          conversion: null,
+        expect(plan(facts(tag, 'panel-block is-active'))).toEqual({
+          conversion: {
+            target: 'Panel.Block',
+            props: [
+              ['as', tag],
+              ['active', true],
+            ],
+            className: null,
+            drop: [],
+            numbers: [],
+          },
           todos: [],
         });
       }
@@ -1074,6 +1088,85 @@ describe('plan', () => {
       expect(
         plan(facts('span', 'panel-block')).todos.map(todo => todo.rule)
       ).toEqual(['tag:Panel.Block']);
+      expect(plan(facts('ul', 'panel')).todos.map(todo => todo.rule)).toEqual([
+        'tag:Panel',
+      ]);
+    });
+
+    it("keeps a block's anchor and label attributes to their own tags", () => {
+      // bestax drops each set on the other tags (`STRIP_FROM_NON_ANCHOR` and
+      // `STRIP_FROM_NON_LABEL` in Panel.tsx), where it did nothing anyway.
+      expect(
+        plan(facts('a', 'panel-block', { href: '#' })).conversion?.props
+      ).toEqual([]);
+      expect(
+        plan(facts('label', 'panel-block', { htmlFor: 'x' })).conversion?.props
+      ).toEqual([['as', 'label']]);
+      for (const [tag, attr] of [
+        ['div', 'href'],
+        ['label', 'rel'],
+        ['div', 'htmlFor'],
+        ['a', 'form'],
+      ]) {
+        const [todo] = plan(facts(tag, 'panel-block', { [attr]: 'x' })).todos;
+        expect(todo.rule).toBe('drops:Panel.Block');
+        expect(todo.message).toContain('remove it, then re-run');
+      }
+    });
+
+    it('refuses a tag it does not render before any attribute it drops', () => {
+      // On a <button>, `type` picks submit or button, and removing it would
+      // not unlock a conversion: the tag is the reason, and the only one.
+      expect(
+        plan(facts('button', 'panel-block', { type: 'submit' })).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Panel.Block']);
+      expect(
+        plan(facts('span', 'level-item', { href: '#' })).todos.map(
+          todo => todo.rule
+        )
+      ).toEqual(['tag:Level.Item']);
+    });
+  });
+
+  describe('Hero and Container', () => {
+    it('converts on the landmark tags their `as` takes', () => {
+      const cases: Array<[string, string, string]> = [
+        ['main', 'hero', 'Hero'],
+        ['footer', 'hero', 'Hero'],
+        ['header', 'hero-head', 'Hero.Head'],
+        ['nav', 'hero-head', 'Hero.Head'],
+        ['footer', 'hero-foot', 'Hero.Foot'],
+        ['nav', 'hero-foot', 'Hero.Foot'],
+        ['main', 'container', 'Container'],
+        ['footer', 'container', 'Container'],
+        ['section', 'container', 'Container'],
+      ];
+      for (const [tag, className, target] of cases) {
+        expect(plan(facts(tag, className)).conversion).toMatchObject({
+          target,
+          props: [['as', tag]],
+        });
+      }
+      // Their default tags convert with no `as`.
+      expect(plan(facts('section', 'hero')).conversion?.props).toEqual([]);
+      expect(plan(facts('div', 'hero-foot')).conversion?.props).toEqual([]);
+    });
+
+    it('still refuses a tag outside them', () => {
+      const cases: Array<[string, string, string]> = [
+        ['figure', 'container', 'tag:Container'],
+        ['nav', 'hero', 'tag:Hero'],
+        ['footer', 'hero-head', 'tag:Hero.Head'],
+        ['header', 'hero-foot', 'tag:Hero.Foot'],
+        ['main', 'hero-body', 'tag:Hero.Body'],
+      ];
+      for (const [tag, className, rule] of cases) {
+        expect(
+          plan(facts(tag, className)).todos.map(todo => todo.rule)
+        ).toEqual([rule]);
+      }
     });
   });
 

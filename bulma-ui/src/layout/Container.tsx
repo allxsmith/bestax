@@ -18,8 +18,24 @@ export type ContainerBreakpoint = 'tablet' | 'desktop' | 'widescreen';
  */
 export interface ContainerProps
   extends
-    React.HTMLAttributes<HTMLDivElement>,
+    React.HTMLAttributes<HTMLElement>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor'> {
+  /**
+   * HTML element to render (default: `div`). Bulma pages often put the
+   * container on a landmark, such as `<main class="container">` or
+   * `<footer class="container">`. A page has only one visible `main`, and a
+   * `section` is a `region` landmark only once it has an accessible name
+   * (`aria-label`, or `aria-labelledby` pointing at its heading).
+   */
+  as?:
+    | 'div'
+    | 'main'
+    | 'section'
+    | 'article'
+    | 'aside'
+    | 'header'
+    | 'footer'
+    | 'nav';
   /** Additional CSS classes. */
   className?: string;
   /** Text color helper. */
@@ -65,6 +81,7 @@ export interface ContainerProps
  * @see {@link https://bulma.io/documentation/layout/container/ | Bulma Container documentation}
  */
 export const Container: React.FC<ContainerProps> = ({
+  as: Tag = 'div',
   className,
   textColor,
   color,
@@ -116,13 +133,13 @@ export const Container: React.FC<ContainerProps> = ({
   );
 
   return (
-    <div
+    <Tag
       className={containerClasses}
       style={mergeBulmaStyles(bulmaHelperStyles, style)}
       {...rest}
     >
       {children}
-    </div>
+    </Tag>
   );
 };
 

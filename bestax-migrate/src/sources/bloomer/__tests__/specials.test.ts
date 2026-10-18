@@ -755,16 +755,17 @@ describe('bloomer navigation handlers', () => {
       dyn('PanelBlock', '<PanelBlock href="" isActive>x</PanelBlock>')
     );
     expect(rules).toEqual([]);
-    expect(output).toContain('<div className="panel-block is-active">x</div>');
+    expect(output).toContain('<Panel.Block active as="div">x</Panel.Block>');
   });
 
-  it('keeps a PanelBlock without href as the plain block bloomer rendered', () => {
-    const plain = migrate(
+  it('keeps a PanelBlock without href on the tag bloomer rendered', () => {
+    // bestax's `Panel.Block` renders a <div> or a <label> through `as`.
+    const div = migrate(
       dyn('PanelBlock', '<PanelBlock isActive isWrapped>x</PanelBlock>')
     );
-    expect(plain.rules).toEqual([]);
-    expect(plain.output).toContain(
-      '<div className="panel-block is-active is-wrapped">x</div>'
+    expect(div.rules).toEqual([]);
+    expect(div.output).toContain(
+      '<Panel.Block active as="div" className="is-wrapped">x</Panel.Block>'
     );
     const label = migrate(
       dyn(
@@ -772,8 +773,35 @@ describe('bloomer navigation handlers', () => {
         '<PanelBlock tag="label" isActive={p.on}>x</PanelBlock>'
       )
     );
-    expect(label.rules).toEqual(['prop:isActive']);
-    expect(label.output).toContain('<label className="panel-block">x</label>');
+    expect(label.rules).toEqual([]);
+    expect(label.output).toContain(
+      '<Panel.Block active={p.on} as="label">x</Panel.Block>'
+    );
+    // An <a> with no `href` is the component's own default.
+    const bare = migrate(
+      dyn('PanelBlock', '<PanelBlock tag="a">x</PanelBlock>')
+    );
+    expect(bare.rules).toEqual([]);
+    expect(bare.output).toContain('<Panel.Block>x</Panel.Block>');
+    // Any other tag, or one only known at runtime, stays the plain block.
+    const span = migrate(
+      dyn('PanelBlock', '<PanelBlock tag="span" isActive>x</PanelBlock>')
+    );
+    expect(span.rules).toEqual([]);
+    expect(span.output).toContain(
+      '<span className="panel-block is-active">x</span>'
+    );
+    const dynamic = migrate(
+      dyn('PanelBlock', '<PanelBlock tag={p.tag}>x</PanelBlock>')
+    );
+    expect(dynamic.rules).toEqual(['prop:tag']);
+    expect(dynamic.output).toContain('<div className="panel-block">x</div>');
+    // bloomer took no `as`, so one here is a stray attribute, and the block
+    // keeps it as the plain element did rather than gaining a second `as`.
+    const stray = migrate(
+      dyn('PanelBlock', '<PanelBlock as="p">x</PanelBlock>')
+    );
+    expect(stray.output).not.toContain('Panel.Block');
     const anchor = migrate(
       dyn('PanelBlock', '<PanelBlock href="/x" isWrapped>x</PanelBlock>')
     );
