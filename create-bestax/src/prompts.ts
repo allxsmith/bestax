@@ -8,7 +8,7 @@ import {
   ICON_LIBRARIES,
   BULMA_FLAVORS,
 } from './constants.js';
-import { validateProjectName } from './validators.js';
+import { validateProjectDirectory } from './validators.js';
 import { displayError } from './display.js';
 
 /**
@@ -23,6 +23,7 @@ function ensureInteractive(): void {
   }
 }
 
+/** Takes a name or a path, the same as the project-directory argument. */
 export async function promptProjectName(): Promise<string | null> {
   ensureInteractive();
   const response = await prompts({
@@ -30,7 +31,7 @@ export async function promptProjectName(): Promise<string | null> {
     name: 'projectName',
     message: PROMPT_MESSAGES.PROJECT_NAME,
     initial: DEFAULT_PROJECT_NAME,
-    validate: validateProjectName,
+    validate: validateProjectDirectory,
   });
 
   return response.projectName || null;
