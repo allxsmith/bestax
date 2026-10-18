@@ -63,8 +63,9 @@ a Combobox.
 ### A Searchable Select
 
 Type to narrow the list, and pick with Enter or a click. The field shows the pick, and leaving it
-without picking puts the pick back. Enter with nothing highlighted submits the form, the way it
-does in any text field.
+or closing the list without picking puts the pick back, so Escape does too. Empty the field and
+leave it to clear the pick. Enter with nothing highlighted submits the form, the way it does in any
+text field.
 
 ```tsx live
 <form onSubmit={e => e.preventDefault()}>
@@ -166,9 +167,9 @@ tags under the field, each with a button to take it off.
 ```
 
 Each item's check mark is its `aria-selected` here, and the list says it's `aria-multiselectable`,
-so a screen reader reads which labels are on. The tags sit under the field rather than inside it,
-which keeps the field an ordinary text field. For chips inside the field, see
-[`Taginput`](./taginput.md).
+so a screen reader reads which labels are on, and the field's description lists them while the
+list is shut. The tags sit under the field rather than inside it, which keeps the field an ordinary
+text field. For chips inside the field, see [`Taginput`](./taginput.md).
 
 ### A Controlled Value
 
@@ -429,6 +430,8 @@ function example() {
           const picked = cities.find(c => c.id === id) ?? null;
           setCity(picked);
           setQuery(picked?.name ?? '');
+          // A pick ends any search that's still out.
+          setLoading(false);
         }}
       >
         <Combobox.Input
@@ -825,8 +828,10 @@ and a click in the field opens the list. A press in the list never takes focus f
   is around the Combobox, the announcement waits and is made once loading ends. In a menu,
   keep it to text: Tab closes the list before a keyboard user can reach a link or a button in it.
   An `inline` list stays on screen, so a link or a button beside it is in the Tab order.
-- **Tags,** with `multiple` and `data`: each tag's button is named "Remove" and the item's label,
-  and taking a tag off puts focus back in the field.
+- **Tags,** with `multiple` and `data`: the field's `aria-describedby` points at the tags' labels,
+  since its own text is the search, so focusing it reads the picks. Each tag's button is named
+  "Remove" and the item's label, and taking a tag off puts focus back in the field, which then
+  reads the picks that are left.
 - **No counts are announced,** for the reasons in [A Result Count](#a-result-count).
 - **Enter and Escape:** Enter submits the form when nothing is highlighted, and Escape only stops
   at the Combobox when it closed a panel that was on screen.
