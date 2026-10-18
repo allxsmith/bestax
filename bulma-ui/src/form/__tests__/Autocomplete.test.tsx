@@ -727,6 +727,38 @@ describe('Autocomplete', () => {
         }
       }
     );
+
+    // A disabled suggestion can't be picked, so a click outside with one
+    // highlighted only closes the dropdown, as Enter on it does.
+    it('selects nothing on a click outside with a disabled suggestion highlighted', () => {
+      const onSelect = jest.fn();
+      render(
+        <div>
+          <Autocomplete
+            data={[
+              { value: 'banana', label: 'Banana' },
+              { value: 'blueberry', label: 'Blueberry', disabled: true },
+            ]}
+            field="label"
+            selectOnClickOutside
+            onSelect={onSelect}
+          />
+          <button>Outside</button>
+        </div>
+      );
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'b' } });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      fireEvent.keyDown(input, { key: 'ArrowDown' });
+      expect(screen.getByRole('option', { name: 'Blueberry' })).toHaveClass(
+        'is-active'
+      );
+
+      fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    });
   });
 
   describe('Controlled Value', () => {
