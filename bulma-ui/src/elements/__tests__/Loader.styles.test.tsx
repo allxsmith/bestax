@@ -49,6 +49,7 @@ import {
   SelectBase,
   Sidebar,
   Skeleton,
+  Tag,
   Taginput,
   TextArea,
   TimeInput,
@@ -1114,48 +1115,126 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
   });
 
   /** The loading buttons on the roster, which draw their ring on `::after`. */
-  const LOADING_BUTTONS = RINGS.filter(([label]) =>
-    /Button isLoading$/.test(label)
-  );
-
-  it('has loading buttons to check', () => {
-    expect(LOADING_BUTTONS.map(([label]) => label)).toEqual([
+  /**
+   * Each kind of loading button, with what forced colors gives it when it's
+   * idle, which is what it keeps while it loads: a `<button>` a button's
+   * surface and text color, a link a link's, anything else the page's own,
+   * and a variant with no surface of its own none.
+   */
+  const LOADING_LOOKS: Array<
+    [string, React.ReactElement, { surface: string; border: string }]
+  > = [
+    [
       'Button isLoading',
-      'LinkButton isLoading',
-    ]);
-  });
-
-  it.each([
-    ...LOADING_BUTTONS,
+      <Button key="x" isLoading>
+        Save
+      </Button>,
+      { surface: 'ButtonFace', border: 'ButtonText' },
+    ],
     [
       'Button color="primary" isLoading',
       <Button key="x" color="primary" isLoading>
         Save
       </Button>,
-    ] as [string, React.ReactElement],
-  ])(
-    '%s hides its label in forced colors, and draws itself in button colors',
-    (_label, element) => {
+      { surface: 'ButtonFace', border: 'ButtonText' },
+    ],
+    [
+      'Button color="ghost" isLoading',
+      <Button key="x" color="ghost" isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'ButtonText' },
+    ],
+    [
+      'Button color="text" isLoading',
+      <Button key="x" color="text" isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'ButtonText' },
+    ],
+    [
+      'Button isOutlined isLoading',
+      <Button key="x" color="primary" isOutlined isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'ButtonText' },
+    ],
+    [
+      'LinkButton isLoading',
+      <LinkButton key="x" isLoading>
+        Save
+      </LinkButton>,
+      { surface: 'transparent', border: 'ButtonText' },
+    ],
+    [
+      'LinkButton variant="underline" isLoading',
+      <LinkButton key="x" variant="underline" isLoading>
+        Save
+      </LinkButton>,
+      { surface: 'transparent', border: 'ButtonText' },
+    ],
+    [
+      'Button as="a" href isLoading',
+      <Button key="x" as="a" href="#" isLoading>
+        Save
+      </Button>,
+      { surface: 'Canvas', border: 'LinkText' },
+    ],
+    [
+      'LinkButton as="a" href isLoading',
+      <LinkButton key="x" as="a" href="#" isLoading>
+        Save
+      </LinkButton>,
+      { surface: 'transparent', border: 'LinkText' },
+    ],
+    [
+      'Button as="a" isLoading, with no href',
+      <Button key="x" as="a" isLoading>
+        Save
+      </Button>,
+      { surface: 'Canvas', border: 'CanvasText' },
+    ],
+    [
+      'Button as="span" isLoading',
+      <Button key="x" as="span" isLoading>
+        Save
+      </Button>,
+      { surface: 'Canvas', border: 'CanvasText' },
+    ],
+  ];
+
+  it('checks the loading buttons on the roster', () => {
+    const labels = LOADING_LOOKS.map(([label]) => label);
+    for (const [label] of RINGS.filter(([name]) =>
+      /Button isLoading$/.test(name)
+    )) {
+      expect(labels).toContain(label);
+    }
+  });
+
+  it.each(LOADING_LOOKS)(
+    '%s hides its label in forced colors and keeps the colors it has when idle',
+    (_label, element, look) => {
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
       );
       const button = container.querySelector(`.${prefix}button`)!;
-      const forced = (names: string[], pseudo = '') =>
-        resolved(rules, button, pseudo, { forcedColors: true }, names);
+      const forced = (names: string[]) =>
+        resolved(rules, button, '', { forcedColors: true }, names);
       // Forced colors paints any text color in the theme's own, so the label
       // Bulma hides with `transparent` would show. With forcing off on the
       // button, it stays transparent, and every other color it shows is a
-      // system one, which the user's theme picks.
+      // system one the theme picks, the one it has when it's idle.
       expect(forced(['forced-color-adjust'])).toBe('none');
       expect(forced(['color'])).toBe('transparent');
-      expect(forced(['background-color', 'background'])).toBe('ButtonFace');
+      expect(forced(['background-color', 'background'])).toBe(look.surface);
       for (const side of ['top', 'right', 'bottom', 'left'] as const) {
         expect(winning(rules, button, '', { forcedColors: true }, side)).toBe(
-          'ButtonText'
+          look.border
         );
       }
-      // Its ring stays out of forcing with it, drawn in the button's border
-      // color and open onto its surface.
+      // Its ring stays out of forcing with it, drawn in its border color and
+      // open onto its surface.
       expect(forcing(rules, button, '::after')).toBe('none');
       expect(ringProblem(rules, button, '::after')).toBeNull();
       expect(
@@ -1165,104 +1244,78 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         winning(rules, button, '::after', { forcedColors: true }, 'bottom')
       ).toBe('inherit');
       // None of it reaches anyone not in forced colors.
-      const normally = (names: string[]) =>
-        resolved(rules, button, '', {}, names);
-      expect(normally(['forced-color-adjust'])).toBeNull();
-      expect(normally(['background-color', 'background'])).not.toBe(
-        'ButtonFace'
-      );
+      expect(
+        resolved(rules, button, '', {}, ['forced-color-adjust'])
+      ).toBeNull();
     }
   );
 
   it.each([
     [
-      'Button as="a" isLoading',
-      <Button key="x" as="a" href="#" isLoading>
-        Save
+      'a Tag with a color',
+      <Button key="x" isLoading>
+        <Tag color="danger">3</Tag>
+        <span>Save</span>
       </Button>,
     ],
     [
-      'LinkButton as="a" isLoading',
-      <LinkButton key="x" as="a" href="#" isLoading>
-        Save
-      </LinkButton>,
+      'an Icon with a text color',
+      <Button key="x" isLoading>
+        <Icon name="floppy-disk" textColor="danger" />
+        <span>Save</span>
+      </Button>,
+    ],
+    [
+      'an Icon with a background',
+      <Button key="x" isLoading>
+        <Icon name="floppy-disk" bgColor="danger" />
+      </Button>,
     ],
   ] as Array<[string, React.ReactElement]>)(
-    '%s keeps a link’s colors in forced colors, the ones it has when idle',
+    'hides everything inside a loading button in forced colors: %s',
     (_label, element) => {
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
       );
-      const link = container.querySelector(`a.${prefix}button`)!;
-      expect(link).not.toBeNull();
-      const forced = (names: string[]) =>
-        resolved(rules, link, '', { forcedColors: true }, names);
-      // Forced colors draws an `<a>` as a link, Canvas behind and LinkText
-      // for its border and text, so a loading one keeps those rather than
-      // turning into a button while it loads.
-      expect(forced(['forced-color-adjust'])).toBe('none');
-      expect(forced(['color'])).toBe('transparent');
-      expect(forced(['background-color', 'background'])).toBe('Canvas');
-      for (const side of ['top', 'right', 'bottom', 'left'] as const) {
-        expect(winning(rules, link, '', { forcedColors: true }, side)).toBe(
-          'LinkText'
-        );
-      }
-      // Its ring follows, in LinkText and open onto Canvas.
-      expect(ringProblem(rules, link, '::after')).toBeNull();
-      expect(winning(rules, link, '', { forcedColors: true }, 'bottom')).toBe(
-        'LinkText'
+      const children = Array.from(
+        container.querySelector(`.${prefix}button`)!.children
       );
-      expect(
-        rules
-          .filter(
-            rule =>
-              rule.forcedColorsOnly &&
-              rule.selectors.includes(
-                `a.${prefix}button.${prefix}is-loading:focus-visible`
-              )
-          )
-          .map(rule => rule.values['outline-color']?.value)
-      ).toEqual(['LinkText']);
+      expect(children.length).toBeGreaterThan(0);
+      // Forcing is off inside the button too, so a color or a background of
+      // its own, which Bulma's helpers give `!important`, would show. A child
+      // at no opacity paints nothing, whatever it sets, and stays in the
+      // accessibility tree, so the button keeps its name.
+      for (const el of children) {
+        expect(
+          resolved(rules, el, '', { forcedColors: true }, ['opacity'])
+        ).toBe('0');
+        expect(resolved(rules, el, '', {}, ['opacity'])).not.toBe('0');
+      }
     }
   );
 
-  it('hides everything inside a loading button in forced colors, a child with its own color included', () => {
-    const { container } = render(
-      <ConfigProvider classPrefix={prefix}>
-        <Button isLoading>
-          <Icon name="floppy-disk" textColor="danger" />
-          <span>Save</span>
-        </Button>
-      </ConfigProvider>
-    );
-    const inside = Array.from(container.querySelectorAll(`.${prefix}button *`));
-    // The icon, its glyph and the label's span.
-    expect(inside.length).toBeGreaterThanOrEqual(3);
-    // Forcing is off inside the button too, so a text color of its own,
-    // which Bulma's helpers give `!important`, would show in that color.
-    for (const el of inside) {
-      expect(resolved(rules, el, '', { forcedColors: true }, ['color'])).toBe(
-        'transparent'
-      );
-      expect(resolved(rules, el, '', {}, ['color'])).not.toBe('transparent');
-    }
-  });
-
   it('rings a focused loading button in forced colors, where its border holds still', () => {
     // The `!important` border above stops the browser recoloring it to show
-    // focus, so the rule draws an outline instead, in `ButtonText`.
-    const focus = rules.filter(
-      rule =>
-        rule.forcedColorsOnly &&
-        rule.selectors.includes(
-          `.${prefix}button.${prefix}is-loading:focus-visible`
-        )
-    );
-    expect(focus.map(rule => rule.values.outline?.value)).toEqual([
-      '2px solid ButtonText',
+    // focus, so the rules draw an outline instead, in its border color.
+    const focus = (selector: string) =>
+      rules.filter(
+        rule => rule.forcedColorsOnly && rule.selectors.includes(selector)
+      );
+    const base = focus(`.${prefix}button.${prefix}is-loading:focus-visible`);
+    expect(base.map(rule => rule.values.outline?.value)).toEqual([
+      '2px solid CanvasText',
     ]);
-    expect(focus[0].values['outline-offset']?.value).toBe('2px');
+    expect(base[0].values['outline-offset']?.value).toBe('2px');
+    expect(
+      focus(`button.${prefix}button.${prefix}is-loading:focus-visible`).map(
+        rule => rule.values['outline-color']?.value
+      )
+    ).toEqual(['ButtonText']);
+    expect(
+      focus(`a[href].${prefix}button.${prefix}is-loading:focus-visible`).map(
+        rule => rule.values['outline-color']?.value
+      )
+    ).toEqual(['LinkText']);
     // And nowhere else.
     expect(
       rules

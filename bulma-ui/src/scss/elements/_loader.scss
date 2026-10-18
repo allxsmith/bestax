@@ -45,24 +45,26 @@
   // Chrome's forced colors paints that in the theme's text color, so the
   // label would show through the spinner. With forcing off on the button,
   // the label stays transparent, and the button names its own colors, all of
-  // them system ones the theme picks: a button's, or a link's for one drawn
-  // on an `<a>`, which is how the browser draws those when they're idle.
-  // Forcing off reaches everything inside too, so the rest of the label goes
-  // transparent as well, a child with a color of its own included. It also
-  // stops the browser recoloring the border to show focus, so a focused one
-  // gets an outline.
+  // them system ones the theme picks. They're the ones the browser gives the
+  // element when it's idle, so it doesn't change look when it starts
+  // loading: the page's own colors for most elements, a button's for a
+  // `<button>`, a link's for a link, and no surface for a variant that has
+  // none. Forcing off reaches everything inside too, where anything could
+  // keep a color of its own, so the button's children are hidden outright.
+  // It also stops the browser recoloring the border to show focus, so a
+  // focused one gets an outline.
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
     forced-color-adjust: none;
-    background-color: ButtonFace !important;
-    border-color: ButtonText !important;
+    background-color: Canvas !important;
+    border-color: CanvasText !important;
     color: transparent !important;
 
-    * {
-      color: transparent !important;
+    > * {
+      opacity: 0 !important;
     }
 
     &:focus-visible {
-      outline: 2px solid ButtonText;
+      outline: 2px solid CanvasText;
       outline-offset: 2px;
     }
 
@@ -78,12 +80,26 @@
     }
   }
 
-  a.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
-    background-color: Canvas !important;
+  button.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    background-color: ButtonFace !important;
+    border-color: ButtonText !important;
+
+    &:focus-visible {
+      outline-color: ButtonText;
+    }
+  }
+
+  a[href].#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
     border-color: LinkText !important;
 
     &:focus-visible {
       outline-color: LinkText;
     }
+  }
+
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-loading,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-text.#{iv.$class-prefix}is-loading,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-outlined.#{iv.$class-prefix}is-loading {
+    background-color: transparent !important;
   }
 }
