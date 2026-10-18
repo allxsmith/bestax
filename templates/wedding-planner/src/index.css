@@ -1,0 +1,136 @@
+/*
+ * The original's stylesheet, ported. The original was made with Bulma 0.9,
+ * so the first rules set back the heading and button weights and the burger
+ * color Bulma 1 changed. The page is light only: index.html pins Bulma's
+ * light scheme. Inline styles the original set are classes here or helper
+ * props on the components, and bulma-carousel's rule for the gallery's
+ * photos is here too.
+ */
+
+/*
+ * Bulma 0.9's weights: Bulma 1 sets headings extrabold, buttons medium and
+ * labels semibold. The label's weight is a plain property, since Bulma 1
+ * declares its variable but doesn't read it.
+ */
+.title {
+  --bulma-title-weight: var(--bulma-weight-semibold);
+}
+
+.content {
+  --bulma-content-heading-weight: var(--bulma-weight-semibold);
+}
+
+.button {
+  --bulma-button-weight: var(--bulma-weight-normal);
+}
+
+.label {
+  font-weight: var(--bulma-weight-bold);
+}
+
+/* Bulma 0.9 drew the burger in the items' grey, not the link color. */
+.navbar {
+  --bulma-navbar-burger-color: #4a4a4a;
+}
+
+/* Bulma 0.9 kept a medium hero's sides as narrow as a section's. */
+.hero {
+  --bulma-hero-body-padding-medium: 9rem 1.5rem;
+}
+
+/* Bulma 0.9 rounded a box's corners less. */
+.box {
+  --bulma-box-radius: 6px;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+/*
+ * The original paints every `.button` lavender, which Bulma 0.9's colored
+ * buttons outranked. Bulma 1's don't, so the lavender goes on the one plain
+ * button by class.
+ */
+.offer-button {
+  background-color: #c7b8ea;
+}
+
+.button:hover {
+  text-shadow: 0 0 6px rgba(255, 255, 255, 1);
+  box-shadow: 0 5px 40px -10px rgba(0, 0, 0, 0.57);
+  transition: all 0.4s ease 0s;
+}
+
+hr.rounded {
+  border-top: 2px solid #c7b8ea;
+  border-radius: 2px;
+}
+
+.offer-check {
+  color: #72ddf7;
+}
+
+.heart {
+  color: red;
+}
+
+#users-feed {
+  padding: 4rem 1.5rem;
+}
+
+#features {
+  background: linear-gradient(
+    180deg,
+    rgba(238, 174, 202, 0.7973390039609594) 0%,
+    rgba(200, 179, 215, 1) 26%,
+    rgb(255 255 255) 100%
+  );
+}
+
+.width-50 {
+  width: 50%;
+}
+
+.width-70 {
+  width: 70%;
+}
+
+/*
+ * Gallery. The arrows are the original slider's white circles. Each photo
+ * fills its 16:9 frame, cropped, as bulma-carousel's is-covered did; the
+ * height also wins over the carousel's own rule for images in a slide.
+ */
+.gallery {
+  margin-top: 6rem;
+  margin-bottom: 3rem;
+}
+
+.gallery-carousel {
+  --bulma-carousel-arrow-size: 42px;
+  --bulma-carousel-arrow-size-mobile: 42px;
+  --bulma-carousel-arrow-offset: 0;
+  --bulma-carousel-arrow-offset-mobile: 0;
+  --bulma-carousel-arrow-radius: var(--bulma-radius-rounded);
+  --bulma-carousel-arrow-background: #fff;
+  --bulma-carousel-arrow-background-hover: #fff;
+}
+
+.gallery-card {
+  --bulma-card-radius: 0;
+}
+
+.image.gallery-photo img {
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+}
+
+/* Contact */
+.contact-illustration {
+  height: 80%;
+}
