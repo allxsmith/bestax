@@ -49,10 +49,10 @@
   // element when it's idle, so it doesn't change look when it starts
   // loading: the page's own colors for most elements, a button's for a
   // `<button>`, a link's for a link, and no surface for a variant that has
-  // none. Forcing off reaches everything inside too, where anything could
-  // keep a color of its own, so the button's children are hidden outright.
-  // It also stops the browser recoloring the border to show focus, so a
-  // focused one gets an outline.
+  // none, as below. Forcing off reaches everything inside too, where
+  // anything could keep a color of its own, so the button's children are
+  // hidden outright. It also stops the browser recoloring the border to show
+  // focus, so a focused one gets an outline.
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
     forced-color-adjust: none;
     background-color: Canvas !important;
@@ -97,9 +97,18 @@
     }
   }
 
+  // A variant with no surface of its own shows the page through it, so its
+  // border, and the ring drawn in it, take the page's text color, even on a
+  // `<button>`: `ButtonText` is only promised to read against `ButtonFace`.
+  // A link keeps `LinkText`, which the theme sets against the page.
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-loading,
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-text.#{iv.$class-prefix}is-loading,
   .#{iv.$class-prefix}button.#{iv.$class-prefix}is-outlined.#{iv.$class-prefix}is-loading {
     background-color: transparent !important;
+    border-color: CanvasText !important;
+
+    &:focus-visible {
+      outline-color: CanvasText;
+    }
   }
 }

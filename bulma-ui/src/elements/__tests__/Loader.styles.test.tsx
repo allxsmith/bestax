@@ -1114,12 +1114,12 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
     expect(extra).toEqual([]);
   });
 
-  /** The loading buttons on the roster, which draw their ring on `::after`. */
   /**
    * Each kind of loading button, with what forced colors gives it when it's
    * idle, which is what it keeps while it loads: a `<button>` a button's
-   * surface and text color, a link a link's, anything else the page's own,
-   * and a variant with no surface of its own none.
+   * surface and text color, a link a link's, anything else the page's own.
+   * A variant with no surface of its own has none, and shows the page
+   * through it, so it pairs with the page's text color unless it's a link.
    */
   const LOADING_LOOKS: Array<
     [string, React.ReactElement, { surface: string; border: string }]
@@ -1143,35 +1143,35 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       <Button key="x" color="ghost" isLoading>
         Save
       </Button>,
-      { surface: 'transparent', border: 'ButtonText' },
+      { surface: 'transparent', border: 'CanvasText' },
     ],
     [
       'Button color="text" isLoading',
       <Button key="x" color="text" isLoading>
         Save
       </Button>,
-      { surface: 'transparent', border: 'ButtonText' },
+      { surface: 'transparent', border: 'CanvasText' },
     ],
     [
       'Button isOutlined isLoading',
       <Button key="x" color="primary" isOutlined isLoading>
         Save
       </Button>,
-      { surface: 'transparent', border: 'ButtonText' },
+      { surface: 'transparent', border: 'CanvasText' },
     ],
     [
       'LinkButton isLoading',
       <LinkButton key="x" isLoading>
         Save
       </LinkButton>,
-      { surface: 'transparent', border: 'ButtonText' },
+      { surface: 'transparent', border: 'CanvasText' },
     ],
     [
       'LinkButton variant="underline" isLoading',
       <LinkButton key="x" variant="underline" isLoading>
         Save
       </LinkButton>,
-      { surface: 'transparent', border: 'ButtonText' },
+      { surface: 'transparent', border: 'CanvasText' },
     ],
     [
       'Button as="a" href isLoading',
@@ -1213,7 +1213,7 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
   });
 
   it.each(LOADING_LOOKS)(
-    '%s hides its label in forced colors and keeps the colors it has when idle',
+    '%s hides its label in forced colors and keeps the surface it has when idle',
     (_label, element, look) => {
       const { container } = render(
         <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
@@ -1224,7 +1224,7 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       // Forced colors paints any text color in the theme's own, so the label
       // Bulma hides with `transparent` would show. With forcing off on the
       // button, it stays transparent, and every other color it shows is a
-      // system one the theme picks, the one it has when it's idle.
+      // system one the theme picks, paired with the surface it shows.
       expect(forced(['forced-color-adjust'])).toBe('none');
       expect(forced(['color'])).toBe('transparent');
       expect(forced(['background-color', 'background'])).toBe(look.surface);
@@ -1233,6 +1233,17 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           look.border
         );
       }
+      // Focused, it's outlined in its border color.
+      button.setAttribute('tabindex', '0');
+      (button as HTMLElement).focus();
+      expect(
+        colorOf(
+          resolved(rules, button, '', { forcedColors: true }, [
+            'outline-color',
+            'outline',
+          ])
+        )
+      ).toBe(look.border);
       // Its ring stays out of forcing with it, drawn in its border color and
       // open onto its surface.
       expect(forcing(rules, button, '::after')).toBe('none');
@@ -1316,6 +1327,13 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         rule => rule.values['outline-color']?.value
       )
     ).toEqual(['LinkText']);
+    for (const variant of ['is-ghost', 'is-text', 'is-outlined']) {
+      expect(
+        focus(
+          `.${prefix}button.${prefix}${variant}.${prefix}is-loading:focus-visible`
+        ).map(rule => rule.values['outline-color']?.value)
+      ).toEqual(['CanvasText']);
+    }
     // And nowhere else.
     expect(
       rules
