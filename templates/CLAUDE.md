@@ -34,12 +34,11 @@ fix.
 1. **Get the original.** Clone the upstream repo into a scratch folder outside this repo and check
    out the commit you port from. Its full SHA goes in the README and the docs entry.
 2. **Scaffold, outside the workspace.** From a build of create-bestax, or `npm create bestax@latest`
-   with the same arguments. It takes the project's name rather than a path, so run it from the
-   scratch folder:
+   with the same arguments. Give it a path in the scratch folder that ends in the slug, which names
+   the package:
 
    ```bash
-   cd <scratch>
-   node <repo>/create-bestax/dist/index.js <slug> -t vite-ts -i fontawesome -y --no-skills --no-telemetry
+   node <repo>/create-bestax/dist/index.js <scratch>/<slug> -t vite-ts -i fontawesome -y --no-skills --no-telemetry
    ```
 
    Then strip the lint setup: delete `eslint.config.js`, the `lint` script and the lint
