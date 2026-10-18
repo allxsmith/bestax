@@ -81,7 +81,7 @@
           "name": "active",
           "type": "number",
           "default": null,
-          "description": "Marks progress. The item at this index, counting the children from 0, is current; the ones before it are completed and the ones after it are upcoming. Leave it out for a record, where nothing is marked. `-1` marks every item upcoming, and an index past the last marks them all completed. Each child counts as one item, with Fragments and arrays opened up, so render one item per child. A component of your own around a `Timeline.Item` still gets its state, but one that renders nothing still counts.",
+          "description": "Marks progress. The item at this index, counting the children from 0, is current; the ones before it are completed and the ones after it are upcoming. Leave it out for a record, where nothing is marked. `-1` marks every item upcoming, and an index past the last marks them all completed. A fraction counts as the item it has reached, so `2.5` marks the third item current. Each child counts as one item, with Fragments and arrays opened up, so render one item per child. A component of your own around a `Timeline.Item` still gets its state, but one that renders nothing still counts.",
           "required": false,
           "inherited": false,
           "deprecated": false
