@@ -1054,11 +1054,15 @@ describe('lookup_bulma_classes', () => {
 
   it('says when a class is exact only on some tags', async () => {
     expect(await lookup('title is-4')).toContain(
-      '| `is-4` | `size="4"` | exact only on <h4> or <p> |'
+      '| `is-4` | `size="4"` | exact only on <h4> or <p>; on another tag, `textSize="4"` sizes it the same and keeps the tag |'
     );
-    // On an <h2>, size="4" would render an <h4>, so it stays a class.
-    expect(await lookup('title is-4', 'h2')).toMatch(
-      /\| `is-4` \| stays in `className` \|/
+    // On an <h2>, size="4" would render an <h4>, so it stays a class, and
+    // textSize, which keeps the <h2>, is the prop for it.
+    expect(await lookup('title is-4', 'h2')).toContain(
+      '| `is-4` | stays in `className` | bestax `Title` renders it exactly only on <h4> or <p>; on this <h2>, write `textSize="4"` in its place, which sizes it the same and keeps the <h2> |'
+    );
+    expect(await lookup('subtitle is-6', 'h1')).toContain(
+      'on this <h1>, write `textSize="6"` in its place'
     );
   });
 
@@ -1124,7 +1128,7 @@ describe('lookup_bulma_classes', () => {
   it('says when a component renders the element inside it', async () => {
     const select = await lookup('select is-multiple is-small', 'div');
     expect(select).toContain(
-      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`)."
+      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`). It renders no <label>: one beside the <select> goes on `Select` instead, as its `label` with its classes in `labelProps`, and `Select` renders a `Field` and a `Control` around it."
     );
     expect(select).toContain(
       '| `is-multiple` | `multiple` | with a bare `multiple` on the <select> inside, which it renders |'

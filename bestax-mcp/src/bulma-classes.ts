@@ -35,6 +35,11 @@ export interface Modifier {
    * so the class converts only beside one written out.
    */
   needsAttr?: { name: string; value: string };
+  /**
+   * Off the tags in `tagIn`, where the class stays a class, the prop that
+   * sizes the element the same without picking its tag (`textSize`).
+   */
+  offTag?: PropWrite;
 }
 
 export interface RootRecord {
@@ -142,6 +147,11 @@ export interface Absorbs {
   pairs?: Record<string, string>;
   /** A child attribute the component reads under another name. */
   renames?: Record<string, { to: string; beside: string }>;
+  /**
+   * The component that takes a `<label>` beside the child as its `label`,
+   * since this one renders no label (`Select`).
+   */
+  label?: string;
 }
 
 export interface Wraps {
@@ -556,7 +566,10 @@ export function lookupClasses(
       if (modifier.tagIn && tag && !modifier.tagIn.includes(tag)) {
         stays(
           token,
-          `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}`
+          `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}` +
+            (modifier.offTag
+              ? `; on this <${tag}>, write ${writeText(modifier.offTag)} in its place, which sizes it the same and keeps the <${tag}>`
+              : '')
         );
         continue;
       }
@@ -581,7 +594,10 @@ export function lookupClasses(
         writes: modifier.writes,
         condition:
           modifier.tagIn && !tag
-            ? `exact only on ${listTags(modifier.tagIn)}`
+            ? `exact only on ${listTags(modifier.tagIn)}` +
+              (modifier.offTag
+                ? `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`
+                : '')
             : paired
               ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
               : modifier.needsAttr
@@ -853,7 +869,13 @@ function absorbsText(target: string, absorbs: Absorbs): string {
     ` It renders the ${child} inside it itself, and puts the attributes it ` +
     `is given on that ${child}: write the ${child}'s attributes and children ` +
     `on \`${target}\` in its place, and nothing on this element but a \`key\`.` +
-    on
+    on +
+    (absorbs.label
+      ? ` It renders no <label>: one beside the ${child} goes on ` +
+        `\`${absorbs.label}\` instead, as its \`label\` with its classes in ` +
+        `\`labelProps\`, and \`${absorbs.label}\` renders a \`Field\` and a ` +
+        `\`Control\` around it.`
+      : '')
   );
 }
 
