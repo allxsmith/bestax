@@ -67,9 +67,8 @@ If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variab
 
 ## Colors — override the H/S/L trio to recolor
 
-Bulma derives a color's entire palette (shades, light/dark/invert variants) from three channels.
-Override the trio; the rest follows automatically. For each color `<c>` ∈ `primary`, `link`,
-`info`, `success`, `warning`, `danger`:
+Bulma derives a color's shades and its light and dark variants from three channels. For each
+color `<c>` ∈ `primary`, `link`, `info`, `success`, `warning`, `danger`:
 
 | Variable        | Meaning                    | `Theme` prop             |
 | --------------- | -------------------------- | ------------------------ |
@@ -77,9 +76,72 @@ Override the trio; the rest follows automatically. For each color `<c>` ∈ `pri
 | `--bulma-<c>-s` | saturation (`%`)           | `<c>S`                   |
 | `--bulma-<c>-l` | lightness (`%`)            | `<c>L`                   |
 
-Read-only derived values (set automatically; reference if you need them): `--bulma-<c>` (the
-resolved color), `--bulma-<c>-invert`, `--bulma-<c>-light`, `--bulma-<c>-dark`, `--bulma-<c>-rgb`,
-and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
+Derived values (reference them if you need them): `--bulma-<c>` is the resolved color. Its
+variants take the trio's hue and saturation, each at a lightness of its own: `--bulma-<c>-light`,
+`--bulma-<c>-dark`, the numeric shades `--bulma-<c>-00` … `--bulma-<c>-100`, and
+`--bulma-<c>-invert` and `--bulma-<c>-on-scheme`, whose lightnesses are below.
+`--bulma-<c>-rgb` is the built color written out as a value, so it never follows the trio.
+
+### The lightnesses Bulma's build picks for contrast
+
+Bulma's Sass build picks two lightnesses for each color by their contrast with the color it was
+given, and writes them into the stylesheet as values. A trio set at runtime leaves them as they
+were. So when a new color reads lighter or darker than the built one, which a change of hue or
+saturation can do as well as a change of lightness, set them too:
+
+| Variable                  | What reads it                                                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …   |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, … |
+
+For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
+link color that reads lighter than Bulma's own leaves the page's links pale.
+
+bestax's stylesheet builds its primary from a dark blue, so the primary's invert is white
+(`var(--bulma-primary-100-l)`). A light primary set through the trio alone keeps those white
+labels: on stock Bulma's turquoise they read at under 2:1. Its on-scheme lightness was picked for
+the blue too, and is too light for turquoise text on a white page. The other colors are built
+from Bulma's own defaults. For a page made for stock Bulma, the bestax-migrate skill's
+`references/css-migration.md` covers getting its turquoise back.
+
+`Theme` doesn't set either one, so set them in your CSS, loaded after the library's styles:
+
+- **The invert** is one value for both schemes. Point it at a shade that reads on the new color: a
+  near-black `var(--bulma-<c>-05-l)` on a light color, a near-white `var(--bulma-<c>-100-l)` on a
+  dark one.
+- **The on-scheme lightness** has to read on the page's background, so Bulma gives each scheme
+  its own. A value on `:root` in your stylesheet wins in both, so give dark mode its own value on
+  both of its paths, as below.
+
+```css
+/* Stock Bulma's turquoise, with the values from bulma/css/bulma.css. */
+:root {
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
+}
+[data-theme='dark'] {
+  --bulma-primary-on-scheme-l: 41%;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bulma-primary-on-scheme-l: 41%;
+  }
+}
+```
+
+For a color of your own, pick each value by its contrast (4.5:1 or more for text), or build
+Bulma's Sass with the color (`@use 'bulma/sass' with ($primary: …)`), which computes both.
+
+`textColor="<c>"` alone renders `has-text-<c>`, which reads the trio's own lightness, so text in a
+light color on a light page takes `colorShade="on-scheme"` as well.
+
+The build pairs each numbered shade, and the light and dark variants, with a label shade the same
+way (`--bulma-<c>-<n>-invert-l`, `--bulma-<c>-light-invert-l`, `--bulma-<c>-dark-invert-l`),
+picked for the hue and saturation it was given. After a change of hue, check the contrast of text
+you put on a numbered shade.
 
 ## Scheme, text, background, border (light/dark surfaces)
 

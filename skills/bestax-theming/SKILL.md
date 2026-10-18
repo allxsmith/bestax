@@ -11,9 +11,14 @@ properties. Theme an app by overriding the right variables — no component re-s
 
 ## Approach
 
-Recolor a brand color by overriding its **hue/saturation/lightness trio** — Bulma derives every
-shade, light/dark, and invert variant from `--bulma-<color>-h` / `-s` / `-l`. Override the trio and
-the whole palette follows.
+Recolor a brand color by overriding its **hue/saturation/lightness trio**: Bulma derives the
+color's shades and its light/dark variants from `--bulma-<color>-h` / `-s` / `-l`. Two
+lightnesses come from the stylesheet's build instead, picked for the color it was built with:
+the label on a solid color (`--bulma-<color>-invert-l`) and the color's text on the page
+(`--bulma-<color>-on-scheme-l`, which for `link` is every link). When the new color reads
+lighter or darker than the built one, set those two in your CSS as well, or labels and text lose
+their contrast (`references/css-variables.md`, "The lightnesses Bulma's build picks for
+contrast").
 
 Choose an override path:
 
@@ -117,7 +122,7 @@ Nest `Theme` and `ConfigProvider` together at the root (order doesn't matter).
 
 ## Checklist
 
-- [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components.
+- [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components; a color that reads lighter or darker than the built one also sets `*-invert-l` and `*-on-scheme-l` in CSS.
 - [ ] Apply a global theme once with `<Theme isRoot>` (or `:root`); use scoped `<Theme>` for one-off sections.
 - [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`; a custom `--bulma-family-*` needs its font actually loaded (`index.html` `<link>` or an `@fontsource` import).
 - [ ] Implement dark mode with `data-theme` on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`, which the prefixed flavors read); do not expect a shipped dark-mode component.

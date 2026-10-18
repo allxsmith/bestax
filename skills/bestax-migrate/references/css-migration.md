@@ -26,11 +26,18 @@ choice below applies.
   **Visual note**: `bestax.css` ships with `$primary` set to bestax blue (`#1e6b99`),
   not Bulma's stock turquoise — `is-primary` surfaces (hero, navbar, buttons) change
   color. Keep the stock Bulma look with `--css bulma`, or set your own brand color via
-  `--bulma-primary-*` CSS variables / a Sass build. Set `--bulma-primary-invert-l` along with
-  `--bulma-primary-h`, `--bulma-primary-s` and `--bulma-primary-l`: it is the lightness of the
-  text on a primary surface, and bestax's build fixes it for its dark blue, so a light primary set
-  through the other three alone keeps white labels. To get stock Bulma's turquoise back on top of
-  `bestax.css`, copy those four from Bulma's own `bulma/css/bulma.css`.
+  `--bulma-primary-*` CSS variables / a Sass build. With the variables, set
+  `--bulma-primary-invert-l` and `--bulma-primary-on-scheme-l` along with `--bulma-primary-h`,
+  `--bulma-primary-s` and `--bulma-primary-l`. The first is the lightness of the label on a
+  primary surface and the second of primary text on the page, and bestax's build fixes both for
+  its dark blue, so a light primary set through the trio alone keeps white labels and pale text.
+  To get stock Bulma's turquoise back on top of `bestax.css`, copy those five from Bulma's own
+  `bulma/css/bulma.css`. The on-scheme lightness differs between its light and dark schemes, so
+  set each scheme's value where the app shows both; the `bestax-theming` skill's
+  `references/css-variables.md` ("The lightnesses Bulma's build picks for contrast") shows how,
+  and what reads each one. Text the page colors with `has-text-primary` converts to
+  `textColor="primary"`, which reads the trio's own lightness, under 2:1 on white for turquoise
+  (in stock Bulma too); add `colorShade="on-scheme"` to take the shade made for text.
 
 - **SCSS files**: Bulma 0.9's `@import 'bulma/bulma.sass'` (plus preceding
   `$var: value !default;` overrides) became Bulma v1 module syntax, with simple literal

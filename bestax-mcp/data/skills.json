@@ -118,7 +118,7 @@
         {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 9528
+          "bytes": 10160
         },
         {
           "id": "rbx-component-map",
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 37312
+          "bytes": 40824
         },
         {
           "id": "themeable-components",
@@ -189,7 +189,7 @@
         {
           "id": "theme-config",
           "file": "examples/theme-config.tsx",
-          "bytes": 2096
+          "bytes": 2405
         }
       ]
     }
