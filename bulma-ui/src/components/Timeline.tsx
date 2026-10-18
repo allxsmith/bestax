@@ -78,7 +78,8 @@ export interface TimelineProps
    * current; the ones before it are completed and the ones after it are
    * upcoming. Leave it out for a record, where nothing is marked. `-1` marks
    * every item upcoming, and an index past the last marks them all completed.
-   * Each child counts as one item, with Fragments and arrays opened up, so
+   * A fraction counts as the item it has reached, so `2.5` marks the third
+   * item current. Each child counts as one item, with Fragments and arrays opened up, so
    * render one item per child. A component of your own around a
    * `Timeline.Item` still gets its state, but one that renders nothing still
    * counts.
@@ -337,10 +338,12 @@ const TimelineRoot = forwardRef<HTMLOListElement, TimelineProps>(
       state,
       label: state && labels[state],
     });
+    // A fraction counts as the item it has reached, so one item is current.
+    const reached = typeof active === 'number' ? Math.floor(active) : undefined;
     const stateAt = (index: number): TimelineState | undefined => {
-      if (typeof active !== 'number') return undefined;
-      if (index === active) return 'active';
-      return index < active ? 'completed' : 'upcoming';
+      if (reached === undefined) return undefined;
+      if (index === reached) return 'active';
+      return index < reached ? 'completed' : 'upcoming';
     };
 
     // Each child gets its state through context rather than a clone, so an

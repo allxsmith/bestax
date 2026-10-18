@@ -502,6 +502,23 @@ describe('Timeline', () => {
       expect(container.querySelector('[aria-current]')).toBeNull();
     });
 
+    it.each([
+      [1.5, ['is-completed', 'is-active', 'is-upcoming']],
+      [2.99, ['is-completed', 'is-completed', 'is-active']],
+      [-0.5, ['is-upcoming', 'is-upcoming', 'is-upcoming']],
+    ])(
+      'counts a fraction, %s, as the item it has reached',
+      (active, states) => {
+        // An app that computes the index can land between two items, and
+        // progress with no current item would leave aria-current on nothing.
+        const { container } = render(<Order active={active} />);
+        expect(statesOf(container)).toEqual(states);
+        expect(
+          container.querySelectorAll('[aria-current="step"]')
+        ).toHaveLength(states.includes('is-active') ? 1 : 0);
+      }
+    );
+
     it('keeps no other aria-current an item was given', () => {
       const { container } = render(
         <Timeline active={1}>
