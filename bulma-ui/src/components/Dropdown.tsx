@@ -17,6 +17,7 @@ import {
 } from '../helpers/anchorAttrs';
 import { buttonType } from '../helpers/buttonType';
 import { enabledMenuItems, useMenuKeys } from '../helpers/useMenuKeys';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /**
  * Checks if code is running in a browser environment.
@@ -168,6 +169,11 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       if (typeof activeProp === 'boolean') setActive(activeProp);
     }, [activeProp]);
 
+    // Read when a click lands outside, so the listener stays put while
+    // `onActiveChange` changes identity, as an inline one does on every
+    // render of the parent.
+    const onActiveChangeRef = useLatestRef(onActiveChange);
+
     // SSR-safe outside click
     useEffect(() => {
       if (!active) return;
@@ -177,12 +183,12 @@ const DropdownComponent = forwardRef<HTMLDivElement, DropdownProps>(
       const handleClick = (e: MouseEvent) => {
         if (!isEventInside(e, dropdownRef.current)) {
           setActive(false);
-          onActiveChange?.(false);
+          onActiveChangeRef.current?.(false);
         }
       };
       document.addEventListener('mousedown', handleClick);
       return () => document.removeEventListener('mousedown', handleClick);
-    }, [active, onActiveChange]);
+    }, [active, onActiveChangeRef]);
 
     const handleToggle = () => {
       /* istanbul ignore next: guard is enforced by button[disabled] at the DOM level */
