@@ -61,6 +61,19 @@ export const LOCKFILES = [
 ];
 
 /**
+ * What a local install writes into a template's folder: the lockfile, and
+ * for pnpm a pnpm-workspace.yaml holding its settings. None of it ships, so
+ * the root .gitignore ignores each one (the test sibling holds it to this
+ * list), and the check refuses one that is tracked anyway.
+ */
+export const LOCAL_INSTALL_FILES = [
+  'package-lock.json',
+  'pnpm-lock.yaml',
+  'yarn.lock',
+  'pnpm-workspace.yaml',
+];
+
+/**
  * `dev` is what the README tells a reader to run; `build` and `preview` are
  * what docs/scripts/screenshot-template.mjs runs.
  */
@@ -437,6 +450,13 @@ export function folderProblems(root, entry, bestaxVersion, files = []) {
       problems.push(
         `${at} carries ${name}; a template is installed from its ranges ` +
           'alone, so drop the lockfile'
+      );
+    }
+    if (name === 'pnpm-workspace.yaml') {
+      problems.push(
+        `${at} carries pnpm-workspace.yaml, which a local pnpm install ` +
+          'writes; it would set pnpm for everyone who opens the mirror, so ' +
+          'drop it'
       );
     }
     if (/^eslint\.config\.[cm]?[jt]s$/.test(name)) {

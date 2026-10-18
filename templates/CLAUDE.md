@@ -14,8 +14,8 @@ one issue per template; #1121 specifies this folder.
   section components) and the upstream's images in `public/`.
 - **Not a workspace package.** It stays out of `pnpm-workspace.yaml`, carries no lockfile, and its
   `package.json` takes registry ranges only, because StackBlitz imports the folder and nothing
-  else. To run one inside this repo, `pnpm install --ignore-workspace` in its folder, and leave
-  the `pnpm-lock.yaml` that writes out of your commit; the checks refuse a tracked one.
+  else. To run one inside this repo, `pnpm install --ignore-workspace` in its folder; the root
+  `.gitignore` keeps what that writes out of git.
 - **What git tracks.** A template is the files git tracks in its folder, which is what the
   checks read and the mirror publishes, so an image you have not added yet is missing from both.
 - **`LICENSE`:** the upstream license notice verbatim, followed by the notice for the bestax

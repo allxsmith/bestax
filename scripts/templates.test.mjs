@@ -25,6 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { afterEach, describe, it } from 'node:test';
 import {
   LICENSES,
+  LOCAL_INSTALL_FILES,
   bestaxRangeProblem,
   checkTemplates,
   contrast,
@@ -216,6 +217,15 @@ describe('the repo', () => {
   it('holds every template, entry and screenshot to the rules', async () => {
     assert.deepEqual(await checkTemplates(REPO), []);
   });
+
+  it('ignores what a local install writes, in its root .gitignore', () => {
+    // The root file, not a template's own, which ships to the mirror.
+    for (const name of LOCAL_INSTALL_FILES) {
+      const path = `templates/any-template/${name}`;
+      const [source] = git(REPO, 'check-ignore', '--verbose', path).split(':');
+      assert.equal(source, '.gitignore', `${path} is ignored at the root`);
+    }
+  });
 });
 
 describe('a tree of templates', () => {
@@ -346,6 +356,27 @@ describe('a template folder', () => {
     assert.equal(problems.length, 2, problems.join('\n'));
     assert.ok(problems.some(p => /eslint\.config\.js; ESLint/.test(p)));
     assert.ok(problems.some(p => /package-lock\.json; a template/.test(p)));
+  });
+
+  it('refuses what a local pnpm install writes, when it is forced in', () => {
+    const root = tree();
+    // The root .gitignore's rules, so `git add` skips them as it does here.
+    write(
+      root,
+      '.gitignore',
+      LOCAL_INSTALL_FILES.map(name => `templates/*/${name}\n`).join('')
+    );
+    write(root, 'templates/login/pnpm-lock.yaml', 'lockfileVersion: 9\n');
+    write(root, 'templates/login/pnpm-workspace.yaml', 'packages: []\n');
+    stage(root);
+    assert.deepEqual(problemsOf(root), [], 'ignored, so not a template file');
+    git(root, 'add', '--force', 'templates/login');
+    const problems = problemsOf(root);
+    assert.equal(problems.length, 2, problems.join('\n'));
+    assert.ok(problems.some(p => /pnpm-lock\.yaml; a template/.test(p)));
+    assert.ok(
+      problems.some(p => /carries pnpm-workspace\.yaml, which a local/.test(p))
+    );
   });
 
   it('needs a package.json that parses to an object', () => {
