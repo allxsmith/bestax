@@ -24,12 +24,19 @@ import type { ControlLevelProps } from '../FormContext';
 
 // Every Field the wrappers render, recorded so the tests below can read which
 // props each wrapper hands its Field. The recording renders the real Field.
+//
+// React's development build also calls a component with no props, outside
+// any render, to find where it is defined for a component stack: React 18
+// for every warning logged under it, React 19 when a render throws. That
+// call is not a render, so neither recording keeps it. On React 18 the
+// Control-level tests below hit it, since a wrapper there hands the DOM the
+// Control-level props it does not take, and React warns about those.
 const mockFieldProps: object[] = [];
 jest.mock('../Field', () => {
   const actual = jest.requireActual<typeof import('../Field')>('../Field');
   const { createElement } = jest.requireActual<typeof import('react')>('react');
-  const Recording = (props: React.ComponentProps<typeof actual.Field>) => {
-    mockFieldProps.push(props);
+  const Recording = (props?: React.ComponentProps<typeof actual.Field>) => {
+    if (props) mockFieldProps.push(props);
     return createElement(actual.Field, props);
   };
   const Field = Object.assign(Recording, actual.Field);
@@ -42,8 +49,8 @@ const mockControlProps: object[] = [];
 jest.mock('../Control', () => {
   const actual = jest.requireActual<typeof import('../Control')>('../Control');
   const { createElement } = jest.requireActual<typeof import('react')>('react');
-  const Control = (props: React.ComponentProps<typeof actual.Control>) => {
-    mockControlProps.push(props);
+  const Control = (props?: React.ComponentProps<typeof actual.Control>) => {
+    if (props) mockControlProps.push(props);
     return createElement(actual.Control, props);
   };
   return { __esModule: true, ...actual, Control, default: Control };

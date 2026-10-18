@@ -1,11 +1,11 @@
 import React, {
   useCallback,
   useEffect,
-  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { useClientLayoutEffect } from '../../helpers/useClientLayoutEffect';
 import { DateFormatOption } from './formatters';
 import { isWithin } from './dateUtils';
 import {
@@ -199,7 +199,7 @@ export function useSegmentedEntry(
   // any of its effects, so a focus in between is the one handed back.
   const closingRef = useRef(false);
   const wasOpenRef = useRef(isOpen);
-  useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     if (wasOpenRef.current && !isOpen) {
       closingRef.current = true;
       if (!value && isUntouched(text)) setText('');
@@ -241,12 +241,12 @@ export function useSegmentedEntry(
   );
 
   // After every segment-driven change, restore the system selection on the
-  // active segment's char range. useLayoutEffect runs synchronously before
+  // active segment's char range. A layout effect runs synchronously before
   // paint so the user never sees a stray caret position. We deliberately do
   // NOT gate on document.activeElement: when openOnFocus is true the focus
   // trap moves focus into the popover, but setSelectionRange on an unfocused
   // input is well-defined and the selection becomes visible on refocus.
-  useLayoutEffect(() => {
+  useClientLayoutEffect(() => {
     if (activeSegmentIdx === null || !segmentMap || !inputRef.current) return;
     const seg = segmentMap.segments[activeSegmentIdx];
     if (!seg) return;

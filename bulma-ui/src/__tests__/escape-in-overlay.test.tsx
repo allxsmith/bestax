@@ -8,7 +8,7 @@
  * A `Dropdown` menu around a popup, and a `Toast` on the page, leave a used
  * Escape alone the same way. A picker claims only an Escape pressed in it.
  */
-import React from 'react';
+import React, { useState } from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { Modal } from '../components/Modal';
 import { Sidebar } from '../components/Sidebar';
@@ -383,6 +383,107 @@ describe('Escape in a popup inside a Sidebar', () => {
   });
 });
 
+describe('Escape in a popup inside the top one of two overlays', () => {
+  // Only the topmost overlay answers Escape (#1085), and a popup inside it
+  // still takes the first one.
+  it('closes a Dropdown menu in a Sidebar over a Modal, then the Sidebar, then the Modal', () => {
+    const closed: string[] = [];
+    const Page = ({ sidebar }: { sidebar: boolean }) => {
+      const [modal, setModal] = useState(true);
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <Modal
+            active={modal}
+            onClose={() => {
+              closed.push('modal');
+              setModal(false);
+            }}
+            aria-label="Edit"
+          >
+            <button type="button">Save</button>
+          </Modal>
+          <Sidebar
+            isOpen={sidebar && open}
+            onClose={() => {
+              closed.push('sidebar');
+              setOpen(false);
+            }}
+            aria-label="Filters"
+          >
+            <Dropdown label="Sort">
+              <DropdownItem>Newest</DropdownItem>
+            </Dropdown>
+          </Sidebar>
+        </>
+      );
+    };
+    const { rerender } = render(<Page sidebar={false} />);
+    rerender(<Page sidebar />);
+    const trigger = screen.getByRole('button', { name: /sort/i });
+    act(() => trigger.focus());
+    fireEvent.keyDown(trigger, { key: 'ArrowDown' });
+    expect(screen.getByText('Newest')).toHaveFocus();
+
+    pressEscape();
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(closed).toEqual([]);
+
+    pressEscape();
+    expect(closed).toEqual(['sidebar']);
+
+    pressEscape();
+    expect(closed).toEqual(['sidebar', 'modal']);
+  });
+
+  it('closes a DateInput picker in a Modal over a Sidebar, then the Modal, then the Sidebar', () => {
+    const closed: string[] = [];
+    const Page = ({ modal }: { modal: boolean }) => {
+      const [sidebar, setSidebar] = useState(true);
+      const [open, setOpen] = useState(true);
+      return (
+        <>
+          <Sidebar
+            isOpen={sidebar}
+            onClose={() => {
+              closed.push('sidebar');
+              setSidebar(false);
+            }}
+            aria-label="Filters"
+          >
+            <button type="button">Reset</button>
+          </Sidebar>
+          <Modal
+            active={modal && open}
+            onClose={() => {
+              closed.push('modal');
+              setOpen(false);
+            }}
+            aria-label="Edit"
+          >
+            <button type="button">Save</button>
+            <DateInput label="Due" />
+          </Modal>
+        </>
+      );
+    };
+    const { rerender } = render(<Page modal={false} />);
+    rerender(<Page modal />);
+    fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
+    expect(screen.getByRole('dialog', { name: 'Choose date' })).toBeTruthy();
+
+    pressEscape();
+    expect(screen.queryByRole('dialog', { name: 'Choose date' })).toBeNull();
+    expect(closed).toEqual([]);
+
+    pressEscape();
+    expect(closed).toEqual(['modal']);
+
+    pressEscape();
+    expect(closed).toEqual(['modal', 'sidebar']);
+  });
+});
+
 describe('Escape in a Modal opened over an open picker', () => {
   // A dialog that opens on its own, such as a session timeout, or from a
   // button pressed with the keyboard, which closes nothing on the way.
@@ -450,6 +551,38 @@ describe('Escape in a popup inside a Dropdown menu', () => {
     pressEscape();
     expect(root).not.toHaveClass('is-active');
   });
+
+  // The menu hears Escape in a React handler, which runs before the picker's
+  // `document` listener, so the picker claims the key in its panel's own
+  // React handler too.
+  it.each([
+    ['with focus in its calendar', false],
+    ['with focus back on its input', true],
+  ])(
+    'closes a DateInput picker first %s, and the menu on the next Escape',
+    (_, onInput) => {
+      render(
+        <Dropdown label="Filter" closeOnClick={false}>
+          <DateInput label="From" />
+        </Dropdown>
+      );
+      fireEvent.click(screen.getByRole('button', { name: /filter/i }));
+      const root = screen.getByTestId('dropdown-root');
+      fireEvent.click(screen.getByRole('button', { name: 'Choose date' }));
+      const panel = screen.getByRole('dialog', { name: 'Choose date' });
+      expect(panel).toContainElement(document.activeElement as HTMLElement);
+      if (onInput) {
+        act(() => screen.getByRole('combobox').focus());
+      }
+
+      pressEscape();
+      expect(screen.queryByRole('dialog', { name: 'Choose date' })).toBeNull();
+      expect(root).toHaveClass('is-active');
+
+      pressEscape();
+      expect(root).not.toHaveClass('is-active');
+    }
+  );
 });
 
 describe('Escape with a Toast up', () => {

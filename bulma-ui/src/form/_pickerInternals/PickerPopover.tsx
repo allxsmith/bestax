@@ -166,6 +166,13 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
       tabIndex={-1}
       className={classNames(panelClass, className)}
       style={style}
+      // An Escape pressed in the panel is the picker's, and the listener
+      // above claims it. A Dropdown menu around the picker hears Escape in a
+      // React handler, which runs before that listener, so the panel claims
+      // it here too, where React gets to it first.
+      onKeyDown={e => {
+        if (closeOnEscape && e.key === 'Escape') e.preventDefault();
+      }}
     >
       {children}
     </div>

@@ -1422,8 +1422,23 @@ describe.each(Object.entries(PLACED))('an item of `.%s`', (list, entry) => {
 
   it('renders the same bare, with each class its link may carry, and nested', () => {
     same({}, 'bare');
-    for (const token of Object.keys(spec.modifiers ?? {})) {
-      same({ childTokens: [token] }, token);
+    for (const [token, modifier] of Object.entries(spec.modifiers ?? {})) {
+      // Beside the attribute it converts only beside, which the prop would
+      // otherwise write (`active`'s `aria-current="page"`).
+      const needs = modifier.needsAttr;
+      same(
+        {
+          childTokens: [token],
+          ...(needs && { childAttributes: { [needs.name]: needs.value } }),
+        },
+        token
+      );
+      if (needs) {
+        expect({
+          token,
+          converts: both({ childTokens: [token] }) !== null,
+        }).toEqual({ token, converts: false });
+      }
     }
     same({ nested: true }, 'with a nested list');
   });

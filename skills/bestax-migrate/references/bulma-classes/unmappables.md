@@ -67,6 +67,12 @@ empty one, keeps the item as markup too, and so does an empty `className` on the
 nothing is left to render its `class=""`. Move the attribute to where `Menu.Item` puts it if
 that's what you want, then re-run.
 
+`attr:aria-current` is the `<a>`'s `is-active` with no `aria-current` beside it. `Menu.Item`'s
+`active` writes `aria-current="page"` on the `<a>` unless it has one of its own, so the item would
+gain it. If the item marks the page you're on, which is what `is-active` usually means in a menu,
+add `aria-current="page"` to the `<a>` and re-run, and the item converts with it. If it marks
+something else, keep the markup, or convert it by hand and pass the `aria-current` you want.
+
 ### `defaults:<Target>`
 
 The component renders attributes of its own when the element doesn't set them. `Delete`
@@ -270,7 +276,9 @@ The classes in a computed `className` still count for every other rule: a `clsx(
 `<span>` gets `tag:Box`, and a `clsx('dropdown', …)` gets `family:dropdown`. A computed
 `className` on the `<select>` inside a `.select`, the `<ul>` inside a `.breadcrumb` or the `<a>`
 in a menu item gets this TODO too. For the `<a>`, a condition on `is-active` is `Menu.Item`'s
-`active`: `<a className={on ? 'is-active' : undefined}>` becomes `<Menu.Item active={on}>`.
+`active`: `<a className={on ? 'is-active' : undefined}>` becomes `<Menu.Item active={on}>`, which
+also writes `aria-current="page"` while `on` holds. Pass an `aria-current` of your own if the item
+marks something other than the current page.
 
 ## A family it leaves as markup: `family:<class>`
 

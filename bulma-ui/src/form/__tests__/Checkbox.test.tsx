@@ -1,4 +1,4 @@
-import { createRef } from 'react';
+import { createRef, useState, type ReactElement } from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import Checkbox from '../Checkbox';
 import Checkboxes from '../Checkboxes';
@@ -254,6 +254,220 @@ describe('Checkbox', () => {
       const input = screen.getByLabelText('X') as HTMLInputElement;
       fireEvent.click(input);
       expect(handleChange).toHaveBeenCalledWith(['x']);
+    });
+  });
+
+  describe('indeterminate', () => {
+    const inputOf = (label: string) =>
+      screen.getByLabelText(label) as HTMLInputElement;
+
+    it('sets the mixed state on the input, not as an attribute', () => {
+      render(<Checkbox indeterminate>Select all</Checkbox>);
+      const input = inputOf('Select all');
+      expect(input.indeterminate).toBe(true);
+      expect(input).toBePartiallyChecked();
+      expect(input.hasAttribute('indeterminate')).toBe(false);
+      // The value is still `checked`, untouched by the look.
+      expect(input.checked).toBe(false);
+    });
+
+    it('logs no React warning', async () => {
+      // React warns about an unknown attribute once per name, so a render
+      // earlier in this file could have used the warning up. A fresh copy of
+      // React and the component still has it.
+      const error = jest.spyOn(console, 'error').mockImplementation(() => {});
+      try {
+        await jest.isolateModulesAsync(async () => {
+          const rtl = await import('@testing-library/react/pure');
+          const { Checkbox: Fresh } = await import('../Checkbox');
+          const { rerender } = rtl.render(<Fresh indeterminate>Mixed</Fresh>);
+          rerender(<Fresh indeterminate={false}>Mixed</Fresh>);
+          rtl.cleanup();
+        });
+        expect(error).not.toHaveBeenCalled();
+      } finally {
+        error.mockRestore();
+      }
+    });
+
+    it('follows the prop across re-renders', () => {
+      const { rerender } = render(<Checkbox indeterminate>Mixed</Checkbox>);
+      const input = inputOf('Mixed');
+      expect(input.indeterminate).toBe(true);
+      rerender(<Checkbox indeterminate={false}>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(false);
+      rerender(<Checkbox indeterminate>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(true);
+    });
+
+    it('sets it again on a render whose prop did not change', () => {
+      const { rerender } = render(<Checkbox indeterminate>Mixed</Checkbox>);
+      const input = inputOf('Mixed');
+      // What a click does to the property, with no change event to answer.
+      input.indeterminate = false;
+      rerender(<Checkbox indeterminate>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(true);
+    });
+
+    it('keeps the mixed state after a click that renders nothing', () => {
+      const onChange = jest.fn();
+      render(
+        <Checkbox indeterminate onChange={onChange}>
+          Mixed
+        </Checkbox>
+      );
+      const input = inputOf('Mixed');
+      fireEvent.click(input);
+      // The click still toggles the value.
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(input.checked).toBe(true);
+      expect(input.indeterminate).toBe(true);
+    });
+
+    it('keeps the mixed state after a click that renders with the same prop', () => {
+      function Harness() {
+        const [checked, setChecked] = useState(false);
+        return (
+          <Checkbox
+            checked={checked}
+            indeterminate
+            onChange={e => setChecked(e.target.checked)}
+          >
+            Mixed
+          </Checkbox>
+        );
+      }
+      render(<Harness />);
+      const input = inputOf('Mixed');
+      fireEvent.click(input);
+      expect(input.checked).toBe(true);
+      expect(input.indeterminate).toBe(true);
+    });
+
+    it('drives a "Select all" box over a Checkboxes group', () => {
+      const items = ['apples', 'pears', 'plums'];
+      function SelectAll() {
+        const [picked, setPicked] = useState<string[]>(['pears']);
+        const all = picked.length === items.length;
+        return (
+          <>
+            <Checkbox
+              checked={all}
+              indeterminate={picked.length > 0 && !all}
+              onChange={() => setPicked(all ? [] : items)}
+            >
+              Select all
+            </Checkbox>
+            <Checkboxes value={picked} onChange={setPicked}>
+              {items.map(item => (
+                <Checkbox key={item} value={item}>
+                  {item}
+                </Checkbox>
+              ))}
+            </Checkboxes>
+          </>
+        );
+      }
+      render(<SelectAll />);
+      const all = inputOf('Select all');
+      expect(all.indeterminate).toBe(true);
+      expect(all.checked).toBe(false);
+
+      fireEvent.click(all);
+      expect(all.indeterminate).toBe(false);
+      expect(all.checked).toBe(true);
+      expect(items.every(item => inputOf(item).checked)).toBe(true);
+
+      fireEvent.click(inputOf('plums'));
+      expect(all.indeterminate).toBe(true);
+      expect(all.checked).toBe(false);
+    });
+
+    it('leaves the property alone when the prop is unset', () => {
+      const { rerender } = render(
+        <Checkbox
+          ref={el => {
+            if (el) el.indeterminate = true;
+          }}
+        >
+          By ref
+        </Checkbox>
+      );
+      const input = inputOf('By ref');
+      expect(input.indeterminate).toBe(true);
+      rerender(<Checkbox>By ref</Checkbox>);
+      expect(input.indeterminate).toBe(true);
+      fireEvent.click(input);
+      expect(input.indeterminate).toBe(false);
+    });
+
+    it('clears the mixed state once when the prop goes back to unset', () => {
+      const { rerender } = render(<Checkbox indeterminate>Mixed</Checkbox>);
+      const input = inputOf('Mixed');
+      expect(input.indeterminate).toBe(true);
+      rerender(<Checkbox indeterminate={undefined}>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(false);
+      // Handed back: a ref setting it now keeps what it set.
+      input.indeterminate = true;
+      rerender(<Checkbox>Mixed</Checkbox>);
+      expect(input.indeterminate).toBe(true);
+    });
+
+    it('still forwards an object ref to the input', () => {
+      const ref = createRef<HTMLInputElement>();
+      const { unmount } = render(
+        <Checkbox ref={ref} indeterminate>
+          Ref
+        </Checkbox>
+      );
+      expect(ref.current).toBe(inputOf('Ref'));
+      expect(ref.current?.indeterminate).toBe(true);
+      unmount();
+      expect(ref.current).toBeNull();
+    });
+
+    it('still forwards a callback ref to the input', () => {
+      const ref = jest.fn();
+      const { unmount } = render(
+        <Checkbox ref={ref} indeterminate>
+          Ref
+        </Checkbox>
+      );
+      expect(ref).toHaveBeenLastCalledWith(inputOf('Ref'));
+      unmount();
+      expect(ref).toHaveBeenLastCalledWith(null);
+    });
+
+    it('detaches a callback ref that returns a cleanup as a plain input does', () => {
+      // React 19 runs a returned cleanup in place of calling the ref with
+      // null, and React 18 ignores it. Either way, the Checkbox should match.
+      type CleanupRef = (node: HTMLInputElement | null) => () => void;
+      const detachOf = (el: (ref: CleanupRef) => ReactElement) => {
+        const calls: string[] = [];
+        const ref: CleanupRef = node => {
+          calls.push(node ? 'attach' : 'null');
+          return () => {
+            calls.push('cleanup');
+          };
+        };
+        render(el(ref)).unmount();
+        return calls;
+      };
+      expect(detachOf(ref => <Checkbox ref={ref}>Ref</Checkbox>)).toEqual(
+        detachOf(ref => <input type="checkbox" ref={ref} />)
+      );
+    });
+
+    it('sets the mixed state under ConfigProvider classPrefix', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Checkbox indeterminate>Prefixed</Checkbox>
+        </ConfigProvider>
+      );
+      const input = inputOf('Prefixed');
+      expect(input.indeterminate).toBe(true);
+      expect(input.closest('label')).toHaveClass('bestax-styled-checkbox');
+      expect(input.nextElementSibling).toHaveClass('bestax-check');
     });
   });
 

@@ -4,7 +4,6 @@ import React, {
   useCallback,
   useRef,
   useMemo,
-  useLayoutEffect,
   useId,
 } from 'react';
 import {
@@ -14,6 +13,7 @@ import {
 } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
+import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import {
   useInsideField,
   useInsideControl,
@@ -625,7 +625,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       []
     );
 
-    useLayoutEffect(() => {
+    useClientLayoutEffect(() => {
       if (isVertical) return;
       const wrapper = wrapperRef.current;
       const el = outputRef.current;
@@ -639,7 +639,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
       }
     });
 
-    useLayoutEffect(() => {
+    useClientLayoutEffect(() => {
       if (isVertical || !range) return;
       const wrapper = wrapperRef.current;
       const el = outputHighRef.current;
@@ -653,7 +653,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
     });
 
     // Detect vertical tooltip overflow: flip to left if no space on right
-    useLayoutEffect(() => {
+    useClientLayoutEffect(() => {
       if (!isVertical) return;
       const wrapper = wrapperRef.current;
       const el = outputRef.current;

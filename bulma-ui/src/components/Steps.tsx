@@ -13,7 +13,11 @@ export type StepsColor =
  * Props for individual Step items.
  */
 export interface StepItemProps {
-  /** Step label/title */
+  /**
+   * Step label/title. On a `clickable` step it's rendered inside the step's
+   * `<button>`, so it has to be phrasing content, like text, a `<span>` or an
+   * icon, with no link, button or other control in it.
+   */
   label?: React.ReactNode;
   /** Icon for the step marker */
   icon?: React.ReactNode;
@@ -22,7 +26,11 @@ export interface StepItemProps {
    * @defaultValue '✓'
    */
   completedIcon?: React.ReactNode;
-  /** Whether this step is clickable */
+  /**
+   * Whether this step is clickable. A clickable step puts its marker and
+   * label in a `<button type="button">` inside its list item, which calls
+   * `onStepClick`, and the current step's `aria-current` goes on that button.
+   */
   clickable?: boolean;
   /** Additional CSS classes. */
   className?: string;
@@ -53,7 +61,11 @@ export interface StepsProps
   rounded?: boolean;
   /** Vertical layout. */
   vertical?: boolean;
-  /** Position of labels. */
+  /**
+   * Position of labels. `right` and `left` mean the end and the start of the
+   * line, so in a right-to-left page `right` puts each label to the left of
+   * its marker, and `left` to the right.
+   */
   labelPosition?: 'bottom' | 'right' | 'left';
   /** Mobile display mode. */
   mobileMode?: 'minimal' | 'compact' | 'right';
@@ -88,11 +100,21 @@ export interface StepProps
   isActive?: boolean;
   /** Whether this step is completed */
   isCompleted?: boolean;
-  /** Step label/title */
+  /**
+   * Step label/title, or pass it as `children`. On a `clickable` step it's
+   * rendered inside the step's `<button>`, so it has to be phrasing content,
+   * like text, a `<span>` or an icon, with no link, button or other control
+   * in it.
+   */
   label?: React.ReactNode;
   /** Icon for the step marker */
   icon?: React.ReactNode;
-  /** Whether this step is clickable */
+  /**
+   * Whether this step is clickable. A clickable step puts its marker and
+   * label in a `<button type="button">` inside the `<li>`, which calls
+   * `onClick`, and `aria-current` goes on that button. The `<li>` keeps the
+   * rest of the props.
+   */
   clickable?: boolean;
   /** Click handler */
   onClick?: () => void;
@@ -140,19 +162,6 @@ export const Step: React.FC<StepProps> = ({
   const stepsContentClass = usePrefixedClassNames('steps-content');
   const stepsTitleClass = usePrefixedClassNames('steps-title');
 
-  const handleClick = () => {
-    if (clickable && onClick) {
-      onClick();
-    }
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (clickable && onClick && (e.key === 'Enter' || e.key === ' ')) {
-      e.preventDefault();
-      onClick();
-    }
-  };
-
   const resolvedCompletedIcon =
     completedIcon === undefined ? '\u2713' : completedIcon;
   const markerContent =
@@ -160,22 +169,40 @@ export const Step: React.FC<StepProps> = ({
     (isCompleted && resolvedCompletedIcon
       ? resolvedCompletedIcon
       : (stepNumber ?? null));
+  const title = label || children;
+  const current = isActive ? 'step' : undefined;
+
+  // The step stays a list item, and a real button inside it does the
+  // clicking, so the list keeps its items and the button brings Enter, Space
+  // and focus with it. A button holds only phrasing content, so its parts
+  // are spans.
+  if (clickable) {
+    return (
+      <li className={stepClasses} {...rest}>
+        <button
+          type="button"
+          className={stepsLinkClass}
+          onClick={() => onClick?.()}
+          aria-current={current}
+        >
+          <span className={stepsMarkerClass}>{markerContent}</span>
+          {title && (
+            <span className={stepsContentClass}>
+              <span className={stepsTitleClass}>{title}</span>
+            </span>
+          )}
+        </button>
+      </li>
+    );
+  }
 
   return (
-    <li
-      className={stepClasses}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      tabIndex={clickable ? 0 : undefined}
-      role={clickable ? 'button' : undefined}
-      aria-current={isActive ? 'step' : undefined}
-      {...rest}
-    >
+    <li className={stepClasses} aria-current={current} {...rest}>
       <div className={stepsLinkClass}>
         <span className={stepsMarkerClass}>{markerContent}</span>
-        {(label || children) && (
+        {title && (
           <div className={stepsContentClass}>
-            <p className={stepsTitleClass}>{label || children}</p>
+            <p className={stepsTitleClass}>{title}</p>
           </div>
         )}
       </div>
@@ -312,9 +339,14 @@ const StepsComponent: React.FC<StepsProps> = ({
     return null;
   };
 
+  // role="list" restates the <ul>'s own role, for Safari: WebKit stops
+  // exposing a list as one once its markers are hidden, as they are here,
+  // unless the role is set explicitly.
   return (
     <div className={combinedClasses} {...rest}>
-      <ul className={listClasses}>{renderSteps()}</ul>
+      <ul className={listClasses} role="list">
+        {renderSteps()}
+      </ul>
       {hasNavigation && (
         <div className={stepsNavigationClass}>
           <button

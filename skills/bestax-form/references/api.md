@@ -70,6 +70,9 @@ Field/Control/message props. `TextArea` adds `rows` and `hasFixedSize`.
 
 - `Checkbox` / `Radio` — single controls with `color`, `size`, `checked`/`defaultChecked`,
   `onChange`, `disabled`.
+- `Checkbox` also takes `indeterminate`, the mixed state of a "Select all" box over a partly
+  checked list. It changes the look and the announcement, not the value: `checked` stays the
+  value, so set both from the list.
 - `Checkboxes` — group wrapper managing an **array** value.
 - `Radios` — group wrapper managing a **single** selected value.
 

@@ -277,7 +277,7 @@ out of the box:
   `closeOnClick={false}`, or a click into it closes the menu. <kbd>Escape</kbd> and
   <kbd>Tab</kbd> still close the menu from any of them, except an <kbd>Escape</kbd> the
   control used itself by calling `preventDefault()` in its `onKeyDown`, such as an Autocomplete
-  closing its list.
+  closing its list or a date picker closing its calendar.
   The next <kbd>Escape</kbd> closes the menu.
 
 ---

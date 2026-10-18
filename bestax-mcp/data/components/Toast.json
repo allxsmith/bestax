@@ -34,7 +34,7 @@
       "code": "function example() {\n  const [showToast, setShowToast] = useState(false);\n  return (\n    <Block>\n      <Button onClick={() => setShowToast(true)}>Show Indefinite Toast</Button>\n      {showToast && (\n        <Toast\n          inline\n          message=\"This won't auto-dismiss\"\n          indefinite\n          onClose={() => setShowToast(false)}\n        />\n      )}\n    </Block>\n  );\n}"
     }
   ],
-  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.",
+  "accessibility": "- Uses `role=\"alert\"` for screen reader announcement.\n- Has `aria-live=\"polite\"` for non-intrusive notifications.\n- The closable button has `aria-label=\"Close\"`.\n- `pauseOnHover` lets users keep the toast visible while reading.\n- `cancelable` (default `true`) supports Escape-key dismiss. An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, leaves the toast up.\n- A toast is a notification rather than a layer, so while a [Modal](https://bestax.io/docs/api/components/modal), [Dialog](https://bestax.io/docs/api/components/dialog), [Sidebar](https://bestax.io/docs/api/components/sidebar) or full-page [Loading](https://bestax.io/docs/api/components/loading) is open, Escape goes to that and the toast stays up. Once none is open, Escape dismisses the toast.",
   "related": ["Dialog"],
   "storybook": "https://bestax.io/storybook/?path=/story/components-toast",
   "summary": "The `Toast` component provides brief notification messages with optional action and cancel buttons.",
@@ -141,7 +141,7 @@
           "name": "cancelable",
           "type": "boolean",
           "default": "true",
-          "description": "Whether the toast can be dismissed with Escape. An Escape a popup on the page closed on, by calling `preventDefault()`, leaves it up. Default: true.",
+          "description": "Whether the toast can be dismissed with Escape. While a Modal, Dialog, Sidebar or full-page Loading is open, Escape goes to that overlay and the toast stays up, so Escape dismisses the toast once none is open. An Escape a popup on the page closed on, by calling `preventDefault()`, leaves it up too. Default: true.",
           "required": false,
           "inherited": false,
           "deprecated": false

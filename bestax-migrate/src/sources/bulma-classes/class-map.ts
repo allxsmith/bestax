@@ -41,7 +41,9 @@ export interface Modifier {
   /**
    * The prop renders this attribute too, unless the element sets its own
    * (`Pagination.Link`'s `active` and `aria-current`), so the class converts
-   * only beside one written out, and stays a class otherwise.
+   * only beside one written out, and stays a class otherwise. On a child the
+   * target renders itself (`Menu.Item`'s `<a>`), there is no class to keep,
+   * so the element stays markup instead.
    */
   readonly needsAttr?: { readonly name: string; readonly value: string };
 }
@@ -2302,6 +2304,8 @@ function plain(why: string): RootEntry {
 export const PLACED: Readonly<Record<string, RootEntry>> = {
   // `Menu.Item` renders the `<li>` and the `<a>` inside it together. Its
   // helper props go on the `<a>`, so the `<li>`'s classes all stay classes.
+  // `active` writes `aria-current="page"` on the `<a>` unless it has its own,
+  // as `Pagination.Link`'s does.
   'menu-list': {
     ...BASE,
     target: 'Menu.Item',
@@ -2314,7 +2318,12 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
       tag: 'a',
       attributesOn: 'split',
       elementProps: ['id', 'title', 'role', 'tabIndex', 'style', 'data-testid'],
-      modifiers: flags({ 'is-active': 'active' }),
+      modifiers: {
+        'is-active': {
+          writes: [{ prop: 'active' }],
+          needsAttr: { name: 'aria-current', value: 'page' },
+        },
+      },
       after: { tag: 'ul', target: 'Menu.List' },
     },
     ownProps: ['as', 'active'],

@@ -1,6 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
 import { Checkbox } from './Checkbox';
+import { Checkboxes } from './Checkboxes';
+import { Block } from '../elements/Block';
 
 const meta: Meta<typeof Checkbox> = {
   title: 'Form/Checkbox',
@@ -29,6 +31,11 @@ const meta: Meta<typeof Checkbox> = {
     disabled: {
       control: 'boolean',
       description: 'Whether the checkbox is disabled',
+    },
+    indeterminate: {
+      control: 'boolean',
+      description:
+        'Shows the mixed state, as in a "Select all" box. `checked` is still the value',
     },
     children: {
       control: 'text',
@@ -129,53 +136,34 @@ export const Disabled: Story = {
 };
 
 /**
- * Indeterminate checkbox state.
+ * A "Select all" box over a list, mixed while only some of the list is
+ * checked. The `indeterminate` prop draws the mixed state; `checked` stays the
+ * value.
  */
 export const Indeterminate: Story = {
   render: function IndeterminateCheckbox() {
-    const [items, setItems] = useState([true, false, true]);
-
-    const allChecked = items.every(Boolean);
-    const someChecked = items.some(Boolean) && !allChecked;
+    const items = ['Item A', 'Item B', 'Item C'];
+    const [picked, setPicked] = useState(['Item A', 'Item C']);
+    const allPicked = picked.length === items.length;
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+      <Block>
         <Checkbox
           color="primary"
-          checked={allChecked}
-          ref={el => {
-            if (el) el.indeterminate = someChecked;
-          }}
-          onChange={() => {
-            setItems(allChecked ? [false, false, false] : [true, true, true]);
-          }}
+          checked={allPicked}
+          indeterminate={picked.length > 0 && !allPicked}
+          onChange={() => setPicked(allPicked ? [] : items)}
         >
           Select all
         </Checkbox>
-        <div
-          style={{
-            marginLeft: '1.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.5rem',
-          }}
-        >
-          {['Item A', 'Item B', 'Item C'].map((label, i) => (
-            <Checkbox
-              key={label}
-              color="primary"
-              checked={items[i]}
-              onChange={() => {
-                const next = [...items];
-                next[i] = !next[i];
-                setItems(next);
-              }}
-            >
-              {label}
+        <Checkboxes value={picked} onChange={setPicked} ml="5">
+          {items.map(item => (
+            <Checkbox key={item} value={item} color="primary">
+              {item}
             </Checkbox>
           ))}
-        </div>
-      </div>
+        </Checkboxes>
+      </Block>
     );
   },
 };
