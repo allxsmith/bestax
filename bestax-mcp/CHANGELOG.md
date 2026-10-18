@@ -1,3 +1,11 @@
+## [1.15.11](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.10...bestax-mcp@1.15.11) (2026-10-18)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma HTML pages with the bulma-classes source ([#1160](https://github.com/allxsmith/bestax/issues/1160)) ([56335a1](https://github.com/allxsmith/bestax/commit/56335a1295a60d6427e87e8651b521c5908e8f7a))
+* **bulma-ui:** add TreeView, a tree of items you browse and pick from ([#1140](https://github.com/allxsmith/bestax/issues/1140)) ([f111c8d](https://github.com/allxsmith/bestax/commit/f111c8da2b4a1cb74da8b2713c5e469c8d51dca3))
+
 ## [1.15.10](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.9...bestax-mcp@1.15.10) (2026-10-18)
 
 
