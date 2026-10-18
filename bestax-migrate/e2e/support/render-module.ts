@@ -151,15 +151,8 @@ export function renderExports(
 /**
  * Make two renders comparable: attributes in name order, class tokens in
  * order and once each (a class list is a set to CSS, and bestax dedupes it),
- * React's `<!-- -->` text separators gone, and `role="list"` gone from a
- * `<ul>` or `<ol>`. Nothing else changes, so any remaining difference is a
- * real difference in the markup.
- *
- * `role="list"` is a list's own implicit role, written out. `Menu.List`
- * writes it because WebKit stops exposing a list as one once its markers are
- * hidden (#1108), and the raw `<ul class="menu-list">` it replaces is the
- * same list, so the codemod converts one to the other. Only that role on
- * those two tags: any other role, or `list` on another tag, is a difference.
+ * and React's `<!-- -->` text separators gone. Nothing else changes, so any
+ * remaining difference is a real difference in the markup.
  */
 export function normalizeHtml(html: string): string {
   return html
@@ -167,22 +160,48 @@ export function normalizeHtml(html: string): string {
     .replace(
       /<([a-zA-Z][\w-]*)((?:\s+[^\s=>/]+(?:="[^"]*")?)*)\s*(\/?)>/g,
       (_match, tag: string, attrs: string, selfClosing: string) => {
-        const isList = tag === 'ul' || tag === 'ol';
-        const parsed = [...attrs.matchAll(/\s+([^\s=>/]+)(?:="([^"]*)")?/g)]
-          .filter(
-            ([, name, value]) =>
-              !(isList && name === 'role' && value === 'list')
-          )
-          .map(([, name, value]) => {
-            if (name === 'class' && value !== undefined) {
-              value = [...new Set(value.split(/\s+/).filter(Boolean))]
-                .sort()
-                .join(' ');
-            }
-            return value === undefined ? name : `${name}="${value}"`;
-          });
+        const parsed = [
+          ...attrs.matchAll(/\s+([^\s=>/]+)(?:="([^"]*)")?/g),
+        ].map(([, name, value]) => {
+          if (name === 'class' && value !== undefined) {
+            value = [...new Set(value.split(/\s+/).filter(Boolean))]
+              .sort()
+              .join(' ');
+          }
+          return value === undefined ? name : `${name}="${value}"`;
+        });
         parsed.sort();
         return `<${tag}${parsed.map(a => ` ${a}`).join('')}${selfClosing ? '/' : ''}>`;
       }
     );
+}
+
+/** Each `<ul>` or `<ol>` opening tag, in document order. */
+const LIST_TAG = /<(?:ul|ol)(?=[\s>/])[^>]*>/g;
+
+/**
+ * `raw`, normalised, with `role="list"` written on each `<ul>` or `<ol>` that
+ * has no role where the same list in `converted` has that one, so the two
+ * compare equal there and nowhere else.
+ *
+ * `role="list"` is a list's own implicit role, written out. `Menu.List`
+ * writes it because WebKit stops exposing a list as one once its markers are
+ * hidden (#1108), so a raw `<ul class="menu-list">` and the `Menu.List` it
+ * becomes are the same list. Only that role, only on those two tags, and only
+ * where the raw list has no role of its own: a conversion that drops a list's
+ * `role="list"`, or swaps another role for it, still differs. Lists pair up
+ * in document order, and a pair that doesn't line up differs anyway.
+ */
+export function withImplicitListRoles(raw: string, converted: string): string {
+  const written = [...converted.matchAll(LIST_TAG)].map(([tag]) =>
+    /\srole="list"/.test(tag)
+  );
+  let at = 0;
+  return normalizeHtml(
+    raw.replace(LIST_TAG, tag =>
+      written[at++] && !/\srole=/.test(tag)
+        ? tag.replace(/^<(ul|ol)/, '$& role="list"')
+        : tag
+    )
+  );
 }

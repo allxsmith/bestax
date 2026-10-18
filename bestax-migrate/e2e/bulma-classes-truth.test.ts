@@ -53,6 +53,7 @@ import {
   createElement,
   normalizeHtml,
   renderElement,
+  withImplicitListRoles,
 } from './support/render-module.js';
 
 const repoRoot = path.join(
@@ -282,7 +283,8 @@ function renderBoth(
         createElement(target, convertedProps, convertedChildren)
       )
     : renderElement(target, convertedProps, convertedChildren);
-  return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
+  const html = normalizeHtml(converted);
+  return { raw: withImplicitListRoles(raw, html), converted: html };
 }
 
 /**
@@ -649,8 +651,15 @@ describe.each(writing)(
               attributes: new Map(Object.entries(attributes)),
             }).todos.map(todo => todo.rule);
           if (rule.implicit) {
+            // The comparison below lets the target's written role stand for
+            // the raw list's none, so it can't tell whether the target writes
+            // it. Pin that first, on the render as it comes out: it's why a
+            // list with another role stays markup.
+            expect(renderElement(entry.target!, without, 'x')).toContain(
+              `${name}="${rule.fallback}"`
+            );
             // The tag's own role: with none, it's the same element, and
-            // converts (`normalizeHtml` reads the role written out as none).
+            // converts.
             const both = renderBoth(factsFor(tag, [root], without), without);
             expect({ tag, without: name, converts: both !== null }).toEqual({
               tag,
@@ -1422,7 +1431,8 @@ describe.each(Object.entries(PLACED))('an item of `.%s`', (list, entry) => {
           : [])
       )
     );
-    return { raw: normalizeHtml(raw), converted: normalizeHtml(converted) };
+    const html = normalizeHtml(converted);
+    return { raw: withImplicitListRoles(raw, html), converted: html };
   };
   const same = (item: Item, label: string) => {
     const found = both(item);
