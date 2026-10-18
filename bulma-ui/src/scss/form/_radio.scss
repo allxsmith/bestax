@@ -50,7 +50,7 @@ $radio-transition-duration: cv.getVar("duration") !default;
     height: 0;
 
     // Checked state
-    &:checked + .check {
+    &:checked + .#{iv.$class-prefix}check {
       border-color: cv.getVar("radio-active-color");
 
       // Inner dot
@@ -61,25 +61,25 @@ $radio-transition-duration: cv.getVar("duration") !default;
     }
 
     // Focus-visible state (keyboard only)
-    &:focus-visible + .check {
+    &:focus-visible + .#{iv.$class-prefix}check {
       outline: 2px solid cv.getVar("radio-active-color");
       outline-offset: 2px;
     }
 
     // Disabled state
-    &:disabled + .check {
+    &:disabled + .#{iv.$class-prefix}check {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    &:disabled ~ .control-label {
+    &:disabled ~ .#{iv.$class-prefix}control-label {
       opacity: 0.5;
       cursor: not-allowed;
     }
   }
 
   // Custom radio indicator
-  .check {
+  .#{iv.$class-prefix}check {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -115,7 +115,7 @@ $radio-transition-duration: cv.getVar("duration") !default;
   }
 
   // Label text
-  .control-label {
+  .#{iv.$class-prefix}control-label {
     margin-left: cv.getVar("radio-label-gap");
     line-height: 1.5;
   }
@@ -148,11 +148,11 @@ $radio-transition-duration: cv.getVar("duration") !default;
 // High Contrast Mode support
 @media (forced-colors: active) {
   .#{iv.$class-prefix}styled-radio {
-    .check {
+    .#{iv.$class-prefix}check {
       border-color: ButtonText;
     }
 
-    input[type="radio"]:checked + .check {
+    input[type="radio"]:checked + .#{iv.$class-prefix}check {
       border-color: Highlight;
 
       &::before {
@@ -160,11 +160,11 @@ $radio-transition-duration: cv.getVar("duration") !default;
       }
     }
 
-    input[type="radio"]:focus-visible + .check {
+    input[type="radio"]:focus-visible + .#{iv.$class-prefix}check {
       outline-color: Highlight;
     }
 
-    input[type="radio"]:disabled + .check {
+    input[type="radio"]:disabled + .#{iv.$class-prefix}check {
       border-color: GrayText;
     }
   }
@@ -173,8 +173,8 @@ $radio-transition-duration: cv.getVar("duration") !default;
 // Reduced motion
 @media (prefers-reduced-motion: reduce) {
   .#{iv.$class-prefix}styled-radio {
-    .check,
-    .check::before {
+    .#{iv.$class-prefix}check,
+    .#{iv.$class-prefix}check::before {
       transition: none;
     }
   }

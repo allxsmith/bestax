@@ -1,21 +1,31 @@
-// A Checkbox draws its check mark and its mixed dash from _checkbox.scss,
-// which jsdom never loads on its own. jsdom also evaluates no media query and computes no
-// pseudo-element styles, so these compile the partial, read its rules off the
-// sheet, and resolve which one wins on the markup a Checkbox renders, the way
-// a browser with forced colors on (or off) would.
+// A Checkbox draws its box, its check mark and its mixed dash from
+// _checkbox.scss, which jsdom never loads on its own. jsdom also evaluates no
+// media query and computes no pseudo-element styles, so these compile the
+// partial, with no prefix and under one, read its rules off the sheet, and
+// resolve which one wins on the markup a Checkbox renders, the way a browser
+// with forced colors on (or off) would.
 import * as sass from 'sass';
 import path from 'path';
 import { render } from '@testing-library/react';
 import { Checkbox, type CheckboxProps } from '../Checkbox';
+import { ConfigProvider } from '../../helpers/Config';
 
 const SCSS = path.resolve(__dirname, '../../scss');
-const NODE_MODULES = path.resolve(__dirname, '../../../../node_modules');
 
-const css = sass.compile(path.join(SCSS, 'form/_checkbox.scss'), {
-  loadPaths: [NODE_MODULES],
-  quietDeps: true,
-  logger: sass.Logger.silent,
-}).css;
+// The Bulma bulma-ui depends on, resolved through package.json since jest
+// maps any `.css` specifier to a stub.
+const BULMA = path.dirname(require.resolve('bulma/package.json'));
+
+const compile = (prefix: string) =>
+  sass.compileString(
+    `@use 'bulma/sass/utilities/initial-variables' with ($class-prefix: '${prefix}');
+     @use 'form/checkbox';`,
+    {
+      loadPaths: [SCSS, path.dirname(BULMA)],
+      quietDeps: true,
+      logger: sass.Logger.silent,
+    }
+  ).css;
 
 type Rule = { selector: string; style: CSSStyleDeclaration; media: string };
 
@@ -44,8 +54,6 @@ function rulesOf(source: string): Rule[] {
   return out;
 }
 
-const RULES = rulesOf(css);
-
 /** Specificity as [ids, classes, types], enough for this partial's rules. */
 const specificity = (selector: string): number[] => [
   (selector.match(/#[\w-]+/g) ?? []).length,
@@ -62,11 +70,12 @@ const outranks = (a: number[], b: number[]) => {
 
 /**
  * The value `property` gets on `el`, or on its `pseudo` element, from the
- * partial: the most specific matching rule, the later one on a tie. Forced
+ * rules: the most specific matching rule, the later one on a tie. Forced
  * colors adds the rules in its media block and leaves out every other media
  * block.
  */
-function resolve(
+function resolveIn(
+  rules: Rule[],
   el: Element,
   property: string,
   {
@@ -75,7 +84,7 @@ function resolve(
   }: { pseudo?: '::before' | '::after'; forcedColors?: boolean } = {}
 ): string | undefined {
   let won: { value: string; rank: number[] } | undefined;
-  for (const { selector, style, media } of RULES) {
+  for (const { selector, style, media } of rules) {
     if (media && !(forcedColors && media === '(forced-colors: active)')) {
       continue;
     }
@@ -91,84 +100,164 @@ function resolve(
   return won?.value;
 }
 
-const checkOf = (props: CheckboxProps) =>
-  render(<Checkbox onChange={() => {}} {...props} />).container.querySelector(
-    '.check'
-  ) as HTMLElement;
+describe.each([
+  ['no prefix', ''],
+  ['a class prefix', 'bestax-'],
+])('the Checkbox partial with %s', (_label, prefix) => {
+  const RULES = rulesOf(compile(prefix));
+  const resolve = (
+    el: Element,
+    property: string,
+    options?: Parameters<typeof resolveIn>[3]
+  ) => resolveIn(RULES, el, property, options);
 
-describe('a mixed Checkbox', () => {
-  it('draws its dash with a background color', () => {
-    // Which forced colors repaints, so the dash needs a rule of its own there.
-    const check = checkOf({ indeterminate: true });
-    expect(resolve(check, 'background-color', { pseudo: '::before' })).toBe(
-      'var(--bulma-checkbox-check-color)'
+  const renderCheckbox = (props: CheckboxProps) =>
+    render(
+      <ConfigProvider classPrefix={prefix}>
+        <Checkbox onChange={() => {}} {...props} />
+      </ConfigProvider>
+    ).container;
+
+  const checkOf = (props: CheckboxProps) =>
+    renderCheckbox(props).querySelector(`.${prefix}check`) as HTMLElement;
+
+  it('selects every class by the prefix the Checkbox renders it with', () => {
+    // A class the partial writes bare matches nothing in a prefixed build,
+    // which is how the box once went undrawn there.
+    const classes = RULES.flatMap(({ selector }) =>
+      Array.from(selector.matchAll(/\.(-?[_a-zA-Z][\w-]*)/g), m => m[1])
     );
-    expect(resolve(check, 'background-color')).toBe(
-      'var(--bulma-checkbox-indeterminate-color)'
+    expect(classes).toEqual(
+      expect.arrayContaining([`${prefix}check`, `${prefix}control-label`])
     );
+    expect(classes.filter(name => !name.startsWith(prefix))).toEqual([]);
   });
 
-  it.each([
-    ['unchecked', false],
-    ['checked', true],
-  ])('keeps its dash in forced colors when %s', (_label, checked) => {
-    const check = checkOf({ indeterminate: true, checked });
-    expect(
-      resolve(check, 'background-color', {
-        pseudo: '::before',
-        forcedColors: true,
-      })
-    ).toBe('CanvasText');
-    expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
-      'Canvas'
-    );
+  describe('the box and its label', () => {
+    it('draws the box', () => {
+      const check = checkOf({});
+      expect(resolve(check, 'width')).toBe('var(--bulma-checkbox-size)');
+      expect(resolve(check, 'height')).toBe('var(--bulma-checkbox-size)');
+      expect(resolve(check, 'border-radius')).toBe(
+        'var(--bulma-checkbox-radius)'
+      );
+      expect(resolve(check, 'background-color')).toBe(
+        'var(--bulma-checkbox-background)'
+      );
+    });
+
+    it('fills the box and shows the mark when checked', () => {
+      const check = checkOf({ checked: true });
+      expect(resolve(check, 'background-color')).toBe(
+        'var(--bulma-checkbox-active-color)'
+      );
+      expect(resolve(check, 'opacity', { pseudo: '::after' })).toBe('1');
+    });
+
+    it('sets the label a gap from the box', () => {
+      const label = renderCheckbox({ children: 'Remember me' }).querySelector(
+        `.${prefix}control-label`
+      ) as HTMLElement;
+      expect(resolve(label, 'margin-left')).toBe(
+        'var(--bulma-checkbox-label-gap)'
+      );
+    });
+
+    it('dims the box and its label when disabled', () => {
+      const container = renderCheckbox({ disabled: true, children: 'Off' });
+      const check = container.querySelector(`.${prefix}check`) as HTMLElement;
+      const label = container.querySelector(
+        `.${prefix}control-label`
+      ) as HTMLElement;
+      expect(resolve(check, 'opacity')).toBe('0.5');
+      expect(resolve(label, 'opacity')).toBe('0.5');
+    });
+
+    it('outlines the box in system colors in forced colors', () => {
+      const forced = { forcedColors: true };
+      expect(resolve(checkOf({}), 'border-color', forced)).toBe('ButtonText');
+      expect(resolve(checkOf({ disabled: true }), 'border-color', forced)).toBe(
+        'GrayText'
+      );
+    });
   });
-});
 
-describe('a checked Checkbox that is not mixed, in forced colors', () => {
-  it('keeps the Highlight fill', () => {
-    const check = checkOf({ checked: true });
-    expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
-      'Highlight'
-    );
-    expect(
-      resolve(check, 'background-color', {
-        pseudo: '::before',
-        forcedColors: true,
-      })
-    ).toBeUndefined();
-  });
-});
+  describe('a mixed Checkbox', () => {
+    it('draws its dash with a background color', () => {
+      // Which forced colors repaints, so the dash needs a rule of its own there.
+      const check = checkOf({ indeterminate: true });
+      expect(resolve(check, 'background-color', { pseudo: '::before' })).toBe(
+        'var(--bulma-checkbox-check-color)'
+      );
+      expect(resolve(check, 'background-color')).toBe(
+        'var(--bulma-checkbox-indeterminate-color)'
+      );
+    });
 
-describe('the check mark of a checked Checkbox', () => {
-  const MASK = ['mask-size', 'mask-repeat', 'mask-position'];
-
-  it('is an image with a black stroke', () => {
-    // Forced colors leaves a url() image as it is, so the mark needs a rule
-    // of its own there.
-    const check = checkOf({ checked: true });
-    expect(resolve(check, 'background-image', { pseudo: '::after' })).toContain(
-      "stroke='black'"
-    );
-    expect(resolve(check, 'mask-image', { pseudo: '::after' })).toBeUndefined();
-  });
-
-  it('is the same shape as a mask, painted HighlightText, in forced colors', () => {
-    const check = checkOf({ checked: true });
-    const forced = (property: string) =>
-      resolve(check, property, { pseudo: '::after', forcedColors: true });
-    expect(forced('background-image')).toBe('none');
-    expect(forced('background-color')).toBe('HighlightText');
-    expect(forced('mask-image')).toBe(
-      resolve(check, 'background-image', { pseudo: '::after' })
-    );
-    // Sized and placed the way the image is.
-    expect(MASK.map(forced)).toEqual(
-      MASK.map(property =>
-        resolve(check, property.replace('mask', 'background'), {
-          pseudo: '::after',
+    it.each([
+      ['unchecked', false],
+      ['checked', true],
+    ])('keeps its dash in forced colors when %s', (_state, checked) => {
+      const check = checkOf({ indeterminate: true, checked });
+      expect(
+        resolve(check, 'background-color', {
+          pseudo: '::before',
+          forcedColors: true,
         })
-      )
-    );
+      ).toBe('CanvasText');
+      expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
+        'Canvas'
+      );
+    });
+  });
+
+  describe('a checked Checkbox that is not mixed, in forced colors', () => {
+    it('keeps the Highlight fill', () => {
+      const check = checkOf({ checked: true });
+      expect(resolve(check, 'background-color', { forcedColors: true })).toBe(
+        'Highlight'
+      );
+      expect(
+        resolve(check, 'background-color', {
+          pseudo: '::before',
+          forcedColors: true,
+        })
+      ).toBeUndefined();
+    });
+  });
+
+  describe('the check mark of a checked Checkbox', () => {
+    const MASK = ['mask-size', 'mask-repeat', 'mask-position'];
+
+    it('is an image with a black stroke', () => {
+      // Forced colors leaves a url() image as it is, so the mark needs a rule
+      // of its own there.
+      const check = checkOf({ checked: true });
+      expect(
+        resolve(check, 'background-image', { pseudo: '::after' })
+      ).toContain("stroke='black'");
+      expect(
+        resolve(check, 'mask-image', { pseudo: '::after' })
+      ).toBeUndefined();
+    });
+
+    it('is the same shape as a mask, painted HighlightText, in forced colors', () => {
+      const check = checkOf({ checked: true });
+      const forced = (property: string) =>
+        resolve(check, property, { pseudo: '::after', forcedColors: true });
+      expect(forced('background-image')).toBe('none');
+      expect(forced('background-color')).toBe('HighlightText');
+      expect(forced('mask-image')).toBe(
+        resolve(check, 'background-image', { pseudo: '::after' })
+      );
+      // Sized and placed the way the image is.
+      expect(MASK.map(forced)).toEqual(
+        MASK.map(property =>
+          resolve(check, property.replace('mask', 'background'), {
+            pseudo: '::after',
+          })
+        )
+      );
+    });
   });
 });

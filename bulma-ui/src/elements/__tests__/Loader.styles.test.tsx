@@ -141,6 +141,19 @@ type When = { reducedMotion?: boolean; forcedColors?: boolean };
 
 type Side = 'top' | 'right' | 'bottom' | 'left';
 
+/**
+ * The logical color longhand for each side, read the way a horizontal,
+ * left-to-right page draws it, which is how the rest of this file reads a
+ * page. jsdom keeps a logical longhand as a property of its own, so without
+ * this a ring opened on its inline end reads as closed.
+ */
+const LOGICAL_COLOR: Record<Side, string> = {
+  top: 'border-block-start-color',
+  right: 'border-inline-end-color',
+  bottom: 'border-block-end-color',
+  left: 'border-inline-start-color',
+};
+
 /** Top-level tokens of a value, keeping `var(…)` and other functions whole. */
 const tokensOf = (value: string): string[] => {
   const out: string[] = [];
@@ -257,12 +270,13 @@ function rulesOf(css: string): Rule[] {
           }
           return null;
         };
-        // Likewise for a side's color: the longhand, then each shorthand
-        // that sets it. A shorthand is kept whole, so it never reads as a
-        // single color.
+        // Likewise for a side's color: the longhand, its logical twin, then
+        // each shorthand that sets it. A shorthand is kept whole, so it never
+        // reads as a single color.
         const side = (name: Side): Setting | null => {
           for (const p of [
             `border-${name}-color`,
+            LOGICAL_COLOR[name],
             `border-${name}`,
             'border-color',
             'border',
@@ -904,6 +918,25 @@ describe('the cascade resolver', () => {
     ).toEqual({ rings: ['.b::after'], closed: ['.b::after'] });
   });
 
+  it('reads a ring opened on its logical sides as a left-to-right page draws it', () => {
+    // Timeline's pending ring opens its top and inline end, which is the
+    // right in a left-to-right page, the side Bulma's loader opens.
+    const ring =
+      '.spinner { animation: spin 1s; border: 2px solid var(--x); border-block-start-color: transparent; border-inline-end-color: transparent; }';
+    expect(unopened(rulesOf(ring))).toEqual({
+      rings: ['.spinner'],
+      closed: ['.spinner'],
+    });
+    expect(
+      unopened(
+        rulesOf(
+          ring +
+            '@media (forced-colors: active) { .spinner { border-block-start-color: Canvas; border-inline-end-color: Canvas; } }'
+        )
+      )
+    ).toEqual({ rings: ['.spinner'], closed: [] });
+  });
+
   it('takes a spinning box whose sides are all one color for something other than a ring', () => {
     expect(
       unopened(
@@ -1073,7 +1106,7 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       )
       .filter(
         declaration =>
-          !/^border(-(top|right|bottom|left))?-color: (Canvas|transparent|inherit)$/.test(
+          !/^border(-(top|right|bottom|left|(block|inline)-(start|end)))?-color: (Canvas|transparent|inherit)$/.test(
             declaration
           )
       );

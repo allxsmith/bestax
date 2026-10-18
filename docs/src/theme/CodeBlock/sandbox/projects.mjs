@@ -212,6 +212,17 @@ function darkRoot(html) {
  */
 
 /**
+ * Whether a template devDependency is part of its lint setup, which a
+ * StackBlitz project leaves out along with the `lint` script. A ported
+ * template under templates/ at the repo root strips the same packages
+ * (scripts/lib/templates.mjs).
+ *
+ * @param {string} name
+ */
+export const isLintPackage = name =>
+  name.includes('eslint') || name === 'globals';
+
+/**
  * A project for the StackBlitz SDK's `openProject`.
  *
  * @param {SandboxInput} input
@@ -230,9 +241,7 @@ export function stackblitzProject({
   // The template's lint setup is not copied, so its packages and script go.
   delete pkg.scripts.lint;
   pkg.devDependencies = Object.fromEntries(
-    Object.entries(pkg.devDependencies).filter(
-      ([name]) => !name.includes('eslint') && name !== 'globals'
-    )
+    Object.entries(pkg.devDependencies).filter(([name]) => !isLintPackage(name))
   );
   pkg.dependencies = sortKeys({
     ...pkg.dependencies,

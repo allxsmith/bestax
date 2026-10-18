@@ -229,3 +229,29 @@ $loading-animation-duration: 0.75s !default;
     animation: none;
   }
 }
+
+// Forced colors (Windows' contrast themes)
+// The arc above is a background image, which forced colors drops, so the
+// spinner would vanish. This draws it as a border instead, which forced colors
+// keeps, at the width the mask already cuts the ring to. The top side is
+// Canvas, the page's own color, which forced colors leaves alone, so the ring
+// stays open and still reads as a spinner.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}loading-icon {
+    background: none;
+    border: cv.getVar("loading-icon-border-width") solid CanvasText;
+    border-top-color: Canvas;
+    // Inside the icon's size rather than added to it, whatever an ancestor
+    // hands down through Bulma's `box-sizing: inherit`.
+    box-sizing: border-box;
+  }
+
+  // The overlay's own opacity survives forced colors, so without this the
+  // page shows through it: the Canvas gap reads as a band rather than a hole,
+  // and the text sits over whatever is beneath. The full-page rule sets its
+  // opacity with a more specific selector, so it's named too.
+  .#{iv.$class-prefix}loading-overlay,
+  .#{iv.$class-prefix}loading.#{iv.$class-prefix}is-full-page .#{iv.$class-prefix}loading-overlay {
+    opacity: 1;
+  }
+}
