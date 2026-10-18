@@ -95,6 +95,18 @@ const CLASS_MAP = join(
   'bulma-classes',
   'class-map.ts'
 );
+/**
+ * The walk bestax-migrate's vocabulary test reads Bulma's stylesheet with,
+ * which the index's class names come from too, so the two cannot disagree
+ * about which classes Bulma 1 has.
+ */
+const STYLESHEET_READER = join(
+  REPO,
+  'bestax-migrate',
+  'e2e',
+  'support',
+  'bulma-stylesheet.ts'
+);
 
 const PACKAGE = '@allxsmith/bestax-bulma';
 /** A name a page can document as a component: an exported identifier, capitalised. */
@@ -763,17 +775,22 @@ function itemsOf(placed, token) {
   };
 }
 
-export async function bulmaClassTable() {
-  let map;
+/** A TypeScript module of bestax-migrate's, loaded with node's type stripping. */
+async function importStripped(file) {
   try {
-    map = await import(pathToFileURL(CLASS_MAP).href);
+    return await import(pathToFileURL(file).href);
   } catch (err) {
     throw new Error(
-      `could not import ${relative(REPO, CLASS_MAP)}: ${err.message}. ` +
+      `could not import ${relative(REPO, file)}: ${err.message}. ` +
         `It is loaded with node's type stripping, which needs Node 22.18 or later.`,
       { cause: err }
     );
   }
+}
+
+export async function bulmaClassTable() {
+  const map = await importStripped(CLASS_MAP);
+  const { stylesheetClasses } = await importStripped(STYLESHEET_READER);
   const roots = Object.fromEntries(
     Object.entries(map.ROOTS).map(([token, entry]) => [
       token,
@@ -819,7 +836,7 @@ export async function bulmaClassTable() {
       why: group.why,
       match: group.match.source,
     })),
-    // What tells a v1 class with no prop from one that was never Bulma's: a
+    // What tells a v1 class with no prop from one Bulma 1 has no rule for: a
     // passthrough pattern reaches past the stylesheet (`is-\d+x\d+` takes a
     // page's own `is-256x256` for an `.image` size), and a class nothing in
     // the table names fell to one note for both (#1174).
@@ -829,42 +846,6 @@ export async function bulmaClassTable() {
       ),
     ].sort(byCodePoint),
   };
-}
-
-/**
- * The class names in a compiled stylesheet's selectors, read the way
- * bestax-migrate's `e2e/bulma-classes-vocabulary.test.ts` reads Bulma's: only
- * selectors, with attribute selectors and strings out, and an escaped
- * character (`.is-gap-0\.5`) spelled plainly. A compiled stylesheet nests
- * nothing but rules inside at-rules, so a walk over the braces finds them.
- */
-export function stylesheetClasses(css) {
-  const classes = new Set();
-  const open = [];
-  let text = '';
-  const selector = prelude => {
-    if (prelude.startsWith('@')) return;
-    const bare = prelude
-      .replace(/\[[^\]]*\]/g, '')
-      .replace(/"[^"]*"|'[^']*'/g, '');
-    for (const m of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
-      classes.add(m[1].replace(/\\(.)/g, '$1'));
-    }
-  };
-  for (const char of css.replace(/\/\*[\s\S]*?\*\//g, '')) {
-    if (char === '{') {
-      open.push(text.trim());
-      text = '';
-    } else if (char === '}') {
-      selector(open.pop() ?? '');
-      text = '';
-    } else if (char === ';' && open.length === 0) {
-      text = '';
-    } else {
-      text += char;
-    }
-  }
-  return classes;
 }
 
 export async function build() {

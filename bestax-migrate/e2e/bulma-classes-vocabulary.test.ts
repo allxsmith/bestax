@@ -10,6 +10,9 @@
  * stylesheet has (or a Bulma 0.9 class it knows was removed).
  */
 
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   HELPER_TOKENS,
   LEGACY_09,
@@ -19,33 +22,15 @@ import {
 } from '../src/sources/bulma-classes/class-map.js';
 import {
   bulmaStylesheet,
-  stylesheetRules,
+  stylesheetClasses,
 } from './support/bulma-stylesheet.js';
-
-/** Class names used in the stylesheet's selectors. */
-function stylesheetClasses(): Set<string> {
-  const classes = new Set<string>();
-  // Only selectors are read, so declaration bodies (which hold URLs like
-  // `.svg`) never reach the match.
-  for (const { selector } of stylesheetRules(bulmaStylesheet())) {
-    const bare = selector
-      .replace(/\[[^\]]*\]/g, '')
-      .replace(/"[^"]*"|'[^']*'/g, '');
-    // A name can carry an escaped character (`.is-gap-0\.5`), which the
-    // class itself spells plainly.
-    for (const match of bare.matchAll(/\.(-?[_a-zA-Z](?:[\w-]|\\.)*)/g)) {
-      classes.add(match[1].replace(/\\(.)/g, '$1'));
-    }
-  }
-  return classes;
-}
 
 const modifiers = new Set(
   Object.values(ROOTS).flatMap(entry => Object.keys(entry.modifiers ?? {}))
 );
 
 describe("the table accounts for Bulma's stylesheet", () => {
-  const classes = stylesheetClasses();
+  const classes = stylesheetClasses(bulmaStylesheet());
 
   it('reads a stylesheet worth the name', () => {
     expect(classes.has('button')).toBe(true);
@@ -80,5 +65,28 @@ describe("the table accounts for Bulma's stylesheet", () => {
     expect(
       Object.keys(LEGACY_09).filter(token => !REMOVED_IN_V1.includes(token))
     ).toEqual([]);
+  });
+
+  // `lookup_bulma_classes` calls a class missing from the MCP index's list one
+  // Bulma 1 has no rule for, ahead of its passthrough group, so a class read
+  // here and missing there would be misreported. The two read one walk, and
+  // this holds the Bulma each reads to the same one.
+  it('is the vocabulary the MCP index ships', () => {
+    const index = JSON.parse(
+      fs.readFileSync(
+        path.join(
+          path.dirname(fileURLToPath(import.meta.url)),
+          '..',
+          '..',
+          'bestax-mcp',
+          'data',
+          'bulma-classes.json'
+        ),
+        'utf8'
+      )
+    );
+    expect(index.vocabulary).toEqual(
+      [...classes].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0))
+    );
   });
 });

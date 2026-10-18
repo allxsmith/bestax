@@ -275,15 +275,17 @@ const PART =
   'a part of a Bulma family bestax converts as a whole; its outermost class says how';
 
 /**
- * Three kinds of class no Bulma v1 rule matches, each with its own advice
+ * The kinds of class no Bulma v1 rule matches, each with its own advice
  * (#1174). A class the table has a hint for (`tile`) says what replaced it.
+ * Only a class on the removed list is said to be 0.9's: the index carries v1's
+ * stylesheet and not 0.9's, so of any other it can say only what v1 lacks.
  */
 const REMOVED =
   'a Bulma 0.9 class that v1 removed, so no v1 rule matches it and it styles nothing now';
 const NOT_BULMA =
-  "not a Bulma class: Bulma's stylesheet has no rule for it, in v1 or 0.9. If " +
-  "the project's own CSS, or a Bulma extension's, defines it, keep it with " +
-  'that rule; if nothing does, it styles nothing';
+  "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it. If the " +
+  "project's own CSS, or a Bulma extension's, defines it, keep it with that " +
+  'rule; if nothing does, it styles nothing';
 
 /** A class that keeps the note of its own, whatever else is on the element. */
 function speaksForItself(table: BulmaClassTable, token: string): boolean {
@@ -309,10 +311,12 @@ function leftoverReason(table: BulmaClassTable, token: string): string {
   if (!facts.vocabulary.has(token)) return NOT_BULMA;
   const passthrough = passthroughReason(table, token);
   if (passthrough) return passthrough;
+  // The roots bestax converts it beside, which can be fewer than Bulma styles
+  // it with (`is-vcentered` on a `.table` cell), so the note claims no more.
   const roots = facts.modifierOf.get(token)?.map(root => `.${root}`);
   if (!roots) return 'a Bulma class bestax has no prop for';
   return (
-    'a Bulma modifier, which converts only beside the class it modifies: ' +
+    'a Bulma modifier, which bestax converts only beside ' +
     (roots.length > 3
       ? `${roots
           .slice(0, 3)

@@ -1768,10 +1768,11 @@ describe('exports documented with another component', () => {
 });
 
 // A name the server hands out that its own tools refuse sends an agent nowhere, which
-// is what #1150 and #1174 were. This walks every source of one an answer prints:
-// list_components, the import line, the parts and the exports a record documents, its
-// related components and the one whose variables style it, the CSS variable index,
-// and what lookup_bulma_classes answers for every class it has a root for.
+// is what #1150 and #1174 were. This walks list_components, the import line, the parts
+// and the exports a record documents, its related components and the one whose
+// variables style it, the CSS variable index, and what lookup_bulma_classes answers
+// for every class it has a root or a hint for. Example code and skill bodies name
+// components too, and are not walked.
 describe('every component or part name an answer hands out', () => {
   const NAME = /^[A-Z][A-Za-z0-9]*(?:\.[A-Z][A-Za-z0-9]*)?$/;
   const handed = new Map<string, string>();
@@ -1853,7 +1854,8 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
   const lookup = async (classes: string) =>
     text(await call('lookup_bulma_classes', { classes }));
   const REMOVED = 'a Bulma 0.9 class that v1 removed';
-  const NOT_BULMA = "not a Bulma class: Bulma's stylesheet has no rule for it";
+  const NOT_BULMA =
+    "not a Bulma 1 class: Bulma 1's stylesheet has no rule for it.";
 
   it('says a Bulma 0.9 class v1 removed was removed', async () => {
     expect(await lookup('section is-paddingless')).toContain(
@@ -1865,7 +1867,7 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
     );
   });
 
-  it("says a class that was never Bulma's, or is the page's own, is neither", async () => {
+  it('says a class Bulma 1 has no rule for is none of its, and claims nothing of 0.9', async () => {
     for (const [classes, token] of [
       ['has-text-green', 'has-text-green'],
       // Bulma's `.image` sizes stop at 128x128, so this one is no modifier of it.
@@ -1877,18 +1879,30 @@ describe("lookup_bulma_classes on classes Bulma v1 doesn't have", () => {
       );
       expect(out).toContain("If the project's own CSS");
       expect(out).not.toContain('an `.image` modifier');
+      // Nothing here holds a class to 0.9's stylesheet but the removed list.
+      expect(out).not.toContain('0.9');
     }
   });
 
   it('still names the family of a v1 class away from its root', async () => {
     expect(await lookup('is-128x128')).toContain('an `.image` modifier');
     expect(await lookup('is-primary')).toContain(
-      'a Bulma modifier, which converts only beside the class it modifies: ' +
+      'a Bulma modifier, which bestax converts only beside ' +
         '`.button`, `.hero`, `.navbar` or another'
     );
-    expect(await lookup('is-vcentered')).toContain(
-      'a Bulma modifier, which converts only beside the class it modifies: `.columns`'
-    );
+    // Bulma styles a `.table` cell's `is-vcentered` too, which bestax does not
+    // convert, so the note names where bestax converts it, not what it modifies.
+    expect(
+      await call('lookup_bulma_classes', { classes: 'is-vcentered', tag: 'td' })
+    ).toMatchObject({
+      content: [
+        {
+          text: expect.stringContaining(
+            'a Bulma modifier, which bestax converts only beside `.columns`'
+          ),
+        },
+      ],
+    });
   });
 });
 

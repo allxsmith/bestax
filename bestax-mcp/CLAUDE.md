@@ -23,9 +23,10 @@ hand-written `## Usage` / `## Accessibility` sections of the API pages.
   `src/__tests__/bulma-classes-agree.test.ts` imports the planner itself to hold
   the two together, so a change to either side of that table shows up here.
   Beside the table it carries every class in Bulma v1's compiled stylesheet,
-  read from `node_modules/bulma`, so a lookup can tell a v1 class with no prop
-  from a 0.9 one v1 removed (`REMOVED_IN_V1` in the class map) and from one
-  that was never Bulma's.
+  read from `node_modules/bulma` with the walk bestax-migrate's vocabulary test
+  uses (`e2e/support/bulma-stylesheet.ts`), so a lookup can tell a v1 class with
+  no prop from a 0.9 one v1 removed (`REMOVED_IN_V1` in the class map) and from
+  one v1 has no rule for.
 - `data/skills/` is **gitignored** and synced from `/skills` by
   `scripts/sync-skills.mjs`, which runs on `build`, `test`, `test:coverage`,
   `test:watch` and `prepack`. Only the manifest (`data/skills.json`) is
@@ -83,8 +84,8 @@ the API pages and the skill catalog.
   imports beside its component (`CarouselItem` in `Carousel`), and a sub that is
   exported standalone too (`Thead`, as `Table.Thead`). The catalog's
   `documentedWith` resolves each name to its part. A sweep in
-  `src/__tests__/server.test.ts` walks every place an answer gets a name from
-  and fails on one `get_props` refuses (#1150, #1174).
+  `src/__tests__/server.test.ts` fails on a name from the catalog, a record or
+  `lookup_bulma_classes` that `get_props` refuses (#1150, #1174).
 
 ## Dependencies
 

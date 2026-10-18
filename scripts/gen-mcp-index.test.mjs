@@ -20,7 +20,7 @@ import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 import {
   absoluteLinks,
@@ -31,7 +31,6 @@ import {
   readSkills,
   reportFailure,
   standaloneTables,
-  stylesheetClasses,
 } from './gen-mcp-index.mjs';
 import { sectionSpans } from './lib/api-page.mjs';
 import { RENDERS_ELEMENT_OF } from './lib/api-sources.mjs';
@@ -989,6 +988,7 @@ test("the class table carries Bulma v1's classes and the 0.9 ones v1 removed (#1
     'button',
     'has-text-centered',
     'is-128x128',
+    'is-gap-0.5',
     'marginless',
   ]) {
     assert.ok(v1.has(token), `${token} is missing`);
@@ -1009,7 +1009,13 @@ test("the class table carries Bulma v1's classes and the 0.9 ones v1 removed (#1
   }
 });
 
-test('stylesheetClasses reads the classes in selectors, and only there', () => {
+test('the stylesheet walk the index shares reads the classes in selectors, and only there', async () => {
+  // bestax-migrate's vocabulary test reads Bulma with this walk too.
+  const { stylesheetClasses } = await import(
+    pathToFileURL(
+      join(REPO, 'bestax-migrate', 'e2e', 'support', 'bulma-stylesheet.ts')
+    ).href
+  );
   const css = [
     '@charset "UTF-8";',
     '/* .commented { } */',
