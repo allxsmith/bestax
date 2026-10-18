@@ -128,9 +128,14 @@ export function PromoPanel() {
 </TabItem>
 </Tabs>
 
-Bulma derives every shade and the light/dark/invert variants from the `--bulma-<color>-h/-s/-l`
-trio, so overriding the trio recolors the whole palette. Non-color tokens (radius, fonts, sizes)
-go through `bulmaVars`, keyed by their real `--bulma-*` names.
+Overriding a color's `--bulma-<color>-h/-s/-l` trio recolors the color itself, and its shades and
+variants take the new hue and saturation at the lightnesses the stylesheet was built with. The
+label on a solid color and the color's text on the page keep lightnesses picked for the built
+color, so a brand color that reads lighter or darker also sets `--bulma-<color>-invert-l` and
+`--bulma-<color>-on-scheme-l` in CSS; the skill's
+[CSS variables reference](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/references/css-variables.md)
+says how. Non-color tokens (radius, fonts, sizes) go through `bulmaVars`, keyed by their real
+`--bulma-*` names.
 
 ## Dark mode
 
@@ -150,7 +155,16 @@ there is no shipped dark-mode component — following the bestax theming skill.
 
 ### Generated code
 
-The `Theme` component drives dark mode via its `colorMode` prop — no manual DOM work.
+The `Theme` component drives dark mode via its `colorMode` prop.
+
+:::note Recorded before the first-paint advice
+This run predates the skill's guidance on the first paint. Its toggle starts from the OS scheme
+on every load and keeps no choice between visits. `colorMode` alone can't bring a saved choice
+back without a frame of the OS scheme first, because it writes `data-theme` from an effect, so
+the skill's current
+[dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
+adds an inline `<head>` script that writes the saved choice before the first paint.
+:::
 
 ```tsx
 import { useState } from 'react';

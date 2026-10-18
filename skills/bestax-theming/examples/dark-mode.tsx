@@ -67,8 +67,13 @@ function savedColorMode(): ColorMode | null {
 /**
  * The scheme the index.html script wrote. Without the script, the same
  * choice: the saved one, or the OS preference.
+ *
+ * `useState` calls this during render, and a server render has no document,
+ * so there it is 'light' and the browser's own render starts from the
+ * attribute.
  */
 export function initialColorMode(): ColorMode {
+  if (typeof document === 'undefined') return 'light';
   const written = document.documentElement.getAttribute('data-theme');
   if (isColorMode(written)) return written;
   return (

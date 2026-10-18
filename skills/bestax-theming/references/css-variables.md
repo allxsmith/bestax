@@ -67,8 +67,8 @@ If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variab
 
 ## Colors — override the H/S/L trio to recolor
 
-Bulma derives a color's shades and its light and dark variants from three channels. For each
-color `<c>` ∈ `primary`, `link`, `info`, `success`, `warning`, `danger`:
+Each color is three channels. For each color `<c>` ∈ `primary`, `link`, `info`, `success`,
+`warning`, `danger`:
 
 | Variable        | Meaning                    | `Theme` prop             |
 | --------------- | -------------------------- | ------------------------ |
@@ -76,18 +76,26 @@ color `<c>` ∈ `primary`, `link`, `info`, `success`, `warning`, `danger`:
 | `--bulma-<c>-s` | saturation (`%`)           | `<c>S`                   |
 | `--bulma-<c>-l` | lightness (`%`)            | `<c>L`                   |
 
-Derived values (reference them if you need them): `--bulma-<c>` is the resolved color. Its
-variants take the trio's hue and saturation, each at a lightness of its own: `--bulma-<c>-light`,
-`--bulma-<c>-dark`, the numeric shades `--bulma-<c>-00` … `--bulma-<c>-100`, and
-`--bulma-<c>-invert` and `--bulma-<c>-on-scheme`, whose lightnesses are below.
-`--bulma-<c>-rgb` is the built color written out as a value, so it never follows the trio.
+What a runtime trio moves: `--bulma-<c>`, the color itself, follows all three channels. Its
+shades, its light and dark variants, and its invert and on-scheme colors follow the hue and
+saturation, each at a lightness Bulma's Sass build wrote into the stylesheet for the color it was
+given:
+
+- the numeric shades `--bulma-<c>-00` … `--bulma-<c>-100` sit on a ramp of lightnesses
+  (`--bulma-<c>-<n>-l`) laid out from the built color's own, and `--bulma-<c>-light` and
+  `--bulma-<c>-dark` point into it. A new `-l` moves none of them, so a shade is as light as it
+  was before; only a Sass build lays the ramp out from a new color.
+- `--bulma-<c>-invert` and `--bulma-<c>-on-scheme` take the lightnesses below, which the build
+  picked for contrast.
+
+`--bulma-<c>-rgb` is the built color written out as a value, so it follows none of the trio.
 
 ### The lightnesses Bulma's build picks for contrast
 
-Bulma's Sass build picks two lightnesses for each color by their contrast with the color it was
-given, and writes them into the stylesheet as values. A trio set at runtime leaves them as they
-were. So when a new color reads lighter or darker than the built one, which a change of hue or
-saturation can do as well as a change of lightness, set them too:
+The build picks the label and text lightnesses for each color by their contrast with the color it
+was given. A trio set at runtime leaves them as they were, so when a new color reads lighter or
+darker than the built one, which a change of hue or saturation can do as well as a change of
+lightness, set them too:
 
 | Variable                  | What reads it                                                                                                                |
 | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |

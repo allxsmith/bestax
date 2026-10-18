@@ -11,14 +11,14 @@ properties. Theme an app by overriding the right variables — no component re-s
 
 ## Approach
 
-Recolor a brand color by overriding its **hue/saturation/lightness trio**: Bulma derives the
-color's shades and its light/dark variants from `--bulma-<color>-h` / `-s` / `-l`. Two
-lightnesses come from the stylesheet's build instead, picked for the color it was built with:
-the label on a solid color (`--bulma-<color>-invert-l`) and the color's text on the page
-(`--bulma-<color>-on-scheme-l`, which for `link` is every link). When the new color reads
-lighter or darker than the built one, set those two in your CSS as well, or labels and text lose
-their contrast (`references/css-variables.md`, "The lightnesses Bulma's build picks for
-contrast").
+Recolor a brand color by overriding its **hue/saturation/lightness trio**
+(`--bulma-<color>-h` / `-s` / `-l`). The color itself follows all three. Its shades and variants
+follow the hue and saturation, at lightnesses the trio doesn't set. Among those, the stylesheet's
+build picked the label on a solid color (`--bulma-<color>-invert-l`) and the color's text on the
+page (`--bulma-<color>-on-scheme-l`, which for `link` is every link) for contrast with the color
+it was built with, so when the new color reads lighter or darker than the built one, set them in
+your CSS as well, or labels and text lose their contrast (`references/css-variables.md`,
+"Colors").
 
 Choose an override path:
 
