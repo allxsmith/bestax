@@ -35,6 +35,12 @@ export interface Modifier {
    * so the class converts only beside one written out.
    */
   needsAttr?: { name: string; value: string };
+  /**
+   * Another modifier whose prop this one writes another value of, which
+   * renders that class too, so the two convert together and this one alone
+   * stays a class.
+   */
+  beside?: string;
 }
 
 export interface RootRecord {
@@ -546,13 +552,46 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
+  // A class that converts only beside another goes first, and takes that one
+  // with it: the value it writes renders both (`hasAddons="centered"`).
+  for (const token of tokens) {
+    const modifier = own(entry.modifiers, token);
+    const other = modifier?.beside;
+    if (!other || !tokens.includes(other) || verdicts.has(other)) continue;
+    if (modifier!.writes.some(write => writes.has(write.prop))) continue;
+    for (const write of modifier!.writes) {
+      writes.set(write.prop, { value: write.value ?? true, token });
+    }
+    verdicts.set(token, {
+      kind: 'prop',
+      writes: modifier!.writes,
+      condition: `beside \`${other}\`, which it renders too`,
+    });
+    verdicts.set(other, {
+      kind: 'rendered',
+      target: target!,
+      condition: `from ${modifier!.writes.map(writeText).join(' ')}, which \`${token}\` sets`,
+    });
+  }
   for (const token of tokens) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
     }
+    if (verdicts.has(token)) continue;
     const modifier = own(entry.modifiers, token);
     if (modifier) {
+      // Beside its class it went first, unless another value took the prop.
+      if (modifier.beside) {
+        const taken = modifier.writes.find(write => writes.has(write.prop));
+        stays(
+          token,
+          taken && tokens.includes(modifier.beside)
+            ? `\`${taken.prop}\` is already set by \`${writes.get(taken.prop)!.token}\``
+            : `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
+        );
+        continue;
+      }
       if (modifier.tagIn && tag && !modifier.tagIn.includes(tag)) {
         stays(
           token,

@@ -1090,6 +1090,25 @@ describe('lookup_bulma_classes', () => {
     expect(out).not.toMatch(/\| `is-empty` \| stays in `className` \|/);
   });
 
+  it('writes a layout value with the class it renders beside, and only then', async () => {
+    const out = await lookup('field has-addons has-addons-centered', 'div');
+    expect(out).toContain(
+      '| `has-addons-centered` | `hasAddons="centered"` | beside `has-addons`, which it renders too |'
+    );
+    expect(out).toContain(
+      '| `has-addons` | rendered by `Field` | from `hasAddons="centered"`, which `has-addons-centered` sets |'
+    );
+    expect(await lookup('field is-grouped-right', 'div')).toContain(
+      '| `is-grouped-right` | stays in `className` | `grouped="right"` renders `is-grouped` too, so it converts only beside that class |'
+    );
+    // A second layout for the prop stays, as a second size does.
+    expect(
+      await lookup('field is-grouped is-grouped-multiline is-grouped-right')
+    ).toContain(
+      '| `is-grouped-right` | stays in `className` | `grouped` is already set by `is-grouped-multiline` |'
+    );
+  });
+
   it('writes a prop typed as a number as a number', async () => {
     const out = await lookup('cell is-col-span-2', 'div');
     expect(out).toContain('**Component:** `Cell`.');

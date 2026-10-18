@@ -1748,7 +1748,27 @@
         "is-horizontal": { "writes": [{ "prop": "horizontal" }] },
         "has-addons": { "writes": [{ "prop": "hasAddons" }] },
         "is-narrow": { "writes": [{ "prop": "narrow" }] },
-        "is-grouped": { "writes": [{ "prop": "grouped" }], "onlyTrue": true }
+        "is-grouped": { "writes": [{ "prop": "grouped" }], "onlyTrue": true },
+        "has-addons-centered": {
+          "writes": [{ "prop": "hasAddons", "value": "centered" }],
+          "beside": "has-addons"
+        },
+        "has-addons-right": {
+          "writes": [{ "prop": "hasAddons", "value": "right" }],
+          "beside": "has-addons"
+        },
+        "is-grouped-centered": {
+          "writes": [{ "prop": "grouped", "value": "centered" }],
+          "beside": "is-grouped"
+        },
+        "is-grouped-right": {
+          "writes": [{ "prop": "grouped", "value": "right" }],
+          "beside": "is-grouped"
+        },
+        "is-grouped-multiline": {
+          "writes": [{ "prop": "grouped", "value": "multiline" }],
+          "beside": "is-grouped"
+        }
       },
       "omits": {},
       "wrapsChildren": {
