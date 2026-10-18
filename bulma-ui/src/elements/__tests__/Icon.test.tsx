@@ -116,6 +116,31 @@ describe('Icon', () => {
     expect(span.className).toMatch(/m-2/);
   });
 
+  describe('color text alias', () => {
+    it('renders has-text-<color> when only color is set', () => {
+      render(<Icon name="star" color="primary" />);
+      expect(iconSpan()).toHaveClass('icon', 'has-text-primary');
+    });
+
+    it('gives textColor precedence when both are set', () => {
+      render(<Icon name="star" textColor="danger" color="primary" />);
+      const span = iconSpan();
+      expect(span).toHaveClass('has-text-danger');
+      expect(span).not.toHaveClass('has-text-primary');
+    });
+
+    it('prefixes the color class under a class prefix', () => {
+      render(
+        <ConfigProvider classPrefix="bestax-">
+          <Icon name="star" color="success" />
+        </ConfigProvider>
+      );
+      const span = iconSpan();
+      expect(span).toHaveClass('bestax-icon', 'bestax-has-text-success');
+      expect(span).not.toHaveClass('has-text-success');
+    });
+  });
+
   it('defaults to "fas" style when no Font Awesome style is provided', () => {
     const { container } = render(
       <Icon name="star" library="fa" libraryFeatures={['fa-lg']} />
