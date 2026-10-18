@@ -183,6 +183,17 @@
       ],
       "catchAll": "All standard <div> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "DialogContainer",
+      "summary": "DialogContainer component to render programmatic dialogs. Place this once at the root of your app.",
+      "component": null,
+      "props": [],
+      "extraProps": [],
+      "catchAll": null,
+      "types": [],
+      "noProps": true,
+      "standalone": "companion"
     }
   ],
   "cssVars": [

@@ -54,7 +54,8 @@ Run these steps in order. Don't hand-convert what the codemod converts automatic
    `index.html`). The page stays as it was, and the codemod never writes over a module that's
    already there, so a re-run writes nothing. Its head, its `<html>` and `<body>` attributes and
    its scripts become `html-*` TODOs: put the app-wide parts in the app's `index.html` and
-   entry, and port each script's work into the component.
+   entry, and port each script's work into the component. Under `--css bestax` or `--css bulma`
+   the module imports the stylesheet in place of the page's Bulma `<link>`.
 
 2. **Apply it** (same command without `--dry`), then run the project's formatter — the
    codemod preserves surrounding formatting but doesn't prettify what it rewrites.

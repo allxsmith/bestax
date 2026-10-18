@@ -51,15 +51,15 @@
     },
     {
       "title": "Form Addons",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" aria-label=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons",
-      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control isExpanded>\n    <Input placeholder=\"Your email\" aria-label=\"Email username\" />\n  </Control>\n  <Control>\n    <Button isStatic>@gmail.com</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons",
-      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Country code\">\n      <option>+1</option>\n      <option>+44</option>\n      <option>+33</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input type=\"tel\" placeholder=\"Your phone number\" />\n  </Control>\n  <Control>\n    <Button color=\"primary\">Call</Button>\n  </Control>\n</Field>"
+      "code": "<Field hasAddons>\n  <Control>\n    <Select aria-label=\"Country code\">\n      <option>+1</option>\n      <option>+44</option>\n      <option>+33</option>\n    </Select>\n  </Control>\n  <Control isExpanded>\n    <Input\n      type=\"tel\"\n      placeholder=\"Your phone number\"\n      aria-label=\"Phone number\"\n    />\n  </Control>\n  <Control>\n    <Button color=\"primary\">Call</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Addons",
@@ -91,7 +91,7 @@
     },
     {
       "title": "Form Group",
-      "code": "<Field grouped>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
+      "code": "<Field grouped>\n  <Control isExpanded>\n    <Input placeholder=\"Find a repository\" aria-label=\"Find a repository\" />\n  </Control>\n  <Control>\n    <Button color=\"info\">Search</Button>\n  </Control>\n</Field>"
     },
     {
       "title": "Form Group",
@@ -404,6 +404,116 @@
       "extraProps": [],
       "catchAll": "All standard <input> attributes and Bulma helper props",
       "types": []
+    },
+    {
+      "path": "InputBase",
+      "summary": "Bulma Input component with full Bulma helper class support.",
+      "component": null,
+      "props": [
+        {
+          "name": "color",
+          "type": "'primary' | 'link' | 'info' | 'success' | 'warning' | 'danger' | 'black' | 'dark' | 'light' | 'white'",
+          "default": null,
+          "description": "Bulma color modifier for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "Size modifier for the input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isRounded",
+          "type": "boolean",
+          "default": "false",
+          "description": "Rounded input corners.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isStatic",
+          "type": "boolean",
+          "default": "false",
+          "description": "Styles the input as static text. It stays editable; add `readOnly` to stop edits.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isHovered",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies hovered state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isFocused",
+          "type": "boolean",
+          "default": "false",
+          "description": "Applies focused state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isLoading",
+          "type": "boolean",
+          "default": "false",
+          "description": "Adds the `is-loading` class to the `<input>`. Bulma draws no spinner for it there: the spinner belongs to the wrapping `Control`, so set `isLoading` on that `Control`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes to apply.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Disabled input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "readOnly",
+          "type": "boolean",
+          "default": "false",
+          "description": "Read-only input.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLInputElement>",
+          "default": null,
+          "description": "Forwarded to the underlying element.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [],
+      "catchAll": "All standard <input> attributes and Bulma helper props",
+      "types": [],
+      "standalone": "base"
     }
   ],
   "cssVars": [

@@ -105,6 +105,13 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   parcel or a deployment, `active={i}` marks progress and `pending="Out for delivery"` ends it on
   what's under way, oldest first. A journey the user moves through, like a wizard or a checkout,
   stays `Steps`.
+- **A file browser, a checkbox tree (permissions, filters) or an outline you browse is
+  `TreeView`**, with `<TreeView.Item value="…" label="…" icon="folder">` items nested inside each
+  other: `<TreeView aria-label="Files" selectionMode="single">` with `selected`/`onSelectedChange`
+  picks one, and `selectionMode="checkbox"` with `checked`/`onCheckedChange` draws boxes with
+  mixed parents, where a parent's value checks its whole branch. Map the data with a recursive
+  function, and render an item's children whether it's open or not. Its items aren't links, so
+  the app's sidebar and any list of pages stay on `Menu` with `Menu.Item href`.
 - Link lists (footer nav, sidebars): a bare `UnorderedList` of `ListItem`s is already
   marker-less and flush — Bulma's reset unstyles `ul` — so no prop or CSS is needed;
   bullets appear only inside `Content`.
@@ -207,9 +214,11 @@ background comes from the semantic `color` prop, not `bgColor`.
 | `display: 'none'`                        | `visibility="hidden"`, or responsive `display*` props (`displayMobile`, `displayTablet`, …)                                                                    |
 | `gap: '1rem'` (flex or grid)             | `gap="2"`, or one axis: `columnGap`, `rowGap`; gap scale: `1`=0.5rem, `2`=1rem, `4`=2rem, half steps (`"1.5"`)                                                 |
 
-No helper matches (e.g. `maxWidth`, a one-off gradient)? Add a named class to the project
-stylesheet (`src/App.css` in a scaffolded app) and pass it via `className` — still never
-inline `style`.
+No helper matches (e.g. `maxWidth`, a one-off gradient)? Add a named class to the project's
+global stylesheet and pass it via `className` — still never inline `style`. In a create-bestax
+app that is `src/index.css`, which its entry file imports after bestax's stylesheet, so the
+class wins over a Bulma rule of the same weight. The starter page's `src/App.css` loads after
+bestax's too, but only while the starter's `App` imports it.
 
 ## References
 

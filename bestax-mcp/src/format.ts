@@ -232,16 +232,45 @@ function propRows(props: PropRow[]): string[][] {
   });
 }
 
+export interface PartOptions {
+  heading?: boolean;
+  summary?: boolean;
+  /** The record the part belongs to, which a standalone part is documented with. */
+  owner?: string;
+  /**
+   * Whether a name has a catalog entry of its own. A sub exported standalone
+   * that has none (`Thead`) is answered with this very table, so pointing at
+   * `get_props` for it would only come back here.
+   */
+  hasEntry?: (name: string) => boolean;
+}
+
+/** What a standalone part is to the component it is documented with. */
+export function standaloneLine(part: Part, owner: string): string {
+  return (
+    `\`${part.path}\` is exported on its own and documented with \`${owner}\`` +
+    (part.standalone === 'base' ? ', which renders it.' : '.')
+  );
+}
+
 export function renderPart(
   part: Part,
-  { heading = true, summary = true } = {}
+  {
+    heading = true,
+    summary = true,
+    owner,
+    hasEntry = () => true,
+  }: PartOptions = {}
 ): string {
   const out: string[] = [];
   if (heading) out.push(`### ${part.path}`);
   if (summary && part.summary) out.push(attributedLinks(part.summary));
+  if (part.standalone && owner) out.push(standaloneLine(part, owner));
   if (part.component) {
     out.push(
-      `Also exported standalone as \`${part.component}\` — call \`get_props\` with that name for its full table.`
+      hasEntry(part.component)
+        ? `Also exported standalone as \`${part.component}\` — call \`get_props\` with that name for its full table.`
+        : `Also exported standalone as \`${part.component}\`, the same component, so this is its table.`
     );
   }
 
@@ -251,6 +280,8 @@ export function renderPart(
   }
   if (rows.length) {
     out.push(table(['Prop', 'Type', 'Default', 'Notes'], rows));
+  } else if (part.noProps) {
+    out.push('Takes no props, not even the standard HTML attributes.');
   } else if (!part.component) {
     out.push('No props of its own beyond the standard HTML attributes.');
   }
@@ -354,15 +385,68 @@ export interface PartFocus {
   part: Part | null;
 }
 
+/**
+ * The import a part is used through: its record's, or one of its own for a
+ * standalone export that import leaves out (`Input`'s names no `InputBase`).
+ */
+export function importOf(record: ComponentRecord, part: Part | null): string {
+  if (!part?.standalone) return record.import;
+  const named = (record.import.match(/\{([^}]*)\}/)?.[1] ?? '')
+    .split(',')
+    .map(name => name.trim());
+  if (named.includes(part.path)) return record.import;
+  const from = record.import.match(/\bfrom\s+(['"][^'"]+['"])/)![1];
+  return `import { ${part.path} } from ${from};`;
+}
+
+/**
+ * A record's parts past the root, as the lines that list them: its
+ * sub-components, for a dot-path each, and the exports documented with it
+ * (`InputBase`), for a name each.
+ */
+export function partLists(record: ComponentRecord): string[] {
+  const rest = record.parts.slice(1);
+  const subs = rest.filter(p => !p.standalone);
+  const standalone = rest.filter(p => p.standalone);
+  const out: string[] = [];
+  if (subs.length) {
+    out.push(
+      `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +
+        `Call \`get_props\` with a dot-path for any of them.`
+    );
+  }
+  if (standalone.length) {
+    const names = standalone.map(p =>
+      p.standalone === 'base'
+        ? `\`${p.path}\`, which it renders`
+        : `\`${p.path}\``
+    );
+    out.push(
+      `**Documented here too:** ${names.join('; ')}. Call \`get_props\` with ` +
+        `${standalone.length === 1 ? 'that name' : 'one of those names'} for its table.`
+    );
+  }
+  return out;
+}
+
 export function renderComponent(
   record: ComponentRecord,
   include: string[],
-  focus?: PartFocus
+  focus?: PartFocus,
+  { hasEntry }: Pick<PartOptions, 'hasEntry'> = {}
 ): string {
   const part =
     focus?.part && focus.part !== record.parts[0] ? focus.part : null;
   const out: string[] = [`# ${part ? part.path : record.name}`];
-  if (part) {
+  if (part?.standalone) {
+    out.push(
+      `${standaloneLine(part, record.name)} The props are its own; any ` +
+        `examples, CSS variables and notes are \`${record.name}\`'s, and ` +
+        `\`get_component({ name: "${record.name}" })\` has \`${record.name}\`'s ` +
+        `own table.`
+    );
+    if (part.summary) out.push(attributedLinks(part.summary));
+  } else if (part) {
     out.push(
       `\`${part.path}\` is a part of \`${record.name}\`, used through the import ` +
         `below. The props are the part's own; any examples, CSS variables and ` +
@@ -385,7 +469,7 @@ export function renderComponent(
     }
     if (record.summary) out.push(attributedLinks(record.summary));
   }
-  out.push(`\`\`\`tsx\n${record.import}\n\`\`\``);
+  out.push(`\`\`\`tsx\n${importOf(record, part)}\n\`\`\``);
 
   // A page written as prose is opt-in, because useBulmaClasses' runs to tens of
   // thousands of characters. It used to be pushed unconditionally for every helper,
@@ -395,9 +479,9 @@ export function renderComponent(
     out.push(reference || renderHelperApi(record));
   } else {
     if (include.includes('props') && part) {
-      out.push(renderPart(part, { heading: false, summary: false }));
+      out.push(renderPart(part, { heading: false, summary: false, hasEntry }));
     } else if (include.includes('props')) {
-      const [root, ...subs] = record.parts;
+      const [root] = record.parts;
       // The root part's summary is the component's, already printed above; printed
       // again it doubled every answer's opening paragraph (#935).
       if (root) {
@@ -408,12 +492,7 @@ export function renderComponent(
           })
         );
       }
-      if (subs.length) {
-        out.push(
-          `**Subcomponents:** ${subs.map(s => `\`${s.path}\``).join(', ')}. ` +
-            `Call \`get_props\` with a dot-path for any of them.`
-        );
-      }
+      out.push(...partLists(record));
     }
     // A component documented in prose (Theme) keeps its page alongside the table.
     // The pointer speaks of "this table", so it goes only where one was printed:

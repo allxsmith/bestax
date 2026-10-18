@@ -1,0 +1,252 @@
+// Bestax Extras - TreeView Styles
+// A tree of items you browse and pick from, drawn to look like Bulma's menu.
+//
+// The tree has its own classes and its own variables. Each default here is
+// the base token Bulma's menu variable defaults to, so a tree matches the
+// menu as Bulma ships it and follows a theme's base tokens, while a theme
+// that changes `--bulma-menu-*` doesn't reach it. Bulma registers those on
+// `.menu` alone, so a tree outside a menu couldn't read them anyway.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "../mixins" as *;
+
+// The row: the menu item's colors, radius and padding.
+$tree-view-item-h: cv.getVar("scheme-h") !default;
+$tree-view-item-s: cv.getVar("scheme-s") !default;
+$tree-view-item-background-l: cv.getVar("scheme-main-l") !default;
+$tree-view-item-background-l-delta: 0% !default;
+$tree-view-item-hover-background-l-delta: cv.getVar("hover-background-l-delta") !default;
+$tree-view-item-active-background-l-delta: cv.getVar("active-background-l-delta") !default;
+$tree-view-item-color-l: cv.getVar("text-l") !default;
+$tree-view-item-radius: cv.getVar("radius-small") !default;
+$tree-view-item-padding: 0.5em 0.75em !default;
+// The selected row: the link color, with its invert as the text.
+$tree-view-item-selected-h: cv.getVar("link-h") !default;
+$tree-view-item-selected-s: cv.getVar("link-s") !default;
+$tree-view-item-selected-background-l: cv.getVar("link-l") !default;
+$tree-view-item-selected-color-l: cv.getVar("link-invert-l") !default;
+$tree-view-line-height: 1.25 !default;
+// The group: the nested menu list's guide line and indent.
+$tree-view-group-border: 1px solid cv.getVar("border") !default;
+$tree-view-group-margin: 0.75em !default;
+$tree-view-group-padding: 0.75em !default;
+// The tree's own, with no menu variable to copy.
+$tree-view-item-disabled-color: cv.getVar("text-weak") !default;
+$tree-view-gap: 0.375em !default;
+$tree-view-toggle-size: 1em !default;
+$tree-view-toggle-color: currentColor !default;
+$tree-view-toggle-duration: cv.getVar("duration") !default;
+
+.#{iv.$class-prefix}tree-view {
+  @include cv.register-vars(
+    (
+      "tree-view-item-h": #{$tree-view-item-h},
+      "tree-view-item-s": #{$tree-view-item-s},
+      "tree-view-item-background-l": #{$tree-view-item-background-l},
+      "tree-view-item-background-l-delta": #{$tree-view-item-background-l-delta},
+      "tree-view-item-hover-background-l-delta": #{$tree-view-item-hover-background-l-delta},
+      "tree-view-item-active-background-l-delta": #{$tree-view-item-active-background-l-delta},
+      "tree-view-item-color-l": #{$tree-view-item-color-l},
+      "tree-view-item-radius": #{$tree-view-item-radius},
+      "tree-view-item-padding": #{$tree-view-item-padding},
+      "tree-view-item-selected-h": #{$tree-view-item-selected-h},
+      "tree-view-item-selected-s": #{$tree-view-item-selected-s},
+      "tree-view-item-selected-background-l": #{$tree-view-item-selected-background-l},
+      "tree-view-item-selected-color-l": #{$tree-view-item-selected-color-l},
+      "tree-view-line-height": #{$tree-view-line-height},
+      "tree-view-group-border": #{$tree-view-group-border},
+      "tree-view-group-margin": #{$tree-view-group-margin},
+      "tree-view-group-padding": #{$tree-view-group-padding},
+      "tree-view-item-disabled-color": #{$tree-view-item-disabled-color},
+      "tree-view-gap": #{$tree-view-gap},
+      "tree-view-toggle-size": #{$tree-view-toggle-size},
+      "tree-view-toggle-color": #{$tree-view-toggle-color},
+      "tree-view-toggle-duration": #{$tree-view-toggle-duration},
+    )
+  );
+}
+
+// The sizes are the menu's: the font size, which the padding, the indent and
+// the chevron follow, since they're all in em.
+.#{iv.$class-prefix}tree-view {
+  font-size: cv.getVar("size-normal");
+  line-height: cv.getVar("tree-view-line-height");
+  list-style: none;
+  margin: 0;
+  padding: 0;
+
+  &.#{iv.$class-prefix}is-small {
+    font-size: cv.getVar("size-small");
+  }
+
+  &.#{iv.$class-prefix}is-medium {
+    font-size: cv.getVar("size-medium");
+  }
+
+  &.#{iv.$class-prefix}is-large {
+    font-size: cv.getVar("size-large");
+  }
+}
+
+// The nested menu list's guide line, inline margins and indent. The menu
+// gives a nested list the same margin above and below, which leaves a gap
+// over and under every open group, so the block margin is dropped.
+.#{iv.$class-prefix}tree-view-group {
+  border-inline-start: cv.getVar("tree-view-group-border");
+  list-style: none;
+  margin-block: 0;
+  margin-inline: cv.getVar("tree-view-group-margin");
+  padding: 0;
+  padding-inline-start: cv.getVar("tree-view-group-padding");
+}
+
+// Focus shows on the row, outside it, so it's seen on the selected fill too.
+.#{iv.$class-prefix}tree-view-item {
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible > .#{iv.$class-prefix}tree-view-row {
+    @include extras-focus-outline;
+  }
+}
+
+// The menu item's row, laid out as a line of its parts.
+.#{iv.$class-prefix}tree-view-row {
+  align-items: center;
+  background-color: hsl(
+    #{cv.getVar("tree-view-item-h")},
+    #{cv.getVar("tree-view-item-s")},
+    calc(
+      #{cv.getVar("tree-view-item-background-l")} + #{cv.getVar("tree-view-item-background-l-delta")}
+    )
+  );
+  border-radius: cv.getVar("tree-view-item-radius");
+  color: hsl(
+    #{cv.getVar("tree-view-item-h")},
+    #{cv.getVar("tree-view-item-s")},
+    #{cv.getVar("tree-view-item-color-l")}
+  );
+  cursor: pointer;
+  display: flex;
+  gap: cv.getVar("tree-view-gap");
+  padding: cv.getVar("tree-view-item-padding");
+
+  &:hover {
+    @include cv.register-vars(
+      (
+        "tree-view-item-background-l-delta": #{cv.getVar("tree-view-item-hover-background-l-delta")},
+      )
+    );
+  }
+
+  &:active {
+    @include cv.register-vars(
+      (
+        "tree-view-item-background-l-delta": #{cv.getVar("tree-view-item-active-background-l-delta")},
+      )
+    );
+  }
+
+  &.#{iv.$class-prefix}is-selected {
+    @include cv.register-vars(
+      (
+        "tree-view-item-h": #{cv.getVar("tree-view-item-selected-h")},
+        "tree-view-item-s": #{cv.getVar("tree-view-item-selected-s")},
+        "tree-view-item-background-l": #{cv.getVar("tree-view-item-selected-background-l")},
+        "tree-view-item-color-l": #{cv.getVar("tree-view-item-selected-color-l")},
+      )
+    );
+  }
+
+  // After the hover and press tints, which it takes away.
+  &.#{iv.$class-prefix}is-disabled {
+    @include cv.register-vars(
+      (
+        "tree-view-item-background-l-delta": 0%,
+      )
+    );
+    color: cv.getVar("tree-view-item-disabled-color");
+    cursor: default;
+  }
+}
+
+// The chevron's box is on every row, so the labels line up whether an item
+// is a parent or not.
+.#{iv.$class-prefix}tree-view-toggle {
+  align-items: center;
+  display: inline-flex;
+  flex: none;
+  height: cv.getVar("tree-view-toggle-size");
+  justify-content: center;
+  width: cv.getVar("tree-view-toggle-size");
+}
+
+// The chevron, on a parent, drawn the way Bulma's `%arrow` draws the
+// `.select` arrow: two sides of a square, turned. It points to the end of
+// the line while closed and down while open. It's in the row's text color,
+// where Bulma's arrow takes the link color, which would vanish on the
+// selected fill. It's a border, so it stays in forced colors.
+.#{iv.$class-prefix}tree-view-item[aria-expanded] > .#{iv.$class-prefix}tree-view-row > .#{iv.$class-prefix}tree-view-toggle::after {
+  // The square's bottom and left sides before it's turned, so physical
+  // sides, like the turn.
+  border-color: cv.getVar("tree-view-toggle-color");
+  border-style: solid;
+  border-width: 0 0 0.125em 0.125em;
+  content: "";
+  height: 0.5em;
+  transform: translateX(-15%) rotate(-135deg);
+  transition-duration: cv.getVar("tree-view-toggle-duration");
+  transition-property: transform;
+  width: 0.5em;
+}
+
+.#{iv.$class-prefix}tree-view-item[aria-expanded="false"]:dir(rtl) > .#{iv.$class-prefix}tree-view-row > .#{iv.$class-prefix}tree-view-toggle::after {
+  transform: translateX(15%) rotate(45deg);
+}
+
+.#{iv.$class-prefix}tree-view-item[aria-expanded="true"] > .#{iv.$class-prefix}tree-view-row > .#{iv.$class-prefix}tree-view-toggle::after {
+  transform: translateY(-15%) rotate(-45deg);
+}
+
+.#{iv.$class-prefix}tree-view-check,
+.#{iv.$class-prefix}tree-view-icon {
+  display: inline-flex;
+  flex: none;
+}
+
+// The box is Checkbox's, drawn the way Checkbox draws it. A press on it is
+// the row's, so it never takes focus and the row's click checks it.
+.#{iv.$class-prefix}tree-view-check > * {
+  pointer-events: none;
+}
+
+.#{iv.$class-prefix}tree-view-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (forced-colors: active) {
+  // Forced colors takes the fill away, so the selected row asks for the
+  // system's own pair, and keeps its text and chevron in it.
+  .#{iv.$class-prefix}tree-view-row.#{iv.$class-prefix}is-selected {
+    background-color: Highlight;
+    color: HighlightText;
+    forced-color-adjust: none;
+  }
+
+  .#{iv.$class-prefix}tree-view-row.#{iv.$class-prefix}is-disabled {
+    color: GrayText;
+  }
+
+  .#{iv.$class-prefix}tree-view-item:focus-visible > .#{iv.$class-prefix}tree-view-row {
+    outline-color: CanvasText;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}tree-view-item[aria-expanded] > .#{iv.$class-prefix}tree-view-row > .#{iv.$class-prefix}tree-view-toggle::after {
+    transition: none;
+  }
+}
