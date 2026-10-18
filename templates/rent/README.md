@@ -58,6 +58,10 @@ treats the folder as a project of its own.
   white, which reads far more clearly, and the port keeps that. The footer links take Bulma's
   darker turquoise for text on the page in place of the full turquoise, which barely reads on
   the light footer.
+- The subtitles' grey is the original's, darkened in its own hue until it reads at the contrast
+  text needs on white and on the light sections; the original's was too faint for that.
+- The Denver card's photo was described as houses on a card for apartments. Each state card's
+  photo description now comes from what the card says, so the two agree.
 - The original's spacing classes (`m-t-50` and the like) are bestax's spacing props, on the
   nearest step of Bulma's scale, and each card's doubled `card-image` wrapper is a single one.
 - `index.html` pins Bulma's light scheme, as the original's design is light only.

@@ -49,9 +49,13 @@ h4 {
   font-weight: 500;
 }
 
+/*
+ * The original's #99a6b3, darkened in its own hue until it clears the 4.5:1
+ * text contrast, with a little to spare, on white and on the light hero.
+ */
 .hero.is-light .subtitle,
 .subtitle {
-  color: #99a6b3;
+  color: #5f7080;
 }
 
 a {

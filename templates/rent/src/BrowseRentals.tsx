@@ -11,37 +11,25 @@ import {
 } from '@allxsmith/bestax-bulma';
 import RentalCard from './RentalCard.tsx';
 
-/** Two rows of four: what each card says, and its photo's description. */
+/** Two rows of four: what each card offers, and where. */
 const states = [
   [
-    { kind: 'Houses', city: 'Dallas, TX', alt: 'Dallas houses for rent' },
-    {
-      kind: 'Apartments',
-      city: 'San Antonio, TX',
-      alt: 'San Antonio apartments for rent',
-    },
-    { kind: 'Houses', city: 'Phoenix, AZ', alt: 'Phoenix houses for rent' },
-    { kind: 'Apartments', city: 'Denver, CO', alt: 'Denver houses for rent' },
+    { kind: 'Houses', city: 'Dallas, TX' },
+    { kind: 'Apartments', city: 'San Antonio, TX' },
+    { kind: 'Houses', city: 'Phoenix, AZ' },
+    { kind: 'Apartments', city: 'Denver, CO' },
   ],
   [
-    { kind: 'Houses', city: 'Houston, TX', alt: 'Houston houses for rent' },
-    {
-      kind: 'Apartments',
-      city: 'San Francisco, CA',
-      alt: 'San Francisco apartments for rent',
-    },
-    {
-      kind: 'Houses',
-      city: 'San Diego, CA',
-      alt: 'San Diego houses for rent',
-    },
-    {
-      kind: 'Apartments',
-      city: 'Austin, TX',
-      alt: 'Austin apartments for rent',
-    },
+    { kind: 'Houses', city: 'Houston, TX' },
+    { kind: 'Apartments', city: 'San Francisco, CA' },
+    { kind: 'Houses', city: 'San Diego, CA' },
+    { kind: 'Apartments', city: 'Austin, TX' },
   ],
 ];
+
+/** A card photo's description, from what its card says, so the two agree. */
+const stateAlt = ({ kind, city }: { kind: string; city: string }) =>
+  `${city.split(',')[0]} ${kind.toLowerCase()} for rent`;
 
 const regions = [
   {
@@ -99,7 +87,7 @@ function BrowseRentals() {
                   <Columns key={index}>
                     {row.map(state => (
                       <Column key={state.city}>
-                        <RentalCard alt={state.alt}>
+                        <RentalCard alt={stateAlt(state)}>
                           <Title as="h2" textSize="6">
                             <Link href="#">
                               {state.kind} for rent in
