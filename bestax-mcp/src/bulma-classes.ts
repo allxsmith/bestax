@@ -35,6 +35,11 @@ export interface Modifier {
    * so the class converts only beside one written out.
    */
   needsAttr?: { name: string; value: string };
+  /**
+   * The tag the component renders with this class's prop and no `as`, in
+   * place of the root's own (`Image` puts a ratio on a <figure>).
+   */
+  rendersTag?: string;
 }
 
 export interface RootRecord {
@@ -348,7 +353,10 @@ function listTags(tags: readonly string[]): string {
     : named[0];
 }
 
-function reaches(entry: RootRecord): string {
+function reaches(entry: RootRecord, retagged?: string): string {
+  if (retagged && Array.isArray(entry.as)) {
+    return `<${retagged}> with these classes, or ${listTags(entry.as)} through \`as\``;
+  }
   if (entry.as === 'any') return `<${entry.tag}>, or any tag through \`as\``;
   if (entry.sizeDrivesTag && entry.as) {
     return `the heading its \`size\` names (<${entry.tag}> with none), or ${listTags(entry.as)} through \`as\``;
@@ -725,10 +733,16 @@ export function lookupClasses(
     });
   }
   const size = writes.get('size')?.value;
+  // A class whose prop puts the component on another tag when no `as` is
+  // given (`Image`'s ratios on a <figure>).
+  const retagged = [...writes.values()]
+    .map(write => own(entry.modifiers, write.token)?.rendersTag)
+    .find(Boolean);
   const renders =
-    entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
+    retagged ??
+    (entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'
       ? `h${size}`
-      : entry.tag!;
+      : entry.tag!);
   const reachable =
     !tag ||
     renders === tag ||
@@ -738,7 +752,12 @@ export function lookupClasses(
     if (tag && entry.otherTagsStay?.tags.includes(tag)) {
       return result({ kind: 'markup', why: entry.otherTagsStay.why });
     }
-    return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
+    return result({
+      kind: 'wrong-tag',
+      target,
+      tag,
+      reaches: reaches(entry, retagged),
+    });
   }
   // A `className` it's given replaces its own class, so a class left over
   // keeps the element as markup.
@@ -768,7 +787,7 @@ export function lookupClasses(
     return result({
       kind: 'component',
       target,
-      renders: reaches(entry),
+      renders: reaches(entry, retagged),
       ...about,
     });
   }
