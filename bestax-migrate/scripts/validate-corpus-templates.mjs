@@ -47,6 +47,7 @@ import {
   readTscOutput,
   renderMarkdown,
   repoUrl,
+  scratchTsconfig,
   summaryTable,
   undocumentedRuleFailures,
 } from './lib/corpus-templates.mjs';
@@ -308,19 +309,7 @@ function typecheck(pkg, modules, failure) {
   fs.writeFileSync(
     path.join(pkg, 'tsconfig.json'),
     `${JSON.stringify(
-      {
-        compilerOptions: {
-          strict: true,
-          noEmit: true,
-          jsx: 'react-jsx',
-          module: 'ESNext',
-          target: 'ES2022',
-          moduleResolution: 'bundler',
-          lib: ['ES2022', 'DOM', 'DOM.Iterable'],
-          skipLibCheck: true,
-        },
-        files: modules.map(page => page.module),
-      },
+      scratchTsconfig(modules.map(page => page.module)),
       null,
       2
     )}\n`

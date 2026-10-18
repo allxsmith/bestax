@@ -9,11 +9,14 @@
  * as zero.
  */
 
+import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { BULMA_COMPONENT_CLASSES } from '../../eslint-plugin/src/generated/metadata.js';
 import {
+  AMBIENT_TYPES,
   TEMPLATES,
   buildReport,
   componentClassCounts,
@@ -26,6 +29,7 @@ import {
   readTscOutput,
   renderMarkdown,
   repoUrl,
+  scratchTsconfig,
   summaryTable,
   undocumentedRuleFailures,
   upstreamName,
@@ -42,6 +46,7 @@ const packageRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   '..'
 );
+const tscBin = createRequire(import.meta.url).resolve('typescript/bin/tsc');
 
 /** A slice of the ESLint plugin's table, in its order: families first. */
 const CLASSES = new Map([
@@ -192,6 +197,44 @@ describe('the scratch package', () => {
     expect(upstreamName('docs/tsconfig.json')).toBe(
       'docs/tsconfig.upstream.json'
     );
+  });
+
+  it('type-checks a stylesheet import the way a Vite app does', () => {
+    const pkg = path.join(dir, 'typed');
+    prepareScratchPackage(path.join(dir, 'upstream'), pkg, 'corpus-typed');
+    const module = (name: string, lines: string[]) =>
+      fs.writeFileSync(path.join(pkg, name), `${lines.join('\n')}\n`);
+    // What `--css bestax` writes, and a page's own stylesheet beside it.
+    module('index.tsx', [
+      'import "@allxsmith/bestax-bulma/bestax.css";',
+      'import "./css/styles.css";',
+      '',
+      'export default function IndexPage() {',
+      '  return <div className="box" />;',
+      '}',
+    ]);
+    const tsc = (config: object) => {
+      fs.writeFileSync(path.join(pkg, 'tsconfig.json'), JSON.stringify(config));
+      const result = spawnSync(
+        process.execPath,
+        [tscBin, '-p', pkg, '--pretty', 'false'],
+        { cwd: pkg, encoding: 'utf8' }
+      );
+      return readTscOutput(`${result.stdout}${result.stderr}`).map(
+        ({ file, code }) => `${file} ${code}`
+      );
+    };
+
+    expect(fs.readFileSync(path.join(pkg, AMBIENT_TYPES), 'utf8')).toBe(
+      "declare module '*.css' {}\n"
+    );
+    expect(tsc(scratchTsconfig(['index.tsx']))).toEqual([]);
+    // Without the ambient types TypeScript refuses both imports, which is
+    // what every module would get from the scratch setup alone.
+    expect(tsc({ ...scratchTsconfig([]), files: ['index.tsx'] })).toEqual([
+      'index.tsx TS2882',
+      'index.tsx TS2882',
+    ]);
   });
 });
 

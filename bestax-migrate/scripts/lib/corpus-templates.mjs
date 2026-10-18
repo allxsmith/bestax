@@ -166,7 +166,43 @@ export function prepareScratchPackage(from, to, name) {
       2
     )}\n`
   );
+  fs.writeFileSync(path.join(to, AMBIENT_TYPES), AMBIENT_DECLARATIONS);
   return renamed.sort(byCodePoint);
+}
+
+/**
+ * The scratch package's ambient types, which `scratchTsconfig` lists. A
+ * create-bestax app has its stylesheet imports typed by `vite/client` (the
+ * vite-ts template's `types`), and TypeScript rejects an untyped side-effect
+ * import, so without this every module importing a stylesheet would fail to
+ * type-check because of the scratch setup rather than the codemod. Vite is not
+ * a dependency here, so this is Vite's own declaration for `.css`, as written
+ * in its `client.d.ts`, and a stylesheet import type-checks as it does in the
+ * app. It is written after the copy, so it replaces an upstream file of the
+ * same name.
+ */
+export const AMBIENT_TYPES = 'global.d.ts';
+const AMBIENT_DECLARATIONS = "declare module '*.css' {}\n";
+
+/**
+ * The scratch package's `tsconfig.json` over `modules` (paths relative to the
+ * package), the way the HTML kitchen sink type-checks its output, plus the
+ * ambient types.
+ */
+export function scratchTsconfig(modules) {
+  return {
+    compilerOptions: {
+      strict: true,
+      noEmit: true,
+      jsx: 'react-jsx',
+      module: 'ESNext',
+      target: 'ES2022',
+      moduleResolution: 'bundler',
+      lib: ['ES2022', 'DOM', 'DOM.Iterable'],
+      skipLibCheck: true,
+    },
+    files: [...modules, AMBIENT_TYPES],
+  };
 }
 
 // ---- Rule ids ---------------------------------------------------------------

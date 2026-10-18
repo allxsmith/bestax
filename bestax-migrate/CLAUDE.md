@@ -213,7 +213,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
     fetched at the commit pinned in `scripts/lib/corpus-templates.mjs` (the one home of those
     pins, checked for shape only, so a moved pin is compared with its port issue by hand) and
     converted by the CLI with `--css bestax` in a scratch package where every page becomes
-    `.tsx`. It needs the network, which is why it stays out of CI with the others. It also
+    `.tsx` and a stylesheet import type-checks as it does in a create-bestax app (Vite's own
+    `*.css` declaration, since Vite is not a dependency here). It needs the network, which is why it stays out of CI with the others. It also
     fails on a module that no longer parses, on one tsc could not read, and on a rule the
     skill's references don't document (the kitchen sinks' check), and it lists the modules'
     `tsc` diagnostics without failing on them. `report.md` and `report.json` in
