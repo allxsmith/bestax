@@ -71,6 +71,14 @@ fix.
    what `index.html` keeps of the upstream head (web fonts, the favicon, its meta tags) into the
    scaffold's, leaving out the Bulma and plugin `<link>` and `<script>` tags.
 
+   An original with more than one page converts every page, by name or with `-e html` over its
+   folder. Copy its images in beside the pages too, or each relative URL to one is reported as
+   `html-url:missing` rather than `html-url:relative`. Each module becomes a page component, the
+   parts the pages repeat become section components they share, and `src/App.tsx` renders the
+   page the address names; the links between the pages are among the `html-url:relative` TODOs.
+   `templates/tropico` routes on the URL's hash in a small module of its own, so the template
+   installs no router package and every page opens in StackBlitz's preview.
+
 4. **Resolve every `TODO(bestax-migrate)`** with the skills (bestax-migrate,
    bestax-layout-scaffold, bestax-form, bestax-icons, bestax-theming) and the bestax MCP server
    (`lookup_bulma_classes`, `get_props`, `get_examples`).
