@@ -13,6 +13,7 @@
 import {
   HELPER_TOKENS,
   LEGACY_09,
+  REMOVED_IN_V1,
   ROOTS,
   passthroughReason,
 } from '../src/sources/bulma-classes/class-map.js';
@@ -71,6 +72,13 @@ describe("the table accounts for Bulma's stylesheet", () => {
     ];
     expect(
       named.filter(token => !classes.has(token) && !LEGACY_09[token])
+    ).toEqual([]);
+  });
+
+  it('has none of the classes it lists as removed, and flags only those', () => {
+    expect(REMOVED_IN_V1.filter(token => classes.has(token))).toEqual([]);
+    expect(
+      Object.keys(LEGACY_09).filter(token => !REMOVED_IN_V1.includes(token))
     ).toEqual([]);
   });
 });
