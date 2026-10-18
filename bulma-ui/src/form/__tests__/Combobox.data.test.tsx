@@ -447,12 +447,12 @@ describe('Combobox with data', () => {
       expect(option('Coffee')).toHaveAttribute('aria-selected', 'true');
       expect(option('Tea')).toHaveAttribute('aria-selected', 'false');
 
-      const tags = container.querySelector('.field + .tags') as HTMLElement;
+      const tags = container.querySelector(
+        '.field .combobox + .tags'
+      ) as HTMLElement;
       expect(tags).toHaveClass('mt-2');
       expect(
-        within(tags)
-          .getAllByText(/./, { selector: '.tag' })
-          .map(t => t.textContent)
+        Array.from(tags.querySelectorAll('.tag'), t => t.textContent)
       ).toEqual(['Coffee', 'Water']);
 
       pick('Coffee');
@@ -585,7 +585,7 @@ describe('Combobox with data', () => {
       expect(option('Coffee')).toHaveAttribute('aria-disabled', 'true');
       fireEvent.click(option('Coffee'));
       expect(onChange).not.toHaveBeenCalled();
-      expect(screen.getByText('Tea', { selector: '.tag' })).toBeTruthy();
+      expect(screen.getByText('Tea', { selector: '.tag span' })).toBeTruthy();
       expect(screen.queryByRole('button', { name: 'Remove Tea' })).toBeNull();
       const form = container.querySelector('form') as HTMLFormElement;
       expect(new FormData(form).getAll('drinks')).toEqual([]);
@@ -701,6 +701,264 @@ describe('Combobox with data', () => {
       render(<Combobox label="Drink" data={DRINKS} id="drink" inline />);
       expect(screen.getByRole('combobox', { name: 'Drink' })).toBe(field());
       expect(screen.getByRole('listbox', { name: 'Drink' })).toBeTruthy();
+    });
+  });
+
+  describe('Leaving a search', () => {
+    it('puts the pick back in the field on Escape', () => {
+      const onChange = jest.fn();
+      const { container } = render(
+        <form>
+          <Combobox
+            label="Country"
+            data={COUNTRIES}
+            name="country"
+            defaultValue="France"
+            onChange={onChange}
+          />
+        </form>
+      );
+      type('ger');
+      key('Escape');
+      expect(screen.queryByRole('listbox')).toBeNull();
+      expect(field()).toHaveValue('France');
+      expect(field()).toHaveFocus();
+      expect(onChange).not.toHaveBeenCalled();
+      const form = container.querySelector('form') as HTMLFormElement;
+      expect(new FormData(form).getAll('country')).toEqual(['France']);
+    });
+
+    it('clears the search on Escape with several values', () => {
+      render(<Combobox label="Drinks" data={DRINKS} multiple />);
+      type('te');
+      key('Escape');
+      expect(field()).toHaveValue('');
+    });
+
+    it('still reports the list closing to onOpenChange', () => {
+      const onOpenChange = jest.fn();
+      render(
+        <Combobox
+          label="Country"
+          data={COUNTRIES}
+          onOpenChange={onOpenChange}
+        />
+      );
+      type('ger');
+      expect(onOpenChange).toHaveBeenLastCalledWith(true);
+      key('Escape');
+      expect(onOpenChange).toHaveBeenLastCalledWith(false);
+    });
+
+    it('puts the text back on Enter, so required checks the pick and not the typing', () => {
+      const { container } = render(
+        <form>
+          <Combobox label="Country" data={COUNTRIES} name="country" required />
+        </form>
+      );
+      const form = container.querySelector('form') as HTMLFormElement;
+      type('zzz');
+      expect(form.checkValidity()).toBe(true);
+      // Nothing is highlighted, so the key goes on to submit the form.
+      expect(key('Enter')).toBe(true);
+      expect(field()).toHaveValue('');
+      expect(form.checkValidity()).toBe(false);
+    });
+
+    it('keeps a pick that typing on Enter would have hidden', () => {
+      const { container } = render(
+        <form>
+          <Combobox
+            label="Country"
+            data={COUNTRIES}
+            name="country"
+            required
+            defaultValue="Japan"
+          />
+        </form>
+      );
+      const form = container.querySelector('form') as HTMLFormElement;
+      type('zzz');
+      key('Enter');
+      expect(field()).toHaveValue('Japan');
+      expect(form.checkValidity()).toBe(true);
+      expect(new FormData(form).getAll('country')).toEqual(['Japan']);
+    });
+  });
+
+  describe('Clearing one value', () => {
+    it('clears it when the field is left empty', () => {
+      const onChange = jest.fn();
+      const { container } = render(
+        <form>
+          <Combobox
+            label="Country"
+            data={COUNTRIES}
+            name="country"
+            defaultValue="France"
+            onChange={onChange}
+          />
+        </form>
+      );
+      type('');
+      expect(onChange).not.toHaveBeenCalled();
+      fireEvent.blur(field());
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(null);
+      expect(field()).toHaveValue('');
+      const form = container.querySelector('form') as HTMLFormElement;
+      expect(new FormData(form).getAll('country')).toEqual(['']);
+    });
+
+    it('clears it once when Tab closes the list and then leaves the field', () => {
+      const onChange = jest.fn();
+      render(
+        <Combobox
+          label="Country"
+          data={COUNTRIES}
+          defaultValue="France"
+          onChange={onChange}
+        />
+      );
+      type('');
+      key('Tab');
+      fireEvent.blur(field());
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(null);
+    });
+
+    it('keeps a new pick made after emptying the field', () => {
+      const onChange = jest.fn();
+      render(
+        <Combobox
+          label="Country"
+          data={COUNTRIES}
+          defaultValue="France"
+          onChange={onChange}
+        />
+      );
+      type('');
+      pick('Japan');
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith('Japan');
+      expect(field()).toHaveValue('Japan');
+    });
+
+    it('keeps it when the field is left with other text', () => {
+      const onChange = jest.fn();
+      render(
+        <Combobox
+          label="Country"
+          data={COUNTRIES}
+          defaultValue="France"
+          onChange={onChange}
+        />
+      );
+      type('');
+      type('ger');
+      fireEvent.blur(field());
+      expect(onChange).not.toHaveBeenCalled();
+      expect(field()).toHaveValue('France');
+    });
+
+    it('leaves several values alone when the field is left empty', () => {
+      const onChange = jest.fn();
+      render(
+        <Combobox
+          label="Drinks"
+          data={DRINKS}
+          multiple
+          defaultValue={['tea']}
+          onChange={onChange}
+        />
+      );
+      type('x');
+      type('');
+      fireEvent.blur(field());
+      expect(onChange).not.toHaveBeenCalled();
+      expect(screen.getByRole('button', { name: 'Remove Tea' })).toBeTruthy();
+    });
+  });
+
+  describe('Tags in the Field', () => {
+    it('puts the tags under the field and ahead of the message, inside the Field', () => {
+      const { container } = render(
+        <Combobox
+          label="Drinks"
+          data={DRINKS}
+          multiple
+          defaultValue={['tea']}
+          message="Pick any"
+        />
+      );
+      const fieldEl = container.querySelector('.field') as HTMLElement;
+      const wrapper = fieldEl.querySelector(
+        ':scope > div:not(.combobox)'
+      ) as HTMLElement;
+      expect(wrapper.children[0]).toHaveClass('combobox');
+      expect(wrapper.children[1]).toHaveClass('tags');
+      expect(wrapper.nextElementSibling).toHaveClass('help');
+    });
+
+    it('keeps the tags with the field in a horizontal Field', () => {
+      const { container } = render(
+        <Combobox
+          label="Drinks"
+          data={DRINKS}
+          multiple
+          horizontal
+          defaultValue={['tea']}
+        />
+      );
+      const body = container.querySelector('.field-body') as HTMLElement;
+      expect(body.children).toHaveLength(1);
+      expect(body.firstElementChild?.querySelector('.combobox')).toBe(
+        container.querySelector('.combobox')
+      );
+      expect(body.firstElementChild?.querySelector('.tags')).toBe(
+        container.querySelector('.tags')
+      );
+    });
+
+    it('keeps the same field while the first pick comes and the last goes', () => {
+      render(<Combobox label="Drinks" data={DRINKS} multiple />);
+      const input = field();
+      open();
+      pick('Tea');
+      expect(field()).toBe(input);
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tea' }));
+      expect(field()).toBe(input);
+      expect(input).toHaveFocus();
+    });
+
+    it('adds no wrapper with one value', () => {
+      const { container } = render(
+        <Combobox label="Drink" data={DRINKS} defaultValue="tea" />
+      );
+      expect(container.querySelector('.field > .combobox')).not.toBeNull();
+    });
+  });
+
+  describe('Picks for a screen reader', () => {
+    it('describes the field with the picks while there are some', () => {
+      render(
+        <Combobox
+          label="Drinks"
+          data={DRINKS}
+          multiple
+          defaultValue={['tea', 'milk']}
+        />
+      );
+      expect(field()).toHaveAccessibleDescription('Tea Milk');
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Tea' }));
+      expect(field()).toHaveAccessibleDescription('Milk');
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Milk' }));
+      expect(field()).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('gives a field with one value no description, since it shows its pick', () => {
+      render(<Combobox label="Drink" data={DRINKS} defaultValue="tea" />);
+      expect(field()).not.toHaveAttribute('aria-describedby');
     });
   });
 

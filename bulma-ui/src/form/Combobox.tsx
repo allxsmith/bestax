@@ -192,8 +192,9 @@ interface ComboboxDataBaseProps extends ComboboxBaseProps {
    * A value is needed, with `data`. The field is `required` while nothing is
    * picked, so the browser's own check stops the form the way it does for
    * Autocomplete's field, and it's `aria-required` the whole time. The check
-   * reads the field's text, so typing without picking passes it until
-   * leaving the field puts the text back.
+   * reads the field's text, which the list closing, Enter's included, puts
+   * back to the pick. An `inline` list never closes, so there it's leaving
+   * the field that does.
    */
   required?: boolean;
   /**
@@ -237,21 +238,26 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * Several values can be picked. The list stays open after a pick, it's
    * `aria-multiselectable`, and each item's `checked` is its
    * `aria-selected`. With `data`, the value is an array, and the picks show
-   * as tags under the field, each with a button that takes it off.
+   * as tags under the field, inside its Field, each with a button that takes
+   * it off. The field's description lists them, since its text is the
+   * search.
    * @defaultValue false
    */
   multiple?: false;
   /**
    * The value, controlled, with `data`: the picked item's `value`, or `null`
    * for none, and with `multiple` an array of them. With one value, the
-   * field shows the picked item's label while you aren't typing in it.
+   * field shows the picked item's label while you aren't typing in it, and
+   * the list closing or the field being left puts it back over any typing.
+   * A field emptied and left like that clears the value.
    */
   value?: string | null;
   /** The value to start with when uncontrolled, with `data`. */
   defaultValue?: string | null;
   /**
-   * Called with the new value, with `data`, when a pick or a tag's button
-   * changes it: an item's `value`, or with `multiple` the array.
+   * Called with the new value, with `data`, when a pick, a tag's button or
+   * a field left empty changes it: an item's `value` or `null`, or with
+   * `multiple` the array.
    */
   onChange?: (value: string | null) => void;
 }
@@ -265,7 +271,8 @@ export interface ComboboxMultipleDataProps extends ComboboxDataBaseProps {
   data: (string | ComboboxItemData)[];
   /**
    * Several values can be picked: the value is an array, and the picks show
-   * as tags under the field, each with a button that takes it off.
+   * as tags under the field, each with a button that takes it off. The
+   * field's description lists them.
    */
   multiple: true;
   /** The values, controlled: the picked items' `value`s. */
@@ -527,10 +534,21 @@ function setRefs<T>(
  * The Combobox built from parts: the field, the menu, the list and the
  * keys, with the data, the filtering and the value left to the app.
  */
-const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsProps>(
+/** What the parts root takes from the Combobox given `data`, beyond the parts' props. */
+interface ComboboxPartsRootProps extends ComboboxPartsProps {
+  /**
+   * Shown under the Combobox, inside its Field and ahead of the message: the
+   * tags of several values. While it's given, the two share a wrapper, so
+   * they stay together in a horizontal Field's body.
+   */
+  below?: React.ReactNode;
+}
+
+const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsRootProps>(
   (
     {
       children,
+      below,
       open,
       defaultOpen = false,
       onOpenChange,
@@ -706,6 +724,15 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsProps>(
         <StatusRegion items={announced} describe={describeEmpty} />
       </div>
     );
+    const fieldElement =
+      below === undefined ? (
+        comboboxElement
+      ) : (
+        <div>
+          {comboboxElement}
+          {below}
+        </div>
+      );
     const messageEl = message ? <p className={helpClass}>{message}</p> : null;
 
     if (ownField) {
@@ -717,7 +744,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsProps>(
           horizontal={horizontal}
           className={fieldClassName}
         >
-          {comboboxElement}
+          {fieldElement}
           {messageEl}
         </Field>
       );
@@ -725,7 +752,7 @@ const ComboboxParts = forwardRef<HTMLDivElement, ComboboxPartsProps>(
 
     return (
       <>
-        {comboboxElement}
+        {fieldElement}
         {messageEl}
       </>
     );
@@ -1132,6 +1159,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       empty,
       itemTemplate,
       onSelect,
+      onOpenChange,
       inline = false,
       disabled = false,
       required = false,
@@ -1171,13 +1199,28 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
     const picked = controlled ? asList(value) : ownValue;
     const change = (next: string[]) => {
       if (!controlled) setOwnValue(next);
-      // With one value, a pick is the only change, so `next` holds it.
       if (props.multiple === true) props.onChange?.(next);
-      else props.onChange?.(next[0]);
+      else props.onChange?.(next[0] ?? null);
     };
 
-    // What's typed, or `null` while the field shows the value instead.
-    const [query, setQuery] = useState<string | null>(null);
+    // What's typed, or `null` while the field shows the value instead. The
+    // ref holds it as it is now, since a pick sets it and the list's closing
+    // reads it in the same event, before a render.
+    const [query, setQueryState] = useState<string | null>(null);
+    const queryRef = useRef<string | null>(null);
+    const setQuery = (next: string | null) => {
+      queryRef.current = next;
+      setQueryState(next);
+    };
+    // Once the list closes or the field is left, the field shows the value
+    // again: typed text goes back to the pick, and with one value a field
+    // left empty clears it.
+    const settle = () => {
+      if (!multiple && queryRef.current === '' && picked.length > 0) {
+        change([]);
+      }
+      setQuery(null);
+    };
     const term = (query ?? '').trim().toLowerCase();
     const shown = items.filter(item =>
       labelOf(item).toLowerCase().includes(term)
@@ -1201,6 +1244,9 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       change(picked.filter(v => v !== pick));
       inputRef.current?.focus();
     };
+    // The picks, for the field's description, since its text is the search.
+    const tagsId = useId();
+    const tagIds = picked.map((_, index) => `${tagsId}-${index}`);
 
     // Each group where `data` first names it, and the items with none
     // together where the first of them is.
@@ -1237,62 +1283,71 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       ) : null;
 
     return (
-      <>
-        <ComboboxParts
-          {...rest}
-          ref={ref}
-          multiple={multiple}
-          inline={inline}
-          onSelect={select}
-        >
-          <ComboboxInput
-            {...named}
-            ref={inputRef}
-            id={id}
-            disabled={disabled}
-            // The browser's check reads the field's text, and only a pick
-            // fills it for good, so it's required until there is one.
-            required={required && picked.length === 0}
-            aria-required={required || undefined}
-            form={form}
-            placeholder={placeholder}
-            value={
-              query ??
-              (multiple || picked.length === 0 ? '' : labelFor(picked[0]))
-            }
-            onChange={event => setQuery(event.target.value)}
-            onBlur={() => setQuery(null)}
-          />
-          {inline ? list : <ComboboxMenu>{list}</ComboboxMenu>}
-          {name &&
-            (multiple ? picked : [picked[0] ?? '']).map(v => (
-              <input
-                key={v}
-                type="hidden"
-                name={name}
-                value={v}
-                form={form}
-                disabled={disabled}
-              />
-            ))}
-        </ComboboxParts>
-        {multiple && picked.length > 0 && (
-          <Tags mt="2">
-            {picked.map(v => (
-              <Tag key={v}>
-                {labelFor(v)}
-                {!disabled && (
-                  <Delete
-                    size="small"
-                    ariaLabel={`Remove ${labelFor(v)}`}
-                    onClick={() => remove(v)}
-                  />
-                )}
-              </Tag>
-            ))}
-          </Tags>
-        )}
-      </>
+      <ComboboxParts
+        {...rest}
+        ref={ref}
+        multiple={multiple}
+        inline={inline}
+        onSelect={select}
+        onOpenChange={next => {
+          if (!next) settle();
+          onOpenChange?.(next);
+        }}
+        below={
+          multiple
+            ? picked.length > 0 && (
+                <Tags mt="2">
+                  {picked.map((v, index) => (
+                    <Tag key={v}>
+                      <span id={tagIds[index]}>{labelFor(v)}</span>
+                      {!disabled && (
+                        <Delete
+                          size="small"
+                          ariaLabel={`Remove ${labelFor(v)}`}
+                          onClick={() => remove(v)}
+                        />
+                      )}
+                    </Tag>
+                  ))}
+                </Tags>
+              )
+            : undefined
+        }
+      >
+        <ComboboxInput
+          {...named}
+          ref={inputRef}
+          id={id}
+          disabled={disabled}
+          // The browser's check reads the field's text, and only a pick
+          // fills it for good, so it's required until there is one.
+          required={required && picked.length === 0}
+          aria-required={required || undefined}
+          form={form}
+          aria-describedby={
+            multiple && picked.length > 0 ? tagIds.join(' ') : undefined
+          }
+          placeholder={placeholder}
+          value={
+            query ??
+            (multiple || picked.length === 0 ? '' : labelFor(picked[0]))
+          }
+          onChange={event => setQuery(event.target.value)}
+          onBlur={settle}
+        />
+        {inline ? list : <ComboboxMenu>{list}</ComboboxMenu>}
+        {name &&
+          (multiple ? picked : [picked[0] ?? '']).map(v => (
+            <input
+              key={v}
+              type="hidden"
+              name={name}
+              value={v}
+              form={form}
+              disabled={disabled}
+            />
+          ))}
+      </ComboboxParts>
     );
   }
 );
