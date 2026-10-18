@@ -4,7 +4,10 @@ For apps that style plain JSX with Bulma's classes (`<div className="columns">`)
 wrapper library. The codemod converts an element only when the bestax component renders
 **exactly the markup the element did**: same tag, same classes, same attributes. Anything else
 stays as written, with a `TODO(bestax-migrate)` when there is something to decide (see
-[unmappables.md](unmappables.md)).
+[unmappables.md](unmappables.md)). One exception is deliberate: Font Awesome's own
+`<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive tech reads becomes
+`Icon`, which puts that attribute on the `.icon` instead, since the glyph is hidden either way
+(see `.icon` below).
 
 A class the codemod doesn't know, such as the app's own `pricing-card`, rides along in
 `className`, which every bestax component passes through. So does a Bulma class with no bestax
@@ -142,9 +145,36 @@ component, which could hand it a labelled Field's generated one.
 A `.tabs` converts around its `<ul>`, and the `<li>`s and `<a>`s inside stay as written: `Tabs.Tab`
 renders its own `<a>` with tab roles and puts its label in a `<span>`, so converting the tabs
 themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
-`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts around the
-`<i>` inside it when it carries the attribute `Icon` writes otherwise: `aria-hidden` with no name,
-no `role` and no `tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`.
+`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts when it
+carries the attribute `Icon` writes otherwise: `aria-hidden` with no name, no `role` and no
+`tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`. When all it holds is a
+bare, empty `<i>` naming a Font Awesome or Material Design Icons glyph, the `<i>` goes and its
+classes become `Icon`'s props, read as `IconText` reads them (below), and the `Icon` closes itself:
+
+```jsx
+<span className="icon is-small" aria-hidden="true">
+  <i className="fab fa-github fa-lg"></i>
+</span>
+// becomes
+<Icon library="fa" name="github" variant="brands" features="fa-lg" size="small" aria-hidden="true" />
+```
+
+Font Awesome's own markup hides the `<i>` instead, and converts the same way when the `.icon`
+carries nothing but its classes, an `id`, a `style` and `data-` attributes: the `aria-hidden`
+moves up onto the `.icon`, where `Icon` writes it, so the glyph is hidden either way. That is the
+one place a conversion changes the markup, on purpose:
+
+```jsx
+<span className="icon is-small is-left">
+  <i className="fas fa-envelope" aria-hidden="true"></i>
+</span>
+// becomes, rendering aria-hidden="true" on the .icon
+<Icon library="fa" name="envelope" size="small" className="is-left" />
+```
+
+Around anything else, an `<i>` with an attribute of its own or an `<svg>` say, it converts around
+what it holds, kept as written. Font Awesome 4's `fa` reads as `variant="fa"`, which `Icon`
+renders as written.
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest
