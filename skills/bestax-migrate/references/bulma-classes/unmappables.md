@@ -93,11 +93,18 @@ makes one named by `aria-label` or `aria-labelledby` an image, with `role="img"`
 `.icon` `aria-hidden="true"`, and a meaningful one an `aria-label` that says what it means and
 `role="img"`. One whose name is an expression may render with no name, so it needs a `role` of its
 own. `Icon` writes `aria-hidden` on the `.icon` and never on the `<i>` inside. Font Awesome's own
-markup, `<i class="fas fa-envelope" aria-hidden="true">` alone in a `.icon` nothing names,
-converts anyway, with the attribute moved up onto the `.icon`, the one exception to identical
-markup. An `<i>` that carries it beside something else, an `id` say, keeps its `.icon` as markup:
-the `.icon` holds nothing else, so the attribute hides the same glyph on the `.icon`. Move it up
-and re-run, and the `.icon` converts around the `<i>`. An icon in a link or
+markup, `<i class="fas fa-envelope" aria-hidden="true">` alone in a `.icon` that carries
+nothing but its classes, an `id`, a `style` and `data-` attributes, converts anyway, with the
+attribute moved up onto the `.icon`, the one exception to identical markup. A `.icon` that
+carries anything more never takes the move. A `role` or `tabIndex` written out converts around
+the `<i>` as it is, since `Icon` then hides nothing itself. Anything else, or either of those as
+an expression, keeps the `.icon` as markup: a `title` or a description would be hidden with it,
+and beside a `role` or `tabIndex` `Icon` writes no `aria-hidden` at all. Give a meaningful one an
+`aria-label` and `role="img"`, or drop the attribute from a decorative one, then re-run. An `<i>`
+that carries it beside something else,
+an `id` say, keeps its `.icon` as markup too: the `.icon` holds nothing else, so the attribute
+hides the same glyph on the `.icon`. Move it up and re-run, and the `.icon` converts around the
+`<i>`. An icon in a link or
 button that its `aria-label` or its text names is decoration there, so give it
 `aria-hidden="true"`. One that is all a link or button shows names nothing a screen reader can
 read: give the link or button an `aria-label` that says what it does, then hide the icon. The

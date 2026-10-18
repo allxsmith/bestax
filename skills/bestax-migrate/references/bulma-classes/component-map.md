@@ -5,8 +5,9 @@ wrapper library. The codemod converts an element only when the bestax component 
 **exactly the markup the element did**: same tag, same classes, same attributes. Anything else
 stays as written, with a `TODO(bestax-migrate)` when there is something to decide (see
 [unmappables.md](unmappables.md)). One exception is deliberate: Font Awesome's own
-`<i aria-hidden="true">` alone in a `.icon` nothing names becomes `Icon`, which puts that
-attribute on the `.icon` instead, since the glyph is hidden either way (see `.icon` below).
+`<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive tech reads becomes
+`Icon`, which puts that attribute on the `.icon` instead, since the glyph is hidden either way
+(see `.icon` below).
 
 A class the codemod doesn't know, such as the app's own `pricing-card`, rides along in
 `className`, which every bestax component passes through. So does a Bulma class with no bestax
@@ -160,9 +161,10 @@ classes become `Icon`'s props, read as `IconText` reads them (below), and the `I
 <Icon library="fa" name="github" variant="brands" features="fa-lg" size="small" aria-hidden="true" />
 ```
 
-Font Awesome's own markup hides the `<i>` instead, and converts the same way when nothing names
-the `.icon`: the `aria-hidden` moves up onto the `.icon`, where `Icon` writes it, so the glyph is
-hidden either way. That is the one place a conversion changes the markup, on purpose:
+Font Awesome's own markup hides the `<i>` instead, and converts the same way when the `.icon`
+carries nothing but its classes, an `id`, a `style` and `data-` attributes: the `aria-hidden`
+moves up onto the `.icon`, where `Icon` writes it, so the glyph is hidden either way. That is the
+one place a conversion changes the markup, on purpose:
 
 ```jsx
 <span className="icon is-small is-left">
