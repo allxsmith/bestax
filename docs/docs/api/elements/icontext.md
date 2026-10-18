@@ -38,12 +38,10 @@ import { IconText } from '@allxsmith/bestax-bulma';
 
 ### Single Icon + Text
 
-A basic usage of the `IconText` component with a single icon and text. The `iconProps` object receives the icon's name and an `ariaLabel` for accessibility.
+A basic usage of the `IconText` component with a single icon and text. The `iconProps` object receives the icon's props, here its library and name. The icon takes no `ariaLabel`, because the text beside it already says what it means, so it stays hidden from screen readers.
 
 ```tsx live
-<IconText iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}>
-  Star
-</IconText>
+<IconText iconProps={{ library: 'fa', name: 'star' }}>Star</IconText>
 ```
 
 ### With Text Color
@@ -51,10 +49,7 @@ A basic usage of the `IconText` component with a single icon and text. The `icon
 You can customize the text color using Bulma's color helpers. This example shows a primary colored text.
 
 ```tsx live
-<IconText
-  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}
-  textColor="primary"
->
+<IconText iconProps={{ library: 'fa', name: 'star' }} textColor="primary">
   Star
 </IconText>
 ```
@@ -64,17 +59,14 @@ You can customize the text color using Bulma's color helpers. This example shows
 You can use Bulma spacing helpers like `m` to add margin around the `IconText` component for better layout control.
 
 ```tsx live
-<IconText
-  iconProps={{ library: 'fa', name: 'star', ariaLabel: 'Star icon' }}
-  m="2"
->
+<IconText iconProps={{ library: 'fa', name: 'star' }} m="2">
   Star
 </IconText>
 ```
 
 ### In a Button
 
-Use `IconText` inside a button to combine an icon and label, ensuring proper alignment and spacing.
+Use `IconText` inside a button to combine an icon and label, ensuring proper alignment and spacing. Leave the icon unnamed, since the text names the button, as in [Button's icon example](./button.md#with-an-icon).
 
 ```tsx live
 <Button color="primary">
@@ -82,7 +74,6 @@ Use `IconText` inside a button to combine an icon and label, ensuring proper ali
     iconProps={{
       library: 'fa',
       name: 'check',
-      ariaLabel: 'Check icon',
     }}
   >
     Click Me
@@ -100,7 +91,6 @@ Place `IconText` inside a notification to visually pair an icon with a message, 
     iconProps={{
       library: 'fa',
       name: 'info-circle',
-      ariaLabel: 'Info icon',
       textColor: 'dark',
     }}
     m="1"
@@ -120,7 +110,6 @@ Use `IconText` inside a tag for labeled icons, such as status indicators or badg
     iconProps={{
       library: 'fa',
       name: 'check',
-      ariaLabel: 'Check icon',
     }}
   >
     Success
@@ -132,18 +121,20 @@ Use `IconText` inside a tag for labeled icons, such as status indicators or badg
 
 The `items` prop allows you to render a sequence of icons and optional text, perfect for visualizing progress, routes, or multi-step processes.
 
+Here the icons say something the text doesn't: how the trip is made, which way it goes, and where it ends. So each one keeps an `ariaLabel`, written as what the icon means rather than what it shows, and a screen reader reads the route as "Train Paris to Budapest to Bucharest to Istanbul End of route".
+
 ```tsx live
 <IconText
   items={[
     {
-      iconProps: { library: 'fa', name: 'train', ariaLabel: 'Train icon' },
+      iconProps: { library: 'fa', name: 'train', ariaLabel: 'Train' },
       text: 'Paris',
     },
     {
       iconProps: {
         library: 'fa',
         name: 'arrow-right',
-        ariaLabel: 'Arrow right icon',
+        ariaLabel: 'to',
       },
       text: 'Budapest',
     },
@@ -151,7 +142,7 @@ The `items` prop allows you to render a sequence of icons and optional text, per
       iconProps: {
         library: 'fa',
         name: 'arrow-right',
-        ariaLabel: 'Arrow right icon',
+        ariaLabel: 'to',
       },
       text: 'Bucharest',
     },
@@ -159,7 +150,7 @@ The `items` prop allows you to render a sequence of icons and optional text, per
       iconProps: {
         library: 'fa',
         name: 'arrow-right',
-        ariaLabel: 'Arrow right icon',
+        ariaLabel: 'to',
       },
       text: 'Istanbul',
     },
@@ -167,7 +158,7 @@ The `items` prop allows you to render a sequence of icons and optional text, per
       iconProps: {
         library: 'fa',
         name: 'flag-checkered',
-        ariaLabel: 'Finish icon',
+        ariaLabel: 'End of route',
       },
     },
   ]}
@@ -188,6 +179,8 @@ This example demonstrates IconText with multiple icon items. For actual star rat
 
 :::
 
+The stars draw the same rating the `3.5/5` text gives, so they take no `ariaLabel`, and a screen reader reads the score once rather than star by star.
+
 ```tsx live
 <IconText
   items={[
@@ -195,28 +188,24 @@ This example demonstrates IconText with multiple icon items. For actual star rat
       iconProps: {
         library: 'fa',
         name: 'star',
-        ariaLabel: 'Star icon',
       },
     },
     {
       iconProps: {
         library: 'fa',
         name: 'star',
-        ariaLabel: 'Star icon',
       },
     },
     {
       iconProps: {
         library: 'fa',
         name: 'star',
-        ariaLabel: 'Star icon',
       },
     },
     {
       iconProps: {
         library: 'fa',
         name: 'star-half-alt',
-        ariaLabel: 'Half star icon',
       },
     },
     {
@@ -224,7 +213,6 @@ This example demonstrates IconText with multiple icon items. For actual star rat
         library: 'fa',
         name: 'star',
         variant: 'regular',
-        ariaLabel: 'Empty star icon',
       },
       text: '3.5/5',
     },
@@ -243,7 +231,6 @@ The `display` prop can be used to apply Bulma's flexbox helpers, allowing for fl
   iconProps={{
     library: 'fa',
     name: 'info-circle',
-    ariaLabel: 'Info icon',
     textColor: 'info',
   }}
   display="flex"
@@ -260,7 +247,7 @@ The `display` prop can be used to apply Bulma's flexbox helpers, allowing for fl
 
 ```tsx live
 <IconText>
-  <IconText.Icon name="star" ariaLabel="star icon" />
+  <IconText.Icon name="star" />
   <span>Starred</span>
 </IconText>
 ```
@@ -269,7 +256,8 @@ The `display` prop can be used to apply Bulma's flexbox helpers, allowing for fl
 
 ## Accessibility
 
-- **ARIA labels:** Always set an `ariaLabel` for icons for screen readers.
+- **Icons beside text:** Leave an icon that repeats the text beside it without an `ariaLabel`. An `Icon` with no `ariaLabel` renders `aria-hidden="true"`, so a screen reader reads only the text, which also names a `Button` or link the `IconText` sits in. A named icon is read as well, so `ariaLabel: 'Check icon'` beside "Click Me" makes a button announce "Check icon Click Me".
+- **Icons with meaning of their own:** Set `ariaLabel` on an icon that says something the text doesn't, such as the arrows of a route or an icon with no text beside it, and write it as what the icon means rather than what it shows.
 - **Order:** The icon is visually before the text by default.
 - **Keyboard:** If used in a button or link, keyboard accessibility is handled by the parent.
 
