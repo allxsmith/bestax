@@ -256,8 +256,8 @@ The `display` prop can be used to apply Bulma's flexbox helpers, allowing for fl
 
 ## Accessibility
 
-- **Icons beside text:** Leave an icon that repeats the text beside it without an `ariaLabel`. An `Icon` with no `ariaLabel` renders `aria-hidden="true"`, so a screen reader reads only the text, which also names a `Button` or link the `IconText` sits in. A named icon is read as well, so `ariaLabel: 'Check icon'` beside "Click Me" makes a button announce "Check icon Click Me".
-- **Icons with meaning of their own:** Set `ariaLabel` on an icon that says something the text doesn't, such as the arrows of a route or an icon with no text beside it, and write it as what the icon means rather than what it shows.
+- **Icons beside text:** Leave an icon that repeats the text beside it unnamed. The unnamed icons on this page pass no `ariaLabel`, `aria-label` or `aria-labelledby` and no `role` or `tabIndex`, so each renders `aria-hidden="true"`, and a screen reader reads only the text, which also names a `Button` or link the `IconText` sits in. A named icon is read as well, so `ariaLabel: 'Check icon'` beside "Click Me" makes a button announce "Check icon Click Me".
+- **Icons with meaning of their own:** Set `ariaLabel` on an icon that conveys information the text doesn't, such as the arrows and the finishing flag of a route, and write it as what the icon means rather than what it shows. Standing alone is not the test: the stars of the rating have no text beside them, but they show the score the text gives, so they stay unnamed.
 - **Order:** The icon is visually before the text by default.
 - **Keyboard:** If used in a button or link, keyboard accessibility is handled by the parent.
 

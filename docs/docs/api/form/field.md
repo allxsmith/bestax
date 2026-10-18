@@ -521,7 +521,7 @@ Set `hasAddons` to join controls into one row with no gap between them, such as 
 
 ### Addons (With a Label)
 
-A `hasAddons` Field lays out everything it holds in its row, a `label` included, so a visible label goes on an outer `Field` instead. Wire it to the input with `labelProps={{ htmlFor }}` and a matching `id`, since a Field holding several controls names none of them on its own.
+A `hasAddons` Field lays out everything it holds in its row, a `label` included, so a visible label goes on an outer `Field` instead. Wire it to the input with `labelProps={{ htmlFor }}` and a matching `id`, since a `Field` nested inside a labeled one starts its own scope, so nothing in the row takes the outer label's generated id.
 
 ```tsx live
 <Field label="Email" labelProps={{ htmlFor: 'addons-email' }}>

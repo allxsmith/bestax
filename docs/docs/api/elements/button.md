@@ -330,7 +330,7 @@ function example() {
 ## Accessibility
 
 - **Labeling:** Always provide descriptive content for buttons for screen readers.
-- **Icons beside text:** Leave the `Icon` without an `ariaLabel`, so the text alone names the button. An `Icon` with no `ariaLabel` already renders `aria-hidden="true"`, and the `aria-hidden` in the example only writes that out. A named icon joins the button's name instead, so `ariaLabel="Download"` on the icon of a Download button makes a screen reader announce "Download Download".
+- **Icons beside text:** Leave the `Icon` unnamed, so the text alone names the button. The icons in [With an Icon](#with-an-icon) write out `aria-hidden="true"`, and `Icon` would render it for them anyway, since they have no `ariaLabel`, `aria-label` or `aria-labelledby` to name them and no `role` or `tabIndex` of their own. A named icon joins the button's name instead, so `ariaLabel="Download"` on the icon of a Download button makes a screen reader announce "Download Download".
 - **States:** The `isDisabled` and `disabled` props ensure correct `aria-disabled` and `disabled` attributes.
 - **Keyboard:** When rendered as `<a>`, disabled buttons are not focusable.
 - **Focus:** Use `isFocused` and `isActive` for visual feedback, but rely on browser focus for actual accessibility.
