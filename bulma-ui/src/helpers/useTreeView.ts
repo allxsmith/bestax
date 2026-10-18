@@ -363,6 +363,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   // first checked one on the page, and failing that it stays where it was.
   // An item that goes away hands it to its nearest ancestor on the page, or
   // to the first item, and focus goes with it if it had focus.
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- after every render on purpose: it reads the page, and sets state only when what it reads has changed
   useClientLayoutEffect(() => {
     const tree = treeRef.current!;
     const registry = registryRef.current;
