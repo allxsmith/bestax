@@ -144,9 +144,23 @@ component, which could hand it a labelled Field's generated one.
 A `.tabs` converts around its `<ul>`, and the `<li>`s and `<a>`s inside stay as written: `Tabs.Tab`
 renders its own `<a>` with tab roles and puts its label in a `<span>`, so converting the tabs
 themselves is by hand (something that sat beside the text in the `<a>`, a `Tag` say, then wants a
-`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts around the
-`<i>` inside it when it carries the attribute `Icon` writes otherwise: `aria-hidden` with no name,
-no `role` and no `tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`.
+`Span display="flex" alignItems="center"` around it and the label). A `.icon` converts when it
+carries the attribute `Icon` writes otherwise: `aria-hidden` with no name, no `role` and no
+`tabIndex`, and `role="img"` beside an `aria-label` or `aria-labelledby`. When all it holds is a
+bare, empty `<i>` naming a Font Awesome or Material Design Icons glyph, the `<i>` goes and its
+classes become `Icon`'s props, read as `IconText` reads them (below), and the `Icon` closes itself:
+
+```jsx
+<span className="icon is-small" aria-hidden="true">
+  <i className="fab fa-github fa-lg"></i>
+</span>
+// becomes
+<Icon library="fa" name="github" variant="brands" features="fa-lg" size="small" aria-hidden="true" />
+```
+
+Around anything else, an `<i>` with an attribute of its own or an `<svg>` say, it converts around
+what it holds, kept as written. Font Awesome 4's `fa` reads as `variant="fa"`, which `Icon`
+renders as written.
 
 A `.menu` converts with its `.menu-label`s and `.menu-list`s, and so do the items in a list. An
 item has no class to go by, so the codemod finds it by where it sits: a `<li>` whose nearest

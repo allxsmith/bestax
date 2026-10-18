@@ -124,6 +124,12 @@ A couple of results look odd until you see why:
   beside an `aria-current` of its own, since `active` writes `aria-current="page"` otherwise. Add
   `aria-current="page"` to the link that marks the page you're on and re-run, and that item
   converts too (`attr:aria-current`).
+- A `.icon` around a bare Font Awesome or Material Design Icons `<i>` becomes
+  `<Icon library="fa" name="home" />`, the `<i>`'s style and other classes read as `variant` and
+  `features`. `Icon` hides a decorative icon with `aria-hidden="true"` on the `.icon` itself, so
+  an icon with none there stays markup (`defaults:Icon`), and that includes Font Awesome's own
+  markup, which puts it on the `<i>`. The TODO says what to do for each: move the attribute up,
+  or add it to an icon whose link or button is named by its label, then re-run.
 - A form converts piece by piece into `Field`, `Control`, `InputBase`, `TextAreaBase` and
   `SelectBase`, not into `Input`, `TextArea` or `Select`: those render a `.field` and a
   `.control` of their own, and the markup already has them. The `.label` and `.help` stay as
@@ -166,6 +172,7 @@ rule. The ones you'll see most:
 | `family:<class>`         | Rebuild that block from the component's docs page, parts and all                                       |
 | `tag:<Target>`           | Change the tag if you want the component, or keep the markup                                           |
 | `defaults:Delete`        | Add `type="button"` and a real `aria-label` to the `.delete` button, then re-run                       |
+| `defaults:Icon`          | Put `aria-hidden="true"` on a decorative `.icon`, not on its `<i>`, then re-run                        |
 | `ref:<Target>`           | Keep the element; the component won't pass the ref through                                             |
 | `rsc`                    | Add `'use client'` if the file can be a client component, then re-run                                  |
 | `legacy:tile`            | Rebuild tiles with [Grid and Cell](/docs/api/grid); see the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) |

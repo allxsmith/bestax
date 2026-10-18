@@ -92,7 +92,20 @@ give the `<nav>` both, with your own label if you like. `Breadcrumb` renders
 makes one named by `aria-label` or `aria-labelledby` an image, with `role="img"`. Give a decorative
 `.icon` `aria-hidden="true"`, and a meaningful one an `aria-label` that says what it means and
 `role="img"`. One whose name is an expression may render with no name, so it needs a `role` of its
-own.
+own. `Icon` writes `aria-hidden` on the `.icon` and never on the `<i>` inside, so Font Awesome's
+own markup, `<i class="fas fa-envelope" aria-hidden="true">`, keeps its `.icon` as markup too:
+the `.icon` holds nothing else, so the attribute hides the same glyph on the `.icon`. Move it up
+and re-run, and the `.icon` becomes `<Icon library="fa" name="envelope" />`. An icon in a link or
+button that its `aria-label` or its text names is decoration there, so give it
+`aria-hidden="true"`. One that is all a link or button shows names nothing a screen reader can
+read: give the link or button an `aria-label` that says what it does, then hide the icon. The
+`<svg class="svg-inline--fa">` Font Awesome's script draws in place of an `<i>` converts as
+`Icon`'s children once its `.icon` is hidden, or write `Icon` with the glyph's `name` in its place,
+which renders the `<i>` the script draws from. Inside a `.control` with `has-icons-left` or
+`has-icons-right`, a hidden `.icon` can go instead, as that `Control`'s `iconLeft` or
+`iconRight` (`iconLeft={{ library: "fa", name: "envelope", size: "small" }}`), which renders it
+after the `Control`'s children. Each TODO says which of these applies, and what the icon converts
+to.
 `Pagination` renders Bulma's own `role="navigation"` and `aria-label="pagination"`, and
 `Pagination.Previous`, `Pagination.Next` and `Pagination.Link` render `tabIndex={0}`, so give each
 element the attribute it's missing.
@@ -164,13 +177,14 @@ element converts only holding exactly that (`&hellip;` or the character), and cl
 
 On an `.icon-text`, `IconText` builds its icons from props and wraps each text in a `<span>` of
 its own, so it converts only when its children are `.icon`s, each followed by at most one bare
-`<span>` of static text. Each `.icon` has to convert to `Icon` on its own, so one with no
-`aria-label` gets a `defaults:Icon` TODO of its own first: give it one that says what the icon
-means, then re-run. Its `<i>` has to be bare and empty and name one Font Awesome or Material Design
-Icons glyph, so an `aria-hidden` on the `<i>`, another icon font, or anything between the children
-keeps it as markup, and the `.icon`s inside convert on their own. The markup renders the same as
-it is; to use `IconText` anyway, write it by hand with `iconProps={{ name: ... }}` (the
-`bestax-icons` skill covers `Icon`'s library and name props).
+`<span>` of static text. Each `.icon` has to convert to `Icon` on its own, so one with neither
+`aria-hidden` nor `aria-label` gets a `defaults:Icon` TODO of its own first: hide a decorative one,
+or give a meaningful one a name, then re-run. Its `<i>` has to be bare and empty and name one Font
+Awesome or Material Design Icons glyph, so an `aria-hidden` on the `<i>` (move it up to the
+`.icon`, as `defaults:Icon` says), another icon font, or anything between the children keeps it as
+markup, and the `.icon`s inside convert on their own. The markup renders the same as it is; to use
+`IconText` anyway, write it by hand with `iconProps={{ name: ... }}` (the `bestax-icons` skill
+covers `Icon`'s library and name props).
 
 On a `.file`, `File` renders the whole tree from props, so it converts only when its tree is the one
 `File` renders: one bare `.file-label` `<label>` holding a `.file-input` `<input type="file">`, a
