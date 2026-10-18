@@ -6,7 +6,9 @@ complete create-bestax `vite-ts` project that StackBlitz opens on its own. Stack
 from a generated mirror of this folder rather than from here; CONTRIBUTING.md ("The
 bestax-templates repository") says what the mirror holds and how it is published. The docs site
 lists the templates on its Templates page (`docs/src/pages/templates`). #1118 is the epic, with
-one issue per template; #1121 specifies this folder.
+one issue per template; #1121 specifies this folder. The first porting pass's branches
+(`port/<slug>-template`), which #1118 keeps as references for parity decisions, show the recipes
+below worked out.
 
 ## What a template folder is
 
@@ -51,8 +53,10 @@ fix.
    installs the newest release in the range. Copy the result into `templates/<slug>/` without
    `node_modules`.
 
-3. **Convert.** Copy the upstream page into a scratch folder of its own, beside a `package.json`
-   that depends on `typescript` or a `tsconfig.json`: the codemod writes a TypeScript module only
+3. **Convert.** Copy the upstream page into a scratch folder of its own, with the images it uses
+   beside it at the same relative paths, so the codemod reports each relative URL to one as
+   `html-url:relative` rather than `html-url:missing`. Put a `package.json` that depends on
+   `typescript`, or a `tsconfig.json`, beside it too: the codemod writes a TypeScript module only
    for a TypeScript package, and a `.jsx` one otherwise. Then run it from a build of
    bestax-migrate, or `npx bestax-migrate@latest` with the same arguments, with `--dry` first and
    then without, and keep the report:
@@ -67,9 +71,18 @@ fix.
    converted markup, with a `TODO(bestax-migrate)` for whatever it left. The `html-*` ones say
    where the page's head, stylesheets and scripts go, with a recipe for each in the bestax-migrate
    skill's `references/bulma-classes/unmappables.md`. Move the module into `src/App.tsx` and
-   split it into section components, port the upstream stylesheet into `src/index.css`, and put
-   what `index.html` keeps of the upstream head (web fonts, the favicon, its meta tags) into the
-   scaffold's, leaving out the Bulma and plugin `<link>` and `<script>` tags.
+   split it into section components, port the upstream stylesheet into `src/index.css` with what
+   **Setting back the original's look** (below) lists, and put what `index.html` keeps of the
+   upstream head (web fonts, the favicon, its meta tags) into the scaffold's, leaving out the
+   Bulma and plugin `<link>` and `<script>` tags.
+
+   An original with several pages converts every page, by name or with `-e html` over its folder.
+   - Each module becomes a page component, and the parts the pages repeat become section
+     components they share.
+   - `src/App.tsx` renders the page the address names, and the links between the pages are among
+     the `html-url:relative` TODOs.
+   - Route on the URL's hash in a small module of the template's own, so it installs no router
+     package and every page opens in StackBlitz's preview.
 
 4. **Resolve every `TODO(bestax-migrate)`** with the skills (bestax-migrate,
    bestax-layout-scaffold, bestax-form, bestax-icons, bestax-theming) and the bestax MCP server
@@ -78,15 +91,36 @@ fix.
    - bulma-carousel becomes `Carousel`, and jQuery goes away.
    - Bulma 0.x markup moves to v1.
    - bulma-social stays only where bestax has nothing equivalent.
-   - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
+   - Some classes get no TODO, so look for them too:
+     - Bulma 0.x's `is-marginless` and `is-paddingless`, which v1 removed, become `m="0"` and
+       `p="0"` (`m-0` and `p-0` on a plain element).
+     - v1's `marginless` and `paddingless` still style, but on an element with no component class
+       beside them they keep it from converting at all. Drop the class and convert the element,
+       with `m="0"` or `p="0"` if the spacing matters.
+     - An `.image` size class (`is-64x64`) on an element without `.image` sizes nothing, so
+       drop it.
+     - A second component class on a converted element (`box` on a `Notification`) needs its
+       own component.
+   - Assets:
+     - Large upstream images are recompressed into `public/`. Unsplash hot-links stay hot-links.
+     - Other third-party hot-links that may vanish become small local files in `public/`.
+     - Check the license of any hot-linked asset that needs credit (an Icons8 logo, for one).
 5. **Check parity.** Screenshot the original (the entry's `demo`) and the port side by side at
    phone and desktop widths, in light and dark (`prefers-color-scheme`), and check that the
-   burger, modals, forms and theme toggles work. Bulma follows the visitor's color scheme, and
-   an original built for one scheme often looks the same in both, holding its colors with
-   overrides of its own. When it does, pin the scheme it was built for on the `<html>` in
-   `index.html` (`data-theme="light"` for a light-only original), so the first paint has it too,
-   and leave those overrides out (the bestax-theming skill's contrast rules say why). Fix
-   upstream bugs minimally and note each one in the README.
+   burger, modals, forms and theme toggles work. Fix upstream bugs minimally and note each one
+   in the README.
+   - **The look.** Compare what **Setting back the original's look** (below) lists.
+   - **An original built for one scheme.** Bulma follows the visitor's color scheme, and such an
+     original often looks the same in both, holding its colors with overrides of its own. When
+     it does, pin the scheme it was built for on the `<html>` in `index.html`
+     (`data-theme="light"` for a light-only original), so the first paint has it too, and leave
+     those overrides out (the bestax-theming skill's contrast rules say why).
+   - **An original with a light/dark toggle.** A tiny inline script in `index.html`'s `<head>`
+     writes `data-theme` on `<html>` before the first paint, from the visitor's saved choice or
+     else the OS preference. The app starts from that attribute, passes its state to
+     `Theme colorMode` for the toggle, and saves each choice in `localStorage` under the key the
+     script reads. `Theme` alone writes the attribute from an effect, so the OS scheme flashes
+     first. The bestax-theming skill becomes this recipe's home with #1153.
 6. **Finish up.**
    - `git add` the folder first. The screenshot builds what git tracks, as the checks read it
      (**What git tracks**, above).
@@ -99,7 +133,64 @@ fix.
    library, gets its own issue linked from #1118.
 
 A template's commits are `feat(docs)`: `templates` is not a release scope, and the docs entry is
-what publishes it.
+what publishes it. The header reads
+`feat(docs): add the <Name> template, ported from <owner>'s <repo>`, and commitlint caps its
+length, so drop "the" when the repo's name is long.
+
+## Setting back the original's look
+
+Each line below says where its override goes, in `src/index.css` unless it names a prop. Bulma
+declares many of its variables on a component's selector rather than `:root`, and an override on
+`:root` loses to those. Copy each value rather than recalling it.
+
+### bestax's blue primary
+
+bestax's stylesheet builds Bulma with a blue primary, as the codemod's `html-asset` TODO says. An
+original made for stock Bulma's turquoise sets it back on `:root`:
+
+- `--bulma-primary-h`, `-s` and `-l`, with `--bulma-primary-invert-l` (the bestax-migrate skill's
+  `references/css-migration.md` says why the invert goes with them).
+- `--bulma-primary-on-scheme-l`, which Bulma's Sass build computes from the primary it is given,
+  bestax's blue, so changing the trio alone does not recompute it. Text the original colors with
+  `has-text-primary` takes that shade with `colorShade="on-scheme"` beside `textColor="primary"`.
+
+Copy the values from stock Bulma v1's own `bulma.css` (the `bulma` package's `css/bulma.css`,
+which bulma-ui installs). The on-scheme lightness differs between light and dark, and a `:root`
+rule in `src/index.css` pins whatever it sets in both. A single-scheme original takes its own
+scheme's value on `:root`; an original with a light/dark toggle sets each scheme's value under
+`[data-theme='light']` and `[data-theme='dark']` instead.
+
+### A Bulma 0.x original
+
+Bulma v1 changed defaults a 0.x original relies on. Compare each of these, and set back the ones
+that differ, copying the value from the `bulma.css` the original loads or from its own
+stylesheet:
+
+- **On `:root`:**
+  - the font, `--bulma-family-primary`;
+  - the link color, `--bulma-link-h`, `-s` and `-l`;
+  - the corner radius, `--bulma-radius`;
+  - the greys, which v1 tints: the background takes `--bulma-scheme-h` and `-s`, and the text
+    `--bulma-text-h` and `-s` of its own, so set both pairs.
+- **On `.title` and `.content`:** the heading weights, `--bulma-title-weight` and
+  `--bulma-content-heading-weight`.
+- **On `.button`:** `--bulma-button-weight`, and `--bulma-button-outer-shadow-a` for the outer
+  shadow v1 gives an uncolored button.
+- **On `.label`:** a plain `font-weight`. `.label` reads `--bulma-weight-semibold` directly, so
+  `--bulma-label-weight` changes nothing.
+- **On `.box` and `.card`:** the radius and shadow, `--bulma-box-radius` and `--bulma-box-shadow`,
+  `--bulma-card-radius` and `--bulma-card-shadow`.
+- **On `.hero`:** a medium hero's padding, `--bulma-hero-body-padding-medium`.
+- **On `.navbar`:** the burger's color, `--bulma-navbar-burger-color`.
+- **On `.navbar a.navbar-item.is-active`:** v1 fills the active item, and switches the fill on
+  at `a.navbar-item.is-active`, so a less specific selector can't take it off. The fill is
+  `--bulma-navbar-item-background-a`.
+- **On a `Navbar.Item` that holds other items:** the flex `gap` on `.navbar-item` spaces them,
+  and `gap="0"` takes it off.
+- **An original's plain `.button` rule:** v1's colored buttons set variables rather than a
+  color, and the `background-color` that reads them is on `.button` itself, so the original's
+  `.button { background-color }` now outranks the colored buttons too. Move the rule onto a
+  class of the plain buttons' own.
 
 ## The checks
 

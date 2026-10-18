@@ -282,6 +282,9 @@ export const SCSS_SOURCES = {
     { pkg: 'repo', path: 'bulma-ui/src/scss/components/_tooltip.scss' },
   ],
   Tr: [],
+  TreeView: [
+    { pkg: 'repo', path: 'bulma-ui/src/scss/components/_treeview.scss' },
+  ],
   UnorderedList: [],
 };
 // </generated:scss-sources>

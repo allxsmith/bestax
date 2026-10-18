@@ -192,10 +192,11 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   first hook.
 - Fixtures and `.e2e-tmp` are excluded from tsc/eslint/prettier at both root and package
   level (root `eslint.config.js` + both `.prettierignore`s) — keep them that way.
-- Real-world corpus, one script per source, both fetching a pinned SHA as text only into
-  `.e2e-tmp/` and failing on any crash or unknown-component TODO. Deliberately NOT in CI
-  (no third-party fetches in the pipeline); run them before releases and after mapping
-  changes, and eyeball the before/after diffs they write:
+- Real-world corpus scripts. The ones that fetch read a pinned SHA as text only into
+  `.e2e-tmp/`; all of them fail on any crash, and the library sources' on an
+  unknown-component TODO too. Deliberately NOT in CI (no third-party fetches in the
+  pipeline); run them before releases and after mapping changes, and eyeball the
+  before/after diffs they write:
   - `validate:corpus` — react-bulma-components' own MIT Storybook stories →
     `.e2e-tmp/corpus-out/`.
   - `validate:corpus:rbx` — rbx's own MIT docs. rbx used **docz**, not Storybook, so the
@@ -208,6 +209,19 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   - `validate:corpus:bulma-classes` — this repo's own stories, which mix components with raw
     Bulma markup; `--dir <path>` points it at any app's source instead. Nothing is fetched.
     Output lands in `.e2e-tmp/corpus-out-bulma-classes/`.
+  - `validate:corpus:templates` — the HTML input over the awesome-bulma-templates repos, each
+    fetched at the commit pinned in `scripts/lib/corpus-templates.mjs` (the one home of those
+    pins, checked for shape only, so a moved pin is compared with its port issue by hand) and
+    converted by the CLI with `--css bestax` in a scratch package where every page becomes
+    `.tsx`. It needs the network, which is why it stays out of CI with the others, and it
+    refuses to start until bestax-bulma is built, since tsc reads it for every module. It
+    also fails on a module that no longer parses, on one tsc could not read, and on a rule the
+    skill's references don't document (the kitchen sinks' check), and it lists the modules'
+    `tsc` diagnostics without failing on them. `report.md` and `report.json` in
+    `.e2e-tmp/corpus-templates/` are deterministic, so the reports from before and after a
+    change to the HTML input or the class table diff line by line: that diff is how such a
+    change is measured. A page's classes are counted from its DOM, so a refused page keeps
+    its count. `e2e/corpus-templates.test.ts` tests the script's offline half.
 
   The corpus is the only check that sees breadth; the kitchen-sink e2e is the only one that
   sees bestax's _real_ prop names. Both are needed — the rbx e2e's typecheck caught
