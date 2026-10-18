@@ -1287,6 +1287,41 @@ describe('Autocomplete', () => {
 
       expect(onActiveChange).toHaveBeenLastCalledWith(false);
     });
+
+    // It reports the dropdown opening or closing, not the parent rendering
+    // with a new inline callback.
+    it('reports each change once, to the onActiveChange of the latest render', () => {
+      const Page = ({
+        onActiveChange,
+      }: {
+        onActiveChange: (active: boolean) => void;
+      }) => (
+        <Autocomplete
+          data={fruits}
+          onActiveChange={active => onActiveChange(active)}
+        />
+      );
+      const first = jest.fn();
+      const latest = jest.fn();
+      const { rerender } = render(<Page onActiveChange={first} />);
+      // Where it starts, as it mounts.
+      expect(first).toHaveBeenCalledTimes(1);
+      expect(first).toHaveBeenCalledWith(false);
+
+      rerender(<Page onActiveChange={latest} />);
+      rerender(<Page onActiveChange={latest} />);
+      expect(latest).not.toHaveBeenCalled();
+
+      const input = screen.getByRole('combobox');
+      fireEvent.change(input, { target: { value: 'a' } });
+      expect(latest).toHaveBeenCalledTimes(1);
+      expect(latest).toHaveBeenLastCalledWith(true);
+
+      fireEvent.keyDown(input, { key: 'Escape' });
+      expect(latest).toHaveBeenCalledTimes(2);
+      expect(latest).toHaveBeenLastCalledWith(false);
+      expect(first).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Ref Forwarding', () => {

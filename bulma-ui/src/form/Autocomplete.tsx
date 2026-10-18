@@ -393,10 +393,15 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
         document.removeEventListener('mousedown', handleClickOutside);
     }, [isActive, selectHighlightedRef]);
 
+    // Read when the dropdown opens or closes, so an inline `onActiveChange`,
+    // new on every render of the parent, isn't told again about a state that
+    // didn't change.
+    const onActiveChangeRef = useLatestRef(onActiveChange);
+
     // Notify active state change
     useEffect(() => {
-      onActiveChange?.(isActive);
-    }, [isActive, onActiveChange]);
+      onActiveChangeRef.current?.(isActive);
+    }, [isActive, onActiveChangeRef]);
 
     // Keep first highlighted
     useEffect(() => {
