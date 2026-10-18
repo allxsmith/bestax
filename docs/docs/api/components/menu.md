@@ -251,7 +251,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 **Subcomponents:**
 
 - `Menu.Label`: Bulma Menu label component.
-- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, and a `role` you pass doesn't replace it. Safari needs it: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
+- `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, which Safari needs: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
 - `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
 
 ### Menu.Label
@@ -264,11 +264,12 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 ### Menu.List
 
-| Prop        | Type                                                  | Default | Description                                       |
-| ----------- | ----------------------------------------------------- | ------- | ------------------------------------------------- |
-| `className` | `string`                                              | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                     | —       | List items.                                       |
-| `...`       | All standard `<ul>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                  | Default | Description                                                                                    |
+| ----------- | ----------------------------------------------------- | ------- | ---------------------------------------------------------------------------------------------- |
+| `className` | `string`                                              | —       | Additional CSS classes.                                                                        |
+| `children`  | `React.ReactNode`                                     | —       | List items.                                                                                    |
+| `role`      | `React.AriaRole`                                      | —       | Ignored: every level renders `role="list"` in its place, so a menu or tree role can't go here. |
+| `...`       | All standard `<ul>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                              |
 
 ### Menu.Item
 

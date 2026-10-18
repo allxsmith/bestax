@@ -96,7 +96,7 @@
     },
     {
       "path": "Menu.List",
-      "summary": "MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role=\"list\"`, and a `role` you pass doesn't replace it. Safari needs it: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.",
+      "summary": "MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role=\"list\"`, which Safari needs: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.",
       "component": null,
       "props": [
         {
@@ -118,7 +118,17 @@
           "deprecated": false
         }
       ],
-      "extraProps": [],
+      "extraProps": [
+        {
+          "name": "role",
+          "type": "React.AriaRole",
+          "default": null,
+          "description": "Ignored: every level renders `role=\"list\"` in its place, so a menu or tree role can't go here.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
       "catchAll": "All standard <ul> attributes and Bulma helper props",
       "types": []
     },
