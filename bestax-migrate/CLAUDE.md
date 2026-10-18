@@ -128,8 +128,9 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   what it renders. One exception is deliberate (#1148): Font Awesome's own
   `<i aria-hidden="true">`, alone in a `.icon` that carries nothing assistive tech reads,
   converts to `Icon`, which writes that attribute on the `.icon` instead, because the glyph is
-  hidden either way. The `.icon` may carry only what is on a whitelist (`movesBeside` in
-  `plan.ts`), checked by name whatever the value: a `title` or description would be hidden with
+  hidden either way. The `.icon` may carry only what is on a whitelist (`hiddenMovesBeside`
+  in its `readsGlyph` entry, which the MCP index carries too), checked by name whatever the
+  value: a `title` or description would be hidden with
   it, and beside a `role` or `tabIndex` `Icon` writes no `aria-hidden` at all, so an expression
   there must refuse too. The planner marks it `movesHidden`, and the render tests compare it
   through `e2e/support/hidden-glyph.ts`, which moves the attribute up in that one shape, behind

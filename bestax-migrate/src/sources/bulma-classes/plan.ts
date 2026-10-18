@@ -9,7 +9,7 @@
  * the whole element with a TODO (an attribute or tag the component would
  * render differently). One exception, on purpose: Font Awesome's own
  * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
- * tech reads (`movesBeside`) converts to `Icon`, which writes that attribute
+ * tech reads (the table's `hiddenMovesBeside`) converts to `Icon`, which writes that attribute
  * on the `.icon` instead (`movesHidden`), since the glyph is hidden either
  * way.
  */
@@ -617,7 +617,7 @@ export function plan(facts: ElementFacts): Plan {
   const moved =
     entry.readsGlyph &&
     defaults['aria-hidden'] === 'true' &&
-    [...attributes.keys()].every(movesBeside)
+    [...attributes.keys()].every(name => movesBeside(entry, name))
       ? readHiddenGlyph(facts.soleChild)
       : undefined;
   const missing = [...Object.entries(defaults), ...written].filter(
@@ -778,7 +778,7 @@ export function plan(facts: ElementFacts): Plan {
       'defaults',
       target,
       entry.readsGlyph && naming === 'unnamed'
-        ? hiddenAdvice(facts, target, usual)
+        ? hiddenAdvice(facts, entry, usual)
         : usual
     );
   }
@@ -1059,17 +1059,16 @@ function namingOf(
 }
 
 /**
- * The attributes an element may carry and still take Font Awesome's
- * `aria-hidden` up off its <i>: ones its target renders as given that
- * assistive tech doesn't read. A name, a description, a `title`, a `role`,
- * a `tabIndex`, a handler or anything else keeps the attribute where it is,
- * in any spelling, since hiding the element would hide what it exposes, and
- * `Icon` writes no `aria-hidden` beside a `role` or `tabIndex` at all.
+ * Whether an element may carry `name` and still take Font Awesome's
+ * `aria-hidden` up off its <i>, by the table's `hiddenMovesBeside`, where a
+ * name ending in `*` stands for every attribute it starts.
  */
-const MOVES_BESIDE: ReadonlySet<string> = new Set(['id', 'style', 'key']);
-
-function movesBeside(name: string): boolean {
-  return MOVES_BESIDE.has(name) || /^data-/.test(name);
+function movesBeside(entry: RootEntry, name: string): boolean {
+  return (entry.readsGlyph?.hiddenMovesBeside ?? []).some(allowed =>
+    allowed.endsWith('*')
+      ? name.startsWith(allowed.slice(0, -1))
+      : name === allowed
+  );
 }
 
 /**
@@ -1084,9 +1083,10 @@ function movesBeside(name: string): boolean {
  */
 function hiddenAdvice(
   facts: ElementFacts,
-  target: string,
+  entry: RootEntry,
   usual: string
 ): string {
+  const target = entry.target!;
   const sole = facts.soleChild;
   // Font Awesome's own markup hides the <i>, not the `.icon` around it.
   const flag = sole?.attributes.get('aria-hidden');
@@ -1118,7 +1118,7 @@ function hiddenAdvice(
   // A bare <i> naming a glyph moves it up by itself, onto an element that
   // carries nothing else assistive tech reads, so this one carries more.
   const exposed = readHiddenGlyph(sole)
-    ? [...facts.attributes.keys()].find(name => !movesBeside(name))
+    ? [...facts.attributes.keys()].find(name => !movesBeside(entry, name))
     : undefined;
   if (exposed) {
     return `bestax \`${target}\` takes Font Awesome's \`aria-hidden\` up off a bare <i> like this one only onto a \`.icon\` that carries nothing assistive tech reads, and this one carries \`${exposed}\`, which the move would hide, or, beside a \`role\` or \`tabIndex\`, leave with no \`aria-hidden\` at all; if the icon means something, give the \`.icon\` an \`aria-label\` and \`role="img"\`, and if it is decoration, drop \`${exposed}\`, then re-run`;

@@ -1358,12 +1358,22 @@ describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
       ]) {
         moved(token, ['fas', 'fa-home'], [token]);
       }
-      // Only what assistive tech doesn't read rides along.
-      for (const [name, value] of Object.entries({
-        id: 'x',
-        'data-test': 'y',
-      })) {
-        moved(name, ['fas', 'fa-home'], [], { [name]: value });
+      // Each attribute the table lets ride along renders the same, compared
+      // through the normalization's own list, so widening the table alone
+      // fails here. A `style` is the one this harness can't write, since
+      // React takes it as an object; the normalization's test moves past one.
+      const samples: Record<string, Attributes> = {
+        id: { id: 'x' },
+        key: { key: 'k' },
+        'data-*': { 'data-test': 'y' },
+      };
+      for (const allowed of entry.readsGlyph!.hiddenMovesBeside) {
+        if (allowed === 'style') continue;
+        expect({ allowed, sampled: Object.hasOwn(samples, allowed) }).toEqual({
+          allowed,
+          sampled: true,
+        });
+        moved(allowed, ['fas', 'fa-home'], [], samples[allowed]);
       }
     });
 

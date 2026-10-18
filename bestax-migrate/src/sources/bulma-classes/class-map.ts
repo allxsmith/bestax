@@ -124,6 +124,21 @@ export interface Absorbs {
   >;
 }
 
+/** How a target that renders a glyph from props reads one (`Icon`). */
+export interface ReadsGlyph {
+  /**
+   * The attributes the element may carry and still take Font Awesome's
+   * `aria-hidden` up off its `<i>`: ones the target renders as given that
+   * assistive tech doesn't read, a name ending in `*` standing for every
+   * attribute it starts. Read by name, whatever the value, since an
+   * expression may render as anything. Anything else (a name, a description,
+   * a `title`, a `role`, a `tabIndex`, a handler) keeps the attribute where
+   * it is: the move would hide what it exposes, and `Icon` writes no
+   * `aria-hidden` beside a `role` or `tabIndex` at all.
+   */
+  readonly hiddenMovesBeside: readonly string[];
+}
+
 export interface RootEntry {
   readonly status: RootStatus;
   /**
@@ -289,7 +304,7 @@ export interface RootEntry {
    * attribute moves up onto it, the one difference in markup a conversion
    * makes.
    */
-  readonly readsGlyph?: boolean;
+  readonly readsGlyph?: ReadsGlyph;
   /**
    * The target renders the whole `.file` tree from props (`File`): its
    * `<input>`, button text, icons and file name. The element converts only
@@ -1815,7 +1830,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Icon',
     tag: 'span',
-    readsGlyph: true,
+    readsGlyph: { hiddenMovesBeside: ['id', 'style', 'key', 'data-*'] },
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {
