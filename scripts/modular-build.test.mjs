@@ -329,6 +329,24 @@ describe('the scss fences in the modular build pages', () => {
     );
   });
 
+  it('compiles the Modular guide’s Option C blocks as one stylesheet', () => {
+    // A reader builds one file from the blocks under these headings, so a
+    // Bulma module in one block and the bestax partial extending it in
+    // another clash only once they are joined. The complete example after
+    // them is a stylesheet of its own and repeats their URLs.
+    const { lines } = splitLines(readFileSync(join(REPO, GUIDE), 'utf8'));
+    // A heading's line number, counted from 1 like a fence's, or 0.
+    const lineOf = heading => lines.indexOf(heading) + 1;
+    const from = lineOf('#### Required base styles');
+    const to = lineOf('#### Complete example');
+    assert.ok(from > 0 && to > from, `${GUIDE} lost an Option C heading`);
+    const blocks = scssFences(GUIDE).filter(
+      ({ line }) => line > from && line < to
+    );
+    assert.ok(blocks.length > 1, `${GUIDE} has no Option C blocks to join`);
+    compile(blocks.map(({ code }) => code).join('\n'));
+  });
+
   for (const page of PAGES) {
     for (const { code, line } of scssFences(page)) {
       it(`${page}: the fence opening on line ${line} compiles`, () => {
