@@ -359,8 +359,14 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
     // list is open. What it selects changes as the user types and arrows
     // through suggestions, the filtered list is new on every render, and an
     // inline `onInput` or `onSelect` changes on every render of the parent.
+    // Typing leaves the highlight where it was, so a list that narrowed can
+    // leave it past the last suggestion, with nothing there to select.
     const selectHighlightedRef = useLatestRef(() => {
-      if (selectOnClickOutside && highlightedIndex >= 0) {
+      if (
+        selectOnClickOutside &&
+        highlightedIndex >= 0 &&
+        highlightedIndex < filteredData.length
+      ) {
         handleSelect(filteredData[highlightedIndex]);
       }
     });

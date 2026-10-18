@@ -683,6 +683,50 @@ describe('Autocomplete', () => {
       expect(first).not.toHaveBeenCalled();
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
+
+    // Typing leaves the highlight where it was, so a list that narrows or
+    // empties can leave it past the last suggestion. There's nothing there to
+    // select, and the click still closes the dropdown.
+    it.each([
+      ['narrows to before the highlight', 3, 'ap'],
+      ['empties', 1, 'azz'],
+    ])(
+      'selects nothing on a click outside once the list %s, and closes',
+      (_, arrows, typed) => {
+        const onSelect = jest.fn();
+        const onError = jest.fn((e: ErrorEvent) => e.preventDefault());
+        window.addEventListener('error', onError);
+        try {
+          render(
+            <div>
+              <Autocomplete
+                data={fruits}
+                selectOnClickOutside
+                onSelect={onSelect}
+                empty="Nothing matches"
+              />
+              <button>Outside</button>
+            </div>
+          );
+          const input = screen.getByRole('combobox');
+          // Apple, Banana and Date.
+          fireEvent.change(input, { target: { value: 'a' } });
+          for (let i = 0; i < arrows; i += 1) {
+            fireEvent.keyDown(input, { key: 'ArrowDown' });
+          }
+          fireEvent.change(input, { target: { value: typed } });
+
+          fireEvent.mouseDown(screen.getByRole('button', { name: 'Outside' }));
+
+          expect(onError).not.toHaveBeenCalled();
+          expect(onSelect).not.toHaveBeenCalled();
+          expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+          expect(screen.queryByText('Nothing matches')).not.toBeInTheDocument();
+        } finally {
+          window.removeEventListener('error', onError);
+        }
+      }
+    );
   });
 
   describe('Controlled Value', () => {
