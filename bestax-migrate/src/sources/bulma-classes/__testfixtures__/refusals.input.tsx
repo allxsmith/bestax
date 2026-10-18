@@ -26,6 +26,8 @@ export function Refusals() {
         <p>Content Card would wrap in a part of its own</p>
       </div>
       <div className="tile is-ancestor">A Bulma 0.9 tile</div>
+      <div className="is-marginless">A Bulma 0.9 class on a plain div</div>
+      <figure className="is-64x64">An image size away from its image</figure>
     </div>
   );
 }

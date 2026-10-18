@@ -414,6 +414,137 @@ describe('plan', () => {
         todos: [],
       });
     });
+
+    it('keeps a helper with no prop as a class, and still converts the element', () => {
+      // `marginless` has `m-0`'s rule, and bestax renders that as `m-0`.
+      for (const helper of ['marginless', 'paddingless']) {
+        expect(plan(facts('p', `has-text-centered ${helper}`))).toEqual({
+          conversion: {
+            target: 'Paragraph',
+            props: [['textAlign', 'centered']],
+            className: helper,
+            drop: [],
+            numbers: [],
+          },
+          todos: [],
+        });
+        expect(plan(facts('p', helper))).toEqual({
+          conversion: null,
+          todos: [],
+        });
+      }
+    });
+  });
+
+  describe('a Bulma 0.9 helper v1 removed', () => {
+    it('converts as the v1 helper that replaced it, with nothing left to say', () => {
+      expect(plan(facts('p', 'is-marginless intro'))).toEqual({
+        conversion: {
+          target: 'Paragraph',
+          props: [['m', '0']],
+          className: 'intro',
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+      expect(plan(facts('div', 'hero-body is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Hero.Body',
+          props: [['p', '0']],
+          className: null,
+          drop: [],
+          numbers: [],
+        },
+        todos: [],
+      });
+    });
+
+    it('says what replaced it wherever it stays a class', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      // No component for the tag.
+      expect(plan(facts('div', 'is-marginless'))).toEqual({
+        conversion: null,
+        todos: [legacy('is-marginless')],
+      });
+      // A prop another class already wrote.
+      expect(plan(facts('div', 'box p-2 is-paddingless'))).toEqual({
+        conversion: {
+          target: 'Box',
+          props: [['p', '2']],
+          className: 'is-paddingless',
+          drop: [],
+          numbers: [],
+        },
+        todos: [legacy('is-paddingless')],
+      });
+      // A family left as markup, and an element that refuses.
+      expect(plan(facts('div', 'message is-marginless')).todos).toEqual([
+        { rule: 'family:message', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      expect(
+        plan(facts('div', 'box is-marginless', {}, { hasSpread: true })).todos
+      ).toEqual([
+        { rule: 'spread:Box', message: expect.any(String) },
+        legacy('is-marginless'),
+      ]);
+      // Added under a condition, which stays in the call.
+      const conditional = plan({
+        ...facts('div', 'box'),
+        conditional: [['is-marginless']],
+      });
+      expect(conditional.conversion?.target).toBe('Box');
+      expect(conditional.todos).toEqual([legacy('is-marginless')]);
+      expect(plan(facts('div', 'is-marginless')).todos[0].message).toContain(
+        '`m="0"`'
+      );
+    });
+  });
+
+  describe('an `.image` modifier away from its `.image`', () => {
+    const stray = {
+      rule: 'modifier:image',
+      message: expect.stringContaining('styles nothing'),
+    };
+
+    it('flags the size or ratio, which styles nothing there', () => {
+      expect(plan(facts('figure', 'is-64x64'))).toEqual({
+        conversion: null,
+        todos: [stray],
+      });
+      // The element still converts on what it does carry.
+      expect(plan(facts('figure', 'is-4by3 mx-auto'))).toEqual({
+        conversion: {
+          target: 'Figure',
+          props: [['mx', 'auto']],
+          className: 'is-4by3',
+          drop: [],
+          numbers: [],
+        },
+        todos: [stray],
+      });
+      expect(plan(facts('div', 'card-image is-square')).todos).toEqual([stray]);
+      expect(plan(facts('figure', 'is-64x64')).todos[0].message).toContain(
+        'add `image`, which bestax `Image` renders'
+      );
+    });
+
+    it('says nothing on an `.image`, or of a class for the element inside one', () => {
+      expect(
+        plan(facts('figure', 'image is-64x64', {}, { hasChildren: false }))
+          .todos
+      ).toEqual([{ rule: 'children:Image', message: expect.any(String) }]);
+      expect(
+        plan({ ...facts('figure', 'is-16by9'), conditional: [['image']] }).todos
+      ).toEqual([]);
+      expect(plan(facts('iframe', 'has-ratio')).todos).toEqual([]);
+      // A page's own size, which Bulma has no rule for at all.
+      expect(plan(facts('figure', 'is-256x256')).todos).toEqual([]);
+    });
   });
 
   describe('roots', () => {

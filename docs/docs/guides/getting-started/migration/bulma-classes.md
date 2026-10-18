@@ -79,6 +79,8 @@ stock stylesheet.
 - **Helper classes** become helper props on those components (`mt-4` → `mt="4"`,
   `has-text-centered` → `textAlign="centered"`, `is-position-sticky` → `pos="sticky"`), and on
   the plain tags bestax wraps: `<p>` becomes `Paragraph`, `<span>` becomes `Span`, and so on.
+  Bulma 0.9's `is-marginless` and `is-paddingless` style nothing under v1, so they become
+  `m="0"` and `p="0"`, the one change a conversion makes to an element's classes.
 - **Wrappers a component renders itself** fold into it: a `.table-container` around a table
   becomes `<Table isResponsive>`, and a `.fixed-grid` around a grid becomes
   `<Grid isFixed fixedCols={3}>`, as long as the wrapper holds nothing else and carries nothing

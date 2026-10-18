@@ -1,7 +1,9 @@
 /**
  * Each bulma-classes fixture renders the same HTML before and after the
- * migration. The input needs no library at all (it is plain JSX), so unlike
- * the other sources' fixtures it can run here, next to its output.
+ * migration, but for a Bulma 0.9 class v1 removed, which renders as the v1
+ * class that replaced it. The input needs no library at all (it is plain
+ * JSX), so unlike the other sources' fixtures it can run here, next to its
+ * output.
  */
 
 import classNames from 'classnames';
@@ -14,6 +16,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const fixturesDir = path.join(
@@ -60,7 +63,10 @@ describe('bulma-classes fixtures render the same before and after', () => {
       Object.fromEntries(
         Object.entries(before).map(([exported, html]) => [
           exported,
-          withImplicitListRoles(html, after[exported] ?? ''),
+          withImplicitListRoles(
+            withV1Classes(html, after[exported] ?? ''),
+            after[exported] ?? ''
+          ),
         ])
       )
     );

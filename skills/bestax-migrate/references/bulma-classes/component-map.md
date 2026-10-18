@@ -4,7 +4,8 @@ For apps that style plain JSX with Bulma's classes (`<div className="columns">`)
 wrapper library. The codemod converts an element only when the bestax component renders
 **exactly the markup the element did**: same tag, same classes, same attributes. Anything else
 stays as written, with a `TODO(bestax-migrate)` when there is something to decide (see
-[unmappables.md](unmappables.md)).
+[unmappables.md](unmappables.md)). The one class it changes is a Bulma 0.9 helper that v1
+removed and that styles nothing now (the [prop map](prop-map.md) lists them).
 
 A class the codemod doesn't know, such as the app's own `pricing-card`, rides along in
 `className`, which every bestax component passes through. So does a Bulma class with no bestax
@@ -345,7 +346,12 @@ button, the navbar's burger and dropdown link, the panel's icon, Radio and Radio
 ## Classes left alone
 
 `.help`, `.label`, `.hero-buttons`, `.hero-video`, `.theme-dark`, `.theme-light`, `.fa`,
-`.marginless`, `.paddingless`, `.navbar-content`, `.navbar-tabs` and `.panel-list` are valid
-Bulma with nothing in bestax to convert to. `.loader` is left alone as well, although bestax's
-`Loader` renders the same element: swap it in by hand for its progressbar role and accessible name.
-An element carrying one stays as written, and gets no TODO.
+`.navbar-content`, `.navbar-tabs` and `.panel-list` are valid Bulma with nothing in bestax to
+convert to. `.loader` is left alone as well, although bestax's `Loader` renders the same
+element: swap it in by hand for its progressbar role and accessible name. An element carrying
+one stays as written, and gets no TODO.
+
+v1's `marginless` and `paddingless` are helpers, not components, so they don't hold an element
+back: `<p className="has-text-centered marginless">` becomes
+`<Paragraph textAlign="centered" className="marginless">`. They keep their names, since bestax
+writes the same rules as `m-0` and `p-0`.

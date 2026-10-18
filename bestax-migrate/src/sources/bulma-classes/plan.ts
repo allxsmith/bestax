@@ -17,10 +17,13 @@ import {
   inTagSet,
   legacyHint,
   modifierFor,
+  modifiesRoot,
   numberAttrsOf,
   placedFor,
   PRECEDENCE,
+  replacedBy,
   rootFor,
+  rootItNeeds,
   WRAPPER_OWN_PROPS,
   wrapperFor,
   type RootEntry,
@@ -328,19 +331,64 @@ function tagsItReaches(entry: RootEntry): string {
   return `only <${entry.tag}>`;
 }
 
+/**
+ * Every class the element may carry: its fixed ones, and any a condition
+ * adds, which the element has to be right with as well as without.
+ */
+function carriedBy(facts: ElementFacts): string[] {
+  return [...new Set([...facts.tokens, ...(facts.conditional ?? []).flat()])];
+}
+
 export function plan(facts: ElementFacts): Plan {
+  const result = planElement(facts);
+  // A Bulma 0.9 helper v1 removed converts as the v1 helper that replaced
+  // it, and only one that stays a class gets the TODO naming that helper:
+  // where it converted, nothing is left to do.
+  const kept = new Set(result.conversion?.className?.split(' ') ?? []);
+  const stays = carriedBy(facts).filter(
+    token =>
+      replacedBy(token) &&
+      (!result.conversion || !facts.tokens.includes(token) || kept.has(token))
+  );
+  if (stays.length === 0) return result;
+  return {
+    ...result,
+    todos: [
+      ...result.todos,
+      ...stays.map(token => ({
+        rule: ruleId('legacy', token),
+        message: legacyHint(token)!,
+      })),
+    ],
+  };
+}
+
+function planElement(facts: ElementFacts): Plan {
   const todos: Todo[] = [];
   const { tag, tokens } = facts;
-  // Every class the element may carry: its fixed ones, and any a condition
-  // adds, which the element has to be right with as well as without.
-  const carried = [
-    ...new Set([...tokens, ...(facts.conditional ?? []).flat()]),
-  ];
+  const carried = carriedBy(facts);
   const mayCarry = (token: string) => carried.includes(token);
 
   for (const token of carried) {
-    const hint = legacyHint(token);
+    // One that converts says so only if it stays, which `plan` knows.
+    const hint = replacedBy(token) ? undefined : legacyHint(token);
     if (hint) todos.push({ rule: ruleId('legacy', token), message: hint });
+    // A modifier Bulma styles only on its own root does nothing on an element
+    // with no root it modifies.
+    const root = rootItNeeds(token);
+    if (
+      root &&
+      !carried.some(other => {
+        const entry = rootFor(other);
+        return entry !== undefined && modifiesRoot(entry, token);
+      })
+    ) {
+      const article = /^[aeiou]/.test(root) ? 'an' : 'a';
+      todos.push({
+        rule: ruleId('modifier', root),
+        message: `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, add \`${root}\`, which bestax \`${rootFor(root)!.target}\` renders, then re-run, and otherwise drop the class`,
+      });
+    }
   }
 
   // A family this source leaves as markup keeps its element as markup, even

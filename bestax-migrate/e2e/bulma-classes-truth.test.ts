@@ -2,7 +2,8 @@
  * Every conversion the bulma-classes table allows renders exactly the markup
  * it replaces. The raw element and the bestax component are both rendered
  * through the built library's React and compared after normalising
- * attribute and class order.
+ * attribute and class order, and after writing a Bulma 0.9 class v1 removed
+ * as the v1 class the conversion renders in its place (`withV1Classes`).
  *
  * Three layers:
  *   - every root on every tag it can reach, alone and with each of its
@@ -23,6 +24,7 @@ import {
   HELPER_TOKENS,
   numberAttrsOf,
   PLACED,
+  REPLACED_IN_V1,
   ROOTS,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
@@ -53,6 +55,7 @@ import {
   normalizeHtml,
   renderElement,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const repoRoot = path.join(
@@ -283,7 +286,10 @@ function renderBoth(
       )
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
-  return { raw: withImplicitListRoles(raw, html), converted: html };
+  return {
+    raw: withImplicitListRoles(withV1Classes(raw, html), html),
+    converted: html,
+  };
 }
 
 /**
@@ -1275,6 +1281,59 @@ describe('wrappers', () => {
     expect(plan(factsFor('p', ['my-app-class'])).conversion).toBeNull();
   });
 });
+
+/**
+ * A Bulma 0.9 helper v1 removed styles nothing under v1, so the one class a
+ * conversion changes on purpose is that one, into the v1 class that does its
+ * job. The sweeps above compare them with that class restated; this holds
+ * the restating to doing something, and to that class alone.
+ */
+describe.each(Object.entries(REPLACED_IN_V1))(
+  'the removed `%s`',
+  (token, v1) => {
+    it(`renders \`${v1}\` wherever its element converts`, () => {
+      for (const [tag, tokens] of [
+        ['p', [token]],
+        ['p', [token, 'my-app-class']],
+        ['div', ['box', token]],
+        ['section', ['section', token]],
+      ] as Array<[string, string[]]>) {
+        const both = renderBoth(factsFor(tag, tokens));
+        expect({ tokens, converts: both !== null }).toEqual({
+          tokens,
+          converts: true,
+        });
+        expect(both!.converted).toContain(v1);
+        expect(both!.converted).not.toContain(token);
+        expect({ tokens, html: both!.converted }).toEqual({
+          tokens,
+          html: both!.raw,
+        });
+      }
+    });
+
+    it('converts exactly as the v1 class does, on every root', () => {
+      expect(HELPER_TOKENS.get(token)).toEqual(HELPER_TOKENS.get(v1));
+      for (const [root, entry] of mapped) {
+        const as = (helper: string) =>
+          plan(
+            factsFor(entry.tag!, [root, helper], defaultsFor(entry, entry.tag!))
+          ).conversion;
+        const old = as(token);
+        const now = as(v1);
+        expect({
+          root,
+          props: old?.props ?? null,
+          stays: old?.className?.includes(token) ?? null,
+        }).toEqual({
+          root,
+          props: now?.props ?? null,
+          stays: now?.className?.includes(v1) ?? null,
+        });
+      }
+    });
+  }
+);
 
 /**
  * Helpers whose props render differently beside each other than alone: a
