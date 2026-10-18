@@ -1,0 +1,422 @@
+{
+  "name": "TreeView",
+  "kind": "component",
+  "category": "components",
+  "slug": "components/treeview",
+  "docsUrl": "https://bestax.io/docs/api/components/treeview",
+  "examples": [
+    {
+      "title": "Basic Usage",
+      "code": "<TreeView aria-label=\"Settings\" defaultExpanded={['account']}>\n  <TreeView.Item value=\"account\" label=\"Account\">\n    <TreeView.Item value=\"account/profile\" label=\"Profile\" />\n    <TreeView.Item value=\"account/security\" label=\"Security\" />\n  </TreeView.Item>\n  <TreeView.Item value=\"notifications\" label=\"Notifications\">\n    <TreeView.Item value=\"notifications/email\" label=\"Email\" />\n    <TreeView.Item value=\"notifications/push\" label=\"Push\" />\n  </TreeView.Item>\n  <TreeView.Item value=\"about\" label=\"About\" />\n</TreeView>"
+    },
+    {
+      "title": "A File Browser",
+      "code": "function example() {\n  interface FileNode {\n    id: string;\n    name: string;\n    children?: FileNode[];\n  }\n\n  const files: FileNode[] = [\n    {\n      id: 'src',\n      name: 'src',\n      children: [\n        {\n          id: 'src/components',\n          name: 'components',\n          children: [\n            { id: 'src/components/Button.tsx', name: 'Button.tsx' },\n            { id: 'src/components/Card.tsx', name: 'Card.tsx' },\n          ],\n        },\n        { id: 'src/index.ts', name: 'index.ts' },\n      ],\n    },\n    { id: 'package.json', name: 'package.json' },\n  ];\n\n  const [file, setFile] = useState<string | null>(null);\n\n  const items = (nodes: FileNode[]): React.ReactNode =>\n    nodes.map(node => (\n      <TreeView.Item\n        key={node.id}\n        value={node.id}\n        label={node.name}\n        icon={node.children ? 'folder' : 'file'}\n      >\n        {node.children && items(node.children)}\n      </TreeView.Item>\n    ));\n\n  return (\n    <Columns>\n      <Column size=\"half\">\n        <TreeView\n          aria-label=\"Files\"\n          selectionMode=\"single\"\n          selected={file}\n          onSelectedChange={setFile}\n          defaultExpanded={['src']}\n        >\n          {items(files)}\n        </TreeView>\n      </Column>\n      <Column>\n        <Content>{file ? <p>Showing {file}</p> : <p>Pick a file.</p>}</Content>\n      </Column>\n    </Columns>\n  );\n}"
+    },
+    {
+      "title": "A File Browser",
+      "code": "interface FileNode {\n  id: string;\n  name: string;\n  children?: FileNode[];\n}\n\nfunction FileItems({ nodes }: { nodes: FileNode[] }) {\n  return (\n    <>\n      {nodes.map(node => (\n        <TreeView.Item\n          key={node.id}\n          value={node.id}\n          label={node.name}\n          icon={node.children ? 'folder' : 'file'}\n        >\n          {node.children && <FileItems nodes={node.children} />}\n        </TreeView.Item>\n      ))}\n    </>\n  );\n}"
+    },
+    {
+      "title": "Checkboxes",
+      "code": "function example() {\n  const [checked, setChecked] = useState<string[]>(['projects/read']);\n\n  return (\n    <>\n      <Buttons size=\"small\">\n        <Button onClick={() => setChecked(['projects', 'billing'])}>\n          Check all\n        </Button>\n        <Button onClick={() => setChecked([])}>Clear</Button>\n      </Buttons>\n      <TreeView\n        aria-label=\"Permissions\"\n        selectionMode=\"checkbox\"\n        checked={checked}\n        onCheckedChange={setChecked}\n        defaultExpanded={['projects']}\n      >\n        <TreeView.Item value=\"projects\" label=\"Projects\">\n          <TreeView.Item value=\"projects/read\" label=\"Read\" />\n          <TreeView.Item value=\"projects/write\" label=\"Write\" />\n          <TreeView.Item value=\"projects/delete\" label=\"Delete\" disabled />\n        </TreeView.Item>\n        <TreeView.Item value=\"billing\" label=\"Billing\">\n          <TreeView.Item value=\"billing/view\" label=\"View invoices\" />\n          <TreeView.Item value=\"billing/pay\" label=\"Pay invoices\" />\n        </TreeView.Item>\n      </TreeView>\n      <Paragraph mt=\"3\" textSize=\"7\">\n        Checked: {checked.length ? checked.join(', ') : 'nothing'}\n      </Paragraph>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Folders That Load",
+      "code": "function example() {\n  interface Folder {\n    id: string;\n    name: string;\n    hasFolders: boolean;\n  }\n\n  // A pretend server: each folder holds two more, three levels down.\n  const listFolders = (id: string) =>\n    new Promise<Folder[]>(resolve =>\n      setTimeout(\n        () =>\n          resolve(\n            ['a', 'b'].map(name => ({\n              id: `${id}/${name}`,\n              name: `Folder ${name.toUpperCase()}`,\n              hasFolders: id.split('/').length < 3,\n            }))\n          ),\n        800\n      )\n    );\n\n  const [expanded, setExpanded] = useState<string[]>([]);\n  const [loaded, setLoaded] = useState<Record<string, Folder[]>>({});\n\n  function changeOpen(next: string[]) {\n    setExpanded(next);\n    for (const id of next) {\n      if (!loaded[id]) {\n        listFolders(id).then(found =>\n          setLoaded(current => ({ ...current, [id]: found }))\n        );\n      }\n    }\n  }\n\n  const items = (folders: Folder[]): React.ReactNode =>\n    folders.map(folder => (\n      <TreeView.Item\n        key={folder.id}\n        value={folder.id}\n        label={folder.name}\n        icon=\"folder\"\n        hasChildren={folder.hasFolders}\n      >\n        {loaded[folder.id]\n          ? items(loaded[folder.id])\n          : expanded.includes(folder.id) && (\n              <TreeView.Item\n                value={`${folder.id}:loading`}\n                label=\"Loading…\"\n                disabled\n              />\n            )}\n      </TreeView.Item>\n    ));\n\n  return (\n    <TreeView\n      aria-label=\"Folders\"\n      expanded={expanded}\n      onExpandedChange={changeOpen}\n    >\n      {items([\n        { id: 'home', name: 'Home', hasFolders: true },\n        { id: 'shared', name: 'Shared', hasFolders: true },\n      ])}\n    </TreeView>\n  );\n}"
+    },
+    {
+      "title": "An Outline With Expand All and Collapse All",
+      "code": "function example() {\n  const everything = ['ceo', 'ceo/engineering', 'ceo/sales'];\n  const [expanded, setExpanded] = useState<string[]>(['ceo']);\n\n  return (\n    <>\n      <Buttons size=\"small\">\n        <Button onClick={() => setExpanded(everything)}>Expand all</Button>\n        <Button onClick={() => setExpanded([])}>Collapse all</Button>\n      </Buttons>\n      <TreeView\n        aria-label=\"Org chart\"\n        expanded={expanded}\n        onExpandedChange={setExpanded}\n      >\n        <TreeView.Item value=\"ceo\" label=\"Ada Lovelace, CEO\">\n          <TreeView.Item\n            value=\"ceo/engineering\"\n            label=\"Grace Hopper, Engineering\"\n          >\n            <TreeView.Item value=\"eng/turing\" label=\"Alan Turing\" />\n            <TreeView.Item value=\"eng/johnson\" label=\"Katherine Johnson\" />\n          </TreeView.Item>\n          <TreeView.Item value=\"ceo/sales\" label=\"Hedy Lamarr, Sales\">\n            <TreeView.Item value=\"sales/jackson\" label=\"Mary Jackson\" />\n          </TreeView.Item>\n        </TreeView.Item>\n      </TreeView>\n    </>\n  );\n}"
+    },
+    {
+      "title": "Sizes",
+      "code": "<Columns isMultiline>\n  {(['small', 'medium', 'large'] as const).map(size => (\n    <Column key={size} size=\"one-third\">\n      <TreeView\n        aria-label={`Files, ${size}`}\n        size={size}\n        defaultExpanded={['src']}\n      >\n        <TreeView.Item value=\"src\" label=\"src\" icon=\"folder\">\n          <TreeView.Item value=\"src/index.ts\" label=\"index.ts\" icon=\"file\" />\n        </TreeView.Item>\n        <TreeView.Item value=\"README.md\" label=\"README.md\" icon=\"file\" />\n      </TreeView>\n    </Column>\n  ))}\n</Columns>"
+    },
+    {
+      "title": "Compound (dot-notation) usage",
+      "code": "<TreeView\n  aria-label=\"Files\"\n  selectionMode=\"single\"\n  defaultSelected=\"src/App.tsx\"\n  defaultExpanded={['src']}\n>\n  <TreeView.Item value=\"src\" label=\"src\" icon=\"folder\">\n    <TreeView.Item value=\"src/index.ts\" label=\"index.ts\" icon=\"file\" />\n    <TreeView.Item value=\"src/App.tsx\" label=\"App.tsx\" icon=\"file\" />\n    <TreeView.Item value=\"src/legacy.ts\" label=\"legacy.ts\" disabled />\n  </TreeView.Item>\n  <TreeView.Item value=\"package.json\" label=\"package.json\" icon=\"file\" />\n</TreeView>"
+    }
+  ],
+  "accessibility": "`TreeView` follows the [APG Tree View Pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/).\n\n- **Roles:** the root is a `<ul role=\"tree\">`, each item an `<li role=\"treeitem\">`, and an open\n  parent's children sit in a `<ul role=\"group\">` inside it. A closed item's children have no\n  markup.\n- **A name:** a tree needs one, from `aria-label` or `aria-labelledby`, and a development build\n  warns when it has neither. Each item is named by `aria-labelledby` pointing at its own label, and\n  declares its `aria-level`, which VoiceOver needs according to\n  [GitHub's testing](https://github.blog/engineering/user-experience/considerations-for-making-a-tree-view-component-accessible/).\n  `aria-expanded` is on parents only.\n- **One tab stop, with real focus:** one item holds `tabIndex={0}` and the rest `-1`, and focus\n  moves from item to item, rather than through `aria-activedescendant`. When focus comes into the\n  tree, it lands on the selected item, or in a checkbox tree on the first checked item on the page.\n  Without one, it lands where focus last was, or on the first item. If the item holding the stop\n  goes away, its nearest ancestor on the page takes it, and focus goes too if it had focus.\n- **Selection:** a `single` tree marks each enabled item `aria-selected`, `true` or `false`. A\n  `checkbox` tree marks `aria-checked` on every item, `true`, `false` or `mixed`, disabled ones\n  included, and adds `aria-multiselectable=\"true\"` to the tree. A tree never has both, and a tree\n  with no `selectionMode` has neither. Selection doesn't follow focus.\n- **The box** is a [`Checkbox`](https://bestax.io/docs/api/form/checkbox) inside an `aria-hidden` span, with\n  `tabIndex={-1}`, so it's neither a tab stop nor a second thing for a screen reader to read. The\n  item's `aria-checked` is what a screen reader hears.\n- **Disabled items** are `aria-disabled` and stay reachable from the arrow keys, Home, End and\n  typing, so a screen reader user finds them. They're never selected, checked, opened or closed.\n  One that's already open stays open, so what's under it is still reachable.\n\nEnter and Space do the item's one thing, which depends on the mode:\n\n| Key   | No `selectionMode`       | `single`         | `checkbox`               |\n| ----- | ------------------------ | ---------------- | ------------------------ |\n| Enter | Opens or closes a parent | Selects the item | Opens or closes a parent |\n| Space | Opens or closes a parent | Selects the item | Checks or unchecks it    |\n\nThe rest work the same in every mode:\n\n| Key        | What it does                                                                              |\n| ---------- | ----------------------------------------------------------------------------------------- |\n| Down, Up   | The next or previous item on the page, without wrapping                                   |\n| Right      | Opens a closed parent, and focus stays. On an open parent, moves to its first child       |\n| Left       | Closes an open parent. Otherwise moves to its parent                                      |\n| Home, End  | The first item, and the last one on the page                                              |\n| `*`        | Opens every closed parent beside the focused item, itself included. Focus stays           |\n| Characters | Moves to the next item whose label starts with what's typed, several characters adding up |\n| Tab        | Leaves the tree                                                                           |\n\n- **Right to left:** Right and Left swap in a right-to-left page, and the chevron points to the\n  left while closed.\n- **Keys it leaves alone:** anything with Control, Alt or Meta held, anything while an input method\n  is composing, and Escape, so it reaches a Modal or Popover around the tree. An item's own\n  `onKeyDown` runs first, and calling `preventDefault()` there keeps the tree from acting on the\n  key.\n- **Clicks:** the chevron only opens and closes. The rest of the row does the item's one thing:\n  opens or closes it with no `selectionMode`, selects it (and opens or closes a parent) in a\n  `single` tree, and checks it in a `checkbox` tree. A click moves focus and the tab stop to the\n  item.\n- **Not for site navigation:** APG's own\n  [navigation tree example](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/examples/treeview-navigation/)\n  says \"A pattern more suited for typical site navigation with expandable groups of links is the\n  disclosure pattern\", and a tree's items aren't links. Keep a sidebar on [`Menu`](https://bestax.io/docs/api/components/menu).\n- **Focus and the selected look differ:** the focus ring sits outside the row, so it shows on the\n  selected fill as well as on a plain row.\n- **Forced colors:** in Windows high contrast mode the selected row is the system's Highlight and\n  HighlightText, a disabled row is GrayText, and the focus ring, the chevrons and the guide lines\n  stay visible, since they're outlines and borders. A mixed box keeps its dash.\n- **Motion:** the chevron turns with a short transition, which stops when the reader asks for\n  reduced motion.",
+  "related": ["Checkbox", "Collapse", "Menu", "Sidebar", "useBulmaClasses"],
+  "storybook": "https://bestax.io/storybook/?path=/story/components-treeview--default",
+  "summary": "The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, and Right and Left to open and close. It's the APG Tree View pattern, drawn to look like Bulma's menu. It isn't for site navigation: items aren't links, and a sidebar whose sections open and close is `Menu`'s job. The root owns which items are open, through `expanded`, `defaultExpanded` and `onExpandedChange`. `selectionMode` picks one of three trees. With `none`, nothing is picked. With `single`, one item is, and `selected` says which. With `checkbox`, each item has a box, a check reaches every enabled item under it, closed branches included, and a parent with some of its items checked is mixed. `selected` is read in a `single` tree only, and `checked` in a `checkbox` tree only. Selection never follows focus. Disabled items stay reachable from the keys, so a screen reader finds them. The tree needs a name, from `aria-label` or `aria-labelledby`, and a development build warns when it has neither.",
+  "import": "import { TreeView } from '@allxsmith/bestax-bulma';",
+  "sourceFile": "bulma-ui/src/components/TreeView.tsx",
+  "rootClass": "tree-view",
+  "parts": [
+    {
+      "path": "TreeView",
+      "summary": "The `TreeView` component renders a tree of items you browse and pick from, the way a file explorer works: one tab stop, the arrow keys to move, and Right and Left to open and close. It's the APG Tree View pattern, drawn to look like Bulma's menu. It isn't for site navigation: items aren't links, and a sidebar whose sections open and close is `Menu`'s job. The root owns which items are open, through `expanded`, `defaultExpanded` and `onExpandedChange`. `selectionMode` picks one of three trees. With `none`, nothing is picked. With `single`, one item is, and `selected` says which. With `checkbox`, each item has a box, a check reaches every enabled item under it, closed branches included, and a parent with some of its items checked is mixed. `selected` is read in a `single` tree only, and `checked` in a `checkbox` tree only. Selection never follows focus. Disabled items stay reachable from the keys, so a screen reader finds them. The tree needs a name, from `aria-label` or `aria-labelledby`, and a development build warns when it has neither.",
+      "component": null,
+      "props": [
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`TreeView.Item`s, nested inside each other for their children. Render an item's children whenever you have them, open or not: the tree hides them while it's closed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "selectionMode",
+          "type": "'none' | 'single' | 'checkbox'",
+          "default": "'none'",
+          "description": "`none`: nothing is picked, and Enter and Space open and close a parent. `single`: one item, picked with Enter, Space or a click. `checkbox`: any number, checked with Space or a click. A check reaches every enabled item under it, and a parent with some of them checked is mixed.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "selected",
+          "type": "string | null",
+          "default": null,
+          "description": "The selected item's value when you hold the state, or `null` for none. Read with `single` only. Picking an item then only calls `onSelectedChange`, and nothing changes until you pass the new value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultSelected",
+          "type": "string | null",
+          "default": "null",
+          "description": "The item selected to begin with, when the tree holds its own state. Read with `single` only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onSelectedChange",
+          "type": "(value: string) => void",
+          "default": null,
+          "description": "Called with the value of the item picked. Not called for the one already selected, and moving focus never calls it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "checked",
+          "type": "string[]",
+          "default": null,
+          "description": "The checked items' values when you hold the state. Read with `checkbox` only. A value checks its item, and an enabled item also counts as checked when any item above it is in the list, so a parent's value stands for its whole branch, loaded or not. A disabled item is checked only by its own value.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultChecked",
+          "type": "string[]",
+          "default": "[]",
+          "description": "The values checked to begin with, when the tree holds its own state. Read with `checkbox` only.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onCheckedChange",
+          "type": "(checked: string[]) => void",
+          "default": null,
+          "description": "Called after a check or an uncheck with every item that now shows checked, parents included, plus any earlier value that matches no item the tree knows, left as it was. The order means nothing. Passed back as `checked`, the list shows the same boxes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "expanded",
+          "type": "string[]",
+          "default": null,
+          "description": "The open items' values when you hold the state. A value stays in the list while its item's parent is closed, so the item reopens as it was.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "defaultExpanded",
+          "type": "string[]",
+          "default": "[]",
+          "description": "The items open to begin with, when the tree holds its own state.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "onExpandedChange",
+          "type": "(expanded: string[]) => void",
+          "default": null,
+          "description": "Called with the new list whenever an item opens or closes, `*` included.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "size",
+          "type": "'small' | 'medium' | 'large'",
+          "default": null,
+          "description": "The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "aria-label",
+          "type": "string",
+          "default": null,
+          "description": "Names the tree, such as \"Files\". A tree needs a name, so pass this or `aria-labelledby`, and a development build warns when it has neither.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "aria-labelledby",
+          "type": "string",
+          "default": null,
+          "description": "The id of a visible heading or label that names the tree, in place of `aria-label`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLUListElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<ul>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <ul> attributes and Bulma helper props",
+      "types": []
+    },
+    {
+      "path": "TreeView.Item",
+      "summary": "One item in the tree: a row with its chevron, its box, its icon and its label, and, while it's open, a group of the items under it.",
+      "component": null,
+      "props": [
+        {
+          "name": "value",
+          "type": "string",
+          "default": null,
+          "description": "**Required.** Identifies the item in `selected`, `checked` and `expanded`. Unique in the tree.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "label",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "**Required.** What the row shows, and the item's name for assistive tech. Nothing in it should be a link or a button: a tree item does one thing, and nothing else in its row takes focus.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "icon",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "A picture before the label: an `Icon` name, or a node. Hidden from assistive tech.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "children",
+          "type": "React.ReactNode",
+          "default": null,
+          "description": "`TreeView.Item`s under this one. Render them whenever you have them, open or not: the tree hides them while it's closed, and a checkbox tree needs them to know what a check reaches.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasChildren",
+          "type": "boolean",
+          "default": "false",
+          "description": "Shows the item as a parent before its children are known, such as a folder that loads when it opens.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "disabled",
+          "type": "boolean",
+          "default": "false",
+          "description": "Reachable with the arrow keys, Home, End and type-ahead, so a screen reader finds it, but never selected, checked, opened or closed. One that's already open stays open.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "className",
+          "type": "string",
+          "default": null,
+          "description": "Additional CSS classes.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "extraProps": [
+        {
+          "name": "ref",
+          "type": "React.Ref<HTMLLIElement>",
+          "default": null,
+          "description": "Ref forwarded to the `<li>`.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        }
+      ],
+      "catchAll": "All standard <li> attributes",
+      "types": []
+    }
+  ],
+  "cssVars": [
+    {
+      "css": "--bulma-tree-view-item-h",
+      "sass": "$tree-view-item-h",
+      "default": "var(--bulma-scheme-h)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-s",
+      "sass": "$tree-view-item-s",
+      "default": "var(--bulma-scheme-s)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-background-l",
+      "sass": "$tree-view-item-background-l",
+      "default": "var(--bulma-scheme-main-l)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-background-l-delta",
+      "sass": "$tree-view-item-background-l-delta",
+      "default": "0%",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-hover-background-l-delta",
+      "sass": "$tree-view-item-hover-background-l-delta",
+      "default": "var(--bulma-hover-background-l-delta)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-active-background-l-delta",
+      "sass": "$tree-view-item-active-background-l-delta",
+      "default": "var(--bulma-active-background-l-delta)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-color-l",
+      "sass": "$tree-view-item-color-l",
+      "default": "var(--bulma-text-l)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-radius",
+      "sass": "$tree-view-item-radius",
+      "default": "var(--bulma-radius-small)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-padding",
+      "sass": "$tree-view-item-padding",
+      "default": "0.5em 0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-selected-h",
+      "sass": "$tree-view-item-selected-h",
+      "default": "var(--bulma-link-h)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-selected-s",
+      "sass": "$tree-view-item-selected-s",
+      "default": "var(--bulma-link-s)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-selected-background-l",
+      "sass": "$tree-view-item-selected-background-l",
+      "default": "var(--bulma-link-l)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-selected-color-l",
+      "sass": "$tree-view-item-selected-color-l",
+      "default": "var(--bulma-link-invert-l)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-line-height",
+      "sass": "$tree-view-line-height",
+      "default": "1.25",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-group-border",
+      "sass": "$tree-view-group-border",
+      "default": "1px solid var(--bulma-border)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-group-margin",
+      "sass": "$tree-view-group-margin",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-group-padding",
+      "sass": "$tree-view-group-padding",
+      "default": "0.75em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-item-disabled-color",
+      "sass": "$tree-view-item-disabled-color",
+      "default": "var(--bulma-text-weak)",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-gap",
+      "sass": "$tree-view-gap",
+      "default": "0.375em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-toggle-size",
+      "sass": "$tree-view-toggle-size",
+      "default": "1em",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-toggle-color",
+      "sass": "$tree-view-toggle-color",
+      "default": "currentColor",
+      "scope": "root"
+    },
+    {
+      "css": "--bulma-tree-view-toggle-duration",
+      "sass": "$tree-view-toggle-duration",
+      "default": "var(--bulma-duration)",
+      "scope": "root"
+    }
+  ]
+}
