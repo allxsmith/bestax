@@ -1,0 +1,27 @@
+import { Container, Delete, Navbar, Notification } from "@allxsmith/bestax-bulma";
+
+// TODO(bestax-migrate): the page's `<title>` ("Scripts") isn't part of a component: set it where the app sets each page's title (under React 19 a component can render `<title>` itself, and React moves it into the head) (scripts.html:4)
+// TODO(bestax-migrate): structured data for search engines (JSON-LD) was dropped with the page's scripts: render it where the app sets each page's head, as `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`; the JSON is still in the page (scripts.html:5)
+// TODO(bestax-migrate): an inline script was dropped, since a component doesn't run a page's scripts: port what it does into the component (state, effects, event handlers); its code is still in the page (scripts.html:14)
+// TODO(bestax-migrate): the page loads the script `https://cdn.jsdelivr.net/npm/bulma-carousel@4/dist/js/bulma…`, and a component runs no page scripts: load it in the app if the app still needs it, or replace what it does with React code (scripts.html:20)
+// TODO(bestax-migrate): an inline script toggles the navbar burger: bestax's `Navbar.Burger` takes `active` and `onClick`, and `Navbar.Menu` the same `active`, so keep the open state in `useState` and pass it to both; it was dropped, since a component doesn't run a page's scripts, and its code is still in the page (scripts.html:21-30)
+// TODO(bestax-migrate): an inline script removes an element when its `.delete` is clicked: bestax's `Notification` takes `hasDelete` and `onDelete`, `Tag` takes `onDelete` and `Message` takes `onClose`, so keep whether it shows in state; it was dropped, since a component doesn't run a page's scripts, and its code is still in the page (scripts.html:21-30)
+// TODO(bestax-migrate): an inline script switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state and pass it; it was dropped, since a component doesn't run a page's scripts, and its code is still in the page (scripts.html:31-35)
+export default function ScriptsPage() {
+  return (
+    <>
+      <Navbar role="navigation" aria-label="main navigation">
+        <Navbar.Brand>
+          <Navbar.Item href="/">Home</Navbar.Item>
+        </Navbar.Brand>
+      </Navbar>
+      <Container>
+        <p>Before after</p>
+        <Notification color="primary">
+          <Delete aria-label="Close" />{" "}
+          Saved
+        </Notification>
+      </Container>
+    </>
+  );
+}

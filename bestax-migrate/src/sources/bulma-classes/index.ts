@@ -1,5 +1,6 @@
 import type { MigrationSource } from '../../types.js';
 import { flaggableRoot } from './class-map.js';
+import { excludedHtml, transformHtml } from './html.js';
 import { analyzeProject } from './project.js';
 import transform from './transform.js';
 import { transformStyles } from './styles.js';
@@ -42,5 +43,8 @@ export const bulmaClasses: MigrationSource = {
   unsupportedExtensions: ['mdx', 'astro'],
   transform,
   transformStyles,
+  htmlExtensions: ['html', 'htm'],
+  transformHtml,
+  excludedHtml,
   updateDependencies,
 };

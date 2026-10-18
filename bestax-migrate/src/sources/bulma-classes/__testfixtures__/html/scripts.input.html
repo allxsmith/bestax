@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Scripts</title>
+  <script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebSite"}</script>
+</head>
+<body>
+  <nav class="navbar" role="navigation" aria-label="main navigation">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="/">Home</a>
+    </div>
+  </nav>
+  <div class="container">
+    <p>Before <script>document.write('x')</script> after</p>
+    <div class="notification is-primary">
+      <button class="delete" type="button" aria-label="Close"></button>
+      Saved
+    </div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bulma-carousel@4/dist/js/bulma-carousel.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      document.querySelectorAll('.navbar-burger').forEach(el => {
+        el.addEventListener('click', () => el.classList.toggle('is-active'));
+      });
+      document.querySelectorAll('.notification .delete').forEach(button => {
+        button.addEventListener('click', () => button.parentNode.remove());
+      });
+    });
+  </script>
+  <script type="module">
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+    }
+  </script>
+</body>
+</html>

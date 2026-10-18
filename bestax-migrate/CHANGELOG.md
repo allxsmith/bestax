@@ -1,3 +1,18 @@
+# [2.26.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.7...bestax-migrate@2.26.0) (2026-10-18)
+
+
+### Features
+
+* **bestax-migrate:** convert Bulma HTML pages with the bulma-classes source ([#1160](https://github.com/allxsmith/bestax/issues/1160)) ([56335a1](https://github.com/allxsmith/bestax/commit/56335a1295a60d6427e87e8651b521c5908e8f7a))
+
+## [2.25.7](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.6...bestax-migrate@2.25.7) (2026-10-18)
+
+
+### Bug Fixes
+
+* **bestax-migrate:** keep a .menu-list with a role of its own as markup ([792b8c4](https://github.com/allxsmith/bestax/commit/792b8c484a06cfdf44e051d44820fb130e313444)), closes [#1108](https://github.com/allxsmith/bestax/issues/1108)
+* **bulma-ui:** give Menu's lists role="list", so Safari keeps them lists ([32550c3](https://github.com/allxsmith/bestax/commit/32550c307e60f3b78bf8dad9b00c33af2aa37aaa)), closes [#1095](https://github.com/allxsmith/bestax/issues/1095) [#1108](https://github.com/allxsmith/bestax/issues/1108)
+
 ## [2.25.6](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.25.5...bestax-migrate@2.25.6) (2026-10-18)
 
 
