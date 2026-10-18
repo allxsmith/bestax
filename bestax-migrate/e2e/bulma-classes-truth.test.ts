@@ -15,8 +15,9 @@
  * table entry converts somewhere, so no row is dead.
  *
  * One conversion is compared another way, on purpose: Font Awesome's own
- * `<i aria-hidden="true">` alone in an unnamed `.icon` becomes `Icon`, which
- * writes the attribute on the `.icon` instead. Where the planner says so
+ * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
+ * tech reads becomes `Icon`, which writes the attribute on the `.icon`
+ * instead. Where the planner says so
  * (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
  * moves it up in exactly that shape and leaves every other one as it is.
  */
@@ -1358,10 +1359,10 @@ describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
       ]) {
         moved(token, ['fas', 'fa-home'], [token]);
       }
+      // Only what assistive tech doesn't read rides along.
       for (const [name, value] of Object.entries({
         id: 'x',
-        title: 'hint',
-        'aria-describedby': 'y',
+        'data-test': 'y',
       })) {
         moved(name, ['fas', 'fa-home'], [], { [name]: value });
       }
@@ -1376,7 +1377,10 @@ describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
           glyph(fa, hidden),
           { 'aria-label': 'Home', role: 'img' },
         ],
+        // A role or tabIndex written out: `Icon` hides nothing then, and
+        // the <i> keeps its own `aria-hidden` as its child.
         'a role of its own': [glyph(fa, hidden), { role: 'note' }],
+        'an image role of its own': [glyph(fa, hidden), { role: 'img' }],
         'a tabIndex of its own': [glyph(fa, hidden), { tabIndex: '0' }],
       } satisfies Record<string, [ChildFacts, Attributes]>)) {
         const conversion = render(label, inner, [], attributes);
@@ -1392,15 +1396,40 @@ describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
         'the <i> naming no glyph': [glyph(['material-icons'], hidden), {}],
         'the <i> holding text': [{ ...glyph(fa, hidden), isEmpty: false }, {}],
         'an empty name on the .icon': [glyph(fa, hidden), { 'aria-label': '' }],
-      } satisfies Record<string, [ChildFacts, Attributes]>)) {
+        // What the move would hide with it.
+        'a title on the .icon': [glyph(fa, hidden), { title: 'Home' }],
+        'a description on the .icon': [
+          glyph(fa, hidden),
+          { 'aria-describedby': 'y' },
+        ],
+        'a description written out': [
+          glyph(fa, hidden),
+          { 'aria-description': 'Home' },
+        ],
+        'a handler on the .icon': [glyph(fa, hidden), { onClick: null }],
+        'a language on the .icon': [glyph(fa, hidden), { lang: 'en' }],
+        // Written as expressions, which may render as anything: `tabIndex`
+        // is typed as a number, so `tabIndex={0}` is how TSX writes it.
+        'a tabIndex as an expression': [glyph(fa, hidden), { tabIndex: null }],
+        'a role as an expression': [glyph(fa, hidden), { role: null }],
+        'a description as an expression': [
+          glyph(fa, hidden),
+          { 'aria-describedby': null },
+        ],
+      } satisfies Record<
+        string,
+        [ChildFacts, Record<string, string | true | null>]
+      >)) {
         const result = plan({
-          ...factsFor(entry.tag!, [root], attributes),
+          ...factsFor(entry.tag!, [root], {}),
+          attributes: new Map(Object.entries(attributes)),
           soleChild: inner,
         });
-        expect({ label, conversion: result.conversion }).toEqual({
+        expect({
           label,
-          conversion: null,
-        });
+          conversion: result.conversion,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({ label, conversion: null, rules: ['defaults:Icon'] });
       }
     });
   }
@@ -1424,6 +1453,20 @@ describe('the normalization for a moved aria-hidden', () => {
     ).toBe(
       html(
         '<p><span class="icon is-small" id="x" aria-hidden="true"><i class="fas fa-home"></i></span> <span class="icon" aria-hidden="true"><i></i></span></p>'
+      )
+    );
+  });
+
+  it('moves it beside nothing but what assistive tech does not read', () => {
+    expect(
+      moveGlyphHidden(
+        html(
+          '<span class="icon" style="color:red" data-test="y"><i class="x" aria-hidden="true"></i></span>'
+        )
+      )
+    ).toBe(
+      html(
+        '<span class="icon" style="color:red" data-test="y" aria-hidden="true"><i class="x"></i></span>'
       )
     );
   });
@@ -1464,6 +1507,20 @@ describe('the normalization for a moved aria-hidden', () => {
         '<span class="icon" role="note"><i class="x" aria-hidden="true"></i></span>',
       'a .icon that takes focus':
         '<span class="icon" tabindex="0"><i class="x" aria-hidden="true"></i></span>',
+      // `tabIndex={0}` and `tabIndex="0"` both render this; so do a role
+      // given as a string and as an expression.
+      'a .icon that takes focus out of order':
+        '<span class="icon" tabindex="-1"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with an image role':
+        '<span class="icon" role="img"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with a title':
+        '<span class="icon" title="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon described elsewhere':
+        '<span class="icon" aria-describedby="y"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon described in place':
+        '<span class="icon" aria-description="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with another attribute':
+        '<span class="icon" lang="en"><i class="x" aria-hidden="true"></i></span>',
     })
   )('leaves %s as it is', (_label, markup) => {
     expect(moveGlyphHidden(html(markup))).toBe(html(markup));

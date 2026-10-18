@@ -1387,6 +1387,46 @@ describe('an element whose component renders a glyph from props', () => {
     );
   });
 
+  it("keeps Font Awesome's aria-hidden where it is beside anything assistive tech reads", () => {
+    const glyph = '<i className="fas fa-home" aria-hidden="true"></i>';
+    for (const attribute of [
+      'tabIndex={0}',
+      'tabIndex={on ? 0 : -1}',
+      'role={on ? "img" : "presentation"}',
+      'title="Home"',
+      'aria-describedby="tip"',
+      'aria-description="Home"',
+      'aria-label=""',
+      'onClick={() => {}}',
+    ]) {
+      const icon = `<span className="icon" ${attribute}>${glyph}</span>`;
+      const { output, rules } = migrate(page(icon));
+      expect({ attribute, rules }).toEqual({
+        attribute,
+        rules: ['defaults:Icon'],
+      });
+      expect({ attribute, kept: output?.includes(icon) }).toEqual({
+        attribute,
+        kept: true,
+      });
+      const name = attribute.split('=')[0];
+      expect(messages(page(icon))[0]).toContain(
+        `this one carries \`${name}\`, which the move would hide`
+      );
+    }
+    // Written out, a role or tabIndex keeps Icon from hiding anything, so
+    // the <i> converts as the child it is, still hidden itself.
+    for (const attribute of ['tabIndex="0"', 'role="img"']) {
+      const { output, rules } = migrate(
+        page(`<span className="icon" ${attribute}>${glyph}</span>`)
+      );
+      expect({ attribute, rules }).toEqual({ attribute, rules: [] });
+      expect(output).toMatch(
+        /<Icon [^>]*>\s*<i className="fas fa-home" aria-hidden="true"><\/i>\s*<\/Icon>/
+      );
+    }
+  });
+
   it("moves Font Awesome's own aria-hidden up, writing no attribute of its own", () => {
     const { output, rules } = migrate(
       page(

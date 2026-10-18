@@ -806,6 +806,56 @@ describe('plan', () => {
           ).toBe(true);
         });
 
+        it('keeps it off a .icon that carries anything assistive tech reads, in any spelling', () => {
+          const fa = glyph(['fas', 'fa-home'], hidden);
+          // Written out, a tabIndex keeps Icon from hiding anything, so the
+          // <i> stays its child, hidden itself, and nothing moves.
+          const kept = plan(
+            facts('span', 'icon', { tabIndex: '0' }, { soleChild: fa })
+          ).conversion;
+          expect(kept?.target).toBe('Icon');
+          expect(kept?.movesHidden).toBeUndefined();
+          expect(kept?.glyph).toBeUndefined();
+          const { todos } = plan(
+            facts('span', 'icon', { tabIndex: null }, { soleChild: fa })
+          );
+          expect(todos).toEqual([
+            {
+              rule: 'defaults:Icon',
+              message:
+                'bestax `Icon` takes Font Awesome\'s `aria-hidden` up off a bare <i> like this one only onto a `.icon` that carries nothing assistive tech reads, and this one carries `tabIndex`, which the move would hide, or, beside a `role` or `tabIndex`, leave with no `aria-hidden` at all; if the icon means something, give the `.icon` an `aria-label` and `role="img"`, and if it is decoration, drop `tabIndex`, then re-run',
+            },
+          ]);
+          for (const attributes of [
+            { role: null },
+            { title: 'Home' },
+            { 'aria-describedby': 'tip' },
+            { 'aria-description': 'Home' },
+          ]) {
+            const [name] = Object.keys(attributes);
+            const result = plan(
+              facts('span', 'icon', attributes, { soleChild: fa })
+            );
+            expect(result.conversion).toBeNull();
+            expect(result.todos[0].message).toContain(
+              `this one carries \`${name}\``
+            );
+          }
+          // What it doesn't read rides along.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                { id: 'x', 'data-test': 'y', style: null },
+                {
+                  soleChild: fa,
+                }
+              )
+            ).conversion?.movesHidden
+          ).toBe(true);
+        });
+
         it('says to move it up by hand off any other <i>', () => {
           // One that carries more stays the icon's child, so no glyph is
           // promised.

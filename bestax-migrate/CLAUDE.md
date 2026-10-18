@@ -126,10 +126,14 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
   what it renders. One exception is deliberate (#1148): Font Awesome's own
-  `<i aria-hidden="true">`, alone in a `.icon` nothing names, converts to `Icon`, which writes
-  that attribute on the `.icon` instead, because the glyph is hidden either way. The planner
-  marks it `movesHidden`, and the render tests compare it through `e2e/support/hidden-glyph.ts`,
-  which moves the attribute up in that one shape and leaves every other difference to fail.
+  `<i aria-hidden="true">`, alone in a `.icon` that carries nothing assistive tech reads,
+  converts to `Icon`, which writes that attribute on the `.icon` instead, because the glyph is
+  hidden either way. The `.icon` may carry only what is on a whitelist (`movesBeside` in
+  `plan.ts`), checked by name whatever the value: a `title` or description would be hidden with
+  it, and beside a `role` or `tabIndex` `Icon` writes no `aria-hidden` at all, so an expression
+  there must refuse too. The planner marks it `movesHidden`, and the render tests compare it
+  through `e2e/support/hidden-glyph.ts`, which moves the attribute up in that one shape, behind
+  the same whitelist, and leaves every other difference to fail.
   Widen it only with the same care: a new exception is a claim that the page is unchanged for
   everyone who reads it, which identical markup proves and a normalization only asserts.
 - The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
