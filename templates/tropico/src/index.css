@@ -1,0 +1,244 @@
+/*
+ * The original's stylesheet, ported. The original was made with Bulma 0.9,
+ * whose primary is turquoise, and bestax builds Bulma with a blue one, so
+ * :root sets Bulma's own primary back, with values from bulma/css/bulma.css.
+ * The invert is the label on a primary button, which bestax's build fixes for
+ * its blue. The page is light only: index.html pins Bulma's light scheme.
+ * The original's ids are classes here, since its sections are components the
+ * pages share. bulma-carousel styled the sliders; its look is in
+ * `.tropico-carousel`, below.
+ */
+
+:root {
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+}
+
+/*
+ * Bulma 0.9's look where Bulma 1 changed it: the system font in place of
+ * Inter, neutral greys where Bulma 1 tints them blue, its link blue and
+ * smaller corners, lighter headings, lighter buttons with no shadow, a grey
+ * burger, and squarer cards.
+ */
+:root {
+  --bulma-family-primary:
+    BlinkMacSystemFont, -apple-system, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu',
+    'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'Helvetica',
+    'Arial', sans-serif;
+  --bulma-scheme-h: 0;
+  --bulma-scheme-s: 0%;
+  --bulma-text-h: 0deg;
+  --bulma-text-s: 0%;
+  --bulma-link-h: 217deg;
+  --bulma-link-s: 71%;
+  --bulma-link-l: 53%;
+  --bulma-radius: 4px;
+}
+
+.title {
+  --bulma-title-weight: var(--bulma-weight-semibold);
+}
+
+.button {
+  --bulma-button-weight: var(--bulma-weight-normal);
+  --bulma-button-outer-shadow-a: 0;
+}
+
+.navbar {
+  --bulma-navbar-burger-color: #4a4a4a;
+}
+
+.card {
+  --bulma-card-radius: 0.25rem;
+  --bulma-card-shadow:
+    0 0.5em 1em -0.125em rgba(10, 10, 10, 0.1), 0 0 0 1px rgba(10, 10, 10, 0.02);
+}
+
+/* Navbar */
+.navbar-item {
+  padding-right: 40px !important;
+  font-size: large !important;
+}
+
+.navbar-item:hover {
+  background-color: white !important;
+  color: black !important;
+}
+
+/* Welcome slider */
+.carousel-section {
+  background-color: #f7f7f7 !important;
+  padding: 50px 0;
+  margin-bottom: 50px;
+}
+
+/*
+ * Both sliders, as bulma-carousel drew them: white round arrows at the
+ * edges, hidden at either end since the slider doesn't loop, and white dots
+ * over the bottom of the slider, from 800px wide up.
+ */
+.tropico-carousel {
+  --bulma-carousel-arrow-size: 42px;
+  --bulma-carousel-arrow-size-mobile: 42px;
+  --bulma-carousel-arrow-offset: 0;
+  --bulma-carousel-arrow-offset-mobile: 0;
+  --bulma-carousel-arrow-radius: var(--bulma-radius-rounded);
+  --bulma-carousel-arrow-background: #fff;
+  --bulma-carousel-arrow-background-hover: #fff;
+  --bulma-carousel-arrow-color: #4a4a4a;
+  --bulma-carousel-indicator-gap: 6px;
+  --bulma-carousel-indicator-background: #fff;
+  --bulma-carousel-indicator-background-hover: #fff;
+  --bulma-carousel-indicator-background-active: #fff;
+  margin-top: 50px;
+}
+
+.tropico-carousel .carousel-arrow {
+  box-shadow: 0 2px 5px rgba(50, 50, 50, 0.1);
+}
+
+.tropico-carousel .carousel-arrow:disabled {
+  display: none;
+}
+
+.tropico-carousel .carousel-arrow:hover:not(:disabled) {
+  transform: translateY(-50%) scale(1.2);
+}
+
+.tropico-carousel .carousel-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+}
+
+.tropico-carousel .indicator-item {
+  box-shadow: 0 2px 5px rgba(50, 50, 50, 0.1);
+}
+
+.tropico-carousel .indicator-item:hover,
+.tropico-carousel .indicator-item.is-active {
+  transform: scale(1.4);
+}
+
+@media screen and (max-width: 799px) {
+  .tropico-carousel .carousel-indicator {
+    display: none;
+  }
+}
+
+/* Services */
+.service-name {
+  color: orange;
+}
+
+.card:hover {
+  transform: scale(1.02);
+  border-top: 5px solid #fc5d35;
+}
+
+/* The band between the fruits and the testimonials */
+.tasty-fruits {
+  background-image: url(https://technext.github.io/tropika/images/tasty-image.png);
+  background-repeat: no-repeat;
+  height: 400px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-top: 50px;
+  margin-bottom: 100px;
+}
+
+.is-white-text-title {
+  color: white !important;
+  text-transform: uppercase;
+}
+
+/* Testimonials */
+.is-256x256 {
+  width: 256px !important;
+  height: 256px !important;
+}
+
+/* Contact */
+.contact-section {
+  background-image: url(https://technext.github.io/tropika//images/orange-dish.png);
+  background-repeat: no-repeat;
+  height: 500px;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  margin-top: 50px;
+  margin-bottom: 100px;
+  background-position: right center;
+  overflow: hidden;
+}
+
+input.is-custom-field {
+  border-bottom: 0.8px solid #252525 !important;
+  outline: none;
+  border: none;
+  box-shadow: none !important;
+  border-radius: unset;
+}
+
+/*
+ * The message box keeps Bulma's border with the fields' dark underline: the
+ * original's rule for it is on `textarea`, which Bulma's `.textarea` outweighs
+ * but for these.
+ */
+.textarea {
+  border-bottom: 0.8px solid #252525 !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.map {
+  width: 100% !important;
+  height: 400px;
+  margin-bottom: 50px;
+}
+
+/* Footer */
+.footer-main {
+  background-color: white !important;
+  padding: 0 !important;
+}
+
+.footer-secondary {
+  padding: 20px;
+  margin-top: 20px;
+}
+
+/* Buttons */
+.button.is-black {
+  background-color: black !important;
+  color: white !important;
+}
+
+.button.is-orange {
+  background-color: #fc5d35 !important;
+  color: white !important;
+}
+
+.button.is-orange:hover {
+  background-color: white !important;
+  color: #fc5d35 !important;
+}
+
+.button.is-black:hover {
+  background-color: white !important;
+  color: black !important;
+}
+
+.is-black-social {
+  color: black !important;
+}
+
+.is-black-social:hover {
+  background-color: white !important;
+  color: #fc5d35 !important;
+}
