@@ -56,33 +56,49 @@ function allRulesOf(css: string) {
   return out;
 }
 
+/** A rule's declarations as `name: value`, in order. */
+const declarationsOf = (rule: CSSStyleRule) =>
+  Array.from(
+    { length: rule.style.length },
+    (_, i) => `${rule.style[i]}: ${rule.style.getPropertyValue(rule.style[i])}`
+  );
+
 describe.each([
   ['no prefix', ''],
   ['a class prefix', 'bestax-'],
 ])('the Menu partial with %s', (_label, prefix) => {
-  it('writes one rule, inside forced colors, so nothing changes outside it', () => {
+  const items = ['a', 'button', `.${prefix}menu-item`].map(
+    item => `.${prefix}menu-list ${item}`
+  );
+
+  it('writes its rules inside forced colors only, so nothing changes outside it', () => {
     const rules = allRulesOf(compile(prefix));
     expect(rules.map(({ within }) => within)).toEqual([
+      ['@media (forced-colors: active)'],
       ['@media (forced-colors: active)'],
     ]);
   });
 
-  it('marks an active or selected item with a Highlight bar', () => {
-    const [{ rule }] = allRulesOf(compile(prefix));
-    expect(rule.selectorText.split(/,\s*/)).toEqual(
-      ['a', 'button', `.${prefix}menu-item`].flatMap(item =>
-        ['is-active', 'is-selected'].map(
-          state => `.${prefix}menu-list ${item}.${prefix}${state}`
-        )
+  it('reserves the bar on every item, so marking one moves no label', () => {
+    const [every, current] = allRulesOf(compile(prefix)).map(
+      ({ rule }) => rule
+    );
+    // In Canvas, the color forced colors gives the item's background, so
+    // the bar doesn't show until an item is marked.
+    expect(every.selectorText.split(/,\s*/)).toEqual(items);
+    expect(declarationsOf(every)).toEqual([
+      'border-inline-start: 0.25em solid Canvas',
+    ]);
+    // An active or selected item changes the bar's color and nothing that
+    // takes room.
+    expect(current.selectorText.split(/,\s*/)).toEqual(
+      items.flatMap(item =>
+        ['is-active', 'is-selected'].map(state => `${item}.${prefix}${state}`)
       )
     );
-    expect(
-      Array.from(
-        { length: rule.style.length },
-        (_, i) =>
-          `${rule.style[i]}: ${rule.style.getPropertyValue(rule.style[i])}`
-      )
-    ).toEqual(['border-inline-start: 0.25em solid Highlight']);
+    expect(declarationsOf(current)).toEqual([
+      'border-inline-start-color: Highlight',
+    ]);
   });
 
   it('leaves forced colors adjusting the item and everything inside it', () => {
@@ -92,8 +108,10 @@ describe.each([
     expect(compile(prefix)).not.toMatch(/forced-color-adjust/);
   });
 
-  it('matches what Menu.Item renders when active, and nothing else', () => {
-    const [{ rule }] = allRulesOf(compile(prefix));
+  it('reserves the bar on every item Menu.Item renders, and colors only the active ones', () => {
+    const [every, current] = allRulesOf(compile(prefix)).map(
+      ({ rule }) => rule
+    );
     const { getByText } = render(
       <ConfigProvider classPrefix={prefix}>
         <Menu>
@@ -115,12 +133,16 @@ describe.each([
         </Menu>
       </ConfigProvider>
     );
-    const matches = (text: string) =>
-      getByText(text).matches(rule.selectorText);
-    expect(matches('Customers')).toBe(true);
-    expect(matches('Nested and active')).toBe(true);
-    expect(matches('Filter')).toBe(true);
-    expect(matches('Dashboard')).toBe(false);
-    expect(matches('Nested')).toBe(false);
+    const all = ['Dashboard', 'Customers', 'Nested', 'Nested and active'];
+    const marked = (rule: CSSStyleRule) =>
+      [...all, 'Filter'].filter(text =>
+        getByText(text).matches(rule.selectorText)
+      );
+    expect(marked(every)).toEqual([...all, 'Filter']);
+    expect(marked(current)).toEqual([
+      'Customers',
+      'Nested and active',
+      'Filter',
+    ]);
   });
 });

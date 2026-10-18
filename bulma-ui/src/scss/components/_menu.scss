@@ -22,9 +22,15 @@
     a,
     button,
     .#{iv.$class-prefix}menu-item {
+      // Every item keeps the bar's width, so marking one changes a color and
+      // moves no label. It's drawn in Canvas, the color forced colors gives
+      // the item's own background, so it doesn't show. A transparent border
+      // won't do: forced colors paints that in the text color.
+      border-inline-start: 0.25em solid Canvas;
+
       &.#{iv.$class-prefix}is-active,
       &.#{iv.$class-prefix}is-selected {
-        border-inline-start: 0.25em solid Highlight;
+        border-inline-start-color: Highlight;
       }
     }
   }
