@@ -338,7 +338,9 @@ export const TriggeredByButton: Story = {
 };
 
 /**
- * Multiple loading containers in a layout.
+ * Multiple loading containers in a layout. Each loading sits directly inside
+ * the positioned card content it covers, so that's what it makes inert, and
+ * the footer's Toggle stays outside it, reachable by mouse and keyboard.
  */
 export const MultipleContainers: Story = {
   render: function MultipleLoading() {
@@ -356,19 +358,23 @@ export const MultipleContainers: Story = {
       <Grid isFixed fixedCols={3}>
         {(['card1', 'card2', 'card3'] as const).map((key, index) => (
           <Cell key={key}>
-            <Card
-              header={`Card ${index + 1}`}
-              footer={
-                <Button size="small" onClick={() => toggleLoading(key)}>
-                  Toggle
-                </Button>
-              }
-              relative
-            >
-              <Loading active={loadingStates[key]} size="small" />
-              <Content>
-                <Paragraph>Content here</Paragraph>
-              </Content>
+            <Card>
+              <Card.Header>
+                <Card.Header.Title>Card {index + 1}</Card.Header.Title>
+              </Card.Header>
+              <Card.Content relative>
+                <Loading active={loadingStates[key]} size="small" />
+                <Content>
+                  <Paragraph>Content here</Paragraph>
+                </Content>
+              </Card.Content>
+              <Card.Footer>
+                <Card.FooterItem>
+                  <Button size="small" onClick={() => toggleLoading(key)}>
+                    Toggle
+                  </Button>
+                </Card.FooterItem>
+              </Card.Footer>
             </Card>
           </Cell>
         ))}
