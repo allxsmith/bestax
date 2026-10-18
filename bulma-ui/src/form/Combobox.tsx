@@ -260,6 +260,8 @@ export interface ComboboxSingleDataProps extends ComboboxDataBaseProps {
    * `multiple` the array.
    */
   onChange?: (value: string | null) => void;
+  /** @internal With one value there are no tags to name. */
+  ariaCloseLabel?: never;
 }
 
 /** Props for a Combobox given `data`, with several values. */
@@ -281,6 +283,12 @@ export interface ComboboxMultipleDataProps extends ComboboxDataBaseProps {
   defaultValue?: string[];
   /** Called with the new array when a pick or a tag's button changes it. */
   onChange?: (value: string[]) => void;
+  /**
+   * Names each tag's button, in place of "Remove" and the item's label, as
+   * Taginput's does. The button is then described by its tag's label, so it
+   * still says which tag it takes off.
+   */
+  ariaCloseLabel?: string;
 }
 
 /** Props for a Combobox given `data`. */
@@ -1169,6 +1177,7 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
       id,
       'aria-label': ariaLabel,
       'aria-labelledby': ariaLabelledBy,
+      ariaCloseLabel,
       children,
       ...rest
     } = props;
@@ -1305,7 +1314,10 @@ const ComboboxFromData = forwardRef<HTMLDivElement, ComboboxDataProps>(
                       {!disabled && (
                         <Delete
                           size="small"
-                          ariaLabel={`Remove ${labelFor(v)}`}
+                          ariaLabel={ariaCloseLabel || `Remove ${labelFor(v)}`}
+                          aria-describedby={
+                            ariaCloseLabel ? tagIds[index] : undefined
+                          }
                           onClick={() => remove(v)}
                         />
                       )}

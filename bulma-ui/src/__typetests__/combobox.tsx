@@ -71,6 +71,11 @@ export const dataModes = (
     </Combobox>
     {/* @ts-expect-error built from parts, there's no empty prop */}
     <Combobox empty="Nothing" />
+    <Combobox data={countries} multiple ariaCloseLabel="Entfernen" />
+    {/* @ts-expect-error with one value there are no tags to name */}
+    <Combobox data={countries} ariaCloseLabel="Entfernen" />
+    {/* @ts-expect-error built from parts, there are no tags to name */}
+    <Combobox ariaCloseLabel="Entfernen" />
     {/* @ts-expect-error built from parts, Combobox.Input takes disabled */}
     <Combobox disabled />
     {/* @ts-expect-error built from parts, Combobox.Input takes required */}

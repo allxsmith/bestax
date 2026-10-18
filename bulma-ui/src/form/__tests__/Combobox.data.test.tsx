@@ -956,6 +956,38 @@ describe('Combobox with data', () => {
       expect(field()).not.toHaveAttribute('aria-describedby');
     });
 
+    it('names each tag button "Remove" and its label, with no description', () => {
+      render(
+        <Combobox
+          label="Drinks"
+          data={DRINKS}
+          multiple
+          defaultValue={['tea']}
+        />
+      );
+      const remove = screen.getByRole('button', { name: 'Remove Tea' });
+      expect(remove).not.toHaveAttribute('aria-describedby');
+    });
+
+    it('names each tag button with ariaCloseLabel, described by its tag', () => {
+      render(
+        <Combobox
+          label="Getränke"
+          data={DRINKS}
+          multiple
+          defaultValue={['tea', 'milk']}
+          ariaCloseLabel="Entfernen"
+        />
+      );
+      const buttons = screen.getAllByRole('button', { name: 'Entfernen' });
+      expect(buttons).toHaveLength(2);
+      expect(buttons[0]).toHaveAccessibleDescription('Tea');
+      expect(buttons[1]).toHaveAccessibleDescription('Milk');
+      expect(document.querySelector('.combobox')).not.toHaveAttribute(
+        'ariaCloseLabel'
+      );
+    });
+
     it('gives a field with one value no description, since it shows its pick', () => {
       render(<Combobox label="Drink" data={DRINKS} defaultValue="tea" />);
       expect(field()).not.toHaveAttribute('aria-describedby');
