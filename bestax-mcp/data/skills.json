@@ -113,12 +113,12 @@
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 34752
+          "bytes": 35799
         },
         {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 9122
+          "bytes": 9528
         },
         {
           "id": "rbx-component-map",

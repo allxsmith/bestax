@@ -17,7 +17,7 @@ import { Navbar, Section, Title } from "@allxsmith/bestax-bulma";
 // TODO(bestax-migrate): the page's `<body>` has classes a component can't carry (`has-background-white-ter`): put them on the app's own `<body>`, or on an element around this page's content (head-assets.html:20)
 // TODO(bestax-migrate): the page's `<body>` has `data-page="home"`, which a component can't carry: move it to the app's own `<body>`, or onto an element around this page's content (head-assets.html:20)
 export default function HeadAssetsPage() {
-  // TODO(bestax-migrate): `src="images/logo.svg"` is relative to the page's folder, and in the app it resolves against the address the component renders at: make it absolute from the site root (`/img/logo.png`, with the file in the app's public folder) or import the file; a link to another page should point at the route it becomes (head-assets.html:23)
+  // TODO(bestax-migrate): `src="images/logo.svg"` points at nothing beside the page (no `images/logo.svg` in its folder): point it somewhere real, or drop it (head-assets.html:23)
   return (
     <>
       <Navbar fixed="top" role="navigation" aria-label="main navigation">

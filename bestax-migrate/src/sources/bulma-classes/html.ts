@@ -376,7 +376,7 @@ function stylesheetNote(href: string, line: number | null, css: CssMode): Note {
   const load = {
     keep: "load Bulma once for the app, from its entry (`import 'bulma/css/bulma.min.css'`, with `bulma` installed) or a `<link>` in its index.html",
     bestax:
-      "under `--css bestax` the app loads bestax's bundle instead, once, from its entry: `import '@allxsmith/bestax-bulma/bestax.css'`",
+      "under `--css bestax` the app loads bestax's bundle instead, once, from its entry: `import '@allxsmith/bestax-bulma/bestax.css'`. That bundle builds Bulma with bestax blue as its primary, so `is-primary` turns from Bulma's turquoise to blue; to keep the page's color, set the `--bulma-primary-*` variables, `--bulma-primary-invert-l` among them (the bestax-migrate skill's `references/css-migration.md` says which), or use `--css bulma`",
     bulma:
       "under `--css bulma` the app loads Bulma and bestax's extras once, from its entry: `import 'bulma/css/bulma.min.css'` and `import '@allxsmith/bestax-bulma/extras.css'`",
   }[css];
@@ -559,6 +559,65 @@ function documentAttributeNotes(
   }
 }
 
+/**
+ * React's own props, which no HTML attribute is spelled like. `classname`
+ * and `htmlfor` aren't here: the attribute table reads them as `className`
+ * and `htmlFor` already.
+ */
+const REACT_PROPS: readonly string[] = [
+  'defaultValue',
+  'defaultChecked',
+  'dangerouslySetInnerHTML',
+  'suppressContentEditableWarning',
+  'suppressHydrationWarning',
+];
+
+/** HTML's old presentational attributes, whose work CSS does now. */
+const PRESENTATIONAL: ReadonlySet<string> = new Set([
+  'alink',
+  'bgcolor',
+  'bordercolor',
+  'bottommargin',
+  'charoff',
+  'compact',
+  'hspace',
+  'leftmargin',
+  'noshade',
+  'nowrap',
+  'rightmargin',
+  'topmargin',
+  'valign',
+  'vlink',
+  'vspace',
+]);
+
+/**
+ * What to do about an attribute React's types don't list: rename one that
+ * is a React prop in the wrong case (`defaultvalue`, which HTML never
+ * read), move a presentational one into CSS, and otherwise drop it or say
+ * what reads it.
+ */
+function unknownAttribute(token: string): { message: string } {
+  const prop = REACT_PROPS.find(
+    name => name.toLowerCase() === token.toLowerCase()
+  );
+  const rejected =
+    "React renders it as written, but React's types don't list it, so a TypeScript build rejects it";
+  if (prop) {
+    return {
+      message: `\`${token}\` isn't an HTML attribute, so the page never read it, and it reads as React's \`${prop}\` in the wrong case: rename it to \`${prop}\`, or drop it if it isn't meant`,
+    };
+  }
+  if (PRESENTATIONAL.has(token.toLowerCase())) {
+    return {
+      message: `\`${token}\` is an old presentational attribute, and ${rejected}: replace it with CSS or a class`,
+    };
+  }
+  return {
+    message: `\`${token}\` is written as it was, and ${rejected}: drop it if nothing reads it, make it a \`data-\` attribute if a script of the page's does, or declare it for TypeScript if the browser does`,
+  };
+}
+
 /** What the converter reports, as notes. */
 function convertedNote(issue: Reported): Note {
   const line = issue.line;
@@ -579,7 +638,7 @@ function convertedNote(issue: Reported): Note {
     case 'unknown-attribute':
       return {
         rule: htmlRuleId('html-attr', 'unknown'),
-        message: `\`${token}\` is written as it was, which React renders, but React's types don't list it, so a TypeScript build rejects it: replace it with CSS or a class`,
+        ...unknownAttribute(token),
         line,
       };
     case 'javascript-url':
@@ -662,7 +721,58 @@ function isRelative(url: string): boolean {
   );
 }
 
-function relativeUrlNotes(root: ParentNode, notes: Note[]): void {
+/** A relative URL without its query or fragment, decoded where it can be. */
+function urlPath(url: string): string {
+  const bare = url.trim().replace(/[?#].*$/, '');
+  try {
+    return decodeURIComponent(bare);
+  } catch {
+    return bare;
+  }
+}
+
+/**
+ * A relative URL as a note: what to do about it depends on what it points
+ * at, read beside the page the way the browser resolved it. A file there
+ * moves to the app's public folder, another page becomes a route, and a
+ * target that isn't there is a dead link already.
+ */
+function relativeUrlNote(
+  name: string,
+  url: string,
+  dir: string,
+  line: number | null
+): Note {
+  const target = urlPath(url);
+  const written = `\`${name}="${quote(url)}"\``;
+  if (!fs.existsSync(path.resolve(dir, target))) {
+    return {
+      rule: htmlRuleId('html-url', 'missing'),
+      message: `${written} points at nothing beside the page (no \`${quote(target)}\` in its folder): point it somewhere real, or drop it`,
+      line,
+      url,
+    };
+  }
+  const resolves =
+    'in the app it resolves against the address the component renders at';
+  if (/\.html?$/i.test(target)) {
+    return {
+      rule: htmlRuleId('html-url', 'relative'),
+      message: `${written} links to another page beside this one, and ${resolves}: point it at the route that page becomes`,
+      line,
+      url,
+    };
+  }
+  const fromRoot = `/${target.replace(/^(?:\.\.?\/)+/, '')}`;
+  return {
+    rule: htmlRuleId('html-url', 'relative'),
+    message: `${written} is relative to the page's folder, and ${resolves}: copy the file into the app's \`public/\` folder and point at it from the site root (\`${quote(fromRoot)}\`), or import it`,
+    line,
+    url,
+  };
+}
+
+function relativeUrlNotes(root: ParentNode, dir: string, notes: Note[]): void {
   for (const child of childrenOf(root)) {
     if (!isElement(child)) continue;
     const location = child.sourceCodeLocation;
@@ -679,14 +789,16 @@ function relativeUrlNotes(root: ParentNode, notes: Note[]): void {
             : [];
       const relative = urls.find(isRelative);
       if (relative === undefined) continue;
-      notes.push({
-        rule: htmlRuleId('html-url', 'relative'),
-        message: `\`${name}="${quote(relative)}"\` is relative to the page's folder, and in the app it resolves against the address the component renders at: make it absolute from the site root (\`/img/logo.png\`, with the file in the app's public folder) or import the file; a link to another page should point at the route it becomes`,
-        line: location?.attrs?.[name]?.startLine ?? location?.startLine ?? null,
-        url: relative,
-      });
+      notes.push(
+        relativeUrlNote(
+          name,
+          relative,
+          dir,
+          location?.attrs?.[name]?.startLine ?? location?.startLine ?? null
+        )
+      );
     }
-    relativeUrlNotes(child, notes);
+    relativeUrlNotes(child, dir, notes);
   }
 }
 
@@ -741,25 +853,39 @@ function todoLine(note: Note, page: string): string {
   return `// TODO(bestax-migrate): ${message}${at}`;
 }
 
+/** What a shared line says about several relative URLs, by rule. */
+const SHARED_URL_ADVICE: Readonly<Record<string, string>> = {
+  [htmlRuleId('html-url', 'relative')]:
+    "resolve against the page's folder, and in the app against the address the component renders at: copy each file into the app's `public/` folder and point at it from the site root, or import it, and point a link to another page at the route it becomes",
+  [htmlRuleId('html-url', 'missing')]:
+    'point at nothing beside the page: point each somewhere real, or drop it',
+};
+
 /**
  * The TODO lines above the `return`. A page can hold many relative URLs, all
- * with the one recipe, so where there are several they share a line, which
+ * with the one recipe, so where a rule has several they share a line, which
  * lists them and their lines; each is still its own report entry.
  */
 function contentLines(notes: Note[], page: string): string[] {
-  const relative = notes.filter(note => note.url !== undefined);
-  if (relative.length < 2) return notes.map(note => todoLine(note, page));
-  const lines = [
-    ...new Set(
-      relative.flatMap(note => (note.line === null ? [] : [note.line]))
-    ),
-  ];
-  const shared = `// TODO(bestax-migrate): relative URLs (${listed(
-    relative.map(note => `\`${note.url}\``)
-  )}) resolve against the page's folder, and in the app against the address the component renders at: make each absolute from the site root (\`/img/logo.png\`, with the file in the app's public folder) or import the file; a link to another page should point at the route it becomes (${page}:${lines.join(', ')})`;
+  const groups = new Map<string, Note[]>();
+  for (const note of notes) {
+    if (note.url === undefined) continue;
+    groups.set(note.rule, [...(groups.get(note.rule) ?? []), note]);
+  }
   return notes.flatMap(note => {
-    if (note.url === undefined) return [todoLine(note, page)];
-    return note === relative[0] ? [shared] : [];
+    const group = note.url === undefined ? undefined : groups.get(note.rule);
+    if (!group || group.length < 2) return [todoLine(note, page)];
+    if (note !== group[0]) return [];
+    const lines = [
+      ...new Set(
+        group.flatMap(each => (each.line === null ? [] : [each.line]))
+      ),
+    ];
+    return [
+      `// TODO(bestax-migrate): relative URLs (${listed(
+        group.map(each => `\`${each.url}\``)
+      )}) ${SHARED_URL_ADVICE[note.rule]} (${page}:${lines.join(', ')})`,
+    ];
   });
 }
 
@@ -893,7 +1019,7 @@ export function convertPage(
     indent: 2,
   });
   notes.content.push(...emitted.reported.map(convertedNote));
-  relativeUrlNotes(parsed.root, notes.content);
+  relativeUrlNotes(parsed.root, path.dirname(file), notes.content);
 
   // In the page's order, which is how a reader works through them.
   const byLine = (a: Note, b: Note) =>

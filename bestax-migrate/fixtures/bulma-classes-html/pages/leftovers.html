@@ -25,7 +25,7 @@
 <body class="page-leftovers" onload="init()">
   <nav class="navbar is-fixed-top" role="navigation" aria-label="main navigation">
     <div class="navbar-brand">
-      <a class="navbar-item" href="/"><img src="img/logo.png" alt="Example"></a>
+      <a class="navbar-item" href="/"><img src="img/logo.svg" alt="Example"></a>
       <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false">
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
@@ -38,12 +38,12 @@
   <section class="section">
     <div class="container">
       <button class="button is-primary" type="button" onclick="openModal()">Open</button>
-      <a href="javascript:void(0)" class="button">Nowhere</a>
+      <a href="javascript:void(0)" class="button">Nowhere</a> <a href="archive/2019.html" class="button">Archive</a>
       <div class="box" @click="open = !open">Alpine</div>
       <div class="box" class="duplicate">Twice</div>
       <div class="notification is-info" style="color">Unreadable style</div>
       <div class="notification is-danger" style="margin-top: 1rem; color: white !important">Important</div>
-      <table class="table"><tr><td valign="top">Old cell</td></tr></table>
+      <table class="table"><tr><td valign="top">Old cell</td></tr></table> <input class="input" id="q" defaultvalue="x">
       <my-widget class="box" mode="compact"></my-widget>
       <center class="title">Centered</center>
       <foo class="subtitle">Unknown</foo>

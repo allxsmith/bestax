@@ -193,7 +193,8 @@ npx skills add https://github.com/allxsmith/bestax --skill bestax-migrate
    from Bulma 0.9, read the [Bulma 0.9 → 1 guide](./bulma-0-9-to-1.md) for the styling changes
    that aren't code. One deliberate difference in `bestax.css`: its `$primary` is bestax blue
    rather than Bulma's turquoise. Keep the stock look with `--css bulma`, or set your own with
-   the `--bulma-primary-*` CSS variables.
+   the `--bulma-primary-*` CSS variables, `--bulma-primary-invert-l` among them: bestax's build
+   fixes the text on a primary surface for its dark blue, so a light primary needs it set too.
 3. **PurgeCSS**: if your build runs it, the report says so. A converted element's classes now
    come from bestax's code, some of them built from props at runtime, so PurgeCSS has to scan
    bestax and safelist those patterns; [Optimizing CSS](../optimizing-css.md) has the config.
@@ -293,16 +294,16 @@ and neither do its scripts. Each of those becomes a `TODO(bestax-migrate)` line,
 the whole page above the component and the rest above its `return`, and every report entry
 names the `.html` file and the line it came from:
 
-| Rule                                      | What it covers                                                                                                        | What to do                                                                                             |
-| ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
-| `html-head:<tag>`                         | `<title>`, `<meta>`, `<link>`, `<style>`, `<base>`                                                                    | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head           |
-| `html-asset`                              | each stylesheet and script the page loads, Bulma's own included                                                       | Load it once for the app, from its entry or `index.html`; the codemod writes no stylesheet import here |
-| `html-script:<pattern>`                   | inline scripts, which are dropped: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest | Port the code into the component; the TODO names the bestax component for the usual patterns           |
-| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`              | Put them on the app's own `<html>`; `Theme colorMode` writes `data-theme` for you                      |
-| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                        | Port the code into the handler the TODO names (`onClick`)                                              |
-| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React's types don't list, styles React can't apply        | Replace them with current markup, or declare a custom element for TypeScript                           |
-| `html-url:<kind>`                         | `javascript:` URLs, and relative URLs, which resolve against the address a component renders at                       | Move the code into a handler; make the URL absolute from the site root, or import the file             |
-| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                   | Check that part of the page renders as meant                                                           |
+| Rule                                      | What it covers                                                                                                                           | What to do                                                                                                                         |
+| ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `html-head:<tag>`                         | `<title>`, `<meta>`, `<link>`, `<style>`, `<base>`                                                                                       | App-wide ones go in the app's `index.html`, a page's own where the app sets each page's head                                       |
+| `html-asset`                              | each stylesheet and script the page loads, Bulma's own included                                                                          | Load it once for the app, from its entry or `index.html`; the codemod writes no stylesheet import here                             |
+| `html-script:<pattern>`                   | inline scripts, which are dropped: a burger, a modal, a dismiss button, a carousel, a theme toggle, JSON-LD, the rest                    | Port the code into the component; the TODO names the bestax component for the usual patterns                                       |
+| `html-document:<name>`                    | classes and attributes on `<html>` and `<body>`, such as `has-navbar-fixed-top`, `data-theme` and `lang`                                 | Put them on the app's own `<html>`; `Theme colorMode` writes `data-theme` for you                                                  |
+| `html-event:<attribute>`                  | `onclick="…"` and its kind, which React can't take as a string                                                                           | Port the code into the handler the TODO names (`onClick`)                                                                          |
+| `html-element:<kind>`, `html-attr:<kind>` | custom and obsolete elements, attributes JSX can't write or React's types don't list, styles React can't apply                           | Replace them with current markup, or declare a custom element for TypeScript                                                       |
+| `html-url:<kind>`                         | `javascript:` URLs, relative URLs, which resolve against the address a component renders at, and ones whose target isn't beside the page | Move the code into a handler; copy a file into `public/` and point at it from the site root, or import it; fix or drop a dead link |
+| `html-parse:<code>`                       | markup the browser repaired, once per kind of error                                                                                      | Check that part of the page renders as meant                                                                                       |
 
 The page's `.html` stays as it was, so a dropped script's code is still there to port, and the
 TODO gives its lines. Every rule, with a recipe, is in the skill's

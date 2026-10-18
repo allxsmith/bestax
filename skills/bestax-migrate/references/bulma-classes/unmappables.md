@@ -384,7 +384,10 @@ once for the whole app, from its entry module or `index.html`.
   Under the default `--css keep`, keep loading Bulma (`import 'bulma/css/bulma.min.css'` in the
   entry, with `bulma` installed, or the CDN `<link>` in `index.html`). Under `--css bestax`, import
   `@allxsmith/bestax-bulma/bestax.css` instead, and under `--css bulma`, Bulma's stylesheet and
-  `@allxsmith/bestax-bulma/extras.css`.
+  `@allxsmith/bestax-bulma/extras.css`. `bestax.css` builds Bulma with bestax's own primary, so a
+  page made for stock Bulma changes color under `--css bestax`; to keep it, set the
+  `--bulma-primary-*` variables as [css-migration.md](../css-migration.md) says, or use
+  `--css bulma`.
 - **An icon font** (Font Awesome): keep loading it. bestax's `Icon` writes the font's classes and
   loads no font of its own.
 - **Web fonts and the site's own CSS**: load them once, the same way.
@@ -492,17 +495,28 @@ than `this`. A `<body onload>` becomes an effect.
 - **`html-url:javascript`**: a `javascript:` URL won't run (React 19 replaces it with one that
   throws, and React 18 warns). Move the code into an `onClick` handler.
 - **`html-url:relative`**: `img/logo.png` resolved against the page's folder, and in the app it
-  resolves against the address the component renders at. Make it absolute from the site root
-  (`/img/logo.png`, with the file in the app's public folder) or import the file. A link to
-  another page should point at the route that page becomes.
+  resolves against the address the component renders at. The file is there beside the page, so
+  copy it into the app's `public/` folder and point at it from the site root (`/img/logo.png`), or
+  import it. A link to another page beside this one should point at the route that page becomes.
+  Several of these share one TODO line, and each is its own report entry.
+- **`html-url:missing`**: a relative URL whose target isn't beside the page, read the way the
+  browser read it, so it was a dead link or a missing file already. Point it somewhere real, or
+  drop it.
 
 ### Attributes: `html-attr:<kind>`
 
 - **`html-attr:name`**: an attribute JSX can't write (`@click`, `:class`, `x-on:click`), or one the
   element already had under another spelling, was left out. A framework's directive is code to port
   into the component.
-- **`html-attr:unknown`**: an attribute React renders but its types don't list (`valign`,
-  `bgcolor`), so a TypeScript build rejects it. Replace it with CSS or a class.
+- **`html-attr:unknown`**: an attribute React renders but its types don't list, so a TypeScript
+  build rejects it. What to do depends on the attribute, and the TODO says which:
+  - React's own prop in the wrong case (`defaultvalue`, `defaultchecked`), which the page never
+    read since it isn't HTML: rename it to the prop (`defaultValue`), or drop it if it isn't
+    meant.
+  - An old presentational attribute (`valign`, `bgcolor`, `nowrap`): replace it with CSS or a
+    class.
+  - Anything else: drop it if nothing reads it, make it a `data-` attribute if a script of the
+    page's reads it, or declare it for TypeScript if the browser does.
 - **`html-attr:style`**: a `style` declaration a browser can't read (`*zoom: 1`) was left out, as a
   browser leaves it out. Delete it, or rewrite it if it meant something.
 - **`html-attr:important`**: React sets a style without a priority, so the declaration is written

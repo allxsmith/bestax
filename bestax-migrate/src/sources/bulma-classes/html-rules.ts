@@ -72,7 +72,7 @@ const VOCABULARY: Readonly<Record<string, ReadonlySet<string>>> = {
     'template',
     'unknown',
   ]),
-  'html-url': new Set(['javascript', 'relative']),
+  'html-url': new Set(['javascript', 'missing', 'relative']),
   'html-attr': new Set(['important', 'name', 'style', 'unknown']),
   'html-parse': new Set(Object.values(ErrorCodes)),
   'html-file': new Set(['exists', 'not-included', 'template-syntax']),

@@ -236,6 +236,10 @@ describe('the report', () => {
     ]);
     // Reported only: the module imports no stylesheet.
     expect(output).not.toMatch(/^import ['"]/m);
+    // bestax's bundle builds Bulma with its own primary.
+    expect(entries[0].message.includes('--bulma-primary-invert-l')).toBe(
+      cssMode === 'bestax'
+    );
   });
 
   it('reads the inline script patterns and leaves an unknown type alone', () => {
@@ -295,22 +299,94 @@ describe('the report', () => {
     const { entries } = convert(
       `${box}<img src="/a.png" srcset="img/b.png 2x" alt="">\n<object data="movie.swf"></object>\n<a href="#top" data-x="y">t</a> <a href="mailto:a@b.c">m</a> <a href="//cdn/x">c</a>\n`
     );
+    // Neither target is beside the page.
     expect(entries.map(({ line, rule }) => ({ line, rule }))).toEqual([
-      { line: 2, rule: 'html-url:relative' },
-      { line: 3, rule: 'html-url:relative' },
+      { line: 2, rule: 'html-url:missing' },
+      { line: 3, rule: 'html-url:missing' },
     ]);
   });
 
-  it('writes one TODO line for several relative URLs, and an entry for each', () => {
-    const { entries, output } = convert(
-      `${box}<img src="a.png" alt="">\n<img src="b.png" alt="">\n<img src="a.png" alt="">\n`
+  it('reads a relative URL beside the page: a file, another page, or nothing', () => {
+    const dir = tempDir();
+    fs.mkdirSync(path.join(dir, 'img'));
+    fs.writeFileSync(path.join(dir, 'img', 'my logo.png'), '');
+    fs.writeFileSync(path.join(dir, 'about.html'), '');
+    const { entries } = convert(
+      `${box}<img src="./img/my%20logo.png?v=2" alt="">\n<a href="about.html#team">About</a>\n<a href="old/news.html">News</a>\n`,
+      {},
+      path.join(dir, 'home.html')
     );
-    expect(entries.map(entry => entry.line)).toEqual([2, 3, 4]);
-    const todos = output!.match(/TODO\(bestax-migrate\): relative URLs.*$/gm);
-    expect(todos).toHaveLength(1);
-    expect(todos![0]).toContain('(`a.png`, `b.png`)');
-    expect(todos![0]).toMatch(/\(case\.html:2, 3, 4\)$/);
+    expect(entries.map(({ rule, message }) => ({ rule, message }))).toEqual([
+      {
+        rule: 'html-url:relative',
+        message: expect.stringMatching(
+          /copy the file into the app's `public\/` folder and point at it from the site root \(`\/img\/my logo\.png`\)/
+        ),
+      },
+      {
+        rule: 'html-url:relative',
+        message: expect.stringContaining(
+          'point it at the route that page becomes'
+        ),
+      },
+      {
+        rule: 'html-url:missing',
+        message: expect.stringContaining(
+          'points at nothing beside the page (no `old/news.html` in its folder)'
+        ),
+      },
+    ]);
   });
+
+  it('writes one TODO line for each kind of relative URL there are several of, and an entry for each', () => {
+    const dir = tempDir();
+    for (const file of ['a.png', 'b.png']) {
+      fs.writeFileSync(path.join(dir, file), '');
+    }
+    const { entries, output } = convert(
+      `${box}<img src="a.png" alt="">\n<img src="b.png" alt="">\n<img src="a.png" alt="">\n<img src="gone.png" alt="">\n<img src="lost.png" alt="">\n<a href="x.html">x</a>\n`,
+      {},
+      path.join(dir, 'case.html')
+    );
+    expect(entries.map(entry => `${entry.line}:${entry.rule}`)).toEqual([
+      '2:html-url:relative',
+      '3:html-url:relative',
+      '4:html-url:relative',
+      '5:html-url:missing',
+      '6:html-url:missing',
+      '7:html-url:missing',
+    ]);
+    const todos = output!.match(/TODO\(bestax-migrate\): relative URLs.*$/gm);
+    expect(todos).toHaveLength(2);
+    expect(todos![0]).toContain('(`a.png`, `b.png`) resolve against');
+    expect(todos![0]).toMatch(/\(case\.html:2, 3, 4\)$/);
+    expect(todos![1]).toContain(
+      '(`gone.png`, `lost.png`, `x.html`) point at nothing'
+    );
+    expect(todos![1]).toMatch(/\(case\.html:5, 6, 7\)$/);
+  });
+
+  it.each([
+    ['defaultvalue', 'rename it to `defaultValue`, or drop it'],
+    ['defaultchecked', 'rename it to `defaultChecked`'],
+    ['valign', 'old presentational attribute'],
+    ['bgcolor', 'replace it with CSS or a class'],
+    ['frobnicate', 'make it a `data-` attribute'],
+  ])(
+    "says what to do about %s, an attribute React's types don't list",
+    (attribute, advice) => {
+      const { entries } = convert(`${box}<p ${attribute}="x">t</p>\n`);
+      expect(entries).toEqual([
+        expect.objectContaining({
+          rule: 'html-attr:unknown',
+          message: expect.stringContaining(advice),
+        }),
+      ]);
+      if (attribute !== 'valign' && attribute !== 'bgcolor') {
+        expect(entries[0].message).not.toContain('CSS');
+      }
+    }
+  );
 
   it('keeps the planner TODOs above the return, and the page notes above the component', () => {
     const { output } = convert(

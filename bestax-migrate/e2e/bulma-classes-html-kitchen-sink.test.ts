@@ -128,6 +128,7 @@ const LEFTOVER_RULES = [
   'html-attr:name',
   'html-attr:style',
   'html-attr:unknown',
+  'html-attr:unknown',
   'html-document:class',
   'html-document:data-theme',
   'html-document:has-navbar-fixed-top',
@@ -156,6 +157,7 @@ const LEFTOVER_RULES = [
   'html-script:modal',
   'html-script:theme',
   'html-url:javascript',
+  'html-url:missing',
   'html-url:relative',
   'tag:SubTitle',
   'tag:Title',
@@ -282,9 +284,10 @@ describe('bulma-classes HTML kitchen-sink e2e, --css bestax', () => {
   it("points the Bulma stylesheet's TODO at bestax's bundle, and writes no import", () => {
     const landing = site.todos.get('pages/landing.html') ?? [];
     expect(rulesOf(landing)).toEqual(LANDING_RULES);
-    expect(
-      landing.find(entry => entry.rule === 'html-asset')?.message
-    ).toContain("import '@allxsmith/bestax-bulma/bestax.css'");
+    const message = landing.find(entry => entry.rule === 'html-asset')?.message;
+    expect(message).toContain("import '@allxsmith/bestax-bulma/bestax.css'");
+    // A page made for stock Bulma's primary changes color under bestax's.
+    expect(message).toContain('--bulma-primary-invert-l');
     const module = fs.readFileSync(
       path.join(site.dir, 'pages', 'landing.tsx'),
       'utf8'
