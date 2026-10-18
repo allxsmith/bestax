@@ -31,7 +31,11 @@
  * that names what to do (`trackedRepoPaths`, `skillRefusal`, `failureText`)
  * from scripts/lib/skills.mjs, through the same gate gen-skills-repo.mjs
  * reads its inputs with, here always requiring a checkout, since the tree is
- * defined as what git tracks. The tree helpers (`writeTree`, `scanTree`,
+ * defined as what git tracks. That listing is split into templates by
+ * scripts/lib/templates.mjs's `templatePaths`, the same split the templates
+ * test checks, so the test and the mirror read the same files. The README
+ * names each template's own `license` from its entry, which the schema
+ * holds to an allowlist. The tree helpers (`writeTree`, `scanTree`,
  * `planMismatch`, `fileMode`, `nameProblem`, `TreeError`) come from
  * gen-skills-repo.mjs, and file-derived values in messages go through
  * consumer-sbom-meta.mjs's `forLog`.
@@ -63,7 +67,11 @@ import {
   skillRefusal,
   trackedRepoPaths,
 } from './lib/skills.mjs';
-import { entryProblems, loadTemplatesData } from './lib/templates.mjs';
+import {
+  entryProblems,
+  loadTemplatesData,
+  templatePaths,
+} from './lib/templates.mjs';
 
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -109,27 +117,6 @@ export const PUBLISH_PATHS = [
   'docs/src/theme/CodeBlock/sandbox/projects.mjs',
   '.github/workflows/templates-publish.yml',
 ];
-
-/**
- * The tracked files of each template, from a `git ls-files` listing of the
- * repo: `{ slugs, files }`, where `files` are `{ path, source }` with `path`
- * in the tree (`<slug>/<rest>`) and `source` in the repo. A tracked file at
- * the top of templates/ is not a template's and is left out.
- */
-export function templatePaths(tracked) {
-  const slugs = new Set();
-  const files = [];
-  for (const source of tracked) {
-    const match = /^templates\/([^/]+)\/(.+)$/.exec(source);
-    if (!match) continue;
-    slugs.add(match[1]);
-    files.push({ path: `${match[1]}/${match[2]}`, source });
-  }
-  return {
-    slugs: [...slugs].sort(byCodePoint),
-    files: files.sort((a, b) => byCodePoint(a.path, b.path)),
-  };
-}
 
 /**
  * The docs entries the README credits, in the page's order, after checking
@@ -196,6 +183,7 @@ export function renderReadme(templates, stackblitzUrl) {
         `- Ported from [${repoLabel(t.source)}](${t.source}) by ` +
           `[${t.author.name}](${t.author.url}), at commit ` +
           `\`${t.sourceSha.slice(0, 7)}\``,
+        `- License: ${t.license}, the upstream's, in [LICENSE](${t.slug}/LICENSE)`,
         '',
       ])
     : [
@@ -229,9 +217,10 @@ export function renderReadme(templates, stackblitzUrl) {
     '',
     '## License',
     '',
-    "MIT. Each template's LICENSE keeps its upstream author's notice, " +
-      'followed by the notice for the bestax port, and NOTICE credits the ' +
-      'projects these build on.',
+    "Each template is under its upstream's license, named with it above, " +
+      "and its LICENSE keeps the upstream author's notice followed by the " +
+      "notice for the bestax port. This repository's own LICENSE covers the " +
+      'rest, and NOTICE credits the projects these build on.',
     '',
     '## Where this comes from',
     '',

@@ -19,7 +19,8 @@
  * - `sourceSha`: the upstream commit the port was made from, in full.
  * - `demo`: the upstream's live site, to check the port against. The card
  *   never links it: a card opens the bestax version.
- * - `license`: the upstream license, as an SPDX identifier.
+ * - `license`: the upstream license, as an SPDX identifier from LICENSES in
+ *   scripts/lib/templates.mjs. The mirror's README names it per template.
  * - `copyright`: the upstream LICENSE's copyright line, verbatim, which the
  *   template's own LICENSE has to carry.
  * - `tags`: keys of `Tags`.

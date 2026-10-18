@@ -26,11 +26,10 @@ import {
   main,
   renderReadme,
   repoLabel,
-  templatePaths,
   treeProblems,
 } from './gen-templates-repo.mjs';
 import { scanTree } from './gen-skills-repo.mjs';
-import { loadTemplatesData } from './lib/templates.mjs';
+import { loadTemplatesData, templatePaths } from './lib/templates.mjs';
 
 const REPO = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -249,6 +248,37 @@ test('the tree holds each template as tracked, and the root files', async () => 
     /Ported from \[aldi\/bulma-login-template\]\(https:\/\/github\.com\/aldi\/bulma-login-template\) by \[Aldi Duzha\]\(https:\/\/github\.com\/aldi\), at commit `abcdef1`/
   );
   assert.match(readme, /Open issues and pull\s+requests in allxsmith\/bestax/);
+  assert.match(
+    readme,
+    /- License: MIT, the upstream's, in \[LICENSE\]\(login\/LICENSE\)/
+  );
+});
+
+test("the README names each template's own license and claims none for all", async () => {
+  const apache = {
+    ...ENTRY,
+    slug: 'hotel',
+    title: 'Hotel',
+    license: 'Apache-2.0',
+  };
+  const repo = fixtureRepo({ templates: [ENTRY, apache] });
+  const out = path.join(tempDir(), 'tree');
+  await generate(out, repo);
+  const readme = fs.readFileSync(path.join(out, 'README.md'), 'utf8');
+  assert.match(
+    readme,
+    /### Hotel[\s\S]*- License: Apache-2\.0, the upstream's/
+  );
+  assert.match(readme, /### Login[\s\S]*- License: MIT, the upstream's/);
+  const license = readme.slice(readme.indexOf('## License'));
+  assert.doesNotMatch(license, /\bMIT\b|Apache/, 'no blanket license claim');
+  assert.match(license, /under its upstream's license/);
+});
+
+test('an entry whose license is not on the allowlist is refused', async () => {
+  const repo = fixtureRepo({ templates: [{ ...ENTRY, license: 'GPL-3.0' }] });
+  const err = await failureOf(generate(path.join(tempDir(), 't'), repo));
+  assert.match(err.message, /`license` must be the upstream's SPDX identifier/);
 });
 
 test('a repository with no template still makes a valid tree', async () => {

@@ -6,4 +6,4 @@ See https://github.com/jgthms/bulma/blob/main/LICENSE for details.
 
 Templates
 
-The templates under templates/ are ports of free Bulma templates collected in aldi's awesome-bulma-templates (https://github.com/aldi/awesome-bulma-templates), licensed under the MIT license. Each template keeps its upstream copyright notice in its own LICENSE, and its line below names the repository it was ported from.
+The templates under templates/ are ports of free Bulma templates collected in aldi's awesome-bulma-templates (https://github.com/aldi/awesome-bulma-templates). Each template is under its upstream's license and keeps the upstream copyright notice in its own LICENSE, and its line below names the repository it was ported from and that license.
