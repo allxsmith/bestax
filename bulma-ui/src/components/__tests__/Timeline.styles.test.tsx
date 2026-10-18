@@ -271,7 +271,7 @@ describe.each([
       `${prefix}timeline-spin var(--bulma-timeline-pending-duration) infinite linear`
     );
     expect(ring['border-top-color']).toBe('transparent');
-    expect(ring['border-right-color']).toBe('transparent');
+    expect(ring['border-inline-end-color']).toBe('transparent');
     expect(ring['border-width']).toBe('var(--bulma-timeline-line-width)');
   });
 
@@ -363,7 +363,7 @@ describe.each([
         within: ['@media (forced-colors: active)'],
         selector: pending,
         declarations: [
-          'border-right-color: Canvas',
+          'border-inline-end-color: Canvas',
           'border-top-color: Canvas',
         ],
       },
@@ -400,19 +400,9 @@ describe.each([
   it('uses logical properties, so a right-to-left page needs no rules', () => {
     const physical =
       /^(left|right|(margin|padding|border)-(left|right)(-\w+)?|text-align: (left|right))$/;
-    // The pending ring's open side is the one exception: it opens the
-    // physical right, as Bulma's loader does, since a turning ring reads the
-    // same mirrored, and the forced-colors check on rings reads that side.
     const offenders = allRulesOf(compile(prefix)).flatMap(({ rule }) =>
-      declarationsOf(rule).filter(
-        line =>
-          physical.test(
-            line.startsWith('text-align') ? line : line.split(':')[0]
-          ) &&
-          !(
-            rule.selectorText === pending &&
-            line.startsWith('border-right-color:')
-          )
+      declarationsOf(rule).filter(line =>
+        physical.test(line.startsWith('text-align') ? line : line.split(':')[0])
       )
     );
     expect(offenders).toEqual([]);
