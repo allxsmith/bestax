@@ -127,8 +127,7 @@ After the base, `@use` only the Bulma partials you need:
 @use 'bulma/sass/elements/title';
 
 // Form
-@use 'bulma/sass/form/input';
-@use 'bulma/sass/form/textarea';
+@use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/form/select';
 
 // Components
@@ -144,6 +143,8 @@ After the base, `@use` only the Bulma partials you need:
 @use 'bulma/sass/layout/container';
 @use 'bulma/sass/layout/section';
 ```
+
+Bulma groups some form controls into one module: `form/input-textarea` styles both Input and TextArea, `form/checkbox-radio` styles Checkbox and Radio, and `form/tools` styles Field and Control.
 
 Pull in only the helper categories you use:
 
@@ -218,7 +219,7 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 @use 'bulma/sass/elements/button';
 @use 'bulma/sass/elements/box';
 @use 'bulma/sass/elements/title';
-@use 'bulma/sass/form/input';
+@use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/components/card';
 @use 'bulma/sass/grid/columns';
 @use 'bulma/sass/helpers/spacing';

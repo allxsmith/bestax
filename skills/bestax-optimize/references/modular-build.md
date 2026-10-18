@@ -49,6 +49,11 @@ extras map to `@allxsmith/bestax-bulma/scss/<category>/<lowercased-name>`. Compo
 are pure stock Bulma (Button, Box, Card, Navbar, Modal, Hero, …) have **no** extras partial —
 Bulma's own module is all they need.
 
+Bulma groups its form controls, so their modules don't follow the name: `Input` and `TextArea`
+are `bulma/sass/form/input-textarea`, `Checkbox`, `Checkboxes`, `Radio` and `Radios` are
+`bulma/sass/form/checkbox-radio`, and `Field` and `Control` are `bulma/sass/form/tools`.
+`Select` and `File` follow the rule.
+
 Stock Bulma examples:
 
 ```scss
@@ -56,7 +61,7 @@ Stock Bulma examples:
 @use 'bulma/sass/elements/box'; // Box
 @use 'bulma/sass/elements/notification'; // Notification
 @use 'bulma/sass/elements/title'; // Title, SubTitle
-@use 'bulma/sass/form/input'; // Input
+@use 'bulma/sass/form/input-textarea'; // Input, TextArea
 @use 'bulma/sass/form/select'; // Select
 @use 'bulma/sass/components/card'; // Card
 @use 'bulma/sass/components/modal'; // Modal
