@@ -1094,10 +1094,26 @@ function propsFrom(
   const groupOf = new Map<string, string>();
   const converted = new Set<string>(root ? [root] : []);
 
+  // A class that converts only beside another goes first, and takes that one
+  // with it: the value it writes renders both (`hasAddons="centered"`).
+  for (const token of tokens) {
+    const other = modifierFor(entry, token)?.beside;
+    if (!other || !tokens.includes(other) || converted.has(other)) continue;
+    const modifier = modifierFor(entry, token)!;
+    if (modifier.writes.some(write => writes.has(write.prop))) continue;
+    for (const write of modifier.writes) {
+      writes.set(write.prop, write.value ?? true);
+      sourceOf.set(write.prop, token);
+      if (write.numeric) numbers.push(write.prop);
+    }
+    converted.add(token).add(other);
+  }
+
   for (const token of tokens) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {
+      if (modifier.beside) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
         continue;

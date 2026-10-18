@@ -85,6 +85,8 @@ renders the same `<h2>`.
 | `.content` → `Content`                                                       | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.delete` → `Delete`                                                         | `is-small`, `is-medium`, `is-large`                                                                                                              | `size`                                                                                            |
 | `.field` → `Field`                                                           | `is-horizontal`, `is-grouped`, `has-addons`, `is-narrow`                                                                                         | `horizontal`, `grouped`, `hasAddons`, `narrow`                                                    |
+| `.field` → `Field`                                                           | `has-addons-centered`, `has-addons-right`, beside `has-addons`                                                                                   | `hasAddons="centered"`, `hasAddons="right"`, which render both classes                            |
+| `.field` → `Field`                                                           | `is-grouped-centered`, `is-grouped-right`, `is-grouped-multiline`, beside `is-grouped`                                                           | `grouped="centered"`, `grouped="right"`, `grouped="multiline"`, which render both classes         |
 | `.grid` → `Grid`                                                             | `is-gap-{step}`, `is-column-gap-{step}`, `is-row-gap-{step}`, `0` to `8` in half steps (`is-gap-1.5`)                                            | `gap`, `columnGap`, `rowGap`                                                                      |
 | `.grid` → `Grid`                                                             | `is-col-min-{1-32}`                                                                                                                              | `minCol` (a number: `minCol={8}`)                                                                 |
 | `.fixed-grid` → `Grid isFixed` (folded)                                      | `has-{1-12}-cols`, `has-{1-12}-cols-{viewport}`, `has-auto-count`                                                                                | `fixedCols`, `fixedCols{Viewport}` (numbers: `fixedCols={3}`), `fixedCols="auto"`                 |
@@ -140,11 +142,12 @@ converts only with an `aria-label` and a `type` of `button`, `submit` or `reset`
 `.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. `.navbar`'s
 `is-spaced` and `has-shadow`, and a `.navbar-item`'s `has-dropdown` and `is-hoverable`, stay
 classes too: bestax has no prop for them on those components. So do a `.field`'s
-`has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
-`grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
-textarea's or select's color, because `color` renders `has-text-<color>` on it too. On a
-`.columns`, the gap helpers (`is-gap-*`, `is-column-gap-*`, `is-row-gap-*`) stay classes as well:
-`Columns`' own `gap` is its gutter (`is-<step>`), and it leaves the column and row gap helpers out.
+`has-addons-centered`, `has-addons-right` and `is-grouped-*` without `has-addons` or `is-grouped`
+beside them, because the `hasAddons` and `grouped` values that render them render those as well,
+and an input's, textarea's or select's color, because `color` renders `has-text-<color>` on it
+too. On a `.columns`, the gap helpers (`is-gap-*`, `is-column-gap-*`, `is-row-gap-*`) stay
+classes as well: `Columns`' own `gap` is its gutter (`is-<step>`), and it leaves the column and
+row gap helpers out.
 
 ## Helper classes
 

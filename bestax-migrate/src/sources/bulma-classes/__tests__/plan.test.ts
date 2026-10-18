@@ -1678,15 +1678,76 @@ describe('plan', () => {
       });
     });
 
-    it('keeps the addon and group variants as classes', () => {
-      expect(
-        plan(facts('div', 'field has-addons has-addons-centered')).conversion
-      ).toEqual({
+    it('writes an addon or group layout with the class it renders beside', () => {
+      const field = (className: string) =>
+        plan(facts('div', className)).conversion;
+      expect(field('field has-addons has-addons-centered')).toEqual({
         target: 'Field',
-        props: [['hasAddons', true]],
-        className: 'has-addons-centered',
+        props: [['hasAddons', 'centered']],
+        className: null,
         drop: [],
         numbers: [],
+      });
+      // In either order, and beside the field's other classes.
+      expect(field('field has-addons-right mt-2 has-addons')).toEqual({
+        target: 'Field',
+        props: [
+          ['hasAddons', 'right'],
+          ['mt', '2'],
+        ],
+        className: null,
+        drop: [],
+        numbers: [],
+      });
+      for (const layout of ['centered', 'right', 'multiline']) {
+        expect(field(`field is-grouped is-grouped-${layout}`)).toEqual({
+          target: 'Field',
+          props: [['grouped', layout]],
+          className: null,
+          drop: [],
+          numbers: [],
+        });
+      }
+    });
+
+    it('keeps a layout class without the class its value renders beside', () => {
+      const field = (className: string) =>
+        plan(facts('div', className)).conversion;
+      // `hasAddons="centered"` would add `has-addons`.
+      expect(field('field has-addons-centered')).toMatchObject({
+        props: [],
+        className: 'has-addons-centered',
+      });
+      expect(field('field is-grouped-multiline has-addons')).toMatchObject({
+        props: [['hasAddons', true]],
+        className: 'is-grouped-multiline',
+      });
+      // A second layout for the same prop stays a class beside the first.
+      expect(
+        field('field has-addons has-addons-centered has-addons-right')
+      ).toMatchObject({
+        props: [['hasAddons', 'centered']],
+        className: 'has-addons-right',
+      });
+    });
+
+    it('keeps a layout class a condition adds in the call', () => {
+      // Only a flag takes its condition as its value.
+      expect(
+        plan({
+          ...facts('div', 'field is-grouped'),
+          conditional: [['is-grouped-centered']],
+        }).conversion
+      ).toMatchObject({ props: [['grouped', true]], className: null });
+      expect(
+        plan({
+          ...facts('div', 'field has-addons-centered'),
+          conditional: [['has-addons']],
+        }).conversion
+      ).toMatchObject({
+        props: [],
+        className: 'has-addons-centered',
+        conditional: [['hasAddons', 'has-addons']],
       });
     });
 
