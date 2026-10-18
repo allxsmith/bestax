@@ -116,6 +116,17 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
   what it renders.
+- `src/sources/_shared/html/` turns HTML into JSX source, library-agnostic: `parse.ts` (parse5,
+  as a document or a fragment), `attributes.ts` (attribute to prop by `property-information`,
+  plus what React needs written by hand; numbers stay strings for the planner, and
+  `numberLiteral` writes them as numbers afterwards), `style.ts`, `text.ts` (escaping and
+  comments), `whitespace.ts` (which whitespace renders, laid out the CSS way, each element's
+  display coming from a `displayOf` hook that defaults to the HTML UA stylesheet) and `emit.ts`
+  (the JSX on the source's own lines, a map from its lines back to the HTML's, and a report of
+  what it could not write as it was). It never decides what a report becomes: the caller turns
+  each into a TODO or a rule id. `e2e/html-converter-round-trip.test.ts` renders what it writes
+  and compares the DOM with the page's, and `e2e/html-attributes-react.test.ts` holds
+  `REACT_UNKNOWN` to React.
 - `src/telemetry-core.ts` is a byte-for-byte copy of
   `create-bestax/src/telemetry-core.ts` — never edit it here; edit the
   create-bestax original and copy it over (`check:conformance
