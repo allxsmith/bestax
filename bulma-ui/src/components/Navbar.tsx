@@ -53,6 +53,17 @@ export interface NavbarProps
   bgColor?: (typeof validColors)[number] | 'inherit' | 'current';
   /** Renders the navbar with a transparent background. */
   transparent?: boolean;
+  /**
+   * Renders Bulma's `is-spaced`: padding around the navbar, rounded items
+   * and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so
+   * below that the navbar looks the same either way.
+   */
+  isSpaced?: boolean;
+  /**
+   * Renders Bulma's `has-shadow`: a shadow below the navbar, or above it with
+   * `fixed="bottom"`.
+   */
+  hasShadow?: boolean;
   /** Fixes the navbar to the top or bottom of the viewport. */
   fixed?: 'top' | 'bottom';
   /** Navbar content (compose with subcomponents). */
@@ -76,6 +87,8 @@ const NavbarComponent = forwardRef<HTMLElement, NavbarProps>(
       bgColor,
       color,
       transparent,
+      isSpaced,
+      hasShadow,
       fixed,
       children,
       ...props
@@ -92,6 +105,8 @@ const NavbarComponent = forwardRef<HTMLElement, NavbarProps>(
     const bulmaClasses = usePrefixedClassNames('navbar', {
       [`is-${color}`]: color,
       'is-transparent': transparent,
+      'is-spaced': isSpaced,
+      'has-shadow': hasShadow,
       [`is-fixed-${fixed}`]: fixed,
     });
 

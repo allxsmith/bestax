@@ -38,7 +38,7 @@ import { Navbar } from '@allxsmith/bestax-bulma';
 
 ### Complete Navbar with Burger and Menu
 
-This example demonstrates a fully responsive navigation bar using `Navbar` and its subcomponents. The `Navbar.Burger` toggles the mobile menu, while `Navbar.Brand` displays branding or a logo. Use the `active` prop on `Navbar.Burger` and `Navbar.Menu` to control the open state. Compose navigation links and dropdowns within `Navbar.Start` and `Navbar.End` for flexible layouts. Customize with `color`, `bgColor`, `fixed`, and `transparent` props as needed.
+This example demonstrates a fully responsive navigation bar using `Navbar` and its subcomponents. The `Navbar.Burger` toggles the mobile menu, while `Navbar.Brand` displays branding or a logo. Use the `active` prop on `Navbar.Burger` and `Navbar.Menu` to control the open state. Compose navigation links and dropdowns within `Navbar.Start` and `Navbar.End` for flexible layouts. Customize with the `color`, `bgColor`, `fixed`, `transparent`, `isSpaced` and `hasShadow` props as needed.
 
 ```tsx live
 function example() {
@@ -214,6 +214,57 @@ Example of a navbar with a transparent background. This is often used for navbar
 
 ```tsx live
 <Navbar transparent>{/* ...brand and menu... */}</Navbar>
+```
+
+---
+
+### Spaced Navbar
+
+The `isSpaced` prop renders Bulma's `is-spaced`: padding around the navbar, rounded items, and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so on a narrower screen the navbar looks the same with or without it.
+
+```tsx live
+<Navbar isSpaced>
+  <Navbar.Brand>
+    <Navbar.Item href="#">
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
+    </Navbar.Item>
+  </Navbar.Brand>
+  <Navbar.Menu active>
+    <Navbar.Start>
+      <Navbar.Item href="#">Home</Navbar.Item>
+      <Navbar.Item href="#">Docs</Navbar.Item>
+      <Navbar.Dropdown hoverable>
+        <Navbar.Link>More</Navbar.Link>
+        <Navbar.DropdownMenu>
+          <Navbar.Item href="#">About</Navbar.Item>
+          <Navbar.Item href="#">Contact</Navbar.Item>
+        </Navbar.DropdownMenu>
+      </Navbar.Dropdown>
+    </Navbar.Start>
+  </Navbar.Menu>
+</Navbar>
+```
+
+---
+
+### Navbar with a Shadow
+
+The `hasShadow` prop renders Bulma's `has-shadow`, a thin shadow below the navbar that sets it off from the page. With `fixed="bottom"` the shadow sits above it instead.
+
+```tsx live
+<Navbar hasShadow>
+  <Navbar.Brand>
+    <Navbar.Item href="#">
+      <img src="/img/logo.svg" alt="Logo" width="28" height="28" />
+    </Navbar.Item>
+  </Navbar.Brand>
+  <Navbar.Menu active>
+    <Navbar.Start>
+      <Navbar.Item href="#">Home</Navbar.Item>
+      <Navbar.Item href="#">Docs</Navbar.Item>
+    </Navbar.Start>
+  </Navbar.Menu>
+</Navbar>
 ```
 
 ---
@@ -494,17 +545,19 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Navba
 
 <!-- bestax:generated props -->
 
-| Prop          | Type                                                                                                                               | Default | Description                                            |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------------ |
-| `className`   | `string`                                                                                                                           | —       | Additional CSS classes for the navbar.                 |
-| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color for the navbar.                             |
-| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the navbar.                   |
-| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color for the navbar.                       |
-| `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background.      |
-| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport. |
-| `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).           |
-| `ref`         | `React.Ref<HTMLElement>`                                                                                                           | —       | Ref forwarded to the root `<nav>` element.             |
-| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)      |
+| Prop          | Type                                                                                                                               | Default | Description                                                                                                                                                                                     |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`   | `string`                                                                                                                           | —       | Additional CSS classes for the navbar.                                                                                                                                                          |
+| `textColor`   | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Text color for the navbar.                                                                                                                                                                      |
+| `color`       | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the navbar.                                                                                                                                                            |
+| `bgColor`     | [Bulma color](../helpers/valid-values.md) \| `'inherit'` \| `'current'`                                                            | —       | Background color for the navbar.                                                                                                                                                                |
+| `transparent` | `boolean`                                                                                                                          | `false` | Renders the navbar with a transparent background.                                                                                                                                               |
+| `isSpaced`    | `boolean`                                                                                                                          | `false` | Renders Bulma's `is-spaced`: padding around the navbar, rounded items and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so below that the navbar looks the same either way. |
+| `hasShadow`   | `boolean`                                                                                                                          | `false` | Renders Bulma's `has-shadow`: a shadow below the navbar, or above it with `fixed="bottom"`.                                                                                                     |
+| `fixed`       | `'top'` \| `'bottom'`                                                                                                              | —       | Fixes the navbar to the top or bottom of the viewport.                                                                                                                                          |
+| `children`    | `React.ReactNode`                                                                                                                  | —       | Navbar content (compose with subcomponents).                                                                                                                                                    |
+| `ref`         | `React.Ref<HTMLElement>`                                                                                                           | —       | Ref forwarded to the root `<nav>` element.                                                                                                                                                      |
+| `...`         | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                               |
 
 **Subcomponents:**
 

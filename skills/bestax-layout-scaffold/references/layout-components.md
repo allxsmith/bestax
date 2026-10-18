@@ -230,6 +230,8 @@ flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `fixed`         | `'top' \| 'bottom'`                                                                                              |
 | `transparent`   | `boolean`                                                                                                        |
+| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                 |
+| `hasShadow`     | `boolean` (Bulma's `has-shadow`)                                                                                 |
 | `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` |
 | `Navbar.Item`   | `as?`, `active?`, `href`                                                                                         |
 | `Navbar.Burger` | `active?`, `onClick`                                                                                             |
