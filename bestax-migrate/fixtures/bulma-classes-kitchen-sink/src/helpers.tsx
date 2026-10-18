@@ -37,6 +37,10 @@ export function Helpers() {
       </div>
       <p className="is-position-relative is-overflow-x-auto">Positioned</p>
       <figure className="is-aspect-ratio-4by3 is-clipped">Ratio</figure>
+      <p className="has-text-primary-on-scheme has-background-primary-light">
+        Shaded
+      </p>
+      <div className="box has-text-link-30">A darker link color</div>
     </div>
   );
 }
