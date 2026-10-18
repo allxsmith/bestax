@@ -76,10 +76,10 @@ in place:
   literal `<li>` bloomer's docs put around a `MenuLink`, the literal `<ul>` inside a `Breadcrumb`,
   `TabLink` into a plain `<a>` inside `Tabs.Item`. `Help`, `Label`, `Heading`, `BreadcrumbItem`,
   `PanelTab` and `HeroVideo` become the plain Bulma markup bloomer rendered, and so does a
-  `PanelBlock` without `href` (bestax's is always an `<a>`). Icon-font classes the codemod can
-  read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers included as
-  `features`. Where bloomer rendered a `<div>` and bestax defaults to an `<a>` (`NavbarItem`,
-  `DropdownItem`), the codemod adds `as="div"`.
+  `PanelBlock` without `href` on a `tag` other than `div` or `label`. Icon-font classes the
+  codemod can read (Font Awesome 5/6, MDI) become `<Icon name="…" library="…" />`, modifiers
+  included as `features`. Where bloomer rendered a `<div>` and bestax defaults to an `<a>`
+  (`NavbarItem`, `DropdownItem`, `PanelBlock`), the codemod adds `as="div"`.
 - **Stylesheets** — your `bulma/css/bulma.css` import becomes the bestax bundle, and a Sass
   `@import "~bulma/bulma"` with its `$variable` overrides becomes `@use "bulma/sass" with (…)`.
 - **package.json** — `bloomer` is removed, `@allxsmith/bestax-bulma` added, your pre-1 `bulma`

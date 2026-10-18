@@ -268,6 +268,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Container',
     props: {
+      renderAs: { rename: 'as' },
       max: { booleanToProp: { name: 'isMax' } },
       breakpoint: {
         // 'tablet' / 'desktop' stay as breakpoint="..." (same prop in bestax)
@@ -446,6 +447,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
     status: 'mapped',
     target: 'Hero',
     props: {
+      renderAs: { rename: 'as' },
       color: {},
       size: {
         valueTodo: {
@@ -459,9 +461,17 @@ export const MAPPING: Record<string, ComponentMapping> = {
       hasNavbar: { booleanToProp: { name: 'fullheightWithNavbar' } },
     },
     subs: {
-      Header: { status: 'mapped', target: 'Hero.Head' },
+      Header: {
+        status: 'mapped',
+        target: 'Hero.Head',
+        props: { renderAs: { rename: 'as' } },
+      },
       Body: { status: 'mapped', target: 'Hero.Body' },
-      Footer: { status: 'mapped', target: 'Hero.Foot' },
+      Footer: {
+        status: 'mapped',
+        target: 'Hero.Foot',
+        props: { renderAs: { rename: 'as' } },
+      },
     },
   },
   Icon: {
@@ -705,7 +715,7 @@ export const MAPPING: Record<string, ComponentMapping> = {
   Panel: {
     status: 'mapped',
     target: 'Panel',
-    props: { color: {} },
+    props: { renderAs: { rename: 'as' }, color: {} },
     subs: {
       Header: { status: 'mapped', target: 'Panel.Heading' },
       Tabs: {
@@ -716,7 +726,11 @@ export const MAPPING: Record<string, ComponentMapping> = {
           Tab: { status: 'mapped', special: 'panel-tab' },
         },
       },
-      Block: { status: 'mapped', target: 'Panel.Block', props: activeKept },
+      Block: {
+        status: 'mapped',
+        target: 'Panel.Block',
+        props: { ...activeKept, renderAs: { rename: 'as' } },
+      },
       Icon: { status: 'partial', target: 'Panel.Icon', special: 'icon' },
     },
   },

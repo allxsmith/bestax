@@ -667,7 +667,6 @@ export async function bulmaClassTable() {
         buildsFile: entry.buildsFile ?? false,
         noHelpers: entry.noHelpers ?? false,
         helpersLeftOut: entry.helpersLeftOut ?? {},
-        otherTagsStay: entry.otherTagsStay ?? null,
         topLevelOnly: entry.topLevelOnly ?? false,
         items: itemsOf(map.PLACED, token),
         parent: entry.parent ?? null,

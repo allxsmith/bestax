@@ -49,13 +49,28 @@ import {
  * output that does not compile.
  */
 const AS_UNION_TABLE = {
+  Container: [
+    'div',
+    'main',
+    'section',
+    'article',
+    'aside',
+    'header',
+    'footer',
+    'nav',
+  ],
   Control: ['div', 'p'],
   'Dropdown.Item': ['a', 'div', 'button'],
   Footer: ['footer', 'div'],
+  Hero: ['section', 'div', 'main', 'header', 'footer', 'article', 'aside'],
+  'Hero.Foot': ['div', 'footer', 'nav'],
+  'Hero.Head': ['div', 'header', 'nav'],
   Image: ['figure', 'div', 'p'],
   'Level.Item': ['div', 'p', 'a'],
   Media: ['article', 'div'],
   'Media.Left': ['figure', 'div'],
+  Panel: ['nav', 'article', 'section', 'aside', 'div'],
+  'Panel.Block': ['a', 'div', 'label'],
   SubTitle: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
   Title: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
 } as const;
@@ -70,7 +85,7 @@ export const AS_UNIONS: Record<string, readonly string[]> = AS_UNION_TABLE;
  * That last group is why this set has to exist. An earlier pass flags an `as`
  * a component cannot take and leaves the attribute in place as the marker for
  * its TODO, so reading the element off whatever `as` is present would believe
- * a prop the component never had -- and `<Panel.Block as="span" href="/x">`
+ * a prop the component never had -- and `<Pagination.Link as="span" href="/x">`
  * would lose the `href` that compiles and keep the `as` that does not.
  */
 const AS_ANY = new Set(['Button', 'Menu.Item', 'Navbar.Item', 'Navbar.Link']);

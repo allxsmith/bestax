@@ -291,15 +291,6 @@ export interface RootEntry {
    */
   readonly helpersLeftOut?: Readonly<Record<string, string>>;
   /**
-   * Tags the target doesn't render, on which the element is valid Bulma that
-   * bestax renders some other way, so it stays markup with no `tag` TODO
-   * there. Any other tag still gets one. The reason is for the MCP lookup.
-   */
-  readonly otherTagsStay?: {
-    readonly tags: readonly string[];
-    readonly why: string;
-  };
-  /**
    * Attributes the target types as numbers, among the ones it is given (the
    * child's, when it `absorbs` the child and puts them there), beside
    * `NUMBER_ATTRS`, which every target types that way. A numeric string
@@ -1033,6 +1024,16 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Container',
     tag: 'div',
+    as: [
+      'div',
+      'main',
+      'section',
+      'article',
+      'aside',
+      'header',
+      'footer',
+      'nav',
+    ],
     modifiers: {
       ...flags({
         'is-fluid': 'fluid',
@@ -1338,6 +1339,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero',
     tag: 'section',
+    as: ['section', 'div', 'main', 'header', 'footer', 'article', 'aside'],
     // Hero's `color` is the component color, and `textColor` reaches the DOM
     // as an attribute rather than a class.
     textColor: null,
@@ -1355,6 +1357,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero.Head',
     tag: 'div',
+    as: ['div', 'header', 'nav'],
     ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   'hero-body': {
@@ -1367,6 +1370,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero.Foot',
     tag: 'div',
+    as: ['div', 'footer', 'nav'],
     ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   level: {
@@ -2141,6 +2145,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Panel',
     tag: 'nav',
+    as: ['nav', 'article', 'section', 'aside', 'div'],
     textColor: null,
     bgColor: null,
     omits: Object.fromEntries(
@@ -2173,14 +2178,28 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     status: 'mapped',
     target: 'Panel.Block',
     tag: 'a',
+    as: ['a', 'div', 'label'],
     textColor: null,
     bgColor: null,
     noHelpers: true,
     modifiers: flags({ 'is-active': 'active' }),
-    otherTagsStay: {
-      tags: ['label', 'div'],
-      why: 'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
-    },
+    // The anchor attributes, and `rel`, reach only an <a>, and the label's
+    // only a <label> (`STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_LABEL` in
+    // bulma-ui's Panel.tsx).
+    dropsAttr: Object.fromEntries([
+      ...[
+        'href',
+        'target',
+        'download',
+        'hrefLang',
+        'ping',
+        'referrerPolicy',
+        'media',
+        'type',
+        'rel',
+      ].map(name => [name, { except: ['a'] }]),
+      ...['htmlFor', 'form'].map(name => [name, { except: ['label'] }]),
+    ]),
     ownProps: ['as', 'active'],
   },
   'panel-icon': todo(

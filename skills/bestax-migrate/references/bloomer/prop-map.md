@@ -119,8 +119,8 @@ narrowed to a literal union, so a value outside the union is a type error you ca
 than a silent rewrite. The components whose `tag` becomes `as`:
 
 `Button`, `Image`, `Title`, `Subtitle`, `Footer`, `Media`, `MediaLeft`, `LevelItem`, `Control`,
-`DropdownItem`,
-`MenuLink`, `NavbarItem`, `NavbarLink`.
+`DropdownItem`, `MenuLink`, `NavbarItem`, `NavbarLink`, `Container`, `Hero`, `HeroHeader`,
+`HeroFooter`, `Panel`.
 
 Everywhere else `tag` is left in place with a TODO. On the components that become plain markup
 (`Help`, `Label`, `Heading`, `BreadcrumbItem`, `PanelTab`, `TabLink`, `Page`, `HeroVideo`) a
@@ -148,9 +148,10 @@ rendered. `Button` and `LevelItem` gain `as="a"`; on the targets that already re
 stays — each of those takes the anchor's props under its default `as`. A `NavbarItem` or
 `DropdownItem` with neither `href` nor `tag` gains `as="div"`, because bestax's `Navbar.Item`
 and `Dropdown.Item` default to an `<a>`. An empty or false `href` selected nothing in bloomer
-and is dropped. bestax's `Panel.Block` is always an `<a>`, so only a `PanelBlock` with `href`
-becomes one — the rest stay the plain `<div class="panel-block">` (or the `tag` you gave) that
-bloomer rendered.
+and is dropped. bestax's `Panel.Block` is an `<a>` by default and a `<div>` or a `<label>`
+through `as`, so a `PanelBlock` with no `href` becomes `<Panel.Block as="div">`, or
+`as="label"` for `tag="label"`. One on any other `tag`, or a dynamic one, stays the plain
+`<span class="panel-block">` (or whatever the tag was) that bloomer rendered.
 
 A dynamic `href={expr}` was a runtime decision bloomer made and bestax's `as` is one element or
 the other. It resolves to the anchor, which is the branch the `href` is there for, and the

@@ -320,9 +320,9 @@ in the browser:
 - **`family:message`**: `Message` always wraps its children in `.message-body`.
 - **`family:panel-icon`**: `Panel.Icon` renders through `Icon`, which always writes an
   `aria-label`, so write `<Panel.Icon>` by hand with the `<i>` inside. The rest of a panel converts,
-  but for a `<label>` or `<div>` `.panel-block`, which stays markup with no TODO: bestax renders
-  those as `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock`, which build their own
-  contents from props.
+  a `<label>` or `<div>` `.panel-block` included, as `Panel.Block` with `as` and its contents as
+  written. `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock` build the usual
+  checkbox, search and button blocks from props, if you would rather write those by hand.
 
 ## A class Bulma v1 removed: `legacy:<class>`
 

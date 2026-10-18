@@ -1139,16 +1139,19 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 
-  it('says why a part on another tag stays markup', async () => {
-    expect(await lookup('panel-block', 'div')).toContain(
-      '**Stays markup:** a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents'
-    );
+  it('follows a part to the tags its `as` takes, and no further', async () => {
+    for (const tag of ['div', 'label']) {
+      const block = await lookup('panel-block', tag);
+      expect(block).toContain('**Component:** `Panel.Block`');
+      expect(block).toContain(`\`as="${tag}"\``);
+    }
     expect(await lookup('panel-block', 'span')).toContain(
-      '**Component:** `Panel.Block` renders only <a>, not a <span>'
+      '**Component:** `Panel.Block` renders <a>, <div> or <label> through `as`, not a <span>'
     );
     expect(await lookup('panel-block', 'a')).toContain(
       '**Component:** `Panel.Block`'
     );
+    expect(await lookup('hero', 'main')).toContain('`as="main"`');
   });
 
   it('says when a component renders its class only at the top level', async () => {
