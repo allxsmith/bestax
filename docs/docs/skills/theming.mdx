@@ -49,10 +49,10 @@ function example() {
     <Theme
       infoH="291"
       infoS="70%"
-      infoL="50%"
+      infoL="65%"
       linkH="291"
       linkS="70%"
-      linkL="50%"
+      linkL="40%"
       bulmaVars={{ '--bulma-radius': '9999px' }}
     >
       <div
@@ -78,6 +78,15 @@ In a real app, override `primaryH`/`primaryS`/`primaryL` the same way to recolor
 :::
 
 ### Generated code
+
+:::note Recorded before the label and text advice
+This run predates the skill's guidance on the lightnesses a trio doesn't move, and its colors are
+the ones that guidance was written for. Page links read the link color's on-scheme lightness,
+not `linkL`, so its link override leaves them at under 2.5:1 on white, and the scoped orange's
+white labels read at under 3.5:1. The skill's current
+[brand-theme example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/theme-config.tsx)
+drops the link override and darkens the orange until its labels read.
+:::
 
 <Tabs>
 <TabItem value="root" label="App root (global)">
