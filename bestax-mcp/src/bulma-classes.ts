@@ -156,6 +156,11 @@ export interface Wraps {
 export interface HelperRecord {
   group: string;
   write: PropWrite;
+  /**
+   * A second prop the class needs beside `write`, which it converts only
+   * with (a color shade's `colorShade` beside its color).
+   */
+  also?: PropWrite;
 }
 
 export interface BulmaClassTable {
@@ -616,10 +621,15 @@ export function lookupClasses(
       stays(token, leftOut);
       continue;
     }
-    if (writes.has(prop)) {
+    // A shade renders its class only together with its color, so both props
+    // have to be free.
+    const taken = [prop, ...(helper.also ? [helper.also.prop] : [])].find(
+      name => writes.has(name)
+    );
+    if (taken) {
       stays(
         token,
-        `\`${prop}\` is already set by \`${writes.get(prop)!.token}\``
+        `\`${taken}\` is already set by \`${writes.get(taken)!.token}\``
       );
       continue;
     }
@@ -629,11 +639,18 @@ export function lookupClasses(
       token,
       group: helper.group,
     });
+    if (helper.also) {
+      writes.set(helper.also.prop, {
+        value: helper.also.value ?? true,
+        token,
+        group: helper.group,
+      });
+    }
     const color =
       helper.group === 'text-color' || helper.group === 'background';
     verdicts.set(token, {
       kind: 'prop',
-      writes: [write],
+      writes: [write, ...(helper.also ? [helper.also] : [])],
       condition:
         color && !target
           ? colorCondition(

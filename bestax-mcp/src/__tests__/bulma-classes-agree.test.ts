@@ -289,7 +289,8 @@ const others = [
   'box',
   'column',
   'is-disabled',
-  'has-text-primary-dark',
+  'has-text-primary-30-invert',
+  'is-palette-primary',
   'is-12-touch',
   'toString',
 ];

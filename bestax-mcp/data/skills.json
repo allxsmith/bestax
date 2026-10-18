@@ -108,7 +108,7 @@
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 35312
+          "bytes": 36066
         },
         {
           "id": "bulma-classes-unmappables",
@@ -148,7 +148,7 @@
         {
           "id": "react-bulma-components-unmappables",
           "file": "references/react-bulma-components/unmappables.md",
-          "bytes": 13122
+          "bytes": 13145
         }
       ],
       "examples": []

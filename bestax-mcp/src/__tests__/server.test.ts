@@ -1143,6 +1143,28 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('card', 'div')).not.toContain('inside it itself');
   });
 
+  it('writes a color shade as its color and its shade, and keeps what one of each cannot write', async () => {
+    const shades = await lookup(
+      'has-text-primary-on-scheme has-background-info-light has-text-link-30 has-text-danger-30-invert',
+      'p'
+    );
+    expect(shades).toContain(
+      '| `has-text-primary-on-scheme` | `textColor="primary"` `colorShade="on-scheme"` |'
+    );
+    expect(shades).toContain(
+      '| `has-background-info-light` | `bgColor="info"` `backgroundColorShade="light"` |'
+    );
+    expect(shades).toContain(
+      '| `has-text-link-30` | stays in `className` | `textColor` is already set by `has-text-primary-on-scheme` |'
+    );
+    expect(shades).toContain(
+      '| `has-text-danger-30-invert` | stays in `className` | a color shade with no single shade'
+    );
+    expect(await lookup('table has-text-success-dark', 'table')).toContain(
+      '| `has-text-success-dark` | `color="success"` `colorShade="dark"` |'
+    );
+  });
+
   it('says why a part on another tag stays markup', async () => {
     expect(await lookup('panel-block', 'div')).toContain(
       '**Stays markup:** a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents'
