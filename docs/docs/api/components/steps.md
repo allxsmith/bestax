@@ -292,6 +292,8 @@ In a right-to-left page the steps run from the right, and the lines and the labe
 ## Related Components
 
 - [Progress](../elements/progress.md) - For linear progress indication
+- [Timeline](./timeline.md) - For a record of what happened, or something that moves along on its
+  own, rather than a journey the user moves through
 
 ---
 
