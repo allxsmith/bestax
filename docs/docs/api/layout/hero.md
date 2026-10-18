@@ -322,7 +322,7 @@ Bulma pages often put the hero classes on landmarks: `<main class="hero">` for a
 ## Accessibility
 
 - The hero renders as a semantic `<section>` by default. A `<section>` is a region landmark only once it has an accessible name, so give it an `aria-label` or `aria-labelledby` if it should be one.
-- `as` renders the hero as `div`, `main`, `header`, `footer`, `article` or `aside` instead, and `Hero.Head` and `Hero.Foot` as `header`, `footer` or `nav`; each takes that element's landmark role. Keep one visible `main` per page, and don't put a `header` or `footer` inside another one.
+- `as` renders the hero as `div`, `main`, `header`, `footer`, `article` or `aside` instead, `Hero.Head` as `header` or `nav`, and `Hero.Foot` as `footer` or `nav`; each takes that element's landmark role. Keep one visible `main` per page, and don't put a `header` or `footer` inside another one.
 - `Hero.Body` renders a `<div>` for layout; use accessible children/content.
 - Use headings (`<Title>`, `<SubTitle>`) for best screen reader support.
 
