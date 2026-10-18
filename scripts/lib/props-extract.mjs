@@ -1916,20 +1916,19 @@ export function extractComponent(
     // The forbidding branch types the prop `never`, which merged into cells
     // like ``never` | `number`` on slider.md — noise standing where the
     // reader needs a type. Dropping it leaves exactly what may be passed, and
-    // the two boolean literals a discriminant contributes read as `boolean`.
+    // the boolean literals a discriminant contributes read as `boolean`, with
+    // or without a branch that takes a plain `boolean` beside them (Combobox's
+    // `multiple` is `false`, `true` and `boolean` across its three branches).
     // The literals below are the RENDERED members, so they carry backticks in
     // markdown mode and not in structured mode — compare against whichever
     // this run produced or the normalisation silently stops matching.
     const tick = s => (markdown ? `\`${s}\`` : s);
+    const booleans = [tick('false'), tick('true'), tick('boolean')];
     for (const row of byName.values()) {
       const seen = new Set();
       let ms = row.type.split(' | ').filter(m => !seen.has(m) && seen.add(m));
       if (ms.length > 1) ms = ms.filter(m => m !== tick('never'));
-      if (
-        ms.length === 2 &&
-        ms.includes(tick('false')) &&
-        ms.includes(tick('true'))
-      ) {
+      if (ms.length > 1 && ms.every(m => booleans.includes(m))) {
         ms = [tick('boolean')];
       }
       row.type = ms.join(' | ');

@@ -462,6 +462,20 @@ describe('renderComponent CSS variable pointer', () => {
   });
 });
 
+describe('renderCssVarsAnswer for variables declared on two homes', () => {
+  it("names both of Combobox's homes, and gives no compound advice", async () => {
+    const record = await loadComponent('Combobox');
+    expect(record.cssVars.length).toBeGreaterThan(0);
+    expect(record.cssVars.every(v => v.scope === 'root-and-element')).toBe(
+      true
+    );
+    const out = renderCssVarsAnswer(record, record.cssVars);
+    expect(out).toContain('scoped `root-and-element`');
+    expect(out).toContain('`.combobox-menu.is-portal`');
+    expect(out).not.toContain('scoped `compound`');
+  });
+});
+
 describe('renderCssVarsAnswer without a query', () => {
   it('never says "matching", even given no rows for a component that has some', async () => {
     // The server passes all of a component's rows when there is no query, but the

@@ -328,6 +328,30 @@ items of a `Collapses` group, which reads it with a 0.5rem fallback and declares
 so set it on the group or on any ancestor, `:root` included. (`Theme`'s `bulmaVars` does not
 list it, so set it in your CSS or through a `style` prop.)
 
+### Combobox
+
+Declared on the root, `.combobox`, and again on a menu rendered with `appendToBody`,
+`.combobox-menu.is-portal`, outside the root. A menu in place inherits the root's, so a value set on
+`.combobox` reaches it; for a portaled one, set it on `.combobox-menu.is-portal` as well, where
+they're declared. A lone `.combobox-menu` loses to that on specificity, and
+`.combobox-menu.is-portal` ties, so your rule wins only when it loads after the library styles. Each
+size class (`.is-small`, `.is-medium`, `.is-large`, on the root and on the menu) sets the item size
+and padding, so retune a size on that class. The highlight is the link color and its invert, the
+pair Bulma gives an active dropdown item, and the colors come from Bulma's tokens, so the list
+follows dark mode with no override. The menu reads these rather than Bulma's `--bulma-dropdown-*`,
+which Bulma declares on `.dropdown` alone.
+
+`--bulma-combobox-check-color`, `--bulma-combobox-check-gap`, `--bulma-combobox-check-size`,
+`--bulma-combobox-disabled-color`, `--bulma-combobox-divider-color`, `--bulma-combobox-empty-color`,
+`--bulma-combobox-group-label-color`, `--bulma-combobox-group-label-size`,
+`--bulma-combobox-group-label-weight`, `--bulma-combobox-highlight-background`,
+`--bulma-combobox-highlight-color`, `--bulma-combobox-item-color`,
+`--bulma-combobox-item-hover-background`, `--bulma-combobox-item-padding-x`,
+`--bulma-combobox-item-padding-y`, `--bulma-combobox-item-size`, `--bulma-combobox-list-max-height`,
+`--bulma-combobox-menu-background`, `--bulma-combobox-menu-border-color`,
+`--bulma-combobox-menu-offset`, `--bulma-combobox-menu-padding-y`, `--bulma-combobox-menu-radius`,
+`--bulma-combobox-menu-shadow`, `--bulma-combobox-menu-z-index`, `--bulma-combobox-portal-z-index`
+
 ### ContextMenu
 
 Both are declared on the box the menu hangs from, `.context-menu-content`, which is portaled away

@@ -559,6 +559,23 @@ test('defaults, inheritance and compound sub-paths are mode-independent', () => 
   }
 });
 
+test('a discriminant merged with a plain boolean reads as boolean', () => {
+  // Combobox's `multiple` is `false` given `data` with one value, `true` with
+  // several, and `boolean` built from parts. Slider's `range` is the two
+  // literals alone. Both are a boolean to the reader, in either mode.
+  for (const [component, prop] of [
+    ['Combobox', 'multiple'],
+    ['Slider', 'range'],
+  ]) {
+    assert.equal(row(component, prop).type, '`boolean`', component);
+    assert.equal(
+      row(component, prop, { markdown: false }).type,
+      'boolean',
+      component
+    );
+  }
+});
+
 test('structured mode leaks no markdown into any documented component', () => {
   // The whole point of the mode. A single escaped cell anywhere reaches an
   // agent as literal backticks in a type it is about to write into source.

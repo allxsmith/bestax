@@ -214,6 +214,60 @@ const [city, setCity] = useState('');
   openOnFocus
 />;
 
+// Combobox: a value from a list. Given data, it filters by label, keeps the
+// value and shows its label in the field.
+const [country, setCountry] = useState<string | null>(null);
+<Combobox
+  label="Country"
+  data={['Canada', 'France', 'Japan']}
+  value={country}
+  onChange={setCountry}
+  empty="No countries match"
+/>;
+
+// Several values, shown as tags under the field; groups come from `group`.
+const [labels, setLabels] = useState<string[]>([]);
+<Combobox
+  label="Labels"
+  multiple
+  data={[
+    { value: 'bug', label: 'Bug', group: 'Type' },
+    { value: 'docs', label: 'Docs', group: 'Area' },
+  ]}
+  value={labels}
+  onChange={setLabels}
+/>;
+
+// From parts, when data doesn't fit (a server search, a "Create" item): you
+// filter, keep the value and set the text, and a pick calls onSelect.
+const countries = ['Canada', 'France', 'Japan'];
+const [choice, setChoice] = useState<string | null>(null);
+const [query, setQuery] = useState('');
+const term = query === choice ? '' : query.trim().toLowerCase();
+const matches = countries.filter(c => c.toLowerCase().includes(term));
+<Combobox
+  label="Country"
+  onSelect={picked => {
+    setChoice(picked);
+    setQuery(picked);
+  }}
+>
+  <Combobox.Input value={query} onChange={e => setQuery(e.target.value)} />
+  <Combobox.Menu>
+    {matches.length > 0 ? (
+      <Combobox.List>
+        {matches.map(c => (
+          <Combobox.Item key={c} value={c} checked={c === choice}>
+            {c}
+          </Combobox.Item>
+        ))}
+      </Combobox.List>
+    ) : (
+      <Combobox.Empty>No countries match</Combobox.Empty>
+    )}
+  </Combobox.Menu>
+</Combobox>;
+
 // Slider (single and dual thumb)
 const [volume, setVolume] = useState(50);
 <Slider value={volume} onChange={setVolume} min={0} max={100} tooltip="auto" />;

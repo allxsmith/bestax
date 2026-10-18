@@ -37,7 +37,7 @@ instead of hand-writing markup.
 - Raw `*Base` form exports (`InputBase`, `SelectBase`, `TextAreaBase`, …) are
   escape-hatch variants of the convenience wrappers above them; see the Form docs.
 
-102 documented components. Generated from the API docs — every exported
+103 documented components. Generated from the API docs — every exported
 component is guaranteed to appear (the generator fails if one lacks an API page).
 
 ## Elements
@@ -114,6 +114,7 @@ component is guaranteed to appear (the generator fails if one lacks an API page)
 - [Autocomplete](https://bestax.io/docs/api/form/autocomplete) — The `Autocomplete` component provides an input field with dropdown suggestions that filter based on user input.
 - [Checkbox](https://bestax.io/docs/api/form/checkbox) — The `Checkbox` component provides a Bulma-styled checkbox input.
 - [Checkboxes](https://bestax.io/docs/api/form/checkboxes) — The `Checkboxes` component wraps multiple `Checkbox` components in a Bulma-styled group.
+- [Combobox](https://bestax.io/docs/api/form/combobox) — The `Combobox` component is a text field with a list to pick from under it, for a searchable select, a multi-select with tags, grouped items or a server search…
 - [Control](https://bestax.io/docs/api/form/control) — The `Control` component is a Bulma-styled wrapper for form controls (`Input`, `Select`, `TextArea`, etc.), supporting icons (left/right), loading state…
 - [DateInput](https://bestax.io/docs/api/form/datetime/dateinput) — The `DateInput` component is a form input that opens a popover calendar for date selection.
 - [DateRangeInput](https://bestax.io/docs/api/form/datetime/daterangeinput) — The `DateRangeInput` component is a form input for a start and end date, picked from one popover calendar or typed into two segmented inputs.
