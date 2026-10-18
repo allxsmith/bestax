@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Taginput, TagInput } from '../Taginput';
+import { Taginput, TagInput, TaginputTag } from '../Taginput';
 import { Field } from '../Field';
 
 const frameworks = ['React', 'Vue', 'Angular', 'Svelte'];
@@ -208,15 +208,15 @@ describe('Taginput', () => {
       expect(onChange).toHaveBeenCalledWith(['Tag1', 'Tag2']);
     });
 
-    it('hides input when maxTags is reached', () => {
+    it('keeps the input read-only when maxTags is reached', () => {
       render(<Taginput defaultValue={['Tag1', 'Tag2']} maxTags={2} />);
-      expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
+      expect(screen.getByRole('textbox')).toHaveAttribute('readonly');
     });
 
     // keepOpen (the default) leaves the list open after a selection, and
     // openOnFocus keeps it filled with the remaining suggestions, so below
-    // the limit it stays on screen. At the limit the input goes, and the
-    // list goes with it (#1087).
+    // the limit it stays on screen. At the limit the list closes, and the
+    // combobox stays, collapsed (#1087).
     it('closes the suggestion list when a click adds the last allowed tag', () => {
       const onChange = jest.fn();
       render(
@@ -233,7 +233,10 @@ describe('Taginput', () => {
       fireEvent.click(screen.getByRole('option', { name: 'Vue' }));
 
       expect(onChange).toHaveBeenLastCalledWith(['React', 'Vue']);
-      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      );
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
       expect(screen.queryByRole('option')).not.toBeInTheDocument();
     });
@@ -247,7 +250,10 @@ describe('Taginput', () => {
       fireEvent.keyDown(input, { key: 'Enter' });
 
       expect(screen.getByText('React')).toBeInTheDocument();
-      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      );
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
@@ -299,7 +305,10 @@ describe('Taginput', () => {
 
       rerender(ui(['React']));
 
-      expect(screen.queryByRole('combobox')).not.toBeInTheDocument();
+      expect(screen.getByRole('combobox')).toHaveAttribute(
+        'aria-expanded',
+        'false'
+      );
       expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
   });
@@ -751,31 +760,163 @@ describe('Taginput', () => {
   });
 
   describe('Paste Separators', () => {
+    const paste = (text: string) =>
+      fireEvent.paste(
+        screen.queryByRole('textbox') ?? screen.getByRole('combobox'),
+        { clipboardData: { getData: () => text } }
+      );
+    const shownTags = () =>
+      Array.from(document.querySelectorAll('.tag')).map(tag => tag.textContent);
+
     it('splits pasted text by comma separator', () => {
       const onChange = jest.fn();
       render(<Taginput onPasteSeparators={[',']} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
 
-      fireEvent.paste(input, {
-        clipboardData: { getData: () => 'React, Vue, Angular' },
-      });
+      paste('React, Vue, Angular');
 
-      // addTag is called for each part
-      expect(onChange).toHaveBeenCalled();
-      const lastCall = onChange.mock.calls[onChange.mock.calls.length - 1];
-      expect(lastCall[0]).toContain('Angular');
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(['React', 'Vue', 'Angular']);
     });
 
     it('splits pasted text by multiple separators', () => {
       const onChange = jest.fn();
       render(<Taginput onPasteSeparators={[',', ';']} onChange={onChange} />);
-      const input = screen.getByRole('textbox');
 
-      fireEvent.paste(input, {
-        clipboardData: { getData: () => 'React, Vue; Angular' },
-      });
+      paste('React, Vue; Angular');
 
-      expect(onChange).toHaveBeenCalled();
+      expect(onChange).toHaveBeenCalledTimes(1);
+      expect(onChange).toHaveBeenCalledWith(['React', 'Vue', 'Angular']);
+    });
+
+    // Between two other separators an unescaped `-` made a range, so `,-;`
+    // also split on `.`, `/`, the digits and `:`.
+    it('splits on a hyphen separator as itself, not as a range', () => {
+      const onChange = jest.fn();
+      render(
+        <Taginput onPasteSeparators={[',', '-', ';']} onChange={onChange} />
+      );
+
+      paste('v1.2-beta;rc:1');
+
+      expect(onChange).toHaveBeenCalledWith(['v1.2', 'beta', 'rc:1']);
+    });
+
+    // Each part used to be added against the tags from before the paste, so
+    // the last write won and every check missed the paste's own parts
+    // (#1101).
+    it('adds every part of a paste, in one change', () => {
+      const onChange = jest.fn();
+      const onAdd = jest.fn();
+      render(
+        <Taginput defaultValue={['x']} onChange={onChange} onAdd={onAdd} />
+      );
+
+      paste('a,b,c');
+
+      expect(shownTags()).toEqual(['x', 'a', 'b', 'c']);
+      expect(onChange.mock.calls).toEqual([[['x', 'a', 'b', 'c']]]);
+      expect(onAdd.mock.calls).toEqual([['a'], ['b'], ['c']]);
+    });
+
+    it('checks a pasted part against the parts before it for duplicates', () => {
+      const onAdd = jest.fn();
+      render(<Taginput onAdd={onAdd} />);
+
+      paste('a,A,b,a');
+
+      expect(shownTags()).toEqual(['a', 'b']);
+      expect(onAdd.mock.calls).toEqual([['a'], ['b']]);
+    });
+
+    it('keeps duplicates within a paste under allowDuplicates', () => {
+      const onAdd = jest.fn();
+      render(<Taginput allowDuplicates onAdd={onAdd} />);
+
+      paste('a,a');
+
+      expect(shownTags()).toEqual(['a', 'a']);
+      expect(onAdd).toHaveBeenCalledTimes(2);
+    });
+
+    it('stops adding at maxTags partway through a paste', () => {
+      const onChange = jest.fn();
+      const onAdd = jest.fn();
+      render(
+        <Taginput
+          defaultValue={['x']}
+          maxTags={2}
+          onChange={onChange}
+          onAdd={onAdd}
+        />
+      );
+
+      paste('a,b,c');
+
+      expect(shownTags()).toEqual(['x', 'a']);
+      expect(onChange.mock.calls).toEqual([[['x', 'a']]]);
+      expect(onAdd.mock.calls).toEqual([['a']]);
+    });
+
+    it('keeps a parent that builds its tags from onAdd within maxTags', () => {
+      const Parent = () => {
+        const [tags, setTags] = React.useState<TaginputTag[]>([]);
+        return (
+          <Taginput
+            value={tags}
+            maxTags={2}
+            onAdd={tag => setTags(prev => [...prev, tag])}
+          />
+        );
+      };
+      render(<Parent />);
+
+      paste('a,b,c');
+
+      expect(shownTags()).toEqual(['a', 'b']);
+    });
+
+    it('skips the parts that fail a check and adds the rest', () => {
+      const onAdd = jest.fn();
+      render(
+        <Taginput
+          data={['React', 'Vue', 'Svelte']}
+          allowNew={false}
+          beforeAdding={tag => tag !== 'Vue'}
+          onAdd={onAdd}
+        />
+      );
+
+      paste('react, Nope, Vue, ,Svelte');
+
+      expect(shownTags()).toEqual(['react', 'Svelte']);
+      expect(onAdd.mock.calls).toEqual([['react'], ['Svelte']]);
+    });
+
+    it('changes nothing when no part of a paste can be added', () => {
+      const onChange = jest.fn();
+      const onAdd = jest.fn();
+      render(
+        <Taginput defaultValue={['a']} onChange={onChange} onAdd={onAdd} />
+      );
+
+      paste('a, ,A');
+
+      expect(onChange).not.toHaveBeenCalled();
+      expect(onAdd).not.toHaveBeenCalled();
+    });
+
+    // A paste that fills the last slot dismisses the list, as any other add
+    // that reaches the limit does, so making room doesn't reopen it.
+    it('dismisses the list when a paste fills the last slot', () => {
+      render(<Taginput data={frameworks} maxTags={2} openOnFocus />);
+      fireEvent.focus(screen.getByRole('combobox'));
+      expect(screen.getByRole('listbox')).toBeInTheDocument();
+
+      paste('Vue,Svelte');
+      fireEvent.click(screen.getByRole('button', { name: 'Remove Svelte' }));
+
+      expect(shownTags()).toEqual(['Vue']);
+      expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
     });
 
     it('does not split pasted text without matching separator', () => {
@@ -1189,14 +1330,12 @@ describe('Taginput', () => {
       expect(screen.getByRole('listbox')).toBeInTheDocument();
     });
 
-    it('container click is a no-op when input is not rendered (maxTags reached)', () => {
+    it('container click focuses the read-only input at the tag limit', () => {
       const { container } = render(
         <Taginput defaultValue={['Tag1', 'Tag2']} maxTags={2} />
       );
-      // No input is rendered when maxTags is reached, so inputRef.current is null.
-      // Clicking the container hits the falsy `?.` branch in handleContainerClick.
-      const root = container.querySelector('.taginput')!;
-      expect(() => fireEvent.click(root)).not.toThrow();
+      fireEvent.click(container.querySelector('.taginput')!);
+      expect(screen.getByRole('textbox')).toHaveFocus();
     });
   });
 });
@@ -1260,14 +1399,16 @@ describe('Taginput label association (#493)', () => {
     expect(screen.getByRole('textbox')).not.toHaveAttribute('id');
   });
 
-  it('renders the label unwired when the tag limit is reached', () => {
+  it('keeps the label wired to the read-only input at the tag limit (#1103)', () => {
     const { container } = render(
       <Taginput label="Tags" maxTags={1} value={['one']} />
     );
-    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
-    const fieldLabel = container.querySelector('label.label');
-    expect(fieldLabel).toHaveTextContent('Tags');
-    expect(fieldLabel).not.toHaveAttribute('for');
+    const input = screen.getByRole('textbox', { name: 'Tags' });
+    expect(input).toHaveAttribute('readonly');
+    expect(container.querySelector('label.label')).toHaveAttribute(
+      'for',
+      input.id
+    );
   });
 });
 
@@ -1624,6 +1765,194 @@ describe('Taginput suggestions as a combobox (#1082)', () => {
     const listbox = screen.getByRole('listbox');
     expect(listbox).toHaveAccessibleName('Suggestions');
     expect(listbox).not.toHaveAttribute('aria-labelledby');
+  });
+});
+
+// The input used to unmount at the limit, taking focus with it to the body.
+// It stays now, read-only (#1103).
+describe('Taginput at its tag limit (#1103)', () => {
+  it('keeps focus in the input when Enter adds the last allowed tag', async () => {
+    const user = userEvent.setup();
+    render(
+      <>
+        <Taginput defaultValue={['React']} maxTags={2} />
+        <button type="button">After</button>
+      </>
+    );
+    const input = screen.getByRole('textbox');
+    await user.click(input);
+
+    await user.type(input, 'Vue{Enter}');
+
+    expect(screen.getByText('Vue')).toBeInTheDocument();
+    expect(input).toBeInTheDocument();
+    expect(input).toHaveFocus();
+    expect(input).toHaveAttribute('readonly');
+  });
+
+  it('takes no typing, opens no list and adds no highlighted suggestion', async () => {
+    const user = userEvent.setup();
+    const onTyping = jest.fn();
+    const onChange = jest.fn();
+    render(
+      <Taginput
+        data={frameworks}
+        defaultValue={['React']}
+        maxTags={1}
+        openOnFocus
+        keepFirst
+        onTyping={onTyping}
+        onChange={onChange}
+      />
+    );
+    const input = screen.getByRole('combobox');
+    await user.click(input);
+
+    await user.type(input, 'vue');
+    await user.keyboard('{ArrowDown}{Enter}');
+
+    expect(input).toHaveValue('');
+    expect(onTyping).not.toHaveBeenCalled();
+    expect(onChange).not.toHaveBeenCalled();
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument();
+    expect(input).toHaveAttribute('aria-expanded', 'false');
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('adds nothing from a paste', async () => {
+    const user = userEvent.setup();
+    const onChange = jest.fn();
+    render(
+      <Taginput defaultValue={['React']} maxTags={1} onChange={onChange} />
+    );
+    const input = screen.getByRole('textbox');
+    await user.click(input);
+
+    await user.paste('Vue,Svelte');
+
+    expect(onChange).not.toHaveBeenCalled();
+    expect(input).toHaveValue('');
+  });
+
+  it('lets Backspace remove the last tag, which makes room again', async () => {
+    const user = userEvent.setup();
+    const onRemove = jest.fn();
+    render(
+      <Taginput
+        defaultValue={['React', 'Vue']}
+        maxTags={2}
+        onRemove={onRemove}
+      />
+    );
+    const input = screen.getByRole('textbox');
+    await user.click(input);
+
+    await user.keyboard('{Backspace}');
+
+    expect(onRemove).toHaveBeenCalledWith('Vue', 1);
+    expect(input).toHaveFocus();
+    expect(input).not.toHaveAttribute('readonly');
+    await user.type(input, 'Svelte{Enter}');
+    expect(screen.getByText('Svelte')).toBeInTheDocument();
+  });
+
+  it('leaves Escape to whatever is around it, with no list to close', () => {
+    render(
+      <Taginput
+        data={frameworks}
+        defaultValue={['React']}
+        maxTags={1}
+        openOnFocus
+      />
+    );
+    const input = screen.getByRole('combobox');
+    fireEvent.focus(input);
+
+    // fireEvent returns true when nothing called preventDefault().
+    expect(fireEvent.keyDown(input, { key: 'Escape' })).toBe(true);
+  });
+
+  it('describes the input by the counter', () => {
+    render(<Taginput defaultValue={['React', 'Vue']} maxTags={2} />);
+    expect(screen.getByRole('textbox')).toHaveAccessibleDescription('2 / 2');
+  });
+
+  it('gives the input no description without a counter', () => {
+    render(<Taginput maxTags={2} hasCounter={false} />);
+    expect(screen.getByRole('textbox')).not.toHaveAttribute('aria-describedby');
+  });
+});
+
+// Chrome and Firefox set isComposing. Safari can send the Enter that ends a
+// composition with isComposing false, and keyCode 229 says it instead. In
+// each test, fireEvent returns true when nothing called preventDefault().
+describe.each([
+  ['isComposing', { isComposing: true }],
+  ['keyCode 229', { keyCode: 229 }],
+])('Taginput while an IME is composing (%s) (#1102)', (_, composing) => {
+  it('leaves Enter and the other confirm keys to it', () => {
+    const onAdd = jest.fn();
+    render(<Taginput onAdd={onAdd} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: 'nihon' } });
+
+    expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(true);
+    expect(fireEvent.keyDown(input, { key: ',', ...composing })).toBe(true);
+
+    expect(onAdd).not.toHaveBeenCalled();
+    expect(input).toHaveValue('nihon');
+  });
+
+  it('adds no highlighted suggestion on the Enter that ends it', () => {
+    const onAdd = jest.fn();
+    render(<Taginput data={frameworks} keepFirst onAdd={onAdd} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'e' } });
+    expect(input).toHaveAttribute('aria-activedescendant');
+
+    expect(fireEvent.keyDown(input, { key: 'Enter', ...composing })).toBe(true);
+
+    expect(onAdd).not.toHaveBeenCalled();
+  });
+
+  it('leaves the arrows and Escape to it, and the list as it was', () => {
+    render(<Taginput data={frameworks} />);
+    const input = screen.getByRole('combobox');
+    fireEvent.change(input, { target: { value: 'e' } });
+
+    for (const key of ['ArrowDown', 'ArrowUp', 'Escape']) {
+      expect(fireEvent.keyDown(input, { key, ...composing })).toBe(true);
+    }
+
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+    expect(input).not.toHaveAttribute('aria-activedescendant');
+  });
+
+  it('leaves Backspace to it, removing no tag', () => {
+    const onRemove = jest.fn();
+    render(<Taginput defaultValue={['React']} onRemove={onRemove} />);
+
+    expect(
+      fireEvent.keyDown(screen.getByRole('textbox'), {
+        key: 'Backspace',
+        ...composing,
+      })
+    ).toBe(true);
+
+    expect(onRemove).not.toHaveBeenCalled();
+  });
+
+  it('takes the keys back once the composition ends', () => {
+    const onAdd = jest.fn();
+    render(<Taginput onAdd={onAdd} />);
+    const input = screen.getByRole('textbox');
+    fireEvent.change(input, { target: { value: '日本' } });
+    fireEvent.keyDown(input, { key: 'Enter', ...composing });
+
+    fireEvent.keyDown(input, { key: 'Enter' });
+
+    expect(onAdd).toHaveBeenCalledTimes(1);
+    expect(onAdd).toHaveBeenCalledWith('日本');
   });
 });
 

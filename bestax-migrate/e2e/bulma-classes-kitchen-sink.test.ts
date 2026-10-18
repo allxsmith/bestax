@@ -24,6 +24,7 @@ import {
   loadModules,
   normalizeHtml,
   renderExports,
+  withImplicitListRoles,
 } from './support/render-module.js';
 
 const packageRoot = path.join(
@@ -229,7 +230,20 @@ describe('bulma-classes kitchen-sink e2e', () => {
     expect(Object.keys(before).sort()).toEqual(
       app.files.map(f => f.replace(/\.tsx?$/, '')).sort()
     );
-    expect(renderAll(srcDir)).toEqual(before);
+    const after = renderAll(srcDir);
+    expect(after).toEqual(
+      Object.fromEntries(
+        Object.entries(before).map(([file, exported]) => [
+          file,
+          Object.fromEntries(
+            Object.entries(exported).map(([name, html]) => [
+              name,
+              withImplicitListRoles(html, after[file]?.[name] ?? ''),
+            ])
+          ),
+        ])
+      )
+    );
   });
 
   it('typechecks the input as plain React', () => {

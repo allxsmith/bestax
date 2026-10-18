@@ -132,7 +132,7 @@ spellings compile only where they historically existed: `isFullWidth` everywhere
 an explicit `labelProps={{ htmlFor }}` wins. The group inputs (`Checkboxes`, `Radios`, `Rate`,
 `DateRangeInput`) name their `role="group"`/`"radiogroup"` wrapper through `aria-labelledby`
 instead. Inside a `Field` a convenience input drops its `label`, and an `inline` date/time picker
-or a `Taginput` at `maxTags` has no visible input to wire.
+has no visible input to wire.
 
 Composed, a labeled `Field` names the one control it holds: a composed `InputBase`/`SelectBase`/
 `TextAreaBase`, a composed `DateInputBase`/`TimeInputBase`/`DateTimeInputBase` that is not

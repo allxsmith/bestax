@@ -13,6 +13,7 @@ import {
   loadModules,
   normalizeHtml,
   renderExports,
+  withImplicitListRoles,
 } from './support/render-module.js';
 
 const fixturesDir = path.join(
@@ -54,6 +55,14 @@ describe('bulma-classes fixtures render the same before and after', () => {
         .filter(([, html]) => html === '')
         .map(([exported]) => exported)
     ).toEqual([]);
-    expect(render(`${name}.output.tsx`)).toEqual(before);
+    const after = render(`${name}.output.tsx`);
+    expect(after).toEqual(
+      Object.fromEntries(
+        Object.entries(before).map(([exported, html]) => [
+          exported,
+          withImplicitListRoles(html, after[exported] ?? ''),
+        ])
+      )
+    );
   });
 });

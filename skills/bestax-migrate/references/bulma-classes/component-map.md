@@ -161,7 +161,9 @@ one, the item stays markup with an `attr:aria-current` TODO. If the item is the 
 classes stay in `className`, which `Menu.Item` puts on the `<li>`. It puts `id`, `title`, `role`,
 `tabIndex`, `style` and `data-testid` there too, and everything else on the `<a>`, so an item
 converts only when its attributes already sit that way. A `.menu-item` gets a
-`family:menu-item` TODO. `Menu.List` drops `.menu-list` on a list inside another, so a
+`family:menu-item` TODO. `Menu.List` writes `role="list"` on its `<ul>`, which is the role a
+list already has, so a `.menu-list` with no `role` converts, and one with another `role` stays
+markup with an `attr:role` TODO. `Menu.List` drops `.menu-list` on a list inside another, so a
 `.menu-list` inside another, or around a bestax `Menu.List`, stays markup with a
 `context:Menu.List` TODO, and an item's nested list converts only inside a list that is a
 `Menu.List` or becomes one.

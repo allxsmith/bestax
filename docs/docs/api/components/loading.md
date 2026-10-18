@@ -276,6 +276,7 @@ When `canCancel` is true, the loading can be cancelled by:
 - Escape key support for cancelling (when `canCancel` is true). An Escape that closed a popup on the page, such as a Dropdown menu or a date picker's calendar, doesn't cancel
 - A full-page loading takes its turn for Escape with [Modal](./modal.md), [Dialog](./dialog.md) and [Sidebar](./sidebar.md), since it covers them: one Escape goes to whichever opened last. Shown over an open Modal, it cancels on the first Escape and the Modal closes on the next. While it's on top, even when it can't be cancelled, the Modal under it doesn't close on Escape or hold Tab
 - A loading inside a container covers only that container, so it cancels on Escape once no Modal, Dialog, Sidebar or full-page loading is open
+- In forced colors (Windows' contrast themes), the spinner is drawn as a ring in the theme's text color with its top side open, since forced colors drops the gradient it's normally drawn with. The overlay turns solid there, whatever `overlay` is set to, so the page beneath doesn't show through behind the ring or the text. A custom `indicator` is your own content, so it's up to you that it shows there too
 
 ---
 

@@ -1,0 +1,183 @@
+/*
+ * The original's stylesheet, ported. Font Awesome's fonts come from its npm
+ * package (imported in main.tsx), so the CDN @font-face rules are gone. The
+ * page is light only: index.html pins Bulma's light scheme with
+ * data-theme="light", which takes the place of the original's dark-mode rules
+ * holding the inputs light. Screen-reader-only labels use Bulma's
+ * `is-sr-only`.
+ */
+
+html,
+body {
+  font-family:
+    'Quicksand',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    Roboto,
+    'Helvetica Neue',
+    Arial,
+    'Noto Sans',
+    'Liberation Sans',
+    sans-serif;
+  background: #0b0b0b url('/media/background.webp') center / cover no-repeat
+    fixed;
+  color: #4a3728;
+}
+
+body {
+  position: relative;
+  min-height: 100vh;
+}
+
+main {
+  position: relative;
+  z-index: 1;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(217, 119, 6, 0.5);
+  outline-offset: 2px;
+}
+
+.glass {
+  background-color: rgba(255, 251, 245, 0.88);
+  border: 1px solid rgba(180, 130, 80, 0.2);
+  box-shadow:
+    0 16px 48px rgba(120, 60, 20, 0.15),
+    0 4px 12px rgba(180, 100, 40, 0.08);
+}
+
+@supports (backdrop-filter: blur(10px)) {
+  .glass {
+    backdrop-filter: blur(10px);
+    background-color: rgba(255, 251, 245, 0.75);
+  }
+}
+
+.glass .title,
+.glass .checkbox,
+.glass .subtitle {
+  color: #7c4a03;
+}
+
+/*
+ * bestax draws its own checkbox where the original used the browser's. Its
+ * border takes a brown from the original's palette, so the empty box shows
+ * on the glass as the browser's does.
+ */
+.glass .styled-checkbox {
+  --bulma-checkbox-border-color: #8b7355;
+}
+
+.button.is-info {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 600;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    background 0.2s ease;
+}
+
+.button.is-info:hover {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+}
+
+.button.is-info:active {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+}
+
+.input,
+.select select {
+  background-color: rgba(255, 251, 245, 0.95);
+  border-color: rgba(180, 130, 80, 0.3);
+  color: #4a3728;
+  color-scheme: light;
+}
+
+.input::placeholder {
+  color: #6b5a4a;
+}
+
+.input:hover,
+.select select:hover {
+  border-color: rgba(180, 130, 80, 0.5);
+}
+
+.input:focus,
+.select select:focus {
+  border-color: #d97706;
+  box-shadow: 0 0 0 2px rgba(217, 119, 6, 0.15);
+}
+
+/* Input icons */
+.control .icon {
+  color: #8b7355;
+}
+
+/* Links and text outside the box */
+.hero-body .has-text-grey-dark,
+.hero-body .has-text-link {
+  color: #fff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+
+.hero-body .has-text-link:hover {
+  color: #fcd34d !important;
+}
+
+/* Language select outside box */
+.hero-body > .container .select:not(.glass .select) select {
+  background-color: rgba(255, 251, 245, 0.9);
+  color: #4a3728;
+}
+
+/* Footer */
+.hero-foot,
+.hero-foot a {
+  color: rgba(255, 255, 255, 0.85) !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.hero-foot a:hover {
+  color: #fcd34d !important;
+}
+
+/* Shared accessibility and performance baseline */
+.skip-link {
+  position: absolute;
+  top: -48px;
+  left: 0;
+  z-index: 1000;
+  padding: 8px 14px;
+  background-color: #111;
+  color: #fff;
+  text-decoration: none;
+  transition: top 0.2s ease;
+}
+
+.skip-link:focus {
+  top: 0;
+  color: #fff;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid rgba(17, 24, 39, 0.45);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
