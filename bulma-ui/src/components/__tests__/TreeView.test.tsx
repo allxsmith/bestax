@@ -1242,6 +1242,49 @@ describe('TreeView', () => {
       expect(shown()).toEqual(['Keep']);
     });
 
+    describe('with two parents sharing a value, after the second goes', () => {
+      // Both parents open with the shared value. The second one's element is
+      // the one the tree heard about last, and it leaves while the first stays.
+      function Twins({ two, inside }: { two: boolean; inside: boolean }) {
+        return (
+          <TreeView aria-label="Twins" expanded={['twin']}>
+            <TreeView.Item value="twin" label="One">
+              {inside && <TreeView.Item value="a" label="A" />}
+            </TreeView.Item>
+            {two && (
+              <TreeView.Item value="twin" label="Two">
+                <TreeView.Item value="b" label="B" />
+              </TreeView.Item>
+            )}
+          </TreeView>
+        );
+      }
+      const page = (two: boolean, inside: boolean) => (
+        <>
+          <Twins two={two} inside={inside} />
+          <button>After</button>
+        </>
+      );
+
+      it('hands the stop to the first one when an item inside it goes', () => {
+        const { rerender } = render(page(true, true));
+        focus('A');
+        act(() => screen.getByRole('button').focus());
+        rerender(page(false, true));
+        rerender(page(false, false));
+        expect(stops()).toEqual(['One']);
+      });
+
+      it('hands focus to the first one when the item inside it goes with focus', () => {
+        const { rerender } = render(page(true, true));
+        focus('A');
+        rerender(page(false, true));
+        rerender(page(false, false));
+        expect(focused()).toBe('One');
+        expect(stops()).toEqual(['One']);
+      });
+    });
+
     it('keeps exactly one stop as items open and close', () => {
       render(<Files selectionMode="single" defaultSelected="card" />);
       fireEvent.click(item('src').querySelector('.tree-view-toggle')!);

@@ -62,6 +62,7 @@ const isComposing = (event: React.KeyboardEvent): boolean =>
 /** The items a tree knows, and their elements while they're on the page. */
 interface Registry {
   records: Map<string, TreeViewItemRecord>;
+  // By value, for an item whose ref lets go, which hands over no element.
   elements: Map<string, HTMLLIElement>;
   // Weak, so an element that leaves the page needn't be forgotten by hand.
   values: WeakMap<Element, string>;
@@ -365,9 +366,13 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
   useClientLayoutEffect(() => {
     const tree = treeRef.current!;
     const registry = registryRef.current;
-    const onPage = shownIn(tree, registry).map(element =>
-      registry.values.get(element)!
-    );
+    // Each item's element is read off the page with its value, rather than
+    // out of `elements`, which holds one element per value: two items
+    // sharing a value, which they shouldn't, can leave it without one the
+    // page still has.
+    const shown = shownIn(tree, registry);
+    const onPage = shown.map(element => registry.values.get(element)!);
+    const elementOf = (value: string) => shown[onPage.indexOf(value)];
     const isShown = (value: string | null | undefined): value is string =>
       value != null && onPage.includes(value);
     const heir = (path: string[]) =>
@@ -377,7 +382,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
     lostRef.current = null;
     if (lost && !tree.contains(getActiveElementInTree(tree))) {
       const to = heir(lost);
-      if (to) registry.elements.get(to)!.focus();
+      if (to) elementOf(to).focus();
       return;
     }
     if (focused !== null && !isShown(focused)) setFocused(null);
@@ -389,9 +394,7 @@ export function useTreeView(options: TreeViewOptions): TreeViewEngine {
       preferred ?? (isShown(resting) ? resting : heir(restingPathRef.current));
     if (next !== resting) {
       setResting(next);
-      restingPathRef.current = next
-        ? pathOf(registry.elements.get(next)!, registry)
-        : [];
+      restingPathRef.current = next ? pathOf(elementOf(next), registry) : [];
     }
   });
 
