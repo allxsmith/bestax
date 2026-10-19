@@ -2199,6 +2199,28 @@ describe('plan', () => {
             ),
           },
         ]);
+        // One a condition adds says so, there as anywhere.
+        expect(
+          plan({
+            ...facts(
+              'li',
+              '',
+              {},
+              {
+                itemOf: 'menu-list',
+                childElements: [link()],
+              }
+            ),
+            conditional: [['box']],
+          }).todos
+        ).toEqual([
+          {
+            rule: 'second-component:Box',
+            message: expect.stringContaining(
+              '`Menu.Item` here, since `.box` is there only when its condition holds'
+            ),
+          },
+        ]);
       });
 
       it('converts the <li> and its <a> together, with a nested list after', () => {

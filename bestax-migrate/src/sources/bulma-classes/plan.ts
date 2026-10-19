@@ -393,18 +393,17 @@ function secondComponents(
     if (token === root || other?.status !== 'mapped') return [];
     const name = other.target!;
     if (name === target) return [];
-    const why =
-      root === undefined
+    const why = !fixed.includes(token)
+      ? `since \`.${token}\` is there only when its condition holds, and the codemod picks from the classes the element always carries`
+      : root === undefined
         ? 'since an item of a list converts by where it sits'
-        : !fixed.includes(token)
-          ? `since \`.${token}\` is there only when its condition holds, and the codemod picks from the classes the element always carries`
-          : !reachesTag(other, tag)
-            ? `since \`${name}\` renders ${tagsItReaches(other)}, not ${aTag(tag)}`
-            : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
-              ? `since ${aTag(tag)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
-              : precedence(root) < precedence(token)
-                ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
-                : `since \`.${root}\` comes first on the element`;
+        : !reachesTag(other, tag)
+          ? `since \`${name}\` renders ${tagsItReaches(other)}, not ${aTag(tag)}`
+          : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
+            ? `since ${aTag(tag)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `since \`.${root}\` comes first on the element`;
     const advice =
       other.onAnother ??
       `to use \`${name}\`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one`;
