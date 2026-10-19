@@ -232,6 +232,12 @@ ruleTester.run('no-bulma-component-class', rule, {
       code: bestax('Container', '<Container as="main" className="hero" />'),
       errors: [also('Container', 'hero', 'Hero')],
     },
+    // Two others on a component: no tag of theirs to fit, so the first in
+    // the table's order is reported, whatever the className's order.
+    {
+      code: bestax('Columns', '<Columns className="content box" />'),
+      errors: [also('Columns', 'box', 'Box')],
+    },
     {
       code: bestax('Card', '<Card.Content className="card-content content" />'),
       errors: [also('Card.Content', 'content', 'Content')],
@@ -258,7 +264,7 @@ ruleTester.run('no-bulma-component-class', rule, {
             cls: 'container',
             component: 'Container',
             advice:
-              'Where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
+              'Where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
           },
         },
       ],
