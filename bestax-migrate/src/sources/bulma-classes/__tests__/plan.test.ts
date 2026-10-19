@@ -4,6 +4,7 @@
  * which elements convert, which refuse, and what they say.
  */
 
+import { ROOTS, type Modifier } from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 
 function facts(
@@ -2101,6 +2102,49 @@ describe('plan', () => {
       ).toMatchObject({
         props: [['hasAddons', 'centered']],
         className: 'has-addons-right',
+      });
+    });
+
+    describe('a layout class beside its base, behind every modifier gate', () => {
+      // No entry carries `tagIn` or `needsAttr` beside `beside` yet, so the
+      // table is lent two that do, for this block only.
+      const modifiers = ROOTS.field.modifiers as Record<string, Modifier>;
+      beforeAll(() => {
+        modifiers['test-on-p'] = {
+          writes: [{ prop: 'hasAddons', value: 'right' }],
+          beside: 'has-addons',
+          tagIn: ['p'],
+        };
+        modifiers['test-needs'] = {
+          writes: [{ prop: 'hasAddons', value: 'centered' }],
+          beside: 'has-addons',
+          needsAttr: { name: 'data-test', value: 'x' },
+        };
+      });
+      afterAll(() => {
+        delete modifiers['test-on-p'];
+        delete modifiers['test-needs'];
+      });
+
+      it('stays a class off its tags, or without its attribute', () => {
+        const field = (
+          className: string,
+          attributes: Record<string, string> = {}
+        ) => plan(facts('div', className, attributes)).conversion;
+        expect(field('field has-addons test-on-p')).toMatchObject({
+          props: [['hasAddons', true]],
+          className: 'test-on-p',
+        });
+        expect(field('field has-addons test-needs')).toMatchObject({
+          props: [['hasAddons', true]],
+          className: 'test-needs',
+        });
+        expect(
+          field('field has-addons test-needs', { 'data-test': 'x' })
+        ).toMatchObject({
+          props: [['hasAddons', 'centered']],
+          className: null,
+        });
       });
     });
 

@@ -1304,26 +1304,21 @@ function propsFrom(
   const groupOf = new Map<string, string>();
   const converted = new Set<string>(root ? [root] : []);
 
-  // A class that converts only beside another goes first, and takes that one
-  // with it: the value it writes renders both (`hasAddons="centered"`).
-  for (const token of tokens) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, so the value it writes takes the prop ahead of that one's flag and
+  // renders both classes. On its own it stays a class.
+  const paired = (token: string) => {
     const other = modifierFor(entry, token)?.beside;
-    if (!other || !tokens.includes(other) || converted.has(other)) continue;
-    const modifier = modifierFor(entry, token)!;
-    if (modifier.writes.some(write => writes.has(write.prop))) continue;
-    for (const write of modifier.writes) {
-      writes.set(write.prop, write.value ?? true);
-      sourceOf.set(write.prop, token);
-      if (write.numeric) numbers.push(write.prop);
-    }
-    converted.add(token).add(other);
-  }
-
-  for (const token of tokens) {
+    return other !== undefined && tokens.includes(other);
+  };
+  for (const token of [
+    ...tokens.filter(paired),
+    ...tokens.filter(token => !paired(token)),
+  ]) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {
-      if (modifier.beside) continue;
+      if (modifier.beside && !paired(token)) continue;
       if (modifier.tagIn && !modifier.tagIn.includes(tag)) continue;
       if (modifier.needsAttr && !attributes.has(modifier.needsAttr.name)) {
         continue;
@@ -1335,6 +1330,7 @@ function propsFrom(
         if (write.numeric) numbers.push(write.prop);
       }
       converted.add(token);
+      if (modifier.beside) converted.add(modifier.beside);
       continue;
     }
     const helper = entry.noHelpers ? undefined : HELPER_TOKENS.get(token);

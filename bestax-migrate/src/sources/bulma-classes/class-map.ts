@@ -55,7 +55,8 @@ export interface Modifier {
    * of, and that value renders that modifier's class too (`Field`'s
    * `hasAddons="centered"` renders `has-addons` beside `has-addons-centered`).
    * The class converts only beside that one, the two as the one value, and
-   * stays a class on its own.
+   * stays a class on its own. Beside it, `tagIn` and `needsAttr` hold as they
+   * do for any modifier.
    */
   readonly beside?: string;
 }
