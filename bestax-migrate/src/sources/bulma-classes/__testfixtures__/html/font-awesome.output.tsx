@@ -5,6 +5,7 @@ export default function FontAwesomePage() {
   // TODO(bestax-migrate): this `.icon` sits in a <button> that its own text names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="bell" variant="regular"` (font-awesome.html:19)
   // TODO(bestax-migrate): this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="x-twitter" variant="fa-brands" features="fa-lg"` (font-awesome.html:27)
   // TODO(bestax-migrate): nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <a> an `aria-label` that says what it does, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts to `Icon` with `library="fa" name="github" variant="brands" features="fa-lg"` (font-awesome.html:32)
+  // TODO(bestax-migrate): bestax `Icon` renders only <span>, not a <div>; keep the markup, or change the tag and re-run (font-awesome.html:48, 52, 57)
   return (
     <>
       <form>
@@ -57,6 +58,19 @@ export default function FontAwesomePage() {
           role="img"
           aria-label="Warning" />
       </p>
+      <div className="icon">
+        <i className="fas fa-home" />
+      </div>{" "}
+      <a href="https://github.com/" aria-label="GitHub">
+        <div className="icon">
+          <i className="fab fa-github" />
+        </div>{" "}
+      </a>
+      <a href="https://twitter.com/">
+        <div className="icon">
+          <i className="fab fa-twitter" aria-hidden="true" />
+        </div>
+      </a>
     </>
   );
 }

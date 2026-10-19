@@ -182,6 +182,48 @@ describe('plan', () => {
       ]);
     });
 
+    it('refuses a tag the target cannot render before anything else', () => {
+      // Each would otherwise ask for work (attributes added, renamed or
+      // dropped, a child moved) that a re-run then refuses on the tag.
+      const cases: Array<
+        [
+          string,
+          string,
+          string,
+          Record<string, string | true | null>,
+          Partial<ElementFacts>,
+        ]
+      > = [
+        ['Navbar', 'div', 'navbar', {}, {}],
+        ['Delete', 'a', 'delete', {}, {}],
+        ['Breadcrumb', 'div', 'breadcrumb', {}, {}],
+        ['Pagination', 'div', 'pagination', {}, {}],
+        ['Card.Header.Icon', 'div', 'card-header-icon', {}, {}],
+        ['Pagination.Link', 'div', 'pagination-link', {}, {}],
+        // Not only a missing default: a prop it reads, or a spread.
+        ['Delete', 'a', 'delete', { size: 'x' }, {}],
+        ['Delete', 'a', 'delete', {}, { hasSpread: true }],
+        ['Navbar', 'div', 'navbar', { role: null }, {}],
+      ];
+      for (const [target, tag, className, attributes, extra] of cases) {
+        const result = plan(facts(tag, className, attributes, extra));
+        expect({
+          element: `<${tag} class="${className}">`,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({
+          element: `<${tag} class="${className}">`,
+          rules: [`tag:${target}`],
+        });
+      }
+      // On the tag it renders, the same element is told what it lacks.
+      expect(plan(facts('nav', 'navbar')).todos.map(t => t.rule)).toEqual([
+        'defaults:Navbar',
+      ]);
+      expect(plan(facts('button', 'delete')).todos.map(t => t.rule)).toEqual([
+        'defaults:Delete',
+      ]);
+    });
+
     it('refuses dangerouslySetInnerHTML', () => {
       expect(
         plan(facts('div', 'content', { dangerouslySetInnerHTML: null })).todos
@@ -582,14 +624,36 @@ describe('plan', () => {
         props: [
           ['color', 'primary'],
           ['fixed', 'top'],
+          ['hasShadow', true],
         ],
-        className: 'has-shadow',
+        className: null,
         drop: [],
         numbers: [],
       });
       expect(plan(facts('nav', 'navbar')).todos.map(todo => todo.rule)).toEqual(
         ['defaults:Navbar']
       );
+    });
+
+    it('writes is-spaced and has-shadow as their flags, under a condition too', () => {
+      expect(
+        plan(
+          facts('nav', 'navbar is-transparent is-spaced has-shadow', bulmaNav)
+        ).conversion?.props
+      ).toEqual([
+        ['transparent', true],
+        ['isSpaced', true],
+        ['hasShadow', true],
+      ]);
+      const { conversion } = plan(
+        facts('nav', 'navbar', bulmaNav, {
+          conditional: [['is-spaced'], ['has-shadow']],
+        })
+      );
+      expect(conversion?.conditional).toEqual([
+        ['isSpaced', 'is-spaced'],
+        ['hasShadow', 'has-shadow'],
+      ]);
     });
 
     it('keeps helper classes on a part that takes no helper props', () => {
@@ -854,6 +918,61 @@ describe('plan', () => {
               )
             ).conversion?.movesHidden
           ).toBe(true);
+        });
+
+        it('gives no advice on a tag Icon cannot render, only the tag', () => {
+          // Each would ask for work a re-run then refuses on the tag.
+          const tagOnly = (
+            label: string,
+            inner: ReturnType<typeof glyph>,
+            extra: Partial<ElementFacts> = {},
+            attributes: Record<string, string | null> = {}
+          ) => {
+            const result = plan(
+              facts('div', 'icon', attributes, { soleChild: inner, ...extra })
+            );
+            expect({
+              label,
+              conversion: result.conversion,
+              rules: result.todos.map(t => t.rule),
+            }).toEqual({ label, conversion: null, rules: ['tag:Icon'] });
+          };
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          tagOnly('an unhidden glyph', fa);
+          tagOnly('in a named link', fa, {
+            clickableAround: { tag: 'a', label: 'aria-label' },
+          });
+          tagOnly('in an icon-only link', fa, {
+            clickableAround: { tag: 'a', label: 'none' },
+          });
+          tagOnly('in a .control with icons', glyph(['fas', 'fa-envelope']), {
+            parentTokens: ['control', 'has-icons-left'],
+          });
+          tagOnly(
+            "Font Awesome's own hidden <i>",
+            glyph(['fas', 'fa-home'], hidden)
+          );
+          tagOnly(
+            'a hidden <i> beside a title',
+            glyph(['fas', 'fa-home'], hidden),
+            {},
+            { title: 'Home' }
+          );
+          tagOnly('a name as an expression', fa, {}, { 'aria-label': null });
+          // On the <span> it renders, the same element gets the advice.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                {},
+                {
+                  soleChild: fa,
+                  clickableAround: { tag: 'a', label: 'none' },
+                }
+              )
+            ).todos[0].message
+          ).toMatch(/^nothing names the <a> around this `\.icon`/);
         });
 
         it('says to move it up by hand off any other <i>', () => {

@@ -56,6 +56,76 @@ describe('Navbar', () => {
     expect(screen.getByRole('navigation')).toHaveClass('is-fixed-top');
   });
 
+  describe('isSpaced and hasShadow', () => {
+    it('renders is-spaced for isSpaced, and nothing more', () => {
+      render(<Navbar isSpaced>Test</Navbar>);
+      const nav = screen.getByRole('navigation');
+      expect(nav).toHaveAttribute('class', 'navbar is-spaced');
+      expect(nav).not.toHaveAttribute('isSpaced');
+      expect(nav).not.toHaveAttribute('isspaced');
+    });
+
+    it('renders has-shadow for hasShadow, and nothing more', () => {
+      render(<Navbar hasShadow>Test</Navbar>);
+      const nav = screen.getByRole('navigation');
+      expect(nav).toHaveAttribute('class', 'navbar has-shadow');
+      expect(nav).not.toHaveAttribute('hasShadow');
+      expect(nav).not.toHaveAttribute('hasshadow');
+    });
+
+    it('renders neither class when the flags are false or unset', () => {
+      const { rerender } = render(<Navbar>Test</Navbar>);
+      expect(screen.getByRole('navigation')).toHaveAttribute('class', 'navbar');
+      rerender(
+        <Navbar isSpaced={false} hasShadow={false}>
+          Test
+        </Navbar>
+      );
+      expect(screen.getByRole('navigation')).toHaveAttribute('class', 'navbar');
+    });
+
+    it("combines with the other modifiers, as in Bulma's own markup", () => {
+      render(
+        <Navbar color="primary" transparent isSpaced hasShadow fixed="bottom">
+          Test
+        </Navbar>
+      );
+      expect(screen.getByRole('navigation')).toHaveAttribute(
+        'class',
+        'navbar is-primary is-transparent is-spaced has-shadow is-fixed-bottom'
+      );
+    });
+
+    it('prefixes both classes', () => {
+      render(
+        <ConfigProvider classPrefix="bulma-">
+          <Navbar isSpaced hasShadow>
+            Test
+          </Navbar>
+        </ConfigProvider>
+      );
+      expect(screen.getByRole('navigation')).toHaveAttribute(
+        'class',
+        'bulma-navbar bulma-is-spaced bulma-has-shadow'
+      );
+    });
+
+    it('types both as booleans', () => {
+      const props: ComponentProps<typeof Navbar> = {
+        isSpaced: true,
+        hasShadow: false,
+      };
+      expect(props).toBeDefined();
+      const wrong: ComponentProps<typeof Navbar> = {
+        // @ts-expect-error: a flag, not a size
+        isSpaced: 'large',
+        // @ts-expect-error: a flag, not a shadow size
+        hasShadow: 'small',
+      };
+      expect(wrong).toBeDefined();
+    });
+  });
+
   it('passes HTML attributes to nav', () => {
     render(
       <Navbar data-testid="navbar" aria-label="main-nav">

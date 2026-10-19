@@ -27,6 +27,7 @@
  */
 
 import type { ASTPath } from 'jscodeshift';
+import { aTag } from './articles.js';
 import {
   addTodo,
   attrSource,
@@ -562,7 +563,7 @@ function restrictAsValue(
     ctx,
     path,
     'prop:as',
-    `bestax \`${target}\` renders only ${offered}, so \`as="${literal.value}"\` cannot carry across — wrap it in a <${literal.value}> or restructure`
+    `bestax \`${target}\` renders only ${offered}, so \`as="${literal.value}"\` cannot carry across — wrap it in ${aTag(String(literal.value))} or restructure`
   );
   ctx.dirty = true;
 }
@@ -619,7 +620,7 @@ function dropInertHref(
   if (rendered === undefined) {
     if (defaultEl === ANCHOR) return;
     drop(
-      `bestax \`${target}\` renders a <${defaultEl}> unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or ${nestOrClick(defaultEl)}`
+      `bestax \`${target}\` renders ${aTag(defaultEl)} unless \`as\` says otherwise, and only its <a> form carries an \`href\` -- set \`as="a"\` to make this a link, or ${nestOrClick(defaultEl)}`
     );
     return;
   }
@@ -631,9 +632,9 @@ function dropInertHref(
   const remedy =
     defaultEl === ANCHOR
       ? `drop the \`as\` to make this a link, or ${nestOrClick(rendered)}`
-      : `set \`as="a"\` to make this a link -- dropping the \`as\` gives you a <${defaultEl}> -- or ${nestOrClick(rendered)}`;
+      : `set \`as="a"\` to make this a link -- dropping the \`as\` gives you ${aTag(defaultEl)} -- or ${nestOrClick(rendered)}`;
   drop(
-    `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and a <${rendered}> takes no \`href\` (it navigated nowhere in the source either) -- ${remedy}`
+    `\`href\` on \`as="${rendered}"\`: bestax gives an element the attributes of the tag \`as\` names, and ${aTag(rendered)} takes no \`href\` (it navigated nowhere in the source either) -- ${remedy}`
   );
 }
 
@@ -678,7 +679,7 @@ function dropInertLinkAttrs(
     removeAttr(element, attr);
     const because =
       rejectedBy === 'element'
-        ? `\`${name}\` needs an element that takes it, and \`${target}\` renders a <${rendered}> here`
+        ? `\`${name}\` needs an element that takes it, and \`${target}\` renders ${aTag(rendered!)} here`
         : `bestax \`${target}\` is not a link at any \`as\`, so it takes no \`${name}\` either`;
     addTodo(
       ctx,
