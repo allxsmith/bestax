@@ -208,7 +208,9 @@ const HOME = 'HomePage';
  * what tells `docs/index.html` from `blog/index.html`, but for the site's home
  * page: the `index.html` in a folder the run starts from (`roots`, the
  * project's `runRoots`), with other pages beside it and none of them named
- * `HomePage` already. Only that page's folder is read for the pages beside it.
+ * `HomePage` already. Beside an `index.html`, an `index.htm` is not the home
+ * page, so one folder writes one `HomePage`. Only that page's folder is read
+ * for the pages beside it.
  */
 export function componentName(file: string, roots?: unknown): string {
   const stem = path.basename(file, path.extname(file));
@@ -216,13 +218,20 @@ export function componentName(file: string, roots?: unknown): string {
   const dir = path.dirname(path.resolve(file));
   const atRoot = Array.isArray(roots) && roots.includes(dir);
   const beside = atRoot ? pagesBeside(file) : [];
+  const own = indexRank(path.basename(file));
   const home =
     beside.length > 0 &&
-    beside.every(
-      sibling =>
-        pageName(path.basename(sibling, path.extname(sibling))) !== HOME
-    );
+    beside.every(sibling => {
+      const name = pageName(path.basename(sibling, path.extname(sibling)));
+      const rival = /^index\.html?$/i.test(sibling);
+      return name !== HOME && !(rival && indexRank(sibling) < own);
+    });
   return home ? HOME : pageName(path.basename(dir));
+}
+
+/** Which of a folder's index pages is its home: `.html` first, then by name. */
+function indexRank(name: string): string {
+  return `${path.extname(name).toLowerCase() === '.html' ? 0 : 1}${name}`;
 }
 
 /** The other HTML pages in a page's folder, by file name. */
@@ -803,7 +812,7 @@ const SCHEMES = new Set(['light', 'dark']);
 const SCHEME_ON_HTML =
   "put it on the `<html>` in the app's index.html, where the first paint has it";
 const SCHEME_TOGGLE =
-  "bestax's `Theme colorMode` writes `data-theme` on `<html>` too, but from an effect, after a first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches, the way the bestax-theming skill's `examples/dark-mode.tsx` does";
+  "for a scheme the visitor switches, bestax's `Theme colorMode` writes the choice only after that paint, so write a saved one before it too, as the `html-script:theme` recipe says and the bestax-theming skill's `examples/dark-mode.tsx` does";
 
 function documentAttributeNotes(
   where: 'html' | 'body',

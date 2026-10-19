@@ -197,6 +197,22 @@ describe('naming and placing the module', () => {
     );
   });
 
+  it('makes one HomePage of a top folder holding both an index.html and an index.htm', () => {
+    const site = path.join(tempDir(), 'convert');
+    fs.mkdirSync(site, { recursive: true });
+    for (const page of ['index.html', 'index.htm', 'about.html']) {
+      fs.writeFileSync(path.join(site, page), box);
+    }
+    const name = (page: string) => componentName(path.join(site, page), [site]);
+    expect([name('index.html'), name('index.htm')]).toEqual([
+      'HomePage',
+      'ConvertPage',
+    ]);
+    // With no index.html beside it, the index.htm is the home page.
+    fs.rmSync(path.join(site, 'index.html'));
+    expect(name('index.htm')).toBe('HomePage');
+  });
+
   it('reads the pages beside a top index.html, and names its module from them', () => {
     const dir = tempDir();
     const site = path.join(dir, 'convert');
@@ -390,8 +406,10 @@ describe('the report', () => {
     ]);
     for (const { message } of entries) {
       expect(message).toContain(
-        "put it on the `<html>` in the app's index.html, where the first paint has it; bestax's `Theme colorMode` writes `data-theme` on `<html>` too, but from an effect, after a first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches, the way the bestax-theming skill's `examples/dark-mode.tsx` does"
+        "put it on the `<html>` in the app's index.html, where the first paint has it; for a scheme the visitor switches, bestax's `Theme colorMode` writes the choice only after that paint, so write a saved one before it too, as the `html-script:theme` recipe says and the bestax-theming skill's `examples/dark-mode.tsx` does"
       );
+      // The first frame is the pinned scheme, not the visitor's OS scheme.
+      expect(message).not.toContain('OS scheme');
       expect(message).not.toContain('<Theme colorMode');
     }
   });
