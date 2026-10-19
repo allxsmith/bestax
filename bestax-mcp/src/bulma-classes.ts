@@ -637,9 +637,9 @@ export function lookupClasses(
       const name = second.target!;
       const why =
         tag && !reachesTag(second, tag)
-          ? `\`${name}\` renders ${reaches(second)}, not a <${tag}>`
+          ? `\`${name}\` renders ${reaches(second)}, not ${aTag(tag)}`
           : fit(root) > fit(token)
-            ? `a <${tag}> is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            ? `${aTag(tag!)} is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
             : precedence(root) < precedence(token)
               ? `the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
               : `\`.${root}\` comes first on the element`;
