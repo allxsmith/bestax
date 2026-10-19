@@ -360,6 +360,29 @@ describe('Sidebar', () => {
       expect(screen.getByText('Inside')).toHaveFocus();
     });
 
+    it('leaves focus where the user put it when overlay changes while open', () => {
+      const ui = (overlay: boolean) => (
+        <Sidebar isOpen onClose={() => {}} overlay={overlay}>
+          <button type="button">First</button>
+          <button type="button">Last</button>
+        </Sidebar>
+      );
+      const { rerender } = render(ui(true));
+      const last = screen.getByText('Last');
+      act(() => last.focus());
+
+      // Without an overlay there's no trap, so Tab is the browser's.
+      rerender(ui(false));
+      expect(last).toHaveFocus();
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(true);
+
+      // With one again, the trap is back, and focus still hasn't moved.
+      rerender(ui(true));
+      expect(last).toHaveFocus();
+      expect(fireEvent.keyDown(last, { key: 'Tab' })).toBe(false);
+      expect(screen.getByText('First')).toHaveFocus();
+    });
+
     it('moves focus past a control Tab would skip', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>

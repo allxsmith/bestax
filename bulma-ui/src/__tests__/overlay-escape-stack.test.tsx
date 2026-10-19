@@ -422,31 +422,54 @@ describe('Tab with a Sidebar without an overlay opened over a modal one', () => 
     expect(screen.getByRole('button', { name: 'Tips' })).toHaveFocus();
   });
 
-  it('takes focus once it gets an overlay while open, and hands it back once it loses it', () => {
-    const Page = ({ overlay }: { overlay: boolean }) => (
-      <>
-        <Modal active aria-label="Edit item">
-          <Modal.Content>
-            <button type="button">Save</button>
-          </Modal.Content>
-        </Modal>
-        <Sidebar isOpen overlay={overlay} onClose={() => {}} aria-label="Tips">
-          <button type="button">Next tip</button>
-        </Sidebar>
-      </>
-    );
-    const { rerender } = render(<Page overlay={false} />);
-    const save = screen.getByRole('button', { name: 'Save' });
-    expect(save).toHaveFocus();
+  it("sends focus to the Modal's opener when the Modal closes first, and leaves the sidebar open and reachable", () => {
+    // Settled behaviour, not a gap: the sidebar isn't modal, so with the
+    // Modal gone it's an ordinary panel on the page, still reachable, and it
+    // doesn't claim focus back.
+    const Page = () => {
+      const [modal, setModal] = useState(false);
+      const [sidebar, setSidebar] = useState(false);
+      return (
+        <>
+          <button type="button" onClick={() => setModal(true)}>
+            Edit
+          </button>
+          <Modal active={modal} aria-label="Edit item">
+            <Modal.Content>
+              <button type="button" onClick={() => setSidebar(true)}>
+                Tips
+              </button>
+              <button type="button" onClick={() => setModal(false)}>
+                Done
+              </button>
+            </Modal.Content>
+          </Modal>
+          <Sidebar
+            isOpen={sidebar}
+            overlay={false}
+            onClose={() => setSidebar(false)}
+            aria-label="Tips"
+          >
+            <button type="button">Next tip</button>
+          </Sidebar>
+        </>
+      );
+    };
+    render(<Page />);
+    const edit = screen.getByRole('button', { name: 'Edit' });
+    act(() => edit.focus());
+    click('Edit');
+    click('Tips');
+    click('Done');
 
-    rerender(<Page overlay />);
+    expect(edit).toHaveFocus();
+    const sidebar = screen.getByRole('dialog', { name: 'Tips' });
+    expect(sidebar).toHaveClass('is-active');
+    expect(sidebar).not.toHaveAttribute('inert');
     const nextTip = screen.getByRole('button', { name: 'Next tip' });
+    act(() => nextTip.focus());
+    expect(fireEvent.keyDown(nextTip, { key: 'Tab' })).toBe(true);
     expect(nextTip).toHaveFocus();
-    expect(fireEvent.keyDown(nextTip, { key: 'Tab' })).toBe(false);
-    expect(nextTip).toHaveFocus();
-
-    rerender(<Page overlay={false} />);
-    expect(save).toHaveFocus();
   });
 
   it('keeps Tab in a Sidebar with an overlay under it', () => {

@@ -32,10 +32,11 @@ export interface SidebarProps
    * Whether the sidebar is open (required). Opening moves focus into the
    * sidebar, to its first tab stop or the sidebar itself, except for a sidebar
    * without an overlay opened while a modal overlay, such as a Modal, is open:
-   * that one leaves focus where it is. Closing hands focus back to whatever
-   * had it when the sidebar opened, unless focus has already left the
-   * sidebar, as it does for an overlay opened over it. A closed
-   * sidebar stays in the page, so it can slide out, and is `inert` and
+   * that one leaves focus where it is. That's decided as it opens, and
+   * changing `overlay` while it's open doesn't move focus. Closing hands
+   * focus back to whatever had it when the sidebar opened, unless focus has
+   * already left the sidebar, as it does for an overlay opened over it. A
+   * closed sidebar stays in the page, so it can slide out, and is `inert` and
    * `aria-hidden` there: Tab passes over its content and assistive
    * technology doesn't read it.
    */
@@ -57,8 +58,9 @@ export interface SidebarProps
    * over it, even one rendered inside it, holds Tab until it closes. Without
    * an overlay the sidebar isn't modal and holds no Tab: on the page, Tab
    * moves in and out of it freely, and opened over a Modal, it leaves the
-   * Modal holding Tab, and focus, while still taking Escape first.
-   * Default: true.
+   * Modal holding Tab, and focus, while still taking Escape first. Whether
+   * the sidebar takes focus is decided as it opens: changing this while it's
+   * open moves the Tab trap, not focus. Default: true.
    */
   overlay?: boolean;
   /** Close sidebar when overlay is clicked. Default: true. */
@@ -208,8 +210,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // the sidebar itself, and hand it back on close, as `Modal` does. A
     // different `defaultTarget` remounts the portaled sidebar: the cleanup
     // hands focus back from the old nodes, which left it on <body>, and the
-    // re-run records the same opener and focuses the new nodes. So does a
-    // change to `overlay`, which changes whether the sidebar takes focus.
+    // re-run records the same opener and focuses the new nodes. Whether it
+    // takes focus is decided as it opens, so `overlay` changing while it's
+    // open leaves focus where the user has it.
     useEffect(() => {
       if (!isOpen) return undefined;
       const element = sidebarRef.current;
@@ -238,7 +241,8 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
           opener?.focus();
         }
       };
-    }, [isOpen, overlay, defaultTarget]);
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- `overlay` is read as the sidebar opens, on purpose
+    }, [isOpen, defaultTarget]);
 
     // Use combined ref
     const combinedRef = useCallback(
