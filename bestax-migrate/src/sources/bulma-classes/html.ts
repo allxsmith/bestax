@@ -208,8 +208,9 @@ const HOME = 'HomePage';
  * what tells `docs/index.html` from `blog/index.html`, but for the site's home
  * page: the `index.html` in a folder the run starts from (`roots`, the
  * project's `runRoots`), with other pages beside it and none of them named
- * `HomePage` already. Beside an `index.html`, an `index.htm` is not the home
- * page, so one folder writes one `HomePage`. Only that page's folder is read
+ * `HomePage` already. Another spelling of the index beside it (`index.htm`)
+ * is no other page: it only competes for the name, and an `index.html` wins
+ * it, so one folder writes one `HomePage`. Only that page's folder is read
  * for the pages beside it.
  */
 export function componentName(file: string, roots?: unknown): string {
@@ -218,15 +219,21 @@ export function componentName(file: string, roots?: unknown): string {
   const dir = path.dirname(path.resolve(file));
   const atRoot = Array.isArray(roots) && roots.includes(dir);
   const beside = atRoot ? pagesBeside(file) : [];
+  const rivals = beside.filter(isIndexPage);
+  const pages = beside.filter(sibling => !isIndexPage(sibling));
   const own = indexRank(path.basename(file));
   const home =
-    beside.length > 0 &&
-    beside.every(sibling => {
-      const name = pageName(path.basename(sibling, path.extname(sibling)));
-      const rival = /^index\.html?$/i.test(sibling);
-      return name !== HOME && !(rival && indexRank(sibling) < own);
-    });
+    pages.length > 0 &&
+    pages.every(
+      page => pageName(path.basename(page, path.extname(page))) !== HOME
+    ) &&
+    rivals.every(rival => indexRank(rival) > own);
   return home ? HOME : pageName(path.basename(dir));
+}
+
+/** Whether a page beside another is its folder's index, by another spelling. */
+function isIndexPage(name: string): boolean {
+  return /^index\.html?$/i.test(name);
 }
 
 /** Which of a folder's index pages is its home: `.html` first, then by name. */

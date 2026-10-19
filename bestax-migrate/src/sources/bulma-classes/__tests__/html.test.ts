@@ -213,6 +213,20 @@ describe('naming and placing the module', () => {
     expect(name('index.htm')).toBe('HomePage');
   });
 
+  it('counts no other spelling of the index as a page beside it', () => {
+    // One page in two spellings is still a folder with one page.
+    const site = path.join(tempDir(), 'convert');
+    fs.mkdirSync(site, { recursive: true });
+    for (const page of ['index.html', 'index.htm']) {
+      fs.writeFileSync(path.join(site, page), box);
+    }
+    const name = (page: string) => componentName(path.join(site, page), [site]);
+    expect([name('index.html'), name('index.htm')]).toEqual([
+      'ConvertPage',
+      'ConvertPage',
+    ]);
+  });
+
   it('reads the pages beside a top index.html, and names its module from them', () => {
     const dir = tempDir();
     const site = path.join(dir, 'convert');
