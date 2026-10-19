@@ -829,10 +829,7 @@ export function plan(facts: ElementFacts): Plan {
   if (entry.sizeDrivesTag && tag !== 'p' && writes.has('size')) {
     renders = `h${writes.get('size')}`;
   }
-  for (const token of converted) {
-    const retagged = modifierFor(entry, token)?.rendersTag;
-    if (retagged) renders = retagged;
-  }
+  if (fromTokens.rendersTag) renders = fromTokens.rendersTag;
   let as: string | undefined;
   if (renders !== tag) {
     const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
@@ -1297,8 +1294,11 @@ function propsFrom(
   writes: Map<string, string | true>;
   converted: Set<string>;
   numbers: string[];
+  /** The tag the one converted class with a `rendersTag` picks. */
+  rendersTag?: string;
 } {
   const numbers: string[] = [];
+  let rendersTag: string | undefined;
   // What the root itself needs comes first, so no class can take its prop.
   const writes = new Map<string, string | true>(
     (entry.writes ?? []).map(write => [write.prop, write.value ?? true])
@@ -1317,11 +1317,15 @@ function propsFrom(
         continue;
       }
       if (modifier.writes.some(write => writes.has(write.prop))) continue;
+      // Only one class picks the tag, as only one sets a prop: a second one
+      // stays a class, the way a second size does.
+      if (modifier.rendersTag && rendersTag) continue;
       for (const write of modifier.writes) {
         writes.set(write.prop, write.value ?? true);
         sourceOf.set(write.prop, token);
         if (write.numeric) numbers.push(write.prop);
       }
+      rendersTag ??= modifier.rendersTag;
       converted.add(token);
       continue;
     }
@@ -1377,7 +1381,7 @@ function propsFrom(
   ) {
     undo('overflow');
   }
-  return { writes, converted, numbers };
+  return { writes, converted, numbers, rendersTag };
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;

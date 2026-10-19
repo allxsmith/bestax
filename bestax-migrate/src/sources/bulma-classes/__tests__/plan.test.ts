@@ -4,7 +4,7 @@
  * which elements convert, which refuse, and what they say.
  */
 
-import { ROOTS } from '../class-map.js';
+import { ROOTS, type RootEntry } from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 
 function facts(
@@ -1244,6 +1244,40 @@ describe('plan', () => {
           .map(([token]) => `${root} ${token}`)
       );
       expect(outside).toEqual([]);
+    });
+
+    it('lets one class pick the tag, and keeps a second as a class', () => {
+      // No root has two classes that pick a tag through different props, so
+      // this one is made up, to show the order of the two decides nothing
+      // but which one converts.
+      const roots = ROOTS as Record<string, RootEntry>;
+      roots['x-retag'] = {
+        status: 'mapped',
+        target: 'X',
+        tag: 'div',
+        as: ['div', 'section', 'aside'],
+        modifiers: {
+          'is-a': { writes: [{ prop: 'a' }], rendersTag: 'section' },
+          'is-b': { writes: [{ prop: 'b' }], rendersTag: 'aside' },
+        },
+        ownProps: ['as', 'a', 'b'],
+      };
+      try {
+        expect(
+          plan(facts('section', 'x-retag is-a is-b')).conversion
+        ).toMatchObject({ props: [['a', true]], className: 'is-b' });
+        expect(
+          plan(facts('section', 'x-retag is-b is-a')).conversion
+        ).toMatchObject({
+          props: [
+            ['as', 'section'],
+            ['b', true],
+          ],
+          className: 'is-a',
+        });
+      } finally {
+        delete roots['x-retag'];
+      }
     });
 
     it('writes a ratio as `size`, with `as` only off the <figure> it renders', () => {
