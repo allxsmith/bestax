@@ -1072,6 +1072,20 @@ describe('lookup_bulma_classes', () => {
     expect(await lookup('tag')).not.toContain('<i>');
   });
 
+  it('says "an" before a tag read with a vowel sound', async () => {
+    expect(await lookup('tag', 'a')).toContain(
+      '**Component:** `Tag` renders only <span>, not an <a>. Change the tag to use it, and the rows below are what it takes then; the codemod leaves an <a> as markup.'
+    );
+    expect(await lookup('section', 'div')).toContain(
+      '`Section` renders only <section>, not a <div>'
+    );
+    // Not by the letter alone: a <ul> reads "you".
+    expect(await lookup('breadcrumb')).toContain(
+      'converts only around a <ul> with no class or attribute'
+    );
+    expect(await lookup('image')).toContain('only around an <img>');
+  });
+
   it('says when a class is exact only on some tags', async () => {
     expect(await lookup('title is-4')).toContain(
       '| `is-4` | `size="4"` | exact only on <h4> or <p>; on another tag, `textSize="4"` sizes it the same and keeps the tag |'

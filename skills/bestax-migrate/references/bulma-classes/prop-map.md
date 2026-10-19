@@ -118,7 +118,7 @@ and as a Bulma helper it is `!important`, so check a title the page's own CSS si
 | `.level` → `Level`                                                           | `is-mobile`                                                                                                                                      | `isMobile`                                                                                        |
 | `.navbar` → `Navbar`                                                         | the ten `.hero` colors                                                                                                                           | `color`                                                                                           |
 | `.navbar` → `Navbar`                                                         | `is-fixed-top`, `is-fixed-bottom`                                                                                                                | `fixed` (`top`, `bottom`)                                                                         |
-| `.navbar` → `Navbar`                                                         | `is-transparent`                                                                                                                                 | `transparent`                                                                                     |
+| `.navbar` → `Navbar`                                                         | `is-transparent`, `is-spaced`, `has-shadow`                                                                                                      | `transparent`, `isSpaced`, `hasShadow`                                                            |
 | `.navbar-menu` → `Navbar.Menu`, `.navbar-item` → `Navbar.Item`               | `is-active`                                                                                                                                      | `active`                                                                                          |
 | `.navbar-dropdown` → `Navbar.DropdownMenu`                                   | `is-right`, `is-up`                                                                                                                              | `right`, `up`                                                                                     |
 | `.notification` → `Notification`                                             | `is-primary`, `is-link`, `is-info`, `is-success`, `is-warning`, `is-danger`, `is-black`, `is-white`, `is-dark`                                   | `color`                                                                                           |
@@ -139,9 +139,9 @@ converts only with `type` and `aria-label` set (see `defaults:<Target>` in the u
 and a `type="button"` is dropped, since bestax renders it by itself. `Card.Header.Icon` likewise
 converts only with an `aria-label` and a `type` of `button`, `submit` or `reset`, since it renders
 `aria-label="more options"` and `type="button"` otherwise.
-`.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. `.navbar`'s
-`is-spaced` and `has-shadow`, and a `.navbar-item`'s `has-dropdown` and `is-hoverable`, stay
-classes too: bestax has no prop for them on those components. So do a `.field`'s
+`.tag`'s `is-delete` stays a class: `isDelete` turns the tag into a `<button>`. A
+`.navbar-item`'s `has-dropdown` and `is-hoverable` stay classes too, since bestax has no prop for
+them on that component. So do a `.field`'s
 `has-addons-centered`, `has-addons-right` and `is-grouped-*`, because the `hasAddons` and
 `grouped` values that render them render `has-addons` and `is-grouped` as well, and an input's,
 textarea's or select's color, because `color` renders `has-text-<color>` on it too. On a

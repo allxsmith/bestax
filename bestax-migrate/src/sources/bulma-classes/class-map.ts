@@ -1513,10 +1513,22 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     modifiers: {
       ...tokens('is-', COMPONENT_COLORS, 'color'),
       ...tokens('is-fixed-', ['top', 'bottom'], 'fixed'),
-      ...flags({ 'is-transparent': 'transparent' }),
+      ...flags({
+        'is-transparent': 'transparent',
+        'is-spaced': 'isSpaced',
+        'has-shadow': 'hasShadow',
+      }),
     },
     defaults: { role: 'navigation', 'aria-label': 'main navigation' },
-    ownProps: ['textColor', 'color', 'bgColor', 'transparent', 'fixed'],
+    ownProps: [
+      'textColor',
+      'color',
+      'bgColor',
+      'transparent',
+      'isSpaced',
+      'hasShadow',
+      'fixed',
+    ],
   },
   // No background prop on these parts.
   'navbar-brand': {

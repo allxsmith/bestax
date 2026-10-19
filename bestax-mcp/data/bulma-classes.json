@@ -2442,7 +2442,9 @@
         "is-fixed-bottom": {
           "writes": [{ "prop": "fixed", "value": "bottom" }]
         },
-        "is-transparent": { "writes": [{ "prop": "transparent" }] }
+        "is-transparent": { "writes": [{ "prop": "transparent" }] },
+        "is-spaced": { "writes": [{ "prop": "isSpaced" }] },
+        "has-shadow": { "writes": [{ "prop": "hasShadow" }] }
       },
       "omits": {},
       "wrapsChildren": null,

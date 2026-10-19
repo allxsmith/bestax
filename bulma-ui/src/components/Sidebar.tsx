@@ -8,7 +8,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
-import { useOverlayStack } from '../helpers/overlayStack';
+import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
 import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
 import { inertProps } from '../helpers/inertProps';
 import {
@@ -30,10 +30,13 @@ export interface SidebarProps
     BulmaClassesProps {
   /**
    * Whether the sidebar is open (required). Opening moves focus into the
-   * sidebar, to its first tab stop or the sidebar itself. Closing hands focus
-   * back to whatever had it when the sidebar opened, unless focus has already
-   * left the sidebar, as it does for an overlay opened over it. A closed
-   * sidebar stays in the page, so it can slide out, and is `inert` and
+   * sidebar, to its first tab stop or the sidebar itself, except for a sidebar
+   * without an overlay opened while a modal overlay, such as a Modal, is open:
+   * that one leaves focus where it is. That's decided as it opens, and
+   * changing `overlay` while it's open doesn't move focus. Closing hands
+   * focus back to whatever had it when the sidebar opened, unless focus has
+   * already left the sidebar, as it does for an overlay opened over it. A
+   * closed sidebar stays in the page, so it can slide out, and is `inert` and
    * `aria-hidden` there: Tab passes over its content and assistive
    * technology doesn't read it.
    */
@@ -51,10 +54,13 @@ export interface SidebarProps
   /**
    * Show an overlay behind the sidebar, which makes it modal: it gets
    * `aria-modal="true"`, locks body scroll, and keeps Tab and Shift+Tab
-   * inside it while it is the topmost overlay. A Modal or Dialog opened over
-   * it, even one rendered inside it, holds Tab until it closes. Without an
-   * overlay the sidebar isn't modal, and Tab moves in and out of it freely.
-   * Default: true.
+   * inside it while it is the topmost modal overlay. A Modal or Dialog opened
+   * over it, even one rendered inside it, holds Tab until it closes. Without
+   * an overlay the sidebar isn't modal and holds no Tab: on the page, Tab
+   * moves in and out of it freely, and opened over a Modal, it leaves the
+   * Modal holding Tab, and focus, while still taking Escape first. Whether
+   * the sidebar takes focus is decided as it opens: changing this while it's
+   * open moves the Tab trap, not focus. Default: true.
    */
   overlay?: boolean;
   /** Close sidebar when overlay is clicked. Default: true. */
@@ -156,8 +162,10 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     const handleCloseRef = useLatestRef(handleClose);
 
     // Joins the stack of open overlays, so the sidebar answers Escape only
-    // while it's the topmost overlay, and keeps it from those under it.
-    const isTopmost = useOverlayStack(isOpen);
+    // while it's the topmost overlay, and keeps it from those under it. It's
+    // modal with an overlay: without one it leaves Tab to a modal overlay
+    // under it.
+    const isTopmost = useOverlayStack(isOpen, overlay);
     const closesOnEscape = escapeClose && canCancel && Boolean(onClose);
 
     // Handle escape key. On `window`, as in `Modal`, so everything inside the
@@ -178,17 +186,18 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
 
     // Keep Tab inside while there's an overlay, as `Modal` does:
     // `aria-modal` hides the rest of the page from assistive technology, so
-    // the keyboard order has to agree. Only while it's the topmost overlay,
-    // so a Modal or Dialog opened over the sidebar, even one rendered inside
-    // it, holds Tab instead until it closes. On `window` for the same reason
-    // as Escape: a trap inside, such as a portaled popup's, has had the Tab
-    // first, and one it used is left where it put focus. It's the trap
+    // the keyboard order has to agree. Only while it's the topmost modal
+    // overlay, so a Modal or Dialog opened over the sidebar, even one
+    // rendered inside it, holds Tab instead until it closes, and a sidebar
+    // without an overlay opened over it doesn't. On `window` for the same
+    // reason as Escape: a trap inside, such as a portaled popup's, has had
+    // the Tab first, and one it used is left where it put focus. It's the trap
     // `useFocusTrap` sets, so a Tab the browser still takes out, as Safari
     // does past links, is sent back in.
     useEffect(() => {
       const node = sidebarRef.current;
       if (!isOpen || !overlay || !node) return undefined;
-      return trapTab(node, window, isTopmost);
+      return trapTab(node, window, () => isTopmost('modal'));
       // A different `defaultTarget`, or switching `inline`, remounts the
       // aside, so the trap moves to the new node.
     }, [isOpen, overlay, isTopmost, defaultTarget, inline]);
@@ -201,7 +210,9 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // the sidebar itself, and hand it back on close, as `Modal` does. A
     // different `defaultTarget` remounts the portaled sidebar: the cleanup
     // hands focus back from the old nodes, which left it on <body>, and the
-    // re-run records the same opener and focuses the new nodes.
+    // re-run records the same opener and focuses the new nodes. Whether it
+    // takes focus is decided as it opens, so `overlay` changing while it's
+    // open leaves focus where the user has it.
     useEffect(() => {
       if (!isOpen) return undefined;
       const element = sidebarRef.current;
@@ -212,7 +223,13 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       // renders under `document.body` while its opener can be inside a
       // shadow root.
       const opener = getDeepestActiveElement() as HTMLElement | null;
-      (firstTabStop(element) ?? element).focus();
+      // Without an overlay the sidebar holds no Tab, so with a modal overlay
+      // open under it, the first Tab would take focus back there and leave
+      // the sidebar's other controls out of reach. It leaves focus alone
+      // then, and the cleanup below finds focus outside and leaves it too.
+      if (overlay || !isModalOverlayOpen()) {
+        (firstTabStop(element) ?? element).focus();
+      }
 
       return () => {
         // Only while the sidebar still holds focus: closing one under another
@@ -224,6 +241,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
           opener?.focus();
         }
       };
+      // eslint-disable-next-line react-hooks/exhaustive-deps -- `overlay` is read as the sidebar opens, on purpose
     }, [isOpen, defaultTarget]);
 
     // Use combined ref

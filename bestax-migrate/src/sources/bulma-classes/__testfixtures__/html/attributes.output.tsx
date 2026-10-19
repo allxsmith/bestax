@@ -1,7 +1,7 @@
 import { Box, Button, Notification, Title } from "@allxsmith/bestax-bulma";
 
 export default function AttributesPage() {
-  // TODO(bestax-migrate): bestax `Tag` renders only <span>, not a <a>; keep the markup, or change the tag and re-run
+  // TODO(bestax-migrate): bestax `Tag` renders only <span>, not an <a>; keep the markup, or change the tag and re-run
   return (
     <Box
       id="intro"
