@@ -53,7 +53,8 @@ export interface Modifier {
   /**
    * The tag the target renders with this class's prop and no `as`, in place
    * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
-   * converts with `as` only on another tag.
+   * converts with `as` only on another tag. It is one of the tags `as`
+   * reaches, which the planner checks an element's tag against first.
    */
   readonly rendersTag?: string;
 }

@@ -4,6 +4,7 @@
  * which elements convert, which refuse, and what they say.
  */
 
+import { ROOTS } from '../class-map.js';
 import { plan, type ChildFacts, type ElementFacts } from '../plan.js';
 
 function facts(
@@ -1226,6 +1227,23 @@ describe('plan', () => {
       expect(framed?.absorbs).toBeUndefined();
       expect(framed?.props).toEqual([['size', '16by9']]);
       expect(framed?.className).toBeNull();
+    });
+
+    it('names in rendersTag only a tag the root reaches through `as`', () => {
+      // The planner reads the tags `as` reaches as the ones the target
+      // renders (a `dropsAttr` refusal applies only there), so a tag a
+      // modifier renders has to be one of them.
+      const outside = Object.entries(ROOTS).flatMap(([root, entry]) =>
+        Object.entries(entry.modifiers ?? {})
+          .filter(
+            ([, modifier]) =>
+              modifier.rendersTag !== undefined &&
+              entry.as !== 'any' &&
+              !(entry.as ?? []).includes(modifier.rendersTag)
+          )
+          .map(([token]) => `${root} ${token}`)
+      );
+      expect(outside).toEqual([]);
     });
 
     it('writes a ratio as `size`, with `as` only off the <figure> it renders', () => {
