@@ -12,7 +12,8 @@
  * class in the rule's table, on every tag the codemod's table renders or
  * reaches through `as`, lints what it wrote with the rule's build, and fails
  * on an element the rule still says converts that the codemod left with no
- * TODO. One element a run keeps each report with its element. Elements are
+ * TODO, and on output that doesn't parse, which the rule can't read. One
+ * element a run keeps each report with its element. Elements are
  * read alone, so a part left as markup because of what is around it is out
  * of reach here; the kitchen sinks hold those to their TODOs.
  */
@@ -105,6 +106,7 @@ describe("the codemod's output, linted", () => {
   it('leaves a TODO on every element the rule says the codemod converts', async () => {
     const tools = await load();
     const silent = [];
+    const unparsed = [];
     let flagged = 0;
     let converted = 0;
     for (const [cls, { converts }] of tools.classes) {
@@ -121,12 +123,21 @@ describe("the codemod's output, linted", () => {
           source,
           { add: todo => todos.push(todo) }
         );
-        const reports = tools.linter
-          .verify(output ?? source, tools.config, 'a.tsx')
-          .filter(
-            message =>
-              message.ruleId === RULE && message.messageId === 'converts'
-          );
+        const messages = tools.linter.verify(
+          output ?? source,
+          tools.config,
+          'a.tsx'
+        );
+        // Output that doesn't parse reports nothing the rule says, which
+        // would read as converted.
+        const fatal = messages.find(message => message.fatal);
+        if (fatal) {
+          unparsed.push(`<${tag} className="${cls}">: ${fatal.message}`);
+          continue;
+        }
+        const reports = messages.filter(
+          message => message.ruleId === RULE && message.messageId === 'converts'
+        );
         if (reports.length === 0) {
           converted++;
           continue;
@@ -138,6 +149,7 @@ describe("the codemod's output, linted", () => {
     // Neither half is empty, so the rule and the codemod both ran.
     assert.ok(converted > 0, 'no element converted');
     assert.ok(flagged > 0, 'the rule reported no element the codemod left');
+    assert.deepEqual(unparsed, []);
     assert.deepEqual(silent, []);
   });
 });
