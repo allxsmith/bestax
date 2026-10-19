@@ -240,6 +240,8 @@ flexDirection="column"` + `flexGrow="1"` pattern applies to `Cell` + `Card`.
 | --------------- | ---------------------------------------------------------------------------------------------------------------- |
 | `fixed`         | `'top' \| 'bottom'`                                                                                              |
 | `transparent`   | `boolean`                                                                                                        |
+| `isSpaced`      | `boolean` (Bulma's `is-spaced`, from desktop up)                                                                 |
+| `hasShadow`     | `boolean` (default `false`, unlike `Card`'s; Bulma's `has-shadow`)                                               |
 | `color`         | `'primary' \| 'link' \| 'info' \| 'success' \| 'warning' \| 'danger' \| 'black' \| 'dark' \| 'light' \| 'white'` |
 | `Navbar.Item`   | `as?`, `active?`, `href`                                                                                         |
 | `Navbar.Burger` | `active?`, `onClick`                                                                                             |
@@ -249,7 +251,12 @@ The burger/menu is controlled state — toggle `Navbar.Burger active`/`onClick` 
 flag to `Navbar.Menu active`. **A `fixed="top"` navbar requires `has-navbar-fixed-top` on `<html>`**
 (Bulma offsets the page from it); the library adds no helper. Set it statically —
 `<html class="has-navbar-fixed-top">` in `index.html` — reserving a `classList.add` effect for
-a navbar that mounts conditionally.
+a navbar that mounts conditionally. **With `isSpaced`, add `has-spaced-navbar-fixed-top` too**
+(`<html class="has-navbar-fixed-top has-spaced-navbar-fixed-top">`): from desktop up the spaced
+navbar is taller than the plain class pads the page for, and there the spaced class pads it for
+the taller navbar, so with the plain class alone the top of the page sits under the navbar. A
+`fixed="bottom"` navbar takes `has-navbar-fixed-bottom`, and `has-spaced-navbar-fixed-bottom`
+beside it with `isSpaced`.
 
 **Routing:** in a routed app, don't use `href="#"` — render items as the router's link
 component. `Menu.Item as={Link} to="/x"` and `Navbar.Item as={Link} to="/x"` both compile

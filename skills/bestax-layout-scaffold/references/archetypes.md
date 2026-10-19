@@ -164,8 +164,8 @@ style, so bands cost zero custom CSS. The same values work on `Hero` (and its
 **Hero CTAs:** on a colored hero use **filled** buttons only — `color="light"` for the primary
 CTA and `color="primary" isInverted` (solid white, primary text) for a secondary. A thin
 `isOutlined` button on a fixed-color surface is low-contrast and degrades further under OS dark
-mode. Single-mode page designs should also pin the scheme at the root
-(`<Theme isRoot colorMode="light">`) — see the `bestax-theming` skill's contrast rules.
+mode. Single-mode page designs should also pin the scheme on the `<html>` in `index.html`
+(`<html lang="en" data-theme="light">`); see the `bestax-theming` skill's contrast rules.
 
 ---
 

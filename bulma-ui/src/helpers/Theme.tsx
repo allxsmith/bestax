@@ -892,6 +892,12 @@ export interface ThemeProps extends Omit<
    * Theme writes both, and `'system'` or unmounting clears or restores both.
    * If the prefix cannot form an attribute name, `'light'` and `'dark'`
    * write only `data-theme` and warn in development.
+   *
+   * The attribute is written from an effect, so a page rendered in the
+   * browser paints its first frame with whatever `<html>` already has, the
+   * visitor's OS scheme when that is nothing. Put a scheme that never changes
+   * on `<html>` in `index.html` instead, and write a saved choice from an
+   * inline `<head>` script, starting `colorMode` from what it wrote.
    */
   colorMode?: 'light' | 'dark' | 'system';
   /**

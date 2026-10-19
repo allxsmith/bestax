@@ -129,8 +129,9 @@ The ring has a fixed width, so `mx="auto"` centers it. Mark the region that is l
 - **Forced colors:** Bulma leaves two sides of the ring transparent, and a contrast theme paints
   those in the text color like any other border, which would close the ring. In forced colors,
   bestax paints those two sides in `Canvas`, the page's own color, so the ring stays open. That
-  goes for the `isLoading` rings on buttons, controls and selects too, and it ships in the same
-  stylesheets as the reduced-motion rule.
+  goes for the `isLoading` rings on controls and selects too. A loading button names its own
+  colors there, so its ring is drawn in the button's border color and open onto the button. It
+  ships in the same stylesheets as the reduced-motion rule.
 
 ---
 

@@ -59,12 +59,12 @@
         {
           "id": "archetypes",
           "file": "references/archetypes.md",
-          "bytes": 10240
+          "bytes": 10260
         },
         {
           "id": "layout-components",
           "file": "references/layout-components.md",
-          "bytes": 16712
+          "bytes": 17448
         }
       ],
       "examples": [
@@ -108,17 +108,17 @@
         {
           "id": "bulma-classes-prop-map",
           "file": "references/bulma-classes/prop-map.md",
-          "bytes": 35312
+          "bytes": 35269
         },
         {
           "id": "bulma-classes-unmappables",
           "file": "references/bulma-classes/unmappables.md",
-          "bytes": 47850
+          "bytes": 48053
         },
         {
           "id": "css-migration",
           "file": "references/css-migration.md",
-          "bytes": 9528
+          "bytes": 10160
         },
         {
           "id": "rbx-component-map",
@@ -162,7 +162,7 @@
         {
           "id": "modular-build",
           "file": "references/modular-build.md",
-          "bytes": 11936
+          "bytes": 11993
         }
       ],
       "examples": []
@@ -176,7 +176,7 @@
         {
           "id": "css-variables",
           "file": "references/css-variables.md",
-          "bytes": 39087
+          "bytes": 44975
         },
         {
           "id": "themeable-components",
@@ -185,11 +185,11 @@
         }
       ],
       "examples": [
-        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 1242 },
+        { "id": "dark-mode", "file": "examples/dark-mode.tsx", "bytes": 4058 },
         {
           "id": "theme-config",
           "file": "examples/theme-config.tsx",
-          "bytes": 2096
+          "bytes": 2501
         }
       ]
     }
