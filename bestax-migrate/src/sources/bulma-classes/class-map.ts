@@ -54,10 +54,10 @@ export interface Modifier {
    * The tag the target renders with this class's prop and no `as`, in place
    * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
    * converts with `as` only on another tag. The planner's tag check, which
-   * comes before every refusal, reads it. It is one of the tags `as` reaches,
-   * which are the ones the render truth test sweeps. Only one such class
-   * converts on an element; a second stays a class, the way a second class
-   * for a prop already written does.
+   * comes before every refusal, reads it, and the render truth test holds it
+   * to one of the tags it renders the root on. Only one such class converts
+   * on an element; a second stays a class, the way a second class for a prop
+   * already written does.
    */
   readonly rendersTag?: string;
 }

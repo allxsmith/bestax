@@ -1348,23 +1348,6 @@ describe('plan', () => {
       expect(framed?.className).toBeNull();
     });
 
-    it('names in rendersTag only a tag the root reaches through `as`', () => {
-      // The render truth test sweeps each root on its tag and the tags `as`
-      // reaches, so a tag a modifier renders is held to the markup only as
-      // one of them.
-      const outside = Object.entries(ROOTS).flatMap(([root, entry]) =>
-        Object.entries(entry.modifiers ?? {})
-          .filter(
-            ([, modifier]) =>
-              modifier.rendersTag !== undefined &&
-              entry.as !== 'any' &&
-              !(entry.as ?? []).includes(modifier.rendersTag)
-          )
-          .map(([token]) => `${root} ${token}`)
-      );
-      expect(outside).toEqual([]);
-    });
-
     it('lets one class pick the tag, and keeps a second as a class', () => {
       // No root has two classes that pick a tag through different props, so
       // this one is made up, to show the order of the two decides nothing
