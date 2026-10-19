@@ -2131,6 +2131,11 @@ describe('plan', () => {
         plan(facts('div', 'select', {}, { spacedElements: [label, own] }))
           .todos[0].message
       ).toContain("goes on bestax's `Select` instead");
+      // A computed className is named, not dropped: it may be what hides it.
+      const computed = { ...label, tokens: null };
+      expect(select([computed, own])[0].message).toContain(
+        'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
+      );
       // Anything else beside the select is just in the way.
       for (const children of [
         [child('span'), own],

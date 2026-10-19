@@ -176,8 +176,9 @@ never is.
 A `<label>` beside the `<select>` in a `.select` (a visually hidden one, say) is that case too,
 since `SelectBase` renders no label. bestax's convenience `Select` takes it: the label's text as
 `label` and its classes in `labelProps`, and it points the label at the `<select>`'s `id` itself.
-It renders the `.select` inside a `Field` and a `Control`, so convert the two by hand and check
-the layout:
+A computed `className` on the label goes in `labelProps` as the same expression, since it may be
+what hides the label. `Select` renders the `.select` inside a `Field` and a `Control`, so convert
+the two by hand and check the layout:
 
 ```tsx
 <Select

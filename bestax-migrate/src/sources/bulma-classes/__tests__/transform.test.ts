@@ -655,6 +655,32 @@ describe('an element a component renders inside itself', () => {
     );
   });
 
+  it.each([
+    [
+      'a literal',
+      'className="is-sr-only"',
+      "`labelProps={{ className: 'is-sr-only' }}`",
+    ],
+    [
+      'a computed',
+      'className={hidden}',
+      'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression',
+    ],
+    [
+      'a clsx',
+      "className={clsx('is-sr-only', hidden && 'x')}",
+      'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression',
+    ],
+  ])(
+    'carries %s className on the label into the recipe',
+    (_, className, says) => {
+      const { output } = migrate(
+        `import clsx from 'clsx';\nexport const A = ({ hidden }: { hidden: string }) => (\n  <div className="select">\n    <label htmlFor="lang" ${className}>Language</label>\n    <select id="lang">\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+      );
+      expect(output).toContain(says);
+    }
+  );
+
   it('keeps each comment in the tags, once', () => {
     const { output, rules } = migrate(
       'export const A = () => (\n  // above\n  <div /* outer */ className="select">\n    <select /* inner */ name="n" /* last */>\n      <option>x</option>\n    </select /* close */>\n  </div /* outer close */>\n);\n'

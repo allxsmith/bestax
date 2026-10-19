@@ -1404,8 +1404,15 @@ function labelBeside(
   ) {
     return '';
   }
-  const classes = label.tokens?.length ? label.tokens.join(' ') : undefined;
-  return `; the <label> beside it goes on bestax's \`${spec.label}\` instead, which renders ${where} inside a \`Field\` and a \`Control\`: the label's text as \`label\`${classes ? `, its classes as \`labelProps={{ className: '${classes}' }}\`` : ''}, and \`${spec.label}\` points the label at the <${spec.tag}>'s \`id\` itself, so convert the two by hand`;
+  // A computed `className` (`null`) is one the codemod can't read, and it
+  // may be what hides the label, so it is named rather than left out.
+  const classes =
+    label.tokens === null
+      ? ', its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
+      : label.tokens?.length
+        ? `, its classes as \`labelProps={{ className: '${label.tokens.join(' ')}' }}\``
+        : '';
+  return `; the <label> beside it goes on bestax's \`${spec.label}\` instead, which renders ${where} inside a \`Field\` and a \`Control\`: the label's text as \`label\`${classes}, and \`${spec.label}\` points the label at the <${spec.tag}>'s \`id\` itself, so convert the two by hand`;
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;
