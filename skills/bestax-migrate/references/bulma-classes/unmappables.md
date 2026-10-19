@@ -177,8 +177,8 @@ A `<label>` beside the `<select>` in a `.select` (a visually hidden one, say) is
 since `SelectBase` renders no label. bestax's convenience `Select` takes it: the label's text as
 `label` and its classes in `labelProps`, and it points the label at the `<select>`'s `id` itself.
 A computed `className` on the label goes in `labelProps` as the same expression, since it may be
-what hides the label. `Select` renders the `.select` inside a `Field` and a `Control`, so convert
-the two by hand and check the layout:
+what hides the label, and so does what a spread on it carries. `Select` renders the `.select`
+inside a `Field` and a `Control`, so convert the two by hand and check the layout:
 
 ```tsx
 <Select
@@ -191,6 +191,13 @@ the two by hand and check the layout:
   <option>French</option>
 </Select>
 ```
+
+That holds only where the `.select` isn't inside a `.field` or a `.control` (or a `Field` or
+`Control`). Inside a `Field`, `Select` renders no label of its own and drops `label` and
+`labelProps`, so the select would lose its name; inside a bare `Control`, it puts its label's
+`.field` inside the `.control`. There, keep the label the page's: move the `<label>` out beside
+the `.select`, its `htmlFor` on the `<select>`'s `id`, or give the `<select>` an `aria-label` in
+its place, then re-run, and the `.select` converts to `SelectBase`.
 
 A menu item is the same from the `<li>`'s side: `Menu.Item` renders the `<a>` inside it, and a
 `Menu.List` after that, so an item converts only when its `<li>` holds one `<a>` and at most one

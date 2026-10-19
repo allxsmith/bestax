@@ -2255,6 +2255,39 @@ describe('plan', () => {
       expect(select([computed, own])[0].message).toContain(
         'its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
       );
+      // So is a spread, which can carry a className of its own.
+      expect(select([{ ...label, hasSpread: true }, own])[0].message).toContain(
+        "its classes as `labelProps={{ className: 'is-sr-only' }}`, what its spread carries in `labelProps` too, since it can set a `className` of its own"
+      );
+      // Inside a Field, Select drops its label, so the label stays the page's.
+      const inside = (extra: Partial<ElementFacts>) =>
+        plan(
+          facts('div', 'select', {}, { childElements: [label, own], ...extra })
+        ).todos[0].message;
+      const keep =
+        "so move the <label> out beside `.select`, its `htmlFor` on the <select>'s `id`, or give the <select> an `aria-label` in its place, then re-run";
+      for (const extra of [
+        { classesAround: ['control', 'field'] },
+        { bestaxAround: ['Field'] },
+      ]) {
+        const message = inside(extra);
+        expect(message).toContain(
+          "inside a `Field` bestax's `Select` renders no label of its own and drops `label` and `labelProps`"
+        );
+        expect(message).toContain(keep);
+        expect(message).not.toContain('goes on bestax');
+      }
+      // In a bare Control, Select would nest its label's .field inside it.
+      for (const extra of [
+        { classesAround: ['control'] },
+        { bestaxAround: ['Control'] },
+      ]) {
+        const message = inside(extra);
+        expect(message).toContain(
+          "inside a `Control` with no `Field` around it, bestax's `Select` renders its label in a `.field` of its own inside the `.control`"
+        );
+        expect(message).toContain(keep);
+      }
       // Anything else beside the select is just in the way.
       for (const children of [
         [child('span'), own],

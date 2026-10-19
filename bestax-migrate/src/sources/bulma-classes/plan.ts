@@ -1392,6 +1392,12 @@ function propsFrom(
  * For an element whose children are the child its target renders and one
  * <label> beside it: where the label goes instead, when the table names a
  * component that takes one (`Select`'s `label`). Empty otherwise.
+ *
+ * That component renders the label in a `Field` of its own, which it renders
+ * only outside one: inside a `Field` it drops `label` and `labelProps`, and
+ * inside a bare `Control` it nests a `.field` in the `.control`. So inside
+ * either the label stays a label of the page's, moved out beside the
+ * element, or the child takes an `aria-label` in its place.
  */
 function labelBeside(
   facts: ElementFacts,
@@ -1408,15 +1414,30 @@ function labelBeside(
   ) {
     return '';
   }
+  const around = (name: string) =>
+    facts.bestaxAround?.includes(name) ||
+    facts.classesAround?.includes(name.toLowerCase());
+  const inForm = around('Field')
+    ? `inside a \`Field\` bestax's \`${spec.label}\` renders no label of its own and drops \`label\` and \`labelProps\``
+    : around('Control')
+      ? `inside a \`Control\` with no \`Field\` around it, bestax's \`${spec.label}\` renders its label in a \`.field\` of its own inside the \`.control\`, which Bulma's styles aren't written for`
+      : undefined;
+  if (inForm) {
+    return `; the <label> beside it can't stay inside the ${where} that bestax renders, and ${inForm}, so move the <label> out beside ${where}, its \`htmlFor\` on the <${spec.tag}>'s \`id\`, or give the <${spec.tag}> an \`aria-label\` in its place, then re-run`;
+  }
   // A computed `className` (`null`) is one the codemod can't read, and it
-  // may be what hides the label, so it is named rather than left out.
+  // may be what hides the label, so it is named rather than left out. So is
+  // a spread, which can carry a `className` of its own.
   const classes =
     label.tokens === null
       ? ', its `className`, which is computed, as `labelProps={{ className: … }}` with the same expression'
       : label.tokens?.length
         ? `, its classes as \`labelProps={{ className: '${label.tokens.join(' ')}' }}\``
         : '';
-  return `; the <label> beside it goes on bestax's \`${spec.label}\` instead, which renders ${where} inside a \`Field\` and a \`Control\`: the label's text as \`label\`${classes}, and \`${spec.label}\` points the label at the <${spec.tag}>'s \`id\` itself, so convert the two by hand`;
+  const spread = label.hasSpread
+    ? ', what its spread carries in `labelProps` too, since it can set a `className` of its own'
+    : '';
+  return `; the <label> beside it goes on bestax's \`${spec.label}\` instead, which renders ${where} inside a \`Field\` and a \`Control\`: the label's text as \`label\`${classes}${spread}, and \`${spec.label}\` points the label at the <${spec.tag}>'s \`id\` itself, so convert the two by hand`;
 }
 
 type Refuse = (kind: string, token: string, message: string) => Plan;

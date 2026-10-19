@@ -681,6 +681,35 @@ describe('an element a component renders inside itself', () => {
     }
   );
 
+  it('names a spread on the label in the recipe', () => {
+    const { output } = migrate(
+      `export const A = (rest: object) => (\n  <div className="select">\n    <label {...rest} className="is-sr-only" htmlFor="lang">Language</label>\n    <select id="lang">\n      <option>x</option>\n    </select>\n  </div>\n);\n`
+    );
+    expect(output).toContain(
+      'what its spread carries in `labelProps` too, since it can set a `className` of its own'
+    );
+  });
+
+  it("keeps the label the page's inside the .field and .control the codemod writes", () => {
+    const { output, rules } = migrate(
+      `export const A = () => (\n  <div className="field">\n    <div className="control">\n      <div className="select">\n        <label className="is-sr-only" htmlFor="lang">Language</label>\n        <select id="lang">\n          <option>x</option>\n        </select>\n      </div>\n    </div>\n  </div>\n);\n`
+    );
+    expect(rules).toEqual(['children:SelectBase']);
+    expect(output).toContain('<Field>');
+    expect(output).toContain(
+      "inside a `Field` bestax's `Select` renders no label of its own and drops `label` and `labelProps`, so move the <label> out beside `.select`, its `htmlFor` on the <select>'s `id`, or give the <select> an `aria-label` in its place, then re-run"
+    );
+    // Done, a re-run converts the .select, and the label still names it.
+    const moved = migrate(
+      `export const A = () => (\n  <div className="field">\n    <div className="control">\n      <label className="is-sr-only" htmlFor="lang">Language</label>\n      <div className="select">\n        <select id="lang">\n          <option>x</option>\n        </select>\n      </div>\n    </div>\n  </div>\n);\n`
+    );
+    expect(moved.rules).toEqual([]);
+    expect(moved.output).toContain('<SelectBase id="lang">');
+    expect(moved.output).toContain(
+      '<label className="is-sr-only" htmlFor="lang">Language</label>'
+    );
+  });
+
   it('keeps each comment in the tags, once', () => {
     const { output, rules } = migrate(
       'export const A = () => (\n  // above\n  <div /* outer */ className="select">\n    <select /* inner */ name="n" /* last */>\n      <option>x</option>\n    </select /* close */>\n  </div /* outer close */>\n);\n'

@@ -143,7 +143,10 @@ A couple of results look odd until you see why:
   written, and so does an input's or a select's color class (`is-danger`), since bestax's
   `color` also sets the text color. A `<label>` inside a `.select`, beside its `<select>`, keeps
   the `.select` as markup (`children:SelectBase`): `Select` is the component that takes it, as
-  `label` with its classes in `labelProps`, and you convert that one by hand.
+  `label` with its classes in `labelProps`, and you convert that one by hand. Inside a `.field`,
+  `Select` drops its label, and inside a bare `.control` it nests the label's `.field` there, so
+  move the `<label>` out beside the `.select` instead, or give the `<select>` an `aria-label`,
+  and re-run.
 
 ## What it leaves for you
 

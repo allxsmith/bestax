@@ -53,8 +53,9 @@ export interface Modifier {
   /**
    * Off the tags in `tagIn`, where the class stays a class, the prop that
    * sizes the element the same without picking its tag (`textSize`, whose
-   * `is-size-4` Bulma sizes as it does `Title`'s `is-4`), for the TODO there
-   * and the MCP lookup. The codemod writes it nowhere: its class differs.
+   * `is-size-4` Bulma sizes as it does `Title`'s `is-4`). The MCP lookup reads
+   * it, and the truth e2e holds it to Bulma's stylesheet; the codemod writes
+   * it nowhere, with no TODO either, since its class differs.
    */
   readonly offTag?: PropWrite;
 }
@@ -132,8 +133,9 @@ export interface Absorbs {
   /**
    * The bestax component that takes a `<label>` beside the child as its own
    * `label` (`Select`, which renders a `Field` and a `Control` around the
-   * target), for the TODO on an element holding one: the target renders no
-   * label, so the element stays markup.
+   * target, and so takes one only outside a `Field` or `Control`), for the
+   * TODO on an element holding one: the target renders no label, so the
+   * element stays markup.
    */
   readonly label?: string;
 }
