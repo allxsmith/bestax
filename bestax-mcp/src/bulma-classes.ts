@@ -610,24 +610,34 @@ export function lookupClasses(
       for (const write of modifier.writes) {
         writes.set(write.prop, { value: write.value ?? true, token });
       }
-      if (modifier.beside) {
-        verdicts.set(modifier.beside, {
-          kind: 'rendered',
-          target: target!,
-          condition: `from ${modifier.writes.map(writeText).join(' ')}, which \`${token}\` sets`,
-        });
-      }
       // A class the component renders from an attribute of the element
       // inside (`is-multiple` beside a `<select multiple>`).
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
         ([, pairedToken]) => pairedToken === token
       )?.[0];
-      const conditions = [
+      const gates = [
         modifier.tagIn && !tag && `exact only on ${listTags(modifier.tagIn)}`,
         paired &&
           `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
         modifier.needsAttr &&
           `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`,
+      ].filter(Boolean);
+      if (modifier.beside) {
+        // Rendered from the layout's value only where that converts, so the
+        // base row is hedged where the layout row is.
+        const base = own(entry.modifiers, modifier.beside);
+        const otherwise =
+          gates.length > 0 && base
+            ? ` where it converts, and otherwise from ${base.writes.map(writeText).join(' ')} on its own`
+            : '';
+        verdicts.set(modifier.beside, {
+          kind: 'rendered',
+          target: target!,
+          condition: `from ${modifier.writes.map(writeText).join(' ')}, which \`${token}\` sets${otherwise}`,
+        });
+      }
+      const conditions = [
+        ...gates,
         modifier.beside &&
           `beside \`${modifier.beside}\`, which it renders too`,
       ].filter(Boolean);

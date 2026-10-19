@@ -106,4 +106,21 @@ describe('a layout class beside its base, behind every modifier gate', () => {
     expect(condition).toContain('beside an `data-test` of the element');
     expect(condition).toContain('beside `has-addons`, which it renders too');
   });
+
+  it('hedges the base the way the layout class is hedged', () => {
+    // Without the attribute the layout class stays, and the base is its own
+    // flag, so the base row can't say flatly that the layout's value renders it.
+    expect(row('field has-addons test-needs', 'has-addons')).toEqual({
+      kind: 'rendered',
+      target: 'Field',
+      condition:
+        'from `hasAddons="centered"`, which `test-needs` sets where it converts, and otherwise from `hasAddons` on its own',
+    });
+    // A layout class with no gate of its own leaves nothing to hedge.
+    expect(row('field has-addons has-addons-right', 'has-addons')).toEqual({
+      kind: 'rendered',
+      target: 'Field',
+      condition: 'from `hasAddons="right"`, which `has-addons-right` sets',
+    });
+  });
 });
