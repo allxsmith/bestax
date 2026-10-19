@@ -1359,15 +1359,21 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         ).map(rule => rule.values['outline-color']?.value)
       ).toEqual(['CanvasText']);
     }
-    // And nowhere else.
+    // And no system color outside forced colors, anywhere in the sheet: one
+    // there would show in every theme, not just a contrast one.
     expect(
       rules
         .filter(rule => !rule.forcedColorsOnly)
-        .some(rule =>
-          Object.values(rule.values).some(({ value }) =>
-            /ButtonText|ButtonFace/.test(value)
-          )
+        .flatMap(rule =>
+          Object.entries(rule.values)
+            .filter(([, { value }]) =>
+              tokensOf(value).some(token => SYSTEM.test(token))
+            )
+            .map(
+              ([property, { value }]) =>
+                `${rule.selectors.join(', ')} { ${property}: ${value} }`
+            )
         )
-    ).toBe(false);
+    ).toEqual([]);
   });
 });
