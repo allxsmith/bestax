@@ -594,9 +594,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   bestax's `Navbar` adds none there, whatever its `fixed` says.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
   the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
-  `<Theme colorMode="dark">` writes `data-theme` on `<html>` too, but from an effect, after a
-  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches, the way
-  the bestax-theming skill's `examples/dark-mode.tsx` does.
+  For a scheme the visitor switches, `Theme colorMode` writes the choice only after that paint,
+  so write a saved one before it too, as `html-script:theme` says and the bestax-theming skill's
+  `examples/dark-mode.tsx` does.
 - **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
 - **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
   app's own `<body>` (or `<html>`), or on an element around the page's content if the styles
