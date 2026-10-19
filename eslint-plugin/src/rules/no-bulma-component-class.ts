@@ -29,8 +29,9 @@
  * bestax renders only inside a component (`.label`, `.help`), nor the parts
  * of a family, since the family's own class is reported where it sits. An
  * element carrying several is reported once, for the class the codemod
- * would decide by: a family first, else the first in the table's order whose
- * component renders the element's tag, else the first.
+ * would decide by: a family first, else the one whose component fits the
+ * element's tag best (its own tag, then one `as` reaches), the first in the
+ * table's order among equals.
  *
  * A spread does not silence it: the report is about the class the author
  * wrote, which is there whether or not a spread later replaces it.
@@ -78,16 +79,21 @@ function insideForeign(ancestors: readonly any[]): boolean {
 }
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
-/** Whether the class's component renders this tag. */
-function renders(entry: BulmaComponentClass, tag: string): boolean {
-  return entry.tags === 'any' || (entry.tags?.includes(tag) ?? false);
+/**
+ * How well the class's component fits this tag: 2 for its own tag, 1 for one
+ * it renders through `as`, 0 for neither.
+ */
+function fit(entry: BulmaComponentClass, tag: string | null): number {
+  if (tag === null) return 0;
+  if (entry.tag === tag) return 2;
+  return entry.tags === 'any' || entry.tags?.includes(tag) ? 1 : 0;
 }
 
 /**
  * The class the codemod decides by, among the ones in `tokens` that `keep`
  * allows: the first family class in the order the element carries them, else
- * the first in the table's order whose component renders `tag`, else the
- * first in that order.
+ * the one whose component fits `tag` best, the first in the table's order
+ * among equals.
  */
 function decidingClass(
   tokens: readonly string[],
@@ -102,9 +108,14 @@ function decidingClass(
   const carried = [...BULMA_COMPONENT_CLASSES].filter(
     ([key, entry]) => tokens.includes(key) && keep(entry)
   );
-  const fits =
-    tag === null ? undefined : carried.find(([, entry]) => renders(entry, tag));
-  return (fits ?? carried[0])?.[0];
+  const best = carried.reduce<(typeof carried)[number] | undefined>(
+    (found, candidate) =>
+      found === undefined || fit(candidate[1], tag) > fit(found[1], tag)
+        ? candidate
+        : found,
+    undefined
+  );
+  return best?.[0];
 }
 
 const rule: Rule.RuleModule = {

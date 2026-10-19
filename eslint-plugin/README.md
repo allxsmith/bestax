@@ -213,8 +213,9 @@ codemod or by hand, to keep raw Bulma markup from coming back.
 It reads the classes a `className` spells out, including the strings in a
 ternary, a template, or a call to `clsx`, `classnames` or `tailwind-merge`
 (however the file imports or requires it), and reports one class per element:
-the one the codemod would decide by, a family's first and then one whose
-component renders the element's tag. It reads `className` only on the components
+the one the codemod would decide by, a family's first and then the one whose
+component fits the element's tag best, its own tag before one it reaches through
+`as`. It reads `className` only on the components
 the codemod writes, whose own classes it knows, so `<Input className="box">` is
 left alone. A function your app defines, a `cn` in `lib/utils`
 included, is one it cannot see into, so it reads nothing there. It only reports. Whether an element converts

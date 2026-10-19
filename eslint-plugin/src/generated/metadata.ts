@@ -211,10 +211,13 @@ export interface BulmaComponentClass {
    * family whose component renders its own parts, converted by hand.
    */
   readonly converts: boolean;
+  /** For a class that converts: the tag its component renders by itself. */
+  readonly tag?: string;
   /**
    * For a class that converts: the tags its component renders, its own and
    * the ones `as` reaches, or `'any'`. Of the classes an element carries,
-   * the codemod decides by the first whose component renders its tag.
+   * the codemod decides by the one whose component fits its tag best: its
+   * own tag, then one of these, then none.
    */
   readonly tags?: readonly string[] | 'any';
   /**
@@ -228,8 +231,7 @@ export interface BulmaComponentClass {
  * Bulma classes that name a bestax component, from bestax-migrate's
  * bulma-classes table. In the order the codemod decides an element's
  * component when it carries several: a family first, then by precedence,
- * among the ones whose component renders the element's tag when there are
- * any.
+ * among the ones whose component fits the element's tag best.
  */
 export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
   new Map<string, BulmaComponentClass>([
@@ -244,15 +246,22 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
     ['navbar-burger', { component: 'Navbar.Burger', converts: false }],
     ['navbar-link', { component: 'Navbar.Link', converts: false }],
     ['panel-icon', { component: 'Panel.Icon', converts: false }],
-    ['columns', { component: 'Columns', converts: true, tags: ['div'] }],
-    ['column', { component: 'Column', converts: true, tags: ['div'] }],
-    ['grid', { component: 'Grid', converts: true, tags: ['div'] }],
-    ['cell', { component: 'Cell', converts: true, tags: ['div'] }],
+    [
+      'columns',
+      { component: 'Columns', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'column',
+      { component: 'Column', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    ['grid', { component: 'Grid', converts: true, tag: 'div', tags: ['div'] }],
+    ['cell', { component: 'Cell', converts: true, tag: 'div', tags: ['div'] }],
     [
       'container',
       {
         component: 'Container',
         converts: true,
+        tag: 'div',
         tags: [
           'div',
           'main',
@@ -267,12 +276,21 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
           'where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
       },
     ],
-    ['section', { component: 'Section', converts: true, tags: ['section'] }],
+    [
+      'section',
+      {
+        component: 'Section',
+        converts: true,
+        tag: 'section',
+        tags: ['section'],
+      },
+    ],
     [
       'hero',
       {
         component: 'Hero',
         converts: true,
+        tag: 'section',
         tags: [
           'section',
           'div',
@@ -289,126 +307,232 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
       {
         component: 'Hero.Head',
         converts: true,
+        tag: 'div',
         tags: ['div', 'header', 'nav'],
       },
     ],
-    ['hero-body', { component: 'Hero.Body', converts: true, tags: ['div'] }],
+    [
+      'hero-body',
+      { component: 'Hero.Body', converts: true, tag: 'div', tags: ['div'] },
+    ],
     [
       'hero-foot',
       {
         component: 'Hero.Foot',
         converts: true,
+        tag: 'div',
         tags: ['div', 'footer', 'nav'],
       },
     ],
     [
       'footer',
-      { component: 'Footer', converts: true, tags: ['footer', 'div'] },
+      {
+        component: 'Footer',
+        converts: true,
+        tag: 'footer',
+        tags: ['footer', 'div'],
+      },
     ],
-    ['level', { component: 'Level', converts: true, tags: ['nav'] }],
-    ['level-left', { component: 'Level.Left', converts: true, tags: ['div'] }],
+    [
+      'level',
+      { component: 'Level', converts: true, tag: 'nav', tags: ['nav'] },
+    ],
+    [
+      'level-left',
+      { component: 'Level.Left', converts: true, tag: 'div', tags: ['div'] },
+    ],
     [
       'level-right',
-      { component: 'Level.Right', converts: true, tags: ['div'] },
+      { component: 'Level.Right', converts: true, tag: 'div', tags: ['div'] },
     ],
     [
       'level-item',
-      { component: 'Level.Item', converts: true, tags: ['div', 'p', 'a'] },
+      {
+        component: 'Level.Item',
+        converts: true,
+        tag: 'div',
+        tags: ['div', 'p', 'a'],
+      },
     ],
-    ['media', { component: 'Media', converts: true, tags: ['article', 'div'] }],
+    [
+      'media',
+      {
+        component: 'Media',
+        converts: true,
+        tag: 'article',
+        tags: ['article', 'div'],
+      },
+    ],
     [
       'media-left',
-      { component: 'Media.Left', converts: true, tags: ['figure', 'div'] },
+      {
+        component: 'Media.Left',
+        converts: true,
+        tag: 'figure',
+        tags: ['figure', 'div'],
+      },
     ],
     [
       'media-content',
-      { component: 'Media.Content', converts: true, tags: ['div'] },
+      { component: 'Media.Content', converts: true, tag: 'div', tags: ['div'] },
     ],
     [
       'media-right',
-      { component: 'Media.Right', converts: true, tags: ['div'] },
+      { component: 'Media.Right', converts: true, tag: 'div', tags: ['div'] },
     ],
-    ['card', { component: 'Card', converts: true, tags: ['div'] }],
+    ['card', { component: 'Card', converts: true, tag: 'div', tags: ['div'] }],
     [
       'card-header',
-      { component: 'Card.Header', converts: true, tags: ['header'] },
+      {
+        component: 'Card.Header',
+        converts: true,
+        tag: 'header',
+        tags: ['header'],
+      },
     ],
     [
       'card-header-title',
       {
         component: 'Card.Header.Title',
         converts: true,
+        tag: 'div',
         tags: ['div', 'p', 'h2', 'h3', 'h4'],
       },
     ],
     [
       'card-header-icon',
-      { component: 'Card.Header.Icon', converts: true, tags: ['button'] },
+      {
+        component: 'Card.Header.Icon',
+        converts: true,
+        tag: 'button',
+        tags: ['button'],
+      },
     ],
-    ['card-image', { component: 'Card.Image', converts: true, tags: ['div'] }],
+    [
+      'card-image',
+      { component: 'Card.Image', converts: true, tag: 'div', tags: ['div'] },
+    ],
     [
       'card-content',
-      { component: 'Card.Content', converts: true, tags: ['div'] },
+      { component: 'Card.Content', converts: true, tag: 'div', tags: ['div'] },
     ],
     [
       'card-footer',
-      { component: 'Card.Footer', converts: true, tags: ['footer'] },
+      {
+        component: 'Card.Footer',
+        converts: true,
+        tag: 'footer',
+        tags: ['footer'],
+      },
     ],
     [
       'card-footer-item',
       {
         component: 'Card.FooterItem',
         converts: true,
+        tag: 'span',
         tags: ['span', 'a', 'button'],
       },
     ],
-    ['navbar', { component: 'Navbar', converts: true, tags: ['nav'] }],
+    [
+      'navbar',
+      { component: 'Navbar', converts: true, tag: 'nav', tags: ['nav'] },
+    ],
     [
       'navbar-brand',
-      { component: 'Navbar.Brand', converts: true, tags: ['div'] },
+      { component: 'Navbar.Brand', converts: true, tag: 'div', tags: ['div'] },
     ],
     [
       'navbar-menu',
-      { component: 'Navbar.Menu', converts: true, tags: ['div'] },
+      { component: 'Navbar.Menu', converts: true, tag: 'div', tags: ['div'] },
     ],
     [
       'navbar-start',
-      { component: 'Navbar.Start', converts: true, tags: ['div'] },
+      { component: 'Navbar.Start', converts: true, tag: 'div', tags: ['div'] },
     ],
-    ['navbar-end', { component: 'Navbar.End', converts: true, tags: ['div'] }],
-    ['navbar-item', { component: 'Navbar.Item', converts: true, tags: 'any' }],
+    [
+      'navbar-end',
+      { component: 'Navbar.End', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'navbar-item',
+      { component: 'Navbar.Item', converts: true, tag: 'a', tags: 'any' },
+    ],
     [
       'navbar-dropdown',
-      { component: 'Navbar.DropdownMenu', converts: true, tags: ['div'] },
+      {
+        component: 'Navbar.DropdownMenu',
+        converts: true,
+        tag: 'div',
+        tags: ['div'],
+      },
     ],
     [
       'navbar-divider',
-      { component: 'Navbar.Divider', converts: true, tags: ['hr'] },
+      { component: 'Navbar.Divider', converts: true, tag: 'hr', tags: ['hr'] },
     ],
-    ['field', { component: 'Field', converts: true, tags: ['div'] }],
+    [
+      'field',
+      { component: 'Field', converts: true, tag: 'div', tags: ['div'] },
+    ],
     [
       'field-label',
-      { component: 'Field.Label', converts: true, tags: ['div'] },
+      { component: 'Field.Label', converts: true, tag: 'div', tags: ['div'] },
     ],
-    ['field-body', { component: 'Field.Body', converts: true, tags: ['div'] }],
-    ['control', { component: 'Control', converts: true, tags: ['div', 'p'] }],
-    ['input', { component: 'InputBase', converts: true, tags: ['input'] }],
+    [
+      'field-body',
+      { component: 'Field.Body', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'control',
+      { component: 'Control', converts: true, tag: 'div', tags: ['div', 'p'] },
+    ],
+    [
+      'input',
+      { component: 'InputBase', converts: true, tag: 'input', tags: ['input'] },
+    ],
     [
       'textarea',
-      { component: 'TextAreaBase', converts: true, tags: ['textarea'] },
+      {
+        component: 'TextAreaBase',
+        converts: true,
+        tag: 'textarea',
+        tags: ['textarea'],
+      },
     ],
-    ['buttons', { component: 'Buttons', converts: true, tags: ['div'] }],
-    ['tags', { component: 'Tags', converts: true, tags: ['div'] }],
-    ['button', { component: 'Button', converts: true, tags: 'any' }],
-    ['tag', { component: 'Tag', converts: true, tags: ['span'] }],
-    ['delete', { component: 'Delete', converts: true, tags: ['button'] }],
-    ['progress', { component: 'Progress', converts: true, tags: ['progress'] }],
-    ['table', { component: 'Table', converts: true, tags: ['table'] }],
+    [
+      'buttons',
+      { component: 'Buttons', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    ['tags', { component: 'Tags', converts: true, tag: 'div', tags: ['div'] }],
+    [
+      'button',
+      { component: 'Button', converts: true, tag: 'button', tags: 'any' },
+    ],
+    ['tag', { component: 'Tag', converts: true, tag: 'span', tags: ['span'] }],
+    [
+      'delete',
+      { component: 'Delete', converts: true, tag: 'button', tags: ['button'] },
+    ],
+    [
+      'progress',
+      {
+        component: 'Progress',
+        converts: true,
+        tag: 'progress',
+        tags: ['progress'],
+      },
+    ],
+    [
+      'table',
+      { component: 'Table', converts: true, tag: 'table', tags: ['table'] },
+    ],
     [
       'title',
       {
         component: 'Title',
         converts: true,
+        tag: 'h1',
         tags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
       },
     ],
@@ -417,100 +541,184 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
       {
         component: 'SubTitle',
         converts: true,
+        tag: 'h1',
         tags: ['h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p'],
       },
     ],
     [
       'notification',
-      { component: 'Notification', converts: true, tags: ['div'] },
+      { component: 'Notification', converts: true, tag: 'div', tags: ['div'] },
     ],
-    ['box', { component: 'Box', converts: true, tags: ['div'] }],
-    ['content', { component: 'Content', converts: true, tags: ['div'] }],
-    ['block', { component: 'Block', converts: true, tags: ['div'] }],
-    ['select', { component: 'SelectBase', converts: true, tags: ['div'] }],
-    ['breadcrumb', { component: 'Breadcrumb', converts: true, tags: ['nav'] }],
+    ['box', { component: 'Box', converts: true, tag: 'div', tags: ['div'] }],
+    [
+      'content',
+      { component: 'Content', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'block',
+      { component: 'Block', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'select',
+      { component: 'SelectBase', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'breadcrumb',
+      { component: 'Breadcrumb', converts: true, tag: 'nav', tags: ['nav'] },
+    ],
     [
       'skeleton-block',
-      { component: 'Skeleton', converts: true, tags: ['div'] },
+      { component: 'Skeleton', converts: true, tag: 'div', tags: ['div'] },
     ],
     [
       'skeleton-lines',
-      { component: 'Skeleton', converts: true, tags: ['div'] },
+      { component: 'Skeleton', converts: true, tag: 'div', tags: ['div'] },
     ],
-    ['file', { component: 'File', converts: true, tags: ['div'] }],
-    ['icon', { component: 'Icon', converts: true, tags: ['span'] }],
-    ['icon-text', { component: 'IconText', converts: true, tags: ['span'] }],
+    ['file', { component: 'File', converts: true, tag: 'div', tags: ['div'] }],
+    [
+      'icon',
+      { component: 'Icon', converts: true, tag: 'span', tags: ['span'] },
+    ],
+    [
+      'icon-text',
+      { component: 'IconText', converts: true, tag: 'span', tags: ['span'] },
+    ],
     [
       'image',
-      { component: 'Image', converts: true, tags: ['div', 'figure', 'p'] },
+      {
+        component: 'Image',
+        converts: true,
+        tag: 'div',
+        tags: ['div', 'figure', 'p'],
+      },
     ],
-    ['menu', { component: 'Menu', converts: true, tags: ['aside'] }],
-    ['menu-label', { component: 'Menu.Label', converts: true, tags: ['p'] }],
-    ['menu-list', { component: 'Menu.List', converts: true, tags: ['ul'] }],
+    [
+      'menu',
+      { component: 'Menu', converts: true, tag: 'aside', tags: ['aside'] },
+    ],
+    [
+      'menu-label',
+      { component: 'Menu.Label', converts: true, tag: 'p', tags: ['p'] },
+    ],
+    [
+      'menu-list',
+      { component: 'Menu.List', converts: true, tag: 'ul', tags: ['ul'] },
+    ],
     [
       'modal-background',
-      { component: 'Modal.Background', converts: true, tags: ['div'] },
+      {
+        component: 'Modal.Background',
+        converts: true,
+        tag: 'div',
+        tags: ['div'],
+      },
     ],
     [
       'modal-content',
-      { component: 'Modal.Content', converts: true, tags: ['div'] },
+      { component: 'Modal.Content', converts: true, tag: 'div', tags: ['div'] },
     ],
-    ['modal-card', { component: 'Modal.Card', converts: true, tags: ['div'] }],
+    [
+      'modal-card',
+      { component: 'Modal.Card', converts: true, tag: 'div', tags: ['div'] },
+    ],
     [
       'modal-card-head',
-      { component: 'Modal.Card.Head', converts: true, tags: ['header'] },
+      {
+        component: 'Modal.Card.Head',
+        converts: true,
+        tag: 'header',
+        tags: ['header'],
+      },
     ],
     [
       'modal-card-title',
-      { component: 'Modal.Card.Title', converts: true, tags: ['p'] },
+      { component: 'Modal.Card.Title', converts: true, tag: 'p', tags: ['p'] },
     ],
     [
       'modal-card-body',
-      { component: 'Modal.Card.Body', converts: true, tags: ['section'] },
+      {
+        component: 'Modal.Card.Body',
+        converts: true,
+        tag: 'section',
+        tags: ['section'],
+      },
     ],
     [
       'modal-card-foot',
-      { component: 'Modal.Card.Foot', converts: true, tags: ['footer'] },
+      {
+        component: 'Modal.Card.Foot',
+        converts: true,
+        tag: 'footer',
+        tags: ['footer'],
+      },
     ],
-    ['pagination', { component: 'Pagination', converts: true, tags: ['nav'] }],
+    [
+      'pagination',
+      { component: 'Pagination', converts: true, tag: 'nav', tags: ['nav'] },
+    ],
     [
       'pagination-list',
-      { component: 'Pagination.List', converts: true, tags: ['ul'] },
+      { component: 'Pagination.List', converts: true, tag: 'ul', tags: ['ul'] },
     ],
     [
       'pagination-previous',
-      { component: 'Pagination.Previous', converts: true, tags: ['a'] },
+      {
+        component: 'Pagination.Previous',
+        converts: true,
+        tag: 'a',
+        tags: ['a'],
+      },
     ],
     [
       'pagination-next',
-      { component: 'Pagination.Next', converts: true, tags: ['a'] },
+      { component: 'Pagination.Next', converts: true, tag: 'a', tags: ['a'] },
     ],
     [
       'pagination-link',
-      { component: 'Pagination.Link', converts: true, tags: ['a'] },
+      { component: 'Pagination.Link', converts: true, tag: 'a', tags: ['a'] },
     ],
     [
       'pagination-ellipsis',
-      { component: 'Pagination.Ellipsis', converts: true, tags: ['span'] },
+      {
+        component: 'Pagination.Ellipsis',
+        converts: true,
+        tag: 'span',
+        tags: ['span'],
+      },
     ],
     [
       'panel',
       {
         component: 'Panel',
         converts: true,
+        tag: 'nav',
         tags: ['nav', 'article', 'section', 'aside', 'div'],
       },
     ],
     [
       'panel-heading',
-      { component: 'Panel.Heading', converts: true, tags: ['p'] },
+      { component: 'Panel.Heading', converts: true, tag: 'p', tags: ['p'] },
     ],
-    ['panel-tabs', { component: 'Panel.Tabs', converts: true, tags: ['p'] }],
+    [
+      'panel-tabs',
+      { component: 'Panel.Tabs', converts: true, tag: 'p', tags: ['p'] },
+    ],
     [
       'panel-block',
-      { component: 'Panel.Block', converts: true, tags: ['a', 'div', 'label'] },
+      {
+        component: 'Panel.Block',
+        converts: true,
+        tag: 'a',
+        tags: ['a', 'div', 'label'],
+      },
     ],
-    ['tabs', { component: 'Tabs', converts: true, tags: ['div'] }],
-    ['table-container', { component: 'Table', converts: true, tags: ['div'] }],
-    ['fixed-grid', { component: 'Grid', converts: true, tags: ['div'] }],
+    ['tabs', { component: 'Tabs', converts: true, tag: 'div', tags: ['div'] }],
+    [
+      'table-container',
+      { component: 'Table', converts: true, tag: 'div', tags: ['div'] },
+    ],
+    [
+      'fixed-grid',
+      { component: 'Grid', converts: true, tag: 'div', tags: ['div'] },
+    ],
   ]);

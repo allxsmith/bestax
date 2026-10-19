@@ -79,6 +79,7 @@ ruleTester.run('no-bulma-component-class', rule, {
     bestax('Box', '<Box className="box" />'),
     bestax('Columns', '<Columns className="columns is-mobile mt-4 my-grid" />'),
     bestax('Card', '<Card.Content className="card-content" />'),
+    bestax('Hero', '<Hero as="div" className="hero is-medium" />'),
     // A component the table names no class for: which it renders is unknown.
     bestax('Input', '<Input className="box" />'),
     // Not ours: a capitalised name the file doesn't import, or a local one.
@@ -210,11 +211,26 @@ ruleTester.run('no-bulma-component-class', rule, {
       code: jsx('<div className="image is-128x128 container" />'),
       errors: [converts('container', 'Container')],
     },
+    // A class whose component's own tag it is beats one that reaches it only
+    // through `as`; two that reach it through `as` go by the table's order.
+    {
+      code: jsx('<section className="container hero is-primary" />'),
+      errors: [converts('hero', 'Hero', 'section')],
+    },
+    {
+      code: jsx('<main className="hero container" />'),
+      errors: [converts('container', 'Container', 'main')],
+    },
     // Another component's class on a bestax component, which the codemod
     // leaves in `className` with a TODO.
     {
       code: bestax('Columns', '<Columns className="box" />'),
       errors: [also('Columns', 'box', 'Box')],
+    },
+    // Through `as`, which renders its own class on another tag.
+    {
+      code: bestax('Container', '<Container as="main" className="hero" />'),
+      errors: [also('Container', 'hero', 'Hero')],
     },
     {
       code: bestax('Card', '<Card.Content className="card-content content" />'),

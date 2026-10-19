@@ -391,7 +391,7 @@ describe('the Bulma component class table', () => {
     );
   });
 
-  it('gives each converted root its tags, and its advice when it has some', async () => {
+  it('gives each converted root its own tag and its tags, and its advice when it has some', async () => {
     const { entries } = await bulmaComponentClasses(
       classMap({
         image: {
@@ -417,11 +417,22 @@ describe('the Bulma component class table', () => {
     );
     assert.deepEqual(Object.fromEntries(entries), {
       dropdown: { component: 'Dropdown', converts: false },
-      image: { component: 'Image', converts: true, tags: ['div', 'figure'] },
-      button: { component: 'Button', converts: true, tags: 'any' },
+      image: {
+        component: 'Image',
+        converts: true,
+        tag: 'div',
+        tags: ['div', 'figure'],
+      },
+      button: {
+        component: 'Button',
+        converts: true,
+        tag: 'button',
+        tags: 'any',
+      },
       container: {
         component: 'Container',
         converts: true,
+        tag: 'div',
         tags: ['div'],
         onAnother: 'center it',
       },
@@ -433,7 +444,7 @@ describe('the Bulma component class table', () => {
     });
     assert.match(
       text,
-      /\["container", \{ component: "Container", converts: true, tags: \["div"\], onAnother: "center it" \}\],/
+      /\["container", \{ component: "Container", converts: true, tag: "div", tags: \["div"\], onAnother: "center it" \}\],/
     );
     assert.match(
       text,
