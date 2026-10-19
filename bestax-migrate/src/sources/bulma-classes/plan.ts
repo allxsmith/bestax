@@ -758,7 +758,17 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
     );
   }
-  if (missing.length > 0 && naming === 'unsure') {
+  // Only on a tag the target renders: on any other, the tag check below is
+  // the refusal, and a `drops` one would call an attribute inert that may not
+  // be (`type` on a <button>) and promise a conversion a re-run still refuses.
+  // So would the advice for an icon that isn't hidden, which asks for work a
+  // re-run then refuses on the tag.
+  const tagReached =
+    tag === entry.tag ||
+    entry.as === 'any' ||
+    (entry.as?.includes(tag) ?? false);
+  const advises = !entry.readsGlyph || tagReached;
+  if (missing.length > 0 && naming === 'unsure' && advises) {
     const list = (set: Readonly<Record<string, string>> = {}) =>
       Object.entries(set)
         .map(([name, value]) => `\`${name}="${value}"\``)
@@ -771,7 +781,7 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has a name and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want, then re-run`
     );
   }
-  if (missing.length > 0) {
+  if (missing.length > 0 && advises) {
     const list = missing.map(([name, value]) => `\`${name}="${value}"\``);
     const usual = `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`;
     return refuse(
@@ -793,13 +803,6 @@ export function plan(facts: ElementFacts): Plan {
       );
     }
   }
-  // Only on a tag the target renders: on any other, the tag check below is
-  // the refusal, and a `drops` one would call an attribute inert that may not
-  // be (`type` on a <button>) and promise a conversion a re-run still refuses.
-  const tagReached =
-    tag === entry.tag ||
-    entry.as === 'any' ||
-    (entry.as?.includes(tag) ?? false);
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
     if (tagReached && attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not

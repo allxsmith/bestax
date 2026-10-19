@@ -856,6 +856,61 @@ describe('plan', () => {
           ).toBe(true);
         });
 
+        it('gives no advice on a tag Icon cannot render, only the tag', () => {
+          // Each would ask for work a re-run then refuses on the tag.
+          const tagOnly = (
+            label: string,
+            inner: ReturnType<typeof glyph>,
+            extra: Partial<ElementFacts> = {},
+            attributes: Record<string, string | null> = {}
+          ) => {
+            const result = plan(
+              facts('div', 'icon', attributes, { soleChild: inner, ...extra })
+            );
+            expect({
+              label,
+              conversion: result.conversion,
+              rules: result.todos.map(t => t.rule),
+            }).toEqual({ label, conversion: null, rules: ['tag:Icon'] });
+          };
+          const fa = glyph(['fab', 'fa-github', 'fa-lg']);
+          tagOnly('an unhidden glyph', fa);
+          tagOnly('in a named link', fa, {
+            clickableAround: { tag: 'a', label: 'aria-label' },
+          });
+          tagOnly('in an icon-only link', fa, {
+            clickableAround: { tag: 'a', label: 'none' },
+          });
+          tagOnly('in a .control with icons', glyph(['fas', 'fa-envelope']), {
+            parentTokens: ['control', 'has-icons-left'],
+          });
+          tagOnly(
+            "Font Awesome's own hidden <i>",
+            glyph(['fas', 'fa-home'], hidden)
+          );
+          tagOnly(
+            'a hidden <i> beside a title',
+            glyph(['fas', 'fa-home'], hidden),
+            {},
+            { title: 'Home' }
+          );
+          tagOnly('a name as an expression', fa, {}, { 'aria-label': null });
+          // On the <span> it renders, the same element gets the advice.
+          expect(
+            plan(
+              facts(
+                'span',
+                'icon',
+                {},
+                {
+                  soleChild: fa,
+                  clickableAround: { tag: 'a', label: 'none' },
+                }
+              )
+            ).todos[0].message
+          ).toMatch(/^nothing names the <a> around this `\.icon`/);
+        });
+
         it('says to move it up by hand off any other <i>', () => {
           // One that carries more stays the icon's child, so no glyph is
           // promised.

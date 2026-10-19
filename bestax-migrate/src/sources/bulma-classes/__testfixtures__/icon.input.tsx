@@ -61,6 +61,20 @@ export function Icons() {
           </span>
         </a>
       </div>
+      {/* Icon renders only a <span>, so on a <div> the tag is all it says. */}
+      <div className="icon">
+        <i className="fas fa-home"></i>
+      </div>
+      <a href="https://github.com/" aria-label="GitHub">
+        <div className="icon">
+          <i className="fab fa-github"></i>
+        </div>
+      </a>
+      <a href="https://twitter.com/">
+        <div className="icon">
+          <i className="fab fa-twitter"></i>
+        </div>
+      </a>
     </section>
   );
 }
