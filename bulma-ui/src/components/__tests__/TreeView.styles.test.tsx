@@ -88,17 +88,26 @@ describe.each([
         .flatMap(sel => (sel.match(/\.[\w-]+/g) ?? []).map(n => n.slice(1)))
     );
     expect([...classes].every(name => name.startsWith(prefix))).toBe(true);
-    // Every class a checkbox tree with a selected-looking row renders.
+    // Every class a checkbox tree with a selected-looking row renders, with
+    // a loading item's row and a failed load's.
     const { container } = render(
       <ConfigProvider classPrefix={prefix}>
         <TreeView
           aria-label="Files"
           size="small"
           selectionMode="checkbox"
-          defaultExpanded={['a']}
+          defaultExpanded={['a', 'd', 'e']}
         >
           <TreeView.Item value="a" label="A" icon={<svg />}>
             <TreeView.Item value="b" label="B" disabled />
+            <TreeView.Item value="d" label="D" hasChildren isLoading />
+            <TreeView.Item
+              value="e"
+              label="E"
+              hasChildren
+              loadError="Couldn’t load E"
+              onRetry={() => {}}
+            />
           </TreeView.Item>
         </TreeView>
         <TreeView
@@ -113,13 +122,16 @@ describe.each([
     const ours = new Set(
       Array.from(container.querySelectorAll('[class]'))
         .flatMap(el => Array.from(el.classList))
-        // Checkbox's own classes are its partial's to draw.
+        // Checkbox's own classes are its partial's to draw, and the loading
+        // row's loader and the Retry button are Bulma's.
         .filter(
           name =>
             ![
               `${prefix}styled-checkbox`,
               `${prefix}checkbox`,
               `${prefix}check`,
+              `${prefix}loader`,
+              `${prefix}button`,
             ].includes(name)
         )
     );

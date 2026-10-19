@@ -7,6 +7,7 @@ import React, {
   useId,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
@@ -14,6 +15,7 @@ import { withSubComponents } from '../helpers/withSubComponents';
 import { warnOnce } from '../helpers/devWarnings';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
 import { useTreeView, type TreeViewEngine } from '../helpers/useTreeView';
+import { StatusRegion, spokenText } from '../helpers/statusRegion';
 import { Checkbox } from '../form/Checkbox';
 import { Icon } from '../elements/Icon';
 
@@ -25,8 +27,32 @@ export type TreeViewSelectionMode = 'none' | 'single' | 'checkbox';
 
 const validTreeViewSizes = ['small', 'medium', 'large'] as const;
 
+/** What an open item's load says in the tree's live region. */
+interface LoadAnnouncement {
+  /** The item's key, so what it says next replaces this. */
+  key: string;
+  /** The key and the kind: the region says it once each time it appears. */
+  id: string;
+  kind: 'loading' | 'loaded' | 'error';
+  /** The item's name, read off its label. */
+  name: string;
+  /** A failed load's message, read off its row. */
+  message: string;
+}
+
+/** What the root hands its items: the engine, the live region, and the rows' words. */
+interface TreeContextValue extends TreeViewEngine {
+  /** Puts what an item's load says in the live region, or takes it out with `null`. */
+  announce: (key: string, announcement: LoadAnnouncement | null) => void;
+  loadingLabel: string;
+  retryLabel: string;
+}
+
 // Not exported, so they stay out of the public API that `index.ts` re-exports.
-const TreeViewContext = createContext<TreeViewEngine | null>(null);
+const TreeViewContext = createContext<TreeContextValue | null>(null);
+
+const sayLoading = (name: string) => `Loading ${name}`;
+const sayLoaded = (name: string) => `${name} loaded`;
 
 /** Where an item sits: the values of the items above it, and whether one of them is closed. */
 interface Branch {
@@ -119,6 +145,20 @@ export interface TreeViewProps
   onExpandedChange?: (expanded: string[]) => void;
   /** The text size, as Bulma's menu sizes it. The rows, the indent and the chevron scale with it. */
   size?: 'small' | 'medium' | 'large';
+  /** What the row in a loading item's group says. In your app's language. */
+  loadingLabel?: string;
+  /** The Retry button's text on a failed load's row. In your app's language. */
+  retryLabel?: string;
+  /**
+   * What the live region says when an open item starts loading, built from
+   * the item's name. In your app's language. Default: `` `Loading ${name}` ``.
+   */
+  loadingAnnouncement?: (name: string) => string;
+  /**
+   * What the live region says when that load finishes. In your app's
+   * language. Default: `` `${name} loaded` ``.
+   */
+  loadedAnnouncement?: (name: string) => string;
 }
 
 /**
@@ -149,6 +189,22 @@ export interface TreeViewItemProps extends Omit<
   children?: React.ReactNode;
   /** Shows the item as a parent before its children are known, such as a folder that loads when it opens. */
   hasChildren?: boolean;
+  /**
+   * Its children are on their way. While it's open, its group ends in a row
+   * that says so, and the tree's live region says it's loading, then that
+   * it's loaded once this goes back to `false`. A parent only: pair it with
+   * `hasChildren`, or with the children it already has.
+   */
+  isLoading?: boolean;
+  /**
+   * Its children didn't load. While it's open, its group ends in a row with
+   * this message, and a Retry button when there's an `onRetry`, and the live
+   * region reads the message out, so name the item in it ("Couldn't load
+   * src"). `isLoading` wins while both are given.
+   */
+  loadError?: React.ReactNode;
+  /** Called by the Retry button on a failed load's row, and by Enter or Space there. */
+  onRetry?: () => void;
   /**
    * Reachable with the arrow keys, Home, End and type-ahead, so a screen
    * reader finds it, but never selected, checked, opened or closed. One
@@ -205,6 +261,10 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
       defaultExpanded = [],
       onExpandedChange,
       size,
+      loadingLabel = 'Loading…',
+      retryLabel = 'Retry',
+      loadingAnnouncement,
+      loadedAnnouncement,
       className,
       ...props
     },
@@ -251,10 +311,38 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
         !!size && (validTreeViewSizes as readonly string[]).includes(size),
     });
 
+    // What each open item's load says, in the order they started saying it.
+    const [announcements, setAnnouncements] = useState<LoadAnnouncement[]>([]);
+    const announce = useCallback(
+      (key: string, announcement: LoadAnnouncement | null) => {
+        setAnnouncements(current => {
+          const others = current.filter(said => said.key !== key);
+          return announcement ? [...others, announcement] : others;
+        });
+      },
+      []
+    );
+    const describe = useCallback(
+      ({ kind, name, message }: LoadAnnouncement) => {
+        if (kind === 'error') return message;
+        const say =
+          kind === 'loading'
+            ? (loadingAnnouncement ?? sayLoading)
+            : (loadedAnnouncement ?? sayLoaded);
+        return say(name);
+      },
+      [loadingAnnouncement, loadedAnnouncement]
+    );
+
     // The props are spread first, so the role and the attributes the tree
-    // owns win over anything a caller passes along.
+    // owns win over anything a caller passes along. The live region sits
+    // beside the tree, since a tree holds items and groups only, and it's
+    // there from the start, so a screen reader is listening to it before
+    // anything is written into it.
     return (
-      <TreeViewContext.Provider value={engine}>
+      <TreeViewContext.Provider
+        value={{ ...engine, announce, loadingLabel, retryLabel }}
+      >
         <BranchContext.Provider value={TOP}>
           <ul
             {...rest}
@@ -266,6 +354,7 @@ const TreeViewRoot = forwardRef<HTMLUListElement, TreeViewProps>(
             {children}
           </ul>
         </BranchContext.Provider>
+        <StatusRegion items={announcements} describe={describe} />
       </TreeViewContext.Provider>
     );
   }
@@ -287,6 +376,9 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
       icon,
       children,
       hasChildren = false,
+      isLoading = false,
+      loadError,
+      onRetry,
       disabled = false,
       className,
       onClick,
@@ -299,11 +391,52 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
   ) {
     const tree = useContext(TreeViewContext);
     const branch = useContext(BranchContext);
+    // Also the item's key in the live region.
     const labelId = useId();
     const hasItems = React.Children.toArray(children).length > 0;
     const isParent = hasItems || hasChildren;
     const open = isParent && !!tree?.isOpen(value);
     const parent = branch.path[branch.path.length - 1] ?? null;
+
+    // The row at the end of its group, while it's open and on the page.
+    const shown = open && !branch.hidden;
+    const status = !shown
+      ? null
+      : isLoading
+        ? 'loading'
+        : isGiven(loadError)
+          ? 'error'
+          : null;
+    const labelRef = useRef<HTMLSpanElement | null>(null);
+    const statusLabelRef = useRef<HTMLSpanElement | null>(null);
+
+    // What the live region says follows the row: it's loading, or it failed,
+    // while the row says so, and it's loaded once a loading row goes with
+    // the item still open, until the item closes or loads again. A closed
+    // item says nothing, loading or not.
+    const phase = shown ? (status ?? 'open') : 'closed';
+    const lastPhaseRef = useRef(phase);
+    const announce = tree?.announce;
+    useEffect(() => {
+      const was = lastPhaseRef.current;
+      lastPhaseRef.current = phase;
+      const kind =
+        phase === 'loading' || phase === 'error'
+          ? phase
+          : phase === 'open' && was === 'loading'
+            ? 'loaded'
+            : null;
+      if (!kind) return undefined;
+      // Only an item inside a tree can be open.
+      announce!(labelId, {
+        key: labelId,
+        id: `${labelId}:${kind}`,
+        kind,
+        name: spokenText(labelRef.current!),
+        message: kind === 'error' ? spokenText(statusLabelRef.current!) : '',
+      });
+      return () => announce!(labelId, null);
+    }, [phase, announce, labelId]);
 
     const itemClass = usePrefixedClassNames('tree-view-item');
     const groupClass = usePrefixedClassNames('tree-view-group');
@@ -443,13 +576,23 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
               {typeof icon === 'string' ? <Icon name={icon} /> : icon}
             </span>
           )}
-          <span className={labelClass} id={labelId}>
+          <span className={labelClass} id={labelId} ref={labelRef}>
             {label}
           </span>
         </div>
-        {open && hasItems ? (
+        {open && (hasItems || status) ? (
           <ul className={groupClass} role="group">
             {items}
+            {status && (
+              <StatusRow
+                kind={status}
+                parent={value}
+                level={branch.path.length + 2}
+                message={loadError}
+                onRetry={onRetry}
+                labelRef={statusLabelRef}
+              />
+            )}
           </ul>
         ) : (
           items
@@ -460,6 +603,102 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
 );
 
 TreeViewItem.displayName = 'TreeView.Item';
+
+/** Props for the row at the end of a loading item's group, or a failed load's. */
+interface StatusRowProps {
+  /** `loading`, or `error` for a load that failed. */
+  kind: 'loading' | 'error';
+  /** The value of the item it's in. */
+  parent: string;
+  /** Its `aria-level`, one under the item it's in. */
+  level: number;
+  /** A failed load's message. */
+  message: React.ReactNode;
+  /** Retries a failed load. */
+  onRetry?: () => void;
+  /** For its label, which the item reads a failed load's message off. */
+  labelRef: React.Ref<HTMLSpanElement>;
+}
+
+/**
+ * The row at the end of a loading item's group, or of one whose load failed.
+ * It's a `treeitem` the keys reach, the way they reach a disabled item, so a
+ * screen reader finds it. It has no value and no record, so it's never
+ * selected or checked, and a check never counts it. A failed load's row with
+ * `onRetry` retries with Enter, Space or a click, and any other is disabled.
+ * The Retry button is drawn, hidden from assistive tech and out of the tab
+ * order, the way an item's box is: the row is what's pressed, and its name
+ * says so. Rendered in one place, a failed load's row that starts loading
+ * again is the same element, so focus stays on it.
+ */
+function StatusRow({
+  kind,
+  parent,
+  level,
+  message,
+  onRetry,
+  labelRef,
+}: StatusRowProps) {
+  // Only an item inside a tree renders a group.
+  const tree = useContext(TreeViewContext)!;
+  // Also its key in the registry and for the tab stop, where an item has its value.
+  const labelId = useId();
+  const retryId = useId();
+  const retry = kind === 'error' ? onRetry : undefined;
+
+  const itemClass = usePrefixedClassNames('tree-view-item');
+  const rowClass = usePrefixedClassNames('tree-view-row', {
+    'is-disabled': !retry,
+  });
+  const toggleClass = usePrefixedClassNames('tree-view-toggle');
+  const labelClass = usePrefixedClassNames('tree-view-label');
+  const loaderClass = usePrefixedClassNames('loader');
+  const retryClass = usePrefixedClassNames('button', { 'is-small': true });
+
+  const { setElement } = tree;
+  const setRef = useCallback(
+    (node: HTMLLIElement | null) => setElement(labelId, node),
+    [setElement, labelId]
+  );
+  const info = {
+    value: labelId,
+    parent,
+    disabled: !retry,
+    isParent: false,
+    open: false,
+    retry,
+  };
+
+  return (
+    <li
+      ref={setRef}
+      className={itemClass}
+      role="treeitem"
+      aria-labelledby={retry ? `${labelId} ${retryId}` : labelId}
+      aria-level={level}
+      aria-disabled={!retry || undefined}
+      tabIndex={tree.tabStop === labelId ? 0 : -1}
+      onKeyDown={event => tree.onKeyDown(event, info)}
+      onFocus={event => tree.onFocus(labelId, event.currentTarget)}
+      onBlur={tree.onBlur}
+      onClick={event => tree.onClick(event.currentTarget, info, false)}
+    >
+      <div className={rowClass}>
+        <span className={toggleClass} aria-hidden="true">
+          {kind === 'loading' && <span className={loaderClass} />}
+        </span>
+        <span className={labelClass} id={labelId} ref={labelRef}>
+          {kind === 'loading' ? tree.loadingLabel : message}
+        </span>
+        {retry && (
+          <span className={retryClass} id={retryId} aria-hidden="true">
+            {tree.retryLabel}
+          </span>
+        )}
+      </div>
+    </li>
+  );
+}
 
 export const TreeView = withSubComponents(
   TreeViewRoot,

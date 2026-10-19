@@ -6,12 +6,17 @@ import '@testing-library/jest-dom';
 import {
   TreeView,
   TreeViewItem,
+  type TreeViewItemProps,
   type TreeViewProps,
   type TreeViewSelectionMode,
 } from '../TreeView';
 import { ConfigProvider } from '../../helpers/Config';
 import { resetDevWarnings } from '../../helpers/devWarnings';
 import { TYPEAHEAD_TIMEOUT } from '../../helpers/typeahead';
+import {
+  announceDelay,
+  announcementLifetime,
+} from '../../helpers/statusRegion';
 
 /** A file tree: two levels under `src`, a disabled file, and two top items. */
 function Files(props: Partial<TreeViewProps>) {
@@ -54,6 +59,34 @@ function Permissions(props: Partial<TreeViewProps>) {
     </TreeView>
   );
 }
+
+type Load = Pick<
+  TreeViewItemProps,
+  'isLoading' | 'loadError' | 'onRetry' | 'children'
+>;
+
+/** A folder, src, whose children load, above one that's loaded already. */
+function Folders({
+  src = {},
+  ...props
+}: Partial<TreeViewProps> & { src?: Load }) {
+  return (
+    <TreeView aria-label="Folders" {...props}>
+      <TreeView.Item
+        value="src"
+        label="src"
+        icon="folder"
+        hasChildren
+        {...src}
+      />
+      <TreeView.Item value="docs" label="docs">
+        <TreeView.Item value="intro" label="intro.md" />
+      </TreeView.Item>
+    </TreeView>
+  );
+}
+
+const FAILED = 'Couldn’t load src';
 
 const item = (name: string) => screen.getByRole('treeitem', { name });
 const row = (name: string) => item(name).firstElementChild as HTMLElement;
@@ -1344,6 +1377,535 @@ describe('TreeView', () => {
     });
   });
 
+  describe('Loading', () => {
+    const LOADING = 'Loading…';
+
+    it('ends an open loading item’s group in a row that says so, and shows none while it’s closed', () => {
+      const { rerender } = render(<Folders src={{ isLoading: true }} />);
+      expect(item('src').querySelector('ul')).toBeNull();
+      expect(screen.queryByRole('treeitem', { name: LOADING })).toBeNull();
+      fireEvent.click(row('src'));
+      const loading = item(LOADING);
+      expect(loading.parentElement).toBe(
+        item('src').querySelector(':scope > ul')
+      );
+      expect(loading.parentElement).toHaveAttribute('role', 'group');
+      expect(loading).toHaveClass('tree-view-item');
+      expect(loading).toHaveAttribute('aria-level', '2');
+      expect(loading).toHaveAttribute('aria-disabled', 'true');
+      expect(loading).toHaveAttribute('tabindex', '-1');
+      expect(loading).not.toHaveAttribute('aria-expanded');
+      expect(row(LOADING)).toHaveClass('tree-view-row', 'is-disabled');
+      // Bulma's loader turns in the chevron's box, hidden from assistive tech.
+      const toggle = row(LOADING).querySelector('.tree-view-toggle')!;
+      expect(toggle).toHaveAttribute('aria-hidden', 'true');
+      expect(toggle.firstElementChild).toHaveClass('loader');
+      // Children already there stay, and the row comes after them.
+      rerender(
+        <Folders
+          src={{
+            isLoading: true,
+            children: <TreeView.Item value="a" label="a.ts" />,
+          }}
+        />
+      );
+      expect(shown()).toEqual(['src', 'a.ts', LOADING, 'docs']);
+      rerender(<Folders src={{ isLoading: false }} />);
+      expect(screen.queryByRole('treeitem', { name: LOADING })).toBeNull();
+      expect(item('src').querySelector('ul')).toBeNull();
+    });
+
+    it('needs the item to be a parent', () => {
+      render(
+        <TreeView aria-label="Leaf" defaultExpanded={['leaf']}>
+          <TreeView.Item value="leaf" label="Leaf" isLoading />
+        </TreeView>
+      );
+      expect(screen.getAllByRole('treeitem')).toHaveLength(1);
+    });
+
+    it.each<TreeViewSelectionMode>(['none', 'single', 'checkbox'])(
+      'never selects, checks or opens the row with %s',
+      selectionMode => {
+        const onSelectedChange = jest.fn();
+        const onCheckedChange = jest.fn();
+        const onExpandedChange = jest.fn();
+        render(
+          <Folders
+            selectionMode={selectionMode}
+            defaultExpanded={['src']}
+            onSelectedChange={onSelectedChange}
+            onCheckedChange={onCheckedChange}
+            onExpandedChange={onExpandedChange}
+            src={{ isLoading: true }}
+          />
+        );
+        const loading = item(LOADING);
+        expect(loading).not.toHaveAttribute('aria-selected');
+        expect(loading).not.toHaveAttribute('aria-checked');
+        expect(loading.querySelector('input')).toBeNull();
+        expect(press(loading, 'Enter')).toBe(false);
+        press(loading, ' ');
+        press(loading, '*');
+        fireEvent.click(row(LOADING));
+        expect(focused()).toBe(LOADING);
+        expect(onSelectedChange).not.toHaveBeenCalled();
+        expect(onCheckedChange).not.toHaveBeenCalled();
+        expect(onExpandedChange).not.toHaveBeenCalled();
+      }
+    );
+
+    it('is reached by the arrow keys, Home and End, the way a disabled item is', () => {
+      render(<Folders defaultExpanded={['src']} src={{ isLoading: true }} />);
+      focus('src');
+      press(item('src'), 'ArrowDown');
+      expect(focused()).toBe(LOADING);
+      press(item(LOADING), 'ArrowDown');
+      expect(focused()).toBe('docs');
+      press(item('docs'), 'ArrowUp');
+      expect(focused()).toBe(LOADING);
+      // Right stays put, since the row has nothing under it.
+      press(item(LOADING), 'ArrowRight');
+      expect(focused()).toBe(LOADING);
+      press(item(LOADING), 'ArrowLeft');
+      expect(focused()).toBe('src');
+      expect(item('src')).toHaveAttribute('aria-expanded', 'true');
+      // Right on the open item moves into its group, to the row.
+      press(item('src'), 'ArrowRight');
+      expect(focused()).toBe(LOADING);
+      press(item(LOADING), 'Home');
+      expect(focused()).toBe('src');
+      press(item('src'), 'End');
+      expect(focused()).toBe('docs');
+      press(item('docs'), 'l');
+      expect(focused()).toBe(LOADING);
+    });
+
+    it('holds the stop while focus rests on it, and hands it to its item when it goes', () => {
+      const { rerender } = render(
+        <>
+          <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+          <button>After</button>
+        </>
+      );
+      focus(LOADING);
+      expect(stops()).toEqual([LOADING]);
+      act(() => screen.getByRole('button').focus());
+      expect(stops()).toEqual([LOADING]);
+      rerender(
+        <>
+          <Folders defaultExpanded={['src']} src={{ isLoading: false }} />
+          <button>After</button>
+        </>
+      );
+      expect(stops()).toEqual(['src']);
+      expect(focused()).toBe('BUTTON');
+    });
+
+    it('hands focus to its item when the load ends with focus on it', () => {
+      const { rerender } = render(
+        <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+      );
+      focus(LOADING);
+      rerender(
+        <Folders
+          defaultExpanded={['src']}
+          src={{ children: <TreeView.Item value="a" label="a.ts" /> }}
+        />
+      );
+      expect(focused()).toBe('src');
+      expect(stops()).toEqual(['src']);
+    });
+
+    it('takes its words from the tree', () => {
+      render(
+        <Folders
+          defaultExpanded={['src']}
+          loadingLabel="Chargement…"
+          src={{ isLoading: true }}
+        />
+      );
+      expect(item('Chargement…')).toHaveAttribute('aria-disabled', 'true');
+    });
+
+    describe('a failed load', () => {
+      const RETRY = `${FAILED} Retry`;
+
+      it('ends the group in a row with the message and a Retry button, which retries', () => {
+        const onRetry = jest.fn();
+        render(
+          <Folders
+            defaultExpanded={['src']}
+            src={{ loadError: FAILED, onRetry }}
+          />
+        );
+        // Named by the message and the button, so a screen reader says
+        // what pressing it does.
+        const failed = item(RETRY);
+        expect(failed.parentElement).toHaveAttribute('role', 'group');
+        expect(failed).not.toHaveAttribute('aria-disabled');
+        expect(failed).toHaveAttribute('aria-level', '2');
+        expect(row(RETRY)).not.toHaveClass('is-disabled');
+        expect(row(RETRY).querySelector('.loader')).toBeNull();
+        const retry = row(RETRY).querySelector('.button')!;
+        expect(retry).toHaveClass('button', 'is-small');
+        expect(retry).toHaveTextContent('Retry');
+        expect(retry).toHaveAttribute('aria-hidden', 'true');
+        expect(retry.tagName).toBe('SPAN');
+        fireEvent.click(retry);
+        expect(onRetry).toHaveBeenCalledTimes(1);
+        expect(focused()).toBe(FAILED);
+        // The rest of the row does the row's one thing too.
+        fireEvent.click(row(RETRY).querySelector('.tree-view-label')!);
+        expect(onRetry).toHaveBeenCalledTimes(2);
+      });
+
+      it.each<TreeViewSelectionMode>(['none', 'single', 'checkbox'])(
+        'retries with Enter and Space with %s, once for a held key, and does nothing else',
+        selectionMode => {
+          const onRetry = jest.fn();
+          const onSelectedChange = jest.fn();
+          const onCheckedChange = jest.fn();
+          const onExpandedChange = jest.fn();
+          render(
+            <Folders
+              selectionMode={selectionMode}
+              defaultExpanded={['src']}
+              onSelectedChange={onSelectedChange}
+              onCheckedChange={onCheckedChange}
+              onExpandedChange={onExpandedChange}
+              src={{ loadError: FAILED, onRetry }}
+            />
+          );
+          const failed = item(RETRY);
+          expect(failed).not.toHaveAttribute('aria-selected');
+          expect(failed).not.toHaveAttribute('aria-checked');
+          expect(press(failed, 'Enter')).toBe(false);
+          expect(press(failed, ' ')).toBe(false);
+          expect(onRetry).toHaveBeenCalledTimes(2);
+          press(failed, 'Enter', { repeat: true });
+          press(failed, ' ', { repeat: true });
+          press(failed, 'Enter', { ctrlKey: true });
+          // Right is no retry.
+          press(failed, 'ArrowRight');
+          expect(onRetry).toHaveBeenCalledTimes(2);
+          expect(onSelectedChange).not.toHaveBeenCalled();
+          expect(onCheckedChange).not.toHaveBeenCalled();
+          expect(onExpandedChange).not.toHaveBeenCalled();
+        }
+      );
+
+      it('shows the message alone, disabled, with no onRetry', () => {
+        render(
+          <Folders defaultExpanded={['src']} src={{ loadError: FAILED }} />
+        );
+        const failed = item(FAILED);
+        expect(failed).toHaveAttribute('aria-disabled', 'true');
+        expect(row(FAILED)).toHaveClass('is-disabled');
+        expect(row(FAILED).querySelector('.button')).toBeNull();
+      });
+
+      it('shows nothing for a message that renders nothing', () => {
+        render(
+          <Folders
+            defaultExpanded={['src']}
+            src={{ loadError: false, onRetry: jest.fn() }}
+          />
+        );
+        expect(item('src').querySelector('ul')).toBeNull();
+      });
+
+      it('shows the loading row while isLoading is given too', () => {
+        render(
+          <Folders
+            defaultExpanded={['src']}
+            src={{ isLoading: true, loadError: FAILED, onRetry: jest.fn() }}
+          />
+        );
+        expect(item(LOADING)).toHaveAttribute('aria-disabled', 'true');
+        expect(screen.queryByText(FAILED)).toBeNull();
+      });
+
+      it('keeps focus on the row as a retry starts loading', () => {
+        function Retrying() {
+          const [state, setState] = useState<'error' | 'loading' | 'done'>(
+            'error'
+          );
+          return (
+            <>
+              <Folders
+                defaultExpanded={['src']}
+                src={{
+                  isLoading: state === 'loading',
+                  loadError: state === 'error' ? FAILED : undefined,
+                  onRetry: () => setState('loading'),
+                  children: state === 'done' && (
+                    <TreeView.Item value="a" label="a.ts" />
+                  ),
+                }}
+              />
+              <button onClick={() => setState('done')}>Finish</button>
+            </>
+          );
+        }
+        render(<Retrying />);
+        focus(RETRY);
+        const failed = document.activeElement;
+        press(failed!, 'Enter');
+        expect(document.activeElement).toBe(failed);
+        expect(focused()).toBe(LOADING);
+        expect(stops()).toEqual([LOADING]);
+        fireEvent.click(screen.getByRole('button', { name: 'Finish' }));
+        expect(focused()).toBe('src');
+        expect(shown()).toEqual(['src', 'a.ts', 'docs']);
+      });
+
+      it('takes the button’s text from the tree', () => {
+        render(
+          <Folders
+            defaultExpanded={['src']}
+            retryLabel="Réessayer"
+            src={{ loadError: FAILED, onRetry: jest.fn() }}
+          />
+        );
+        expect(item(`${FAILED} Réessayer`)).toBeInTheDocument();
+      });
+    });
+
+    it('never counts the rows in a checkbox tree’s boxes or the lists it reports', () => {
+      const onCheckedChange = jest.fn();
+      const onRetry = jest.fn();
+      render(
+        <TreeView
+          aria-label="Lazy"
+          selectionMode="checkbox"
+          defaultExpanded={['top', 'lazy', 'broken']}
+          defaultChecked={['done']}
+          onCheckedChange={onCheckedChange}
+        >
+          <TreeView.Item value="top" label="Top">
+            <TreeView.Item value="done" label="Done" />
+            <TreeView.Item value="lazy" label="Lazy" hasChildren isLoading />
+            <TreeView.Item
+              value="broken"
+              label="Broken"
+              hasChildren
+              loadError="Couldn’t load Broken"
+              onRetry={onRetry}
+            />
+          </TreeView.Item>
+        </TreeView>
+      );
+      // Lazy and Broken have no children yet, so each counts as one.
+      expect(item('Top')).toHaveAttribute('aria-checked', 'mixed');
+      expect(item('Lazy')).toHaveAttribute('aria-checked', 'false');
+      press(item(LOADING), ' ');
+      press(item('Couldn’t load Broken Retry'), ' ');
+      expect(onRetry).toHaveBeenCalledTimes(1);
+      expect(onCheckedChange).not.toHaveBeenCalled();
+      fireEvent.click(row('Top'));
+      expect(lastList(onCheckedChange)).toEqual(
+        sorted(['top', 'done', 'lazy', 'broken'])
+      );
+      expect(item('Top')).toHaveAttribute('aria-checked', 'true');
+      expect(item(LOADING)).not.toHaveAttribute('aria-checked');
+    });
+
+    describe('the live region', () => {
+      beforeEach(() => {
+        jest.useFakeTimers();
+      });
+
+      afterEach(() => {
+        jest.useRealTimers();
+      });
+
+      const advance = (ms: number) =>
+        act(() => {
+          jest.advanceTimersByTime(ms);
+        });
+
+      /** What the status region says, one entry per announcement. */
+      const said = () =>
+        Array.from(screen.getByRole('status').children, el => el.textContent);
+
+      it('is one polite status region beside the tree, empty, from the start', () => {
+        render(
+          <Folders
+            defaultExpanded={['src', 'docs']}
+            src={{ isLoading: true }}
+          />
+        );
+        const status = screen.getByRole('status');
+        expect(status).toHaveAttribute('aria-live', 'polite');
+        expect(status).toBeEmptyDOMElement();
+        expect(status.previousElementSibling).toBe(screen.getByRole('tree'));
+        expect(screen.getByRole('tree').contains(status)).toBe(false);
+        advance(announceDelay);
+        expect(screen.getAllByRole('status')).toEqual([status]);
+      });
+
+      it('says an item is loading when it opens loading, and that it’s loaded when the load ends', () => {
+        const { rerender } = render(<Folders src={{ isLoading: true }} />);
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+        fireEvent.click(row('src'));
+        advance(announceDelay);
+        // The name is the label's, without the icon hidden beside it.
+        expect(said()).toEqual(['Loading src']);
+        advance(announcementLifetime);
+        expect(said()).toEqual([]);
+        rerender(
+          <Folders
+            src={{
+              isLoading: false,
+              children: <TreeView.Item value="a" label="a.ts" />,
+            }}
+          />
+        );
+        advance(announceDelay);
+        expect(said()).toEqual(['src loaded']);
+      });
+
+      it('says it’s loading when the tree mounts with the item open, and nothing when it’s closed', () => {
+        const { unmount } = render(
+          <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+        );
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src']);
+        unmount();
+        render(<Folders src={{ isLoading: true }} />);
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+      });
+
+      it('says nothing of a load that ends while the item is closed, or when it opens again', () => {
+        const { rerender } = render(
+          <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+        );
+        advance(announceDelay + announcementLifetime);
+        fireEvent.click(row('src'));
+        rerender(<Folders src={{ isLoading: false }} />);
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+        fireEvent.click(row('src'));
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+      });
+
+      it('says it once for each load, and not again when a loaded item closes and opens', () => {
+        const { rerender } = render(
+          <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+        );
+        rerender(<Folders src={{ isLoading: false }} />);
+        advance(announceDelay);
+        // The load ended before the first was written, so it isn't.
+        expect(said()).toEqual(['src loaded']);
+        advance(announcementLifetime);
+        fireEvent.click(row('src'));
+        fireEvent.click(row('src'));
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+        rerender(<Folders src={{ isLoading: true }} />);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src']);
+        rerender(<Folders src={{ isLoading: false }} />);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src', 'src loaded']);
+      });
+
+      it('reads a failed load’s message out, then what a retry says', () => {
+        const { rerender } = render(
+          <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+        );
+        advance(announceDelay + announcementLifetime);
+        rerender(
+          <Folders
+            src={{
+              loadError: (
+                <>
+                  Couldn’t load <strong>src</strong>
+                </>
+              ),
+            }}
+          />
+        );
+        advance(announceDelay);
+        expect(said()).toEqual([FAILED]);
+        advance(announcementLifetime);
+        rerender(<Folders src={{ isLoading: true }} />);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src']);
+        rerender(<Folders src={{}} />);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src', 'src loaded']);
+      });
+
+      it('says nothing for an item in a closed branch until the branch opens', () => {
+        render(
+          <TreeView
+            aria-label="Nested"
+            selectionMode="checkbox"
+            defaultExpanded={['lazy']}
+          >
+            <TreeView.Item value="top" label="Top">
+              <TreeView.Item value="lazy" label="Lazy" hasChildren isLoading />
+            </TreeView.Item>
+          </TreeView>
+        );
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+        expect(screen.queryByRole('treeitem', { name: LOADING })).toBeNull();
+        fireEvent.click(item('Top').querySelector('.tree-view-toggle')!);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading Lazy']);
+      });
+
+      it('says it in the app’s language', () => {
+        const { rerender } = render(
+          <Folders
+            defaultExpanded={['src']}
+            loadingAnnouncement={name => `Chargement de ${name}`}
+            loadedAnnouncement={name => `${name} chargé`}
+            src={{ isLoading: true }}
+          />
+        );
+        advance(announceDelay);
+        expect(said()).toEqual(['Chargement de src']);
+        rerender(
+          <Folders
+            loadingAnnouncement={name => `Chargement de ${name}`}
+            loadedAnnouncement={name => `${name} chargé`}
+            src={{}}
+          />
+        );
+        advance(announceDelay);
+        expect(said()).toEqual(['Chargement de src', 'src chargé']);
+      });
+
+      it('says nothing more once the item goes', () => {
+        function Going({ there }: { there: boolean }) {
+          return (
+            <TreeView aria-label="Going" defaultExpanded={['lazy']}>
+              {there && (
+                <TreeView.Item
+                  value="lazy"
+                  label="Lazy"
+                  hasChildren
+                  isLoading
+                />
+              )}
+            </TreeView>
+          );
+        }
+        const { rerender } = render(<Going there />);
+        rerender(<Going there={false} />);
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+      });
+    });
+  });
+
   describe('Development warnings', () => {
     let warn: jest.SpyInstance;
     beforeEach(() => {
@@ -1395,12 +1957,20 @@ describe('TreeView', () => {
             aria-label="Prefixed"
             selectionMode="checkbox"
             size="small"
-            defaultExpanded={['a']}
+            defaultExpanded={['a', 'a/3', 'a/4']}
             defaultChecked={['a/1']}
           >
             <TreeView.Item value="a" label="A" icon="folder">
               <TreeView.Item value="a/1" label="One" />
               <TreeView.Item value="a/2" label="Two" disabled />
+              <TreeView.Item value="a/3" label="Three" hasChildren isLoading />
+              <TreeView.Item
+                value="a/4"
+                label="Four"
+                hasChildren
+                loadError="Couldn’t load Four"
+                onRetry={() => {}}
+              />
             </TreeView.Item>
           </TreeView>
           <TreeView
@@ -1426,6 +1996,8 @@ describe('TreeView', () => {
         'is-selected',
         'styled-checkbox',
         'check',
+        'loader',
+        'button',
       ]) {
         expect(container.querySelector(`.bestax-${name}`)).not.toBeNull();
         expect(container.querySelector(`.${name}`)).toBeNull();
@@ -1498,6 +2070,16 @@ describe('TreeView', () => {
         'checkbox',
         <Permissions key="checkbox" defaultChecked={['projects/read']} />,
       ],
+      [
+        'loading',
+        <Folders
+          key="loading"
+          selectionMode="single"
+          defaultSelected="docs"
+          defaultExpanded={['src']}
+          src={{ isLoading: true }}
+        />,
+      ],
     ])('hydrates a %s tree without a mismatch', async (_mode, tree) => {
       const container = document.createElement('div');
       container.innerHTML = renderToString(tree);
@@ -1519,6 +2101,22 @@ describe('TreeView', () => {
         await act(async () => root!.unmount());
         container.remove();
       }
+    });
+
+    it('renders an open item’s loading row and the empty live region', () => {
+      const doc = document.createElement('div');
+      doc.innerHTML = renderToStaticMarkup(
+        <Folders defaultExpanded={['src']} src={{ isLoading: true }} />
+      );
+      const tree = doc.querySelector('[role="tree"]')!;
+      const status = doc.querySelector('[role="status"]')!;
+      expect(status.previousElementSibling).toBe(tree);
+      expect(status).toHaveAttribute('aria-live', 'polite');
+      expect(status).toBeEmptyDOMElement();
+      const loading = tree.querySelector('[role="group"] > [role="treeitem"]')!;
+      expect(loading).toHaveTextContent('Loading…');
+      expect(loading).toHaveAttribute('aria-disabled', 'true');
+      expect(loading).toHaveAttribute('tabindex', '-1');
     });
 
     it('shows a mixed parent once a hydrated checkbox tree has mounted', async () => {
