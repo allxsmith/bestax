@@ -3,9 +3,9 @@
  * Sidebar and a full-page Loading join one stack in the order they open, and
  * only the last one answers Escape, so the next Escape closes the one under
  * it. The one that closes marks the key used. A Toast and a Loading inside a
- * container stay out of the stack and wait until no overlay is open. Modal's
- * Tab trap follows the same stack, so a Sidebar opened over a Modal keeps
- * its Tab.
+ * container stay out of the stack and wait until no overlay is open. Modal
+ * and a Sidebar with an overlay hold Tab by the same stack (#1114), so the
+ * one on top holds it and the one under it stands aside until it closes.
  */
 import { StrictMode, useState } from 'react';
 import { flushSync } from 'react-dom';
@@ -236,30 +236,72 @@ describe('Escape with overlays on top of each other', () => {
 });
 
 describe('Tab with a Sidebar opened over a Modal', () => {
-  it('leaves Tab to the page while the Sidebar is on top, and traps it again once it closes', () => {
+  it('holds Tab in the Sidebar while it is on top, and in the Modal once it closes', () => {
     const closed: string[] = [];
     render(<Layers open="modal" closed={closed} />);
+    const help = screen.getByRole('button', { name: 'Help' });
+    expect(help).toHaveFocus();
     click('Help');
-    const inSidebar = screen.getByRole('button', { name: 'Edit' });
-    expect(inSidebar).toHaveFocus();
+    const edit = screen.getByRole('button', { name: 'Edit' });
+    const reset = screen.getByRole('button', { name: 'Reset' });
+    expect(edit).toHaveFocus();
 
     // The Modal under it doesn't pull focus back.
-    expect(fireEvent.keyDown(inSidebar, { key: 'Tab' })).toBe(true);
-    expect(inSidebar).toHaveFocus();
+    expect(fireEvent.keyDown(edit, { key: 'Tab' })).toBe(true);
+    expect(edit).toHaveFocus();
+    // The Sidebar wraps it.
+    act(() => reset.focus());
+    expect(fireEvent.keyDown(reset, { key: 'Tab' })).toBe(false);
+    expect(edit).toHaveFocus();
 
+    // Closing hands focus back to the Modal, which holds Tab again.
     pressEscape();
     expect(closed).toEqual(['sidebar']);
-    act(() => inSidebar.focus());
-    expect(fireEvent.keyDown(inSidebar, { key: 'Tab' })).toBe(false);
-    expect(screen.getByRole('button', { name: 'Help' })).toHaveFocus();
+    expect(help).toHaveFocus();
+    // The Modal's last tab stop is its floating close button.
+    const close = screen.getByRole('button', { name: 'close' });
+    act(() => close.focus());
+    expect(fireEvent.keyDown(close, { key: 'Tab' })).toBe(false);
+    expect(help).toHaveFocus();
+  });
+});
+
+describe('Tab with a Modal opened over a Sidebar', () => {
+  it('holds Tab in the Modal while it is on top, and in the Sidebar once it closes', () => {
+    const closed: string[] = [];
+    render(<Layers open="sidebar" closed={closed} />);
+    const edit = screen.getByRole('button', { name: 'Edit' });
+    expect(edit).toHaveFocus();
+    click('Edit');
+    const help = screen.getByRole('button', { name: 'Help' });
+    // The Modal's last tab stop is its floating close button.
+    const close = screen.getByRole('button', { name: 'close' });
+    expect(help).toHaveFocus();
+
+    // The Sidebar under it stands aside: focus is outside it, and it would
+    // otherwise pull focus back in.
+    act(() => close.focus());
+    expect(fireEvent.keyDown(close, { key: 'Tab' })).toBe(false);
+    expect(help).toHaveFocus();
+    expect(fireEvent.keyDown(help, { key: 'Tab', shiftKey: true })).toBe(false);
+    expect(close).toHaveFocus();
+
+    // Closing hands focus back to the Sidebar, which holds Tab again.
+    pressEscape();
+    expect(closed).toEqual(['modal']);
+    expect(edit).toHaveFocus();
+    expect(fireEvent.keyDown(edit, { key: 'Tab', shiftKey: true })).toBe(false);
+    const reset = screen.getByRole('button', { name: 'Reset' });
+    expect(reset).toHaveFocus();
+    expect(fireEvent.keyDown(reset, { key: 'Tab' })).toBe(false);
+    expect(edit).toHaveFocus();
   });
 });
 
 describe('Tab in a Dialog rendered inside a Sidebar', () => {
   // A Dialog renders in place by default, so it sits inside the Sidebar's
-  // DOM, and a Tab in it reaches the Sidebar's element before the Dialog's
-  // own listener on `window`. Anything that holds Tab in the Sidebar (#1114)
-  // has to leave this one to the Dialog on top.
+  // DOM, and the Sidebar, open first, hears a Tab in it before the Dialog's
+  // own listener on `window` does. The Sidebar leaves it to the Dialog on top.
   it("wraps from the Dialog's last button to its first, not out into the Sidebar", () => {
     const Page = () => {
       const [confirm, setConfirm] = useState(false);
@@ -284,6 +326,13 @@ describe('Tab in a Dialog rendered inside a Sidebar', () => {
 
     expect(fireEvent.keyDown(ok, { key: 'Tab' })).toBe(false);
     expect(screen.getByRole('button', { name: 'Cancel' })).toHaveFocus();
+
+    // Once the Dialog closes, the Sidebar holds Tab again.
+    click('Cancel');
+    const deleteAll = screen.getByRole('button', { name: 'Delete all' });
+    expect(deleteAll).toHaveFocus();
+    expect(fireEvent.keyDown(deleteAll, { key: 'Tab' })).toBe(false);
+    expect(deleteAll).toHaveFocus();
   });
 });
 

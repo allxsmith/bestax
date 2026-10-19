@@ -16,6 +16,7 @@ import {
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useClassPrefix } from '../helpers/Config';
 import { getActiveElementInTree } from '../helpers/shadowDom';
+import { useLatestRef } from '../helpers/useLatestRef';
 import { Icon } from '../elements/Icon';
 import { Button } from '../elements/Button';
 
@@ -302,16 +303,24 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
       [setActiveIndex]
     );
 
-    // Auto-play
+    // Read when the timer fires or an arrow key arrives, so neither the
+    // timer nor the key listener starts over while `onChange` changes
+    // identity, as an inline one does on every render of the parent.
+    const goToPrevRef = useLatestRef(goToPrev);
+    const goToNextRef = useLatestRef(goToNext);
+
+    // Auto-play. Each slide gets the whole interval, so a slide change,
+    // autoplay's own or the user's, starts the timer over. A render that
+    // leaves the slide where it is doesn't.
     useEffect(() => {
       if (!autoplay || isPaused || itemCount <= 1) return undefined;
 
       const timer = setInterval(() => {
-        goToNext();
+        goToNextRef.current();
       }, interval);
 
       return () => clearInterval(timer);
-    }, [autoplay, isPaused, interval, goToNext, itemCount]);
+    }, [autoplay, isPaused, interval, itemCount, activeIndex, goToNextRef]);
 
     // Pause on hover
     const handleMouseEnter = useCallback(() => {
@@ -407,18 +416,18 @@ export const Carousel = forwardRef<HTMLDivElement, CarouselProps>(
         switch (e.key) {
           case 'ArrowLeft':
             e.preventDefault();
-            goToPrev();
+            goToPrevRef.current();
             break;
           case 'ArrowRight':
             e.preventDefault();
-            goToNext();
+            goToNextRef.current();
             break;
         }
       };
 
       document.addEventListener('keydown', handleKeyDown);
       return () => document.removeEventListener('keydown', handleKeyDown);
-    }, [goToPrev, goToNext]);
+    }, [goToPrevRef, goToNextRef]);
 
     // Handle wrap-around transition end
     const handleTransitionEnd = useCallback(() => {

@@ -211,6 +211,105 @@ ${PREFIX}tooltip {
   assert.equal(rows[0].scope, 'root');
 });
 
+// --- the root class listed beside a compound ----------------------------------
+
+const COMBOBOX_LIST = `${PREFIX}combobox,\n${PREFIX}combobox-menu${PREFIX}is-portal`;
+
+test("the root class listed beside its own element's compound reads as both homes", () => {
+  // Combobox's shape: one registration on the root and on its portaled menu,
+  // which is outside the root and declares its own. `.combobox` takes a value
+  // set there or through className, and the menu takes nothing from it, so
+  // neither 'root' nor 'compound' is true of both homes.
+  const src = partial(COMBOBOX_LIST, ['combobox-menu-background']);
+  assert.deepEqual(
+    componentVars(src, 'combobox').map(r => [r.scope, r.alsoOn]),
+    [['root-and-element', ['.combobox-menu.is-portal']]]
+  );
+});
+
+test('the root class listed beside some other compound reads as compound', () => {
+  const src = partial(`${PREFIX}combobox,\n${PREFIX}dropdown${PREFIX}is-up`, [
+    'combobox-menu-background',
+  ]);
+  const rows = componentVars(src, 'combobox');
+  assert.deepEqual(
+    rows.map(r => r.scope),
+    ['compound']
+  );
+  assert.equal(rows[0].alsoOn, undefined);
+});
+
+test('a list of simple classes naming the root stays root', () => {
+  const src = partial(`${PREFIX}control,\n${PREFIX}input`, ['input-radius']);
+  assert.deepEqual(
+    componentVars(src, 'input').map(r => r.scope),
+    ['root']
+  );
+});
+
+test('the real combobox partial yields every variable on both homes', () => {
+  const rows = componentVars(
+    repoFile('bulma-ui/src/scss/form/_combobox.scss'),
+    'combobox'
+  );
+  assert.ok(rows.length > 0);
+  assert.ok(
+    rows.every(
+      r =>
+        r.scope === 'root-and-element' &&
+        r.alsoOn?.join() === '.combobox-menu.is-portal'
+    ),
+    JSON.stringify(rows)
+  );
+});
+
+test('a key keeps both homes beside a bare root registration, in either order', () => {
+  // A root registration on its own says less than the list naming both
+  // homes, so the list's kind wins, with the element it names.
+  const keys = ['combobox-item-size'];
+  for (const order of [
+    [`${PREFIX}combobox`, COMBOBOX_LIST],
+    [COMBOBOX_LIST, `${PREFIX}combobox`],
+  ]) {
+    const src = order.map(selector => partial(selector, keys)).join('\n');
+    assert.deepEqual(
+      componentVars(src, 'combobox').map(r => [r.scope, r.alsoOn]),
+      [['root-and-element', ['.combobox-menu.is-portal']]],
+      order.join(' then ')
+    );
+  }
+});
+
+test("a compound on the root's own element out-ranks both, in either order", () => {
+  // `.button.combobox` is the root's element with a stronger declaration, so
+  // its advice holds wherever the other registrations sit.
+  const keys = ['combobox-item-size'];
+  const compound = `${PREFIX}button${PREFIX}combobox`;
+  for (const order of [
+    [`${PREFIX}combobox`, compound],
+    [compound, `${PREFIX}combobox`],
+    [COMBOBOX_LIST, compound],
+  ]) {
+    const src = order.map(selector => partial(selector, keys)).join('\n');
+    assert.deepEqual(
+      componentVars(src, 'combobox').map(r => r.scope),
+      ['compound'],
+      order.join(' then ')
+    );
+  }
+});
+
+test('a later constituent registration leaves a root key root', () => {
+  const keys = ['tooltip-dashed-color'];
+  const src = [`${PREFIX}tooltip`, `${PREFIX}tooltip-content`]
+    .map(selector => partial(selector, keys))
+    .join('\n');
+  assert.deepEqual(
+    componentVars(src, 'tooltip').map(r => r.scope),
+    ['root']
+  );
+});
+
 test('the singular register-var form counts as registering (orphan rule input)', () => {
   // The orphan rule asks "does this partial register anything?" through
   // registerVarsEntries, not registerVarsKeys — the latter reads only the

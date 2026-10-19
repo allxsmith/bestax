@@ -127,8 +127,7 @@ After the base, `@use` only the Bulma partials you need:
 @use 'bulma/sass/elements/title';
 
 // Form
-@use 'bulma/sass/form/input';
-@use 'bulma/sass/form/textarea';
+@use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/form/select';
 
 // Components
@@ -144,6 +143,8 @@ After the base, `@use` only the Bulma partials you need:
 @use 'bulma/sass/layout/container';
 @use 'bulma/sass/layout/section';
 ```
+
+Bulma groups some form controls into one module: `form/input-textarea` styles both Input and TextArea, `form/checkbox-radio` styles Checkbox and Radio, and `form/tools` styles Field and Control.
 
 Pull in only the helper categories you use:
 
@@ -169,13 +170,14 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 @use '@allxsmith/bestax-bulma/scss/components/sidebar';
 @use '@allxsmith/bestax-bulma/scss/components/toast';
 @use '@allxsmith/bestax-bulma/scss/components/steps';
-@use '@allxsmith/bestax-bulma/scss/components/tabs';
+@use '@allxsmith/bestax-bulma/scss/components/tabs' as bestax-tabs;
 @use '@allxsmith/bestax-bulma/scss/components/emptystate';
 @use '@allxsmith/bestax-bulma/scss/components/timeline';
 @use '@allxsmith/bestax-bulma/scss/components/treeview';
 
 // bestax form components
 @use '@allxsmith/bestax-bulma/scss/form/autocomplete';
+@use '@allxsmith/bestax-bulma/scss/form/combobox';
 @use '@allxsmith/bestax-bulma/scss/form/taginput';
 @use '@allxsmith/bestax-bulma/scss/form/rate';
 @use '@allxsmith/bestax-bulma/scss/form/slider';
@@ -187,15 +189,15 @@ bestax ships SCSS partials for every component it adds on top of Bulma. Import t
 // bestax elements and helpers
 @use '@allxsmith/bestax-bulma/scss/elements/kbd';
 @use '@allxsmith/bestax-bulma/scss/elements/linkbutton';
-@use '@allxsmith/bestax-bulma/scss/elements/loader';
-@use '@allxsmith/bestax-bulma/scss/elements/notification';
-@use '@allxsmith/bestax-bulma/scss/elements/progress';
-@use '@allxsmith/bestax-bulma/scss/elements/skeleton';
+@use '@allxsmith/bestax-bulma/scss/elements/loader' as bestax-loader;
+@use '@allxsmith/bestax-bulma/scss/elements/notification' as bestax-notification;
+@use '@allxsmith/bestax-bulma/scss/elements/progress' as bestax-progress;
+@use '@allxsmith/bestax-bulma/scss/elements/skeleton' as bestax-skeleton;
 @use '@allxsmith/bestax-bulma/scss/helpers/cursor';
 @use '@allxsmith/bestax-bulma/scss/helpers/sizing';
 ```
 
-Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too.
+Some of these partials adjust a stock Bulma component rather than add one of bestax's. `elements/notification` is one: it keeps a `Notification`'s text clear of its close button, so a build that uses `bulma/sass/elements/notification` wants it too. A partial like that can end in the same name as the Bulma module it adjusts, and Sass refuses two `@use` lines with the same name in one file, so the block above gives those lines a name of their own with `as`. The name changes nothing in the compiled CSS.
 
 :::info Shortcuts
 
@@ -218,7 +220,7 @@ A realistic modular SCSS entry for an app that uses a few Bulma primitives plus 
 @use 'bulma/sass/elements/button';
 @use 'bulma/sass/elements/box';
 @use 'bulma/sass/elements/title';
-@use 'bulma/sass/form/input';
+@use 'bulma/sass/form/input-textarea';
 @use 'bulma/sass/components/card';
 @use 'bulma/sass/grid/columns';
 @use 'bulma/sass/helpers/spacing';

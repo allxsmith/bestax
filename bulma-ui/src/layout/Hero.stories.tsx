@@ -338,3 +338,34 @@ export const CompoundUsage: StoryObj<typeof Hero> = {
     </Hero>
   ),
 };
+
+export const LandmarkTags: StoryObj<typeof Hero> = {
+  render: () => (
+    <Hero as="div" color="primary">
+      <Hero.Head as="header">
+        <Container pt="4" textAlign="centered">
+          <SubTitle size="6">Hero.Head as=&quot;header&quot;</SubTitle>
+        </Container>
+      </Hero.Head>
+      <Hero.Body>
+        <Container as="main" textAlign="centered">
+          <Title>Hero as=&quot;div&quot;</Title>
+          <SubTitle>Container as=&quot;main&quot;</SubTitle>
+        </Container>
+      </Hero.Body>
+      <Hero.Foot as="footer">
+        <Container pb="4" textAlign="centered">
+          <SubTitle size="6">Hero.Foot as=&quot;footer&quot;</SubTitle>
+        </Container>
+      </Hero.Foot>
+    </Hero>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Hero, Hero.Head, Hero.Foot and Container take an `as` prop, so a page can put them on landmarks the way Bulma templates do (`<main class="hero">`, `<footer class="hero-foot">`). A `header` or `footer` is a page landmark only outside a `section`, so this hero renders as a `div`.',
+      },
+    },
+  },
+};

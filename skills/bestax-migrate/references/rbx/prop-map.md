@@ -88,19 +88,25 @@ several of those narrow it to specific tags (`Footer` is `'footer' | 'div'`, `Co
 `'div' | 'p'`). The codemod passes `as` through only where bestax really accepts it, and TODOs it
 everywhere else:
 
-| bestax component             | `as` accepts               |
-| ---------------------------- | -------------------------- |
-| `Button`                     | any element type           |
-| `Title`, `SubTitle`          | `h1`–`h6`, `p`             |
-| `Image`                      | `'figure' \| 'div' \| 'p'` |
-| `Footer`                     | `'footer' \| 'div'`        |
-| `Media`                      | `'article' \| 'div'`       |
-| `Media.Left`                 | `'figure' \| 'div'`        |
-| `Level.Item`                 | `'div' \| 'p' \| 'a'`      |
-| `Control`                    | `'div' \| 'p'`             |
-| `Menu.Item`                  | any element type           |
-| `Dropdown.Item`              | `'a' \| 'div' \| 'button'` |
-| `Navbar.Item`, `Navbar.Link` | any element type           |
+| bestax component             | `as` accepts                                                                            |
+| ---------------------------- | --------------------------------------------------------------------------------------- |
+| `Button`                     | any element type                                                                        |
+| `Title`, `SubTitle`          | `h1`–`h6`, `p`                                                                          |
+| `Image`                      | `'figure' \| 'div' \| 'p'`                                                              |
+| `Footer`                     | `'footer' \| 'div'`                                                                     |
+| `Media`                      | `'article' \| 'div'`                                                                    |
+| `Media.Left`                 | `'figure' \| 'div'`                                                                     |
+| `Level.Item`                 | `'div' \| 'p' \| 'a'`                                                                   |
+| `Control`                    | `'div' \| 'p'`                                                                          |
+| `Menu.Item`                  | any element type                                                                        |
+| `Dropdown.Item`              | `'a' \| 'div' \| 'button'`                                                              |
+| `Navbar.Item`, `Navbar.Link` | any element type                                                                        |
+| `Container`                  | `'div' \| 'main' \| 'section' \| 'article' \| 'aside' \| 'header' \| 'footer' \| 'nav'` |
+| `Hero`                       | `'section' \| 'div' \| 'main' \| 'header' \| 'footer' \| 'article' \| 'aside'`          |
+| `Hero.Head`                  | `'div' \| 'header' \| 'nav'`                                                            |
+| `Hero.Foot`                  | `'div' \| 'footer' \| 'nav'`                                                            |
+| `Panel`                      | `'nav' \| 'article' \| 'section' \| 'aside' \| 'div'`                                   |
+| `Panel.Block`                | `'a' \| 'div' \| 'label'`                                                               |
 
 Three traps worth naming, because rbx supplies `as` universally and the obvious guesses are
 wrong:
