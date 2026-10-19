@@ -142,6 +142,7 @@ Each of these takes the `bestax` plugin from allxsmith/bestax-skills. The last c
 | [rohitg00/awesome-claude-code-toolkit](https://github.com/rohitg00/awesome-claude-code-toolkit)           | bestax-skills                             | [#832](https://github.com/rohitg00/awesome-claude-code-toolkit/pull/832)      |
 | [Prat011/awesome-llm-skills](https://github.com/Prat011/awesome-llm-skills)                               | bestax-skills                             | [#273](https://github.com/Prat011/awesome-llm-skills/pull/273)                |
 | [finfin/awesome-frontend-skills](https://github.com/finfin/awesome-frontend-skills)                       | allxsmith/bestax                          | [#6](https://github.com/finfin/awesome-frontend-skills/pull/6)                |
+| [github/awesome-copilot](https://github.com/github/awesome-copilot)                                       | Bulma v1 instructions, Bestax section     | [#5156](https://github.com/github/awesome-copilot/pull/5156)                  |
 
 Every list entry is Manual: it holds the text we submitted until someone opens a pull request
 against that list.
@@ -171,7 +172,7 @@ Not live yet.
 | [markodenic/web-development-resources](https://github.com/markodenic/web-development-resources) and [agarrharr/awesome-cli-apps](https://github.com/agarrharr/awesome-cli-apps) | bestax-bulma, create-bestax | Manual    | Both refuse submissions written with an LLM, so a maintainer writes these by hand.                                                                                                                                              |
 | [goose extensions directory](https://goose-docs.ai/extensions/)                                                                                                                 | `bestax-mcp`                | Unknown   | Closed without merging in [#12784](https://github.com/aaif-goose/goose/pull/12784). goose takes no new third-party servers in its directory and is moving to the Official MCP Registry, which lists `bestax-mcp` already.       |
 | farhan523/awesome-js-starters                                                                                                                                                   | `@allxsmith/bestax-bulma`   | Manual    | The repository stopped resolving shortly after [#59](https://github.com/farhan523/awesome-js-starters/pull/59) opened with a package README. The fork `allxsmith/awesome-js-starters` keeps that README if the list comes back. |
-| [awesome-copilot](https://github.com/github/awesome-copilot)                                                                                                                    | The plugin                  | Manual    | Declined in [issue #4541](https://github.com/github/awesome-copilot/issues/4541) as too product-specific and narrowly scoped for that repo for now.                                                                             |
+| [awesome-copilot](https://github.com/github/awesome-copilot)                                                                                                                    | The plugin                  | Manual    | Declined as a plugin in [issue #4541](https://github.com/github/awesome-copilot/issues/4541) as too product-specific. Bulma v1 instructions are in review in [#5156](https://github.com/github/awesome-copilot/pull/5156).      |
 | [heilcheng/awesome-agent-skills](https://github.com/heilcheng/awesome-agent-skills)                                                                                             | The skills                  | Manual    | On hold in [#561](https://github.com/heilcheng/awesome-agent-skills/pull/561) for low traction. The maintainer plans to revisit it, and the pull request stays open.                                                            |
 
 ## GitHub topics
@@ -195,7 +196,8 @@ Say in the pull request which listings need an update, then open those updates o
   heilcheng/awesome-agent-skills (one line per skill), awesome-openclaw-skills and
   awesome-frontend-skills (both name `bestax-layout-scaffold`), awesome-claude-code-toolkit and
   awesome-codex-skills (both name `bestax-form`), ccplugins, awesome-llm-skills, Chat2AnyLLM's
-  `plugin_repos.json`, and the Tessl Registry and Skills Directory, which hold one entry per
+  `plugin_repos.json`, the awesome-copilot instructions (which give a count and name
+  `bestax-layout-scaffold`), and the Tessl Registry and Skills Directory, which hold one entry per
   skill. Chat2AnyLLM's `skill_repos.json` scans the `skills/` folder on its own.
 - **Editing a skill.** cursor.directory and ClawHub hold copies of each skill's text, so they keep
   the old wording until someone pastes or uploads the new one. The Tessl Registry and Skills
@@ -204,8 +206,10 @@ Say in the pull request which listings need an update, then open those updates o
 - **Changing what `bestax-mcp` offers.** Most MCP entries say it serves props, examples, CSS
   variables and Agent Skills, offline, with no API key. awesome-AI-driven-development also gives
   an example count, in English and Japanese. toolsdk-mcp-registry documents the
-  `BESTAX_MCP_NO_VERSION_CHECK` variable, and the mcpm.sh registry lists each tool by name.
-  AIAnytime, YuzeHao2023, ccplugins, best-of-mcp-servers,
+  `BESTAX_MCP_NO_VERSION_CHECK` variable, and the mcpm.sh registry lists each tool by name. The
+  awesome-copilot instructions name `search_bestax`, `get_props`, `get_examples`,
+  `get_css_variables`, `get_helper_props` and `lookup_bulma_classes`.
+  Awesome-MCP-ZH, AIAnytime, YuzeHao2023, ccplugins, best-of-mcp-servers,
   Chat2AnyLLM's `mcp_server_repos.json`, the Cline issue and mcp.directory carry the same
   description. official-mcp-servers, the awesome-bulma Tools entries and
   awesome-gemini-cli-extensions give a shorter one.
@@ -230,14 +234,17 @@ Say in the pull request which listings need an update, then open those updates o
   the Cline issue repeat the `engines` floor from `bestax-mcp/package.json` as a requirement.
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
-  need the same change.
+  need the same change. The awesome-copilot instructions run `node` on
+  `node_modules/bestax-mcp/dist/index.js`, so moving the `bin` entry breaks them.
 - **A bestax-migrate release.** The Codemod Registry wrapper keeps running the version it pins
   until it is bumped and republished. CONTRIBUTING.md has the steps under "Codemod Registry".
 - **Changing an install command.** awesome-claude-code-and-skills, claude-code-skills-zh,
   awesome-claude-code-toolkit and awesome-frontend-skills give
   `npx skills add https://github.com/allxsmith/bestax --skill <name>`. awesome-codex-skills gives
   the Codex skill-installer form, `--repo allxsmith/bestax --path skills/<name>`. ccplugins gives
-  `/plugin marketplace add allxsmith/bestax-skills` and `/plugin install bestax@bestax`.
+  `/plugin marketplace add allxsmith/bestax-skills` and `/plugin install bestax@bestax`. The
+  awesome-copilot instructions give `gh skills install allxsmith/bestax bestax-layout-scaffold`
+  and `npm install --save-dev --save-exact bestax-mcp`.
 - **Moving or renaming a package folder.** Entries link to `tree/main/bestax-mcp`,
   `tree/main/skills`, `tree/main/skills/bestax-layout-scaffold` (and every other skill folder, in
   heilcheng/awesome-agent-skills), `tree/main/create-bestax`, `tree/main/eslint-plugin` and
@@ -248,6 +255,9 @@ Say in the pull request which listings need an update, then open those updates o
   `https://bestax.io`, `/llms.txt` and `/llms-full.txt`. awesome-storybook links `/storybook/`.
   aitmpl.com links `/docs/guides/llms`, and AIAnytime and the Cline issue link its `#mcp-server`
   anchor, so renaming that heading breaks them.
+- **Renaming a component, a prop or the CSS entry.** The awesome-copilot instructions import
+  `@allxsmith/bestax-bulma/bestax.css` and show `Block`, `Button`, `Field` and `Control` with the
+  `color`, `textColor` and `mb` props.
 - **A new Bulma major.** Nearly every entry says "Bulma v1".
 
 Bestax is called bestax-bulma on React component-library lists and Bestax everywhere else.
