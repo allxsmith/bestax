@@ -1120,6 +1120,7 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
    * surface and text color, a link a link's, anything else the page's own.
    * A variant with no surface of its own has none, and shows the page
    * through it, so it pairs with the page's text color unless it's a link.
+   * A disabled one keeps the gray forced colors gives a disabled control.
    */
   const LOADING_LOOKS: Array<
     [string, React.ReactElement, { surface: string; border: string }]
@@ -1201,6 +1202,27 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
       </Button>,
       { surface: 'Canvas', border: 'CanvasText' },
     ],
+    [
+      'Button isDisabled isLoading',
+      <Button key="x" isDisabled isLoading>
+        Save
+      </Button>,
+      { surface: 'ButtonFace', border: 'GrayText' },
+    ],
+    [
+      'Button color="ghost" isDisabled isLoading',
+      <Button key="x" color="ghost" isDisabled isLoading>
+        Save
+      </Button>,
+      { surface: 'transparent', border: 'GrayText' },
+    ],
+    [
+      'Button isLoading in a disabled fieldset',
+      <fieldset key="x" disabled>
+        <Button isLoading>Save</Button>
+      </fieldset>,
+      { surface: 'ButtonFace', border: 'GrayText' },
+    ],
   ];
 
   it('checks the loading buttons on the roster', () => {
@@ -1233,17 +1255,20 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
           look.border
         );
       }
-      // Focused, it's outlined in its border color.
-      button.setAttribute('tabindex', '0');
-      (button as HTMLElement).focus();
-      expect(
-        colorOf(
-          resolved(rules, button, '', { forcedColors: true }, [
-            'outline-color',
-            'outline',
-          ])
-        )
-      ).toBe(look.border);
+      // Focused, it's outlined in its border color. A browser won't focus a
+      // disabled one, though jsdom will, so there's no outline to check.
+      if (!button.matches(':disabled')) {
+        button.setAttribute('tabindex', '0');
+        (button as HTMLElement).focus();
+        expect(
+          colorOf(
+            resolved(rules, button, '', { forcedColors: true }, [
+              'outline-color',
+              'outline',
+            ])
+          )
+        ).toBe(look.border);
+      }
       // Its ring stays out of forcing with it, drawn in its border color and
       // open onto its surface.
       expect(forcing(rules, button, '::after')).toBe('none');

@@ -111,4 +111,12 @@
       outline-color: CanvasText;
     }
   }
+
+  // Forcing off also drops the gray the browser gives a disabled control, so
+  // a disabled one names it, which `:disabled` matches inside a disabled
+  // `<fieldset>` too. It can't take focus, so it needs no outline, and it
+  // comes last to win over the variants above, which it ties with.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading:disabled {
+    border-color: GrayText !important;
+  }
 }
