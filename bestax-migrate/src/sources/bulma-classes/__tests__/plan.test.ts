@@ -460,6 +460,59 @@ describe('plan', () => {
       });
     });
 
+    it('leaves the prop to a live class for it, in either order, and stays with its TODO', () => {
+      const legacy = (token: string) => ({
+        rule: `legacy:${token}`,
+        message: expect.stringContaining('Bulma v1 removed'),
+      });
+      for (const [removed, live, prop, value] of [
+        ['is-paddingless', 'p-2', 'p', '2'],
+        ['is-marginless', 'm-0', 'm', '0'],
+      ]) {
+        for (const order of [
+          `box ${removed} ${live}`,
+          `box ${live} ${removed}`,
+        ]) {
+          expect({ order, plan: plan(facts('div', order)) }).toEqual({
+            order,
+            plan: {
+              conversion: {
+                target: 'Box',
+                props: [[prop, value]],
+                className: removed,
+                drop: [],
+                numbers: [],
+              },
+              todos: [legacy(removed)],
+            },
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another prop, such as an axis, in either order', () => {
+      // `px-2` and `p-0` both render: v1 puts `px-2` after `p-0`, so the
+      // axis keeps its sides.
+      for (const order of ['px-2 is-paddingless', 'is-paddingless px-2']) {
+        expect({ order, plan: plan(facts('p', order)) }).toEqual({
+          order,
+          plan: {
+            conversion: {
+              target: 'Paragraph',
+              props: [
+                ['px', '2'],
+                ['p', '0'],
+              ],
+              className: null,
+              drop: [],
+              numbers: [],
+            },
+            todos: [],
+          },
+        });
+      }
+    });
+
     it('says what replaced it wherever it stays a class', () => {
       const legacy = (token: string) => ({
         rule: `legacy:${token}`,

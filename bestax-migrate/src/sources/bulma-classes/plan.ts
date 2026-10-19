@@ -1331,6 +1331,15 @@ function buildIcons(
  * base `display` beside a per-viewport one, a flex-container helper with no
  * flex `display`, `gapless` beside a `gap`) stays a class, as does one it
  * leaves out, and so does a modifier missing the attribute it needs.
+ *
+ * The first class to claim a prop keeps it, but a Bulma 0.9 class v1 removed
+ * claims one only after every other class has: whatever the order, a live
+ * class beside it for the same prop (`p-2 is-paddingless`) is what the page
+ * renders today and keeps the prop, and the removed one stays a class, with
+ * the TODO `plan` gives it. Beside a class for a different prop, such as an
+ * axis (`px-2 is-paddingless`), it still converts: the two render `px-2` and
+ * `p-0`, and v1's stylesheet puts every side and axis class after `p-0`, so
+ * the axis keeps its sides and `p-0` zeroes the rest.
  */
 function propsFrom(
   entry: RootEntry,
@@ -1352,8 +1361,12 @@ function propsFrom(
   const sourceOf = new Map<string, string>();
   const groupOf = new Map<string, string>();
   const converted = new Set<string>(root ? [root] : []);
+  const claiming = [
+    ...tokens.filter(token => !replacedBy(token)),
+    ...tokens.filter(token => replacedBy(token)),
+  ];
 
-  for (const token of tokens) {
+  for (const token of claiming) {
     if (converted.has(token)) continue;
     const modifier = modifierFor(entry, token);
     if (modifier) {

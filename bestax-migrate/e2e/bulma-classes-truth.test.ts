@@ -1682,6 +1682,63 @@ describe.each(Object.entries(REPLACED_IN_V1))(
         });
       }
     });
+
+    // A live class is what the page renders today, so it keeps the prop
+    // whichever comes first; one for another prop (an axis, a side) leaves
+    // it free, and both render.
+    const prop = HELPER_TOKENS.get(v1)!.write.prop;
+    const spacing = [...HELPER_TOKENS].filter(
+      ([other, helper]) =>
+        helper.group === 'spacing' && !Object.hasOwn(REPLACED_IN_V1, other)
+    );
+
+    it('stays a class beside a live class for its prop, in either order', () => {
+      const live = spacing.filter(([, helper]) => helper.write.prop === prop);
+      expect(live.length).toBeGreaterThan(0);
+      for (const [other] of live) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const result = plan(factsFor('div', tokens));
+          expect({
+            tokens,
+            kept: result.conversion?.className?.split(' ') ?? null,
+            todos: result.todos.map(todo => todo.rule),
+          }).toEqual({ tokens, kept: [token], todos: [`legacy:${token}`] });
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
+
+    it('converts beside a class for another spacing prop, in either order', () => {
+      const others = spacing.filter(
+        ([, helper]) =>
+          helper.write.prop !== prop && helper.write.prop[0] === prop
+      );
+      expect(others.length).toBeGreaterThan(0);
+      for (const [other] of others) {
+        for (const tokens of [
+          ['box', token, other],
+          ['box', other, token],
+        ]) {
+          const both = renderBoth(factsFor('div', tokens));
+          expect({ tokens, converts: both !== null }).toEqual({
+            tokens,
+            converts: true,
+          });
+          expect(both!.converted).not.toContain(token);
+          expect({ tokens, html: both!.converted }).toEqual({
+            tokens,
+            html: both!.raw,
+          });
+        }
+      }
+    });
   }
 );
 

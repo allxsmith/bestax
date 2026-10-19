@@ -357,8 +357,9 @@ Bulma v1.
 Wherever the element converts, the codemod writes them as `m="0"` and `p="0"`, which render
 v1's `m-0` and `p-0`, and says nothing. The TODO comes only where the class stays: on an
 element that stays markup (a `<div>` with no component class, or one refused for another
-reason), or beside a class that already wrote the prop (`p-2 is-paddingless`). Write `m-0` or
-`p-0` in its place, or drop it if the spacing it once removed no longer matters.
+reason), or beside a class for the same prop (`p-2`, before it or after), which keeps the prop
+since it's what the page renders today. Write `m-0` or `p-0` in its place, or drop it if the
+spacing it once removed no longer matters.
 
 ## A class that styles nothing where it is: `modifier:<root>`
 

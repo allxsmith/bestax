@@ -223,9 +223,11 @@ Some classes stay put because of how bestax renders them:
 - `is-hidden` becomes `visibility="hidden"`, which renders the same class and doesn't interact
   with `display`.
 - `is-marginless` and `is-paddingless` are the only classes a conversion changes: they style
-  nothing under v1, so they become the prop of the v1 helper that does their job. Where that prop
-  isn't written (the element stays markup, or `p-2` already wrote `p`), the class stays with a
-  `legacy:` TODO.
+  nothing under v1, so they become the prop of the v1 helper that does their job. A live class
+  for the same prop keeps it, whichever is written first, so beside `p-2` the class stays with a
+  `legacy:` TODO, and so it does wherever the element stays markup. Beside a class for another
+  prop, such as `px-2`, it still converts: v1 puts every side and axis class after `p-0`, so
+  `px-2` keeps its sides.
 
 ## Classes that stay classes
 
