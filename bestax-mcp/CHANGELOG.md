@@ -1,3 +1,14 @@
+## [1.15.14](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.13...bestax-mcp@1.15.14) (2026-10-19)
+
+
+### Bug Fixes
+
+* **bulma-ui:** draw a loading button's spinner and colors itself in forced colors ([d8471b0](https://github.com/allxsmith/bestax/commit/d8471b00168afdb83fb2670e3e8b1d14ef88ec0c)), closes [#1133](https://github.com/allxsmith/bestax/issues/1133)
+* **bulma-ui:** keep a disabled loading button gray in forced colors ([1e1f938](https://github.com/allxsmith/bestax/commit/1e1f938126489742bd191913f413a9b102e09bb4))
+* **bulma-ui:** keep a loading button's idle look and hide what's in it, in forced colors ([784d8ec](https://github.com/allxsmith/bestax/commit/784d8ecd4838e327e31cb008a1db24e1e1a60344)), closes [#1133](https://github.com/allxsmith/bestax/issues/1133)
+* **bulma-ui:** keep a loading Button's label hidden in forced colors ([1b0b3d6](https://github.com/allxsmith/bestax/commit/1b0b3d6ac63ba22b59b1dc0e7c147e5628bbf853)), closes [#1109](https://github.com/allxsmith/bestax/issues/1109) [#1133](https://github.com/allxsmith/bestax/issues/1133)
+* **bulma-ui:** ring a loading ghost, text or outlined button in CanvasText, in forced colors ([ca7eeb9](https://github.com/allxsmith/bestax/commit/ca7eeb9dc4f864afdfc980f3f9492ffa13fc2c39))
+
 ## [1.15.13](https://github.com/allxsmith/bestax/compare/bestax-mcp@1.15.12...bestax-mcp@1.15.13) (2026-10-19)
 
 
