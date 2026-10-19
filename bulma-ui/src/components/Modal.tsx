@@ -473,11 +473,13 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
   const onCloseRef = useLatestRef(onClose);
 
   // Joins the stack of open overlays, so the keyboard handling below only
-  // applies while this modal is the topmost overlay.
+  // applies while this modal is on top.
   const isTopmost = useOverlayStack(isModalActive);
 
-  // Escape closes; Tab cycles inside the modal. Both only for the topmost
-  // overlay. The listener is on `window`, where a keydown arrives last, so
+  // Escape closes, only for the topmost overlay. Tab cycles inside the modal
+  // while it's the topmost modal overlay, so an overlay that isn't modal,
+  // such as a Sidebar without an overlay, takes Escape from it but leaves it
+  // Tab. The listener is on `window`, where a keydown arrives last, so
   // everything inside the modal has had the key first: React's handlers, and
   // `document` listeners added after this one, such as a date picker's.
   useEffect(() => {
@@ -485,9 +487,9 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const node = modalRootRef.current;
-      if (!isTopmost()) return;
 
       if (e.key === 'Escape') {
+        if (!isTopmost()) return;
         // Something inside already used this Escape, such as a popup that
         // closed on it, so the modal waits for the next one. One the modal
         // closes on is marked used, so nothing under it acts on it as well.
@@ -499,7 +501,14 @@ const ModalRoot = forwardRef<HTMLDivElement, ModalProps>(function ModalRoot(
       }
       // A trap inside the modal, such as a portaled popup's, already moved
       // focus on this Tab, so the modal leaves it where it went.
-      if (e.key !== 'Tab' || !node || e.defaultPrevented) return;
+      if (
+        e.key !== 'Tab' ||
+        !node ||
+        e.defaultPrevented ||
+        !isTopmost('modal')
+      ) {
+        return;
+      }
 
       // Keep Tab within the modal — `aria-modal` hides the rest of the page
       // from assistive technology, so the keyboard order has to agree.

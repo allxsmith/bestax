@@ -1,12 +1,13 @@
 /**
  * The stack of open overlays behind "one Escape closes the topmost one"
- * (#1085). Each check here goes through the hook, which is the only way in.
+ * (#1085), and "the topmost modal one holds Tab" (#1191). Overlays join only
+ * through the hook, so each case here opens them with it.
  */
 import React, { StrictMode } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import { useOverlayStack } from '../overlayStack';
+import { isModalOverlayOpen, useOverlayStack } from '../overlayStack';
 
 /** An overlay that's open or not, returning its check. */
 const overlay = (open: boolean, options?: { strict?: boolean }) =>
@@ -98,6 +99,78 @@ describe('useOverlayStack', () => {
     } finally {
       spy.mockRestore();
     }
+  });
+
+  describe("asked about 'modal' overlays", () => {
+    /** An overlay that's open, modal or not. */
+    const layer = (modal: boolean) =>
+      renderHook(({ inStack, isModal }) => useOverlayStack(inStack, isModal), {
+        initialProps: { inStack: true, isModal: modal },
+      });
+
+    it('passes over one that is not modal, which still takes the top', () => {
+      const modal = layer(true);
+      const above = layer(false);
+
+      expect(modal.result.current('modal')).toBe(true);
+      expect(modal.result.current()).toBe(false);
+      expect(above.result.current()).toBe(true);
+    });
+
+    it('counts one that is modal, wherever it sits above', () => {
+      const under = layer(true);
+      const between = layer(false);
+      const top = layer(true);
+
+      expect(under.result.current('modal')).toBe(false);
+      expect(between.result.current('modal')).toBe(false);
+      expect(top.result.current('modal')).toBe(true);
+    });
+
+    it('treats an overlay as modal unless it says otherwise', () => {
+      const modal = layer(true);
+      overlay(true);
+      expect(modal.result.current('modal')).toBe(false);
+    });
+
+    it('follows an overlay that stops or starts being modal while open, keeping its place', () => {
+      const modal = layer(true);
+      const above = layer(true);
+      expect(modal.result.current('modal')).toBe(false);
+
+      above.rerender({ inStack: true, isModal: false });
+      expect(modal.result.current('modal')).toBe(true);
+      expect(above.result.current()).toBe(true);
+
+      above.rerender({ inStack: true, isModal: true });
+      expect(modal.result.current('modal')).toBe(false);
+      expect(above.result.current()).toBe(true);
+    });
+
+    it('is true for one outside the stack while no modal overlay is open', () => {
+      const nothingModal = outsider();
+      layer(false);
+      expect(nothingModal('modal')).toBe(true);
+      expect(nothingModal()).toBe(false);
+
+      layer(true);
+      expect(nothingModal('modal')).toBe(false);
+    });
+  });
+
+  describe('isModalOverlayOpen', () => {
+    it('is whether any open overlay is modal, wherever it sits', () => {
+      expect(isModalOverlayOpen()).toBe(false);
+
+      const modal = overlay(true);
+      const above = renderHook(() => useOverlayStack(true, false));
+      expect(isModalOverlayOpen()).toBe(true);
+
+      modal.rerender({ inStack: false });
+      expect(isModalOverlayOpen()).toBe(false);
+      above.unmount();
+      expect(isModalOverlayOpen()).toBe(false);
+    });
   });
 
   it('is left alone by a server render', () => {

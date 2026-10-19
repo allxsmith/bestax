@@ -38,6 +38,14 @@
       "code": "<Navbar transparent>{/* ...brand and menu... */}</Navbar>"
     },
     {
+      "title": "Spaced Navbar",
+      "code": "<Navbar isSpaced>\n  <Navbar.Brand>\n    <Navbar.Item href=\"#\">\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n  </Navbar.Brand>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n      <Navbar.Item href=\"#\">Docs</Navbar.Item>\n      <Navbar.Dropdown hoverable>\n        <Navbar.Link>More</Navbar.Link>\n        <Navbar.DropdownMenu>\n          <Navbar.Item href=\"#\">About</Navbar.Item>\n          <Navbar.Item href=\"#\">Contact</Navbar.Item>\n        </Navbar.DropdownMenu>\n      </Navbar.Dropdown>\n    </Navbar.Start>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
+      "title": "Navbar with a Shadow",
+      "code": "<Navbar hasShadow>\n  <Navbar.Brand>\n    <Navbar.Item href=\"#\">\n      <img src=\"/img/logo.svg\" alt=\"Logo\" width=\"28\" height=\"28\" />\n    </Navbar.Item>\n  </Navbar.Brand>\n  <Navbar.Menu active>\n    <Navbar.Start>\n      <Navbar.Item href=\"#\">Home</Navbar.Item>\n      <Navbar.Item href=\"#\">Docs</Navbar.Item>\n    </Navbar.Start>\n  </Navbar.Menu>\n</Navbar>"
+    },
+    {
       "title": "Fixed Navbar",
       "code": "<Navbar fixed=\"top\">{/* ...brand and menu... */}</Navbar>"
     },
@@ -130,6 +138,24 @@
           "type": "boolean",
           "default": "false",
           "description": "Renders the navbar with a transparent background.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "isSpaced",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders Bulma's `is-spaced`: padding around the navbar, rounded items and boxed dropdowns. Bulma applies it from the desktop breakpoint up, so below that the navbar looks the same either way. With `fixed=\"top\"`, put `has-spaced-navbar-fixed-top` on `<html>` beside `has-navbar-fixed-top` (the `-bottom` pair for `fixed=\"bottom\"`). From desktop up the spaced navbar is taller than `has-navbar-fixed-top` pads the page for, and there the spaced class pads it for the taller navbar.",
+          "required": false,
+          "inherited": false,
+          "deprecated": false
+        },
+        {
+          "name": "hasShadow",
+          "type": "boolean",
+          "default": "false",
+          "description": "Renders Bulma's `has-shadow`: a shadow below the navbar, or above it with `fixed=\"bottom\"`. Off unless set, since Bulma's navbar has no shadow of its own. `Box` and `Card` take a `hasShadow` that defaults to `true` instead, because Bulma gives those a shadow already.",
           "required": false,
           "inherited": false,
           "deprecated": false
