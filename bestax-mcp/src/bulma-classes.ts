@@ -375,6 +375,12 @@ function reachesTag(entry: RootRecord, tag: string): boolean {
   return Array.isArray(entry.as) && entry.as.includes(tag);
 }
 
+/** 2 for the component's own tag, 1 for one `as` reaches, 0 for neither. */
+function tagFit(entry: RootRecord, tag: string): number {
+  if (entry.tag === tag) return 2;
+  return reachesTag(entry, tag) ? 1 : 0;
+}
+
 function reaches(entry: RootRecord): string {
   if (entry.as === 'any') return `<${entry.tag}>, or any tag through \`as\``;
   if (entry.sizeDrivesTag && entry.as) {
@@ -496,14 +502,17 @@ export function lookupClasses(
     const index = table.precedence.indexOf(token);
     return index === -1 ? table.precedence.length : index;
   };
-  // Of two roots, one whose component renders the tag wins, and the table's
-  // precedence decides between the rest.
+  // Of two roots, the one that fits the tag best wins (its own tag, then one
+  // `as` reaches), and the table's precedence decides a tie.
   const roots = tokens
     .filter(token => rootOf(token)?.status === 'mapped')
     .sort((a, b) => precedence(a) - precedence(b));
-  const root =
-    (tag ? roots.find(token => reachesTag(rootOf(token)!, tag)) : undefined) ??
-    roots[0];
+  const fit = (token: string) => (tag ? tagFit(rootOf(token)!, tag) : 0);
+  const root = roots.reduce<string | undefined>(
+    (best, token) =>
+      best === undefined || fit(token) > fit(best) ? token : best,
+    undefined
+  );
 
   let entry: RootRecord;
   if (root) {
@@ -629,9 +638,11 @@ export function lookupClasses(
       const why =
         tag && !reachesTag(second, tag)
           ? `\`${name}\` renders ${reaches(second)}, not a <${tag}>`
-          : precedence(root) < precedence(token)
-            ? `the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
-            : `\`.${root}\` comes first on the element`;
+          : fit(root) > fit(token)
+            ? `a <${tag}> is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `\`.${root}\` comes first on the element`;
       stays(
         token,
         `bestax \`${name}\`'s class too, and an element converts to one component: \`${target}\` here, since ${why}; ` +

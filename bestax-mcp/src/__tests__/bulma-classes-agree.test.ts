@@ -418,11 +418,15 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     const seconds = ['box', 'content', 'container', 'columns', 'image'];
     const cases = mapped.flatMap(([root, entry]) =>
       seconds
-        // The planner is given one element inside, so not two that render
-        // the element inside them.
+        // The planner is given one element inside, so not the <img> of an
+        // `.image` beside a root that reads the element inside it too.
         .filter(
           second =>
-            second !== root && !(entry.absorbs && table.roots[second].absorbs)
+            second !== root &&
+            !(
+              table.roots[second].absorbs &&
+              (entry.absorbs || entry.readsGlyph)
+            )
         )
         .flatMap(second => {
           const other = table.roots[second];

@@ -1096,10 +1096,16 @@ describe('lookup_bulma_classes', () => {
     const image = await lookup('image is-128x128 container', 'figure');
     expect(image).toContain('**Component:** `Image` with `as="figure"`.');
     expect(image).toContain(
-      '`Image` here, since `Container` renders only <div>, not a <figure>; where it is there to center this element, `mx="auto"` does that'
+      '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer> or <nav> through `as`, not a <figure>; where it is there to center this element, `mx="auto"` does that'
     );
     expect(await lookup('image is-128x128 container', 'div')).toContain(
       '**Component:** `Container`.'
+    );
+    // And one whose own tag it is wins over one that reaches it through `as`.
+    const hero = await lookup('container hero is-primary', 'section');
+    expect(hero).toContain('**Component:** `Hero`.');
+    expect(hero).toContain(
+      "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
     );
   });
 
