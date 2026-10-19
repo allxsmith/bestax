@@ -869,6 +869,64 @@ describe('Dropdown', () => {
   });
 });
 
+// The outside-click listener reads the latest `onActiveChange` when a click
+// arrives, so a parent that renders while the menu is open, handing over an
+// inline one each time, doesn't take the listener off and put it back. React
+// can render between two listeners for one event, and the browser runs
+// neither a listener taken off mid-event nor one added mid-event (#1186).
+describe('Dropdown while onActiveChange changes', () => {
+  const Page = ({
+    onActiveChange,
+  }: {
+    onActiveChange: (active: boolean) => void;
+  }) => (
+    <>
+      <Dropdown label="Menu" onActiveChange={active => onActiveChange(active)}>
+        <DropdownItem>Item</DropdownItem>
+      </Dropdown>
+      <button data-testid="outside">Outside</button>
+    </>
+  );
+
+  const openMenu = () => {
+    fireEvent.click(screen.getByRole('button', { name: /menu/i }));
+    expect(screen.getByTestId('dropdown-root')).toHaveClass('is-active');
+  };
+
+  const mousedownCalls = (spy: jest.SpyInstance) =>
+    spy.mock.calls.filter(([type]) => type === 'mousedown');
+
+  test('keeps its outside-click listener when the parent renders again', () => {
+    const onActiveChange = jest.fn();
+    const { rerender } = render(<Page onActiveChange={onActiveChange} />);
+    openMenu();
+    const addSpy = jest.spyOn(document, 'addEventListener');
+    const removeSpy = jest.spyOn(document, 'removeEventListener');
+    try {
+      rerender(<Page onActiveChange={onActiveChange} />);
+      expect(mousedownCalls(addSpy)).toHaveLength(0);
+      expect(mousedownCalls(removeSpy)).toHaveLength(0);
+    } finally {
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    }
+  });
+
+  test('calls the onActiveChange of the latest render on a click outside', () => {
+    const first = jest.fn();
+    const latest = jest.fn();
+    const { rerender } = render(<Page onActiveChange={first} />);
+    openMenu();
+    rerender(<Page onActiveChange={latest} />);
+
+    fireEvent.mouseDown(screen.getByTestId('outside'));
+
+    expect(screen.getByTestId('dropdown-root')).not.toHaveClass('is-active');
+    expect(latest).toHaveBeenCalledWith(false);
+    expect(first).not.toHaveBeenCalledWith(false);
+  });
+});
+
 describe('Dropdown keyboard navigation', () => {
   test('a role of undefined falls back to menuitem and stays reachable', () => {
     const role = undefined as string | undefined;

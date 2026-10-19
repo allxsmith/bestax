@@ -1052,6 +1052,26 @@ describe('lookup_bulma_classes', () => {
     expect(out).toContain('get_props({ component: "Button" })');
   });
 
+  it('says a `.icon` writes its glyph as props, and when the aria-hidden moves up', async () => {
+    const out = await lookup('icon is-small', 'span');
+    expect(out).toContain('**Component:** `Icon`.');
+    expect(out).toContain(
+      "write the <i>'s classes as its props and drop the <i>, so it closes itself"
+    );
+    expect(out).toContain(
+      '`far fa-bell fa-lg` as `library="fa" name="bell" variant="regular" features="fa-lg"`'
+    );
+    // The attributes it may carry for the move come from the index.
+    expect(out).toContain(
+      'Font Awesome\'s own `<i aria-hidden="true">` converts the same way when the element carries nothing but its classes, `id`, `style`, `key` and any `data-` attribute: `Icon` writes `aria-hidden` on the element instead'
+    );
+    expect(out).toContain(
+      'a `title`, a `role` or a `tabIndex` say, whether written out or as an expression, nothing moves'
+    );
+    // Nothing else reads a glyph.
+    expect(await lookup('tag')).not.toContain('<i>');
+  });
+
   it('says when a class is exact only on some tags', async () => {
     expect(await lookup('title is-4')).toContain(
       '| `is-4` | `size="4"` | exact only on <h4> or <p> |'
@@ -1165,16 +1185,19 @@ describe('lookup_bulma_classes', () => {
     );
   });
 
-  it('says why a part on another tag stays markup', async () => {
-    expect(await lookup('panel-block', 'div')).toContain(
-      '**Stays markup:** a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents'
-    );
+  it('follows a part to the tags its `as` takes, and no further', async () => {
+    for (const tag of ['div', 'label']) {
+      const block = await lookup('panel-block', tag);
+      expect(block).toContain('**Component:** `Panel.Block`');
+      expect(block).toContain(`\`as="${tag}"\``);
+    }
     expect(await lookup('panel-block', 'span')).toContain(
-      '**Component:** `Panel.Block` renders only <a>, not a <span>'
+      '**Component:** `Panel.Block` renders <a>, <div> or <label> through `as`, not a <span>'
     );
     expect(await lookup('panel-block', 'a')).toContain(
       '**Component:** `Panel.Block`'
     );
+    expect(await lookup('hero', 'main')).toContain('`as="main"`');
   });
 
   it('says when a component renders its class only at the top level', async () => {

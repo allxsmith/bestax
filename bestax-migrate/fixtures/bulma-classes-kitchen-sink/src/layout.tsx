@@ -139,6 +139,19 @@ export function Layout() {
         </div>
         <div className="hero-foot">Foot</div>
       </section>
+      <article className="hero is-small">
+        <header className="hero-head">
+          <nav className="container">Landmark head</nav>
+        </header>
+        <footer className="hero-foot">
+          <div className="container">Landmark foot</div>
+        </footer>
+      </article>
+      <section className="panel" aria-label="Program">
+        <p className="panel-heading">Program</p>
+        <div className="panel-block">A block that is not a link</div>
+        <label className="panel-block">A label block</label>
+      </section>
       <div className="footer has-text-centered">A footer on a div</div>
     </section>
   );

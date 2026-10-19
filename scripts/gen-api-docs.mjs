@@ -354,6 +354,19 @@ export function cssVarScopeText(info, rows, themeLink) {
     modifiers.length > 1
       ? `${modifiers.slice(0, -1).join(', ')} and ${modifiers.at(-1)}`
       : modifiers.join('');
+  // The constituent element a `root-and-element` row is declared on as well,
+  // which takes nothing from the root because it declares its own.
+  const alsoOn = [
+    ...new Set(
+      rows
+        .filter(r => r.scope === 'root-and-element')
+        .flatMap(r => r.alsoOn ?? [])
+    ),
+  ].map(m => `\`${m}\``);
+  const elsewhere =
+    alsoOn.length > 1
+      ? `${alsoOn.slice(0, -1).join(', ')} and ${alsoOn.at(-1)}`
+      : (alsoOn[0] ?? 'a constituent element');
   // A modifier that declares a mixin variable again is a compound selector,
   // so a lone `className` class loses to it on a sized component. The lead
   // and the note share these clauses, so whichever a page shows carries the
@@ -369,6 +382,15 @@ export function cssVarScopeText(info, rows, themeLink) {
       ? ` and, with one of those modifiers on, out-ranks the modifier's rule`
       : '');
   const leads = {
+    'root-and-element':
+      `\`${info.name}\` registers these variables on its own ${target} ` +
+      `element, and declares them again on ${elsewhere}, which takes ` +
+      `nothing from it. Override them on ${target} with inline \`style\`, ` +
+      `or with a class via \`className\` whose rule loads after the ` +
+      `library styles, and set them on ${elsewhere} too, with a selector ` +
+      `that matches it and loads after the library styles, or one that ` +
+      `exceeds it. A value set on an ancestor is only inherited, and loses ` +
+      `to both declarations. See [Theme](${themeLink}).`,
     compound:
       `\`${info.name}\` registers these variables on a compound selector ` +
       `(higher specificity than a single class). Override them with inline ` +
@@ -403,12 +425,19 @@ export function cssVarScopeText(info, rows, themeLink) {
   };
   const markers = {
     root: '∗',
+    'root-and-element': '‖',
     compound: '†',
     element: '‡',
     global: '§',
     mixin: '¶',
   };
   const notes = {
+    'root-and-element':
+      `‖ declared on the component's own element and again on ${elsewhere}, ` +
+      `which takes nothing from it: override it on the element, with inline ` +
+      `\`style\` or a \`className\` class loaded after the library styles, ` +
+      `and on ${elsewhere} too, with a selector matching it loaded after ` +
+      `the library styles or one exceeding it.`,
     root:
       `∗ declared on the component's own element: override it there (or via ` +
       `\`className\`); a value set on an ancestor is only inherited and loses ` +
@@ -443,6 +472,7 @@ export function cssVarScopeText(info, rows, themeLink) {
  */
 export const CSS_VAR_SCOPE_ORDER = [
   'root',
+  'root-and-element',
   'global',
   'mixin',
   'element',
