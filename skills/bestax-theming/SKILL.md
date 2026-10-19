@@ -11,9 +11,14 @@ properties. Theme an app by overriding the right variables — no component re-s
 
 ## Approach
 
-Recolor a brand color by overriding its **hue/saturation/lightness trio** — Bulma derives every
-shade, light/dark, and invert variant from `--bulma-<color>-h` / `-s` / `-l`. Override the trio and
-the whole palette follows.
+Recolor a brand color by overriding its **hue/saturation/lightness trio**
+(`--bulma-<color>-h` / `-s` / `-l`). The color itself follows all three. Its shades and variants
+follow the hue and saturation, at lightnesses the trio doesn't set. Among those, the stylesheet's
+build picked the label on a solid color (`--bulma-<color>-invert-l`) and the color's text on the
+page (`--bulma-<color>-on-scheme-l`, which for `link` is every link) for contrast with the color
+it was built with, so when the new color reads lighter or darker than the built one, set them in
+your CSS as well, or labels and text lose their contrast (`references/css-variables.md`,
+"Colors").
 
 Choose an override path:
 
@@ -31,7 +36,10 @@ For **dark mode**, pass `colorMode` to `Theme` (`'light' | 'dark' | 'system'`). 
 `data-theme` attribute on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a
 `classPrefix`, which the prefixed flavors read), flipping the light/dark scheme — global, even on a scoped
 `Theme`; `'system'` follows the OS `prefers-color-scheme`. Drive it from state on the app-root
-`Theme`: `<Theme isRoot colorMode={mode}>`.
+`Theme`: `<Theme isRoot colorMode={mode}>`. `Theme` writes the attribute from an effect, after a
+client-rendered app's first paint, so the scheme of that first frame comes from `index.html`:
+`data-theme` on the `<html>` for a scheme that never changes, or an inline `<head>` script that
+writes the visitor's saved choice for a toggle (`examples/dark-mode.tsx`).
 
 ## Contrast rules (dark mode is on by default)
 
@@ -42,8 +50,10 @@ theme. Custom fixed tokens (`--my-canvas: #f6f4ec`) do **not** flip — producin
 text on the author's fixed light background. Apply exactly one of these rules whenever custom
 color tokens or fixed-color surfaces exist:
 
-- **Single-mode design → pin the scheme.** `<Theme isRoot colorMode="light">` (or `"dark"`), so
-  an OS preference can never invert text out from under the fixed palette.
+- **Single-mode design → pin the scheme on `<html>`.** `<html lang="en" data-theme="light">` (or
+  `"dark"`) in `index.html`, so the first paint has it and an OS preference can never invert text
+  out from under the fixed palette. `<Theme isRoot colorMode="light">` alone sets it only after
+  that paint, which shows the OS scheme first.
 - **Both modes → no exposed fixed tokens.** Derive custom tokens from scheme variables
   (`--my-canvas: var(--bulma-scheme-main)`) — or flip them yourself under **both** dark-mode
   paths: `[data-theme='dark']` **and** `@media (prefers-color-scheme: dark)` scoped to
@@ -113,13 +123,14 @@ Nest `Theme` and `ConfigProvider` together at the root (order doesn't matter).
 ## Examples
 
 - `examples/theme-config.tsx` — a custom brand theme at the app root, plus a scoped override.
-- `examples/dark-mode.tsx` — a light/dark toggle using Bulma's `data-theme` (plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`).
+- `examples/dark-mode.tsx` — a light/dark toggle that keeps the visitor's choice, with the `index.html` script that writes Bulma's `data-theme` from it before the first paint.
 
 ## Checklist
 
-- [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components.
+- [ ] Recolor brand colors via the HSL trio (`*-h` / `*-s` / `*-l`), not by hard-coding hex on components; a color that reads lighter or darker than the built one also sets `*-invert-l` and `*-on-scheme-l` in CSS.
 - [ ] Apply a global theme once with `<Theme isRoot>` (or `:root`); use scoped `<Theme>` for one-off sections.
 - [ ] Set non-color tokens (radius, fonts, sizes) through `bulmaVars` or `:root`; a custom `--bulma-family-*` needs its font actually loaded (`index.html` `<link>` or an `@fontsource` import).
 - [ ] Implement dark mode with `data-theme` on `<html>` (plus `data-<prefix>theme` inside a `ConfigProvider` with a `classPrefix`, which the prefixed flavors read); do not expect a shipped dark-mode component.
+- [ ] Set the first paint's scheme in `index.html`: on `<html>` for a fixed scheme, from an inline `<head>` script for a saved choice.
 - [ ] Pass `color`/`textColor`/`bgColor` (not custom CSS) to color individual components.
 - [ ] Set the icon library once with `<ConfigProvider iconLibrary="…">` at the root, not `library` on every `<Icon>`.
