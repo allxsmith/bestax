@@ -147,6 +147,12 @@ const rule: Rule.RuleModule = {
         // The cheap check first: most elements carry no className at all.
         const attr = namedAttr(attributesOf(node), 'className');
         if (!attr) return;
+        // Nothing inside <svg> or <math> is HTML, a component's element
+        // included.
+        if (tag !== null && FOREIGN.has(tag)) return;
+        if (insideForeign(context.sourceCode.getAncestors(node as never))) {
+          return;
+        }
         if (tag === null) {
           const name = elementOf(context, node, imports);
           if (name === null || !COMPONENTS.has(name)) return;
@@ -168,10 +174,6 @@ const rule: Rule.RuleModule = {
             messageId: entry.converts ? 'alsoConverts' : 'alsoFamily',
             data: { element: name, cls, component: entry.component, advice },
           });
-          return;
-        }
-        if (FOREIGN.has(tag)) return;
-        if (insideForeign(context.sourceCode.getAncestors(node as never))) {
           return;
         }
 

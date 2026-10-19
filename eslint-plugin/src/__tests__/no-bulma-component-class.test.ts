@@ -80,6 +80,9 @@ ruleTester.run('no-bulma-component-class', rule, {
     bestax('Columns', '<Columns className="columns is-mobile mt-4 my-grid" />'),
     bestax('Card', '<Card.Content className="card-content" />'),
     bestax('Hero', '<Hero as="div" className="hero is-medium" />'),
+    // Inside <svg> or <math> nothing is HTML, a component included.
+    bestax('Columns', '<svg><Columns className="box" /></svg>'),
+    bestax('Columns', '<math><g><Columns className="box" /></g></math>'),
     // A component the table names no class for: which it renders is unknown.
     bestax('Input', '<Input className="box" />'),
     // Not ours: a capitalised name the file doesn't import, or a local one.
