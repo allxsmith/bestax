@@ -1096,7 +1096,7 @@ describe('lookup_bulma_classes', () => {
     const image = await lookup('image is-128x128 container', 'figure');
     expect(image).toContain('**Component:** `Image` with `as="figure"`.');
     expect(image).toContain(
-      '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer> or <nav> through `as`, not a <figure>; where it is there to center this element, `mx="auto"` does that'
+      '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer> or <nav> through `as`, not a <figure>; where it is only there to center this element, `mx="auto"` centers it'
     );
     expect(await lookup('image is-128x128 container', 'div')).toContain(
       '**Component:** `Container`.'
