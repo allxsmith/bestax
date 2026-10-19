@@ -36,6 +36,7 @@ import {
   readHiddenGlyph,
   type Glyph,
 } from './glyph.js';
+import { aTag } from '../_shared/articles.js';
 import { ruleId } from './rules.js';
 
 export interface ElementFacts {
@@ -446,6 +447,33 @@ export function plan(facts: ElementFacts): Plan {
     todos: [...todos, { rule: ruleId(kind, token), message }],
   });
 
+  // ---- The tag, first ------------------------------------------------------
+  // On a tag the target can't render, the tag is the work that comes first:
+  // any other refusal would ask for work (an attribute added or dropped, a
+  // child moved) that a re-run then refuses on the tag anyway.
+  // What the classes write picks the tag the target renders with no `as`:
+  // Title's `size` its heading, and the one class with a `rendersTag`
+  // (`Image`'s ratio) its <figure>.
+  let renders = entry.tag!;
+  const picked = propsFrom(entry, tokens, tag, root, facts.attributes);
+  const size = picked.writes.get('size');
+  if (entry.sizeDrivesTag && tag !== 'p' && size !== undefined) {
+    renders = `h${size}`;
+  }
+  if (picked.rendersTag) renders = picked.rendersTag;
+  let as: string | undefined;
+  if (renders !== tag) {
+    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
+    if (!reachable) {
+      return refuse(
+        'tag',
+        target,
+        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not ${aTag(tag)}; keep the markup, or change the tag and re-run`
+      );
+    }
+    as = tag;
+  }
+
   // ---- Refusals: the component would render something else ---------------
   if (facts.hasSpread) {
     return refuse(
@@ -789,19 +817,12 @@ export function plan(facts: ElementFacts): Plan {
       return refuse(
         'attr',
         name,
-        `bestax \`${target}\` keeps a <${tag}>'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only ${rule.implicit ? `with no \`${name}\` or as one of those` : 'as one of those, written out'}; keep this element as markup`
+        `bestax \`${target}\` keeps ${aTag(tag)}'s \`${name}\` only as ${orList(rule.keeps)}, and writes \`${name}="${rule.fallback}"\` in place of anything else, so this one converts only ${rule.implicit ? `with no \`${name}\` or as one of those` : 'as one of those, written out'}; keep this element as markup`
       );
     }
   }
-  // Only on a tag the target renders: on any other, the tag check below is
-  // the refusal, and a `drops` one would call an attribute inert that may not
-  // be (`type` on a <button>) and promise a conversion a re-run still refuses.
-  const tagReached =
-    tag === entry.tag ||
-    entry.as === 'any' ||
-    (entry.as?.includes(tag) ?? false);
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
-    if (tagReached && attributes.has(name) && inTagSet(tags, tag)) {
+    if (attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
       const visible = name === 'disabled' && target === 'Button';
@@ -811,10 +832,10 @@ export function plan(facts: ElementFacts): Plan {
         'drops',
         target,
         visible
-          ? `bestax \`${target}\` drops \`disabled\` on a <${tag}>, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
+          ? `bestax \`${target}\` drops \`disabled\` on ${aTag(tag)}, and Bulma styles a disabled \`.${rootLabel(facts.tokens)}\` on any tag, so converting would change how it looks; keep this element as markup`
           : anchored
             ? `bestax \`${target}\` drops \`name\` on an <a>, where it still names the target of a \`#fragment\` link; keep this element as markup, or move the target to an \`id\`, then re-run`
-            : `bestax \`${target}\` drops \`${name}\` on a <${tag}>, where it does nothing anyway; remove it, then re-run`
+            : `bestax \`${target}\` drops \`${name}\` on ${aTag(tag)}, where it does nothing anyway; remove it, then re-run`
       );
     }
   }
@@ -824,24 +845,6 @@ export function plan(facts: ElementFacts): Plan {
   const { writes, converted } = fromTokens;
   numbers.push(...fromTokens.numbers);
 
-  // ---- The tag ------------------------------------------------------------
-  let renders = entry.tag!;
-  if (entry.sizeDrivesTag && tag !== 'p' && writes.has('size')) {
-    renders = `h${writes.get('size')}`;
-  }
-  if (fromTokens.rendersTag) renders = fromTokens.rendersTag;
-  let as: string | undefined;
-  if (renders !== tag) {
-    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
-    if (!reachable) {
-      return refuse(
-        'tag',
-        target,
-        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not a <${tag}>; keep the markup, or change the tag and re-run`
-      );
-    }
-    as = tag;
-  }
   // Last, since what the children are can change once a refusal leaves
   // them to convert on their own, and a re-run has to find the same reason.
   let icons: BuiltIcon[] | undefined;
@@ -1137,8 +1140,7 @@ function hiddenAdvice(
   }
   const around = facts.clickableAround;
   const label = around?.label;
-  const tag =
-    around && `${/^[aeiou]/.test(around.tag) ? 'an' : 'a'} <${around.tag}>`;
+  const tag = around && aTag(around.tag);
   if (label && label !== 'none') {
     const by = label === 'text' ? 'its own text' : `its \`${label}\``;
     return `this \`.icon\` sits in ${tag} that ${by} names, so the icon is decoration there, and bestax \`${target}\` writes \`aria-hidden="true"\` on an icon with no name of its own, which this one doesn't carry; add it, then re-run${outcome}${hint}`;
@@ -1666,7 +1668,7 @@ function planFold(facts: ElementFacts, wrapper: string, todos: Todo[]): Plan {
     return refuse(
       'tag',
       target,
-      `bestax ${renders} renders \`.${wrapper}\` on a <${entry.tag}>, not a <${facts.tag}>; keep the markup, or change the tag and re-run`
+      `bestax ${renders} renders \`.${wrapper}\` on ${aTag(entry.tag!)}, not ${aTag(facts.tag)}; keep the markup, or change the tag and re-run`
     );
   }
   if (facts.hasSpread) {

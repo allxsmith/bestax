@@ -53,7 +53,12 @@ export function SiteNavbar() {
 
 export function DarkNavbar() {
   return (
-    <Navbar color="dark" role="navigation" aria-label="main navigation">
+    <Navbar
+      color="dark"
+      isSpaced
+      hasShadow
+      role="navigation"
+      aria-label="main navigation">
       <Navbar.Menu textColor="light">
         <Navbar.Start textWeight="bold">
           <Navbar.Item as="div" className="has-dropdown is-hoverable">

@@ -53,10 +53,11 @@ export interface Modifier {
   /**
    * The tag the target renders with this class's prop and no `as`, in place
    * of the root's `tag` (`Image` puts a ratio on a <figure>), so the element
-   * converts with `as` only on another tag. It is one of the tags `as`
-   * reaches, which the planner checks an element's tag against first. Only
-   * one such class converts on an element; a second stays a class, the way
-   * a second class for a prop already written does.
+   * converts with `as` only on another tag. The planner's tag check, which
+   * comes before every refusal, reads it. It is one of the tags `as` reaches,
+   * which are the ones the render truth test sweeps. Only one such class
+   * converts on an element; a second stays a class, the way a second class
+   * for a prop already written does.
    */
   readonly rendersTag?: string;
 }
@@ -1489,10 +1490,22 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     modifiers: {
       ...tokens('is-', COMPONENT_COLORS, 'color'),
       ...tokens('is-fixed-', ['top', 'bottom'], 'fixed'),
-      ...flags({ 'is-transparent': 'transparent' }),
+      ...flags({
+        'is-transparent': 'transparent',
+        'is-spaced': 'isSpaced',
+        'has-shadow': 'hasShadow',
+      }),
     },
     defaults: { role: 'navigation', 'aria-label': 'main navigation' },
-    ownProps: ['textColor', 'color', 'bgColor', 'transparent', 'fixed'],
+    ownProps: [
+      'textColor',
+      'color',
+      'bgColor',
+      'transparent',
+      'isSpaced',
+      'hasShadow',
+      'fixed',
+    ],
   },
   // No background prop on these parts.
   'navbar-brand': {

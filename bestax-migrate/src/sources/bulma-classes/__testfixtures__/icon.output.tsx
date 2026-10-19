@@ -5,6 +5,7 @@ export function Icons() {
   // TODO(bestax-migrate): this `.icon` sits in an <a> that its `aria-label` names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="github" variant="brands" features="fa-lg"`
   // TODO(bestax-migrate): this `.icon` sits in a <button> that its own text names, so the icon is decoration there, and bestax `Icon` writes `aria-hidden="true"` on an icon with no name of its own, which this one doesn't carry; add it, then re-run, and this converts to `Icon` with `library="fa" name="paper-plane"`
   // TODO(bestax-migrate): nothing names the <a> around this `.icon`: it has no `aria-label` and no text outside its icons, and a font icon's glyph is no name a screen reader can read; give the <a> an `aria-label` that says what it does, then add `aria-hidden="true"` here, which bestax `Icon` writes on an icon with no name of its own, and re-run, and this converts to `Icon` with `library="fa" name="twitter" variant="brands"`
+  // TODO(bestax-migrate): bestax `Icon` renders only <span>, not a <div>; keep the markup, or change the tag and re-run
   return (
     <section>
       {/* A hidden icon converts with its glyph as props. */}
@@ -64,6 +65,20 @@ export function Icons() {
           </span>
         </Button>
       </Buttons>
+      {/* Icon renders only a <span>, so on a <div> the tag is all it says. */}
+      <div className="icon">
+        <i className="fas fa-home"></i>
+      </div>
+      <a href="https://github.com/" aria-label="GitHub">
+        <div className="icon">
+          <i className="fab fa-github"></i>
+        </div>
+      </a>
+      <a href="https://twitter.com/">
+        <div className="icon">
+          <i className="fab fa-twitter"></i>
+        </div>
+      </a>
     </section>
   );
 }
