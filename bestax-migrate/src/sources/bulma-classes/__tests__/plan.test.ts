@@ -624,14 +624,36 @@ describe('plan', () => {
         props: [
           ['color', 'primary'],
           ['fixed', 'top'],
+          ['hasShadow', true],
         ],
-        className: 'has-shadow',
+        className: null,
         drop: [],
         numbers: [],
       });
       expect(plan(facts('nav', 'navbar')).todos.map(todo => todo.rule)).toEqual(
         ['defaults:Navbar']
       );
+    });
+
+    it('writes is-spaced and has-shadow as their flags, under a condition too', () => {
+      expect(
+        plan(
+          facts('nav', 'navbar is-transparent is-spaced has-shadow', bulmaNav)
+        ).conversion?.props
+      ).toEqual([
+        ['transparent', true],
+        ['isSpaced', true],
+        ['hasShadow', true],
+      ]);
+      const { conversion } = plan(
+        facts('nav', 'navbar', bulmaNav, {
+          conditional: [['is-spaced'], ['has-shadow']],
+        })
+      );
+      expect(conversion?.conditional).toEqual([
+        ['isSpaced', 'is-spaced'],
+        ['hasShadow', 'has-shadow'],
+      ]);
     });
 
     it('keeps helper classes on a part that takes no helper props', () => {

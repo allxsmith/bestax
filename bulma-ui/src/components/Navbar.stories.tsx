@@ -36,17 +36,27 @@ type NavbarColor =
 interface StatefulNavbarBurgerMenuProps {
   color?: NavbarColor;
   transparent?: boolean;
+  isSpaced?: boolean;
+  hasShadow?: boolean;
   fixed?: 'top' | 'bottom';
 }
 
 const StatefulNavbarBurgerMenu = ({
   color,
   transparent,
+  isSpaced,
+  hasShadow,
   fixed,
 }: StatefulNavbarBurgerMenuProps) => {
   const [active, setActive] = useState(false);
   return (
-    <Navbar color={color} transparent={transparent} fixed={fixed}>
+    <Navbar
+      color={color}
+      transparent={transparent}
+      isSpaced={isSpaced}
+      hasShadow={hasShadow}
+      fixed={fixed}
+    >
       <Navbar.Brand>
         <Navbar.Item href="#">
           <img src={logo} alt="Logo" width="28" height="28" />
@@ -158,6 +168,17 @@ export const ItemsNavLinksAndDropdown: Story = {
 // Transparent navbar
 export const Transparent: Story = {
   render: () => <StatefulNavbarBurgerMenu transparent />,
+};
+
+// Spaced navbar: padding around it, rounded items and boxed dropdowns, from
+// the desktop breakpoint up
+export const Spaced: Story = {
+  render: () => <StatefulNavbarBurgerMenu isSpaced />,
+};
+
+// Navbar with a shadow below it
+export const WithShadow: Story = {
+  render: () => <StatefulNavbarBurgerMenu hasShadow />,
 };
 
 // Fixed navbar
