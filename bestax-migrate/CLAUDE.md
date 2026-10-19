@@ -194,7 +194,8 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   given the converter's own display hook. `e2e/bulma-classes-html-kitchen-sink.test.ts` converts
   `fixtures/bulma-classes-html/` under `--css keep` and `--css bestax`, asserts each page's rules
   exactly, typechecks the output (`pages/leftovers.html` holds every pattern a component can't
-  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck),
+  carry, its own script beside it in `pages/js/`, and its module stays out of the typecheck;
+  `pages/contact.html` holds what the converter leaves out so a module compiles, and is checked),
   and wants `html-file:exists` alone on a second run. Both kitchen sinks hold every rule they
   emit to the skill's references through `e2e/support/skill-rules.ts`.
 - Kitchen sink e2e (`e2e/kitchen-sink.test.ts`): copies `fixtures/kitchen-sink` to a
