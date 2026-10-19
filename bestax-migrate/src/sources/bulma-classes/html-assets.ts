@@ -227,7 +227,7 @@ export function fontAwesomeMessage(
   }
   const loads = `the page loads Font Awesome ${major} from \`${quoted}\``;
   if (major <= 4) {
-    return `${loads}, whose classes are \`fa fa-<name>\`, and bestax's \`Icon\` writes \`fas fa-<name>\`, which ${major} doesn't style: ${INSTALL_FONT_AWESOME}, then either import \`css/v4-shims.min.css\` beside it, so the page's ${major} names keep working, or move them to the current names (\`fa-envelope-o\` is \`envelope\` with \`variant="regular"\`)`;
+    return `${loads}, whose classes are \`fa fa-<name>\`: the codemod keeps that \`fa\` on each icon it converts (\`variant="fa"\`), which ${major} styles, but bestax's \`Icon\` given no \`variant\` writes \`fas fa-<name>\`, which ${major} doesn't, so for icons written from here on, ${INSTALL_FONT_AWESOME}, then either import \`css/v4-shims.min.css\` beside it, so the page's ${major} names keep working, or move them to the current names (\`fa-envelope-o\` is \`envelope\` with \`variant="regular"\`)`;
   }
   if (major === 5) {
     return `${loads}: ${ICON_LOADS_NO_FONT} and writes the \`fas fa-<name>\` classes 5 reads, so the \`<link>\` keeps working from the app's index.html; installed from npm, \`@fortawesome/fontawesome-free\` takes 6 or 7 (bestax-bulma's optional peer range is \`${FONT_AWESOME_PEER_RANGE}\`, and an older one fails \`npm install\` with ERESOLVE), which still read the 5 names`;

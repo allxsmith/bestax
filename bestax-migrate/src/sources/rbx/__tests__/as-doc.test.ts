@@ -14,6 +14,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import transform from '../transform.js';
+import { AS_OK, MAPPING } from '../mapping.js';
+import type { ComponentMapping } from '../../../types.js';
 import { runTransform } from '../../../runner.js';
 import type { TodoEntry } from '../../../types.js';
 
@@ -60,6 +62,12 @@ const CASES: Array<[string, string, boolean, string?]> = [
   ],
   ['Navbar', '<Navbar.Item as="a">x</Navbar.Item>', true, 'Navbar.Item'],
   ['Navbar', '<Navbar.Link as="a">x</Navbar.Link>', true, 'Navbar.Link'],
+  ['Container', '<Container as="main">x</Container>', true, 'Container'],
+  ['Hero', '<Hero as="main">x</Hero>', true, 'Hero'],
+  ['Hero', '<Hero.Head as="header">x</Hero.Head>', true, 'Hero.Head'],
+  ['Hero', '<Hero.Foot as="footer">x</Hero.Foot>', true, 'Hero.Foot'],
+  ['Panel', '<Panel as="section">x</Panel>', true, 'Panel'],
+  ['Panel', '<Panel.Block as="label">x</Panel.Block>', true, 'Panel.Block'],
 
   // Documented as NOT accepting it — including the target-dependent cases.
   ['Dropdown', '<Dropdown as="div">x</Dropdown>', false],
@@ -88,6 +96,28 @@ describe('the documented `as` behaviour is the actual behaviour', () => {
     } else {
       expect(todos.some(t => t.rule === 'prop:as')).toBe(true);
     }
+  });
+
+  it('has a surviving case for every rbx component the mapping lets `as` through', () => {
+    // Without this, dropping an `AS_OK` is silent: the universal TODO fires,
+    // the attribute stays as its marker, and an `as` inside the target's
+    // union still compiles, so only the TODO's false claim changes.
+    // `Media.Item` is the one whose special lets `as` through rather than an
+    // `AS_OK`: it resolves its target from `align`, and only `Media.Left`
+    // keeps it.
+    const passing: string[] = ['Media.Item'];
+    const walk = (entries: Record<string, ComponentMapping>, at: string[]) => {
+      for (const [name, entry] of Object.entries(entries)) {
+        const path = [...at, name];
+        if (entry.props?.as === AS_OK) passing.push(path.join('.'));
+        if (entry.subs) walk(entry.subs, path);
+      }
+    };
+    walk(MAPPING, []);
+    const covered = CASES.filter(([, , survives]) => survives).map(
+      ([, jsx]) => /^<([\w.]+)/.exec(jsx)![1]
+    );
+    expect([...new Set(covered)].sort()).toEqual(passing.sort());
   });
 
   it('the prop-map names every component whose `as` survives', () => {

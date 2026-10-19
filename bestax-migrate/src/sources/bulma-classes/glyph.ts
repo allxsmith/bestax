@@ -82,6 +82,9 @@ const FA_MODIFIERS = new Set([
   'fa-classic',
 ]);
 
+/** The class Font Awesome's script puts on each `<svg>` it draws. */
+const DRAWN = 'svg-inline--fa';
+
 /** Material Design Icons' classes that modify a glyph rather than name one. */
 const MDI_MODIFIERS = new Set([
   'mdi-18px',
@@ -137,6 +140,80 @@ export function readGlyph(glyph: ChildFacts | undefined): Glyph | undefined {
     };
   }
   return undefined;
+}
+
+/**
+ * The glyph of Font Awesome's own markup, `<i class="fas fa-home"
+ * aria-hidden="true">`: an `<i>` that carries that attribute and nothing
+ * else, and that `readGlyph` reads once it's set aside. Undefined for any
+ * other `<i>`, one that `readGlyph` reads as it is included.
+ */
+export function readHiddenGlyph(
+  glyph: ChildFacts | undefined
+): Glyph | undefined {
+  const hidden = glyph?.attributes.get('aria-hidden');
+  if (glyph?.attributes.size !== 1 || (hidden !== 'true' && hidden !== true)) {
+    return undefined;
+  }
+  return readGlyph({ ...glyph, attributes: new Map() });
+}
+
+/**
+ * A glyph as the props `Icon` is given, in the order they're written: one
+ * feature as a string, and more than one as a list.
+ */
+export function glyphProps(
+  glyph: Glyph
+): Array<[name: string, value: string | readonly string[]]> {
+  const { features } = glyph;
+  return [
+    ['library', glyph.library],
+    ['name', glyph.name],
+    ...(glyph.variant ? [['variant', glyph.variant] as [string, string]] : []),
+    ...(features
+      ? [
+          ['features', features.length === 1 ? features[0] : features] as [
+            string,
+            string | readonly string[],
+          ],
+        ]
+      : []),
+  ];
+}
+
+/**
+ * The glyph Font Awesome's script drew an `<svg class="svg-inline--fa">` for,
+ * as the props `Icon` renders the `<i>` it was drawn from: the name from its
+ * `data-icon` (else its one class naming a glyph), the style from its
+ * `data-prefix`, and its other classes but the width one the script adds.
+ * For advice only: `Icon` renders that `<i>`, never the `<svg>`.
+ */
+export function readDrawnGlyph(svg: ChildFacts | undefined): Glyph | undefined {
+  if (svg?.tag !== 'svg' || !svg.tokens?.includes(DRAWN)) return undefined;
+  const tokens = svg.tokens.filter(
+    token => token !== DRAWN && !/^fa-w-\d+$/.test(token)
+  );
+  const prefix = svg.attributes.get('data-prefix');
+  const style =
+    typeof prefix === 'string' && Object.hasOwn(FA_STYLES, prefix)
+      ? prefix
+      : 'fas';
+  const icon = svg.attributes.get('data-icon');
+  const named =
+    typeof icon === 'string' && /^[a-z0-9-]+$/.test(icon)
+      ? {
+          name: icon,
+          features: tokens.filter(token => token !== `fa-${icon}`),
+        }
+      : nameIn(tokens, 'fa-', FA_MODIFIERS, style);
+  if (!named) return undefined;
+  const variant = FA_STYLES[style];
+  return {
+    library: 'fa',
+    name: named.name,
+    ...(variant && { variant }),
+    ...(named.features.length > 0 && { features: named.features }),
+  };
 }
 
 /**

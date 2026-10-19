@@ -17,6 +17,7 @@ import { useIsHydrated } from '../helpers/useIsHydrated';
 import { firstTabStop, useFocusTrap } from '../helpers/useFocusTrap';
 import { marginGap, useAnchoredPosition } from '../helpers/useAnchoredPosition';
 import { useClientLayoutEffect } from '../helpers/useClientLayoutEffect';
+import { useLatestRef } from '../helpers/useLatestRef';
 import { getDeepestActiveElement, isEventInside } from '../helpers/shadowDom';
 import { buttonType } from '../helpers/buttonType';
 import { warnOnce } from '../helpers/devWarnings';
@@ -279,20 +280,25 @@ const PopoverComponent: React.FC<PopoverProps> = ({
     };
   }, [panelMounted, trapFocus, triggerNode]);
 
+  // Read when a press lands outside, so the listener stays put while `close`
+  // changes identity, which it does with `onOpenChange`, and an inline one
+  // changes on every render of the parent.
+  const closeRef = useLatestRef(close);
+
   useEffect(() => {
     if (!panelMounted || !closeOnClickOutside) return undefined;
     const handlePointerDown = (e: PointerEvent) => {
       if (e === insidePointerRef.current || isEventInside(e, rootRef.current)) {
         return;
       }
-      close();
+      closeRef.current();
     };
     // The wrapper is on the page whenever the panel is. Its document, an
     // iframe's when the tree renders into one, is where presses land.
     const doc = (rootRef.current as HTMLDivElement).ownerDocument;
     doc.addEventListener('pointerdown', handlePointerDown);
     return () => doc.removeEventListener('pointerdown', handlePointerDown);
-  }, [panelMounted, closeOnClickOutside, close]);
+  }, [panelMounted, closeOnClickOutside, closeRef]);
 
   const handlePanelKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key !== 'Escape' || !closeOnEscape || e.defaultPrevented) return;

@@ -27,6 +27,7 @@ import {
   type DropdownItemProps,
 } from '../components/Dropdown';
 import { Menu } from '../components/Menu';
+import { Panel, type PanelBlockProps } from '../components/Panel';
 import type { PolymorphicProps } from '../helpers/polymorphic';
 import { Navbar } from '../components/Navbar';
 import { Reveal } from '../components/Reveal';
@@ -517,6 +518,69 @@ type LevelItemDerived = React.ComponentProps<typeof Level.Item>;
 export const levelItemKey: keyof LevelItemDerived = 'href';
 export const levelItemIndexed: LevelItemDerived['href'] = '/x';
 export const levelItemDerivedTag: LevelItemDerived = { as: 'p' };
+
+// --------------------------------------------------------------------------
+// `Panel.Block` (#1151). Unlike `Level.Item` its props follow `as`, the way
+// `Dropdown.Item`'s do, because its default element is the anchor: before `as`
+// existed its props were the anchor's, and code that sets no `as` reads anchor
+// members off `currentTarget`. Each line below is a shape the union-typed
+// version broke or let through.
+// --------------------------------------------------------------------------
+
+export const panelBlockShapes = (
+  <>
+    <Panel.Block href="/x" download="f" referrerPolicy="no-referrer" />
+    <Panel.Block as="a" href="/x" target="_blank" />
+    <Panel.Block as="label" htmlFor="remember" />
+    <Panel.Block as="div" aria-label="Program" />
+    {/* @ts-expect-error Bulma's panel block is an a, a label or a div */}
+    <Panel.Block as="span" />
+  </>
+);
+
+// The default `<a>` keeps its own members on `currentTarget`, inline and
+// through the bare alias, which defaults to the anchor rather than the union.
+export const panelBlockAnchorTarget = (
+  <Panel.Block href="/x" onClick={event => void event.currentTarget.href}>
+    x
+  </Panel.Block>
+);
+export const panelBlockHandler: PanelBlockProps = {
+  onClick: event => void event.currentTarget.href,
+};
+export const panelBlockAliasHref: PanelBlockProps = { href: '/x' };
+
+// Each other tag gets its own element's attributes and events, and not the
+// anchor's.
+export const panelBlockOtherTags = (
+  <>
+    {/* @ts-expect-error a <div> block has no href */}
+    <Panel.Block as="div" href="/x" />
+    <Panel.Block
+      as="div"
+      // @ts-expect-error a <div> is no anchor, so its currentTarget has no href
+      onClick={event => void event.currentTarget.href}
+    />
+    <Panel.Block
+      as="label"
+      onClick={event => void event.currentTarget.htmlFor}
+    />
+    {/* @ts-expect-error the default <a> takes no htmlFor */}
+    <Panel.Block htmlFor="remember" />
+  </>
+);
+export const panelBlockLabelAlias: PanelBlockProps<'label'> = {
+  htmlFor: 'remember',
+};
+
+// A props bag still spreads back, and stays assignable to the anchor's
+// attributes it was before.
+declare const panelBlockBag: PanelBlockProps;
+export const panelBlockSpread = <Panel.Block {...panelBlockBag} />;
+declare function wantsAnchorAttributes(
+  props: React.AnchorHTMLAttributes<HTMLAnchorElement>
+): void;
+export const panelBlockAssignable = () => wantsAnchorAttributes(panelBlockBag);
 
 // And a memo wrapper keeps every tag.
 const MemoLevelItem = React.memo(Level.Item);

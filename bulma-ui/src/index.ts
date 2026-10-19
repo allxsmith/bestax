@@ -84,6 +84,7 @@ export * from './form/Slider';
 export * from './form/Numberinput';
 export * from './form/Rate';
 export * from './form/Autocomplete';
+export * from './form/Combobox';
 export * from './form/Taginput';
 
 // Raw form components — exported with "Base" suffix as escape hatch

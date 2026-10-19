@@ -6,30 +6,35 @@ this automatically for literal values; dynamic values get TODOs.
 
 ## Renames and value changes
 
-| RBC                               | bestax                                                                                                                                                         |
-| --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `renderAs`                        | `as` — **only** on polymorphic components (Button, Title/SubTitle, Footer, Level.Item, Media\*, Menu.Item, Navbar.Item/Link, Dropdown.Item); elsewhere flagged |
-| `domRef`                          | flagged — rename to `ref` on the components that forward one, else use a DOM child                                                                             |
-| `backgroundColor`                 | `bgColor`                                                                                                                                                      |
-| `textColor`                       | `textColor` (same)                                                                                                                                             |
-| `colorVariant`                    | flagged — use `isLight` or a color shade                                                                                                                       |
-| `textSize={4}`                    | `textSize="4"` (string union `'1'`–`'7'`)                                                                                                                      |
-| `textAlign="center"`              | `textAlign="centered"` (`justify`→`justified`)                                                                                                                 |
-| `textFamily`                      | `fontFamily`                                                                                                                                                   |
-| `italic`                          | `textTransform="italic"`                                                                                                                                       |
-| `m/mt/…/py={3}`                   | `m="3"` (string union `'0'`–`'6'`)                                                                                                                             |
-| `pull="right"`                    | `float="right"`                                                                                                                                                |
-| `marginless` / `paddingless`      | `m="0"` / `p="0"`                                                                                                                                              |
-| `clipped`                         | `overflow="clipped"`                                                                                                                                           |
-| `radiusless` / `shadowless`       | `radius="radiusless"` / `shadow="shadowless"`                                                                                                                  |
-| `unselectable`                    | `interaction="unselectable"`                                                                                                                                   |
-| `hidden` / `invisible` / `srOnly` | `visibility="hidden"` / `"invisible"` / `"sr-only"`                                                                                                            |
-| `display="hidden"`                | `visibility="hidden"`                                                                                                                                          |
-| `display="relative"`              | boolean `relative`                                                                                                                                             |
-| flexbox props                     | same names/values (`flexDirection`, `justifyContent`, …)                                                                                                       |
-| `clearfix`, `overlay`             | same                                                                                                                                                           |
+| RBC                               | bestax                                                                                                                    |
+| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `renderAs`                        | `as` — **only** where bestax declares one ([listed below](#renderas--as-and-the-props-that-follow-it)); elsewhere flagged |
+| `domRef`                          | flagged — rename to `ref` on the components that forward one, else use a DOM child                                        |
+| `backgroundColor`                 | `bgColor`                                                                                                                 |
+| `textColor`                       | `textColor` (same)                                                                                                        |
+| `colorVariant`                    | flagged — use `isLight` or a color shade                                                                                  |
+| `textSize={4}`                    | `textSize="4"` (string union `'1'`–`'7'`)                                                                                 |
+| `textAlign="center"`              | `textAlign="centered"` (`justify`→`justified`)                                                                            |
+| `textFamily`                      | `fontFamily`                                                                                                              |
+| `italic`                          | `textTransform="italic"`                                                                                                  |
+| `m/mt/…/py={3}`                   | `m="3"` (string union `'0'`–`'6'`)                                                                                        |
+| `pull="right"`                    | `float="right"`                                                                                                           |
+| `marginless` / `paddingless`      | `m="0"` / `p="0"`                                                                                                         |
+| `clipped`                         | `overflow="clipped"`                                                                                                      |
+| `radiusless` / `shadowless`       | `radius="radiusless"` / `shadow="shadowless"`                                                                             |
+| `unselectable`                    | `interaction="unselectable"`                                                                                              |
+| `hidden` / `invisible` / `srOnly` | `visibility="hidden"` / `"invisible"` / `"sr-only"`                                                                       |
+| `display="hidden"`                | `visibility="hidden"`                                                                                                     |
+| `display="relative"`              | boolean `relative`                                                                                                        |
+| flexbox props                     | same names/values (`flexDirection`, `justifyContent`, …)                                                                  |
+| `clearfix`, `overlay`             | same                                                                                                                      |
 
 ## `renderAs` → `as`, and the props that follow it
+
+`renderAs` becomes `as` on the components bestax declares one on: `Button`, `Title` and
+`SubTitle` (from `Heading`), `Image`, `Form.Control`, `Footer`, `Level.Item`, `Media` and its
+`Item`s, `Menu.Item`, `Navbar.Item`, `Navbar.Link`, `Dropdown.Item`, `Container`, `Hero`,
+`Hero.Header`, `Hero.Footer`, `Panel` and `Panel.Block`. Everywhere else it is flagged.
 
 bestax gives an element the attributes of the tag `as` names, and several components narrow
 `as` to the tags Bulma's markup allows there (`Footer` is `'footer' | 'div'`, `Control` is

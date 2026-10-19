@@ -1,6 +1,6 @@
 import { Icon, Tabs } from "@allxsmith/bestax-bulma";
 export function Sections() {
-  // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run
+  // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run, and this converts to `Icon` with `library="fa" name="home"`
   return (
     <section>
       <Tabs align="centered" boxed>
@@ -25,9 +25,12 @@ export function Sections() {
           </li>
         </ul>
       </Tabs>
-      <Icon textColor="info" role="img" aria-label="Info">
-        <i className="fas fa-info-circle"></i>
-      </Icon>
+      <Icon
+        library="fa"
+        name="info-circle"
+        textColor="info"
+        role="img"
+        aria-label="Info" />
       <span className="icon">
         <i className="fas fa-home"></i>
       </span>

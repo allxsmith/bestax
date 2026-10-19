@@ -132,9 +132,12 @@ code per the references, or deliberately keep the old markup with `className` st
   drift than the 0.9 → 1 guide alone describes.
 - **bulma-classes**: there is no library to remove. An element converts only when the bestax
   component renders the same markup (tag, classes, attributes), so a converted page renders
-  the same HTML; everything else stays as written, with a TODO when there is something to
-  decide. Static class strings convert, and so does a `clsx` or `classnames` call of strings
-  and conditional classes, where a condition on a flag becomes its prop (`isLoading={busy}`);
+  the same HTML, but for one deliberate exception: Font Awesome's own hidden `<i>` in a `.icon`
+  that carries nothing else assistive tech reads becomes `Icon`, which hides the `.icon`
+  instead, the glyph hidden either way. Everything else stays as written, with a TODO when
+  there is something to decide. Static class strings convert, and so does a `clsx` or
+  `classnames` call of strings and conditional classes, where a condition on a flag becomes
+  its prop (`isLoading={busy}`);
   any other computed className gets `dynamic-class:<Target>`, naming the component the element
   would become. Files a Next.js
   App Router may render as server components are left alone (`rsc`), and the manifest gains

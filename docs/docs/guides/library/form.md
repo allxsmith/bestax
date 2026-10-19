@@ -167,6 +167,30 @@ For complex layouts, use `SelectBase` with an explicit `Field` + `Control` wrapp
 
 ---
 
+### Combobox
+
+A text field with a list to pick from under it. Given `data`, it filters the list as you type and keeps the value, with the picks as tags when it takes several. Built from parts, it also covers a server search or a "Create" item, with the data in your hands. For free text with suggestions, `Autocomplete` is the simpler choice.
+
+```tsx live
+<form onSubmit={e => e.preventDefault()}>
+  <Combobox
+    label="Fruit"
+    placeholder="Pick a fruit"
+    data={['Apple', 'Banana', 'Cherry', 'Grape', 'Mango', 'Pear']}
+    empty="No fruit matches"
+  />
+  <Input label="Quantity" type="number" min={1} defaultValue={1} />
+  <Input label="Deliver on" type="date" />
+  <Button type="submit" color="primary">
+    Add to basket
+  </Button>
+</form>
+```
+
+[View full documentation.](../../api/form/combobox)
+
+---
+
 ### Switch
 
 Toggle switch for on/off states. A styled checkbox that appears as a toggle, commonly used for settings.

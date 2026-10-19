@@ -43,6 +43,12 @@ const ADDONS = [
     desc: 'Smoothly expanding panels for accordions and FAQs.',
   },
   {
+    name: 'Combobox',
+    icon: 'combobox',
+    link: '/docs/api/form/combobox',
+    desc: 'A field with a list to pick from: give it your data for a searchable select or tags, or build it from parts for a server search.',
+  },
+  {
     name: 'ContextMenu',
     icon: 'contextmenu',
     link: '/docs/api/components/contextmenu',

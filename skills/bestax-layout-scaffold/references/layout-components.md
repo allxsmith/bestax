@@ -39,11 +39,15 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 
 | Prop                              | Type                                    | Notes                                     |
 | --------------------------------- | --------------------------------------- | ----------------------------------------- |
+| `as`                              | `'div'` (default) or a landmark tag     | Renders that tag in place of the `div`.   |
 | `fluid`                           | `boolean`                               | Full width with a small gutter.           |
 | `widescreen` / `fullhd`           | `boolean`                               | Only constrain at that breakpoint and up. |
 | `breakpoint`                      | `'tablet' \| 'desktop' \| 'widescreen'` | Max-width breakpoint.                     |
 | `isMax`                           | `boolean`                               | Use the `is-max-*` width.                 |
 | `color` / `textColor` / `bgColor` | Bulma color                             | —                                         |
+
+`as` takes `'main' | 'section' | 'article' | 'aside' | 'header' | 'footer' | 'nav'`, so
+`<Container as="main">` renders `<main class="container">` with no wrapper.
 
 ## Section
 
@@ -63,12 +67,18 @@ Every component also accepts the shared Bulma helper props (`m`/`p` spacing, `te
 | `color`                | `primary \| link \| info \| success \| warning \| danger \| black \| white \| light \| dark` (CSS-backed). Also accepted but deprecated, no CSS, dev-warn: every other `validColors` member, plus `inherit` and `current` |
 | `size`                 | `'small' \| 'medium' \| 'large' \| 'fullheight' \| 'fullheight-with-navbar'`                                                                                                                                              |
 | `fullheightWithNavbar` | `boolean`                                                                                                                                                                                                                 |
+| `as`                   | `'section'` (default) \| `'div'` \| `'main'` \| `'header'` \| `'footer'` \| `'article'` \| `'aside'`                                                                                                                      |
 
 ```tsx
 <Hero color="primary" size="medium">
   <Hero.Body>…</Hero.Body>
 </Hero>
 ```
+
+`Hero.Head` takes `as="header"` or `as="nav"` and `Hero.Foot` `as="footer"` or `as="nav"` (both
+`div` by default), so a page that is all hero is `<Hero as="main">` with no wrapper. A `header` or
+`footer` is the page's banner or footer landmark only outside a `section`, `article`, `aside`,
+`nav` or `main`, so for that render the hero itself `as="div"`.
 
 ## Footer
 
