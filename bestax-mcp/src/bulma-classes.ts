@@ -37,7 +37,8 @@ export interface Modifier {
   needsAttr?: { name: string; value: string };
   /**
    * The tag the component renders with this class's prop and no `as`, in
-   * place of the root's own (`Image` puts a ratio on a <figure>).
+   * place of the root's own (`Image` puts a ratio on a <figure>). Only one
+   * such class converts on an element.
    */
   rendersTag?: string;
 }
@@ -569,6 +570,8 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
+  /** The one class that picks the component's tag, as the codemod takes it. */
+  let retaggedBy: string | undefined;
   for (const token of tokens) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
@@ -591,9 +594,15 @@ export function lookupClasses(
         );
         continue;
       }
+      // Only one class picks the tag, as only one sets a prop.
+      if (modifier.rendersTag && retaggedBy) {
+        stays(token, `\`${retaggedBy}\` already picks the tag`);
+        continue;
+      }
       for (const write of modifier.writes) {
         writes.set(write.prop, { value: write.value ?? true, token });
       }
+      if (modifier.rendersTag) retaggedBy = token;
       // A class the component renders from an attribute of the element
       // inside (`is-multiple` beside a `<select multiple>`).
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
@@ -750,9 +759,9 @@ export function lookupClasses(
   const size = writes.get('size')?.value;
   // A class whose prop puts the component on another tag when no `as` is
   // given (`Image`'s ratios on a <figure>).
-  const retagged = [...writes.values()]
-    .map(write => own(entry.modifiers, write.token)?.rendersTag)
-    .find(Boolean);
+  const retagged = retaggedBy
+    ? own(entry.modifiers, retaggedBy)?.rendersTag
+    : undefined;
   const renders =
     retagged ??
     (entry.sizeDrivesTag && tag !== 'p' && typeof size === 'string'

@@ -14,7 +14,10 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from '@jest/globals';
-import { ROOTS } from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
+import {
+  ROOTS,
+  type RootEntry,
+} from '../../../bestax-migrate/src/sources/bulma-classes/class-map.js';
 import {
   plan,
   type ElementFacts,
@@ -447,6 +450,46 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
       ['div', ['file', 'is-empty']],
     ];
     expect(compare(cases)).toEqual([]);
+  });
+
+  it('on a root with two classes that each pick its tag, in either order', () => {
+    // No root has two classes that pick a tag through different props, so
+    // this one is made up, on both sides: the planner's table and the
+    // lookup's. Whichever comes first converts, and the other stays a class.
+    const modifiers = {
+      'is-a': { writes: [{ prop: 'a' }], rendersTag: 'section' },
+      'is-b': { writes: [{ prop: 'b' }], rendersTag: 'aside' },
+    };
+    const as = ['div', 'section', 'aside'];
+    const roots = ROOTS as Record<string, RootEntry>;
+    roots['x-retag'] = {
+      status: 'mapped',
+      target: 'X',
+      tag: 'div',
+      as,
+      modifiers,
+      ownProps: ['as', 'a', 'b'],
+    };
+    table.roots['x-retag'] = {
+      ...table.roots.box,
+      target: 'X',
+      as,
+      modifiers,
+    };
+    try {
+      const cases = as.flatMap((tag): Array<[string, string[]]> => [
+        [tag, ['x-retag', 'is-a', 'is-b']],
+        [tag, ['x-retag', 'is-b', 'is-a']],
+      ]);
+      expect(compare(cases)).toEqual([]);
+      expect(looked('section', ['x-retag', 'is-a', 'is-b'])).toMatchObject({
+        as: undefined,
+        className: ['is-b'],
+      });
+    } finally {
+      delete roots['x-retag'];
+      delete table.roots['x-retag'];
+    }
   });
 
   it('with no tag, on the tag the component renders by itself', () => {
