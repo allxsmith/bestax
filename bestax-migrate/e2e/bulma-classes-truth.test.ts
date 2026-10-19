@@ -13,6 +13,13 @@
  * A planner refusal is always safe (the markup stays as written), so the
  * tests assert only that what DOES convert is identical, plus that every
  * table entry converts somewhere, so no row is dead.
+ *
+ * One conversion is compared another way, on purpose: Font Awesome's own
+ * `<i aria-hidden="true">` alone in a `.icon` that carries nothing assistive
+ * tech reads becomes `Icon`, which writes the attribute on the `.icon`
+ * instead. Where the planner says so
+ * (`movesHidden`), both sides go through `support/hidden-glyph.ts`, which
+ * moves it up in exactly that shape and leaves every other one as it is.
  */
 
 import fs from 'node:fs';
@@ -21,6 +28,7 @@ import { fileURLToPath } from 'node:url';
 import {
   FORWARDS_REF,
   HELPER_TOKENS,
+  inTagSet,
   numberAttrsOf,
   PLACED,
   ROOTS,
@@ -28,6 +36,7 @@ import {
   WRAPPER_OWN_PROPS,
   type RootEntry,
 } from '../src/sources/bulma-classes/class-map.js';
+import { glyphProps } from '../src/sources/bulma-classes/glyph.js';
 import {
   plan,
   type BuiltIcon,
@@ -44,6 +53,7 @@ import {
   rawFrom,
   type FileTree,
 } from './support/file-tree.js';
+import { moveGlyphHidden } from './support/hidden-glyph.js';
 import {
   GLYPHS,
   iconChild,
@@ -127,7 +137,10 @@ function rawChild(child: ChildFacts): unknown {
       ...Object.fromEntries(child.attributes),
     },
     child.soleChild
-      ? createElement('i', { className: child.soleChild.tokens!.join(' ') })
+      ? createElement('i', {
+          className: child.soleChild.tokens!.join(' '),
+          ...Object.fromEntries(child.soleChild.attributes),
+        })
       : child.text
   );
 }
@@ -175,7 +188,9 @@ function renderBoth(
   );
   const children = VOID.has(facts.tag) ? undefined : 'x';
   const sole = facts.soleChild;
-  const soleChildren = sole && !VOID.has(sole.tag) ? 'x' : undefined;
+  // A glyph is read only off an empty <i>.
+  const soleChildren =
+    sole && !VOID.has(sole.tag) && !result.conversion.glyph ? 'x' : undefined;
   const soleAttributes = Object.fromEntries(sole?.attributes ?? []) as Record<
     string,
     string | true
@@ -264,13 +279,17 @@ function renderBoth(
       : {}),
     ...(icons && builtProps(icons, facts.childElements!)),
     ...(file && fileProps(file, facts.childElements!, numbers)),
+    // A glyph it renders from props, in place of the <i>.
+    ...(result.conversion.glyph &&
+      Object.fromEntries(glyphProps(result.conversion.glyph))),
   };
-  // A target that couldn't absorb the child renders it as given.
+  // A target that couldn't absorb the child renders it as given; one that
+  // renders the children itself is given none.
   const convertedChildren = icons
     ? icons.length === 1
       ? icons[0].text
       : undefined
-    : counted || file
+    : result.conversion.rendersChildren || file
       ? undefined
       : sole
         ? absorbs
@@ -287,7 +306,18 @@ function renderBoth(
       )
     : renderElement(target, convertedProps, convertedChildren);
   const html = normalizeHtml(converted);
-  return { raw: withImplicitListRoles(raw, html), converted: html };
+  // The one difference a conversion makes on purpose, compared as it is
+  // meant: only where the planner says the `aria-hidden` moved up, for the
+  // element or for an icon it builds.
+  const moves =
+    result.conversion.movesHidden ||
+    facts.childElements?.some(child => child.becomes?.movesHidden);
+  const compared = (markup: string) =>
+    moves ? moveGlyphHidden(markup) : markup;
+  return {
+    raw: compared(withImplicitListRoles(raw, html)),
+    converted: compared(html),
+  };
 }
 
 /**
@@ -1135,6 +1165,19 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
       }
     });
 
+    it('renders an icon whose <i> Font Awesome hid the same, with it moved up', () => {
+      const fa = (glyph: string[]) =>
+        iconChild(glyph, [], {}, { 'aria-hidden': 'true' });
+      for (const glyph of GLYPHS) {
+        same(`${glyph.join(' ')}, hidden on the <i>`, [fa(glyph), textChild()]);
+      }
+      same('beside one hidden on the .icon', [
+        fa(['fas', 'fa-home']),
+        textChild('a'),
+        iconChild(['far', 'fa-bell']),
+      ]);
+    });
+
     it("renders an icon's own classes and attributes the same", () => {
       for (const token of [
         'is-small',
@@ -1191,6 +1234,312 @@ describe.each(mapped.filter(([, entry]) => entry.buildsIcons))(
     });
   }
 );
+
+/**
+ * An element whose target renders a glyph from props, around each glyph it
+ * reads, with each class and attribute it may carry: the markup and the
+ * component given the glyph's props in place of the <i> render the same.
+ * Around an <i> it doesn't read, the <i> stays its child, and that renders
+ * the same too.
+ */
+describe.each(mapped.filter(([, entry]) => entry.readsGlyph))(
+  'the glyph `.%s` reads',
+  (root, entry) => {
+    const hidden: Attributes = { 'aria-hidden': 'true' };
+    const glyph = (tokens: string[], attributes: Attributes = {}) => ({
+      ...bare('i'),
+      tokens,
+      attributes: new Map(Object.entries(attributes)),
+    });
+    const render = (
+      label: string,
+      inner: ChildFacts,
+      tokens: string[] = [],
+      attributes: Attributes = hidden
+    ) => {
+      const facts: ElementFacts = {
+        ...factsFor(entry.tag!, [root, ...tokens], attributes),
+        soleChild: inner,
+      };
+      const found = renderBoth(facts, attributes);
+      expect({ label, converts: found !== null }).toEqual({
+        label,
+        converts: true,
+      });
+      expect({ label, html: found!.converted }).toEqual({
+        label,
+        html: found!.raw,
+      });
+      return plan(facts).conversion!;
+    };
+    const same = (
+      label: string,
+      tokens: string[],
+      classes: string[] = [],
+      attributes?: Attributes
+    ) => {
+      const conversion = render(label, glyph(tokens), classes, attributes);
+      expect({ label, glyph: conversion.glyph !== undefined }).toEqual({
+        label,
+        glyph: true,
+      });
+    };
+
+    it('renders each glyph the same', () => {
+      for (const tokens of GLYPHS) same(tokens.join(' '), tokens);
+    });
+
+    it('renders each class beside a glyph the same', () => {
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        ...HELPER_TOKENS.keys(),
+        // `Control` puts its icons' sides on them, and an app its own class.
+        'is-left',
+        'is-right',
+        'my-icon',
+      ]) {
+        same(token, ['fas', 'fa-home'], [token]);
+      }
+    });
+
+    it('renders each attribute beside a glyph the same', () => {
+      for (const [label, attributes] of Object.entries({
+        'an id': { ...hidden, id: 'x' },
+        'a title': { ...hidden, title: 'hint' },
+        'a description': { ...hidden, 'aria-describedby': 'y' },
+        'a name': { 'aria-label': 'Home', role: 'img' },
+        'a name by reference': { 'aria-labelledby': 'x', role: 'img' },
+        'an empty name': { 'aria-label': '', ...hidden },
+        'no name but a role of its own': { role: 'note' },
+        'no name but a tabIndex of its own': { tabIndex: '0' },
+      })) {
+        same(label, ['fas', 'fa-home'], [], attributes);
+      }
+    });
+
+    it('keeps an <i> it reads no glyph from as its child, and renders the same', () => {
+      for (const [label, inner] of Object.entries({
+        'hidden itself': glyph(['fas', 'fa-home'], hidden),
+        'with an id': glyph(['fas', 'fa-home'], { id: 'x' }),
+        'naming two glyphs': glyph(['fas', 'fa-home', 'fa-bell']),
+        'in two styles': glyph(['fas', 'far', 'fa-home']),
+        'in two libraries': glyph(['fas', 'mdi', 'fa-home']),
+        'of another font': glyph(['material-icons']),
+        'with no class': bare('i'),
+      })) {
+        const conversion = render(label, inner);
+        expect({ label, glyph: conversion.glyph }).toEqual({
+          label,
+          glyph: undefined,
+        });
+      }
+    });
+
+    it("moves Font Awesome's aria-hidden up off a bare <i>, and renders the same with it moved", () => {
+      const moved = (
+        label: string,
+        tokens: string[],
+        classes: string[] = [],
+        attributes: Attributes = {}
+      ) => {
+        const conversion = render(
+          label,
+          glyph(tokens, hidden),
+          classes,
+          attributes
+        );
+        expect({
+          label,
+          glyph: conversion.glyph !== undefined,
+          moves: conversion.movesHidden,
+        }).toEqual({ label, glyph: true, moves: true });
+      };
+      for (const tokens of GLYPHS) moved(tokens.join(' '), tokens);
+      for (const token of [
+        ...Object.keys(entry.modifiers ?? {}),
+        'is-left',
+        'has-text-info',
+        'my-icon',
+      ]) {
+        moved(token, ['fas', 'fa-home'], [token]);
+      }
+      // Each attribute the table lets ride along renders the same, compared
+      // through the normalization's own list, so widening the table alone
+      // fails here. A `style` is the one this harness can't write, since
+      // React takes it as an object; the normalization's test moves past one.
+      const samples: Record<string, Attributes> = {
+        id: { id: 'x' },
+        key: { key: 'k' },
+        'data-*': { 'data-test': 'y' },
+      };
+      for (const allowed of entry.readsGlyph!.hiddenMovesBeside) {
+        if (allowed === 'style') continue;
+        expect({ allowed, sampled: Object.hasOwn(samples, allowed) }).toEqual({
+          allowed,
+          sampled: true,
+        });
+        moved(allowed, ['fas', 'fa-home'], [], samples[allowed]);
+      }
+    });
+
+    it('moves it up only off that one shape', () => {
+      const fa = ['fas', 'fa-home'];
+      // Each converts another way, compared with nothing moved.
+      for (const [label, [inner, attributes]] of Object.entries({
+        'the .icon hidden too': [glyph(fa, hidden), hidden],
+        'a name on the .icon': [
+          glyph(fa, hidden),
+          { 'aria-label': 'Home', role: 'img' },
+        ],
+        // A role or tabIndex written out: `Icon` hides nothing then, and
+        // the <i> keeps its own `aria-hidden` as its child.
+        'a role of its own': [glyph(fa, hidden), { role: 'note' }],
+        'an image role of its own': [glyph(fa, hidden), { role: 'img' }],
+        'a tabIndex of its own': [glyph(fa, hidden), { tabIndex: '0' }],
+      } satisfies Record<string, [ChildFacts, Attributes]>)) {
+        const conversion = render(label, inner, [], attributes);
+        expect({ label, moves: conversion.movesHidden }).toEqual({
+          label,
+          moves: undefined,
+        });
+      }
+      // Each stays markup.
+      for (const [label, [inner, attributes]] of Object.entries({
+        'the <i> carrying more': [glyph(fa, { ...hidden, id: 'x' }), {}],
+        'the <i> not hidden': [glyph(fa, { 'aria-hidden': 'false' }), {}],
+        'the <i> naming no glyph': [glyph(['material-icons'], hidden), {}],
+        'the <i> holding text': [{ ...glyph(fa, hidden), isEmpty: false }, {}],
+        'an empty name on the .icon': [glyph(fa, hidden), { 'aria-label': '' }],
+        // What the move would hide with it.
+        'a title on the .icon': [glyph(fa, hidden), { title: 'Home' }],
+        'a description on the .icon': [
+          glyph(fa, hidden),
+          { 'aria-describedby': 'y' },
+        ],
+        'a description written out': [
+          glyph(fa, hidden),
+          { 'aria-description': 'Home' },
+        ],
+        'a handler on the .icon': [glyph(fa, hidden), { onClick: null }],
+        'a language on the .icon': [glyph(fa, hidden), { lang: 'en' }],
+        // Written as expressions, which may render as anything: `tabIndex`
+        // is typed as a number, so `tabIndex={0}` is how TSX writes it.
+        'a tabIndex as an expression': [glyph(fa, hidden), { tabIndex: null }],
+        'a role as an expression': [glyph(fa, hidden), { role: null }],
+        'a description as an expression': [
+          glyph(fa, hidden),
+          { 'aria-describedby': null },
+        ],
+      } satisfies Record<
+        string,
+        [ChildFacts, Record<string, string | true | null>]
+      >)) {
+        const result = plan({
+          ...factsFor(entry.tag!, [root], {}),
+          attributes: new Map(Object.entries(attributes)),
+          soleChild: inner,
+        });
+        expect({
+          label,
+          conversion: result.conversion,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({ label, conversion: null, rules: ['defaults:Icon'] });
+      }
+    });
+  }
+);
+
+/**
+ * The one normalization the render tests make, which lets Font Awesome's
+ * own `aria-hidden` move up off the `<i>` onto its `.icon` and nothing else:
+ * every other shape compares as it is.
+ */
+describe('the normalization for a moved aria-hidden', () => {
+  const html = (markup: string) => normalizeHtml(markup);
+
+  it('moves it off a bare, empty <i> alone in an unnamed .icon', () => {
+    expect(
+      moveGlyphHidden(
+        html(
+          '<p><span class="icon is-small" id="x"><i class="fas fa-home" aria-hidden="true"></i></span> <span class="icon"><i aria-hidden="true"></i></span></p>'
+        )
+      )
+    ).toBe(
+      html(
+        '<p><span class="icon is-small" id="x" aria-hidden="true"><i class="fas fa-home"></i></span> <span class="icon" aria-hidden="true"><i></i></span></p>'
+      )
+    );
+  });
+
+  it('moves it beside nothing but what assistive tech does not read', () => {
+    expect(
+      moveGlyphHidden(
+        html(
+          '<span class="icon" style="color:red" data-test="y"><i class="x" aria-hidden="true"></i></span>'
+        )
+      )
+    ).toBe(
+      html(
+        '<span class="icon" style="color:red" data-test="y" aria-hidden="true"><i class="x"></i></span>'
+      )
+    );
+  });
+
+  it.each(
+    Object.entries({
+      'an <i> with text':
+        '<span class="icon"><i class="x" aria-hidden="true">home</i></span>',
+      'an <i> holding an element':
+        '<span class="icon"><i class="x" aria-hidden="true"><b></b></i></span>',
+      'a second child':
+        '<span class="icon"><i class="x" aria-hidden="true"></i><b></b></span>',
+      'a text beside it':
+        '<span class="icon"><i class="x" aria-hidden="true"></i> </span>',
+      'the attribute on a <b>':
+        '<span class="icon"><b class="x" aria-hidden="true"></b></span>',
+      'the attribute on an <svg>':
+        '<span class="icon"><svg aria-hidden="true"></svg></span>',
+      'an <i> carrying more':
+        '<span class="icon"><i class="x" id="y" aria-hidden="true"></i></span>',
+      'an <i> not hidden':
+        '<span class="icon"><i class="x" aria-hidden="false"></i></span>',
+      'an <i> deeper down':
+        '<span class="icon"><span><i class="x" aria-hidden="true"></i></span></span>',
+      'a parent that is no .icon':
+        '<span class="tag"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon that is no <span>':
+        '<div class="icon"><i class="x" aria-hidden="true"></i></div>',
+      'a .icon hidden itself':
+        '<span class="icon" aria-hidden="true"><i class="x" aria-hidden="true"></i></span>',
+      'a named .icon':
+        '<span class="icon" role="img" aria-label="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with an empty name':
+        '<span class="icon" aria-label=""><i class="x" aria-hidden="true"></i></span>',
+      'a .icon labelled elsewhere':
+        '<span class="icon" aria-labelledby="y"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with a role':
+        '<span class="icon" role="note"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon that takes focus':
+        '<span class="icon" tabindex="0"><i class="x" aria-hidden="true"></i></span>',
+      // `tabIndex={0}` and `tabIndex="0"` both render this; so do a role
+      // given as a string and as an expression.
+      'a .icon that takes focus out of order':
+        '<span class="icon" tabindex="-1"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with an image role':
+        '<span class="icon" role="img"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with a title':
+        '<span class="icon" title="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon described elsewhere':
+        '<span class="icon" aria-describedby="y"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon described in place':
+        '<span class="icon" aria-description="Home"><i class="x" aria-hidden="true"></i></span>',
+      'a .icon with another attribute':
+        '<span class="icon" lang="en"><i class="x" aria-hidden="true"></i></span>',
+    })
+  )('leaves %s as it is', (_label, markup) => {
+    expect(moveGlyphHidden(html(markup))).toBe(html(markup));
+  });
+});
 
 /**
  * An element whose target renders its whole tree from props, around each
@@ -1724,6 +2073,66 @@ describe("the table's claims about the library", () => {
       });
     }
   });
+
+  it('drops an attribute exactly on the tags a dropsAttr row names', () => {
+    // A row mirrors by hand a set bulma-ui derives from React's types (the
+    // anchor's, the label's, the button's), and a missing one is a silent
+    // markup change rather than a refusal: the element converts, and the
+    // component discards the attribute. So every root with rows renders each
+    // attribute those sets hold, on every tag it reaches, and the attribute
+    // must reach the DOM exactly where no row drops it.
+    const VALUES: Record<string, string | true> = {
+      href: '/x',
+      target: '_blank',
+      download: true,
+      hrefLang: 'en',
+      ping: '/p',
+      referrerPolicy: 'no-referrer',
+      media: 'print',
+      type: 'text/html',
+      rel: 'noopener',
+      htmlFor: 'x',
+      form: 'f',
+      formAction: '/submit',
+      formEncType: 'text/plain',
+      formMethod: 'post',
+      formNoValidate: true,
+      formTarget: '_self',
+      name: 'n',
+      value: 'v',
+    };
+    // React writes `htmlFor` as `for` and keeps the rest as spelled
+    // (`hrefLang`), which HTML reads without regard to case.
+    const htmlName = (name: string): string =>
+      name === 'htmlFor' ? 'for' : name;
+    const withRows = mapped.filter(
+      ([root, entry]) => entry.dropsAttr && root !== 'button'
+    );
+    expect(withRows.map(([root]) => root).sort()).toEqual([
+      'card-footer-item',
+      'level-item',
+      'panel-block',
+    ]);
+    for (const [root, entry] of withRows) {
+      for (const tag of tagsFor(entry)) {
+        for (const [name, value] of Object.entries(VALUES)) {
+          const as = tag === entry.tag ? {} : { as: tag };
+          const html = renderElement(entry.target!, { ...as, [name]: value });
+          const open = /^<[a-z]+[^>]*>/.exec(html)?.[0] ?? '';
+          const reaches = new RegExp(`\\s${htmlName(name)}[=\\s>/]`, 'i').test(
+            open
+          );
+          const row = entry.dropsAttr![name];
+          expect({ root, tag, name, reaches }).toEqual({
+            root,
+            tag,
+            name,
+            reaches: !(row && inTagSet(row, tag)),
+          });
+        }
+      }
+    }
+  });
 });
 
 describe('a seeded fuzz through the planner', () => {
@@ -1753,6 +2162,12 @@ describe('a seeded fuzz through the planner', () => {
     ['target', '_blank'],
     ['rel', 'noopener'],
     ['download', true],
+    ['htmlFor', 'remember'],
+    ['form', 'f'],
+    ['hrefLang', 'en'],
+    ['ping', '/p'],
+    ['referrerPolicy', 'no-referrer'],
+    ['media', 'print'],
     ['value', '40'],
     ['tabIndex', '0'],
     ['tabIndex', '-1'],
@@ -1790,11 +2205,21 @@ describe('a seeded fuzz through the planner', () => {
       }
       const deduped = [...new Set(tokens)];
       const child = childFor(entry);
-      const both = renderBoth(
-        factsFor(tag, deduped, attributes, child),
-        attributes,
-        child
-      );
+      // Every other one that renders a glyph holds one it reads, by turns
+      // and with no draw, so the other cases stay as they were; one in four
+      // holds it as Font Awesome writes it, hidden on the <i> instead.
+      const glyph = entry.readsGlyph && i % 2 === 0;
+      const hiddenOnI = glyph && i % 4 === 0;
+      if (hiddenOnI) delete attributes['aria-hidden'];
+      const facts = factsFor(tag, deduped, attributes, child);
+      if (glyph) {
+        facts.soleChild = {
+          ...bare('i'),
+          tokens: GLYPHS[(i / 2) % GLYPHS.length],
+          ...(hiddenOnI && { attributes: new Map([['aria-hidden', 'true']]) }),
+        };
+      }
+      const both = renderBoth(facts, attributes, child);
       if (!both) continue;
       conversions += 1;
       expect({

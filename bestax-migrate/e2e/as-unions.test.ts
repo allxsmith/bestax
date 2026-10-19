@@ -57,7 +57,7 @@ const importRoots = [...new Set(TARGETS.map(t => t.split('.')[0]))].sort();
  * is the stronger check of the two -- `Exact` reads one declaration, this one
  * puts every tag through the component's own call signature.
  */
-const AS_BY_USE = new Set(['Dropdown.Item']);
+const AS_BY_USE = new Set(['Dropdown.Item', 'Panel.Block']);
 
 function buildSource(): string {
   const rows: string[] = [];
@@ -133,13 +133,19 @@ describe('AS_UNIONS matches the `as` each bestax component declares', () => {
     // A row removed by accident would make the assertion above pass while
     // the transform stopped guarding that component, so pin the set itself.
     expect(TARGETS).toEqual([
+      'Container',
       'Control',
       'Dropdown.Item',
       'Footer',
+      'Hero',
+      'Hero.Foot',
+      'Hero.Head',
       'Image',
       'Level.Item',
       'Media',
       'Media.Left',
+      'Panel',
+      'Panel.Block',
       'SubTitle',
       'Title',
     ]);
@@ -162,8 +168,8 @@ function buildHrefSource(): string {
   for (const [target, defaultEl] of Object.entries(HREF_TABLE)) {
     roots.add(target.split('.')[0]);
     const i = rows.length;
-    // Only where the component declares an `as` at all -- `Pagination.Link`
-    // and `Panel.Block` are anchors outright and take no such prop.
+    // Only where the component declares an `as` at all -- the `Pagination`
+    // controls are anchors outright and take no such prop.
     if (declaresAs(target)) {
       rows.push(
         `export const h${i} = <${target} as="a" href="#">{'x'}</${target}>; // ${target}: as="a"`

@@ -4,6 +4,7 @@ import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { useScrollLock } from '../helpers/scrollLock';
 import { useLatestRef } from '../helpers/useLatestRef';
 import { useOverlayStack } from '../helpers/overlayStack';
+import { useInertSiblings } from '../helpers/useInertSiblings';
 
 /**
  * Overlay opacity levels for the Loading background.
@@ -25,10 +26,24 @@ export interface LoadingProps
   extends
     Omit<React.HTMLAttributes<HTMLDivElement>, 'color'>,
     Omit<BulmaClassesProps, 'color' | 'backgroundColor' | 'size' | 'overlay'> {
-  /** Whether the loading overlay is visible. */
+  /**
+   * Whether the loading overlay is visible. While it is, what it covers is
+   * inert, out of reach of Tab, Enter, Space and screen readers as well as
+   * the mouse: the other children of the element it's rendered in, so render
+   * it directly inside the element it covers, or with `isFullPage` the rest
+   * of the page. Its own content, the cancel button included, stays
+   * reachable. Only what's there when it turns on is made inert, and an
+   * element that was inert already is left as it was. A control under it
+   * that had focus loses it, and gets it back when the loading goes away,
+   * unless focus has moved on in the meantime. Show one at a time over the
+   * same content: two that cover each other, such as two in one container
+   * or two full-page ones, make each other inert, cancel buttons and all.
+   */
   active?: boolean;
   /**
-   * Cover the entire viewport. A full-page loading also takes its turn with
+   * Cover the entire viewport. While it's active, the rest of the page is
+   * inert, as it is under a modal, rather than only the element it's
+   * rendered in. A full-page loading also takes its turn with
    * Modal and Sidebar for Escape: while it's the topmost open overlay, the
    * Modal or Sidebar under it doesn't answer Escape or hold Tab, whether or
    * not the loading can be cancelled.
@@ -154,6 +169,12 @@ export const Loading: React.FC<LoadingProps> = ({
   // until no overlay is open.
   const isTopmost = useOverlayStack(active && isFullPage);
 
+  // What the overlay covers ignores the mouse already, and is made inert so
+  // Tab and screen readers skip it too: the container's other children, or
+  // with `isFullPage` the rest of the page.
+  const loadingRef = React.useRef<HTMLDivElement>(null);
+  useInertSiblings(loadingRef, active, isFullPage);
+
   // Handle escape key. On `window`, as in `Modal`, so a popup on the page has
   // had the key first, and an Escape it closed on doesn't cancel as well. One
   // that cancels is marked used, so nothing under it acts on it too.
@@ -186,6 +207,7 @@ export const Loading: React.FC<LoadingProps> = ({
       aria-busy="true"
       aria-label="Loading"
       {...rest}
+      ref={loadingRef}
     >
       <div
         className={combinedOverlayClasses}

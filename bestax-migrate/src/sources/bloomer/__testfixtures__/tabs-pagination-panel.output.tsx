@@ -47,12 +47,13 @@ export const Navigation = ({ onSelect }: { onSelect: () => void }) => (
         <Panel.Icon name="book" library="fa" variant="solid" />
         bestax
       </Panel.Block>
-      <div className="panel-block is-wrapped">
-        <Panel.Icon><i className="fa fa-code-fork" aria-hidden="true" /></Panel.Icon>fork
-              </div>
-      <label className="panel-block is-active">
-        <input type="checkbox" />remember
-              </label>
+      <Panel.Block as="div" className="is-wrapped">
+        <Panel.Icon><i className="fa fa-code-fork" aria-hidden="true" /></Panel.Icon>
+        fork
+      </Panel.Block>
+      <Panel.Block active as="label">
+        <input type="checkbox" /> remember
+      </Panel.Block>
     </Panel>
     <Dropdown active hoverable right>
       <Dropdown.Item active href="/a">
