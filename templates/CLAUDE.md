@@ -94,13 +94,6 @@ fix.
    - Bulma 0.x markup moves to v1.
    - bulma-social stays only where bestax has nothing equivalent.
    - Some classes get no TODO, so look for them too:
-     - Bulma 0.x's `is-marginless` and `is-paddingless`, which v1 removed, become `m="0"` and
-       `p="0"` (`m-0` and `p-0` on a plain element).
-     - v1's `marginless` and `paddingless` still style, but on an element with no component class
-       beside them they keep it from converting at all. Drop the class and convert the element,
-       with `m="0"` or `p="0"` if the spacing matters.
-     - An `.image` size class (`is-64x64`) on an element without `.image` sizes nothing, so
-       drop it.
      - A second component class on a converted element (`box` on a `Notification`) needs its
        own component.
    - Assets:
