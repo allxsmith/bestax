@@ -571,6 +571,20 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
+  // A size class off its tags names the prop that sizes the element the same
+  // (`textSize`), unless a helper on the element writes that prop already
+  // (`is-size-2`), which then wins, and the size class is the one that stays.
+  const offTagNote = (off: PropWrite, suggestion: string): string => {
+    const helper =
+      entry.noHelpers || own(entry.helpersLeftOut, off.prop)
+        ? undefined
+        : tokens.find(
+            each => own(table.helpers, each)?.write.prop === off.prop
+          );
+    return helper
+      ? `; \`${off.prop}\` is written by \`${helper}\` already, so this class is the one that stays`
+      : suggestion;
+  };
   for (const token of tokens) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
@@ -583,7 +597,10 @@ export function lookupClasses(
           token,
           `bestax \`${target}\` renders it exactly only on ${listTags(modifier.tagIn)}` +
             (modifier.offTag
-              ? `; on this <${tag}>, write ${writeText(modifier.offTag)} in its place, which sizes it the same and keeps the <${tag}>`
+              ? offTagNote(
+                  modifier.offTag,
+                  `; on this <${tag}>, write ${writeText(modifier.offTag)} in its place, which sizes it the same and keeps the <${tag}>`
+                )
               : '')
         );
         continue;
@@ -611,7 +628,10 @@ export function lookupClasses(
           modifier.tagIn && !tag
             ? `exact only on ${listTags(modifier.tagIn)}` +
               (modifier.offTag
-                ? `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`
+                ? offTagNote(
+                    modifier.offTag,
+                    `; on another tag, ${writeText(modifier.offTag)} sizes it the same and keeps the tag`
+                  )
                 : '')
             : paired
               ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`

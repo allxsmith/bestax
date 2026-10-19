@@ -1086,6 +1086,23 @@ describe('lookup_bulma_classes', () => {
     );
   });
 
+  it('defers to a size helper that writes textSize already', async () => {
+    // `is-size-2` wins, being `!important`, so `textSize="4"` would change it.
+    const onTag = await lookup('title is-4 is-size-2', 'h2');
+    expect(onTag).toContain(
+      '| `is-4` | stays in `className` | bestax `Title` renders it exactly only on <h4> or <p>; `textSize` is written by `is-size-2` already, so this class is the one that stays |'
+    );
+    expect(onTag).toContain('| `is-size-2` | `textSize="2"` |');
+    expect(onTag).not.toContain('textSize="4"');
+    expect(await lookup('title is-4 is-size-2')).toContain(
+      'exact only on <h4> or <p>; `textSize` is written by `is-size-2` already, so this class is the one that stays'
+    );
+    // A size for one viewport writes another prop, so the note stands.
+    expect(await lookup('title is-4 is-size-2-mobile', 'h2')).toContain(
+      'on this <h2>, write `textSize="4"` in its place'
+    );
+  });
+
   it('says when the component cannot render the tag', async () => {
     expect(await lookup('section', 'div')).toContain(
       '`Section` renders only <section>, not a <div>'
