@@ -245,7 +245,8 @@ Each page becomes a React module beside it: `login/index.html` writes `login/ind
 default export is a component named after the file, or after its folder for an `index.html`,
 with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. The `index.html` in the folder
 the run starts from, with other pages beside it, is the site's home page, so it becomes
-`HomePage`. One in a folder below keeps its folder's name, so `docs/index.html` is `DocsPage`.
+`HomePage`, unless a page beside it would be `HomePage` too (`home.html`), when it keeps its
+folder's name. One in a folder below keeps its folder's name, so `docs/index.html` is `DocsPage`.
 This page:
 
 ```html
