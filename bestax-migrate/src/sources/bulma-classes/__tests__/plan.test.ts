@@ -624,8 +624,43 @@ describe('plan', () => {
       });
       expect(plan(facts('div', 'card-image is-square')).todos).toEqual([stray]);
       expect(plan(facts('figure', 'is-64x64')).todos[0].message).toContain(
-        'add `image`, which bestax `Image` renders'
+        'add `image`, which bestax `Image` renders, then re-run'
       );
+    });
+
+    it('promises a re-run only on a tag `Image` renders', () => {
+      for (const tag of ['div', 'figure', 'p']) {
+        expect({
+          tag,
+          message: plan(facts(tag, 'is-64x64')).todos[0].message,
+        }).toEqual({ tag, message: expect.stringContaining('then re-run') });
+      }
+      for (const tag of ['span', 'a', 'img']) {
+        const [todo] = plan(facts(tag, 'is-64x64')).todos;
+        expect({ tag, rule: todo.rule }).toEqual({
+          tag,
+          rule: 'modifier:image',
+        });
+        expect(todo.message).toContain(
+          `bestax \`Image\` renders <div>, <figure>, <p>, not ${tag === 'span' ? 'a' : 'an'} <${tag}>, so the element stays markup`
+        );
+        expect(todo.message).not.toContain('re-run');
+        // Following it: the element is then refused on its tag, as said.
+        expect(
+          plan(facts(tag, 'image is-64x64')).todos.map(found => found.rule)
+        ).toEqual(['tag:Image']);
+      }
+    });
+
+    it("claims nothing of a className it doesn't read whole", () => {
+      // A variable or a call may carry `.image`, and the remedy drops a class.
+      expect(
+        plan(facts('figure', 'is-64x64', {}, { unreadClasses: true })).todos
+      ).toEqual([]);
+      expect(
+        plan(facts('figure', 'is-4by3 mx-auto', {}, { unreadClasses: true }))
+          .todos
+      ).toEqual([]);
     });
 
     it('says nothing on an `.image`, or of a class for the element inside one', () => {

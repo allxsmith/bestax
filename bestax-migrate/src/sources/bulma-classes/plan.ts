@@ -137,6 +137,12 @@ export interface ElementFacts {
    */
   text?: string;
   /**
+   * The element's `className` is computed in a way the codemod doesn't read
+   * whole (anything but a `clsx` or `classnames` call of parts it reads), so
+   * it may carry classes `tokens` doesn't hold.
+   */
+  unreadClasses?: boolean;
+  /**
    * The classes the element directly around this one renders: its static
    * ones, or for a bestax component already in the file, its root class and
    * the flags written out as `true`, so a re-run reads the same. What an
@@ -371,6 +377,20 @@ function rootLabel(tokens: readonly string[]): string {
   return tokens.find(token => rootFor(token)?.status === 'mapped') ?? 'button';
 }
 
+/**
+ * Whether the target renders this tag: the one it renders by itself (or the
+ * heading its size picks), or one its `as` takes.
+ */
+function reachesTag(
+  entry: RootEntry,
+  tag: string,
+  renders: string = entry.tag!
+): boolean {
+  return (
+    tag === renders || entry.as === 'any' || (entry.as?.includes(tag) ?? false)
+  );
+}
+
 function tagsItReaches(entry: RootEntry): string {
   if (entry.as === 'any') return 'any tag through `as`';
   if (entry.as) return entry.as.map(tag => `<${tag}>`).join(', ');
@@ -420,19 +440,27 @@ function planElement(facts: ElementFacts): Plan {
     const hint = replacedBy(token) ? undefined : legacyHint(token);
     if (hint) todos.push({ rule: ruleId('legacy', token), message: hint });
     // A modifier Bulma styles only on its own root does nothing on an element
-    // with no root it modifies.
+    // with no root it modifies. That's a claim about every class the element
+    // carries, and the remedy drops one, so it's made only when the codemod
+    // reads them all. A re-run converts the element only on a tag the root's
+    // target renders, so only there does the advice promise one.
     const root = rootItNeeds(token);
     if (
       root &&
+      !facts.unreadClasses &&
       !carried.some(other => {
         const entry = rootFor(other);
         return entry !== undefined && modifiesRoot(entry, token);
       })
     ) {
+      const needed = rootFor(root)!;
       const article = /^[aeiou]/.test(root) ? 'an' : 'a';
+      const fix = reachesTag(needed, tag)
+        ? `add \`${root}\`, which bestax \`${needed.target}\` renders, then re-run`
+        : `add \`${root}\` for Bulma to style it, though bestax \`${needed.target}\` renders ${tagsItReaches(needed)}, not ${aTag(tag)}, so the element stays markup`;
       todos.push({
         rule: ruleId('modifier', root),
-        message: `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, add \`${root}\`, which bestax \`${rootFor(root)!.target}\` renders, then re-run, and otherwise drop the class`,
+        message: `\`${token}\` is ${article} \`.${root}\` modifier, and Bulma styles it only on the element that carries \`.${root}\`, so on this one it styles nothing unless the project's own CSS gives it a rule; if this element is the ${root}, ${fix}, and otherwise drop the class`,
       });
     }
   }
@@ -513,8 +541,7 @@ function planElement(facts: ElementFacts): Plan {
   }
   let as: string | undefined;
   if (renders !== tag) {
-    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
-    if (!reachable) {
+    if (!reachesTag(entry, tag, renders)) {
       return refuse(
         'tag',
         target,

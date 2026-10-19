@@ -366,7 +366,10 @@ spacing it once removed no longer matters.
 `modifier:image`: an `.image` size or ratio (`is-64x64`, `is-square`, `is-4by3`) on an element
 without `.image`. Bulma styles them only on the element that carries `.image`, so this one
 sizes nothing, unless the project's own CSS gives the class a rule. If the element is the
-image's box, add `image` and re-run, so it can convert to `Image`; otherwise drop the class.
+image's box, add `image`. On a tag `Image` renders (the component map's `.image` row lists
+them), re-run and it can convert; on any other tag it stays markup, and the TODO says so.
+Otherwise drop the class. A computed `className` the codemod can't read whole gets no such TODO, since a class it
+can't see may be the `.image`.
 
 ## A whole file it left alone
 

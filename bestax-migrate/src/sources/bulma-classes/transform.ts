@@ -1463,6 +1463,12 @@ export default function transform(
     const className = classAttr ? staticClassName(classAttr) : '';
     const surrounding = around(elementPath);
     const sole = soleChild(element);
+    // A joiner call the codemod can read converts exactly: its fixed classes
+    // as for a static className, and each condition on a flag as its prop.
+    const joined =
+      className === null
+        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
+        : undefined;
     const facts: ElementFacts = {
       tag: name.name,
       tokens:
@@ -1489,16 +1495,13 @@ export default function transform(
         holderOnlyChildOf: onlyChildOf(elementPath.parent, bestaxLocals),
       }),
       ...(textOf(element) !== undefined && { text: textOf(element) }),
+      // Any other computed className may carry classes its strings don't
+      // show (a variable, a call).
+      ...(className === null && !joined && { unreadClasses: true }),
     };
     if (facts.tokens.some(token => rootFor(token)?.readsGlyph)) {
       Object.assign(facts, glyphPlace(elementPath));
     }
-    // A joiner call the codemod can read converts exactly: its fixed classes
-    // as for a static className, and each condition on a flag as its prop.
-    const joined =
-      className === null
-        ? readJoiner(classAttr.value, callee => isJoiner(callee, elementPath))
-        : undefined;
     let exact: Plan | undefined;
     if (joined) {
       exact = plan({
