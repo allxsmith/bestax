@@ -1,4 +1,123 @@
 // Bestax Extras - Menu Styles
+// Two additions to Bulma's menu: `Menu.Section`, a section that opens and
+// closes, and a mark for the active item in forced colors.
+
+@use "bulma/sass/utilities/initial-variables" as iv;
+@use "bulma/sass/utilities/css-variables" as cv;
+@use "../mixins" as *;
+
+// Menu.Section's own. Its heading reads the menu label's variables, so a
+// theme that restyles the labels restyles it too, and these cover what a
+// label doesn't have: the room between its words and its chevron, and the
+// chevron.
+$menu-section-gap: 0.375em !default;
+$menu-section-chevron-size: 1em !default;
+$menu-section-chevron-color: currentColor !default;
+$menu-section-chevron-duration: cv.getVar("duration") !default;
+
+.#{iv.$class-prefix}menu {
+  @include cv.register-vars(
+    (
+      "menu-section-gap": #{$menu-section-gap},
+      "menu-section-chevron-size": #{$menu-section-chevron-size},
+      "menu-section-chevron-color": #{$menu-section-chevron-color},
+      "menu-section-chevron-duration": #{$menu-section-chevron-duration},
+    )
+  );
+}
+
+// The space Bulma puts around a label: above a section that follows
+// something else in the menu, and between an open section's heading and its
+// list. Both are on the heading, so the label's `em` measures them in the
+// label's own small size, as Bulma's do. The heading doesn't carry
+// `.menu-label`, whose margins turn on where a label sits among the menu's
+// children, while the heading's place inside its section never changes.
+.#{iv.$class-prefix}menu-section:not(:first-child) > .#{iv.$class-prefix}menu-section-toggle {
+  margin-top: cv.getVar("menu-label-spacing");
+}
+
+// The heading is a button drawn like Bulma's `.menu-label`: small, spaced
+// and uppercase, in the label's weak text color.
+.#{iv.$class-prefix}menu-section-toggle {
+  align-items: center;
+  appearance: none;
+  background: none;
+  border: none;
+  color: cv.getVar("menu-label-color");
+  cursor: pointer;
+  display: flex;
+  font-family: inherit;
+  font-size: cv.getVar("menu-label-font-size");
+  font-weight: inherit;
+  gap: cv.getVar("menu-section-gap");
+  letter-spacing: cv.getVar("menu-label-letter-spacing");
+  line-height: inherit;
+  margin: 0;
+  padding: 0;
+  text-align: start;
+  text-transform: uppercase;
+  width: 100%;
+
+  &:focus {
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include extras-focus-outline;
+  }
+
+  &[aria-expanded="true"] {
+    margin-bottom: cv.getVar("menu-label-spacing");
+  }
+}
+
+.#{iv.$class-prefix}menu-section-label {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+// TreeView's chevron, drawn the same way: two sides of a square, turned, in
+// a box of its own, the way Bulma's `%arrow` draws the `.select` arrow. It
+// sits at the end of the heading, points to the end of the line while
+// closed and down while open, and both follow a right-to-left page. It's a
+// border in the heading's text color, so it stays in forced colors.
+.#{iv.$class-prefix}menu-section-chevron {
+  align-items: center;
+  display: inline-flex;
+  flex: none;
+  height: cv.getVar("menu-section-chevron-size");
+  justify-content: center;
+  width: cv.getVar("menu-section-chevron-size");
+
+  &::after {
+    // The square's bottom and left sides before it's turned, so physical
+    // sides, like the turn.
+    border-color: cv.getVar("menu-section-chevron-color");
+    border-style: solid;
+    border-width: 0 0 0.125em 0.125em;
+    content: "";
+    height: 0.5em;
+    transform: translateX(-15%) rotate(-135deg);
+    transition-duration: cv.getVar("menu-section-chevron-duration");
+    transition-property: transform;
+    width: 0.5em;
+  }
+}
+
+.#{iv.$class-prefix}menu-section-toggle[aria-expanded="false"]:dir(rtl) > .#{iv.$class-prefix}menu-section-chevron::after {
+  transform: translateX(15%) rotate(45deg);
+}
+
+.#{iv.$class-prefix}menu-section-toggle[aria-expanded="true"] > .#{iv.$class-prefix}menu-section-chevron::after {
+  transform: translateY(-15%) rotate(-45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .#{iv.$class-prefix}menu-section-chevron::after {
+    transition: none;
+  }
+}
+
 // Bulma draws a menu's active item with a fill and a text color and nothing
 // else, and forced colors (Windows' contrast themes) replaces both, so the
 // active item looks like every other item there. This marks it with a bar in
@@ -14,9 +133,6 @@
 //
 // It reads the classes Bulma highlights, on the elements Bulma styles as
 // items, so a hand-written `.is-active` link gets it too.
-
-@use "bulma/sass/utilities/initial-variables" as iv;
-
 @media (forced-colors: active) {
   .#{iv.$class-prefix}menu-list {
     a,
@@ -33,5 +149,11 @@
         border-inline-start-color: Highlight;
       }
     }
+  }
+
+  // A section heading's focus ring in the system's text color, as
+  // TreeView's is.
+  .#{iv.$class-prefix}menu-section-toggle:focus-visible {
+    outline-color: CanvasText;
   }
 }

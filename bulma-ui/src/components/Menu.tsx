@@ -1,4 +1,10 @@
-import React, { createContext, forwardRef, useContext } from 'react';
+import React, {
+  createContext,
+  forwardRef,
+  useContext,
+  useId,
+  useState,
+} from 'react';
 import { classNames, usePrefixedClassNames } from '../helpers/classNames';
 import { useBulmaClasses, BulmaClassesProps } from '../helpers/useBulmaClasses';
 import { withSubComponents } from '../helpers/withSubComponents';
@@ -329,6 +335,110 @@ export const MenuItem = forwardRef(function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
+/**
+ * Props for the MenuSection component. The helper props and the other
+ * attributes land on the wrapping `<div>`.
+ */
+export interface MenuSectionProps
+  extends
+    Omit<React.HTMLAttributes<HTMLDivElement>, keyof BulmaClassesProps>,
+    BulmaClassesProps {
+  /** Additional CSS classes for the wrapping `<div>`. */
+  className?: string;
+  /** **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one. */
+  label: React.ReactNode;
+  /** The `Menu.List` of links the section shows while it's open. */
+  children: React.ReactNode;
+  /** Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`. */
+  open?: boolean;
+  /** Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are. */
+  defaultOpen?: boolean;
+  /** Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section. */
+  onOpenChange?: (open: boolean) => void;
+}
+
+/**
+ * A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open.
+ *
+ * It's APG's disclosure navigation, for a sidebar of link groups: the links
+ * stay ordinary links, each its own tab stop, and a closed section's list is
+ * `hidden`, so Tab and assistive tech skip it.
+ *
+ * @function
+ * @param {MenuSectionProps} props - Props for the MenuSection component.
+ * @returns {JSX.Element} The rendered menu section.
+ * @see {@link https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/ | APG Disclosure Navigation Menu example}
+ *
+ * @example
+ * <Menu>
+ *   <Menu.Section label="Components" defaultOpen>
+ *     <Menu.List>
+ *       <Menu.Item href="/button" active>Button</Menu.Item>
+ *       <Menu.Item href="/card">Card</Menu.Item>
+ *     </Menu.List>
+ *   </Menu.Section>
+ * </Menu>
+ */
+export const MenuSection: React.FC<MenuSectionProps> = ({
+  className,
+  label,
+  children,
+  open: controlledOpen,
+  defaultOpen = false,
+  onOpenChange,
+  ...props
+}) => {
+  const { bulmaHelperClasses, rest } = useBulmaClasses(props);
+  const sectionClass = usePrefixedClassNames('menu-section');
+  const toggleClass = usePrefixedClassNames('menu-section-toggle');
+  const labelClass = usePrefixedClassNames('menu-section-label');
+  const chevronClass = usePrefixedClassNames('menu-section-chevron');
+  const listId = useId();
+
+  // The caller owns the state when `open` is set, and the section does
+  // otherwise, as with Collapse. The button reports in both modes.
+  const isControlled = controlledOpen !== undefined;
+  const [internalOpen, setInternalOpen] = useState(defaultOpen);
+  const isOpen = controlledOpen ?? internalOpen;
+
+  const handleClick = () => {
+    const next = !isOpen;
+    onOpenChange?.(next);
+    if (!isControlled) setInternalOpen(next);
+  };
+
+  // A real button, so Enter and Space work with no key handler, and
+  // `type="button"`, so a menu inside a form isn't submitted by it.
+  //
+  // A closed list is `hidden` rather than inert, as Collapse's panel is.
+  // Collapse keeps a closed panel rendered so it can animate it, and needs
+  // `inert` to take what's in it out of reach. Nothing here animates, so
+  // `hidden` does it all in one attribute: the list isn't drawn, Tab skips
+  // its links, assistive tech and find-in-page don't reach them, and the
+  // markup is the same from the server and on both React majors. It stays
+  // mounted, so `aria-controls` always names an element that exists.
+  return (
+    <div
+      className={classNames(sectionClass, bulmaHelperClasses, className)}
+      {...rest}
+    >
+      <button
+        type="button"
+        className={toggleClass}
+        aria-expanded={isOpen}
+        aria-controls={listId}
+        onClick={handleClick}
+      >
+        <span className={labelClass}>{label}</span>
+        <span className={chevronClass} aria-hidden="true" />
+      </button>
+      <div id={listId} hidden={!isOpen}>
+        {children}
+      </div>
+    </div>
+  );
+};
+
 // Attach static subcomponents
 export const Menu = withSubComponents(
   MenuComponent,
@@ -336,6 +446,7 @@ export const Menu = withSubComponents(
     Label: MenuLabel,
     List: MenuList,
     Item: MenuItem,
+    Section: MenuSection,
   },
   'Menu'
 );
