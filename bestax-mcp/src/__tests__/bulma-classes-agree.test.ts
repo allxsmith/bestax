@@ -33,13 +33,28 @@ type Outcome =
       as: string | undefined;
       props: string[];
       className: string[];
+      /** It renders the glyph of the <i> it holds from props. */
+      glyph: boolean;
+      /** And takes Font Awesome's own `aria-hidden` up off that <i>. */
+      moves: boolean;
     }
   | { kind: 'wrong-tag' | 'markup' };
 
 const propText = (prop: string, value: string | true | undefined) =>
   value === true || value === undefined ? prop : `${prop}=${value}`;
 
-function planned(tag: string, tokens: string[]): Outcome {
+/**
+ * How the <i> inside a root that needs element children is written: as a
+ * real glyph, hidden on the `.icon` as `Icon` hides it, or as Font Awesome
+ * writes it, hidden on the <i> instead.
+ */
+type Glyph = 'on-icon' | 'on-i';
+
+function planned(
+  tag: string,
+  tokens: string[],
+  hidden: Glyph = 'on-icon'
+): Outcome {
   // Attributes decide some refusals, and the lookup leaves those to the
   // codemod: give the element the ones its roots render by default
   // (`Delete`'s `type` and `aria-label`, and on a tag a root writes one on,
@@ -103,14 +118,22 @@ function planned(tag: string, tokens: string[]): Outcome {
       };
     }
     // One that needs element children gets one, which the lookup can't see.
+    // For one that reads a glyph it is a real one, whose classes become
+    // props, which the lookup states as a condition: with no classes the
+    // planner would keep it as a child, and agree with a lookup that never
+    // said so. Font Awesome's own markup hides the <i> instead of the
+    // element, which moves its `aria-hidden` up.
     if (
       entry?.status === 'mapped' &&
       entry.needsElementChildren &&
       !soleChild
     ) {
+      const onI = entry.readsGlyph && hidden === 'on-i';
+      if (onI) attributes.delete('aria-hidden');
       soleChild = {
         tag: 'i',
-        attributes: new Map(),
+        ...(entry.readsGlyph && { tokens: ['fas', 'fa-home'] }),
+        attributes: new Map(onI ? [['aria-hidden', 'true']] : []),
         hasSpread: false,
         isEmpty: true,
       };
@@ -227,6 +250,8 @@ function planned(tag: string, tokens: string[]): Outcome {
         .map(([name, value]) => propText(name, value))
         .sort(),
       className: (className?.split(' ') ?? []).sort(),
+      glyph: result.conversion.glyph !== undefined,
+      moves: result.conversion.movesHidden === true,
     };
   }
   return result.todos.some(todo => todo.rule.startsWith('tag:'))
@@ -234,7 +259,11 @@ function planned(tag: string, tokens: string[]): Outcome {
     : { kind: 'markup' };
 }
 
-function looked(tag: string, tokens: string[]): Outcome {
+function looked(
+  tag: string,
+  tokens: string[],
+  hidden: Glyph = 'on-icon'
+): Outcome {
   const { element, rows } = lookupClasses(table, tokens.join(' '), tag);
   if (element.kind === 'component') {
     return {
@@ -255,6 +284,13 @@ function looked(tag: string, tokens: string[]): Outcome {
         .filter(({ verdict }) => verdict.kind === 'class')
         .map(({ token }) => token)
         .sort(),
+      // What it says the codemod does with a glyph <i>, and with one hidden
+      // the way Font Awesome hides it, beside nothing but the element's
+      // classes.
+      glyph: element.readsGlyph !== undefined,
+      moves:
+        hidden === 'on-i' &&
+        (element.readsGlyph?.hiddenMovesBeside.length ?? 0) > 0,
     };
   }
   return { kind: element.kind === 'wrong-tag' ? 'wrong-tag' : 'markup' };
@@ -294,11 +330,14 @@ const others = [
   'toString',
 ];
 
-function compare(cases: Array<[tag: string, tokens: string[]]>): string[] {
+function compare(
+  cases: Array<[tag: string, tokens: string[]]>,
+  hidden: Glyph = 'on-icon'
+): string[] {
   const mismatches: string[] = [];
   for (const [tag, tokens] of cases) {
-    const want = planned(tag, tokens);
-    const got = looked(tag, tokens);
+    const want = planned(tag, tokens, hidden);
+    const got = looked(tag, tokens, hidden);
     if (JSON.stringify(want) !== JSON.stringify(got)) {
       mismatches.push(
         `<${tag} className="${tokens.join(' ')}">: planner ${JSON.stringify(want)}, lookup ${JSON.stringify(got)}`
@@ -379,6 +418,27 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
   // own. The planner needs a tag, so it runs on that one: a heading's on <p>,
   // where its size is exact, and classes with no root on <p>, whose
   // Paragraph takes the same color props the no-tag answer names.
+  it("on a root that reads a glyph, with Font Awesome's aria-hidden on its <i>", () => {
+    const reads = mapped.filter(([, entry]) => entry.readsGlyph !== null);
+    expect(reads.length).toBeGreaterThan(0);
+    const cases = reads.flatMap(([root, entry]) => [
+      ...TAGS.map(tag => [tag, [root]] as [string, string[]]),
+      ...Object.keys(entry.modifiers).map(
+        token => [entry.tag!, [root, token]] as [string, string[]]
+      ),
+      ...helpers.map(
+        helper => [entry.tag!, [root, helper]] as [string, string[]]
+      ),
+    ]);
+    expect(compare(cases, 'on-i')).toEqual([]);
+    // The planner did move it, so the agreement above is about the move.
+    const [root, entry] = reads[0];
+    expect(planned(entry.tag!, [root], 'on-i')).toMatchObject({
+      glyph: true,
+      moves: true,
+    });
+  });
+
   it('on a `.file` whose name slot is-empty marks, which File renders itself', () => {
     const cases: Array<[string, string[]]> = [
       ['div', ['file', 'has-name', 'is-empty']],

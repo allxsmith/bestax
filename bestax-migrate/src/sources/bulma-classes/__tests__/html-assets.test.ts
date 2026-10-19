@@ -261,6 +261,10 @@ describe('Font Awesome', () => {
       'https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css'
     );
     expect(text).toContain('Font Awesome 4');
+    // The icons it converts keep 4's own `fa`, which `Icon` writes as given.
+    expect(text).toContain(
+      'the codemod keeps that `fa` on each icon it converts (`variant="fa"`), which 4 styles'
+    );
     expect(text).toContain('`css/v4-shims.min.css`');
     expect(text).toContain('`variant="regular"`');
     expect(text).toContain(FONT_AWESOME_PEER_RANGE);
