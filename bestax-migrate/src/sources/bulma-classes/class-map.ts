@@ -6,7 +6,13 @@
  * Every conversion this table allows must render exactly the HTML the raw
  * element rendered. That is a claim about bestax, and the render tests hold
  * it: each root, modifier and helper here is rendered through the built
- * library and compared with the raw markup it replaces.
+ * library and compared with the raw markup it replaces. The exceptions are
+ * on purpose. Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
+ * that carries nothing assistive tech reads converts to `Icon`, which writes
+ * the attribute on the `.icon` instead, since the glyph is hidden either way
+ * (see `readsGlyph`). And a Bulma 0.9 helper v1 removed, which styles
+ * nothing under v1, converts as the v1 helper that does its job (see
+ * `REPLACED_IN_V1`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
  * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
@@ -118,6 +124,21 @@ export interface Absorbs {
   readonly renames?: Readonly<
     Record<string, { readonly to: string; readonly beside: string }>
   >;
+}
+
+/** How a target that renders a glyph from props reads one (`Icon`). */
+export interface ReadsGlyph {
+  /**
+   * The attributes the element may carry and still take Font Awesome's
+   * `aria-hidden` up off its `<i>`: ones the target renders as given that
+   * assistive tech doesn't read, a name ending in `*` standing for every
+   * attribute it starts. Read by name, whatever the value, since an
+   * expression may render as anything. Anything else (a name, a description,
+   * a `title`, a `role`, a `tabIndex`, a handler) keeps the attribute where
+   * it is: the move would hide what it exposes, and `Icon` writes no
+   * `aria-hidden` beside a `role` or `tabIndex` at all.
+   */
+  readonly hiddenMovesBeside: readonly string[];
 }
 
 export interface RootEntry {
@@ -275,6 +296,18 @@ export interface RootEntry {
    */
   readonly buildsIcons?: boolean;
   /**
+   * The target renders a glyph from props in place of its children (`Icon`,
+   * from `library` and `name`): when the element's only child is one bare,
+   * empty `<i>` whose classes `glyph.ts` reads, its classes become those
+   * props, the `<i>` goes and the element closes itself. Around anything
+   * else, the target renders its children as given. An `<i>` that carries
+   * the `aria-hidden` the target writes, as Font Awesome's own markup does,
+   * reads too when the element carries nothing assistive tech reads: the
+   * attribute moves up onto it, a difference in markup a conversion makes
+   * on purpose.
+   */
+  readonly readsGlyph?: ReadsGlyph;
+  /**
    * The target renders the whole `.file` tree from props (`File`): its
    * `<input>`, button text, icons and file name. The element converts only
    * when its tree is exactly that one, and only inside a `Field`, since
@@ -290,15 +323,6 @@ export interface RootEntry {
    * gutter). The reason is for the MCP lookup.
    */
   readonly helpersLeftOut?: Readonly<Record<string, string>>;
-  /**
-   * Tags the target doesn't render, on which the element is valid Bulma that
-   * bestax renders some other way, so it stays markup with no `tag` TODO
-   * there. Any other tag still gets one. The reason is for the MCP lookup.
-   */
-  readonly otherTagsStay?: {
-    readonly tags: readonly string[];
-    readonly why: string;
-  };
   /**
    * Attributes the target types as numbers, among the ones it is given (the
    * child's, when it `absorbs` the child and puts them there), beside
@@ -1039,6 +1063,16 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Container',
     tag: 'div',
+    as: [
+      'div',
+      'main',
+      'section',
+      'article',
+      'aside',
+      'header',
+      'footer',
+      'nav',
+    ],
     modifiers: {
       ...flags({
         'is-fluid': 'fluid',
@@ -1058,6 +1092,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       ),
     },
     ownProps: [
+      'as',
       'textColor',
       'color',
       'bgColor',
@@ -1343,6 +1378,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero',
     tag: 'section',
+    as: ['section', 'div', 'main', 'header', 'footer', 'article', 'aside'],
     // Hero's `color` is the component color, and `textColor` reaches the DOM
     // as an attribute rather than a class.
     textColor: null,
@@ -1354,13 +1390,14 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         'size'
       ),
     },
-    ownProps: ['color', 'size', 'bgColor', 'fullheightWithNavbar'],
+    ownProps: ['as', 'color', 'size', 'bgColor', 'fullheightWithNavbar'],
   },
   'hero-head': {
     ...BASE,
     target: 'Hero.Head',
     tag: 'div',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    as: ['div', 'header', 'nav'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   'hero-body': {
     ...BASE,
@@ -1372,7 +1409,8 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Hero.Foot',
     tag: 'div',
-    ownProps: ['color', 'bgColor', 'textColor'],
+    as: ['div', 'footer', 'nav'],
+    ownProps: ['as', 'color', 'bgColor', 'textColor'],
   },
   level: {
     ...BASE,
@@ -1797,13 +1835,15 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  // With children, `Icon` renders `.icon` around them as given. It hides an
-  // icon with no name, no `role` and no `tabIndex`, and makes one named by
-  // `aria-label` or `aria-labelledby` an image.
+  // `Icon` renders a bare `<i>` from `library` and `name`, and with children,
+  // `.icon` around them as given. It hides an icon with no name, no `role`
+  // and no `tabIndex`, writing `aria-hidden` on the `.icon` and never on the
+  // `<i>`, and makes one named by `aria-label` or `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
     tag: 'span',
+    readsGlyph: { hiddenMovesBeside: ['id', 'style', 'key', 'data-*'] },
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {
@@ -2147,6 +2187,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     ...BASE,
     target: 'Panel',
     tag: 'nav',
+    as: ['nav', 'article', 'section', 'aside', 'div'],
     textColor: null,
     bgColor: null,
     omits: Object.fromEntries(
@@ -2155,7 +2196,7 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
         '`color` renders `has-text-<color>` on the panel as well',
       ])
     ),
-    ownProps: ['color'],
+    ownProps: ['as', 'color'],
   },
   'panel-heading': {
     status: 'mapped',
@@ -2179,15 +2220,29 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
     status: 'mapped',
     target: 'Panel.Block',
     tag: 'a',
+    as: ['a', 'div', 'label'],
     textColor: null,
     bgColor: null,
     noHelpers: true,
     modifiers: flags({ 'is-active': 'active' }),
-    otherTagsStay: {
-      tags: ['label', 'div'],
-      why: 'a `<label>` or `<div>` block is `Panel.CheckboxBlock`, `Panel.InputBlock` or `Panel.ButtonBlock`, which render their own contents',
-    },
-    ownProps: ['active'],
+    // The anchor attributes, and `rel`, reach only an <a>, and the label's
+    // only a <label> (`STRIP_FROM_NON_ANCHOR` and `STRIP_FROM_NON_LABEL` in
+    // bulma-ui's Panel.tsx).
+    dropsAttr: Object.fromEntries([
+      ...[
+        'href',
+        'target',
+        'download',
+        'hrefLang',
+        'ping',
+        'referrerPolicy',
+        'media',
+        'type',
+        'rel',
+      ].map(name => [name, { except: ['a'] }]),
+      ...['htmlFor', 'form'].map(name => [name, { except: ['label'] }]),
+    ]),
+    ownProps: ['as', 'active'],
   },
   'panel-icon': todo(
     'Panel.Icon',
@@ -2508,7 +2563,7 @@ export const LEGACY_09: Readonly<Record<string, string>> = {
  * Bulma 0.9 helpers v1 removed whose job a v1 helper does, with that helper.
  * Each is a helper token for the v1 helper's prop, so wherever its element
  * converts it becomes that prop, which renders the v1 class in its place:
- * the one conversion here that changes a class, since the class it replaces
+ * the conversion here that changes a class, since the class it replaces
  * styles nothing under v1. Where its element stays markup, or the prop is
  * not written, it gets its `LEGACY_09` TODO instead.
  */

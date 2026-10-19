@@ -29,10 +29,13 @@ import {
   pageDisplayOf,
 } from '../src/sources/bulma-classes/html.js';
 import { canonical, dropPreloads } from './support/dom-canonical.js';
+import { moveGlyphHidden } from './support/hidden-glyph.js';
 import {
   loadModules,
+  normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const packageRoot = path.join(
@@ -84,9 +87,17 @@ function threeWays(file: string, source: string) {
     intermediate: canonicalOf(before, document),
     // `Menu.List` writes the `role="list"` a `.menu-list` only implies
     // (#1108), so the migrated page is held to the intermediate one with
-    // that role restated where the migrated list carries it.
-    restated: canonicalOf(withImplicitListRoles(before, after), document),
-    migrated: canonicalOf(after, document),
+    // that role restated where the migrated list carries it. And both are
+    // compared with what the planner changes on purpose restated: Font
+    // Awesome's own `aria-hidden` moved up off the <i>, and a Bulma 0.9 class
+    // v1 removed written as the v1 class in its place.
+    restated: canonicalOf(
+      moveGlyphHidden(
+        withImplicitListRoles(withV1Classes(before, after), after)
+      ),
+      document
+    ),
+    migrated: canonicalOf(moveGlyphHidden(normalizeHtml(after)), document),
     output,
   };
 }

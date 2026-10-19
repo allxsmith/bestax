@@ -8,6 +8,7 @@ export function Refusals() {
   // TODO(bestax-migrate): this element spreads props, which bestax `Box` may read differently than the element did (a spread `className` merges with its classes instead of replacing them); convert it to `Box` by hand
   // TODO(bestax-migrate): bestax `Box` does not forward refs, so this `ref` would stop reaching the DOM node; keep this element as markup
   // TODO(bestax-migrate): bestax `Section` renders only <section>, not a <div>; keep the markup, or change the tag and re-run
+  // TODO(bestax-migrate): bestax `Panel.Block` renders <a>, <div>, <label>, not a <button>; keep the markup, or change the tag and re-run
   // TODO(bestax-migrate): `color` is also a bestax `Box` prop, which would read it differently; rename or drop the attribute, then re-run
   // TODO(bestax-migrate): bestax `Delete` renders `type="button"` and `aria-label="Close"` when the element does not set them; add them here if that is what you want, then re-run
   // TODO(bestax-migrate): this `className` is computed, and the codemod reads only a `clsx` or `classnames` call of class strings and conditional classes; convert this element to bestax `Box` by hand, turning each condition into its prop
@@ -25,6 +26,9 @@ export function Refusals() {
         A ref Box does not forward
       </div>
       <div className="section">A section on a div</div>
+      <button className="panel-block" type="submit">
+        A panel block on a button, whose type is not inert
+      </button>
       <div className="box" color="red">
         An attribute Box reads as a prop
       </div>

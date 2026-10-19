@@ -107,9 +107,10 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   inside it in, a conversion, a fold into its only child (a `fold` wrapper such as
   `.table-container`) or a TODO out; an entry that `absorbs` its only child (`.select`'s
   `<select>`) converts together with it, written in the child's place, and one that
-  `countsChildren` (`.skeleton-lines`) writes their count and drops them, one that `buildsIcons`
-  (`.icon-text`) takes its `.icon`s and the texts beside them as props, one that `buildsFile`
-  (`.file`) takes its whole tree as props, inside a `Field` only, and one with a
+  `countsChildren` (`.skeleton-lines`) writes their count and drops them, one that `readsGlyph`
+  (`.icon`) takes the bare glyph `<i>` it holds as props (`glyph.ts`) and drops it, one that
+  `buildsIcons` (`.icon-text`) takes its `.icon`s and the texts beside them as props, one that
+  `buildsFile` (`.file`) takes its whole tree as props, inside a `Field` only, and one with a
   `parent` (`.pagination-link`) takes the place of the bare `<li>` its target renders too; an entry
   with `wrapsChildren` converts only beside one of its parts, so `transform.ts` plans children
   before their parents; and an element with no class to go by, a menu list's `<li>`, is found
@@ -124,7 +125,26 @@ is the one with no library behind it, converting raw Bulma classes on plain JSX.
   `clsx` and `classnames`, which is why they are dev dependencies. An element converts only when the component renders the same markup; the render
   tests in `e2e/bulma-classes-*.test.ts` hold every entry to that, and
   `e2e/bulma-classes-props.test.ts` to the component's props type, which can be narrower than
-  what it renders.
+  what it renders. An exception is deliberate (#1148): Font Awesome's own
+  `<i aria-hidden="true">`, alone in a `.icon` that carries nothing assistive tech reads,
+  converts to `Icon`, which writes that attribute on the `.icon` instead, because the glyph is
+  hidden either way. The `.icon` may carry only what is on a whitelist (`hiddenMovesBeside`
+  in its `readsGlyph` entry, which the MCP index carries too), checked by name whatever the
+  value: a `title` or description would be hidden with
+  it, and beside a `role` or `tabIndex` `Icon` writes no `aria-hidden` at all, so an expression
+  there must refuse too. The planner marks it `movesHidden`, and the render tests compare it
+  through `e2e/support/hidden-glyph.ts`, which moves the attribute up in that one shape, behind
+  the same whitelist, and leaves every other difference to fail.
+  Widen it only with the same care: a new exception is a claim that the page is unchanged for
+  everyone who reads it, which identical markup proves and a normalization only asserts.
+  Another deliberate exception (#1167) changes a class rather than moving an attribute:
+  Bulma 0.9's `is-marginless` and `is-paddingless`, which v1 removed, style nothing under v1, so
+  wherever the element converts they become the v1 helper that does their job (`REPLACED_IN_V1`:
+  `m="0"`, which renders `m-0`). That one does change the page under v1, to the spacing its
+  author meant, which is why it is limited to classes v1 removed. Where the class stays, it
+  gets a `legacy:` TODO. The render tests compare those elements with the v1 class restated in
+  the raw markup (`withV1Classes` in `e2e/support/render-module.ts`), only where the converted
+  element has it in the old one's place.
 - The bulma-classes HTML input is `bulma-classes/html.ts`: parse the page, drop its scripts
   (each a report), emit its body as JSX with `pageDisplayOf` (an element's inline display, else
   the displays `display.ts` says Bulma's classes give it across viewports, else its tag's; a

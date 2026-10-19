@@ -221,7 +221,7 @@ function classesOf(tag: string): string[] {
  *
  * Such a class styles nothing under v1, and the codemod converts it as the
  * v1 helper that does its job (`is-marginless` as `m="0"`, which renders
- * `m-0`), the one conversion that changes a class on purpose. Only those
+ * `m-0`), the conversion that changes a class on purpose. Only those
  * classes, and only where the converted element has the v1 class and not the
  * old one: a conversion that drops the class, or keeps it beside the prop,
  * still differs. Elements pair up in document order, and a pair that doesn't

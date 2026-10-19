@@ -14,6 +14,9 @@ export function Refusals() {
         A ref Box does not forward
       </div>
       <div className="section">A section on a div</div>
+      <button className="panel-block" type="submit">
+        A panel block on a button, whose type is not inert
+      </button>
       <div className="box" color="red">
         An attribute Box reads as a prop
       </div>

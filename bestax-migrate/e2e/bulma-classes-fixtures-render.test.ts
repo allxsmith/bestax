@@ -1,9 +1,11 @@
 /**
  * Each bulma-classes fixture renders the same HTML before and after the
- * migration, but for a Bulma 0.9 class v1 removed, which renders as the v1
- * class that replaced it. The input needs no library at all (it is plain
- * JSX), so unlike the other sources' fixtures it can run here, next to its
- * output.
+ * migration. The input needs no library at all (it is plain JSX), so unlike
+ * the other sources' fixtures it can run here, next to its output. Both are
+ * compared with what a conversion changes on purpose restated: Font
+ * Awesome's own `aria-hidden` moved up off the `<i>`
+ * (`support/hidden-glyph.ts`), and a Bulma 0.9 class v1 removed written as
+ * the v1 class that replaced it (`withV1Classes`).
  */
 
 import classNames from 'classnames';
@@ -11,6 +13,7 @@ import clsx from 'clsx';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { moveGlyphHidden } from './support/hidden-glyph.js';
 import {
   loadModules,
   normalizeHtml,
@@ -44,7 +47,10 @@ function render(file: string): Record<string, string> {
   const source = fs.readFileSync(path.join(fixturesDir, file), 'utf8');
   const html = renderExports(loadModules({ fixture: source }, JOINERS).fixture);
   return Object.fromEntries(
-    Object.entries(html).map(([name, markup]) => [name, normalizeHtml(markup)])
+    Object.entries(html).map(([name, markup]) => [
+      name,
+      moveGlyphHidden(normalizeHtml(markup)),
+    ])
   );
 }
 

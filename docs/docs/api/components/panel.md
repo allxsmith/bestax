@@ -139,6 +139,42 @@ This example demonstrates the `Panel` component's color variants. The `color` pr
 
 ---
 
+### A Panel That Is Not Navigation
+
+`Panel` renders a `<nav>`, a navigation landmark, which suits a panel of links. For one that is not navigation, `as` renders it as an `article` (Bulma's own colored panels use one), a `section`, an `aside` or a `div`. A `section` is a region landmark once it has an accessible name, here its heading through `aria-labelledby`. `Panel.Block` renders an `<a>` unless `as` says `div` or `label`: a `div` block holds content that is not a link, such as a table.
+
+```tsx live
+<Panel as="section" color="info" aria-labelledby="panel-sessions">
+  <Panel.Heading id="panel-sessions">Congress Sessions</Panel.Heading>
+  <Panel.Block as="div">
+    <Table isFullwidth>
+      <Table.Thead>
+        <Table.Tr>
+          <Table.Th>Date</Table.Th>
+          <Table.Th>Session</Table.Th>
+        </Table.Tr>
+      </Table.Thead>
+      <Table.Tbody>
+        <Table.Tr>
+          <Table.Td>1774</Table.Td>
+          <Table.Td>First Continental Congress</Table.Td>
+        </Table.Tr>
+        <Table.Tr>
+          <Table.Td>1775</Table.Td>
+          <Table.Td>Second Continental Congress</Table.Td>
+        </Table.Tr>
+      </Table.Tbody>
+    </Table>
+  </Panel.Block>
+  <Panel.Block href="#delegates">
+    <Panel.Icon name="user" variant="solid" />
+    All delegates
+  </Panel.Block>
+</Panel>
+```
+
+---
+
 ### Compound (dot-notation) usage
 
 Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and attached to `Panel` as a static, so a whole panel can be composed from the single `Panel` import.
@@ -162,9 +198,9 @@ Every subcomponent is exported by name (`PanelHeading`, `PanelBlock`, …) and a
 
 ## Accessibility
 
-- The root panel renders as a semantic `<nav>` for navigation/landmark.
+- The root panel renders as a semantic `<nav>`, a navigation landmark, by default. For a panel that is not navigation, set `as` to `article`, `section`, `aside` or `div`, and give a `section` an accessible name (for example `aria-labelledby` pointing at the `Panel.Heading`'s `id`) if it should be a region.
 - Use headings, links, and buttons with appropriate labels for best accessibility.
-- The `Panel.Block` by default renders as an anchor `<a>`, but can be customized for interactive blocks.
+- The `Panel.Block` by default renders as an anchor `<a>`. Its props follow `as`: only an `a` takes the anchor attributes (`href`, `target`, `download` and the rest), and only a `label` takes `htmlFor` and `form`. A block on another tag drops them, and `rel`, at runtime too.
 
 :::note
 For keyboard navigation, ensure interactive Panel blocks are focusable and provide clear visual states.
@@ -194,18 +230,19 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 
 <!-- bestax:generated props -->
 
-| Prop        | Type                                                                                                                               | Default | Description                                       |
-| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ------------------------------------------------- |
-| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the panel.               |
-| `className` | `string`                                                                                                                           | —       | Additional CSS classes.                           |
-| `children`  | `React.ReactNode`                                                                                                                  | —       | Panel content (usually includes subcomponents).   |
-| `...`       | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md) |
+| Prop        | Type                                                                                                                               | Default | Description                                                                                                                                                                                                                                                                                                                                           |
+| ----------- | ---------------------------------------------------------------------------------------------------------------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `as`        | `'nav'` \| `'article'` \| `'section'` \| `'aside'` \| `'div'`                                                                      | `'nav'` | HTML element to render (default: `nav`). A `nav` is a `navigation` landmark, which suits a panel of links; a panel that is not navigation takes another tag. Bulma's own colored panels use `article`. A `section` is a `region` landmark only once it has an accessible name, such as `aria-labelledby` pointing at the `id` of its `Panel.Heading`. |
+| `color`     | `'primary'` \| `'link'` \| `'info'` \| `'success'` \| `'warning'` \| `'danger'` \| `'black'` \| `'dark'` \| `'light'` \| `'white'` | —       | Bulma color modifier for the panel.                                                                                                                                                                                                                                                                                                                   |
+| `className` | `string`                                                                                                                           | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                               |
+| `children`  | `React.ReactNode`                                                                                                                  | —       | Panel content (usually includes subcomponents).                                                                                                                                                                                                                                                                                                       |
+| `...`       | All standard HTML attributes and Bulma helper props                                                                                | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                     |
 
 **Subcomponents:**
 
 - `Panel.Heading`: Main heading (renders as `<p class="panel-heading">`)
 - `Panel.Tabs`: Panel tabs (renders as `<p class="panel-tabs">`)
-- `Panel.Block`: Individual panel block (renders as `<a class="panel-block">`)
+- `Panel.Block`: Individual panel block (renders as `<a class="panel-block">` unless `as` says otherwise)
 - `Panel.Icon`: Icon wrapper with panel styling (renders as `<span class="panel-icon">`, containing an `<i/>` when a `name` is given, or the custom node passed as `children`). Accepts all Icon props (`name`, `variant`, `features`, etc.), or `children` for a custom node.
 - `Panel.InputBlock`: Search input with icon (renders as `<div class="panel-block">`)
 - `Panel.CheckboxBlock`: Checkbox block (renders as `<label class="panel-block">`)
@@ -229,12 +266,13 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Panel
 
 ### Panel.Block
 
-| Prop        | Type                          | Default | Description                  |
-| ----------- | ----------------------------- | ------- | ---------------------------- |
-| `className` | `string`                      | —       | Additional CSS classes.      |
-| `active`    | `boolean`                     | `false` | Whether the block is active. |
-| `children`  | `React.ReactNode`             | —       | Block content.               |
-| `...`       | All standard `<a>` attributes | —       |                              |
+| Prop        | Type                                                            | Default | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| ----------- | --------------------------------------------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `as`        | `'a'` \| `'div'` \| `'label'`                                   | `'a'`   | HTML element to render (default: `a`). Bulma styles a `label` block as clickable, like an `a`, and a `div` block as static content, such as a table. The props follow the tag, so the anchor attributes (`href`, `target`, `download` and the rest) are typed only on an `a` and `htmlFor` only on a `label`; at runtime the block also drops them, and `rel`, on the other tags. `Panel.CheckboxBlock`, `Panel.InputBlock` and `Panel.ButtonBlock` render the usual `label` and `div` blocks with their contents. |
+| `className` | `string`                                                        | —       | Additional CSS classes.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `active`    | `boolean`                                                       | `false` | Whether the block is active.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       |
+| `children`  | `React.ReactNode`                                               | —       | Block content.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `...`       | Remaining props of the element selected by `as` (default `<a>`) | —       |                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
 
 ### Panel.Icon
 
