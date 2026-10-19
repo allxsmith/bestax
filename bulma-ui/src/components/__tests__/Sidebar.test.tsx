@@ -351,6 +351,15 @@ describe('Sidebar', () => {
       });
     });
 
+    it('takes focus without an overlay too, with no modal overlay open', () => {
+      render(
+        <Sidebar isOpen onClose={() => {}} overlay={false}>
+          <button type="button">Inside</button>
+        </Sidebar>
+      );
+      expect(screen.getByText('Inside')).toHaveFocus();
+    });
+
     it('moves focus past a control Tab would skip', () => {
       render(
         <Sidebar isOpen onClose={() => {}}>

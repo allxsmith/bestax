@@ -8,7 +8,7 @@ import { usePortalContainer } from '../helpers/portal';
 import { useConfig } from '../helpers/Config';
 import { buttonType } from '../helpers/buttonType';
 import { useLatestRef } from '../helpers/useLatestRef';
-import { useOverlayStack } from '../helpers/overlayStack';
+import { isModalOverlayOpen, useOverlayStack } from '../helpers/overlayStack';
 import { firstTabStop, trapTab } from '../helpers/useFocusTrap';
 import { inertProps } from '../helpers/inertProps';
 import {
@@ -30,9 +30,11 @@ export interface SidebarProps
     BulmaClassesProps {
   /**
    * Whether the sidebar is open (required). Opening moves focus into the
-   * sidebar, to its first tab stop or the sidebar itself. Closing hands focus
-   * back to whatever had it when the sidebar opened, unless focus has already
-   * left the sidebar, as it does for an overlay opened over it. A closed
+   * sidebar, to its first tab stop or the sidebar itself, except for a sidebar
+   * without an overlay opened while a modal overlay, such as a Modal, is open:
+   * that one leaves focus where it is. Closing hands focus back to whatever
+   * had it when the sidebar opened, unless focus has already left the
+   * sidebar, as it does for an overlay opened over it. A closed
    * sidebar stays in the page, so it can slide out, and is `inert` and
    * `aria-hidden` there: Tab passes over its content and assistive
    * technology doesn't read it.
@@ -55,7 +57,8 @@ export interface SidebarProps
    * over it, even one rendered inside it, holds Tab until it closes. Without
    * an overlay the sidebar isn't modal and holds no Tab: on the page, Tab
    * moves in and out of it freely, and opened over a Modal, it leaves the
-   * Modal holding Tab while still taking Escape first. Default: true.
+   * Modal holding Tab, and focus, while still taking Escape first.
+   * Default: true.
    */
   overlay?: boolean;
   /** Close sidebar when overlay is clicked. Default: true. */
@@ -205,7 +208,8 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
     // the sidebar itself, and hand it back on close, as `Modal` does. A
     // different `defaultTarget` remounts the portaled sidebar: the cleanup
     // hands focus back from the old nodes, which left it on <body>, and the
-    // re-run records the same opener and focuses the new nodes.
+    // re-run records the same opener and focuses the new nodes. So does a
+    // change to `overlay`, which changes whether the sidebar takes focus.
     useEffect(() => {
       if (!isOpen) return undefined;
       const element = sidebarRef.current;
@@ -216,7 +220,13 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
       // renders under `document.body` while its opener can be inside a
       // shadow root.
       const opener = getDeepestActiveElement() as HTMLElement | null;
-      (firstTabStop(element) ?? element).focus();
+      // Without an overlay the sidebar holds no Tab, so with a modal overlay
+      // open under it, the first Tab would take focus back there and leave
+      // the sidebar's other controls out of reach. It leaves focus alone
+      // then, and the cleanup below finds focus outside and leaves it too.
+      if (overlay || !isModalOverlayOpen()) {
+        (firstTabStop(element) ?? element).focus();
+      }
 
       return () => {
         // Only while the sidebar still holds focus: closing one under another
@@ -228,7 +238,7 @@ const SidebarComponent = forwardRef<HTMLElement, SidebarProps>(
           opener?.focus();
         }
       };
-    }, [isOpen, defaultTarget]);
+    }, [isOpen, overlay, defaultTarget]);
 
     // Use combined ref
     const combinedRef = useCallback(

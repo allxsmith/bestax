@@ -1,13 +1,13 @@
 /**
  * The stack of open overlays behind "one Escape closes the topmost one"
- * (#1085), and "the topmost modal one holds Tab" (#1191). Each check here goes
- * through the hook, which is the only way in.
+ * (#1085), and "the topmost modal one holds Tab" (#1191). Overlays join only
+ * through the hook, so each case here opens them with it.
  */
 import React, { StrictMode } from 'react';
 import { act, renderHook } from '@testing-library/react';
 import { renderToString } from 'react-dom/server';
 import { hydrateRoot } from 'react-dom/client';
-import { useOverlayStack } from '../overlayStack';
+import { isModalOverlayOpen, useOverlayStack } from '../overlayStack';
 
 /** An overlay that's open or not, returning its check. */
 const overlay = (open: boolean, options?: { strict?: boolean }) =>
@@ -155,6 +155,21 @@ describe('useOverlayStack', () => {
 
       layer(true);
       expect(nothingModal('modal')).toBe(false);
+    });
+  });
+
+  describe('isModalOverlayOpen', () => {
+    it('is whether any open overlay is modal, wherever it sits', () => {
+      expect(isModalOverlayOpen()).toBe(false);
+
+      const modal = overlay(true);
+      const above = renderHook(() => useOverlayStack(true, false));
+      expect(isModalOverlayOpen()).toBe(true);
+
+      modal.rerender({ inStack: false });
+      expect(isModalOverlayOpen()).toBe(false);
+      above.unmount();
+      expect(isModalOverlayOpen()).toBe(false);
     });
   });
 

@@ -20,6 +20,17 @@ interface OpenOverlay {
 const openOverlays: OpenOverlay[] = [];
 
 /**
+ * Whether a modal overlay is open anywhere in the stack. One that isn't modal
+ * and opens while one is leaves focus where it is, since the modal one keeps
+ * Tab and a Tab from the new one's controls would only go back to it.
+ *
+ * @function isModalOverlayOpen
+ * @returns Whether any open overlay in the stack is modal.
+ */
+export const isModalOverlayOpen = (): boolean =>
+  openOverlays.some(overlay => overlay.modal);
+
+/**
  * Holds this overlay's place in the stack of open overlays while `inStack`
  * is true, from the effect after it opens until the one after it closes.
  * Opening again puts it back on top.
