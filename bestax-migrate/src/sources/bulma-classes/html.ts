@@ -354,7 +354,7 @@ const SCRIPT_PATTERNS: ReadonlyArray<readonly [string, RegExp, string]> = [
   [
     'theme',
     /data-theme|dataset\.theme|theme-(?:dark|light)|prefers-color-scheme/,
-    "switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state, saved in `localStorage`, and pass it; `Theme` writes the attribute from an effect, after the first paint, so for a saved choice to paint first, keep a small inline script in the `<head>` of the app's index.html that reads it (or the OS's, with none saved) and writes `data-theme` before the app loads, and start the state from what that script wrote (the bestax-theming skill's dark-mode example has both)",
+    "switches Bulma's light and dark schemes: bestax's `Theme` writes `data-theme` on `<html>` from its `colorMode` (`light`, `dark` or `system`), so keep the choice in state, saved in `localStorage`, and pass it; `Theme` writes the attribute from an effect, after the first paint, so for a saved choice to paint first, keep a small inline script in the `<head>` of the app's index.html that reads it (or the OS's, with none saved) and writes `data-theme` before the app loads, and start the state from what that script wrote (the bestax-theming skill's `examples/dark-mode.tsx` has the script and the app's side)",
   ],
 ];
 
@@ -805,7 +805,7 @@ const SCHEMES = new Set(['light', 'dark']);
 const SCHEME_ON_HTML =
   "put it on the `<html>` in the app's index.html, where the first paint has it";
 const SCHEME_TOGGLE =
-  "for a scheme the visitor switches, write `data-theme` there from an inline `<head>` script before that paint, and drive the toggle with bestax's `Theme colorMode`, which on its own writes from an effect, after a first frame in the OS's scheme (the bestax-theming skill's dark-mode example has both)";
+  "bestax's `Theme colorMode` writes `data-theme` on `<html>` too, but from an effect, after a first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches, the way the bestax-theming skill's `examples/dark-mode.tsx` does";
 
 function documentAttributeNotes(
   where: 'html' | 'body',

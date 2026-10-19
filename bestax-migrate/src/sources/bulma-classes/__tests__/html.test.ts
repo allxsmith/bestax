@@ -344,7 +344,7 @@ describe('the report', () => {
     ]);
   });
 
-  it("puts a page's scheme on <html> first, and gives a toggle the head script and Theme", () => {
+  it("puts a page's scheme on <html> first, and sends a toggle to the theming skill's example", () => {
     const { entries } = convert(
       `<!DOCTYPE html><html data-theme="light"><body class="theme-dark">${box}</body></html>`
     );
@@ -354,9 +354,8 @@ describe('the report', () => {
     ]);
     for (const { message } of entries) {
       expect(message).toContain(
-        "put it on the `<html>` in the app's index.html, where the first paint has it; for a scheme the visitor switches, write `data-theme` there from an inline `<head>` script before that paint, and drive the toggle with bestax's `Theme colorMode`"
+        "put it on the `<html>` in the app's index.html, where the first paint has it; bestax's `Theme colorMode` writes `data-theme` on `<html>` too, but from an effect, after a first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches, the way the bestax-theming skill's `examples/dark-mode.tsx` does"
       );
-      expect(message).toContain("the bestax-theming skill's dark-mode example");
       expect(message).not.toContain('<Theme colorMode');
     }
   });
