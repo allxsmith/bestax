@@ -12,7 +12,7 @@ export function Refusals() {
   // TODO(bestax-migrate): `color` is also a bestax `Box` prop, which would read it differently; rename or drop the attribute, then re-run
   // TODO(bestax-migrate): bestax `Delete` renders `type="button"` and `aria-label="Close"` when the element does not set them; add them here if that is what you want, then re-run
   // TODO(bestax-migrate): bestax `Navbar` renders only <nav>, not a <div>; keep the markup, or change the tag and re-run
-  // TODO(bestax-migrate): bestax `Delete` renders only <button>, not a <a>; keep the markup, or change the tag and re-run
+  // TODO(bestax-migrate): bestax `Delete` renders only <button>, not an <a>; keep the markup, or change the tag and re-run
   // TODO(bestax-migrate): this `className` is computed, and the codemod reads only a `clsx` or `classnames` call of class strings and conditional classes; convert this element to bestax `Box` by hand, turning each condition into its prop
   // TODO(bestax-migrate): `.dropdown` stays as markup: bestax `Dropdown` renders its own trigger and menu from props
   // TODO(bestax-migrate): bestax `Card` renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`, `Card.Header.Icon`, `Card.Image`, `Card.Content`, `Card.Footer` or `Card.FooterItem`, so this element stays markup

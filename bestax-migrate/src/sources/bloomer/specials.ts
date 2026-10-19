@@ -26,6 +26,7 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction } from '../_shared/props.js';
+import { aTag } from '../_shared/articles.js';
 import { AS_UNIONS } from '../_shared/polymorphic.js';
 import {
   applyIconProps,
@@ -262,9 +263,9 @@ function anchorWhenHref(
       const other = dynamicTag
         ? 'the element `tag` named'
         : tagValue?.kind === 'string'
-          ? `a <${tagValue.value}>`
+          ? aTag(tagValue.value)
           : options.bareAs
-            ? `a <${options.bareAs}>`
+            ? aTag(options.bareAs)
             : 'its default tag';
       addTodo(
         ctx,
