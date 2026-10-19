@@ -580,7 +580,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   from their OS sees the OS's scheme first. A small inline script in the `<head>` of `index.html`
   that reads the saved choice (or the OS's, with none saved) and writes `data-theme` before the
   app loads paints the right one, and the toggle's state starts from what it wrote. The
-  bestax-theming skill covers `Theme` and `colorMode`.
+  bestax-theming skill covers `Theme` and `colorMode`, and its `examples/dark-mode.tsx` has the
+  script and the app's side.
 - **`html-script:json-ld`** is structured data for search engines. Render it where the app sets
   each page's head, as
   `<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />`.
@@ -598,8 +599,9 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
   pads the page for a fixed navbar from it. Put the class on the `<html>` in `index.html`, since
   bestax's `Navbar` adds none there, whatever its `fixed` says.
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
-  the page's color scheme. Put it on the `<html>` in `index.html`, or render
-  `<Theme colorMode="dark">`, which writes `data-theme` on `<html>`.
+  the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
+  `<Theme colorMode="dark">` writes `data-theme` on `<html>` too, but from an effect, after a
+  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches.
 - **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
 - **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
   app's own `<body>` (or `<html>`), or on an element around the page's content if the styles

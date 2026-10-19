@@ -67,9 +67,8 @@ If compiling Bulma's Sass yourself, set the SCSS variables before the CSS variab
 
 ## Colors — override the H/S/L trio to recolor
 
-Bulma derives a color's entire palette (shades, light/dark/invert variants) from three channels.
-Override the trio; the rest follows automatically. For each color `<c>` ∈ `primary`, `link`,
-`info`, `success`, `warning`, `danger`:
+Each color is three channels. For each color `<c>` ∈ `primary`, `link`, `info`, `success`,
+`warning`, `danger`:
 
 | Variable        | Meaning                    | `Theme` prop             |
 | --------------- | -------------------------- | ------------------------ |
@@ -77,9 +76,80 @@ Override the trio; the rest follows automatically. For each color `<c>` ∈ `pri
 | `--bulma-<c>-s` | saturation (`%`)           | `<c>S`                   |
 | `--bulma-<c>-l` | lightness (`%`)            | `<c>L`                   |
 
-Read-only derived values (set automatically; reference if you need them): `--bulma-<c>` (the
-resolved color), `--bulma-<c>-invert`, `--bulma-<c>-light`, `--bulma-<c>-dark`, `--bulma-<c>-rgb`,
-and numeric shades `--bulma-<c>-00` … `--bulma-<c>-95`.
+What a runtime trio moves: `--bulma-<c>`, the color itself, follows all three channels. Its
+shades, its light and dark variants, and its invert and on-scheme colors follow the hue and
+saturation, each at a lightness Bulma's Sass build wrote into the stylesheet for the color it was
+given:
+
+- the numeric shades `--bulma-<c>-00` … `--bulma-<c>-100` sit on a ramp of lightnesses
+  (`--bulma-<c>-<n>-l`) laid out from the built color's own, and `--bulma-<c>-light` and
+  `--bulma-<c>-dark` point into it. A new `-l` moves none of them, so a shade is as light as it
+  was before; only a Sass build lays the ramp out from a new color.
+- `--bulma-<c>-invert` and `--bulma-<c>-on-scheme` take the lightnesses below, which the build
+  picked for contrast.
+
+`--bulma-<c>-rgb` is the built color written out as a value, so it follows none of the trio.
+
+### The lightnesses Bulma's build picks for contrast
+
+The build picks the label and text lightnesses for each color by their contrast with the color it
+was given. A trio set at runtime leaves them as they were, so when a new color reads lighter or
+darker than the built one, which a change of hue or saturation can do as well as a change of
+lightness, set them too:
+
+| Variable                  | What reads it                                                                                                                |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `--bulma-<c>-invert-l`    | the label on a solid `<c>` surface: `Button`, `Tag` and `Notification` with `color="<c>"`, a colored `Hero` or `Navbar`, …   |
+| `--bulma-<c>-on-scheme-l` | `<c>` text on the page: `textColor="<c>" colorShade="on-scheme"`, a colored `Message`'s body, a field's colored help text, … |
+
+For `link`, the on-scheme lightness is also every link on the page (`--bulma-link-text`), so a new
+link color that reads lighter than Bulma's own leaves the page's links pale.
+
+bestax's stylesheet builds its primary from a dark blue, so the primary's invert is white
+(`var(--bulma-primary-100-l)`). A light primary set through the trio alone keeps those white
+labels: on stock Bulma's turquoise they read at under 2:1. Its on-scheme lightness was picked for
+the blue too, and is too light for turquoise text on a white page. The other colors are built
+from Bulma's own defaults. For a page made for stock Bulma, the bestax-migrate skill's
+`references/css-migration.md` covers getting its turquoise back.
+
+`Theme` doesn't set either one, so set them in your CSS, loaded after the library's styles:
+
+- **The invert** is one value for both schemes. Point it at a shade that reads on the new color: a
+  near-black `var(--bulma-<c>-05-l)` on a light color, a near-white `var(--bulma-<c>-100-l)` on a
+  dark one.
+- **The on-scheme lightness** has to read on the page's background, so Bulma gives each scheme
+  its own. A value on `:root` in your stylesheet wins in both, so give dark mode its own value on
+  both of its paths, as below.
+
+```css
+/* Stock Bulma's turquoise, with the values from bulma/css/bulma.css. */
+:root {
+  --bulma-primary-h: 171deg;
+  --bulma-primary-s: 100%;
+  --bulma-primary-l: 41%;
+  --bulma-primary-invert-l: var(--bulma-primary-05-l);
+  --bulma-primary-on-scheme-l: 21%;
+}
+[data-theme='dark'] {
+  --bulma-primary-on-scheme-l: 41%;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    --bulma-primary-on-scheme-l: 41%;
+  }
+}
+```
+
+For a color of your own, pick each value by its contrast (4.5:1 or more for text), or build
+Bulma's Sass with the color (`@use 'bulma/sass' with ($primary: …)`), which computes both.
+
+`textColor="<c>"` alone renders `has-text-<c>`, which reads the trio's own lightness, so text in a
+light color on a light page takes `colorShade="on-scheme"` as well.
+
+The build pairs each numbered shade, and the light and dark variants, with a label shade the same
+way (`--bulma-<c>-<n>-invert-l`, `--bulma-<c>-light-invert-l`, `--bulma-<c>-dark-invert-l`),
+picked for the hue and saturation it was given. After a change of hue, check the contrast of text
+you put on a numbered shade.
 
 ## Scheme, text, background, border (light/dark surfaces)
 
@@ -621,22 +691,47 @@ custom dark-mode CSS keyed off `[data-theme='dark']` still matches, because `col
 Under dark mode Bulma flips the scheme/text/border/background lightness variables (e.g.
 `--bulma-scheme-main-l` 100% → 9%, `--bulma-text-l` 29% → 71%). Your brand color overrides from
 `Theme isRoot` or `:root` still apply on top, because they set the hue/saturation/lightness
-channels directly.
+channels directly. Each color's on-scheme lightness is the exception: Bulma gives dark mode its
+own, so a new color sets one per scheme (see "The lightnesses Bulma's build picks for contrast").
+
+### The scheme of the first paint
+
+`Theme` writes the attribute from an effect, and a client-rendered app (the create-bestax
+scaffold, for one) paints before its effects run. That first frame takes whatever `<html>`
+already carries: with nothing there, the visitor's OS scheme, which then flips. So the scheme
+for that frame comes from `index.html`:
+
+- **A scheme that never changes** goes on the `<html>` itself,
+  `<html lang="en" data-theme="light">`, and needs no `colorMode`.
+- **A scheme the visitor picks** is written by an inline script in `<head>`, from the saved
+  choice or else the OS preference, before anything renders. `examples/dark-mode.tsx` has the
+  script and the app's side: the app starts from the attribute the script wrote, passes its
+  state to `Theme colorMode` for the toggle, and saves each choice in `localStorage` under the
+  key the script reads. Keep it a plain inline script: one with `type="module"`, like the app's
+  own, waits until the whole page is parsed, which can be after the first paint.
+
+A prefixed flavor reads `data-bestax-theme`, so with one, `index.html` and the script write that
+attribute as well.
+
+Because the script always writes an attribute, custom dark-mode CSS keyed on `[data-theme='dark']`
+reaches every visitor. To offer the OS preference as a third choice, both sides change. The script
+writes no attribute for a saved `'system'`. The app adds `'system'` to its `ColorMode` and to what
+it reads back from storage, so it passes `colorMode="system"`, which keeps the attribute off, and
+its toggle becomes a choice of three, such as a `SegmentedControl`. With no attribute, Bulma's
+`prefers-color-scheme` rules apply from the first frame and follow the OS when it changes, and
+custom tokens then need both dark-mode paths (below).
 
 ### The single-mode contrast trap
 
-Because the OS preference applies whenever no `data-theme` attribute is set — the default state
-of every app that never configured `colorMode` — a light-only design silently breaks for any
-dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light —
+Because the OS preference applies whenever no `data-theme` attribute is set, which is the
+default state of every app that never sets one, a light-only design silently breaks for any
+dark-mode visitor: Bulma's text goes near-white while author-defined fixed tokens stay light,
 white text on cream. The failure is invisible unless the author's own OS is in dark mode.
 
-**If the design is single-mode, pin the scheme** so text can't flip out from under the palette:
-
-```tsx
-<Theme isRoot colorMode="light">
-  <App />
-</Theme>
-```
+**If the design is single-mode, pin the scheme** on the `<html>` in `index.html`
+(`<html lang="en" data-theme="light">`, as above), so text can't flip out from under the palette.
+`<Theme isRoot colorMode="light">` pins it too, but only from its effect on, after the first
+paint.
 
 **If both modes are supported, never expose a fixed custom token to the flip** — derive it from
 scheme variables, or flip it yourself:
