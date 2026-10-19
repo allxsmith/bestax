@@ -40,3 +40,32 @@ export function Landing() {
     </section>
   );
 }
+
+export function LoginPage() {
+  return (
+    <main className="hero is-fullheight is-dark">
+      <header className="hero-head">
+        <div className="container">Brand</div>
+      </header>
+      <div className="hero-body">
+        <section className="container has-text-centered">Sign in</section>
+      </div>
+      <footer className="hero-foot">
+        <nav className="container">Links</nav>
+      </footer>
+    </main>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <>
+      <footer className="hero is-small">
+        <nav className="hero-foot">
+          <aside className="container">Sitemap</aside>
+        </nav>
+      </footer>
+      <footer className="container">Copyright</footer>
+    </>
+  );
+}

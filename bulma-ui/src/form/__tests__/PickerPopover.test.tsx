@@ -1,7 +1,18 @@
-import React, { useRef, useState } from 'react';
-import { render, fireEvent, act, createEvent } from '@testing-library/react';
+import React, { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
+import {
+  render,
+  fireEvent,
+  act,
+  createEvent,
+  screen,
+} from '@testing-library/react';
 import { PickerPopover } from '../_pickerInternals/PickerPopover';
 import { Calendar, CALENDAR_FOCUSED_CELL } from '../_pickerInternals/Calendar';
+import { TimeInput } from '../TimeInput';
+import { DateTimeInput } from '../DateTimeInput';
+import { DateInput } from '../DateInput';
+import { DateRangeInput } from '../DateRangeInput';
 
 const Harness: React.FC<{
   appendToBody?: boolean;
@@ -333,6 +344,181 @@ describe('PickerPopover', () => {
     const dialog = getByRole('dialog');
     expect(dialog.className).toMatch(/is-bottom-left/);
   });
+});
+
+// -------------------------------------------------------------------------
+// The document listeners while `onClose` changes (#1113). TimeInput and
+// DateTimeInput hand the popover an inline `onClose`, which changes on every
+// render of the field. The listeners used to come off and go back on with
+// each one, and React can render between two listeners for one event: the
+// browser runs neither a listener taken off mid-event nor one added
+// mid-event, so that Escape or press never reached the popover.
+// -------------------------------------------------------------------------
+
+describe('PickerPopover while its onClose changes', () => {
+  /** The popover's own listeners among a spy's calls on `document`. */
+  const popoverListeners = (spy: jest.SpyInstance) =>
+    spy.mock.calls.filter(
+      ([type]) => type === 'keydown' || type === 'pointerdown'
+    );
+
+  /** A field that hands the popover an inline `onClose`, as TimeInput does. */
+  const InlineField: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+    const anchorRef = useRef<HTMLButtonElement>(null);
+    return (
+      <>
+        <button ref={anchorRef} data-testid="anchor">
+          anchor
+        </button>
+        <button data-testid="outside">outside</button>
+        <PickerPopover
+          isOpen
+          onClose={() => onClose()}
+          anchorRef={anchorRef}
+          ariaLabel="inline"
+        >
+          <button data-testid="inside">inside</button>
+        </PickerPopover>
+      </>
+    );
+  };
+
+  /**
+   * Renders `page` while a listener added ahead of the popover's renders it
+   * again during each `type` event. A browser lets React render an update
+   * made in one listener before the next one runs. jsdom runs them back to
+   * back, so that listener renders with `flushSync`, which does the same
+   * thing synchronously.
+   */
+  const renderWithListenerAhead = (
+    type: 'keydown' | 'pointerdown',
+    page: () => React.ReactElement
+  ) => {
+    const renderPage: { current?: () => void } = {};
+    const Page = () => {
+      const [, setRenders] = useState(0);
+      useEffect(() => {
+        // eslint-disable-next-line @eslint-react/dom-no-flush-sync -- stands in for the browser rendering between listeners
+        renderPage.current = () => flushSync(() => setRenders(n => n + 1));
+      }, []);
+      return page();
+    };
+    // Added before the popover opens, so it runs before the popover's own.
+    const ahead = () => renderPage.current?.();
+    document.addEventListener(type, ahead);
+    const result = render(<Page />);
+    return {
+      ...result,
+      stop: () => document.removeEventListener(type, ahead),
+    };
+  };
+
+  it('keeps its document listeners when the field renders again', () => {
+    const onClose = jest.fn();
+    const { rerender } = render(<InlineField onClose={onClose} />);
+    const addSpy = jest.spyOn(document, 'addEventListener');
+    const removeSpy = jest.spyOn(document, 'removeEventListener');
+    try {
+      rerender(<InlineField onClose={onClose} />);
+      expect(popoverListeners(addSpy)).toHaveLength(0);
+      expect(popoverListeners(removeSpy)).toHaveLength(0);
+    } finally {
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+    }
+  });
+
+  it.each([
+    ['Escape', () => fireEvent.keyDown(document, { key: 'Escape' })],
+    [
+      'Alt+ArrowUp',
+      () => fireEvent.keyDown(document, { key: 'ArrowUp', altKey: true }),
+    ],
+    [
+      'a press outside',
+      () => fireEvent.pointerDown(screen.getByTestId('outside')),
+    ],
+  ])('calls the onClose of its latest render on %s', (_, press) => {
+    const first = jest.fn();
+    const latest = jest.fn();
+    const { rerender } = render(<InlineField onClose={first} />);
+    rerender(<InlineField onClose={latest} />);
+    act(() => {
+      press();
+    });
+    expect(latest).toHaveBeenCalledTimes(1);
+    expect(first).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      'Escape',
+      'keydown',
+      () =>
+        fireEvent.keyDown(document.activeElement as Element, {
+          key: 'Escape',
+        }),
+    ],
+    [
+      'a press outside',
+      'pointerdown',
+      () => fireEvent.pointerDown(screen.getByTestId('outside')),
+    ],
+  ] as const)(
+    'hears %s when a listener ahead of its own renders the field',
+    (_, type, press) => {
+      const onClose = jest.fn();
+      const { stop } = renderWithListenerAhead(type, () => (
+        <InlineField onClose={onClose} />
+      ));
+      try {
+        act(() => {
+          press();
+        });
+        expect(onClose).toHaveBeenCalledTimes(1);
+      } finally {
+        stop();
+      }
+    }
+  );
+
+  const clickField = () => fireEvent.click(screen.getByRole('combobox'));
+
+  // DateInput and DateRangeInput memoize the `onClose` they hand it, but on
+  // the caller's own `onOpen` and `onClose`, so an inline one of those
+  // changes it on every render of the page.
+  it.each([
+    ['TimeInput', () => <TimeInput label="Start" />, clickField],
+    ['DateTimeInput', () => <DateTimeInput label="Start" />, clickField],
+    [
+      'DateInput with an inline onClose',
+      () => <DateInput label="Start" onClose={() => {}} />,
+      clickField,
+    ],
+    [
+      'DateRangeInput with an inline onClose',
+      () => <DateRangeInput label="Stay" onClose={() => {}} />,
+      () =>
+        fireEvent.focus(screen.getByRole('combobox', { name: 'Start date' })),
+    ],
+  ])(
+    'closes a %s on an Escape that a listener ahead of its own renders the page during',
+    (_, field, open) => {
+      const { stop } = renderWithListenerAhead('keydown', field);
+      try {
+        open();
+        expect(screen.getByRole('dialog')).toBeInTheDocument();
+        act(() => {
+          fireEvent.keyDown(document.activeElement as Element, {
+            key: 'Escape',
+          });
+        });
+        expect(screen.queryByRole('dialog')).toBeNull();
+      } finally {
+        stop();
+      }
+    }
+  );
 });
 
 // -------------------------------------------------------------------------

@@ -4,6 +4,7 @@ import { classNames, usePrefixedClassNames } from '../../helpers/classNames';
 import { useFocusTrap } from '../../helpers/useFocusTrap';
 import { usePortalContainer } from '../../helpers/portal';
 import { isEventInside } from '../../helpers/shadowDom';
+import { useLatestRef } from '../../helpers/useLatestRef';
 import {
   marginGap,
   useAnchoredPosition,
@@ -90,6 +91,11 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
     styledGap: marginGap,
   });
 
+  // Read when a press lands outside or a key arrives, so both listeners stay
+  // put while `onClose` changes identity, as an inline one does on every
+  // render of the field.
+  const onCloseRef = useLatestRef(onClose);
+
   useEffect(() => {
     if (!isOpen || !closeOnClickOutside || !isBrowser) return undefined;
     // Listen on `pointerdown` (rather than `mousedown`) so touch starts
@@ -100,11 +106,11 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
       const path = e.composedPath();
       if (panelRef.current && path.includes(panelRef.current)) return;
       if (anchorRef.current && path.includes(anchorRef.current)) return;
-      onClose();
+      onCloseRef.current();
     };
     document.addEventListener('pointerdown', handler);
     return () => document.removeEventListener('pointerdown', handler);
-  }, [isOpen, closeOnClickOutside, anchorRef, onClose]);
+  }, [isOpen, closeOnClickOutside, anchorRef, onCloseRef]);
 
   // Escape closes it, and so does Alt+ArrowUp, the combobox's key for it,
   // which the calendar and the time wheels inside leave to it. Escape closes
@@ -122,16 +128,16 @@ export const PickerPopover: React.FC<PickerPopoverProps> = ({
         ) {
           e.preventDefault();
         }
-        onClose();
+        onCloseRef.current();
       } else if (e.altKey && e.key === 'ArrowUp') {
         e.preventDefault();
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
       }
     };
     document.addEventListener('keydown', handler);
     return () => document.removeEventListener('keydown', handler);
-  }, [isOpen, closeOnEscape, anchorRef, onClose]);
+  }, [isOpen, closeOnEscape, anchorRef, onCloseRef]);
 
   useFocusTrap(panelRef, {
     active: isOpen && trapFocus,

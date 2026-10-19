@@ -59,8 +59,6 @@ export interface RootRecord {
   noHelpers: boolean;
   /** Helper props the component does not take as helpers, with why. */
   helpersLeftOut: Record<string, string>;
-  /** On a tag the component doesn't render, why the element stays markup. */
-  otherTagsStay: { tags: string[]; why: string } | null;
   /**
    * The component renders its class only when no other of itself is around
    * it (`Menu.List` drops `.menu-list` when nested).
@@ -77,6 +75,12 @@ export interface RootRecord {
    * each a bare, empty `<tag>`.
    */
   countsChildren: Counts | null;
+  /**
+   * The component renders a glyph from props in place of a bare `<i>` it
+   * holds, and takes Font Awesome's own `aria-hidden` up off that `<i>` when
+   * the element carries nothing but its classes and these attributes.
+   */
+  readsGlyph: ReadsGlyph | null;
   /**
    * The component builds its children from props: each `.icon` inside as an
    * icon's props, and a bare `<span>` of text after one as its text.
@@ -115,6 +119,15 @@ export interface Items {
 export interface Counts {
   tag: string;
   prop: string;
+}
+
+export interface ReadsGlyph {
+  /**
+   * What the element may carry beside its classes and still take Font
+   * Awesome's own `aria-hidden` up off its `<i>`, by name whatever the
+   * value; a name ending in `*` stands for every attribute it starts.
+   */
+  hiddenMovesBeside: string[];
 }
 
 export interface Absorbs {
@@ -196,6 +209,8 @@ export type Element =
       writes?: PropWrite[];
       /** Renders the element's children itself, from a count. */
       counts?: Counts;
+      /** Renders a glyph from props in place of a bare `<i>` it holds. */
+      readsGlyph?: ReadsGlyph;
       /** Builds its icons from props, out of the element's children. */
       buildsIcons?: true;
       /** Renders the element's whole tree from props. */
@@ -511,12 +526,12 @@ export function lookupClasses(
       wrapsChildren: null,
       noHelpers: false,
       helpersLeftOut: {},
-      otherTagsStay: null,
       topLevelOnly: false,
       folds: null,
       absorbs: null,
       writes: null,
       countsChildren: null,
+      readsGlyph: null,
       buildsIcons: false,
       buildsFile: false,
       items: null,
@@ -735,9 +750,6 @@ export function lookupClasses(
     entry.as === 'any' ||
     (Array.isArray(entry.as) && entry.as.includes(tag));
   if (!reachable) {
-    if (tag && entry.otherTagsStay?.tags.includes(tag)) {
-      return result({ kind: 'markup', why: entry.otherTagsStay.why });
-    }
     return result({ kind: 'wrong-tag', target, tag, reaches: reaches(entry) });
   }
   // A `className` it's given replaces its own class, so a class left over
@@ -756,6 +768,7 @@ export function lookupClasses(
     absorbs: entry.absorbs ?? undefined,
     writes: entry.writes ?? undefined,
     counts: entry.countsChildren ?? undefined,
+    readsGlyph: entry.readsGlyph ?? undefined,
     buildsIcons: entry.buildsIcons || undefined,
     buildsFile: entry.buildsFile || undefined,
     topLevel: entry.topLevelOnly && root ? root : undefined,
@@ -857,6 +870,37 @@ function absorbsText(target: string, absorbs: Absorbs): string {
   );
 }
 
+/**
+ * How a component that renders a glyph from props reads the `<i>` it holds,
+ * and when it takes Font Awesome's own `aria-hidden` up off it.
+ */
+function readsGlyphText(target: string, glyph: ReadsGlyph): string {
+  const beside = glyph.hiddenMovesBeside.map(name =>
+    name.endsWith('*')
+      ? `any \`${name.slice(0, -1)}\` attribute`
+      : `\`${name}\``
+  );
+  const rideAlong = ['its classes', ...beside];
+  return (
+    ` Around one bare, empty <i> naming a Font Awesome or Material Design ` +
+    `Icons glyph, and nothing else, write the <i>'s classes as its props and ` +
+    `drop the <i>, so it closes itself: the library as \`library\`, a Font ` +
+    `Awesome style as \`variant\` (left out for \`fas\`, its default), the ` +
+    `class naming the glyph as \`name\` and the rest as \`features\` ` +
+    `(\`far fa-bell fa-lg\` as \`library="fa" name="bell" variant="regular" ` +
+    `features="fa-lg"\`). Around anything else it renders what it holds as ` +
+    `given. Font Awesome's own \`<i aria-hidden="true">\` converts the same ` +
+    `way when the element carries nothing but ` +
+    `${rideAlong.slice(0, -1).join(', ')} and ${rideAlong[rideAlong.length - 1]}: ` +
+    `\`${target}\` writes \`aria-hidden\` on the element instead, which hides ` +
+    `the same glyph. Beside anything else, a \`title\`, a \`role\` or a ` +
+    `\`tabIndex\` say, whether written out or as an expression, nothing moves, ` +
+    `since the move would hide what that exposes: the <i> stays with its ` +
+    `\`aria-hidden\`, and the element converts around it only where it would ` +
+    `around any other child.`
+  );
+}
+
 function orList(names: readonly string[]): string {
   const quoted = names.map(name => `\`${name}\``);
   return quoted.length > 1
@@ -932,6 +976,9 @@ export function renderLookup(
               `bare, empty <${counts.tag}>s: write their count as ` +
               `\`${counts.prop}={N}\` and drop them. The codemod does that ` +
               `when they're all the element holds.`
+            : '') +
+          (element.readsGlyph
+            ? readsGlyphText(element.target, element.readsGlyph)
             : '') +
           (element.buildsIcons
             ? ` It builds its icons from props: write each \`.icon\` inside as ` +

@@ -395,7 +395,7 @@ describe('the report', () => {
 
   it('writes the page lines on a planner TODO that several elements share', () => {
     const { entries, output } = convert(
-      `${box}<span class="icon"><i class="fas fa-home"></i></span>\n<span class="icon"><i class="fas fa-user"></i></span>\n<span class="box">z</span>\n`
+      `${box}<span class="icon"><i class="fas fa-home"></i></span>\n<span class="icon"><i class="fas fa-home"></i></span>\n<span class="box">z</span>\n`
     );
     expect(entries.map(({ line, rule }) => `${line}:${rule}`)).toEqual([
       '2:defaults:Icon',

@@ -22,3 +22,26 @@ export function Repositories() {
     </nav>
   );
 }
+
+export function Program() {
+  return (
+    <section className="panel is-info" aria-labelledby="program">
+      <p className="panel-heading" id="program">
+        Program
+      </p>
+      <div className="panel-block">
+        <table className="table is-fullwidth">
+          <tbody>
+            <tr>
+              <td>9:00</td>
+              <td>Grand Opening</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <label className="panel-block" htmlFor="remember">
+        Remember me
+      </label>
+    </section>
+  );
+}
