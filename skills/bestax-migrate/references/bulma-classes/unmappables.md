@@ -322,10 +322,10 @@ move it to a component of its own:
   it, and drop the class: `<Box><Columns>…</Columns></Box>`. Two elements space differently
   from one (a `.columns` has negative side margins, which a `.box` on the same element shares
   and one around it doesn't), so check the layout.
-- **`second-component:Container`**: `.container` is `margin: 0 auto` and a `max-width`, so on
-  an element with a width of its own, such as a sized `.image`, it only centers it. Write
-  `mx="auto"` in its place (`<Image size="128x128" mx="auto">`). Elsewhere, wrap the element in
-  a `Container`.
+- **`second-component:Container`**: where `.container` is only there to center the element, as
+  it often is on a sized `.image`, write `mx="auto"` in its place
+  (`<Image size="128x128" mx="auto">`), which centers it and does nothing else `.container`
+  does. Otherwise wrap the element in a `Container`. Either way, check the layout.
 
 ## A family it leaves as markup: `family:<class>`
 

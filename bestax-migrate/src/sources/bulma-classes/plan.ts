@@ -382,6 +382,7 @@ function tagsItReaches(entry: RootEntry): string {
  */
 function secondComponents(
   carried: readonly string[],
+  fixed: readonly string[],
   root: string | undefined,
   target: string,
   tag: string
@@ -394,13 +395,15 @@ function secondComponents(
     const why =
       root === undefined
         ? 'since an item of a list converts by where it sits'
-        : !reachesTag(other, tag)
-          ? `since \`${name}\` renders ${tagsItReaches(other)}, not a <${tag}>`
-          : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
-            ? `since a <${tag}> is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
-            : precedence(root) < precedence(token)
-              ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
-              : `since \`.${root}\` comes first on the element`;
+        : !fixed.includes(token)
+          ? `since \`.${token}\` is there only when its condition holds, and the codemod picks from the classes the element always carries`
+          : !reachesTag(other, tag)
+            ? `since \`${name}\` renders ${tagsItReaches(other)}, not a <${tag}>`
+            : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
+              ? `since a <${tag}> is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+              : precedence(root) < precedence(token)
+                ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+                : `since \`.${root}\` comes first on the element`;
     const advice =
       other.onAnother ??
       `to use \`${name}\`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one`;
@@ -976,7 +979,7 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` writes a \`className\` it's given in place of \`.${root}\`, so this converts only with no other class; keep it as markup`
     );
   }
-  todos.push(...secondComponents(carried, root, target, tag));
+  todos.push(...secondComponents(carried, tokens, root, target, tag));
   // A glyph the target renders from props takes the place of the only child.
   const glyph =
     moved ?? (entry.readsGlyph ? readGlyph(facts.soleChild) : undefined);

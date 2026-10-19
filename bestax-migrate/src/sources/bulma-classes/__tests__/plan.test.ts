@@ -443,6 +443,18 @@ describe('plan', () => {
         { rule: 'second-component:Content', message: expect.any(String) },
         { rule: 'second-component:Box', message: expect.any(String) },
       ]);
+      // A root a condition adds was never in the running, whatever its rank
+      // or place: the planner picks from the classes the element always has.
+      expect(
+        plan({ ...facts('div', 'box'), conditional: [['columns']] }).todos
+      ).toEqual([
+        {
+          rule: 'second-component:Columns',
+          message: expect.stringContaining(
+            '`Box` here, since `.columns` is there only when its condition holds, and the codemod picks from the classes the element always carries'
+          ),
+        },
+      ]);
       // Between two roots the table doesn't rank, the first on the element.
       const both = plan(facts('p', 'panel-heading menu-label'));
       expect(both.conversion?.target).toBe('Panel.Heading');
@@ -482,7 +494,7 @@ describe('plan', () => {
         {
           rule: 'second-component:Container',
           message: expect.stringContaining(
-            '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer>, <nav>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`'
+            '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer>, <nav>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`'
           ),
         },
       ]);

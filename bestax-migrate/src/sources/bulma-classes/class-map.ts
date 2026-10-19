@@ -351,9 +351,10 @@ export interface RootEntry {
   readonly omits?: Readonly<Record<string, string>>;
   /**
    * How to keep this class on an element another root converts, where
-   * wrapping or nesting its component is not the answer: `.container` there
-   * mostly centers the element, which `mx="auto"` does. For that element's
-   * TODO and the MCP lookup, which otherwise say to wrap or nest it.
+   * wrapping or nesting its component is not always the answer: `.container`
+   * there is often only centering the element, which `mx="auto"` does. For
+   * that element's TODO and the MCP lookup, which otherwise say to wrap or
+   * nest it.
    */
   readonly onAnother?: string;
 }
@@ -1121,10 +1122,10 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
       'breakpoint',
       'isMax',
     ],
-    // `.container` is `margin: 0 auto` and a `max-width`, so on an element
-    // with a width of its own (`.image.is-128x128`) it only centers it.
+    // On another root's element it is often there only to center it (a sized
+    // `.image`), which `mx="auto"` does and nothing else `.container` sets.
     onAnother:
-      'where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
+      'where it is only there to center this element, `mx="auto"` centers it, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
   },
   content: {
     ...BASE,
