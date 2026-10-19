@@ -170,6 +170,12 @@ stays a manual act — the build only generates the files.
   (or headed to Medium) follows the "Cover images" section below in full: SVG + PNG assets,
   `image:`/`cover_image:` frontmatter, and the visible markdown banner at the top of the
   body. A coverless post renders bare on both platforms.
+- **A syndicated post also ships two to four section images.** dev.to and Medium show the post
+  as one long text column, so a syndicated post needs pictures along the way: the banner plus
+  two to four section images, each placed directly under the section it illustrates. Each
+  section image follows the "Section images" rule under "Cover images" (1200×630 SVG master, the
+  PNG embedded in the body, a long literal alt text). A figure that already illustrates a section
+  (a comparison grid, a flow) counts as one of them.
 - Each flagged post gets a copy in `build/.devto-publish/` with production URLs: markdown
   images and root-relative `/docs/` + `/blog/` links (reference-style definitions included)
   are rewritten to `https://bestax.io/...`. Fenced code blocks are never touched.
@@ -207,8 +213,8 @@ Any post can ship a cover, not just State of React editions; _The Floor Is React
 - **Frontmatter:** `image:` and `cover_image:` both point at the **PNG** (rooted `/img/...`
   path); `og:image` and dev.to need a raster.
 - **Body:** the visible banner at the very top renders the **SVG**, crisp at any width.
-- **Section images** (optional, for flagship posts): each in-body image follows the same
-  contract and rasterizer (1200×630 is fine here, since dev.to crops only the cover), stems
+- **Section images** (two to four for a syndicated post, see Syndication above; optional for
+  others): each in-body image follows the same contract and rasterizer (1200×630 is fine here, since dev.to crops only the cover), stems
   `docs/static/img/<slug>-<topic>.{svg,png}`. Only the top banner embeds the SVG; every other
   in-body image embeds the **PNG** (dev.to and Medium handle rasters reliably).
 - **Alt text** is a long, literal description of the pixel-art scene (see the v5 banner),
