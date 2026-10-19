@@ -235,7 +235,7 @@ Say in the pull request which listings need an update, then open those updates o
 - **Changing how `bestax-mcp` starts.** Glama's Dockerfile runs the `bestax-mcp` command, so edit
   it in Glama's admin. cursor.directory's MCP entry and the entries above that give the command
   need the same change. The awesome-copilot instructions run `node` on
-  `node_modules/bestax-mcp/dist/index.js`, so moving the `bin` entry breaks them.
+  `node_modules/bestax-mcp/dist/index.js`, so moving that file breaks them.
 - **A bestax-migrate release.** The Codemod Registry wrapper keeps running the version it pins
   until it is bumped and republished. CONTRIBUTING.md has the steps under "Codemod Registry".
 - **Changing an install command.** awesome-claude-code-and-skills, claude-code-skills-zh,
@@ -255,9 +255,10 @@ Say in the pull request which listings need an update, then open those updates o
   `https://bestax.io`, `/llms.txt` and `/llms-full.txt`. awesome-storybook links `/storybook/`.
   aitmpl.com links `/docs/guides/llms`, and AIAnytime and the Cline issue link its `#mcp-server`
   anchor, so renaming that heading breaks them.
-- **Renaming a component, a prop or the CSS entry.** The awesome-copilot instructions import
-  `@allxsmith/bestax-bulma/bestax.css` and show `Block`, `Button`, `Field` and `Control` with the
-  `color`, `textColor` and `mb` props.
+- **Renaming a component, a prop or the CSS entry, or changing the React range.** The
+  awesome-copilot instructions import `@allxsmith/bestax-bulma/bestax.css`, show `Block`,
+  `Button`, `Field` and `Control` with the `color`, `textColor` and `mb` props, and give the React
+  range from `peerDependencies` in `bulma-ui/package.json`.
 - **A new Bulma major.** Nearly every entry says "Bulma v1".
 
 Bestax is called bestax-bulma on React component-library lists and Bestax everywhere else.
