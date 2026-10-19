@@ -1,5 +1,6 @@
 import { Meta, StoryObj } from '@storybook/react-vite';
 import Panel from './Panel';
+import { Table } from '../elements/Table';
 
 const meta: Meta<typeof Panel> = {
   title: 'Components/Panel',
@@ -401,4 +402,44 @@ export const CustomNodeIcon: Story = {
       </Panel.Block>
     </Panel>
   ),
+};
+
+export const NotNavigation: Story = {
+  render: () => (
+    <Panel as="section" color="info" aria-labelledby="panel-sessions">
+      <Panel.Heading id="panel-sessions">Congress Sessions</Panel.Heading>
+      <Panel.Block as="div">
+        <Table isFullwidth>
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Date</Table.Th>
+              <Table.Th>Session</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            <Table.Tr>
+              <Table.Td>1774</Table.Td>
+              <Table.Td>First Continental Congress</Table.Td>
+            </Table.Tr>
+            <Table.Tr>
+              <Table.Td>1775</Table.Td>
+              <Table.Td>Second Continental Congress</Table.Td>
+            </Table.Tr>
+          </Table.Tbody>
+        </Table>
+      </Panel.Block>
+      <Panel.Block href="#delegates">
+        <Panel.Icon name="user" variant="solid" />
+        All delegates
+      </Panel.Block>
+    </Panel>
+  ),
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A panel that is not navigation renders through `as`: here a `section` named by its heading, so it is a region landmark. `Panel.Block as="div"` holds content that is not a link, such as a table; a block with no `as` is still an `<a>`.',
+      },
+    },
+  },
 };

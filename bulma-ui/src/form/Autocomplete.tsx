@@ -19,6 +19,7 @@ import { FormFieldProps } from './fieldProps';
 import { useAutoLabelId } from './useAutoLabelId';
 import { useControlLoading } from './controlLoading';
 import { StatusRegion, spokenText } from '../helpers/statusRegion';
+import { useLatestRef } from '../helpers/useLatestRef';
 
 /**
  * An item in the Autocomplete dropdown list.
@@ -354,6 +355,22 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       }
     }, [openOnFocus, disabled]);
 
+    // Read when a click lands outside, so the listener stays put while the
+    // list is open. What it selects changes as the user types and arrows
+    // through suggestions, the filtered list is new on every render, and an
+    // inline `onInput` or `onSelect` changes on every render of the parent.
+    // Typing leaves the highlight where it was, so a list that narrowed can
+    // leave it past the last suggestion, with nothing there to select.
+    const selectHighlightedRef = useLatestRef(() => {
+      if (
+        selectOnClickOutside &&
+        highlightedIndex >= 0 &&
+        highlightedIndex < filteredData.length
+      ) {
+        handleSelect(filteredData[highlightedIndex]);
+      }
+    });
+
     // Handle blur (click outside)
     useEffect(() => {
       if (!isActive) return undefined;
@@ -366,9 +383,7 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
         const isInside = path.includes(containerRef.current);
 
         if (!isInside) {
-          if (selectOnClickOutside && highlightedIndex >= 0) {
-            handleSelect(filteredData[highlightedIndex]);
-          }
+          selectHighlightedRef.current();
           setIsActive(false);
         }
       };
@@ -376,18 +391,17 @@ export const Autocomplete = forwardRef<HTMLInputElement, AutocompleteProps>(
       document.addEventListener('mousedown', handleClickOutside);
       return () =>
         document.removeEventListener('mousedown', handleClickOutside);
-    }, [
-      isActive,
-      selectOnClickOutside,
-      highlightedIndex,
-      filteredData,
-      handleSelect,
-    ]);
+    }, [isActive, selectHighlightedRef]);
+
+    // Read when the dropdown opens or closes, so an inline `onActiveChange`,
+    // new on every render of the parent, isn't told again about a state that
+    // didn't change.
+    const onActiveChangeRef = useLatestRef(onActiveChange);
 
     // Notify active state change
     useEffect(() => {
-      onActiveChange?.(isActive);
-    }, [isActive, onActiveChange]);
+      onActiveChangeRef.current?.(isActive);
+    }, [isActive, onActiveChangeRef]);
 
     // Keep first highlighted
     useEffect(() => {

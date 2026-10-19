@@ -26,6 +26,7 @@ import {
   type TransformContext,
 } from '../_shared/jsx-utils.js';
 import { applyPropAction } from '../_shared/props.js';
+import { AS_UNIONS } from '../_shared/polymorphic.js';
 import {
   applyIconProps,
   keepTitleLevel,
@@ -92,6 +93,9 @@ function plainTag(
   );
   return fallback;
 }
+
+/** The tags bestax's `Panel.Block` renders through `as`, its default first. */
+const PANEL_BLOCK_TAGS = new Set(AS_UNIONS['Panel.Block']);
 
 /** A booleanish modifier prop → an `is-*` class fragment, always removed. */
 function booleanClass(
@@ -850,9 +854,11 @@ const SPECIALS: Record<string, SpecialHandler> = {
   },
 
   /**
-   * bestax's Panel.Block is always an <a>; bloomer's was a <div> unless
-   * `href` was set (a checkbox label, a search box). Only the anchor case
-   * is the bestax component — the rest stays the plain block it was.
+   * bloomer's PanelBlock was a <div> unless `href` was set (a checkbox label,
+   * a search box), or the `tag` it was given. bestax's Panel.Block is an <a>
+   * by default and a <div> or a <label> through `as`, so a block on one of
+   * those tags is the bestax component, and one on any other tag, or a
+   * dynamic one, stays the plain block it was.
    */
   'panel-block'(ctx, path, element) {
     // The same rule as anchorWhenHref: bloomer chose the anchor with
@@ -866,6 +872,29 @@ const SPECIALS: Record<string, SpecialHandler> = {
     }
     if (anchored) {
       return { handledProps: anchorWhenHref(ctx, path, element) };
+    }
+    // bloomer had no `as`, so one on the element is a stray attribute; the
+    // plain block below keeps it where it was, rather than this pass writing
+    // a second `as` beside it.
+    const tagAttr = findAttr(element, 'tag');
+    const tagValue = tagAttr ? literalValueOf(tagAttr) : undefined;
+    const blockTag = !tagAttr
+      ? 'div'
+      : tagValue?.kind === 'string'
+        ? tagValue.value
+        : undefined;
+    if (
+      blockTag &&
+      PANEL_BLOCK_TAGS.has(blockTag) &&
+      !findAttr(element, 'as')
+    ) {
+      if (tagAttr) removeAttr(element, tagAttr);
+      // `a` is the default, so it needs no `as`.
+      if (blockTag !== 'a') {
+        addAttr(element, makeAttr(ctx.j, 'as', blockTag));
+      }
+      ctx.dirty = true;
+      return { handledProps: ['tag'] };
     }
     const cls = join(
       'panel-block',

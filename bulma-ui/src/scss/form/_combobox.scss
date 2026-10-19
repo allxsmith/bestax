@@ -1,0 +1,323 @@
+// Bestax Extras - Combobox Styles
+// A text field with a list of options under it. The list is Bulma's dropdown
+// (`.dropdown-menu`, `.dropdown-content`, `.dropdown-item`), but Bulma
+// registers its `--bulma-dropdown-*` variables on `.dropdown` alone, and a
+// combobox isn't one, so the menu and its items read these variables,
+// which start from the values Bulma's dropdown has. Bulma also writes the
+// hover and highlight looks for `a.dropdown-item` and `button.dropdown-item`
+// only, and an item is a `div`, so they're written here.
+//
+// A size is a handful of variables rather than a set of rules. Colors come
+// from Bulma's tokens, so dark mode needs no rules of its own.
+
+@use 'sass:map';
+@use 'bulma/sass/utilities/initial-variables' as iv;
+@use 'bulma/sass/utilities/css-variables' as cv;
+@use '../variables' as *;
+
+// In place, it stacks like Bulma's dropdown, under a fixed navbar.
+$combobox-menu-z-index: $extras-z-index-dropdown !default;
+// Portaled, it has to clear a Modal, as a HoverCard or a ContextMenu does.
+$combobox-portal-z-index: $extras-z-index-tooltip !default;
+$combobox-menu-offset: 0.25rem !default;
+$combobox-menu-background: cv.getVar('scheme-main') !default;
+$combobox-menu-radius: cv.getVar('radius') !default;
+$combobox-menu-shadow: cv.getVar('shadow') !default;
+// The shadow all but vanishes on a dark page and is dropped in forced colors,
+// so an edge keeps the panel apart from what's under it.
+$combobox-menu-border-color: cv.getVar('border-weak') !default;
+$combobox-menu-padding-y: 0.5rem !default;
+// The list scrolls past this, in the menu and `inline`.
+$combobox-list-max-height: 15rem !default;
+$combobox-item-color: cv.getVar('text-strong') !default;
+$combobox-item-size: 0.875rem !default;
+$combobox-item-padding-y: 0.375rem !default;
+$combobox-item-padding-x: 1rem !default;
+$combobox-item-hover-background: hsl(
+  #{cv.getVar('scheme-h')},
+  #{cv.getVar('scheme-s')},
+  calc(#{cv.getVar('scheme-main-l')} + #{cv.getVar('hover-background-l-delta')})
+) !default;
+// The pair Bulma's dropdown gives an `is-active` item.
+$combobox-highlight-background: cv.getVar('link') !default;
+$combobox-highlight-color: cv.getVar('link-invert') !default;
+$combobox-disabled-color: cv.getVar('text-weak') !default;
+// The text it's beside, so it shows on the highlight as well as off it.
+$combobox-check-color: currentColor !default;
+$combobox-check-size: 1em !default;
+$combobox-check-gap: 0.5em !default;
+$combobox-group-label-size: 0.85em !default;
+$combobox-group-label-weight: cv.getVar('weight-semibold') !default;
+$combobox-group-label-color: cv.getVar('text-weak') !default;
+$combobox-divider-color: cv.getVar('border-weak') !default;
+$combobox-empty-color: cv.getVar('text-weak') !default;
+
+// The other sizes, each with the values it changes.
+$combobox-sizes: (
+  'small': (
+    'item-size': cv.getVar('size-small'),
+    'item-padding-y': 0.25rem,
+    'item-padding-x': 0.75rem,
+  ),
+  'medium': (
+    'item-size': cv.getVar('size-normal'),
+    'item-padding-y': 0.5rem,
+    'item-padding-x': 1.25rem,
+  ),
+  'large': (
+    'item-size': cv.getVar('size-medium'),
+    'item-padding-y': 0.625rem,
+    'item-padding-x': 1.5rem,
+  ),
+) !default;
+
+// Registered on the Combobox, and on a portaled panel too, which sits outside
+// it. A panel in place inherits the Combobox's, so a theme set on the Combobox
+// reaches it.
+.#{iv.$class-prefix}combobox,
+.#{iv.$class-prefix}combobox-menu.#{iv.$class-prefix}is-portal {
+  @include cv.register-vars(
+    (
+      'combobox-menu-z-index': #{$combobox-menu-z-index},
+      'combobox-portal-z-index': #{$combobox-portal-z-index},
+      'combobox-menu-offset': #{$combobox-menu-offset},
+      'combobox-menu-background': #{$combobox-menu-background},
+      'combobox-menu-radius': #{$combobox-menu-radius},
+      'combobox-menu-shadow': #{$combobox-menu-shadow},
+      'combobox-menu-border-color': #{$combobox-menu-border-color},
+      'combobox-menu-padding-y': #{$combobox-menu-padding-y},
+      'combobox-list-max-height': #{$combobox-list-max-height},
+      'combobox-item-color': #{$combobox-item-color},
+      'combobox-item-size': #{$combobox-item-size},
+      'combobox-item-padding-y': #{$combobox-item-padding-y},
+      'combobox-item-padding-x': #{$combobox-item-padding-x},
+      'combobox-item-hover-background': #{$combobox-item-hover-background},
+      'combobox-highlight-background': #{$combobox-highlight-background},
+      'combobox-highlight-color': #{$combobox-highlight-color},
+      'combobox-disabled-color': #{$combobox-disabled-color},
+      'combobox-check-color': #{$combobox-check-color},
+      'combobox-check-size': #{$combobox-check-size},
+      'combobox-check-gap': #{$combobox-check-gap},
+      'combobox-group-label-size': #{$combobox-group-label-size},
+      'combobox-group-label-weight': #{$combobox-group-label-weight},
+      'combobox-group-label-color': #{$combobox-group-label-color},
+      'combobox-divider-color': #{$combobox-divider-color},
+      'combobox-empty-color': #{$combobox-empty-color},
+    )
+  );
+}
+
+// On the menu as well as the Combobox, since a portaled one isn't inside
+// it.
+@each $size, $values in $combobox-sizes {
+  .#{iv.$class-prefix}combobox.#{iv.$class-prefix}is-#{$size},
+  .#{iv.$class-prefix}combobox-menu.#{iv.$class-prefix}is-#{$size} {
+    @include cv.register-vars(
+      (
+        'combobox-item-size': #{map.get($values, 'item-size')},
+        'combobox-item-padding-y': #{map.get($values, 'item-padding-y')},
+        'combobox-item-padding-x': #{map.get($values, 'item-padding-x')},
+      )
+    );
+  }
+}
+
+// What the menu is placed against.
+.#{iv.$class-prefix}combobox {
+  position: relative;
+  width: 100%;
+}
+
+// Doubled up to outrank Bulma's `.dropdown-menu`, which hides itself outside
+// an active `.dropdown`, wherever the two stylesheets load.
+.#{iv.$class-prefix}dropdown-menu.#{iv.$class-prefix}combobox-menu {
+  display: block;
+  position: absolute;
+  z-index: cv.getVar('combobox-menu-z-index');
+  // At least as wide as the field, which is what it's placed against.
+  min-width: 100%;
+  // The gap is a margin rather than Bulma's padding, so the component can
+  // read it, and a press in it isn't a press on the list.
+  padding-top: 0;
+
+  &.#{iv.$class-prefix}is-bottom-left,
+  &.#{iv.$class-prefix}is-bottom-right {
+    top: 100%;
+    bottom: auto;
+    margin-top: cv.getVar('combobox-menu-offset');
+  }
+
+  &.#{iv.$class-prefix}is-top-left,
+  &.#{iv.$class-prefix}is-top-right {
+    top: auto;
+    bottom: 100%;
+    margin-bottom: cv.getVar('combobox-menu-offset');
+  }
+
+  &.#{iv.$class-prefix}is-bottom-left,
+  &.#{iv.$class-prefix}is-top-left {
+    left: 0;
+    right: auto;
+  }
+
+  &.#{iv.$class-prefix}is-bottom-right,
+  &.#{iv.$class-prefix}is-top-right {
+    left: auto;
+    right: 0;
+  }
+
+  // Portaled: fixed to the viewport at the field's edge, which the component
+  // sets inline with the field's width, so only the gap comes from here.
+  &.#{iv.$class-prefix}is-portal {
+    position: fixed;
+    z-index: cv.getVar('combobox-portal-z-index');
+    right: auto;
+    bottom: auto;
+    min-width: 0;
+
+    &.#{iv.$class-prefix}is-top-left,
+    &.#{iv.$class-prefix}is-top-right {
+      margin-top: calc(-1 * #{cv.getVar('combobox-menu-offset')});
+      margin-bottom: 0;
+    }
+  }
+
+  > .#{iv.$class-prefix}dropdown-content {
+    background-color: cv.getVar('combobox-menu-background');
+    border: 1px solid cv.getVar('combobox-menu-border-color');
+    border-radius: cv.getVar('combobox-menu-radius');
+    box-shadow: cv.getVar('combobox-menu-shadow');
+    padding-block: cv.getVar('combobox-menu-padding-y');
+    max-height: cv.getVar('combobox-list-max-height');
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
+// Inline, the list sits in the flow under the field, with nothing around it.
+.#{iv.$class-prefix}combobox.#{iv.$class-prefix}is-inline {
+  > .#{iv.$class-prefix}combobox-list,
+  > .#{iv.$class-prefix}combobox-empty {
+    margin-top: cv.getVar('combobox-menu-offset');
+  }
+
+  > .#{iv.$class-prefix}combobox-list {
+    max-height: cv.getVar('combobox-list-max-height');
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .#{iv.$class-prefix}combobox-item {
+    border-radius: cv.getVar('combobox-menu-radius');
+  }
+}
+
+// The list's size, which its items, group headings and the empty message
+// beside it take.
+.#{iv.$class-prefix}combobox-list,
+.#{iv.$class-prefix}combobox-empty {
+  font-size: cv.getVar('combobox-item-size');
+}
+
+// Doubled up to outrank Bulma's `.dropdown-item`, and its 0.875rem.
+.#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}combobox-item {
+  position: relative;
+  color: cv.getVar('combobox-item-color');
+  font-size: inherit;
+  padding: cv.getVar('combobox-item-padding-y')
+    cv.getVar('combobox-item-padding-x');
+  cursor: pointer;
+
+  // Where the pointer is while the highlight is somewhere else, as when the
+  // list scrolls under a pointer that hasn't moved.
+  &:hover:not(.#{iv.$class-prefix}is-active):not(
+      .#{iv.$class-prefix}is-disabled
+    ) {
+    background-color: cv.getVar('combobox-item-hover-background');
+  }
+
+  &.#{iv.$class-prefix}is-active {
+    background-color: cv.getVar('combobox-highlight-background');
+    color: cv.getVar('combobox-highlight-color');
+  }
+
+  &.#{iv.$class-prefix}is-disabled {
+    color: cv.getVar('combobox-disabled-color');
+    cursor: not-allowed;
+  }
+
+  // The arrows reach a disabled item, so it shows where they are, without
+  // the look of something Enter would pick.
+  &.#{iv.$class-prefix}is-active.#{iv.$class-prefix}is-disabled {
+    background-color: cv.getVar('combobox-item-hover-background');
+    color: cv.getVar('combobox-disabled-color');
+  }
+}
+
+// A list that shows check marks keeps room for them in every item, so the
+// text lines up: always with several values, and with one once one is chosen.
+.#{iv.$class-prefix}combobox-list[aria-multiselectable='true']
+  .#{iv.$class-prefix}combobox-item,
+.#{iv.$class-prefix}combobox-list:has(
+    .#{iv.$class-prefix}combobox-item.#{iv.$class-prefix}is-checked
+  )
+  .#{iv.$class-prefix}combobox-item {
+  padding-inline-start: calc(
+    #{cv.getVar('combobox-item-padding-x')} +
+      #{cv.getVar('combobox-check-size')} + #{cv.getVar('combobox-check-gap')}
+  );
+}
+
+// In that room, on the first line: the line box is 1.5em, the mark 1em.
+.#{iv.$class-prefix}combobox-check {
+  position: absolute;
+  inset-inline-start: cv.getVar('combobox-item-padding-x');
+  top: calc(#{cv.getVar('combobox-item-padding-y')} + 0.25em);
+  display: flex;
+  width: cv.getVar('combobox-check-size');
+  height: cv.getVar('combobox-check-size');
+  color: cv.getVar('combobox-check-color');
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.#{iv.$class-prefix}combobox-group:not(:first-child) {
+  border-top: 1px solid cv.getVar('combobox-divider-color');
+  margin-top: cv.getVar('combobox-item-padding-y');
+}
+
+.#{iv.$class-prefix}combobox-group-label {
+  padding: cv.getVar('combobox-item-padding-y')
+    cv.getVar('combobox-item-padding-x') 0.125rem;
+  // In em of the list's size, so it follows the Combobox's.
+  font-size: cv.getVar('combobox-group-label-size');
+  color: cv.getVar('combobox-group-label-color');
+  font-weight: cv.getVar('combobox-group-label-weight');
+}
+
+.#{iv.$class-prefix}combobox-empty {
+  padding: cv.getVar('combobox-item-padding-y')
+    cv.getVar('combobox-item-padding-x');
+  color: cv.getVar('combobox-empty-color');
+}
+
+// Windows high contrast replaces the highlight's fill with the page's, so
+// the highlight is drawn as an outline in the system's highlight color, and
+// a disabled item takes the system's color for disabled text.
+@media (forced-colors: active) {
+  .#{iv.$class-prefix}dropdown-item.#{iv.$class-prefix}combobox-item {
+    &.#{iv.$class-prefix}is-active {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    // The highlighted one too, which the rule for it would otherwise outrank.
+    &.#{iv.$class-prefix}is-disabled,
+    &.#{iv.$class-prefix}is-active.#{iv.$class-prefix}is-disabled {
+      color: GrayText;
+    }
+  }
+}

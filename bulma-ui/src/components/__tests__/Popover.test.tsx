@@ -547,6 +547,52 @@ describe('Popover', () => {
     });
   });
 
+  // The outside-press listener reads the latest `onOpenChange` when a press
+  // arrives, so a parent that renders while the panel is open, handing over
+  // an inline one each time, doesn't take the listener off and put it back.
+  // React can render between two listeners for one event, and the browser
+  // runs neither a listener taken off mid-event nor one added mid-event
+  // (#1186).
+  describe('while onOpenChange changes', () => {
+    const Page = ({
+      onOpenChange,
+    }: {
+      onOpenChange: (open: boolean) => void;
+    }) => (
+      <>
+        <button>Outside</button>
+        <FilterPopover defaultOpen onOpenChange={open => onOpenChange(open)} />
+      </>
+    );
+
+    const pointerdownCalls = (spy: jest.SpyInstance) =>
+      spy.mock.calls.filter(([type]) => type === 'pointerdown');
+
+    it('keeps its outside-press listener when the parent renders again', () => {
+      const onOpenChange = jest.fn();
+      const { rerender } = render(<Page onOpenChange={onOpenChange} />);
+      expect(panel()).toBeInTheDocument();
+      const addSpy = jest.spyOn(document, 'addEventListener');
+      const removeSpy = jest.spyOn(document, 'removeEventListener');
+      rerender(<Page onOpenChange={onOpenChange} />);
+      expect(pointerdownCalls(addSpy)).toHaveLength(0);
+      expect(pointerdownCalls(removeSpy)).toHaveLength(0);
+    });
+
+    it('calls the onOpenChange of the latest render on a press outside', () => {
+      const first = jest.fn();
+      const latest = jest.fn();
+      const { rerender } = render(<Page onOpenChange={first} />);
+      rerender(<Page onOpenChange={latest} />);
+
+      fireEvent.pointerDown(screen.getByRole('button', { name: 'Outside' }));
+
+      expect(panel()).toBeNull();
+      expect(latest).toHaveBeenCalledWith(false);
+      expect(first).not.toHaveBeenCalled();
+    });
+  });
+
   describe('accessible name', () => {
     it('is named by its header', () => {
       render(<FilterPopover defaultOpen />);
