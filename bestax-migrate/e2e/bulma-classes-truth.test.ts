@@ -34,6 +34,7 @@ import {
   PRECEDENCE,
   reachesTag,
   ROOTS,
+  tagFit,
   WRAPPERS,
   WRAPPER_OWN_PROPS,
   type RootEntry,
@@ -2104,8 +2105,9 @@ describe('an element carrying a second root', () => {
     'image',
   ];
 
-  it('converts to a root that renders its tag when either does, and renders the same', () => {
+  it('converts to the root that fits its tag best, and renders the same', () => {
     const lostOnTag: string[] = [];
+    const worseFit: string[] = [];
     let conversions = 0;
     for (const [root, entry] of mapped) {
       for (const second of seconds) {
@@ -2132,11 +2134,19 @@ describe('an element carrying a second root', () => {
                 [second, root],
               ]) {
             const facts = factsFor(tag, tokens, given, child);
-            const refused = plan(facts).todos.some(todo =>
+            const planned = plan(facts);
+            const refused = planned.todos.some(todo =>
               todo.rule.startsWith('tag:')
             );
             if (refused && (reachesTag(entry, tag) || reachesTag(other, tag))) {
               lostOnTag.push(`<${tag} className="${tokens.join(' ')}">`);
+            }
+            // Its own tag before one `as` reaches, before none.
+            const won = planned.conversion?.target;
+            const [winner, loser] =
+              won === other.target ? [other, entry] : [entry, other];
+            if (won && tagFit(winner, tag) < tagFit(loser, tag)) {
+              worseFit.push(`<${tag} className="${tokens.join(' ')}">`);
             }
             const both = renderBoth(facts, given, child);
             if (!both) continue;
@@ -2151,6 +2161,7 @@ describe('an element carrying a second root', () => {
       }
     }
     expect(lostOnTag).toEqual([]);
+    expect(worseFit).toEqual([]);
     expect(conversions).toBeGreaterThan(500);
   });
 });

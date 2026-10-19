@@ -367,6 +367,17 @@ export function reachesTag(entry: RootEntry, tag: string): boolean {
   return entry.as?.includes(tag) ?? false;
 }
 
+/**
+ * How well a root fits an element's tag, for picking one of two: 2 when the
+ * tag is its target's own (`Hero`'s <section>), 1 when its target reaches it
+ * only through `as` (`Container`'s), 0 when it can't render it. The higher
+ * wins, so `<section className="hero container">` is a `Hero`.
+ */
+export function tagFit(entry: RootEntry, tag: string): number {
+  if (entry.tag === tag) return 2;
+  return reachesTag(entry, tag) ? 1 : 0;
+}
+
 // ---- Value vocabularies (held to @allxsmith/bestax-bulma/constants) --------
 
 export const COLORS = [
@@ -2421,13 +2432,14 @@ export const PLACED: Readonly<Record<string, RootEntry>> = {
 };
 
 /**
- * Which root wins when an element carries two (`column box`) whose targets
- * both render its tag: layout before surface, so the element keeps the role
- * that decides where it sits. A root whose target renders the tag beats one
- * whose doesn't, whatever this says (`reachesTag`: `Image` takes a
- * `<figure className="image container">`, which `Container` can't render).
- * The other root stays in `className`, which renders the same either way,
- * and the element gets a TODO naming its component.
+ * Which root wins when an element carries two (`column box`) that fit its tag
+ * alike: layout before surface, so the element keeps the role that decides
+ * where it sits. A better fit beats a higher place here (`tagFit`): `Image`
+ * takes a `<figure className="image container">`, which `Container` can't
+ * render, and `Hero` a `<section className="hero container">`, whose tag is
+ * its own and only reached through `as` by `Container`. The other root stays
+ * in `className`, which renders the same either way, and the element gets a
+ * TODO naming its component.
  */
 export const PRECEDENCE: readonly string[] = [
   'columns',

@@ -42,6 +42,10 @@ export function Landing() {
       <section className="hero is-primary is-small">
         <div className="hero-body">Hero</div>
       </section>
+      <section className="hero is-light container">
+        <div className="hero-body">A hero as wide as a container</div>
+      </section>
+      <main className="container hero">Neither one's own tag</main>
       <footer className="footer has-text-centered">Footer</footer>
     </section>
   );

@@ -26,6 +26,7 @@ import {
   PRECEDENCE,
   reachesTag,
   rootFor,
+  tagFit,
   WRAPPER_OWN_PROPS,
   wrapperFor,
   type RootEntry,
@@ -395,9 +396,11 @@ function secondComponents(
         ? 'since an item of a list converts by where it sits'
         : !reachesTag(other, tag)
           ? `since \`${name}\` renders ${tagsItReaches(other)}, not a <${tag}>`
-          : precedence(root) < precedence(token)
-            ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
-            : `since \`.${root}\` comes first on the element`;
+          : tagFit(rootFor(root)!, tag) > tagFit(other, tag)
+            ? `since a <${tag}> is \`${target}\`'s own element, and \`${name}\` renders one only through \`as\``
+            : precedence(root) < precedence(token)
+              ? `since the codemod ranks \`.${root}\` first, putting layout and parts ahead of surfaces`
+              : `since \`.${root}\` comes first on the element`;
     const advice =
       other.onAnother ??
       `to use \`${name}\`, give it an element of its own around or inside this one and drop the class, then check the layout, since two elements space differently from one`;
@@ -448,15 +451,19 @@ export function plan(facts: ElementFacts): Plan {
     : tokens.find(token => rootFor(token)?.status === 'fold');
   if (wrapper) return planFold(facts, wrapper, todos);
 
-  // Of two roots, one whose target renders the element's tag wins, and the
-  // table's precedence decides between the rest.
+  // Of two roots, the one that fits the element's tag best wins (its own tag,
+  // then one `as` reaches), and the table's precedence decides a tie.
   const roots = placed
     ? []
     : tokens
         .filter(token => rootFor(token)?.status === 'mapped')
         .sort((a, b) => precedence(a) - precedence(b));
-  const root =
-    roots.find(token => reachesTag(rootFor(token)!, tag)) ?? roots[0];
+  const fit = (token: string) => tagFit(rootFor(token)!, tag);
+  const root = roots.reduce<string | undefined>(
+    (best, token) =>
+      best === undefined || fit(token) > fit(best) ? token : best,
+    undefined
+  );
 
   let entry: RootEntry | null;
   if (placed) {
@@ -838,10 +845,7 @@ export function plan(facts: ElementFacts): Plan {
   // Only on a tag the target renders: on any other, the tag check below is
   // the refusal, and a `drops` one would call an attribute inert that may not
   // be (`type` on a <button>) and promise a conversion a re-run still refuses.
-  const tagReached =
-    tag === entry.tag ||
-    entry.as === 'any' ||
-    (entry.as?.includes(tag) ?? false);
+  const tagReached = reachesTag(entry, tag);
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
     if (tagReached && attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not

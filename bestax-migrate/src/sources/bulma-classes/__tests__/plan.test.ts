@@ -482,7 +482,7 @@ describe('plan', () => {
         {
           rule: 'second-component:Container',
           message: expect.stringContaining(
-            '`Image` here, since `Container` renders only <div>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`'
+            '`Image` here, since `Container` renders <div>, <main>, <section>, <article>, <aside>, <header>, <footer>, <nav>, not a <figure>, so `.container` stays in its `className`, which renders the same; where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`'
           ),
         },
       ]);
@@ -494,8 +494,60 @@ describe('plan', () => {
       ).toBe('Container');
     });
 
+    it('picks the root whose own tag it is over one that reaches it through `as`', () => {
+      // `Container` reaches a <section> through `as`, and it is `Hero`'s own.
+      const hero = plan(facts('section', 'container hero is-primary'));
+      expect(hero.conversion).toMatchObject({
+        target: 'Hero',
+        props: [['color', 'primary']],
+        className: 'container',
+      });
+      expect(hero.todos).toEqual([
+        {
+          rule: 'second-component:Container',
+          message: expect.stringContaining(
+            "`Hero` here, since a <section> is `Hero`'s own element, and `Container` renders one only through `as`"
+          ),
+        },
+      ]);
+      // The other way round on a <div>, `Container`'s own.
+      const div = plan(facts('div', 'hero container'));
+      expect(div.conversion).toMatchObject({
+        target: 'Container',
+        className: 'hero',
+      });
+      expect(div.todos).toEqual([
+        {
+          rule: 'second-component:Hero',
+          message: expect.stringContaining(
+            "since a <div> is `Container`'s own element, and `Hero` renders one only through `as`"
+          ),
+        },
+      ]);
+      // Two that reach it only through `as`: the table's ranking.
+      expect(plan(facts('main', 'hero container')).conversion).toMatchObject({
+        target: 'Container',
+        props: [['as', 'main']],
+      });
+    });
+
+    it('takes no class of a glyph inside an `.icon` for a second root', () => {
+      const glyph = {
+        tag: 'i',
+        tokens: ['fas', 'fa-home'],
+        attributes: new Map([['aria-hidden', 'true']]),
+        hasSpread: false,
+        isEmpty: true,
+      };
+      const result = plan(facts('span', 'icon', {}, { soleChild: glyph }));
+      expect(result.conversion?.target).toBe('Icon');
+      expect(
+        result.todos.filter(todo => todo.rule.startsWith('second-component'))
+      ).toEqual([]);
+    });
+
     it('leaves the second root to a refusal when none renders the tag', () => {
-      expect(plan(facts('section', 'container box')).todos).toEqual([
+      expect(plan(facts('span', 'container box')).todos).toEqual([
         { rule: 'tag:Container', message: expect.any(String) },
       ]);
     });

@@ -307,18 +307,28 @@ function classTokens(opening) {
 
 /**
  * The class `no-bulma-component-class` reports an element by: the first
- * family class it carries, else the first converted class in the table's
- * order whose component renders its tag, else the first.
- * `classes` is the ESLint plugin's `BULMA_COMPONENT_CLASSES`.
+ * family class it carries, else the converted class whose component fits its
+ * tag best (its own tag, then one `as` reaches), the first in the table's
+ * order among equals. `classes` is the ESLint plugin's
+ * `BULMA_COMPONENT_CLASSES`.
  */
 function componentClassOf(tokens, tag, classes) {
   const family = tokens.find(token => classes.get(token)?.converts === false);
   if (family !== undefined) return family;
-  const carried = [...classes].filter(([key]) => tokens.includes(key));
-  const fits = carried.find(
-    ([, entry]) => entry.tags === 'any' || entry.tags?.includes(tag)
-  );
-  return (fits ?? carried[0])?.[0];
+  const fit = entry =>
+    entry.tag === tag
+      ? 2
+      : entry.tags === 'any' || entry.tags?.includes(tag)
+        ? 1
+        : 0;
+  let best;
+  for (const candidate of classes) {
+    if (!tokens.includes(candidate[0])) continue;
+    if (best === undefined || fit(candidate[1]) > fit(best[1])) {
+      best = candidate;
+    }
+  }
+  return best?.[0];
 }
 
 function bump(counts, cls) {

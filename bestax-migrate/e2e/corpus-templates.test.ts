@@ -355,12 +355,34 @@ describe('the component class count', () => {
     });
   });
 
-  it("picks a class whose component renders the element's tag, as the rule does", () => {
+  it("picks the class whose component fits the element's tag best, as the rule does", () => {
     const tagged = new Map([
-      ['container', { component: 'Container', converts: true, tags: ['div'] }],
+      [
+        'container',
+        {
+          component: 'Container',
+          converts: true,
+          tag: 'div',
+          tags: ['div', 'main', 'section'],
+        },
+      ],
+      [
+        'hero',
+        {
+          component: 'Hero',
+          converts: true,
+          tag: 'section',
+          tags: ['section', 'div', 'main'],
+        },
+      ],
       [
         'image',
-        { component: 'Image', converts: true, tags: ['div', 'figure', 'p'] },
+        {
+          component: 'Image',
+          converts: true,
+          tag: 'div',
+          tags: ['div', 'figure', 'p'],
+        },
       ],
     ]);
     const module = parseModule(`
@@ -368,12 +390,16 @@ describe('the component class count', () => {
         <>
           <figure className="image container" />
           <div className="image container" />
-          <section className="container image" />
+          <section className="container hero" />
+          <main className="hero container" />
+          <article className="image container" />
         </>
       );
     `);
+    // Its own tag, then one it reaches, then the table's order.
     expect(componentClassCounts(module, tagged)).toEqual({
-      container: 2,
+      container: 3,
+      hero: 1,
       image: 1,
     });
     expect(
