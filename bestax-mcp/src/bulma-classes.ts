@@ -475,7 +475,7 @@ export function lookupClasses(
         continue;
       }
       bare = false;
-      stays(token, `bestax renders \`.${wrapper}\` with no other class`);
+      helperStays(token, `bestax renders \`.${wrapper}\` with no other class`);
     }
     if (tag && tag !== entry.tag) {
       return result({
@@ -561,7 +561,9 @@ export function lookupClasses(
       : undefined;
 
   // Each class as the root's modifier, else as a helper prop, in order; the
-  // first class to set a prop keeps it.
+  // first class to set a prop keeps it, but a Bulma 0.9 class v1 removed
+  // goes after every other, as in the planner, so a live class for the same
+  // prop keeps it whichever is written first (`is-paddingless p-2`).
   // What the component needs for its own class comes first, so no class can
   // take its prop (`variant="lines"` for `.skeleton-lines`).
   const writes = new Map<
@@ -573,7 +575,11 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
-  for (const token of tokens) {
+  const claiming = [
+    ...tokens.filter(token => !own(table.replaced, token)),
+    ...tokens.filter(token => own(table.replaced, token)),
+  ];
+  for (const token of claiming) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
@@ -694,7 +700,7 @@ export function lookupClasses(
   const undo = (prop: string, why: string) => {
     const { token, value } = writes.get(prop)!;
     const named = value === true ? `\`${prop}\`` : `\`${prop}="${value}"\``;
-    stays(token, `${named} ${why}, so here it stays a class`);
+    helperStays(token, `${named} ${why}, so here it stays a class`);
     writes.delete(prop);
     undone = true;
   };

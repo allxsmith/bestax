@@ -75,9 +75,34 @@ describe('the note on a class nothing converts', () => {
         writes: [table.helpers[v1].write],
         condition: expect.stringContaining(`its v1 class, \`${v1}\``),
       });
-      // On a tag bestax has no component for, what to write instead.
-      const [{ verdict: stays }] = lookupClasses(table, token, 'div').rows;
-      expect(stays).toEqual({ kind: 'class', why: table.legacy[token] });
+      // Wherever it stays, whatever kept it, what to write instead: a tag
+      // bestax has no component for, a wrapper that folds bare, and a live
+      // class for the same prop, written before it or after.
+      const v1Prop = table.helpers[v1].write.prop;
+      const live = `${v1Prop}-2`;
+      for (const [classes, tag] of [
+        [token, 'div'],
+        [`table-container ${token}`, 'div'],
+        [`box ${live} ${token}`, 'div'],
+        [`box ${token} ${live}`, 'div'],
+      ]) {
+        const { rows } = lookupClasses(table, classes, tag);
+        expect({
+          classes,
+          verdict: rows.find(row => row.token === token)?.verdict,
+        }).toEqual({
+          classes,
+          verdict: { kind: 'class', why: table.legacy[token] },
+        });
+      }
+      // The live class keeps its prop whichever comes first.
+      for (const classes of [`box ${live} ${token}`, `box ${token} ${live}`]) {
+        const { rows } = lookupClasses(table, classes, 'div');
+        expect(rows.find(row => row.token === live)?.verdict).toEqual({
+          kind: 'prop',
+          writes: [{ prop: v1Prop, value: '2' }],
+        });
+      }
     }
   });
 });
