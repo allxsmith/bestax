@@ -1179,7 +1179,7 @@ describe('lookup_bulma_classes', () => {
   it('says when a component renders the element inside it', async () => {
     const select = await lookup('select is-multiple is-small', 'div');
     expect(select).toContain(
-      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`). It renders no <label>: one beside the <select> goes on `Select` instead, as its `label` with its classes in `labelProps`, and `Select` renders a `Field` and a `Control` around it."
+      "It renders the <select> inside it itself, and puts the attributes it is given on that <select>: write the <select>'s attributes and children on `SelectBase` in its place, and nothing on this element but a `key`. On the <select>, `is-hovered` becomes `isHovered`, `is-focused` becomes `isFocused` and `size` becomes `multipleSize` (beside `multiple`). It renders no <label>: one beside the <select> goes on `Select` instead, as its `label` with its classes in `labelProps`, and `Select` renders a `Field` and a `Control` around it. Inside a `Field` it drops that `label`, and inside a bare `Control` it nests the label's `.field` there, so in either move the <label> out beside this element, pointing at the <select>'s `id`, or give the <select> an `aria-label`."
     );
     expect(select).toContain(
       '| `is-multiple` | `multiple` | with a bare `multiple` on the <select> inside, which it renders |'

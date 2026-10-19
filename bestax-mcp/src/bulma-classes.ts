@@ -918,7 +918,10 @@ function absorbsText(target: string, absorbs: Absorbs): string {
       ? ` It renders no <label>: one beside the ${child} goes on ` +
         `\`${absorbs.label}\` instead, as its \`label\` with its classes in ` +
         `\`labelProps\`, and \`${absorbs.label}\` renders a \`Field\` and a ` +
-        `\`Control\` around it.`
+        `\`Control\` around it. Inside a \`Field\` it drops that \`label\`, ` +
+        `and inside a bare \`Control\` it nests the label's \`.field\` there, ` +
+        `so in either move the <label> out beside this element, pointing at the ` +
+        `${child}'s \`id\`, or give the ${child} an \`aria-label\`.`
       : '')
   );
 }
