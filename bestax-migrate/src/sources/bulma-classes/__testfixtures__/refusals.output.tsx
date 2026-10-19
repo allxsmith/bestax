@@ -11,6 +11,8 @@ export function Refusals() {
   // TODO(bestax-migrate): bestax `Panel.Block` renders <a>, <div>, <label>, not a <button>; keep the markup, or change the tag and re-run
   // TODO(bestax-migrate): `color` is also a bestax `Box` prop, which would read it differently; rename or drop the attribute, then re-run
   // TODO(bestax-migrate): bestax `Delete` renders `type="button"` and `aria-label="Close"` when the element does not set them; add them here if that is what you want, then re-run
+  // TODO(bestax-migrate): bestax `Navbar` renders only <nav>, not a <div>; keep the markup, or change the tag and re-run
+  // TODO(bestax-migrate): bestax `Delete` renders only <button>, not a <a>; keep the markup, or change the tag and re-run
   // TODO(bestax-migrate): this `className` is computed, and the codemod reads only a `clsx` or `classnames` call of class strings and conditional classes; convert this element to bestax `Box` by hand, turning each condition into its prop
   // TODO(bestax-migrate): `.dropdown` stays as markup: bestax `Dropdown` renders its own trigger and menu from props
   // TODO(bestax-migrate): bestax `Card` renders its children inside a `.card-content` of its own unless one of them is a `Card.Header`, `Card.Header.Icon`, `Card.Image`, `Card.Content`, `Card.Footer` or `Card.FooterItem`, so this element stays markup
@@ -31,6 +33,9 @@ export function Refusals() {
         An attribute Box reads as a prop
       </div>
       <button className="delete"></button>
+      {/* On a tag the target can't render, the tag comes before what it lacks. */}
+      <div className="navbar">A navbar on a div, with no role or label</div>
+      <a className="delete" href="#close"></a>
       <div className={active ? 'box is-active' : 'box'}>A computed class</div>
       <div className="dropdown">
         <div className="dropdown-menu">A family converted later</div>
