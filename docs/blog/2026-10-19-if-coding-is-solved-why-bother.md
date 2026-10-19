@@ -1,9 +1,16 @@
 ---
 slug: if-coding-is-solved-why-bother
 title: 'If Coding Is Solved, Why Bother?'
+description: "Copying an app is cheap now. The work that's still hard is the work with little data or expensive checks, and that's where AI could help most."
 authors: [asmith]
 tags: [ai, opinion]
+canonical_url: https://bestax.io/blog/if-coding-is-solved-why-bother
+publish_to_devto: true
+image: /img/if-coding-is-solved-why-bother.png
+cover_image: /img/if-coding-is-solved-why-bother.png
 ---
+
+![Pixel art under the headline If Coding Is Solved, Why Bother. Four identical gray cartridges on the left, labeled copies, sit beside one glowing yellow cartridge on the right, labeled the hard part.](/img/if-coding-is-solved-why-bother.svg)
 
 People keep saying coding is a solved problem. Maybe it mostly is. What I don't get is what everyone is doing with it.
 
@@ -26,6 +33,8 @@ The result is a lot of wasted effort. People are spending compute, API credits, 
 Code has two things most fields don't: a huge amount of public training data, and a fast, cheap way to check the work. You write it, run the tests, read the error, and try again.
 
 An agent can run that loop many times in a few minutes for very little money. When checking is that cheap, a model can keep trying until something works.
+
+![Pixel art of a four-step loop around a glowing cycle: write the code, run the tests, read the error, try again. The loop is cheap, so the agent can repeat it many times.](/img/if-coding-is-solved-why-bother-loop.png)
 
 Most hard problems don't have a loop like that. Checking the answer might take a lab experiment, a hardware prototype, a clinical trial, or years of waiting. AI has a hard time closing the loop in those settings, and that's where the unsolved problems are.
 
@@ -54,6 +63,8 @@ The AI results that have actually mattered came out of this kind of work. Protei
 ## Using AI on Hard Problems
 
 AI can help with all of the above. It just isn't where most people are pointing it. A few ways it's useful:
+
+![Pixel art of many small candidate squares on the left. A check box in the middle passes three glowing yellow squares to a lab test box on the right, under the caption few survive.](/img/if-coding-is-solved-why-bother-pipeline.png)
 
 - Generating a large number of candidates (molecules, designs, proof steps) so the expensive real-world testing goes to the most promising few.
 - Pairing it with something that can check its output, like a proof assistant, a simulator, a lab, or an expert reviewer. Without a check, you can't tell good output from output that only looks right.
