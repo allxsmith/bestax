@@ -253,16 +253,54 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
       {
         component: 'Container',
         converts: true,
-        tags: ['div'],
+        tags: [
+          'div',
+          'main',
+          'section',
+          'article',
+          'aside',
+          'header',
+          'footer',
+          'nav',
+        ],
         onAnother:
           'where it is there to center this element, `mx="auto"` does that, and otherwise wrap the element in a `Container`; either way drop the class, then check the layout',
       },
     ],
     ['section', { component: 'Section', converts: true, tags: ['section'] }],
-    ['hero', { component: 'Hero', converts: true, tags: ['section'] }],
-    ['hero-head', { component: 'Hero.Head', converts: true, tags: ['div'] }],
+    [
+      'hero',
+      {
+        component: 'Hero',
+        converts: true,
+        tags: [
+          'section',
+          'div',
+          'main',
+          'header',
+          'footer',
+          'article',
+          'aside',
+        ],
+      },
+    ],
+    [
+      'hero-head',
+      {
+        component: 'Hero.Head',
+        converts: true,
+        tags: ['div', 'header', 'nav'],
+      },
+    ],
     ['hero-body', { component: 'Hero.Body', converts: true, tags: ['div'] }],
-    ['hero-foot', { component: 'Hero.Foot', converts: true, tags: ['div'] }],
+    [
+      'hero-foot',
+      {
+        component: 'Hero.Foot',
+        converts: true,
+        tags: ['div', 'footer', 'nav'],
+      },
+    ],
     [
       'footer',
       { component: 'Footer', converts: true, tags: ['footer', 'div'] },
@@ -455,13 +493,23 @@ export const BULMA_COMPONENT_CLASSES: ReadonlyMap<string, BulmaComponentClass> =
       'pagination-ellipsis',
       { component: 'Pagination.Ellipsis', converts: true, tags: ['span'] },
     ],
-    ['panel', { component: 'Panel', converts: true, tags: ['nav'] }],
+    [
+      'panel',
+      {
+        component: 'Panel',
+        converts: true,
+        tags: ['nav', 'article', 'section', 'aside', 'div'],
+      },
+    ],
     [
       'panel-heading',
       { component: 'Panel.Heading', converts: true, tags: ['p'] },
     ],
     ['panel-tabs', { component: 'Panel.Tabs', converts: true, tags: ['p'] }],
-    ['panel-block', { component: 'Panel.Block', converts: true, tags: ['a'] }],
+    [
+      'panel-block',
+      { component: 'Panel.Block', converts: true, tags: ['a', 'div', 'label'] },
+    ],
     ['tabs', { component: 'Tabs', converts: true, tags: ['div'] }],
     ['table-container', { component: 'Table', converts: true, tags: ['div'] }],
     ['fixed-grid', { component: 'Grid', converts: true, tags: ['div'] }],
