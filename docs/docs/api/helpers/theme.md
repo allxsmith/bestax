@@ -61,16 +61,24 @@ A prefixed stylesheet reads Bulma's prefixed attribute instead (`data-bestax-the
 `classPrefix`, `colorMode` writes that attribute as well as `data-theme`, so it works with the
 prefixed builds.
 
-:::warning Single-mode designs should pin `colorMode`
+:::warning Single-mode designs should pin the scheme
 
 Omitting `colorMode` preserves whatever `data-theme` is already set — and when nothing has set
 one (the usual case), the scheme follows the visitor's OS: Bulma's text colors flip on a
 dark-mode machine even if your design is light-only, breaking contrast against any fixed custom
-backgrounds. If you support only one mode, pin it (`<Theme isRoot colorMode="light">`); if you
-support both, don't hardcode surface/text colors — see
-[Dark Mode & Contrast](../../guides/features/css-variables.md#dark-mode--contrast).
+backgrounds. If you support only one mode, pin it on the `<html>` in your `index.html`
+(`<html lang="en" data-theme="light">`); if you support both, don't hardcode surface/text
+colors — see [Dark Mode & Contrast](../../guides/features/css-variables.md#dark-mode--contrast).
 
 :::
+
+`colorMode` writes the attribute from an effect, so a page rendered in the browser paints its
+first frame with whatever `<html>` already has, which is why a fixed scheme belongs in
+`index.html`. A toggle that remembers the visitor's choice writes it before that frame, from an
+inline `<head>` script, and starts `colorMode` from the attribute the script wrote; the
+`bestax-theming` skill's
+[dark-mode example](https://github.com/allxsmith/bestax/blob/main/skills/bestax-theming/examples/dark-mode.tsx)
+has the script and the app's side.
 
 ```tsx
 import { useState } from 'react';
