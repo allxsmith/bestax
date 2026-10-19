@@ -21,6 +21,7 @@ import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
+import { REPLACED_IN_V1 } from '../../src/sources/bulma-classes/class-map.js';
 
 const packageRoot = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -203,5 +204,52 @@ export function withImplicitListRoles(raw: string, converted: string): string {
         ? tag.replace(/^<(ul|ol)/, '$& role="list"')
         : tag
     )
+  );
+}
+
+/** Each opening tag, in document order. */
+const OPEN_TAG = /<[a-zA-Z][\w-]*(?:\s+[^\s=>/]+(?:="[^"]*")?)*\s*\/?>/g;
+
+function classesOf(tag: string): string[] {
+  return (/\sclass="([^"]*)"/.exec(tag)?.[1] ?? '').split(/\s+/);
+}
+
+/**
+ * `raw`, normalised, with each Bulma 0.9 class v1 removed written as the v1
+ * class `REPLACED_IN_V1` names for it, on each element where `converted` has
+ * that class in its place, so the two compare equal there and nowhere else.
+ *
+ * Such a class styles nothing under v1, and the codemod converts it as the
+ * v1 helper that does its job (`is-marginless` as `m="0"`, which renders
+ * `m-0`), the conversion that changes a class on purpose. Only those
+ * classes, and only where the converted element has the v1 class and not the
+ * old one: a conversion that drops the class, or keeps it beside the prop,
+ * still differs. Elements pair up in document order, and a pair that doesn't
+ * line up differs anyway.
+ */
+export function withV1Classes(raw: string, converted: string): string {
+  const rendered = [...converted.matchAll(OPEN_TAG)].map(([tag]) =>
+    classesOf(tag)
+  );
+  let at = 0;
+  return normalizeHtml(
+    raw.replace(OPEN_TAG, tag => {
+      const theirs = rendered[at++] ?? [];
+      return tag.replace(
+        /(\sclass=")([^"]*)"/,
+        (_match, open: string, value: string) =>
+          `${open}${value
+            .split(/\s+/)
+            .map(token => {
+              const v1 = Object.hasOwn(REPLACED_IN_V1, token)
+                ? REPLACED_IN_V1[token]
+                : undefined;
+              return v1 && theirs.includes(v1) && !theirs.includes(token)
+                ? v1
+                : token;
+            })
+            .join(' ')}"`
+      );
+    })
   );
 }
