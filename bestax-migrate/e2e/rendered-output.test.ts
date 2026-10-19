@@ -19,6 +19,7 @@ import {
   normalizeHtml,
   renderExports,
   withImplicitListRoles,
+  withV1Classes,
 } from './support/render-module.js';
 
 const fixturesRoot = path.join(
@@ -186,6 +187,49 @@ describe('withImplicitListRoles', () => {
       ['<ul><li>x</li></ul>', '<ul role="List"><li>x</li></ul>'],
       ['<div>x</div>', '<div role="list">x</div>'],
       ['<ul><li>x</li></ul>', '<ul><li role="list">x</li></ul>'],
+    ]) {
+      expect({ raw, converted, same: same(raw, converted) }).toEqual({
+        raw,
+        converted,
+        same: false,
+      });
+    }
+  });
+});
+
+describe('withV1Classes', () => {
+  // `is-marginless` styles nothing under v1, and converts as `m="0"`.
+  const same = (raw: string, converted: string) =>
+    withV1Classes(raw, normalizeHtml(converted)) === normalizeHtml(converted);
+
+  it('lets the v1 class a conversion writes stand for the 0.9 one it replaced', () => {
+    expect(
+      same('<p class="is-marginless intro">x</p>', '<p class="intro m-0">x</p>')
+    ).toBe(true);
+    expect(
+      same(
+        '<div class="box is-paddingless"><p class="is-marginless">x</p></div>',
+        '<div class="box p-0"><p class="m-0">x</p></div>'
+      )
+    ).toBe(true);
+  });
+
+  it('still tells a conversion that drops, keeps or misplaces the class', () => {
+    for (const [raw, converted] of [
+      // Drops it.
+      ['<p class="is-marginless">x</p>', '<p>x</p>'],
+      // Writes some other class.
+      ['<p class="is-marginless">x</p>', '<p class="m-1">x</p>'],
+      ['<p class="is-marginless">x</p>', '<p class="p-0">x</p>'],
+      // Writes the v1 class beside the old one, which then renders twice over.
+      ['<p class="is-marginless">x</p>', '<p class="is-marginless m-0">x</p>'],
+      // Writes it on another element.
+      [
+        '<div><p class="is-marginless">x</p></div>',
+        '<div class="m-0"><p>x</p></div>',
+      ],
+      // A class v1 still has is never restated.
+      ['<p class="marginless">x</p>', '<p class="m-0">x</p>'],
     ]) {
       expect({ raw, converted, same: same(raw, converted) }).toEqual({
         raw,
