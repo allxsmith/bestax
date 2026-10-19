@@ -499,6 +499,47 @@ describe('lookup_bulma_classes agrees with the codemod planner', () => {
     }
   });
 
+  it('names the tag a class picks on a root that reaches any tag through `as`', () => {
+    // No root that reaches any tag has a class that picks one, so this one is
+    // made up, on both sides, as above.
+    const modifiers = {
+      'is-a': { writes: [{ prop: 'a' }], rendersTag: 'figure' },
+    };
+    const roots = ROOTS as Record<string, RootEntry>;
+    roots['x-retag-any'] = {
+      status: 'mapped',
+      target: 'X',
+      tag: 'div',
+      as: 'any',
+      modifiers,
+      ownProps: ['as', 'a'],
+    };
+    table.roots['x-retag-any'] = {
+      ...table.roots.box,
+      target: 'X',
+      as: 'any',
+      modifiers,
+    };
+    try {
+      const cases = ['figure', 'div', 'span'].flatMap(
+        (tag): Array<[string, string[]]> => [
+          [tag, ['x-retag-any', 'is-a']],
+          [tag, ['x-retag-any']],
+        ]
+      );
+      expect(compare(cases)).toEqual([]);
+      expect(lookupClasses(table, 'x-retag-any is-a').element).toMatchObject({
+        renders: '<figure> with these classes, or any tag through `as`',
+      });
+      expect(lookupClasses(table, 'x-retag-any').element).toMatchObject({
+        renders: '<div>, or any tag through `as`',
+      });
+    } finally {
+      delete roots['x-retag-any'];
+      delete table.roots['x-retag-any'];
+    }
+  });
+
   it('with no tag, on the tag the component renders by itself', () => {
     const mismatches: string[] = [];
     const check = (tag: string, tokens: string[]) => {

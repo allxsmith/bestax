@@ -370,10 +370,14 @@ function listTags(tags: readonly string[]): string {
 }
 
 function reaches(entry: RootRecord, retagged?: string): string {
-  if (retagged && Array.isArray(entry.as)) {
-    return `<${retagged}> with these classes, or ${listTags(entry.as)} through \`as\``;
+  // The tag it renders with no `as`: the one a class picks, else its own.
+  const plain = retagged
+    ? `<${retagged}> with these classes`
+    : `<${entry.tag}>`;
+  if (entry.as === 'any') return `${plain}, or any tag through \`as\``;
+  if (retagged && entry.as) {
+    return `${plain}, or ${listTags(entry.as)} through \`as\``;
   }
-  if (entry.as === 'any') return `<${entry.tag}>, or any tag through \`as\``;
   if (entry.sizeDrivesTag && entry.as) {
     return `the heading its \`size\` names (<${entry.tag}> with none), or ${listTags(entry.as)} through \`as\``;
   }
