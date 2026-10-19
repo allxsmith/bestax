@@ -446,6 +446,34 @@ export function plan(facts: ElementFacts): Plan {
     todos: [...todos, { rule: ruleId(kind, token), message }],
   });
 
+  // ---- The tag, first ------------------------------------------------------
+  // On a tag the target can't render, the tag is the work that comes first:
+  // any other refusal would ask for work (an attribute added or dropped, a
+  // child moved) that a re-run then refuses on the tag anyway.
+  let renders = entry.tag!;
+  if (entry.sizeDrivesTag && tag !== 'p') {
+    const size = propsFrom(
+      entry,
+      tokens,
+      tag,
+      root,
+      facts.attributes
+    ).writes.get('size');
+    if (size !== undefined) renders = `h${size}`;
+  }
+  let as: string | undefined;
+  if (renders !== tag) {
+    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
+    if (!reachable) {
+      return refuse(
+        'tag',
+        target,
+        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not a <${tag}>; keep the markup, or change the tag and re-run`
+      );
+    }
+    as = tag;
+  }
+
   // ---- Refusals: the component would render something else ---------------
   if (facts.hasSpread) {
     return refuse(
@@ -758,17 +786,7 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders this element's children itself, \`${counts.prop}\` bare, empty <${counts.tag}>s, so it converts only when its children are just that; keep it as markup`
     );
   }
-  // Only on a tag the target renders: on any other, the tag check below is
-  // the refusal, and a `drops` one would call an attribute inert that may not
-  // be (`type` on a <button>) and promise a conversion a re-run still refuses.
-  // So would the advice for an icon that isn't hidden, which asks for work a
-  // re-run then refuses on the tag.
-  const tagReached =
-    tag === entry.tag ||
-    entry.as === 'any' ||
-    (entry.as?.includes(tag) ?? false);
-  const advises = !entry.readsGlyph || tagReached;
-  if (missing.length > 0 && naming === 'unsure' && advises) {
+  if (missing.length > 0 && naming === 'unsure') {
     const list = (set: Readonly<Record<string, string>> = {}) =>
       Object.entries(set)
         .map(([name, value]) => `\`${name}="${value}"\``)
@@ -781,7 +799,7 @@ export function plan(facts: ElementFacts): Plan {
       `bestax \`${target}\` renders ${list(entry.namedDefaults!.defaults)} when it has a name and ${list(entry.defaults)} when it has none, and this element's \`${by}\` is an expression that may render as either; set ${add} here to what you want, then re-run`
     );
   }
-  if (missing.length > 0 && advises) {
+  if (missing.length > 0) {
     const list = missing.map(([name, value]) => `\`${name}="${value}"\``);
     const usual = `bestax \`${target}\` renders ${list.join(' and ')} when the element does not set ${missing.length === 1 ? 'it' : 'them'}; add ${missing.length === 1 ? 'it' : 'them'} here if that is what you want, then re-run`;
     return refuse(
@@ -804,7 +822,7 @@ export function plan(facts: ElementFacts): Plan {
     }
   }
   for (const [name, tags] of Object.entries(entry.dropsAttr ?? {})) {
-    if (tagReached && attributes.has(name) && inTagSet(tags, tag)) {
+    if (attributes.has(name) && inTagSet(tags, tag)) {
       // Bulma greys out `.button[disabled]` on any tag, so there it is not
       // inert: dropping it changes how the element looks.
       const visible = name === 'disabled' && target === 'Button';
@@ -827,23 +845,6 @@ export function plan(facts: ElementFacts): Plan {
   const { writes, converted } = fromTokens;
   numbers.push(...fromTokens.numbers);
 
-  // ---- The tag ------------------------------------------------------------
-  let renders = entry.tag!;
-  if (entry.sizeDrivesTag && tag !== 'p' && writes.has('size')) {
-    renders = `h${writes.get('size')}`;
-  }
-  let as: string | undefined;
-  if (renders !== tag) {
-    const reachable = entry.as === 'any' || (entry.as?.includes(tag) ?? false);
-    if (!reachable) {
-      return refuse(
-        'tag',
-        target,
-        `bestax \`${target}\` renders ${tagsItReaches(entry)}, not a <${tag}>; keep the markup, or change the tag and re-run`
-      );
-    }
-    as = tag;
-  }
   // Last, since what the children are can change once a refusal leaves
   // them to convert on their own, and a re-run has to find the same reason.
   let icons: BuiltIcon[] | undefined;

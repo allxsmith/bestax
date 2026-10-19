@@ -182,6 +182,48 @@ describe('plan', () => {
       ]);
     });
 
+    it('refuses a tag the target cannot render before anything else', () => {
+      // Each would otherwise ask for work (attributes added, renamed or
+      // dropped, a child moved) that a re-run then refuses on the tag.
+      const cases: Array<
+        [
+          string,
+          string,
+          string,
+          Record<string, string | true | null>,
+          Partial<ElementFacts>,
+        ]
+      > = [
+        ['Navbar', 'div', 'navbar', {}, {}],
+        ['Delete', 'a', 'delete', {}, {}],
+        ['Breadcrumb', 'div', 'breadcrumb', {}, {}],
+        ['Pagination', 'div', 'pagination', {}, {}],
+        ['Card.Header.Icon', 'div', 'card-header-icon', {}, {}],
+        ['Pagination.Link', 'div', 'pagination-link', {}, {}],
+        // Not only a missing default: a prop it reads, or a spread.
+        ['Delete', 'a', 'delete', { size: 'x' }, {}],
+        ['Delete', 'a', 'delete', {}, { hasSpread: true }],
+        ['Navbar', 'div', 'navbar', { role: null }, {}],
+      ];
+      for (const [target, tag, className, attributes, extra] of cases) {
+        const result = plan(facts(tag, className, attributes, extra));
+        expect({
+          element: `<${tag} class="${className}">`,
+          rules: result.todos.map(todo => todo.rule),
+        }).toEqual({
+          element: `<${tag} class="${className}">`,
+          rules: [`tag:${target}`],
+        });
+      }
+      // On the tag it renders, the same element is told what it lacks.
+      expect(plan(facts('nav', 'navbar')).todos.map(t => t.rule)).toEqual([
+        'defaults:Navbar',
+      ]);
+      expect(plan(facts('button', 'delete')).todos.map(t => t.rule)).toEqual([
+        'defaults:Delete',
+      ]);
+    });
+
     it('refuses dangerouslySetInnerHTML', () => {
       expect(
         plan(facts('div', 'content', { dangerouslySetInnerHTML: null })).todos
