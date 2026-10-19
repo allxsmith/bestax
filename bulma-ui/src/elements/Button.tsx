@@ -48,7 +48,8 @@ export interface ButtonOwnProps extends Omit<
   /**
    * Displays a loading spinner.
    * Under `prefers-reduced-motion: reduce` the spinner stops and stays
-   * drawn (with bestax's CSS loaded).
+   * drawn, and in forced colors (Windows' contrast themes) the label stays
+   * hidden behind it (with bestax's CSS loaded).
    */
   isLoading?: boolean;
   /** Makes the button non-interactive. */
