@@ -74,7 +74,7 @@ The `isRetina` prop enables support for high-resolution (2x) images, ensuring cr
 
 ### Aspect Ratio 16:9
 
-Set the `size` prop to `16by9` to create a responsive image container with a 16:9 aspect ratio. This is ideal for video thumbnails or wide images.
+Set the `size` prop to `16by9` to create a responsive image container with a 16:9 aspect ratio. This is ideal for video thumbnails or wide images. A ratio `Image` placed directly inside another ratio `.image` needs `className="has-ratio"`, like any other child, to fill it.
 
 ```tsx live
 <Image
