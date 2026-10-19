@@ -167,9 +167,10 @@ Centered; a collection of items → Card grid. For mixed requests, pick the domi
   (`Hero color="primary"`, a dark banner), use **filled** buttons — `color="light"` or
   `color="primary" isInverted` — never a thin `isOutlined` secondary: a light outline + light
   label on a dark surface is low-contrast and gets worse under OS dark mode. And when the page's
-  design is single-mode (a fixed light or dark look), pin it at the root —
-  `<Theme isRoot colorMode="light">` — so a visitor's OS dark mode can't flip Bulma's text
-  colors out from under the fixed palette (details: the `bestax-theming` skill's contrast rules).
+  design is single-mode (a fixed light or dark look), pin it on the `<html>` in `index.html`,
+  `<html lang="en" data-theme="light">`, so a visitor's OS dark mode can't flip Bulma's text
+  colors out from under the fixed palette, from the first paint on (details: the
+  `bestax-theming` skill's contrast rules).
 
 ## Three components core Bulma will talk you out of
 

@@ -572,7 +572,8 @@ read for the burger, a carousel and a theme toggle too, and its TODO names the f
   from their OS sees the OS's scheme first. A small inline script in the `<head>` of `index.html`
   that reads the saved choice (or the OS's, with none saved) and writes `data-theme` before the
   app loads paints the right one, and the toggle's state starts from what it wrote. The
-  bestax-theming skill covers `Theme` and `colorMode`.
+  bestax-theming skill covers `Theme` and `colorMode`, and its `examples/dark-mode.tsx` has the
+  script and the app's side.
 - **`html-script:json-ld`** is structured data for search engines. Data about the whole site, or
   about a single-page app's one page, goes in the app's `index.html` as it is, where a crawler that
   runs no JavaScript still reads it. Data that differs from page to page goes where the app sets
@@ -594,10 +595,8 @@ The app's document has its own `<html>` and `<body>`, which a component can't re
 - **`html-document:data-theme`**, **`html-document:theme-dark`**, **`html-document:theme-light`**:
   the page's color scheme. Put it on the `<html>` in `index.html`, where the first paint has it.
   `<Theme colorMode="dark">` writes `data-theme` on `<html>` too, but from an effect, after a
-  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches: there an
-  inline script in the `<head>` of `index.html` writes the saved choice before the first paint, and
-  `Theme colorMode` drives the toggle from it (the bestax-theming skill's `examples/dark-mode.tsx`
-  has both).
+  first frame in the visitor's OS scheme, so keep it for a scheme the visitor switches, the way
+  the bestax-theming skill's `examples/dark-mode.tsx` does.
 - **`html-document:lang`**, **`html-document:dir`**: set them on the `<html>` in `index.html`.
 - **`html-document:class`**: the page's own classes on `<html>` or `<body>`. Put them on the
   app's own `<body>` (or `<html>`), or on an element around the page's content if the styles
