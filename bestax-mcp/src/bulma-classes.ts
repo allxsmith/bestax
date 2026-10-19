@@ -815,10 +815,12 @@ function itemsText(items: Items): string {
 
 /**
  * A tag with the article it takes, read aloud: "an <a>", "an <h2>", "a
- * <button>", "a <ul>". The codemod's TODOs say it the same way (its
- * `_shared/articles.ts`), which this server can't import at runtime.
+ * <button>", "a <ul>". A copy of the codemod's (its `_shared/articles.ts`),
+ * which this server can't import at runtime, so its TODOs and these answers
+ * say a tag the same way: `bulma-classes-agree.test.ts` holds the two to the
+ * same output over every element name.
  */
-function aTag(tag: string): string {
+export function aTag(tag: string): string {
   return `${/^(?:[aeio]|h\d$)/.test(tag) ? 'an' : 'a'} <${tag}>`;
 }
 
