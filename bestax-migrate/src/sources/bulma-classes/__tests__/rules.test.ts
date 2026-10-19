@@ -25,6 +25,8 @@ describe('ruleId', () => {
     expect(ruleId('tag', 'Section')).toBe('tag:Section');
     expect(ruleId('attr', 'size')).toBe('attr:size');
     expect(ruleId('legacy', 'tile')).toBe('legacy:tile');
+    expect(ruleId('legacy', 'is-marginless')).toBe('legacy:is-marginless');
+    expect(ruleId('modifier', 'image')).toBe('modifier:image');
   });
 
   it("drops an app's own class name, keeping only the kind", () => {
@@ -231,7 +233,16 @@ describe('every refusal the planner can produce', () => {
         }
       }
     }
-    for (const token of ['tile', 'toString', 'constructor', '__proto__']) {
+    for (const token of [
+      'tile',
+      'is-marginless',
+      'is-paddingless',
+      'is-64x64',
+      'is-4by3',
+      'toString',
+      'constructor',
+      '__proto__',
+    ]) {
       collect(facts('div', [token], []));
     }
     expect(rules.size).toBeGreaterThan(0);
