@@ -1,5 +1,5 @@
 // INTERNAL: deliberately not exported from src/index.ts.
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import type { RefObject } from 'react';
 import type { PickerPosition } from '../form/_pickerInternals/pickerTypes';
 import { useClientLayoutEffect } from './useClientLayoutEffect';
@@ -15,6 +15,11 @@ export interface AnchoredPosition {
   position: AnchoredCorner;
   top?: number;
   left?: number;
+  /**
+   * With `matchWidth`, the anchor's width, which a fixed panel takes as its
+   * `min-width`.
+   */
+  minWidth?: number;
 }
 
 /**
@@ -47,6 +52,23 @@ export interface UseAnchoredPositionOptions {
    * well; the coordinates don't include it, because the stylesheet applies it.
    */
   styledGap?: (panel: HTMLElement) => number;
+  /**
+   * Whether the panel is at least as wide as the anchor, as a list under its
+   * field is. A panel in place gets that from its stylesheet. A fixed one
+   * can't, so its placement carries the anchor's width as `minWidth` for the
+   * panel to set, and its coordinates and `auto` already allow for it.
+   * @defaultValue false
+   */
+  matchWidth?: boolean;
+  /**
+   * Measures again after each render of the component holding the hook, for
+   * a panel whose content changes while it's open, as a filtered list's
+   * does. A fixed panel above its anchor is placed from its height, and
+   * `auto` reads the height too, so a measurement taken when it opened goes
+   * stale as the content changes.
+   * @defaultValue false
+   */
+  followContent?: boolean;
 }
 
 /**
@@ -80,14 +102,18 @@ function resolveAuto(
 }
 
 const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
-  a.position === b.position && a.top === b.top && a.left === b.left;
+  a.position === b.position &&
+  a.top === b.top &&
+  a.left === b.left &&
+  a.minWidth === b.minWidth;
 
 /**
  * Places a floating panel against its anchor: resolves `auto` to a corner
  * and, for a panel fixed to the viewport, works out its coordinates. It
  * measures again on resize and on any scroll of the anchor's window (an
  * iframe's, when the anchor renders into one), so a fixed panel follows its
- * anchor. A measurement that changes nothing doesn't render again.
+ * anchor, and with `followContent` after each render too. A measurement that
+ * changes nothing doesn't render again.
  *
  * Measuring happens in a layout effect, so the panel is placed before it
  * paints. It needs both elements on the page while `active` is on, and
@@ -102,11 +128,22 @@ const samePosition = (a: AnchoredPosition, b: AnchoredPosition): boolean =>
 export function useAnchoredPosition(
   anchorRef: RefObject<HTMLElement | null>,
   panelRef: RefObject<HTMLElement | null>,
-  { active, position, fixed, offset = 4, styledGap }: UseAnchoredPositionOptions
+  {
+    active,
+    position,
+    fixed,
+    offset = 4,
+    styledGap,
+    matchWidth = false,
+    followContent = false,
+  }: UseAnchoredPositionOptions
 ): AnchoredPosition {
   const [resolved, setResolved] = useState<AnchoredPosition>({
     position: position === 'auto' ? 'bottom-left' : position,
   });
+  // The measurement while the panel is active, for `followContent` to run
+  // again after a render.
+  const updateRef = useRef<(() => void) | null>(null);
 
   useClientLayoutEffect(() => {
     if (!active) return undefined;
@@ -118,7 +155,12 @@ export function useAnchoredPosition(
       const panel = panelRef.current;
       if (!anchor || !panel) return;
       const rect = anchor.getBoundingClientRect();
-      const { width, height } = panel.getBoundingClientRect();
+      const measured = panel.getBoundingClientRect();
+      // The width the panel has once it's at least as wide as the anchor.
+      const width = matchWidth
+        ? Math.max(measured.width, rect.width)
+        : measured.width;
+      const { height } = measured;
       const corner =
         position === 'auto'
           ? resolveAuto(
@@ -136,18 +178,35 @@ export function useAnchoredPosition(
               ? rect.bottom + offset
               : rect.top - height - offset,
             left: corner.endsWith('left') ? rect.left : rect.right - width,
+            ...(matchWidth ? { minWidth: rect.width } : {}),
           }
         : { position: corner };
       setResolved(prev => (samePosition(prev, next) ? prev : next));
     };
+    updateRef.current = update;
     update();
     view.addEventListener('resize', update, { passive: true });
     view.addEventListener('scroll', update, { passive: true, capture: true });
     return () => {
+      updateRef.current = null;
       view.removeEventListener('resize', update);
       view.removeEventListener('scroll', update, { capture: true });
     };
-  }, [active, anchorRef, panelRef, position, fixed, offset, styledGap]);
+  }, [
+    active,
+    anchorRef,
+    panelRef,
+    position,
+    fixed,
+    offset,
+    styledGap,
+    matchWidth,
+  ]);
+
+  // After every render, on purpose: the panel's content is what changed.
+  useClientLayoutEffect(() => {
+    if (followContent) updateRef.current?.();
+  });
 
   return resolved;
 }

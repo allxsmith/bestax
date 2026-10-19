@@ -70,3 +70,32 @@ export function Landing() {
     </Section>
   );
 }
+
+export function LoginPage() {
+  return (
+    <Hero as="main" size="fullheight" color="dark">
+      <Hero.Head as="header">
+        <Container>Brand</Container>
+      </Hero.Head>
+      <Hero.Body>
+        <Container as="section" textAlign="centered">Sign in</Container>
+      </Hero.Body>
+      <Hero.Foot as="footer">
+        <Container as="nav">Links</Container>
+      </Hero.Foot>
+    </Hero>
+  );
+}
+
+export function SiteFooter() {
+  return (
+    <>
+      <Hero as="footer" size="small">
+        <Hero.Foot as="nav">
+          <Container as="aside">Sitemap</Container>
+        </Hero.Foot>
+      </Hero>
+      <Container as="footer">Copyright</Container>
+    </>
+  );
+}

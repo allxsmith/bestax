@@ -71,6 +71,19 @@ function CollapseIcon() {
   );
 }
 
+// A field with its list opened under it, the first row checked: combobox
+function ComboboxIcon() {
+  return (
+    <svg {...iconProps}>
+      <rect x="3" y="3" width="18" height="6" rx="1.5" />
+      <path d="M6.5 6h5" />
+      <rect x="3" y="11" width="18" height="10" rx="1.5" />
+      <path d="M6 14.6l1.3 1.3 2.2-2.4" />
+      <path d="M11.5 14.5h6M11.5 18h6" />
+    </svg>
+  );
+}
+
 // Modal bubble with action buttons — dialog
 function DialogIcon() {
   return (
@@ -224,6 +237,7 @@ const ADDON_ICONS = {
   badge: BadgeIcon,
   carousel: CarouselIcon,
   collapse: CollapseIcon,
+  combobox: ComboboxIcon,
   contextmenu: ContextMenuIcon,
   dialog: DialogIcon,
   emptystate: EmptyStateIcon,
