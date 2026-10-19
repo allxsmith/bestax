@@ -54,6 +54,7 @@ import {
   TextArea,
   TimeInput,
   Title,
+  ToggleButton,
 } from '../../index';
 
 const PKG = path.resolve(__dirname, '../../..');
@@ -1307,28 +1308,87 @@ describe.each(SHEETS)('$label', ({ prefix, css }) => {
         <Icon name="floppy-disk" bgColor="danger" />
       </Button>,
     ],
-  ] as Array<[string, React.ReactElement]>)(
-    'hides everything inside a loading button in forced colors: %s',
+    [
+      'an SVG with its own fill',
+      <Button key="x" isLoading>
+        <svg viewBox="0 0 24 24" fill="#3e8ed0" aria-hidden="true">
+          <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4z" />
+        </svg>
+        <span>Save</span>
+      </Button>,
+    ],
+    [
+      'a LinkButton holding a Tag',
+      <LinkButton key="x" isLoading>
+        <Tag color="danger">3</Tag>
+        <span>Save</span>
+      </LinkButton>,
+    ],
+    [
+      'a ToggleButton holding an Icon with a background',
+      <ToggleButton key="x" isLoading>
+        <Icon name="floppy-disk" bgColor="danger" />
+      </ToggleButton>,
+    ],
+  ] as Array<[string, React.ReactElement<{ isLoading?: boolean }>]>)(
+    'hides everything inside a loading button, in every mode: %s',
     (_label, element) => {
-      const { container } = render(
+      const { container, rerender } = render(
         <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
       );
-      const children = Array.from(
-        container.querySelector(`.${prefix}button`)!.children
-      );
+      const button = container.querySelector(`.${prefix}button`)!;
+      const children = Array.from(button.children);
       expect(children.length).toBeGreaterThan(0);
-      // Forcing is off inside the button too, so a color or a background of
-      // its own, which Bulma's helpers give `!important`, would show. A child
-      // at no opacity paints nothing, whatever it sets, and stays in the
-      // accessibility tree, so the button keeps its name.
+      // Bulma's transparent label only reaches what inherits it, so a color,
+      // a background or a fill of a child's own would show through the
+      // spinner, and in forced colors, with forcing off, so would anything.
+      // A child at no opacity paints nothing, whatever it sets, keeps its
+      // box, so the button keeps its size, and stays in the accessibility
+      // tree, so the button keeps its name.
       for (const el of children) {
-        expect(
-          resolved(rules, el, '', { forcedColors: true }, ['opacity'])
-        ).toBe('0');
-        expect(resolved(rules, el, '', {}, ['opacity'])).not.toBe('0');
+        for (const when of [
+          {},
+          { forcedColors: true },
+          { reducedMotion: true },
+        ]) {
+          expect(resolved(rules, el, '', when, ['opacity'])).toBe('0');
+        }
+      }
+      // The spinner is the button's own `::after`, which stays.
+      expect(resolved(rules, button, '::after', {}, ['opacity'])).toBeNull();
+      // And it all comes back when loading ends.
+      rerender(
+        <ConfigProvider classPrefix={prefix}>
+          {React.cloneElement(element, { isLoading: false })}
+        </ConfigProvider>
+      );
+      const done = container.querySelector(`.${prefix}button`)!;
+      expect(done.classList.contains(`${prefix}is-loading`)).toBe(false);
+      for (const el of Array.from(done.children)) {
+        expect(resolved(rules, el, '', {}, ['opacity'])).toBeNull();
       }
     }
   );
+
+  it.each(
+    RINGS.filter(
+      ([name]) => !/Button isLoading$/.test(name) && name !== 'Loader'
+    )
+  )('leaves what is inside a loading field showing: %s', (_label, element) => {
+    // The hide is for a loading button. A control, a select or a field
+    // marked loading keeps its input, its select and its own buttons.
+    const { container } = render(
+      <ConfigProvider classPrefix={prefix}>{element}</ConfigProvider>
+    );
+    const inside = Array.from(
+      container.querySelectorAll(`.${prefix}is-loading`)
+    ).flatMap(el => Array.from(el.querySelectorAll('*')));
+    for (const el of inside) {
+      for (const when of [{}, { forcedColors: true }]) {
+        expect(resolved(rules, el, '', when, ['opacity'])).not.toBe('0');
+      }
+    }
+  });
 
   it('rings a focused loading button in forced colors, where its border holds still', () => {
     // The `!important` border above stops the browser recoloring it to show
