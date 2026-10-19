@@ -1,3 +1,48 @@
+# [2.28.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.27.0...bestax-migrate@2.28.0) (2026-10-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** advise on variables declared on a component and again on its element ([6bc0e8d](https://github.com/allxsmith/bestax/commit/6bc0e8dcc37c9543cc7d9bbf99157db0646b6d87))
+* **bestax-mcp:** describe a .icon's glyph conversion in lookup_bulma_classes ([08855a5](https://github.com/allxsmith/bestax/commit/08855a57d964cd565d8d63e6c2b38b01dee7d56b)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bestax-migrate:** move Font Awesome's aria-hidden up only onto a .icon nothing else exposes ([c745993](https://github.com/allxsmith/bestax/commit/c745993b991c5f984ba00c3437e74d52b9f6671f)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bestax-migrate:** refuse a tag the target can't render before an attribute it drops ([40e65fb](https://github.com/allxsmith/bestax/commit/40e65fbdea8e5572ff1f1ed0fe41cee847cf8008)), closes [#1151](https://github.com/allxsmith/bestax/issues/1151)
+* **bestax-migrate:** say Font Awesome 4 icons the codemod converts keep their fa ([7848b61](https://github.com/allxsmith/bestax/commit/7848b6178b8f8a1f3bc8521387b8af27ab0632b6)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bulma-ui:** hand back only the focus an active Loading took away ([65321e6](https://github.com/allxsmith/bestax/commit/65321e6b4aa413a1c2ec8b3caac4bc33ece2322a))
+* **bulma-ui:** keep a data-mode Combobox's list and search when a tag is taken off ([85ede46](https://github.com/allxsmith/bestax/commit/85ede46723e3182f5b68e8471fc7cf406c126d9c))
+* **bulma-ui:** keep a portaled Combobox list out of its server markup's ARIA ([735b5e4](https://github.com/allxsmith/bestax/commit/735b5e445eff71782bbb93237b34ced5477ca9c3))
+* **bulma-ui:** keep document listeners and Carousel's autoplay while callbacks change ([78d512c](https://github.com/allxsmith/bestax/commit/78d512cbf94e6e3a0bec4ddf8b1006a5c34b6af1)), closes [#1186](https://github.com/allxsmith/bestax/issues/1186)
+* **bulma-ui:** keep Tab inside a Sidebar with an overlay ([4a7a71f](https://github.com/allxsmith/bestax/commit/4a7a71fea289f901a992715bd5c7c2adb158608e)), closes [#1114](https://github.com/allxsmith/bestax/issues/1114)
+* **bulma-ui:** keep the date pickers' popover listeners while onClose changes ([03598e5](https://github.com/allxsmith/bestax/commit/03598e58ec47d9e897a1c8f3898baa02467c6591)), closes [#1088](https://github.com/allxsmith/bestax/issues/1088) [#1113](https://github.com/allxsmith/bestax/issues/1113)
+* **bulma-ui:** leave autoComplete out of Combobox.Input's props, since the field sets it ([677ab56](https://github.com/allxsmith/bestax/commit/677ab56d14654a3c90f1bf7e7f8180093d27aa24))
+* **bulma-ui:** let a name the caller gives a Combobox.Group win over its heading's ([4fa3d8e](https://github.com/allxsmith/bestax/commit/4fa3d8e36cf0a61fe0568b69d9848ebd91c01181))
+* **bulma-ui:** make what an active Loading covers inert ([5a544e1](https://github.com/allxsmith/bestax/commit/5a544e188715284fda221d7bc320cfd4e35d91e6)), closes [#1145](https://github.com/allxsmith/bestax/issues/1145)
+* **bulma-ui:** measure a portaled Combobox menu again as filtering changes its height ([b54db16](https://github.com/allxsmith/bestax/commit/b54db16d2ee0d17487bc699a271b0477dd8edfc1))
+* **bulma-ui:** name a Combobox field with its own id in server markup ([60bc7c4](https://github.com/allxsmith/bestax/commit/60bc7c4a0d308c5adfb945c249546ca1f24e7ce6))
+* **bulma-ui:** put an inline data-mode Combobox's text back when Enter goes on to the form ([125a210](https://github.com/allxsmith/bestax/commit/125a21030900e02dc5590fa1cd378665590b7b52))
+* **bulma-ui:** report Autocomplete's open state once per change ([0703c1c](https://github.com/allxsmith/bestax/commit/0703c1c90d6445a27f710c7efa9c37546d76bc62))
+* **bulma-ui:** scroll the Combobox list for keys, not under the pointer ([d3a142f](https://github.com/allxsmith/bestax/commit/d3a142f03f266a345c37bbbd0bf36e3d5c5c3ce6))
+* **bulma-ui:** select nothing on a click outside once the highlight is past the list ([ec342d8](https://github.com/allxsmith/bestax/commit/ec342d87410d3ea8d2778f40e50c0cf158eb1688))
+* **bulma-ui:** send a Tab that leaves a Sidebar back in, and make a closed one inert ([7ad7736](https://github.com/allxsmith/bestax/commit/7ad77361ad8b9ed91328010c4fb262477d04519d)), closes [#1114](https://github.com/allxsmith/bestax/issues/1114)
+* **bulma-ui:** settle the Combobox data mode's text on close, and tie its tags to the field ([550b227](https://github.com/allxsmith/bestax/commit/550b2272954140cc2b2448fa63af743a917edb55))
+* **bulma-ui:** stop the Server Search story's spinner when a city is picked mid-search ([07f7168](https://github.com/allxsmith/bestax/commit/07f716801aa1a951d3c2066fd1e1cf5bcf4262bf))
+* **bulma-ui:** type Panel.Block's props by its as, so the default keeps the anchor's ([9fc9844](https://github.com/allxsmith/bestax/commit/9fc9844d5b8668cb4464ae822689783ba5888bb7)), closes [#1151](https://github.com/allxsmith/bestax/issues/1151)
+* **docs:** give a Combobox's two variable homes a lead that says both ([8a35078](https://github.com/allxsmith/bestax/commit/8a35078c918c57d41ec2a67488fb1f8cdb77291e))
+* **docs:** read a prop that is true, false and boolean across branches as boolean ([831b396](https://github.com/allxsmith/bestax/commit/831b396108d9c0569bb1b337504165b2a22e7bbb))
+* **docs:** read a root class listed beside a compound as a compound home ([54e0e8f](https://github.com/allxsmith/bestax/commit/54e0e8fda1b85547fe1a2a4b1942ca13289cd394))
+
+
+### Features
+
+* **bestax-migrate:** convert Font Awesome's own hidden <i> by moving aria-hidden up ([f8a3d89](https://github.com/allxsmith/bestax/commit/f8a3d897d097c5682ea6ec50294b32bf4da4c3d2)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bestax-migrate:** convert Hero, Container and Panel on the landmark tags their as takes ([06eac13](https://github.com/allxsmith/bestax/commit/06eac13b8f0d7efe405223896b9a94319862ffb3)), closes [#1176](https://github.com/allxsmith/bestax/issues/1176) [#1151](https://github.com/allxsmith/bestax/issues/1151)
+* **bestax-migrate:** write a .icon's glyph as Icon's props and advise on FA's own markup ([ee288bf](https://github.com/allxsmith/bestax/commit/ee288bf8b3120f14263813aaaf0a8859a9009e62)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bulma-ui:** add Combobox, a field with a list of options you filter ([8295b30](https://github.com/allxsmith/bestax/commit/8295b3026f957e2d75254d03a9513eace2df14a9)), closes [#1077](https://github.com/allxsmith/bestax/issues/1077) [#1066](https://github.com/allxsmith/bestax/issues/1066) [#1083](https://github.com/allxsmith/bestax/issues/1083)
+* **bulma-ui:** give Combobox a data mode that renders its own parts and keeps the value ([fbc8dd1](https://github.com/allxsmith/bestax/commit/fbc8dd18eb7a6686dac22d8affb397ab76f00453))
+* **bulma-ui:** give the Combobox data mode disabled, required, form, id and a name of its own ([64fc277](https://github.com/allxsmith/bestax/commit/64fc27740abbe888be3227c1c63f20af5744e1b4))
+* **bulma-ui:** let a data-mode Combobox name its tag buttons with ariaCloseLabel ([831e31c](https://github.com/allxsmith/bestax/commit/831e31c6976557deca4158cf6b9dc373ba5d0c62))
+* **bulma-ui:** let Hero, Container and Panel render the landmark tags Bulma pages use ([a036fd7](https://github.com/allxsmith/bestax/commit/a036fd774878fe6b27085dab9c0b15b1de106235)), closes [#1151](https://github.com/allxsmith/bestax/issues/1151)
+
 # [2.27.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.26.0...bestax-migrate@2.27.0) (2026-10-18)
 
 
