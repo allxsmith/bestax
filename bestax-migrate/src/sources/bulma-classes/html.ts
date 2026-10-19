@@ -204,27 +204,25 @@ const HOME = 'HomePage';
  * The component a page becomes: its file's name in PascalCase and `Page`, so
  * `hero.html` can't shadow bestax's `Hero`. A name starting with a digit
  * starts with `Page` instead (`404.html` is `Page404`), and one with nothing
- * to go by is `Page`. An `index.html` is named after its folder, unless other
- * pages sit beside it (`siblings`, their file names, read from its folder
- * when not given): then it is the site's home page, `HomePage`, as long as
- * none of them is named that already.
+ * to go by is `Page`. An `index.html` is named after its folder, which is
+ * what tells `docs/index.html` from `blog/index.html`, but for the site's home
+ * page: the `index.html` in a folder the run starts from (`roots`, the
+ * project's `runRoots`), with other pages beside it and none of them named
+ * `HomePage` already. Only that page's folder is read for the pages beside it.
  */
-export function componentName(
-  file: string,
-  siblings?: readonly string[]
-): string {
+export function componentName(file: string, roots?: unknown): string {
   const stem = path.basename(file, path.extname(file));
   if (!/^index$/i.test(stem)) return pageName(stem);
-  const beside = siblings ?? pagesBeside(file);
+  const dir = path.dirname(path.resolve(file));
+  const atRoot = Array.isArray(roots) && roots.includes(dir);
+  const beside = atRoot ? pagesBeside(file) : [];
   const home =
     beside.length > 0 &&
     beside.every(
       sibling =>
         pageName(path.basename(sibling, path.extname(sibling))) !== HOME
     );
-  return home
-    ? HOME
-    : pageName(path.basename(path.dirname(path.resolve(file))));
+  return home ? HOME : pageName(path.basename(dir));
 }
 
 /** The other HTML pages in a page's folder, by file name. */
@@ -1401,7 +1399,7 @@ export function convertPage(
     // The transform retargets it under `--css`, as it would in a JSX file.
     ...(assets.importsBulma ? [BULMA_IMPORT] : []),
     ...notes.document.map(note => todoLine(note, page)),
-    `export default function ${componentName(file)}() {`,
+    `export default function ${componentName(file, options.runRoots)}() {`,
     ...contentLines(notes.content, page).map(line => `  ${line}`),
     '  return (',
   ];

@@ -113,6 +113,26 @@ describe('analyzeProject', () => {
       { dir, runtime: 'preact' },
     ]);
   });
+
+  it('starts the run from each folder it names and each named file, but for one inside another', () => {
+    const dir = pkg({
+      'site/index.html': '',
+      'site/docs/index.html': '',
+      'other/page.html': '',
+    });
+    const at = (...parts: string[]) => path.join(dir, ...parts);
+    expect(
+      analyzeProject([
+        at('site', 'docs', 'index.html'),
+        at('site'),
+        at('other', 'page.html'),
+        at('site', 'index.html'),
+      ]).runRoots
+    ).toEqual([at('other'), at('site')]);
+    expect(analyzeProject([at('site', 'docs')]).runRoots).toEqual([
+      at('site', 'docs'),
+    ]);
+  });
 });
 
 describe('writesTypeScript', () => {

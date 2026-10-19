@@ -26,6 +26,7 @@ import {
 } from '../html.js';
 import { HTML_KINDS, htmlRuleId, inHtmlVocabulary } from '../html-rules.js';
 import { bulmaClasses } from '../index.js';
+import { analyzeProject } from '../project.js';
 
 const fixturesDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -152,20 +153,51 @@ describe('naming and placing the module', () => {
     expect(componentName(file)).toBe(name);
   });
 
-  it("names an index.html with pages beside it the site's home page", () => {
-    const index = path.join('scratch', 'index.html');
-    expect(componentName(index, ['about.html', 'contact.htm'])).toBe(
-      'HomePage'
+  it('names the index.html at the top of a sectioned site its home page, and every other after its folder', () => {
+    const dir = tempDir();
+    const site = path.join(dir, 'convert');
+    const pages = [
+      'index.html',
+      'about.html',
+      path.join('docs', 'index.html'),
+      path.join('docs', 'api.html'),
+      path.join('blog', 'index.html'),
+      path.join('blog', 'first-post.html'),
+    ];
+    for (const page of pages) {
+      fs.mkdirSync(path.dirname(path.join(site, page)), { recursive: true });
+      fs.writeFileSync(path.join(site, page), box);
+    }
+    const named = (roots: unknown) =>
+      pages
+        .filter(page => path.basename(page) === 'index.html')
+        .map(page => componentName(path.join(site, page), roots));
+    // A walk from the site's folder, or every page named: the top is one root.
+    for (const targets of [[site], pages.map(page => path.join(site, page))]) {
+      expect(named(analyzeProject(targets).runRoots)).toEqual([
+        'HomePage',
+        'DocsPage',
+        'BlogPage',
+      ]);
+    }
+    // A run from a section starts there.
+    expect(named(analyzeProject([path.join(site, 'docs')]).runRoots)).toEqual([
+      'ConvertPage',
+      'HomePage',
+      'BlogPage',
+    ]);
+    // With no roots to go by, every index keeps its folder's name.
+    expect(named(undefined)).toEqual(['ConvertPage', 'DocsPage', 'BlogPage']);
+    // A page beside the top one that is named `HomePage` already keeps its own.
+    fs.writeFileSync(path.join(site, 'home.html'), box);
+    expect(named([site])[0]).toBe('ConvertPage');
+    // The roots name only an index.html.
+    expect(componentName(path.join(site, 'about.html'), [site])).toBe(
+      'AboutPage'
     );
-    // Unless a page beside it is named that already.
-    expect(componentName(index, ['about.html', 'home.html'])).toBe(
-      'ScratchPage'
-    );
-    // The pages beside it name only an index.html.
-    expect(componentName('about.html', ['index.html'])).toBe('AboutPage');
   });
 
-  it('reads the other pages in the folder, and names the module from them', () => {
+  it('reads the pages beside a top index.html, and names its module from them', () => {
     const dir = tempDir();
     const site = path.join(dir, 'convert');
     fs.mkdirSync(path.join(site, 'fruits.html'), { recursive: true });
@@ -174,16 +206,20 @@ describe('naming and placing the module', () => {
       path.join(site, 'broken.html')
     );
     const index = path.join(site, 'index.html');
+    const roots = { runRoots: [site] };
     // A folder named like a page is no page, and neither is a broken link.
     expect(pagesBeside(index)).toEqual([]);
-    expect(convert(box, {}, index).output).toContain(
+    expect(convert(box, roots, index).output).toContain(
       'export default function ConvertPage() {'
     );
     fs.writeFileSync(path.join(site, 'services.html'), box);
     fs.writeFileSync(path.join(site, 'style.css'), '');
     expect(pagesBeside(index)).toEqual(['services.html']);
-    expect(convert(box, {}, index).output).toContain(
+    expect(convert(box, roots, index).output).toContain(
       'export default function HomePage() {'
+    );
+    expect(convert(box, {}, index).output).toContain(
+      'export default function ConvertPage() {'
     );
     expect(pagesBeside(path.join(dir, 'gone', 'index.html'))).toEqual([]);
   });

@@ -243,8 +243,10 @@ look like it did nothing.
 Each page becomes a React module beside it: `login/index.html` writes `login/index.tsx`, or
 `.jsx` when the package has no `tsconfig.json` and doesn't depend on TypeScript. The module's
 default export is a component named after the file, or after its folder for an `index.html`,
-with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. An `index.html` with other
-pages beside it is the site's home page, so it becomes `HomePage`. This page:
+with `Page` on the end so `hero.html` can't shadow bestax's `Hero`. The `index.html` in the folder
+the run starts from, with other pages beside it, is the site's home page, so it becomes
+`HomePage`. One in a folder below keeps its folder's name, so `docs/index.html` is `DocsPage`.
+This page:
 
 ```html
 <section class="hero is-fullheight">
