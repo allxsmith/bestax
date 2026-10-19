@@ -738,8 +738,8 @@
       "slug": "components/menu",
       "import": "import { Menu } from '@allxsmith/bestax-bulma';",
       "compound": true,
-      "propCount": 16,
-      "exampleCount": 6
+      "propCount": 22,
+      "exampleCount": 8
     },
     {
       "name": "Message",
@@ -2080,6 +2080,10 @@
     "--bulma-menu-list-link-padding": ["Menu"],
     "--bulma-menu-nested-list-margin": ["Menu"],
     "--bulma-menu-nested-list-padding-left": ["Menu"],
+    "--bulma-menu-section-chevron-color": ["Menu"],
+    "--bulma-menu-section-chevron-duration": ["Menu"],
+    "--bulma-menu-section-chevron-size": ["Menu"],
+    "--bulma-menu-section-gap": ["Menu"],
     "--bulma-message-background-l": ["Message"],
     "--bulma-message-body-border-width": ["Message"],
     "--bulma-message-body-color": ["Message"],
@@ -2800,6 +2804,11 @@
       "component": "Menu",
       "path": "Menu.List",
       "purpose": "MenuList applies `menu-list` class only at the top level (not for nested lists)."
+    },
+    "MenuSection": {
+      "component": "Menu",
+      "path": "Menu.Section",
+      "purpose": "A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open."
     },
     "NavbarBrand": {
       "component": "Navbar",

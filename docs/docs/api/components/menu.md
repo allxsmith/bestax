@@ -14,7 +14,7 @@ The `Menu` component provides Bulma's vertical navigation menu: a simple, access
 
 <!-- /bestax:generated overview -->
 
-It supports labels, nested menu lists, active states, custom links, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
+It supports labels, nested menu lists, active states, custom links, sections that open and close, and all Bulma/utility helper props. Use it for dashboards, sidebars, admin panels, or any grouped navigation.
 
 :::info
 Menu supports unlimited nesting and lets you use any link or router component via the `as` prop on `Menu.Item`.
@@ -147,6 +147,104 @@ Create multi-level navigation by nesting `Menu.List` components inside `Menu.Ite
 
 ---
 
+### Sections that open and close
+
+A docs or app sidebar often has groups of links that open and close. Put each group's
+`Menu.List` in a `Menu.Section`, with the group's name in `label`. The heading is a button drawn
+like `Menu.Label`, with a chevron that points down while the section is open, and the links under
+it are the same `Menu.Item`s as anywhere else, with their `href`, `active` and `aria-current`.
+Give `defaultOpen` to the section that holds the current page, so the reader sees where they are.
+
+```tsx live
+<nav aria-label="Documentation">
+  <Menu>
+    <Menu.Section label="Getting started">
+      <Menu.List>
+        <Menu.Item href="#installation">Installation</Menu.Item>
+        <Menu.Item href="#quick-start">Quick start</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+    <Menu.Section label="Components" defaultOpen>
+      <Menu.List>
+        <Menu.Item href="#button">Button</Menu.Item>
+        <Menu.Item href="#card" active>
+          Card
+        </Menu.Item>
+        <Menu.Item href="#modal">Modal</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+    <Menu.Section label="Form">
+      <Menu.List>
+        <Menu.Item href="#input">Input</Menu.Item>
+        <Menu.Item href="#select">Select</Menu.Item>
+      </Menu.List>
+    </Menu.Section>
+  </Menu>
+</nav>
+```
+
+This is navigation, not a tree: each link is a tab stop of its own, and there are no arrow keys to
+learn. For data you browse and pick from, like a file explorer, use [`TreeView`](./treeview.md)
+instead.
+
+Bulma's menu has no section that opens and closes, so `Menu.Section` is bestax's own. Its styles
+ship in `bestax.css` and `extras.css`, not in Bulma's stylesheet.
+
+---
+
+### Controlled sections
+
+A section holds its own open state unless you pass `open`. Then it's yours, and the button only
+reports the state it asks for through `onOpenChange`, the way [`Collapse`](./collapse.md) works.
+That lets the app open the section for the current route, or open and close them all at once.
+
+```tsx live
+function example() {
+  const groups = {
+    Components: ['Button', 'Card', 'Modal'],
+    Form: ['Input', 'Select'],
+  };
+  const [open, setOpen] = React.useState(['Components']);
+
+  return (
+    <>
+      <Buttons mb="3">
+        <Button size="small" onClick={() => setOpen(Object.keys(groups))}>
+          Open all
+        </Button>
+        <Button size="small" onClick={() => setOpen([])}>
+          Close all
+        </Button>
+      </Buttons>
+      <Menu>
+        {Object.entries(groups).map(([label, links]) => (
+          <Menu.Section
+            key={label}
+            label={label}
+            open={open.includes(label)}
+            onOpenChange={isOpen =>
+              setOpen(current =>
+                isOpen ? [...current, label] : current.filter(l => l !== label)
+              )
+            }
+          >
+            <Menu.List>
+              {links.map(link => (
+                <Menu.Item key={link} href={`#${link.toLowerCase()}`}>
+                  {link}
+                </Menu.Item>
+              ))}
+            </Menu.List>
+          </Menu.Section>
+        ))}
+      </Menu>
+    </>
+  );
+}
+```
+
+---
+
 ### Forwarded ref
 
 `Menu.Item` forwards a ref to the **inner** element — the one `as` names — not to the wrapping `<li>`. That is the element you want for programmatic focus.
@@ -178,7 +276,7 @@ function example() {
 
 ### Compound (dot-notation) usage
 
-`MenuLabel`, `MenuList`, and `MenuItem` are also available as `Menu.Label`, `Menu.List`, and `Menu.Item`, so the whole menu can be composed from the single `Menu` import.
+`MenuLabel`, `MenuList`, `MenuItem`, and `MenuSection` are also available as `Menu.Label`, `Menu.List`, `Menu.Item`, and `Menu.Section`, so the whole menu can be composed from the single `Menu` import.
 
 ```tsx live
 <Menu>
@@ -189,6 +287,12 @@ function example() {
     </Menu.Item>
     <Menu.Item href="#customers">Customers</Menu.Item>
   </Menu.List>
+  <Menu.Section label="Transactions">
+    <Menu.List>
+      <Menu.Item href="#payments">Payments</Menu.Item>
+      <Menu.Item href="#transfers">Transfers</Menu.Item>
+    </Menu.List>
+  </Menu.Section>
 </Menu>
 ```
 
@@ -217,6 +321,28 @@ function example() {
   contrast theme gives them. That rule ships in `bestax.css` and `extras.css`, not in Bulma's
   own stylesheet.
 
+For `Menu.Section`, a section that opens and closes:
+
+- It follows APG's
+  [Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/).
+  The heading is a `<button type="button">` with `aria-expanded`, and `aria-controls` naming the
+  wrapper around its list. Enter and Space open and close it, as they do any button, and it
+  doesn't submit a form it sits in.
+- The links under it are ordinary links. Each is its own tab stop, and there's no roving focus or
+  arrow-key handling, which is a tree's model rather than navigation's. They keep their `href`,
+  so a link still opens in a new tab, and `active` still sets `aria-current="page"`.
+- A closed section's list is `hidden`, so it isn't drawn, Tab skips its links, and assistive tech
+  and find-in-page don't reach them. It stays in the page, so `aria-controls` always names an
+  element that exists, and a section rendered on the server is closed before any script runs.
+- Open the section that holds the current page, with `defaultOpen` or `open`, so the link marked
+  `aria-current` can be seen and reached.
+- `label` is the button's content and its accessible name. Keep links and other buttons out of
+  it.
+- In forced colors the chevron stays visible, since it's drawn as a border, and the focus ring
+  takes the system's text color. In a right-to-left page the chevron sits at the left end of the
+  heading and points left while closed. It turns with a short transition, which stops when the
+  reader asks for reduced motion.
+
 :::note
 For router integrations, pass the correct `as` and `to`/`href` props to `Menu.Item`.
 :::
@@ -228,7 +354,10 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 - [`Sidebar`](./sidebar.md): For slide-out navigation panels using Menu.
 - [`Panel`](./panel.md): For alternate sidebar/navigation layouts.
 - [`TreeView`](./treeview.md): Looks like a menu, but it's for data you browse and pick from, like
-  a file explorer, not for navigation. Its items aren't links. Keep site navigation on `Menu`.
+  a file explorer, not for navigation. Its items aren't links. Keep site navigation on `Menu`, with
+  `Menu.Section` for groups that open and close.
+- [`Collapse`](./collapse.md): A panel of any content that opens and closes, whose open state
+  works the way `Menu.Section`'s does.
 - [Helper Props](../helpers/usebulmaclasses.md): All Bulma utility helpers are supported.
 
 ---
@@ -237,6 +366,7 @@ For router integrations, pass the correct `as` and `to`/`href` props to `Menu.It
 
 - [Bulma Menu Documentation](https://bulma.io/documentation/components/menu/)
 - [Storybook: Menu Stories](https://bestax.io/storybook/?path=/story/components-menu--basic)
+- [APG: Disclosure Navigation Menu example](https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/)
 
 :::tip Pro Tip
 You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu />` and its subcomponents for powerful utility-based styling.
@@ -261,6 +391,7 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 - `Menu.Label`: Bulma Menu label component.
 - `Menu.List`: MenuList applies `menu-list` class only at the top level (not for nested lists). Every level renders `role="list"`, which Safari needs: WebKit stops exposing a `<ul>` as a list once its markers are hidden, and Bulma's reset hides them.
 - `Menu.Item`: MenuItem supports `as` prop for custom link components, e.g., react-router-dom Link. Give each item an `href`, a router link through `as`, or `as="button"`, so the keyboard can reach it: an `<a>` with no `href` isn't a link, and Tab skips it.
+- `Menu.Section`: A section of the menu that opens and closes: its heading is a button drawn like `Menu.Label`, and its `Menu.List` of links shows while it's open. It's APG's disclosure navigation, for a sidebar of link groups: the links stay ordinary links, each its own tab stop, and a closed section's list is `hidden`, so Tab and assistive tech skip it.
 
 ### Menu.Label
 
@@ -296,6 +427,18 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 | `ref`         | `PolymorphicRef<React.ElementType>`                                                                 | —       | Ref forwarded to the inner element `as` renders, not the wrapping `<li>`, typed from `as`: the DOM node for an intrinsic tag, or whatever handle a custom component exposes.                                                                                                                                                                                                                                                                                                                                                                                                                      |
 | `...`         | Remaining props of the element or component selected by `as` (default `<a>`) and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 
+### Menu.Section
+
+| Prop           | Type                                                   | Default | Description                                                                                                                                                                                           |
+| -------------- | ------------------------------------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `className`    | `string`                                               | —       | Additional CSS classes for the wrapping `<div>`.                                                                                                                                                      |
+| `label`        | `React.ReactNode`                                      | —       | **Required.** The section's heading, drawn like `Menu.Label` inside the button that opens and closes it. Keep links and buttons out of it, since it's inside one.                                     |
+| `children`     | `React.ReactNode`                                      | —       | The `Menu.List` of links the section shows while it's open.                                                                                                                                           |
+| `open`         | `boolean`                                              | —       | Controlled open state. If provided, the section is controlled, and its button only reports through `onOpenChange`.                                                                                    |
+| `defaultOpen`  | `boolean`                                              | `false` | Initial open state for uncontrolled usage. Open the section that holds the current page, so the reader sees where they are.                                                                           |
+| `onOpenChange` | `(open: boolean) => void`                              | —       | Called with the state the button asks for (`true` to open) each time it is clicked or activated with Enter or Space, in every mode. Pair it with `open` to let the button drive a controlled section. |
+| `...`          | All standard `<div>` attributes and Bulma helper props | —       | See [Helper Props](../helpers/usebulmaclasses.md)                                                                                                                                                     |
+
 <!-- /bestax:generated props -->
 
 ---
@@ -308,6 +451,10 @@ You can use all [Bulma helper props](../helpers/usebulmaclasses.md) with `<Menu 
 
 | CSS Variable                                  | Sass Variable                          | Default                                  |
 | --------------------------------------------- | -------------------------------------- | ---------------------------------------- |
+| `--bulma-menu-section-gap`                    | `$menu-section-gap`                    | `0.375em`                                |
+| `--bulma-menu-section-chevron-size`           | `$menu-section-chevron-size`           | `1em`                                    |
+| `--bulma-menu-section-chevron-color`          | `$menu-section-chevron-color`          | `currentColor`                           |
+| `--bulma-menu-section-chevron-duration`       | `$menu-section-chevron-duration`       | `var(--bulma-duration)`                  |
 | `--bulma-menu-item-h`                         | `$menu-item-h`                         | `var(--bulma-scheme-h)`                  |
 | `--bulma-menu-item-s`                         | `$menu-item-s`                         | `var(--bulma-scheme-s)`                  |
 | `--bulma-menu-item-l`                         | `$menu-item-l`                         | `var(--bulma-scheme-main-l)`             |
