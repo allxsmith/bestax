@@ -474,7 +474,7 @@ export function lookupClasses(
     if (tag && tag !== entry.tag) {
       return result({
         kind: 'markup',
-        why: `bestax renders \`.${wrapper}\` on a <${entry.tag}>, not a <${tag}>`,
+        why: `bestax renders \`.${wrapper}\` on ${aTag(entry.tag!)}, not ${aTag(tag)}`,
       });
     }
     if (!bare) {
@@ -836,7 +836,7 @@ function itemsText(items: Items): string {
       `\`${items.after.target}\` after the ${child}'s children,`
     : '';
   return (
-    ` Each ${item} in it holding ${/^[aeiou]/.test(items.child) ? 'an' : 'a'} ${child}` +
+    ` Each ${item} in it holding ${aTag(items.child)}` +
     `${after} and nothing else becomes a \`${items.target}\`, written in the ` +
     `${item}'s place around the ${child}'s children.` +
     (modifiers.length > 0 ? ` ${capitalised(modifiers.join(', '))}.` : '') +
@@ -846,6 +846,17 @@ function itemsText(items: Items): string {
   );
 }
 
+/**
+ * A tag with the article it takes, read aloud: "an <a>", "an <h2>", "a
+ * <button>", "a <ul>". A copy of the codemod's (its `_shared/articles.ts`),
+ * which this server can't import at runtime, so its TODOs and these answers
+ * say a tag the same way: `bulma-classes-agree.test.ts` holds the two to the
+ * same output over every element name.
+ */
+export function aTag(tag: string): string {
+  return `${/^(?:[aeio]|h\d$)/.test(tag) ? 'an' : 'a'} <${tag}>`;
+}
+
 function capitalised(text: string): string {
   return text.charAt(0).toUpperCase() + text.slice(1);
 }
@@ -853,7 +864,7 @@ function capitalised(text: string): string {
 /** What converting a component that renders the element inside it means. */
 function absorbsText(target: string, absorbs: Absorbs): string {
   const child = `<${absorbs.tag}>`;
-  const aChild = `${/^[aeiou]/.test(absorbs.tag) ? 'an' : 'a'} ${child}`;
+  const aChild = aTag(absorbs.tag);
   const changes = [
     ...Object.entries(absorbs.modifiers ?? {}).map(
       ([token, modifier]) =>
@@ -1060,8 +1071,9 @@ export function renderLookup(
     case 'wrong-tag':
       out.push(
         `**Component:** \`${element.target}\` renders ${element.reaches}, not ` +
-          `a <${element.tag}>. Change the tag to use it, and the rows below are ` +
-          `what it takes then; the codemod leaves a <${element.tag}> as markup.`
+          `${aTag(element.tag)}. Change the tag to use it, and the rows below ` +
+          `are what it takes then; the codemod leaves ${aTag(element.tag)} as ` +
+          `markup.`
       );
       break;
     case 'markup':

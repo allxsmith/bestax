@@ -1,3 +1,29 @@
+# [2.29.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.28.0...bestax-migrate@2.29.0) (2026-10-19)
+
+
+### Bug Fixes
+
+* **bestax-mcp:** say "an <a>" in lookup_bulma_classes ([657ed6a](https://github.com/allxsmith/bestax/commit/657ed6a97251d3cb402411e257f945d14a6dbbe0)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bestax-migrate:** check the tag before any defaults refusal ([5638529](https://github.com/allxsmith/bestax/commit/56385298b4e4bc20c060502f956d900ce2940292)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bestax-migrate:** give icon advice only on a tag Icon renders ([548571c](https://github.com/allxsmith/bestax/commit/548571cbbbd31e6020cd85252c1078e82ffa45fe)), closes [#1179](https://github.com/allxsmith/bestax/issues/1179) [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bestax-migrate:** say "an <a>" in the tag message ([e0483c0](https://github.com/allxsmith/bestax/commit/e0483c0c8909dfc567af4f3e80f807bda9a39ba7)), closes [#1148](https://github.com/allxsmith/bestax/issues/1148)
+* **bulma-ui:** draw a loading button's spinner and colors itself in forced colors ([d8471b0](https://github.com/allxsmith/bestax/commit/d8471b00168afdb83fb2670e3e8b1d14ef88ec0c)), closes [#1133](https://github.com/allxsmith/bestax/issues/1133)
+* **bulma-ui:** keep a disabled loading button gray in forced colors ([1e1f938](https://github.com/allxsmith/bestax/commit/1e1f938126489742bd191913f413a9b102e09bb4))
+* **bulma-ui:** keep a loading button's idle look and hide what's in it, in forced colors ([784d8ec](https://github.com/allxsmith/bestax/commit/784d8ecd4838e327e31cb008a1db24e1e1a60344)), closes [#1133](https://github.com/allxsmith/bestax/issues/1133)
+* **bulma-ui:** keep a loading Button's label hidden in forced colors ([1b0b3d6](https://github.com/allxsmith/bestax/commit/1b0b3d6ac63ba22b59b1dc0e7c147e5628bbf853)), closes [#1109](https://github.com/allxsmith/bestax/issues/1109) [#1133](https://github.com/allxsmith/bestax/issues/1133)
+* **bulma-ui:** keep Tab in a Modal under a Sidebar without an overlay ([d473c72](https://github.com/allxsmith/bestax/commit/d473c7207803374033378d2796c166d65c9ffac3)), closes [#1191](https://github.com/allxsmith/bestax/issues/1191)
+* **bulma-ui:** leave a Sidebar's focus alone when overlay changes while open ([f80553d](https://github.com/allxsmith/bestax/commit/f80553d58a4c9878fef36513d32a43738360939a)), closes [#1191](https://github.com/allxsmith/bestax/issues/1191)
+* **bulma-ui:** leave focus in a Modal under a Sidebar without an overlay ([026e499](https://github.com/allxsmith/bestax/commit/026e499e4dbdf63615a0847855002c85ca27467e)), closes [#1191](https://github.com/allxsmith/bestax/issues/1191)
+* **bulma-ui:** ring a loading ghost, text or outlined button in CanvasText, in forced colors ([ca7eeb9](https://github.com/allxsmith/bestax/commit/ca7eeb9dc4f864afdfc980f3f9492ffa13fc2c39))
+* **bulma-ui:** say which <html> class a spaced fixed Navbar needs, and hasShadow's default ([b9ddda0](https://github.com/allxsmith/bestax/commit/b9ddda09de9106e859b488cc63af55235e71730b))
+
+
+### Features
+
+* **bestax-mcp:** look up a .navbar's is-spaced and has-shadow as Navbar's flags ([f0e42b0](https://github.com/allxsmith/bestax/commit/f0e42b093d856c7c23f554b15a26132148863464))
+* **bestax-migrate:** convert a .navbar's is-spaced and has-shadow to Navbar's flags ([6a88afc](https://github.com/allxsmith/bestax/commit/6a88afcca4ffbb51d8198f3172c772020c3a9ee3))
+* **bulma-ui:** add isSpaced and hasShadow to Navbar ([28cf92c](https://github.com/allxsmith/bestax/commit/28cf92cda04247fb31439dbdd97e6174b5ede5f0)), closes [#1158](https://github.com/allxsmith/bestax/issues/1158)
+
 # [2.28.0](https://github.com/allxsmith/bestax/compare/bestax-migrate@2.27.0...bestax-migrate@2.28.0) (2026-10-19)
 
 

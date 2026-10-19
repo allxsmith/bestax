@@ -21,6 +21,9 @@ export function Refusals() {
         An attribute Box reads as a prop
       </div>
       <button className="delete"></button>
+      {/* On a tag the target can't render, the tag comes before what it lacks. */}
+      <div className="navbar">A navbar on a div, with no role or label</div>
+      <a className="delete" href="#close"></a>
       <div className={active ? 'box is-active' : 'box'}>A computed class</div>
       <div className="dropdown">
         <div className="dropdown-menu">A family converted later</div>
