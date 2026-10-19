@@ -6,7 +6,11 @@
  * Every conversion this table allows must render exactly the HTML the raw
  * element rendered. That is a claim about bestax, and the render tests hold
  * it: each root, modifier and helper here is rendered through the built
- * library and compared with the raw markup it replaces.
+ * library and compared with the raw markup it replaces. One exception, on
+ * purpose: Font Awesome's own `<i aria-hidden="true">` alone in a `.icon`
+ * that carries nothing assistive tech reads converts to `Icon`, which writes
+ * the attribute on the `.icon` instead, since the glyph is hidden either way
+ * (see `readsGlyph`).
  *
  * Data only: `scripts/gen-mcp-index.mjs` imports it directly for the MCP
  * server's `lookup_bulma_classes`, so nothing Node cannot strip (no enums, no
@@ -118,6 +122,21 @@ export interface Absorbs {
   readonly renames?: Readonly<
     Record<string, { readonly to: string; readonly beside: string }>
   >;
+}
+
+/** How a target that renders a glyph from props reads one (`Icon`). */
+export interface ReadsGlyph {
+  /**
+   * The attributes the element may carry and still take Font Awesome's
+   * `aria-hidden` up off its `<i>`: ones the target renders as given that
+   * assistive tech doesn't read, a name ending in `*` standing for every
+   * attribute it starts. Read by name, whatever the value, since an
+   * expression may render as anything. Anything else (a name, a description,
+   * a `title`, a `role`, a `tabIndex`, a handler) keeps the attribute where
+   * it is: the move would hide what it exposes, and `Icon` writes no
+   * `aria-hidden` beside a `role` or `tabIndex` at all.
+   */
+  readonly hiddenMovesBeside: readonly string[];
 }
 
 export interface RootEntry {
@@ -274,6 +293,18 @@ export interface RootEntry {
    * and each `.icon` converts on its own; they go.
    */
   readonly buildsIcons?: boolean;
+  /**
+   * The target renders a glyph from props in place of its children (`Icon`,
+   * from `library` and `name`): when the element's only child is one bare,
+   * empty `<i>` whose classes `glyph.ts` reads, its classes become those
+   * props, the `<i>` goes and the element closes itself. Around anything
+   * else, the target renders its children as given. An `<i>` that carries
+   * the `aria-hidden` the target writes, as Font Awesome's own markup does,
+   * reads too when the element carries nothing assistive tech reads: the
+   * attribute moves up onto it, the one difference in markup a conversion
+   * makes.
+   */
+  readonly readsGlyph?: ReadsGlyph;
   /**
    * The target renders the whole `.file` tree from props (`File`): its
    * `<input>`, button text, icons and file name. The element converts only
@@ -1796,13 +1827,15 @@ export const ROOTS: Readonly<Record<string, RootEntry>> = {
   'dropdown-content': part(),
   'dropdown-item': part(),
   'dropdown-divider': part(),
-  // With children, `Icon` renders `.icon` around them as given. It hides an
-  // icon with no name, no `role` and no `tabIndex`, and makes one named by
-  // `aria-label` or `aria-labelledby` an image.
+  // `Icon` renders a bare `<i>` from `library` and `name`, and with children,
+  // `.icon` around them as given. It hides an icon with no name, no `role`
+  // and no `tabIndex`, writing `aria-hidden` on the `.icon` and never on the
+  // `<i>`, and makes one named by `aria-label` or `aria-labelledby` an image.
   icon: {
     ...BASE,
     target: 'Icon',
     tag: 'span',
+    readsGlyph: { hiddenMovesBeside: ['id', 'style', 'key', 'data-*'] },
     modifiers: tokens('is-', ['small', 'medium', 'large'], 'size'),
     defaults: { 'aria-hidden': 'true' },
     namedDefaults: {

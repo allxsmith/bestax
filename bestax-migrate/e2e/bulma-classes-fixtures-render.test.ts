@@ -1,7 +1,9 @@
 /**
  * Each bulma-classes fixture renders the same HTML before and after the
  * migration. The input needs no library at all (it is plain JSX), so unlike
- * the other sources' fixtures it can run here, next to its output.
+ * the other sources' fixtures it can run here, next to its output. Both are
+ * compared with Font Awesome's own `aria-hidden` moved up off the `<i>`, the
+ * one difference a conversion makes on purpose (`support/hidden-glyph.ts`).
  */
 
 import classNames from 'classnames';
@@ -9,6 +11,7 @@ import clsx from 'clsx';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { moveGlyphHidden } from './support/hidden-glyph.js';
 import {
   loadModules,
   normalizeHtml,
@@ -41,7 +44,10 @@ function render(file: string): Record<string, string> {
   const source = fs.readFileSync(path.join(fixturesDir, file), 'utf8');
   const html = renderExports(loadModules({ fixture: source }, JOINERS).fixture);
   return Object.fromEntries(
-    Object.entries(html).map(([name, markup]) => [name, normalizeHtml(markup)])
+    Object.entries(html).map(([name, markup]) => [
+      name,
+      moveGlyphHidden(normalizeHtml(markup)),
+    ])
   );
 }
 

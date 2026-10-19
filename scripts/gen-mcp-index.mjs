@@ -818,6 +818,7 @@ export async function bulmaClassTable() {
         absorbs: entry.absorbs ?? null,
         writes: entry.writes ?? null,
         countsChildren: entry.countsChildren ?? null,
+        readsGlyph: entry.readsGlyph ?? null,
         buildsIcons: entry.buildsIcons ?? false,
         buildsFile: entry.buildsFile ?? false,
         noHelpers: entry.noHelpers ?? false,

@@ -2,7 +2,7 @@ import { Icon, IconText } from "@allxsmith/bestax-bulma";
 export function IconTexts() {
   // TODO(bestax-migrate): bestax `IconText` builds its icons from props and wraps each text in a <span> of its own, so this converts only when its children are `.icon`s with no `key`, `ref` or dashed attribute but an `aria-` one, each holding one bare, empty <i> that names a Font Awesome or Material Design Icons glyph, and each followed by at most one bare <span> of static text; keep it as markup, or convert it by hand
   // TODO(bestax-migrate): bestax `IconText` builds each icon from `iconProps`, so this converts only once every `.icon` in it converts to `Icon` on its own; see the TODO on each, then re-run
-  // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run
+  // TODO(bestax-migrate): bestax `Icon` renders `aria-hidden="true"` when the element does not set it; add it here if that is what you want, then re-run, and this converts to `Icon` with `library="fa" name="home"`
   // TODO(bestax-migrate): bestax `IconText` renders only <span>, not a <div>; keep the markup, or change the tag and re-run
   return (
     <section>
@@ -74,17 +74,13 @@ export function IconTexts() {
       </span>
       {/* IconText renders a <span>, not a <div>. */}
       <div className="icon-text">
-        <Icon aria-hidden="true">
-          <i className="fas fa-exclamation-triangle"></i>
-        </Icon>
+        <Icon library="fa" name="exclamation-triangle" aria-hidden="true" />
         <span>Warning</span>
       </div>
       {/* Text before the icon. */}
       <span className="icon-text">
         <span>Next</span>
-        <Icon aria-hidden="true">
-          <i className="fas fa-arrow-right"></i>
-        </Icon>
+        <Icon library="fa" name="arrow-right" aria-hidden="true" />
       </span>
     </section>
   );

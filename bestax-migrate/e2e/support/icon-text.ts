@@ -14,8 +14,9 @@ import {
 export type Attributes = Record<string, string | true>;
 
 /**
- * Glyphs as written: each Font Awesome style, the classes that modify one,
- * and Material Design Icons.
+ * Glyphs as written: each Font Awesome style, short (Font Awesome 5) and
+ * long (6 and 7), Font Awesome 4's `fa`, the classes that modify one, and
+ * Material Design Icons.
  */
 export const GLYPHS: string[][] = [
   ['fas', 'fa-home'],
@@ -25,8 +26,12 @@ export const GLYPHS: string[][] = [
   ['fad', 'fa-bell'],
   ['fat', 'fa-bell'],
   ['fa', 'fa-home'],
+  ['fa', 'fa-lg', 'fa-envelope-o'],
   ['fa-solid', 'fa-house'],
   ['fa-regular', 'fa-bell'],
+  ['fa-brands', 'fa-github', 'fa-lg'],
+  ['fa-sharp', 'fa-solid', 'fa-house'],
+  ['fa-solid', 'fa-house', 'fa-width-auto'],
   ['fas', 'fa-home', 'fa-lg'],
   ['fa-lg', 'fas', 'fa-spinner', 'fa-spin', 'fa-fw'],
   ['fas', 'fa-home', 'my-glyph'],
@@ -35,20 +40,22 @@ export const GLYPHS: string[][] = [
 ];
 
 /**
- * A `.icon` holding a bare `<i>` with the `glyph` classes, planned on its
+ * A `.icon` holding an empty `<i>` with the `glyph` classes, planned on its
  * own as the transform plans it before the element around it. It carries
  * `aria-hidden` unless `attributes` says otherwise, since `Icon` writes it
- * on an icon with no name.
+ * on an icon with no name, and the `<i>` carries `inner`, bare by default
+ * (Font Awesome's own markup hides the `<i>` instead).
  */
 export function iconChild(
   glyph: string[],
   tokens: string[] = [],
-  attributes: Attributes = { 'aria-hidden': 'true' }
+  attributes: Attributes = { 'aria-hidden': 'true' },
+  inner: Attributes = {}
 ): ChildFacts {
-  const inner: ChildFacts = {
+  const i: ChildFacts = {
     tag: 'i',
     tokens: glyph,
-    attributes: new Map(),
+    attributes: new Map(Object.entries(inner)),
     hasSpread: false,
     isEmpty: true,
   };
@@ -60,7 +67,7 @@ export function iconChild(
     hasSpread: false,
     hasRef: false,
     hasChildren: true,
-    soleChild: inner,
+    soleChild: i,
   }).conversion;
   return {
     tag: 'span',
@@ -69,7 +76,7 @@ export function iconChild(
     hasSpread: false,
     isEmpty: false,
     ...(becomes && { becomes }),
-    soleChild: inner,
+    soleChild: i,
   };
 }
 
