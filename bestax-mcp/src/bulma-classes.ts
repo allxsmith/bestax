@@ -567,28 +567,17 @@ export function lookupClasses(
       { value: write.value ?? true, token: root ?? '' },
     ])
   );
-  // A class that converts only beside another goes first, and takes that one
-  // with it: the value it writes renders both (`hasAddons="centered"`).
-  for (const token of tokens) {
-    const modifier = own(entry.modifiers, token);
-    const other = modifier?.beside;
-    if (!other || !tokens.includes(other) || verdicts.has(other)) continue;
-    if (modifier!.writes.some(write => writes.has(write.prop))) continue;
-    for (const write of modifier!.writes) {
-      writes.set(write.prop, { value: write.value ?? true, token });
-    }
-    verdicts.set(token, {
-      kind: 'prop',
-      writes: modifier!.writes,
-      condition: `beside \`${other}\`, which it renders too`,
-    });
-    verdicts.set(other, {
-      kind: 'rendered',
-      target: target!,
-      condition: `from ${modifier!.writes.map(writeText).join(' ')}, which \`${token}\` sets`,
-    });
-  }
-  for (const token of tokens) {
+  // A class that converts only beside another (`has-addons-centered`) goes
+  // first, as in the planner, so the value it writes takes the prop ahead of
+  // that one's flag and renders both classes. On its own it stays a class.
+  const withBase = (token: string) => {
+    const base = own(entry.modifiers, token)?.beside;
+    return base !== undefined && tokens.includes(base);
+  };
+  for (const token of [
+    ...tokens.filter(withBase),
+    ...tokens.filter(token => !withBase(token)),
+  ]) {
     if (token === root) {
       verdicts.set(token, { kind: 'component', target: target! });
       continue;
@@ -596,14 +585,10 @@ export function lookupClasses(
     if (verdicts.has(token)) continue;
     const modifier = own(entry.modifiers, token);
     if (modifier) {
-      // Beside its class it went first, unless another value took the prop.
-      if (modifier.beside) {
-        const taken = modifier.writes.find(write => writes.has(write.prop));
+      if (modifier.beside && !withBase(token)) {
         stays(
           token,
-          taken && tokens.includes(modifier.beside)
-            ? `\`${taken.prop}\` is already set by \`${writes.get(taken.prop)!.token}\``
-            : `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
+          `${modifier.writes.map(writeText).join(' ')} renders \`${modifier.beside}\` too, so it converts only beside that class`
         );
         continue;
       }
@@ -625,22 +610,31 @@ export function lookupClasses(
       for (const write of modifier.writes) {
         writes.set(write.prop, { value: write.value ?? true, token });
       }
+      if (modifier.beside) {
+        verdicts.set(modifier.beside, {
+          kind: 'rendered',
+          target: target!,
+          condition: `from ${modifier.writes.map(writeText).join(' ')}, which \`${token}\` sets`,
+        });
+      }
       // A class the component renders from an attribute of the element
       // inside (`is-multiple` beside a `<select multiple>`).
       const paired = Object.entries(entry.absorbs?.pairs ?? {}).find(
         ([, pairedToken]) => pairedToken === token
       )?.[0];
+      const conditions = [
+        modifier.tagIn && !tag && `exact only on ${listTags(modifier.tagIn)}`,
+        paired &&
+          `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`,
+        modifier.needsAttr &&
+          `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`,
+        modifier.beside &&
+          `beside \`${modifier.beside}\`, which it renders too`,
+      ].filter(Boolean);
       verdicts.set(token, {
         kind: 'prop',
         writes: modifier.writes,
-        condition:
-          modifier.tagIn && !tag
-            ? `exact only on ${listTags(modifier.tagIn)}`
-            : paired
-              ? `with a bare \`${paired}\` on the <${entry.absorbs!.tag}> inside, which it renders`
-              : modifier.needsAttr
-                ? `beside an \`${modifier.needsAttr.name}\` of the element's own, since the prop renders \`${modifier.needsAttr.name}="${modifier.needsAttr.value}"\` otherwise; without one it stays a class`
-                : undefined,
+        condition: conditions.length > 0 ? conditions.join('; ') : undefined,
       });
       continue;
     }

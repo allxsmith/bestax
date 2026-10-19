@@ -4,7 +4,8 @@
  * of the passthrough patterns, since those reach past the stylesheet, so a v1
  * class read wrongly there would lose its group's note. These hold the order:
  * no v1 class reads as missing from v1 or as removed, every one a passthrough
- * group matches gets that group's note, and every removed one says so.
+ * group matches gets that group's note, and every removed one says so. Last,
+ * a layout class beside its base meets the same gates as any other modifier.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -60,5 +61,49 @@ describe('the note on a class nothing converts', () => {
           : expect.stringContaining(REMOVED)
       );
     }
+  });
+});
+
+describe('a layout class beside its base, behind every modifier gate', () => {
+  // No entry carries `tagIn` or `needsAttr` beside `beside` yet, so a copy of
+  // the table is given two that do.
+  const lent: BulmaClassTable = structuredClone(table);
+  Object.assign(lent.roots.field.modifiers, {
+    'test-on-p': {
+      writes: [{ prop: 'hasAddons', value: 'right' }],
+      beside: 'has-addons',
+      tagIn: ['p'],
+    },
+    'test-needs': {
+      writes: [{ prop: 'hasAddons', value: 'centered' }],
+      beside: 'has-addons',
+      needsAttr: { name: 'data-test', value: 'x' },
+    },
+  });
+  const row = (classes: string, token: string) =>
+    lookupClasses(lent, classes, 'div').rows.find(
+      found => found.token === token
+    )!.verdict;
+
+  it('stays a class off its tags, and leaves its base to its own flag', () => {
+    expect(row('field has-addons test-on-p', 'test-on-p')).toEqual({
+      kind: 'class',
+      why: 'bestax `Field` renders it exactly only on <p>',
+    });
+    expect(row('field has-addons test-on-p', 'has-addons')).toEqual({
+      kind: 'prop',
+      writes: [{ prop: 'hasAddons' }],
+    });
+  });
+
+  it('names the attribute it needs as well as its base', () => {
+    const verdict = row('field has-addons test-needs', 'test-needs');
+    expect(verdict).toMatchObject({
+      kind: 'prop',
+      writes: [{ prop: 'hasAddons', value: 'centered' }],
+    });
+    const { condition } = verdict as { condition: string };
+    expect(condition).toContain('beside an `data-test` of the element');
+    expect(condition).toContain('beside `has-addons`, which it renders too');
   });
 });
