@@ -40,4 +40,83 @@
     border-top-color: Canvas !important;
     border-right-color: Canvas !important;
   }
+
+  // Bulma hides a loading button's label with a transparent text color, and
+  // Chrome's forced colors paints that in the theme's text color, so the
+  // label would show through the spinner. With forcing off on the button,
+  // the label stays transparent, and the button names its own colors, all of
+  // them system ones the theme picks. They're the ones the browser gives the
+  // element when it's idle, so it doesn't change look when it starts
+  // loading: the page's own colors for most elements, a button's for a
+  // `<button>`, a link's for a link, and no surface for a variant that has
+  // none, as below. Forcing off reaches everything inside too, where
+  // anything could keep a color of its own, so the button's children are
+  // hidden outright. It also stops the browser recoloring the border to show
+  // focus, so a focused one gets an outline.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    forced-color-adjust: none;
+    background-color: Canvas !important;
+    border-color: CanvasText !important;
+    color: transparent !important;
+
+    > * {
+      opacity: 0 !important;
+    }
+
+    &:focus-visible {
+      outline: 2px solid CanvasText;
+      outline-offset: 2px;
+    }
+
+    // The ring stays out of forcing with the button, so it's drawn in the
+    // button's own border color, and its open sides are transparent onto the
+    // button's surface rather than the rule above's Canvas, which can be a
+    // different color from the surface. Left to forcing, Firefox drew it in
+    // the label's transparent color.
+    &::after {
+      border-color: inherit !important;
+      border-top-color: transparent !important;
+      border-right-color: transparent !important;
+    }
+  }
+
+  button.#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    background-color: ButtonFace !important;
+    border-color: ButtonText !important;
+
+    &:focus-visible {
+      outline-color: ButtonText;
+    }
+  }
+
+  a[href].#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading {
+    border-color: LinkText !important;
+
+    &:focus-visible {
+      outline-color: LinkText;
+    }
+  }
+
+  // A variant with no surface of its own shows the page through it, so its
+  // border, and the ring drawn in it, take the page's text color, even on a
+  // `<button>`: `ButtonText` is only promised to read against `ButtonFace`.
+  // A link keeps `LinkText`, which the theme sets against the page.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-ghost.#{iv.$class-prefix}is-loading,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-text.#{iv.$class-prefix}is-loading,
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-outlined.#{iv.$class-prefix}is-loading {
+    background-color: transparent !important;
+    border-color: CanvasText !important;
+
+    &:focus-visible {
+      outline-color: CanvasText;
+    }
+  }
+
+  // Forcing off also drops the gray the browser gives a disabled control, so
+  // a disabled one names it, which `:disabled` matches inside a disabled
+  // `<fieldset>` too. It can't take focus, so it needs no outline, and it
+  // comes last to win over the variants above, which it ties with.
+  .#{iv.$class-prefix}button.#{iv.$class-prefix}is-loading:disabled {
+    border-color: GrayText !important;
+  }
 }
