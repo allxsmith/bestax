@@ -200,10 +200,18 @@ export interface TreeViewItemProps extends Omit<
    * Its children didn't load. While it's open, its group ends in a row with
    * this message, and a Retry button when there's an `onRetry`, and the live
    * region reads the message out, so name the item in it ("Couldn't load
-   * src"). `isLoading` wins while both are given.
+   * src"), then says it's loaded once this goes with the item still open. A
+   * parent only, like `isLoading`. Nothing in it should be a link or a
+   * button: the row is what's pressed. `isLoading` wins while both are given.
    */
   loadError?: React.ReactNode;
-  /** Called by the Retry button on a failed load's row, and by Enter or Space there. */
+  /**
+   * Called by the Retry button on a failed load's row, and by Enter or Space
+   * there. Set `isLoading` while the retry runs, so the live region says it's
+   * loading, and reads the message out again if it fails again. The same
+   * message passed a second time with no loading between is no change the
+   * tree can see.
+   */
   onRetry?: () => void;
   /**
    * Reachable with the arrow keys, Home, End and type-ahead, so a screen
@@ -411,9 +419,9 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
     const statusLabelRef = useRef<HTMLSpanElement | null>(null);
 
     // What the live region says follows the row: it's loading, or it failed,
-    // while the row says so, and it's loaded once a loading row goes with
-    // the item still open, until the item closes or loads again. A closed
-    // item says nothing, loading or not.
+    // while the row says so, and it's loaded once the row goes with the item
+    // still open, whichever row it was, until the item closes or loads again.
+    // A closed item says nothing, loading or not.
     const phase = shown ? (status ?? 'open') : 'closed';
     const lastPhaseRef = useRef(phase);
     const announce = tree?.announce;
@@ -423,7 +431,7 @@ export const TreeViewItem = forwardRef<HTMLLIElement, TreeViewItemProps>(
       const kind =
         phase === 'loading' || phase === 'error'
           ? phase
-          : phase === 'open' && was === 'loading'
+          : phase === 'open' && (was === 'loading' || was === 'error')
             ? 'loaded'
             : null;
       if (!kind) return undefined;
@@ -679,8 +687,15 @@ function StatusRow({
       aria-disabled={!retry || undefined}
       tabIndex={tree.tabStop === labelId ? 0 : -1}
       onKeyDown={event => tree.onKeyDown(event, info)}
-      onFocus={event => tree.onFocus(labelId, event.currentTarget)}
-      onBlur={tree.onBlur}
+      onFocus={event => {
+        // Focus in something the message holds isn't the row's.
+        if (event.target === event.currentTarget) {
+          tree.onFocus(labelId, event.currentTarget);
+        }
+      }}
+      onBlur={event => {
+        if (event.target === event.currentTarget) tree.onBlur();
+      }}
       onClick={event => tree.onClick(event.currentTarget, info, false)}
     >
       <div className={rowClass}>

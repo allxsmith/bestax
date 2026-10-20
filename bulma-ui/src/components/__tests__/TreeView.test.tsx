@@ -1670,6 +1670,33 @@ describe('TreeView', () => {
         );
         expect(item(`${FAILED} Réessayer`)).toBeInTheDocument();
       });
+
+      it('leaves the stop alone when something in the message takes focus', () => {
+        render(
+          <>
+            <Folders
+              defaultExpanded={['src']}
+              src={{
+                loadError: (
+                  <>
+                    {FAILED} <a href="#status">Status</a>
+                  </>
+                ),
+                onRetry: jest.fn(),
+              }}
+            />
+            <button>After</button>
+          </>
+        );
+        const link = screen.getByRole('link', { name: 'Status' });
+        act(() => link.focus());
+        expect(stops()).toEqual(['src']);
+        act(() => screen.getByRole('button', { name: 'After' }).focus());
+        expect(stops()).toEqual(['src']);
+        // The row's own focus still counts.
+        focus(`${FAILED} Status Retry`);
+        expect(stops()).toEqual([`${FAILED} Status`]);
+      });
     });
 
     it('never counts the rows in a checkbox tree’s boxes or the lists it reports', () => {
@@ -1839,6 +1866,37 @@ describe('TreeView', () => {
         rerender(<Folders src={{}} />);
         advance(announceDelay);
         expect(said()).toEqual(['Loading src', 'src loaded']);
+      });
+
+      it('reads a second failure out again when the retry loads in between', () => {
+        const { rerender } = render(
+          <Folders defaultExpanded={['src']} src={{ loadError: FAILED }} />
+        );
+        advance(announceDelay + announcementLifetime);
+        rerender(<Folders src={{ isLoading: true, loadError: FAILED }} />);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src']);
+        rerender(<Folders src={{ loadError: FAILED }} />);
+        advance(announceDelay);
+        expect(said()).toEqual(['Loading src', FAILED]);
+      });
+
+      it('says it’s loaded when a failed load’s row goes, with no loading in between', () => {
+        const { rerender } = render(
+          <Folders defaultExpanded={['src']} src={{ loadError: FAILED }} />
+        );
+        advance(announceDelay + announcementLifetime);
+        // The same message again is no change the tree can see.
+        rerender(<Folders src={{ loadError: FAILED }} />);
+        advance(announceDelay);
+        expect(said()).toEqual([]);
+        rerender(
+          <Folders
+            src={{ children: <TreeView.Item value="a" label="a.ts" /> }}
+          />
+        );
+        advance(announceDelay);
+        expect(said()).toEqual(['src loaded']);
       });
 
       it('says nothing for an item in a closed branch until the branch opens', () => {
